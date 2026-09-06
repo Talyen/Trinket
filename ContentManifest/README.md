@@ -108,7 +108,7 @@ id	name	role	max_health	max_mana	basics	skills	ultimates
 
 - `role`: `hero` or `companion`.
 - `max_mana`: `0` when unused; combatants with `max_mana > 0` gain +1 Mana every two levels.
-- `basics` / `skills` / `ultimates`: comma-separated ability symbols (two choices per tier).
+- `basics` / `skills` / `ultimates`: comma-separated ability symbols (four choices per tier).
 - Player leveling is +1 HP per level above 1; authored `max_health`/`max_mana` are level-1 values.
 
 ### Enemies (`ContentManifest/enemies.tsv`)

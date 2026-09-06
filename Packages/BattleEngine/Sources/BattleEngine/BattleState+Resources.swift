@@ -177,17 +177,16 @@ package extension BattleState {
         source: Combatant,
         abilityName: String,
         keyword: Keyword = .health,
+        isDirectCardHeal: Bool = false,
     ) -> [ActionEvent] {
-        let outcome = HealingEngine.resolveHeal(
-            HealRequest(
-                amount: amount,
-                target: target,
-                sourceActorID: source.id,
-                logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword),
-            ),
-            in: &self,
+        var request = HealRequest(
+            amount: amount,
+            target: target,
+            sourceActorID: source.id,
+            logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword),
         )
-        return outcome.events
+        request.isDirectCardHeal = isDirectCardHeal
+        return HealingEngine.resolveHeal(request, in: &self).events
     }
 
     @discardableResult
@@ -244,6 +243,9 @@ public extension BattleTurnEngine {
                 amountSpent: spent,
                 in: &context,
             ))
+        }
+        if purchases > 0 {
+            events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context))
         }
         if purchases > 0, let empoweredKeyword {
             events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(

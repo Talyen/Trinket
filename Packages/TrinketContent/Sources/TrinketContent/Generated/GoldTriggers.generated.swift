@@ -25,6 +25,13 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var goldDoubledWhileFullHealth: Bool = false
     public var onGainGoldDoubleStatusEffectsNextCard: Bool = false
     public var bountyBlade: Bool = false
+    public var consolationPrize: Bool = false
+    public var houseCredit: Bool = false
+    public var fullHouse: Bool = false
+    public var luckyCharm: Bool = false
+    public var lastWager: Bool = false
+    public var sleightOfCoin: Bool = false
+    public var luckyBreak: Bool = false
 
     public init(
         gainGoldBonusHealSelf: Int = 0,
@@ -47,7 +54,14 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         goldAbsorbsDamage: Bool = false,
         goldDoubledWhileFullHealth: Bool = false,
         onGainGoldDoubleStatusEffectsNextCard: Bool = false,
-        bountyBlade: Bool = false
+        bountyBlade: Bool = false,
+        consolationPrize: Bool = false,
+        houseCredit: Bool = false,
+        fullHouse: Bool = false,
+        luckyCharm: Bool = false,
+        lastWager: Bool = false,
+        sleightOfCoin: Bool = false,
+        luckyBreak: Bool = false
     ) {
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
         self.defeatEnemyGoldFlat = defeatEnemyGoldFlat
@@ -70,10 +84,17 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.goldDoubledWhileFullHealth = goldDoubledWhileFullHealth
         self.onGainGoldDoubleStatusEffectsNextCard = onGainGoldDoubleStatusEffectsNextCard
         self.bountyBlade = bountyBlade
+        self.consolationPrize = consolationPrize
+        self.houseCredit = houseCredit
+        self.fullHouse = fullHouse
+        self.luckyCharm = luckyCharm
+        self.lastWager = lastWager
+        self.sleightOfCoin = sleightOfCoin
+        self.luckyBreak = luckyBreak
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["gainGoldBonusHealSelf", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldDrawCardOncePerTurn", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade"]
+    public static let fieldNames: [String] = ["gainGoldBonusHealSelf", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldDrawCardOncePerTurn", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -99,6 +120,13 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.goldDoubledWhileFullHealth != other.goldDoubledWhileFullHealth { names.append("goldDoubledWhileFullHealth") }
         if self.onGainGoldDoubleStatusEffectsNextCard != other.onGainGoldDoubleStatusEffectsNextCard { names.append("onGainGoldDoubleStatusEffectsNextCard") }
         if self.bountyBlade != other.bountyBlade { names.append("bountyBlade") }
+        if self.consolationPrize != other.consolationPrize { names.append("consolationPrize") }
+        if self.houseCredit != other.houseCredit { names.append("houseCredit") }
+        if self.fullHouse != other.fullHouse { names.append("fullHouse") }
+        if self.luckyCharm != other.luckyCharm { names.append("luckyCharm") }
+        if self.lastWager != other.lastWager { names.append("lastWager") }
+        if self.sleightOfCoin != other.sleightOfCoin { names.append("sleightOfCoin") }
+        if self.luckyBreak != other.luckyBreak { names.append("luckyBreak") }
         return names
     }
 }
@@ -126,6 +154,13 @@ extension GoldTriggers {
         goldDoubledWhileFullHealth = goldDoubledWhileFullHealth || other.goldDoubledWhileFullHealth
         onGainGoldDoubleStatusEffectsNextCard = onGainGoldDoubleStatusEffectsNextCard || other.onGainGoldDoubleStatusEffectsNextCard
         bountyBlade = bountyBlade || other.bountyBlade
+        consolationPrize = consolationPrize || other.consolationPrize
+        houseCredit = houseCredit || other.houseCredit
+        fullHouse = fullHouse || other.fullHouse
+        luckyCharm = luckyCharm || other.luckyCharm
+        lastWager = lastWager || other.lastWager
+        sleightOfCoin = sleightOfCoin || other.sleightOfCoin
+        luckyBreak = luckyBreak || other.luckyBreak
     }
 }
 
@@ -153,7 +188,14 @@ extension GoldTriggers {
             goldAbsorbsDamage: values.decode(Bool.self, "goldAbsorbsDamage", default: false),
             goldDoubledWhileFullHealth: values.decode(Bool.self, "goldDoubledWhileFullHealth", default: false),
             onGainGoldDoubleStatusEffectsNextCard: values.decode(Bool.self, "onGainGoldDoubleStatusEffectsNextCard", default: false),
-            bountyBlade: values.decode(Bool.self, "bountyBlade", default: false)
+            bountyBlade: values.decode(Bool.self, "bountyBlade", default: false),
+            consolationPrize: values.decode(Bool.self, "consolationPrize", default: false),
+            houseCredit: values.decode(Bool.self, "houseCredit", default: false),
+            fullHouse: values.decode(Bool.self, "fullHouse", default: false),
+            luckyCharm: values.decode(Bool.self, "luckyCharm", default: false),
+            lastWager: values.decode(Bool.self, "lastWager", default: false),
+            sleightOfCoin: values.decode(Bool.self, "sleightOfCoin", default: false),
+            luckyBreak: values.decode(Bool.self, "luckyBreak", default: false)
         )
     }
 
@@ -179,5 +221,12 @@ extension GoldTriggers {
         try container.encodeNonDefault(goldDoubledWhileFullHealth, "goldDoubledWhileFullHealth", default: false)
         try container.encodeNonDefault(onGainGoldDoubleStatusEffectsNextCard, "onGainGoldDoubleStatusEffectsNextCard", default: false)
         try container.encodeNonDefault(bountyBlade, "bountyBlade", default: false)
+        try container.encodeNonDefault(consolationPrize, "consolationPrize", default: false)
+        try container.encodeNonDefault(houseCredit, "houseCredit", default: false)
+        try container.encodeNonDefault(fullHouse, "fullHouse", default: false)
+        try container.encodeNonDefault(luckyCharm, "luckyCharm", default: false)
+        try container.encodeNonDefault(lastWager, "lastWager", default: false)
+        try container.encodeNonDefault(sleightOfCoin, "sleightOfCoin", default: false)
+        try container.encodeNonDefault(luckyBreak, "luckyBreak", default: false)
     }
 }

@@ -100,7 +100,9 @@ enum CleanseEventBuilder {
         for item in removed {
             countsByKeyword[item.keyword, default: 0] += 1
         }
-        var events: [ActionEvent] = []
+        var events = CombatTriggerEngine.afterHeroCleanse(
+            source: source, target: target, removed: removed.map(\.keyword), in: &context,
+        )
         for (keyword, _) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
             events.append(context.nextEvent(
                 kind: .effect,
@@ -118,6 +120,7 @@ enum CleanseEventBuilder {
                 target: healTarget,
                 source: source,
                 abilityName: abilityName,
+                isDirectCardHeal: context.hasHeroCard(for: source.id),
             ))
         }
         events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(source: source, target: target, in: &context).events)

@@ -54,6 +54,8 @@ package struct DamageResolutionState {
 
     public var damageEvents: [ActionEvent] = []
 
+    var heroCardBlockIgnore = 0
+    var heroCardBlockBroken = false
     public var blockedAmount: Int = 0
 
     public var targetStatus = DamageTargetStatus()

@@ -753,6 +753,456 @@ public extension CombatantTalentCatalog {
             )
     ]
 
+    static let alchemistTalents: [String: CombatantTalentEffect] = [
+            "alchemist_poison_t1_1": CombatantTalentEffect(
+                name: "Reactive Coating",
+                symbolName: "drop.fill",
+                description: "Your first Poison card each turn grants 1 Thorns.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(reactiveCoating: true))
+            ),
+            "alchemist_poison_t1_2": CombatantTalentEffect(
+                name: "Safe Handling",
+                symbolName: "drop.fill",
+                description: "Your first Poison card each turn removes 1 Burn from you.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(safeHandling: true))
+            ),
+            "alchemist_poison_t2_1": CombatantTalentEffect(
+                name: "Reactive Sediment",
+                symbolName: "drop.fill",
+                description: "A Poison card immediately following your Burn card deals 1 additional Poison damage, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(reactiveSediment: true))
+            ),
+            "alchemist_poison_t2_2": CombatantTalentEffect(
+                name: "Spent Reagents",
+                symbolName: "drop.fill",
+                description: "When your Poison expires naturally, restore 1 Mana, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(spentReagents: true))
+            ),
+            "alchemist_poison_t3_1": CombatantTalentEffect(
+                name: "Dissolving Fumes",
+                symbolName: "drop.fill",
+                description: "Your first Poison card each turn removes 1 Thorns from the enemy.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(dissolvingFumes: true))
+            ),
+            "alchemist_poison_t3_2": CombatantTalentEffect(
+                name: "Unstable Culture",
+                symbolName: "drop.fill",
+                description: "Your first Poison card each turn has a 25% chance to deal 1 Burn damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(unstableCulture: true))
+            ),
+            "alchemist_poison_t4_1": CombatantTalentEffect(
+                name: "Sealed Vial",
+                symbolName: "drop.fill",
+                description: "At turn end, remove 1 Poison from yourself if the enemy is Poisoned.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(sealedVial: true))
+            ),
+            "alchemist_cleanse_t1_1": CombatantTalentEffect(
+                name: "Clear Solution",
+                symbolName: "sparkles",
+                description: "A Cleanse card that removes no debuffs restores 1 Mana to you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(clearSolution: true))
+            ),
+            "alchemist_cleanse_t1_2": CombatantTalentEffect(
+                name: "Fresh Batch",
+                symbolName: "sparkles",
+                description: "Your first Cleanse card each turn removes 1 Thorns from the enemy.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(freshBatch: true))
+            ),
+            "alchemist_cleanse_t2_1": CombatantTalentEffect(
+                name: "Heat Recovery",
+                symbolName: "sparkles",
+                description: "Cleansing Burn restores 1 Mana to the cleansed ally, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(heatRecovery: true))
+            ),
+            "alchemist_cleanse_t2_2": CombatantTalentEffect(
+                name: "Antitoxin Coating",
+                symbolName: "sparkles",
+                description: "Cleansing Poison grants the cleansed ally 1 Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(antitoxinCoating: true))
+            ),
+            "alchemist_cleanse_t3_1": CombatantTalentEffect(
+                name: "Clear Mind",
+                symbolName: "sparkles",
+                description: "Your first Cleanse of each Mana-using ally grants them 1 Max Mana this battle.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(clearMind: true))
+            ),
+            "alchemist_cleanse_t3_2": CombatantTalentEffect(
+                name: "Clean Break",
+                symbolName: "sparkles",
+                description: "Removing an ally’s last debuff lets their next attack ignore 1 Block, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanBreak: true))
+            ),
+            "alchemist_cleanse_t4_1": CombatantTalentEffect(
+                name: "Perfect Purity",
+                symbolName: "sparkles",
+                description: "While both allies have no debuffs, the enemy’s first Block gain each turn is reduced by 1.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(perfectPurity: true))
+            ),
+            "alchemist_health_t1_1": CombatantTalentEffect(
+                name: "Fortifying Tonic",
+                symbolName: "heart.fill",
+                description: "Healing a Poisoned ally restores 1 additional Health, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(fortifyingTonic: true))
+            ),
+            "alchemist_health_t1_2": CombatantTalentEffect(
+                name: "Measured Dose",
+                symbolName: "heart.fill",
+                description: "Restoring Mana with a card adds 1 Health to your next healing card, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(measuredDose: true))
+            ),
+            "alchemist_health_t2_1": CombatantTalentEffect(
+                name: "Cooling Salve",
+                symbolName: "heart.fill",
+                description: "Your first successful healing card each turn removes 1 Burn from you.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(coolingSalve: true))
+            ),
+            "alchemist_health_t2_2": CombatantTalentEffect(
+                name: "Reclaimed Reagents",
+                symbolName: "heart.fill",
+                description: "Your first overheal each battle restores 1 Mana to the healed ally.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(reclaimedReagents: true))
+            ),
+            "alchemist_health_t3_1": CombatantTalentEffect(
+                name: "Shared Prescription",
+                symbolName: "heart.fill",
+                description: "Your Companion restoring Health with a card removes 1 Poison from you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(sharedPrescription: true))
+            ),
+            "alchemist_health_t3_2": CombatantTalentEffect(
+                name: "Restorative Fumes",
+                symbolName: "heart.fill",
+                description: "Your first Basic that restores Health each turn removes 1 Block from the enemy.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(restorativeFumes: true))
+            ),
+            "alchemist_health_t4_1": CombatantTalentEffect(
+                name: "Masterwork Mixture",
+                symbolName: "heart.fill",
+                description: "Playing both Poison and healing cards in a turn restores 1 Health to both allies at turn end.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(masterworkMixture: true))
+            )
+    ]
+
+    static let druidTalents: [String: CombatantTalentEffect] = [
+            "druid_health_t1_1": CombatantTalentEffect(
+                name: "Spring Sap",
+                symbolName: "heart.fill",
+                description: "Healing an ally with Thorns restores 1 additional Health, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(springSap: true))
+            ),
+            "druid_health_t1_2": CombatantTalentEffect(
+                name: "Pruning Touch",
+                symbolName: "heart.fill",
+                description: "Your Companion’s first successful healing card each turn removes 1 Thorns from the enemy.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(pruningTouch: true))
+            ),
+            "druid_health_t2_1": CombatantTalentEffect(
+                name: "Quiet Grove",
+                symbolName: "heart.fill",
+                description: "After an enemy turn in which you lost no Health, restore 1 Health to your Companion.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(quietGrove: true))
+            ),
+            "druid_health_t2_2": CombatantTalentEffect(
+                name: "Shelter Seed",
+                symbolName: "heart.fill",
+                description: "The first time you fall below half Health each battle, grant your Companion 1 Thorns.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(shelterSeed: true))
+            ),
+            "druid_health_t3_1": CombatantTalentEffect(
+                name: "Cleansing Dew",
+                symbolName: "heart.fill",
+                description: "Your first successful heal each turn removes 1 Poison from the healed ally.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(cleansingDew: true))
+            ),
+            "druid_health_t3_2": CombatantTalentEffect(
+                name: "Shared Roots",
+                symbolName: "heart.fill",
+                description: "Healing your Companion removes 1 Burn from you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(sharedRoots: true))
+            ),
+            "druid_health_t4_1": CombatantTalentEffect(
+                name: "Verdant Shelter",
+                symbolName: "heart.fill",
+                description: "Your first successful heal each turn grants the healed ally 1 Thorns.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(verdantShelter: true))
+            ),
+            "druid_poison_t1_1": CombatantTalentEffect(
+                name: "Barbed Spores",
+                symbolName: "drop.fill",
+                description: "Your Poison dealing Health damage grants your Companion 1 Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(barbedSpores: true))
+            ),
+            "druid_poison_t1_2": CombatantTalentEffect(
+                name: "Living Bark",
+                symbolName: "drop.fill",
+                description: "Poison cards grant you 1 Block while you have Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(livingBark: true))
+            ),
+            "druid_poison_t2_1": CombatantTalentEffect(
+                name: "Cool Moss",
+                symbolName: "drop.fill",
+                description: "Your first Poison card each turn removes 1 Burn from your Companion.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(coolMoss: true))
+            ),
+            "druid_poison_t2_2": CombatantTalentEffect(
+                name: "Returning Bloom",
+                symbolName: "drop.fill",
+                description: "Your Poison expiring naturally restores 1 Health to your Companion, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(returningBloom: true))
+            ),
+            "druid_poison_t3_1": CombatantTalentEffect(
+                name: "Root Passage",
+                symbolName: "drop.fill",
+                description: "Your Poison cards ignore 1 Block while your Companion has Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(rootPassage: true))
+            ),
+            "druid_poison_t3_2": CombatantTalentEffect(
+                name: "Entangling Growth",
+                symbolName: "drop.fill",
+                description: "Your Poison cards deal 1 additional Poison damage after your Companion plays a Stun card that turn, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(entanglingGrowth: true))
+            ),
+            "druid_poison_t4_1": CombatantTalentEffect(
+                name: "Thorn Shedding",
+                symbolName: "drop.fill",
+                description: "Gaining Thorns from a card removes 1 Poison from you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(thornShedding: true))
+            ),
+            "druid_mana_t1_1": CombatantTalentEffect(
+                name: "First Bloom",
+                symbolName: "flame.fill",
+                description: "A Mana-restoring card immediately following your Poison card restores 1 Mana to your Companion, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(firstBloom: true))
+            ),
+            "druid_mana_t1_2": CombatantTalentEffect(
+                name: "Barkweave",
+                symbolName: "flame.fill",
+                description: "Your first Mana empowerment each turn removes 1 Thorns from the enemy.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(barkweave: true))
+            ),
+            "druid_mana_t2_1": CombatantTalentEffect(
+                name: "Grove Reserve",
+                symbolName: "flame.fill",
+                description: "Ending a turn with less Mana than you started grants your Companion 1 Block at the next turn’s start.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(groveReserve: true))
+            ),
+            "druid_mana_t2_2": CombatantTalentEffect(
+                name: "Living Conduit",
+                symbolName: "flame.fill",
+                description: "Restoring Mana with a card grants your Companion 1 Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(livingConduit: true))
+            ),
+            "druid_mana_t3_1": CombatantTalentEffect(
+                name: "Shared Current",
+                symbolName: "flame.fill",
+                description: "Your Companion spending Mana removes 1 Poison from you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(sharedCurrent: true))
+            ),
+            "druid_mana_t3_2": CombatantTalentEffect(
+                name: "Deep Roots",
+                symbolName: "flame.fill",
+                description: "Your Mana-restoring cards restore 1 additional Mana while you have Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(deepRoots: true))
+            ),
+            "druid_mana_t4_1": CombatantTalentEffect(
+                name: "Grove Accord",
+                symbolName: "flame.fill",
+                description: "Both allies spending Mana in the same turn grants each 1 Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(groveAccord: true))
+            )
+    ]
+
+    static let wildcardTalents: [String: CombatantTalentEffect] = [
+            "wildcard_gold_t1_1": CombatantTalentEffect(
+                name: "Consolation Prize",
+                symbolName: "suit.diamond.fill",
+                description: "Your first non-damaging random card outcome each turn grants 1 Gold.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(gold: GoldTriggers(consolationPrize: true))
+            ),
+            "wildcard_gold_t1_2": CombatantTalentEffect(
+                name: "House Credit",
+                symbolName: "suit.diamond.fill",
+                description: "A random damage outcome adds 1 Gold to your next card that grants Gold, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(gold: GoldTriggers(houseCredit: true))
+            ),
+            "wildcard_gold_t2_1": CombatantTalentEffect(
+                name: "Full House",
+                symbolName: "suit.diamond.fill",
+                description: "Playing a Basic, Skill, and Ultimate in one turn grants 1 Gold.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(gold: GoldTriggers(fullHouse: true))
+            ),
+            "wildcard_gold_t2_2": CombatantTalentEffect(
+                name: "Lucky Charm",
+                symbolName: "suit.diamond.fill",
+                description: "Your first card that grants Gold each turn removes 1 Poison from you.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(gold: GoldTriggers(luckyCharm: true))
+            ),
+            "wildcard_gold_t3_1": CombatantTalentEffect(
+                name: "Last Wager",
+                symbolName: "suit.diamond.fill",
+                description: "Gain 1 Thorns at turn end if your last card granted Gold.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(gold: GoldTriggers(lastWager: true))
+            ),
+            "wildcard_gold_t3_2": CombatantTalentEffect(
+                name: "Sleight of Coin",
+                symbolName: "suit.diamond.fill",
+                description: "After Dodging, your next card that grants Gold removes 1 Thorns from the enemy, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(gold: GoldTriggers(sleightOfCoin: true))
+            ),
+            "wildcard_gold_t4_1": CombatantTalentEffect(
+                name: "Lucky Break",
+                symbolName: "suit.diamond.fill",
+                description: "Your first Skill each turn randomly grants 1 Gold, 1 Block, or 1 Health. Skip unneeded healing.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(gold: GoldTriggers(luckyBreak: true))
+            ),
+            "wildcard_dodge_t1_1": CombatantTalentEffect(
+                name: "False Opening",
+                symbolName: "wind",
+                description: "A non-damaging random card outcome grants 5% Dodge until your next turn, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(falseOpening: true))
+            ),
+            "wildcard_dodge_t1_2": CombatantTalentEffect(
+                name: "Missed Opportunity",
+                symbolName: "wind",
+                description: "When an enemy fully Blocks your attack, gain 1 Block, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(missedOpportunity: true))
+            ),
+            "wildcard_dodge_t2_1": CombatantTalentEffect(
+                name: "Passing Luck",
+                symbolName: "wind",
+                description: "Dodging restores 1 Health to your Companion, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(passingLuck: true))
+            ),
+            "wildcard_dodge_t2_2": CombatantTalentEffect(
+                name: "Scattered Caltrops",
+                symbolName: "wind",
+                description: "Your Companion Dodging grants you 1 Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(scatteredCaltrops: true))
+            ),
+            "wildcard_dodge_t3_1": CombatantTalentEffect(
+                name: "Smoke Trick",
+                symbolName: "wind",
+                description: "Your first Critical Hit each turn removes 1 Burn from you.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(smokeTrick: true))
+            ),
+            "wildcard_dodge_t3_2": CombatantTalentEffect(
+                name: "Improving Odds",
+                symbolName: "wind",
+                description: "Each round without Dodging grants 1% Dodge, up to 5% this battle.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(improvingOdds: true))
+            ),
+            "wildcard_dodge_t4_1": CombatantTalentEffect(
+                name: "Blind Spot",
+                symbolName: "wind",
+                description: "Your first Dodge each turn removes 1 Block from the enemy.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(blindSpot: true))
+            ),
+            "wildcard_physical_t1_1": CombatantTalentEffect(
+                name: "Prismatic Edge",
+                symbolName: "burst.fill",
+                description: "Your first Physical card each turn has a 25% chance to deal 1 Burn or Freeze damage.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(prismaticEdge: true))
+            ),
+            "wildcard_physical_t1_2": CombatantTalentEffect(
+                name: "Improvised Assault",
+                symbolName: "burst.fill",
+                description: "A non-Physical random damage outcome adds 1 Physical damage to your next Physical card, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(improvisedAssault: true))
+            ),
+            "wildcard_physical_t2_1": CombatantTalentEffect(
+                name: "Clean Cut",
+                symbolName: "burst.fill",
+                description: "Your first Physical Critical Hit each turn removes 1 Poison from you.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(cleanCut: true))
+            ),
+            "wildcard_physical_t2_2": CombatantTalentEffect(
+                name: "Cracked Guard",
+                symbolName: "burst.fill",
+                description: "Breaking enemy Block with a Physical card restores 1 Health to your Companion, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(crackedGuard: true))
+            ),
+            "wildcard_physical_t3_1": CombatantTalentEffect(
+                name: "Cold Read",
+                symbolName: "burst.fill",
+                description: "A Physical card against a Frozen enemy restores 1 Health to you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(coldRead: true))
+            ),
+            "wildcard_physical_t3_2": CombatantTalentEffect(
+                name: "Feigned Miss",
+                symbolName: "burst.fill",
+                description: "An enemy fully Blocking your Physical hit causes 1 Stun damage, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(feignedMiss: true))
+            ),
+            "wildcard_physical_t4_1": CombatantTalentEffect(
+                name: "Paid in Full",
+                symbolName: "burst.fill",
+                description: "A Physical card immediately following your card that granted Gold deals 1 additional Physical damage, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(paidInFull: true))
+            )
+    ]
+
     static let wolfTalents: [String: CombatantTalentEffect] = [
             "wolf_bleed_t1_1": CombatantTalentEffect(
                 name: "Pack Ferocity",
@@ -2607,13 +3057,16 @@ public extension CombatantTalentCatalog {
 
     static let signatureTalents: [String: CombatantTalentEffect] = {
         var combined: [String: CombatantTalentEffect] = [:]
-        combined.reserveCapacity(364)
+        combined.reserveCapacity(427)
         for group in [
             knightTalents,
             rangerTalents,
             rogueTalents,
             wizardTalents,
             warlockTalents,
+            alchemistTalents,
+            druidTalents,
+            wildcardTalents,
             wolfTalents,
             bearTalents,
             frostWhelpTalents,

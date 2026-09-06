@@ -363,3 +363,66 @@ mana_moth_burn_t4_1	Steam Explosion	burst.fill	Freeze damage detonates and consu
 mana_moth_burn_t4_2	Frostfire	flame.fill	Burn damage deals half as much Freeze damage.		frostfire:true
 frost_whelp_freeze_t4_1	Elemental Paradox	snowflake	Burning enemies take double Freeze damage.		elementalParadox:true
 warlock_burn_t4_2	Temper Cycle	flame.fill	Burn cards make the next Freeze card play twice.		temperCycle:true
+alchemist_poison_t1_1	Reactive Coating	drop.fill	Your first Poison card each turn grants 1 Thorns.		reactiveCoating:true
+alchemist_poison_t1_2	Safe Handling	drop.fill	Your first Poison card each turn removes 1 Burn from you.		safeHandling:true
+alchemist_poison_t2_1	Reactive Sediment	drop.fill	A Poison card immediately following your Burn card deals 1 additional Poison damage, once per turn.		reactiveSediment:true
+alchemist_poison_t2_2	Spent Reagents	drop.fill	When your Poison expires naturally, restore 1 Mana, once per turn.		spentReagents:true
+alchemist_poison_t3_1	Dissolving Fumes	drop.fill	Your first Poison card each turn removes 1 Thorns from the enemy.		dissolvingFumes:true
+alchemist_poison_t3_2	Unstable Culture	drop.fill	Your first Poison card each turn has a 25% chance to deal 1 Burn damage.		unstableCulture:true
+alchemist_poison_t4_1	Sealed Vial	drop.fill	At turn end, remove 1 Poison from yourself if the enemy is Poisoned.		sealedVial:true
+alchemist_cleanse_t1_1	Clear Solution	sparkles	A Cleanse card that removes no debuffs restores 1 Mana to you, once per turn.		clearSolution:true
+alchemist_cleanse_t1_2	Fresh Batch	sparkles	Your first Cleanse card each turn removes 1 Thorns from the enemy.		freshBatch:true
+alchemist_cleanse_t2_1	Heat Recovery	sparkles	Cleansing Burn restores 1 Mana to the cleansed ally, once per turn.		heatRecovery:true
+alchemist_cleanse_t2_2	Antitoxin Coating	sparkles	Cleansing Poison grants the cleansed ally 1 Thorns, once per turn.		antitoxinCoating:true
+alchemist_cleanse_t3_1	Clear Mind	sparkles	Your first Cleanse of each Mana-using ally grants them 1 Max Mana this battle.		clearMind:true
+alchemist_cleanse_t3_2	Clean Break	sparkles	Removing an ally’s last debuff lets their next attack ignore 1 Block, once per turn.		cleanBreak:true
+alchemist_cleanse_t4_1	Perfect Purity	sparkles	While both allies have no debuffs, the enemy’s first Block gain each turn is reduced by 1.		perfectPurity:true
+alchemist_health_t1_1	Fortifying Tonic	heart.fill	Healing a Poisoned ally restores 1 additional Health, once per turn.		fortifyingTonic:true
+alchemist_health_t1_2	Measured Dose	heart.fill	Restoring Mana with a card adds 1 Health to your next healing card, once per turn.		measuredDose:true
+alchemist_health_t2_1	Cooling Salve	heart.fill	Your first successful healing card each turn removes 1 Burn from you.		coolingSalve:true
+alchemist_health_t2_2	Reclaimed Reagents	heart.fill	Your first overheal each battle restores 1 Mana to the healed ally.		reclaimedReagents:true
+alchemist_health_t3_1	Shared Prescription	heart.fill	Your Companion restoring Health with a card removes 1 Poison from you, once per turn.		sharedPrescription:true
+alchemist_health_t3_2	Restorative Fumes	heart.fill	Your first Basic that restores Health each turn removes 1 Block from the enemy.		restorativeFumes:true
+alchemist_health_t4_1	Masterwork Mixture	heart.fill	Playing both Poison and healing cards in a turn restores 1 Health to both allies at turn end.		masterworkMixture:true
+druid_health_t1_1	Spring Sap	heart.fill	Healing an ally with Thorns restores 1 additional Health, once per turn.		springSap:true
+druid_health_t1_2	Pruning Touch	heart.fill	Your Companion’s first successful healing card each turn removes 1 Thorns from the enemy.		pruningTouch:true
+druid_health_t2_1	Quiet Grove	heart.fill	After an enemy turn in which you lost no Health, restore 1 Health to your Companion.		quietGrove:true
+druid_health_t2_2	Shelter Seed	heart.fill	The first time you fall below half Health each battle, grant your Companion 1 Thorns.		shelterSeed:true
+druid_health_t3_1	Cleansing Dew	heart.fill	Your first successful heal each turn removes 1 Poison from the healed ally.		cleansingDew:true
+druid_health_t3_2	Shared Roots	heart.fill	Healing your Companion removes 1 Burn from you, once per turn.		sharedRoots:true
+druid_health_t4_1	Verdant Shelter	heart.fill	Your first successful heal each turn grants the healed ally 1 Thorns.		verdantShelter:true
+druid_poison_t1_1	Barbed Spores	drop.fill	Your Poison dealing Health damage grants your Companion 1 Thorns, once per turn.		barbedSpores:true
+druid_poison_t1_2	Living Bark	drop.fill	Poison cards grant you 1 Block while you have Thorns, once per turn.		livingBark:true
+druid_poison_t2_1	Cool Moss	drop.fill	Your first Poison card each turn removes 1 Burn from your Companion.		coolMoss:true
+druid_poison_t2_2	Returning Bloom	drop.fill	Your Poison expiring naturally restores 1 Health to your Companion, once per turn.		returningBloom:true
+druid_poison_t3_1	Root Passage	drop.fill	Your Poison cards ignore 1 Block while your Companion has Thorns, once per turn.		rootPassage:true
+druid_poison_t3_2	Entangling Growth	drop.fill	Your Poison cards deal 1 additional Poison damage after your Companion plays a Stun card that turn, once per turn.		entanglingGrowth:true
+druid_poison_t4_1	Thorn Shedding	drop.fill	Gaining Thorns from a card removes 1 Poison from you, once per turn.		thornShedding:true
+druid_mana_t1_1	First Bloom	flame.fill	A Mana-restoring card immediately following your Poison card restores 1 Mana to your Companion, once per turn.		firstBloom:true
+druid_mana_t1_2	Barkweave	flame.fill	Your first Mana empowerment each turn removes 1 Thorns from the enemy.		barkweave:true
+druid_mana_t2_1	Grove Reserve	flame.fill	Ending a turn with less Mana than you started grants your Companion 1 Block at the next turn’s start.		groveReserve:true
+druid_mana_t2_2	Living Conduit	flame.fill	Restoring Mana with a card grants your Companion 1 Thorns, once per turn.		livingConduit:true
+druid_mana_t3_1	Shared Current	flame.fill	Your Companion spending Mana removes 1 Poison from you, once per turn.		sharedCurrent:true
+druid_mana_t3_2	Deep Roots	flame.fill	Your Mana-restoring cards restore 1 additional Mana while you have Thorns, once per turn.		deepRoots:true
+druid_mana_t4_1	Grove Accord	flame.fill	Both allies spending Mana in the same turn grants each 1 Thorns, once per turn.		groveAccord:true
+wildcard_gold_t1_1	Consolation Prize	suit.diamond.fill	Your first non-damaging random card outcome each turn grants 1 Gold.		consolationPrize:true
+wildcard_gold_t1_2	House Credit	suit.diamond.fill	A random damage outcome adds 1 Gold to your next card that grants Gold, once per turn.		houseCredit:true
+wildcard_gold_t2_1	Full House	suit.diamond.fill	Playing a Basic, Skill, and Ultimate in one turn grants 1 Gold.		fullHouse:true
+wildcard_gold_t2_2	Lucky Charm	suit.diamond.fill	Your first card that grants Gold each turn removes 1 Poison from you.		luckyCharm:true
+wildcard_gold_t3_1	Last Wager	suit.diamond.fill	Gain 1 Thorns at turn end if your last card granted Gold.		lastWager:true
+wildcard_gold_t3_2	Sleight of Coin	suit.diamond.fill	After Dodging, your next card that grants Gold removes 1 Thorns from the enemy, once per turn.		sleightOfCoin:true
+wildcard_gold_t4_1	Lucky Break	suit.diamond.fill	Your first Skill each turn randomly grants 1 Gold, 1 Block, or 1 Health. Skip unneeded healing.		luckyBreak:true
+wildcard_dodge_t1_1	False Opening	wind	A non-damaging random card outcome grants 5% Dodge until your next turn, once per turn.		falseOpening:true
+wildcard_dodge_t1_2	Missed Opportunity	wind	When an enemy fully Blocks your attack, gain 1 Block, once per turn.		missedOpportunity:true
+wildcard_dodge_t2_1	Passing Luck	wind	Dodging restores 1 Health to your Companion, once per turn.		passingLuck:true
+wildcard_dodge_t2_2	Scattered Caltrops	wind	Your Companion Dodging grants you 1 Thorns, once per turn.		scatteredCaltrops:true
+wildcard_dodge_t3_1	Smoke Trick	wind	Your first Critical Hit each turn removes 1 Burn from you.		smokeTrick:true
+wildcard_dodge_t3_2	Improving Odds	wind	Each round without Dodging grants 1% Dodge, up to 5% this battle.		improvingOdds:true
+wildcard_dodge_t4_1	Blind Spot	wind	Your first Dodge each turn removes 1 Block from the enemy.		blindSpot:true
+wildcard_physical_t1_1	Prismatic Edge	burst.fill	Your first Physical card each turn has a 25% chance to deal 1 Burn or Freeze damage.		prismaticEdge:true
+wildcard_physical_t1_2	Improvised Assault	burst.fill	A non-Physical random damage outcome adds 1 Physical damage to your next Physical card, once per turn.		improvisedAssault:true
+wildcard_physical_t2_1	Clean Cut	burst.fill	Your first Physical Critical Hit each turn removes 1 Poison from you.		cleanCut:true
+wildcard_physical_t2_2	Cracked Guard	burst.fill	Breaking enemy Block with a Physical card restores 1 Health to your Companion, once per turn.		crackedGuard:true
+wildcard_physical_t3_1	Cold Read	burst.fill	A Physical card against a Frozen enemy restores 1 Health to you, once per turn.		coldRead:true
+wildcard_physical_t3_2	Feigned Miss	burst.fill	An enemy fully Blocking your Physical hit causes 1 Stun damage, once per turn.		feignedMiss:true
+wildcard_physical_t4_1	Paid in Full	burst.fill	A Physical card immediately following your card that granted Gold deals 1 additional Physical damage, once per turn.		paidInFull:true

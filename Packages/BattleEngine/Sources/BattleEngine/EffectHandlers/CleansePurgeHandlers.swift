@@ -55,7 +55,8 @@ struct CleansePurgeHandler: BattleEffectHandler {
         }
         let removed = EffectRemoval.removeDebuffs(from: &currentEffects, keyword: targetKeyword)
         guard !removed.isEmpty else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            let events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
+            return EffectApplyOutcome(events: events, didApply: false)
         }
         context.roster.setActiveEffects(currentEffects, for: target)
         let healAmount = healPerDebuff > 0 ? healPerDebuff * removed.count : nil
@@ -79,10 +80,11 @@ struct CleansePurgeHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard let keyword = EffectRemoval.removeRandomDebuff(from: &currentEffects, using: &context.rng) else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            let events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
+            return EffectApplyOutcome(events: events, didApply: false)
         }
         context.roster.setActiveEffects(currentEffects, for: target)
-        var events: [ActionEvent] = []
+        var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [keyword], in: &context)
         events.append(context.nextEvent(
             kind: .effect,
             effectKind: .cleanseApplied,

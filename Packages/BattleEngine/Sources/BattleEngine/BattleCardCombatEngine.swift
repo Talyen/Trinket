@@ -98,6 +98,12 @@ public enum BattleCardCombatEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         let actor = ownerRuntime.combatant
+        var facts = HeroTalentCardFacts(actorID: actor.id, tier: card.ability.tier)
+        facts.playSerial = context.heroTalents.nextPlaySerial
+        facts.previousDamageKeywords = context.heroTalents.history[actor.id]?.lastDamageKeywords ?? []
+        facts.previousGrantedGold = context.heroTalents.history[actor.id]?.lastGrantedGold ?? false
+        context.heroTalents.nextPlaySerial += 1
+        context.heroTalents.cards.append(facts)
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
         var events = BattleTurnEngine.performAction(
             ability: card.ability,
@@ -111,6 +117,7 @@ public enum BattleCardCombatEngine {
             abilityTarget: abilityTarget,
             in: &context,
         ))
+        events.append(contentsOf: CombatTriggerEngine.finishHeroCard(actor: actor, in: &context))
         if context.roster.runtime(for: actor)?.goldenTouchActiveThisCard == true {
             context.roster.mutateRuntime(for: actor) { $0.goldenTouchActiveThisCard = false }
         }
@@ -277,13 +284,17 @@ public enum BattleCardCombatEngine {
             return events
         }
 
+        context.heroTalents.enemyTurnActive = true
+        context.heroTalents.healthLostDuringEnemyTurn = []
         events.append(contentsOf: resolveEnemyTurn(context: &context))
+        events.append(contentsOf: CombatTriggerEngine.afterHeroTalentEnemyTurn(in: &context))
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
             context.phase = .ended
             return events
         }
 
+        events.append(contentsOf: CombatTriggerEngine.endHeroTalentTurn(in: &context))
         events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
         context.primedRepeatKeywords.removeAll()
 

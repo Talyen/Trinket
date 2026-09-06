@@ -51,6 +51,20 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var partyRegenPerRound: Int = 0
     public var purifyingWaters: Bool = false
     public var cleanSlate: Bool = false
+    public var fortifyingTonic: Bool = false
+    public var measuredDose: Bool = false
+    public var coolingSalve: Bool = false
+    public var reclaimedReagents: Bool = false
+    public var sharedPrescription: Bool = false
+    public var restorativeFumes: Bool = false
+    public var masterworkMixture: Bool = false
+    public var springSap: Bool = false
+    public var pruningTouch: Bool = false
+    public var quietGrove: Bool = false
+    public var shelterSeed: Bool = false
+    public var cleansingDew: Bool = false
+    public var sharedRoots: Bool = false
+    public var verdantShelter: Bool = false
 
     public init(
         cleanseSelfHeal: Int = 0,
@@ -99,7 +113,21 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         leechOnBlockDamage: Bool = false,
         partyRegenPerRound: Int = 0,
         purifyingWaters: Bool = false,
-        cleanSlate: Bool = false
+        cleanSlate: Bool = false,
+        fortifyingTonic: Bool = false,
+        measuredDose: Bool = false,
+        coolingSalve: Bool = false,
+        reclaimedReagents: Bool = false,
+        sharedPrescription: Bool = false,
+        restorativeFumes: Bool = false,
+        masterworkMixture: Bool = false,
+        springSap: Bool = false,
+        pruningTouch: Bool = false,
+        quietGrove: Bool = false,
+        shelterSeed: Bool = false,
+        cleansingDew: Bool = false,
+        sharedRoots: Bool = false,
+        verdantShelter: Bool = false
     ) {
         self.cleanseSelfHeal = cleanseSelfHeal
         self.cleanseBonusHeal = cleanseBonusHeal
@@ -148,10 +176,24 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.partyRegenPerRound = partyRegenPerRound
         self.purifyingWaters = purifyingWaters
         self.cleanSlate = cleanSlate
+        self.fortifyingTonic = fortifyingTonic
+        self.measuredDose = measuredDose
+        self.coolingSalve = coolingSalve
+        self.reclaimedReagents = reclaimedReagents
+        self.sharedPrescription = sharedPrescription
+        self.restorativeFumes = restorativeFumes
+        self.masterworkMixture = masterworkMixture
+        self.springSap = springSap
+        self.pruningTouch = pruningTouch
+        self.quietGrove = quietGrove
+        self.shelterSeed = shelterSeed
+        self.cleansingDew = cleansingDew
+        self.sharedRoots = sharedRoots
+        self.verdantShelter = verdantShelter
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate"]
+    public static let fieldNames: [String] = ["cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "measuredDose", "coolingSalve", "reclaimedReagents", "sharedPrescription", "restorativeFumes", "masterworkMixture", "springSap", "pruningTouch", "quietGrove", "shelterSeed", "cleansingDew", "sharedRoots", "verdantShelter"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -203,6 +245,20 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.partyRegenPerRound != other.partyRegenPerRound { names.append("partyRegenPerRound") }
         if self.purifyingWaters != other.purifyingWaters { names.append("purifyingWaters") }
         if self.cleanSlate != other.cleanSlate { names.append("cleanSlate") }
+        if self.fortifyingTonic != other.fortifyingTonic { names.append("fortifyingTonic") }
+        if self.measuredDose != other.measuredDose { names.append("measuredDose") }
+        if self.coolingSalve != other.coolingSalve { names.append("coolingSalve") }
+        if self.reclaimedReagents != other.reclaimedReagents { names.append("reclaimedReagents") }
+        if self.sharedPrescription != other.sharedPrescription { names.append("sharedPrescription") }
+        if self.restorativeFumes != other.restorativeFumes { names.append("restorativeFumes") }
+        if self.masterworkMixture != other.masterworkMixture { names.append("masterworkMixture") }
+        if self.springSap != other.springSap { names.append("springSap") }
+        if self.pruningTouch != other.pruningTouch { names.append("pruningTouch") }
+        if self.quietGrove != other.quietGrove { names.append("quietGrove") }
+        if self.shelterSeed != other.shelterSeed { names.append("shelterSeed") }
+        if self.cleansingDew != other.cleansingDew { names.append("cleansingDew") }
+        if self.sharedRoots != other.sharedRoots { names.append("sharedRoots") }
+        if self.verdantShelter != other.verdantShelter { names.append("verdantShelter") }
         return names
     }
 }
@@ -256,6 +312,20 @@ extension HealingTriggers {
         partyRegenPerRound += other.partyRegenPerRound
         purifyingWaters = purifyingWaters || other.purifyingWaters
         cleanSlate = cleanSlate || other.cleanSlate
+        fortifyingTonic = fortifyingTonic || other.fortifyingTonic
+        measuredDose = measuredDose || other.measuredDose
+        coolingSalve = coolingSalve || other.coolingSalve
+        reclaimedReagents = reclaimedReagents || other.reclaimedReagents
+        sharedPrescription = sharedPrescription || other.sharedPrescription
+        restorativeFumes = restorativeFumes || other.restorativeFumes
+        masterworkMixture = masterworkMixture || other.masterworkMixture
+        springSap = springSap || other.springSap
+        pruningTouch = pruningTouch || other.pruningTouch
+        quietGrove = quietGrove || other.quietGrove
+        shelterSeed = shelterSeed || other.shelterSeed
+        cleansingDew = cleansingDew || other.cleansingDew
+        sharedRoots = sharedRoots || other.sharedRoots
+        verdantShelter = verdantShelter || other.verdantShelter
     }
 }
 
@@ -309,7 +379,21 @@ extension HealingTriggers {
             leechOnBlockDamage: values.decode(Bool.self, "leechOnBlockDamage", default: false),
             partyRegenPerRound: values.decode(Int.self, "partyRegenPerRound", default: 0),
             purifyingWaters: values.decode(Bool.self, "purifyingWaters", default: false),
-            cleanSlate: values.decode(Bool.self, "cleanSlate", default: false)
+            cleanSlate: values.decode(Bool.self, "cleanSlate", default: false),
+            fortifyingTonic: values.decode(Bool.self, "fortifyingTonic", default: false),
+            measuredDose: values.decode(Bool.self, "measuredDose", default: false),
+            coolingSalve: values.decode(Bool.self, "coolingSalve", default: false),
+            reclaimedReagents: values.decode(Bool.self, "reclaimedReagents", default: false),
+            sharedPrescription: values.decode(Bool.self, "sharedPrescription", default: false),
+            restorativeFumes: values.decode(Bool.self, "restorativeFumes", default: false),
+            masterworkMixture: values.decode(Bool.self, "masterworkMixture", default: false),
+            springSap: values.decode(Bool.self, "springSap", default: false),
+            pruningTouch: values.decode(Bool.self, "pruningTouch", default: false),
+            quietGrove: values.decode(Bool.self, "quietGrove", default: false),
+            shelterSeed: values.decode(Bool.self, "shelterSeed", default: false),
+            cleansingDew: values.decode(Bool.self, "cleansingDew", default: false),
+            sharedRoots: values.decode(Bool.self, "sharedRoots", default: false),
+            verdantShelter: values.decode(Bool.self, "verdantShelter", default: false)
         )
     }
 
@@ -361,5 +445,19 @@ extension HealingTriggers {
         try container.encodeNonDefault(partyRegenPerRound, "partyRegenPerRound", default: 0)
         try container.encodeNonDefault(purifyingWaters, "purifyingWaters", default: false)
         try container.encodeNonDefault(cleanSlate, "cleanSlate", default: false)
+        try container.encodeNonDefault(fortifyingTonic, "fortifyingTonic", default: false)
+        try container.encodeNonDefault(measuredDose, "measuredDose", default: false)
+        try container.encodeNonDefault(coolingSalve, "coolingSalve", default: false)
+        try container.encodeNonDefault(reclaimedReagents, "reclaimedReagents", default: false)
+        try container.encodeNonDefault(sharedPrescription, "sharedPrescription", default: false)
+        try container.encodeNonDefault(restorativeFumes, "restorativeFumes", default: false)
+        try container.encodeNonDefault(masterworkMixture, "masterworkMixture", default: false)
+        try container.encodeNonDefault(springSap, "springSap", default: false)
+        try container.encodeNonDefault(pruningTouch, "pruningTouch", default: false)
+        try container.encodeNonDefault(quietGrove, "quietGrove", default: false)
+        try container.encodeNonDefault(shelterSeed, "shelterSeed", default: false)
+        try container.encodeNonDefault(cleansingDew, "cleansingDew", default: false)
+        try container.encodeNonDefault(sharedRoots, "sharedRoots", default: false)
+        try container.encodeNonDefault(verdantShelter, "verdantShelter", default: false)
     }
 }

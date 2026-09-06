@@ -9,27 +9,28 @@ struct StarterSelectionTests {
         context = try PersistenceTestContext()
     }
 
-    @Test @MainActor func `draft and chosen party survive reload`() throws {
+    @Test(arguments: ["warlock", "alchemist", "druid", "wildcard"])
+    @MainActor func `starter party survives reload`(heroID: String) throws {
         let firstStore = try context.makeSaveStore()
 
         #expect(firstStore.starterSelection == .fresh)
-        #expect(firstStore.confirmStarterHero("warlock"))
+        #expect(firstStore.confirmStarterHero(heroID))
 
         let resumedStore = try context.makeReloadedStore()
         #expect(
             resumedStore.starterSelection
-                == StarterSelectionState(phase: .chooseCompanion, heroID: "warlock"),
+                == StarterSelectionState(phase: .chooseCompanion, heroID: heroID),
         )
         #expect(resumedStore.completeStarterSelection(companionID: "pixie"))
 
         let completedStore = try context.makeReloadedStore()
         #expect(completedStore.starterSelection == .complete)
-        #expect(completedStore.roster.activeHeroID == "warlock")
+        #expect(completedStore.roster.activeHeroID == heroID)
         #expect(completedStore.roster.activeCompanionID == "pixie")
-        #expect(completedStore.roster.unlockedHeroIDs == ["warlock"])
+        #expect(completedStore.roster.unlockedHeroIDs == [heroID])
         #expect(completedStore.roster.unlockedCompanionIDs == ["pixie"])
         #expect(completedStore.roster.progressions == [
-            "warlock": .initial,
+            heroID: .initial,
             "pixie": .initial,
         ])
     }

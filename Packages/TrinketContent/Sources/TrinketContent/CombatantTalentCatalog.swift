@@ -61,6 +61,22 @@ public enum CombatantTalentCatalog {
             TreeAffinity(name: "Hellfire", keyword: .burn),
         ],
 
+        "alchemist": [
+            TreeAffinity(name: "Toxicology", keyword: .poison),
+            TreeAffinity(name: "Distillation", keyword: .cleanse),
+            TreeAffinity(name: "Remedies", keyword: .health),
+        ],
+        "druid": [
+            TreeAffinity(name: "Renewal", keyword: .health),
+            TreeAffinity(name: "Wildgrowth", keyword: .poison),
+            TreeAffinity(name: "Grovekeeper", keyword: .mana),
+        ],
+        "wildcard": [
+            TreeAffinity(name: "Fortune", keyword: .gold),
+            TreeAffinity(name: "Trickery", keyword: .dodge),
+            TreeAffinity(name: "Wild Strikes", keyword: .physical),
+        ],
+
         "wolf": [
             TreeAffinity(name: "Fangs", keyword: .bleed),
             TreeAffinity(name: "Agility", keyword: .dodge),

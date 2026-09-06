@@ -19,21 +19,14 @@ struct InstantHealHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let outcome = HealingEngine.resolveHeal(
-            HealRequest(
-                amount: amount,
-                target: target,
-                sourceActorID: source.id,
-                logAs: .instantHeal(
-                    actorName: source.name,
-                    abilityName: ability.name,
-                    keyword: keyword,
-                ),
-            ),
-            in: &context,
+        var request = HealRequest(
+            amount: amount, target: target, sourceActorID: source.id,
+            logAs: .instantHeal(actorName: source.name, abilityName: ability.name, keyword: keyword),
         )
+        request.isDirectCardHeal = context.hasHeroCard(for: source.id)
+        let outcome = HealingEngine.resolveHeal(request, in: &context)
         guard outcome.healthRestored > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(events: outcome.events, didApply: false)
         }
         return EffectApplyOutcome(events: outcome.events, didApply: true)
     }
@@ -52,10 +45,12 @@ struct ResourceGainHandler: BattleEffectHandler {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         switch keyword {
         case .mana:
+            let bonus = amount > 0 ? CombatTriggerEngine.heroCardManaBonus(source: source, target: target, in: &context) : 0
             let restored = context.restoreMana(
-                context.paced(amount, sourceActorID: source.id),
+                context.paced(amount, sourceActorID: source.id) + bonus,
                 to: target,
             )
+            CombatTriggerEngine.afterHeroCardMana(source: source, restored: restored, in: &context)
             let event = context.nextEvent(
                 kind: .effect,
                 effectKind: .resourceGain,
@@ -71,8 +66,9 @@ struct ResourceGainHandler: BattleEffectHandler {
             }
             return EffectApplyOutcome(events: events, didApply: true)
         case .gold:
+            let bonus = CombatTriggerEngine.heroCardGoldBonus(source: source, amount: amount, in: &context)
             return EffectApplyOutcome(
-                events: context.grantGoldEvent(amount, to: source, abilityName: ability.name),
+                events: context.grantGoldEvent(amount + bonus, to: source, abilityName: ability.name),
                 didApply: true,
             )
         default:

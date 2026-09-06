@@ -36,7 +36,8 @@ package extension CombatTriggerEngine {
 
     static func atPlayerTurnStart(in context: inout BattleState) -> [ActionEvent] {
         resetTurnCadenceState(in: &context)
-        var events = cleanseTeamIfNeeded(in: &context)
+        var events = startHeroTalentTurn(in: &context)
+        events.append(contentsOf: cleanseTeamIfNeeded(in: &context))
         for owner in [BattleParticipant.hero, .companion] {
             let runtime = context.roster[owner]
             guard runtime.isAlive else { continue }

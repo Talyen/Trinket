@@ -20,12 +20,14 @@ struct PanaceaHandler: BattleEffectHandler {
         let removedDebuffs = EffectRemoval.removeDebuffs(from: &cleanseEffects, keyword: nil)
         guard !removedDebuffs.isEmpty else {
             let healTarget = BattleConditionEvaluator.lowestHealthAlly(in: context)
+            let cleanseEvents = CombatTriggerEngine.afterHeroCleanse(source: source, target: cleanseTarget, removed: [], in: &context)
             return EffectApplyOutcome(
-                events: context.healEmitting(
+                events: cleanseEvents + context.healEmitting(
                     amount: baseHeal,
                     target: healTarget,
                     source: source,
                     abilityName: ability.name,
+                    isDirectCardHeal: context.hasHeroCard(for: source.id),
                 ),
                 didApply: true,
             )

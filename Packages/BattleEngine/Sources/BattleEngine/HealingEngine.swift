@@ -36,6 +36,8 @@ package enum HealingEngine {
             amount = CombatRounding.scaled(amount, multiplier: sourceTriggers.healingBelowHealthPercentMultiplier)
         }
 
+        amount += CombatTriggerEngine.heroCardHealingBonus(request: request, amount: amount, in: &context)
+
         let preHealth = context.roster.health(for: request.target)
         let maxHealth = context.roster.maxHealth(for: request.target)
         var restored = 0
@@ -53,6 +55,9 @@ package enum HealingEngine {
         }
 
         let overflow = max(0, amount - max(0, maxHealth - preHealth))
+        events.append(contentsOf: CombatTriggerEngine.afterHeroCardHeal(
+            request: request, restored: restored, overflow: overflow, in: &context,
+        ))
         if overflow > 0,
            let srcID = request.sourceActorID,
            let src = context.roster.combatant(for: srcID),

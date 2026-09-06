@@ -18,6 +18,7 @@ package extension CombatTriggerEngine {
                 using: &context.rng,
             ) else { break }
             context.roster.setActiveEffects(effects, for: target)
+            events.append(contentsOf: afterHeroCleanse(source: source, target: target, removed: [removedKeyword], in: &context))
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .cleanseApplied,

@@ -64,7 +64,9 @@ struct DecayingDoTHandler: BattleEffectHandler {
 
         var updated = active
         updated.effect = Effect.decayingDoT(keyword: keyword, potency: 0)
-        return EffectTurnOutcome(updatedStack: updated, removeAfter: true)
+        let events = keyword == .poison
+            ? CombatTriggerEngine.afterHeroTalentPoisonExpiry(sourceID: active.sourceActorID, in: &context) : []
+        return EffectTurnOutcome(events: events, updatedStack: updated, removeAfter: true)
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {

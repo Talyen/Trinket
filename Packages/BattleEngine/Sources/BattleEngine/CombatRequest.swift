@@ -17,6 +17,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var abilityHasLeech: Bool
     public var isHealthCost: Bool
     public var causedByDodge: Bool
+    var isOriginalCardDamage = false
 
     public init(
         applyStatBonus: Bool = true,
@@ -192,4 +193,5 @@ public struct HealRequest: Equatable, Hashable, Sendable {
     }
 
     var isHoTTick: Bool
+    var isDirectCardHeal = false
 }

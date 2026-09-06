@@ -28,11 +28,29 @@ package enum DamagePipeline {
         applyMarkedBonus(to: &state, in: &context)
         applyItemReduction(to: &state, in: &context)
         applyCriticalMultiply(to: &state, in: &context)
+        if state.options.isOriginalCardDamage, state.amount > 0, state.combatant.role == .enemy {
+            let bonus = CombatTriggerEngine.heroCardDamageBonus(keyword: state.damageKeyword, sourceID: state.sourceActorID, in: &context)
+            state.remaining += bonus
+            state.buildupDamage += bonus
+            state.heroCardBlockIgnore = CombatTriggerEngine.heroCardBlockIgnore(
+                keyword: state.damageKeyword,
+                sourceID: state.sourceActorID,
+                in: &context,
+            )
+        }
         applyMitigation(to: &state, in: &context)
         applyShieldAbsorption(to: &state, in: &context)
         applyTakeDamage(to: &state, in: &context)
         applyMarkedConsume(to: &state, in: &context)
         applyDeathsDoor(to: &state, in: &context)
+
+        if state.options.isOriginalCardDamage, state.amount > 0, state.combatant.role == .enemy {
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
+                keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
+                fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
+                blockBroken: state.heroCardBlockBroken, targetWasFrozen: state.targetStatus.isFrozen, in: &context,
+            ))
+        }
 
         applyLeech(to: &state, in: &context)
         applyTalentDamageApplications(to: &state, in: &context)

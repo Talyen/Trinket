@@ -65,6 +65,7 @@ package extension DamagePipeline {
             milestone: nil,
         ))
         state.isDodged = true
+        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentDodge(by: state.combatant, in: &context))
         if !autoDodge, !state.options.causedByDodge {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
                 by: state.combatant,
@@ -81,7 +82,9 @@ package extension DamagePipeline {
         if state.combatant.role == .enemy {
             return 0
         }
-        var chance = 0.10
+        let history = context.heroTalents.history[state.combatant.id]
+        var chance = 0.10 + Double(history?.dodgeGrowth ?? 0) / 100
+        if history?.falseOpening == true { chance += 0.05 }
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.triggers.dodgeChanceBonus
         chance += context.roster.runtime(for: state.combatant)?.bonusDodgeUntilNextTurn ?? 0

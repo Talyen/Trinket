@@ -83,6 +83,21 @@ public enum ArtCatalog {
             thumbnailImageName: "hero_wizard_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
+        dict["alchemist"] = CombatantArtReference(
+            imageName: "hero_alchemist_card",
+            thumbnailImageName: "hero_alchemist_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.34)
+        )
+        dict["druid"] = CombatantArtReference(
+            imageName: "hero_druid_card",
+            thumbnailImageName: "hero_druid_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.34)
+        )
+        dict["wildcard"] = CombatantArtReference(
+            imageName: "hero_wildcard_card",
+            thumbnailImageName: "hero_wildcard_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.34)
+        )
         dict["wolf"] = CombatantArtReference(
             imageName: "companion_wolf_card",
             thumbnailImageName: "companion_wolf_card_thumb",

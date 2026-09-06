@@ -47,6 +47,9 @@ enum RecruitEventPool {
             id: "recruit-warlock",
             combatantID: "warlock",
         ),
+        recruit(id: "recruit-alchemist", combatantID: "alchemist"),
+        recruit(id: "recruit-druid", combatantID: "druid"),
+        recruit(id: "recruit-wildcard", combatantID: "wildcard"),
         recruit(
             id: "recruit-frost-whelp",
             combatantID: "frost_whelp",

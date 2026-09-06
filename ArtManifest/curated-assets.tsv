@@ -4,6 +4,9 @@ combatant	ranger	hero_ranger_card	Raw Assets/Heroes/Ranger.jpeg	0.50	0.50
 combatant	rogue	hero_rogue_card	Raw Assets/Heroes/Rogue.jpeg	0.50	0.34
 combatant	warlock	hero_warlock_card	Raw Assets/Heroes/Warlock.jpeg	0.50	0.50
 combatant	wizard	hero_wizard_card	Raw Assets/Heroes/Wizard.jpeg	0.50	0.50
+combatant	alchemist	hero_alchemist_card	Raw Assets/Heroes/Alchemist.jpeg	0.50	0.34
+combatant	druid	hero_druid_card	Raw Assets/Heroes/Druid.jpeg	0.50	0.34
+combatant	wildcard	hero_wildcard_card	Raw Assets/Heroes/Wildcard.jpeg	0.50	0.34
 combatant	wolf	companion_wolf_card	Raw Assets/Companions/Wolf.jpeg	0.50	0.36
 combatant	bear	companion_bear_card	Raw Assets/Companions/Bear.jpeg	0.50	0.50
 combatant	frost_whelp	companion_frost_whelp_card	Raw Assets/Companions/Frost Whelp.jpeg	0.50	0.50

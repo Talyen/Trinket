@@ -37,7 +37,7 @@ package extension CombatTriggerEngine {
     static func afterSpendMana(by actor: Combatant, amountSpent: Int, in context: inout BattleState) -> [ActionEvent] {
         let profile = context.modifiers(for: actor.id)
         let triggers = profile.triggers
-        var events: [ActionEvent] = []
+        var events = afterHeroTalentSpendMana(actor: actor, amount: amountSpent, in: &context)
         events.append(contentsOf: drawAfterSpendMana(by: actor, in: &context))
 
         if triggers.spendManaBlockFlat > 0 {

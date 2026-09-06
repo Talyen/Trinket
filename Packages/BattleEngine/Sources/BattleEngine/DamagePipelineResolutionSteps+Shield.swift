@@ -35,7 +35,7 @@ package extension DamagePipeline {
         let targetIsStunned = state.targetStatus.isStunned
         let targetIsFrozen = state.targetStatus.isFrozen
 
-        let effectiveBuffer = effectiveBlockBuffer(
+        let effectiveBuffer = max(0, effectiveBlockBuffer(
             buffer: buffer,
             sourceTriggers: sourceTriggers,
             targetIsStunned: targetIsStunned,
@@ -43,7 +43,7 @@ package extension DamagePipeline {
             damageKeyword: state.damageKeyword,
             sourceActorID: state.sourceActorID,
             context: context,
-        )
+        ) - state.heroCardBlockIgnore)
         guard effectiveBuffer > 0, state.remaining > 0 else {
             state.activeEffects = effects
             return
@@ -67,6 +67,7 @@ package extension DamagePipeline {
             effects = reduced.effects
             blockBroken = reduced.broken
         }
+        state.heroCardBlockBroken = blockBroken
         context.roster.setActiveEffects(effects, for: state.combatant)
         state.activeEffects = effects
         state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(

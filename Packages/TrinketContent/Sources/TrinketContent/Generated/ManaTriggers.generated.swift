@@ -49,6 +49,13 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var eyeOfTheStorm: Bool = false
     public var furnaceRhythm: Bool = false
     public var temperCycle: Bool = false
+    public var firstBloom: Bool = false
+    public var barkweave: Bool = false
+    public var groveReserve: Bool = false
+    public var livingConduit: Bool = false
+    public var sharedCurrent: Bool = false
+    public var deepRoots: Bool = false
+    public var groveAccord: Bool = false
 
     public init(
         spendManaBlockFlat: Int = 0,
@@ -95,7 +102,14 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         closedCircuit: Bool = false,
         eyeOfTheStorm: Bool = false,
         furnaceRhythm: Bool = false,
-        temperCycle: Bool = false
+        temperCycle: Bool = false,
+        firstBloom: Bool = false,
+        barkweave: Bool = false,
+        groveReserve: Bool = false,
+        livingConduit: Bool = false,
+        sharedCurrent: Bool = false,
+        deepRoots: Bool = false,
+        groveAccord: Bool = false
     ) {
         self.spendManaBlockFlat = spendManaBlockFlat
         self.empoweredElementDrawOpposite = empoweredElementDrawOpposite
@@ -142,10 +156,17 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.eyeOfTheStorm = eyeOfTheStorm
         self.furnaceRhythm = furnaceRhythm
         self.temperCycle = temperCycle
+        self.firstBloom = firstBloom
+        self.barkweave = barkweave
+        self.groveReserve = groveReserve
+        self.livingConduit = livingConduit
+        self.sharedCurrent = sharedCurrent
+        self.deepRoots = deepRoots
+        self.groveAccord = groveAccord
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle"]
+    public static let fieldNames: [String] = ["spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "firstBloom", "barkweave", "groveReserve", "livingConduit", "sharedCurrent", "deepRoots", "groveAccord"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -195,6 +216,13 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         if self.eyeOfTheStorm != other.eyeOfTheStorm { names.append("eyeOfTheStorm") }
         if self.furnaceRhythm != other.furnaceRhythm { names.append("furnaceRhythm") }
         if self.temperCycle != other.temperCycle { names.append("temperCycle") }
+        if self.firstBloom != other.firstBloom { names.append("firstBloom") }
+        if self.barkweave != other.barkweave { names.append("barkweave") }
+        if self.groveReserve != other.groveReserve { names.append("groveReserve") }
+        if self.livingConduit != other.livingConduit { names.append("livingConduit") }
+        if self.sharedCurrent != other.sharedCurrent { names.append("sharedCurrent") }
+        if self.deepRoots != other.deepRoots { names.append("deepRoots") }
+        if self.groveAccord != other.groveAccord { names.append("groveAccord") }
         return names
     }
 }
@@ -246,6 +274,13 @@ extension ManaTriggers {
         eyeOfTheStorm = eyeOfTheStorm || other.eyeOfTheStorm
         furnaceRhythm = furnaceRhythm || other.furnaceRhythm
         temperCycle = temperCycle || other.temperCycle
+        firstBloom = firstBloom || other.firstBloom
+        barkweave = barkweave || other.barkweave
+        groveReserve = groveReserve || other.groveReserve
+        livingConduit = livingConduit || other.livingConduit
+        sharedCurrent = sharedCurrent || other.sharedCurrent
+        deepRoots = deepRoots || other.deepRoots
+        groveAccord = groveAccord || other.groveAccord
     }
 }
 
@@ -297,7 +332,14 @@ extension ManaTriggers {
             closedCircuit: values.decode(Bool.self, "closedCircuit", default: false),
             eyeOfTheStorm: values.decode(Bool.self, "eyeOfTheStorm", default: false),
             furnaceRhythm: values.decode(Bool.self, "furnaceRhythm", default: false),
-            temperCycle: values.decode(Bool.self, "temperCycle", default: false)
+            temperCycle: values.decode(Bool.self, "temperCycle", default: false),
+            firstBloom: values.decode(Bool.self, "firstBloom", default: false),
+            barkweave: values.decode(Bool.self, "barkweave", default: false),
+            groveReserve: values.decode(Bool.self, "groveReserve", default: false),
+            livingConduit: values.decode(Bool.self, "livingConduit", default: false),
+            sharedCurrent: values.decode(Bool.self, "sharedCurrent", default: false),
+            deepRoots: values.decode(Bool.self, "deepRoots", default: false),
+            groveAccord: values.decode(Bool.self, "groveAccord", default: false)
         )
     }
 
@@ -347,5 +389,12 @@ extension ManaTriggers {
         try container.encodeNonDefault(eyeOfTheStorm, "eyeOfTheStorm", default: false)
         try container.encodeNonDefault(furnaceRhythm, "furnaceRhythm", default: false)
         try container.encodeNonDefault(temperCycle, "temperCycle", default: false)
+        try container.encodeNonDefault(firstBloom, "firstBloom", default: false)
+        try container.encodeNonDefault(barkweave, "barkweave", default: false)
+        try container.encodeNonDefault(groveReserve, "groveReserve", default: false)
+        try container.encodeNonDefault(livingConduit, "livingConduit", default: false)
+        try container.encodeNonDefault(sharedCurrent, "sharedCurrent", default: false)
+        try container.encodeNonDefault(deepRoots, "deepRoots", default: false)
+        try container.encodeNonDefault(groveAccord, "groveAccord", default: false)
     }
 }

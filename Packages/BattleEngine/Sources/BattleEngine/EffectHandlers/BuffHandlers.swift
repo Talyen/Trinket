@@ -42,6 +42,9 @@ struct ThornsHandler: BattleEffectHandler {
             replacing: { $0.kind == .thorns },
             event: (.thornsApplied, total, .physical),
         )
+        if context.hasHeroCard(for: source.id) {
+            context.mutateHeroCard { $0.gainedThornsOn.insert(target.id) }
+        }
         return EffectApplyOutcome(events: [event], didApply: true)
     }
 }

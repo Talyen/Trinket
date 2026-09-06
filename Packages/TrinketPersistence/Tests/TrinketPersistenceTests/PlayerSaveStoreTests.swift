@@ -14,6 +14,30 @@ final class PlayerSaveStoreTests {
         context = try PersistenceTestContext()
     }
 
+    @Test(arguments: ["alchemist", "druid", "wildcard"])
+    func `recruited hero and changed loadout survive reload`(heroID: String) throws {
+        let store = try context.makeSaveStore()
+        let hero = try #require(GameContent.heroes.first { $0.id == heroID })
+        let existing = store.roster.unlockedHeroIDs
+        #expect(!existing.contains(heroID))
+        let loadout = AbilityLoadout(
+            basic: hero.abilityChoices.abilities(for: .basic)[3], skill: hero.abilityChoices.abilities(for: .skill)[3],
+            ultimate: hero.abilityChoices.abilities(for: .ultimate)[3],
+        )
+        let persisted = store.mutateRoster { roster in
+            _ = roster.unlock(hero)
+            roster.setActiveHero(hero)
+            roster.setLoadout(loadout, for: hero)
+        }
+        #expect(persisted)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.unlockedHeroIDs == existing.union([heroID]))
+        #expect(reloaded.roster.activeHeroID == heroID)
+        #expect(reloaded.roster.loadout(for: hero) == loadout)
+        #expect(reloaded.roster.progression(for: hero) == .initial)
+        #expect(reloaded.roster.battleConfiguredCombatant(hero).abilities.map(\.id) == loadout.abilities.map(\.id))
+    }
+
     @Test func `player save persists journey roster inventory and homestead`() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)

@@ -5,7 +5,7 @@ import TrinketCore
 enum GameContentRosterGenerated {
     static let heroes: [Combatant] = {
         var list = [Combatant]()
-        list.reserveCapacity(5)
+        list.reserveCapacity(8)
         list.append(Combatant(
             id: "knight",
             name: "Knight",
@@ -61,6 +61,41 @@ enum GameContentRosterGenerated {
                 basics: [.kindling, .fangs, .manaBerries, .rendingSlash],
                 skills: [.bloodOffering, .darkPact, .venomFangs, .cinderbloom],
                 ultimates: [.combustion, .faustianBargain, .bloodthorn, .meteor]
+            )
+        ))
+        list.append(Combatant(
+            id: "alchemist",
+            name: "Alchemist",
+            role: .hero,
+            maxHealth: 14,
+            maxMana: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.causticJab, .kindling, .apple, .manaBerries],
+                skills: [.acidPotion, .poisonDagger, .stoneskinPotion, .manaPotion],
+                ultimates: [.luckPotion, .panaceaPotion, .bloodthorn, .combustion]
+            )
+        ))
+        list.append(Combatant(
+            id: "druid",
+            name: "Druid",
+            role: .hero,
+            maxHealth: 16,
+            maxMana: 9,
+            abilityChoices: AbilityChoices(
+                basics: [.manaBerries, .maul, .pixieDust, .stargaze],
+                skills: [.cinderbloom, .briarShield, .heal, .cleanse],
+                ultimates: [.bloodthorn, .earthquake, .thornMail, .packTactics]
+            )
+        ))
+        list.append(Combatant(
+            id: "wildcard",
+            name: "Wildcard",
+            role: .hero,
+            maxHealth: 14,
+            abilityChoices: AbilityChoices(
+                basics: [.blackjack, .slash, .maul, .stab],
+                skills: [.bountyShot, .cinderbloom, .fireball, .tithe],
+                ultimates: [.astralArrow, .luckPotion, .goldenPlate, .shadowstep]
             )
         ))
         return list

@@ -35,6 +35,13 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var onDodgeDrawAndPlayCardChainOnCrit: Bool = false
     public var phantomCounter: Bool = false
     public var perfectTempo: Bool = false
+    public var falseOpening: Bool = false
+    public var missedOpportunity: Bool = false
+    public var passingLuck: Bool = false
+    public var scatteredCaltrops: Bool = false
+    public var smokeTrick: Bool = false
+    public var improvingOdds: Bool = false
+    public var blindSpot: Bool = false
 
     public init(
         dodgeChanceBonus: Double = 0,
@@ -67,7 +74,14 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         untargetableAboveHealthPercent: Double = 0,
         onDodgeDrawAndPlayCardChainOnCrit: Bool = false,
         phantomCounter: Bool = false,
-        perfectTempo: Bool = false
+        perfectTempo: Bool = false,
+        falseOpening: Bool = false,
+        missedOpportunity: Bool = false,
+        passingLuck: Bool = false,
+        scatteredCaltrops: Bool = false,
+        smokeTrick: Bool = false,
+        improvingOdds: Bool = false,
+        blindSpot: Bool = false
     ) {
         self.dodgeChanceBonus = dodgeChanceBonus
         self.dodgeBlockFlat = dodgeBlockFlat
@@ -100,10 +114,17 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit
         self.phantomCounter = phantomCounter
         self.perfectTempo = perfectTempo
+        self.falseOpening = falseOpening
+        self.missedOpportunity = missedOpportunity
+        self.passingLuck = passingLuck
+        self.scatteredCaltrops = scatteredCaltrops
+        self.smokeTrick = smokeTrick
+        self.improvingOdds = improvingOdds
+        self.blindSpot = blindSpot
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo"]
+    public static let fieldNames: [String] = ["dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "falseOpening", "missedOpportunity", "passingLuck", "scatteredCaltrops", "smokeTrick", "improvingOdds", "blindSpot"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -139,6 +160,13 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         if self.onDodgeDrawAndPlayCardChainOnCrit != other.onDodgeDrawAndPlayCardChainOnCrit { names.append("onDodgeDrawAndPlayCardChainOnCrit") }
         if self.phantomCounter != other.phantomCounter { names.append("phantomCounter") }
         if self.perfectTempo != other.perfectTempo { names.append("perfectTempo") }
+        if self.falseOpening != other.falseOpening { names.append("falseOpening") }
+        if self.missedOpportunity != other.missedOpportunity { names.append("missedOpportunity") }
+        if self.passingLuck != other.passingLuck { names.append("passingLuck") }
+        if self.scatteredCaltrops != other.scatteredCaltrops { names.append("scatteredCaltrops") }
+        if self.smokeTrick != other.smokeTrick { names.append("smokeTrick") }
+        if self.improvingOdds != other.improvingOdds { names.append("improvingOdds") }
+        if self.blindSpot != other.blindSpot { names.append("blindSpot") }
         return names
     }
 }
@@ -176,6 +204,13 @@ extension DodgeTriggers {
         onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit || other.onDodgeDrawAndPlayCardChainOnCrit
         phantomCounter = phantomCounter || other.phantomCounter
         perfectTempo = perfectTempo || other.perfectTempo
+        falseOpening = falseOpening || other.falseOpening
+        missedOpportunity = missedOpportunity || other.missedOpportunity
+        passingLuck = passingLuck || other.passingLuck
+        scatteredCaltrops = scatteredCaltrops || other.scatteredCaltrops
+        smokeTrick = smokeTrick || other.smokeTrick
+        improvingOdds = improvingOdds || other.improvingOdds
+        blindSpot = blindSpot || other.blindSpot
     }
 }
 
@@ -213,7 +248,14 @@ extension DodgeTriggers {
             untargetableAboveHealthPercent: values.decode(Double.self, "untargetableAboveHealthPercent", default: 0),
             onDodgeDrawAndPlayCardChainOnCrit: values.decode(Bool.self, "onDodgeDrawAndPlayCardChainOnCrit", default: false),
             phantomCounter: values.decode(Bool.self, "phantomCounter", default: false),
-            perfectTempo: values.decode(Bool.self, "perfectTempo", default: false)
+            perfectTempo: values.decode(Bool.self, "perfectTempo", default: false),
+            falseOpening: values.decode(Bool.self, "falseOpening", default: false),
+            missedOpportunity: values.decode(Bool.self, "missedOpportunity", default: false),
+            passingLuck: values.decode(Bool.self, "passingLuck", default: false),
+            scatteredCaltrops: values.decode(Bool.self, "scatteredCaltrops", default: false),
+            smokeTrick: values.decode(Bool.self, "smokeTrick", default: false),
+            improvingOdds: values.decode(Bool.self, "improvingOdds", default: false),
+            blindSpot: values.decode(Bool.self, "blindSpot", default: false)
         )
     }
 
@@ -249,5 +291,12 @@ extension DodgeTriggers {
         try container.encodeNonDefault(onDodgeDrawAndPlayCardChainOnCrit, "onDodgeDrawAndPlayCardChainOnCrit", default: false)
         try container.encodeNonDefault(phantomCounter, "phantomCounter", default: false)
         try container.encodeNonDefault(perfectTempo, "perfectTempo", default: false)
+        try container.encodeNonDefault(falseOpening, "falseOpening", default: false)
+        try container.encodeNonDefault(missedOpportunity, "missedOpportunity", default: false)
+        try container.encodeNonDefault(passingLuck, "passingLuck", default: false)
+        try container.encodeNonDefault(scatteredCaltrops, "scatteredCaltrops", default: false)
+        try container.encodeNonDefault(smokeTrick, "smokeTrick", default: false)
+        try container.encodeNonDefault(improvingOdds, "improvingOdds", default: false)
+        try container.encodeNonDefault(blindSpot, "blindSpot", default: false)
     }
 }

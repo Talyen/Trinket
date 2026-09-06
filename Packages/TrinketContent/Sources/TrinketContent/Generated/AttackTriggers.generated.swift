@@ -42,6 +42,13 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var critStealEnemyBlock: Bool = false
     public var criticalPurgeCount: Int = 0
     public var criticalPurgeAll: Bool = false
+    public var prismaticEdge: Bool = false
+    public var improvisedAssault: Bool = false
+    public var cleanCut: Bool = false
+    public var crackedGuard: Bool = false
+    public var coldRead: Bool = false
+    public var feignedMiss: Bool = false
+    public var paidInFull: Bool = false
 
     public init(
         attacksApplyPoison: Int = 0,
@@ -81,7 +88,14 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         onPhysicalDamageGainBlock: Int = 0,
         critStealEnemyBlock: Bool = false,
         criticalPurgeCount: Int = 0,
-        criticalPurgeAll: Bool = false
+        criticalPurgeAll: Bool = false,
+        prismaticEdge: Bool = false,
+        improvisedAssault: Bool = false,
+        cleanCut: Bool = false,
+        crackedGuard: Bool = false,
+        coldRead: Bool = false,
+        feignedMiss: Bool = false,
+        paidInFull: Bool = false
     ) {
         self.attacksApplyPoison = attacksApplyPoison
         self.physicalAttackApplyBleed = physicalAttackApplyBleed
@@ -121,10 +135,17 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.critStealEnemyBlock = critStealEnemyBlock
         self.criticalPurgeCount = criticalPurgeCount
         self.criticalPurgeAll = criticalPurgeAll
+        self.prismaticEdge = prismaticEdge
+        self.improvisedAssault = improvisedAssault
+        self.cleanCut = cleanCut
+        self.crackedGuard = crackedGuard
+        self.coldRead = coldRead
+        self.feignedMiss = feignedMiss
+        self.paidInFull = paidInFull
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "criticalApplyStunBuildup", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll"]
+    public static let fieldNames: [String] = ["attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "criticalApplyStunBuildup", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "prismaticEdge", "improvisedAssault", "cleanCut", "crackedGuard", "coldRead", "feignedMiss", "paidInFull"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -167,6 +188,13 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.critStealEnemyBlock != other.critStealEnemyBlock { names.append("critStealEnemyBlock") }
         if self.criticalPurgeCount != other.criticalPurgeCount { names.append("criticalPurgeCount") }
         if self.criticalPurgeAll != other.criticalPurgeAll { names.append("criticalPurgeAll") }
+        if self.prismaticEdge != other.prismaticEdge { names.append("prismaticEdge") }
+        if self.improvisedAssault != other.improvisedAssault { names.append("improvisedAssault") }
+        if self.cleanCut != other.cleanCut { names.append("cleanCut") }
+        if self.crackedGuard != other.crackedGuard { names.append("crackedGuard") }
+        if self.coldRead != other.coldRead { names.append("coldRead") }
+        if self.feignedMiss != other.feignedMiss { names.append("feignedMiss") }
+        if self.paidInFull != other.paidInFull { names.append("paidInFull") }
         return names
     }
 }
@@ -211,6 +239,13 @@ extension AttackTriggers {
         critStealEnemyBlock = critStealEnemyBlock || other.critStealEnemyBlock
         criticalPurgeCount += other.criticalPurgeCount
         criticalPurgeAll = criticalPurgeAll || other.criticalPurgeAll
+        prismaticEdge = prismaticEdge || other.prismaticEdge
+        improvisedAssault = improvisedAssault || other.improvisedAssault
+        cleanCut = cleanCut || other.cleanCut
+        crackedGuard = crackedGuard || other.crackedGuard
+        coldRead = coldRead || other.coldRead
+        feignedMiss = feignedMiss || other.feignedMiss
+        paidInFull = paidInFull || other.paidInFull
     }
 }
 
@@ -255,7 +290,14 @@ extension AttackTriggers {
             onPhysicalDamageGainBlock: values.decode(Int.self, "onPhysicalDamageGainBlock", default: 0),
             critStealEnemyBlock: values.decode(Bool.self, "critStealEnemyBlock", default: false),
             criticalPurgeCount: values.decode(Int.self, "criticalPurgeCount", default: 0),
-            criticalPurgeAll: values.decode(Bool.self, "criticalPurgeAll", default: false)
+            criticalPurgeAll: values.decode(Bool.self, "criticalPurgeAll", default: false),
+            prismaticEdge: values.decode(Bool.self, "prismaticEdge", default: false),
+            improvisedAssault: values.decode(Bool.self, "improvisedAssault", default: false),
+            cleanCut: values.decode(Bool.self, "cleanCut", default: false),
+            crackedGuard: values.decode(Bool.self, "crackedGuard", default: false),
+            coldRead: values.decode(Bool.self, "coldRead", default: false),
+            feignedMiss: values.decode(Bool.self, "feignedMiss", default: false),
+            paidInFull: values.decode(Bool.self, "paidInFull", default: false)
         )
     }
 
@@ -298,5 +340,12 @@ extension AttackTriggers {
         try container.encodeNonDefault(critStealEnemyBlock, "critStealEnemyBlock", default: false)
         try container.encodeNonDefault(criticalPurgeCount, "criticalPurgeCount", default: 0)
         try container.encodeNonDefault(criticalPurgeAll, "criticalPurgeAll", default: false)
+        try container.encodeNonDefault(prismaticEdge, "prismaticEdge", default: false)
+        try container.encodeNonDefault(improvisedAssault, "improvisedAssault", default: false)
+        try container.encodeNonDefault(cleanCut, "cleanCut", default: false)
+        try container.encodeNonDefault(crackedGuard, "crackedGuard", default: false)
+        try container.encodeNonDefault(coldRead, "coldRead", default: false)
+        try container.encodeNonDefault(feignedMiss, "feignedMiss", default: false)
+        try container.encodeNonDefault(paidInFull, "paidInFull", default: false)
     }
 }

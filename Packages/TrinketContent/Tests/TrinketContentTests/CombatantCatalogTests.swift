@@ -3,6 +3,22 @@ import TrinketContent
 import TrinketCore
 
 struct CombatantCatalogTests {
+    @Test(arguments: [
+        ("alchemist", 14, 8, ["caustic-jab", "acid-potion", "luck-potion"]),
+        ("druid", 16, 9, ["mana-berries", "cinderbloom", "bloodthorn"]),
+        ("wildcard", 14, 0, ["blackjack", "bounty-shot", "astral-arrow"]),
+    ])
+    func `imported heroes have approved defaults`(id: String, health: Int, mana: Int, abilities: [String]) throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == id })
+        #expect(hero.maxHealth == health && hero.maxMana == mana)
+        #expect(hero.abilityLoadout.abilities.map(\.id) == abilities)
+        let config = CombatantTalentCatalog.config(for: id)
+        #expect(config.trees.allSatisfy { $0.nodes.count == 7 && $0.nodes(forRow: 4).count == 1 })
+        let art = try #require(ArtCatalog.combatantArtByID[id])
+        #expect(art.imageName == "hero_\(id)_card")
+        #expect(art.thumbnailImageName == "hero_\(id)_card_thumb")
+    }
+
     @Test func `homestead node I ds are unique`() throws {
         let ids = GameContent.homesteadNodes.map(\.id)
         try #expect(Set(ids).count == ids.count)

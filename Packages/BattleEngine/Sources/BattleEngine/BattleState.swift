@@ -106,6 +106,7 @@ public struct BattleState {
     public let enemyFaction: EnemyFaction
     public var storedBlockedDamageByActorID: [String: Int] = [:]
     public var primedRepeatKeywords: Set<Keyword> = []
+    var heroTalents = HeroTalentState()
     var pendingTurnDrawState: TurnDrawState?
 
     public var partyTriggers: CombatTraitTriggers {

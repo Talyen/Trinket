@@ -62,6 +62,7 @@ public enum BattleTurnEngine {
         var events: [ActionEvent] = []
         guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else { return [] }
         var resolvedAbility = BattleAbilityRules.resolveOutcome(ability, actor: actor, in: &context)
+        CombatTriggerEngine.captureHeroOutcome(original: ability, resolved: resolvedAbility, actor: actor, in: &context)
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &resolvedAbility,
             actor: actor,
@@ -210,23 +211,25 @@ extension BattleTurnEngine {
                 amount *= 2
             }
 
+            var options = isSelfHealthCost
+                ? .healthCost
+                : DamageOptions(
+                    abilityCriticalChanceBonus: ability.criticalChanceBonus,
+                    guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
+                    guaranteedCritical: shouldConsumeNextStrikeCritical,
+                    qualifiesForAmbush: true,
+                    isAttackHit: true,
+                    isBasicAttackHit: ability.tier == .basic,
+                    abilityHasLeech: ability.hasLeech,
+                )
+            options.isOriginalCardDamage = !isSelfHealthCost && context.hasHeroCard(for: actor.id)
             let damageOutcome = context.resolveDamage(
                 DamageRequest(
                     amount: amount,
                     target: damageTarget,
                     keyword: damageKeyword,
                     sourceActorID: actor.id,
-                    options: isSelfHealthCost
-                        ? .healthCost
-                        : DamageOptions(
-                            abilityCriticalChanceBonus: ability.criticalChanceBonus,
-                            guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
-                            guaranteedCritical: shouldConsumeNextStrikeCritical,
-                            qualifiesForAmbush: true,
-                            isAttackHit: true,
-                            isBasicAttackHit: ability.tier == .basic,
-                            abilityHasLeech: ability.hasLeech,
-                        ),
+                    options: options,
                 ),
             )
             let dealt = damageOutcome.healthLost

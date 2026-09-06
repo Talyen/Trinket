@@ -20,6 +20,13 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var partyDebuffDurationHalved: Bool = false
     public var onCleansePoisonDealDamagePerStack: Int = 0
     public var crownfall: Bool = false
+    public var clearSolution: Bool = false
+    public var freshBatch: Bool = false
+    public var heatRecovery: Bool = false
+    public var antitoxinCoating: Bool = false
+    public var clearMind: Bool = false
+    public var cleanBreak: Bool = false
+    public var perfectPurity: Bool = false
 
     public init(
         cleanseBonusDraw: Int = 0,
@@ -37,7 +44,14 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         blockFirstDebuffPerTurn: Bool = false,
         partyDebuffDurationHalved: Bool = false,
         onCleansePoisonDealDamagePerStack: Int = 0,
-        crownfall: Bool = false
+        crownfall: Bool = false,
+        clearSolution: Bool = false,
+        freshBatch: Bool = false,
+        heatRecovery: Bool = false,
+        antitoxinCoating: Bool = false,
+        clearMind: Bool = false,
+        cleanBreak: Bool = false,
+        perfectPurity: Bool = false
     ) {
         self.cleanseBonusDraw = cleanseBonusDraw
         self.holyDamageCleanseCount = holyDamageCleanseCount
@@ -55,10 +69,17 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.partyDebuffDurationHalved = partyDebuffDurationHalved
         self.onCleansePoisonDealDamagePerStack = onCleansePoisonDealDamagePerStack
         self.crownfall = crownfall
+        self.clearSolution = clearSolution
+        self.freshBatch = freshBatch
+        self.heatRecovery = heatRecovery
+        self.antitoxinCoating = antitoxinCoating
+        self.clearMind = clearMind
+        self.cleanBreak = cleanBreak
+        self.perfectPurity = perfectPurity
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "onCleansePoisonDealDamagePerStack", "crownfall"]
+    public static let fieldNames: [String] = ["cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -79,6 +100,13 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         if self.partyDebuffDurationHalved != other.partyDebuffDurationHalved { names.append("partyDebuffDurationHalved") }
         if self.onCleansePoisonDealDamagePerStack != other.onCleansePoisonDealDamagePerStack { names.append("onCleansePoisonDealDamagePerStack") }
         if self.crownfall != other.crownfall { names.append("crownfall") }
+        if self.clearSolution != other.clearSolution { names.append("clearSolution") }
+        if self.freshBatch != other.freshBatch { names.append("freshBatch") }
+        if self.heatRecovery != other.heatRecovery { names.append("heatRecovery") }
+        if self.antitoxinCoating != other.antitoxinCoating { names.append("antitoxinCoating") }
+        if self.clearMind != other.clearMind { names.append("clearMind") }
+        if self.cleanBreak != other.cleanBreak { names.append("cleanBreak") }
+        if self.perfectPurity != other.perfectPurity { names.append("perfectPurity") }
         return names
     }
 }
@@ -101,6 +129,13 @@ extension CleanseTriggers {
         partyDebuffDurationHalved = partyDebuffDurationHalved || other.partyDebuffDurationHalved
         onCleansePoisonDealDamagePerStack += other.onCleansePoisonDealDamagePerStack
         crownfall = crownfall || other.crownfall
+        clearSolution = clearSolution || other.clearSolution
+        freshBatch = freshBatch || other.freshBatch
+        heatRecovery = heatRecovery || other.heatRecovery
+        antitoxinCoating = antitoxinCoating || other.antitoxinCoating
+        clearMind = clearMind || other.clearMind
+        cleanBreak = cleanBreak || other.cleanBreak
+        perfectPurity = perfectPurity || other.perfectPurity
     }
 }
 
@@ -123,7 +158,14 @@ extension CleanseTriggers {
             blockFirstDebuffPerTurn: values.decode(Bool.self, "blockFirstDebuffPerTurn", default: false),
             partyDebuffDurationHalved: values.decode(Bool.self, "partyDebuffDurationHalved", default: false),
             onCleansePoisonDealDamagePerStack: values.decode(Int.self, "onCleansePoisonDealDamagePerStack", default: 0),
-            crownfall: values.decode(Bool.self, "crownfall", default: false)
+            crownfall: values.decode(Bool.self, "crownfall", default: false),
+            clearSolution: values.decode(Bool.self, "clearSolution", default: false),
+            freshBatch: values.decode(Bool.self, "freshBatch", default: false),
+            heatRecovery: values.decode(Bool.self, "heatRecovery", default: false),
+            antitoxinCoating: values.decode(Bool.self, "antitoxinCoating", default: false),
+            clearMind: values.decode(Bool.self, "clearMind", default: false),
+            cleanBreak: values.decode(Bool.self, "cleanBreak", default: false),
+            perfectPurity: values.decode(Bool.self, "perfectPurity", default: false)
         )
     }
 
@@ -144,5 +186,12 @@ extension CleanseTriggers {
         try container.encodeNonDefault(partyDebuffDurationHalved, "partyDebuffDurationHalved", default: false)
         try container.encodeNonDefault(onCleansePoisonDealDamagePerStack, "onCleansePoisonDealDamagePerStack", default: 0)
         try container.encodeNonDefault(crownfall, "crownfall", default: false)
+        try container.encodeNonDefault(clearSolution, "clearSolution", default: false)
+        try container.encodeNonDefault(freshBatch, "freshBatch", default: false)
+        try container.encodeNonDefault(heatRecovery, "heatRecovery", default: false)
+        try container.encodeNonDefault(antitoxinCoating, "antitoxinCoating", default: false)
+        try container.encodeNonDefault(clearMind, "clearMind", default: false)
+        try container.encodeNonDefault(cleanBreak, "cleanBreak", default: false)
+        try container.encodeNonDefault(perfectPurity, "perfectPurity", default: false)
     }
 }
