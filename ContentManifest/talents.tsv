@@ -39,7 +39,7 @@ wizard_freeze_t1_1	Persistent Frost	snowflake	Deal 2 additional Freeze damage to
 wizard_freeze_t1_2	Numbing Cold	wind.snow	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
 wizard_freeze_t2_1	Thermal Shock	flame.and.bolt.fill	Burn damage against Frozen enemies deals 4 bonus Physical damage.		burnDamageVsFrozenBonusPhysical:4
 wizard_freeze_t2_2	Glacial Barrier	shield.lefthalf.filled	Gain 3 Block whenever an enemy becomes Frozen.		onEnemyFrozenGainBlock:3
-wizard_freeze_t3_1	Deep Freeze	lock.fill	Frozen enemies cannot gain Block or receive healing.		frozenEnemyCannotBlockOrHeal:true
+wizard_freeze_t3_1	Deep Freeze	lock.fill	Frozen enemies cannot gain Block or receive Health restoration.		frozenEnemyCannotBlockOrHeal:true
 wizard_freeze_t3_2	Blizzard	snowflake.circle.fill	Playing 3 Freeze cards in one turn Freezes the enemy.		freezeCardsPlayedThisTurnFreezeAll:3
 wizard_burn_t1_1	Ignition	flame.fill	Burn deals 25% more damage to enemies with no Block.		burnDamageVsNoBlockMultiplier:1.25
 wizard_burn_t1_2	Wildfire Spread	flame.circle.fill	Burn ticks have a 25% chance to increase in potency.		burnIncreaseChancePercent:0.25
@@ -73,13 +73,13 @@ ranger_bleed_t3_1	Pinning Strike	arrow.down.to.line.compact	Bleeding enemies tak
 ranger_bleed_t3_2	Blood Tracker	eye.fill	Gain +15% Critical Hit chance against Bleeding enemies.		critChancePerBleedingEnemy:0.15
 warlock_burn_t1_1	Bloodfire	drop.fill	Whenever Burn damages an enemy, restore 2 Health.		burnDamageHealFlat:2
 warlock_burn_t1_2	Scorching Ash	flame.fill	Burn damage dealt increases by 1 each round, up to 4.		burn_damage_ramp_per_round:1|burn_damage_ramp_cap:4
-warlock_burn_t2_1	Withering Flame	heart.slash.fill	Burn reduces enemy healing and Leech by half.		burnReducesEnemyHealingAndLeechPercent:0.5
+warlock_burn_t2_1	Withering Flame	heart.slash.fill	Burn reduces enemy Health restoration and Leech by half.		burnReducesEnemyHealingAndLeechPercent:0.5
 warlock_burn_t2_2	Soul Burn	moon.stars.fill	Restore 1 Mana whenever Burn deals 4 or more damage in a turn.		burnDamageManaRestoreThreshold:4|onBurnDamageRestoreManaFlat:1
 warlock_burn_t3_1	Damnation	exclamationmark.triangle.fill	Burning enemies take 25% additional damage from all sources.		damageVsBurningMultiplier:1.25
 warlock_burn_t3_2	Raging Inferno	flame.circle.fill	Burn ticks twice per turn on the enemy.		burnTicksTwicePerTurn:true
-warlock_leech_t1_1	Vampiric Touch	hand.raised.fill	Your Leech heals you even when striking enemy Block.		leechOnBlockDamage:true
+warlock_leech_t1_1	Vampiric Touch	hand.raised.fill	Your Leech restores Health to you even when striking enemy Block.		leechOnBlockDamage:true
 warlock_leech_t1_2	Armor Pierce	drop.triangle.fill	Leech ignores enemy damage reduction.		leechIgnoresMitigation:true
-warlock_leech_t2_1	Blood Link	arrow.triangle.swap	Overhealing from Leech is transferred to your Companion.		leechOverhealTransfersToCompanion:true
+warlock_leech_t2_1	Blood Link	arrow.triangle.swap	Excess Health restored from Leech is transferred to your Companion.		leechOverhealTransfersToCompanion:true
 warlock_leech_t2_2	Soul Drain	moon.fill	Leeching Health restores 1 Mana.		leechRestoreManaFlat:1
 warlock_leech_t3_1	Sanguine Overflow	cross.fill	Reaching full Health makes your next attack deal 6 additional damage.		nextAttackBonusOnFullHealth:6
 warlock_leech_t3_2	Soul Ward	shield.fill	Whenever an enemy loses Health from an attack, gain 1 Block.		onAnyHealthLossGainBlock:1
@@ -128,7 +128,7 @@ frost_whelp_dodge_t3_2	Tempest Wing	moon.stars.fill	Each Dodge restores 1 Mana t
 lizard_scout_poison_t1_1	Cold Blood	figure.run	Deal 2 Poison when you Dodge.		dodgeApplyPoison:2
 lizard_scout_poison_t1_2	Venomous Skin	allergens.fill	Apply 2 Poison to attackers when you take damage.		onHitAttackerPoison:2
 lizard_scout_poison_t2_1	Spit Poison	drop.fill	When the Hero attacks a Poisoned enemy, apply 1 extra Poison.		onHeroAttackPoisonedEnemyApplyPoison:1
-lizard_scout_poison_t2_2	Toxiphage	heart.fill	Poison damage heals Lizard Scout for half the damage dealt.		poisonDamageLeechPercent:0.5
+lizard_scout_poison_t2_2	Toxiphage	heart.fill	Poison damage restores Health to Lizard Scout equal to half the damage dealt.		poisonDamageLeechPercent:0.5
 lizard_scout_poison_t3_1	Paralysis	bolt.fill	Dealing Poison damage to an enemy with 6 or more Poison has a 40% chance to Stun them (once per turn).		poison_stun_chance_percent:0.40|poisonThresholdStunAmount:6
 lizard_scout_poison_t3_2	Venom Spores	leaf.fill	Poison fades 50% slower each round.		poisonDecaySlowPercent:0.50
 lizard_scout_bleed_t1_1	Barbed Tail	triangle.fill	Basic attacks apply 2 Bleed.		basicAttackApplyBleed:2
@@ -150,10 +150,10 @@ panther_bleed_t2_2	Rend Flesh	drop.triangle.fill	Critical hits double the durati
 panther_bleed_t3_1	Crippling Laceration	shield.slash.fill	Enemies with 3 or more Bleed deal 30% less damage.		enemyBleedStacksDamageReductionStacks:3|enemyBleedStacksDamageReductionPercent:0.30
 panther_bleed_t3_2	Pouncing Finish	bolt.fill	Attacking a Bleeding target deals 2 additional Physical damage.		damageVsBleedingBonus:2
 panther_leech_t1_1	Blood Hunger	drop.fill	Gain +15% Leech against enemies below half Health.		leechPercentVsLowHealthEnemies:0.15
-panther_leech_t1_2	Shared Feast	arrow.triangle.swap	Leech healing is shared equally with the Hero.		leechSharesToHeroPercent:0.5
+panther_leech_t1_2	Shared Feast	arrow.triangle.swap	Health restored by Leech is shared equally with the Hero.		leechSharesToHeroPercent:0.5
 panther_leech_t2_1	Vitality Infusion	moon.stars.fill	Leeching Health restores 1 Mana to the Hero.		onCompanionLeechRestoreHeroMana:1
-panther_leech_t2_2	Sanguine Growth	heart.square.fill	Overhealing from Leech grants a +1 damage bonus for combat (up to +4).		leechOverhealDamageBonus:1
-panther_leech_t3_1	Frenzied Feeding	cross.fill	Leeching from Poisoned or Bleeding enemies doubles the healing received.		leechHealingVsAfflictedMultiplier:2
+panther_leech_t2_2	Sanguine Growth	heart.square.fill	Excess Health restored from Leech grants a +1 damage bonus for combat (up to +4).		leechOverhealDamageBonus:1
+panther_leech_t3_1	Frenzied Feeding	cross.fill	Leeching from Poisoned or Bleeding enemies doubles the Health restored.		leechHealingVsAfflictedMultiplier:2
 panther_leech_t3_2	Pack Bloodlust	target	While Panther is above 80% Health, party gains +10% Critical Hit chance.		partyCritChanceWhileCompanionAboveHealthThreshold:0.8|partyCritChanceWhileCompanionAboveHealthBonus:0.10
 panther_dodge_t1_1	Surprise Strike	bolt.badge.clock.fill	Your first attack in battle is a guaranteed Critical Hit.		firstAttackGuaranteedCritical:true
 panther_dodge_t1_2	Counter Pounce	pawprint.fill	Dodging an attack counters immediately for 3 damage.		onDodgeCounterDamage:3
@@ -168,11 +168,11 @@ phoenix_burn_t2_2	Explosive Embers	burst.fill	Phoenix deals 4 additional damage 
 phoenix_burn_t3_1	Molten Heat	flame.fill	Burn damage ignores all enemy Block and resistance.		burnIgnoresBlockAndMitigation:true
 phoenix_burn_t3_2	Intense Heat	flame.circle.fill	Burning enemies take 25% additional damage from all sources.		damageVsBurningMultiplier:1.25
 phoenix_health_t1_1	Restorative Ashes	heart.fill	Regenerate 2 Health every turn.		healthPerTurn:2
-phoenix_health_t1_2	Healing Flames	heart.circle.fill	Dealing Burn damage heals the lowest Health ally for 2.		onBurnDamageHealLowestAllyFlat:2
+phoenix_health_t1_2	Healing Flames	heart.circle.fill	Dealing Burn damage restores 2 Health to the lowest Health ally.		onBurnDamageHealLowestAllyFlat:2
 phoenix_health_t2_1	Afterglow	sun.max.fill	When the Phoenix survives Death's Door, restore 15% of each ally's Max Health.		surviveDeathsDoorPartyHealPercent:0.15
 phoenix_health_t2_2	Radiant Health	star.fill	While Phoenix is at full Health, party attacks deal 2 additional damage.		partyDamageBonusWhileCompanionFullHealth:2
-phoenix_health_t3_1	Phoenix Gift	cross.fill	The first time each battle the Hero would take fatal damage, heal them for 15% Max Health.		onHeroFatalHealPercentMaxHealth:0.15
-phoenix_health_t3_2	Ashen Vitality	heart.square.fill	Overhealing converts into Max Health this combat (up to +10).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:10
+phoenix_health_t3_1	Phoenix Gift	cross.fill	The first time each battle the Hero would take fatal damage, restore 15% of their Max Health.		onHeroFatalHealPercentMaxHealth:0.15
+phoenix_health_t3_2	Ashen Vitality	heart.square.fill	Health restored beyond full converts into Max Health this combat (up to +10).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:10
 phoenix_deathsdoor_t1_1	From the Ashes	flame.and.bolt.fill	Revives and restores 10 Health the first time it dies each battle. This happens before Death's Door.		onceDeathReviveHealth:10
 phoenix_deathsdoor_t1_2	Lingering Spirit	hourglass.bottomhalf.filled	Death's Door lasts 1 additional turn.		deathsDoorDurationBonusTurns:1
 phoenix_deathsdoor_t2_1	Blazing Rebirth	burst.fill	Rebirth deals 5 Burn damage to the enemy when triggered.		reviveDealBurnDamage:5
@@ -183,7 +183,7 @@ wolf_bleed_t1_1	Pack Ferocity	pawprint.fill	Increase Bleed duration by 1 and Ble
 wolf_bleed_t1_2	Deep Bite	mouth.fill	Deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
 wolf_bleed_t2_1	Hamstring	figure.fall	Bleeding enemies deal 2 less damage.		bleedingEnemyDamageReductionFlat:2
 wolf_bleed_t2_2	Open Wounds	drop.fill	Applying Bleed to a Bleeding target deals 2 instant damage.		onBleedAppliedToBleedingDealDamage:2
-wolf_bleed_t3_1	Carnivore	heart.fill	Heal 2 Health whenever Bleed deals damage.		onBleedDamageHealSelf:2
+wolf_bleed_t3_1	Carnivore	heart.fill	Restore 2 Health whenever Bleed deals damage.		onBleedDamageHealSelf:2
 wolf_bleed_t3_2	Savage Tear	burst.fill	Bleed ticks have a 20% chance to critically strike.		bleedTickCritChancePercent:0.20
 wolf_dodge_t1_1	Sidestep	figure.run	Gain 2 Block whenever you Dodge.		dodgeBlockFlat:2
 wolf_dodge_t1_2	Nimble Fang	drop.triangle.fill	After Dodging, your next attack inflicts 2 Bleed.		nextAttackBleedAfterDodge:2
@@ -210,11 +210,11 @@ golden_retriever_block_t2_2	Warning Bark	speaker.wave.2.fill	Negate the first en
 golden_retriever_block_t3_1	Sacrificial Guard	heart.slash.fill	When the Hero would die, the Retriever takes that hit instead and gains 10 Block.		companionFatalDamageRedirectBlock:10
 golden_retriever_block_t3_2	Steadfast	shield.checkered	While holding Block, Stun and Freeze on the Retriever is halved, and Burn damage taken is halved.		blockedControlBurnResistance:0.5
 golden_retriever_health_t1_1	Cheer Up	heart.fill	Restore 1 Health to the lowest Health party member at end of turn.		endOfTurnHealLowestAlly:1
-golden_retriever_health_t1_2	Playful Energy	sparkles	Playing 3 cards in a turn heals the party for 2 Health.		cardsPlayedHealPartyThreshold:3|cardsPlayedHealPartyAmount:2
+golden_retriever_health_t1_2	Playful Energy	sparkles	Playing 3 cards in a turn restores 2 Health to the party.		cardsPlayedHealPartyThreshold:3|cardsPlayedHealPartyAmount:2
 golden_retriever_health_t2_1	Campfire Comfort	flame.circle.fill	At the end of each round, restore 2 Health to each party member.		partyRegenPerRound:2
 golden_retriever_health_t2_2	Man's Best Friend	heart.circle.fill	Hero gains +15% Critical Hit chance while Retriever is alive.		heroCritChanceWhileCompanionAlive:0.15
 golden_retriever_health_t3_1	Inspirational Vigor	waveform.path.ecg	While Retriever is below half Health, party attacks deal 2 additional damage.		partyAllStatsBonusBelowHealthThreshold:0.5|partyAllStatsBonusBelowHealthAmount:2
-golden_retriever_health_t3_2	Protective Lick	bandage.fill	When an ally takes damage, heal them for 1 Health.		onAllyDamageHeal:1
+golden_retriever_health_t3_2	Protective Lick	bandage.fill	When an ally takes damage, restore 1 Health to them.		onAllyDamageHeal:1
 library_owl_holy_t1_1	Revealed Flaw	eye.fill	Holy attacks make the next hit deal 2 additional damage.		holyDamageNextHitBonus:2
 library_owl_holy_t1_2	Scholarly Smite	book.closed.fill	When the Hero uses a Holy ability, Owl deals 2 Holy damage to the target.		onHeroHolyAbilityCompanionHolyDamage:2
 library_owl_holy_t2_1	Blinding Light	sun.max.fill	When you hit with Holy damage, the target misses their next attack.		holyDamageTargetMissNextAttack:true
@@ -222,17 +222,17 @@ library_owl_holy_t2_2	Radiant Wisdom	moon.stars.fill	Restore 1 Mana whenever you
 library_owl_holy_t3_1	Bane of Evil	rays	Holy damage deals double damage to undead and corrupted enemies.		holyDamageVsUndeadOrCorruptedMultiplier:2
 library_owl_holy_t3_2	Purifying Light	shield.slash.fill	Holy attacks remove all positive buffs from the target.		holyDamagePurgeAll:true
 library_owl_cleanse_t1_1	Purifying Wisdom	scroll.fill	Draw a card when you Cleanse.		cleanseBonusDraw:1
-library_owl_cleanse_t1_2	Healing Hymn	bell.fill	Cleansing an ally also heals them for 2 Health.		cleanseBonusHeal:2
+library_owl_cleanse_t1_2	Healing Hymn	bell.fill	Cleansing an ally also restores 2 Health to them.		cleanseBonusHeal:2
 library_owl_cleanse_t2_1	Spellbreak Shield	shield.fill	Cleansing a negative effect grants 2 Block per effect removed.		cleanseBlockPerStack:2
 library_owl_cleanse_t2_2	Mass Cleanse	sparkles	Cleanse also removes negative effects from the rest of the party.		cleanseAffectsBothHeroAndCompanion:true
 library_owl_cleanse_t3_1	Reflective Ward	arrow.counterclockwise	Cleansing a negative effect reflects it onto the enemy who applied it.		cleanseReflectDebuffToEnemy:true
 library_owl_cleanse_t3_2	Sanctified Scroll	text.book.closed.fill	Restoring Health has a 10% chance to Cleanse a negative effect.		onHealCleanseTargetChance:0.10
 library_owl_health_t1_1	Safe Perch	tree.fill	Regenerate 2 Health per turn while above half Health.		healthRegenAboveHalfHealth:2
-library_owl_health_t1_2	Warded Roost	shield.lefthalf.filled	Healing an ally also grants them 2 Block.		onHealGrantBlock:2
-library_owl_health_t2_1	Efficient Care	wand.and.stars	When you spend 3 Mana to empower a heal, it costs 2 Mana instead of 3.		healingEmpowermentCostReduction:1
-library_owl_health_t2_2	Aether Shield	shield.checkered	Overhealing converts into Block, absorbing up to 8 damage.		overhealShieldCap:8
-library_owl_health_t3_1	Guardian Archive	cross.fill	When a party member hits Death's Door, heal them for 10 Health and cleanse all negative effects.		onAllyDeathsDoorHealAndCleanse:10
-library_owl_health_t3_2	Font of Magic	drop.fill	Healing an ally restores 1 Mana to the caster.		onHealRestoreCasterMana:1
+library_owl_health_t1_2	Warded Roost	shield.lefthalf.filled	Restoring Health to an ally also grants them 2 Block.		onHealGrantBlock:2
+library_owl_health_t2_1	Efficient Care	wand.and.stars	When you spend 3 Mana to empower a card that restores Health, it costs 2 Mana instead of 3.		healingEmpowermentCostReduction:1
+library_owl_health_t2_2	Aether Shield	shield.checkered	Health restored beyond full converts into Block, absorbing up to 8 damage.		overhealShieldCap:8
+library_owl_health_t3_1	Guardian Archive	cross.fill	When a party member hits Death's Door, restore 10 Health to them and cleanse all negative effects.		onAllyDeathsDoorHealAndCleanse:10
+library_owl_health_t3_2	Font of Magic	drop.fill	Restoring Health to an ally restores 1 Mana to the caster.		onHealRestoreCasterMana:1
 risen_skeleton_physical_t1_1	Bone Shield	shield.fill	Gain 2 Block whenever you deal Physical damage.		onPhysicalDamageGainBlock:2
 risen_skeleton_physical_t1_2	Bone Burst	burst.fill	Attacks have a 25% chance to deal 3 extra damage and grant 2 Block.		attackBurstChancePercent:0.25|attackBurstDamage:3|attackBurstBlock:2
 risen_skeleton_physical_t2_1	Brittle Strike	shield.slash.fill	Physical attacks ignore all Block on Stunned or Frozen enemies.		physicalIgnoresBlockVsStunnedOrFrozen:true
@@ -242,8 +242,8 @@ risen_skeleton_physical_t3_2	Bone Armor	shield.lefthalf.filled	The first time ea
 risen_skeleton_leech_t1_1	Weaken Soul	waveform.path.ecg	Leech reduces the target's damage by 2 for 2 turns.		onLeechReduceEnemyStrength:2|onLeechReduceEnemyStrengthTurns:2
 risen_skeleton_leech_t1_2	Toxic Touch	allergens.fill	Leech damage applies 2 Poison to the target.		onLeechApplyPoison:2
 risen_skeleton_leech_t2_1	Grave Harvest	drop.fill	Leeching Health from an enemy below half Health restores 2 additional Health.		leechBonusHealVsLowHealthEnemies:2
-risen_skeleton_leech_t2_2	Soul Sharing	arrow.triangle.swap	Convert half of Skeleton's damage into Leech healing for the Hero.		companionDamageLeechesToHeroPercent:0.5
-risen_skeleton_leech_t3_1	Affliction Siphon	cross.fill	Leech heals for double amount against Poisoned or Bleeding targets.		leechHealingVsAfflictedMultiplier:2
+risen_skeleton_leech_t2_2	Soul Sharing	arrow.triangle.swap	Convert half of Skeleton's damage into Health restored to the Hero.		companionDamageLeechesToHeroPercent:0.5
+risen_skeleton_leech_t3_1	Affliction Siphon	cross.fill	Leech restores twice as much Health against Poisoned or Bleeding targets.		leechHealingVsAfflictedMultiplier:2
 risen_skeleton_leech_t3_2	Necrotic Bleed	drop.triangle.fill	Leeching Health applies 2 Bleed to the target.		onLeechApplyBleed:2
 risen_skeleton_deathsdoor_t1_1	Deathrattle	bell.fill	Revive at 1 Health with 10 Block the first time you die each battle.		onceDeathReviveHealth:1|onceDeathReviveBlock:10
 risen_skeleton_deathsdoor_t1_2	Tenacious Spirit	hourglass.bottomhalf.filled	Death's Door lasts 1 additional turn.		deathsDoorDurationBonusTurns:1
@@ -276,11 +276,11 @@ pixie_cleanse_t2_2	Cleansing Ward	shield.fill	Cleansing an ally also grants the 
 pixie_cleanse_t3_1	Fae Ward	shield.lefthalf.filled	Automatically block the first negative effect applied each turn.		blockFirstDebuffPerTurn:true
 pixie_cleanse_t3_2	Purifying Aura	sun.and.horizon.fill	Debuffs on all party members expire twice as fast.		partyDebuffDurationHalved:true
 pixie_health_t1_1	Sprite Touch	heart.fill	Regenerate 2 Health per turn for the first 3 turns of battle.		healthRegenFirstTurnsAmount:2|healthRegenFirstTurnsDuration:3
-pixie_health_t1_2	Emergency Mend	cross.fill	Healing allies below 30% Health restores double the amount.		healingBelowHealthPercentThreshold:0.30|healingBelowHealthPercentMultiplier:2
-pixie_health_t2_1	Lingering Blessing	leaf.fill	Healing an ally applies a 3-turn heal over time of 1 Health.		healOverTimeOnHealTurns:3|healOverTimeOnHealAmount:1
-pixie_health_t2_2	Protective Bloom	shield.lefthalf.filled	Healing an ally also grants them 2 Block.		onHealGrantBlock:2
-pixie_health_t3_1	Vital Infusion	heart.square.fill	Overhealing increases the target's Max Health by +1 this combat (up to +5).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:5|overhealConvertsToMaxHealthPerEvent:1
-pixie_health_t3_2	Barrier Blessing	shield.fill	Excess healing is converted into Block for the healed ally.		overhealConvertsToBlock:true
+pixie_health_t1_2	Emergency Mend	cross.fill	Health restored to allies below 30% Health is doubled.		healingBelowHealthPercentThreshold:0.30|healingBelowHealthPercentMultiplier:2
+pixie_health_t2_1	Lingering Blessing	leaf.fill	Restoring Health to an ally applies a 3-turn effect that restores 1 Health over time.		healOverTimeOnHealTurns:3|healOverTimeOnHealAmount:1
+pixie_health_t2_2	Protective Bloom	shield.lefthalf.filled	Restoring Health to an ally also grants them 2 Block.		onHealGrantBlock:2
+pixie_health_t3_1	Vital Infusion	heart.square.fill	Health restored beyond full increases the target's Max Health by +1 this combat (up to +5).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:5|overhealConvertsToMaxHealthPerEvent:1
+pixie_health_t3_2	Barrier Blessing	shield.fill	Excess Health restored is converted into Block for that ally.		overhealConvertsToBlock:true
 pixie_holy_t1_1	Dazzle	sparkle	Holy attacks reduce target damage by 2 on their next turn.		holyDamageReduceTargetDamage:2
 pixie_holy_t1_2	Piercing Starlight	rays	Holy damage ignores enemy Block and cannot be Dodged.		holyIgnoresBlockAndDodge:true
 pixie_holy_t2_1	Radiant Barrier	sun.max.fill	Dealing Holy damage grants 2 Block to the party.		onHolyDamagePartyBlock:2
@@ -301,7 +301,7 @@ shield_scarab_stun_t3_1	Quaking Carapace	waveform	Add 3 Stun to the enemy and gr
 shield_scarab_stun_t3_2	Solar Brand	flame.fill	Stunning an enemy also inflicts 2 Burn on them.		onStunEnemyApplyBurn:2
 shield_scarab_holy_t1_1	Gilded Carapace	circle.circle.fill	Gain 2 Block whenever you deal Holy damage.		holyDamageBlockFlat:2
 shield_scarab_holy_t1_2	Radiant Shell	sun.haze.fill	Enemies attacking the Scarab take 2 Holy damage.		onHitAttackerHoly:2
-shield_scarab_holy_t2_1	Sun Glyph	sun.max.fill	Holy damage dealt by Scarab heals the Hero for 2 Health.		holyDamageHealHeroFlat:2
+shield_scarab_holy_t2_1	Sun Glyph	sun.max.fill	Holy damage dealt by Scarab restores 2 Health to the Hero.		holyDamageHealHeroFlat:2
 shield_scarab_holy_t2_2	Solar Ward	rays	Party deals 2 additional Holy damage while Scarab is at full Health.		partyHolyDamageBonusWhileCompanionFullHealth:2
 shield_scarab_holy_t3_1	Dazzling Guard	eye.slash.fill	Blocking an attack reduces the attacker's accuracy by 25% for 2 turns.		onBlockReduceAttackerAccuracyPercent:25|onBlockReduceAttackerAccuracyTurns:2
 shield_scarab_holy_t3_2	Purifying Sun	burst.fill	Holy damage deals double damage to Poisoned or Bleeding targets.		holyDamageVsPoisonedOrBleedingMultiplier:2
@@ -346,7 +346,7 @@ wolf_bleed_t4_1	Septicemia	drop.triangle.fill	Poisoned enemies take double Bleed
 wolf_dodge_t4_1	Phantom Counter	figure.run	Dodging draws and plays a Physical card.		phantomCounter:true
 fox_dodge_t4_1	Perfect Tempo	bolt.fill	Physical Critical Hits make you Dodge the next attack.		perfectTempo:true
 pixie_cleanse_t4_1	Purifying Waters	drop.fill	Cleansing restores 4 Health per effect.		purifyingWaters:true
-phoenix_health_t4_1	Clean Slate	cross.fill	Overhealing Cleanses one effect.		cleanSlate:true
+phoenix_health_t4_1	Clean Slate	cross.fill	Health restored beyond full Cleanses one effect.		cleanSlate:true
 ranger_burn_t4_1	Firebrand	flame.fill	Physical damage deals half as much Burn damage.		firebrand:true
 wizard_burn_t4_1	Backdraft	flame.fill	Critical Hits detonate and consume all Burn.		backdraft:true
 warlock_burn_t4_1	Ashen Arsenal	flame.fill	Burn damage draws a Physical card.		ashenArsenal:true
@@ -377,20 +377,20 @@ alchemist_cleanse_t2_2	Antitoxin Coating	sparkles	Cleansing Poison grants the cl
 alchemist_cleanse_t3_1	Clear Mind	sparkles	Your first Cleanse of each Mana-using ally grants them 1 Max Mana this battle.		clearMind:true
 alchemist_cleanse_t3_2	Clean Break	sparkles	Removing an ally’s last debuff lets their next attack ignore 1 Block, once per turn.		cleanBreak:true
 alchemist_cleanse_t4_1	Perfect Purity	sparkles	While both allies have no debuffs, the enemy’s first Block gain each turn is reduced by 1.		perfectPurity:true
-alchemist_health_t1_1	Fortifying Tonic	heart.fill	Healing a Poisoned ally restores 1 additional Health, once per turn.		fortifyingTonic:true
-alchemist_health_t1_2	Measured Dose	heart.fill	Restoring Mana with a card adds 1 Health to your next healing card, once per turn.		measuredDose:true
-alchemist_health_t2_1	Cooling Salve	heart.fill	Your first successful healing card each turn removes 1 Burn from you.		coolingSalve:true
-alchemist_health_t2_2	Reclaimed Reagents	heart.fill	Your first overheal each battle restores 1 Mana to the healed ally.		reclaimedReagents:true
+alchemist_health_t1_1	Fortifying Tonic	heart.fill	Restoring Health to a Poisoned ally restores 1 additional Health, once per turn.		fortifyingTonic:true
+alchemist_health_t1_2	Measured Dose	heart.fill	Restoring Mana with a card adds 1 Health to your next card that restores Health, once per turn.		measuredDose:true
+alchemist_health_t2_1	Cooling Salve	heart.fill	Your first successful card that restores Health each turn removes 1 Burn from you.		coolingSalve:true
+alchemist_health_t2_2	Reclaimed Reagents	heart.fill	Your first Health restoration beyond full each battle restores 1 Mana to that ally.		reclaimedReagents:true
 alchemist_health_t3_1	Shared Prescription	heart.fill	Your Companion restoring Health with a card removes 1 Poison from you, once per turn.		sharedPrescription:true
 alchemist_health_t3_2	Restorative Fumes	heart.fill	Your first Basic that restores Health each turn removes 1 Block from the enemy.		restorativeFumes:true
-alchemist_health_t4_1	Masterwork Mixture	heart.fill	Playing both Poison and healing cards in a turn restores 1 Health to both allies at turn end.		masterworkMixture:true
-druid_health_t1_1	Spring Sap	heart.fill	Healing an ally with Thorns restores 1 additional Health, once per turn.		springSap:true
-druid_health_t1_2	Pruning Touch	heart.fill	Your Companion’s first successful healing card each turn removes 1 Thorns from the enemy.		pruningTouch:true
+alchemist_health_t4_1	Masterwork Mixture	heart.fill	Playing both Poison cards and cards that restore Health in a turn restores 1 Health to both allies at turn end.		masterworkMixture:true
+druid_health_t1_1	Spring Sap	heart.fill	Restoring Health to an ally with Thorns restores 1 additional Health, once per turn.		springSap:true
+druid_health_t1_2	Pruning Touch	heart.fill	Your Companion’s first successful card that restores Health each turn removes 1 Thorns from the enemy.		pruningTouch:true
 druid_health_t2_1	Quiet Grove	heart.fill	After an enemy turn in which you lost no Health, restore 1 Health to your Companion.		quietGrove:true
 druid_health_t2_2	Shelter Seed	heart.fill	The first time you fall below half Health each battle, grant your Companion 1 Thorns.		shelterSeed:true
-druid_health_t3_1	Cleansing Dew	heart.fill	Your first successful heal each turn removes 1 Poison from the healed ally.		cleansingDew:true
-druid_health_t3_2	Shared Roots	heart.fill	Healing your Companion removes 1 Burn from you, once per turn.		sharedRoots:true
-druid_health_t4_1	Verdant Shelter	heart.fill	Your first successful heal each turn grants the healed ally 1 Thorns.		verdantShelter:true
+druid_health_t3_1	Cleansing Dew	heart.fill	Your first successful card that restores Health each turn removes 1 Poison from that ally.		cleansingDew:true
+druid_health_t3_2	Shared Roots	heart.fill	Restoring Health to your Companion removes 1 Burn from you, once per turn.		sharedRoots:true
+druid_health_t4_1	Verdant Shelter	heart.fill	Your first successful card that restores Health each turn grants that ally 1 Thorns.		verdantShelter:true
 druid_poison_t1_1	Barbed Spores	drop.fill	Your Poison dealing Health damage grants your Companion 1 Thorns, once per turn.		barbedSpores:true
 druid_poison_t1_2	Living Bark	drop.fill	Poison cards grant you 1 Block while you have Thorns, once per turn.		livingBark:true
 druid_poison_t2_1	Cool Moss	drop.fill	Your first Poison card each turn removes 1 Burn from your Companion.		coolMoss:true
@@ -411,7 +411,7 @@ wildcard_gold_t2_1	Full House	suit.diamond.fill	Playing a Basic, Skill, and Ulti
 wildcard_gold_t2_2	Lucky Charm	suit.diamond.fill	Your first card that grants Gold each turn removes 1 Poison from you.		luckyCharm:true
 wildcard_gold_t3_1	Last Wager	suit.diamond.fill	Gain 1 Thorns at turn end if your last card granted Gold.		lastWager:true
 wildcard_gold_t3_2	Sleight of Coin	suit.diamond.fill	After Dodging, your next card that grants Gold removes 1 Thorns from the enemy, once per turn.		sleightOfCoin:true
-wildcard_gold_t4_1	Lucky Break	suit.diamond.fill	Your first Skill each turn randomly grants 1 Gold, 1 Block, or 1 Health. Skip unneeded healing.		luckyBreak:true
+wildcard_gold_t4_1	Lucky Break	suit.diamond.fill	Your first Skill each turn randomly grants 1 Gold, 1 Block, or 1 Health. Skip unneeded Health restoration.		luckyBreak:true
 wildcard_dodge_t1_1	False Opening	wind	A non-damaging random card outcome grants 5% Dodge until your next turn, once per turn.		falseOpening:true
 wildcard_dodge_t1_2	Missed Opportunity	wind	When an enemy fully Blocks your attack, gain 1 Block, once per turn.		missedOpportunity:true
 wildcard_dodge_t2_1	Passing Luck	wind	Dodging restores 1 Health to your Companion, once per turn.		passingLuck:true

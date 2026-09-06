@@ -195,6 +195,7 @@ class HomesteadNodeRow:
     category: str
     prerequisites: str
     tier: str
+    stage_name: str
     cost: str
     bonus_title: str
     bonus_description: str
@@ -340,6 +341,7 @@ def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
             "category",
             "prerequisites",
             "tier",
+            "stage_name",
             "cost",
             "bonus_title",
             "bonus_description",
@@ -1110,6 +1112,7 @@ def render_homestead_tier(row: HomesteadNodeRow) -> str:
     production_line = f",\n                    production: {production}" if production else ""
     return f"""                HomesteadNodeTier(
                     tier: {row.tier},
+                    stageName: "{swift_escape(row.stage_name)}",
                     cost: {parse_material_rewards(row.cost)},
                     bonus: HomesteadBonus(
                         title: "{swift_escape(row.bonus_title)}",
@@ -1207,6 +1210,9 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         _require_non_empty("title", row.title, row_id)
         _require_non_empty("summary", row.summary, row_id)
         _require_non_empty("symbol_name", row.symbol_name, row_id)
+        _require_non_empty("stage_name", row.stage_name, row_id)
+        if len(row.stage_name.split()) > 3:
+            raise ValueError(f"stage_name for {row_id} must be three words or fewer")
         _require_non_empty("bonus_title", row.bonus_title, row_id)
         _require_non_empty("bonus_description", row.bonus_description, row_id)
         _require_non_empty("modifiers", row.modifiers, row_id)

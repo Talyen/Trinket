@@ -377,7 +377,7 @@ struct BattleAbilityCardView: View {
             verticalTilt: CGFloat(verticalTilt),
             scale: heldScale.width,
             perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.keywords,
+            keywords: card.ability.presentationKeywords,
         )
         publishPlay(request)
     }
@@ -440,7 +440,7 @@ private extension BattleAbilityCardView {
             verticalTilt: 0,
             scale: 1,
             perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.keywords,
+            keywords: card.ability.presentationKeywords,
         )
         publishPlay(request)
     }

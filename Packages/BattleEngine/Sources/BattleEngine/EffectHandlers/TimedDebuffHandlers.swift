@@ -37,7 +37,7 @@ struct TimedDebuffHandler: BattleEffectHandler {
             let percentInt = Int((percent * 100).rounded())
             return EffectSummary(
                 keyword: keyword,
-                text: "Sapped: Incoming healing reduced by \(percentInt)%\(durationSuffix).",
+                text: "Sapped: Health restoration reduced by \(percentInt)%\(durationSuffix).",
             )
         default:
             return nil

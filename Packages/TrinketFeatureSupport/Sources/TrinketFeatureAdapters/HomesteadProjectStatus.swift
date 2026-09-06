@@ -155,15 +155,8 @@ public struct HomesteadProjectStatus {
 }
 
 public enum HomesteadTierCopy {
-    public static func title(for tier: Int, nodeTitle: String) -> String {
-        let suffix = switch tier {
-        case 1: "I"
-        case 2: "II"
-        case 3: "III"
-        case 4: "IV"
-        default: "\(tier)"
-        }
-        return "\(nodeTitle) \(suffix)"
+    public static func title(for stageName: String, nodeTitle: String) -> String {
+        "\(nodeTitle) — \(stageName)"
     }
 }
 

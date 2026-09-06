@@ -44,6 +44,7 @@ public struct HomesteadTierCombatBonus: Equatable, Hashable, Sendable {
 
 public struct HomesteadNodeTier: Hashable, Sendable {
     public let tier: Int
+    public let stageName: String
     public let cost: [ResourceAmount]
     public let bonus: HomesteadBonus
     public let combatBonus: HomesteadTierCombatBonus
@@ -51,12 +52,14 @@ public struct HomesteadNodeTier: Hashable, Sendable {
 
     public init(
         tier: Int,
+        stageName: String,
         cost: [ResourceAmount],
         bonus: HomesteadBonus,
         combatBonus: HomesteadTierCombatBonus = .empty,
         production: ResourceAmount? = nil,
     ) {
         self.tier = tier
+        self.stageName = stageName
         self.cost = cost
         self.bonus = bonus
         self.combatBonus = combatBonus

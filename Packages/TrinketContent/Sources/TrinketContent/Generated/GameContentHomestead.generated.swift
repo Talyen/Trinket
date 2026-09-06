@@ -16,6 +16,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Cleared Plot",
                     cost: [ResourceAmount(.wood, 5), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
                         title: "Health",
@@ -26,6 +27,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Plowed Rows",
                     cost: [ResourceAmount(.wood, 10), ResourceAmount(.herbs, 10)],
                     bonus: HomesteadBonus(
                         title: "Health",
@@ -36,6 +38,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Seeded Rows",
                     cost: [ResourceAmount(.wood, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
                         title: "Health",
@@ -46,6 +49,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Expanded Acres",
                     cost: [ResourceAmount(.wood, 40), ResourceAmount(.herbs, 40)],
                     bonus: HomesteadBonus(
                         title: "Health",
@@ -66,40 +70,44 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Prepared Beds",
                     cost: [ResourceAmount(.wood, 5), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
-                        title: "Healing",
-                        description: "Increase Healing by 1\nProduces 1 Herbs per day"
+                        title: "Health restored",
+                        description: "Restore 1 additional Health\nProduces 1 Herbs per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(1)], companionModifiers: [.healthRestored(1)]),
                     production: ResourceAmount(.herbs, 1)
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Planted Beds",
                     cost: [ResourceAmount(.wood, 10), ResourceAmount(.herbs, 10)],
                     bonus: HomesteadBonus(
-                        title: "Healing",
-                        description: "Increase Healing by 2\nProduces 2 Herbs per day"
+                        title: "Health restored",
+                        description: "Restore 2 additional Health\nProduces 2 Herbs per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(2)], companionModifiers: [.healthRestored(2)]),
                     production: ResourceAmount(.herbs, 2)
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Irrigated Beds",
                     cost: [ResourceAmount(.wood, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
-                        title: "Healing",
-                        description: "Increase Healing by 3\nProduces 3 Herbs per day"
+                        title: "Health restored",
+                        description: "Restore 3 additional Health\nProduces 3 Herbs per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(3)], companionModifiers: [.healthRestored(3)]),
                     production: ResourceAmount(.herbs, 3)
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Covered Garden",
                     cost: [ResourceAmount(.wood, 40), ResourceAmount(.herbs, 40)],
                     bonus: HomesteadBonus(
-                        title: "Healing",
-                        description: "Increase Healing by 4\nProduces 4 Herbs per day"
+                        title: "Health restored",
+                        description: "Restore 4 additional Health\nProduces 4 Herbs per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(4)], companionModifiers: [.healthRestored(4)]),
                     production: ResourceAmount(.herbs, 4)
@@ -116,6 +124,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Coop Frame",
                     cost: [ResourceAmount(.wood, 4), ResourceAmount(.food, 6)],
                     bonus: HomesteadBonus(
                         title: "Party Damage",
@@ -126,6 +135,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Enclosed Coop",
                     cost: [ResourceAmount(.wood, 8), ResourceAmount(.food, 12)],
                     bonus: HomesteadBonus(
                         title: "Party Damage",
@@ -136,6 +146,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Nesting Boxes",
                     cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 24)],
                     bonus: HomesteadBonus(
                         title: "Party Damage",
@@ -146,6 +157,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Expanded Roost",
                     cost: [ResourceAmount(.wood, 32), ResourceAmount(.food, 48)],
                     bonus: HomesteadBonus(
                         title: "Party Damage",
@@ -166,6 +178,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Fenced Ground",
                     cost: [ResourceAmount(.wood, 4), ResourceAmount(.food, 6)],
                     bonus: HomesteadBonus(
                         title: "Damage Reduction",
@@ -176,6 +189,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Seeded Pasture",
                     cost: [ResourceAmount(.wood, 8), ResourceAmount(.food, 12)],
                     bonus: HomesteadBonus(
                         title: "Damage Reduction",
@@ -186,6 +200,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Watering Troughs",
                     cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 24)],
                     bonus: HomesteadBonus(
                         title: "Damage Reduction",
@@ -196,6 +211,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Sheltered Range",
                     cost: [ResourceAmount(.wood, 32), ResourceAmount(.food, 48)],
                     bonus: HomesteadBonus(
                         title: "Damage Reduction",
@@ -216,6 +232,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Cooking Hearth",
                     cost: [ResourceAmount(.food, 6), ResourceAmount(.herbs, 4)],
                     bonus: HomesteadBonus(
                         title: "Burn Ward",
@@ -226,6 +243,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Work Kitchen",
                     cost: [ResourceAmount(.food, 12), ResourceAmount(.herbs, 8)],
                     bonus: HomesteadBonus(
                         title: "Burn Ward",
@@ -236,6 +254,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Stone Oven",
                     cost: [ResourceAmount(.food, 24), ResourceAmount(.herbs, 16)],
                     bonus: HomesteadBonus(
                         title: "Burn Ward",
@@ -246,6 +265,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Expanded Kitchen",
                     cost: [ResourceAmount(.food, 48), ResourceAmount(.herbs, 32)],
                     bonus: HomesteadBonus(
                         title: "Burn Ward",
@@ -266,6 +286,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Forge Foundation",
                     cost: [ResourceAmount(.stone, 4), ResourceAmount(.iron, 6)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
@@ -275,6 +296,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Hearth and Anvil",
                     cost: [ResourceAmount(.stone, 8), ResourceAmount(.iron, 12)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
@@ -284,6 +306,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Covered Smithy",
                     cost: [ResourceAmount(.stone, 16), ResourceAmount(.iron, 24)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
@@ -293,6 +316,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Reinforced Forge",
                     cost: [ResourceAmount(.stone, 32), ResourceAmount(.iron, 48)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
@@ -312,6 +336,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Loom Frame",
                     cost: [ResourceAmount(.wood, 3), ResourceAmount(.hide, 7)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
@@ -321,6 +346,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Working Loom",
                     cost: [ResourceAmount(.wood, 6), ResourceAmount(.hide, 14)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
@@ -330,6 +356,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Tailor Shop",
                     cost: [ResourceAmount(.wood, 12), ResourceAmount(.hide, 28)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
@@ -339,6 +366,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Insulated Workroom",
                     cost: [ResourceAmount(.wood, 24), ResourceAmount(.hide, 56)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
@@ -358,6 +386,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Workbench",
                     cost: [ResourceAmount(.stone, 6), ResourceAmount(.herbs, 4)],
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
@@ -367,6 +396,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Laboratory Shelves",
                     cost: [ResourceAmount(.stone, 12), ResourceAmount(.herbs, 8)],
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
@@ -376,6 +406,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Distilling Station",
                     cost: [ResourceAmount(.stone, 24), ResourceAmount(.herbs, 16)],
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
@@ -385,6 +416,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Sealed Laboratory",
                     cost: [ResourceAmount(.stone, 48), ResourceAmount(.herbs, 32)],
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
@@ -404,6 +436,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Crystal Beds",
                     cost: [ResourceAmount(.stone, 6), ResourceAmount(.crystal, 4)],
                     bonus: HomesteadBonus(
                         title: "Mana",
@@ -414,6 +447,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Covered Beds",
                     cost: [ResourceAmount(.stone, 12), ResourceAmount(.crystal, 8)],
                     bonus: HomesteadBonus(
                         title: "Mana",
@@ -424,6 +458,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Growth Chambers",
                     cost: [ResourceAmount(.stone, 24), ResourceAmount(.crystal, 16)],
                     bonus: HomesteadBonus(
                         title: "Mana",
@@ -434,6 +469,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Crystal Conservatory",
                     cost: [ResourceAmount(.stone, 48), ResourceAmount(.crystal, 32)],
                     bonus: HomesteadBonus(
                         title: "Mana",
@@ -454,6 +490,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Inscription Table",
                     cost: [ResourceAmount(.iron, 8), ResourceAmount(.crystal, 2)],
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
@@ -463,6 +500,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Engraving Bench",
                     cost: [ResourceAmount(.iron, 16), ResourceAmount(.crystal, 4)],
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
@@ -472,6 +510,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Rune Forge",
                     cost: [ResourceAmount(.iron, 32), ResourceAmount(.crystal, 8)],
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
@@ -481,6 +520,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Expanded Workshop",
                     cost: [ResourceAmount(.iron, 64), ResourceAmount(.crystal, 16)],
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
@@ -500,6 +540,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Trail Shelter",
                     cost: [ResourceAmount(.wood, 3), ResourceAmount(.hide, 7)],
                     bonus: HomesteadBonus(
                         title: "Companion Damage",
@@ -510,6 +551,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Timber Lodge",
                     cost: [ResourceAmount(.wood, 6), ResourceAmount(.hide, 14)],
                     bonus: HomesteadBonus(
                         title: "Companion Damage",
@@ -520,6 +562,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Gear Room",
                     cost: [ResourceAmount(.wood, 12), ResourceAmount(.hide, 28)],
                     bonus: HomesteadBonus(
                         title: "Companion Damage",
@@ -530,6 +573,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Training Yard",
                     cost: [ResourceAmount(.wood, 24), ResourceAmount(.hide, 56)],
                     bonus: HomesteadBonus(
                         title: "Companion Damage",
@@ -550,6 +594,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Practice Ground",
                     cost: [ResourceAmount(.food, 4), ResourceAmount(.hide, 6)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
@@ -559,6 +604,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Obstacle Course",
                     cost: [ResourceAmount(.food, 8), ResourceAmount(.hide, 12)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
@@ -568,6 +614,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Training Yard",
                     cost: [ResourceAmount(.food, 16), ResourceAmount(.hide, 24)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
@@ -577,6 +624,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Training Pavilion",
                     cost: [ResourceAmount(.food, 32), ResourceAmount(.hide, 48)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
@@ -596,6 +644,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Shrine Foundation",
                     cost: [ResourceAmount(.herbs, 4), ResourceAmount(.crystal, 6)],
                     bonus: HomesteadBonus(
                         title: "Astral Find",
@@ -605,6 +654,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Enclosed Shrine",
                     cost: [ResourceAmount(.herbs, 8), ResourceAmount(.crystal, 12)],
                     bonus: HomesteadBonus(
                         title: "Astral Find",
@@ -614,6 +664,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Observation Chamber",
                     cost: [ResourceAmount(.herbs, 16), ResourceAmount(.crystal, 24)],
                     bonus: HomesteadBonus(
                         title: "Astral Find",
@@ -623,6 +674,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Observatory Tower",
                     cost: [ResourceAmount(.herbs, 32), ResourceAmount(.crystal, 48)],
                     bonus: HomesteadBonus(
                         title: "Astral Find",
@@ -642,6 +694,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
+                    stageName: "Dug Shaft",
                     cost: [ResourceAmount(.crystal, 5), ResourceAmount(.gold, 5)],
                     bonus: HomesteadBonus(
                         title: "Gold Find",
@@ -652,6 +705,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
+                    stageName: "Stone Lining",
                     cost: [ResourceAmount(.crystal, 10), ResourceAmount(.gold, 10)],
                     bonus: HomesteadBonus(
                         title: "Gold Find",
@@ -662,6 +716,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
+                    stageName: "Covered Well",
                     cost: [ResourceAmount(.crystal, 20), ResourceAmount(.gold, 20)],
                     bonus: HomesteadBonus(
                         title: "Gold Find",
@@ -672,6 +727,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
+                    stageName: "Wellhouse",
                     cost: [ResourceAmount(.crystal, 40), ResourceAmount(.gold, 40)],
                     bonus: HomesteadBonus(
                         title: "Gold Find",

@@ -188,7 +188,7 @@ struct HomesteadTierNode: View {
     }
 
     private var tierTitle: String {
-        HomesteadTierCopy.title(for: tier.tier, nodeTitle: definition.title)
+        HomesteadTierCopy.title(for: tier.stageName, nodeTitle: definition.title)
     }
 
     var body: some View {

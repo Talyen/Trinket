@@ -80,7 +80,7 @@ extension BattleFieldLane {
             verticalTilt: 0,
             scale: 1,
             perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.keywords,
+            keywords: card.ability.presentationKeywords,
         )
     }
 }

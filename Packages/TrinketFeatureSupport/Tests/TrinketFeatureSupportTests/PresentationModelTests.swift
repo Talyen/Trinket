@@ -44,12 +44,8 @@ struct PresentationModelTests {
         #expect(farmingProgress.subtitle == "3 / \(farmingProgress.totalTiers)")
     }
 
-    @Test func `homestead tier copy formats roman numerals`() {
-        #expect(HomesteadTierCopy.title(for: 1, nodeTitle: "Node") == "Node I")
-        #expect(HomesteadTierCopy.title(for: 2, nodeTitle: "Node") == "Node II")
-        #expect(HomesteadTierCopy.title(for: 3, nodeTitle: "Node") == "Node III")
-        #expect(HomesteadTierCopy.title(for: 4, nodeTitle: "Node") == "Node IV")
-        #expect(HomesteadTierCopy.title(for: 5, nodeTitle: "Node") == "Node 5")
+    @Test func `homestead tier copy uses stage names`() {
+        #expect(HomesteadTierCopy.title(for: "Cleared Plot", nodeTitle: "Wheat Field") == "Wheat Field — Cleared Plot")
     }
 
     @Test func `hero header layout sizing policies and metrics`() {

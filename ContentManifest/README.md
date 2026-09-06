@@ -130,12 +130,13 @@ id	name	max_health	is_boss	abilities	trait_id	faction
 Tab-separated columns:
 
 ```text
-node_id	title	summary	symbol_name	category	prerequisites	tier	cost	bonus_title	bonus_description	modifiers	production
+node_id	title	summary	symbol_name	category	prerequisites	tier	stage_name	cost	bonus_title	bonus_description	modifiers	production
 ```
 
 - `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).
 - `category`: `farming`, `crafting`, `alchemy`, `training`, or `arcana`.
 - `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
+- `stage_name`: concise, player-facing name for the node's construction stage; use no more than three words.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).
 - `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Combat tokens include `outgoing_damage_percent:0.02`, `incoming_damage_reduction_percent:0.02`, `dodge_chance_bonus:0.02` (all additive, rounded via `CombatRounding`). Homestead-only tokens: `astral_chance:N`, `gold_find:N`.
 - One row per tier; node metadata must match across tiers for the same `node_id`.

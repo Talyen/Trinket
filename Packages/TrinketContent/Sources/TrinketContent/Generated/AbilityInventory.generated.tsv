@@ -37,7 +37,7 @@ poison-dagger	Poison Dagger	skill	Deal 2 Poison damage.
 pounce	Pounce	skill	Deal 3 Stun damage. Doubled if played on the first turn.
 predators-focus	Predator's Focus	skill	Mark the enemy. Your next attack is a guaranteed Critical Hit.
 sap-arrow	Sap Arrow	skill	Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.
-serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage. Reduces enemy Healing by 25% for 3 turns.
+serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage. Reduces the Health restored to enemies by 25% for 3 turns.
 smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the enemy.
 spiked-shield	Spiked Shield	skill	Deal 2 Physical damage, gain 2 Block, and gain 2 Thorns.
 steal	Steal	skill	Deal 2 Physical damage and steal 2 Gold.

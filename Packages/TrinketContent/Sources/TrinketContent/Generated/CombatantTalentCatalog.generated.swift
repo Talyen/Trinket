@@ -485,7 +485,7 @@ public extension CombatantTalentCatalog {
             "wizard_freeze_t3_1": CombatantTalentEffect(
                 name: "Deep Freeze",
                 symbolName: "lock.fill",
-                description: "Frozen enemies cannot gain Block or receive healing.",
+                description: "Frozen enemies cannot gain Block or receive Health restoration.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(control: ControlTriggers(frozenEnemyCannotBlockOrHeal: true))
             ),
@@ -621,7 +621,7 @@ public extension CombatantTalentCatalog {
             "warlock_burn_t2_1": CombatantTalentEffect(
                 name: "Withering Flame",
                 symbolName: "heart.slash.fill",
-                description: "Burn reduces enemy healing and Leech by half.",
+                description: "Burn reduces enemy Health restoration and Leech by half.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(burnReducesEnemyHealingAndLeechPercent: 0.5))
             ),
@@ -649,7 +649,7 @@ public extension CombatantTalentCatalog {
             "warlock_leech_t1_1": CombatantTalentEffect(
                 name: "Vampiric Touch",
                 symbolName: "hand.raised.fill",
-                description: "Your Leech heals you even when striking enemy Block.",
+                description: "Your Leech restores Health to you even when striking enemy Block.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechOnBlockDamage: true))
             ),
@@ -663,7 +663,7 @@ public extension CombatantTalentCatalog {
             "warlock_leech_t2_1": CombatantTalentEffect(
                 name: "Blood Link",
                 symbolName: "arrow.triangle.swap",
-                description: "Overhealing from Leech is transferred to your Companion.",
+                description: "Excess Health restored from Leech is transferred to your Companion.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechOverhealTransfersToCompanion: true))
             ),
@@ -855,28 +855,28 @@ public extension CombatantTalentCatalog {
             "alchemist_health_t1_1": CombatantTalentEffect(
                 name: "Fortifying Tonic",
                 symbolName: "heart.fill",
-                description: "Healing a Poisoned ally restores 1 additional Health, once per turn.",
+                description: "Restoring Health to a Poisoned ally restores 1 additional Health, once per turn.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(fortifyingTonic: true))
             ),
             "alchemist_health_t1_2": CombatantTalentEffect(
                 name: "Measured Dose",
                 symbolName: "heart.fill",
-                description: "Restoring Mana with a card adds 1 Health to your next healing card, once per turn.",
+                description: "Restoring Mana with a card adds 1 Health to your next card that restores Health, once per turn.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(measuredDose: true))
             ),
             "alchemist_health_t2_1": CombatantTalentEffect(
                 name: "Cooling Salve",
                 symbolName: "heart.fill",
-                description: "Your first successful healing card each turn removes 1 Burn from you.",
+                description: "Your first successful card that restores Health each turn removes 1 Burn from you.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(coolingSalve: true))
             ),
             "alchemist_health_t2_2": CombatantTalentEffect(
                 name: "Reclaimed Reagents",
                 symbolName: "heart.fill",
-                description: "Your first overheal each battle restores 1 Mana to the healed ally.",
+                description: "Your first Health restoration beyond full each battle restores 1 Mana to that ally.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(reclaimedReagents: true))
             ),
@@ -897,7 +897,7 @@ public extension CombatantTalentCatalog {
             "alchemist_health_t4_1": CombatantTalentEffect(
                 name: "Masterwork Mixture",
                 symbolName: "heart.fill",
-                description: "Playing both Poison and healing cards in a turn restores 1 Health to both allies at turn end.",
+                description: "Playing both Poison cards and cards that restore Health in a turn restores 1 Health to both allies at turn end.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(masterworkMixture: true))
             )
@@ -907,14 +907,14 @@ public extension CombatantTalentCatalog {
             "druid_health_t1_1": CombatantTalentEffect(
                 name: "Spring Sap",
                 symbolName: "heart.fill",
-                description: "Healing an ally with Thorns restores 1 additional Health, once per turn.",
+                description: "Restoring Health to an ally with Thorns restores 1 additional Health, once per turn.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(springSap: true))
             ),
             "druid_health_t1_2": CombatantTalentEffect(
                 name: "Pruning Touch",
                 symbolName: "heart.fill",
-                description: "Your Companion’s first successful healing card each turn removes 1 Thorns from the enemy.",
+                description: "Your Companion’s first successful card that restores Health each turn removes 1 Thorns from the enemy.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(pruningTouch: true))
             ),
@@ -935,21 +935,21 @@ public extension CombatantTalentCatalog {
             "druid_health_t3_1": CombatantTalentEffect(
                 name: "Cleansing Dew",
                 symbolName: "heart.fill",
-                description: "Your first successful heal each turn removes 1 Poison from the healed ally.",
+                description: "Your first successful card that restores Health each turn removes 1 Poison from that ally.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(cleansingDew: true))
             ),
             "druid_health_t3_2": CombatantTalentEffect(
                 name: "Shared Roots",
                 symbolName: "heart.fill",
-                description: "Healing your Companion removes 1 Burn from you, once per turn.",
+                description: "Restoring Health to your Companion removes 1 Burn from you, once per turn.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(sharedRoots: true))
             ),
             "druid_health_t4_1": CombatantTalentEffect(
                 name: "Verdant Shelter",
                 symbolName: "heart.fill",
-                description: "Your first successful heal each turn grants the healed ally 1 Thorns.",
+                description: "Your first successful card that restores Health each turn grants that ally 1 Thorns.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(verdantShelter: true))
             ),
@@ -1099,7 +1099,7 @@ public extension CombatantTalentCatalog {
             "wildcard_gold_t4_1": CombatantTalentEffect(
                 name: "Lucky Break",
                 symbolName: "suit.diamond.fill",
-                description: "Your first Skill each turn randomly grants 1 Gold, 1 Block, or 1 Health. Skip unneeded healing.",
+                description: "Your first Skill each turn randomly grants 1 Gold, 1 Block, or 1 Health. Skip unneeded Health restoration.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(gold: GoldTriggers(luckyBreak: true))
             ),
@@ -1235,7 +1235,7 @@ public extension CombatantTalentCatalog {
             "wolf_bleed_t3_1": CombatantTalentEffect(
                 name: "Carnivore",
                 symbolName: "heart.fill",
-                description: "Heal 2 Health whenever Bleed deals damage.",
+                description: "Restore 2 Health whenever Bleed deals damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDamageHealSelf: 2))
             ),
@@ -1671,7 +1671,7 @@ public extension CombatantTalentCatalog {
             "lizard_scout_poison_t2_2": CombatantTalentEffect(
                 name: "Toxiphage",
                 symbolName: "heart.fill",
-                description: "Poison damage heals Lizard Scout for half the damage dealt.",
+                description: "Poison damage restores Health to Lizard Scout equal to half the damage dealt.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(poisonDamageLeechPercent: 0.5))
             ),
@@ -1849,7 +1849,7 @@ public extension CombatantTalentCatalog {
             "panther_leech_t1_2": CombatantTalentEffect(
                 name: "Shared Feast",
                 symbolName: "arrow.triangle.swap",
-                description: "Leech healing is shared equally with the Hero.",
+                description: "Health restored by Leech is shared equally with the Hero.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechSharesToHeroPercent: 0.5))
             ),
@@ -1863,14 +1863,14 @@ public extension CombatantTalentCatalog {
             "panther_leech_t2_2": CombatantTalentEffect(
                 name: "Sanguine Growth",
                 symbolName: "heart.square.fill",
-                description: "Overhealing from Leech grants a +1 damage bonus for combat (up to +4).",
+                description: "Excess Health restored from Leech grants a +1 damage bonus for combat (up to +4).",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(leechOverhealDamageBonus: 1))
             ),
             "panther_leech_t3_1": CombatantTalentEffect(
                 name: "Frenzied Feeding",
                 symbolName: "cross.fill",
-                description: "Leeching from Poisoned or Bleeding enemies doubles the healing received.",
+                description: "Leeching from Poisoned or Bleeding enemies doubles the Health restored.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechHealingVsAfflictedMultiplier: 2))
             ),
@@ -1992,7 +1992,7 @@ public extension CombatantTalentCatalog {
             "phoenix_health_t1_2": CombatantTalentEffect(
                 name: "Healing Flames",
                 symbolName: "heart.circle.fill",
-                description: "Dealing Burn damage heals the lowest Health ally for 2.",
+                description: "Dealing Burn damage restores 2 Health to the lowest Health ally.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(onBurnDamageHealLowestAllyFlat: 2))
             ),
@@ -2013,14 +2013,14 @@ public extension CombatantTalentCatalog {
             "phoenix_health_t3_1": CombatantTalentEffect(
                 name: "Phoenix Gift",
                 symbolName: "cross.fill",
-                description: "The first time each battle the Hero would take fatal damage, heal them for 15% Max Health.",
+                description: "The first time each battle the Hero would take fatal damage, restore 15% of their Max Health.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(onHeroFatalHealPercentMaxHealth: 0.15))
             ),
             "phoenix_health_t3_2": CombatantTalentEffect(
                 name: "Ashen Vitality",
                 symbolName: "heart.square.fill",
-                description: "Overhealing converts into Max Health this combat (up to +10).",
+                description: "Health restored beyond full converts into Max Health this combat (up to +10).",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(overhealConvertsToMaxHealth: true, overhealConvertsToMaxHealthCap: 10))
             ),
@@ -2069,7 +2069,7 @@ public extension CombatantTalentCatalog {
             "phoenix_health_t4_1": CombatantTalentEffect(
                 name: "Clean Slate",
                 symbolName: "cross.fill",
-                description: "Overhealing Cleanses one effect.",
+                description: "Health restored beyond full Cleanses one effect.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(cleanSlate: true))
             ),
@@ -2177,7 +2177,7 @@ public extension CombatantTalentCatalog {
             "golden_retriever_health_t1_2": CombatantTalentEffect(
                 name: "Playful Energy",
                 symbolName: "sparkles",
-                description: "Playing 3 cards in a turn heals the party for 2 Health.",
+                description: "Playing 3 cards in a turn restores 2 Health to the party.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(cardsPlayedHealPartyThreshold: 3, cardsPlayedHealPartyAmount: 2))
             ),
@@ -2205,7 +2205,7 @@ public extension CombatantTalentCatalog {
             "golden_retriever_health_t3_2": CombatantTalentEffect(
                 name: "Protective Lick",
                 symbolName: "bandage.fill",
-                description: "When an ally takes damage, heal them for 1 Health.",
+                description: "When an ally takes damage, restore 1 Health to them.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mitigation: MitigationTriggers(onAllyDamageHeal: 1))
             ),
@@ -2278,7 +2278,7 @@ public extension CombatantTalentCatalog {
             "library_owl_cleanse_t1_2": CombatantTalentEffect(
                 name: "Healing Hymn",
                 symbolName: "bell.fill",
-                description: "Cleansing an ally also heals them for 2 Health.",
+                description: "Cleansing an ally also restores 2 Health to them.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseBonusHeal: 2))
             ),
@@ -2320,35 +2320,35 @@ public extension CombatantTalentCatalog {
             "library_owl_health_t1_2": CombatantTalentEffect(
                 name: "Warded Roost",
                 symbolName: "shield.lefthalf.filled",
-                description: "Healing an ally also grants them 2 Block.",
+                description: "Restoring Health to an ally also grants them 2 Block.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(onHealGrantBlock: 2))
             ),
             "library_owl_health_t2_1": CombatantTalentEffect(
                 name: "Efficient Care",
                 symbolName: "wand.and.stars",
-                description: "When you spend 3 Mana to empower a heal, it costs 2 Mana instead of 3.",
+                description: "When you spend 3 Mana to empower a card that restores Health, it costs 2 Mana instead of 3.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(healingEmpowermentCostReduction: 1))
             ),
             "library_owl_health_t2_2": CombatantTalentEffect(
                 name: "Aether Shield",
                 symbolName: "shield.checkered",
-                description: "Overhealing converts into Block, absorbing up to 8 damage.",
+                description: "Health restored beyond full converts into Block, absorbing up to 8 damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(overhealShieldCap: 8))
             ),
             "library_owl_health_t3_1": CombatantTalentEffect(
                 name: "Guardian Archive",
                 symbolName: "cross.fill",
-                description: "When a party member hits Death's Door, heal them for 10 Health and cleanse all negative effects.",
+                description: "When a party member hits Death's Door, restore 10 Health to them and cleanse all negative effects.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(onAllyDeathsDoorHealAndCleanse: 10))
             ),
             "library_owl_health_t3_2": CombatantTalentEffect(
                 name: "Font of Magic",
                 symbolName: "drop.fill",
-                description: "Healing an ally restores 1 Mana to the caster.",
+                description: "Restoring Health to an ally restores 1 Mana to the caster.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(onHealRestoreCasterMana: 1))
             ),
@@ -2428,14 +2428,14 @@ public extension CombatantTalentCatalog {
             "risen_skeleton_leech_t2_2": CombatantTalentEffect(
                 name: "Soul Sharing",
                 symbolName: "arrow.triangle.swap",
-                description: "Convert half of Skeleton's damage into Leech healing for the Hero.",
+                description: "Convert half of Skeleton's damage into Health restored to the Hero.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(companionDamageLeechesToHeroPercent: 0.5))
             ),
             "risen_skeleton_leech_t3_1": CombatantTalentEffect(
                 name: "Affliction Siphon",
                 symbolName: "cross.fill",
-                description: "Leech heals for double amount against Poisoned or Bleeding targets.",
+                description: "Leech restores twice as much Health against Poisoned or Bleeding targets.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechHealingVsAfflictedMultiplier: 2))
             ),
@@ -2693,35 +2693,35 @@ public extension CombatantTalentCatalog {
             "pixie_health_t1_2": CombatantTalentEffect(
                 name: "Emergency Mend",
                 symbolName: "cross.fill",
-                description: "Healing allies below 30% Health restores double the amount.",
+                description: "Health restored to allies below 30% Health is doubled.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(healingBelowHealthPercentThreshold: 0.30, healingBelowHealthPercentMultiplier: 2))
             ),
             "pixie_health_t2_1": CombatantTalentEffect(
                 name: "Lingering Blessing",
                 symbolName: "leaf.fill",
-                description: "Healing an ally applies a 3-turn heal over time of 1 Health.",
+                description: "Restoring Health to an ally applies a 3-turn effect that restores 1 Health over time.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(healOverTimeOnHealTurns: 3, healOverTimeOnHealAmount: 1))
             ),
             "pixie_health_t2_2": CombatantTalentEffect(
                 name: "Protective Bloom",
                 symbolName: "shield.lefthalf.filled",
-                description: "Healing an ally also grants them 2 Block.",
+                description: "Restoring Health to an ally also grants them 2 Block.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(onHealGrantBlock: 2))
             ),
             "pixie_health_t3_1": CombatantTalentEffect(
                 name: "Vital Infusion",
                 symbolName: "heart.square.fill",
-                description: "Overhealing increases the target's Max Health by +1 this combat (up to +5).",
+                description: "Health restored beyond full increases the target's Max Health by +1 this combat (up to +5).",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(overhealConvertsToMaxHealth: true, overhealConvertsToMaxHealthCap: 5, overhealConvertsToMaxHealthPerEvent: 1))
             ),
             "pixie_health_t3_2": CombatantTalentEffect(
                 name: "Barrier Blessing",
                 symbolName: "shield.fill",
-                description: "Excess healing is converted into Block for the healed ally.",
+                description: "Excess Health restored is converted into Block for that ally.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(overhealConvertsToBlock: true))
             ),
@@ -2885,7 +2885,7 @@ public extension CombatantTalentCatalog {
             "shield_scarab_holy_t2_1": CombatantTalentEffect(
                 name: "Sun Glyph",
                 symbolName: "sun.max.fill",
-                description: "Holy damage dealt by Scarab heals the Hero for 2 Health.",
+                description: "Holy damage dealt by Scarab restores 2 Health to the Hero.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(holyDamageHealHeroFlat: 2))
             ),

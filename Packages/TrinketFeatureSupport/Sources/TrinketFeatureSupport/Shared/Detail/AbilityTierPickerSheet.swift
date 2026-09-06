@@ -47,7 +47,7 @@ public struct AbilityTierPickerSheet: View {
                 AccessibilityID.LoadoutPicker.abilityCandidate(ability.id)
             },
             card: { ability, isSelected in
-                let equippedKeywords = ability.keywords.isEmpty ? [Keyword.physical] : ability.keywords
+                let equippedKeywords = ability.presentationKeywords.isEmpty ? [Keyword.physical] : ability.presentationKeywords
                 AbilityChoiceCard(
                     ability: ability,
                     isSelected: isSelected,

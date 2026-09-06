@@ -169,7 +169,7 @@ public enum EffectPresentation {
         case let .damageReductionPercent(percent, durationTurns):
             "reduces damage dealt by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
         case let .healingReductionPercent(percent, durationTurns):
-            "reduces enemy Healing by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
+            "reduces the Health restored to enemies by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
         case let .damageReductionFlat(amount, durationTurns):
             "reduces damage dealt by \(amount) \(durationPhrase(turns: durationTurns))"
         default:

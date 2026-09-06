@@ -167,7 +167,9 @@ struct AbilityCatalogTests {
     }
 
     @Test func `serrated edge weakens enemy healing`() throws {
-        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage. Reduces enemy Healing by 25% for 3 turns.")
+        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage. Reduces the Health restored to enemies by 25% for 3 turns.")
+        try #expect(!Ability.serratedEdge.keywords.contains(.health))
+        try #expect(Ability.serratedEdge.presentationKeywords.contains(.health))
         try #expect(Ability.serratedEdge.targetedEffects == [
             TargetedEffect(.healingReductionPercent(0.25, 3), target: .enemy),
         ])

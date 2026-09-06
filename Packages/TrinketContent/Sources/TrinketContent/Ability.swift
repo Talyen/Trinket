@@ -149,6 +149,14 @@ public struct Ability: Identifiable, Hashable, Sendable {
         return result
     }
 
+    public var presentationKeywords: [Keyword] {
+        var result = keywords
+        for keyword in Keyword.referenced(in: summary) where !result.contains(keyword) {
+            result.append(keyword)
+        }
+        return result
+    }
+
     public var identityKeywords: [Keyword] {
         var result = damageComponents
             .filter { $0.condition == nil || $0.bonusAmount > 0 }

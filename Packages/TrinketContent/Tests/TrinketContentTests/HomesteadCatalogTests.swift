@@ -3,6 +3,15 @@ import TrinketCore
 @testable import TrinketContent
 
 struct HomesteadCatalogTests {
+    @Test func `homestead tiers have concise stage names`() throws {
+        for definition in GameContent.homesteadNodes {
+            for tier in definition.tiers {
+                try #expect(!tier.stageName.isEmpty, "\(definition.id) tier \(tier.tier)")
+                try #expect(tier.stageName.split(separator: " ").count <= 3, "\(definition.id) tier \(tier.tier)")
+            }
+        }
+    }
+
     @Test func `production nodes have four tiers of one increasing resource`() throws {
         for node in GameContent.homesteadNodes {
             try #expect(node.maxTier == 4, "\(node.title) should have four tiers")

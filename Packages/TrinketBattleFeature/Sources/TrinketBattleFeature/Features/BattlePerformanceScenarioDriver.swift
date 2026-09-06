@@ -78,7 +78,7 @@ struct BattlePerformanceScenarioDriver {
             rotation: 0,
             verticalTilt: 0,
             scale: 1,
-            keywords: card.ability.keywords,
+            keywords: card.ability.presentationKeywords,
         )
     }
 
