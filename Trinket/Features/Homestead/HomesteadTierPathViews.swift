@@ -228,7 +228,7 @@ struct HomesteadTierNode: View {
                     .trinketTypography(.sectionDisplay)
                     .foregroundStyle(nodeForeground)
 
-                Text(tier.bonus.description)
+                HomesteadEffectDescription(tier: tier)
                     .trinketTypography(.secondaryBody)
                     .foregroundStyle(nodeSecondaryForeground)
                     .fixedSize(horizontal: false, vertical: true)
@@ -334,6 +334,38 @@ struct HomesteadTierNode: View {
         case let .next(affordable):
             affordable ? TrinketDesign.Colors.accent : TrinketDesign.Colors.subtleStroke
         case .future, .locked: Color.secondary.opacity(0.2)
+        }
+    }
+}
+
+private struct HomesteadEffectDescription: View {
+    let tier: HomesteadNodeTier
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
+            ForEach(Array(tier.bonus.description.components(separatedBy: "\n").enumerated()), id: \.offset) { _, line in
+                if let production = tier.production,
+                   line == "Produces \(production.quantity) \(production.resource.displayName) per day" {
+                    HStack(spacing: TrinketDesign.Spacing.small) {
+                        Text("Produces")
+                        HStack(spacing: TrinketDesign.Spacing.tight) {
+                            HomesteadResourceArtwork(resource: production.resource)
+                                .frame(
+                                    width: TrinketDesign.Layout.compactResourceArtworkSize,
+                                    height: TrinketDesign.Layout.compactResourceArtworkSize,
+                                )
+                            KeywordDescriptionText(text: "\(production.quantity) \(production.resource.displayName)")
+                                .bold()
+                                .monospacedDigit()
+                        }
+                        Text("per day")
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(line)
+                } else {
+                    KeywordDescriptionText(text: line)
+                }
+            }
         }
     }
 }
