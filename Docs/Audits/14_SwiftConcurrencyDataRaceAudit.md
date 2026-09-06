@@ -1,41 +1,47 @@
 # 14. Swift Concurrency & Data Race Audit
 
-**Goal:** Close Swift 6 concurrency gaps and data-race risks under `SWIFT_STRICT_CONCURRENCY=complete`.
+**Goal:** Repair isolation, ordering, reentrancy, and task-lifetime failures that
+strict concurrency checks alone may not establish.
 
-## Intent
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+[Verification](../Platform/Verification.md) owns concurrency gates;
+[Architecture](../Platform/Architecture.md) owns actor and package boundaries.
 
-Fix confirmed concurrency violations and source-proven lifetime/isolation hazards. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic, runtime reproduction, or a concrete source proof under the evidence bar below. Bounded isolation/cancellation corrections may follow the affected call chain.
+## What to investigate
 
-## Hard stops
+Unsynchronized shared mutation, actor state assumptions invalidated across `await`,
+stale results applied after a newer request, blocking cooperative execution,
+continuations resumed incorrectly, and work/streams whose lifetime violates the
+consumer's contract. Compiler diagnostics, reproductions, and concrete source proofs
+are valid evidence; syntax alone is not.
 
-- Do not add `@unchecked Sendable` / `nonisolated(unsafe)` without a `// Concurrency-Safety:` rationale and real synchronization.
-- Do not introduce `Thread.sleep`, semaphores, or other thread-blocking calls in cooperative contexts.
-- Prefer structured `Task` over `Task.detached` unless isolation escape is required and documented.
-- Do not relocate battle simulation off `@MainActor` unless Architecture already requires it.
+## Domain distinctions
 
-## Severity
+[Swift concurrency documentation](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/#Unstructured-Concurrency)
+explains task structure and cancellation.
 
-Because `SWIFT_STRICT_CONCURRENCY=complete` already fails the build on most isolation errors, this audit's value concentrates in P1–P2 — what the compiler accepts but should not be trusted.
+- `Task {}` and `Task.detached` create unstructured tasks. Inherited actor isolation
+  does not make `Task {}` a structured child or automatically couple cancellation
+  to its creator. Structured children use constructs such as `async let` or task groups.
+- Unstructured work can be legitimate when its ownership/completion contract is
+  clear. A missing cancellation hook is a finding only when the work must terminate
+  or must not apply results after its owner/request becomes obsolete.
+- Cancellation is cooperative. SwiftUI `.task` provides view-related cancellation,
+  but work must still honor cancellation where the behavior requires it.
+- Actor isolation prevents certain races, not logical interleaving across suspension.
+  Confirm stale state/result handling without adding actors or async APIs reflexively.
+- An unsafe isolation/Sendable escape needs the permitted rationale and actual
+  synchronization under repository gates. Documentation alone does not make it safe.
+- Retain cycles require evidence; do not add weak captures indiscriminately. A task
+  finishing normally and a task retaining its owner indefinitely are different cases.
 
-| Sev | Description | Action |
-|-----|-------------|--------|
-| P0 | Unsynchronized shared mutable state on hot paths | Fix now |
-| P1 | Undocumented `@unchecked` / `nonisolated(unsafe)` | Document or refactor |
-| P2 | Blocking call on actor/main; leaking unstructured Task | Establish correct executor, ownership, and cancellation; do not convert APIs to async by default |
-| P3 | `DispatchQueue` legacy bridge; unnecessary `Task.detached` | Modernize / prefer structured Task when touching |
+## Remedy and success
 
-## Domain rules
+Repair the affected isolation/lifetime chain and verify the specific interleaving,
+termination, or synchronization guarantee. Do not replace working bridges or add
+cancellation machinery simply to modernize syntax. Preserve battle's main-actor
+ownership unless Architecture changes; do not introduce blocking sleeps or semaphore
+waits in cooperative contexts.
 
-**Safe patterns:** `@MainActor` + `@Observable` for UI-facing state; `Mutex` (Synchronization) for shared mutable storage; SwiftUI `.task` cancels when the view goes away. Do **not** reflexively add `[weak self]` on `@MainActor` / `@Observable` types unless a retain cycle is proven — prefer cancellation checks and structured children.
-
-Expect `SWIFT_STRICT_CONCURRENCY: complete` in `project.yml` / packages. Compiler cleanliness is necessary but not sufficient for lifetime behavior the type system cannot prove. Presence of continuations / `AsyncStream` / `TaskGroup` is not itself a defect — confirm lifetime, cancellation, executor, and termination assumptions.
-
-## Evidence bar
-
-One of:
-
-- Compiler diagnostic under strict concurrency
-- Runtime reproduction or test showing a race, leak, deadlock, invalid ordering, or cancellation/lifetime failure
-- Concrete source proof: unsynchronized shared mutation; unstructured work escaping its owner without cancellation; blocking work on an actor/main executor; continuation that can resume zero or multiple times; stream without owned termination; isolation-erasing capture; or detached work whose executor/lifetime contradicts the caller contract
-
-Fix the confirmed dependency/cancellation cone, not only the first diagnostic. Do not infer a hazard from syntax alone.
+Transaction integrity belongs to [03](03_BehaviorHardeningAudit.md); non-concurrent
+effect placement and initiation belong to [12](12_SideEffectSurfaceAudit.md).

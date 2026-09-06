@@ -32,6 +32,8 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 | 2026-09-05 | Generation verification | The documented freshness shortcut reported idempotence without comparing regenerated outputs. Removed it and its unused sidecar helpers; [the assertion](../Scripts/assert-generated-output.sh) now always regenerates, with regression fixtures for damaged and unstable outputs. |
 | 2026-09-04 | Agent guidance | Removed conflicting workflow absolutes and duplicate root policy; corrected the coverage decision to permit extending existing tests. See [agent guide](../AGENTS.md), [coverage decision](../Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior), and [verification policy](../Docs/Platform/Verification.md). |
 
+| 2026-09-06 | Audit guidance | [Shared audit policy](../Docs/Audits/README.md) now uses whole-concern scope and impact-based evidence; domain guides distinguish candidate syntax from defects and preserve canonical owners. Removed the cross-audit baseline that could imply unreviewed coverage. |
+
 ## Details
 
 _Add expanded entries here when the table row is not enough. Keep the table as the index._

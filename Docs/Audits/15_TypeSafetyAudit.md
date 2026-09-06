@@ -1,34 +1,40 @@
 # 15. Type Safety Audit
 
-**Goal:** Remove confirmed unsafe typing escapes and representations that permit invalid domain state in non-test, non-generated source, without replacing valid invariants with vague fallbacks.
+**Goal:** Repair unsafe conversions and representations that allow reachable invalid
+domain state without replacing valid invariants with meaningless fallback values.
 
-## Intent
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Focus on authored production source; follow affected decoder and test contracts
+when needed to establish or repair the invariant.
 
-Remove unsafe escapes and confirmed invariant loss. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks, and migrate the affected callers/decoders/tests as one bounded fix.
+## What confirms a finding
 
-## Hard stops
+Show an input or construction path that can violate a required invariant: unchecked
+indexing, lossy conversion, impossible optional combinations, invalid domain IDs,
+erased failures, or an unsafe cast/unwrap. A representation's theoretical capacity
+for invalid values is not enough if an enforced boundary excludes them.
 
-- Do not introduce `@EnvironmentObject`, `ObservableObject`, `@StateObject`, or `@Published` — prefer `@Environment(Type.self)` + `@Bindable` + `@Observable`.
-- Do not add net-new `swiftlint:disable` without a minimal scoped reason.
-- Do not chase every `\bAny\b` or every `!` — triage from diagnostics and confirmed risk.
+`Any`, a force unwrap, or a hard failure is a candidate, not automatic proof.
+Check initialization, validation, and every relevant mutation path. Conversely,
+compiler/linter cleanliness does not establish that domain states remain valid.
 
-## Triage
+## Remedy and boundaries
 
-| Priority | Examples |
-|----------|----------|
-| P0 | `try!` / `as!` on save, sync, or battle outcome paths; banned observation APIs |
-| P1 | Force unwrap that can trap on empty/corrupt data |
-| P2 | `fatalError` in recoverable orchestration |
-| P3 | Style-only `Any` / disable churn — skip unless trivial |
+Prefer validation at the existing boundary or a clearer state representation over
+repeated caller guards. Migrate affected consumers as one coherent repair, preserving
+live serialized identifiers and save compatibility. A stronger source type must not
+silently change a wire format. Follow the persistence sanitizer/decoder owner for
+untrusted saved data.
 
-## Domain rules
+Use meaningful failure behavior for recoverable input. Preserve a hard invariant
+when its preconditions are established; do not replace it with empty strings, zero
+values, or silent defaults solely to remove unsafe-looking syntax.
 
-- `as!`, `try!`, and force unwraps need an input-appropriate validation or failure path; do not introduce a default unless it is semantically valid.
-- Treat linter/compiler diagnostics as strong evidence, not the only source. Unchecked indexing, stringly typed domain identifiers, parallel optionals that admit impossible combinations, lossy casts, and erased errors are candidates when a concrete invalid state or wrong-boundary failure is shown.
-- Package inits may keep hard failures; orchestration should not crash on corrupt input.
-- Any `@EnvironmentObject` hit is a **must-fix**.
-- Prefer `any Protocol` for existentials; `Any` mainly at serialization boundaries. Validate decoded saves via sanitizer / `init(from:)` — not runtime casts.
+[Verification](../Platform/Verification.md) owns banned observation/navigation APIs
+and suppression rules. Report enforced violations distinctly and resolve them under
+that policy; banned syntax is not automatically a critical player-facing defect.
 
-## Evidence bar
-
-Unsafe escape on an orchestration path without a validated failure path; a banned observation API; or a concrete representation that admits an invalid domain state, unchecked access, lossy conversion, or erased failure that downstream code must recover from repeatedly. Prefer diagnostics and source-proven invariants over speculative syntax sweeps.
+Success is an established invariant and appropriate boundary failure behavior,
+verified with source proof and the relevant existing checks. Persistence transaction
+outcomes belong to [03](03_BehaviorHardeningAudit.md); concurrent isolation escapes
+belong to [14](14_SwiftConcurrencyDataRaceAudit.md).

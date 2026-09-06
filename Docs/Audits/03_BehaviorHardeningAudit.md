@@ -1,43 +1,47 @@
 # 03. Persistence, Synchronization & Transition Integrity Audit
 
-**Goal:** Strengthen confirmed integrity gaps across persistence, synchronization, lifecycle, and player-state transaction boundaries.
+**Goal:** Preserve player progress and coherent transactions across mutation,
+persistence, recovery, synchronization, and lifecycle transitions.
 
-## Intent
+Use the [shared audit contract](README.md) for evidence, severity, and sizing.
+[Persistence context](../AgentContext/persistence.md) and
+[TrinketPersistence](../../Packages/TrinketPersistence/README.md) own the save graph,
+write policy, sanitizer, and recovery contracts.
 
-Fix confirmed persistence, synchronization, lifecycle, or transition issues across the complete transaction path. Do not add guards, logs, seams, or tests solely to create work; reuse the existing owner.
+## What to investigate
 
-## Hard stops
+Follow consequential transitions such as rewards, currency/inventory changes,
+crafting, encounter completion, load/migration, and retry through validation,
+in-memory updates, durable storage, and player-visible completion. Look for
+partial application, duplicate grants, stale writes, lost failures, and recovery
+that destroys or misrepresents existing progress.
 
-- Do not run full-repo concurrency or type-safety sweeps here — link out.
-- Audio playback handling belongs to 12_SideEffectSurfaceAudit.md.
+## Invariants
 
-## Triage
+- Repeated actions and retries preserve the transaction's intended atomicity and
+  idempotency. A disabled control alone does not establish durable integrity.
+- Validation, sanitization, metadata, deferred writes, and rollback follow the
+  persistence owner. Confirm whether a mutation actually bypasses those guarantees
+  before adding another guard or timestamp update.
+- Failures remain observable through the existing error/recovery contract. A log
+  does not make lost progress acceptable, and a successful in-memory mutation is
+  not proof that a save survived reload.
+- Distinguish first-run absence, corrupt/unsupported data, and transient opening or
+  writing failures. Default/in-memory recovery is acceptable only under the intended
+  recovery policy; it must not silently overwrite recoverable progress or present
+  temporary state as durable success.
+- Preserve live save/schema compatibility and local play without iCloud under
+  [product decisions](../Product/Decisions.md). Changes to destructive recovery or
+  availability-versus-durability policy require the relevant product decision.
 
-| Priority | Examples |
-|----------|----------|
-| P0 | Double reward grant, silent save failure, crash on corrupt save |
-| P1 | Non-idempotent completion, lost persistence error |
-| P2 | Recovery hides a meaningful failure from both the player and diagnostics |
-| P3 | Style-only error handling churn |
+## Evidence and success
 
-Prioritize P0–P1 among confirmed findings.
+Establish a reachable violating transition, source-proven silent loss, or reproduction
+of corruption, duplicate application, ordering failure, or misleading recovery.
+Verify the complete repaired path, including reload/retry where it establishes the
+invariant, using the cheapest existing semantic test owner under
+[Testing.md](../Platform/Testing.md).
 
-## Domain rules
-
-- Critical save fields validated; corrupt saves fail cleanly or fall back with logging — not silent invalid game state.
-- `PlayerSaveStore` surfaces write failures (`lastPersistenceError`); silent save failure is data loss.
-- Mutations update `modifiedAt` and sanitize via `PlayerSaveSanitizer` where applicable; debounced writes coalesce without duplicate/stale/out-of-order persistence.
-- Stage completion / reward grant: double “Continue” must not double-grant; `StageCompletion.resolvedMaterialRewards(stageReward:)` is pure for the same inputs.
-- Inventory, currency, crafting, encounter, and battle-outcome mutations preserve atomicity/idempotency across validation, in-memory mutation, persistence, retry, and user-visible completion.
-- Load, migration, sync, background/foreground, termination, and retry paths must not reorder writes, partially apply a transition, or hide a meaningful recovery state.
-- Suspect silent `try?` on save, sync, battle outcome, or state transitions; the non-fatal-audio allowlist is owned by [12_SideEffectSurfaceAudit.md](12_SideEffectSurfaceAudit.md).
-- Store load failure → default/in-memory recovery + log, not crash.
-- Prefer existing coverage. Add a regression only when the test-addition gate passes; battle tests use the deterministic fixture default seed, with explicit seeds reserved for RNG edge cases, and store edges use the existing empty/partial/corrupt recovery owners.
-
-## Evidence bar
-
-User-visible failure, reproducible data corruption, non-idempotent or partially applied transaction, stale/out-of-order persistence, unsafe lifecycle recovery, or silent persistence/synchronization error path. Once confirmed, the remedy may span mutation, persistence, diagnostics or feedback, and the cheapest semantic regression owner.
-
-## Example signals
-
-Silent `try?` on save/sync/battle-outcome paths, reward grants that repeat on a double “Continue”, transitions that mutate before validating, partial inventory/currency updates, retries or lifecycle events that reorder writes, mutations missing `modifiedAt` or sanitizer routing, store load/migration failures that crash instead of recovering with an explicit state and log.
+Audio handling belongs to [12](12_SideEffectSurfaceAudit.md); isolation hazards
+belong to [14](14_SwiftConcurrencyDataRaceAudit.md). Necessary cross-owner repairs
+remain part of one root-cause finding.

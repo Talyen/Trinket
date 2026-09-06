@@ -1,28 +1,35 @@
 # 04. Strategic Bug Hunting Audit
 
-**Goal:** Find and fix real defects — no file-by-file browsing, no speculative backlog.
+**Goal:** Find and fix consequential wrong behavior through risk-led investigation.
 
-## Intent
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+A pre-existing candidate is not required: start from important player flows,
+rule boundaries, error/retry paths, or recent fragile changes and develop hypotheses.
+Do not confuse a clean search result with review of the whole concern.
 
-Confirm candidate defects and fix confirmed ones. Follow a candidate's control/data flow across UI entry points, packages, stores, persistence, tests, and authored configuration far enough to identify the root cause and all confirmed manifestations. Do not re-run sibling audits’ full suites; route adjacent findings to their owners while including work necessary to complete the same root-cause fix.
+## Confirmation
 
-## Hard stops
+Establish expected behavior from product rules, contracts, and the relevant owner,
+then show how a reachable input or transition violates it. Existing tests can be
+incomplete or wrong; compare their expectations with the intended behavior.
+Trace across UI, engine, stores, content/configuration, and tests as needed to
+identify the cause and all confirmed manifestations.
 
-- Do not rename/restyle or opportunistically refactor unrelated code. Fix the confirmed bug’s root cause within the existing owner.
-- Do not expand into speculative backlog or touch manifests/assets/music unless they directly cause the confirmed defect.
+Useful candidates include invalid bounds/arithmetic, inconsistent rule application,
+double-triggered actions, stuck state, configuration/content mismatches, and failures
+that cannot return to a usable state. Syntax alone does not prove any of them.
 
-## Confirmation policy
+## Remedy and boundaries
 
-- **Auto-fix** P0–P2 correctness bugs (crashes, data loss, double grants, stuck state, clear wrong behavior), including the confirmed caller/state/test cluster required to remove the cause completely.
-- **Skip and note** balance retunes, player-facing copy/layout design choices, or ambiguous product intent — do not block waiting for answers.
-- Never ask about naming, file structure, or obvious internal guards.
+Fix the complete confirmed cause within the existing architecture. Preserve intended
+balance, copy, and product composition; when intent is ambiguous, report the decision
+needed and continue independent findings. Do not bundle unrelated renaming, styling,
+refactoring, or speculative hardening with a correctness fix.
 
-Severity follows the [shared audit scale](README.md#severity-scale). Treat
-crashes, data loss, double rewards, and wrong state as the highest-priority
-confirmed defects; recoverable diagnostics gaps are optional unless trivial.
+Use this audit for correctness findings without a more specific owner. Persistence
+transaction defects route to [03](03_BehaviorHardeningAudit.md); maintenance-only
+surface findings route to [06](06_DeadParallelCeremonialSurfaceAudit.md). Consult the
+shared table for other overlaps without launching sibling inventories.
 
-Maintainability hits (orphaned, parallel, or ceremonial state) route to [06_DeadParallelCeremonialSurfaceAudit.md](06_DeadParallelCeremonialSurfaceAudit.md); future concurrency risk routes to [14_SwiftConcurrencyDataRaceAudit.md](14_SwiftConcurrencyDataRaceAudit.md) — do not track them as low-severity findings here.
-
-## Example signals
-
-Bounds/subscript risks, double-trigger on async actions, leaked timers or uncancelled tasks, arithmetic underflow on store values, silent `try?` on orchestration paths (audio-seam allowlist lives in [12_SideEffectSurfaceAudit.md](12_SideEffectSurfaceAudit.md)), orphaned async subtasks, inconsistent state across entry points, stale configuration branches, and error/retry paths that cannot return to a usable state.
+Success is restored intended behavior, supported by source proof or a focused
+reproduction and appropriate verification—not a quota of fixes or new tests.

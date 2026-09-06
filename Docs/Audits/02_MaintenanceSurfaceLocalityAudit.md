@@ -1,70 +1,39 @@
 # 02. Maintenance Surface & Locality Audit
 
-**Goal:** Reduce live authored maintenance and context cost when a narrow change
-requires more code, guidance, touchpoints, or verification than its behavior
-warrants.
+**Goal:** Reduce avoidable reading, editing, and verification cost for ordinary changes.
 
-## Intent
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+This audit examines live maintenance cost; the per-diff change-budget advisory
+answers a different question.
 
-Confirm large or recurring maintenance surfaces, then simplify them through an
-existing source of truth or semantic owner. This is a retrospective inventory,
-not the per-diff `change-budget.sh` advisory. A successful fix reduces authored
-LOC/declarations/files, mixed-job prereads, routine touchpoints, duplicated
-policy, verification fan-out, or diagnostic volume without weakening behavior.
+## What to investigate
 
-## What belongs here
+Mixed-job files or guidance, duplicated facts that force co-changes, scaffolding
+that obscures a small behavior, and verification/diagnostics broader than the
+changed behavior's dependencies require. File size, churn, or a count of touched
+files is a lead, not a finding. One demonstrated costly workflow can be sufficient;
+repetition strengthens evidence but there is no required instance count.
 
-| Tell | Required cause |
-|------|----------------|
-| Large authored file, script, test harness, or guidance card | Mixed jobs or avoidable scaffolding forces unrelated context |
-| Routine change touches 3+ authored policy/configuration surfaces | One duplicated fact or command forces the co-change |
-| Repeated verification or diagnostics exceed the behavior's owner | Routing or output is broader than the dependency evidence requires |
-| Live folder/package mass is dominated by parallel scaffolding | The scaffolding does not express distinct shipping behavior |
+## Evidence and remedy
 
-**Not this audit:** zero-consumer, reachable twin, or pure-ceremony surface →
-[06](06_DeadParallelCeremonialSurfaceAudit.md); wrong semantic owner →
-[13](13_StateGravityOwnershipAudit.md); duplicate product screens →
-[09](09_DuplicateFeatureSurfaceAudit.md); test portfolio value → [10](10_E2ETestQualityAudit.md)
-or [17](17_UnitTestAudit.md).
+Name the avoidable cause and show its cost with a concrete change path, duplicated
+policy/command, unnecessary prereads, verification fan-out, or diagnostic volume.
+Separate necessary behavior and coverage from the excess. Prefer an existing source
+of truth, removing scaffolding, or restoring a coherent job within the current owner.
+A split is useful when it reduces unrelated context; a smaller file is not itself a win.
 
-## Hard stops
+Compare like artifacts and report a relevant before/after direction: touchpoints,
+prereads, duplicated facts, verification cost, or authored maintenance surface.
+Keep correctness coverage intact; do not narrow checks or suppress diagnostics
+without dependency and behavior evidence.
 
-- Size, churn, or co-change alone is not a finding. Name the avoidable cause.
-- Exclude generated output, build artifacts, ContentManifest/catalog volume, and
-  intentional source/test or authored/generated companionship.
-- Do not weaken gates, suppress diagnostics, or narrow verification without
-  dependency and behavior evidence.
-- Do not split files, merge owners, or add routing/configuration frameworks merely
-  to improve a count.
-- Allowlist load-bearing battle pipelines, save wire/mapping invariants, catalog
-  codegen boundaries, and measured presentation infrastructure unless mixed jobs
-  are independently confirmed.
+## Boundaries
 
-## Evidence bar
-
-All of:
-
-- **Magnitude or recurrence:** three comparable instances; two with demonstrated
-  drift/failure; or one extreme surface that repeatedly forces unrelated context,
-  touchpoints, verification tiers, or high-volume output
-- **Causality:** a named mixed job, duplicated declaration/policy/command, missing
-  source of truth, or over-expanded scaffold
-- **Excess surface:** necessary behavior, tests, generated output, and verification
-  are separated from the avoidable portion
-- **Existing home:** a current executable source, semantic owner, or routing
-  mechanism can absorb the remedy
-- **Measurable direction:** a before/after proxy with correctness coverage intact
-
-## Domain rules
-
-Inventory authored Swift, tests, scripts/configuration, and guidance separately;
-do not compare unlike artifacts by raw LOC. Platform docs own architecture and
-testing policy, `AGENTS.md` owns repository-wide guardrails, executable scripts
-own mechanics, and routed cards/skills contain only distinct exceptions. Prefer
-links over copied policy while retaining the minimum local instruction needed to
-act safely.
-
-Prefer collapse/delete → move a mixed job to its existing owner → owner-preserving
-split when Architecture already prescribes the seam. A LOC-neutral split succeeds
-only when it materially reduces unrelated prereads, change fan-out, or verification
-cost. Report the before/after proxy and unchanged correctness signal.
+- Generated output, catalog volume, source/test companionship, and authored/generated
+  boundaries are not avoidable mass by themselves. Respect load-bearing battle,
+  persistence, codegen, and measured presentation boundaries.
+- Do not introduce routing frameworks or reorganize owners just to improve counts.
+  [The documentation map](../README.md) owns policy locality and precedence.
+- Unnecessary live/dead paths belong to [06](06_DeadParallelCeremonialSurfaceAudit.md);
+  misplaced semantic responsibility belongs to [13](13_StateGravityOwnershipAudit.md).
+  Other overlap follows the shared ownership table.

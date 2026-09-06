@@ -1,47 +1,46 @@
 # 10. UI Test Reliability & Signal Audit
 
-**Goal:** Improve confirmed UI-test reliability, signal, tier fit, and application testability without weakening product coverage.
+**Goal:** Make UI tests provide trustworthy evidence of shipping outcomes with
+appropriate isolation, tier placement, and execution cost.
 
-Conventions: `Docs/Platform/Testing.md` + `TrinketUITests/README.md`.
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+[Testing](../Platform/Testing.md) owns coverage and tier decisions;
+[UI test guidance](../../TrinketUITests/README.md) owns launch/entry and suite details.
 
-## Intent
+## What to investigate
 
-Confirm P0–P2 reliability, signal, tier-fit, isolation, and testability issues across UI tests, launch/reset seams, authored harnesses, and CI routing. Prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when the [README right-size policy](README.md) abstraction bar is met. A minimal production seam may ship when it establishes that boundary and does not expose test-only behavior to players.
+False-positive assertions, flaky failures, state leakage, unstable queries,
+duplicated journey coverage, and setup/waits disproportionate to the outcome.
+Trace failures through launch/reset seams, app testability, harnesses, and CI routing
+when they contribute to the same cause. A slow test or long timeout is a lead,
+not proof that shortening it is safe.
 
-## Hard stops
+## Evidence and remedy
 
-- XCTest stays for `TrinketUITests/` (`XCUIApplication`). Do not migrate UI tests to Swift Testing.
-- Mid-battle interaction tests: enter via Play map — not `-launch-screen battle` with extreme tick intervals.
-- Do not invent wall-clock budgets that conflict with Testing.md / `AGENTS.md` (smoke is a short UI-only plan).
-- Do not expand into unit XCTest→Testing migration (`17_UnitTestAudit.md` + `check-api-bans.sh`).
+Show the failed/false signal, competing semantic owners, isolation violation, or
+measured avoidable execution cost. Preserve every distinct consequential journey
+that belongs at the UI tier. Move rule assertions to a cheaper existing owner when
+it can prove the same invariant. Delete redundant/weak coverage or cases excluded
+by the canonical keep/drop rubric, preserving valid unique outcomes.
 
-## Tier rules
+Prefer stable entry and queries to timing/index assumptions. Remove sleeps or
+shorten waits only when readiness is established and the supported failure timing
+is preserved. Reuse existing harness/page objects; add a production seam only for
+a confirmed testability boundary with no player-visible test behavior.
 
-| Tier | Belongs here |
-|------|--------------|
-| Smoke | Shell/entry canaries only (see Testing.md rubric); short UI-only plan, not journeys |
-| Exhaustive UI | State-changing journeys + one-owner safety invariants |
-| Unit | Rules/state — not full-app spins |
+Verify the repaired journey and relevant isolation conditions, and report the
+improved signal, flaky cause, tier fit, or measured runtime direction. A green rerun
+alone does not explain a flaky failure or establish its cause is fixed.
 
-Do not re-add layout/chrome, copy catalogs, or smoke+FullUI duplicates. Prefer the cheapest stable entry path per Testing.md (deep-link / launch args over brittle navigation).
+## Boundaries
 
-## Scoring
-
-| Score | Criteria |
-|-------|----------|
-| P0 | Flaky CI failure, crash in test harness |
-| P1 | Clear multi-second savings or flaky class fix |
-| P2 | Tier misplacement / duplicate coverage with real cost |
-| P3 | Consistency (helpers, naming), nice-to-haves — skip unless trivial |
-
-## Domain rules
-
-UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Deterministic launch state, reset/isolation behavior, stable entry routes, identifiers required by owned journeys, and harness/CI state leakage are in scope. Accessibility-setting UI tests remain out of scope under PD-014.
-
-E2E owns an identifier change only when it is required to stabilize an existing owned journey; UIInteractionFeedback owns the broader shipping-control inventory and visible/native interaction behavior.
-
-Successful fixes preserve unique journey coverage while improving reliability, isolation, testability, or tier fit: delete duplicate journeys/assertions; shorten excessive waits after stable entry; move multi-step assertions from smoke → exhaustive without retaining the smoke copy; use stable accessibility queries over brittle indexes; consolidate an entire confirmed journey family across tiers; repair deterministic launch/reset or CI routing when it causes the same reliability problem. Report the before/after direction in the handoff: suite runtime, journey count, flaky class, state leakage, or unstable entry removed.
-
-## Example signals
-
-Hardcoded sleeps, index-bound element queries, missing journey-owned accessibility identifiers, excessive wait timeouts after deep-link launch, smoke suites repeating exhaustive journey assertions, nondeterministic launch/reset state, cross-test leakage, duplicated navigation setup, and CI configuration that runs the wrong UI tier.
+- UI tests use XCTest; package tests use Swift Testing under Testing.md.
+- Follow the existing Play-map entry contract for mid-battle interactions; do not
+  use extreme tick intervals to bypass it.
+- Local UI runs are serial on one managed simulator within
+  [Verification](../Platform/Verification.md)'s limits. Do not invent suite budgets
+  or run full UI merely because this audit reviews its portfolio.
+- Accessibility-setting UI tests remain outside [PD-014](../Product/Decisions.md).
+  Stable identifiers required by an owned journey are in scope; broader shipping
+  interaction defects belong to [16](16_UIInteractionFeedbackAudit.md).
+- Unit/package test quality belongs to [17](17_UnitTestAudit.md).

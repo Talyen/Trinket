@@ -1,51 +1,40 @@
 # 13. State Gravity & Ownership Audit
 
-**Goal:** Pull misplaced rules, persistence, and presentation logic out of gravity wells (`AppState`, fat sessions, mega-views) into the owners defined by Architecture — without inventing new hubs.
+**Goal:** Restore coherent responsibility and state authority when logic or mutable
+state has accumulated in the wrong owner.
 
-## Intent
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+[Architecture](../Platform/Architecture.md) owns module responsibilities, hub
+containment, and intentional orchestration seams.
 
-Restore ownership-drift clusters to existing owners. Include callers, mirrored/derived state, persistence or presentation adapters, and tests necessary to complete the move. Move, do not mirror: delete old forwarding APIs, parallel paths, duplicate state, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add.
+## What to investigate
 
-## What “state gravity” means here
+Rules enforced independently by callers, competing mutable/derived state, persistence
+policy in presentation, presentation lifetime on save types, and feature-specific
+logic accumulating on broad facades. Large types, catalog reads in views, session
+names, and forwarding methods are only leads: composition and adapters have real jobs.
 
-Agentic coding often drops the next method on the nearest large type. Gravity wells grow until every concern shares one lifetime and one file surface.
+## Evidence and remedy
 
-| Tell | Why it is a finding |
-|------|---------------------|
-| Combat rules / damage / deck math in `AppState` or feature views | Belongs in `BattleEngine` |
-| Save mutation, sanitizer, or store policy in Features / `AppState` methods | Belongs in `TrinketPersistence` / store slices |
-| Feature navigation and screen-only UI state on persistence types | Presentation leaked downward |
-| `BattleState` / `PlayerSaveStore` type bodies growing feature-specific APIs | Violates Architecture hub containment |
-| Mega-view `body` that orchestrates rewards, catalog lookups, and mutations | View owns too many jobs; extract session/store or shared UI |
-| New `*Manager` / parallel hub beside `AppState` for one flow | Invented gravity well instead of an extension on the real owner |
-| Mirrored mutable state or duplicated derived state across view/session/store | Competing owners can diverge and make lifecycle or mutation order ambiguous |
-| Callers validate or sequence an invariant that belongs to an engine/store | Ownership is distributed across entry points instead of enforced once |
+Identify a concrete architecture violation or competing authority for the same
+invariant, and explain its correctness or maintenance cost. Name the intended owner
+and the state/lifetime contract it should enforce. Prefer an existing engine handler,
+store slice, feature session, or presentation owner; a new boundary needs a proposal.
 
-**Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; correct owner with a leftover twin or shim → [06](06_DeadParallelCeremonialSurfaceAudit.md); large correct-owner surface whose cost is mixed jobs → [02](02_MaintenanceSurfaceLocalityAudit.md).
+Move the complete responsibility and affected callers/tests, removing obsolete
+mirrors and indirection. Preserve intentional forwarders and independently justified
+snapshots; not all repeated values are competing mutable state. A fix may be
+LOC-neutral or grow when it establishes the right invariant or lifetime boundary.
+Verify that mutations and reads now follow one intended authority and that no
+replaced behavior remains active.
 
-## Hard stops
+## Boundaries
 
-- Do not relocate battle simulation off `@MainActor` unless Architecture already requires it.
-- Do not collapse seams recorded as accepted non-findings in [Proposals.md](Proposals.md).
-- Do not move presentation into packages that must stay SwiftUI-free of feature views (`BattleEngine`, `TrinketPersistence`, `TrinketCore`).
-- Repair a failing `check-module-boundaries.sh` row directly when it has an obvious one-file fix rather than expanding it into an ownership audit.
-
-## Evidence bar
-
-All of:
-
-- **Wrong owner** per [Architecture.md](../Platform/Architecture.md)
-- **Real cost:** review or test cost from mixed jobs sharing one type or lifetime
-- **Existing home:** engine handler, store slice, Battle presentation lane, `TrinketFeatureSupport`, or feature session — not a greenfield layer
-
-When these hold, the remediation envelope includes migrating affected callers and tests, deleting mirrored state/forwarders, and updating configuration or documentation that names the old owner. Do not stop after moving only the core method.
-
-## Domain rules
-
-Ownership and layering live in [Architecture.md](../Platform/Architecture.md) (module DAG, ownership table, hub containment for `BattleState` / `PlayerSaveStore`, enforced import rules via `check-module-boundaries.sh`).
-
-Prefer restoring rules to engines/stores, keeping tab/session wiring on thin
-`AppState` / `*Session` types, and extracting reusable presentation into
-`TrinketFeatureSupport`. Phase a hub split through existing Architecture owners when
-it is bounded and removes the old path; sizing beyond that follows the
-[README right-size policy](README.md).
+- Preserve Architecture's package DAG and SwiftUI-free domain/contracts boundaries.
+- Do not move battle simulation off the main actor or collapse accepted seams
+  without the relevant architectural decision and evidence.
+- Repair straightforward import-gate failures directly rather than inflating them
+  into a hub rewrite.
+- Correct-owner redundant paths belong to
+  [06](06_DeadParallelCeremonialSurfaceAudit.md); mixed-job/context cost without
+  misplaced responsibility belongs to [02](02_MaintenanceSurfaceLocalityAudit.md).

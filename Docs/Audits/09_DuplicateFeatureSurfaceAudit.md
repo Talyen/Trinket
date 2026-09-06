@@ -1,44 +1,37 @@
 # 09. Duplicate Feature Surface Audit
 
-**Goal:** Collapse near-duplicate SwiftUI product surfaces — copied hubs, encounter shells, detail panes, pickers, and summary grids — into one parameterized owner without inventing a new UI framework.
+**Goal:** Reduce repeated maintenance and divergent behavior in equivalent product
+presentation while preserving meaningful differences between flows.
 
-## Intent
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+[Architecture](../Platform/Architecture.md) owns shared UI and feature boundaries.
 
-Collapse confirmed copy-paste feature surfaces under their existing owners; the structural-twin threshold is owned by the [evidence bar](#evidence-bar) below. A successful collapse removes the old paths and reduces net LOC/declarations or material repeated maintenance; do not build a generic configuration framework for two callers.
+## Evidence
 
-## What counts as a duplicate surface
+Compare screens, shells, pickers, summary grids, and repeated loading/error/empty
+states by responsibility and interaction contract, not visual resemblance alone.
+Confirm a shared defect, inconsistent fixes, or repeated edits to the same behavior.
+There is no fixed call-site threshold: two costly twins may justify a remedy,
+while many simple similar views may remain clearer independently.
 
-Duplicate surfaces look like parallel product screens that differ mainly by labels, catalogs, or bindings — not by interaction model.
+## Remedy and success
 
-| Tell | Why it is a finding |
-|------|---------------------|
-| Parallel hub / encounter shells with the same section stack | Agents copied a shell instead of parameterizing mode/content |
-| Near-identical detail / summary / picker layouts across tabs | Same grid, chrome, and empty states with tiny diffs |
-| Repeated reward / outcome / artwork wrappers | Shell already exists (or should) in `TrinketFeatureSupport` or DesignSystem |
-| Same grid / card stack / sheet scaffolding in 3+ files, or two substantial drifted surfaces | Layout ownership belongs in one helper or dominant owner, not repeated call sites |
-| Diverged twins that used to match | Copy-paste drift — bugs get fixed in one sibling only |
+Choose the smallest coherent presentation slice that removes the demonstrated
+co-maintenance. Deleting a redundant path, reusing an existing component, or sharing
+a local layout can be enough; one parameterized screen is not a required outcome.
+Include repeated state mapping, identifiers, and tests only when they belong to
+that same confirmed duplication.
 
-**Not this audit:** single-file ceremony → [06](06_DeadParallelCeremonialSurfaceAudit.md); raw spacing/typography literals without a structural twin → [01](01_AppleNativeUIAudit.md).
+Keep content bindings and distinct mode rules with their feature. Shared game UI
+belongs in the existing feature-support owner; app chrome/tokens belong in the
+design system. A configuration object full of mode flags can cost more than the
+original duplication. Verify each affected flow still honors its own contract and
+that the old repeated responsibility has actually been removed.
 
-## Hard stops
+## Boundaries
 
-- Do not force unrelated product flows into one type (e.g. Battle hand vs Collection grid) just because both show cards.
-- Do not move shared chrome into `Features/` when it already belongs in `TrinketDesignSystem`, or domain rules into views.
-- Prefer the owning audit when the hit is primarily dead code, slop ceremony, token adoption, or state ownership.
-
-## Evidence bar
-
-Structural twin (same section order / chrome / interaction pattern across ≥3 ordinary call sites, or two substantial call sites with demonstrated drift, repeated maintenance, or a shared defect) plus maintenance cost, with a safer shared shape in an existing or dominant owner.
-
-## Domain rules
-
-Ownership follows [Architecture.md](../Platform/Architecture.md):
-
-| Surface kind | Prefer owner |
-|--------------|--------------|
-| App-wide cards, detail panes, keyword text, AccessibilityID | `TrinketFeatureSupport` |
-| Cross-Play-mode shells (reward reveal, shared encounter chrome) | `TrinketFeatureSupport` or the dominant Play owner |
-| Glass / surfaces / typography / Metrics | `TrinketDesignSystem` |
-| Mode-specific content bindings | Stay in the feature folder; pass data into the shared shell |
-
-Keep intentional product differences (mystery vs shop rules, labyrinth vs explore progression). Collapse the confirmed presentation slice: view scaffolding plus repeated state mapping, identifiers, loading/empty/error states, and owned tests when those elements are part of the same twin. Prefer deleting a strictly redundant twin, then parameterizing in the dominant owner, before proposing larger shared shells.
+Do not unify unrelated interactions such as the battle hand and collection grid
+merely because both display cards. Preserve mystery/shop rules and each Play mode's
+progression. Single-path ceremony belongs to
+[06](06_DeadParallelCeremonialSurfaceAudit.md); native layout/adaptation defects
+belong to [01](01_AppleNativeUIAudit.md).

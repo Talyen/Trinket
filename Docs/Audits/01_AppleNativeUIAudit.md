@@ -1,35 +1,40 @@
 # 01. Native UI Layout, Typography & Adaptation Audit
 
-**Goal:** Migrate unjustified custom sizing, layout, typography, adaptation, and native-control patterns toward Apple/SwiftUI-native APIs and tokens already in `TrinketDesignSystem`, without losing justified game UI.
+**Goal:** Improve native layout, typography, and adaptation while preserving
+Trinket's intentional game UI.
 
-Prereads: `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleReference.md`.
+Use the [shared audit contract](README.md) for evidence, severity, scope, and sizing.
+[TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md) and
+[iOS reference](../Platform/iOS26AppleReference.md) own native API/token guidance;
+[PD-014](../Product/Decisions.md) owns accessibility scope.
 
-## Intent
+## What to investigate
 
-Reduce unjustified custom layout/typography and confirmed non-adaptive UI while preserving intentional game UI. Add a shared token/helper only when removing call-site surface outweighs the new API under the [README right-size policy](README.md); otherwise simplify locally. After confirming a problem in a shared component or component family, inventory its affected call sites and migrate the confirmed cluster together.
+Clipped or unreadable content, containers that fail to accommodate their content,
+safe-area or keyboard conflicts, inconsistent native-control behavior, and custom
+layout/typography that duplicates an existing capability with real maintenance cost.
+Consider supported screen sizes and content expansion without inventing product
+requirements. A raw constant or custom modifier alone is not a defect.
 
-**Principles:** one spacing scale (`TrinketDesign.Spacing`) and one layout-token owner (`TrinketDesign.Layout`); delete parallel systems; typography that scales (`Font.TextStyle` / `.trinketTypography` / `@ScaledMetric`); don’t invent a second platform — prefer `containerRelativeFrame`, adaptive grids, `Layout`, and DesignSystem glass/button styles.
+## Domain boundaries
 
-## Hard stops
+- Preserve battlefield composition, fanned hand/drag-to-play, hero overscroll,
+  combat-float motion, and 3:4 card identity. Native APIs are useful when they
+  preserve those constraints, not a reason to redesign them.
+- Use the existing spacing/layout, typography, glass, surface, and button owners;
+  do not create a competing token system. Health-bar geometry fills and decorative
+  symbols already using scaled metrics can be intentional.
+- Preserve existing accommodation behavior; do not add bespoke accessibility modes
+  or setting-specific layout branches under PD-014.
+- Repeated product scaffolding with demonstrated co-maintenance belongs to
+  [09](09_DuplicateFeatureSurfaceAudit.md); unusable gestures/actions belong to
+  [16](16_UIInteractionFeedbackAudit.md).
 
-- Do not redesign battle battlefield geometry or product composition unsupervised. A bounded migration to native/adaptive APIs may ship when it preserves the existing constraints, includes runtime evidence, and can be verified as one phase.
-- Do not replace intentional game juice: combat float keyframe recipes, 3:4 card identity (`TrinketDesign.cardShape`).
-- Do not hand-roll materials / glass / primary buttons — use DesignSystem (`check-ui-style.py`).
+## Evidence and success
 
-Severity follows the [shared audit scale](README.md#severity-scale): prioritize
-broken adaptation or native behavior, then confirmed typography/container gaps,
-then cosmetic token consistency.
-
-## Domain rules & allowlists
-
-- Prefer native SwiftUI modifiers (`.font()`, `.foregroundStyle()`, `.padding()`, `.grid()`) over custom utility wrappers.
-- Respect Apple Human Interface Guidelines for platform-native layout behaviors. Accessibility accommodation branches are out of scope (PD-014).
-- Structural duplication — same grid/scaffolding across 3+ files, or two substantial surfaces with demonstrated drift or shared defects — belongs to `09_DuplicateFeatureSurfaceAudit.md`, not a token migration.
-
-**Leave alone (justified custom):** fanned battle hand + drag-to-play; hero rubber-band overscroll; combat float motion recipes / outline shadows; health-bar `GeometryReader` fills; decorative SF Symbols already on `@ScaledMetric`.
-
-**Tie-breakers:** repair visible adaptation and native control behavior before cosmetic token consistency; extract/document justified custom over rewriting it.
-
-Prefer `TrinketDesign.Spacing`, `TrinketDesign.Layout`, `Corners`, `.trinketTypography`, `.trinketSurface`, `.trinketGlassChip`, `.trinketPrimaryActionButton`. Surfaces already pad — do not stack extra padding then `.trinketSurface` unless the role is `.card`. Prefer growing containers in scroll contexts over `minimumScaleFactor`; account for localization expansion, safe areas, and keyboard presentation before fixing dimensions. Prefer native controls and container APIs when they preserve the game interaction. Gesture-driven motion should track 1:1 during drag and settle with interruptible springs (`TrinketMotion`).
-
-Successful fixes show a net reduction or neutral move in custom layout/typography constants toward tokens or native APIs.
+Show a concrete adaptation/native-behavior failure or avoidable custom maintenance,
+then verify that the remedy preserves intended constraints. Visible layout and
+battlefield adaptations need runtime evidence at the affected conditions.
+Source can establish an enforced style violation; a token substitution alone does
+not establish better UX. Success is usable adaptation or simpler supported layout,
+not a mandatory reduction in constants, wrappers, or lines.

@@ -1,29 +1,39 @@
 # 07. Documentation Staleness Audit
 
-**Goal:** Fix documentation that can mislead execution or maintenance — stale paths, broken links, wrong versions, outdated claims, incomplete required workflows, and drifting duplicated policy.
+**Goal:** Repair documentation that misleads execution or maintenance through wrong
+claims, broken references, consequential omissions, or drifting duplicated policy.
 
-## Intent
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+The [documentation map](../README.md) owns sources of truth and policy precedence.
 
-Find P1/P2 contradictions, omissions, and drift between docs and their sources of truth. Once one fact or workflow is confirmed stale, inspect and update every material authored reference to that same fact within the evidence cone.
+## Evidence and remedy
 
-## Hard stops
+Confirm a mismatch against the relevant configuration, script interface, source
+contract, product decision, or canonical guide. Executable behavior establishes what
+runs, not necessarily what should run: inspect intent before changing prose to match
+a potentially defective implementation. If intent remains ambiguous, state the
+conflict and decision needed rather than silently choosing a side.
 
-- Do not hand-edit `CHANGELOG.md` (owned by `./Scripts/release.sh`).
-- Do not treat dated “Last execution” / Done tables inside audits as source of truth — **delete** those tracker sections when found.
-- Do not rewrite design prose for style-only preferences or turn this into an unbounded prose cleanup. Cohesive terminology or workflow corrections may span documents when inconsistency would otherwise remain.
+A missing instruction is a finding when the intended workflow needs it to succeed
+or avoid a concrete mistake. Once a fact or workflow is confirmed wrong, update its
+material authored references and remove duplicated policy where a canonical link
+serves better. Broken paths, anchors, commands, version claims, and audit routing
+are useful leads; cosmetic rewriting is not the goal.
 
-Severity follows the [shared audit scale](README.md#severity-scale). Prioritize
-wrong paths/APIs, broken links, stale architecture or version claims, and omitted
-required workflow steps; leave cosmetic typos for an already-touched surface.
+## Boundaries and verification
 
-## Domain rules
+- Do not hand-edit `CHANGELOG.md`; release tooling owns it.
+- Resolve relative links from their source file and verify heading anchors. Check
+  command examples and behavioral claims against their actual owners; link checks
+  alone cannot prove instructions correct.
+- Check external sources when changing their claims and network is available;
+  an unavailable endpoint alone does not prove staleness.
+- Keep audit guides procedural. Remove embedded run logs, Done tables, and dated
+  execution trackers. Run outcomes belong in handoffs/commits/PRs;
+  [Proposals.md](Proposals.md) holds only decisions and intentional exceptions.
+- Reconcile an obsolete memory pointer with the current owner before pruning it;
+  a renamed symbol need not invalidate the decision it records.
 
-**Sources of truth:** [Docs/README.md](../README.md) source-of-truth table; `project.yml` (`deploymentTarget`, `SWIFT_VERSION`, marketing version); `Packages/*/Package.swift` `swift-tools-version`; checked-in scripts and CI configuration for executable workflows; smoke class inventory under `TrinketUITests/Smoke/`; canonical names from [Architecture.md](../Platform/Architecture.md). A missing instruction is a finding only when the executable source of truth proves it is required for the documented workflow. Duplicated policy that diverges from the Docs/README owner is P2 drift.
-
-**Links:** internal `.md` links resolve **relative to the source file**; heading anchors must still exist. Recheck edited links and factual claims against their listed source of truth. External URLs: check only when changing that source and network is available — do not fail solely on an unavailable endpoint.
-
-**Audit hygiene:** if an audit contains embedded run logs, Done tables, or “Last execution” trackers, remove them and restore procedural guide shape per [README.md](README.md). Run history belongs only in `Docs/Audits/Proposals.md`; prune its entries whose evidence pointers no longer resolve. Cross-audit routing consistency is in scope: an audit guide’s routing pointers must agree with the README owner and confusable-pairs tables.
-
-## Evidence bar
-
-A P1/P2 finding is a confirmed mismatch, consequential omission, non-working example, or duplicated-policy drift between documentation and a named source of truth (path, API, version, architecture assumption, executable workflow, or broken relative link/anchor). P3 issues are optional cleanup only when already touching that file.
+Success is a usable, consistent workflow or corrected fact at its authoritative
+owner and affected references. Preserve useful design rationale; do not broaden
+this into style-only prose cleanup.

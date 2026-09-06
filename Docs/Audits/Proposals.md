@@ -1,36 +1,37 @@
 # Audit run memory
 
-The only durable state audit runs keep between passes. Audit guides stay clean re-runnable procedures; run outcomes go in the handoff/commit/PR; entries here exist solely so the next run does not re-discover, re-propose, or re-litigate the same item.
+Narrow decision memory between audit passes. Run outcomes and actual review coverage
+belong in the handoff/commit/PR. Entries here preserve unresolved decisions and
+intentional exceptions; they do not prove that code was reviewed or remains correct.
 
 Hygiene:
 
 - Entries are terse: one line of summary plus an evidence pointer (path/symbol), no run logs or diffs.
 - Every open proposal states the implementation boundary: the approval-sensitive reason it could not safely ship as a bounded in-pass fix.
-- Remove an open proposal once it is implemented or superseded; remove any entry whose evidence pointer no longer exists.
-- A rejected proposal or accepted non-finding may be reopened only with new evidence beyond the recorded reason.
-- Update the scope baseline only after a completed routine or full pass.
-
-## Scope baseline
-
-Routine passes inventory candidates from changes since this commit (see README run scope and cadence).
-
-| Baseline commit | Set after |
-|-----------------|-----------|
-| `5bc03803` | Full pre-consolidation audit-set pass with bounded findings landed in audit commits |
+- Remove implemented or superseded proposals. If a pointer no longer resolves, check
+  whether the owner was renamed/moved and update it when the rationale still applies;
+  remove the entry when its subject or reason no longer applies.
+- Revisit rejected proposals and non-findings when new evidence or changed assumptions
+  supersede their recorded reason. Do not treat exceptions as permanent allowlists.
 
 ## Open proposals
 
-Propose-and-stop items awaiting user approval per the README right-size policy.
+Unresolved decisions under the [shared sizing policy](README.md#right-size-policy).
+Defer the sensitive portion while continuing independent authorized work.
 
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
-| 04 / 06 | CloudKit `recoveryURL: nil` → in-memory fallback, no delete/recreate | `PlayerSaveStoreConfiguration.resolveStore` CloudKit branch | Live CloudKit still gated by CloudKitPreShipChecklist; needs a recoverable local URL plus a non-network test | 2026-08-19 |
-| 04 / 06 | `deleteStoreOnFailure: true` wipes progress on any open failure | `PlayerSaveStore.openSaveContainer` | Availability-over-durability product policy; needs SchemaMigrationPlan + backup-before-delete | 2026-08-19 |
-| 13 | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` (`let snapshot = currentSave`) | High-risk rewrite; measure Instruments first | 2026-08-19 |
+| 03 | CloudKit `recoveryURL: nil` → in-memory fallback, no delete/recreate | `PlayerSaveStoreConfiguration.resolveStore` CloudKit branch | Live CloudKit still gated by CloudKitPreShipChecklist; needs a recoverable local URL plus a non-network test | 2026-08-19 |
+| 03 | `deleteStoreOnFailure: true` wipes progress on any open failure | `PlayerSaveStore.openSaveContainer` | Availability-over-durability product policy; needs SchemaMigrationPlan + backup-before-delete | 2026-08-19 |
+| Performance playbook | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` (`let snapshot = currentSave`) | High-risk rewrite; measure Instruments first | 2026-08-19 |
+
+The snapshot proposal is a measurement-led investigation under the
+[performance playbook](../Platform/PerformanceInvestigationPlaybook.md), not evidence
+that the persistence owner is misplaced.
 
 ## Rejected proposals
 
-Do not re-propose without new evidence beyond the recorded reason.
+Do not re-propose unless new evidence or changed assumptions supersede the reason.
 
 | Owning audit | Proposal | Rejection reason | Decided |
 |--------------|----------|------------------|---------|
@@ -38,7 +39,8 @@ Do not re-propose without new evidence beyond the recorded reason.
 
 ## Accepted non-findings
 
-Candidates confirmed as intentional or not worth fixing. Skip them during triage.
+Candidates previously confirmed as intentional or not worth fixing under the recorded
+reason. Reuse that conclusion while its assumptions hold.
 
 | Owning audit | Candidate | Why accepted | Decided |
 |--------------|-----------|--------------|---------|
@@ -51,4 +53,4 @@ Candidates confirmed as intentional or not worth fixing. Skip them during triage
 | 06 | `PlayModeGraph` / `LaunchRunCallbacks` | Documented Play assembly owner; not deferred-bind theater | 2026-08-05 |
 | 06 | `check-build-cache-paths.sh` divergent path lists | Intentional CI vs local freshness differences; documented | 2026-08-05 |
 | 06 | `KeywordShineBorder` vs `CombatantBuffAuraBorder` | Parallel shimmer, but buff aura uses `TrinketDesign.cardShape` (battle 3:4 identity) vs rounded keyword shine | 2026-08-17 |
-| 01 | Stage-select placeholder SF Symbols using `Font.system(size:)` | Already `@ScaledMetric`; audit allowlist for decorative symbols | 2026-08-17 |
+| 01 | Stage-select placeholder SF Symbols using `Font.system(size:)` | Already `@ScaledMetric`; intentional decorative sizing under audit 01 | 2026-08-17 |

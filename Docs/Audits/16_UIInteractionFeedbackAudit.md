@@ -1,38 +1,47 @@
 # 16. UI Interaction Audit
 
-> Trinket ships basic accessibility semantics (PD-014). This audit covers interaction
-> and feedback quality; it does not review accessibility accommodations.
+**Goal:** Repair interaction and feedback defects that prevent players from completing
+or understanding a flow.
 
-**Goal:** Find confirmed interaction and feedback defects that static types do not catch.
+Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+[PD-014](../Product/Decisions.md) owns basic accessibility semantics;
+[SwiftUI guidance](../AgentContext/swiftui-features.md) owns feature integration.
 
-## Intent
+## What to investigate
 
-Fix confirmed navigation/feedback defects across flows. When a shared control or interaction pattern is implicated, inventory adjacent flows using it and fix the confirmed cluster. Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant.
+Unusable navigation/dismissal, competing gestures, unclear action feedback,
+incoherent enabled/loading/error/retry states, hidden required actions, and flows
+that fail to recover from interruption. Review consequential flows by risk; expand
+a confirmed component defect to its affected callers.
 
-## Hard stops
+Controls should communicate action and state. Native buttons are preferred, while
+intentional game gestures can be valid. Image labeling/hiding and stable test
+identifiers follow existing product and testing contracts. Preserve portrait-first
+game interaction and existing accommodations; do not add bespoke accessibility
+modes, setting-specific layouts/tests, or iPad-only interaction work.
 
-- Do not restyle unrelated chrome or expand into layout/typography/DesignSystem migrations (AppleNativeUI owns those).
-- Do not add accessibility accommodation branches (Reduce Motion, Dynamic Type re-layout, or contrast modes). Keep image labels and hiding aligned with PD-014.
-- iPhone portrait-first; skip iPad-only hover work unless product scope expands.
-- Do not turn one candidate into an untriggered full-tab manual pass. Expand to adjacent flows only when they share the confirmed component, gesture, state machine, or primary-action invariant. Skip unavailable Simulator/device checks without failing the audit.
-- Do not expand into UI test rewrites (E2E owns those).
+## Evidence
 
-## Domain rules
+Trace the complete interaction before declaring a missing safeguard. Native dismissal,
+a shared control, store-level idempotency, or a lifecycle owner may already satisfy
+the requirement. Missing local debounce, `scenePhase`, `Button`, or progress-indicator
+syntax is not proof of wrong behavior. Confirm whether repeat input, cancellation,
+or interruption actually violates the flow's contract.
 
-**Navigation & modals:** `TabView` top-level only; `NavigationStack` per tab; every sheet/cover has a dismiss path; destructive actions use confirmation + cancel.
+Source can prove unreachable dismissal, missing required semantics/identifiers,
+or a reachable incorrect transition. Gesture conflicts, feedback feel, obscured
+controls, and progress timing usually need runtime observation. Without it, report
+unverified candidates and the missing check rather than shipping speculative changes.
 
-**Gestures:** scroll/drag/modal modes must not fight; `DragGesture` `.updating` resets on cancel/end; long-press must not block tap navigation.
+## Remedy and success
 
-**Feedback:** interactive elements are `Button`s (preferred) or gestures with visible feedback; long `Task` work shows progress; victory/defeat screens always dismissible.
+Restore a usable flow with coherent feedback and preserve its product contract.
+Apply confirmation only where the destructive-action policy requires it; do not
+add friction to intentional immediate actions such as Homestead upgrades.
+Verify affected entry, action, completion, and recovery conditions as appropriate.
+Reuse coverage under [Testing](../Platform/Testing.md), including its identifier
+change requirements; do not create UI tests merely to inventory controls.
 
-**Control states:** primary actions have coherent enabled, disabled, loading, success, error/retry, and cancellation behavior where applicable; focus and keyboard presentation do not hide required actions; interruptions/backgrounding return the flow to a usable state.
-
-**Identifiers:** stable `accessibilityIdentifier` values exist for every flow the UI tests drive. Identifiers are test infrastructure, not accessibility — never remove or rename one without the Testing.md presentation-contract checks.
-
-**Edge cases:** rapid-tap debounce on stage start / craft / reward claim; battle pauses on `scenePhase` background; keyboard dismissal where applicable; empty states for empty collection/inventory/homestead.
-
-## Evidence bar
-
-Interactive flow missing a dismiss path, visible feedback, stable identifier, required control state, focus/keyboard recovery, interruption recovery, or error/retry route; gesture fight; or double-trigger on a primary action. A shared-component fix includes every confirmed affected caller.
-
-**Static vs runtime evidence:** missing dismiss paths, missing confirmation on destructive actions, missing `accessibilityIdentifier`s, non-`Button` interactive elements, missing rapid-tap debounce, and missing `scenePhase` handling are confirmable from source and may ship in an unattended pass. Gesture fights, feedback feel, and progress-indicator timing normally need a running app — without Simulator access, record them as candidates in the handoff (or `Proposals.md` when durable) rather than shipping speculative fixes.
+Layout/typography migrations belong to [01](01_AppleNativeUIAudit.md); test-harness
+quality belongs to [10](10_E2ETestQualityAudit.md). Use the shared table for durable
+transaction failures and other overlaps.
