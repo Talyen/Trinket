@@ -216,7 +216,7 @@ public extension BattleTurnEngine {
                 && context.modifiers(for: actor.id).triggers.repeatManaEmpowerment)
         let triggers = context.modifiers(for: actor.id).triggers
         let isHealingCard = ability.keywords.contains(.health)
-        let empowermentCost: Int = if isHealingCard, triggers.healingEmpowermentCostReduction > 0 {
+        let baseCost: Int = if isHealingCard, triggers.healingEmpowermentCostReduction > 0 {
             max(0, manaEmpowermentCost - triggers.healingEmpowermentCostReduction)
         } else if triggers.empowermentCostReduction > 0 {
             max(0, manaEmpowermentCost - triggers.empowermentCostReduction)
@@ -225,20 +225,20 @@ public extension BattleTurnEngine {
         }
         var events: [ActionEvent] = []
         var purchases = 0
-        let maxPurchases: Int = if empowermentCost == 0 {
-            1
-        } else {
-            max(1, (context.roster.runtime(for: actor)?.maxMana ?? 1) / empowermentCost)
-        }
+        let maxMana = context.roster.runtime(for: actor)?.maxMana ?? 0
+        let firstDiscount = context.roster.runtime(for: actor)?.hasEmpoweredWithMana == false
+            && triggers.firstEmpowermentCostReduction > 0 ? 1 : 0
+        let maxPurchases = baseCost == 0 ? 1 : max(1, maxMana / baseCost + firstDiscount)
         while purchases == 0 || repeats, purchases < maxPurchases {
-            guard let runtime = context.roster.runtime(for: actor),
-                  runtime.maxMana > 0,
-                  runtime.currentMana >= empowermentCost
-            else { break }
+            guard let runtime = context.roster.runtime(for: actor), runtime.maxMana > 0 else { break }
+            let discount = runtime.hasEmpoweredWithMana ? 0 : triggers.firstEmpowermentCostReduction
+            let empowermentCost = max(0, baseCost - discount)
+            guard runtime.currentMana >= empowermentCost else { break }
             let spent = context.spendMana(empowermentCost, for: actor)
             guard spent >= empowermentCost else { break }
+            context.roster.mutateRuntime(for: actor) { $0.hasEmpoweredWithMana = true }
             purchases += 1
-            ability = ability.empoweredByMana(amount: manaEmpowermentBonus)
+            ability = ability.empoweredByMana(amount: manaEmpowermentBonus + triggers.empowermentDamageBonus)
             events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
                 by: actor,
                 amountSpent: spent,

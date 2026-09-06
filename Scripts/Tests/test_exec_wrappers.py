@@ -27,6 +27,68 @@ def run_script(name: str, *args: str) -> subprocess.CompletedProcess:
 
 
 class ExecWrapperTests(unittest.TestCase):
+    def test_preflight_and_style_do_not_reserve_a_run(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scripts = Path(directory) / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            (scripts / "run-env.sh").write_text(
+                'trinket_run_env_init() { echo "unexpected run reservation" >&2; exit 91; }\n'
+            )
+            (scripts / "lib/test-style.sh").write_text(
+                'trinket_run_style_gate() { echo "style checked"; }\n'
+            )
+            cases = [
+                (name, ["--help"], 0, "Usage:")
+                for name in ("test.sh", "test-package.sh", "build-for-testing.sh")
+            ] + [
+                ("test.sh", ["style"], 0, "style checked"),
+                ("build-for-testing.sh", ["--bad-option"], 1, "Unknown argument"),
+                ("test-package.sh", ["--bad-option"], 1, "Unknown option"),
+                ("test-package.sh", ["MissingPackage"], 1, "Unknown package"),
+                ("test-package.sh", ["BattleEngine", "BattleEngine"], 1, "Duplicate package"),
+            ]
+            for name, args, status, message in cases:
+                with self.subTest(name=name, args=args):
+                    result = subprocess.run([str(scripts / name), *args], capture_output=True, text=True)
+                    self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                    self.assertIn(message, result.stdout + result.stderr)
+
+    def test_final_handoff_preview_does_not_execute_docs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scripts = Path(directory) / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            (scripts / "check-docs.py").write_text('raise SystemExit(91)\n')
+            for flags, status in ((["--dry-run", "--final"], 0), (["--final"], 91)):
+                with self.subTest(flags=flags):
+                    result = subprocess.run(
+                        [str(scripts / "handoff.sh"), *flags, "--paths", "Scripts/build.sh"],
+                        capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                    if status == 0:
+                        self.assertIn("python3 ./Scripts/check-docs.py --final", result.stdout)
+
+    def test_package_build_prepares_generated_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scripts = Path(directory) / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            (scripts / "run-env.sh").write_text(
+                'trinket_run_env_init() { RESULTS_DIR="$PWD/results"; }\n'
+            )
+            (scripts / "ensure-simulator.sh").write_text('trinket_sim_slot_ensure() { :; }\n')
+            (scripts / "build-freshness.sh").write_text(
+                'TRINKET_TEST_PACKAGES=(BattleEngine)\n'
+                'prepare_generated_inputs() { echo "prepared inputs"; exit 73; }\n'
+            )
+            for action in ([], ["--build-for-testing"]):
+                with self.subTest(action=action):
+                    result = subprocess.run(
+                        [str(scripts / "test-package.sh"), *action, "--destination", "fixture", "BattleEngine"],
+                        capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, 73, result.stdout + result.stderr)
+                    self.assertIn("prepared inputs", result.stdout)
+
     def test_performance_runner_retains_success_and_partial_failure_evidence(self) -> None:
         for test_status in (0, 1):
             with self.subTest(test_status=test_status), tempfile.TemporaryDirectory() as directory:

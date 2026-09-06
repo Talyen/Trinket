@@ -6,8 +6,6 @@ SCRIPT_DIR="$(dirname "$0")"
 
 # shellcheck source=run-env.sh
 source "$SCRIPT_DIR/run-env.sh"
-trinket_run_env_init
-trinket_run_env_print
 
 # shellcheck source=build-freshness.sh
 source "$SCRIPT_DIR/build-freshness.sh"
@@ -152,6 +150,9 @@ append_ui_target_filters() {
     fi
   done
 }
+
+trinket_run_env_init
+trinket_run_env_print
 
 mkdir -p "$RESULTS_DIR"
 if [[ "$NO_BUILD" == "false" ]]; then

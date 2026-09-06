@@ -100,13 +100,16 @@ package extension CombatTriggerEngine {
                 in: &context,
             ))
         }
-        if triggers.companionCardsPerTurn > 0 {
+        let companionCards = triggers.companionCardsPerTurn
+            + (context.turnCount.isMultiple(of: 2) ? triggers.companionCardsEveryOtherTurn : 0)
+        if companionCards > 0 {
             events.append(contentsOf: drawCards(
-                triggers.companionCardsPerTurn,
+                companionCards,
                 for: .companion,
                 actor: actor,
                 abilityName: triggerAbilityName(
-                    "companionCardsPerTurn",
+                    triggers.companionCardsEveryOtherTurn > 0
+                        ? "companionCardsEveryOtherTurn" : "companionCardsPerTurn",
                     for: actor,
                     fallback: "Companion's Collar",
                     in: context,

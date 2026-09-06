@@ -48,7 +48,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     }
 
     public func resolvedPower(at affixIndex: Int) -> ItemAffixPower? {
-        let power: ItemAffixPower
+        var power: ItemAffixPower
         if let affixPowers, affixPowers.indices.contains(affixIndex) {
             power = affixPowers[affixIndex]
         } else {
@@ -58,6 +58,19 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
                 return nil
             }
             power = definition.power(for: rarity)
+        }
+        if affixes.indices.contains(affixIndex), affixes[affixIndex].id == "companions_collar",
+           power.triggers.companionCardsPerTurn > 0 {
+            var triggers = power.triggers
+            triggers.companionCardsEveryOtherTurn = max(
+                triggers.companionCardsEveryOtherTurn, triggers.companionCardsPerTurn,
+            )
+            triggers.companionCardsPerTurn = 0
+            power = ItemAffixPower(
+                description: "Draw an extra Companion card every other turn.",
+                modifiers: power.modifiers,
+                triggers: triggers,
+            )
         }
         return power.scaled(by: baseType.affixPowerMultiplier)
     }

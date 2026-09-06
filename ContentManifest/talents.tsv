@@ -113,13 +113,13 @@ frost_whelp_freeze_t2_1	Glacial Grip	lock.fill	Attacking a Frozen enemy grants 3
 frost_whelp_freeze_t2_2	Frost Siphon	moon.stars.fill	Attacking a Frozen enemy grants 1 Mana.		onAttackFrozenEnemyGainMana:1
 frost_whelp_freeze_t3_1	Shatter Frost	burst.fill	Frozen enemies take 25% additional damage.		damageVsFrozenMultiplier:1.25
 frost_whelp_freeze_t3_2	Freezing Gale	wind.snow	Apply 2 Freeze to the enemy every 3 turns.		everyNTurnsFreezeAllEnemiesInterval:3|everyNTurnsFreezeAllEnemiesAmount:2
-frost_whelp_mana_t1_1	Dragon Spark	sparkle	Start each battle with 2 extra Mana.		startBattleBonusMana:2
-frost_whelp_mana_t1_2	Arcane Breath	wind	When you spend 3 Mana to empower a card, add 3 damage per Mana spent.		spendManaDamageBonusPerMana:3
+frost_whelp_mana_t1_1	Dragon Spark	sparkle	Your first Mana empowerment costs 2 less Mana.		firstEmpowermentCostReduction:2
+frost_whelp_mana_t1_2	Arcane Breath	wind	Mana empowerment adds 3 extra damage.		empowermentDamageBonus:3
 frost_whelp_mana_t2_1	Mana Absorption	shield.lefthalf.filled	Gain 2 Block whenever the Hero spends Mana.		onHeroSpendManaGainBlock:2
 frost_whelp_mana_t2_2	Aetherial Armor	shield.checkered	Gain 1 damage reduction for every 2 unspent Mana.		damageReductionPerUnspentManaEvery:2
 frost_whelp_mana_t3_1	Mana Flow	arrow.triangle.2.circlepath	Spending Mana has a 25% chance to refund the Mana.		spendManaRefundChancePercent:0.25
 frost_whelp_mana_t3_2	Spell Channeling	wand.and.stars	When you spend Mana to empower the Whelp's cards, it costs 2 Mana instead of 3.		empowermentCostReduction:1
-frost_whelp_dodge_t1_1	High Altitude	cloud.fill	While above half Health, enemy attacks target the Hero instead of the Whelp.		untargetableAboveHealthPercent:0.50
+frost_whelp_dodge_t1_1	High Altitude	cloud.fill	While above half Health, gain 15% Dodge.		dodgeChanceAboveHalfHealthBonus:0.15
 frost_whelp_dodge_t1_2	Tailwind	wind	Dodging an attack draws 1 card for the Hero.		onDodgeDrawCardForHero:1
 frost_whelp_dodge_t2_1	Flyby Strike	bolt.fill	After Dodging, your next attack deals double damage.		nextAttackDoubleAfterDodge:true
 frost_whelp_dodge_t2_2	Wing Buffet	hand.raised.fill	Dodging an attack delays the attacker's next turn.		onDodgeDelayAttackerTurn:true
@@ -238,7 +238,7 @@ risen_skeleton_physical_t1_2	Bone Burst	burst.fill	Attacks have a 25% chance to 
 risen_skeleton_physical_t2_1	Brittle Strike	shield.slash.fill	Physical attacks ignore all Block on Stunned or Frozen enemies.		physicalIgnoresBlockVsStunnedOrFrozen:true
 risen_skeleton_physical_t2_2	Dense Bones	shield.checkered	Each hit you take reduces damage you take by 1 (up to 4).		toughnessOnHit:1|toughnessOnHitCap:4
 risen_skeleton_physical_t3_1	Cleaving Bones	triangle.fill	Physical attacks apply 1 additional Bleed to the enemy.		physicalAttackApplyBleed:1
-risen_skeleton_physical_t3_2	Bone Armor	shield.lefthalf.filled	When the Skeleton loses Health, gain 2 Block.		onSelfHealthLossGainBlock:2
+risen_skeleton_physical_t3_2	Bone Armor	shield.lefthalf.filled	The first time each turn you take Health damage, gain 2 Block.		onSelfHealthLossGainBlock:2
 risen_skeleton_leech_t1_1	Weaken Soul	waveform.path.ecg	Leech reduces the target's damage by 2 for 2 turns.		onLeechReduceEnemyStrength:2|onLeechReduceEnemyStrengthTurns:2
 risen_skeleton_leech_t1_2	Toxic Touch	allergens.fill	Leech damage applies 2 Poison to the target.		onLeechApplyPoison:2
 risen_skeleton_leech_t2_1	Grave Harvest	drop.fill	Leeching Health from an enemy below half Health restores 2 additional Health.		leechBonusHealVsLowHealthEnemies:2
@@ -341,7 +341,7 @@ rogue_poison_t4_1	Nerve Agent	allergens.fill	Poison damage deals half as much St
 lizard_scout_poison_t4_1	Toxic Coma	bolt.fill	Stunned enemies take double Poison damage.		toxicComa:true
 ranger_bleed_t4_1	Shatterpoint	snowflake	Freeze damage detonates and consumes all Bleed.		shatterpoint:true
 rogue_bleed_t4_1	Cryostasis	snowflake	Bleed never expires on Frozen enemies.		cryostasis:true
-lizard_scout_poison_t4_2	Cross-Contamination	drop.fill	Bleed damage deals half as much Poison damage.		crossContamination:true
+lizard_scout_poison_t4_2	Cross-Contamination	drop.fill	Your Bleed damage has a 20% chance to also deal Poison damage.		crossContamination:true
 wolf_bleed_t4_1	Septicemia	drop.triangle.fill	Poisoned enemies take double Bleed damage.		septicemia:true
 wolf_dodge_t4_1	Phantom Counter	figure.run	Dodging draws and plays a Physical card.		phantomCounter:true
 fox_dodge_t4_1	Perfect Tempo	bolt.fill	Physical Critical Hits make you Dodge the next attack.		perfectTempo:true
@@ -353,7 +353,7 @@ warlock_burn_t4_1	Ashen Arsenal	flame.fill	Burn damage draws a Physical card.		a
 phoenix_burn_t4_1	Furnace Rhythm	flame.fill	Burn cards make the next Physical card play twice.		furnaceRhythm:true
 lizard_scout_bleed_t4_1	Butcher's Ledger	drop.triangle.fill	Physical damage deals half as much Bleed damage.		butchersLedger:true
 panther_bleed_t4_1	Arterial Cascade	drop.triangle.fill	Physical Critical Hits detonate and consume all Bleed.		arterialCascade:true
-wolf_bleed_t4_2	Bloodrush	drop.fill	Bleed damage draws a Physical card.		bloodrush:true
+wolf_bleed_t4_2	Bloodrush	drop.fill	The first time you deal Bleed damage each turn, draw a Physical card.		bloodrush:true
 panther_bleed_t4_2	Redline	drop.triangle.fill	Physical Critical Hits double Bleed duration.		onCritDoubleBleedDuration:true
 knight_block_t4_1	Cold Storage	snowflake	Freeze damage grants equal Block.		freezeDamageGrantsBlock:true
 bear_block_t4_1	Avalanche Guard	snowflake	Freezing an enemy doubles party Block.		avalancheGuard:true

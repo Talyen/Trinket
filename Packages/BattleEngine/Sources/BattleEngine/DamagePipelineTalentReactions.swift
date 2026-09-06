@@ -26,7 +26,9 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.buildupDamage > 0 else { return }
-        let scaled = CombatRounding.scaled(state.buildupDamage, multiplier: 0.5)
+        let scaled = keyword == .bleed
+            ? state.buildupDamage
+            : CombatRounding.scaled(state.buildupDamage, multiplier: 0.5)
         guard scaled > 0 else { return }
 
         var destinations: [Keyword] = []
@@ -46,7 +48,8 @@ package extension DamagePipeline {
                 destinations.append(.stun)
             }
         case .bleed:
-            if triggers.crossContamination {
+            if triggers.crossContamination,
+               BattleChance.succeeds(probability: 0.20, using: &context.rng) {
                 destinations.append(.poison)
             }
         case .burn:
@@ -153,7 +156,8 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
-        if triggers.bloodrush, keyword == .bleed {
+        if triggers.bloodrush, keyword == .bleed,
+           context.claimTurnGuard(.bloodrush, actorID: source.id) {
             state.damageEvents.append(contentsOf: drawTalentCard(
                 .physical,
                 for: source.combatant,

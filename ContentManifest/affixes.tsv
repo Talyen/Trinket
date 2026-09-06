@@ -69,7 +69,7 @@ sidestep	Sidestep	armor	dodge,health	8	Restore 1 Health when you Dodge.	Restore 
 blur	Blur	accessory	dodge,health	8	Gain 15% Dodge chance while below 50% Health.	Gain 30% Dodge chance while below 50% Health.			dodge_chance_below_health_percent:0.50:0.15	dodge_chance_below_health_percent:0.50:0.30
 bone_charm	Blood Omen	trinket	health	1	Draw a card the first time you lose Health each turn.	Draw a card the first time you lose Health each turn.			draw_on_health_loss:1	draw_on_health_loss:1
 brass_censer	Toxic Incense	trinket	holy,poison	1	Deal 1 Poison damage when you deal Holy damage.	Deal 1 Poison damage when you deal Holy damage.			on_holy_damage_poison:1	on_holy_damage_poison:1
-companions_collar	Loyal Companion	trinket	health,physical	1	Draw an additional Companion card each turn.	Draw an additional Companion card each turn.			companion_cards_per_turn:1	companion_cards_per_turn:1
+companions_collar	Loyal Companion	trinket	health,physical	1	Draw an extra Companion card every other turn.	Draw an extra Companion card every other turn.			companionCardsEveryOtherTurn:1	companionCardsEveryOtherTurn:1
 cutpurse_knife	Blood Money	trinket	bleed,gold	1	Gain 1 Gold when you deal Bleed damage.	Gain 1 Gold when you deal Bleed damage.			on_bleed_damage_gold:1	on_bleed_damage_gold:1
 frozen_pocketwatch	Deep Freeze	trinket	freeze	1	Freeze has a 20% chance to last an additional turn.	Freeze has a 20% chance to last an additional turn.			freeze_extend_chance_percent:0.20	freeze_extend_chance_percent:0.20
 stunned_pocketwatch	Concussive Pocketwatch	trinket	stun	1	Stun has a 20% chance to last an additional turn.	Stun has a 20% chance to last an additional turn.			stun_extend_chance_percent:0.20	stun_extend_chance_percent:0.20

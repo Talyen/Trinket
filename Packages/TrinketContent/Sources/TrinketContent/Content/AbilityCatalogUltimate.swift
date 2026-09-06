@@ -92,9 +92,10 @@ enum AbilityCatalogUltimate {
 
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
+        description: "Randomly restore 7 Health, restore 7 Mana, or gain 7 Block. Restore the lowest ally who needs it. Skip unneeded restoration.",
         outcomeBranches: [
-            AbilityOutcomeBranch(effects: [.resourceGain(.mana, 7)]),
-            AbilityOutcomeBranch(effects: [.instantHeal(.health, 7)]),
+            AbilityOutcomeBranch(effects: [.resourceGain(.mana, 7)], restorationResource: .mana),
+            AbilityOutcomeBranch(effects: [.instantHeal(.health, 7)], restorationResource: .health),
             AbilityOutcomeBranch(effects: [.shield(.block, 7)]),
         ],
     )

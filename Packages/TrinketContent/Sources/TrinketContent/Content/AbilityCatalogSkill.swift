@@ -70,7 +70,7 @@ enum AbilityCatalogSkill {
 
     static let darkPact = Ability(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
-        description: "Lose 3 Health. Draw 2 cards.",
+        description: "Pay 3 Health. Draw 2 cards.",
         damageComponents: [DamageComponent(3, keyword: .physical, target: .actor)],
         targetedEffects: [TargetedEffect(.drawCards(2))],
     )

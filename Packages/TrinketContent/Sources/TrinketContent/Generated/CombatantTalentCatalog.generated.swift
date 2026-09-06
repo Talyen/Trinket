@@ -904,7 +904,7 @@ public extension CombatantTalentCatalog {
             "wolf_bleed_t4_2": CombatantTalentEffect(
                 name: "Bloodrush",
                 symbolName: "drop.fill",
-                description: "Bleed damage draws a Physical card.",
+                description: "The first time you deal Bleed damage each turn, draw a Physical card.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(bloodrush: true))
             )
@@ -1106,16 +1106,16 @@ public extension CombatantTalentCatalog {
             "frost_whelp_mana_t1_1": CombatantTalentEffect(
                 name: "Dragon Spark",
                 symbolName: "sparkle",
-                description: "Start each battle with 2 extra Mana.",
+                description: "Your first Mana empowerment costs 2 less Mana.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(startBattleBonusMana: 2))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(firstEmpowermentCostReduction: 2))
             ),
             "frost_whelp_mana_t1_2": CombatantTalentEffect(
                 name: "Arcane Breath",
                 symbolName: "wind",
-                description: "When you spend 3 Mana to empower a card, add 3 damage per Mana spent.",
+                description: "Mana empowerment adds 3 extra damage.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaDamageBonusPerMana: 3))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(empowermentDamageBonus: 3))
             ),
             "frost_whelp_mana_t2_1": CombatantTalentEffect(
                 name: "Mana Absorption",
@@ -1148,9 +1148,9 @@ public extension CombatantTalentCatalog {
             "frost_whelp_dodge_t1_1": CombatantTalentEffect(
                 name: "High Altitude",
                 symbolName: "cloud.fill",
-                description: "While above half Health, enemy attacks target the Hero instead of the Whelp.",
+                description: "While above half Health, gain 15% Dodge.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(untargetableAboveHealthPercent: 0.50))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceAboveHalfHealthBonus: 0.15))
             ),
             "frost_whelp_dodge_t1_2": CombatantTalentEffect(
                 name: "Tailwind",
@@ -1333,7 +1333,7 @@ public extension CombatantTalentCatalog {
             "lizard_scout_poison_t4_2": CombatantTalentEffect(
                 name: "Cross-Contamination",
                 symbolName: "drop.fill",
-                description: "Bleed damage deals half as much Poison damage.",
+                description: "Your Bleed damage has a 20% chance to also deal Poison damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(crossContamination: true))
             ),
@@ -1950,7 +1950,7 @@ public extension CombatantTalentCatalog {
             "risen_skeleton_physical_t3_2": CombatantTalentEffect(
                 name: "Bone Armor",
                 symbolName: "shield.lefthalf.filled",
-                description: "When the Skeleton loses Health, gain 2 Block.",
+                description: "The first time each turn you take Health damage, gain 2 Block.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(block: BlockTriggers(onSelfHealthLossGainBlock: 2))
             ),

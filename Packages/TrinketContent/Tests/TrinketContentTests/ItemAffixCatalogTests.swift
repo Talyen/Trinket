@@ -3,6 +3,23 @@ import Testing
 import TrinketContent
 
 struct ItemAffixCatalogTests {
+    @Test func `saved loyal companion power uses new cadence without losing other rolls`() throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "companions_collar"))
+        let old = ItemAffixPower(
+            description: "Draw an additional Companion card each turn.", modifiers: [],
+            triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaBlockFlat: 2, companionCardsPerTurn: 1)),
+        )
+        let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
+        let item = try ItemFixtures.makeBareItem(
+            "companions_collar", affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
+        )
+        let power = try #require(item.resolvedPower(at: 0))
+        #expect(power.triggers.companionCardsPerTurn == 0)
+        #expect(power.triggers.companionCardsEveryOtherTurn == 1)
+        #expect(power.triggers.spendManaBlockFlat == 2)
+        #expect(item.displayedAffixes.first?.description == definition.basic.description)
+    }
+
     @Test func `combat reaction affix I ds resolve to catalog titles`() throws {
         let ids = [
             "absolving", "aetherward", "arcane_ward", "beacon", "blood_price",

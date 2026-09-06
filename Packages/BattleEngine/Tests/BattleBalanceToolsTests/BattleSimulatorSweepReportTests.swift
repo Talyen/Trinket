@@ -51,13 +51,14 @@ struct BattleSimulatorSweepReportTests {
         #expect(markdown.contains("Ability Contrasts"))
     }
 
-    @Test func `affix contrast produces lift rows on mid tier`() {
+    @Test(arguments: SimulationPowerTier.allCases)
+    func `affix contrast produces lift rows in every tier`(tier: SimulationPowerTier) {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .affixContrast,
                 battlesPerTier: 8,
                 seed: 22,
-                tiers: [.middle],
+                tiers: [tier],
                 jobs: 1,
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
@@ -66,12 +67,43 @@ struct BattleSimulatorSweepReportTests {
             ),
         )
         let markdown = BalanceMarkdownReporter.render(report)
-        if report.affixContrasts.isEmpty {
-            #expect(markdown.contains("Affix contrast rows: `0`"))
-        } else {
-            #expect(report.affixContrasts.contains { $0.baselineKind == .emptySlot })
-            #expect(report.affixContrasts.contains { $0.baselineKind == .replacementAffix })
-            #expect(markdown.contains("Affix Contrasts"))
+        #expect(!report.affixContrasts.isEmpty)
+        #expect(report.affixContrasts.contains { $0.baselineKind == .emptySlot })
+        #expect(report.affixContrasts.contains { $0.baselineKind == .replacementAffix })
+        #expect(report.affixContrasts.allSatisfy { $0.tier == tier && $0.pairs == 8 })
+        #expect(markdown.contains("Affix Contrasts"))
+    }
+
+    @Test(arguments: SimulationPowerTier.allCases)
+    func `affix pair preserves every other affix and rolled power`(tier: SimulationPowerTier) throws {
+        let foci = BalanceAffixContrastRunner.foci(
+            heroes: GameContent.heroes, companions: GameContent.companions, focusIDs: ["keen"],
+        )
+        #expect(!foci.isEmpty)
+        for focus in foci {
+            var rng = SeededRandomNumberGenerator(seed: 1772)
+            let pair = BalanceAffixContrastRunner.makeAffixGearPair(
+                focus: focus, tier: tier,
+                ownerLoadout: SimulationMatchupBuilder.sampleLoadout(for: focus.owner, using: &rng),
+                pairSeed: 1772,
+            )
+            let entity = try #require(pair.withAffix.inventory.first)
+            let baseline = try #require(pair.baseline.inventory.first)
+            #expect(entity.affixes.contains { $0.id == focus.definition.id })
+            #expect(!baseline.affixes.contains { $0.id == focus.definition.id })
+            let retained = entity.affixes.indices.filter { entity.affixes[$0].id != focus.definition.id }
+            for index in retained {
+                let match = baseline.affixes.firstIndex { $0.id == entity.affixes[index].id }
+                let baselineIndex = try #require(match)
+                #expect(entity.affixPowers?[index] == baseline.affixPowers?[baselineIndex])
+            }
+            let difference = focus.baselineKind == .emptySlot ? 1 : 0
+            #expect(entity.affixes.count - baseline.affixes.count == difference)
+            #expect(pair.withAffix.inventory.dropFirst() == pair.baseline.inventory.dropFirst())
+            if tier == .early {
+                #expect(pair.withAffix.inventory.count == 1)
+                #expect(pair.baseline.inventory.count == 1)
+            }
         }
     }
 

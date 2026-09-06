@@ -8,13 +8,23 @@ enum WalletFormatting {
 }
 
 extension View {
+    @ViewBuilder
     func walletIncreaseBump(trigger: Int, delay: TimeInterval = 0) -> some View {
-        keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { content, scale in
-            content.scaleEffect(scale)
-        } keyframes: { _ in
-            LinearKeyframe(1, duration: delay)
-            CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
-            SpringKeyframe(1, duration: 0.18, spring: .smooth)
+        if delay > 0 {
+            keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { content, scale in
+                content.scaleEffect(scale)
+            } keyframes: { _ in
+                LinearKeyframe(1, duration: delay)
+                CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
+                SpringKeyframe(1, duration: 0.18, spring: .smooth)
+            }
+        } else {
+            keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { content, scale in
+                content.scaleEffect(scale)
+            } keyframes: { _ in
+                CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
+                SpringKeyframe(1, duration: 0.18, spring: .smooth)
+            }
         }
     }
 }
@@ -45,6 +55,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     private let amount: Int
     private let showsIncreasePrefix: Bool
     private let increaseAnimationDelay: TimeInterval
+    private let keepsArtworkStationary: Bool
     private let artwork: Artwork
     @State private var increaseAnimationTrigger = 0
 
@@ -58,12 +69,14 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         amount: Int,
         showsIncreasePrefix: Bool = false,
         increaseAnimationDelay: TimeInterval = 0,
+        keepsArtworkStationary: Bool = false,
         @ViewBuilder artwork: () -> Artwork,
     ) {
         self.title = title
         self.amount = amount
         self.showsIncreasePrefix = showsIncreasePrefix
         self.increaseAnimationDelay = increaseAnimationDelay
+        self.keepsArtworkStationary = keepsArtworkStationary
         self.artwork = artwork()
     }
 
@@ -77,10 +90,17 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
                 Text(displayedAmount).trinketTypography(.statValue).lineLimit(1).minimumScaleFactor(0.7).allowsTightening(true)
                     .contentTransition(.numericText())
             }
+            .walletIncreaseBump(
+                trigger: keepsArtworkStationary ? increaseAnimationTrigger : 0,
+                delay: increaseAnimationDelay,
+            )
         }
         .frame(minHeight: TrinketDesign.Layout.walletResourceRowMinHeight, alignment: .leading)
         .animation(TrinketMotion.Interaction.walletIncrease, value: amount)
-        .walletIncreaseBump(trigger: increaseAnimationTrigger, delay: increaseAnimationDelay)
+        .walletIncreaseBump(
+            trigger: keepsArtworkStationary ? 0 : increaseAnimationTrigger,
+            delay: increaseAnimationDelay,
+        )
         .onChange(of: amount) { oldAmount, newAmount in
             guard newAmount > oldAmount else { return }
             increaseAnimationTrigger &+= 1

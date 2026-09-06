@@ -82,6 +82,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
                         )
                     }
                     .trinketQuietTapButtonStyle()
+                    .accessibilityLabel("View all \(title)")
                 }
             }
             .scrollTargetLayout()

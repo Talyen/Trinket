@@ -6,17 +6,12 @@ SCRIPT_DIR="$(dirname "$0")"
 
 # shellcheck source=run-env.sh
 source "$SCRIPT_DIR/run-env.sh"
-trinket_run_env_init
-trinket_run_env_print
-# Isolated builds share a warm agent-N DerivedData tenant; no simulator boot needed
-# (generic/platform destination), but init already acquired the agent slot.
 
 source "$SCRIPT_DIR/build-freshness.sh"
 # shellcheck source=xcode-runner.sh
 source "$SCRIPT_DIR/xcode-runner.sh"
 # shellcheck source=lib/app-build.sh
 source "$SCRIPT_DIR/lib/app-build.sh"
-trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 
 # shellcheck source=lib/args.sh
 source "$SCRIPT_DIR/lib/args.sh"
@@ -40,6 +35,10 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+trinket_run_env_init
+trinket_run_env_print
+trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 
 mkdir -p "$RESULTS_DIR"
 prepare_generated_inputs "$RESULTS_DIR"
@@ -76,7 +75,7 @@ fi
 # single parallel implementation shared with test.sh. App products stay in
 # DERIVED_DATA_PATH; package test products live under packages/<name>/.
 echo "=== build-for-testing: package schemes (parallel) ==="
-if ! ./Scripts/test-package.sh --build-for-testing "${TRINKET_TEST_PACKAGES[@]}"; then
+if ! SKIP_GENERATE=1 ./Scripts/test-package.sh --build-for-testing "${TRINKET_TEST_PACKAGES[@]}"; then
   echo "Package build failed." >&2
   exit 1
 fi

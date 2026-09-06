@@ -11,6 +11,9 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
     var walletAnimationNamespace: Namespace.ID?
+    var displayedBalances: [HomesteadResource: Int] = [:]
+    var increaseAnimationDelays: [HomesteadResource: TimeInterval] = [:]
+    var keepsWalletArtworkStationary = false
     var bottomPadding: CGFloat = TrinketDesign.Layout.tabBarContentClearance
     @ViewBuilder let heroArt: () -> HeroArt
     @ViewBuilder let walletBottomContent: () -> WalletBottomContent
@@ -22,6 +25,9 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
         roster: PlayerRosterState,
         walletAnimationNamespace: Namespace.ID? = nil,
         bottomPadding: CGFloat = TrinketDesign.Layout.tabBarContentClearance,
+        displayedBalances: [HomesteadResource: Int] = [:],
+        increaseAnimationDelays: [HomesteadResource: TimeInterval] = [:],
+        keepsWalletArtworkStationary: Bool = false,
         @ViewBuilder heroArt: @escaping () -> HeroArt,
         @ViewBuilder walletBottomContent: @escaping () -> WalletBottomContent,
         @ViewBuilder bodyContent: @escaping () -> Body,
@@ -31,6 +37,9 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
         self.roster = roster
         self.walletAnimationNamespace = walletAnimationNamespace
         self.bottomPadding = bottomPadding
+        self.displayedBalances = displayedBalances
+        self.increaseAnimationDelays = increaseAnimationDelays
+        self.keepsWalletArtworkStationary = keepsWalletArtworkStationary
         self.heroArt = heroArt
         self.walletBottomContent = walletBottomContent
         self.bodyContent = bodyContent
@@ -55,6 +64,9 @@ struct HomesteadHeroScreen<HeroArt: View, WalletBottomContent: View, Body: View>
                     homestead: homestead,
                     roster: roster,
                     walletAnimationNamespace: walletAnimationNamespace,
+                    displayedBalances: displayedBalances,
+                    increaseAnimationDelays: increaseAnimationDelays,
+                    keepsArtworkStationary: keepsWalletArtworkStationary,
                 )
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
 

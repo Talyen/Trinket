@@ -3,6 +3,13 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityCatalogTests {
+    @Test func `restoration branches require matching effects and fallback`() {
+        let branch = AbilityOutcomeBranch(effects: [.instantHeal(.health, 7)], restorationResource: .mana)
+        let invalid = Ability(id: "invalid", name: "Invalid", tier: .ultimate, outcomeBranches: [branch])
+        #expect(AbilityValidator.validate(invalid).count == 2)
+        #expect(AbilityValidator.validate(Ability.luckPotion).isEmpty)
+    }
+
     @Test func `catalog I ds are unique and unknown lookup returns nil`() throws {
         let ids = AbilityCatalog.all.map(\.id)
         try #expect(

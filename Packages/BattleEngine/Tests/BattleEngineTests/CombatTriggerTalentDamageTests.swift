@@ -5,6 +5,23 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct CombatTriggerTalentDamageTests {
+    @Test(arguments: [9, 10, 11])
+    func `high altitude only adds dodge above half health`(health: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxHealth: 20,
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                dodge: DodgeTriggers(dodgeChanceAboveHalfHealthBonus: 0.15),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = health }
+        let hit = DamageResolutionState(
+            amount: 1, combatant: battle.companion, sourceActorID: battle.enemy.id,
+            damageKeyword: .physical, options: .init(),
+        )
+        #expect(DamagePipeline.dodgeChance(for: hit, in: battle) == (health > 10 ? 0.25 : 0.10))
+    }
+
     @Test func `damage vs bleeding bonus applies when target is bleeding`() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(

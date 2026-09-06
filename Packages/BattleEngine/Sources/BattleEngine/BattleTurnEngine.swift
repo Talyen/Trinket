@@ -60,15 +60,16 @@ public enum BattleTurnEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        var resolvedAbility = ability.resolvingOutcomeBranch(
-            using: &context.rng,
-        )
+        guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else { return [] }
+        var resolvedAbility = BattleAbilityRules.resolveOutcome(ability, actor: actor, in: &context)
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &resolvedAbility,
             actor: actor,
             context: &context,
         ))
-        events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
+        if resolvedAbility.dealsCombatDamage {
+            events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
+        }
 
         let damageOutcome = applyDamageComponents(
             ability: resolvedAbility,

@@ -7,7 +7,6 @@ SCRIPT_DIR="$(dirname "$0")"
 # Must match Scripts/build-for-testing.sh so CI --no-build restores the same products.
 # shellcheck source=run-env.sh
 source "$SCRIPT_DIR/run-env.sh"
-trinket_run_env_init
 
 # shellcheck source=build-freshness.sh
 source "$SCRIPT_DIR/build-freshness.sh"
@@ -94,6 +93,10 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
     *)
       PACKAGES+=("$1")
       shift
@@ -105,6 +108,28 @@ if [[ ${#PACKAGES[@]} -eq 0 ]]; then
   usage >&2
   exit 1
 fi
+
+validated_packages=()
+for package in "${PACKAGES[@]}"; do
+  valid=false
+  for candidate in "${TRINKET_TEST_PACKAGES[@]}"; do
+    if [[ "$candidate" == "$package" ]]; then valid=true; break; fi
+  done
+  if [[ "$valid" != true ]]; then
+    echo "Unknown package: $package" >&2
+    usage >&2
+    exit 1
+  fi
+  for candidate in "${validated_packages[@]-}"; do
+    if [[ "$candidate" == "$package" ]]; then
+      echo "Duplicate package: $package" >&2
+      exit 1
+    fi
+  done
+  validated_packages+=("$package")
+done
+
+trinket_run_env_init
 
 # shellcheck source=ensure-simulator.sh
 source "$SCRIPT_DIR/ensure-simulator.sh"
@@ -124,7 +149,7 @@ if [[ "$ACTION" != "build-for-testing" ]]; then
 fi
 
 mkdir -p "$RESULTS_DIR"
-if [[ "$ACTION" == "test" ]]; then
+if [[ "$ACTION" != "test-without-building" ]]; then
   prepare_generated_inputs "$RESULTS_DIR"
 fi
 

@@ -170,6 +170,67 @@ struct BalanceFindingsReporterTests {
         #expect(findings.contains("win (Δ"))
     }
 
+    @Test func `unfinished fights are stalls rather than short fights`() {
+        var record = identityRecord(enemyID: "stall", isBoss: false, abilities: [], win: false, seed: 1)
+        record.result.timedOut = true
+        record.result.rounds = 1
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
+            records: Array(repeating: record, count: 8), elapsedSeconds: 0,
+        )
+        let stats = BalanceStatsAggregator.summarize(report: report)[0]
+        #expect(stats.trashDuration.shortBattles == 0)
+        #expect(stats.enemyDurations.first?.shortRate == 0)
+        #expect(stats.heroDurations.first?.shortRate == 0)
+        #expect(stats.companionDurations.first?.shortRate == 0)
+        #expect(BalanceFindingsReporter.render(report).contains("STALL"))
+        let short = identityRecord(enemyID: "short", isBoss: false, abilities: [], win: true, seed: 2)
+        let sparse = BalanceDurationAggregation.durationStats(
+            [short], minRounds: 10, maxRounds: 15, flagRate: 0.15,
+        )
+        #expect(!sparse.flagged)
+        #expect(sparse.worstEnemyID == nil)
+    }
+
+    @Test func `repeated affix counts once per owner per battle`() {
+        var record = identityRecord(enemyID: "enemy", isBoss: false, abilities: [], win: true, seed: 1)
+        record.heroAffixIDs = ["keen", "keen", "keen"]
+        record.companionAffixIDs = ["keen", "keen"]
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
+            records: Array(repeating: record, count: 3), elapsedSeconds: 0,
+        )
+        let rows = BalanceStatsAggregator.summarize(report: report)[0].affixes
+        #expect(rows.count == 2)
+        #expect(rows.allSatisfy { $0.battles == 3 && $0.wins == 3 && $0.sampleTooLow })
+    }
+
+    @Test func `pairing anomalies surface even when individual owners have equal win rates`() {
+        var records: [BalanceBattleRecord] = []
+        for hero in 0 ..< 2 {
+            for companion in 0 ..< 2 {
+                for sample in 0 ..< 32 {
+                    var record = identityRecord(
+                        enemyID: "enemy", isBoss: false, abilities: [],
+                        win: hero == companion, seed: UInt64(sample),
+                    )
+                    record.heroID = "hero-\(hero)"
+                    record.companionID = "companion-\(companion)"
+                    records.append(record)
+                }
+            }
+        }
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
+            records: records, elapsedSeconds: 0,
+        )
+        let stats = BalanceStatsAggregator.summarize(report: report)[0]
+        #expect(stats.heroes.allSatisfy { !$0.flagged })
+        #expect(stats.companions.allSatisfy { !$0.flagged })
+        #expect(!stats.heroCompanionCells.isEmpty)
+        #expect(BalanceFindingsReporter.render(report).contains("pairing outlier"))
+    }
+
     private func identityRecord(
         enemyID: String,
         isBoss: Bool,

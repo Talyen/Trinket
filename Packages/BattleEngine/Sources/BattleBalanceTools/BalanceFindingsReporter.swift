@@ -97,7 +97,7 @@ public enum BalanceFindingsReporter {
         lines.append("## Findings")
         lines.append("")
         if findings.isEmpty {
-            lines.append("No serious findings under the flag bars.")
+            lines.append("No flags in the sampled content; this does not establish balance or complete coverage.")
             lines.append("")
             return
         }
@@ -112,6 +112,7 @@ public enum BalanceFindingsReporter {
         let tiers = BalanceStatsAggregator.summarize(report: report)
         for tier in tiers where tier.battles > 0 {
             findings.append(contentsOf: identityFindings(tier: tier, records: report.records))
+            findings.append(contentsOf: stallFindings(tier: tier, records: report.records))
         }
         findings.append(contentsOf: contrastFindings(report.abilityContrasts, kind: "ability"))
         findings.append(contentsOf: contrastFindings(report.affixContrasts, kind: "affix"))
@@ -157,22 +158,32 @@ extension BalanceFindingsReporter {
             vs: "bosses",
             tier: tier.tier,
         ))
-        let flaggedIDs = Set(
-            (tier.heroes + tier.companions + tier.enemies).filter(\.flagged).map(\.id),
-        )
         findings.append(contentsOf: pairingFindings(
             tier.heroCompanionCells,
-            flaggedIDs: flaggedIDs,
             labels: ("hero", "companion"),
             tier: tier.tier,
         ))
         findings.append(contentsOf: pairingFindings(
             tier.heroEnemyCells,
-            flaggedIDs: flaggedIDs,
             labels: ("hero", "enemy"),
             tier: tier.tier,
         ))
         return findings
+    }
+
+    private static func stallFindings(tier: BalanceTierStats, records: [BalanceBattleRecord]) -> [Finding] {
+        let grouped = Dictionary(grouping: records.filter { $0.tier == tier.tier }, by: \.enemyID)
+        return grouped.keys.sorted().compactMap { enemyID in
+            let samples = grouped[enemyID] ?? []
+            let stalls = samples.count { $0.result.timedOut }
+            guard stalls > 0 else { return nil }
+            return Finding(
+                score: Double(stalls) / Double(samples.count),
+                line: "Enemy `\(enemyID)` (\(tier.tier.displayName)): ⚠ STALL · "
+                    + "\(stalls)/\(samples.count) battles reached a simulation cap; "
+                    + "win rates exclude these unfinished fights.",
+            )
+        }
     }
 
     private static func rosterFindings(
@@ -265,17 +276,16 @@ extension BalanceFindingsReporter {
 
     private static func pairingFindings(
         _ cells: [PairCellSummary],
-        flaggedIDs: Set<String>,
         labels: (String, String),
         tier: SimulationPowerTier,
     ) -> [Finding] {
-        let explained = cells.filter { flaggedIDs.contains($0.leftID) || flaggedIDs.contains($0.rightID) }
+        let explained = cells.filter(\.flagged)
             .sorted { abs($0.deltaVsPeer) > abs($1.deltaVsPeer) }
         return Array(explained.prefix(pairingCap)).map { cell in
             Finding(
                 score: abs(cell.deltaVsPeer) * 0.5,
                 line: String(
-                    format: "%@ `%@` × %@ `%@` (%@): ⚠ %@ · %.1f%% win · n=%d · %+.1f pp · explains roster flag",
+                    format: "%@ `%@` × %@ `%@` (%@): ⚠ %@ · %.1f%% win · n=%d · %+.1f pp · pairing outlier",
                     labels.0,
                     cell.leftID,
                     labels.1,
@@ -358,7 +368,7 @@ extension BalanceFindingsReporter {
             Finding(
                 score: max(abs(row.lift), abs(row.meanDeltaPartyHP), abs(row.meanDeltaRounds) / 10),
                 line: String(
-                    format: "%@ `%@` vs `%@` on `%@` (%@, %@): ⚠ %@ · lift %+.1f pp · ΔHP %+.2f · Δrounds %+.1f · n=%d decided · %@",
+                    format: "%@ `%@` vs `%@` on `%@` (%@, %@): ⚠ %@ · lift %+.1f pp · ΔHP %+.2f · Δrounds %+.1f · n=%d decided · timeouts %d/%d entity, %d/%d baseline",
                     kind.capitalized,
                     row.entityID,
                     row.baselineID,
@@ -370,7 +380,10 @@ extension BalanceFindingsReporter {
                     row.meanDeltaPartyHP,
                     row.meanDeltaRounds,
                     row.decidedPairs,
-                    row.baselineKind.rawValue,
+                    row.entityTimeouts,
+                    row.pairs,
+                    row.baselineTimeouts,
+                    row.pairs,
                 ),
             )
         }

@@ -26,7 +26,7 @@ briar-shield	Briar Shield	skill	Gain 1 Block and gain 3 Thorns.
 cinderbloom	Cinderbloom	skill	Deal 3 Burn damage or deal 3 Poison damage.
 cleanse	Cleanse	skill	Cleanse a status effect and restore 3 Health.
 cold-snap	Cold Snap	skill	Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen.
-dark-pact	Dark Pact	skill	Lose 3 Health. Draw 2 cards.
+dark-pact	Dark Pact	skill	Pay 3 Health. Draw 2 cards.
 fireball	Fireball	skill	Deal 2 to 4 Burn damage.
 frostbolt	Frostbolt	skill	Deal 3 Freeze damage.
 glacial-ward	Glacial Ward	skill	Gain 2 Block. Deal 2 Freeze damage next time you're hit.
@@ -55,7 +55,7 @@ earthquake	Earthquake	ultimate	Deal 4 Stun damage each turn for 2 turns.
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health. Deal 4 Burn damage and draw 1 card.
 golden-plate	Golden Plate	ultimate	Gain 3 Block, Gold, and Thorns. Your Hero and Companion each dodge the next attack.
 hemorrhage	Hemorrhage	ultimate	Deal 4 Bleed damage and the next time they attack, they take 4 Bleed damage.
-luck-potion	Luck Potion	ultimate	Restore 7 Mana, Restore 7 Health, or gain 7 Block.
+luck-potion	Luck Potion	ultimate	Randomly restore 7 Health, restore 7 Mana, or gain 7 Block. Restore the lowest ally who needs it. Skip unneeded restoration.
 meteor	Meteor	ultimate	Deal 6 Burn damage and convert all your Mana into bonus Burn damage.
 molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage, gain 4 Block, and deal 3 Burn damage next time you're hit.
 pack-tactics	Pack Tactics	ultimate	Draw and play 2 cards.

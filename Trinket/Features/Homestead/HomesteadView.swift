@@ -13,9 +13,10 @@ struct HomesteadView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var collection = HomesteadCollectionControl()
     @State private var depositEvent: HomesteadDepositEvent?
-    @State private var isDepositLaunching = false
-    @State private var isIconAttentionRaised = false
-    @State private var depositDismissTask: Task<Void, Never>?
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var depositGeometry = HomesteadDepositGeometry()
+    @State private var collectionSuccessTrigger = 0
+    @State private var attentionTrigger = 0
     @State private var collectionErrorTrigger = 0
 
     private var homestead: PlayerHomesteadState {
@@ -31,6 +32,9 @@ struct HomesteadView: View {
             title: "Homestead",
             homestead: homestead,
             roster: roster,
+            displayedBalances: displayedBalances,
+            increaseAnimationDelays: Dictionary(uniqueKeysWithValues: HomesteadResource.allCases.map { ($0, 0) }),
+            keepsWalletArtworkStationary: true,
         ) {
             if let art = ArtCatalog.backgroundArtByID["homestead"]
                 ?? ArtCatalog.backgroundArtByID["wheatField"] {
@@ -52,14 +56,20 @@ struct HomesteadView: View {
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
-        .onDisappear {
-            depositDismissTask?.cancel()
-            depositDismissTask = nil
+        .modifier(HomesteadDepositOverlay(event: depositEvent, geometryChanged: updateDepositGeometry))
+        .task(id: depositEvent?.id) {
+            await launchDeposit()
+        }
+        .onDisappear { cancelDeposit() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                cancelDeposit()
+            }
         }
         .homesteadCollectionErrorAlert(collection: $collection)
         .trinketSensoryFeedback(
             .success,
-            trigger: collection.collectionEventCount,
+            trigger: collectionSuccessTrigger,
             enabled: options.hapticsEnabled,
         )
         .trinketSensoryFeedback(
@@ -77,8 +87,9 @@ struct HomesteadView: View {
     private var collectionSection: some View {
         TimelineView(HomesteadProductionSchedule(homestead: homestead, roster: roster)) { context in
             let pending = homestead.pendingProductionAmounts(at: context.date, roster: roster)
+            let amounts = depositEvent?.amounts ?? pending
             Group {
-                if !pending.isEmpty {
+                if !amounts.isEmpty {
                     HStack(spacing: TrinketDesign.Spacing.large) {
                         Spacer(minLength: 0)
                         if playerSave.isCloudSyncEnabled {
@@ -86,55 +97,33 @@ struct HomesteadView: View {
                                 .trinketTypography(.caption)
                                 .foregroundStyle(.secondary)
                         } else {
-                            collectResourceIcons(pending, drawsAttention: true)
+                            collectResourceIcons(amounts)
                         }
                         Button {
                             collectProduction(at: context.date)
                         } label: {
                             collectLabel
                         }
-                        .disabled(
-                            playerSave.isCloudSyncEnabled
-                                || depositEvent != nil,
-                        )
+                        .disabled(playerSave.isCloudSyncEnabled || depositEvent != nil)
                         .trinketPrimaryActionButton(
                             accessibilityIdentifier: AccessibilityID.Homestead.collectButton,
                         )
                         .shadow(
-                            color: HomesteadResource.gold.tint.opacity(
-                                playerSave.isCloudSyncEnabled ? 0 : 0.22,
-                            ),
+                            color: HomesteadResource.gold.tint.opacity(playerSave.isCloudSyncEnabled ? 0 : 0.22),
                             radius: TrinketDesign.Spacing.medium,
                         )
+                        .opacity(depositEvent?.gathered == true ? 0 : 1)
                         Spacer(minLength: 0)
                     }
-                } else if let depositEvent {
-                    HStack(spacing: TrinketDesign.Spacing.large) {
-                        Spacer(minLength: 0)
-                        collectResourceIcons(depositEvent.amounts)
-                            .offset(y: isDepositLaunching ? -depositTravelDistance : 0)
-                            .scaleEffect(isDepositLaunching ? 0.82 : 1)
-                            .opacity(isDepositLaunching ? 0 : 1)
-
-                        Button(action: {}, label: {
-                            collectLabel
-                        })
-                        .disabled(true)
-                        .trinketPrimaryActionButton()
-                        .scaleEffect(isDepositLaunching ? 0.98 : 1)
-                        .opacity(isDepositLaunching ? 0 : 1)
-                        .shadow(
-                            color: HomesteadResource.gold.tint.opacity(
-                                isDepositLaunching ? 0 : 0.22,
-                            ),
-                            radius: TrinketDesign.Spacing.medium,
-                        )
-                        .allowsHitTesting(false)
-                        Spacer(minLength: 0)
-                    }
+                    .transition(.opacity)
                 }
             }
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .onChange(of: !pending.isEmpty, initial: true) { _, isReady in
+                if isReady, depositEvent == nil, !playerSave.isCloudSyncEnabled {
+                    attentionTrigger &+= 1
+                }
+            }
         }
     }
 
@@ -148,48 +137,32 @@ struct HomesteadView: View {
         .trinketTypography(.button)
     }
 
-    private var depositTravelDistance: CGFloat {
-        TrinketDesign.Layout.walletResourceArtworkSize + TrinketDesign.Spacing.extraLarge
+    private var displayedBalances: [HomesteadResource: Int] {
+        guard let depositEvent else { return [:] }
+        return Dictionary(uniqueKeysWithValues: depositEvent.amounts.map { amount in
+            let held = depositEvent.landed.contains(amount.resource) ? 0 : amount.quantity
+            return (amount.resource, max(0, homestead.balance(for: amount.resource, roster: roster) - held))
+        })
     }
 
-    private func collectResourceIcons(
-        _ amounts: [ResourceAmount],
-        drawsAttention: Bool = false,
-    ) -> some View {
+    private func collectResourceIcons(_ amounts: [ResourceAmount]) -> some View {
         HStack(spacing: -TrinketDesign.Spacing.large) {
-            ForEach(Array(amounts.enumerated()), id: \.offset) { index, amount in
+            ForEach(amounts) { amount in
                 HomesteadResourceArtwork(resource: amount.resource)
                     .frame(
                         width: TrinketDesign.Layout.walletResourceArtworkSize,
                         height: TrinketDesign.Layout.walletResourceArtworkSize,
                     )
-                    .offset(y: drawsAttention && isIconAttentionRaised ? -2 : 0)
-                    .scaleEffect(drawsAttention && isIconAttentionRaised ? 1.05 : 1)
-                    .shadow(
-                        color: HomesteadResource.gold.tint.opacity(
-                            drawsAttention && isIconAttentionRaised ? 0.18 : 0,
-                        ),
-                        radius: TrinketDesign.Spacing.tight,
-                    )
-                    .animation(
-                        HomesteadMotion.tierCompletion.delay(
-                            Double(index) * TrinketMotion.Reward.resourceStagger,
-                        ),
-                        value: isIconAttentionRaised,
-                    )
-            }
-        }
-        .task(id: drawsAttention) {
-            guard drawsAttention else { return }
-            do {
-                while !Task.isCancelled {
-                    try await Task.sleep(for: .seconds(2.8))
-                    isIconAttentionRaised = true
-                    try await Task.sleep(for: .seconds(0.65))
-                    isIconAttentionRaised = false
-                }
-            } catch {
-                isIconAttentionRaised = false
+                    .anchorPreference(key: HomesteadCollectionArtworkAnchors.self, value: .bounds) {
+                        [amount.resource: $0]
+                    }
+                    .keyframeAnimator(initialValue: CGFloat(0), trigger: attentionTrigger) { content, lift in
+                        content.offset(y: depositEvent == nil ? lift : 0)
+                    } keyframes: { _ in
+                        CubicKeyframe(-2, duration: 0.18)
+                        SpringKeyframe(0, duration: 0.3, spring: .smooth)
+                    }
+                    .opacity(depositEvent == nil ? 1 : 0)
             }
         }
     }
@@ -201,31 +174,76 @@ struct HomesteadView: View {
             granted = amounts
         }
         guard !granted.isEmpty else { return }
+        guard depositGeometry.supports(granted) else {
+            collectionSuccessTrigger &+= 1
+            return
+        }
+        depositEvent = HomesteadDepositEvent(amounts: granted, geometry: depositGeometry)
+    }
 
-        let event = HomesteadDepositEvent(amounts: granted)
-        depositEvent = event
-        isDepositLaunching = false
-        depositDismissTask?.cancel()
-        depositDismissTask = Task { @MainActor in
-            await Task.yield()
-            withAnimation(HomesteadMotion.tierCompletion) {
-                isDepositLaunching = true
+    private func launchDeposit() async {
+        guard let event = depositEvent else { return }
+        do {
+            withAnimation(HomesteadMotion.depositGather) {
+                depositEvent?.gathered = true
             }
-            try? await Task.sleep(for: .seconds(0.5))
-            guard !Task.isCancelled, depositEvent?.id == event.id else {
-                if depositEvent?.id == event.id {
-                    depositEvent = nil
-                    isDepositLaunching = false
-                    depositDismissTask = nil
+            try await Task.sleep(for: .seconds(HomesteadMotion.depositGatherDuration))
+            let ordered = HomesteadResource.allCases.compactMap { resource in
+                event.amounts.first { $0.resource == resource }
+            }
+            for (index, amount) in ordered.enumerated() {
+                try Task.checkCancellation()
+                guard depositEvent?.id == event.id else { return }
+                withAnimation(HomesteadMotion.depositFlight, completionCriteria: .logicallyComplete) {
+                    depositEvent?.progress[amount.resource] = 1
+                } completion: {
+                    landDeposit(amount.resource, eventID: event.id)
                 }
-                return
+                if index < event.amounts.count - 1 {
+                    try await Task.sleep(for: .seconds(HomesteadMotion.depositStagger))
+                }
             }
-            withAnimation(TrinketMotion.Content.fade) {
+        } catch {
+            if depositEvent?.id == event.id {
+                cancelDeposit()
+            }
+        }
+    }
+
+    private func landDeposit(_ resource: HomesteadResource, eventID: UUID) {
+        guard let event = depositEvent, event.id == eventID,
+              !event.landed.contains(resource) else { return }
+        if event.landed.isEmpty {
+            collectionSuccessTrigger &+= 1
+        }
+        depositEvent?.landed.insert(resource)
+        if depositEvent?.landed.count == event.amounts.count {
+            withAnimation(HomesteadMotion.depositSettle) {
                 depositEvent = nil
             }
-            isDepositLaunching = false
-            depositDismissTask = nil
         }
+    }
+
+    private func updateDepositGeometry(
+        _ frames: [HomesteadResource: CGRect],
+        sources: Bool,
+        viewport: CGRect,
+    ) {
+        if sources {
+            depositGeometry.sources = frames
+        } else {
+            depositGeometry.destinations = frames
+        }
+        depositGeometry.viewport = viewport
+        if let event = depositEvent, !event.geometry.hasSameDestinations(as: depositGeometry) {
+            cancelDeposit()
+        }
+    }
+
+    private func cancelDeposit() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { depositEvent = nil }
     }
 
     private func categoryCard(_ category: HomesteadNodeCategory) -> some View {
@@ -242,11 +260,6 @@ struct HomesteadView: View {
         .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
     }
-}
-
-private struct HomesteadDepositEvent: Identifiable {
-    let id = UUID()
-    let amounts: [ResourceAmount]
 }
 
 private struct HomesteadProductionSchedule: TimelineSchedule {

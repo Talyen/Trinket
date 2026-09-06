@@ -9,6 +9,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var dodgeApplyPoison: Int = 0
     public var dodgeGoldFlat: Int = 0
     public var dodgeHealFlat: Int = 0
+    public var dodgeChanceAboveHalfHealthBonus: Double = 0
     public var dodgeChanceBelowHealthPercentThreshold: Double = 0
     public var dodgeChanceBelowHealthPercentBonus: Double = 0
     public var onDodgeDrawCardForHero: Int = 0
@@ -41,6 +42,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         dodgeApplyPoison: Int = 0,
         dodgeGoldFlat: Int = 0,
         dodgeHealFlat: Int = 0,
+        dodgeChanceAboveHalfHealthBonus: Double = 0,
         dodgeChanceBelowHealthPercentThreshold: Double = 0,
         dodgeChanceBelowHealthPercentBonus: Double = 0,
         onDodgeDrawCardForHero: Int = 0,
@@ -72,6 +74,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.dodgeApplyPoison = dodgeApplyPoison
         self.dodgeGoldFlat = dodgeGoldFlat
         self.dodgeHealFlat = dodgeHealFlat
+        self.dodgeChanceAboveHalfHealthBonus = dodgeChanceAboveHalfHealthBonus
         self.dodgeChanceBelowHealthPercentThreshold = dodgeChanceBelowHealthPercentThreshold
         self.dodgeChanceBelowHealthPercentBonus = dodgeChanceBelowHealthPercentBonus
         self.onDodgeDrawCardForHero = onDodgeDrawCardForHero
@@ -100,7 +103,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo"]
+    public static let fieldNames: [String] = ["dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -110,6 +113,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         if self.dodgeApplyPoison != other.dodgeApplyPoison { names.append("dodgeApplyPoison") }
         if self.dodgeGoldFlat != other.dodgeGoldFlat { names.append("dodgeGoldFlat") }
         if self.dodgeHealFlat != other.dodgeHealFlat { names.append("dodgeHealFlat") }
+        if self.dodgeChanceAboveHalfHealthBonus != other.dodgeChanceAboveHalfHealthBonus { names.append("dodgeChanceAboveHalfHealthBonus") }
         if self.dodgeChanceBelowHealthPercentThreshold != other.dodgeChanceBelowHealthPercentThreshold { names.append("dodgeChanceBelowHealthPercentThreshold") }
         if self.dodgeChanceBelowHealthPercentBonus != other.dodgeChanceBelowHealthPercentBonus { names.append("dodgeChanceBelowHealthPercentBonus") }
         if self.onDodgeDrawCardForHero != other.onDodgeDrawCardForHero { names.append("onDodgeDrawCardForHero") }
@@ -146,6 +150,7 @@ extension DodgeTriggers {
         dodgeApplyPoison += other.dodgeApplyPoison
         dodgeGoldFlat += other.dodgeGoldFlat
         dodgeHealFlat += other.dodgeHealFlat
+        dodgeChanceAboveHalfHealthBonus += other.dodgeChanceAboveHalfHealthBonus
         dodgeChanceBelowHealthPercentThreshold = max(dodgeChanceBelowHealthPercentThreshold, other.dodgeChanceBelowHealthPercentThreshold)
         dodgeChanceBelowHealthPercentBonus += other.dodgeChanceBelowHealthPercentBonus
         onDodgeDrawCardForHero += other.onDodgeDrawCardForHero
@@ -183,6 +188,7 @@ extension DodgeTriggers {
             dodgeApplyPoison: values.decode(Int.self, "dodgeApplyPoison", default: 0),
             dodgeGoldFlat: values.decode(Int.self, "dodgeGoldFlat", default: 0),
             dodgeHealFlat: values.decode(Int.self, "dodgeHealFlat", default: 0),
+            dodgeChanceAboveHalfHealthBonus: values.decode(Double.self, "dodgeChanceAboveHalfHealthBonus", default: 0),
             dodgeChanceBelowHealthPercentThreshold: values.decode(Double.self, "dodgeChanceBelowHealthPercentThreshold", default: 0),
             dodgeChanceBelowHealthPercentBonus: values.decode(Double.self, "dodgeChanceBelowHealthPercentBonus", default: 0),
             onDodgeDrawCardForHero: values.decode(Int.self, "onDodgeDrawCardForHero", default: 0),
@@ -217,6 +223,7 @@ extension DodgeTriggers {
         try container.encodeNonDefault(dodgeApplyPoison, "dodgeApplyPoison", default: 0)
         try container.encodeNonDefault(dodgeGoldFlat, "dodgeGoldFlat", default: 0)
         try container.encodeNonDefault(dodgeHealFlat, "dodgeHealFlat", default: 0)
+        try container.encodeNonDefault(dodgeChanceAboveHalfHealthBonus, "dodgeChanceAboveHalfHealthBonus", default: 0)
         try container.encodeNonDefault(dodgeChanceBelowHealthPercentThreshold, "dodgeChanceBelowHealthPercentThreshold", default: 0)
         try container.encodeNonDefault(dodgeChanceBelowHealthPercentBonus, "dodgeChanceBelowHealthPercentBonus", default: 0)
         try container.encodeNonDefault(onDodgeDrawCardForHero, "onDodgeDrawCardForHero", default: 0)

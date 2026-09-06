@@ -7,6 +7,7 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| Approved balance changes | 2026-09-05 | Repaired Health affordability, Frost Whelp talents, Hemorrhage, Loyal Companion, and Luck Potion; retained simulator evidence and isolated further talent-stack proposals. |
 | Documentation simplification | 2026-08-21 | Established the documentation ownership map; remaining work moved into Docs/tooling simplification |
 | Token efficiency | 2026-08-21 | Replaced broad context and diagnostic proposals with routed guidance and structured output work owned by the Docs/tooling plan |
 | Docs/tooling simplification | 2026-08-21 | Consolidated routing and documentation policy, removed dead guidance, improved plan/docs checks, and simplified shared script mechanics |

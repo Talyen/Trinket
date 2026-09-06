@@ -1567,6 +1567,12 @@
         "merge": "add"
       },
       {
+        "name": "dodgeChanceAboveHalfHealthBonus",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
         "name": "dodgeChanceBelowHealthPercentThreshold",
         "type": "Double",
         "default": "0",
@@ -1831,6 +1837,12 @@
         "merge": "add"
       },
       {
+        "name": "empowermentDamageBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
         "name": "spendManaDamageBonusPerMana",
         "type": "Int",
         "default": "0",
@@ -1845,6 +1857,12 @@
       {
         "name": "spendManaRefundChancePercent",
         "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "firstEmpowermentCostReduction",
+        "type": "Int",
         "default": "0",
         "merge": "add"
       },
@@ -1934,6 +1952,12 @@
       },
       {
         "name": "drawOnHealthLoss",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "companionCardsEveryOtherTurn",
         "type": "Int",
         "default": "0",
         "merge": "add"

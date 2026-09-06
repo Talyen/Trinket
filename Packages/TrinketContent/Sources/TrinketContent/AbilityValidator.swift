@@ -24,6 +24,7 @@ enum AbilityValidator {
         "golden-plate",
         "ice-shot",
         "kindling",
+        "luck-potion",
         "panacea-potion",
         "pounce",
         "predators-focus",
@@ -42,11 +43,39 @@ enum AbilityValidator {
         issues.append(contentsOf: validateTierDamage(for: ability))
         issues.append(contentsOf: validateDescription(for: ability))
         issues.append(contentsOf: validateConditionalDamage(for: ability))
+        issues.append(contentsOf: validateRestorationBranches(for: ability))
         return issues
     }
 
     static func validateCatalog() -> [Issue] {
         AbilityCatalog.all.flatMap(validate)
+    }
+
+    private static func validateRestorationBranches(for ability: Ability) -> [Issue] {
+        guard let branches = ability.outcomeBranches, branches.contains(where: { $0.restorationResource != nil }) else {
+            return []
+        }
+        var issues: [Issue] = []
+        if !branches.contains(where: { $0.restorationResource == nil }) {
+            issues.append(Issue(abilityID: ability.id, message: "restoration outcomes require an unconditional fallback"))
+        }
+        for branch in branches {
+            guard let resource = branch.restorationResource else { continue }
+            let matches = branch.damageComponents.isEmpty && branch.targetedEffects.count == 1
+                && branch.targetedEffects.allSatisfy { targeted in
+                    guard targeted.condition == nil else { return false }
+                    switch (resource, targeted.effect) {
+                    case let (.health, .instantHeal(.health, amount)), let (.mana, .resourceGain(.mana, amount)):
+                        return amount > 0
+                    default:
+                        return false
+                    }
+                }
+            if !matches {
+                issues.append(Issue(abilityID: ability.id, message: "restoration outcome must restore its selected resource"))
+            }
+        }
+        return issues
     }
 
     private static func validateEffectTargets(for ability: Ability) -> [Issue] {

@@ -14,12 +14,18 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
+| 2026-09-05 | Homestead save failure | On the iOS 27 simulator, collecting persisted pending Food with `forcesNextSaveFailure` aborts in the existing `PlayerSaveStore.restoreSnapshot` rollback: SwiftData casts `DefaultStoreSnapshotValueFuture` to `[HomesteadPendingProductionModel]`. Reproduce with Food 900 / pending Food 10 and a forced collect-save failure; animation does not start. Save recovery needs separate investigation. |
+| 2026-09-05 | UI result finalization | Homestead UI assertions finish, but `xcodebuild` does not finalize the result bundle even with a 60-second post-suite idle allowance. The watchdog infers the result from the test log; retain logs and simulator recordings separately when investigating motion. |
+| 2026-09-05 | Package test destination | `test-package.sh --destination platform=macOS` accepts the destination but forces `-sdk iphonesimulator`, so tests build and then cannot load the macOS bundle. Use its default simulator destination for this runner. |
 | 2026-09-04 | Simulator launcher | `run-simulator.sh --isolate` builds successfully but cannot install: it assumes products under agent DerivedData, while `xcodebuild -showBuildSettings` resolves `BUILT_PRODUCTS_DIR` to the shared `.DerivedData/Build/Products/Debug-iphonesimulator`; use the resolved product path for inspection. |
 
 ## Resolved
 
 | Date | Area | Resolution (commit / owner link) |
 |------|------|------------------------------------|
+| 2026-09-05 | Balance report retention | [The sweep wrapper](../Scripts/balance-sweep.sh) retains evidence; successful runs and `--help` no longer delete the report directory. |
+| 2026-09-05 | Build/test preflight | [Wrappers](../Scripts/README.md) defer slot reservation until execution, reject duplicate/unknown packages, prepare standalone package build inputs, and keep final handoff previews from executing the docs gate. |
+| 2026-09-05 | Balance test result reporting | The [watchdog](../Scripts/lib/xcode-watchdog.sh) now lets individual test/suite and assertion failures override later passing summaries; the [runner fixture](../Scripts/Tests/test-xcode-runner.sh) reproduces a failed test followed by a passing restarted run. |
 | 2026-09-05 | Performance evidence | The [playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md) now documents retained evidence, consistent observation/enforcement, and missing reveal coverage; it no longer presents post-reveal idle samples as reveal measurements or prescribes a fixed diagnostic order. |
 | 2026-09-05 | Skills and simulator guidance | Removed fixed-slot capture advice and default-mirror claims; [simulator operations](../Docs/Platform/SimulatorOperations.md) now distinguishes selection from a held lease and documents opt-in mirroring. Simplified skill triggers and [evaluation guidance](evals/README.md) without requiring a promotion log for every edit. |
 | 2026-09-05 | Generation verification | The documented freshness shortcut reported idempotence without comparing regenerated outputs. Removed it and its unused sidecar helpers; [the assertion](../Scripts/assert-generated-output.sh) now always regenerates, with regression fixtures for damaged and unstable outputs. |

@@ -43,10 +43,43 @@ Manual CLI only — **no CI gates** or scheduled automations. Use the script's
 ```
 
 The CLI writes a findings brief and JSON sidecar under the gitignored
-`BalanceSweepReports/` directory; successful default runs clean them up. Keep
-reports only for an active investigation. The runner owns process isolation,
+`BalanceSweepReports/` directory. Runs retain reports for comparison; remove
+completed investigation artifacts explicitly when they are no longer needed. The runner owns process isolation,
 sampling, pacing, policy, and report schemas; this README should not mirror those
 defaults. Requires Xcode 26+.
+
+### Reading sweep evidence
+
+Identity runs use the same rotating Hero/Companion schedule for every enemy.
+Within a complete Hero × Companion cycle every pairing is represented. Enemy
+seeds use the enemy ID, so narrowing an enemy filter preserves that enemy's
+samples. This sampling revision changes results from older sweeps with the same
+seed; compare reports produced by the same tooling revision.
+
+Win rates and contrast HP/round deltas exclude unfinished battles. Duration
+averages include observed rounds up to the cap; they are lower bounds for
+unfinished fights. A capped fight cannot count as short, but can count as long
+once it exceeds the duration target. Identity findings name enemies with stalls;
+contrast findings flag either side when its stall rate reaches the configured
+duration flag rate and the minimum pair count. Stalls need investigation even
+when the decided battles look healthy.
+
+Affix contrasts remove or replace only the focused affix, preserving other
+affixes and their rolled powers on the compared item and all shared gear.
+
+Presence tables count an item or affix once per owner per battle, regardless of
+how many equipped slots carry it. These are associations; use the paired ability,
+talent, and affix modes to isolate changes. Pairing outliers can appear even when
+neither partner is individually unusual. Flags are investigation candidates,
+not proof of causation or a correction for testing many comparisons.
+
+Use `--mode all` to include identity, card, talent, affix, and progression checks;
+identity alone does not test every combination. Early/middle/late are fixed
+loadout profiles; early affix contrasts use one starter item per party member. A lack of flags
+with sparse samples or omitted modes does not establish balance. Increase
+`--samples`, confirm across seeds, and use `--policy-compare` to check whether an
+identity finding depends on autoplay choices. Durations are battle rounds, not
+wall-clock seconds or animation timings.
 
 ## Adding a new effect
 

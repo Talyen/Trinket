@@ -673,8 +673,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.health, .physical],
             weight: 1,
-            basic: ItemAffixPower(description: "Draw an additional Companion card each turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(companionCardsPerTurn: 1))),
-            astral: ItemAffixPower(description: "Draw an additional Companion card each turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(companionCardsPerTurn: 1)))
+            basic: ItemAffixPower(description: "Draw an extra Companion card every other turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(companionCardsEveryOtherTurn: 1))),
+            astral: ItemAffixPower(description: "Draw an extra Companion card every other turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(companionCardsEveryOtherTurn: 1)))
         ),
         ItemAffixCatalogSupport.affix(
             id: "cutpurse_knife",

@@ -34,6 +34,7 @@ public struct CombatantRuntime: Hashable {
         public var pendingAttackBonusOnFullHealth: Int = 0
         public var pendingDoubleStatusNextCard: Bool = false
         public var goldenTouchActiveThisCard: Bool = false
+        public var hasEmpoweredWithMana: Bool = false
         public var manaSpentThisCardPlay: Int = 0
         public var flatDamageReductionBonus: Int = 0
         public var flatDamageReductionCap: Int = 4

@@ -138,8 +138,8 @@ while [[ $# -gt 0 ]]; do
       cat <<'USAGE'
 Usage: ./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--smoke] [--mirror] [--final] [--keep-plan] [--paths <file> ...]
 
-Classifies task-scoped changes when --paths is supplied, otherwise all
-working-tree changes. It runs generation, style, touched-package tests, and
+Classifies task-scoped changes with --paths, or all working-tree changes with
+the explicit --working-tree option. It runs generation, style, touched-package tests, and
 an app build for unresolved or feature/UI Swift — sequentially and headlessly
 by default.
 
@@ -177,7 +177,7 @@ fi
 
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
 
-if [[ "$FINAL" == true ]]; then
+if [[ "$FINAL" == true && "$DRY_RUN" != true ]]; then
   docs_args=("--final")
   [[ "$KEEP_PLAN" == true ]] && docs_args+=("--keep-plan")
   python3 ./Scripts/check-docs.py "${docs_args[@]}"

@@ -2,6 +2,12 @@ import Foundation
 import TrinketCore
 
 public struct AbilityOutcomeBranch: Hashable, Sendable {
+    public enum RestorationResource: Hashable, Sendable {
+        case health
+        case mana
+    }
+
+    public let restorationResource: RestorationResource?
     public let damageComponents: [DamageComponent]
     public let targetedEffects: [TargetedEffect]
     public let randomizeDamageKeywords: Bool
@@ -11,6 +17,7 @@ public struct AbilityOutcomeBranch: Hashable, Sendable {
         targetedEffects: [TargetedEffect]? = nil,
         effects: [Effect] = [],
         randomizeDamageKeywords: Bool = false,
+        restorationResource: RestorationResource? = nil,
     ) {
         self.damageComponents = damageComponents
         if let targetedEffects {
@@ -19,6 +26,7 @@ public struct AbilityOutcomeBranch: Hashable, Sendable {
             self.targetedEffects = effects.map { TargetedEffect($0) }
         }
         self.randomizeDamageKeywords = randomizeDamageKeywords
+        self.restorationResource = restorationResource
     }
 }
 
@@ -178,7 +186,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         return resolving(branch: branches[index], using: &rng)
     }
 
-    private func resolving(
+    public func resolving(
         branch: AbilityOutcomeBranch,
         using rng: inout some RandomNumberGenerator,
     ) -> Self {

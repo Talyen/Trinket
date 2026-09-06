@@ -108,8 +108,10 @@ enum BalanceIdentityMargins {
     ) -> [WinRateSummary] {
         var buckets: [String: (owner: String, id: String, wins: Int, battles: Int)] = [:]
         for record in records {
+            var seen: Set<String> = []
             for pair in ownerAndIDs(record) {
                 let key = "\(pair.0)|\(pair.1)"
+                guard seen.insert(key).inserted else { continue }
                 var bucket = buckets[key] ?? (pair.0, pair.1, 0, 0)
                 bucket.battles += 1
                 if record.result.isVictory {

@@ -112,6 +112,34 @@ struct BattleCardCombatTests {
         try #expect(battle.heroDeck.abilities.last?.id == Ability.slash.id)
     }
 
+    @Test(arguments: [1, 3, 4])
+    func `dark pact requires health even at deaths door`(health: Int) throws {
+        var battle = makeBattle(heroAbilities: [.darkPact, .slash, .heal])
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: context.hero) {
+                $0.currentHealth = health
+                $0.hasConsumedDeathsDoor = true
+                $0.deathsDoorExpiredAtTurn = context.turnCount
+            }
+        }
+        battle.hand = BattleHand()
+        let card = BattleCard(id: 900, ability: .darkPact, owner: .hero)
+        battle.hand.append(card)
+        #expect(battle.isCardPlayable(card) == (health > 3))
+        if health > 3 {
+            _ = try battle.playCard(cardID: card.id)
+            #expect(battle.health(of: battle.hero) == 1)
+        } else {
+            #expect(throws: BattlePlayError.insufficientHealth) { try battle.playCard(cardID: card.id) }
+            #expect(battle.hand.card(id: card.id) != nil)
+            #expect(battle.health(of: battle.hero) == health)
+            let events = BattleTurnEngine.performAction(
+                ability: .darkPact, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+            )
+            #expect(events.isEmpty)
+        }
+    }
+
     @Test func `dark pact draws two cards for owner`() throws {
         var battle = makeBattle(
             heroAbilities: [.darkPact, .slash, .heal, .smite],
@@ -164,7 +192,7 @@ struct BattleCardCombatTests {
             return false
         }
         guard case let .shield(_, buffer) = shield?.effect else {
-            Issue.record("Block should survive Dark Pact's Lose 2 Health cost")
+            Issue.record("Block should survive Dark Pact's Health cost")
             return
         }
         try #expect(buffer == 20)

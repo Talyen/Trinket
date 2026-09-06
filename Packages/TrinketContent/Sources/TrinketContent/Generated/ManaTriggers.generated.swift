@@ -22,9 +22,11 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var spendManaChaosRiftDamage: Int = 0
     public var onGainManaHealFlat: Int = 0
     public var startBattleBonusMana: Int = 0
+    public var empowermentDamageBonus: Int = 0
     public var spendManaDamageBonusPerMana: Int = 0
     public var onHeroSpendManaGainBlock: Int = 0
     public var spendManaRefundChancePercent: Double = 0
+    public var firstEmpowermentCostReduction: Int = 0
     public var empowermentCostReduction: Int = 0
     public var healingEmpowermentCostReduction: Int = 0
     public var bonusManaOnTurns: [Int] = []
@@ -40,6 +42,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var onBurnDamageRestoreManaFlat: Int = 0
     public var drawEveryOtherTurn: Int = 0
     public var drawOnHealthLoss: Int = 0
+    public var companionCardsEveryOtherTurn: Int = 0
     public var companionCardsPerTurn: Int = 0
     public var onFreezeEnemyGainManaEqualBlock: Bool = false
     public var closedCircuit: Bool = false
@@ -66,9 +69,11 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         spendManaChaosRiftDamage: Int = 0,
         onGainManaHealFlat: Int = 0,
         startBattleBonusMana: Int = 0,
+        empowermentDamageBonus: Int = 0,
         spendManaDamageBonusPerMana: Int = 0,
         onHeroSpendManaGainBlock: Int = 0,
         spendManaRefundChancePercent: Double = 0,
+        firstEmpowermentCostReduction: Int = 0,
         empowermentCostReduction: Int = 0,
         healingEmpowermentCostReduction: Int = 0,
         bonusManaOnTurns: [Int] = [],
@@ -84,6 +89,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         onBurnDamageRestoreManaFlat: Int = 0,
         drawEveryOtherTurn: Int = 0,
         drawOnHealthLoss: Int = 0,
+        companionCardsEveryOtherTurn: Int = 0,
         companionCardsPerTurn: Int = 0,
         onFreezeEnemyGainManaEqualBlock: Bool = false,
         closedCircuit: Bool = false,
@@ -109,9 +115,11 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.spendManaChaosRiftDamage = spendManaChaosRiftDamage
         self.onGainManaHealFlat = onGainManaHealFlat
         self.startBattleBonusMana = startBattleBonusMana
+        self.empowermentDamageBonus = empowermentDamageBonus
         self.spendManaDamageBonusPerMana = spendManaDamageBonusPerMana
         self.onHeroSpendManaGainBlock = onHeroSpendManaGainBlock
         self.spendManaRefundChancePercent = spendManaRefundChancePercent
+        self.firstEmpowermentCostReduction = firstEmpowermentCostReduction
         self.empowermentCostReduction = empowermentCostReduction
         self.healingEmpowermentCostReduction = healingEmpowermentCostReduction
         self.bonusManaOnTurns = bonusManaOnTurns
@@ -127,6 +135,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.onBurnDamageRestoreManaFlat = onBurnDamageRestoreManaFlat
         self.drawEveryOtherTurn = drawEveryOtherTurn
         self.drawOnHealthLoss = drawOnHealthLoss
+        self.companionCardsEveryOtherTurn = companionCardsEveryOtherTurn
         self.companionCardsPerTurn = companionCardsPerTurn
         self.onFreezeEnemyGainManaEqualBlock = onFreezeEnemyGainManaEqualBlock
         self.closedCircuit = closedCircuit
@@ -136,7 +145,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle"]
+    public static let fieldNames: [String] = ["spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -159,9 +168,11 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         if self.spendManaChaosRiftDamage != other.spendManaChaosRiftDamage { names.append("spendManaChaosRiftDamage") }
         if self.onGainManaHealFlat != other.onGainManaHealFlat { names.append("onGainManaHealFlat") }
         if self.startBattleBonusMana != other.startBattleBonusMana { names.append("startBattleBonusMana") }
+        if self.empowermentDamageBonus != other.empowermentDamageBonus { names.append("empowermentDamageBonus") }
         if self.spendManaDamageBonusPerMana != other.spendManaDamageBonusPerMana { names.append("spendManaDamageBonusPerMana") }
         if self.onHeroSpendManaGainBlock != other.onHeroSpendManaGainBlock { names.append("onHeroSpendManaGainBlock") }
         if self.spendManaRefundChancePercent != other.spendManaRefundChancePercent { names.append("spendManaRefundChancePercent") }
+        if self.firstEmpowermentCostReduction != other.firstEmpowermentCostReduction { names.append("firstEmpowermentCostReduction") }
         if self.empowermentCostReduction != other.empowermentCostReduction { names.append("empowermentCostReduction") }
         if self.healingEmpowermentCostReduction != other.healingEmpowermentCostReduction { names.append("healingEmpowermentCostReduction") }
         if self.bonusManaOnTurns != other.bonusManaOnTurns { names.append("bonusManaOnTurns") }
@@ -177,6 +188,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         if self.onBurnDamageRestoreManaFlat != other.onBurnDamageRestoreManaFlat { names.append("onBurnDamageRestoreManaFlat") }
         if self.drawEveryOtherTurn != other.drawEveryOtherTurn { names.append("drawEveryOtherTurn") }
         if self.drawOnHealthLoss != other.drawOnHealthLoss { names.append("drawOnHealthLoss") }
+        if self.companionCardsEveryOtherTurn != other.companionCardsEveryOtherTurn { names.append("companionCardsEveryOtherTurn") }
         if self.companionCardsPerTurn != other.companionCardsPerTurn { names.append("companionCardsPerTurn") }
         if self.onFreezeEnemyGainManaEqualBlock != other.onFreezeEnemyGainManaEqualBlock { names.append("onFreezeEnemyGainManaEqualBlock") }
         if self.closedCircuit != other.closedCircuit { names.append("closedCircuit") }
@@ -207,9 +219,11 @@ extension ManaTriggers {
         spendManaChaosRiftDamage += other.spendManaChaosRiftDamage
         onGainManaHealFlat += other.onGainManaHealFlat
         startBattleBonusMana += other.startBattleBonusMana
+        empowermentDamageBonus += other.empowermentDamageBonus
         spendManaDamageBonusPerMana += other.spendManaDamageBonusPerMana
         onHeroSpendManaGainBlock += other.onHeroSpendManaGainBlock
         spendManaRefundChancePercent += other.spendManaRefundChancePercent
+        firstEmpowermentCostReduction += other.firstEmpowermentCostReduction
         empowermentCostReduction += other.empowermentCostReduction
         healingEmpowermentCostReduction += other.healingEmpowermentCostReduction
         bonusManaOnTurns = Array(Set(bonusManaOnTurns).union(other.bonusManaOnTurns)).sorted()
@@ -225,6 +239,7 @@ extension ManaTriggers {
         onBurnDamageRestoreManaFlat += other.onBurnDamageRestoreManaFlat
         drawEveryOtherTurn += other.drawEveryOtherTurn
         drawOnHealthLoss += other.drawOnHealthLoss
+        companionCardsEveryOtherTurn += other.companionCardsEveryOtherTurn
         companionCardsPerTurn += other.companionCardsPerTurn
         onFreezeEnemyGainManaEqualBlock = onFreezeEnemyGainManaEqualBlock || other.onFreezeEnemyGainManaEqualBlock
         closedCircuit = closedCircuit || other.closedCircuit
@@ -256,9 +271,11 @@ extension ManaTriggers {
             spendManaChaosRiftDamage: values.decode(Int.self, "spendManaChaosRiftDamage", default: 0),
             onGainManaHealFlat: values.decode(Int.self, "onGainManaHealFlat", default: 0),
             startBattleBonusMana: values.decode(Int.self, "startBattleBonusMana", default: 0),
+            empowermentDamageBonus: values.decode(Int.self, "empowermentDamageBonus", default: 0),
             spendManaDamageBonusPerMana: values.decode(Int.self, "spendManaDamageBonusPerMana", default: 0),
             onHeroSpendManaGainBlock: values.decode(Int.self, "onHeroSpendManaGainBlock", default: 0),
             spendManaRefundChancePercent: values.decode(Double.self, "spendManaRefundChancePercent", default: 0),
+            firstEmpowermentCostReduction: values.decode(Int.self, "firstEmpowermentCostReduction", default: 0),
             empowermentCostReduction: values.decode(Int.self, "empowermentCostReduction", default: 0),
             healingEmpowermentCostReduction: values.decode(Int.self, "healingEmpowermentCostReduction", default: 0),
             bonusManaOnTurns: values.decode([Int].self, "bonusManaOnTurns", default: []),
@@ -274,6 +291,7 @@ extension ManaTriggers {
             onBurnDamageRestoreManaFlat: values.decode(Int.self, "onBurnDamageRestoreManaFlat", default: 0),
             drawEveryOtherTurn: values.decode(Int.self, "drawEveryOtherTurn", default: 0),
             drawOnHealthLoss: values.decode(Int.self, "drawOnHealthLoss", default: 0),
+            companionCardsEveryOtherTurn: values.decode(Int.self, "companionCardsEveryOtherTurn", default: 0),
             companionCardsPerTurn: values.decode(Int.self, "companionCardsPerTurn", default: 0),
             onFreezeEnemyGainManaEqualBlock: values.decode(Bool.self, "onFreezeEnemyGainManaEqualBlock", default: false),
             closedCircuit: values.decode(Bool.self, "closedCircuit", default: false),
@@ -302,9 +320,11 @@ extension ManaTriggers {
         try container.encodeNonDefault(spendManaChaosRiftDamage, "spendManaChaosRiftDamage", default: 0)
         try container.encodeNonDefault(onGainManaHealFlat, "onGainManaHealFlat", default: 0)
         try container.encodeNonDefault(startBattleBonusMana, "startBattleBonusMana", default: 0)
+        try container.encodeNonDefault(empowermentDamageBonus, "empowermentDamageBonus", default: 0)
         try container.encodeNonDefault(spendManaDamageBonusPerMana, "spendManaDamageBonusPerMana", default: 0)
         try container.encodeNonDefault(onHeroSpendManaGainBlock, "onHeroSpendManaGainBlock", default: 0)
         try container.encodeNonDefault(spendManaRefundChancePercent, "spendManaRefundChancePercent", default: 0)
+        try container.encodeNonDefault(firstEmpowermentCostReduction, "firstEmpowermentCostReduction", default: 0)
         try container.encodeNonDefault(empowermentCostReduction, "empowermentCostReduction", default: 0)
         try container.encodeNonDefault(healingEmpowermentCostReduction, "healingEmpowermentCostReduction", default: 0)
         try container.encodeNonDefault(bonusManaOnTurns, "bonusManaOnTurns", default: [])
@@ -320,6 +340,7 @@ extension ManaTriggers {
         try container.encodeNonDefault(onBurnDamageRestoreManaFlat, "onBurnDamageRestoreManaFlat", default: 0)
         try container.encodeNonDefault(drawEveryOtherTurn, "drawEveryOtherTurn", default: 0)
         try container.encodeNonDefault(drawOnHealthLoss, "drawOnHealthLoss", default: 0)
+        try container.encodeNonDefault(companionCardsEveryOtherTurn, "companionCardsEveryOtherTurn", default: 0)
         try container.encodeNonDefault(companionCardsPerTurn, "companionCardsPerTurn", default: 0)
         try container.encodeNonDefault(onFreezeEnemyGainManaEqualBlock, "onFreezeEnemyGainManaEqualBlock", default: false)
         try container.encodeNonDefault(closedCircuit, "closedCircuit", default: false)

@@ -15,34 +15,23 @@ public struct ViewAllShelfCard: View {
     }
 
     public var body: some View {
-        ProductCardShell(
-            appliesCardSurface: true,
-            showsLabel: false,
-            reservesLabelSpace: false,
-            accessibilityID: accessibilityIdentifier,
-        ) {
-            VStack(spacing: TrinketDesign.Spacing.small) {
-                Image(systemName: "square.grid.2x2.fill")
-                    // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(TrinketDesign.Colors.accent)
-                    .accessibilityHidden(true)
+        VStack(spacing: TrinketDesign.Spacing.small) {
+            Image(systemName: "arrow.right")
+                .trinketTypography(.button)
+                .foregroundStyle(.primary)
+                .frame(width: 48, height: 48)
+                .background(TrinketDesign.Colors.surface, in: Circle())
+                .accessibilityHidden(true)
 
-                Text(balanced: "View All")
-                    .trinketTypography(.cardLabel)
-                    .foregroundStyle(.primary)
-                    .trinketFittedText()
-
-                if let remainingCount, remainingCount > 0 {
-                    Text(balanced: "+\(remainingCount) more")
-                        .trinketTypography(.footnote)
-                        .foregroundStyle(.secondary)
-                        .trinketFittedText()
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
+            Text(balanced: "View All")
+                .trinketTypography(.caption)
+                .foregroundStyle(.secondary)
+                .trinketFittedText()
         }
-        .collectionShelfCardWidth()
+        .frame(width: 88)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(remainingCount.map { $0 > 0 ? "\($0) more" : "" } ?? "")
+        .trinketAccessibilityIdentifier(accessibilityIdentifier)
     }
 }

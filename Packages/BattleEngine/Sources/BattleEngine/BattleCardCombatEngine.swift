@@ -78,6 +78,9 @@ public enum BattleCardCombatEngine {
         guard !context.ownersSkippingThisPlayerTurn.contains(card.owner) else {
             throw BattlePlayError.ownerSkipping
         }
+        guard BattleAbilityRules.canPayHealthCost(card.ability, actor: ownerRuntime.combatant, in: context) else {
+            throw BattlePlayError.insufficientHealth
+        }
         let removed: BattleCard? = if allowBufferedRemoval {
             context.hand.removeFromAnyLocation(id: card.id)
         } else {
@@ -163,6 +166,7 @@ public enum BattleCardCombatEngine {
         let runtime = context.roster[card.owner]
         guard runtime.isAlive else { return false }
         return !context.ownersSkippingThisPlayerTurn.contains(card.owner)
+            && BattleAbilityRules.canPayHealthCost(card.ability, actor: runtime.combatant, in: context)
     }
 
     @discardableResult

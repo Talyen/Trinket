@@ -32,6 +32,12 @@ Run artifacts are ephemeral by default. Use the owning command's documented
 keep/cleanup switches when an investigation needs to retain a successful run;
 failed evidence remains available for triage.
 
+Build/test wrapper help and option parsing do not reserve build/simulator slots;
+style-only checks also run without a slot. Package test/build commands require registered,
+unique package names and prepare generated inputs before compiling.
+`handoff.sh --dry-run --final` previews the final documentation gate without
+executing it.
+
 Read these focused guides:
 
 - [Documentation map](../Docs/README.md) — source-of-truth owners.

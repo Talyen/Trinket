@@ -29,17 +29,17 @@ enum BalanceDurationAggregation {
         let shortRate = Double(acc.shortBattles) / totalCount
         let longRate = Double(acc.longBattles) / totalCount
         let worstEnemyID = acc.longByEnemy
-            .filter { $0.value.battles >= BalanceSweepConfig.identityFlagMinBattles }
+            .filter { $0.value.battles >= BalanceSweepConfig.identityFlagMinBattles && $0.value.long > 0 }
             .max(by: {
                 Double($0.value.long) / Double($0.value.battles)
                     < Double($1.value.long) / Double($1.value.battles)
             })?
             .key
         var flags: [String] = []
-        if shortRate >= flagRate {
+        if records.count >= BalanceSweepConfig.identityFlagMinBattles, shortRate >= flagRate {
             flags.append("SHORT")
         }
-        if longRate >= flagRate {
+        if records.count >= BalanceSweepConfig.identityFlagMinBattles, longRate >= flagRate {
             flags.append("LONG")
         }
         return BalanceDurationBucketStats(
@@ -82,7 +82,7 @@ enum BalanceDurationAggregation {
                 if rounds > maxRoundsValue {
                     maxRoundsValue = rounds
                 }
-                if rounds < minRounds {
+                if record.result.isDecided, rounds < minRounds {
                     shortBattles += 1
                     shortRoundsSum += Double(rounds)
                 } else if rounds > maxRounds {
@@ -110,7 +110,7 @@ enum BalanceDurationAggregation {
             let maxRounds = isBoss
                 ? BalanceDurationThresholds.bossMaxRounds
                 : BalanceDurationThresholds.trashMaxRounds
-            let short = recs.count { $0.result.rounds < minRounds }
+            let short = recs.count { $0.result.isDecided && $0.result.rounds < minRounds }
             let long = recs.count { $0.result.rounds > maxRounds }
             let avg = recs.reduce(0.0) { $0 + Double($1.result.rounds) } / Double(recs.count)
             let shortRate = Double(short) / Double(recs.count)
@@ -152,7 +152,7 @@ enum BalanceDurationAggregation {
                 let minR = rec.isBoss
                     ? BalanceDurationThresholds.bossMinRounds
                     : BalanceDurationThresholds.trashMinRounds
-                return rec.result.rounds < minR
+                return rec.result.isDecided && rec.result.rounds < minR
             }
             let long = recs.count { rec in
                 let maxR = rec.isBoss

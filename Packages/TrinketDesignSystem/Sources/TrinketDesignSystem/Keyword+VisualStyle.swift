@@ -74,6 +74,7 @@ public extension Keyword {
         public static let dodge = Self(
             color: DesignAssetColors.named("KeywordDodge"),
             symbolName: "figure.run",
+            prefersDarkForeground: true,
         )
         public static let purge = Self(
             color: DesignAssetColors.named("KeywordPurge"),

@@ -4,6 +4,59 @@ import TrinketContent
 import TrinketCore
 
 struct ManaEmpowermentTests {
+    @Test func `dragon spark discounts only first empowerment and preserves its effect`() {
+        var battle = makeBattle(
+            heroAbilities: [], heroMaxMana: 4, heroMana: 4,
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                mana: ManaTriggers(firstEmpowermentCostReduction: 2),
+            )),
+        )
+        for expectedMana in [3, 0] {
+            var ability = Ability.frostbolt
+            _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+                for: &ability, actor: battle.hero, context: &battle,
+            )
+            #expect(battle.mana(of: battle.hero) == expectedMana)
+            #expect(ability.directDamage == Ability.frostbolt.directDamage + 1)
+        }
+    }
+
+    @Test func `dragon spark does not consume discount without enough mana`() {
+        var battle = makeBattle(
+            heroAbilities: [], heroMaxMana: 4, heroMana: 0,
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                mana: ManaTriggers(firstEmpowermentCostReduction: 2),
+            )),
+        )
+        var ability = Ability.frostbolt
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.hero, context: &battle,
+        )
+        #expect(ability.directDamage == Ability.frostbolt.directDamage)
+        _ = battle.endTurn()
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.hero, context: &battle,
+        )
+        #expect(battle.mana(of: battle.hero) == 0)
+        #expect(ability.directDamage == Ability.frostbolt.directDamage + 1)
+    }
+
+    @Test(arguments: [0, 1])
+    func `arcane breath adds flat damage even with discounted empowerment`(discount: Int) {
+        var battle = makeBattle(
+            heroAbilities: [], heroMaxMana: 3, heroMana: 3,
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                mana: ManaTriggers(empowermentDamageBonus: 3, empowermentCostReduction: discount),
+            )),
+        )
+        var ability = Ability.frostbolt
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.hero, context: &battle,
+        )
+        #expect(battle.mana(of: battle.hero) == discount)
+        #expect(ability.directDamage == Ability.frostbolt.directDamage + 4)
+    }
+
     private func makeBattle(
         heroAbilities: [Ability],
         companionAbilities: [Ability] = [],

@@ -150,6 +150,14 @@ enum BalanceContrastFlags {
             return (false, "NONCOMBAT")
         }
         var tags: [String] = []
+        if acc.pairs >= BalanceSweepConfig.contrastFlagMinPairs {
+            if Double(acc.entityTimeouts) / Double(acc.pairs) >= config.durationFlagRate {
+                tags.append("ENTITY STALL")
+            }
+            if Double(acc.baselineTimeouts) / Double(acc.pairs) >= config.durationFlagRate {
+                tags.append("BASELINE STALL")
+            }
+        }
         if wrFlag {
             tags.append(lift > 0 ? "HIGH" : "LOW")
         }

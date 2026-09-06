@@ -153,7 +153,7 @@ struct ModeProgressionToolingTests {
         #expect(matchup.enemyFaction == enemy.faction)
     }
 
-    @Test func `spire win awards equal level XP at save level`() {
+    @Test func `overleveled spire win awards no XP`() {
         let controller = InterleavingPlayerController(
             initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
         )
@@ -168,25 +168,12 @@ struct ModeProgressionToolingTests {
             enemyLevel: 2,
             isBoss: false,
         )
-        let equalAward = ExperienceScaling.battleAwardWithCatchUp(
-            playerLevel: 20,
-            enemyLevel: 20,
-            highestLevel: 20,
-        )
-        let underleveledEnemyAward = ExperienceScaling.battleAwardWithCatchUp(
-            playerLevel: 20,
-            enemyLevel: 2,
-            highestLevel: 20,
-        )
-        #expect(equalAward != underleveledEnemyAward)
-        let expectedHeroProgression = CombatantProgression(
-            level: 20,
-            currentXP: 0,
-            requiredXP: CombatantProgression.requiredXP(forLevel: 20),
-        ).addingExperience(equalAward)
         controller.recordOutcome(step: step, won: true)
-        #expect(controller.state.heroLevel == expectedHeroProgression.level)
-        #expect(controller.state.heroXP == expectedHeroProgression.currentXP)
+        #expect(controller.state.heroLevel == 20)
+        #expect(controller.state.companionLevel == 20)
+        #expect(controller.state.heroXP == 0)
+        #expect(controller.state.companionXP == 0)
+        #expect(controller.spireIndex == 1)
     }
 
     @Test func `mode progression report formatter renders summary`() {

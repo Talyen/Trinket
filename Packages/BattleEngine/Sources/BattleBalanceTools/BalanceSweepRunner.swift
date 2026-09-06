@@ -192,7 +192,7 @@ public enum BalanceSweepRunner {
     private static func identityBattleSeed(_ work: IdentityBattleWork) -> UInt64 {
         work.config.seed
             &+ UInt64(work.tier.level) &* 1000003
-            &+ UInt64(work.enemyIndex) &* 10007
+            &+ BalanceContrastSupport.stableHash64(work.enemies[work.enemyIndex].id) &* 10007
             &+ UInt64(work.sampleIndex) &* 97
     }
 
@@ -201,9 +201,9 @@ public enum BalanceSweepRunner {
         let battleSeed = identityBattleSeed(work)
         var rng = SeededRandomNumberGenerator(seed: battleSeed)
 
-        let slot = work.enemyIndex * config.battlesPerTier + work.sampleIndex
+        let slot = work.sampleIndex
         let hero = work.heroes[slot % work.heroes.count]
-        let companion = work.companions[(slot / max(work.heroes.count, 1)) % work.companions.count]
+        let companion = work.companions[(slot % work.heroes.count + slot / work.heroes.count) % work.companions.count]
         let enemy = work.enemies[work.enemyIndex]
         let partyLoadouts = SimulationMatchupBuilder.samplePartyLoadouts(
             hero: hero,

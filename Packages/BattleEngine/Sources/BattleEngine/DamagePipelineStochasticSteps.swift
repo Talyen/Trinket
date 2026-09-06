@@ -105,6 +105,9 @@ package extension DamagePipeline {
                 chance += profile.triggers.dodgeChanceBelowHealthPercentBonus
             }
         }
+        if context.roster.health(for: state.combatant) * 2 > context.roster.maxHealth(for: state.combatant) {
+            chance += profile.triggers.dodgeChanceAboveHalfHealthBonus
+        }
         return min(0.75, max(0, chance))
     }
 

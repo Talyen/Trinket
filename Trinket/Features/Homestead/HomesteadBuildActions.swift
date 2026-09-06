@@ -32,7 +32,6 @@ struct HomesteadBuildControl {
 
 struct HomesteadCollectionControl {
     var error: String?
-    var collectionEventCount = 0
 
     @MainActor
     mutating func perform(
@@ -42,7 +41,6 @@ struct HomesteadCollectionControl {
     ) {
         switch saveStore.collectProduction(at: date) {
         case let .success(amounts):
-            collectionEventCount += 1
             onSuccess(amounts)
         case .noProduction:
             break
