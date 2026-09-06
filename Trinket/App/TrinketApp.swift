@@ -83,6 +83,7 @@ struct TrinketApp: App {
                 )
             }
         }
+        .persistentSystemOverlays(.hidden)
     }
 
     private static func priorityImageNames(for appState: AppState) -> [String] {
