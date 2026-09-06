@@ -75,6 +75,7 @@ struct TrinketApp: App {
                     appState: appState,
                     priorityImageNames: launchPriorityImageNames,
                 )
+                .scrollIndicators(.never)
             } else {
                 AppBootstrapFailureView(
                     message: bootstrapFailureMessage
@@ -118,8 +119,10 @@ struct TrinketApp: App {
                 + Array(roster.collectionCompanions.prefix(shelfLimit)),
         ).compactMap { $0.artReference?.thumbnailImageName }
         let collectionDetail = CollectionView.imminentDetailArtworkNames(roster: roster)
-        let collectionItems = inventory.items.prefix(shelfLimit).compactMap {
-            $0.artReference?.thumbnailImageName
+        let collectionItems = CollectionItemCategory.allCases.flatMap { category in
+            inventory.items.lazy.filter(category.contains).prefix(shelfLimit).compactMap {
+                $0.artReference?.thumbnailImageName
+            }
         }
         let playModeCards = ["gameModeCampaign", "gameModeExplore"].compactMap {
             ArtCatalog.backgroundArtByID[$0]?.imageName

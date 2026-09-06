@@ -11,11 +11,37 @@ final class TabNavigationUITests: TrinketUITestCase {
             remainingItemID: "crossbow-astral",
         )
 
-        tapButton(AccessibilityID.Collection.inventoryCategory)
+        scrollUntilVisible(button(AccessibilityID.Collection.basicGearCategory), swipingUp: false, requireHittable: true)
+        assertExistsAfterScroll(AccessibilityID.Collection.basicGearCategory, requireHittable: true)
+        tapButton(AccessibilityID.Collection.basicGearCategory)
+        assertDoesNotExist(AccessibilityID.Collection.itemCard(itemID: "crossbow-astral"))
         assertSalvageRemovesItemImmediately(
-            itemID: "mace-basic",
-            remainingItemID: "mace-astral",
+            itemID: "dagger-basic",
+            remainingItemID: "double_axe-basic",
         )
+
+        tapButton(AccessibilityID.Collection.gearFilter)
+        tapButton(AccessibilityID.Collection.gearFilterOption(slot: "armor"))
+        assertExists(AccessibilityID.Collection.itemCard(itemID: "leather_armor-basic"))
+        assertDoesNotExist(AccessibilityID.Collection.itemCard(itemID: "double_axe-basic"))
+        assertDoesNotExist(AccessibilityID.Collection.itemCard(itemID: "leather_armor-astral"))
+
+        assertSalvageRemovesItemImmediately(
+            itemID: "leather_armor-basic",
+            remainingItemID: "plate_armor-basic",
+        )
+        salvageItem(itemID: "plate_armor-basic")
+        assertExists(AccessibilityID.Collection.itemsNoResults)
+        assertDoesNotExist(AccessibilityID.Collection.itemsEmptyState)
+
+        tapButton(AccessibilityID.Collection.gearFilter)
+        tapButton(AccessibilityID.Collection.gearFilterOption(slot: "all"))
+        assertExistsAfterScroll(AccessibilityID.Collection.itemCard(itemID: "double_axe-basic"))
+        goBack()
+        assertExistsAfterScroll(AccessibilityID.Collection.astralGearCategory, requireHittable: true)
+        tapButton(AccessibilityID.Collection.astralGearCategory)
+        assertExists(AccessibilityID.Collection.itemCard(itemID: "crossbow-astral"))
+        assertDoesNotExist(AccessibilityID.Collection.itemCard(itemID: "double_axe-basic"))
     }
 
     private func assertSalvageRemovesItemImmediately(
@@ -24,8 +50,21 @@ final class TabNavigationUITests: TrinketUITestCase {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
+        salvageItem(itemID: itemID, file: file, line: line)
+        assertExistsAfterScroll(
+            AccessibilityID.Collection.itemCard(itemID: remainingItemID),
+            maxAttempts: 12,
+            file: file,
+            line: line,
+        )
+    }
+
+    private func salvageItem(
+        itemID: String,
+        file: StaticString = #file,
+        line: UInt = #line,
+    ) {
         let salvagedItemID = AccessibilityID.Collection.itemCard(itemID: itemID)
-        let remainingCardID = AccessibilityID.Collection.itemCard(itemID: remainingItemID)
         let salvagedItem = app.buttons[salvagedItemID]
         scrollUntilVisible(salvagedItem, swipingUp: false, maxAttempts: 12, requireHittable: true)
         if !salvagedItem.exists || !salvagedItem.isHittable {
@@ -38,6 +77,5 @@ final class TabNavigationUITests: TrinketUITestCase {
         app.alerts.buttons["Salvage"].firstMatch.tap()
 
         assertDoesNotExist(salvagedItemID, timeout: 10, file: file, line: line)
-        assertExistsAfterScroll(remainingCardID, maxAttempts: 12, file: file, line: line)
     }
 }

@@ -74,7 +74,6 @@ struct CollectionView: View {
         let inventoryState = playerSave.inventory
         let rosterState = playerSave.roster
         let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
-        let shelfItems = Array(inventoryState.items.prefix(shelfLimit))
 
         let heroes = rosterState.collectionHeroes
         let companions = rosterState.collectionCompanions
@@ -99,22 +98,25 @@ struct CollectionView: View {
                     roster: rosterState,
                 )
 
-                if !inventoryState.items.isEmpty {
-                    CategoryBrowseShelf(
-                        title: "Inventory",
-                        linkAccessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
-                        totalCount: inventoryState.items.count,
-                    ) {
-                        InventoryGridView()
-                    } content: {
-                        ForEach(shelfItems) { item in
-                            SalvageItemButton(
-                                item: item,
-                                showsName: false,
-                            ) {
-                                salvageDetail.select(item)
+                ForEach(CollectionItemCategory.allCases) { category in
+                    let items = inventoryState.items.filter(category.contains)
+                    if !items.isEmpty {
+                        CategoryBrowseShelf(
+                            title: category.rawValue,
+                            linkAccessibilityIdentifier: category.accessibilityIdentifier,
+                            totalCount: items.count,
+                        ) {
+                            InventoryGridView(category: category)
+                        } content: {
+                            ForEach(Array(items.prefix(shelfLimit))) { item in
+                                SalvageItemButton(
+                                    item: item,
+                                    showsName: false,
+                                ) {
+                                    salvageDetail.select(item)
+                                }
+                                .collectionShelfCardWidth()
                             }
-                            .collectionShelfCardWidth()
                         }
                     }
                 }

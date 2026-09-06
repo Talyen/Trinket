@@ -284,12 +284,19 @@ public enum AccessibilityID {
     public enum Collection {
         public static let heroesCategory = "Heroes collection category"
         public static let companionsCategory = "Companions collection category"
-        public static let inventoryCategory = "Inventory collection category"
-        public static let inventoryEmptyState = "Inventory Empty State"
-        public static let inventoryNoResults = "Inventory No Results"
-        public static let inventoryFilter = "Inventory filter"
+        public static let basicGearCategory = "Basic Gear collection category"
+        public static let astralGearCategory = "Astral Gear collection category"
+        public static let uniqueGearCategory = "Unique Gear collection category"
+        public static let trinketsCategory = "Trinkets collection category"
+        public static let itemsEmptyState = "Collection Items Empty State"
+        public static let itemsNoResults = "Collection Items No Results"
+        public static let gearFilter = "Collection gear filter"
         public static let salvageButton = "Salvage Item Button"
         public static let salvageConfirmButton = "Confirm Salvage Button"
+
+        public static func gearFilterOption(slot: String) -> String {
+            "Collection gear filter \(slot)"
+        }
 
         public static func viewAllCard(category: String) -> String {
             "\(category) view all card"

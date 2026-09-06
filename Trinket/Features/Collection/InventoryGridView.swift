@@ -7,12 +7,42 @@ import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
+enum CollectionItemCategory: String, CaseIterable, Identifiable {
+    case basicGear = "Basic Gear"
+    case astralGear = "Astral Gear"
+    case uniqueGear = "Unique Gear"
+    case trinkets = "Trinkets"
+
+    var id: String {
+        rawValue
+    }
+
+    var accessibilityIdentifier: String {
+        switch self {
+        case .basicGear: AccessibilityID.Collection.basicGearCategory
+        case .astralGear: AccessibilityID.Collection.astralGearCategory
+        case .uniqueGear: AccessibilityID.Collection.uniqueGearCategory
+        case .trinkets: AccessibilityID.Collection.trinketsCategory
+        }
+    }
+
+    func contains(_ item: InventoryItem) -> Bool {
+        if item.isTrinket {
+            return self == .trinkets
+        }
+        switch item.rarity {
+        case .basic: return self == .basicGear
+        case .astral: return self == .astralGear
+        case .unique: return self == .uniqueGear
+        }
+    }
+}
+
 enum InventoryFilter: String, CaseIterable, Identifiable {
     case all = "All"
-    case weapon = "Weapon"
+    case weapon = "Weapons"
     case armor = "Armor"
-    case accessory = "Accessory"
-    case trinket = "Trinket"
+    case accessory = "Accessories"
 
     var id: String {
         rawValue
@@ -20,16 +50,10 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
 
     var slot: ItemSlot? {
         switch self {
-        case .all:
-            nil
-        case .weapon:
-            .weapon
-        case .armor:
-            .armor
-        case .accessory:
-            .accessory
-        case .trinket:
-            .trinket
+        case .all: nil
+        case .weapon: .weapon
+        case .armor: .armor
+        case .accessory: .accessory
         }
     }
 }
@@ -41,9 +65,13 @@ struct InventoryGridView: View {
     @State private var salvageDetail = SalvageDetailState()
     @State private var visibleItemIDs: Set<String> = []
 
+    let category: CollectionItemCategory
+
     var body: some View {
-        let inventoryState = playerSave.inventory
-        let items = filteredItems(from: inventoryState)
+        let categoryItems = playerSave.inventory.items.filter(category.contains)
+        let items = categoryItems.filter { item in
+            selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
+        }
 
         CollectionGridShell(items: items) { item in
             SalvageItemButton(
@@ -55,7 +83,7 @@ struct InventoryGridView: View {
             .onAppear { visibleItemIDs.insert(item.id) }
             .onDisappear { visibleItemIDs.remove(item.id) }
         } emptyView: {
-            inventoryEmptyState(inventoryState: inventoryState)
+            inventoryEmptyState(categoryItems: categoryItems)
         }
         .onChange(of: items.map(\.id)) { _, _ in
             visibleItemIDs.formIntersection(items.lazy.map(\.id))
@@ -71,24 +99,36 @@ struct InventoryGridView: View {
             )
         }
         .scrollEdgeEffectStyle(.soft, for: .top)
-        .navigationTitle("Inventory")
+        .navigationTitle(category.rawValue)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Picker("Filter", selection: $selectedFilter) {
+            if category != .trinkets {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
                         ForEach(InventoryFilter.allCases) { filter in
-                            Text(filter.rawValue).tag(filter)
+                            Toggle(filter.rawValue, isOn: Binding(
+                                get: { selectedFilter == filter },
+                                set: { isSelected in
+                                    if isSelected {
+                                        selectedFilter = filter
+                                    }
+                                },
+                            ))
+                            .accessibilityIdentifier(
+                                AccessibilityID.Collection.gearFilterOption(
+                                    slot: filter.slot?.rawValue.lowercased() ?? "all",
+                                ),
+                            )
                         }
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease")
+                            .trinketTypography(selectedFilter != .all ? .button : .body)
+                            .foregroundStyle(selectedFilter != .all ? TrinketDesign.Colors.accentEmphasized : .primary)
+                            .accessibilityLabel("Filter \(category.rawValue)")
                     }
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease")
-                        .trinketTypography(selectedFilter != .all ? .button : .body)
-                        .foregroundStyle(selectedFilter != .all ? TrinketDesign.Colors.accentEmphasized : .primary)
-                        .accessibilityLabel("Filter inventory")
-                }
 
-                .accessibilityIdentifier("Inventory filter")
+                    .accessibilityIdentifier(AccessibilityID.Collection.gearFilter)
+                }
             }
         }
         .salvageInventoryPresentation(
@@ -97,15 +137,9 @@ struct InventoryGridView: View {
         )
     }
 
-    private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {
-        inventoryState.items.filter { item in
-            selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
-        }
-    }
-
     @ViewBuilder
-    private func inventoryEmptyState(inventoryState: PlayerInventoryState) -> some View {
-        let isFilteredEmpty = !inventoryState.items.isEmpty
+    private func inventoryEmptyState(categoryItems: [InventoryItem]) -> some View {
+        let isFilteredEmpty = !categoryItems.isEmpty
 
         if isFilteredEmpty {
             ContentUnavailableView(
@@ -113,14 +147,14 @@ struct InventoryGridView: View {
                 systemImage: "line.3.horizontal.decrease",
                 description: Text("Try a different filter."),
             )
-            .accessibilityIdentifier(AccessibilityID.Collection.inventoryNoResults)
+            .accessibilityIdentifier(AccessibilityID.Collection.itemsNoResults)
         } else {
             ContentUnavailableView(
-                "No Items Yet",
+                "No \(category.rawValue) Yet",
                 systemImage: "shippingbox",
-                description: Text("Complete stages to earn gear for your heroes."),
+                description: Text("Your \(category.rawValue.lowercased()) will appear here when you collect them."),
             )
-            .accessibilityIdentifier(AccessibilityID.Collection.inventoryEmptyState)
+            .accessibilityIdentifier(AccessibilityID.Collection.itemsEmptyState)
         }
     }
 }

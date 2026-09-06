@@ -17,6 +17,12 @@ final class SmokeShellTests: SeededSmokeUITestCase {
         assertExists(AccessibilityID.Collection.heroesCategory, timeout: 10)
         assertExists(AccessibilityID.Collection.companionsCategory, timeout: 10)
 
+        assertExistsAfterScroll(AccessibilityID.Collection.basicGearCategory, requireHittable: true)
+        tapButton(AccessibilityID.Collection.basicGearCategory)
+        assertExists(AccessibilityID.Collection.gearFilter)
+        goBack()
+        assertExistsAfterScroll(AccessibilityID.Collection.basicGearCategory)
+
         tabBar.selectHomestead()
         homestead.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Homestead.resourceWallet, timeout: 10)
