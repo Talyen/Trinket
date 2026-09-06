@@ -7,6 +7,7 @@ test-scripts.sh, and performance.sh without requiring Xcode or simulators.
 
 import json
 import os
+import plistlib
 import shutil
 import tempfile
 import subprocess
@@ -46,6 +47,11 @@ class ExecWrapperTests(unittest.TestCase):
                 ("test-package.sh", ["--bad-option"], 1, "Unknown option"),
                 ("test-package.sh", ["MissingPackage"], 1, "Unknown package"),
                 ("test-package.sh", ["BattleEngine", "BattleEngine"], 1, "Duplicate package"),
+                ("test-package.sh", ["--destination", "platform=macOS", "BattleEngine"], 1, "only platform=iOS Simulator"),
+                ("test-package.sh", ["--destination", "generic/platform=macOS", "BattleEngine"], 1, "only platform=iOS Simulator"),
+                ("test-package.sh", ["--destination", "", "BattleEngine"], 1, "requires a value"),
+                ("test-package.sh", ["--destination", "platform=iOS,name=Phone", "BattleEngine"], 1, "only platform=iOS Simulator"),
+                ("test-package.sh", ["--build-for-testing", "--destination", "id=fixture", "BattleEngine"], 1, "cannot be combined"),
             ]
             for name, args, status, message in cases:
                 with self.subTest(name=name, args=args):
@@ -80,14 +86,94 @@ class ExecWrapperTests(unittest.TestCase):
                 'TRINKET_TEST_PACKAGES=(BattleEngine)\n'
                 'prepare_generated_inputs() { echo "prepared inputs"; exit 73; }\n'
             )
-            for action in ([], ["--build-for-testing"]):
+            for action in (
+                ["--destination", "platform=iOS Simulator,name=Fixture"],
+                ["--destination", "id=fixture"],
+                ["--build-for-testing"],
+            ):
                 with self.subTest(action=action):
                     result = subprocess.run(
-                        [str(scripts / "test-package.sh"), *action, "--destination", "fixture", "BattleEngine"],
+                        [str(scripts / "test-package.sh"), *action, "BattleEngine"],
                         capture_output=True, text=True,
                     )
                     self.assertEqual(result.returncode, 73, result.stdout + result.stderr)
                     self.assertIn("prepared inputs", result.stdout)
+
+    def test_simulator_launcher_installs_resolved_product_and_rejects_missing_outputs(self) -> None:
+        for mode in ("valid", "missing-target", "missing-product", "missing-plist", "settings-failed"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                scripts = root / "Scripts"
+                shutil.copytree(ROOT / "Scripts", scripts)
+                (scripts / "lib/tools.sh").write_text('trinket_prepend_pinned_tools() { :; }\n')
+                (scripts / "run-env.sh").write_text(
+                    'trinket_run_env_init() { DERIVED_DATA_PATH="$PWD/agent-dd"; '
+                    'RESULTS_DIR="$PWD/results"; mkdir -p "$RESULTS_DIR"; }\n'
+                    'trinket_run_env_print() { :; }\n'
+                )
+                (scripts / "build-freshness.sh").write_text('prepare_generated_inputs() { :; }\n')
+                (scripts / "ensure-simulator.sh").write_text(
+                    'trinket_sim_slot_ensure() { :; }\n'
+                    'ensure_test_simulator() { SIMULATOR_UDID=fixture; }\n'
+                )
+                (scripts / "xcode-runner.sh").write_text(
+                    'source Scripts/lib/xcode-watchdog.sh\n'
+                    'xcode_runner_run() { while [[ "$1" != -- ]]; do shift; done; shift; "$@"; }\n'
+                )
+                app = root / "custom products/Debug-iphonesimulator/Trinket.app"
+                app.mkdir(parents=True)
+                if mode != "missing-plist":
+                    (app / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": "fixture.trinket"}))
+                if mode == "missing-product":
+                    shutil.rmtree(app)
+                settings = [{"target": "Dependency", "buildSettings": {}}]
+                if mode != "missing-target":
+                    settings.append({"target": "Trinket", "buildSettings": {
+                        "TARGET_BUILD_DIR": str(app.parent), "FULL_PRODUCT_NAME": app.name,
+                    }})
+                (root / "settings.json").write_text(json.dumps(settings))
+                (root / "mode").write_text(mode)
+                binaries = root / "bin"
+                binaries.mkdir()
+                commands = {
+                    "xcodebuild": r"""#!/usr/bin/env python3
+import json, pathlib, sys
+with pathlib.Path('build-args.jsonl').open('a') as handle:
+    handle.write(json.dumps(sys.argv[1:]) + '\n')
+if '-showBuildSettings' in sys.argv:
+    if pathlib.Path('mode').read_text() == 'settings-failed':
+        raise SystemExit(72)
+    print(pathlib.Path('settings.json').read_text())
+""",
+                    "xcrun": """#!/usr/bin/env python3
+import json, pathlib, sys
+if sys.argv[1:3] == ['simctl', 'install']:
+    pathlib.Path('install.json').write_text(json.dumps(sys.argv[3:]))
+    raise SystemExit(73)
+if 'appearance' in sys.argv:
+    print('dark')
+""",
+                }
+                for name, source in commands.items():
+                    binary = binaries / name
+                    binary.write_text(source)
+                    binary.chmod(0o755)
+                result = subprocess.run(
+                    [str(scripts / "run-simulator.sh"), "--isolate"],
+                    env={**os.environ, "PATH": str(binaries) + os.pathsep + os.environ["PATH"]},
+                    capture_output=True, text=True,
+                )
+                calls = [json.loads(line) for line in (root / "build-args.jsonl").read_text().splitlines()]
+                self.assertEqual(calls[0][0], "build")
+                self.assertEqual(calls[1][:2], ["-showBuildSettings", "-json"])
+                self.assertEqual(calls[0][1:], calls[1][2:])
+                if mode == "valid":
+                    self.assertEqual(result.returncode, 73, result.stdout + result.stderr)
+                    self.assertEqual(json.loads((root / "install.json").read_text()), ["fixture", str(app)])
+                else:
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertIn("could not resolve", result.stderr)
+                    self.assertFalse((root / "install.json").exists())
 
     def test_performance_runner_retains_success_and_partial_failure_evidence(self) -> None:
         for test_status in (0, 1):

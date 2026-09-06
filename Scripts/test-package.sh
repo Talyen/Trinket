@@ -34,6 +34,8 @@ When multiple packages are passed, builds/tests run in parallel using per-packag
 DerivedData tenants (same model as `test.sh unit`), with SYMROOT/OBJROOT pinned
 into each tenant so SPM schemes do not share Packages/.DerivedData/build.db.
 
+--destination accepts iOS Simulator destinations only (including name or UUID overrides).
+It cannot be combined with --build-for-testing.
 --build-for-testing compiles each package scheme against a generic simulator destination
 and stamps package_<name> so later --no-build runs can reuse the products. BattleEngine
 balance-sweep tests are skipped by default; pass --include-balance-sweep-tests for a
@@ -55,7 +57,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --destination)
-      if [[ $# -lt 2 ]]; then
+      if [[ $# -lt 2 || -z "$2" ]]; then
         echo "--destination requires a value." >&2
         usage >&2
         exit 1
@@ -128,6 +130,25 @@ for package in "${PACKAGES[@]}"; do
   done
   validated_packages+=("$package")
 done
+
+if [[ -n "$DESTINATION" ]]; then
+  if [[ "$ACTION" == "build-for-testing" ]]; then
+    echo "--destination cannot be combined with --build-for-testing." >&2
+    exit 1
+  fi
+  IFS=',' read -r -a destination_fields <<< "$DESTINATION"
+  for field in "${destination_fields[@]}"; do
+    if [[ "$field" =~ ^[[:space:]]*(generic/)?platform[[:space:]]*=(.*)$ ]]; then
+      platform="${BASH_REMATCH[2]}"
+      platform="${platform#"${platform%%[![:space:]]*}"}"
+      platform="${platform%"${platform##*[![:space:]]}"}"
+      if [[ "$platform" != "iOS Simulator" ]]; then
+        echo "--destination supports only platform=iOS Simulator; received: $platform" >&2
+        exit 1
+      fi
+    fi
+  done
+fi
 
 trinket_run_env_init
 

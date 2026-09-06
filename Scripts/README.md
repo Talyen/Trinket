@@ -67,7 +67,7 @@ Read these focused guides:
 | `./Scripts/build-for-testing.sh --app-only` | Rebuild only the app (CI shared build; smoke/UI artifact miss recovery) |
 | `./Scripts/ci-path-filter.py` | CI path filter via the GitHub compare API (no full checkout); `code` / `assets` / `infra` outputs |
 | `./Scripts/stage-ci-test-artifact.sh` | Stage Products + stamps for the CI `--no-build` fan-out artifact |
-| `./Scripts/test-package.sh <Package>` | Run one package's tests |
+| `./Scripts/test-package.sh <Package>` | Run one package's tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing` |
 | `./Scripts/test.sh unit` | Run all package unit suites via the parallel `test-package.sh` owner |
 | `python3 ./Scripts/test-timing.py report` | Show per-suite wall-time history and hotspots from test runs |
 | `python3 ./Scripts/test-timing.py show --last 10` | Show recent run IDs, outcomes, targets, and result-bundle availability without hotspot output |
@@ -96,7 +96,7 @@ Read these focused guides:
 | `./Scripts/lint-analyze.sh` | CI blocking SwiftLint analyzer on dead imports (`unused_import` fails; `capture_variable` / `unused_declaration` advisory) after a compiler log exists; runs beside tests, never from handoff or style |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |
-| `./Scripts/run-simulator.sh [--isolate] [--agent N]` | Build and launch on a managed simulator (default Trinket Run; `--isolate`/`--agent N` for the isolated pool) — also available as `run` alias via `node Scripts/setup-git-safety.mjs` |
+| `./Scripts/run-simulator.sh [--isolate] [--agent N]` | Build, resolve the app from the Trinket target’s Xcode build settings (60-second query limit), and launch on a managed simulator (default Trinket Run; `--isolate`/`--agent N` for the isolated pool) — also available as `run` alias via `node Scripts/setup-git-safety.mjs` |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe, old local build artifacts |
 | `./Scripts/prepare-audio-assets.sh [music\|sfx\|all]` | Validate music/SFX manifests, encode AAC, regenerate `MusicCatalog` / `SFXCatalog` |
 | `./Scripts/check-api-bans.sh` | Banned legacy observation/navigation APIs plus XCTest-outside-UITests migration |

@@ -42,8 +42,6 @@ source ./Scripts/run-env.sh
 trinket_run_env_init
 trinket_run_env_print
 
-APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
-
 # shellcheck source=build-freshness.sh
 source ./Scripts/build-freshness.sh
 prepare_generated_inputs "$RESULTS_DIR"
@@ -66,6 +64,42 @@ trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 echo "Building Trinket (quiet; log in $RESULTS_DIR/raw/)..."
 xcode_runner_run --label "run-simulator" --quiet -- \
   xcodebuild build "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
+
+BUILD_SETTINGS_PATH="$(mktemp "$RESULTS_DIR/run-simulator-settings.XXXXXX")"
+if ! TRINKET_XCODE_WALL_TIMEOUT_SECONDS=60 TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0 \
+  xcode_runner_execute_watched "$BUILD_SETTINGS_PATH.log" "" \
+  bash -c 'output=$1; shift; exec "$@" > "$output"' _ "$BUILD_SETTINGS_PATH" \
+  xcodebuild -showBuildSettings -json "${TRINKET_APP_XCODEBUILD_ARGS[@]}"; then
+  echo "error: could not resolve Trinket build settings; output: $BUILD_SETTINGS_PATH; log: $BUILD_SETTINGS_PATH.log" >&2
+  exit 1
+fi
+if ! APP_PATH="$(python3 - "$BUILD_SETTINGS_PATH" <<'PYSETTINGS'
+import json
+import pathlib
+import sys
+
+try:
+    settings = json.loads(pathlib.Path(sys.argv[1]).read_text())
+    targets = [entry["buildSettings"] for entry in settings if entry.get("target") == "Trinket"]
+    if len(targets) != 1:
+        raise ValueError("expected exactly one Trinket app target")
+    target = targets[0]
+    directory = target.get("TARGET_BUILD_DIR")
+    product = target.get("FULL_PRODUCT_NAME")
+    if not directory or not product or not product.endswith(".app"):
+        raise ValueError("Trinket target lacks TARGET_BUILD_DIR or an app FULL_PRODUCT_NAME")
+    app = pathlib.Path(directory) / product
+    if not app.is_dir() or not (app / "Info.plist").is_file():
+        raise ValueError(f"built app or Info.plist missing: {app}")
+    print(app)
+except (OSError, ValueError, KeyError, TypeError) as error:
+    raise SystemExit(f"error: could not resolve built Trinket app: {error}") from error
+PYSETTINGS
+)"; then
+  echo "Build settings retained: $BUILD_SETTINGS_PATH" >&2
+  exit 1
+fi
+rm -f "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
 
 if [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
   echo "Build succeeded. Preparing $TRINKET_SIMULATOR_NAME..."

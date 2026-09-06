@@ -18,6 +18,21 @@ Every test or package invocation writes an atomically completed
 `.DerivedData/TestResults/`, or `.DerivedData/runs/agent-N/TestResults/` when
 `TRINKET_ISOLATE=1` / `handoff --isolate`). It records the label,
 exit code, pass/fail status, result-bundle path, and optional diagnostics-report path.
+The manifest also records `completion_source` (`process-exit` or
+`watchdog-log-inference`), `test_execution_proven`, and `result_bundle_complete`.
+A passed suite can hang during Xcode result finalization, leaving an incomplete
+`.xcresult` even after a longer idle allowance. The watchdog bounds that wait and
+can report log-proven test success; this does not prove the bundle finalized or
+that motion was correct. Earlier test failures and process crashes still override
+later passing summaries, and zero executed tests cannot establish a test pass.
+This is a supported workaround for the Xcode hang, not a fix to Xcode itself.
+
+For these investigations, retain the manifest and raw log with
+`./Scripts/ci-diagnostics.sh --cleanup --keep <results-dir>` to suppress cleanup. Capture motion
+separately using the managed lease and recording workflow in
+[Simulator operations](../Platform/SimulatorOperations.md#inspection-lease-and-capture);
+an incomplete result bundle may not contain usable recordings or attachments.
+
 Failed invocations also produce bounded sibling reports:
 
 - `*-diagnostics.json` with the label, exit code, result-bundle path, classification,

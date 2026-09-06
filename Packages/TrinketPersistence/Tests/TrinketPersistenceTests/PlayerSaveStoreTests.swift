@@ -303,8 +303,36 @@ final class PlayerSaveStoreTests {
         try #expect(store.roster.gold == 25)
         try #expect(store.lastPersistenceError == nil)
     }
+}
 
-    #if DEBUG
+#if DEBUG
+extension PlayerSaveStoreTests {
+    @Test func `failed collection preserves persisted pending food and can retry exactly once`() throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let date = Date()
+        try store.performBatchMutation { save in
+            save.homestead.resources[.food] = 900
+            save.homestead.pendingProduction = [.food: 10]
+            save.homestead.lastProductionAt = date
+        }
+        let snapshot = store.currentSave
+        store.forcesNextSaveFailure = true
+
+        #expect(store.collectProduction(at: date) == .persistFailed)
+        #expect(store.currentSave == snapshot)
+        #expect(store.lastPersistenceError == .writeFailed)
+        let failedReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(failedReload.currentSave == snapshot)
+
+        #expect(store.collectProduction(at: date) == .success([ResourceAmount(.food, 10)]))
+        #expect(store.collectProduction(at: date) == .noProduction)
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(reloaded.homestead.resources[.food] == 910)
+        #expect(reloaded.homestead.pendingProduction.isEmpty)
+        #expect(store.lastPersistenceError == nil)
+    }
+
     @Test func `perform batch mutation rolls back in memory state when save fails`() throws {
         let store = try context.makeSaveStore()
         store.grantGold(10)
@@ -354,7 +382,10 @@ final class PlayerSaveStoreTests {
             disableCloudSync: true,
             persistSaveImmediately: true,
         )
-        store.grantGold(10)
+        try store.performBatchMutation { save in
+            save.roster.gold = 10
+            save.homestead.pendingProduction = [.food: 10]
+        }
         let snapshot = store.currentSave
         store.forcesNextSaveFailure = true
 
@@ -372,6 +403,10 @@ final class PlayerSaveStoreTests {
         store.flushPendingPersistence()
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(reloaded.currentSave == snapshot)
+        try store.resetGameplayProgress()
+        let resetReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(resetReload.homestead.pendingProduction.isEmpty)
+        #expect(resetReload.roster.gold == 0)
     }
 
     @Test(arguments: [[20, 30], [30]])
@@ -384,12 +419,14 @@ final class PlayerSaveStoreTests {
         )
         try store.performBatchMutation({ save in
             save.roster.gold = 10
+            save.homestead.pendingProduction = [.food: 10]
         }, persistImmediately: true)
         try #expect(store.roster.gold == 10)
 
         for gold in deferredGold {
             try store.performBatchMutation({ save in
                 save.roster.gold = gold
+                save.homestead.pendingProduction = [:]
             }, persistImmediately: false)
         }
         try #expect(store.roster.gold == deferredGold.last)
@@ -402,6 +439,13 @@ final class PlayerSaveStoreTests {
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(reloaded.roster.gold == 10)
+        #expect(reloaded.homestead.pendingProduction == [.food: 10])
+        #expect(store.homestead.pendingProduction == [.food: 10])
+        store.grantGold(5)
+        store.flushPendingPersistence()
+        let retryReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(retryReload.roster.gold == 15)
+        #expect(retryReload.homestead.pendingProduction == [.food: 10])
     }
 
     @Test func `persist batch returns false and rolls back when save fails`() throws {
@@ -417,11 +461,43 @@ final class PlayerSaveStoreTests {
         try #expect(store.roster.gold == 10)
         try #expect(store.lastPersistenceError == .writeFailed)
     }
-    #endif
-}
 
-#if DEBUG
-extension PlayerSaveStoreTests {
+    @Test(arguments: [false, true])
+    func `failed immediate write preserves earlier deferred changes`(failsFlush: Bool) throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try store.performBatchMutation { save in
+            save.roster.gold = 10
+            save.homestead.pendingProduction = [.food: 10]
+        }
+        try store.performBatchMutation({ save in
+            save.roster.gold = 20
+        }, persistImmediately: false)
+        let deferredSnapshot = store.currentSave
+        store.forcesNextSaveFailure = true
+        #expect(throws: PlayerSavePersistenceError.self) {
+            try store.performBatchMutation { save in
+                save.roster.gold = 30
+                save.homestead.pendingProduction = [:]
+            }
+        }
+        #expect(store.currentSave == deferredSnapshot)
+        let failedReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(failedReload.roster.gold == 10)
+        #expect(failedReload.homestead.pendingProduction == [.food: 10])
+
+        store.forcesNextSaveFailure = failsFlush
+        store.flushPendingPersistence()
+        #expect(store.roster.gold == (failsFlush ? 10 : 20))
+        let flushedReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(flushedReload.roster.gold == (failsFlush ? 10 : 20))
+        #expect(flushedReload.homestead.pendingProduction == [.food: 10])
+        store.grantGold(5)
+        let retryReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(retryReload.roster.gold == (failsFlush ? 15 : 25))
+        #expect(retryReload.homestead.pendingProduction == [.food: 10])
+    }
+
     @Test func `immediate persist retires deferred rollback so A later flush failure keeps saved progress`() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(

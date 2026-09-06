@@ -8,21 +8,21 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 
 1. Add a row to `## Open` below.
 2. For longer context, add a `### YYYY-MM-DD — short slug` subsection under `## Details` using the template at the bottom.
-3. When resolved, move the row to `## Resolved` and include a commit, PR, or `knowledge/patterns/<name>.md` link.
+3. When resolved, move the row to `## Resolved` and include a commit, PR, corrected owner, or `knowledge/patterns/<name>.md` link.
 
 ## Open
 
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
-| 2026-09-05 | Homestead save failure | On the iOS 27 simulator, collecting persisted pending Food with `forcesNextSaveFailure` aborts in the existing `PlayerSaveStore.restoreSnapshot` rollback: SwiftData casts `DefaultStoreSnapshotValueFuture` to `[HomesteadPendingProductionModel]`. Reproduce with Food 900 / pending Food 10 and a forced collect-save failure; animation does not start. Save recovery needs separate investigation. |
-| 2026-09-05 | UI result finalization | Homestead UI assertions finish, but `xcodebuild` does not finalize the result bundle even with a 60-second post-suite idle allowance. The watchdog infers the result from the test log; retain logs and simulator recordings separately when investigating motion. |
-| 2026-09-05 | Package test destination | `test-package.sh --destination platform=macOS` accepts the destination but forces `-sdk iphonesimulator`, so tests build and then cannot load the macOS bundle. Use its default simulator destination for this runner. |
-| 2026-09-04 | Simulator launcher | `run-simulator.sh --isolate` builds successfully but cannot install: it assumes products under agent DerivedData, while `xcodebuild -showBuildSettings` resolves `BUILT_PRODUCTS_DIR` to the shared `.DerivedData/Build/Products/Debug-iphonesimulator`; use the resolved product path for inspection. |
 
 ## Resolved
 
 | Date | Area | Resolution (commit / owner link) |
 |------|------|------------------------------------|
+| 2026-09-06 | Homestead save failure | [Save recovery](../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) compensates affected graph slices without SwiftData rollback; disk-backed Food collection, reset, deferred failure, and retry regressions pass. |
+| 2026-09-06 | UI result finalization | [Diagnostics guidance](../Docs/AgentContext/ci-diagnostics.md) documents log-proven success, incomplete bundles, evidence retention, and separate motion recording. Existing watchdog regressions verify bounded completion and failure precedence; the Xcode finalization hang remains a supported tooling limitation. |
+| 2026-09-06 | Package test destination | [The package runner](../Scripts/test-package.sh) rejects non-simulator platforms and destinations combined with generic build-for-testing before side effects; simulator name/UUID overrides remain supported. |
+| 2026-09-06 | Simulator launcher | [The launcher](../Scripts/run-simulator.sh) resolves the app from the Trinket target’s build settings and validates the product before installation; wrapper regressions cover custom product paths and missing outputs, and an isolated build/install/launch passed. |
 | 2026-09-06 | Script failure evidence | [Script checks](../Scripts/test-scripts.sh) now retain failed logs with bounded excerpts; `--fast` help accurately states that all shell regressions are skipped. |
 | 2026-09-05 | Balance report retention | [The sweep wrapper](../Scripts/balance-sweep.sh) retains evidence; successful runs and `--help` no longer delete the report directory. |
 | 2026-09-05 | Build/test preflight | [Wrappers](../Scripts/README.md) defer slot reservation until execution, reject duplicate/unknown packages, prepare standalone package build inputs, and keep final handoff previews from executing the docs gate. |

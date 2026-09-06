@@ -12,6 +12,14 @@ Campaign reward and completion **domain write policies** also live here (`Battle
 
 Options are deliberately separate: `OptionsStore` uses app-storage-compatible `UserDefaults`, not player-save/CloudKit state. Packages must not import app or SwiftUI feature code.
 
+Failed writes restore the pre-mutation value snapshot into the affected graph slices
+and observed projection. This compensation stays unsaved until a later successful
+write; recovery does not call `ModelContext.rollback()` because restoring deleted
+relationship rows can crash SwiftData on the iOS 27 simulator. An immediate failure
+preserves earlier deferred changes, while a failed deferred flush restores its
+last persisted snapshot. Full resets compensate the complete graph. Reload tests
+must also prove that a subsequent successful write preserves the recovered values.
+
 For a new store API, write a persistence test that mutates, reloads from disk, and asserts the result. Use `PersistenceTestContext`; do not test real CloudKit I/O. Isolate `@MainActor` on the store-opening test, not the suite, so sanitizer and domain-math tests stay parallelizable. Verification routing is owned by [Verification.md](../Platform/Verification.md).
 
 Read [TrinketPersistence README](../../Packages/TrinketPersistence/README.md) for the model graph. Fixture conventions: `Docs/Platform/Testing.md`. CloudKit enablement: [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md). Identity: [Identity.md](../Product/Identity.md).

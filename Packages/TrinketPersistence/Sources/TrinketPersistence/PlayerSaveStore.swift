@@ -184,7 +184,7 @@ public final class PlayerSaveStore {
                 clearPendingDeferredPersistence()
                 lastPersistenceError = nil
             } catch {
-                restoreSnapshot(snapshot)
+                restoreSnapshot(snapshot, slices: changedSlices)
                 throw PlayerSavePersistenceError.writeFailed
             }
         } else {
@@ -308,7 +308,7 @@ public final class PlayerSaveStore {
         do {
             try saveGraph()
         } catch {
-            restoreSnapshot(observedSnapshot)
+            restoreSnapshot(observedSnapshot, slices: repairSlices)
         }
     }
 }
@@ -392,14 +392,13 @@ private extension PlayerSaveStore {
 
     func rollbackPendingMutationIfNeeded() {
         guard let pendingRollbackSnapshot else { return }
-        restoreSnapshot(pendingRollbackSnapshot)
+        restoreSnapshot(pendingRollbackSnapshot, slices: pendingRollbackSlices)
         clearPendingDeferredPersistence()
     }
 
-    func restoreSnapshot(_ snapshot: PlayerSave) {
-        root.update(from: snapshot, context: context)
-        context.rollback()
-        installObservedSave(snapshot)
+    func restoreSnapshot(_ snapshot: PlayerSave, slices: PlayerSaveSlice = .all) {
+        root.apply(snapshot, slices: slices, context: context)
+        installObservedSave(snapshot, slices: slices)
     }
 
     func clearPendingDeferredPersistence() {
