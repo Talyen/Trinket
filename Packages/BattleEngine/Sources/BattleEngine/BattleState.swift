@@ -75,9 +75,32 @@ public struct BattleState {
     public var events: [ActionEvent]
     public var gold: Int
     public let initialGold: Int
-    public let heroModifiers: CombatModifierProfile
-    public let companionModifiers: CombatModifierProfile
-    public let enemyModifiers: CombatModifierProfile
+    private final class ModifierProfiles: Sendable {
+        let hero: CombatModifierProfile
+        let companion: CombatModifierProfile
+        let enemy: CombatModifierProfile
+
+        init(hero: CombatModifierProfile, companion: CombatModifierProfile, enemy: CombatModifierProfile) {
+            self.hero = hero
+            self.companion = companion
+            self.enemy = enemy
+        }
+    }
+
+    private let modifierProfiles: ModifierProfiles
+
+    public var heroModifiers: CombatModifierProfile {
+        modifierProfiles.hero
+    }
+
+    public var companionModifiers: CombatModifierProfile {
+        modifierProfiles.companion
+    }
+
+    public var enemyModifiers: CombatModifierProfile {
+        modifierProfiles.enemy
+    }
+
     public var actionCount: Int
     public var hasLoggedDefeat: Bool
     public var hasLoggedPartyDefeat: Bool
@@ -170,9 +193,7 @@ public struct BattleState {
         self.events = events
         self.gold = gold
         self.initialGold = initialGold
-        self.heroModifiers = heroModifiers
-        self.companionModifiers = companionModifiers
-        self.enemyModifiers = enemyModifiers
+        modifierProfiles = ModifierProfiles(hero: heroModifiers, companion: companionModifiers, enemy: enemyModifiers)
         self.actionCount = actionCount
         self.hasLoggedDefeat = hasLoggedDefeat
         self.hasLoggedPartyDefeat = hasLoggedPartyDefeat

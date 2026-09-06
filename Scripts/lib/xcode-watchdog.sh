@@ -54,7 +54,7 @@ xcode_runner_infer_exit_from_log() {
     printf '124'
     return
   }
-  if grep -Eq "\\*\\* (TEST|BUILD) FAILED \\*\\*|✘ (Test|Suite) .* (failed|recorded an issue)|Test (Case|Suite) .* failed|error:.*(XCTAssert|Expectation failed)" "$log_file"; then
+  if grep -Eq "\\*\\* (TEST|BUILD) FAILED \\*\\*|✘ (Test|Suite) .* (failed|recorded an issue)|Test (Case|Suite) .* failed|error:.*(XCTAssert|Expectation failed)|Restarting after unexpected exit" "$log_file"; then
     printf '65'
     return
   fi

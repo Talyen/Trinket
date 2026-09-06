@@ -17,7 +17,8 @@ for failure in \
   "✘ Test example() recorded an issue at Example.swift:12:3: Expectation failed" \
   "✘ Suite Example failed after 1 second with 1 issue." \
   "Test Case '-[Example example]' failed (0.1 seconds)." \
-  "Example.swift:12: error: XCTAssertEqual failed"; do
+  "Example.swift:12: error: XCTAssertEqual failed" \
+  "Restarting after unexpected exit, crash, or test timeout; summary will include totals from previous launches."; do
   printf '%s\n' "$failure" "✔ Test run with 2 tests passed after 0.1 seconds." > "$TMP_DIR/mixed-results.log"
   [[ "$(xcode_runner_infer_exit_from_log "$TMP_DIR/mixed-results.log")" == 65 ]]
 done
@@ -64,8 +65,7 @@ FAKE_HANG_SUITE
 cat > "$TMP_DIR/fake-hang-fail" <<'FAKE_HANG_FAIL'
 #!/usr/bin/env bash
 set -euo pipefail
-echo "✘ Test balanceFindings() failed after 0.5 seconds with 1 issue."
-echo "Restarting after unexpected exit."
+echo "Restarting after unexpected exit, crash, or test timeout; summary will include totals from previous launches."
 echo "✔ Test run with 2 tests in 1 suite passed after 0.1 seconds."
 while true; do sleep 60; done
 FAKE_HANG_FAIL
