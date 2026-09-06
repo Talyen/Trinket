@@ -136,6 +136,7 @@ public enum ItemRewardGenerator {
         reservedTrinketIDs: Set<String> = [],
         keywordBias: Set<Keyword> = [],
         eligibleTrinketIDs: Set<String>? = nil,
+        eligibleUniqueIDs: Set<String>? = nil,
         fallbackBaseType: ItemBaseType? = nil,
         guaranteedAffixIDs: [String] = [],
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
@@ -154,11 +155,17 @@ public enum ItemRewardGenerator {
             var uniques = GameContent.uniqueItems.filter {
                 !ownedUniqueIDs.contains($0.templateID)
             }
+            if let eligibleUniqueIDs {
+                uniques = uniques.filter { eligibleUniqueIDs.contains($0.templateID) }
+            }
             if !keywordBias.isEmpty {
                 uniques = uniques.filter { !$0.keywords.isDisjoint(with: keywordBias) }
             }
             if let unique = uniques.randomElement(using: &randomNumberGenerator) {
                 return unique
+            }
+            if eligibleUniqueIDs != nil {
+                return generated(id: id, rarity: .astral, context: context, using: &randomNumberGenerator)
             }
             return trinketOrGenerated(
                 id: id,

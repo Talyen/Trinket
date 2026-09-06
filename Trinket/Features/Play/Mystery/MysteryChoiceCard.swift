@@ -3,17 +3,11 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
-import TrinketPersistence
 
-struct MysteryChoiceCard: View {
-    @Environment(PlayerSaveStore.self) private var playerSave
-
+struct MysterySpecialChoiceCard: View {
     let choice: MysteryChoice
     let isSelected: Bool
     let isDisabled: Bool
-    let materialQuantity: Int
-    let heroExperienceAward: Int
-    let companionExperienceAward: Int
     let onSelect: () -> Void
 
     var body: some View {
@@ -96,46 +90,6 @@ struct MysteryChoiceCard: View {
     @ViewBuilder
     private func reward(for effect: MysteryEffect) -> some View {
         switch effect {
-        case let .gainGold(amount):
-            rewardSummary(
-                title: "Gold",
-                value: "+\(playerSave.homestead.effects.adjustedGold(amount))",
-                resource: .gold,
-                tint: HomesteadResource.gold.tint,
-            )
-
-        case let .gainMaterial(resource):
-            rewardSummary(
-                title: resource.displayName,
-                value: "+\(materialQuantity)",
-                resource: resource,
-                tint: resource.tint,
-            )
-
-        case .gainExperience:
-            let valueText = if heroExperienceAward == companionExperienceAward {
-                "+\(heroExperienceAward) XP"
-            } else {
-                "+\(heroExperienceAward) / +\(companionExperienceAward) XP"
-            }
-            rewardSummary(
-                title: "Experience",
-                value: valueText,
-                systemIcon: "sparkles",
-                tint: TrinketDesign.Colors.arcane,
-            )
-
-        case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
-            generatedItemReward(baseTypeID: baseTypeID, affixIDs: guaranteedAffixIDs)
-
-        case .gainRandomItem:
-            rewardSummary(
-                title: "Random Item",
-                value: nil,
-                systemIcon: "shippingbox.fill",
-                tint: TrinketDesign.Colors.encounterEvent,
-            )
-
         case let .unlockCombatant(combatantID):
             rewardSummary(
                 title: combatantName(id: combatantID),
@@ -151,6 +105,9 @@ struct MysteryChoiceCard: View {
                 systemIcon: "flame.fill",
                 tint: TrinketDesign.Colors.destructive,
             )
+
+        case .gainItem, .gainGold, .gainMaterial, .gainExperience:
+            EmptyView()
 
         case .leave:
             rewardSummary(
@@ -212,27 +169,6 @@ struct MysteryChoiceCard: View {
             minHeight: TrinketDesign.Layout.mysteryRewardRowMinHeight,
             alignment: .leading,
         )
-    }
-
-    private func generatedItemReward(baseTypeID: String, affixIDs: [String]) -> some View {
-        rewardSummary(
-            title: generatedItemRewardText(baseTypeID: baseTypeID, guaranteedAffixIDs: affixIDs),
-            value: nil,
-            systemIcon: "gift.fill",
-            tint: HomesteadResource.gold.tint,
-        )
-    }
-
-    private func generatedItemRewardText(
-        baseTypeID: String,
-        guaranteedAffixIDs: [String],
-    ) -> String {
-        let baseName = GameContent.itemBaseTypes.first { $0.id == baseTypeID }?.name ?? "Item"
-        let affixTitles = guaranteedAffixIDs.compactMap { id in
-            GameContent.itemAffixDefinition(matching: id)?.title
-        }
-        guard !affixTitles.isEmpty else { return baseName }
-        return "\(baseName) (\(affixTitles.joined(separator: ", ")))"
     }
 
     private func combatantName(id: String) -> String {

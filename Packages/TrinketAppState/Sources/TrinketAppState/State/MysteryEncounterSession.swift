@@ -17,6 +17,7 @@ enum MysteryChoiceOutcome: Equatable {
     case selectCorruptItem
     case corruptionReveal(ItemCorruptionDetail)
     case reward(MysteryEffectResult)
+    case refreshedOffers([MysteryOffer])
     case dismiss
     case failed
 }
@@ -48,9 +49,11 @@ public final class MysteryEncounterSession: Identifiable {
     public private(set) var applyResult: MysteryEffectResult?
     public private(set) var isResolvingChoice = false
     public private(set) var persistFailureMessage: String?
-    public private(set) var previewMaterialQuantity = 0
-    public private(set) var previewHeroExperienceAward = 0
-    public private(set) var previewCompanionExperienceAward = 0
+    public private(set) var offers: [MysteryOffer] = []
+
+    public var narrative: String {
+        event.narrative(for: offers)
+    }
 
     static let choiceUnavailableMessage = "That choice isn't available anymore."
 
@@ -146,33 +149,21 @@ public final class MysteryEncounterSession: Identifiable {
         return (session, event.id)
     }
 
-    func installPreviews(save: PlayerSave) {
-        let level = MysteryEffectApplier.resolvedEncounterLevel(
+    func prepareOffers(
+        save: inout PlayerSave,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) throws -> [MysteryOffer] {
+        try MysteryOfferPersistence.prepare(
+            event: event,
             stage: stage,
             labyrinthNodeID: labyrinthNodeID,
-            save: save,
+            save: &save,
+            using: &randomNumberGenerator,
         )
-        previewMaterialQuantity = MysteryEffectApplier.materialQuantity(forLevel: level)
-        let experiencePercent = labyrinthNodeID.map {
-            save.labyrinth.effects(for: $0).experienceEarnedPercent
-        } ?? 0
-        let roster = save.roster
-        previewHeroExperienceAward = CombatRounding.scaled(
-            MysteryEffectApplier.experienceAward(
-                for: roster.progression(for: roster.activeHero),
-                highestLevel: roster.highestHeroLevel,
-                encounterLevel: level,
-            ),
-            byPercent: experiencePercent,
-        )
-        previewCompanionExperienceAward = CombatRounding.scaled(
-            MysteryEffectApplier.experienceAward(
-                for: roster.progression(for: roster.activeCompanion),
-                highestLevel: roster.highestCompanionLevel,
-                encounterLevel: level,
-            ),
-            byPercent: experiencePercent,
-        )
+    }
+
+    func installOffers(_ offers: [MysteryOffer]) {
+        self.offers = offers
     }
 }
 
@@ -250,11 +241,6 @@ extension MysteryEncounterSession {
         guard canResolveChoice else { return .failed }
         markChoiceStarted()
 
-        func mysteryRewardBonuses(in save: PlayerSave) -> LabyrinthModifierEffects {
-            guard let labyrinthNodeID else { return .zero }
-            return save.labyrinth.effects(for: labyrinthNodeID)
-        }
-
         let choice: MysteryChoice? = if let choiceID {
             event.choices.first { $0.id == choiceID }
         } else {
@@ -280,7 +266,10 @@ extension MysteryEncounterSession {
             return .dismiss
         }
 
-        let rewardBonuses = mysteryRewardBonuses(in: save)
+        if choice.itemPool != nil {
+            return resolveOrdinaryChoice(choice, save: &save, using: &randomNumberGenerator)
+        }
+        let rewardBonuses = labyrinthNodeID.map { save.labyrinth.effects(for: $0) } ?? .zero
         let applyResult = MysteryEffectApplier.apply(
             choice.effects,
             stageID: stage.id,
@@ -309,6 +298,20 @@ extension MysteryEncounterSession {
             return .reward(applyResult)
         }
         return .dismiss
+    }
+
+    private func resolveOrdinaryChoice(
+        _ choice: MysteryChoice,
+        save: inout PlayerSave,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) -> MysteryChoiceOutcome {
+        guard let prepared = try? prepareOffers(save: &save, using: &randomNumberGenerator) else {
+            return .failed
+        }
+        guard prepared == offers else { return .refreshedOffers(prepared) }
+        guard let offer = offers.first(where: { $0.choiceID == choice.id }) else { return .failed }
+        let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: labyrinthNodeID, save: &save)
+        return result.grantedItems.count == 1 ? .reward(result) : .failed
     }
 
     func corruptSelectedItem(
@@ -347,6 +350,10 @@ extension MysteryEncounterSession {
             presentCorruptionReveal(result: result)
         case let .reward(result):
             presentReward(result: result)
+        case let .refreshedOffers(offers):
+            installOffers(offers)
+            returnToReading()
+            markPersistFailed("Your rewards changed. Review the offers and choose again.")
         case .dismiss, .failed:
             markResolvedWithoutReveal()
         }

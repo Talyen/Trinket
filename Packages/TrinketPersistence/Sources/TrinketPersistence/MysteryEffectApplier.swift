@@ -79,23 +79,16 @@ public enum MysteryEventPinApplier {
 
 public enum MysteryEffectApplier {
     public static func materialQuantity(forLevel level: Int) -> Int {
-        let clamped = max(1, level)
-        return 4 + (clamped * 14) / 49
+        4 + (max(1, level) * 14) / 49
     }
 
     public static func experienceAward(
-        for progression: CombatantProgression,
-        highestLevel: Int,
         encounterLevel: Int,
+        roster: PlayerRosterState,
+        percent: Int = 0,
     ) -> Int {
-        ExperienceScaling.cappedAward(
-            ExperienceScaling.battleAwardWithCatchUp(
-                playerLevel: progression.level,
-                enemyLevel: encounterLevel,
-                highestLevel: highestLevel,
-            ),
-            for: progression,
-        )
+        let base = ExperienceScaling.baseBattleAward(forPlayerLevel: max(1, encounterLevel))
+        return sharedExperience(CombatRounding.scaled(base, byPercent: percent), roster: roster)
     }
 
     public static func resolvedEncounterLevel(
@@ -110,6 +103,52 @@ public enum MysteryEffectApplier {
         )
     }
 
+    public static func resolveOffer(
+        choice: MysteryChoice,
+        encounterID: String,
+        encounterLevel: Int,
+        save: PlayerSave,
+        bonuses: LabyrinthModifierEffects = .zero,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) -> MysteryOffer {
+        guard let pool = choice.itemPool,
+              let bonusEffect = choice.effects.first(where: { effect in
+                  switch effect {
+                  case .gainGold, .gainMaterial, .gainExperience: true
+                  default: false
+                  }
+              }),
+              let bonus = resolveBonus(
+                  bonusEffect,
+                  encounterLevel: encounterLevel,
+                  save: save,
+                  goldPercent: bonuses.goldFoundPercent,
+                  experiencePercent: bonuses.experienceEarnedPercent,
+                  materialsPercent: bonuses.materialsFoundPercent,
+              )
+        else {
+            preconditionFailure("Ordinary Mystery choices require an item pool and a secondary reward")
+        }
+        return MysteryOffer(
+            choiceID: choice.id,
+            item: generateItem(
+                pool: pool,
+                id: "\(encounterID)-\(choice.id)",
+                save: save,
+                using: &randomNumberGenerator,
+            ),
+            bonus: bonus,
+        )
+    }
+
+    public static func apply(_ offer: MysteryOffer, save: inout PlayerSave, at date: Date = Date()) -> MysteryEffectResult {
+        guard isAvailable(offer.item, in: save.inventory) else { return MysteryEffectResult() }
+        var result = MysteryEffectResult()
+        append(offer.item, save: &save, result: &result)
+        apply(offer.bonus, save: &save, result: &result, at: date)
+        return result
+    }
+
     public static func apply(
         _ effects: [MysteryEffect],
         stageID: String,
@@ -117,297 +156,133 @@ public enum MysteryEffectApplier {
         encounterLevel: Int,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-        itemGenerator: ItemGenerator = ItemGenerator(),
-        baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
         goldFoundPercent: Int = 0,
         experienceEarnedPercent: Int = 0,
         materialsFoundPercent: Int = 0,
     ) -> MysteryEffectResult {
-        var state = ApplyState(
-            materialQuantity: scaledQuantity(materialQuantity(forLevel: encounterLevel), percent: materialsFoundPercent),
-            goldFoundPercent: goldFoundPercent,
-            experienceEarnedPercent: experienceEarnedPercent,
-            encounterLevel: encounterLevel,
-        )
-        let hero = save.roster.activeHero
-        let companion = save.roster.activeCompanion
-        let heroProgressionBefore = save.roster.progression(for: hero)
-        let companionProgressionBefore = save.roster.progression(for: companion)
-        let itemContext = GeneratedItemContext(
-            stageID: stageID,
-            choiceID: choiceID,
-            itemGenerator: itemGenerator,
-            baseTypes: baseTypes,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-        )
-
-        for effect in effects {
-            let ownership = ThemedItemOwnership(
-                save.inventory,
-                eligibleTrinketIDs: itemContext.eligibleTrinketIDs,
-            )
-            apply(
-                effect,
-                hero: hero,
-                companion: companion,
-                save: &save,
-                state: &state,
-                items: ItemResolution(context: itemContext, ownership: ownership),
-                using: &randomNumberGenerator,
-            )
-        }
-        return finalize(
-            &state,
-            save: &save,
-            hero: hero,
-            companion: companion,
-            heroProgressionBefore: heroProgressionBefore,
-            companionProgressionBefore: companionProgressionBefore,
-        )
-    }
-
-    private static func finalize(
-        _ state: inout ApplyState,
-        save: inout PlayerSave,
-        hero: Combatant,
-        companion: Combatant,
-        heroProgressionBefore: CombatantProgression,
-        companionProgressionBefore: CombatantProgression,
-    ) -> MysteryEffectResult {
-        let materials = state.materialTotals.map { ResourceAmount($0.key, $0.value) }
-            .sorted { $0.resource.rawValue < $1.resource.rawValue }
-        if !materials.isEmpty {
-            state.result.grantedMaterials = save.grantMaterials(materials)
-        }
-        if state.result.hasGrantedExperience {
-            state.result.heroProgressionBefore = heroProgressionBefore
-            state.result.heroProgressionAfter = save.roster.progression(for: hero)
-            state.result.companionProgressionBefore = companionProgressionBefore
-            state.result.companionProgressionAfter = save.roster.progression(for: companion)
-        }
-        return state.result
-    }
-
-    private struct GeneratedItemContext {
-        let stageID: String
-        let choiceID: String
-        let itemGenerator: ItemGenerator
-        let baseTypes: [ItemBaseType]
-        let astralChanceBonusPercent: Int
-
-        var eligibleTrinketIDs: Set<String> {
-            GameContent.themedTrinketIDs(forMysteryChoiceID: choiceID) ?? []
-        }
-    }
-
-    private struct ApplyState {
         var result = MysteryEffectResult()
-        var materialTotals: [HomesteadResource: Int] = [:]
-        var itemOrdinal = 0
-        let materialQuantity: Int
-        let goldFoundPercent: Int
-        let experienceEarnedPercent: Int
-        let encounterLevel: Int
+        for effect in effects {
+            switch effect {
+            case let .gainItem(pool):
+                let item = generateItem(
+                    pool: pool,
+                    id: "\(stageID)-\(choiceID)-\(result.grantedItems.count)",
+                    save: save,
+                    using: &randomNumberGenerator,
+                )
+                append(item, save: &save, result: &result)
+            case let .unlockCombatant(id):
+                if save.roster.unlockCombatant(id: id) {
+                    result.unlockedCombatantIDs.append(id)
+                }
+            case .gainGold, .gainMaterial, .gainExperience:
+                if let bonus = resolveBonus(
+                    effect,
+                    encounterLevel: encounterLevel,
+                    save: save,
+                    goldPercent: goldFoundPercent,
+                    experiencePercent: experienceEarnedPercent,
+                    materialsPercent: materialsFoundPercent,
+                ) {
+                    apply(bonus, save: &save, result: &result)
+                }
+            case .corruptItem, .leave:
+                break
+            }
+        }
+        return result
     }
 
-    private static func scaledQuantity(_ quantity: Int, percent: Int) -> Int {
-        CombatRounding.scaled(quantity, byPercent: percent)
+    static func isAvailable(_ item: InventoryItem, in inventory: PlayerInventoryState) -> Bool {
+        if item.isTrinket {
+            return !inventory.ownedTrinketIDs.contains(item.templateID)
+        }
+        if item.rarity == .unique {
+            return !inventory.ownedUniqueIDs.contains(item.templateID)
+        }
+        return !inventory.items.contains { $0.id == item.id }
     }
 
-    private static func scaledAward(
-        for progression: CombatantProgression,
-        highestLevel: Int,
-        encounterLevel: Int,
-        percent: Int,
-    ) -> Int {
-        scaledQuantity(
-            experienceAward(for: progression, highestLevel: highestLevel, encounterLevel: encounterLevel),
-            percent: percent,
+    static func sharedExperience(_ amount: Int, roster: PlayerRosterState) -> Int {
+        min(
+            ExperienceScaling.cappedAward(amount, for: roster.progression(for: roster.activeHero)),
+            ExperienceScaling.cappedAward(amount, for: roster.progression(for: roster.activeCompanion)),
         )
     }
 
-    private struct ItemResolution {
-        let context: GeneratedItemContext
-        let ownership: ThemedItemOwnership
+    private static func generateItem(
+        pool: MysteryItemPool,
+        id: String,
+        save: PlayerSave,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) -> InventoryItem {
+        guard let base = GameContent.itemBaseType(matching: pool.baseTypeID), base.slot != .trinket else {
+            preconditionFailure("Mystery item pools require a known gear base")
+        }
+        let tier = MysteryItemRarity.roll(
+            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+            using: &randomNumberGenerator,
+        )
+        return ItemRewardGenerator.generate(
+            id: id,
+            tier: tier,
+            ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+            ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+            eligibleTrinketIDs: pool.trinketIDs,
+            eligibleUniqueIDs: pool.uniqueIDs,
+            fallbackBaseType: base,
+            guaranteedAffixIDs: pool.guaranteedAffixIDs,
+            using: &randomNumberGenerator,
+        )
     }
 
-    private static func apply(
+    private static func resolveBonus(
         _ effect: MysteryEffect,
-        hero: Combatant,
-        companion: Combatant,
-        save: inout PlayerSave,
-        state: inout ApplyState,
-        items: ItemResolution,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) {
+        encounterLevel: Int,
+        save: PlayerSave,
+        goldPercent: Int,
+        experiencePercent: Int,
+        materialsPercent: Int,
+    ) -> MysteryRewardBonus? {
         switch effect {
         case let .gainGold(amount):
-            guard amount > 0 else { return }
-            let combinedPercent = state.goldFoundPercent + save.homestead.effects.goldFindPercent
-            let scaled = scaledQuantity(amount, percent: combinedPercent)
-            state.result.grantedGold += save.grantGold(scaled)
-
+            .gold(CombatRounding.scaled(amount, byPercent: goldPercent + save.homestead.effects.goldFindPercent))
         case let .gainMaterial(resource):
-            guard resource != .gold else { return }
-            state.materialTotals[resource, default: 0] += state.materialQuantity
-
+            .material(resource, CombatRounding.scaled(materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent))
         case .gainExperience:
-            let heroAward = scaledAward(
-                for: save.roster.progression(for: hero),
-                highestLevel: save.roster.highestHeroLevel,
-                encounterLevel: state.encounterLevel,
-                percent: state.experienceEarnedPercent,
-            )
-            let companionAward = scaledAward(
-                for: save.roster.progression(for: companion),
-                highestLevel: save.roster.highestCompanionLevel,
-                encounterLevel: state.encounterLevel,
-                percent: state.experienceEarnedPercent,
-            )
-            state.result.heroGrantedExperience += save.roster.grantExperience(heroAward, to: hero)
-            state.result.companionGrantedExperience += save.roster.grantExperience(
-                companionAward,
-                to: companion,
-            )
-
-        case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
-            appendThemedItem(
-                baseTypeID: baseTypeID,
-                guaranteedAffixIDs: guaranteedAffixIDs,
-                ownership: items.ownership,
-                state: &state,
-                save: &save,
-                itemContext: items.context,
-                using: &randomNumberGenerator,
-            )
-
-        case .gainRandomItem:
-            guard let baseType = items.context.baseTypes
-                .filter({ $0.slot != .trinket })
-                .randomElement(using: &randomNumberGenerator) else {
-                return
-            }
-            appendThemedItem(
-                baseTypeID: baseType.id,
-                guaranteedAffixIDs: [],
-                ownership: items.ownership,
-                state: &state,
-                save: &save,
-                itemContext: items.context,
-                using: &randomNumberGenerator,
-            )
-
-        case let .unlockCombatant(combatantID):
-            applyUnlock(combatantID, save: &save, result: &state.result)
-
-        case .corruptItem, .leave:
-            break
+            .experience(experienceAward(encounterLevel: encounterLevel, roster: save.roster, percent: experiencePercent))
+        default:
+            nil
         }
     }
 
-    private static func appendThemedItem(
-        baseTypeID: String,
-        guaranteedAffixIDs: [String],
-        ownership: ThemedItemOwnership,
-        state: inout ApplyState,
-        save: inout PlayerSave,
-        itemContext: GeneratedItemContext,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) {
-        guard let item = makeGeneratedItem(
-            baseTypeID: baseTypeID,
-            guaranteedAffixIDs: guaranteedAffixIDs,
-            ordinal: state.itemOrdinal,
-            context: itemContext,
-            ownership: ownership,
-            using: &randomNumberGenerator,
-        ) else {
-            return
-        }
-        appendGeneratedItem(item, to: &save, state: &state)
-    }
-
-    private static func applyUnlock(
-        _ combatantID: String,
-        save: inout PlayerSave,
-        result: inout MysteryEffectResult,
-    ) {
-        if save.roster.unlockCombatant(id: combatantID) {
-            result.unlockedCombatantIDs.append(combatantID)
-        }
-    }
-
-    private static func appendItem(
-        _ item: InventoryItem,
-        to save: inout PlayerSave,
-        result: inout MysteryEffectResult,
-    ) {
-        let priorCount = save.inventory.items.count
+    private static func append(_ item: InventoryItem, save: inout PlayerSave, result: inout MysteryEffectResult) {
+        guard isAvailable(item, in: save.inventory) else { return }
         save.inventory.appendUniqueItem(item)
-        guard save.inventory.items.count > priorCount else { return }
         result.grantedItems.append(item)
     }
 
-    private static func appendGeneratedItem(
-        _ item: InventoryItem,
-        to save: inout PlayerSave,
-        state: inout ApplyState,
+    private static func apply(
+        _ bonus: MysteryRewardBonus,
+        save: inout PlayerSave,
+        result: inout MysteryEffectResult,
+        at date: Date = Date(),
     ) {
-        state.itemOrdinal += 1
-        appendItem(item, to: &save, result: &state.result)
-    }
-
-    private struct ThemedItemOwnership {
-        let ownedTrinketIDs: Set<String>
-        let ownedUniqueIDs: Set<String>
-        let eligibleTrinketIDs: Set<String>?
-
-        init(_ inventory: PlayerInventoryState, eligibleTrinketIDs: Set<String>?) {
-            ownedTrinketIDs = inventory.ownedTrinketIDs
-            ownedUniqueIDs = inventory.ownedUniqueIDs
-            self.eligibleTrinketIDs = eligibleTrinketIDs
+        switch bonus {
+        case let .gold(amount):
+            result.grantedGold += save.grantGold(amount, at: date)
+        case let .material(resource, amount):
+            result.grantedMaterials += save.grantMaterials([ResourceAmount(resource, amount)], at: date)
+        case let .experience(amount):
+            let hero = save.roster.activeHero
+            let companion = save.roster.activeCompanion
+            let award = sharedExperience(amount, roster: save.roster)
+            result.heroProgressionBefore = save.roster.progression(for: hero)
+            result.companionProgressionBefore = save.roster.progression(for: companion)
+            result.heroGrantedExperience += save.roster.grantExperience(award, to: hero)
+            result.companionGrantedExperience += save.roster.grantExperience(award, to: companion)
+            result.heroProgressionAfter = save.roster.progression(for: hero)
+            result.companionProgressionAfter = save.roster.progression(for: companion)
         }
-    }
-
-    private static func makeGeneratedItem(
-        baseTypeID: String,
-        guaranteedAffixIDs: [String],
-        ordinal: Int,
-        context: GeneratedItemContext,
-        ownership: ThemedItemOwnership,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> InventoryItem? {
-        guard let baseType = context.baseTypes.first(where: { $0.id == baseTypeID }) else {
-            return nil
-        }
-        if baseType.slot == .trinket {
-            if let eligible = ownership.eligibleTrinketIDs, !eligible.contains(baseTypeID) {
-                return nil
-            }
-            guard let item = GameContent.trinketItems.first(where: { $0.templateID == baseTypeID }),
-                  !ownership.ownedTrinketIDs.contains(item.templateID)
-            else {
-                return nil
-            }
-            return item
-        }
-        let tier = MysteryItemRarity.roll(
-            astralChanceBonusPercent: context.astralChanceBonusPercent,
-            using: &randomNumberGenerator,
-        )
-        let itemID =
-            "\(context.stageID)-\(context.choiceID)-\(ordinal)-\(baseTypeID)-\(tier.rawValue)"
-        return ItemRewardGenerator.generate(
-            id: itemID,
-            tier: tier,
-            ownedTrinketIDs: ownership.ownedTrinketIDs,
-            ownedUniqueIDs: ownership.ownedUniqueIDs,
-            eligibleTrinketIDs: ownership.eligibleTrinketIDs,
-            fallbackBaseType: baseType,
-            guaranteedAffixIDs: guaranteedAffixIDs,
-            baseTypes: context.baseTypes,
-            itemGenerator: context.itemGenerator,
-            using: &randomNumberGenerator,
-        )
     }
 }

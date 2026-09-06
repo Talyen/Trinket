@@ -43,8 +43,10 @@ public enum ShopOfferGenerator {
             } else if allAstral {
                 .astral
             } else {
-                MysteryItemRarity.roll(
+                ItemRarityRoll.roll(
+                    bossContent: false,
                     astralChanceBonusPercent: astralChanceBonusPercent,
+                    allowsUnique: false,
                     using: &randomNumberGenerator,
                 )
             }

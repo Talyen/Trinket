@@ -20,6 +20,7 @@ public final class JourneyStageProgressModel {
     public var isCompleted: Bool = false
     public var rewardsClaimed: Bool = false
     public var mysteryEventID: String?
+    public var mysteryOffersPayload: Data?
     public var journey: JourneyProgressModel?
 
     public init(
@@ -51,6 +52,12 @@ extension JourneyProgressModel {
             completedStageIDs: Set(stageModels.filter(\.isCompleted).map(\.stageID)),
             claimedRewardStageIDs: Set(stageModels.filter(\.rewardsClaimed).map(\.stageID)),
             pinnedMysteryEventIDs: pinned,
+            mysteryOfferPayloads: Dictionary(
+                stageModels.compactMap { model in
+                    model.mysteryOffersPayload.map { (model.stageID, $0) }
+                },
+                uniquingKeysWith: { _, new in new },
+            ),
         )
     }
 
@@ -60,6 +67,7 @@ extension JourneyProgressModel {
         let allStageIDs = state.completedStageIDs
             .union(state.claimedRewardStageIDs)
             .union(Set(state.pinnedMysteryEventIDs.keys))
+            .union(Set(state.mysteryOfferPayloads.keys))
         stages = reconcileModels(
             existing: stages ?? [],
             values: allStageIDs.sorted(),
@@ -71,6 +79,7 @@ extension JourneyProgressModel {
                 model.isCompleted = state.completedStageIDs.contains(stageID)
                 model.rewardsClaimed = state.claimedRewardStageIDs.contains(stageID)
                 model.mysteryEventID = state.pinnedMysteryEventIDs[stageID]
+                model.mysteryOffersPayload = state.mysteryOfferPayloads[stageID]
             },
             link: { $0.journey = self },
             context: context,

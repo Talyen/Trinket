@@ -12,8 +12,8 @@ struct MysteryEffectApplierTests {
         let companion = save.roster.activeCompanion
         let heroProgressionBefore = save.roster.progression(for: hero)
         let companionProgressionBefore = save.roster.progression(for: companion)
-        let expectedHeroXP = 16
-        let expectedCompanionXP = 10
+        let expectedHeroXP = 7
+        let expectedCompanionXP = 7
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -95,7 +95,7 @@ struct MysteryEffectApplierTests {
         )
     }
 
-    @Test func `gain experience scales per recipient level`() throws {
+    @Test func `mystery experience grants the same amount across recipient levels`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = save.roster.activeCompanion
@@ -103,8 +103,8 @@ struct MysteryEffectApplierTests {
         save.roster.progressions[companion.id] = .at(level: 5)
         let heroBefore = save.roster.progression(for: hero)
         let companionBefore = save.roster.progression(for: companion)
-        let expectedHeroXP = 0
-        let expectedCompanionXP = 16
+        let expectedHeroXP = 7
+        let expectedCompanionXP = 7
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -118,7 +118,7 @@ struct MysteryEffectApplierTests {
 
         try #expect(result.heroGrantedExperience == expectedHeroXP)
         try #expect(result.companionGrantedExperience == expectedCompanionXP)
-        try #expect(expectedHeroXP != expectedCompanionXP)
+        try #expect(expectedHeroXP == expectedCompanionXP)
         try #expect(result.heroProgressionAfter == heroBefore.addingExperience(expectedHeroXP))
         try #expect(result.companionProgressionAfter == companionBefore.addingExperience(expectedCompanionXP))
     }
@@ -178,7 +178,7 @@ struct MysteryEffectApplierTests {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 11)
 
         let result = MysteryEffectApplier.apply(
-            [.gainGeneratedItem(baseTypeID: "sapphire_ring", guaranteedAffixIDs: ["manabound"])],
+            [.gainItem(MysteryItemPool(baseTypeID: "sapphire_ring", guaranteedAffixIDs: ["manabound"]))],
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
             encounterLevel: 1,
@@ -193,53 +193,47 @@ struct MysteryEffectApplierTests {
         try #expect(item.rarity == .basic || item.rarity == .astral)
     }
 
-    @Test func `gain random item appends one inventory item`() throws {
+    @Test func `resolved offer grants its exact item and secondary reward`() throws {
         var save = SaveTestSupport.makeSave()
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 99)
-
-        let result = MysteryEffectApplier.apply(
-            [.gainRandomItem],
-            stageID: "chapter-1-stage-2",
-            choiceID: "loot-crypt",
-            encounterLevel: 1,
-            save: &save,
-            using: &randomNumberGenerator,
+        let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
+        var rng = SeededRandomNumberGenerator(seed: 42)
+        let offer = MysteryEffectApplier.resolveOffer(
+            choice: event.choices[0],
+            encounterID: "spring",
+            encounterLevel: 6,
+            save: save,
+            using: &rng,
         )
-
-        try #expect(result.grantedItems.count == 1)
-        try #expect(save.inventory.items.count == 1)
+        let result = MysteryEffectApplier.apply(offer, save: &save)
+        #expect(result.grantedItems == [offer.item])
+        #expect(save.inventory.items.contains(offer.item))
+        #expect(result.grantedMaterials == [ResourceAmount(.crystal, offer.bonus.amount)])
+        #expect(MysteryEffectApplier.apply(offer, save: &save).isEmpty)
     }
 
-    @Test func `mystery trinkets respect strong choice mappings`() throws {
-        var mappedTrinketIDs = Set<String>()
-        for seed in UInt64(1) ... 48 {
+    @Test func `special rolls stay inside the choice pool and fall back when owned`() throws {
+        let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
+        let choice = event.choices[0]
+        for tier in [ItemDropTier.trinket, .unique] {
+            let matchingSeed = (UInt64(1) ... 1000).first { seed in
+                var rng = SeededRandomNumberGenerator(seed: seed)
+                return MysteryItemRarity.roll(using: &rng) == tier
+            }
+            let seed = try #require(matchingSeed)
             var save = SaveTestSupport.makeSave()
-            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
-            let result = MysteryEffectApplier.apply(
-                [.gainRandomItem],
-                stageID: "chapter-2-stage-2",
-                choiceID: "search-the-crypt",
-                encounterLevel: 6,
-                save: &save,
-                using: &randomNumberGenerator,
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            let offer = MysteryEffectApplier.resolveOffer(
+                choice: choice, encounterID: "spring", encounterLevel: 6, save: save, using: &rng,
             )
-            mappedTrinketIDs.formUnion(result.grantedItems.filter(\.isTrinket).map(\.templateID))
-        }
-        try #expect(!mappedTrinketIDs.isEmpty)
-        try #expect(mappedTrinketIDs.isSubset(of: ["bone_charm", "sin_eaters_lantern"]))
-
-        for seed in UInt64(1) ... 8 {
-            var save = SaveTestSupport.makeSave()
-            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
-            let result = MysteryEffectApplier.apply(
-                [.gainRandomItem],
-                stageID: "chapter-2-stage-2",
-                choiceID: "unmapped-choice",
-                encounterLevel: 6,
-                save: &save,
-                using: &randomNumberGenerator,
+            let expectedID = tier == .trinket ? "icy_heart" : "rimeheart_locket"
+            #expect(offer.item.templateID == expectedID)
+            save.inventory.appendUniqueItem(offer.item)
+            rng = SeededRandomNumberGenerator(seed: seed)
+            let fallback = MysteryEffectApplier.resolveOffer(
+                choice: choice, encounterID: "spring-again", encounterLevel: 6, save: save, using: &rng,
             )
-            try #expect(!result.grantedItems.contains(where: \.isTrinket))
+            #expect(fallback.item.baseType.id == "sapphire_amulet")
+            #expect(fallback.item.rarity == .astral)
         }
     }
 
@@ -267,23 +261,21 @@ struct MysteryEffectApplierTests {
         try #expect(ring.affixes.contains { $0.id == "manabound" })
     }
 
-    @Test func `generated trinket base grants catalog singleton`() throws {
+    @Test func `shared mystery XP respects the smaller grant ceiling`() {
         var save = SaveTestSupport.makeSave()
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
-        let catalog = try #require(GameContent.trinketItems.first { $0.templateID == "icy_heart" })
-
+        let hero = save.roster.activeHero
+        let companion = save.roster.activeCompanion
+        save.roster.progressions[hero.id] = .at(level: 1)
+        save.roster.progressions[companion.id] = .at(level: 30)
+        let award = MysteryEffectApplier.experienceAward(encounterLevel: 50, roster: save.roster, percent: 25)
+        #expect(award == 30)
+        var rng = SeededRandomNumberGenerator(seed: 1)
         let result = MysteryEffectApplier.apply(
-            [.gainGeneratedItem(baseTypeID: "icy_heart")],
-            stageID: "chapter-1-stage-2",
-            choiceID: "take-the-charm",
-            encounterLevel: 1,
-            save: &save,
-            using: &randomNumberGenerator,
+            [.gainExperience], stageID: "high-level", choiceID: "study", encounterLevel: 50,
+            save: &save, using: &rng, experienceEarnedPercent: 25,
         )
-
-        let item = try #require(result.grantedItems.first)
-        try #expect(item == catalog)
-        try #expect(save.inventory.items.contains(catalog))
+        #expect(result.heroGrantedExperience == 30)
+        #expect(result.companionGrantedExperience == 30)
     }
 
     @Test func `unlock combatant effects handle hero and companion idempotently`() throws {

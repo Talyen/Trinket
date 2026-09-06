@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TrinketBattleFeature
 import TrinketContent
+import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketPersistenceTestSupport
@@ -170,35 +171,20 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.roster.gold == goldBefore)
     }
 
-    @Test func `mystery experience preview matches hero and companion awards`() throws {
+    @Test func `mystery experience offer matches both recipients`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         var roster = state.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: 20)
         roster.progressions[roster.activeCompanionID] = .at(level: 5)
         state.playerSave.roster = roster
-
-        let event = try #require(GameContent.mysteryEvent(matching: "overgrown-temple"))
-        let session = attachMysterySession(event: event, to: state)
-        session.installPreviews(save: state.playerSave.currentSave)
-
-        let level = MysteryEffectApplier.resolvedEncounterLevel(
-            stage: session.stage,
-            labyrinthNodeID: session.labyrinthNodeID,
-            save: state.playerSave.currentSave,
-        )
-        let expectedHero = MysteryEffectApplier.experienceAward(
-            for: roster.progression(for: roster.activeHero),
-            highestLevel: roster.highestHeroLevel,
-            encounterLevel: level,
-        )
-        let expectedCompanion = MysteryEffectApplier.experienceAward(
-            for: roster.progression(for: roster.activeCompanion),
-            highestLevel: roster.highestCompanionLevel,
-            encounterLevel: level,
-        )
-        #expect(session.previewHeroExperienceAward == expectedHero)
-        #expect(session.previewCompanionExperienceAward == expectedCompanion)
-        #expect(expectedHero != expectedCompanion)
+        let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
+        let session = try attachPreparedMystery(event: event, to: state)
+        let offer = try #require(session.offers.last)
+        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
+        let result = try #require(session.applyResult)
+        #expect(result.heroGrantedExperience == offer.bonus.amount)
+        #expect(result.companionGrantedExperience == offer.bonus.amount)
+        #expect(result.grantedItems == [offer.item])
     }
 
     @Test func `leave choice dismisses encounter and completes progress`() throws {
@@ -208,6 +194,33 @@ struct AppStateMysteryRecruitTests {
 
         #expect(state.encounters.resolveActiveMysteryChoice(choiceID: "leave"))
         #expect(state.encounters.activeMysteryEncounter == nil)
+    }
+
+    @Test func `changed offers require another tap before any reward is claimed`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let session = try attachPreparedMystery(event: event, to: state)
+        let offer = try #require(session.offers.first)
+        let inventoryBefore = state.playerSave.inventory
+        var roster = state.playerSave.roster
+        roster.gold = 999
+        state.playerSave.roster = roster
+
+        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
+        #expect(session.phase == .reading)
+        #expect(session.persistFailureMessage != nil)
+        #expect(state.playerSave.inventory == inventoryBefore)
+        #expect(!state.playerSave.journey.completedStageIDs.contains(session.stage.id))
+        let refreshed = try #require(session.offers.first)
+        #expect(refreshed.item == offer.item)
+        guard case .experience = refreshed.bonus else {
+            Issue.record("Expected shared XP when Gold became full")
+            return
+        }
+        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
+        #expect(session.applyResult?.grantedItems == [refreshed.item])
+        #expect(session.applyResult?.heroGrantedExperience == refreshed.bonus.amount)
+        #expect(session.applyResult?.companionGrantedExperience == refreshed.bonus.amount)
     }
 
     @Test func `corrupt choice with no eligible items fails with banner`() throws {
@@ -229,19 +242,8 @@ struct AppStateMysteryRecruitTests {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
-        let stage = Stage(
-            id: "audit-mystery-gold",
-            chapterID: "chapter-1",
-            chapterNumber: 1,
-            stageNumber: 99,
-            encounter: .mysteryEvent(eventID: event.id),
-            rewards: .empty,
-        )
-        state.encounters.activeMysteryEncounter = MysteryEncounterSession(
-            origin: .journey(stage: stage),
-            event: event,
-            combatant: nil,
-        )
+        let session = try attachPreparedMystery(event: event, to: state)
+        let shown = try #require(session.offers.first)
 
         let goldBefore = state.playerSave.roster.gold
         playerSave.forcesNextSaveFailure = true
@@ -252,6 +254,9 @@ struct AppStateMysteryRecruitTests {
 
         #expect(state.encounters.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
         #expect(state.encounters.activeMysteryEncounter?.phase == .reward)
+        #expect(session.applyResult?.grantedItems == [shown.item])
+        #expect(state.playerSave.journey.mysteryOfferPayloads[session.stage.id] == nil)
+        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: shown.choiceID))
         playerSave.forcesNextSaveFailure = true
         #expect(state.encounters.finishActiveMysteryEncounter())
         #expect(playerSave.forcesNextSaveFailure)
@@ -310,6 +315,19 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.playerSave.roster.isCompanionUnlocked("bear"))
     }
     #endif
+
+    private func attachPreparedMystery(event: MysteryEvent, to state: PlaySession) throws -> MysteryEncounterSession {
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let session = MysteryEncounterSession(origin: .journey(stage: stage), event: event, combatant: nil)
+        var prepared: [MysteryOffer]?
+        #expect(state.playerSave.persistBatch(logging: "Prepare test mystery offers") { save in
+            var rng = SeededRandomNumberGenerator(seed: 7)
+            prepared = try? session.prepareOffers(save: &save, using: &rng)
+        })
+        try session.installOffers(#require(prepared))
+        state.encounters.activeMysteryEncounter = session
+        return session
+    }
 
     @discardableResult
     private func attachMysterySession(

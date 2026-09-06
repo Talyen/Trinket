@@ -138,6 +138,9 @@ enum PlayerSaveSanitizer {
             return GameContent.mysteryEvent(matching: eventID) != nil
                 || GameContent.recruitEvent(matching: eventID) != nil
         }
+        sanitized.mysteryOfferPayloads = journey.mysteryOfferPayloads.filter { stageID, _ in
+            validStageIDs.contains(stageID) && !sanitized.completedStageIDs.contains(stageID)
+        }
         if sanitized.pinnedMysteryEventIDs.count != beforePinned {
             sanitizerLogger.info("Sanitized journey: dropped invalid pinned mystery events")
         }

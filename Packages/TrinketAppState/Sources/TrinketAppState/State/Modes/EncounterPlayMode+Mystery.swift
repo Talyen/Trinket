@@ -52,7 +52,15 @@ public extension EncounterPlayMode {
             return pinFailure
         }
 
-        opened.session.installPreviews(save: playerSave.currentSave)
+        if !opened.session.event.isRecruit, !opened.session.isCorruptionAltar {
+            var offers: [MysteryOffer]?
+            let didPersist = playerSave.persistBatch(logging: "Failed to save mystery offers") { save in
+                var randomNumberGenerator = SystemRandomNumberGenerator()
+                offers = try? opened.session.prepareOffers(save: &save, using: &randomNumberGenerator)
+            }
+            guard didPersist, let offers else { return Self.mysteryPinFailureMessage }
+            opened.session.installOffers(offers)
+        }
         activeMysteryEncounter = opened.session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
         if opened.session.event.isRecruit {
@@ -214,6 +222,9 @@ public extension EncounterPlayMode {
         case .reveal, .corruptionReveal:
             mysterySession.applyOutcome(outcome)
             return true
+        case .refreshedOffers:
+            mysterySession.applyOutcome(outcome)
+            return false
         case .selectCorruptItem:
             mysterySession.applyOutcome(outcome, inventory: playerSave.inventory)
             return true

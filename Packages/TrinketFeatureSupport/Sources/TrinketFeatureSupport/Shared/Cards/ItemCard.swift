@@ -86,37 +86,8 @@ public struct ItemCard<Art: View>: View {
     }
 
     private var standardLabel: some View {
-        VStack(spacing: TrinketDesign.Spacing.tight) {
-            HStack(spacing: TrinketDesign.Spacing.tight) {
-                TrinketRarityLabel(
-                    rarity: item.rarity,
-                    labelOverride: item.isTrinket ? "Trinket" : nil,
-                )
-                .trinketFittedText()
-                if item.isCorrupted {
-                    Text(balanced: "Corrupted")
-                        .trinketTypography(.caption)
-                        .shineText(.corruption)
-                        .foregroundStyle(TrinketDesign.Colors.destructive)
-                        .trinketFittedText()
-                }
-            }
-
-            Text(balanced: item.displayName)
-                .trinketTypography(.cardLabel)
-                .shineText(shine ?? item.displayTextShine)
-                .foregroundStyle(.primary)
-                .multilineTextAlignment(.center)
-                .trinketFittedText()
-
-            if showsAffixCount {
-                Text(balanced: item.affixCountLabel)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-                    .trinketFittedText()
-            }
-        }
-        .opacity(labelOpacity)
+        ItemCardLabel(item: item, showsAffixCount: showsAffixCount, shine: shine)
+            .opacity(labelOpacity)
     }
 
     private var revealLabel: some View {
@@ -163,11 +134,5 @@ public extension ItemCard where Art == ItemArtwork {
         ) {
             ItemArtwork(item: item, variant: .thumbnail)
         }
-    }
-}
-
-private extension InventoryItem {
-    var affixCountLabel: String {
-        "\(affixes.count) \(affixes.count == 1 ? "trait" : "traits")"
     }
 }

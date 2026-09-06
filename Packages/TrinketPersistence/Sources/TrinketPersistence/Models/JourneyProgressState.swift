@@ -7,6 +7,7 @@ public struct JourneyProgressState: Equatable, Sendable {
     public var completedStageIDs: Set<String>
     public var claimedRewardStageIDs: Set<String>
     public var pinnedMysteryEventIDs: [String: String]
+    public var mysteryOfferPayloads: [String: Data]
 
     public static let initial = Self(
         activeChapterID: "chapter-1",
@@ -24,12 +25,14 @@ public struct JourneyProgressState: Equatable, Sendable {
         completedStageIDs: Set<String>,
         claimedRewardStageIDs: Set<String>,
         pinnedMysteryEventIDs: [String: String] = [:],
+        mysteryOfferPayloads: [String: Data] = [:],
     ) {
         self.activeChapterID = activeChapterID
         self.activeStageID = activeStageID
         self.completedStageIDs = completedStageIDs
         self.claimedRewardStageIDs = claimedRewardStageIDs
         self.pinnedMysteryEventIDs = pinnedMysteryEventIDs
+        self.mysteryOfferPayloads = mysteryOfferPayloads
     }
 }
 

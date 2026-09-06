@@ -251,12 +251,41 @@ struct ItemGeneratorTests {
         try #expect((14 ... 22).contains(basicCount))
     }
 
-    @Test func `mystery item rarity never rolls unique tier`() {
-        for seed in UInt64(1) ... 50 {
+    @Test func `mystery item rarity includes all four tiers`() {
+        var tiers: Set<ItemDropTier> = []
+        for seed in UInt64(1) ... 200 {
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
-            let tier = MysteryItemRarity.roll(astralChanceBonusPercent: 50, using: &randomNumberGenerator)
-            #expect(tier != .unique)
+            tiers.insert(MysteryItemRarity.roll(using: &randomNumberGenerator))
         }
+        #expect(tiers == Set(ItemDropTier.allCases))
+    }
+
+    @Test func `explicit unique eligibility cannot spill into other special pools`() throws {
+        let base = try #require(GameContent.itemBaseType(matching: "flail"))
+        var rng = SeededRandomNumberGenerator(seed: 1)
+        let eligible = ItemRewardGenerator.generate(
+            id: "ward-offer",
+            tier: .unique,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: [],
+            eligibleTrinketIDs: ["bone_charm"],
+            eligibleUniqueIDs: ["wardbreaker"],
+            fallbackBaseType: base,
+            using: &rng,
+        )
+        #expect(eligible.templateID == "wardbreaker")
+        let fallback = ItemRewardGenerator.generate(
+            id: "ward-fallback",
+            tier: .unique,
+            ownedTrinketIDs: [],
+            ownedUniqueIDs: ["wardbreaker"],
+            eligibleTrinketIDs: ["bone_charm"],
+            eligibleUniqueIDs: ["wardbreaker"],
+            fallbackBaseType: base,
+            using: &rng,
+        )
+        #expect(fallback.baseType.id == "flail")
+        #expect(fallback.rarity == .astral)
     }
 
     private func generatedAffixCounts(

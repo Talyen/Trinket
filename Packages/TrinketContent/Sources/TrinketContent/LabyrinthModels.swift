@@ -218,6 +218,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
     public let modifierIDs: [LabyrinthModifierID]
     public let recruitEventID: String?
     public var mysteryEventID: String?
+    public var mysteryOffersPayload: Data?
     public var outgoingIDs: [String]
     public var isCleared: Bool
     public var isRevealed: Bool
@@ -232,6 +233,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         modifierIDs: [LabyrinthModifierID] = [],
         recruitEventID: String? = nil,
         mysteryEventID: String? = nil,
+        mysteryOffersPayload: Data? = nil,
         outgoingIDs: [String] = [],
         isCleared: Bool = false,
         isRevealed: Bool = false,
@@ -245,6 +247,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         self.modifierIDs = modifierIDs
         self.recruitEventID = recruitEventID
         self.mysteryEventID = mysteryEventID
+        self.mysteryOffersPayload = mysteryOffersPayload
         self.outgoingIDs = outgoingIDs
         self.isCleared = isCleared
         self.isRevealed = isRevealed
@@ -261,6 +264,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         modifierIDs = try container.decodeIfPresent([LabyrinthModifierID].self, forKey: .modifierIDs) ?? []
         recruitEventID = try container.decodeIfPresent(String.self, forKey: .recruitEventID)
         mysteryEventID = try container.decodeIfPresent(String.self, forKey: .mysteryEventID)
+        mysteryOffersPayload = try container.decodeIfPresent(Data.self, forKey: .mysteryOffersPayload)
         outgoingIDs = try container.decodeIfPresent([String].self, forKey: .outgoingIDs) ?? []
         isCleared = try container.decodeIfPresent(Bool.self, forKey: .isCleared) ?? false
         isRevealed = try container.decodeIfPresent(Bool.self, forKey: .isRevealed) ?? false

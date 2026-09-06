@@ -13,6 +13,8 @@ struct MysteryEncounterView: View {
     @Bindable var session: MysteryEncounterSession
 
     @State private var selectedDetail: CombatantDetailContext?
+    @State private var selectedItem: InventoryItem?
+    @State private var pinnedArtwork: [String] = []
     @State private var selectedChoiceID: String?
     @State private var choiceFeedbackTrigger = 0
     @State private var rewardFeedbackTrigger = 0
@@ -57,8 +59,11 @@ struct MysteryEncounterView: View {
                     onCancelCorruptSelection: { encounters.cancelActiveMysteryCorruptSelection() },
                 )
                 .transition(.opacity)
-            } else {
+            } else if session.isCorruptionAltar || session.event.isRecruit {
                 readingContent
+                    .transition(.opacity)
+            } else {
+                offerContent
                     .transition(.opacity)
             }
         }
@@ -89,6 +94,19 @@ struct MysteryEncounterView: View {
             if newMessage != nil {
                 mysteryPersistErrorTrigger &+= 1
             }
+        }
+        .task(id: artworkPinKey) {
+            await refreshArtworkPins()
+        }
+        .onDisappear {
+            PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
+            pinnedArtwork = []
+        }
+        .sheet(item: $selectedItem) { item in
+            NavigationStack {
+                ItemDetailView(item: item)
+            }
+            .trinketDetailSheet()
         }
         .sheet(item: $selectedDetail) { context in
             NavigationStack {
@@ -128,6 +146,98 @@ struct MysteryEncounterView: View {
         case corruptItemChoice
     }
 
+    private var offerContent: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 0) {
+                    DetailHeroHeader(
+                        eyebrow: "MYSTERY",
+                        title: session.event.title,
+                        titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
+                        baseHeight: HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: geometry.size.width),
+                        horizontalPadding: TrinketDesign.Layout.contentMargin,
+                        bottomPadding: TrinketDesign.Spacing.large,
+                    ) {
+                        Group {
+                            if heroArtworkReady {
+                                heroArtwork
+                            } else {
+                                TrinketDesign.Colors.canvas
+                            }
+                        }
+                        .frame(
+                            width: geometry.size.width,
+                            height: HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: geometry.size.width),
+                        )
+                        .clipped()
+                    }
+                    .frame(width: geometry.size.width)
+
+                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraLarge) {
+                        Text(session.narrative)
+                            .trinketTypography(.body)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
+
+                        mysteryPersistFailureBanner(session.persistFailureMessage)
+
+                        MysteryOfferChoices(
+                            offers: session.offers,
+                            choices: session.event.choices,
+                            width: geometry.size.width - TrinketDesign.Layout.contentMargin * 2,
+                            pinnedArtwork: pinnedArtwork,
+                            isDisabled: session.isResolvingChoice,
+                            onInspect: { selectedItem = $0 },
+                            onChoose: { _ = encounters.resolveActiveMysteryChoice(choiceID: $0) },
+                        )
+                    }
+                    .padding(TrinketDesign.Layout.contentMargin)
+                }
+                .frame(width: geometry.size.width)
+            }
+            .ignoresSafeArea(edges: .top)
+            .scrollBounceBehavior(.basedOnSize)
+            .toolbar(.hidden, for: .navigationBar)
+        }
+    }
+
+    private var heroArtworkNames: [String] {
+        if let artID = session.event.artID {
+            if let art = ArtCatalog.encounterArtByID[artID] {
+                return [art.imageName]
+            }
+            if let art = ArtCatalog.backgroundArtByID[artID] {
+                return [art.imageName]
+            }
+        }
+        return ArtCatalog.backgroundArtByID[session.stage.chapterID].map { [$0.imageName] } ?? []
+    }
+
+    private var heroArtworkReady: Bool {
+        Set(heroArtworkNames).isSubset(of: Set(pinnedArtwork))
+    }
+
+    private var artworkPinKey: [String] {
+        Array(Set(heroArtworkNames + session.offers.compactMap { $0.item.artReference?.imageName })).sorted()
+    }
+
+    private func refreshArtworkPins() async {
+        let next = artworkPinKey
+        let previous = Set(pinnedArtwork)
+        let added = Set(next).subtracting(previous)
+        if !added.isEmpty {
+            await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
+            guard !Task.isCancelled else {
+                PreparedArtworkCache.shared.releasePins(names: Array(added))
+                return
+            }
+        }
+        guard !Task.isCancelled else { return }
+        PreparedArtworkCache.shared.releasePins(names: Array(previous.subtracting(next)))
+        pinnedArtwork = next
+    }
+
     private var readingContent: some View {
         DetailHeroScrollShell(
             title: session.event.title,
@@ -162,7 +272,7 @@ struct MysteryEncounterView: View {
     }
 
     private var narrativeCard: some View {
-        Text(session.event.narrative)
+        Text(session.narrative)
             .trinketTypography(.body)
             .foregroundStyle(.primary)
             .fixedSize(horizontal: false, vertical: true)
@@ -182,13 +292,10 @@ struct MysteryEncounterView: View {
             }
 
             ForEach(session.event.choices, id: \.id) { choice in
-                MysteryChoiceCard(
+                MysterySpecialChoiceCard(
                     choice: choice,
                     isSelected: selectedChoiceID == choice.id,
                     isDisabled: session.isResolvingChoice,
-                    materialQuantity: session.previewMaterialQuantity,
-                    heroExperienceAward: session.previewHeroExperienceAward,
-                    companionExperienceAward: session.previewCompanionExperienceAward,
                 ) {
                     guard selectedChoiceID != choice.id else { return }
                     selectedChoiceID = choice.id

@@ -161,14 +161,14 @@ struct MysteryEventCatalogTests {
         for event in GameContent.mysteryEvents + GameContent.recruitEvents {
             for choice in event.choices {
                 for effect in choice.effects {
-                    guard case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs) = effect else {
+                    guard case let .gainItem(pool) = effect else {
                         continue
                     }
                     try #expect(
-                        knownBaseIDs.contains(baseTypeID),
-                        "Unknown base type \(baseTypeID) in \(event.id)/\(choice.id)",
+                        knownBaseIDs.contains(pool.baseTypeID),
+                        "Unknown base type \(pool.baseTypeID) in \(event.id)/\(choice.id)",
                     )
-                    for affixID in guaranteedAffixIDs {
+                    for affixID in pool.guaranteedAffixIDs {
                         _ = try #require(
                             GameContent.itemAffixDefinitions.first { $0.id == affixID },
                             "Unknown guaranteed affix \(affixID) in \(event.id)/\(choice.id)",
@@ -179,23 +179,27 @@ struct MysteryEventCatalogTests {
         }
     }
 
-    @Test func `themed trinket ties resolve known choices and trinkets`() throws {
-        let knownTrinketIDs = Set(GameContent.trinketItems.map(\.id))
-        let choiceIDs = Set(GameContent.mysteryEvents.flatMap { $0.choices.map(\.id) })
-
-        try #expect(!GameContent.themedTrinketsByMysteryChoiceID.isEmpty)
-        for (choiceID, trinketIDs) in GameContent.themedTrinketsByMysteryChoiceID {
-            try #expect(choiceIDs.contains(choiceID), "Mapped choice \(choiceID) is missing from the pool")
-            try #expect(!trinketIDs.isEmpty, "Mapped choice \(choiceID) awards no trinkets")
-            for trinketID in trinketIDs {
-                try #expect(
-                    knownTrinketIDs.contains(trinketID),
-                    "Mapped trinket \(trinketID) for \(choiceID) is unknown",
-                )
+    @Test func `item pools cover known special items and use gear fallbacks`() throws {
+        let trinketIDs = Set(GameContent.trinketItems.map(\.templateID))
+        let uniqueIDs = Set(GameContent.uniqueItems.map(\.templateID))
+        var placedTrinkets: Set<String> = []
+        var placedUniques: Set<String> = []
+        for event in GameContent.mysteryEvents where event.id != GameContent.corruptionAltarEventID {
+            #expect(event.narrative.contains("{A}"))
+            #expect(event.narrative.contains("{B}"))
+            #expect(!event.narrative(for: []).contains("{"))
+            for choice in event.choices {
+                let pool = try #require(choice.itemPool)
+                let base = try #require(GameContent.itemBaseType(matching: pool.baseTypeID))
+                #expect(base.slot != .trinket)
+                #expect(pool.trinketIDs.isSubset(of: trinketIDs))
+                #expect(pool.uniqueIDs.isSubset(of: uniqueIDs))
+                placedTrinkets.formUnion(pool.trinketIDs)
+                placedUniques.formUnion(pool.uniqueIDs)
             }
-            try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: choiceID) == trinketIDs)
         }
-        try #expect(GameContent.themedTrinketIDs(forMysteryChoiceID: "harvest-berries") == nil)
+        #expect(placedTrinkets == trinketIDs)
+        #expect(placedUniques == uniqueIDs)
     }
 
     @Test func `mystery effects never spend resources`() throws {
@@ -209,13 +213,36 @@ struct MysteryEventCatalogTests {
                         break
                     case .gainExperience:
                         break
-                    case .gainGeneratedItem, .gainRandomItem, .unlockCombatant,
+                    case .gainItem, .unlockCombatant,
                          .corruptItem, .leave:
                         break
                     }
                 }
             }
         }
+    }
+
+    @Test func `narratives use articles for gear and preserve named relics`() throws {
+        let geode = try #require(GameContent.mysteryEvent(matching: "crystal-geode"))
+        let offers = try geode.choices.map { choice in
+            let pool = try #require(choice.itemPool)
+            let base = try #require(GameContent.itemBaseType(matching: pool.baseTypeID))
+            return MysteryOffer(
+                choiceID: choice.id,
+                item: InventoryItem(id: choice.id, baseType: base, rarity: .basic, displayName: base.name, affixes: []),
+                bonus: .experience(1),
+            )
+        }
+        let text = geode.narrative(for: Array(offers.reversed()))
+        #expect(text.contains("reveals a Sapphire Ring"))
+        #expect(text.contains(". A Topaz Amulet remains"))
+        let spring = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
+        let locket = try #require(GameContent.unique(matching: "rimeheart_locket"))
+        let rare = MysteryOffer(choiceID: spring.choices[0].id, item: locket, bonus: .experience(1))
+        #expect(spring.narrative(for: [rare]).contains("traps Rimeheart Locket"))
+        #expect(spring.narrative(for: [rare]).contains("an Emerald Ring"))
+        let garden = try #require(GameContent.mysteryEvent(matching: "medicinal-herb-garden"))
+        #expect(garden.narrative(for: []).contains("a suit of Leather Armor"))
     }
 
     @Test func `recruit events resolve combatant roles`() throws {
@@ -241,7 +268,7 @@ private func lootKind(for effect: MysteryEffect) -> MysteryLootKind {
     case .gainExperience: .experience
     case .gainGold: .gold
     case .gainMaterial: .material
-    case .gainGeneratedItem, .gainRandomItem: .item
+    case .gainItem: .item
     case .unlockCombatant, .corruptItem, .leave:
         preconditionFailure("Unexpected mystery effect \(effect) in loot pairing test")
     }
@@ -251,10 +278,7 @@ private extension MysteryEventCatalogTests {
     static let validTwoLootKindPairs: Set<Set<MysteryLootKind>> = [
         [.item, .material],
         [.item, .gold],
-        [.experience, .material],
-        [.experience, .gold],
         [.experience, .item],
-        [.gold, .material],
     ]
 }
 

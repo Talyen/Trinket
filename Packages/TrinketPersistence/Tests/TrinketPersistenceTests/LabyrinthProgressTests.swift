@@ -444,12 +444,14 @@ extension LabyrinthProgressTests {
         )
         var mystery = try #require(legacy.nodes[mysteryID])
         mystery.mysteryEventID = "hidden-cache"
+        mystery.mysteryOffersPayload = Data("pending-offer-snapshot".utf8)
         mystery.isRevealed = true
         legacy.nodes[mysteryID] = mystery
 
         let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
         let migrated = try #require(sanitized.nodes[mysteryID])
         #expect(migrated.mysteryEventID == "hidden-cache")
+        #expect(migrated.mysteryOffersPayload == mystery.mysteryOffersPayload)
         #expect(migrated.isRevealed)
         #expect(!migrated.isCleared)
         #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
