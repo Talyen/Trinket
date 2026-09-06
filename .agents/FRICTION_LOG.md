@@ -23,6 +23,7 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 
 | Date | Area | Resolution (commit / owner link) |
 |------|------|------------------------------------|
+| 2026-09-06 | Script failure evidence | [Script checks](../Scripts/test-scripts.sh) now retain failed logs with bounded excerpts; `--fast` help accurately states that all shell regressions are skipped. |
 | 2026-09-05 | Balance report retention | [The sweep wrapper](../Scripts/balance-sweep.sh) retains evidence; successful runs and `--help` no longer delete the report directory. |
 | 2026-09-05 | Build/test preflight | [Wrappers](../Scripts/README.md) defer slot reservation until execution, reject duplicate/unknown packages, prepare standalone package build inputs, and keep final handoff previews from executing the docs gate. |
 | 2026-09-06 | Balance test result reporting | The [watchdog](../Scripts/lib/xcode-watchdog.sh) now lets individual test/suite, assertion, and test-process crash failures override later passing summaries; the [runner fixture](../Scripts/Tests/test-xcode-runner.sh) reproduces assertion failures and a process crash followed by a passing restarted run. |

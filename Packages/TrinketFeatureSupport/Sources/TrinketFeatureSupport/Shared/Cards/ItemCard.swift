@@ -96,16 +96,16 @@ public struct ItemCard<Art: View>: View {
                 if item.isCorrupted {
                     Text(balanced: "Corrupted")
                         .trinketTypography(.caption)
-                        .foregroundStyle(TrinketDesign.Colors.destructive)
                         .shineText(.corruption)
+                        .foregroundStyle(TrinketDesign.Colors.destructive)
                         .trinketFittedText()
                 }
             }
 
             Text(balanced: item.displayName)
                 .trinketTypography(.cardLabel)
+                .shineText(shine ?? item.displayTextShine)
                 .foregroundStyle(.primary)
-                .shineText(resolvedShine)
                 .multilineTextAlignment(.center)
                 .trinketFittedText()
 
@@ -128,7 +128,7 @@ public struct ItemCard<Art: View>: View {
 
             Text(balanced: item.displayName)
                 .trinketTypography(.sectionDisplay)
-                .shineText(resolvedShine)
+                .shineText(shine ?? item.displayTextShine)
                 .multilineTextAlignment(.center)
                 .trinketFittedText()
         }

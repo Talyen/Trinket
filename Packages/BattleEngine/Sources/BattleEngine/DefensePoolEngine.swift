@@ -112,7 +112,7 @@ package enum DefensePoolEngine {
         }
     }
 
-    package static func decayBlockAtEndOfRound(
+    package static func decayBlock(
         on target: Combatant,
         in context: inout BattleState,
     ) {

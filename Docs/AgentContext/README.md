@@ -7,8 +7,9 @@ and testing; nested `AGENTS.md` files own local hard stops.
 
 The router prints a read contract. Read the root and nested `AGENTS.md` files plus
 the listed focused card(s) first. Skills are optional lookups: open one only when
-the trigger applies. A route card such as `battle.md` is lookup-only metadata; use
-the focused subcard named beside it and do not read the router card by default.
+the trigger applies. A route card such as `battle.md` is lookup-only metadata shown with `--full`;
+read it only when ownership is unclear. Reuse unchanged guidance already in
+context and read newly applicable material when scope expands.
 All skills live under `../../.agents/skills/`; the design skill below is the one
 most routes attach.
 
@@ -29,6 +30,7 @@ Verification: ./Scripts/handoff.sh --isolate --paths <files...>
 | [persistence.md](persistence.md) | `TrinketPersistence` |
 | [content-and-manifests.md](content-and-manifests.md) | manifests, content catalogs, `project.yml` |
 | [swiftui-features.md](swiftui-features.md) | visual UI paths under `Trinket/Features`, feature packages, `TrinketUITests` |
+| [ui-performance.md](ui-performance.md) | Launch/tab mounting, Collection retention, prepared artwork; other UI tasks load it when touching those concerns |
 | [audio.md](audio.md) | `TrinketAppState` audio paths |
 | [ci-and-project-generation.md](ci-and-project-generation.md) | `Scripts/`, `.github/`, `project.yml` |
 | [ci-diagnostics.md](ci-diagnostics.md) | **Lazy:** load only after a test/CI failure |
@@ -46,3 +48,20 @@ Search fence: default searches are tracked/authored paths or the explicit owner
 directory. Do not use whole-tree `find`, `--hidden`, or recursive file browsing over
 `.DerivedData/`, `BalanceSweepReports/`, build products, or raw logs unless the
 task is specifically an artifact investigation.
+
+Locate authored Swift symbols within their owner before reading whole files:
+
+```sh
+rg -n -g '*.swift' -g '!**/Generated/**' -g '!*.generated.swift' 'DamagePipeline' Packages/BattleEngine/Sources
+sed -n '40,100p' Packages/BattleEngine/Sources/BattleEngine/DamagePipelineResolutionSteps.swift
+```
+
+For a generated-content investigation, explicitly target the catalog and entry:
+
+```sh
+rg -n -C 3 'enum ArtCatalog' Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift
+```
+
+The default router omits empty sections, repeated policy, and expanded check
+commands. `--full` includes authored paths, route metadata, and the sequential
+verification plan. Both forms retain required guidance and safety warnings.

@@ -561,6 +561,11 @@ trinket_classify_paths() {
         TRINKET_HAS_VISUAL_UI=true
       fi
       trinket_add_battle_subcard_for_path "$path"
+      case "$path" in
+        Trinket/App/*|*PreparedArtwork*|*ArtworkViewportPrewarm*|Trinket/Features/Collection/*|*LaunchWarmup*|*HiddenTabPrewarm*)
+          trinket_add_context_card Docs/AgentContext/ui-performance.md
+          ;;
+      esac
       trinket_add_knowledge_for_path "$path"
       trinket_add_agent_guides_for_path "$path"
     done

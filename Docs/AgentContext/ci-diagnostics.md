@@ -3,6 +3,14 @@
 Load this card only after a test, package, build, or CI invocation fails. Structured
 diagnostics are the first source of evidence; raw xcodebuild logs are a last resort.
 
+## Script regressions
+
+`test-scripts.sh` prints a bounded failure excerpt with suite, exit status, and
+full log path. Failed Python/shell regression logs survive command exit under
+`$RESULTS_DIR/script-tests.*` or `.DerivedData/ScriptTestResults/`; successful
+logs are removed. Inspect the retained file only for details missing from the
+excerpt. These logs do not use Xcode invocation manifests.
+
 ## Emitted reports
 
 Every test or package invocation writes an atomically completed

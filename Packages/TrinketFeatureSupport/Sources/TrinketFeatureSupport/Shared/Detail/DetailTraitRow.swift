@@ -61,16 +61,16 @@ public struct DetailTraitRow: View {
             if let titlePrefix, !titlePrefix.isEmpty {
                 Text(balanced: titlePrefix)
                     .trinketTypography(.cardTitle)
+                    .shineText(titlePrefixShine)
                     .foregroundStyle(.primary)
                     .trinketFittedText()
-                    .shineText(titlePrefixShine)
             }
             if let title, !title.isEmpty {
                 Text(balanced: title)
                     .trinketTypography(.cardTitle)
+                    .shineText(titleShine)
                     .foregroundStyle(.primary)
                     .trinketFittedText()
-                    .shineText(titleShine)
             }
         }
     }

@@ -110,7 +110,7 @@ public struct ItemDetailView: View {
                 DetailHeroHeader(
                     eyebrow: ItemDetailContent.eyebrow(for: item),
                     title: item.displayName,
-                    titleShine: item.displayShine,
+                    titleShine: item.displayTextShine,
                     baseHeight: baseHeight,
                 ) {
                     ItemArtwork(item: item)

@@ -95,9 +95,9 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     private var singleLineTitleText: some View {
         let label = Text(title)
             .trinketTypography(.screenDisplay)
+            .shineText(titleShine)
             .trinketOnArtText(.title)
             .trinketSingleLineFittedText()
-            .shineText(titleShine)
 
         if let titleAccessibilityIdentifier {
             label.accessibilityIdentifier(titleAccessibilityIdentifier)
@@ -110,9 +110,9 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     private var wrappedTitleText: some View {
         let label = Text(balanced: title)
             .trinketTypography(.screenDisplay)
+            .shineText(titleShine)
             .trinketOnArtText(.title)
             .trinketFittedText()
-            .shineText(titleShine)
 
         if let titleAccessibilityIdentifier {
             label.accessibilityIdentifier(titleAccessibilityIdentifier)

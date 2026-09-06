@@ -132,6 +132,87 @@ class ExecWrapperTests(unittest.TestCase):
                 self.assertNotEqual(reused.returncode, 0)
                 self.assertIn("already exists", reused.stderr)
 
+    def test_handoff_reports_outcome_after_all_checks_including_quiet_mode(self) -> None:
+        for selected, cheap, expected in ((0, 0, 0), (7, 0, 1), (0, 8, 8)):
+            with self.subTest(selected=selected, cheap=cheap), tempfile.TemporaryDirectory() as directory:
+                scripts = Path(directory) / "Scripts"
+                shutil.copytree(ROOT / "Scripts", scripts)
+                (scripts / "test-scripts.sh").write_text(f"#!/bin/bash\necho selected-check\nexit {selected}\n")
+                registry = scripts / "config/cheap-slices.txt"
+                registry.write_text(f"echo cheap-check; exit {cheap}\n")
+                result = subprocess.run(
+                    [str(scripts / "handoff.sh"), "--quiet", "--paths", "Scripts/test-scripts.sh"],
+                    env={**os.environ, "TRINKET_CHEAP_SLICES_CONFIG": str(registry)},
+                    text=True, capture_output=True,
+                )
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                if expected == 0:
+                    self.assertTrue(result.stdout.strip().endswith("Handoff PASS: selected checks and cheap CI slices completed."))
+                    self.assertLess(result.stdout.index("cheap-check"), result.stdout.index("Handoff PASS"))
+                else:
+                    self.assertNotIn("Handoff PASS", result.stdout)
+                    self.assertIn("Handoff FAIL", result.stderr)
+                    self.assertIn("./Scripts/test-scripts.sh" if selected else "cheap CI slices", result.stderr)
+                    if selected:
+                        self.assertNotIn("cheap-check", result.stdout)
+
+    def test_script_failures_retain_bounded_evidence_and_exit_status(self) -> None:
+        import sys
+        payloads = {
+            "python": "noise\n" * 100 + 'Traceback (most recent call last):\n  File "case.py", line 7\nAssertionError: expected price\n' + "z" * 2000 + "\nnoise\n" * 100,
+            "shell": "noise\n" * 100 + "FAIL: expected retained evidence\n" + "z" * 2000 + "\nnoise\n" * 100,
+            "unknown": "noise\n" * 100 + "last diagnostic\n",
+            "success": "quiet successful details\n",
+            "syntax": "syntax fixture",
+        }
+        for case, payload in payloads.items():
+            with self.subTest(case=case), tempfile.TemporaryDirectory(prefix="script evidence ") as directory:
+                root = Path(directory)
+                scripts = root / "Scripts"
+                for relative in ("lib", "config", "Tests"):
+                    (scripts / relative).mkdir(parents=True)
+                for name in ("test-scripts.sh", "lib/args.sh", "script_diagnostics.py", "diagnostic_limits.py", "config/diagnostic-limits.env"):
+                    shutil.copy2(ROOT / "Scripts" / name, scripts / name)
+                (scripts / "check-build-cache-paths.sh").write_text("#!/bin/bash\nexit 0\n")
+                (scripts / "check-build-cache-paths.sh").chmod(0o755)
+                (root / "payload").write_text(payload)
+                (root / "bin").mkdir()
+                stub = root / "bin/python3"
+                stub.write_text(
+                    '#!/bin/bash\nif [[ "$1" == -m ]]; then\n'
+                    '  if [[ "$CASE" == python ]]; then cat "$PAYLOAD"; exit 7; fi\n'
+                    '  exit 0\nfi\nexec "$REAL_PYTHON" "$@"\n'
+                )
+                stub.chmod(0o755)
+                (scripts / "Tests/test-fixture.sh").write_text(
+                    '#!/bin/bash\ncat "$PAYLOAD"\n[[ "$CASE" == success ]] && exit 0\nexit 9\n'
+                )
+                if case == "syntax":
+                    (scripts / "Tests/test-fixture.sh").write_text("#!/bin/bash\nif broken\n")
+                env = {**os.environ, "PATH": str(root / "bin") + ":" + os.environ["PATH"],
+                       "CASE": case, "PAYLOAD": str(root / "payload"), "REAL_PYTHON": sys.executable,
+                       "RESULTS_DIR": str(root / "retained logs")}
+                result = subprocess.run([str(scripts / "test-scripts.sh"), "--skip-docs"], env=env, text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0 if case == "success" else 7 if case == "python" else 2 if case == "syntax" else 9, result.stdout + result.stderr)
+                if case == "success":
+                    self.assertFalse(list((root / "retained logs").iterdir()))
+                    self.assertNotIn(payload.strip(), result.stdout)
+                    continue
+                log = Path(next(line.removeprefix("Full log: ") for line in result.stderr.splitlines() if line.startswith("Full log: ")))
+                if case == "syntax":
+                    self.assertIn("syntax error", log.read_text())
+                    self.assertIn("syntax error", result.stderr)
+                    continue
+                self.assertEqual(log.read_text(), payload)
+                self.assertLessEqual(len(result.stderr.splitlines()), 63)
+                excerpt = result.stderr.splitlines()[2:-1]
+                self.assertTrue(all(len(line) <= 240 for line in excerpt))
+                self.assertIn("output omitted", result.stderr)
+                expected = {"python": "AssertionError: expected price", "shell": "FAIL: expected retained evidence", "unknown": "last diagnostic"}[case]
+                self.assertIn(expected, result.stderr)
+                if case == "python":
+                    self.assertIn("Traceback", result.stderr)
+
     def test_help_exits_zero(self) -> None:
         for script, extra in (
             ("test.sh", []),

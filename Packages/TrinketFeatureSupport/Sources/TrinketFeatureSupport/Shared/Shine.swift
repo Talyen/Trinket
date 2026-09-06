@@ -91,6 +91,13 @@ public enum Shine: Equatable, Sendable {
     }
 }
 
+extension Shine {
+    static func itemText(colors: [Color]) -> Self {
+        guard !colors.isEmpty else { return .none }
+        return .colors(colors.flatMap { [$0, $0.opacity(0.55)] })
+    }
+}
+
 private struct ShineTextModifier: ViewModifier {
     let shine: Shine
     @Environment(\.accessibilityReduceMotion) private var reduceMotion

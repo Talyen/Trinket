@@ -59,6 +59,55 @@ class AgentContextTests(ScriptRegressionTestCase):
         self.assertEqual(result.returncode, 3)
         self.assertIn("use explicit --paths or --allow-broad-scope", result.stderr)
 
+    def test_compact_and_full_share_required_guidance_and_safety(self) -> None:
+        paths = [
+            "Trinket/App/HiddenTabPrewarm.swift",
+            "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift",
+            "Packages/BattleEngine/Sources/BattleEngine/BattleState.swift",
+        ]
+        compact, full = [
+            subprocess.check_output(
+                [str(ROOT / "Scripts/agent-context.sh"), *flags, "--paths", *paths],
+                cwd=ROOT, text=True,
+            ) for flags in ([], ["--full"])
+        ]
+        for expected in (
+            "AGENTS.md", "Docs/AgentContext/ui-performance.md",
+            "Docs/AgentContext/battle-engine.md", "Generated/processed paths (do not hand-edit)",
+            "./Scripts/handoff.sh --isolate --paths",
+        ):
+            self.assertIn(expected, compact)
+            self.assertIn(expected, full)
+        for expanded in ("Route metadata", "Plan detail", "Authored paths"):
+            self.assertNotIn(expanded, compact)
+            self.assertIn(expanded, full)
+        self.assertNotIn("(none)", compact)
+
+    def test_performance_details_are_focused_but_discoverable(self) -> None:
+        for path, required in (
+            ("Trinket/Features/Play/Shop/ShopEncounterView.swift", False),
+            ("Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift", True),
+            ("Trinket/App/TrinketApp.swift", True),
+            ("Trinket/Features/Collection/CollectionView.swift", True),
+        ):
+            with self.subTest(path=path):
+                output = subprocess.check_output(
+                    [str(ROOT / "Scripts/agent-context.sh"), "--paths", path], cwd=ROOT, text=True,
+                )
+                self.assertEqual("Docs/AgentContext/ui-performance.md" in output, required)
+        general = (ROOT / "Docs/AgentContext/swiftui-features.md").read_text()
+        self.assertIn("[UI performance](ui-performance.md)", general)
+        self.assertIn("first-screen artwork pins", general)
+
+    def test_large_explicit_scope_still_prints_a_runnable_command(self) -> None:
+        paths = [f"Docs/example {index}.md" for index in range(10)]
+        output = subprocess.check_output(
+            [str(ROOT / "Scripts/agent-context.sh"), "--paths", *paths], cwd=ROOT, text=True,
+        )
+        import shlex
+        command = next(line.strip() for line in output.splitlines() if "./Scripts/handoff.sh" in line)
+        self.assertEqual(shlex.split(command), ["./Scripts/handoff.sh", "--isolate", "--paths", *paths])
+
     def test_agent_context_routes_app_state_to_battle_card(self) -> None:
         result = subprocess.run(
             [
@@ -74,7 +123,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Docs/AgentContext/battle-runtime.md", result.stdout)
-        self.assertIn("lookup only", result.stdout)
+        self.assertNotIn("Route metadata", result.stdout)
 
     def test_agent_context_routes_battle_state_to_focused_card_without_design_skill(self) -> None:
         result = subprocess.run(

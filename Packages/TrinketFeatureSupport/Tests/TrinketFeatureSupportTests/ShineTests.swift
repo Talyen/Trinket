@@ -12,6 +12,7 @@ private func makeItem(
     baseID: String,
     rarity: Rarity = .basic,
     affixes: [ItemAffix] = [],
+    affixPowers: [ItemAffixPower]? = nil,
 ) throws -> InventoryItem {
     let base = try baseType(baseID)
     return InventoryItem(
@@ -20,6 +21,7 @@ private func makeItem(
         rarity: rarity,
         displayName: base.name,
         affixes: affixes,
+        affixPowers: affixPowers,
     )
 }
 
@@ -59,6 +61,8 @@ struct ShineTests {
     @Test func `unique items glow unique`() throws {
         let item = try makeItem(baseID: "leather_armor", rarity: .unique)
         #expect(item.displayShine == .unique)
+        let gold = Shine.uniqueBorderColors[0]
+        #expect(item.displayTextShine.textColors == [gold, gold.opacity(0.55)])
     }
 
     @Test func `astral glow follows real keywords only`() throws {
@@ -74,11 +78,13 @@ struct ShineTests {
         let plain = try makeItem(baseID: "leather_armor", rarity: .astral)
         #expect(plain.displayShine == .none)
         #expect(plain.astralShineKeywords.isEmpty)
+        #expect(plain.displayTextShine == .none)
     }
 
     @Test func `basic items do not glow`() throws {
         let item = try makeItem(baseID: "leather_armor")
         #expect(item.displayShine == .none)
+        #expect(item.displayTextShine == .none)
     }
 
     @Test func `corrupted affixes glow red outside uniques`() throws {
@@ -93,7 +99,61 @@ struct ShineTests {
         #expect(item.affixShine(at: 0, affix: corrupted) == .corruption)
 
         let unique = try makeItem(baseID: "leather_armor", rarity: .unique, affixes: [corrupted])
-        #expect(unique.affixShine(at: 0, affix: corrupted) == .unique)
+        #expect(unique.affixShine(at: 0, affix: corrupted) == unique.displayTextShine)
+    }
+
+    @Test(arguments: ["longsword", "brass_censer"])
+    func `title palette prefers present affinities and caps keywords`(baseID: String) throws {
+        let affix = ItemAffix(
+            id: "crowded-shine",
+            title: "Crowded",
+            description: "Burning, Frozen, Physical, Poison, Bleeding, Burn",
+            keywords: [.burn, .freeze, .physical, .poison, .bleed, .dodge],
+        )
+        let item = try makeItem(baseID: baseID, rarity: .astral, affixes: [affix])
+        let selected: [Keyword] = baseID == "longsword" ? [.bleed, .physical, .burn] : [.poison, .bleed, .burn]
+        let expected = selected.flatMap { [$0.visualStyle.color, $0.visualStyle.color.opacity(0.55)] }
+        #expect(item.displayTextShine.textColors == expected)
+        #expect(item.astralShineKeywords.count == 6)
+        #expect(Set(item.plasmaKeywords) == affix.keywords)
+    }
+
+    @Test func `basic trinket title uses visible secondary keywords`() throws {
+        let affix = ItemAffix(
+            id: "visible-shine",
+            title: "Visible",
+            description: "Burning enemies are Frozen. Burn them again.",
+            keywords: [.poison],
+        )
+        let item = try makeItem(baseID: "bone_charm", affixes: [affix])
+        let burn = Keyword.burn.visualStyle.color
+        let freeze = Keyword.freeze.visualStyle.color
+        #expect(item.displayTextShine.textColors == [burn, burn.opacity(0.55), freeze, freeze.opacity(0.55)])
+        #expect(item.displayShine == .keywords([.poison]))
+    }
+
+    @Test func `titles use resolved descriptions and perfect affixes use description order`() throws {
+        let keen = try #require(GameContent.itemAffixDefinition(matching: "keen"))
+        let affix = keen.resolved(for: .basic)
+        let item = try makeItem(
+            baseID: "bone_charm",
+            affixes: [affix],
+            affixPowers: [ItemAffixPower(
+                description: "Frozen Burning Poison Physical Frozen",
+                modifiers: [.damageDealt(.physical, 2)],
+            )],
+        )
+        #expect(item.isPerfectAffix(at: 0))
+        let titleKeywords: [Keyword] = [.burn, .freeze, .physical]
+        let affixKeywords: [Keyword] = [.freeze, .burn, .poison]
+        #expect(item.displayTextShine.textColors == titleKeywords.flatMap {
+            [$0.visualStyle.color, $0.visualStyle.color.opacity(0.55)]
+        })
+        #expect(item.affixShine(at: 0, affix: item.displayedAffixes[0]).textColors == affixKeywords.flatMap {
+            [$0.visualStyle.color, $0.visualStyle.color.opacity(0.55)]
+        })
+        let unrolled = try makeItem(baseID: "bone_charm", affixes: [affix])
+        #expect(unrolled.affixShine(at: 0, affix: affix) == .none)
     }
 
     @Test func `single color stops flatten without motion`() {

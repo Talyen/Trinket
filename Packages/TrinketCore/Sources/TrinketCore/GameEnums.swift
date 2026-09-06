@@ -138,7 +138,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .stun:
             "Stun builds a meter; filling it makes the enemy lose an action"
         case .block:
-            "Block prevents Health damage and halves at the end of each round"
+            "Block prevents Health damage. Remaining Block halves after the enemy’s turn for your party, and before the enemy’s turn for enemies"
         case .health:
             "Health keeps you alive"
         case .gold:

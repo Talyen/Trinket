@@ -32,7 +32,8 @@ skills, architecture/generated-output warnings, and the focused sequential
 verification plan. Agents should run the recommended handoff --isolate
 command. Paths are repository-relative; --paths consumes all remaining
 arguments. Use --working-tree explicitly when the whole tree is intentional.
-The default briefing is concise; --full prints complete command details. Whole-tree
+The default briefing omits empty sections and plan details; --full adds the
+authored path inventory, route metadata, and complete verification commands. Whole-tree
 classification is capped at ${MAX_WORKING_TREE_PATHS} paths unless explicitly
 overridden with --allow-broad-scope.
 USAGE
@@ -80,34 +81,35 @@ print_agent() {
     printf 'Agent context (working tree, %d):\n' "${#TRINKET_CHANGED_PATHS[@]}"
   fi
 
-  printf 'Read first:\n  AGENTS.md\n'
+  printf 'Read first (reuse unchanged guidance already in context):\n  AGENTS.md\n'
   if (( ${#TRINKET_AGENT_GUIDES[@]} > 0 )); then
     printf '  %s\n' "${TRINKET_AGENT_GUIDES[@]}"
   fi
-
-  printf 'Context cards:\n'
   if (( ${#TRINKET_CONTEXT_CARDS[@]} > 0 )); then
+    printf 'Context cards:\n'
     printf '  %s\n' "${TRINKET_CONTEXT_CARDS[@]}"
-  else
-    printf '  (none)\n'
   fi
-  if (( ${#TRINKET_ROUTE_CARDS[@]} > 0 )); then
-    printf 'Route metadata (lookup only; do not read unless ownership is unclear):\n  %s\n' "${TRINKET_ROUTE_CARDS[@]}"
+  if [[ "$FULL" == true ]] && (( ${#TRINKET_ROUTE_CARDS[@]} > 0 )); then
+    printf 'Route metadata (lookup only):\n'
+    printf '  %s\n' "${TRINKET_ROUTE_CARDS[@]}"
   fi
-  printf 'Skills:\n'
+  local skill trigger
   if (( ${#TRINKET_SKILLS[@]} > 0 )); then
-    printf '  %s\n' "${TRINKET_SKILLS[@]}"
-  else
-    printf '  (none)\n'
+    printf 'Skills (load only when the trigger applies):\n'
+    for skill in "${TRINKET_SKILLS[@]}"; do
+      case "$skill" in
+        */apple-design/*) trigger='visual or interaction changes' ;;
+        */architect/*) trigger='public type, protocol, schema, or package boundary changes' ;;
+        */doc-budget/*) trigger='Swift comments or comment-gate failures' ;;
+        *) trigger='see skill description' ;;
+      esac
+      printf '  %s — %s\n' "$skill" "$trigger"
+    done
   fi
-  printf 'Relevant memory (load only if you touch the concern; not auto-loaded):\n'
   if (( ${#TRINKET_KNOWLEDGE[@]} > 0 )); then
+    printf 'Memory (only for its concern):\n'
     printf '  %s\n' "${TRINKET_KNOWLEDGE[@]}"
-  else
-    printf '  (none)\n'
   fi
-  printf 'Read contract: required cards/guides above; skills are optional lookups. Use rg and bounded ranges before opening linked material.\n'
-  printf 'Friction: if docs misled or behavior surprised you, add one row to .agents/FRICTION_LOG.md Open table.\n'
 
   print_path_summary() {
     local label="$1"
@@ -129,44 +131,35 @@ print_agent() {
     ' | sort
   }
 
-  if (( ${#TRINKET_AUTHORED_PATHS[@]} > 0 )); then
+  if [[ "$FULL" == true ]] && (( ${#TRINKET_AUTHORED_PATHS[@]} > 0 )); then
     print_path_summary 'Authored paths' "${TRINKET_AUTHORED_PATHS[@]}"
   fi
   if (( ${#TRINKET_GENERATED_PATHS[@]} > 0 )); then
     print_path_summary 'Generated/processed paths (do not hand-edit)' "${TRINKET_GENERATED_PATHS[@]}"
   fi
 
-  printf 'Boundary warnings:\n'
   if (( ${#TRINKET_BOUNDARY_WARNINGS[@]} > 0 )); then
+    printf 'Boundary warnings:\n'
     printf '  %s\n' "${TRINKET_BOUNDARY_WARNINGS[@]}"
-  else
-    printf '  (none)\n'
   fi
   if (( ${#TRINKET_GENERATED_WARNINGS[@]} > 0 )); then
-    printf 'Generated-output warnings:\n  %s\n' "${TRINKET_GENERATED_WARNINGS[@]}"
+    printf 'Generated-output warnings:\n'
+    printf '  %s\n' "${TRINKET_GENERATED_WARNINGS[@]}"
   fi
 
   printf 'Verification (agents: always --isolate):\n'
   if [[ "$PATH_MODE" == explicit ]]; then
-    if (( ${#TRINKET_CHANGED_PATHS[@]} <= 8 )); then
-      printf '  ./Scripts/handoff.sh --isolate --paths'
-      local path
-      for path in "${TRINKET_CHANGED_PATHS[@]}"; do printf ' %q' "$path"; done
-      printf '\n'
-    else
-      printf '  ./Scripts/handoff.sh --isolate --paths <same %d explicit paths>\n' "${#TRINKET_CHANGED_PATHS[@]}"
-    fi
+    printf '  ./Scripts/handoff.sh --isolate --paths'
+    local path
+    for path in "${TRINKET_CHANGED_PATHS[@]}"; do printf ' %q' "$path"; done
+    printf '\n'
   else
     printf '  ./Scripts/handoff.sh --isolate --working-tree\n'
   fi
-  printf 'Plan detail (sequential under that tenant):\n'
-  if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
+  if [[ "$FULL" == true ]] && (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
+    printf 'Plan detail (sequential under that tenant):\n'
     local cmd
     for cmd in "${TRINKET_VERIFICATION_COMMANDS[@]}"; do
-      if [[ "$FULL" != true && ${#cmd} -gt 240 ]]; then
-        printf '  %s… (use --full for the complete command)\n' "${cmd:0:220}"
-        continue
-      fi
       if [[ "$cmd" == *"./Scripts/test.sh"* \
          || "$cmd" == *"./Scripts/test-package.sh"* \
          || "$cmd" == *"./Scripts/build.sh"* ]]; then
@@ -175,8 +168,6 @@ print_agent() {
         printf '  %s\n' "$cmd"
       fi
     done
-  else
-    printf '  (none; review docs/tooling directly)\n'
   fi
   if [[ "$TRINKET_SMOKE_TARGET_UNRESOLVED" == true ]]; then
     printf 'UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.\n'

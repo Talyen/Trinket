@@ -30,7 +30,11 @@ automatically.
 
 Run artifacts are ephemeral by default. Use the owning command's documented
 keep/cleanup switches when an investigation needs to retain a successful run;
-failed evidence remains available for triage.
+failed evidence remains available for triage. Script regressions retain failed
+logs under `$RESULTS_DIR/script-tests.*` or `.DerivedData/ScriptTestResults/`;
+failures print the suite, exit status, bounded excerpt, and full log path.
+Successful script logs are removed. `handoff.sh` prints its final outcome after
+all selected checks and cheap slices finish; a failure identifies the stopped check.
 
 Build/test wrapper help and option parsing do not reserve build/simulator slots;
 style-only checks also run without a slot. Package test/build commands require registered,
@@ -72,7 +76,7 @@ Read these focused guides:
 | `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
 | `./Scripts/performance.sh` | Ad hoc app + battle performance matrix (not CI) |
 | `./Scripts/record-time-profiler.sh --output <path.trace>` | Host Time Profiler of the Trinket process (no `xctrace --device`; `--all-processes` is opt-in and slow) |
-| `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for full commands and `--working-tree --allow-broad-scope` only intentionally |
+| `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for path inventory, route metadata, and full commands and `--working-tree --allow-broad-scope` only intentionally |
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Canonical isolated worktree under `.worktrees/<slug>` on `agent/<slug>`; use when another agent owns dirty work |
 | `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |

@@ -22,3 +22,11 @@ Passing syntax or link checks does not establish that a workflow works in practi
 Add a scenario only for a recurring decision worth testing. Include a concrete
 request, relevant setup, and observable pass criteria; avoid scoring whether the
 agent followed an arbitrary sequence or reproduced a preferred phrase.
+
+For context-efficiency changes, capture the same representative route before and
+after the change: router output size, required guide/card size (deduplicated),
+and which safety/ownership decisions remain available. Review both scenarios
+above for lost instructions. Label this as scenario review, not an autonomous
+behavioral trial. In a trial, also record repeated reads, retries, incorrect
+decisions, and actual token usage when available. Word/character counts are
+proxies, not measured tokens; lower volume is useful only with preserved outcomes.

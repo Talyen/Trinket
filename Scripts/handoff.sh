@@ -180,7 +180,13 @@ trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
 if [[ "$FINAL" == true && "$DRY_RUN" != true ]]; then
   docs_args=("--final")
   [[ "$KEEP_PLAN" == true ]] && docs_args+=("--keep-plan")
-  python3 ./Scripts/check-docs.py "${docs_args[@]}"
+  if python3 ./Scripts/check-docs.py "${docs_args[@]}"; then
+    :
+  else
+    status=$?
+    echo "Handoff FAIL: final documentation check (exit $status)" >&2
+    exit "$status"
+  fi
 fi
 
 if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
@@ -242,14 +248,10 @@ if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
       continue
     fi
     if ! run_check "$kind" "$argument"; then
-      echo "FAIL: $cmd"
+      echo "Handoff FAIL: $cmd (see diagnostics above)" >&2
       exit 1
     fi
   done
-  if [[ "$QUIET" != true ]]; then
-    echo ""
-    echo "Handoff select: review the run output above."
-  fi
 else
   echo "No source verification selected for the current changes."
   if [[ "$TRINKET_SMOKE_TARGET_UNRESOLVED" == true ]]; then
@@ -261,7 +263,13 @@ if [[ "$QUIET" != true ]]; then
   echo ""
   echo "=== Cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) ==="
 fi
-run_cheap_ci_slices
+if run_cheap_ci_slices; then
+  :
+else
+  status=$?
+  echo "Handoff FAIL: cheap CI slices (exit $status; see diagnostics above)" >&2
+  exit "$status"
+fi
 
 if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${TRINKET_ISOLATE:-}" == "1" && "${ISOLATE}" == true ]]; then
   _mirror_needs_build=false
@@ -277,4 +285,5 @@ if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${TRINKET_ISOLATE:-}" == "
   fi
 fi
 
+echo "Handoff PASS: selected checks and cheap CI slices completed."
 exit 0
