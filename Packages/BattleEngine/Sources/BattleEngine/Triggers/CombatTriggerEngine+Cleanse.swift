@@ -16,7 +16,10 @@ package extension CombatTriggerEngine {
             guard let removedKeyword = EffectRemoval.removeRandomDebuff(
                 from: &effects,
                 using: &context.rng,
-            ) else { break }
+            ) else {
+                events.append(contentsOf: cleanseOtherPartyMember(source: source, target: target, in: &context))
+                break
+            }
             context.roster.setActiveEffects(effects, for: target)
             events.append(contentsOf: afterHeroCleanse(source: source, target: target, removed: [removedKeyword], in: &context))
             events.append(context.nextEvent(
@@ -174,27 +177,15 @@ package extension CombatTriggerEngine {
         source: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard triggers.cleanseAlsoPurgesEnemyBuffs > 0, context.roster.enemy.isAlive else { return [] }
-        var enemyEffects = context.roster.activeEffects(for: context.roster.enemy.combatant)
-        let removedBuffs = EffectRemoval.removeBuffs(
-            from: &enemyEffects,
+        guard context.roster.enemy.isAlive else { return [] }
+        return applyPurge(
+            to: context.roster.enemy.combatant,
+            source: source,
+            abilityName: triggerAbilityName("cleanseAlsoPurgesEnemyBuffs", for: source, fallback: "Dispel Magic", in: context),
             count: triggers.cleanseAlsoPurgesEnemyBuffs,
-            removeAll: false,
-            using: &context.rng,
+            purgeAll: false,
+            in: &context,
         )
-        guard !removedBuffs.isEmpty else { return [] }
-        context.roster.setActiveEffects(enemyEffects, for: context.roster.enemy.combatant)
-        return removedBuffs.map { keyword in
-            context.nextEvent(
-                kind: .effect,
-                effectKind: .purgeApplied,
-                actorName: source.name,
-                abilityName: triggerAbilityName("cleanseAlsoPurgesEnemyBuffs", for: source, fallback: "Dispel Magic", in: context),
-                target: context.roster.enemy.combatant,
-                amount: 0,
-                keyword: keyword,
-            )
-        }
     }
 
     private static func toxicBacklashDamage(
@@ -252,7 +243,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    // swiftlint:disable:next function_body_length - cleanse reactions share one deterministic cadence
     private static func cleansePartyReactions(
         triggers: CombatTraitTriggers,
         source: Combatant,
@@ -266,6 +256,15 @@ package extension CombatTriggerEngine {
                 $0.bonusDodgeExpiresAtTurn = max($0.bonusDodgeExpiresAtTurn, context.turnCount + duration)
             }
         }
+        return cleanseOtherPartyMember(source: source, target: target, in: &context)
+    }
+
+    static func cleanseOtherPartyMember(
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let triggers = context.modifiers(for: source.id).triggers
         guard triggers.cleanseAffectsBothHeroAndCompanion else { return [] }
         let other = target.role == .hero
             ? context.roster.companion.combatant
@@ -292,7 +291,7 @@ package extension CombatTriggerEngine {
         for debuff in removedDebuffs {
             countsByKeyword[debuff.keyword, default: 0] += 1
         }
-        var events: [ActionEvent] = []
+        var events = afterHeroCleanse(source: source, target: other, removed: removedDebuffs.map(\.keyword), in: &context)
         for (keyword, _) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
             events.append(context.nextEvent(
                 kind: .effect,

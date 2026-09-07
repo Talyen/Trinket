@@ -60,8 +60,13 @@ public enum BattleTurnEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
+        let previousOrdinaryActor = context.uniques.ordinaryActionActorID
+        context.uniques.ordinaryActionActorID = context.uniques.pendingOrdinaryActorID == actor.id ? actor.id : nil
+        context.uniques.pendingOrdinaryActorID = nil
+        defer { context.uniques.ordinaryActionActorID = previousOrdinaryActor }
         guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else { return [] }
         var resolvedAbility = BattleAbilityRules.resolveOutcome(ability, actor: actor, in: &context)
+        UniqueCombatEngine.prepareResolvedAttack(resolvedAbility, actor: actor, in: &context)
         CombatTriggerEngine.captureHeroOutcome(original: ability, resolved: resolvedAbility, actor: actor, in: &context)
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &resolvedAbility,
@@ -105,6 +110,7 @@ public enum BattleTurnEngine {
             ),
         )
 
+        events.append(contentsOf: UniqueCombatEngine.repeatCardDamage(actor: actor, in: &context))
         recordAction(for: actor, context: &context)
         return events
     }
@@ -217,21 +223,21 @@ extension BattleTurnEngine {
                     abilityCriticalChanceBonus: ability.criticalChanceBonus,
                     guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
                     guaranteedCritical: shouldConsumeNextStrikeCritical,
+                    applyControlMeter: context.uniques.reactionDepth > 0,
                     qualifiesForAmbush: true,
                     isAttackHit: true,
                     isBasicAttackHit: ability.tier == .basic,
                     abilityHasLeech: ability.hasLeech,
                 )
             options.isOriginalCardDamage = !isSelfHealthCost && context.hasHeroCard(for: actor.id)
-            let damageOutcome = context.resolveDamage(
-                DamageRequest(
-                    amount: amount,
-                    target: damageTarget,
-                    keyword: damageKeyword,
-                    sourceActorID: actor.id,
-                    options: options,
-                ),
-            )
+            let request = UniqueCombatEngine.prepareDamage(DamageRequest(
+                amount: amount,
+                target: damageTarget,
+                keyword: damageKeyword,
+                sourceActorID: actor.id,
+                options: options,
+            ), in: &context)
+            let damageOutcome = context.resolveDamage(request)
             let dealt = damageOutcome.healthLost
             let damageEvents = damageOutcome.events
             events.append(contentsOf: damageEvents)
@@ -297,7 +303,7 @@ extension BattleTurnEngine {
         )
     }
 
-    private static func applyDoTStackFromDamage(
+    static func applyDoTStackFromDamage(
         keyword: Keyword,
         potency: Int,
         to target: Combatant,

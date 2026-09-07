@@ -168,9 +168,9 @@ struct DoTMechanicsTests {
         try #expect(battle.health(of: battle.enemy) == 100)
     }
 
-    @Test func `poison tick leech triggers drain followups`() throws {
+    @Test(arguments: [0, 10, 20])
+    func `poison leech requires restored health for followups`(health: Int) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [poisonAbility(potency: 8)],
             enemyMaxHealth: 100,
             heroMaxMana: 5,
             heroMana: 0,
@@ -180,11 +180,15 @@ struct DoTMechanicsTests {
             )),
             dealOpeningHand: false,
         )
-        BattleStateTestFactory.drawOpeningHand(on: &battle)
+        let hero = battle.roster.hero.combatant
+        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = health }
+        let events = CombatTriggerEngine.afterDoTTick(
+            keyword: .poison, healthLost: 4, target: battle.roster.enemy.combatant,
+            sourceActorID: hero.id, in: &battle,
+        )
 
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        let tickEvents = BattleTestFixtures.endTurn(on: &battle)
-
-        try #expect(tickEvents.contains { $0.effectKind == .resourceGain && $0.keyword == .mana && $0.amount > 0 })
+        #expect(battle.roster.hero.currentMana == (health == 10 ? 2 : 0))
+        #expect(battle.roster.hero.currentHealth == (health == 10 ? 12 : health))
+        #expect(events.contains { $0.effectKind == .resourceGain } == (health == 10))
     }
 }

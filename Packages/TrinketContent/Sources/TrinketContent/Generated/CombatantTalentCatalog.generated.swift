@@ -603,6 +603,156 @@ public extension CombatantTalentCatalog {
             )
     ]
 
+    static let druidTalents: [String: CombatantTalentEffect] = [
+            "druid_health_t1_1": CombatantTalentEffect(
+                name: "Spring Sap",
+                symbolName: "heart.fill",
+                description: "Restoring Health to an ally with Thorns restores 1 additional Health, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(springSap: true))
+            ),
+            "druid_health_t1_2": CombatantTalentEffect(
+                name: "Pruning Touch",
+                symbolName: "heart.fill",
+                description: "Your Companion’s first successful card that restores Health each turn removes 1 Thorns from the enemy.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(pruningTouch: true))
+            ),
+            "druid_health_t2_1": CombatantTalentEffect(
+                name: "Quiet Grove",
+                symbolName: "heart.fill",
+                description: "After an enemy turn in which you lost no Health, restore 1 Health to your Companion.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(quietGrove: true))
+            ),
+            "druid_health_t2_2": CombatantTalentEffect(
+                name: "Shelter Seed",
+                symbolName: "heart.fill",
+                description: "The first time you fall below half Health each battle, grant your Companion 1 Thorns.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(shelterSeed: true))
+            ),
+            "druid_health_t3_1": CombatantTalentEffect(
+                name: "Cleansing Dew",
+                symbolName: "heart.fill",
+                description: "Your first successful card that restores Health each turn removes 1 Poison from that ally.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(cleansingDew: true))
+            ),
+            "druid_health_t3_2": CombatantTalentEffect(
+                name: "Shared Roots",
+                symbolName: "heart.fill",
+                description: "Restoring Health to your Companion removes 1 Burn from you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(sharedRoots: true))
+            ),
+            "druid_health_t4_1": CombatantTalentEffect(
+                name: "Verdant Shelter",
+                symbolName: "heart.fill",
+                description: "Your first successful card that restores Health each turn grants that ally 1 Thorns.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(healing: HealingTriggers(verdantShelter: true))
+            ),
+            "druid_poison_t1_1": CombatantTalentEffect(
+                name: "Barbed Spores",
+                symbolName: "drop.fill",
+                description: "Your Poison dealing Health damage grants your Companion 1 Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(barbedSpores: true))
+            ),
+            "druid_poison_t1_2": CombatantTalentEffect(
+                name: "Living Bark",
+                symbolName: "drop.fill",
+                description: "Poison cards grant you 1 Block while you have Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(livingBark: true))
+            ),
+            "druid_poison_t2_1": CombatantTalentEffect(
+                name: "Cool Moss",
+                symbolName: "drop.fill",
+                description: "Your first Poison card each turn removes 1 Burn from your Companion.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(coolMoss: true))
+            ),
+            "druid_poison_t2_2": CombatantTalentEffect(
+                name: "Returning Bloom",
+                symbolName: "drop.fill",
+                description: "Your Poison expiring naturally restores 1 Health to your Companion, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(returningBloom: true))
+            ),
+            "druid_poison_t3_1": CombatantTalentEffect(
+                name: "Root Passage",
+                symbolName: "drop.fill",
+                description: "Your Poison cards ignore 1 Block while your Companion has Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(rootPassage: true))
+            ),
+            "druid_poison_t3_2": CombatantTalentEffect(
+                name: "Entangling Growth",
+                symbolName: "drop.fill",
+                description: "Your Poison cards deal 1 additional Poison damage after your Companion plays a Stun card that turn, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(entanglingGrowth: true))
+            ),
+            "druid_poison_t4_1": CombatantTalentEffect(
+                name: "Thorn Shedding",
+                symbolName: "drop.fill",
+                description: "Gaining Thorns from a card removes 1 Poison from you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(dot: DotTriggers(thornShedding: true))
+            ),
+            "druid_mana_t1_1": CombatantTalentEffect(
+                name: "First Bloom",
+                symbolName: "flame.fill",
+                description: "A Mana-restoring card immediately following your Poison card restores 1 Mana to your Companion, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(firstBloom: true))
+            ),
+            "druid_mana_t1_2": CombatantTalentEffect(
+                name: "Barkweave",
+                symbolName: "flame.fill",
+                description: "Your first Mana empowerment each turn removes 1 Thorns from the enemy.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(barkweave: true))
+            ),
+            "druid_mana_t2_1": CombatantTalentEffect(
+                name: "Grove Reserve",
+                symbolName: "flame.fill",
+                description: "Ending a turn with less Mana than you started grants your Companion 1 Block at the next turn’s start.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(groveReserve: true))
+            ),
+            "druid_mana_t2_2": CombatantTalentEffect(
+                name: "Living Conduit",
+                symbolName: "flame.fill",
+                description: "Restoring Mana with a card grants your Companion 1 Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(livingConduit: true))
+            ),
+            "druid_mana_t3_1": CombatantTalentEffect(
+                name: "Shared Current",
+                symbolName: "flame.fill",
+                description: "Your Companion spending Mana removes 1 Poison from you, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(sharedCurrent: true))
+            ),
+            "druid_mana_t3_2": CombatantTalentEffect(
+                name: "Deep Roots",
+                symbolName: "flame.fill",
+                description: "Your Mana-restoring cards restore 1 additional Mana while you have Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(deepRoots: true))
+            ),
+            "druid_mana_t4_1": CombatantTalentEffect(
+                name: "Grove Accord",
+                symbolName: "flame.fill",
+                description: "Both allies spending Mana in the same turn grants each 1 Thorns, once per turn.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(groveAccord: true))
+            )
+    ]
+
     static let warlockTalents: [String: CombatantTalentEffect] = [
             "warlock_burn_t1_1": CombatantTalentEffect(
                 name: "Bloodfire",
@@ -900,156 +1050,6 @@ public extension CombatantTalentCatalog {
                 description: "Playing both Poison cards and cards that restore Health in a turn restores 1 Health to both allies at turn end.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(masterworkMixture: true))
-            )
-    ]
-
-    static let druidTalents: [String: CombatantTalentEffect] = [
-            "druid_health_t1_1": CombatantTalentEffect(
-                name: "Spring Sap",
-                symbolName: "heart.fill",
-                description: "Restoring Health to an ally with Thorns restores 1 additional Health, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(springSap: true))
-            ),
-            "druid_health_t1_2": CombatantTalentEffect(
-                name: "Pruning Touch",
-                symbolName: "heart.fill",
-                description: "Your Companion’s first successful card that restores Health each turn removes 1 Thorns from the enemy.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(pruningTouch: true))
-            ),
-            "druid_health_t2_1": CombatantTalentEffect(
-                name: "Quiet Grove",
-                symbolName: "heart.fill",
-                description: "After an enemy turn in which you lost no Health, restore 1 Health to your Companion.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(quietGrove: true))
-            ),
-            "druid_health_t2_2": CombatantTalentEffect(
-                name: "Shelter Seed",
-                symbolName: "heart.fill",
-                description: "The first time you fall below half Health each battle, grant your Companion 1 Thorns.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(shelterSeed: true))
-            ),
-            "druid_health_t3_1": CombatantTalentEffect(
-                name: "Cleansing Dew",
-                symbolName: "heart.fill",
-                description: "Your first successful card that restores Health each turn removes 1 Poison from that ally.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(cleansingDew: true))
-            ),
-            "druid_health_t3_2": CombatantTalentEffect(
-                name: "Shared Roots",
-                symbolName: "heart.fill",
-                description: "Restoring Health to your Companion removes 1 Burn from you, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(sharedRoots: true))
-            ),
-            "druid_health_t4_1": CombatantTalentEffect(
-                name: "Verdant Shelter",
-                symbolName: "heart.fill",
-                description: "Your first successful card that restores Health each turn grants that ally 1 Thorns.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(verdantShelter: true))
-            ),
-            "druid_poison_t1_1": CombatantTalentEffect(
-                name: "Barbed Spores",
-                symbolName: "drop.fill",
-                description: "Your Poison dealing Health damage grants your Companion 1 Thorns, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(barbedSpores: true))
-            ),
-            "druid_poison_t1_2": CombatantTalentEffect(
-                name: "Living Bark",
-                symbolName: "drop.fill",
-                description: "Poison cards grant you 1 Block while you have Thorns, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(livingBark: true))
-            ),
-            "druid_poison_t2_1": CombatantTalentEffect(
-                name: "Cool Moss",
-                symbolName: "drop.fill",
-                description: "Your first Poison card each turn removes 1 Burn from your Companion.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(coolMoss: true))
-            ),
-            "druid_poison_t2_2": CombatantTalentEffect(
-                name: "Returning Bloom",
-                symbolName: "drop.fill",
-                description: "Your Poison expiring naturally restores 1 Health to your Companion, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(returningBloom: true))
-            ),
-            "druid_poison_t3_1": CombatantTalentEffect(
-                name: "Root Passage",
-                symbolName: "drop.fill",
-                description: "Your Poison cards ignore 1 Block while your Companion has Thorns, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(rootPassage: true))
-            ),
-            "druid_poison_t3_2": CombatantTalentEffect(
-                name: "Entangling Growth",
-                symbolName: "drop.fill",
-                description: "Your Poison cards deal 1 additional Poison damage after your Companion plays a Stun card that turn, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(entanglingGrowth: true))
-            ),
-            "druid_poison_t4_1": CombatantTalentEffect(
-                name: "Thorn Shedding",
-                symbolName: "drop.fill",
-                description: "Gaining Thorns from a card removes 1 Poison from you, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(thornShedding: true))
-            ),
-            "druid_mana_t1_1": CombatantTalentEffect(
-                name: "First Bloom",
-                symbolName: "flame.fill",
-                description: "A Mana-restoring card immediately following your Poison card restores 1 Mana to your Companion, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(firstBloom: true))
-            ),
-            "druid_mana_t1_2": CombatantTalentEffect(
-                name: "Barkweave",
-                symbolName: "flame.fill",
-                description: "Your first Mana empowerment each turn removes 1 Thorns from the enemy.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(barkweave: true))
-            ),
-            "druid_mana_t2_1": CombatantTalentEffect(
-                name: "Grove Reserve",
-                symbolName: "flame.fill",
-                description: "Ending a turn with less Mana than you started grants your Companion 1 Block at the next turn’s start.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(groveReserve: true))
-            ),
-            "druid_mana_t2_2": CombatantTalentEffect(
-                name: "Living Conduit",
-                symbolName: "flame.fill",
-                description: "Restoring Mana with a card grants your Companion 1 Thorns, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(livingConduit: true))
-            ),
-            "druid_mana_t3_1": CombatantTalentEffect(
-                name: "Shared Current",
-                symbolName: "flame.fill",
-                description: "Your Companion spending Mana removes 1 Poison from you, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(sharedCurrent: true))
-            ),
-            "druid_mana_t3_2": CombatantTalentEffect(
-                name: "Deep Roots",
-                symbolName: "flame.fill",
-                description: "Your Mana-restoring cards restore 1 additional Mana while you have Thorns, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(deepRoots: true))
-            ),
-            "druid_mana_t4_1": CombatantTalentEffect(
-                name: "Grove Accord",
-                symbolName: "flame.fill",
-                description: "Both allies spending Mana in the same turn grants each 1 Thorns, once per turn.",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(groveAccord: true))
             )
     ]
 
@@ -3063,9 +3063,9 @@ public extension CombatantTalentCatalog {
             rangerTalents,
             rogueTalents,
             wizardTalents,
+            druidTalents,
             warlockTalents,
             alchemistTalents,
-            druidTalents,
             wildcardTalents,
             wolfTalents,
             bearTalents,

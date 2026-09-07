@@ -85,6 +85,11 @@ public enum BattleConditionEvaluator {
         companion: Combatant,
         context: BattleState,
     ) -> Combatant {
+        guard context.roster.health(for: hero) > 0,
+              context.roster.health(for: companion) > 0
+        else {
+            return lowestHealthAlly(hero: hero, companion: companion, context: context)
+        }
         let heroDebuffs = context.roster.activeEffects(for: hero).count(where: \.effect.isRemovableDebuff)
         let companionDebuffs = context.roster.activeEffects(for: companion).count(where: \.effect.isRemovableDebuff)
         if heroDebuffs != companionDebuffs {

@@ -4,6 +4,8 @@ import TrinketCore
 
 /// The `control` trigger family of `CombatTraitTriggers`.
 public struct ControlTriggers: Equatable, Hashable, Sendable {
+    public var stunDamageAddsEnemyBlock: Bool = false
+    public var stunRetainedBuildupPercent: Double = 0
     public var freezeExtraActionSkips: Int = 0
     public var freezeExtendChancePercent: Double = 0
     public var stunExtendChancePercent: Double = 0
@@ -38,6 +40,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var avalancheGuard: Bool = false
 
     public init(
+        stunDamageAddsEnemyBlock: Bool = false,
+        stunRetainedBuildupPercent: Double = 0,
         freezeExtraActionSkips: Int = 0,
         freezeExtendChancePercent: Double = 0,
         stunExtendChancePercent: Double = 0,
@@ -71,6 +75,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         lightningRod: Bool = false,
         avalancheGuard: Bool = false
     ) {
+        self.stunDamageAddsEnemyBlock = stunDamageAddsEnemyBlock
+        self.stunRetainedBuildupPercent = stunRetainedBuildupPercent
         self.freezeExtraActionSkips = freezeExtraActionSkips
         self.freezeExtendChancePercent = freezeExtendChancePercent
         self.stunExtendChancePercent = stunExtendChancePercent
@@ -106,11 +112,13 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "spendManaFreezeThreshold", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard"]
+    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "spendManaFreezeThreshold", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.stunDamageAddsEnemyBlock != other.stunDamageAddsEnemyBlock { names.append("stunDamageAddsEnemyBlock") }
+        if self.stunRetainedBuildupPercent != other.stunRetainedBuildupPercent { names.append("stunRetainedBuildupPercent") }
         if self.freezeExtraActionSkips != other.freezeExtraActionSkips { names.append("freezeExtraActionSkips") }
         if self.freezeExtendChancePercent != other.freezeExtendChancePercent { names.append("freezeExtendChancePercent") }
         if self.stunExtendChancePercent != other.stunExtendChancePercent { names.append("stunExtendChancePercent") }
@@ -149,6 +157,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
 
 extension ControlTriggers {
     mutating func merge(_ other: Self) {
+        stunDamageAddsEnemyBlock = stunDamageAddsEnemyBlock || other.stunDamageAddsEnemyBlock
+        stunRetainedBuildupPercent = max(stunRetainedBuildupPercent, other.stunRetainedBuildupPercent)
         freezeExtraActionSkips += other.freezeExtraActionSkips
         freezeExtendChancePercent += other.freezeExtendChancePercent
         stunExtendChancePercent += other.stunExtendChancePercent
@@ -188,6 +198,8 @@ extension ControlTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            stunDamageAddsEnemyBlock: values.decode(Bool.self, "stunDamageAddsEnemyBlock", default: false),
+            stunRetainedBuildupPercent: values.decode(Double.self, "stunRetainedBuildupPercent", default: 0),
             freezeExtraActionSkips: values.decode(Int.self, "freezeExtraActionSkips", default: 0),
             freezeExtendChancePercent: values.decode(Double.self, "freezeExtendChancePercent", default: 0),
             stunExtendChancePercent: values.decode(Double.self, "stunExtendChancePercent", default: 0),
@@ -224,6 +236,8 @@ extension ControlTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(stunDamageAddsEnemyBlock, "stunDamageAddsEnemyBlock", default: false)
+        try container.encodeNonDefault(stunRetainedBuildupPercent, "stunRetainedBuildupPercent", default: 0)
         try container.encodeNonDefault(freezeExtraActionSkips, "freezeExtraActionSkips", default: 0)
         try container.encodeNonDefault(freezeExtendChancePercent, "freezeExtendChancePercent", default: 0)
         try container.encodeNonDefault(stunExtendChancePercent, "stunExtendChancePercent", default: 0)

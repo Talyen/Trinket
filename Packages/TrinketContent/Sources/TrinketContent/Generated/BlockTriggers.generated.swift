@@ -4,6 +4,8 @@ import TrinketCore
 
 /// The `block` trigger family of `CombatTraitTriggers`.
 public struct BlockTriggers: Equatable, Hashable, Sendable {
+    public var retainAllBlockBetweenTurns: Bool = false
+    public var blockedAttackBasicOncePerTurn: Bool = false
     public var blockBrokenBlockFlat: Int = 0
     public var blockBrokenSaintfallPower: Int = 0
     public var holyDamageBlockFlat: Int = 0
@@ -56,6 +58,8 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var glacialReprieve: Bool = false
 
     public init(
+        retainAllBlockBetweenTurns: Bool = false,
+        blockedAttackBasicOncePerTurn: Bool = false,
         blockBrokenBlockFlat: Int = 0,
         blockBrokenSaintfallPower: Int = 0,
         holyDamageBlockFlat: Int = 0,
@@ -107,6 +111,8 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         iceboundExchange: Bool = false,
         glacialReprieve: Bool = false
     ) {
+        self.retainAllBlockBetweenTurns = retainAllBlockBetweenTurns
+        self.blockedAttackBasicOncePerTurn = blockedAttackBasicOncePerTurn
         self.blockBrokenBlockFlat = blockBrokenBlockFlat
         self.blockBrokenSaintfallPower = blockBrokenSaintfallPower
         self.holyDamageBlockFlat = holyDamageBlockFlat
@@ -160,11 +166,13 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "blockGainedMaxHealthEvery", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "companionFatalDamageRedirectBlock", "onEnemyFrozenGainBlock", "onCompanionTakeDamageGrantHeroBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "sunwall", "unbrokenVow", "storedImpact", "iceboundExchange", "glacialReprieve"]
+    public static let fieldNames: [String] = ["retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "blockGainedMaxHealthEvery", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "companionFatalDamageRedirectBlock", "onEnemyFrozenGainBlock", "onCompanionTakeDamageGrantHeroBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "sunwall", "unbrokenVow", "storedImpact", "iceboundExchange", "glacialReprieve"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.retainAllBlockBetweenTurns != other.retainAllBlockBetweenTurns { names.append("retainAllBlockBetweenTurns") }
+        if self.blockedAttackBasicOncePerTurn != other.blockedAttackBasicOncePerTurn { names.append("blockedAttackBasicOncePerTurn") }
         if self.blockBrokenBlockFlat != other.blockBrokenBlockFlat { names.append("blockBrokenBlockFlat") }
         if self.blockBrokenSaintfallPower != other.blockBrokenSaintfallPower { names.append("blockBrokenSaintfallPower") }
         if self.holyDamageBlockFlat != other.holyDamageBlockFlat { names.append("holyDamageBlockFlat") }
@@ -221,6 +229,8 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
 
 extension BlockTriggers {
     mutating func merge(_ other: Self) {
+        retainAllBlockBetweenTurns = retainAllBlockBetweenTurns || other.retainAllBlockBetweenTurns
+        blockedAttackBasicOncePerTurn = blockedAttackBasicOncePerTurn || other.blockedAttackBasicOncePerTurn
         blockBrokenBlockFlat += other.blockBrokenBlockFlat
         blockBrokenSaintfallPower = max(blockBrokenSaintfallPower, other.blockBrokenSaintfallPower)
         holyDamageBlockFlat += other.holyDamageBlockFlat
@@ -278,6 +288,8 @@ extension BlockTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            retainAllBlockBetweenTurns: values.decode(Bool.self, "retainAllBlockBetweenTurns", default: false),
+            blockedAttackBasicOncePerTurn: values.decode(Bool.self, "blockedAttackBasicOncePerTurn", default: false),
             blockBrokenBlockFlat: values.decode(Int.self, "blockBrokenBlockFlat", default: 0),
             blockBrokenSaintfallPower: values.decode(Int.self, "blockBrokenSaintfallPower", default: 0),
             holyDamageBlockFlat: values.decode(Int.self, "holyDamageBlockFlat", default: 0),
@@ -332,6 +344,8 @@ extension BlockTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(retainAllBlockBetweenTurns, "retainAllBlockBetweenTurns", default: false)
+        try container.encodeNonDefault(blockedAttackBasicOncePerTurn, "blockedAttackBasicOncePerTurn", default: false)
         try container.encodeNonDefault(blockBrokenBlockFlat, "blockBrokenBlockFlat", default: 0)
         try container.encodeNonDefault(blockBrokenSaintfallPower, "blockBrokenSaintfallPower", default: 0)
         try container.encodeNonDefault(holyDamageBlockFlat, "holyDamageBlockFlat", default: 0)

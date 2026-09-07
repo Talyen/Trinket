@@ -223,6 +223,10 @@ struct BleedHandler: BattleEffectHandler {
         var updated = active
         if !shouldPreserveBleed(on: target, in: context) {
             updated.remainingTurns -= 1
+            if updated.remainingTurns == 0, sourceTriggers?.bleedHalvesAfterExpiration == true, potency > 1 {
+                updated.effect = .bleed(potency / 2)
+                updated.remainingTurns = 1
+            }
         }
         return EffectTurnOutcome(
             events: events,

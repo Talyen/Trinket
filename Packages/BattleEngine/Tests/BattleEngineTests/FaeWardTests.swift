@@ -148,6 +148,30 @@ struct FaeWardTests {
         #expect(!effects.contains(where: { $0.effect.keyword == .poison }))
     }
 
+    @Test func `blocked bleed does not extend damage or trigger poison`() {
+        var battle = makeWardedHeroBattle(enemyModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+            dot: DotTriggers(
+                onBleedApplyPoison: 3,
+                onBleedAppliedToBleedingExtendTurns: 1,
+                onBleedAppliedToBleedingDealDamage: 2,
+            ),
+        )))
+        let target = battle.roster.hero.combatant
+        let existing = ActiveEffect(id: 99, effect: .bleed(1), remainingTurns: 2)
+        battle.roster.setActiveEffects([existing], for: target)
+        let healthBefore = battle.roster.health(for: target)
+
+        let events = DoTApplicator.applyBleed(
+            potency: 2, to: target, sourceActorID: battle.roster.enemy.id,
+            dealImmediateDamage: false, in: &battle,
+        )
+
+        #expect(battle.roster.health(for: target) == healthBefore)
+        #expect(battle.roster.activeEffects(for: target) == [existing])
+        #expect(events.isEmpty)
+        #expect(battle.roster.hero.faeWardBlockedThisTurn)
+    }
+
     private func burnPotency(on combatant: Combatant, in battle: BattleState) -> Int? {
         battle.roster.activeEffects(for: combatant)
             .first { $0.effect.keyword == .burn }?.effect.potency

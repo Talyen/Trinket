@@ -4,6 +4,14 @@ import TrinketCore
 
 /// The `attack` trigger family of `CombatTraitTriggers`.
 public struct AttackTriggers: Equatable, Hashable, Sendable {
+    public var firstCriticalHitRepeatsPerTurn: Bool = false
+    public var returnAttackAgainstBleedingOncePerTurn: Bool = false
+    public var heldCardNextAttackDamage: Int = 0
+    public var firstCriticalHitCompanionBasicPerTurn: Bool = false
+    public var secondCardDrawAndDodgePercent: Double = 0
+    public var thirdCardReturnsToHand: Bool = false
+    public var recoverLastAttackCardEachTurn: Bool = false
+    public var firstElementCardsDraw: Bool = false
     public var attacksApplyPoison: Int = 0
     public var physicalAttackApplyBleed: Int = 0
     public var physicalAttackApplyBleedAndStun: Int = 0
@@ -51,6 +59,14 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var paidInFull: Bool = false
 
     public init(
+        firstCriticalHitRepeatsPerTurn: Bool = false,
+        returnAttackAgainstBleedingOncePerTurn: Bool = false,
+        heldCardNextAttackDamage: Int = 0,
+        firstCriticalHitCompanionBasicPerTurn: Bool = false,
+        secondCardDrawAndDodgePercent: Double = 0,
+        thirdCardReturnsToHand: Bool = false,
+        recoverLastAttackCardEachTurn: Bool = false,
+        firstElementCardsDraw: Bool = false,
         attacksApplyPoison: Int = 0,
         physicalAttackApplyBleed: Int = 0,
         physicalAttackApplyBleedAndStun: Int = 0,
@@ -97,6 +113,14 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         feignedMiss: Bool = false,
         paidInFull: Bool = false
     ) {
+        self.firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn
+        self.returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn
+        self.heldCardNextAttackDamage = heldCardNextAttackDamage
+        self.firstCriticalHitCompanionBasicPerTurn = firstCriticalHitCompanionBasicPerTurn
+        self.secondCardDrawAndDodgePercent = secondCardDrawAndDodgePercent
+        self.thirdCardReturnsToHand = thirdCardReturnsToHand
+        self.recoverLastAttackCardEachTurn = recoverLastAttackCardEachTurn
+        self.firstElementCardsDraw = firstElementCardsDraw
         self.attacksApplyPoison = attacksApplyPoison
         self.physicalAttackApplyBleed = physicalAttackApplyBleed
         self.physicalAttackApplyBleedAndStun = physicalAttackApplyBleedAndStun
@@ -145,11 +169,19 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "criticalApplyStunBuildup", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "prismaticEdge", "improvisedAssault", "cleanCut", "crackedGuard", "coldRead", "feignedMiss", "paidInFull"]
+    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "criticalApplyStunBuildup", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "prismaticEdge", "improvisedAssault", "cleanCut", "crackedGuard", "coldRead", "feignedMiss", "paidInFull"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.firstCriticalHitRepeatsPerTurn != other.firstCriticalHitRepeatsPerTurn { names.append("firstCriticalHitRepeatsPerTurn") }
+        if self.returnAttackAgainstBleedingOncePerTurn != other.returnAttackAgainstBleedingOncePerTurn { names.append("returnAttackAgainstBleedingOncePerTurn") }
+        if self.heldCardNextAttackDamage != other.heldCardNextAttackDamage { names.append("heldCardNextAttackDamage") }
+        if self.firstCriticalHitCompanionBasicPerTurn != other.firstCriticalHitCompanionBasicPerTurn { names.append("firstCriticalHitCompanionBasicPerTurn") }
+        if self.secondCardDrawAndDodgePercent != other.secondCardDrawAndDodgePercent { names.append("secondCardDrawAndDodgePercent") }
+        if self.thirdCardReturnsToHand != other.thirdCardReturnsToHand { names.append("thirdCardReturnsToHand") }
+        if self.recoverLastAttackCardEachTurn != other.recoverLastAttackCardEachTurn { names.append("recoverLastAttackCardEachTurn") }
+        if self.firstElementCardsDraw != other.firstElementCardsDraw { names.append("firstElementCardsDraw") }
         if self.attacksApplyPoison != other.attacksApplyPoison { names.append("attacksApplyPoison") }
         if self.physicalAttackApplyBleed != other.physicalAttackApplyBleed { names.append("physicalAttackApplyBleed") }
         if self.physicalAttackApplyBleedAndStun != other.physicalAttackApplyBleedAndStun { names.append("physicalAttackApplyBleedAndStun") }
@@ -201,6 +233,14 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
 
 extension AttackTriggers {
     mutating func merge(_ other: Self) {
+        firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn || other.firstCriticalHitRepeatsPerTurn
+        returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn || other.returnAttackAgainstBleedingOncePerTurn
+        heldCardNextAttackDamage = max(heldCardNextAttackDamage, other.heldCardNextAttackDamage)
+        firstCriticalHitCompanionBasicPerTurn = firstCriticalHitCompanionBasicPerTurn || other.firstCriticalHitCompanionBasicPerTurn
+        secondCardDrawAndDodgePercent = max(secondCardDrawAndDodgePercent, other.secondCardDrawAndDodgePercent)
+        thirdCardReturnsToHand = thirdCardReturnsToHand || other.thirdCardReturnsToHand
+        recoverLastAttackCardEachTurn = recoverLastAttackCardEachTurn || other.recoverLastAttackCardEachTurn
+        firstElementCardsDraw = firstElementCardsDraw || other.firstElementCardsDraw
         attacksApplyPoison += other.attacksApplyPoison
         physicalAttackApplyBleed += other.physicalAttackApplyBleed
         physicalAttackApplyBleedAndStun += other.physicalAttackApplyBleedAndStun
@@ -253,6 +293,14 @@ extension AttackTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            firstCriticalHitRepeatsPerTurn: values.decode(Bool.self, "firstCriticalHitRepeatsPerTurn", default: false),
+            returnAttackAgainstBleedingOncePerTurn: values.decode(Bool.self, "returnAttackAgainstBleedingOncePerTurn", default: false),
+            heldCardNextAttackDamage: values.decode(Int.self, "heldCardNextAttackDamage", default: 0),
+            firstCriticalHitCompanionBasicPerTurn: values.decode(Bool.self, "firstCriticalHitCompanionBasicPerTurn", default: false),
+            secondCardDrawAndDodgePercent: values.decode(Double.self, "secondCardDrawAndDodgePercent", default: 0),
+            thirdCardReturnsToHand: values.decode(Bool.self, "thirdCardReturnsToHand", default: false),
+            recoverLastAttackCardEachTurn: values.decode(Bool.self, "recoverLastAttackCardEachTurn", default: false),
+            firstElementCardsDraw: values.decode(Bool.self, "firstElementCardsDraw", default: false),
             attacksApplyPoison: values.decode(Int.self, "attacksApplyPoison", default: 0),
             physicalAttackApplyBleed: values.decode(Int.self, "physicalAttackApplyBleed", default: 0),
             physicalAttackApplyBleedAndStun: values.decode(Int.self, "physicalAttackApplyBleedAndStun", default: 0),
@@ -302,6 +350,14 @@ extension AttackTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(firstCriticalHitRepeatsPerTurn, "firstCriticalHitRepeatsPerTurn", default: false)
+        try container.encodeNonDefault(returnAttackAgainstBleedingOncePerTurn, "returnAttackAgainstBleedingOncePerTurn", default: false)
+        try container.encodeNonDefault(heldCardNextAttackDamage, "heldCardNextAttackDamage", default: 0)
+        try container.encodeNonDefault(firstCriticalHitCompanionBasicPerTurn, "firstCriticalHitCompanionBasicPerTurn", default: false)
+        try container.encodeNonDefault(secondCardDrawAndDodgePercent, "secondCardDrawAndDodgePercent", default: 0)
+        try container.encodeNonDefault(thirdCardReturnsToHand, "thirdCardReturnsToHand", default: false)
+        try container.encodeNonDefault(recoverLastAttackCardEachTurn, "recoverLastAttackCardEachTurn", default: false)
+        try container.encodeNonDefault(firstElementCardsDraw, "firstElementCardsDraw", default: false)
         try container.encodeNonDefault(attacksApplyPoison, "attacksApplyPoison", default: 0)
         try container.encodeNonDefault(physicalAttackApplyBleed, "physicalAttackApplyBleed", default: 0)
         try container.encodeNonDefault(physicalAttackApplyBleedAndStun, "physicalAttackApplyBleedAndStun", default: 0)

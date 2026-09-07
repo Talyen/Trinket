@@ -374,7 +374,7 @@ struct AvatarHandler: BattleEffectHandler {
         from caster: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let opponent: Combatant = caster.role == .enemy ? context.hero : context.enemy
+        let opponent = BattleTargetResolver.abilityTarget(for: caster, in: context)
         var events = DoTDamage.resolveTurnDamage(
             basePotency: holyDamage,
             keyword: .holy,
@@ -382,24 +382,12 @@ struct AvatarHandler: BattleEffectHandler {
             sourceActorID: caster.id,
             in: &context,
         ).events
-        let applied = DefensePoolEngine.add(
+        events.append(contentsOf: context.applyBlock(
             blockPerTurn,
             to: caster,
-            keyword: .block,
-            sourceActorID: caster.id,
-            in: &context,
-        )
-        if applied > 0 {
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .shieldApplied,
-                actorName: caster.name,
-                abilityName: "Avatar",
-                target: caster,
-                amount: applied,
-                keyword: .block,
-            ))
-        }
+            source: caster,
+            abilityName: "Avatar",
+        ))
         return events
     }
 }

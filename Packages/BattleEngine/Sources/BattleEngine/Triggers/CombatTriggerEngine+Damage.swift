@@ -104,6 +104,7 @@ package extension CombatTriggerEngine {
 
         let profile = context.modifiers(for: sourceActorID)
         let triggers = profile.triggers
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: damageKeyword, triggers: triggers)
         let target = state.combatant
         let status = state.targetStatus
         let sourceHasBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant)) > 0
@@ -123,7 +124,8 @@ package extension CombatTriggerEngine {
         }
 
         if triggers.damageBelowHealthPercentBonus > 0,
-           triggers.damageBelowHealthPercentKeyword == nil || triggers.damageBelowHealthPercentKeyword == damageKeyword,
+           triggers.damageBelowHealthPercentKeyword == nil || triggers.damageBelowHealthPercentKeyword == damageKeyword
+           || triggers.damageBelowHealthPercentKeyword == sharedKeyword,
            triggers.damageBelowHealthPercentThreshold > 0,
            context.roster.maxHealth(for: target) > 0 {
             let percent = Double(context.roster.health(for: target)) /
@@ -153,7 +155,7 @@ package extension CombatTriggerEngine {
         if damageKeyword == .holy, status.isStunned {
             bonus += triggers.holyDamageVsStunnedBonus
         }
-        if damageKeyword == .burn, status.isFrozen {
+        if damageKeyword == .burn || sharedKeyword == .burn, status.isFrozen {
             bonus += triggers.burnDamageVsFrozenBonusPhysical
         }
         if damageKeyword == .freeze, status.isFrozen {
@@ -197,6 +199,7 @@ package extension CombatTriggerEngine {
         let target = state.combatant
         let status = state.targetStatus
         let targetHasBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target)) > 0
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: damageKeyword, triggers: triggers)
         let targetBelowPoisonThreshold = triggers.poisonDamageBelowHealthThreshold > 0
             && context.roster.maxHealth(for: target) > 0
             && Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
@@ -231,10 +234,10 @@ package extension CombatTriggerEngine {
                 multiplier *= triggers.holyDamageVsUndeadOrCorruptedMultiplier
             }
         }
-        if damageKeyword == .burn, !targetHasBlock {
+        if damageKeyword == .burn || sharedKeyword == .burn, !targetHasBlock {
             multiplier *= triggers.burnDamageVsNoBlockMultiplier
         }
-        if damageKeyword == .physical, status.isBleeding {
+        if damageKeyword == .physical || sharedKeyword == .physical, status.isBleeding {
             multiplier *= triggers.physicalDamageVsBleedingMultiplier
         }
         if source.role == .hero, status.isStunned {
@@ -465,12 +468,7 @@ package extension CombatTriggerEngine {
         defer { context.isResolvingDoTDetonation = false }
 
         let currentEffects = context.roster.activeEffects(for: target)
-        var bleedsToDetonate: [(potency: Int, turns: Int)] = []
-        for effect in currentEffects {
-            if case let .bleed(potency) = effect.effect, effect.remainingTurns > 0 {
-                bleedsToDetonate.append((potency, effect.remainingTurns))
-            }
-        }
+        let bleedsToDetonate = currentEffects.filter { $0.effect.isBleed && $0.remainingTurns > 0 }
         guard !bleedsToDetonate.isEmpty else { return [] }
         var remainingEffects = currentEffects
         remainingEffects.removeAll {

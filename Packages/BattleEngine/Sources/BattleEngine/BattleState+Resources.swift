@@ -16,6 +16,7 @@ package extension BattleState {
         let granted = goldGranted(for: amount, sourceActorID: combatant.id)
         let previousEarned = max(0, gold - initialGold)
         gold += granted
+        UniqueCombatEngine.gainedGold(granted, by: combatant, in: &self)
         let currentEarned = max(0, gold - initialGold)
         var events = [nextEvent(
             kind: .effect,
@@ -224,6 +225,7 @@ public extension BattleTurnEngine {
         }
         var events: [ActionEvent] = []
         var purchases = 0
+        var totalManaSpent = 0
         let maxMana = context.roster.runtime(for: actor)?.maxMana ?? 0
         let firstDiscount = context.roster.runtime(for: actor)?.hasEmpoweredWithMana == false
             && triggers.firstEmpowermentCostReduction > 0 ? 1 : 0
@@ -232,22 +234,28 @@ public extension BattleTurnEngine {
             guard let runtime = context.roster.runtime(for: actor), runtime.maxMana > 0 else { break }
             let discount = runtime.hasEmpoweredWithMana ? 0 : triggers.firstEmpowermentCostReduction
             let empowermentCost = max(0, baseCost - discount)
-            guard runtime.currentMana >= empowermentCost else { break }
-            let spent = context.spendMana(empowermentCost, for: actor)
-            guard spent >= empowermentCost else { break }
+            guard let spent = UniqueCombatEngine.payEmpowerment(
+                empowermentCost,
+                ability: ability,
+                actor: actor,
+                in: &context,
+            ) else { break }
             context.roster.mutateRuntime(for: actor) { $0.hasEmpoweredWithMana = true }
             purchases += 1
+            totalManaSpent += spent
             ability = ability.empoweredByMana(amount: manaEmpowermentBonus + triggers.empowermentDamageBonus)
-            events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
-                by: actor,
-                amountSpent: spent,
-                in: &context,
-            ))
+            if spent > 0 {
+                events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
+                    by: actor,
+                    amountSpent: spent,
+                    in: &context,
+                ))
+            }
         }
         if purchases > 0 {
             events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context))
         }
-        if purchases > 0, let empoweredKeyword {
+        if totalManaSpent > 0, let empoweredKeyword {
             events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(
                 afterEmpowering: empoweredKeyword,
                 by: actor,

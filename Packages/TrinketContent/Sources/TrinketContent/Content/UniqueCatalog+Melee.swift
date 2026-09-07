@@ -1,0 +1,78 @@
+import TrinketCore
+
+extension UniqueCatalog {
+    static let meleeDefinitions: [UniqueItemDefinition] = [
+        unique(
+            id: "the_unclosing_wound",
+            name: "The Unclosing Wound",
+            base: "double_axe",
+            keywords: [.bleed],
+            description: "Your Bleed continues after its normal duration, halving in potency each additional turn.",
+            triggers: CombatTraitTriggers(dot: DotTriggers(bleedHalvesAfterExpiration: true)),
+            supports: ["keen", "serrated", "leeching"],
+        ),
+        unique(
+            id: "kingbreaker",
+            name: "Kingbreaker",
+            base: "maul",
+            keywords: [.stun, .block],
+            description: "Your Stun damage ignores enemy Block and gains damage equal to that Block.",
+            triggers: CombatTraitTriggers(control: ControlTriggers(stunDamageAddsEnemyBlock: true)),
+            supports: ["keen", "concussive", "defenders"],
+        ),
+        unique(
+            id: "everkeen",
+            name: "Everkeen",
+            base: "greatsword",
+            keywords: [.physical],
+            description: "Once per turn, your first Critical Hit strikes again.",
+            triggers: CombatTraitTriggers(attack: AttackTriggers(firstCriticalHitRepeatsPerTurn: true)),
+            supports: ["keen", "serrated", "dazed"],
+        ),
+        unique(
+            id: "red_harvest",
+            name: "Red Harvest",
+            base: "hatchet",
+            keywords: [.physical, .bleed],
+            description: "Once per turn, an attack card you play against a Bleeding enemy returns to your hand.",
+            triggers: CombatTraitTriggers(attack: AttackTriggers(returnAttackAgainstBleedingOncePerTurn: true)),
+            supports: ["keen", "serrated", "leeching"],
+        ),
+        unique(
+            id: "oathkeeper",
+            name: "Oathkeeper",
+            base: "longsword",
+            keywords: [.physical, .holy],
+            description: "Your Physical damage bonuses also strengthen Holy damage.",
+            triggers: CombatTraitTriggers(damage: DamageTriggers(physicalBonusesApplyToHoly: true)),
+            supports: ["keen", "consecrated", "serrated"],
+        ),
+        unique(
+            id: "the_patient_edge",
+            name: "The Patient Edge",
+            base: "shortsword",
+            keywords: [.physical],
+            description: "Each of your cards left in hand at turn end adds 2 damage to your first attack next turn.",
+            triggers: CombatTraitTriggers(attack: AttackTriggers(heldCardNextAttackDamage: 2)),
+            supports: ["keen", "serrated", "envenomed"],
+        ),
+        unique(
+            id: "vipers_courtesy",
+            name: "Viper’s Courtesy",
+            base: "dagger",
+            keywords: [.poison, .bleed],
+            description: "After Dodging, your next hit deals additional Poison and Bleed damage, each equal to half its damage.",
+            triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeNextHitPoisonAndBleedPercent: 0.5)),
+            supports: ["envenomed", "serrated", "leeching"],
+        ),
+        unique(
+            id: "the_lingering_bell",
+            name: "The Lingering Bell",
+            base: "mace",
+            keywords: [.stun],
+            description: "Stunning an enemy preserves a quarter of the Stun buildup that triggered it.",
+            triggers: CombatTraitTriggers(control: ControlTriggers(stunRetainedBuildupPercent: 0.25)),
+            supports: ["concussive", "consecrated", "dazed"],
+        ),
+    ]
+}

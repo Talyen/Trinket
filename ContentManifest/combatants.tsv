@@ -3,9 +3,9 @@ knight	Knight	hero	17	0	bash,block,shieldBash,slash	smite,sunder,stoneskinPotion
 ranger	Ranger	hero	14	0	venomArrow,fireArrow,sniffOut,rendingSlash	sapArrow,bountyShot,predatorsFocus,serratedEdge	packTactics,astralArrow,hemorrhage,bloodthorn
 rogue	Rogue	hero	14	0	stab,blackjack,fangs,rendingSlash	poisonDagger,serratedEdge,steal,venomFangs	hemorrhage,shadowstep,bloodthorn,luckPotion
 wizard	Wizard	hero	14	10	manaBerries,rayOfFrost,kindling,stargaze	fireball,glacialWard,frostbolt,manaShield	meteor,blizzard,luckPotion,combustion
+druid	Druid	hero	16	9	manaBerries,maul,pixieDust,stargaze	cinderbloom,briarShield,heal,cleanse	bloodthorn,earthquake,thornMail,packTactics
 warlock	Warlock	hero	16	9	kindling,fangs,manaBerries,rendingSlash	bloodOffering,darkPact,venomFangs,cinderbloom	combustion,faustianBargain,bloodthorn,meteor
 alchemist	Alchemist	hero	14	8	causticJab,kindling,apple,manaBerries	acidPotion,poisonDagger,stoneskinPotion,manaPotion	luckPotion,panaceaPotion,bloodthorn,combustion
-druid	Druid	hero	16	9	manaBerries,maul,pixieDust,stargaze	cinderbloom,briarShield,heal,cleanse	bloodthorn,earthquake,thornMail,packTactics
 wildcard	Wildcard	hero	14	0	blackjack,slash,maul,stab	bountyShot,cinderbloom,fireball,tithe	astralArrow,luckPotion,goldenPlate,shadowstep
 wolf	Wolf	companion	14	0	fangs,rendingSlash,stab,sniffOut	pounce,predatorsFocus,venomFangs,serratedEdge	packTactics,hemorrhage,shadowstep,bloodthorn
 bear	Bear	companion	17	0	maul,fangs,bash,slash	briarShield,sunder,stoneskinPotion,serratedEdge	earthquake,thornMail,moltenBulwark,bloodthorn

@@ -118,6 +118,9 @@ package enum DefensePoolEngine {
     ) {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return }
+        if context.modifiers(for: target.id).triggers.retainAllBlockBetweenTurns {
+            return
+        }
         if context.modifiers(for: target.id).triggers.blockRetainsThreeQuarters {
             let retained = min(30, (current * 3) / 4)
             set(retained, on: target, in: &context)

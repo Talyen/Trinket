@@ -70,4 +70,20 @@ struct EffectTurnEngineTests {
             "Death's Door inserted during DoT damage should survive effect-pass write-back",
         )
     }
+
+    @Test func `guardian archive cleanse prevents later dots from ticking`() throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_health_t3_1")
+        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
+        battle.appliesFightPacing = false
+        let hero = battle.roster.hero.combatant
+        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
+        battle.appendEffect(.burn(4), to: hero, sourceID: battle.roster.enemy.id, remainingTurns: 0)
+        battle.appendEffect(.poison(8), to: hero, sourceID: battle.roster.enemy.id, remainingTurns: 0)
+
+        let events = EffectTurnEngine.advanceAll(context: &battle)
+
+        #expect(battle.roster.hero.currentHealth == 11)
+        #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect.isRemovableDebuff })
+        #expect(!events.contains { $0.keyword == .poison && $0.amount > 0 })
+    }
 }

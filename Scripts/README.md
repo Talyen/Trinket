@@ -78,7 +78,7 @@ Read these focused guides:
 | `./Scripts/record-time-profiler.sh --output <path.trace>` | Host Time Profiler of the Trinket process (no `xctrace --device`; `--all-processes` is opt-in and slow) |
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for path inventory, route metadata, and full commands and `--working-tree --allow-broad-scope` only intentionally |
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
-| `node Scripts/agent-worktree.mjs create --task <slug>` | Canonical isolated worktree under `.worktrees/<slug>` on `agent/<slug>`; use when another agent owns dirty work |
+| `node Scripts/agent-worktree.mjs create --task <slug>` | Optional worktree under `.worktrees/<slug>` on `agent/<slug>`; checkout policy lives in [AGENTS.md](../AGENTS.md#protect-the-workspace) |
 | `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |
 | `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate (headless by default); `--smoke` runs targeted UI smoke; `--mirror` mirrors to Trinket Run; `--dry-run` shows the full ordered plan including cheap CI slices |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |

@@ -44,8 +44,8 @@ xcode_runner_scan_terminal_marker_from() {
   local log_file="$1"
   local offset="$2"
   [[ -f "$log_file" ]] || return 1
-  tail -c +"$((offset + 1))" "$log_file" 2>/dev/null | grep -Eq \
-    "Test Suite '(Selected tests|All tests)' (passed|failed)|\\*\\* (TEST|BUILD) (SUCCEEDED|FAILED) \\*\\*|Testing started completed|✘ Test run with |✔ Test run with "
+  tail -c +"$((offset + 1))" "$log_file" 2>/dev/null | grep -E \
+    "Test Suite '(Selected tests|All tests)' (passed|failed)|\\*\\* (TEST|BUILD) (SUCCEEDED|FAILED) \\*\\*|Testing started completed|✘ Test run with |✔ Test run with " >/dev/null
 }
 
 xcode_runner_infer_exit_from_log() {

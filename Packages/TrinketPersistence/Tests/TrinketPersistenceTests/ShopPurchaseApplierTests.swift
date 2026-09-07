@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -5,6 +6,30 @@ import TrinketPersistence
 import TrinketPersistenceTestSupport
 
 struct ShopPurchaseApplierTests {
+    @Test func `purchase settles production before opening gold capacity`() throws {
+        var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: PlayerRosterState.maxGoldBalance)
+        let start = Date.now.addingTimeInterval(-PlayerHomesteadState.secondsPerDay)
+        save.homestead = PlayerHomesteadState(
+            resources: [:], nodeTiers: [.wishingWell: 1], lastProductionAt: start,
+        )
+        let offer = try makeOffer(price: 28)
+
+        let result = ShopPurchaseApplier.purchase(
+            offer: offer, visitToken: "capped-visit", stageID: "shop", save: &save,
+        )
+
+        guard case .success = result else {
+            Issue.record("Expected successful purchase")
+            return
+        }
+        #expect(save.roster.gold == PlayerRosterState.maxGoldBalance - offer.price)
+        #expect(save.homestead.lastProductionAt > start)
+        let collected = save.homestead.collectProduction(
+            at: save.homestead.lastProductionAt, roster: &save.roster,
+        )
+        #expect(collected.isEmpty)
+    }
+
     @Test func `purchase spends gold and grants item`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 100)
         let offer = try makeOffer(price: 28)

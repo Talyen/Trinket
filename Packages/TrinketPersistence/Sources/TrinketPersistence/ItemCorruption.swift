@@ -141,7 +141,7 @@ public enum ItemCorruption {
         }
 
         var powers: [ItemAffixPower] = affixIDs.compactMap { id in
-            GameContent.itemAffixDefinition(matching: id)?.power(for: rarity)
+            resolvedPower(for: id, on: item, rarity: rarity)
         }
         applyBumpEffects(
             kinds: kinds,
@@ -269,12 +269,19 @@ public enum ItemCorruption {
     }
 
     private static func resolvedPowers(for item: InventoryItem) -> [ItemAffixPower] {
-        if let powers = item.affixPowers, powers.count == item.affixes.count {
-            return powers
+        item.affixes.compactMap { affix in
+            resolvedPower(for: affix.id, on: item, rarity: item.rarity)
         }
-        return item.affixes.compactMap { affix in
-            GameContent.itemAffixDefinition(matching: affix.id)?.power(for: item.rarity)
+    }
+
+    private static func resolvedPower(for id: String, on item: InventoryItem, rarity: Rarity) -> ItemAffixPower? {
+        if rarity == item.rarity,
+           let index = item.affixes.firstIndex(where: { $0.id == id }),
+           let storedPowers = item.affixPowers,
+           storedPowers.indices.contains(index) {
+            return storedPowers[index]
         }
+        return GameContent.itemAffixDefinition(matching: id)?.power(for: rarity)
     }
 
     private static func weightedPick(

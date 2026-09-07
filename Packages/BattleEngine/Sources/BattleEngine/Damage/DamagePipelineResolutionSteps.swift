@@ -133,13 +133,15 @@ package extension DamagePipeline {
               state.combatant.role == .enemy
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        if keyword == .physical, state.isCritical, state.targetStatus.isPoisoned, triggers.pressurePoint {
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        if keyword == .physical || sharedKeyword == .physical,
+           state.isCritical, state.targetStatus.isPoisoned, triggers.pressurePoint {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
         }
         if keyword == .poison, state.targetStatus.isStunned, triggers.toxicComa {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
         }
-        if keyword == .bleed, state.targetStatus.isPoisoned, triggers.septicemia {
+        if keyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isPoisoned, triggers.septicemia {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
         }
         if keyword == .freeze, state.targetStatus.isBurning, triggers.elementalParadox {
@@ -312,14 +314,21 @@ package extension DamagePipeline {
     ) -> Int {
         let profile = context.modifiers(for: sourceActorID)
         var bonus = profile.damageDealtBonus(for: keyword)
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: profile.triggers)
+        if let sharedKeyword {
+            bonus += profile.damageDealtBonus(for: sharedKeyword)
+        }
         if sourceActorID == context.roster.companion.id {
             bonus += context.heroModifiers.companionDamageDealtBonus
-            if keyword == .bleed {
+            if keyword == .bleed || sharedKeyword == .bleed {
                 bonus += context.heroModifiers.companionBleedDamageDealtBonus
             }
         }
         if let source = context.roster.combatant(for: sourceActorID) {
             bonus += context.roster.runtime(for: source.combatant)?.keywordDamageRamp[keyword, default: 0] ?? 0
+            if let sharedKeyword {
+                bonus += context.roster.runtime(for: source.combatant)?.keywordDamageRamp[sharedKeyword, default: 0] ?? 0
+            }
         }
         return bonus
     }
@@ -392,14 +401,19 @@ package extension DamagePipeline {
             state.buildupDamage = state.remaining
             return
         }
-        var critMultiplier = 2.0
-        if let sourceActorID = state.sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID) {
-            critMultiplier += context.roster.runtime(for: source.combatant)?.talentCritMultiplierBonus ?? 0
-        }
+        let critMultiplier = criticalMultiplier(for: state.sourceActorID, in: context)
         state.remaining = CombatRounding.scaled(state.remaining, multiplier: critMultiplier)
         state.dealt = state.remaining
         state.buildupDamage = state.remaining
+    }
+
+    static func criticalMultiplier(for sourceActorID: String?, in context: BattleState) -> Double {
+        var multiplier = 2.0
+        if let sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID) {
+            multiplier += context.roster.runtime(for: source.combatant)?.talentCritMultiplierBonus ?? 0
+        }
+        return multiplier
     }
 
     static func applyMitigation(

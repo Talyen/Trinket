@@ -60,9 +60,10 @@ public enum ShopPurchaseApplier {
         guard !InventoryDuplicatePolicy.containsDuplicate(of: purchased, in: save.inventory.items) else {
             return .alreadyOwned
         }
-        guard save.roster.spendGold(offer.price) else {
+        guard save.roster.gold >= offer.price else {
             return .insufficientGold
         }
+        save.applyGoldDelta(-offer.price)
         save.inventory.appendUniqueItem(purchased)
         return .success(purchased)
     }

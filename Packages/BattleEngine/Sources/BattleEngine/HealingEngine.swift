@@ -81,24 +81,25 @@ package enum HealingEngine {
             in: &context,
         ))
 
-        if let sourceTriggers, sourceTriggers.onHealGrantBlock > 0, restored > 0 {
-            let abilityName = request.sourceActorID.map {
-                context.modifiers(for: $0).triggerAbilityName("onHealGrantBlock", fallback: "Warded Roost")
-            } ?? "Warded Roost"
+        if let sourceTriggers, sourceTriggers.onHealGrantBlock > 0, restored > 0,
+           let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID) {
+            let abilityName = context.modifiers(for: sourceID).triggerAbilityName("onHealGrantBlock", fallback: "Warded Roost")
             events.append(contentsOf: context.applyBlock(
                 sourceTriggers.onHealGrantBlock,
                 to: request.target,
-                source: request.target,
+                source: source.combatant,
                 abilityName: abilityName,
             ))
         }
         if restored > 0, let sourceTriggers, sourceTriggers.onHealCleanseTargetChance > 0,
+           let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID),
            BattleChance.succeeds(probability: sourceTriggers.onHealCleanseTargetChance, using: &context.rng) {
-            let abilityName = request.sourceActorID.map {
-                context.modifiers(for: $0).triggerAbilityName("onHealCleanseTargetChance", fallback: "Sanctified Scroll")
-            } ?? "Sanctified Scroll"
+            let abilityName = context.modifiers(for: sourceID).triggerAbilityName(
+                "onHealCleanseTargetChance",
+                fallback: "Sanctified Scroll",
+            )
             events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
-                source: request.target,
+                source: source.combatant,
                 target: request.target,
                 count: 1,
                 abilityName: abilityName,

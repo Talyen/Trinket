@@ -51,6 +51,10 @@ struct CombatantEquipmentTests {
         loadout.equip(charmA, in: .secondaryTrinket, inventory: inventory)
         try #expect(loadout.itemID(for: .trinket) == nil)
         try #expect(loadout.itemID(for: .secondaryTrinket) == "charm-a")
+        #expect(loadout.canEquip(charmACopy, in: .secondaryTrinket, inventory: inventory))
+        loadout.equip(charmACopy, in: .secondaryTrinket, inventory: inventory)
+        #expect(loadout.itemID(for: .secondaryTrinket) == charmACopy.id)
+        #expect(!loadout.canEquip(charmA, in: .trinket, inventory: inventory))
     }
 
     @Test func `sanitized drops duplicate item across accessory slots`() throws {

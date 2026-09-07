@@ -65,6 +65,13 @@ package extension DamagePipeline {
             milestone: nil,
         ))
         state.isDodged = true
+        if !state.options.causedByDodge {
+            state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDodge(
+                by: state.combatant,
+                attackerID: state.sourceActorID,
+                in: &context,
+            ))
+        }
         state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentDodge(by: state.combatant, in: &context))
         if !autoDodge, !state.options.causedByDodge {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
@@ -87,6 +94,9 @@ package extension DamagePipeline {
         if history?.falseOpening == true { chance += 0.05 }
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.triggers.dodgeChanceBonus
+        if let owner = context.roster.participant(for: state.combatant) {
+            chance += context.uniques.owners[owner]?.wrenflightDodge ?? 0
+        }
         chance += context.roster.runtime(for: state.combatant)?.bonusDodgeUntilNextTurn ?? 0
         if context.roster.isDeathsDoorActive(for: state.combatant),
            profile.triggers.deathsDoorDodgeAndDebuffImmunity {

@@ -7,6 +7,18 @@
     "family": "damage",
     "fields": [
       {
+        "name": "physicalBonusesApplyToHoly",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "attacksIgnoreBlockWhileTargetPoisoned",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "damageBelowHealthPercentThreshold",
         "type": "Double",
         "default": "0",
@@ -367,6 +379,54 @@
     "family": "attack",
     "fields": [
       {
+        "name": "firstCriticalHitRepeatsPerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "returnAttackAgainstBleedingOncePerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "heldCardNextAttackDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "firstCriticalHitCompanionBasicPerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "secondCardDrawAndDodgePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "thirdCardReturnsToHand",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "recoverLastAttackCardEachTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "firstElementCardsDraw",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "attacksApplyPoison",
         "type": "Int",
         "default": "0",
@@ -642,6 +702,18 @@
     "file_stem": "BlockTriggers",
     "family": "block",
     "fields": [
+      {
+        "name": "retainAllBlockBetweenTurns",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "blockedAttackBasicOncePerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "blockBrokenBlockFlat",
         "type": "Int",
@@ -1081,6 +1153,18 @@
     "family": "dot",
     "fields": [
       {
+        "name": "bleedHalvesAfterExpiration",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "burnAndBleedShareDamageBonuses",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "burnDecaySlowPercent",
         "type": "Double",
         "default": "0",
@@ -1465,6 +1549,18 @@
     "family": "control",
     "fields": [
       {
+        "name": "stunDamageAddsEnemyBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "stunRetainedBuildupPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
         "name": "freezeExtraActionSkips",
         "type": "Int",
         "default": "0",
@@ -1662,6 +1758,24 @@
     "file_stem": "DodgeTriggers",
     "family": "dodge",
     "fields": [
+      {
+        "name": "dodgeNextHitPoisonAndBleedPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "dodgeSpendsHalfBlockAsPhysical",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "dodgeDrawPoisonAndReadyCritical",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "dodgeChanceBonus",
         "type": "Double",
@@ -1896,6 +2010,18 @@
     "file_stem": "ManaTriggers",
     "family": "mana",
     "fields": [
+      {
+        "name": "freezeEmpowermentBlockPerMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "lastManaEmpowermentRepeatsDamage",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "spendManaBlockFlat",
         "type": "Int",
@@ -2214,6 +2340,12 @@
     "file_stem": "GoldTriggers",
     "family": "gold",
     "fields": [
+      {
+        "name": "goldGainedNextHolyDamage",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "gainGoldBonusHealSelf",
         "type": "Int",

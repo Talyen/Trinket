@@ -65,6 +65,41 @@ struct TalentCatalogRoundTripTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: build.combatant)) == 6)
     }
 
+    @Test func `intercede triggers cascading only when hero block breaks`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
+                blockBrokenBlockFlat: 2, blockAbsorbsCompanionDamage: true,
+            ))),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        _ = battle.applyBlock(3, to: battle.hero, source: battle.hero, abilityName: "Block")
+        for amount in [1, 3] {
+            _ = battle.resolveDamage(DamageRequest(
+                amount: amount, target: battle.companion, keyword: .physical,
+                sourceActorID: battle.enemy.id, options: .flatReaction,
+            ))
+            #expect(talentPoints(.shield, on: .hero, in: battle) == 2)
+        }
+        #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth - 1)
+    }
+
+    @Test(arguments: [false, true])
+    func `triggered purge pays crownfall for each removed buff`(purgeAll: Bool) {
+        var battle = heroTalentBattle("shield_scarab_holy_t4_1")
+        seedHeroTalentEffect(.thorns(2), on: .enemy, in: &battle)
+        seedHeroTalentEffect(.damageReductionFlat(1, 2), on: .enemy, in: &battle)
+        seedHeroTalentEffect(.nextStrikeDouble, on: .enemy, in: &battle)
+        let healthBefore = battle.roster.enemy.currentHealth
+        let events = CombatTriggerEngine.applyPurge(
+            to: battle.enemy, source: battle.hero, abilityName: "Unmaking",
+            count: 1, purgeAll: purgeAll, in: &battle,
+        )
+        #expect(events.count { $0.effectKind == .purgeApplied } == (purgeAll ? 2 : 1))
+        #expect(healthBefore - battle.roster.enemy.currentHealth == (purgeAll ? 6 : 3))
+        #expect(battle.roster.activeEffects(for: battle.enemy).contains { $0.effect.kind == .damageReductionFlat })
+    }
+
     @Test func `deep freeze blocks enemy block and healing`() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "wizard", talents: "wizard_freeze_t3_1")
         var battle = BattleTestFixtures.makeContext(

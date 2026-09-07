@@ -18,6 +18,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var isHealthCost: Bool
     public var causedByDodge: Bool
     var isOriginalCardDamage = false
+    var isOrdinaryUniqueCardDamage = false
+    var usesResolvedOutgoingDamage = false
 
     public init(
         applyStatBonus: Bool = true,

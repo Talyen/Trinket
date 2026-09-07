@@ -13,9 +13,9 @@ verified behavior from inference and state material assumptions.
 
 ## Protect the workspace
 
-- Inspect `git status --short` before editing and each dirty file's diff before touching it. Preserve in-flight work with surgical edits; use an isolated worktree when ownership is unclear.
+- Inspect `git status --short` before editing and each dirty file's diff before touching it. Preserve in-flight work with surgical edits; clarify ownership before editing overlapping changes when it is unclear.
 - Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree. If the safety shim creates a backup before blocking, inspect it and current state before restoration.
-- Keep the primary checkout on `main`; do not branch there or open pull requests. Create isolated work with `node Scripts/agent-worktree.mjs create --task <slug>` under `.worktrees/` on `agent/<slug>`.
+- Work directly in the primary checkout on `main` by default; do not create worktrees for routine tasks, branch there, or open pull requests.
 - Commit/push only when requested, following [Release.md](Docs/Platform/Release.md). Include only requested/adopted changes; stage hunks for mixed files. Hosted CI follows a push to `main`, not a prerequisite for it.
 - Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Normal build/handoff handles generation freshness; use `./Scripts/generate.sh` for explicit regeneration.
 - Never kill foreign Xcode/Simulator processes. Follow [Verification.md](Docs/Platform/Verification.md) for isolation and diagnostics.

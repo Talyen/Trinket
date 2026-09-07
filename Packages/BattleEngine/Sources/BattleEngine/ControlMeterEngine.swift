@@ -61,7 +61,6 @@ package enum ControlMeterEngine {
             return false
         }
         let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
-        guard existingAmount < effectiveThreshold else { return [] }
         let newAmount = min(existingAmount + adjustedAmount, effectiveThreshold)
 
         if newAmount >= effectiveThreshold {
@@ -72,6 +71,7 @@ package enum ControlMeterEngine {
                     sourceActorID: sourceActorID,
                     existingIndex: existingIndex,
                     baseThreshold: threshold,
+                    triggeredAmount: effectiveThreshold,
                 ),
                 currentEffects: &currentEffects,
                 in: &context,
@@ -114,6 +114,7 @@ package enum ControlMeterEngine {
         let sourceActorID: String?
         let existingIndex: Int?
         let baseThreshold: Int
+        let triggeredAmount: Int
     }
 
     // swiftlint:disable:next function_body_length - control decay keeps status and meter changes ordered
@@ -138,6 +139,14 @@ package enum ControlMeterEngine {
             currentEffects: &currentEffects,
             in: &context,
         )
+        if keyword == .stun {
+            UniqueCombatEngine.retainStun(
+                thresholdContext.triggeredAmount,
+                on: combatant,
+                sourceActorID: sourceActorID,
+                in: &context,
+            )
+        }
         if keyword == .freeze || keyword == .stun,
            let owner = context.roster.participant(for: combatant),
            owner.isPartyMember {

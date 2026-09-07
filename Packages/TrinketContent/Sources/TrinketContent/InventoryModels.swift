@@ -189,8 +189,11 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         inventory: [InventoryItem],
     ) -> Bool {
         guard item.isTrinket else { return true }
-        return itemIDs(inFamilyOf: destination).allSatisfy { siblingID in
-            guard siblingID != item.id,
+        return ItemSlot.allCases.allSatisfy { slot in
+            guard slot != destination,
+                  slot.baseItemSlot == destination.baseItemSlot,
+                  let siblingID = itemID(for: slot),
+                  siblingID != item.id,
                   let worn = inventory.first(where: { $0.id == siblingID })
             else { return true }
             return worn.baseType.id != item.baseType.id

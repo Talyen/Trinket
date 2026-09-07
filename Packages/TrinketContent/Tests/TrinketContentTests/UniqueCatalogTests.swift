@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -15,6 +16,8 @@ struct UniqueCatalogTests {
     @Test func `one unique per base type across slots`() {
         let baseIDs = GameContent.uniqueItems.map(\.baseType.id)
         #expect(Set(baseIDs).count == baseIDs.count)
+        let equipmentBaseIDs = Set(GameContent.itemBaseTypes.filter { $0.slot != .trinket }.map(\.id))
+        #expect(Set(baseIDs) == equipmentBaseIDs)
 
         let slots = Set(GameContent.uniqueItems.map(\.baseType.slot.baseItemSlot))
         #expect(slots == [.weapon, .armor, .accessory])
@@ -117,6 +120,67 @@ struct UniqueCatalogTests {
                 art == item.baseType.previewArtReference,
                 "Unique item \(item.id) art (\(art.imageName)) must match base type \(item.baseType.id) art",
             )
+        }
+    }
+
+    @Test func `completed collection pins standard supporting powers`() throws {
+        let expected: [String: [String]] = [
+            "the_unclosing_wound": ["keen", "serrated", "leeching"],
+            "kingbreaker": ["keen", "concussive", "defenders"],
+            "everkeen": ["keen", "serrated", "dazed"],
+            "red_harvest": ["keen", "serrated", "leeching"],
+            "oathkeeper": ["keen", "consecrated", "serrated"],
+            "the_patient_edge": ["keen", "serrated", "envenomed"],
+            "vipers_courtesy": ["envenomed", "serrated", "leeching"],
+            "the_lingering_bell": ["concussive", "consecrated", "dazed"],
+            "huntsmasters_call": ["keen", "serrated", "envenomed"],
+            "wrenflight": ["keen", "infected", "contagion"],
+            "the_returning_gale": ["keen", "serrated", "lingering"],
+            "the_final_spark": ["smoldering", "glacial", "channeled"],
+            "laughing_guard": ["elusive", "untouchable", "defenders"],
+            "the_knights_answer": ["concussive", "dazed", "defenders"],
+            "the_returning_flight": ["keen", "envenomed", "infected"],
+            "threefold_grace": ["smoldering", "glacial", "consecrated"],
+            "bloodember_pendant": ["smoldering", "serrated", "vampiric"],
+            "winters_credit": ["rime", "aetherward", "manabound"],
+            "serpents_eye": ["envenomed", "contagion", "hale"],
+            "wildhearts_favor": ["envenomed", "hale", "beastbond"],
+            "the_golden_crucible": ["lucky", "gilded", "absolving"],
+        ]
+        for (id, supports) in expected {
+            let item = try #require(GameContent.unique(matching: id))
+            let powers = try #require(item.affixPowers)
+            #expect(item.affixes.first?.id == id)
+            for (index, support) in supports.enumerated() {
+                let definition = try #require(GameContent.itemAffixDefinition(matching: support))
+                #expect(powers[index + 1] == definition.astral)
+                #expect(item.affixes[index + 1].title == definition.title)
+            }
+        }
+    }
+
+    @Test func `new unique powers decode with old payload defaults`() throws {
+        let old = try ItemAffixPowerCoding.decode(Data("[{\"description\":\"Old\",\"modifiers\":[],\"triggers\":{}}]".utf8))
+        #expect(old.first?.triggers == CombatTraitTriggers())
+        for item in GameContent.uniqueItems {
+            let powers = try #require(item.affixPowers)
+            let restored = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode(powers))
+            #expect(restored == powers)
+        }
+    }
+
+    @Test func `every unowned unique is available through normal rewards`() {
+        let allIDs = Set(GameContent.uniqueItems.map(\.id))
+        for item in GameContent.uniqueItems {
+            var rng = SeededRandomNumberGenerator(seed: 1772)
+            let reward = ItemRewardGenerator.generate(
+                id: "reward",
+                tier: .unique,
+                ownedTrinketIDs: [],
+                ownedUniqueIDs: allIDs.subtracting([item.id]),
+                using: &rng,
+            )
+            #expect(reward == item)
         }
     }
 }

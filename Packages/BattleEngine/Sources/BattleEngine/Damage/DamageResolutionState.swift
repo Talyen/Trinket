@@ -56,6 +56,8 @@ package struct DamageResolutionState {
 
     var heroCardBlockIgnore = 0
     var heroCardBlockBroken = false
+    var uniqueOutgoingDamage = 0
+    var uniqueEnemyBlock = 0
     public var blockedAmount: Int = 0
 
     public var targetStatus = DamageTargetStatus()

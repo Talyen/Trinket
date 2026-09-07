@@ -9,11 +9,11 @@ extension MysteryEventPool {
         artID: "mystery-ancient-altar",
         choices: [
             ("take-the-offering", "Collect Tribute", [
-                item("topaz_amulet", trinkets: ["merchants_favor"]),
+                item("topaz_amulet", trinkets: ["merchants_favor"], uniques: ["the_golden_crucible"]),
                 .gainGold(20),
             ]),
             ("claim-the-relic", "Free the Relic", [
-                item("flail", uniques: ["wardbreaker"]),
+                item("flail", uniques: ["wardbreaker", "everkeen"]),
                 .gainMaterial(.iron),
             ]),
         ],
@@ -30,7 +30,7 @@ extension MysteryEventPool {
                 .gainGold(20),
             ]),
             ("claim-blade", "Search the Pack", [
-                item("shortsword", trinkets: ["smugglers_map"]),
+                item("shortsword", trinkets: ["smugglers_map"], uniques: ["the_patient_edge"]),
                 .gainMaterial(.hide),
             ]),
         ],
@@ -47,7 +47,7 @@ extension MysteryEventPool {
                 .gainGold(20),
             ]),
             ("take-a-tile", "Clear the Rubble", [
-                item("plate_armor", uniques: ["saintfall_plate"]),
+                item("plate_armor", uniques: ["saintfall_plate", "oathkeeper"]),
                 .gainMaterial(.stone),
             ]),
         ],
@@ -60,7 +60,7 @@ extension MysteryEventPool {
         artID: "mystery-abandoned-study",
         choices: [
             ("search-scrolls", "Study the Spell", [
-                item("wand", trinkets: ["runic_quill"]),
+                item("wand", trinkets: ["runic_quill"], uniques: ["the_final_spark"]),
                 .gainExperience,
             ]),
             ("take-the-quill", "Open the Cabinet", [
@@ -77,7 +77,7 @@ extension MysteryEventPool {
         artID: "mystery-mysterious-tome",
         choices: [
             ("take-the-pages", "Study the Pages", [
-                item("spellbook", trinkets: ["tattered_pages"]),
+                item("spellbook", trinkets: ["tattered_pages"], uniques: ["threefold_grace"]),
                 .gainExperience,
             ]),
             ("repair-the-binding", "Break the Seal", [
@@ -111,11 +111,11 @@ extension MysteryEventPool {
         artID: "mystery-meteorite-crash",
         choices: [
             ("take-a-fragment", "Open the Core", [
-                item("ruby_amulet", trinkets: ["meteorite"]),
+                item("ruby_amulet", trinkets: ["meteorite"], uniques: ["bloodember_pendant"]),
                 .gainMaterial(.iron),
             ]),
             ("search-the-crater", "Search the Ruins", [
-                item("maul", trinkets: ["obsidian_hammer"]),
+                item("maul", trinkets: ["obsidian_hammer"], uniques: ["kingbreaker"]),
                 .gainMaterial(.stone),
             ]),
         ],
@@ -132,7 +132,7 @@ extension MysteryEventPool {
                 .gainMaterial(.iron),
             ]),
             ("claim-the-shield", "Recover the Hoard", [
-                item("kite_shield", trinkets: ["vanguards_crest"]),
+                item("kite_shield", trinkets: ["vanguards_crest"], uniques: ["the_knights_answer"]),
                 .gainGold(30),
             ]),
         ],
@@ -162,11 +162,11 @@ extension MysteryEventPool {
         artID: "mystery-hunters-lodge",
         choices: [
             ("claim-the-bow", "Take the Weapon", [
-                item("crossbow", uniques: ["blackfletch"]),
+                item("crossbow", uniques: ["blackfletch", "huntsmasters_call", "wrenflight"]),
                 .gainMaterial(.hide),
             ]),
             ("take-the-hatchet", "Gather the Tools", [
-                item("hatchet"),
+                item("hatchet", uniques: ["the_unclosing_wound"]),
                 .gainMaterial(.wood),
             ]),
         ],

@@ -11,27 +11,17 @@ package extension CombatTriggerEngine {
               context.roster.health(for: combatant) > 0
         else { return [] }
 
-        let applied = DefensePoolEngine.add(
+        return context.applyBlock(
             profile.triggers.blockPerTurn,
             to: combatant,
-            keyword: .block,
-            sourceActorID: combatant.id,
-            in: &context,
-        )
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: combatant.name,
+            source: combatant,
             abilityName: triggerAbilityName(
                 "blockPerTurn",
                 for: combatant,
                 fallback: traitName(for: combatant, in: context),
                 in: context,
             ),
-            target: combatant,
-            amount: applied,
-            keyword: .block,
-        )]
+        )
     }
 
     static func atPlayerTurnStart(in context: inout BattleState) -> [ActionEvent] {

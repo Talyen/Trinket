@@ -57,4 +57,43 @@ struct HealingReductionTests {
         )
         #expect(outcome.healthRestored == 8)
     }
+
+    @Test func `healing triggered block uses the healers outgoing bonus`() {
+        var battle = BattleStateTestFactory.makeBattle(
+            heroModifiers: CombatModifierProfile(blockGainedBonus: 7),
+            companionModifiers: CombatModifierProfile(
+                blockGainedBonus: 3,
+                triggers: CombatTraitTriggers(healing: HealingTriggers(onHealGrantBlock: 2)),
+            ),
+        )
+        battle.appliesFightPacing = false
+        let hero = battle.roster.hero.combatant
+        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
+
+        let outcome = battle.resolveHeal(HealRequest(amount: 1, target: hero, sourceActorID: battle.roster.companion.id))
+
+        let block = outcome.events.first { $0.effectKind == .shieldApplied }
+        #expect(block?.amount == 5)
+        #expect(block?.actorName == battle.roster.companion.name)
+    }
+
+    @Test func `healing triggered cleanse rewards the healer`() {
+        var battle = BattleStateTestFactory.makeBattle(
+            companionModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                healing: HealingTriggers(cleanseBonusHeal: 3, onHealCleanseTargetChance: 1),
+            )),
+        )
+        battle.appliesFightPacing = false
+        let hero = battle.roster.hero.combatant
+        let companion = battle.roster.companion.combatant
+        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
+        battle.roster.mutateRuntime(for: companion) { $0.currentHealth = 1 }
+        battle.appendEffect(.poison(3), to: hero, sourceID: battle.roster.enemy.id, remainingTurns: 0)
+
+        let outcome = battle.resolveHeal(HealRequest(amount: 1, target: hero, sourceActorID: companion.id))
+
+        #expect(battle.roster.hero.currentHealth == 5)
+        #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect.isRemovableDebuff })
+        #expect(outcome.events.first { $0.effectKind == .cleanseApplied }?.actorName == companion.name)
+    }
 }

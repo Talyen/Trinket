@@ -60,10 +60,12 @@ struct ControlMeterHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectTurnOutcome {
         _ = target
-        _ = context
         guard active.remainingTurns > 0 else { return EffectTurnOutcome() }
         var updated = active
         updated.remainingTurns -= 1
+        if updated.remainingTurns == 0, let restored = UniqueCombatEngine.recoveredStun(updated, in: &context) {
+            return EffectTurnOutcome(updatedStack: restored)
+        }
         return EffectTurnOutcome(
             updatedStack: updated,
             removeAfter: updated.remainingTurns <= 0,

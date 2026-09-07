@@ -34,6 +34,12 @@ in `Sources/BattleEngine/EffectHandlers/`. These folders belong to the same targ
 
 Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO buffer in `BattleHand` and promote after effects / end-turn draws. Played cards return to the bottom of that owner’s deck **after** the card’s effects and on-play triggers finish, so a draw during resolve cannot fetch the card still being played.
 
+Unique card returns move the played ability to hand instead of also cycling it
+into the deck; turn-start recovery runs before normal draws. Ordinary card plays
+own Unique allowances, while automatic abilities and damage repeats cannot
+consume them. Full item and interaction rules live in
+[Unique equipment](../../Docs/Product/UniqueItems.md).
+
 Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../TrinketBattleFeature/README.md).
 
 ## Balance sweep

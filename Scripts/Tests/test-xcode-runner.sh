@@ -12,6 +12,13 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 source "$ROOT_DIR/Scripts/lib/xcode-watchdog.sh"
+python3 - "$TMP_DIR/large-terminal.log" <<'PY'
+from pathlib import Path
+import sys
+
+Path(sys.argv[1]).write_text("Test Suite 'All tests' passed\n" + "test progress\n" * 100000)
+PY
+xcode_runner_log_has_terminal_marker "$TMP_DIR/large-terminal.log"
 for failure in \
   "** TEST FAILED **" \
   "✘ Test example() recorded an issue at Example.swift:12:3: Expectation failed" \

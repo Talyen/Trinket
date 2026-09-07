@@ -4,6 +4,8 @@ import TrinketCore
 
 /// The `mana` trigger family of `CombatTraitTriggers`.
 public struct ManaTriggers: Equatable, Hashable, Sendable {
+    public var freezeEmpowermentBlockPerMana: Int = 0
+    public var lastManaEmpowermentRepeatsDamage: Bool = false
     public var spendManaBlockFlat: Int = 0
     public var empoweredElementDrawOpposite: Bool = false
     public var spendManaRandomDoTFlat: Int = 0
@@ -58,6 +60,8 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var groveAccord: Bool = false
 
     public init(
+        freezeEmpowermentBlockPerMana: Int = 0,
+        lastManaEmpowermentRepeatsDamage: Bool = false,
         spendManaBlockFlat: Int = 0,
         empoweredElementDrawOpposite: Bool = false,
         spendManaRandomDoTFlat: Int = 0,
@@ -111,6 +115,8 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         deepRoots: Bool = false,
         groveAccord: Bool = false
     ) {
+        self.freezeEmpowermentBlockPerMana = freezeEmpowermentBlockPerMana
+        self.lastManaEmpowermentRepeatsDamage = lastManaEmpowermentRepeatsDamage
         self.spendManaBlockFlat = spendManaBlockFlat
         self.empoweredElementDrawOpposite = empoweredElementDrawOpposite
         self.spendManaRandomDoTFlat = spendManaRandomDoTFlat
@@ -166,11 +172,13 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "firstBloom", "barkweave", "groveReserve", "livingConduit", "sharedCurrent", "deepRoots", "groveAccord"]
+    public static let fieldNames: [String] = ["freezeEmpowermentBlockPerMana", "lastManaEmpowermentRepeatsDamage", "spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "firstBloom", "barkweave", "groveReserve", "livingConduit", "sharedCurrent", "deepRoots", "groveAccord"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.freezeEmpowermentBlockPerMana != other.freezeEmpowermentBlockPerMana { names.append("freezeEmpowermentBlockPerMana") }
+        if self.lastManaEmpowermentRepeatsDamage != other.lastManaEmpowermentRepeatsDamage { names.append("lastManaEmpowermentRepeatsDamage") }
         if self.spendManaBlockFlat != other.spendManaBlockFlat { names.append("spendManaBlockFlat") }
         if self.empoweredElementDrawOpposite != other.empoweredElementDrawOpposite { names.append("empoweredElementDrawOpposite") }
         if self.spendManaRandomDoTFlat != other.spendManaRandomDoTFlat { names.append("spendManaRandomDoTFlat") }
@@ -229,6 +237,8 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
 
 extension ManaTriggers {
     mutating func merge(_ other: Self) {
+        freezeEmpowermentBlockPerMana = max(freezeEmpowermentBlockPerMana, other.freezeEmpowermentBlockPerMana)
+        lastManaEmpowermentRepeatsDamage = lastManaEmpowermentRepeatsDamage || other.lastManaEmpowermentRepeatsDamage
         spendManaBlockFlat += other.spendManaBlockFlat
         empoweredElementDrawOpposite = empoweredElementDrawOpposite || other.empoweredElementDrawOpposite
         spendManaRandomDoTFlat += other.spendManaRandomDoTFlat
@@ -288,6 +298,8 @@ extension ManaTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            freezeEmpowermentBlockPerMana: values.decode(Int.self, "freezeEmpowermentBlockPerMana", default: 0),
+            lastManaEmpowermentRepeatsDamage: values.decode(Bool.self, "lastManaEmpowermentRepeatsDamage", default: false),
             spendManaBlockFlat: values.decode(Int.self, "spendManaBlockFlat", default: 0),
             empoweredElementDrawOpposite: values.decode(Bool.self, "empoweredElementDrawOpposite", default: false),
             spendManaRandomDoTFlat: values.decode(Int.self, "spendManaRandomDoTFlat", default: 0),
@@ -344,6 +356,8 @@ extension ManaTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(freezeEmpowermentBlockPerMana, "freezeEmpowermentBlockPerMana", default: 0)
+        try container.encodeNonDefault(lastManaEmpowermentRepeatsDamage, "lastManaEmpowermentRepeatsDamage", default: false)
         try container.encodeNonDefault(spendManaBlockFlat, "spendManaBlockFlat", default: 0)
         try container.encodeNonDefault(empoweredElementDrawOpposite, "empoweredElementDrawOpposite", default: false)
         try container.encodeNonDefault(spendManaRandomDoTFlat, "spendManaRandomDoTFlat", default: 0)

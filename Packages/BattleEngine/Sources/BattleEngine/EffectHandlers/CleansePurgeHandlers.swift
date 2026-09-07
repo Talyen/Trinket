@@ -55,8 +55,10 @@ struct CleansePurgeHandler: BattleEffectHandler {
         }
         let removed = EffectRemoval.removeDebuffs(from: &currentEffects, keyword: targetKeyword)
         guard !removed.isEmpty else {
-            let events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
-            return EffectApplyOutcome(events: events, didApply: false)
+            var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
+            let partyEvents = CombatTriggerEngine.cleanseOtherPartyMember(source: source, target: target, in: &context)
+            events.append(contentsOf: partyEvents)
+            return EffectApplyOutcome(events: events, didApply: !partyEvents.isEmpty)
         }
         context.roster.setActiveEffects(currentEffects, for: target)
         let healAmount = healPerDebuff > 0 ? healPerDebuff * removed.count : nil
@@ -80,8 +82,10 @@ struct CleansePurgeHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard let keyword = EffectRemoval.removeRandomDebuff(from: &currentEffects, using: &context.rng) else {
-            let events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
-            return EffectApplyOutcome(events: events, didApply: false)
+            var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
+            let partyEvents = CombatTriggerEngine.cleanseOtherPartyMember(source: source, target: target, in: &context)
+            events.append(contentsOf: partyEvents)
+            return EffectApplyOutcome(events: events, didApply: !partyEvents.isEmpty)
         }
         context.roster.setActiveEffects(currentEffects, for: target)
         var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [keyword], in: &context)
@@ -133,7 +137,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: targetKeyword ?? .purge,
         )
         var events = [event]
-        events.append(contentsOf: Self.crownfallDamage(
+        events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
             removedCount: removed.count,
             source: source,
             target: target,
@@ -163,32 +167,12 @@ struct CleansePurgeHandler: BattleEffectHandler {
             keyword: keyword,
         )
         var events = [event]
-        events.append(contentsOf: Self.crownfallDamage(
+        events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
             removedCount: 1,
             source: source,
             target: target,
             in: &context,
         ))
         return EffectApplyOutcome(events: events, didApply: true)
-    }
-
-    private static func crownfallDamage(
-        removedCount: Int,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard removedCount > 0,
-              source.role != .enemy,
-              target.role == .enemy,
-              CombatTriggerEngine.livingPartyTriggers(in: context).crownfall
-        else { return [] }
-        return context.resolveDamage(DamageRequest(
-            amount: removedCount * 3,
-            target: target,
-            keyword: .holy,
-            sourceActorID: source.id,
-            options: .flatReaction,
-        )).events
     }
 }

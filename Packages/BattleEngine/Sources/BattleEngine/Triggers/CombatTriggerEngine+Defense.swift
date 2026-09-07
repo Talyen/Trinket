@@ -204,7 +204,7 @@ package extension CombatTriggerEngine {
         )
         guard !removedKeywords.isEmpty else { return [] }
         context.roster.setActiveEffects(enemyEffects, for: target)
-        return removedKeywords.map { keyword in
+        var events = removedKeywords.map { keyword in
             context.nextEvent(
                 kind: .effect,
                 effectKind: .purgeApplied,
@@ -215,6 +215,28 @@ package extension CombatTriggerEngine {
                 keyword: keyword,
             )
         }
+        events.append(contentsOf: crownfallDamage(removedCount: removedKeywords.count, source: source, target: target, in: &context))
+        return events
+    }
+
+    static func crownfallDamage(
+        removedCount: Int,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard removedCount > 0,
+              source.role != .enemy,
+              target.role == .enemy,
+              livingPartyTriggers(in: context).crownfall
+        else { return [] }
+        return context.resolveDamage(DamageRequest(
+            amount: removedCount * 3,
+            target: target,
+            keyword: .holy,
+            sourceActorID: source.id,
+            options: .flatReaction,
+        )).events
     }
 
     private static func applyMarked(

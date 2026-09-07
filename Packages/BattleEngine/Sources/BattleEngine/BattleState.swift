@@ -130,6 +130,7 @@ public struct BattleState {
     public var storedBlockedDamageByActorID: [String: Int] = [:]
     public var primedRepeatKeywords: Set<Keyword> = []
     var heroTalents = HeroTalentState()
+    var uniques = UniqueBattleState()
     var pendingTurnDrawState: TurnDrawState?
 
     public var partyTriggers: CombatTraitTriggers {

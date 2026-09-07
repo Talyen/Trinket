@@ -92,45 +92,6 @@ public enum BattleCardCombatEngine {
         return resolvePlayedCard(card, ownerRuntime: ownerRuntime, context: &context)
     }
 
-    private static func resolvePlayedCard(
-        _ card: BattleCard,
-        ownerRuntime: CombatantRuntime,
-        context: inout BattleState,
-    ) -> [ActionEvent] {
-        let actor = ownerRuntime.combatant
-        var facts = HeroTalentCardFacts(actorID: actor.id, tier: card.ability.tier)
-        facts.playSerial = context.heroTalents.nextPlaySerial
-        facts.previousDamageKeywords = context.heroTalents.history[actor.id]?.lastDamageKeywords ?? []
-        facts.previousGrantedGold = context.heroTalents.history[actor.id]?.lastGrantedGold ?? false
-        context.heroTalents.nextPlaySerial += 1
-        context.heroTalents.cards.append(facts)
-        let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
-        var events = BattleTurnEngine.performAction(
-            ability: card.ability,
-            actor: actor,
-            abilityTarget: abilityTarget,
-            context: &context,
-        )
-        events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(
-            ability: card.ability,
-            by: actor,
-            abilityTarget: abilityTarget,
-            in: &context,
-        ))
-        events.append(contentsOf: CombatTriggerEngine.finishHeroCard(actor: actor, in: &context))
-        if context.roster.runtime(for: actor)?.goldenTouchActiveThisCard == true {
-            context.roster.mutateRuntime(for: actor) { $0.goldenTouchActiveThisCard = false }
-        }
-        putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
-        discardDefeatedOwnerCards(context: &context)
-        promoteFromBuffer(context: &context)
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
-        if context.isBattleOver {
-            context.phase = .ended
-        }
-        return events
-    }
-
     @discardableResult
     public static func endTurn(
         context: inout BattleState,
@@ -211,6 +172,7 @@ public enum BattleCardCombatEngine {
             return leadingEvents + BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
         }
 
+        UniqueCombatEngine.recoverStunBeforeClearing(on: enemy, in: &context)
         context.roster.clearControlStatusLinger(for: enemy)
 
         let avoidance = CombatTriggerEngine.enemyActAvoidance(in: &context)

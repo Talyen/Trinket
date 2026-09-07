@@ -21,7 +21,11 @@ package extension CombatTriggerEngine {
                 bonus += living.reduce(0) { $0 + $1.triggers.companionDamageVsBurningBonus }
             }
         }
-        if source.role != .enemy, damageKeyword == .physical {
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(
+            for: damageKeyword,
+            triggers: context.modifiers(for: source.id).triggers,
+        )
+        if source.role != .enemy, damageKeyword == .physical || sharedKeyword == .physical {
             for profile in living {
                 let triggers = profile.triggers
                 if triggers.partyPhysicalDamageBonusFirstTurns > 0,

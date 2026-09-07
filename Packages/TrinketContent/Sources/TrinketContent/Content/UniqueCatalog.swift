@@ -11,7 +11,7 @@ enum UniqueCatalog {
         twinCasting,
         saintfallPlate,
         goldenVerdict,
-    ]
+    ] + meleeDefinitions + rangedDefinitions + offhandDefinitions + accessoryDefinitions
 
     private static let wardbreaker = UniqueItemDefinition(
         id: "wardbreaker",

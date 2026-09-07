@@ -4,6 +4,19 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test(arguments: [Effect.cleanse(nil), .cleanseRandom, .cleanseHealPerDebuff(2)])
+    func `mass cleanse reaches the other ally when the first has no debuffs`(effect: Effect) throws {
+        var battle = heroTalentBattle("library_owl_cleanse_t2_2")
+        seedHeroTalentEffect(.burn(2), on: .companion, in: &battle)
+        seedHeroTalentEffect(.poison(2), on: .companion, in: &battle)
+        let ability = Ability(id: "empty-cleanse", name: "Cleanse", tier: .basic, targetedEffects: [
+            TargetedEffect(effect, target: .hero),
+        ])
+        let events = try playHeroTalentCard(ability, in: &battle)
+        #expect(!battle.hasTalentDebuff(on: battle.companion))
+        #expect(events.count { $0.effectKind == .cleanseApplied && $0.targetID == battle.companion.id } == 2)
+    }
+
     @Test(arguments: [
         ("alchemist_health_t1_1", Effect.poison(2)),
         ("druid_health_t1_1", .thorns(2)),

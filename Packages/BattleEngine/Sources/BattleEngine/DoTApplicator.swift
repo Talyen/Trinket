@@ -80,6 +80,7 @@ package enum DoTApplicator {
             ).events)
         }
 
+        guard !context.interceptDebuff(.bleed(resolvedPotency), on: effectTarget) else { return collected }
         let alreadyBleeding = context.roster.activeEffects(for: effectTarget).contains(where: \.effect.isBleed)
         if alreadyBleeding {
             let sourceTriggers = context.modifiers(for: sourceActorID).triggers

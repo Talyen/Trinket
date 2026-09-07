@@ -4,6 +4,7 @@ import TrinketCore
 
 /// The `gold` trigger family of `CombatTraitTriggers`.
 public struct GoldTriggers: Equatable, Hashable, Sendable {
+    public var goldGainedNextHolyDamage: Bool = false
     public var gainGoldBonusHealSelf: Int = 0
     public var defeatEnemyGoldFlat: Int = 0
     public var leechGoldFlat: Int = 0
@@ -34,6 +35,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var luckyBreak: Bool = false
 
     public init(
+        goldGainedNextHolyDamage: Bool = false,
         gainGoldBonusHealSelf: Int = 0,
         defeatEnemyGoldFlat: Int = 0,
         leechGoldFlat: Int = 0,
@@ -63,6 +65,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         sleightOfCoin: Bool = false,
         luckyBreak: Bool = false
     ) {
+        self.goldGainedNextHolyDamage = goldGainedNextHolyDamage
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
         self.defeatEnemyGoldFlat = defeatEnemyGoldFlat
         self.leechGoldFlat = leechGoldFlat
@@ -94,11 +97,12 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["gainGoldBonusHealSelf", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldDrawCardOncePerTurn", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak"]
+    public static let fieldNames: [String] = ["goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldDrawCardOncePerTurn", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.goldGainedNextHolyDamage != other.goldGainedNextHolyDamage { names.append("goldGainedNextHolyDamage") }
         if self.gainGoldBonusHealSelf != other.gainGoldBonusHealSelf { names.append("gainGoldBonusHealSelf") }
         if self.defeatEnemyGoldFlat != other.defeatEnemyGoldFlat { names.append("defeatEnemyGoldFlat") }
         if self.leechGoldFlat != other.leechGoldFlat { names.append("leechGoldFlat") }
@@ -133,6 +137,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
 
 extension GoldTriggers {
     mutating func merge(_ other: Self) {
+        goldGainedNextHolyDamage = goldGainedNextHolyDamage || other.goldGainedNextHolyDamage
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
         defeatEnemyGoldFlat += other.defeatEnemyGoldFlat
         leechGoldFlat += other.leechGoldFlat
@@ -168,6 +173,7 @@ extension GoldTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            goldGainedNextHolyDamage: values.decode(Bool.self, "goldGainedNextHolyDamage", default: false),
             gainGoldBonusHealSelf: values.decode(Int.self, "gainGoldBonusHealSelf", default: 0),
             defeatEnemyGoldFlat: values.decode(Int.self, "defeatEnemyGoldFlat", default: 0),
             leechGoldFlat: values.decode(Int.self, "leechGoldFlat", default: 0),
@@ -200,6 +206,7 @@ extension GoldTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(goldGainedNextHolyDamage, "goldGainedNextHolyDamage", default: false)
         try container.encodeNonDefault(gainGoldBonusHealSelf, "gainGoldBonusHealSelf", default: 0)
         try container.encodeNonDefault(defeatEnemyGoldFlat, "defeatEnemyGoldFlat", default: 0)
         try container.encodeNonDefault(leechGoldFlat, "leechGoldFlat", default: 0)

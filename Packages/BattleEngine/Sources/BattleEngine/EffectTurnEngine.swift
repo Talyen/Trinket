@@ -53,6 +53,7 @@ package enum EffectTurnEngine {
 
         for activeEffect in effects {
             guard context.roster.health(for: target) > 0 else { break }
+            guard context.roster.activeEffects(for: target).contains(where: { $0.id == activeEffect.id }) else { continue }
             guard let handler = EffectHandlers.all[activeEffect.effect.kind] else {
                 logger.error(
                     "Missing effect handler for turn of \(String(describing: activeEffect.effect.kind), privacy: .public)",

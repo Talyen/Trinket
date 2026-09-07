@@ -6,25 +6,27 @@ import TrinketPersistenceTestSupport
 
 struct UniqueItemRuleTests {
     @Test @MainActor func `unique survives save round trip with pinned powers`() throws {
-        let unique = try #require(GameContent.unique(matching: "wardbreaker"))
+        let uniques = GameContent.uniqueItems
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         var save = store.currentSave
-        save.inventory.items = [unique]
+        save.inventory.items = uniques
+        save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(itemIDsBySlot: [.weapon: "oathkeeper"])
         try store.performBatchMutation { $0 = save }
 
         let reloaded = try PlayerSaveStore(
             storeURL: context.storeURL(),
             disableCloudSync: true,
         )
-        let restored = try #require(
-            reloaded.inventory.items.first { $0.templateID == unique.templateID },
-        )
-        #expect(restored.rarity == .unique)
-        #expect(restored.displayName == unique.displayName)
-        #expect(restored.affixes == unique.affixes)
-        #expect(restored.affixPowers == unique.affixPowers)
-        #expect(reloaded.inventory.ownedUniqueIDs == [unique.templateID])
+        for unique in uniques {
+            let restored = try #require(reloaded.inventory.items.first { $0.templateID == unique.templateID })
+            #expect(restored.rarity == .unique)
+            #expect(restored.displayName == unique.displayName)
+            #expect(restored.affixes == unique.affixes)
+            #expect(restored.affixPowers == unique.affixPowers)
+        }
+        #expect(reloaded.inventory.ownedUniqueIDs == Set(uniques.map(\.templateID)))
+        #expect(reloaded.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == "oathkeeper")
     }
 
     @Test func `corruption eligibility excludes uniques`() {

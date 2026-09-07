@@ -5,6 +5,29 @@ import TrinketCore
 import TrinketTestSupport
 
 struct ControlMeterEngineTests {
+    @Test func `reduced stun threshold triggers from another attackers buildup`() {
+        var context = BattleTestFixtures.makePipelineContext(
+            targetMaxHealth: 100,
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                control: ControlTriggers(enemyStunThresholdReductionPercent: 0.25),
+            )),
+        )
+        let target = context.roster.enemy.combatant
+        _ = ControlMeterEngine.applyMeterCharge(
+            16, keyword: .stun, to: target, sourceActorID: context.roster.companion.id,
+            applyFightPacing: false, in: &context,
+        )
+        #expect(!context.roster.hasControlStatus(for: target, keyword: .stun))
+
+        let events = ControlMeterEngine.applyMeterCharge(
+            1, keyword: .stun, to: target, sourceActorID: context.roster.hero.id,
+            applyFightPacing: false, in: &context,
+        )
+
+        #expect(events.contains { $0.effectKind == .controlTriggered })
+        #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+    }
+
     @Test(arguments: [Keyword.stun, Keyword.freeze])
     func `apply buildup triggers control at threshold`(keyword: Keyword) throws {
         var context = BattleTestFixtures.makePipelineContext()

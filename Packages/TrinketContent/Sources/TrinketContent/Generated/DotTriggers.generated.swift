@@ -4,6 +4,8 @@ import TrinketCore
 
 /// The `dot` trigger family of `CombatTraitTriggers`.
 public struct DotTriggers: Equatable, Hashable, Sendable {
+    public var bleedHalvesAfterExpiration: Bool = false
+    public var burnAndBleedShareDamageBonuses: Bool = false
     public var burnDecaySlowPercent: Double = 0
     public var poisonDecaySlowPercent: Double = 0
     public var poisonDecayIncreaseChance: Double = 0
@@ -69,6 +71,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var thornShedding: Bool = false
 
     public init(
+        bleedHalvesAfterExpiration: Bool = false,
+        burnAndBleedShareDamageBonuses: Bool = false,
         burnDecaySlowPercent: Double = 0,
         poisonDecaySlowPercent: Double = 0,
         poisonDecayIncreaseChance: Double = 0,
@@ -133,6 +137,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         entanglingGrowth: Bool = false,
         thornShedding: Bool = false
     ) {
+        self.bleedHalvesAfterExpiration = bleedHalvesAfterExpiration
+        self.burnAndBleedShareDamageBonuses = burnAndBleedShareDamageBonuses
         self.burnDecaySlowPercent = burnDecaySlowPercent
         self.poisonDecaySlowPercent = poisonDecaySlowPercent
         self.poisonDecayIncreaseChance = poisonDecayIncreaseChance
@@ -199,11 +205,13 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "onBleedDamagePoisonTick", "onBleedAppliedToBleedingExtendTurns", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "bloodrush", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding"]
+    public static let fieldNames: [String] = ["bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "onBleedDamagePoisonTick", "onBleedAppliedToBleedingExtendTurns", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "bloodrush", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.bleedHalvesAfterExpiration != other.bleedHalvesAfterExpiration { names.append("bleedHalvesAfterExpiration") }
+        if self.burnAndBleedShareDamageBonuses != other.burnAndBleedShareDamageBonuses { names.append("burnAndBleedShareDamageBonuses") }
         if self.burnDecaySlowPercent != other.burnDecaySlowPercent { names.append("burnDecaySlowPercent") }
         if self.poisonDecaySlowPercent != other.poisonDecaySlowPercent { names.append("poisonDecaySlowPercent") }
         if self.poisonDecayIncreaseChance != other.poisonDecayIncreaseChance { names.append("poisonDecayIncreaseChance") }
@@ -273,6 +281,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
 
 extension DotTriggers {
     mutating func merge(_ other: Self) {
+        bleedHalvesAfterExpiration = bleedHalvesAfterExpiration || other.bleedHalvesAfterExpiration
+        burnAndBleedShareDamageBonuses = burnAndBleedShareDamageBonuses || other.burnAndBleedShareDamageBonuses
         burnDecaySlowPercent += other.burnDecaySlowPercent
         poisonDecaySlowPercent += other.poisonDecaySlowPercent
         poisonDecayIncreaseChance += other.poisonDecayIncreaseChance
@@ -343,6 +353,8 @@ extension DotTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            bleedHalvesAfterExpiration: values.decode(Bool.self, "bleedHalvesAfterExpiration", default: false),
+            burnAndBleedShareDamageBonuses: values.decode(Bool.self, "burnAndBleedShareDamageBonuses", default: false),
             burnDecaySlowPercent: values.decode(Double.self, "burnDecaySlowPercent", default: 0),
             poisonDecaySlowPercent: values.decode(Double.self, "poisonDecaySlowPercent", default: 0),
             poisonDecayIncreaseChance: values.decode(Double.self, "poisonDecayIncreaseChance", default: 0),
@@ -410,6 +422,8 @@ extension DotTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(bleedHalvesAfterExpiration, "bleedHalvesAfterExpiration", default: false)
+        try container.encodeNonDefault(burnAndBleedShareDamageBonuses, "burnAndBleedShareDamageBonuses", default: false)
         try container.encodeNonDefault(burnDecaySlowPercent, "burnDecaySlowPercent", default: 0)
         try container.encodeNonDefault(poisonDecaySlowPercent, "poisonDecaySlowPercent", default: 0)
         try container.encodeNonDefault(poisonDecayIncreaseChance, "poisonDecayIncreaseChance", default: 0)

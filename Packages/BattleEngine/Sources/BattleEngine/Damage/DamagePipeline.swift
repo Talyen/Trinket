@@ -20,24 +20,7 @@ package enum DamagePipeline {
             return
         }
         state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
-        applyCriticalGate(to: &state, in: &context)
-        applyCriticalBlockSteal(to: &state, in: &context)
-        applyDamageBonus(to: &state, in: &context)
-        applyFightPacing(to: &state, in: &context)
-
-        applyMarkedBonus(to: &state, in: &context)
-        applyItemReduction(to: &state, in: &context)
-        applyCriticalMultiply(to: &state, in: &context)
-        if state.options.isOriginalCardDamage, state.amount > 0, state.combatant.role == .enemy {
-            let bonus = CombatTriggerEngine.heroCardDamageBonus(keyword: state.damageKeyword, sourceID: state.sourceActorID, in: &context)
-            state.remaining += bonus
-            state.buildupDamage += bonus
-            state.heroCardBlockIgnore = CombatTriggerEngine.heroCardBlockIgnore(
-                keyword: state.damageKeyword,
-                sourceID: state.sourceActorID,
-                in: &context,
-            )
-        }
+        applyOutgoingDamage(to: &state, in: &context)
         applyMitigation(to: &state, in: &context)
         applyShieldAbsorption(to: &state, in: &context)
         applyTakeDamage(to: &state, in: &context)
@@ -63,6 +46,45 @@ package enum DamagePipeline {
             applyCriticalReaction(to: &state, in: &context)
         } else if state.options.applyControlMeter {
             applyControlMeter(to: &state, in: &context)
+        }
+        state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))
+    }
+
+    private static func applyOutgoingDamage(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        if state.options.usesResolvedOutgoingDamage {
+            state.remaining = state.amount
+            state.dealt = state.amount
+            state.isCritical = state.options.guaranteedCritical
+        } else {
+            UniqueCombatEngine.captureEnemyBlock(for: &state, in: context)
+            applyCriticalGate(to: &state, in: &context)
+            applyCriticalBlockSteal(to: &state, in: &context)
+            applyDamageBonus(to: &state, in: &context)
+            applyFightPacing(to: &state, in: &context)
+            applyMarkedBonus(to: &state, in: &context)
+            UniqueCombatEngine.applyStoredDamage(to: &state, in: &context)
+            state.uniqueOutgoingDamage = CombatRounding.scaled(
+                state.remaining,
+                multiplier: state.isCritical ? criticalMultiplier(for: state.sourceActorID, in: context) : 1,
+            )
+        }
+        applyItemReduction(to: &state, in: &context)
+        if !state.options.usesResolvedOutgoingDamage {
+            applyCriticalMultiply(to: &state, in: &context)
+        }
+        if state.options.isOriginalCardDamage, state.amount > 0, state.combatant.role == .enemy {
+            let bonus = CombatTriggerEngine.heroCardDamageBonus(keyword: state.damageKeyword, sourceID: state.sourceActorID, in: &context)
+            state.remaining += bonus
+            state.buildupDamage += bonus
+            state.uniqueOutgoingDamage += bonus
+            state.heroCardBlockIgnore = CombatTriggerEngine.heroCardBlockIgnore(
+                keyword: state.damageKeyword,
+                sourceID: state.sourceActorID,
+                in: &context,
+            )
         }
     }
 }

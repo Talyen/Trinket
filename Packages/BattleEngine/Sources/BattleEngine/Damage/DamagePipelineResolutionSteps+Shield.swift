@@ -14,6 +14,11 @@ package extension DamagePipeline {
         )
         var effects = context.roster.activeEffects(for: state.combatant)
 
+        if UniqueCombatEngine.ignoresBlock(for: state, in: context) {
+            state.activeEffects = effects
+            return
+        }
+
         applyIntercede(to: &state, in: &context)
 
         guard let index = effects.firstIndex(where: {
@@ -175,6 +180,13 @@ package extension DamagePipeline {
             keyword: reduced.keyword,
         ))
         context.roster.setActiveEffects(reduced.effects, for: context.roster.hero.combatant)
+        if reduced.broken {
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
+                on: context.roster.hero.combatant,
+                attackerID: state.sourceActorID,
+                in: &context,
+            ))
+        }
     }
 
     private static func effectiveBlockBuffer(

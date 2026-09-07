@@ -52,6 +52,18 @@ enum GameContentRosterGenerated {
             )
         ))
         list.append(Combatant(
+            id: "druid",
+            name: "Druid",
+            role: .hero,
+            maxHealth: 16,
+            maxMana: 9,
+            abilityChoices: AbilityChoices(
+                basics: [.manaBerries, .maul, .pixieDust, .stargaze],
+                skills: [.cinderbloom, .briarShield, .heal, .cleanse],
+                ultimates: [.bloodthorn, .earthquake, .thornMail, .packTactics]
+            )
+        ))
+        list.append(Combatant(
             id: "warlock",
             name: "Warlock",
             role: .hero,
@@ -73,18 +85,6 @@ enum GameContentRosterGenerated {
                 basics: [.causticJab, .kindling, .apple, .manaBerries],
                 skills: [.acidPotion, .poisonDagger, .stoneskinPotion, .manaPotion],
                 ultimates: [.luckPotion, .panaceaPotion, .bloodthorn, .combustion]
-            )
-        ))
-        list.append(Combatant(
-            id: "druid",
-            name: "Druid",
-            role: .hero,
-            maxHealth: 16,
-            maxMana: 9,
-            abilityChoices: AbilityChoices(
-                basics: [.manaBerries, .maul, .pixieDust, .stargaze],
-                skills: [.cinderbloom, .briarShield, .heal, .cleanse],
-                ultimates: [.bloodthorn, .earthquake, .thornMail, .packTactics]
             )
         ))
         list.append(Combatant(

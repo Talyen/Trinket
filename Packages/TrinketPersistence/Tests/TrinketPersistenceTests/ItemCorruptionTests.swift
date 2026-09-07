@@ -4,6 +4,29 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct ItemCorruptionTests {
+    @Test func `structural corruption preserves surviving rolls`() throws {
+        let base = try #require(GameContent.itemBaseType(matching: "longsword"))
+        var rng = SeededRandomNumberGenerator(seed: 1772)
+        let item = ItemGenerator().generate(
+            id: "rolled-sword", baseType: base, rarity: .astral,
+            fixedAffixCount: 4, using: &rng,
+        )
+        let originalPowers = try #require(item.affixPowers)
+        let catalogPowers = item.affixes.compactMap {
+            GameContent.itemAffixDefinition(matching: $0.id)?.power(for: item.rarity)
+        }
+        #expect(originalPowers != catalogPowers)
+        for kind in [CorruptionEffectKind.addAffix, .replaceAffix] {
+            let result = ItemCorruption.apply(kinds: [kind], to: item, using: &rng)
+            let powers = try #require(result.item.affixPowers)
+            for (index, affix) in result.item.affixes.enumerated() {
+                if let originalIndex = item.affixes.firstIndex(where: { $0.id == affix.id }) {
+                    #expect(powers[index] == originalPowers[originalIndex])
+                }
+            }
+        }
+    }
+
     @Test func `effect rolls follow authored order for fixed seed`() throws {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 123)

@@ -12,12 +12,14 @@ public extension BattleCardCombatEngine {
             return []
         }
 
-        let events = advanceRoundCommon(context: &context)
+        UniqueCombatEngine.captureHeldCards(in: &context)
+        var events = advanceRoundCommon(context: &context)
         if context.phase == .ended {
             return events
         }
 
         context.phase = .playerTurn
+        events.append(contentsOf: UniqueCombatEngine.startTurn(in: &context))
 
         context.pendingTurnDrawState = TurnDrawState(
             remaining: [.hero: 1, .companion: 1],
@@ -86,6 +88,7 @@ public extension BattleCardCombatEngine {
         events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
         events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
         for owner in [BattleParticipant.hero, .companion] {
+            UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)
             context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
         }
         context.phase = .playerTurn

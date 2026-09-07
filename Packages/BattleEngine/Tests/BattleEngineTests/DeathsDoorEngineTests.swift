@@ -212,4 +212,19 @@ struct DeathsDoorEngineTests {
         try #expect(events.isEmpty)
         try #expect(context.roster.health(for: hero) == 12)
     }
+
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `guardian archive protects either party member`(owner: BattleParticipant) throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_health_t3_1")
+        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
+        battle.appliesFightPacing = false
+        let target = battle.roster[owner].combatant
+        battle.roster.mutateRuntime(for: target) { $0.currentHealth = 1 }
+        battle.appendEffect(.poison(8), to: target, sourceID: battle.roster.enemy.id, remainingTurns: 0)
+
+        _ = battle.applyTestDamage(1, to: target, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+
+        #expect(battle.roster.health(for: target) == min(11, battle.roster.maxHealth(for: target)))
+        #expect(!battle.roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff })
+    }
 }

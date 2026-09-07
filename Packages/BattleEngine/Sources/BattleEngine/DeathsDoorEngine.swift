@@ -206,7 +206,7 @@ package enum DeathsDoorEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let companionTriggers = context.companionModifiers.triggers
-        guard combatant.role == .hero,
+        guard combatant.role != .enemy,
               context.roster.companion.isAlive,
               companionTriggers.onAllyDeathsDoorHealAndCleanse > 0
         else { return [] }

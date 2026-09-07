@@ -9,7 +9,7 @@ extension MysteryEventPool {
         artID: "mystery-mana-berries",
         choices: [
             ("harvest-berries", "Harvest Berries", [
-                item("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
+                item("sapphire_ring", uniques: ["winters_credit"], guaranteedAffixIDs: ["manabound"]),
                 .gainMaterial(.herbs),
             ]),
             ("gather-crystals", "Study Roots", [
@@ -30,7 +30,7 @@ extension MysteryEventPool {
                 .gainMaterial(.crystal),
             ]),
             ("take-the-charm", "Read the Ripples", [
-                item("emerald_ring"),
+                item("emerald_ring", uniques: ["serpents_eye"]),
                 .gainExperience,
             ]),
         ],
@@ -60,7 +60,7 @@ extension MysteryEventPool {
         artID: "mystery-wisdom-tree",
         choices: [
             ("collect-branches", "Gather Boughs", [
-                item("leather_buckler", trinkets: ["ironwood_buckler"]),
+                item("leather_buckler", trinkets: ["ironwood_buckler"], uniques: ["laughing_guard"]),
                 .gainMaterial(.wood),
             ]),
             ("forage-herbs", "Read the Rings", [
@@ -94,7 +94,7 @@ extension MysteryEventPool {
         artID: "mystery-sacred-grove",
         choices: [
             ("pick-the-blooms", "Gather the Blooms", [
-                item("emerald_amulet", trinkets: ["groves_favor"]),
+                item("emerald_amulet", trinkets: ["groves_favor"], uniques: ["wildhearts_favor"]),
                 .gainMaterial(.herbs),
             ]),
             ("take-the-ring", "Learn the Rite", [
@@ -111,11 +111,11 @@ extension MysteryEventPool {
         artID: "mystery-mountain-pass",
         choices: [
             ("mine-the-cliffside", "Search the Seam", [
-                item("mace", trinkets: ["thunderstone"]),
+                item("mace", trinkets: ["thunderstone"], uniques: ["the_lingering_bell"]),
                 .gainMaterial(.iron),
             ]),
             ("gather-herbs", "Clear the Trail", [
-                item("hatchet"),
+                item("hatchet", uniques: ["red_harvest"]),
                 .gainMaterial(.wood),
             ]),
         ],
@@ -128,7 +128,7 @@ extension MysteryEventPool {
         artID: "mystery-murky-pond",
         choices: [
             ("catch-fish", "Haul the Net", [
-                item("dagger"),
+                item("dagger", uniques: ["vipers_courtesy"]),
                 .gainMaterial(.food),
             ]),
             ("pull-the-reeds", "Search the Stones", [
@@ -196,11 +196,11 @@ extension MysteryEventPool {
         artID: "mystery-the-wolf",
         choices: [
             ("search-the-den", "Search the Kit", [
-                item("leather_buckler", trinkets: ["companions_collar"]),
+                item("leather_buckler", trinkets: ["companions_collar"], uniques: ["the_returning_flight"]),
                 .gainMaterial(.hide),
             ]),
             ("open-the-cache", "Open the Cache", [
-                item("recurve_bow"),
+                item("recurve_bow", uniques: ["the_returning_gale"]),
                 .gainMaterial(.food),
             ]),
         ],

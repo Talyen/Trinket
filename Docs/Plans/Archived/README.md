@@ -7,6 +7,7 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| Complete Unique collection | 2026-09-07 | Added 21 approved Unique adaptations for full 29-base equipment coverage, themed Mystery placements, combat/card/resource rules, and save coverage; 833 package tests and scoped handoff passed; repaired large-log watchdog completion detection. |
 | Agent token efficiency | 2026-09-06 | Reduced required guidance and routine routing output, routed UI performance details by concern, retained bounded script-failure evidence, and added handoff outcomes; global setup preserved. |
 | Missing heroes | 2026-09-06 | Added Alchemist, Druid, and Wildcard with original portraits, approved loadouts, 63 distinct Talents, and deterministic combat/content/save coverage; compared legal builds and Talent siblings without claiming final balance. |
 | Approved balance changes | 2026-09-05 | Repaired Health affordability, Frost Whelp talents, Hemorrhage, Loyal Companion, and Luck Potion; retained simulator evidence and isolated further talent-stack proposals. |
