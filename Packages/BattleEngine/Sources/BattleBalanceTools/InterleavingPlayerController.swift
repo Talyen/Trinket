@@ -114,10 +114,7 @@ public final class InterleavingPlayerController {
             consecutiveLosses[step.mode] = 0
 
             let highestLevel = max(state.heroLevel, state.companionLevel)
-            let heroPartyAvg = Int(state.averageLevel.rounded())
-            let resolvedEnemyLevel = step.mode == .spire
-                ? EncounterLevelResolver.partyAdjusted(step.enemyLevel, partyAverageLevel: heroPartyAvg)
-                : step.enemyLevel
+            let resolvedEnemyLevel = encounterLevel(for: step)
 
             let heroAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.heroLevel,
@@ -216,10 +213,7 @@ public final class InterleavingPlayerController {
         let heroLevel = simulatedHeroLevel(for: step)
         let companionLevel = simulatedCompanionLevel(for: step)
         let powerTier = SimulationPowerTier.band(forLevel: heroLevel)
-        let partyAvg = Int(((Double(heroLevel) + Double(companionLevel)) / 2.0).rounded())
-        let enemyLevel = step.mode == .spire
-            ? EncounterLevelResolver.partyAdjusted(step.enemyLevel, partyAverageLevel: partyAvg)
-            : step.enemyLevel
+        let enemyLevel = encounterLevel(for: step)
         let keywordBias = step.keywordBias.map { Set([$0]) }
 
         return PartyMatchupSetup(
@@ -251,6 +245,19 @@ public final class InterleavingPlayerController {
             ),
             keywordBias: keywordBias,
         )
+    }
+
+    func encounterLevel(for step: ModeProgressionStep) -> Int {
+        let partyAverage = state.heroLevel / 2 + state.companionLevel / 2
+            + (state.heroLevel % 2 + state.companionLevel % 2) / 2
+        switch step.mode {
+        case .campaign:
+            return EncounterLevelResolver.campaignAdjusted(step.enemyLevel, partyAverageLevel: partyAverage)
+        case .spire:
+            return step.enemyLevel
+        case .labyrinth:
+            return EncounterLevelResolver.labyrinthAdjusted(step.enemyLevel, partyAverageLevel: partyAverage)
+        }
     }
 
     public func simulatedHeroLevel(for _: ModeProgressionStep) -> Int {

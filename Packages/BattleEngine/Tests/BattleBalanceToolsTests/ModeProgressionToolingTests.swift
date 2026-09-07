@@ -153,6 +153,32 @@ struct ModeProgressionToolingTests {
         #expect(matchup.enemyFaction == enemy.faction)
     }
 
+    @Test(arguments: [(SimulationGameMode.campaign, 17), (.spire, 20), (.labyrinth, 16)])
+    func `low party uses mode minimum`(mode: SimulationGameMode, expectedLevel: Int) throws {
+        let controller = InterleavingPlayerController(
+            initialState: PlayerProgressionState(heroLevel: 3, companionLevel: 2),
+        )
+        let step = ModeProgressionStep(
+            id: "mode-floor", mode: mode, containerID: "container", containerTitle: "Container",
+            stepIndex: 1, displayTitle: "Encounter", enemyID: "goblin", enemyLevel: 20, isBoss: false,
+        )
+        let matchup = controller.makeMatchup(for: step, seed: 1772)
+        let enemy = try #require(GameContent.enemy(matching: step.enemyID))
+        #expect(controller.encounterLevel(for: step) == expectedLevel)
+        #expect(matchup.enemy.maxHealth == CombatantLevelScaler.scale(enemy: enemy, level: expectedLevel).maxHealth)
+    }
+
+    @Test func `mixed party uses truncated average like live play`() {
+        let controller = InterleavingPlayerController(
+            initialState: PlayerProgressionState(heroLevel: 15, companionLevel: 16),
+        )
+        let step = ModeProgressionStep(
+            id: "mixed-party", mode: .campaign, containerID: "container", containerTitle: "Container",
+            stepIndex: 1, displayTitle: "Encounter", enemyID: "goblin", enemyLevel: 20, isBoss: false,
+        )
+        #expect(controller.encounterLevel(for: step) == 18)
+    }
+
     @Test func `overleveled spire win awards no XP`() {
         let controller = InterleavingPlayerController(
             initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),

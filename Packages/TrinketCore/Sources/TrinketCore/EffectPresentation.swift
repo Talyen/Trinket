@@ -1,32 +1,8 @@
 import Foundation
 
 public enum EffectPresentation {
+    // swiftlint:disable function_body_length cyclomatic_complexity - exhaustive effect descriptions must reject missing cases at compile time
     public static func applyPhrase(for effect: Effect) -> String {
-        if let phrase = dotPhrase(for: effect) {
-            return phrase
-        }
-        if let phrase = controlPhrase(for: effect) {
-            return phrase
-        }
-        if let phrase = defensivePhrase(for: effect) {
-            return phrase
-        }
-        if let phrase = restorationPhrase(for: effect) {
-            return phrase
-        }
-        if let phrase = cleanseOrPurgePhrase(for: effect) {
-            return phrase
-        }
-        if let phrase = shieldHalvePhrase(for: effect) {
-            return phrase
-        }
-        if let phrase = utilityPhrase(for: effect) {
-            return phrase
-        }
-        return effect.keyword.rawValue
-    }
-
-    private static func dotPhrase(for effect: Effect) -> String? {
         switch effect {
         case let .burn(amount):
             statusPhrase(for: .burn, amount: amount)
@@ -48,26 +24,12 @@ public enum EffectPresentation {
             factor == 2
                 ? "detonate all remaining \(keyword.rawValue) at once, doubled"
                 : "detonate all remaining \(keyword.rawValue) at once with ×\(factor) damage"
-        default:
-            nil
-        }
-    }
-
-    private static func controlPhrase(for effect: Effect) -> String? {
-        switch effect {
         case let .controlMeter(keyword, _, _):
             "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
         case .freezeNextAttacker:
             "Freeze the next attacker"
         case let .onHitDamage(keyword, amount):
             "deal \(amount) \(keyword.rawValue) damage next time you're hit"
-        default:
-            nil
-        }
-    }
-
-    private static func defensivePhrase(for effect: Effect) -> String? {
-        switch effect {
         case let .shield(.block, buffer):
             "gain \(buffer) Block"
         case let .shield(keyword, buffer):
@@ -94,13 +56,6 @@ public enum EffectPresentation {
             "gain 1 Block for every \(goldPerBlock) Gold"
         case .deathsDoor:
             "survive fatal blows at 1 Health"
-        default:
-            nil
-        }
-    }
-
-    private static func restorationPhrase(for effect: Effect) -> String? {
-        switch effect {
         case let .instantHeal(.health, amount):
             "restore \(amount) Health"
         case let .instantHeal(keyword, amount):
@@ -119,19 +74,14 @@ public enum EffectPresentation {
             "increase Maximum Mana by \(amount)"
         case let .revive(amount):
             "revive an Ally to \(amount) Health"
-        default:
-            nil
-        }
-    }
-
-    private static func cleanseOrPurgePhrase(for effect: Effect) -> String? {
-        switch effect {
         case let .cleanse(keyword?):
             "cleanse \(keyword.statusAlias ?? keyword.rawValue)"
         case .cleanse(nil):
             "cleanse all debuffs"
         case let .cleanseHealPerDebuff(healPerRemoved):
             "cleanse all debuffs and restore \(healPerRemoved) Health for each debuff cleansed"
+        case let .panacea(baseHeal, healPerDebuff):
+            "cleanse all debuffs and restore \(baseHeal) Health plus \(healPerDebuff) Health for each debuff cleansed"
         case .cleanseRandom:
             "cleanse a status effect"
         case let .purge(keyword?):
@@ -140,24 +90,10 @@ public enum EffectPresentation {
             "purge all buffs"
         case .purgeRandom:
             "purge a random buff"
-        default:
-            nil
-        }
-    }
-
-    private static func shieldHalvePhrase(for effect: Effect) -> String? {
-        switch effect {
         case .halveShield(.block):
             "halve the enemy's Block"
         case let .halveShield(keyword):
             "halve the enemy's \(keyword.rawValue)"
-        default:
-            nil
-        }
-    }
-
-    private static func utilityPhrase(for effect: Effect) -> String? {
-        switch effect {
         case .marked:
             "mark the enemy"
         case let .criticalChanceBonus(percent, _):
@@ -172,10 +108,10 @@ public enum EffectPresentation {
             "reduces the Health restored to enemies by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
         case let .damageReductionFlat(amount, durationTurns):
             "reduces damage dealt by \(amount) \(durationPhrase(turns: durationTurns))"
-        default:
-            nil
         }
     }
+
+    // swiftlint:enable function_body_length cyclomatic_complexity
 
     private static func durationPhrase(turns: Int) -> String {
         turns == 1 ? "for 1 turn" : "for \(turns) turns"

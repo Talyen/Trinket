@@ -314,7 +314,17 @@ public enum AccessibilityID {
     public enum Homestead {
         public static let resourceWallet = "Homestead Resource Wallet"
         public static let collectButton = "Homestead Collect Button"
-        public static let tierPath = "Homestead Tier Path"
+        public static let improveButton = "Homestead Improve Button"
+        public static let upgradeButton = "Homestead Upgrade Button"
+        public static let upgradeSheet = "Homestead Upgrade Sheet"
+        public static let effectDisclosure = "Homestead Effect Disclosure"
+        public static let allTiersButton = "Homestead All Tiers Button"
+        public static let tierHistory = "Homestead Tier History"
+        public static let benefitsButton = "Homestead Benefits Button"
+        public static let benefitsSheet = "Homestead Benefits Sheet"
+        public static let walletButton = "Homestead Wallet Button"
+        public static let closeSheetButton = "Homestead Close Sheet Button"
+        public static let backButton = "Homestead Detail Back Button"
 
         public static func category(_ title: String) -> String {
             "Homestead \(title) Category"

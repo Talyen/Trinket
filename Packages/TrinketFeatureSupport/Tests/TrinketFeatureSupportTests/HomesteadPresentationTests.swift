@@ -25,7 +25,7 @@ struct HomesteadPresentationTests {
         .upgradeNotReady,
         .completed,
     ])
-    func `project lifecycle exposes expected row and tier path`(caseKind: LifecycleCase) throws {
+    func `project lifecycle exposes current benefits and next offer`(caseKind: LifecycleCase) throws {
         switch caseKind {
         case .lockedPrerequisite:
             try assertLockedPrerequisiteLifecycle()
@@ -47,10 +47,9 @@ struct HomesteadPresentationTests {
     private func assertLockedPrerequisiteLifecycle() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .chickenCoop))
         let status = makeStatus(definition: definition, homestead: .freshStart)
-        let firstTier = try #require(definition.tier(1))
         #expect(status.rowState == .prerequisiteLocked)
-        #expect(status.overviewEffect == nil)
-        #expect(status.tierPathState(for: firstTier) == .locked)
+        #expect(status.currentStage?.bonus == nil)
+        #expect(!status.missingPrerequisites.isEmpty)
         #expect(!status.canBuildOrUpgrade)
     }
 
@@ -61,7 +60,7 @@ struct HomesteadPresentationTests {
             homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:]),
         )
         #expect(status.rowState == .unbuilt(affordable: true))
-        #expect(status.overviewEffect == nil)
+        #expect(status.currentStage?.bonus == nil)
         #expect(status.canBuildOrUpgrade)
     }
 
@@ -69,7 +68,7 @@ struct HomesteadPresentationTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(definition: definition, homestead: .freshStart)
         #expect(status.rowState == .unbuilt(affordable: false))
-        #expect(status.overviewEffect == nil)
+        #expect(status.currentStage?.bonus == nil)
     }
 
     private func assertBuiltLifecycle() throws {
@@ -80,8 +79,8 @@ struct HomesteadPresentationTests {
         )
         #expect(status.rowState == .built)
         let activeBonus = try #require(definition.tier(1)?.bonus)
-        #expect(status.overviewEffect == activeBonus)
-        #expect(status.overviewEffect != definition.tier(2)?.bonus)
+        #expect(status.currentStage?.bonus == activeBonus)
+        #expect(status.currentStage?.bonus != definition.tier(2)?.bonus)
     }
 
     private func assertUpgradeReadyLifecycle() throws {
@@ -96,7 +95,8 @@ struct HomesteadPresentationTests {
         )
         let secondTier = try #require(definition.tier(2))
         #expect(status.rowState == .upgradeReady)
-        #expect(status.tierPathState(for: secondTier) == .next(affordable: true))
+        #expect(status.nextTier == secondTier)
+        #expect(status.canBuildOrUpgrade)
     }
 
     private func assertUpgradeNotReadyLifecycle() throws {
@@ -107,7 +107,9 @@ struct HomesteadPresentationTests {
         )
         let secondTier = try #require(definition.tier(2))
         #expect(status.rowState == .built)
-        #expect(status.tierPathState(for: secondTier) == .next(affordable: false))
+        #expect(status.nextTier == secondTier)
+        #expect(!status.canBuildOrUpgrade)
+        #expect(status.materialShortfalls == secondTier.cost)
     }
 
     private func assertCompletedLifecycle() throws {
@@ -118,81 +120,78 @@ struct HomesteadPresentationTests {
         )
         #expect(status.rowState == .completed)
         let activeBonus = try #require(definition.tier(4)?.bonus)
-        #expect(status.overviewEffect == activeBonus)
+        #expect(status.currentStage?.bonus == activeBonus)
         #expect(!status.canBuildOrUpgrade)
     }
 
-    @Test func `tier path maps current tiers zero through four`() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        let tiers = try #require(definition.tiers.count == 4 ? definition.tiers : nil)
-
-        let tierZero = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:]),
+    @Test func `ten tier project uses its actual completion boundary`() throws {
+        let original = try #require(GameContent.homesteadNode(matching: .wheatField))
+        let tiers = (1 ... 10).map { number in
+            HomesteadNodeTier(
+                tier: number,
+                stageName: "Stage \(number)",
+                cost: [.init(.wood, number)],
+                bonus: .init(title: "Health", description: "Increase Health by \(number)"),
+                combatBonus: .init(heroModifiers: [.maximumHealth(number)]),
+            )
+        }
+        let definition = HomesteadNodeDefinition(
+            id: original.id,
+            title: original.title,
+            summary: original.summary,
+            symbolName: original.symbolName,
+            category: original.category,
+            prerequisites: [],
+            tiers: tiers,
         )
-        #expect(tierZero.tierPathState(for: tiers[0]) == .next(affordable: true))
-        #expect(tierZero.tierPathState(for: tiers[1]) == .future)
-        #expect(tierZero.tierPathState(for: tiers[3]) == .future)
-
-        let tierOne = makeStatus(
+        let before = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1]),
+            homestead: .init(resources: [.wood: 10], nodeTiers: [.wheatField: 9]),
         )
-        #expect(tierOne.tierPathState(for: tiers[0]) == .completed)
-        #expect(tierOne.tierPathState(for: tiers[1]) == .next(affordable: false))
-
-        let tierTwo = makeStatus(
+        #expect(before.currentStage?.tier == 9)
+        #expect(before.nextTier?.tier == 10)
+        #expect(before.canBuildOrUpgrade)
+        #expect(!before.isComplete)
+        let after = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 2]),
+            homestead: .init(resources: [:], nodeTiers: [.wheatField: 10]),
         )
-        #expect(tierTwo.tierPathState(for: tiers[1]) == .completed)
-        #expect(tierTwo.tierPathState(for: tiers[2]) == .next(affordable: false))
-
-        let tierThree = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3]),
-        )
-        #expect(tierThree.tierPathState(for: tiers[2]) == .completed)
-        #expect(tierThree.tierPathState(for: tiers[3]) == .next(affordable: false))
-
-        let tierFour = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 4]),
-        )
-        #expect(tierFour.tierPathState(for: tiers[3]) == .completed)
+        #expect(after.isComplete)
+        #expect(after.nextTier == nil)
+        #expect(after.currentStage?.tier == 10)
     }
 
-    @Test func `tier path connectors match stage select progress frontier`() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        #expect(definition.tiers.count == 4)
+    @Test func `poison comparison uses tier totals rather than adding them`() throws {
+        let definition = try #require(GameContent.homesteadNode(matching: .alchemyLab))
+        let current = try #require(definition.tier(2))
+        let next = try #require(definition.tier(3))
+        let comparisons = HomesteadEffectComparison.lines(current: current, proposed: next)
+        #expect(comparisons.map(\.current?.value) == ["10%", "20%"])
+        #expect(comparisons.map(\.proposed?.value) == ["15%", "30%"])
+        #expect(comparisons[0].id != comparisons[1].id)
+    }
 
-        let mid = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1]),
-        )
-        let first = mid.tierPathConnectors(for: 0)
-        let second = mid.tierPathConnectors(for: 1)
-        let third = mid.tierPathConnectors(for: 2)
-        let fourth = mid.tierPathConnectors(for: 3)
+    @Test func `comparisons keep production separate from combat and currency find`() throws {
+        let well = try #require(GameContent.homesteadNode(matching: .wishingWell))
+        let next = try #require(well.tier(2))
+        let comparisons = HomesteadEffectComparison.lines(current: well.tier(1), proposed: next)
+        let find = try #require(comparisons.first { $0.id == .goldFind })
+        let production = try #require(comparisons.first { $0.id == .production(.gold) })
+        #expect(find.current?.value == "5%")
+        #expect(find.proposed?.value == "10%")
+        #expect(production.current?.value == "1")
+        #expect(production.proposed?.value == "2")
+        #expect(find.proposed?.resource == .gold)
+        #expect(production.proposed?.resource == .gold)
+    }
 
-        #expect(first.before == nil)
-        #expect(first.after == .progressed)
-        #expect(second.before == .progressed)
-        #expect(second.after == .future)
-        #expect(third.before == .future)
-        #expect(third.after == .future)
-        #expect(fourth.before == .future)
-        #expect(fourth.after == nil)
-
-        let advanced = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 2]),
-        )
-        let completed = advanced.tierPathConnectors(for: 1)
-        let frontier = advanced.tierPathConnectors(for: 2)
-        #expect(completed.before == .completed)
-        #expect(completed.after == .progressed)
-        #expect(frontier.before == .progressed)
+    @Test func `first build has no invented existing bonus`() throws {
+        let definition = try #require(GameContent.homesteadNode(matching: .runesmithWorkshop))
+        let first = try #require(definition.tier(1))
+        let comparisons = HomesteadEffectComparison.lines(current: nil, proposed: first)
+        #expect(comparisons.count == 3)
+        #expect(comparisons.allSatisfy { $0.current == nil && $0.proposed?.value == "1" })
+        #expect(Set(comparisons.map(\.id)).count == 3)
     }
 
     private func makeStatus(

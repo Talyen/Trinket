@@ -316,7 +316,7 @@ struct MysteryEffectApplierTests {
         try #expect(save.roster.isCompanionUnlocked("bear"))
     }
 
-    @Test func `resolved encounter level pulls far above content down to party ceiling`() throws {
+    @Test func `resolved encounter level preserves campaign minimum`() throws {
         let lateStage = try #require(GameContent.chapters.last?.stages.first)
         let authoredLevel = StageCompletion.resolvedEncounterLevel(
             for: lateStage,
@@ -333,7 +333,7 @@ struct MysteryEffectApplierTests {
             labyrinthNodeID: nil,
             save: save,
         )
-        #expect(clamped == 5)
+        #expect(clamped == authoredLevel - 3)
 
         save.roster.progressions[save.roster.activeHeroID] = .at(level: 99)
         save.roster.progressions[save.roster.activeCompanionID] = .at(level: 99)
@@ -345,7 +345,7 @@ struct MysteryEffectApplierTests {
         #expect(passthrough == authoredLevel)
     }
 
-    @Test func `resolved encounter level clamps labyrinth node depth`() {
+    @Test func `resolved encounter level preserves labyrinth depth band`() {
         var save = SaveTestSupport.makeSave()
         save.roster.progressions[save.roster.activeHeroID] = .at(level: 3)
         save.roster.progressions[save.roster.activeCompanionID] = .at(level: 2)
@@ -363,6 +363,6 @@ struct MysteryEffectApplierTests {
             labyrinthNodeID: deepID,
             save: save,
         )
-        #expect(clamped == 5)
+        #expect(clamped == 26)
     }
 }

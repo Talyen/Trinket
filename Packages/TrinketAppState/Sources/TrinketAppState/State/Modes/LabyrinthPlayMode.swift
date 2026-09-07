@@ -269,8 +269,10 @@ extension LabyrinthPlayMode {
     ) -> (combatant: Combatant, level: Int)? {
         PlayBattlePreparation.scaledEncounter(
             enemyID: node.enemyID,
-            authoredLevel: EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-            partyAverageLevel: partyAverageLevel,
+            level: EncounterLevelResolver.labyrinthAdjusted(
+                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
+                partyAverageLevel: partyAverageLevel,
+            ),
         )
     }
 

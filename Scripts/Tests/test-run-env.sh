@@ -9,6 +9,11 @@ ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
+for inherited_setting in "${!TRINKET_@}"; do
+  unset "$inherited_setting"
+done
+unset DERIVED_DATA_PATH RESULTS_DIR
+
 REPO="$TMP_DIR/repo"
 mkdir -p "$REPO/Scripts/lib"
 cp "$ROOT_DIR/Scripts/run-env.sh" "$REPO/Scripts/run-env.sh"

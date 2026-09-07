@@ -438,7 +438,7 @@ class ReporterTests(unittest.TestCase):
             report = REPORTER.build_report(namespace(root / "missing.xcresult", log, 1, root / "report"))
             self.assertEqual(report.classification, "unknown")
             self.assertEqual(report.issues[0].kind, "unknown")
-            self.assertEqual(report.raw_log_path, str(log.resolve()))
+            self.assertEqual((ROOT / report.raw_log_path).resolve(), log.resolve())
 
     def test_terminal_and_markdown_are_bounded_while_json_is_complete(self) -> None:
         issues = [REPORTER.DiagnosticIssue("build-failure", f"Issue {index}", f"error {index}") for index in range(35)]

@@ -93,68 +93,85 @@ struct EffectModelTests {
         try #expect(!(Effect.halveShield(.block)).advancesEachTurn)
     }
 
+    private static let sampleEffects: [Effect] = [
+        .burn(2),
+        .poison(3),
+        .bleed(4),
+        .controlMeter(.stun, 2, 6),
+        .shield(.block, 4),
+        .shield(.holy, 4),
+        .instantHeal(.health, 5),
+        .instantHeal(.holy, 5),
+        .resourceGain(.gold, 10),
+        .resourceGain(.mana, 2),
+        .resourceGain(.holy, 1),
+        .drawCards(1),
+        .drawCards(3),
+        .drawAndPlayCards(1),
+        .drawAndPlayCards(2),
+        .cleanse(.poison),
+        .cleanse(nil),
+        .cleanseHealPerDebuff(2),
+        .panacea(baseHeal: 3, healPerDebuff: 2),
+        .cleanseRandom,
+        .purge(.block),
+        .purge(nil),
+        .purgeRandom,
+        .halveShield(.block),
+        .halveShield(.holy),
+        .deathsDoor,
+        .thorns(2),
+        .marked(2, 6),
+        .criticalChanceBonus(0.25, 2),
+        .restoreManaOnHit(1, 2),
+        .damageKeywordOverride(.holy, 2, 2),
+        .nextHolyStrike,
+        .nextStrikeDouble,
+        .nextBurnBonus(1),
+        .evadeNextHit,
+        .convertManaToBlock,
+        .shieldFromMana,
+        .shieldFromHalfMana,
+        .shieldFromGold(goldPerBlock: 5),
+        .maximumManaBonus(2),
+        .nextStrikeCritical,
+        .freezeNextAttacker,
+        .onHitDamage(.holy, 3),
+        .multiplyDoT(.burn, 2),
+        .multiplyDoT(.poison, 3),
+        .detonateDoT(.burn, 2),
+        .detonateDoT(.poison, 3),
+        .recurringDamage(.freeze, 3, 2),
+        .avatar(holyDamage: 6, blockPerTurn: 4, turns: 2),
+        .revive(10),
+        .damageReductionPercent(0.20, 2),
+        .damageReductionFlat(3, 2),
+        .healingReductionPercent(0.25, 3),
+        .hemorrhage(5),
+    ]
+
     @Test func `every effect kind has behavior metadata`() {
         for kind in EffectKind.allCases {
             _ = EffectMetadata.behavior(for: kind)
         }
     }
 
-    @Test func `representative effects have non empty apply phrases`() {
-        let sampleEffects: [Effect] = [
-            .burn(2),
-            .poison(3),
-            .bleed(4),
-            .controlMeter(.stun, 2, 6),
-            .shield(.block, 4),
-            .shield(.holy, 4),
-            .instantHeal(.health, 5),
-            .instantHeal(.holy, 5),
-            .resourceGain(.gold, 10),
-            .resourceGain(.mana, 2),
-            .resourceGain(.holy, 1),
-            .drawCards(1),
-            .drawCards(3),
-            .drawAndPlayCards(1),
-            .drawAndPlayCards(2),
-            .cleanse(.poison),
-            .cleanse(nil),
-            .cleanseHealPerDebuff(2),
-            .cleanseRandom,
-            .purge(.block),
-            .purge(nil),
-            .purgeRandom,
-            .halveShield(.block),
-            .halveShield(.holy),
-            .deathsDoor,
-            .thorns(2),
-            .marked(2, 6),
-            .criticalChanceBonus(0.25, 2),
-            .restoreManaOnHit(1, 2),
-            .damageKeywordOverride(.holy, 2, 2),
-            .nextHolyStrike,
-            .nextStrikeDouble,
-            .nextBurnBonus(1),
-            .evadeNextHit,
-            .convertManaToBlock,
-            .shieldFromMana,
-            .shieldFromHalfMana,
-            .shieldFromGold(goldPerBlock: 5),
-            .maximumManaBonus(2),
-            .nextStrikeCritical,
-            .freezeNextAttacker,
-            .onHitDamage(.holy, 3),
-            .multiplyDoT(.burn, 2),
-            .multiplyDoT(.poison, 3),
-            .recurringDamage(.freeze, 3, 2),
-            .avatar(holyDamage: 6, blockPerTurn: 4, turns: 2),
-            .revive(10),
-            .damageReductionPercent(0.20, 2),
-            .damageReductionFlat(3, 2),
-            .hemorrhage(5),
-        ]
-        for effect in sampleEffects {
-            #expect(!EffectPresentation.applyPhrase(for: effect).isEmpty, "\(effect) should have non-empty phrase")
+    @Test func `every effect kind has a descriptive apply phrase`() {
+        #expect(Set(Self.sampleEffects.map(\.kind)) == Set(EffectKind.allCases))
+        for effect in Self.sampleEffects {
+            let phrase = EffectPresentation.applyPhrase(for: effect)
+            #expect(!phrase.isEmpty)
+            #expect(phrase != effect.keyword.rawValue, "\(effect) must describe more than its keyword")
         }
+    }
+
+    @Test(arguments: [(3, 2), (7, 4)])
+    func `panacea describes base healing and healing per debuff`(baseHeal: Int, healPerDebuff: Int) {
+        let effect = Effect.panacea(baseHeal: baseHeal, healPerDebuff: healPerDebuff)
+        #expect(
+            EffectPresentation.applyPhrase(for: effect)
+                == "cleanse all debuffs and restore \(baseHeal) Health plus \(healPerDebuff) Health for each debuff cleansed",
+        )
     }
 
     @Test func `flag effect summary phrases are registered`() {

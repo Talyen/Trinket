@@ -68,7 +68,7 @@ public enum LabyrinthCompletion {
 
         let effects = save.labyrinth.effects(for: nodeID)
         let encounterLevel = enemyEncounterLevel
-            ?? EncounterLevelResolver.partyAdjusted(
+            ?? EncounterLevelResolver.labyrinthAdjusted(
                 EncounterLevelResolver.labyrinthEnemyLevel(for: node),
                 partyAverageLevel: save.roster.activePartyAverageLevel,
             )

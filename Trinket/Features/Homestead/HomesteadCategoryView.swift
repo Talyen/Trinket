@@ -59,6 +59,9 @@ struct HomesteadCategoryView: View {
     static func imminentHomesteadArtworkNames(for definitions: [HomesteadNodeDefinition]) -> [String] {
         var names: [String] = []
         for definition in definitions {
+            if let portrait = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {
+                names.append(portrait.imageName)
+            }
             if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
                 names.append(art.imageName)
                 if let thumb = art.thumbnailImageName {

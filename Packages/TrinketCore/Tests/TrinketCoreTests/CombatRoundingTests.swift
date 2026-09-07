@@ -18,6 +18,11 @@ struct CombatRoundingTests {
         try #expect(CombatRounding.rounded(-0.4) == 0)
     }
 
+    @Test func `rounding at integer limit saturates without trapping`() {
+        #expect(CombatRounding.rounded(Double(Int.max)) == Int.max)
+        #expect(CombatRounding.scaled(Int.max, multiplier: 2) == Int.max)
+    }
+
     @Test func `scaled by percent rounds ties to even`() throws {
         try #expect(CombatRounding.scaled(15, byPercent: 5) == 16)
         try #expect(CombatRounding.scaled(10, byPercent: 25) == 13)

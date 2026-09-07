@@ -19,8 +19,8 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 | `TrinketMotion.swift` | Motion recipes shared by multiple product features (`static let` animations) |
 | `CardArtwork.swift` | Card clipping and stroke (`TrinketDesign.cardShape` single source) |
 | `PlaceholderArtwork.swift` | Unified placeholder wash + symbol (scaled, `Opacity.placeholderWash`) |
-| `WalletResources.swift` | Wallet grid and resource pills/chips (shared compact formatting, fixed layout threshold) |
-| `KeywordPlasmaBackground.swift` | Keyword-tinted plasma shader (Reduce Motion aware with a static fallback, single/dual path) |
+| `WalletResources.swift` | Wallet grid and resource pills/chips (shared compact formatting, fixed layout threshold; chips accept numeric amounts or formatted comparison values) |
+| `KeywordPlasmaBackground.swift` | Keyword-tinted plasma shader (Reduce Motion aware with a static fallback, single-source rendering) |
 | `TrinketRarityLabel.swift` | Rarity badge with shine (Reduce Motion aware) |
 | `TextBalance.swift` | Widow prevention for titles (`Text(balanced:)`) |
 | `TextFitting.swift` | Native shrinking/wrapping text composition (`.trinketFittedText()`) |

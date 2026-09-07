@@ -13,19 +13,6 @@ public enum HomesteadProjectRowState: Equatable {
     case completed
 }
 
-public enum HomesteadTierPathState: Equatable {
-    case completed
-    case next(affordable: Bool)
-    case future
-    case locked
-}
-
-public enum HomesteadTierConnectorState: Equatable, Sendable {
-    case completed
-    case progressed
-    case future
-}
-
 public struct HomesteadProjectStatus {
     public let definition: HomesteadNodeDefinition
     public let homestead: PlayerHomesteadState
@@ -33,6 +20,21 @@ public struct HomesteadProjectStatus {
 
     public var currentTier: Int {
         homestead.tier(for: definition.id)
+    }
+
+    public var currentStage: HomesteadNodeTier? {
+        definition.tier(currentTier)
+    }
+
+    public var missingPrerequisites: [HomesteadNodeRequirement] {
+        definition.prerequisites.filter { homestead.tier(for: $0.nodeID) < $0.minimumTier }
+    }
+
+    public var materialShortfalls: [ResourceAmount] {
+        nextTier?.cost.compactMap { amount in
+            let missing = amount.quantity - balance(for: amount)
+            return missing > 0 ? ResourceAmount(amount.resource, missing) : nil
+        } ?? []
     }
 
     public var nextTier: HomesteadNodeTier? {
@@ -55,18 +57,6 @@ public struct HomesteadProjectStatus {
         isUnlocked && isAffordable && !isComplete
     }
 
-    public var overviewEffect: HomesteadBonus? {
-        guard currentTier > 0 else { return nil }
-        return definition.tier(currentTier)?.bonus
-    }
-
-    public var overviewCaption: String {
-        if currentTier == 0 {
-            return "Not Yet Constructed"
-        }
-        return overviewEffect?.description ?? definition.summary
-    }
-
     public var rowState: HomesteadProjectRowState {
         if !isUnlocked {
             return .prerequisiteLocked
@@ -78,51 +68,6 @@ public struct HomesteadProjectStatus {
             return .unbuilt(affordable: isAffordable)
         }
         return isAffordable ? .upgradeReady : .built
-    }
-
-    public func tierPathState(for tier: HomesteadNodeTier) -> HomesteadTierPathState {
-        if !isUnlocked {
-            return .locked
-        }
-        if tier.tier <= currentTier {
-            return .completed
-        }
-        if tier.tier == currentTier + 1 {
-            return .next(affordable: isAffordable)
-        }
-        return .future
-    }
-
-    public func tierPathConnectors(for tierIndex: Int) -> (
-        before: HomesteadTierConnectorState?,
-        after: HomesteadTierConnectorState?,
-    ) {
-        let tierCount = definition.tiers.count
-        let before = tierIndex == 0
-            ? nil
-            : connectorState(for: tierPathState(for: definition.tiers[tierIndex]))
-        let after = tierIndex >= tierCount - 1
-            ? nil
-            : connectorState(for: tierPathState(for: definition.tiers[tierIndex + 1]))
-        return (before, after)
-    }
-
-    private func connectorState(for state: HomesteadTierPathState) -> HomesteadTierConnectorState {
-        switch state {
-        case .completed: .completed
-        case .next: .progressed
-        case .future, .locked: .future
-        }
-    }
-
-    public var statusSymbolName: String {
-        switch rowState {
-        case .prerequisiteLocked: "lock.fill"
-        case let .unbuilt(affordable): affordable ? "arrowshape.up.fill" : "chevron.right"
-        case .built: "chevron.right"
-        case .upgradeReady: "arrowshape.up.fill"
-        case .completed: "checkmark.circle.fill"
-        }
     }
 
     public var statusColor: Color {
@@ -151,12 +96,6 @@ public struct HomesteadProjectStatus {
         self.definition = definition
         self.homestead = homestead
         self.roster = roster
-    }
-}
-
-public enum HomesteadTierCopy {
-    public static func title(for stageName: String, nodeTitle: String) -> String {
-        "\(nodeTitle) — \(stageName)"
     }
 }
 

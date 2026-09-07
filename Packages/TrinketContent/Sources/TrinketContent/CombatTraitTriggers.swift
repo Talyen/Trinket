@@ -1,9 +1,10 @@
 import Foundation
 import TrinketCore
 
+/// Concurrency-Safety: Private storage holds Sendable fields and is uniquely owned before every mutation.
 @dynamicMemberLookup
-public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
-    struct Fields: Equatable, Hashable {
+public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hashable {
+    struct Fields: Equatable, Hashable, Sendable {
         var damage: DamageTriggers
         var attack: AttackTriggers
         var block: BlockTriggers
@@ -20,16 +21,28 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         var onHit: OnHitTriggers
     }
 
-    var storage: CopyOnWriteBox<Fields>
+    private final class Storage {
+        var value: Fields
 
-    mutating func ensureUnique() {
-        if !isKnownUniquelyReferenced(&storage) {
-            storage = CopyOnWriteBox(storage.value)
+        init(_ value: Fields) {
+            self.value = value
+        }
+    }
+
+    private var storage: Storage
+
+    var fields: Fields {
+        get { storage.value }
+        _modify {
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(storage.value)
+            }
+            yield &storage.value
         }
     }
 
     public init() {
-        storage = CopyOnWriteBox(Fields(
+        storage = Storage(Fields(
             damage: DamageTriggers(),
             attack: AttackTriggers(),
             block: BlockTriggers(),
@@ -63,7 +76,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         enemyTurn: EnemyTurnTriggers = EnemyTurnTriggers(),
         onHit: OnHitTriggers = OnHitTriggers(),
     ) {
-        storage = CopyOnWriteBox(Fields(
+        storage = Storage(Fields(
             damage: damage,
             attack: attack,
             block: block,
@@ -82,178 +95,164 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.storage.value == rhs.storage.value
+        lhs.fields == rhs.fields
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(storage.value)
+        hasher.combine(fields)
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<DamageTriggers, T>) -> T {
-        storage.value.damage[keyPath: keyPath]
+        fields.damage[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DamageTriggers, T>) -> T {
-        get { storage.value.damage[keyPath: keyPath] }
+        get { fields.damage[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.damage[keyPath: keyPath] = newValue
+            fields.damage[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<AttackTriggers, T>) -> T {
-        storage.value.attack[keyPath: keyPath]
+        fields.attack[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<AttackTriggers, T>) -> T {
-        get { storage.value.attack[keyPath: keyPath] }
+        get { fields.attack[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.attack[keyPath: keyPath] = newValue
+            fields.attack[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<BlockTriggers, T>) -> T {
-        storage.value.block[keyPath: keyPath]
+        fields.block[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<BlockTriggers, T>) -> T {
-        get { storage.value.block[keyPath: keyPath] }
+        get { fields.block[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.block[keyPath: keyPath] = newValue
+            fields.block[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<MitigationTriggers, T>) -> T {
-        storage.value.mitigation[keyPath: keyPath]
+        fields.mitigation[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<MitigationTriggers, T>) -> T {
-        get { storage.value.mitigation[keyPath: keyPath] }
+        get { fields.mitigation[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.mitigation[keyPath: keyPath] = newValue
+            fields.mitigation[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<DotTriggers, T>) -> T {
-        storage.value.dot[keyPath: keyPath]
+        fields.dot[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DotTriggers, T>) -> T {
-        get { storage.value.dot[keyPath: keyPath] }
+        get { fields.dot[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.dot[keyPath: keyPath] = newValue
+            fields.dot[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<ControlTriggers, T>) -> T {
-        storage.value.control[keyPath: keyPath]
+        fields.control[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<ControlTriggers, T>) -> T {
-        get { storage.value.control[keyPath: keyPath] }
+        get { fields.control[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.control[keyPath: keyPath] = newValue
+            fields.control[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<DodgeTriggers, T>) -> T {
-        storage.value.dodge[keyPath: keyPath]
+        fields.dodge[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DodgeTriggers, T>) -> T {
-        get { storage.value.dodge[keyPath: keyPath] }
+        get { fields.dodge[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.dodge[keyPath: keyPath] = newValue
+            fields.dodge[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<ManaTriggers, T>) -> T {
-        storage.value.mana[keyPath: keyPath]
+        fields.mana[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<ManaTriggers, T>) -> T {
-        get { storage.value.mana[keyPath: keyPath] }
+        get { fields.mana[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.mana[keyPath: keyPath] = newValue
+            fields.mana[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<GoldTriggers, T>) -> T {
-        storage.value.gold[keyPath: keyPath]
+        fields.gold[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<GoldTriggers, T>) -> T {
-        get { storage.value.gold[keyPath: keyPath] }
+        get { fields.gold[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.gold[keyPath: keyPath] = newValue
+            fields.gold[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<HealingTriggers, T>) -> T {
-        storage.value.healing[keyPath: keyPath]
+        fields.healing[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<HealingTriggers, T>) -> T {
-        get { storage.value.healing[keyPath: keyPath] }
+        get { fields.healing[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.healing[keyPath: keyPath] = newValue
+            fields.healing[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<RevivalTriggers, T>) -> T {
-        storage.value.revival[keyPath: keyPath]
+        fields.revival[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<RevivalTriggers, T>) -> T {
-        get { storage.value.revival[keyPath: keyPath] }
+        get { fields.revival[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.revival[keyPath: keyPath] = newValue
+            fields.revival[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<CleanseTriggers, T>) -> T {
-        storage.value.cleanse[keyPath: keyPath]
+        fields.cleanse[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<CleanseTriggers, T>) -> T {
-        get { storage.value.cleanse[keyPath: keyPath] }
+        get { fields.cleanse[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.cleanse[keyPath: keyPath] = newValue
+            fields.cleanse[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<EnemyTurnTriggers, T>) -> T {
-        storage.value.enemyTurn[keyPath: keyPath]
+        fields.enemyTurn[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<EnemyTurnTriggers, T>) -> T {
-        get { storage.value.enemyTurn[keyPath: keyPath] }
+        get { fields.enemyTurn[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.enemyTurn[keyPath: keyPath] = newValue
+            fields.enemyTurn[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<OnHitTriggers, T>) -> T {
-        storage.value.onHit[keyPath: keyPath]
+        fields.onHit[keyPath: keyPath]
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<OnHitTriggers, T>) -> T {
-        get { storage.value.onHit[keyPath: keyPath] }
+        get { fields.onHit[keyPath: keyPath] }
         set {
-            ensureUnique()
-            storage.value.onHit[keyPath: keyPath] = newValue
+            fields.onHit[keyPath: keyPath] = newValue
         }
     }
 }
@@ -277,19 +276,19 @@ public extension CombatTraitTriggers {
     }
 
     var populatedFieldNames: [String] {
-        storage.value.damage.populatedFieldNames(comparedTo: DamageTriggers())
-            + storage.value.attack.populatedFieldNames(comparedTo: AttackTriggers())
-            + storage.value.block.populatedFieldNames(comparedTo: BlockTriggers())
-            + storage.value.mitigation.populatedFieldNames(comparedTo: MitigationTriggers())
-            + storage.value.dot.populatedFieldNames(comparedTo: DotTriggers())
-            + storage.value.control.populatedFieldNames(comparedTo: ControlTriggers())
-            + storage.value.dodge.populatedFieldNames(comparedTo: DodgeTriggers())
-            + storage.value.mana.populatedFieldNames(comparedTo: ManaTriggers())
-            + storage.value.gold.populatedFieldNames(comparedTo: GoldTriggers())
-            + storage.value.healing.populatedFieldNames(comparedTo: HealingTriggers())
-            + storage.value.revival.populatedFieldNames(comparedTo: RevivalTriggers())
-            + storage.value.cleanse.populatedFieldNames(comparedTo: CleanseTriggers())
-            + storage.value.enemyTurn.populatedFieldNames(comparedTo: EnemyTurnTriggers())
-            + storage.value.onHit.populatedFieldNames(comparedTo: OnHitTriggers())
+        fields.damage.populatedFieldNames(comparedTo: DamageTriggers())
+            + fields.attack.populatedFieldNames(comparedTo: AttackTriggers())
+            + fields.block.populatedFieldNames(comparedTo: BlockTriggers())
+            + fields.mitigation.populatedFieldNames(comparedTo: MitigationTriggers())
+            + fields.dot.populatedFieldNames(comparedTo: DotTriggers())
+            + fields.control.populatedFieldNames(comparedTo: ControlTriggers())
+            + fields.dodge.populatedFieldNames(comparedTo: DodgeTriggers())
+            + fields.mana.populatedFieldNames(comparedTo: ManaTriggers())
+            + fields.gold.populatedFieldNames(comparedTo: GoldTriggers())
+            + fields.healing.populatedFieldNames(comparedTo: HealingTriggers())
+            + fields.revival.populatedFieldNames(comparedTo: RevivalTriggers())
+            + fields.cleanse.populatedFieldNames(comparedTo: CleanseTriggers())
+            + fields.enemyTurn.populatedFieldNames(comparedTo: EnemyTurnTriggers())
+            + fields.onHit.populatedFieldNames(comparedTo: OnHitTriggers())
     }
 }

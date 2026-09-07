@@ -104,13 +104,14 @@ public enum StageCompletion {
         in chapters: [Chapter] = GameContent.chapters,
         save: PlayerSave,
     ) -> Int {
-        let authoredLevel = if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
-            EncounterLevelResolver.labyrinthEnemyLevel(for: node)
-        } else {
-            resolvedEncounterLevel(for: stage, in: chapters)
+        if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
+            return EncounterLevelResolver.labyrinthAdjusted(
+                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
+                partyAverageLevel: save.roster.activePartyAverageLevel,
+            )
         }
-        return EncounterLevelResolver.partyAdjusted(
-            authoredLevel,
+        return EncounterLevelResolver.campaignAdjusted(
+            resolvedEncounterLevel(for: stage, in: chapters),
             partyAverageLevel: save.roster.activePartyAverageLevel,
         )
     }

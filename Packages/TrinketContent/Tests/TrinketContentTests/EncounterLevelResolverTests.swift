@@ -36,15 +36,18 @@ struct EncounterLevelResolverTests {
         #expect(EncounterLevelResolver.labyrinthEnemyLevel(for: floor) == 1)
     }
 
-    @Test func `party adjusted never exceeds authored level`() {
-        #expect(EncounterLevelResolver.partyAdjusted(20, partyAverageLevel: 30) == 20)
-        #expect(EncounterLevelResolver.partyAdjusted(2, partyAverageLevel: 1) == 2)
+    @Test(arguments: [(20, 1, 17), (20, 15, 18), (20, 30, 20), (2, 1, 2), (1, 1, 1), (1000, 1, 997)])
+    func `campaign keeps content floor`(authored: Int, party: Int, expected: Int) {
+        #expect(EncounterLevelResolver.campaignAdjusted(authored, partyAverageLevel: party) == expected)
     }
 
-    @Test func `party adjusted caps underleveled parties at average plus offset`() {
-        #expect(EncounterLevelResolver.downwardPartyOffset == 3)
-        #expect(EncounterLevelResolver.partyAdjusted(30, partyAverageLevel: 10) == 13)
-        #expect(EncounterLevelResolver.partyAdjusted(14, partyAverageLevel: 10) == 13)
-        #expect(EncounterLevelResolver.partyAdjusted(13, partyAverageLevel: 10) == 13)
+    @Test(arguments: [(5, 1, 4), (6, 1, 6), (10, 1, 6), (11, 1, 11), (20, 1, 16), (20, 15, 18), (20, 30, 20), (1000, 1, 996)])
+    func `labyrinth keeps depth band floor`(authored: Int, party: Int, expected: Int) {
+        #expect(EncounterLevelResolver.labyrinthAdjusted(authored, partyAverageLevel: party) == expected)
+    }
+
+    @Test func `party ceiling does not overflow at representational limit`() {
+        #expect(EncounterLevelResolver.campaignAdjusted(Int.max, partyAverageLevel: Int.max) == Int.max)
+        #expect(EncounterLevelResolver.labyrinthAdjusted(Int.max, partyAverageLevel: Int.max) == Int.max)
     }
 }

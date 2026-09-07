@@ -229,6 +229,20 @@ background	hunterLodge	bg_homestead_hunter_lodge	Raw Assets/Homestead/Hunter's L
 background	agilityTraining	bg_homestead_agility_training	Raw Assets/Homestead/Agility Training.jpeg	0.50	0.50
 background	moonlitSanctum	bg_homestead_moonlit_sanctum	Raw Assets/Homestead/Moonlit Sanctum.jpeg	0.50	0.50
 background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Wishing Well.jpeg	0.50	0.50
+portrait_background	wheatField	bg_homestead_wheat_field_portrait	Raw Assets/Homestead/Wheat Field (Portrait).jpeg	0.72	0.50
+portrait_background	herbGarden	bg_homestead_herb_garden_portrait	Raw Assets/Homestead/Herb Garden (Portrait).jpeg	0.50	0.50
+portrait_background	chickenCoop	bg_homestead_chicken_coop_portrait	Raw Assets/Homestead/Chicken Coop (Portrait).jpeg	0.50	0.50
+portrait_background	pasture	bg_homestead_pasture_portrait	Raw Assets/Homestead/Pasture (Portrait).jpeg	0.28	0.50
+portrait_background	culinaryArts	bg_homestead_culinary_arts_portrait	Raw Assets/Homestead/Culinary Arts (Portrait).jpeg	0.50	0.50
+portrait_background	blacksmithForge	bg_homestead_blacksmith_forge_portrait	Raw Assets/Homestead/Blacksmith's Forge (Portrait).jpeg	0.50	0.50
+portrait_background	woolTailoring	bg_homestead_wool_tailoring_portrait	Raw Assets/Homestead/Wool Tailoring (Portrait).jpeg	0.50	0.50
+portrait_background	alchemyLab	bg_homestead_alchemy_lab_portrait	Raw Assets/Homestead/Alchemy Lab (Portrait).jpeg	0.50	0.50
+portrait_background	crystalGarden	bg_homestead_crystal_garden_portrait	Raw Assets/Homestead/Crystal Garden (Portrait).jpeg	0.50	0.50
+portrait_background	runesmithWorkshop	bg_homestead_runesmith_workshop_portrait	Raw Assets/Homestead/Runesmith's Workshop (Portrait).jpeg	0.50	0.50
+portrait_background	hunterLodge	bg_homestead_hunter_lodge_portrait	Raw Assets/Homestead/Hunter's Lodge (Portrait).jpeg	0.38	0.50
+portrait_background	agilityTraining	bg_homestead_agility_training_portrait	Raw Assets/Homestead/Agility Training (Portrait).jpeg	0.50	0.50
+portrait_background	moonlitSanctum	bg_homestead_moonlit_sanctum_portrait	Raw Assets/Homestead/Moonlit Sanctum (Portrait).jpeg	0.50	0.50
+portrait_background	wishingWell	bg_homestead_wishing_well_portrait	Raw Assets/Homestead/Wishing Well (Portrait).jpeg	0.50	0.50
 resource	wood	resource_homestead_wood	Raw Assets/Homestead/Resources/wood.png	0.50	0.50
 resource	stone	resource_homestead_stone	Raw Assets/Homestead/Resources/stone.png	0.50	0.50
 resource	iron	resource_homestead_iron	Raw Assets/Homestead/Resources/iron.png	0.50	0.50

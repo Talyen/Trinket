@@ -19,7 +19,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Cleared Plot",
                     cost: [ResourceAmount(.wood, 5), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
-                        title: "Health",
+                        title: "Health & production",
                         description: "Increase Health by 4\nProduces 1 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumHealth(4)], companionModifiers: [.maximumHealth(4)]),
@@ -30,7 +30,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Plowed Rows",
                     cost: [ResourceAmount(.wood, 10), ResourceAmount(.herbs, 10)],
                     bonus: HomesteadBonus(
-                        title: "Health",
+                        title: "Health & production",
                         description: "Increase Health by 8\nProduces 2 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumHealth(8)], companionModifiers: [.maximumHealth(8)]),
@@ -41,7 +41,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Seeded Rows",
                     cost: [ResourceAmount(.wood, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
-                        title: "Health",
+                        title: "Health & production",
                         description: "Increase Health by 12\nProduces 3 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumHealth(12)], companionModifiers: [.maximumHealth(12)]),
@@ -52,7 +52,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Expanded Acres",
                     cost: [ResourceAmount(.wood, 40), ResourceAmount(.herbs, 40)],
                     bonus: HomesteadBonus(
-                        title: "Health",
+                        title: "Health & production",
                         description: "Increase Health by 16\nProduces 4 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumHealth(16)], companionModifiers: [.maximumHealth(16)]),
@@ -73,7 +73,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Prepared Beds",
                     cost: [ResourceAmount(.wood, 5), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
-                        title: "Health restored",
+                        title: "Healing & production",
                         description: "Restore 1 additional Health\nProduces 1 Herbs per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(1)], companionModifiers: [.healthRestored(1)]),
@@ -84,7 +84,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Planted Beds",
                     cost: [ResourceAmount(.wood, 10), ResourceAmount(.herbs, 10)],
                     bonus: HomesteadBonus(
-                        title: "Health restored",
+                        title: "Healing & production",
                         description: "Restore 2 additional Health\nProduces 2 Herbs per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(2)], companionModifiers: [.healthRestored(2)]),
@@ -95,7 +95,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Irrigated Beds",
                     cost: [ResourceAmount(.wood, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
-                        title: "Health restored",
+                        title: "Healing & production",
                         description: "Restore 3 additional Health\nProduces 3 Herbs per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(3)], companionModifiers: [.healthRestored(3)]),
@@ -106,7 +106,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Covered Garden",
                     cost: [ResourceAmount(.wood, 40), ResourceAmount(.herbs, 40)],
                     bonus: HomesteadBonus(
-                        title: "Health restored",
+                        title: "Healing & production",
                         description: "Restore 4 additional Health\nProduces 4 Herbs per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.healthRestored(4)], companionModifiers: [.healthRestored(4)]),
@@ -127,7 +127,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Coop Frame",
                     cost: [ResourceAmount(.wood, 4), ResourceAmount(.food, 6)],
                     bonus: HomesteadBonus(
-                        title: "Party Damage",
+                        title: "Party damage & production",
                         description: "Increase Party Damage by 2%\nProduces 1 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.outgoingDamagePercent(0.02)], companionModifiers: [.outgoingDamagePercent(0.02)]),
@@ -138,7 +138,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Enclosed Coop",
                     cost: [ResourceAmount(.wood, 8), ResourceAmount(.food, 12)],
                     bonus: HomesteadBonus(
-                        title: "Party Damage",
+                        title: "Party damage & production",
                         description: "Increase Party Damage by 4%\nProduces 2 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.outgoingDamagePercent(0.04)], companionModifiers: [.outgoingDamagePercent(0.04)]),
@@ -149,7 +149,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Nesting Boxes",
                     cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 24)],
                     bonus: HomesteadBonus(
-                        title: "Party Damage",
+                        title: "Party damage & production",
                         description: "Increase Party Damage by 6%\nProduces 3 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.outgoingDamagePercent(0.06)], companionModifiers: [.outgoingDamagePercent(0.06)]),
@@ -160,7 +160,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Expanded Roost",
                     cost: [ResourceAmount(.wood, 32), ResourceAmount(.food, 48)],
                     bonus: HomesteadBonus(
-                        title: "Party Damage",
+                        title: "Party damage & production",
                         description: "Increase Party Damage by 8%\nProduces 4 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.outgoingDamagePercent(0.08)], companionModifiers: [.outgoingDamagePercent(0.08)]),
@@ -181,7 +181,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Fenced Ground",
                     cost: [ResourceAmount(.wood, 4), ResourceAmount(.food, 6)],
                     bonus: HomesteadBonus(
-                        title: "Damage Reduction",
+                        title: "Party protection & production",
                         description: "Reduce Party Damage Taken by 2%\nProduces 1 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.incomingDamageReductionPercent(0.02)], companionModifiers: [.incomingDamageReductionPercent(0.02)]),
@@ -192,7 +192,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Seeded Pasture",
                     cost: [ResourceAmount(.wood, 8), ResourceAmount(.food, 12)],
                     bonus: HomesteadBonus(
-                        title: "Damage Reduction",
+                        title: "Party protection & production",
                         description: "Reduce Party Damage Taken by 4%\nProduces 2 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.incomingDamageReductionPercent(0.04)], companionModifiers: [.incomingDamageReductionPercent(0.04)]),
@@ -203,7 +203,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Watering Troughs",
                     cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 24)],
                     bonus: HomesteadBonus(
-                        title: "Damage Reduction",
+                        title: "Party protection & production",
                         description: "Reduce Party Damage Taken by 6%\nProduces 3 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.incomingDamageReductionPercent(0.06)], companionModifiers: [.incomingDamageReductionPercent(0.06)]),
@@ -214,7 +214,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Sheltered Range",
                     cost: [ResourceAmount(.wood, 32), ResourceAmount(.food, 48)],
                     bonus: HomesteadBonus(
-                        title: "Damage Reduction",
+                        title: "Party protection & production",
                         description: "Reduce Party Damage Taken by 8%\nProduces 4 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.incomingDamageReductionPercent(0.08)], companionModifiers: [.incomingDamageReductionPercent(0.08)]),
@@ -235,7 +235,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Cooking Hearth",
                     cost: [ResourceAmount(.food, 6), ResourceAmount(.herbs, 4)],
                     bonus: HomesteadBonus(
-                        title: "Burn Ward",
+                        title: "Burn resistance & production",
                         description: "Reduce Burn damage taken by 10%\nProduces 1 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.burn, 0.10)], companionModifiers: [.damageTakenPercent(.burn, 0.10)]),
@@ -246,7 +246,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Work Kitchen",
                     cost: [ResourceAmount(.food, 12), ResourceAmount(.herbs, 8)],
                     bonus: HomesteadBonus(
-                        title: "Burn Ward",
+                        title: "Burn resistance & production",
                         description: "Reduce Burn damage taken by 20%\nProduces 2 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.burn, 0.20)], companionModifiers: [.damageTakenPercent(.burn, 0.20)]),
@@ -257,7 +257,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Stone Oven",
                     cost: [ResourceAmount(.food, 24), ResourceAmount(.herbs, 16)],
                     bonus: HomesteadBonus(
-                        title: "Burn Ward",
+                        title: "Burn resistance & production",
                         description: "Reduce Burn damage taken by 30%\nProduces 3 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.burn, 0.30)], companionModifiers: [.damageTakenPercent(.burn, 0.30)]),
@@ -268,7 +268,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Expanded Kitchen",
                     cost: [ResourceAmount(.food, 48), ResourceAmount(.herbs, 32)],
                     bonus: HomesteadBonus(
-                        title: "Burn Ward",
+                        title: "Burn resistance & production",
                         description: "Reduce Burn damage taken by 40%\nProduces 4 Food per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.burn, 0.40)], companionModifiers: [.damageTakenPercent(.burn, 0.40)]),
@@ -289,7 +289,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Forge Foundation",
                     cost: [ResourceAmount(.stone, 4), ResourceAmount(.iron, 6)],
                     bonus: HomesteadBonus(
-                        title: "Physical Damage",
+                        title: "Physical damage",
                         description: "Increase Physical damage dealt by 1"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 1)], companionModifiers: [.damageDealt(.physical, 1)])
@@ -299,7 +299,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Hearth and Anvil",
                     cost: [ResourceAmount(.stone, 8), ResourceAmount(.iron, 12)],
                     bonus: HomesteadBonus(
-                        title: "Physical Damage",
+                        title: "Physical damage",
                         description: "Increase Physical damage dealt by 2"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 2)], companionModifiers: [.damageDealt(.physical, 2)])
@@ -309,7 +309,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Covered Smithy",
                     cost: [ResourceAmount(.stone, 16), ResourceAmount(.iron, 24)],
                     bonus: HomesteadBonus(
-                        title: "Physical Damage",
+                        title: "Physical damage",
                         description: "Increase Physical damage dealt by 3"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 3)], companionModifiers: [.damageDealt(.physical, 3)])
@@ -319,7 +319,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Reinforced Forge",
                     cost: [ResourceAmount(.stone, 32), ResourceAmount(.iron, 48)],
                     bonus: HomesteadBonus(
-                        title: "Physical Damage",
+                        title: "Physical damage",
                         description: "Increase Physical damage dealt by 4"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 4)], companionModifiers: [.damageDealt(.physical, 4)])
@@ -339,7 +339,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Loom Frame",
                     cost: [ResourceAmount(.wood, 3), ResourceAmount(.hide, 7)],
                     bonus: HomesteadBonus(
-                        title: "Freeze Ward",
+                        title: "Freeze resistance",
                         description: "Reduces Freeze damage taken by 15%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.freeze, 0.15)], companionModifiers: [.damageTakenPercent(.freeze, 0.15)])
@@ -349,7 +349,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Working Loom",
                     cost: [ResourceAmount(.wood, 6), ResourceAmount(.hide, 14)],
                     bonus: HomesteadBonus(
-                        title: "Freeze Ward",
+                        title: "Freeze resistance",
                         description: "Reduces Freeze damage taken by 30%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.freeze, 0.3)], companionModifiers: [.damageTakenPercent(.freeze, 0.3)])
@@ -359,7 +359,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Tailor Shop",
                     cost: [ResourceAmount(.wood, 12), ResourceAmount(.hide, 28)],
                     bonus: HomesteadBonus(
-                        title: "Freeze Ward",
+                        title: "Freeze resistance",
                         description: "Reduces Freeze damage taken by 40%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.freeze, 0.4)], companionModifiers: [.damageTakenPercent(.freeze, 0.4)])
@@ -369,7 +369,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Insulated Workroom",
                     cost: [ResourceAmount(.wood, 24), ResourceAmount(.hide, 56)],
                     bonus: HomesteadBonus(
-                        title: "Freeze Ward",
+                        title: "Freeze resistance",
                         description: "Reduces Freeze damage taken by 50%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.freeze, 0.5)], companionModifiers: [.damageTakenPercent(.freeze, 0.5)])
@@ -389,7 +389,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Workbench",
                     cost: [ResourceAmount(.stone, 6), ResourceAmount(.herbs, 4)],
                     bonus: HomesteadBonus(
-                        title: "Catalyzed Venom",
+                        title: "Poison offense & resistance",
                         description: "Increase Poison damage dealt by 5%\nDecrease Poison damage taken by 10%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.05), .damageTakenPercent(.poison, 0.10)], companionModifiers: [.poisonDamageDealtPercent(0.05), .damageTakenPercent(.poison, 0.10)])
@@ -399,7 +399,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Laboratory Shelves",
                     cost: [ResourceAmount(.stone, 12), ResourceAmount(.herbs, 8)],
                     bonus: HomesteadBonus(
-                        title: "Catalyzed Venom",
+                        title: "Poison offense & resistance",
                         description: "Increase Poison damage dealt by 10%\nDecrease Poison damage taken by 20%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.10), .damageTakenPercent(.poison, 0.20)], companionModifiers: [.poisonDamageDealtPercent(0.10), .damageTakenPercent(.poison, 0.20)])
@@ -409,7 +409,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Distilling Station",
                     cost: [ResourceAmount(.stone, 24), ResourceAmount(.herbs, 16)],
                     bonus: HomesteadBonus(
-                        title: "Catalyzed Venom",
+                        title: "Poison offense & resistance",
                         description: "Increase Poison damage dealt by 15%\nDecrease Poison damage taken by 30%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.15), .damageTakenPercent(.poison, 0.30)], companionModifiers: [.poisonDamageDealtPercent(0.15), .damageTakenPercent(.poison, 0.30)])
@@ -419,7 +419,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Sealed Laboratory",
                     cost: [ResourceAmount(.stone, 48), ResourceAmount(.herbs, 32)],
                     bonus: HomesteadBonus(
-                        title: "Catalyzed Venom",
+                        title: "Poison offense & resistance",
                         description: "Increase Poison damage dealt by 20%\nDecrease Poison damage taken by 40%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.20), .damageTakenPercent(.poison, 0.40)], companionModifiers: [.poisonDamageDealtPercent(0.20), .damageTakenPercent(.poison, 0.40)])
@@ -439,7 +439,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Crystal Beds",
                     cost: [ResourceAmount(.stone, 6), ResourceAmount(.crystal, 4)],
                     bonus: HomesteadBonus(
-                        title: "Mana",
+                        title: "Mana & production",
                         description: "Increase Mana by 2\nProduces 1 Crystal per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(2)], companionModifiers: [.maximumMana(2)]),
@@ -450,7 +450,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Covered Beds",
                     cost: [ResourceAmount(.stone, 12), ResourceAmount(.crystal, 8)],
                     bonus: HomesteadBonus(
-                        title: "Mana",
+                        title: "Mana & production",
                         description: "Increase Mana by 4\nProduces 2 Crystal per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(4)], companionModifiers: [.maximumMana(4)]),
@@ -461,7 +461,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Growth Chambers",
                     cost: [ResourceAmount(.stone, 24), ResourceAmount(.crystal, 16)],
                     bonus: HomesteadBonus(
-                        title: "Mana",
+                        title: "Mana & production",
                         description: "Increase Mana by 6\nProduces 3 Crystal per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(6)], companionModifiers: [.maximumMana(6)]),
@@ -472,7 +472,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Crystal Conservatory",
                     cost: [ResourceAmount(.stone, 48), ResourceAmount(.crystal, 32)],
                     bonus: HomesteadBonus(
-                        title: "Mana",
+                        title: "Mana & production",
                         description: "Increase Mana by 8\nProduces 4 Crystal per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(8)], companionModifiers: [.maximumMana(8)]),
@@ -493,7 +493,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Inscription Table",
                     cost: [ResourceAmount(.iron, 8), ResourceAmount(.crystal, 2)],
                     bonus: HomesteadBonus(
-                        title: "Elemental Etching",
+                        title: "Burn, Freeze & Holy damage",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 1"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 1), .damageDealt(.freeze, 1), .damageDealt(.holy, 1)], companionModifiers: [.damageDealt(.burn, 1), .damageDealt(.freeze, 1), .damageDealt(.holy, 1)])
@@ -503,7 +503,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Engraving Bench",
                     cost: [ResourceAmount(.iron, 16), ResourceAmount(.crystal, 4)],
                     bonus: HomesteadBonus(
-                        title: "Elemental Etching",
+                        title: "Burn, Freeze & Holy damage",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 2"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 2), .damageDealt(.freeze, 2), .damageDealt(.holy, 2)], companionModifiers: [.damageDealt(.burn, 2), .damageDealt(.freeze, 2), .damageDealt(.holy, 2)])
@@ -513,7 +513,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Rune Forge",
                     cost: [ResourceAmount(.iron, 32), ResourceAmount(.crystal, 8)],
                     bonus: HomesteadBonus(
-                        title: "Elemental Etching",
+                        title: "Burn, Freeze & Holy damage",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 3"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 3), .damageDealt(.freeze, 3), .damageDealt(.holy, 3)], companionModifiers: [.damageDealt(.burn, 3), .damageDealt(.freeze, 3), .damageDealt(.holy, 3)])
@@ -523,7 +523,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Expanded Workshop",
                     cost: [ResourceAmount(.iron, 64), ResourceAmount(.crystal, 16)],
                     bonus: HomesteadBonus(
-                        title: "Elemental Etching",
+                        title: "Burn, Freeze & Holy damage",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 4"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 4), .damageDealt(.freeze, 4), .damageDealt(.holy, 4)], companionModifiers: [.damageDealt(.burn, 4), .damageDealt(.freeze, 4), .damageDealt(.holy, 4)])
@@ -543,7 +543,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Trail Shelter",
                     cost: [ResourceAmount(.wood, 3), ResourceAmount(.hide, 7)],
                     bonus: HomesteadBonus(
-                        title: "Companion Damage",
+                        title: "Companion damage & production",
                         description: "Increase Companion damage dealt by 1\nProduces 1 Hide per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(1)]),
@@ -554,7 +554,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Timber Lodge",
                     cost: [ResourceAmount(.wood, 6), ResourceAmount(.hide, 14)],
                     bonus: HomesteadBonus(
-                        title: "Companion Damage",
+                        title: "Companion damage & production",
                         description: "Increase Companion damage dealt by 2\nProduces 2 Hide per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(2)]),
@@ -565,7 +565,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Gear Room",
                     cost: [ResourceAmount(.wood, 12), ResourceAmount(.hide, 28)],
                     bonus: HomesteadBonus(
-                        title: "Companion Damage",
+                        title: "Companion damage & production",
                         description: "Increase Companion damage dealt by 3\nProduces 3 Hide per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(3)]),
@@ -576,7 +576,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Training Yard",
                     cost: [ResourceAmount(.wood, 24), ResourceAmount(.hide, 56)],
                     bonus: HomesteadBonus(
-                        title: "Companion Damage",
+                        title: "Companion damage & production",
                         description: "Increase Companion damage dealt by 4\nProduces 4 Hide per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(4)]),
@@ -597,7 +597,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Practice Ground",
                     cost: [ResourceAmount(.food, 4), ResourceAmount(.hide, 6)],
                     bonus: HomesteadBonus(
-                        title: "Companion Agility",
+                        title: "Companion Dodge",
                         description: "Increase Companion Dodge by 2%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(companionModifiers: [.dodgeChanceBonus(0.02)])
@@ -607,7 +607,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Obstacle Course",
                     cost: [ResourceAmount(.food, 8), ResourceAmount(.hide, 12)],
                     bonus: HomesteadBonus(
-                        title: "Companion Agility",
+                        title: "Companion Dodge",
                         description: "Increase Companion Dodge by 4%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(companionModifiers: [.dodgeChanceBonus(0.04)])
@@ -617,7 +617,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Training Yard",
                     cost: [ResourceAmount(.food, 16), ResourceAmount(.hide, 24)],
                     bonus: HomesteadBonus(
-                        title: "Companion Agility",
+                        title: "Companion Dodge",
                         description: "Increase Companion Dodge by 6%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(companionModifiers: [.dodgeChanceBonus(0.06)])
@@ -627,7 +627,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Training Pavilion",
                     cost: [ResourceAmount(.food, 32), ResourceAmount(.hide, 48)],
                     bonus: HomesteadBonus(
-                        title: "Companion Agility",
+                        title: "Companion Dodge",
                         description: "Increase Companion Dodge by 8%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(companionModifiers: [.dodgeChanceBonus(0.08)])
@@ -647,7 +647,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Shrine Foundation",
                     cost: [ResourceAmount(.herbs, 4), ResourceAmount(.crystal, 6)],
                     bonus: HomesteadBonus(
-                        title: "Astral Find",
+                        title: "Astral finds",
                         description: "Find 5% more Astral items"
                     ),
                     combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 5)
@@ -657,7 +657,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Enclosed Shrine",
                     cost: [ResourceAmount(.herbs, 8), ResourceAmount(.crystal, 12)],
                     bonus: HomesteadBonus(
-                        title: "Astral Find",
+                        title: "Astral finds",
                         description: "Find 10% more Astral items"
                     ),
                     combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 10)
@@ -667,7 +667,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Observation Chamber",
                     cost: [ResourceAmount(.herbs, 16), ResourceAmount(.crystal, 24)],
                     bonus: HomesteadBonus(
-                        title: "Astral Find",
+                        title: "Astral finds",
                         description: "Find 15% more Astral items"
                     ),
                     combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 15)
@@ -677,7 +677,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Observatory Tower",
                     cost: [ResourceAmount(.herbs, 32), ResourceAmount(.crystal, 48)],
                     bonus: HomesteadBonus(
-                        title: "Astral Find",
+                        title: "Astral finds",
                         description: "Find 20% more Astral items"
                     ),
                     combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 20)
@@ -697,7 +697,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Dug Shaft",
                     cost: [ResourceAmount(.crystal, 5), ResourceAmount(.gold, 5)],
                     bonus: HomesteadBonus(
-                        title: "Gold Find",
+                        title: "Treasure & production",
                         description: "Find 5% more Gold\nProduces 1 Gold per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(goldFindPercent: 5),
@@ -708,7 +708,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Stone Lining",
                     cost: [ResourceAmount(.crystal, 10), ResourceAmount(.gold, 10)],
                     bonus: HomesteadBonus(
-                        title: "Gold Find",
+                        title: "Treasure & production",
                         description: "Find 10% more Gold\nProduces 2 Gold per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(goldFindPercent: 10),
@@ -719,7 +719,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Covered Well",
                     cost: [ResourceAmount(.crystal, 20), ResourceAmount(.gold, 20)],
                     bonus: HomesteadBonus(
-                        title: "Gold Find",
+                        title: "Treasure & production",
                         description: "Find 15% more Gold\nProduces 3 Gold per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(goldFindPercent: 15),
@@ -730,7 +730,7 @@ enum GameContentHomesteadGenerated {
                     stageName: "Wellhouse",
                     cost: [ResourceAmount(.crystal, 40), ResourceAmount(.gold, 40)],
                     bonus: HomesteadBonus(
-                        title: "Gold Find",
+                        title: "Treasure & production",
                         description: "Find 20% more Gold\nProduces 4 Gold per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(goldFindPercent: 20),

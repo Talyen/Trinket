@@ -31,20 +31,9 @@ public final class SpiresPlayMode {
     }
 
     public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
-        Self.resolvedEncounter(
-            for: floor,
-            partyAverageLevel: playerSave.roster.activePartyAverageLevel,
-        )
-    }
-
-    static func resolvedEncounter(
-        for floor: SpireFloor,
-        partyAverageLevel: Int,
-    ) -> (combatant: Combatant, level: Int)? {
         PlayBattlePreparation.scaledEncounter(
             enemyID: floor.enemyID,
-            authoredLevel: EncounterLevelResolver.spireEnemyLevel(for: floor),
-            partyAverageLevel: partyAverageLevel,
+            level: EncounterLevelResolver.spireEnemyLevel(for: floor),
         )
     }
 

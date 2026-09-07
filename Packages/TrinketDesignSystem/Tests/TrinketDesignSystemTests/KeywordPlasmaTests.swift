@@ -23,13 +23,6 @@ struct KeywordPlasmaTests {
         #expect(try matches(resolved.primary, asset: "KeywordBurn"))
         #expect(try matches(resolved.secondary, asset: "KeywordStun"))
     }
-
-    @Test func `center maps the focal point into points`() {
-        let source = KeywordPlasmaBackground.Source(keywords: [.burn], focalPoint: UnitPoint(x: 0.25, y: 0.5))
-        let center = KeywordPlasmaBackground.center(for: source, in: CGSize(width: 200, height: 100))
-        #expect(center.x == 50)
-        #expect(center.y == 50)
-    }
 }
 
 private func matches(_ color: Color, asset name: String, style: UIUserInterfaceStyle = .dark) throws -> Bool {

@@ -157,8 +157,8 @@ public enum BalanceMarkdownReporter {
         lines.append("- Affix contrasts report empty-slot and replacement-affix baselines separately.")
         lines.append("- Gold and other economy talents are marked NONCOMBAT and never flagged LOW.")
         lines.append(
-            "- Enemy power uses `EnemyPowerCurve` (L1/L20/L40): normal HP 4.2/5.59/9.30, boss HP 7.35/9.78/16.28; "
-                + "normal raw damage 10%/45%/65%, boss 15%/60%/85% (smoothstep).",
+            "- Enemy power uses `EnemyPowerCurve`: smoothstep between L1/L20/L40 anchors, "
+                + "then uncapped logarithmic HP growth and linear damage growth.",
         )
         lines.append(
             "- Fight pacing is \(report.config.appliesFightPacing ? "ON" : "OFF") "

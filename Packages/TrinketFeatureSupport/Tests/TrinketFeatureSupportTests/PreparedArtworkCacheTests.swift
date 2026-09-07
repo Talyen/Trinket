@@ -80,6 +80,31 @@ struct PreparedArtworkCacheTests {
         #expect(PreparedArtworkCache.defaultPresentationImageNames.contains(thumbnail))
     }
 
+    @Test func `portrait backgrounds are prepared by their owning surface`() {
+        let portraits = Set(ArtCatalog.portraitBackgroundArtByID.values.map(\.imageName))
+        #expect(!portraits.isEmpty)
+        #expect(portraits.isDisjoint(with: PreparedArtworkCache.defaultPresentationImageNames))
+        #expect(portraits.isSubset(of: ArtCatalog.allImageNamesSet))
+    }
+
+    @Test func `snapshots include artwork prepared after launch`() async {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
+            UIColor.red.setFill()
+            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+        }
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
+            PreparedArtwork(name: name, image: image)
+        }
+        await cache.prepareAll(priorityImageNames: [])
+        await cache.waitForDeferredWarmup()
+        await cache.prepareAndPin(names: ["portrait"])
+        #expect(cache.snapshot().residentCount == 1)
+        #expect(cache.snapshot().pinnedCount == 1)
+        #expect(cache.snapshot().residentByteCount > 0)
+        cache.releasePins(names: ["portrait"])
+        #expect(cache.snapshot().pinnedCount == 0)
+    }
+
     @Test func `launch warmup snapshot reports resident and pinned decoded images`() async {
         let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
             UIColor.red.setFill()
@@ -97,7 +122,7 @@ struct PreparedArtworkCacheTests {
 
         await cache.prepareAll(priorityImageNames: ["priority"])
         await cache.waitForDeferredWarmup()
-        let snapshot = cache.launchWarmupSnapshot()
+        let snapshot = cache.snapshot()
 
         #expect(snapshot.requestedCount == 2)
         #expect(snapshot.residentCount == 2)
@@ -122,16 +147,16 @@ struct PreparedArtworkCacheTests {
 
         let attemptCount = await source.attemptCount
         #expect(attemptCount == 2)
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+        #expect(cache.snapshot().pinnedCount == 1)
         #expect(cache.pinDemandCount(for: "art") == 1)
 
         cache.releasePins(names: ["art"])
 
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+        #expect(cache.snapshot().pinnedCount == 0)
         #expect(cache.image(named: "art") != nil)
 
         cache.releasePins(names: ["art"])
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+        #expect(cache.snapshot().pinnedCount == 0)
     }
 
     @Test func `overlapping pins remain resident until every owner releases`() async {
@@ -148,14 +173,14 @@ struct PreparedArtworkCacheTests {
         await cache.prepareAndPin(names: ["art"])
         cache.releasePins(names: ["art"])
 
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+        #expect(cache.snapshot().pinnedCount == 1)
         #expect(cache.image(named: "art") != nil)
 
         cache.releasePins(names: ["art"])
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+        #expect(cache.snapshot().pinnedCount == 1)
 
         cache.releasePins(names: ["art"])
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+        #expect(cache.snapshot().pinnedCount == 0)
     }
 
     @Test func `releasing pins during decode does not leak A pin`() async {
@@ -177,7 +202,7 @@ struct PreparedArtworkCacheTests {
         await gate.open()
         await prepareTask.value
 
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+        #expect(cache.snapshot().pinnedCount == 0)
         #expect(cache.image(named: "art") != nil)
     }
 
@@ -194,10 +219,10 @@ struct PreparedArtworkCacheTests {
         await cache.prepareAll(priorityImageNames: ["priority"])
         await cache.waitForDeferredWarmup()
 
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+        #expect(cache.snapshot().pinnedCount == 1)
 
         cache.releasePins(names: ["priority"])
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+        #expect(cache.snapshot().pinnedCount == 0)
         #expect(cache.image(named: "priority") != nil)
     }
 
@@ -217,7 +242,7 @@ struct PreparedArtworkCacheTests {
 
         await cache.prepareAll(priorityImageNames: ["art"])
         #expect(cache.pinDemandCount(for: "art") == 0)
-        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+        #expect(cache.snapshot().pinnedCount == 0)
     }
 
     @Test func `concurrent waiters share A single decode`() async {

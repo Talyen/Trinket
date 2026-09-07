@@ -20,6 +20,7 @@ ability_dimension="${ART_ABILITY_DIMENSION:-${max_dimension_override:-960}}"
 item_dimension="${ART_ITEM_DIMENSION:-${max_dimension_override:-960}}"
 slot_background_dimension="${ART_SLOT_BACKGROUND_DIMENSION:-${max_dimension_override:-720}}"
 background_dimension="${ART_BACKGROUND_DIMENSION:-${max_dimension_override:-1600}}"
+portrait_background_dimension="${ART_PORTRAIT_BACKGROUND_DIMENSION:-${max_dimension_override:-2752}}"
 encounter_dimension="${ART_ENCOUNTER_DIMENSION:-${max_dimension_override:-1320}}"
 resource_dimension="${ART_RESOURCE_DIMENSION:-${max_dimension_override:-256}}"
 talent_dimension="${ART_TALENT_DIMENSION:-${max_dimension_override:-960}}"
@@ -72,6 +73,7 @@ abilities_temp=$(mktemp)
 items_temp=$(mktemp)
 slot_backgrounds_temp=$(mktemp)
 backgrounds_temp=$(mktemp)
+portrait_backgrounds_temp=$(mktemp)
 encounters_temp=$(mktemp)
 resources_temp=$(mktemp)
 talents_temp=$(mktemp)
@@ -81,7 +83,7 @@ seen_assets_temp=$(mktemp)
 generated_temp=$(mktemp)
 cleanup() {
   rm -f "$source_hashes_temp" "$contents_json_temp" "$combatants_temp" "$abilities_temp" "$items_temp" \
-    "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$resources_temp" "$talents_temp" "$active_assets_temp" \
+    "$slot_backgrounds_temp" "$backgrounds_temp" "$portrait_backgrounds_temp" "$encounters_temp" "$resources_temp" "$talents_temp" "$active_assets_temp" \
     "$seen_ids_temp" "$seen_assets_temp" "$generated_temp" \
     "$combatant_ids_temp" "$ability_ids_temp" "$item_ids_temp"
   for backup in "$asset_catalog"/*.imageset.old.$$; do
@@ -148,11 +150,11 @@ JSON
 
 # Catalog usage drives which variants we ship:
 # - every kind emits a full-size image
-# - resource / slot_background: full only
+# - resource / slot_background / portrait_background: full only
 # - combatant / ability / item / encounter / background: full + thumb
 emit_thumb_for_kind() {
   case "$1" in
-    resource|slot_background) return 1 ;;
+    resource|slot_background|portrait_background) return 1 ;;
     *) return 0 ;;
   esac
 }
@@ -163,6 +165,7 @@ full_dimension_for_kind() {
     ability) printf '%s\n' "$ability_dimension" ;;
     item) printf '%s\n' "$item_dimension" ;;
     slot_background) printf '%s\n' "$slot_background_dimension" ;;
+    portrait_background) printf '%s\n' "$portrait_background_dimension" ;;
     background) printf '%s\n' "$background_dimension" ;;
     encounter) printf '%s\n' "$encounter_dimension" ;;
     resource) printf '%s\n' "$resource_dimension" ;;
@@ -173,7 +176,7 @@ full_dimension_for_kind() {
 while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
 
-  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "encounter" && "$kind" != "resource" && "$kind" != "talent" ]]; then
+  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "portrait_background" && "$kind" != "encounter" && "$kind" != "resource" && "$kind" != "talent" ]]; then
     echo "Unsupported art kind '$kind' for id '$id'." >&2
     exit 1
   fi
@@ -298,6 +301,10 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
     rm -rf "$thumb_imageset"
   fi
 
+  if [[ "$kind" == "background" || "$kind" == "portrait_background" ]]; then
+    source_aspect_ratio="$(sips -g pixelWidth -g pixelHeight "$output_file" | awk '/pixelWidth:/{w=$2} /pixelHeight:/{h=$2} END {printf "%.12f", w/h}')"
+  fi
+
   escaped_id="$(trinket_asset_escape_swift_string "$id")"
   escaped_asset="$(trinket_asset_escape_swift_string "$asset_name")"
   escaped_thumb="$(trinket_asset_escape_swift_string "$thumb_asset")"
@@ -341,6 +348,16 @@ SWIFT
         dict["$escaped_id"] = BackgroundArtReference(
             imageName: "$escaped_asset",
             thumbnailImageName: "$escaped_thumb",
+            sourceAspectRatio: $source_aspect_ratio,
+            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
+        )
+SWIFT
+  elif [[ "$kind" == "portrait_background" ]]; then
+    cat >> "$portrait_backgrounds_temp" <<SWIFT
+        dict["$escaped_id"] = BackgroundArtReference(
+            imageName: "$escaped_asset",
+            thumbnailImageName: nil,
+            sourceAspectRatio: $source_aspect_ratio,
             focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
         )
 SWIFT
@@ -413,6 +430,7 @@ public struct SlotBackgroundArtReference: Hashable, Sendable {
 public struct BackgroundArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
+    public let sourceAspectRatio: Double
     public let focalPoint: ArtFocalPoint
 }
 
@@ -459,6 +477,12 @@ $(cat "$slot_backgrounds_temp")
     public static let backgroundArtByID: [String: BackgroundArtReference] = {
         var dict = [String: BackgroundArtReference]()
 $(cat "$backgrounds_temp")
+        return dict
+    }()
+
+    public static let portraitBackgroundArtByID: [String: BackgroundArtReference] = {
+        var dict = [String: BackgroundArtReference]()
+$(cat "$portrait_backgrounds_temp")
         return dict
     }()
 
@@ -541,6 +565,9 @@ public extension ArtCatalog {
             names.insert(reference.imageName)
             if let thumb = reference.thumbnailImageName { names.insert(thumb) }
         }
+        for reference in portraitBackgroundArtByID.values {
+            names.insert(reference.imageName)
+        }
         for reference in encounterArtByID.values {
             names.insert(reference.imageName)
             if let thumb = reference.thumbnailImageName { names.insert(thumb) }
@@ -586,6 +613,6 @@ for dir in "$asset_catalog"/*/*.imageset "$asset_catalog"/*.imageset; do
 done
 shopt -u nullglob
 
-rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$resources_temp" "$active_assets_temp" "$seen_ids_temp" "$seen_assets_temp" "$source_hashes_temp"
+rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$portrait_backgrounds_temp" "$encounters_temp" "$resources_temp" "$active_assets_temp" "$seen_ids_temp" "$seen_assets_temp" "$source_hashes_temp"
 
 echo "Prepared $processed_count curated art asset(s) (converted $full_count full / $thumb_count thumb this run; kind-aware variants)."

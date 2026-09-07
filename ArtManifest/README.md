@@ -18,7 +18,7 @@ Trinket keeps raw art and app-ready art separate.
 kind	id	asset_name	source_path	focal_x	focal_y
 ```
 
-- `kind`: `combatant`, `ability`, `item`, `slot_background`, `background`, `encounter`, `resource`, or `talent`.
+- `kind`: `combatant`, `ability`, `item`, `slot_background`, `background`, `portrait_background`, `encounter`, `resource`, or `talent`.
 - `id`: game model ID, such as `knight` or `fire_elemental`.
 - `asset_name`: stable asset catalog name used by SwiftUI `Image`.
 - `source_path`: path to the raw source file from the repo root.
@@ -42,12 +42,22 @@ The pipeline writes **HEIC** (HEVC-based) images per manifest row. Which variant
 | `talent` | yes (default `960`) | yes (`thumb_dimension`, default `480`) |
 | `encounter` | yes (default `1320`) | yes (`thumb_dimension`, default `480`) |
 | `background` | yes (default `1600`) | yes (`thumb_dimension`, default `480`) |
+| `portrait_background` | yes (default `2752`) | no |
 | `resource` | yes (default `256`) | no |
 | `slot_background` | yes (default `720`) | no |
 
 HEIC is Apple's native image format, ~30–50% smaller than JPEG at the same perceptual quality, with hardware-accelerated decode on iOS. Each output is stripped of EXIF/XMP/ICC metadata.
 
 `CombatantArtReference`, `AbilityArtReference`, `ItemArtReference`, `EncounterArtReference`, and `BackgroundArtReference` expose both `imageName` (full) and `thumbnailImageName`. Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Packages/TrinketFeatureSupport/.../Shared/Cards/CombatantArtwork.swift`): large surfaces (battle hand, detail heroes, stage/spire encounter art, cinematic backgrounds) use `imageName`; grid and mode cards use `thumbnailImageName`. Resource callers always use the full `imageName`.
+
+Portrait backgrounds use `ArtCatalog.portraitBackgroundArtByID` with the same node
+IDs as landscape backgrounds. They preserve the portrait source resolution for
+full-screen building details; landscape references and thumbnails remain available
+for overview/category/list surfaces. `ART_PORTRAIT_BACKGROUND_DIMENSION` controls
+the portrait export independently. Both kinds participate in prepared-artwork
+lookup and memory reporting. Portraits are prepared and pinned by their owning
+category/detail surface, rather than decoded during whole-catalog launch warmup. Focal points choose the visible horizontal crop on
+taller phones; do not stretch images to the viewport ratio.
 
 ## Generate Curated Assets
 

@@ -2,13 +2,21 @@ import Foundation
 import TrinketCore
 
 public enum EncounterLevelResolver {
-    public static let downwardPartyOffset = 3
+    public static func campaignAdjusted(_ authoredLevel: Int, partyAverageLevel: Int) -> Int {
+        let level = max(1, authoredLevel)
+        return adjusted(level, partyAverageLevel: partyAverageLevel, minimum: max(1, level - 3))
+    }
 
-    public static func partyAdjusted(
-        _ authoredLevel: Int,
-        partyAverageLevel: Int,
-    ) -> Int {
-        min(authoredLevel, partyAverageLevel + downwardPartyOffset)
+    public static func labyrinthAdjusted(_ authoredLevel: Int, partyAverageLevel: Int) -> Int {
+        let level = max(1, authoredLevel)
+        let bandMinimum = 1 + ((level - 1) / 5) * 5
+        return adjusted(level, partyAverageLevel: partyAverageLevel, minimum: bandMinimum)
+    }
+
+    private static func adjusted(_ level: Int, partyAverageLevel: Int, minimum: Int) -> Int {
+        let partyLevel = min(level, max(1, partyAverageLevel))
+        let partyCeiling = partyLevel + min(3, level - partyLevel)
+        return max(minimum, partyCeiling)
     }
 
     public static func journeyEnemyLevel(for stage: Stage, in chapter: Chapter) -> Int {

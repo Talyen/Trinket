@@ -225,8 +225,10 @@ extension JourneyPlayMode {
         else { return nil }
         return PlayBattlePreparation.scaledEncounter(
             enemyID: stage.resolvedBattleEnemyID(worldSeed: worldSeed),
-            authoredLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter),
-            partyAverageLevel: partyAverageLevel,
+            level: EncounterLevelResolver.campaignAdjusted(
+                EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter),
+                partyAverageLevel: partyAverageLevel,
+            ),
         )
     }
 

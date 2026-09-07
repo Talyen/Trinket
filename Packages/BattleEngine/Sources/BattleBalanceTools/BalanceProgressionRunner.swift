@@ -67,7 +67,7 @@ public enum BalanceProgressionRunner {
             let record = ProgressionBattleRecord(
                 step: step,
                 playerLevel: recordedPlayerLevel,
-                enemyLevel: step.enemyLevel,
+                enemyLevel: controller.encounterLevel(for: step),
                 seed: battleSeed,
                 result: result,
             )

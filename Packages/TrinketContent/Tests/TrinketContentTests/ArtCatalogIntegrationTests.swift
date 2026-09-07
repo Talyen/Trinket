@@ -105,10 +105,13 @@ struct ArtCatalogIntegrationTests {
         }
 
         for node in GameContent.homesteadNodes {
-            _ = try #require(
-                ArtCatalog.backgroundArtByID[node.id.rawValue],
-                "Missing Homestead project art for \(node.id.rawValue)",
-            )
+            let landscape = try #require(ArtCatalog.backgroundArtByID[node.id.rawValue])
+            let portrait = try #require(ArtCatalog.portraitBackgroundArtByID[node.id.rawValue])
+            #expect(landscape.imageName != portrait.imageName)
+            #expect(portrait.thumbnailImageName == nil)
+            #expect(portrait.sourceAspectRatio < 1)
+            #expect(landscape.sourceAspectRatio > 1)
+            #expect(ArtCatalog.allImageNamesSet.contains(portrait.imageName))
         }
 
         #expect(
@@ -124,7 +127,7 @@ struct ArtCatalogIntegrationTests {
     // swiftlint:enable function_body_length
 
     @Test func `background focal points are normalized`() {
-        for art in ArtCatalog.backgroundArtByID.values {
+        for art in Array(ArtCatalog.backgroundArtByID.values) + Array(ArtCatalog.portraitBackgroundArtByID.values) {
             #expect((0 ... 1).contains(art.focalPoint.x))
             #expect((0 ... 1).contains(art.focalPoint.y))
         }

@@ -34,21 +34,21 @@ struct PartyScaledEncounterTests {
         return try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))
     }
 
-    @Test func `journey encounter scales down to party ceiling`() throws {
+    @Test func `journey encounter preserves content floor`() throws {
         let state = try context.makePlaySession()
         setPartyLevels(3, 2, in: state)
         let chapter = try #require(GameContent.chapters.last)
         let stage = try #require(chapter.stages.last { $0.encounter.isCombat })
-        #expect(EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter) > 5)
+        let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter) - 3
 
         #expect(state.journey.startBattle(for: stage) == nil)
         let configuration = try #require(state.battle.activeBattle)
-        #expect(configuration.enemyEncounterLevel == 5)
+        #expect(configuration.enemyEncounterLevel == expectedLevel)
 
         let enemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: state.playerSave.worldSeed))
         let catalogEnemy = try #require(GameContent.enemy(matching: enemyID))
         let enemy = try #require(configuration.enemy)
-        let expectedStats = CombatantLevelScaler.scale(enemy: catalogEnemy, level: 5)
+        let expectedStats = CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel)
         #expect(enemy.maxHealth == expectedStats.maxHealth)
     }
 
@@ -66,19 +66,19 @@ struct PartyScaledEncounterTests {
         )
     }
 
-    @Test func `spire encounter scales down to party ceiling`() throws {
+    @Test func `spire encounter preserves fixed floor level`() throws {
         let state = try context.makePlaySession()
         let topFloor = try unlockSpireThroughPenultimateFloor(in: state)
         setPartyLevels(3, 2, in: state)
-        #expect(EncounterLevelResolver.spireEnemyLevel(for: topFloor) > 5)
+        let expectedLevel = topFloor.floor * 2
 
         #expect(state.spires.startBattle(for: topFloor) == nil)
         let configuration = try #require(state.battle.activeBattle)
-        #expect(configuration.enemyEncounterLevel == 5)
+        #expect(configuration.enemyEncounterLevel == expectedLevel)
 
         let catalogEnemy = try #require(GameContent.enemy(matching: topFloor.enemyID))
         let enemy = try #require(configuration.enemy)
-        let expectedStats = CombatantLevelScaler.scale(enemy: catalogEnemy, level: 5)
+        let expectedStats = CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel)
         #expect(enemy.maxHealth == expectedStats.maxHealth)
     }
 
@@ -112,14 +112,14 @@ struct PartyScaledEncounterTests {
         )
     }
 
-    @Test func `labyrinth encounter scales down to party ceiling`() throws {
+    @Test func `labyrinth encounter preserves depth band floor`() throws {
         let state = try context.makePlaySession()
         setPartyLevels(3, 2, in: state)
         let nodeID = try forceDeepCombatNode(in: state)
 
         #expect(state.labyrinth.startBattle(nodeID: nodeID) == nil)
         let configuration = try #require(state.battle.activeBattle)
-        #expect(configuration.enemyEncounterLevel == 5)
+        #expect(configuration.enemyEncounterLevel == 16)
     }
 
     @Test func `labyrinth encounter keeps authored level when party is ahead`() throws {

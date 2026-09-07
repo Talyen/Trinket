@@ -39,3 +39,10 @@ Generated files are committed so the app builds without rerunning the generator.
 | `Enemy` | Enemy model |
 | `ItemGenerator` | Random item generation from base + affix pools |
 | `ShopOfferGenerator` | Procedural Merchant's Shop shelves (rarity + gold prices) |
+
+## Combat trigger value semantics
+
+`CombatTraitTriggers` owns private copy-on-write storage. Its field payload uses
+checked `Sendable` conformance, and all field mutations pass through one accessor
+that ensures unique storage before writing. The wrapper's unchecked conformance
+relies on this encapsulation; storage references must never escape the wrapper.

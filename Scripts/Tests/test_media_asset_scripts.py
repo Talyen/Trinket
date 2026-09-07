@@ -15,6 +15,61 @@ from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 class MediaAssetScriptTests(ScriptRegressionTestCase):
+    def test_portrait_art_has_independent_size_and_preserves_landscape(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for folder in ("Scripts/lib", "ArtManifest", "Raw Assets", "bin"):
+                (root / folder).mkdir(parents=True, exist_ok=True)
+            for relative in ("Scripts/prepare-art-assets.sh", "Scripts/lib/media-assets.sh"):
+                target = root / relative
+                target.write_text((ROOT / relative).read_text(), encoding="utf-8")
+                target.chmod(0o755)
+            (root / "Raw Assets/source.jpeg").write_bytes(b"source")
+            (root / "ArtManifest/curated-assets.tsv").write_text(
+                "background\twheatField\tbg_field\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "portrait_background\twheatField\tbg_field_portrait\tRaw Assets/source.jpeg\t0.5\t0.5\n",
+                encoding="utf-8",
+            )
+            sips = root / "bin/sips"
+            sips.write_text(
+                "#!/usr/bin/env python3\n"
+                "import os, pathlib, sys\n"
+                "args = sys.argv[1:]\n"
+                "if '--out' in args:\n"
+                "    out = pathlib.Path(args[args.index('--out') + 1])\n"
+                "    out.write_bytes(b'encoded')\n"
+                "    with open(os.environ['ART_TEST_LOG'], 'a') as log:\n"
+                "        log.write(out.name + ':' + args[args.index('-Z') + 1] + '\\n')\n"
+                "elif '-g' in args:\n"
+                "    portrait = 'portrait' in args[-1]\n"
+                "    print('pixelWidth:', 1536 if portrait else 1600)\n"
+                "    print('pixelHeight:', 2752 if portrait else 1194)\n",
+                encoding="utf-8",
+            )
+            sips.chmod(0o755)
+            log = root / "conversions.log"
+            environment = {
+                **os.environ,
+                "PATH": f"{root / 'bin'}:{os.environ['PATH']}",
+                "ART_TEST_LOG": str(log),
+            }
+            command = ["bash", str(root / "Scripts/prepare-art-assets.sh")]
+            first = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            self.assertEqual(
+                sorted(log.read_text().splitlines()),
+                ["bg_field.heic:1600", "bg_field_portrait.heic:2752", "bg_field_thumb.heic:480"],
+            )
+            catalog = root / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
+            generated = catalog.read_text()
+            self.assertIn("portraitBackgroundArtByID", generated)
+            self.assertIn("thumbnailImageName: nil", generated)
+            self.assertIn("sourceAspectRatio: 0.558139534884", generated)
+            second = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertEqual(len(log.read_text().splitlines()), 3)
+            self.assertEqual(catalog.read_text(), generated)
+
     def test_sfx_cache_tracks_profile_state_output_and_force(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root, environment, conversion_log = self.make_sfx_fixture(directory)

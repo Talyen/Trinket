@@ -5,7 +5,7 @@ Player-facing standing policy. Engineering policy lives in
 
 | Document | Purpose |
 |----------|---------|
-| [Decisions.md](Decisions.md) | Locked player-facing choices (PD-001–PD-014) |
+| [Decisions.md](Decisions.md) | Locked player-facing choices (PD-001–PD-020) |
 | [Overview.md](Overview.md) | Game surfaces and modes in player terms |
 | [Homestead.md](Homestead.md) | Homestead layout and immediate-build rule |
 | [MysteryEvents.md](MysteryEvents.md) | Mystery choices, themed rewards, and saved offers |

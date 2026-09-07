@@ -26,21 +26,28 @@ public enum EnemyPowerCurve {
     ]
 
     public static func health(level: Int, isBoss: Bool) -> Double {
-        interpolate(max(1, level), anchors: isBoss ? bossHPAnchors : normalHPAnchors)
+        interpolate(max(1, level), anchors: isBoss ? bossHPAnchors : normalHPAnchors, logarithmicTail: true)
     }
 
     public static func rawDamagePercent(level: Int, isBoss: Bool) -> Double {
-        interpolate(max(1, level), anchors: isBoss ? bossDamageAnchors : normalDamageAnchors)
+        interpolate(max(1, level), anchors: isBoss ? bossDamageAnchors : normalDamageAnchors, logarithmicTail: false)
     }
 
-    private static func interpolate(_ level: Int, anchors: [(level: Int, value: Double)]) -> Double {
+    private static func interpolate(
+        _ level: Int,
+        anchors: [(level: Int, value: Double)],
+        logarithmicTail: Bool,
+    ) -> Double {
         guard let first = anchors.first else { return 1 }
         if level <= first.level {
             return first.value
         }
         guard let last = anchors.last else { return first.value }
-        if level >= last.level {
-            return last.value
+        if level > last.level {
+            let previous = anchors[anchors.count - 2]
+            let progress = Double(level - last.level) / Double(last.level - previous.level)
+            let growth = logarithmicTail ? log1p(progress) : progress
+            return last.value + (last.value - previous.value) * growth
         }
 
         for index in 0 ..< (anchors.count - 1) {

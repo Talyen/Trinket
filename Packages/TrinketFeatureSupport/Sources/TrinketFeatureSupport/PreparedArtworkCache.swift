@@ -315,13 +315,14 @@ public final class PreparedArtworkCache {
         }
     }
 
-    func launchWarmupSnapshot() -> PreparedArtworkCacheSnapshot {
+    func snapshot() -> PreparedArtworkCacheSnapshot {
         var residentCount = 0
         var residentByteCount = 0
         var pinnedCount = 0
         var pinnedByteCount = 0
 
-        for name in launchWarmupNames {
+        let names = Set(launchWarmupNames).union(decodedCostsByName.keys)
+        for name in names {
             let cost = decodedCostsByName[name] ?? 0
             if pinnedImages[name] != nil {
                 residentCount += 1
@@ -335,7 +336,7 @@ public final class PreparedArtworkCache {
         }
 
         return PreparedArtworkCacheSnapshot(
-            requestedCount: launchWarmupNames.count,
+            requestedCount: names.count,
             residentCount: residentCount,
             residentByteCount: residentByteCount,
             pinnedCount: pinnedCount,
@@ -344,7 +345,7 @@ public final class PreparedArtworkCache {
     }
 
     public func reportMemorySnapshot(label: String) {
-        let snapshot = launchWarmupSnapshot()
+        let snapshot = snapshot()
         let processFootprintBytes = Self.processPhysicalFootprintByteCount()
         let artworkStatus = snapshot.residentByteCount
             <= PreparedArtworkMemoryBudget.residentArtworkByteCount ? "within" : "over"
@@ -407,6 +408,7 @@ public final class PreparedArtworkCache {
     }
 
     static var defaultPresentationImageNames: [String] {
-        ArtCatalog.allImageNames
+        let portraits = Set(ArtCatalog.portraitBackgroundArtByID.values.map(\.imageName))
+        return ArtCatalog.allImageNames.filter { !portraits.contains($0) }
     }
 }

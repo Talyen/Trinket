@@ -7,6 +7,8 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| Homestead portrait disclosure | 2026-09-07 | Added 14 full-resolution portrait backgrounds and minimalist building details with progressive upgrade disclosure, typed effect comparisons, resource chips, quiet tier markers, and guarded saved-purchase feedback; retained landscape art and existing gameplay; repaired isolated diagnostic-path and shell-fixture environment assumptions. |
+| Content progression | 2026-09-07 | Implemented bounded Campaign scaling, fixed Spire levels, rising minimums through infinite Labyrinth floors, and uncapped logarithmic enemy HP / linear damage growth; preserved catch-up XP, aligned balance tooling, and repaired integer-boundary rounding. Contracts design follows separately. |
 | Complete Unique collection | 2026-09-07 | Added 21 approved Unique adaptations for full 29-base equipment coverage, themed Mystery placements, combat/card/resource rules, and save coverage; 833 package tests and scoped handoff passed; repaired large-log watchdog completion detection. |
 | Agent token efficiency | 2026-09-06 | Reduced required guidance and routine routing output, routed UI performance details by concern, retained bounded script-failure evidence, and added handoff outcomes; global setup preserved. |
 | Missing heroes | 2026-09-06 | Added Alchemist, Druid, and Wildcard with original portraits, approved loadouts, 63 distinct Talents, and deterministic combat/content/save coverage; compared legal builds and Talent siblings without claiming final balance. |

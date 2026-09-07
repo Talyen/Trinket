@@ -32,10 +32,6 @@ struct HomesteadProjectRow: View {
         return false
     }
 
-    private var showsNavigationChevron: Bool {
-        status.statusSymbolName == "chevron.right"
-    }
-
     var body: some View {
         NavigationLink(value: HomesteadRoute.node(definition.id)) {
             rowContent
@@ -62,39 +58,36 @@ struct HomesteadProjectRow: View {
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .trinketFittedText()
 
-                Text(balanced: effectLine)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(isLocked ? .tertiary : .secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if let tier = status.currentStage {
+                    HomesteadEffectDescription(tier: tier, typography: .caption)
+                } else {
+                    KeywordDescriptionText(text: definition.tiers.first?.bonus.title ?? definition.summary)
+                        .trinketTypography(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if showsNavigationChevron {
+            HStack(spacing: TrinketDesign.Spacing.extraSmall) {
+                ZStack {
+                    Circle()
+                        .fill(status.isComplete ? status.statusColor.opacity(0.18) : .clear)
+                    Circle().strokeBorder(status.statusColor, lineWidth: 1)
+                    if isLocked {
+                        Image(systemName: "lock.fill")
+                    } else {
+                        Text("\(status.currentTier)")
+                    }
+                }
+                .frame(width: 24, height: 24)
                 Image(systemName: "chevron.right")
-                    .trinketTypography(.footnote)
-                    .foregroundStyle(status.statusColor)
-                    .symbolRenderingMode(.hierarchical)
-                    .accessibilityHidden(true)
-                    .padding(.leading, TrinketDesign.Spacing.tight)
-            } else {
-                Image(systemName: status.statusSymbolName)
-                    .trinketTypography(.button)
-                    .foregroundStyle(status.statusColor)
-                    .symbolRenderingMode(.hierarchical)
-                    .accessibilityHidden(true)
-                    .symbolEffect(
-                        .bounce.up,
-                        value: status.canBuildOrUpgrade,
-                    )
-                    .frame(width: 22, height: 22)
-                    .padding(.leading, TrinketDesign.Spacing.tight)
             }
+            .trinketTypography(.caption)
+            .foregroundStyle(status.statusColor)
+            .accessibilityHidden(true)
+            .padding(.leading, TrinketDesign.Spacing.small)
         }
         .padding(.vertical, TrinketDesign.Spacing.small)
-    }
-
-    private var effectLine: String {
-        status.overviewCaption
     }
 }
 

@@ -44,10 +44,6 @@ struct PresentationModelTests {
         #expect(farmingProgress.subtitle == "3 / \(farmingProgress.totalTiers)")
     }
 
-    @Test func `homestead tier copy uses stage names`() {
-        #expect(HomesteadTierCopy.title(for: "Cleared Plot", nodeTitle: "Wheat Field") == "Wheat Field — Cleared Plot")
-    }
-
     @Test func `hero header layout sizing policies and metrics`() {
         let portraitHeight = HeroHeaderLayout.HeightPolicy.portrait.height(forWidth: 300)
         #expect(portraitHeight == 400)

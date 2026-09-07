@@ -24,6 +24,20 @@ struct CombatantProgressionTests {
         try #expect(leveledMultiple.requiredXP == 22)
     }
 
+    @Test(arguments: [40, 60, 100, 250, 1000])
+    func `progression and catch up continue at high levels`(level: Int) {
+        let progression = CombatantProgression.at(level: level)
+        let advanced = progression.addingExperience(progression.requiredXP)
+        #expect(advanced.level == level + 1)
+        #expect(advanced.requiredXP > progression.requiredXP)
+        let ordinary = ExperienceScaling.battleAward(playerLevel: level, enemyLevel: level)
+        let catchUp = ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: level, enemyLevel: level, highestLevel: level + 20,
+        )
+        #expect(ordinary > 0)
+        #expect(catchUp > ordinary)
+    }
+
     @Test func `adding non positive experience is no op`() throws {
         let progression = CombatantProgression(level: 2, currentXP: 4, requiredXP: 15)
         try #expect(progression.addingExperience(0) == progression)

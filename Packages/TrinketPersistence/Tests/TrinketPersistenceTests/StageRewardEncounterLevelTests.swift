@@ -12,7 +12,7 @@ struct StageRewardEncounterLevelTests {
     }
 
     @Test(arguments: [ClaimFallbackMode.journey, .spire])
-    func `claim fallback uses party adjusted encounter level`(mode: ClaimFallbackMode) throws {
+    func `claim fallback uses mode encounter level`(mode: ClaimFallbackMode) throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
@@ -27,7 +27,8 @@ struct StageRewardEncounterLevelTests {
             save: &pinned,
             enemyEncounterLevel: level,
         )
-        let pinnedXP = pinned.roster.progression(for: hero).currentXP
+        let pinnedXP = pinned.roster.progression(for: hero)
+        let pinnedGold = pinned.roster.gold
 
         var fallback = SaveTestSupport.makeSave()
         fallback.roster.progressions[hero.id] = .at(level: 3)
@@ -41,7 +42,8 @@ struct StageRewardEncounterLevelTests {
         )
 
         try assertClaimModeExpectations(mode: mode, level: level)
-        #expect(fallback.roster.progression(for: hero).currentXP == pinnedXP)
+        #expect(fallback.roster.progression(for: hero) == pinnedXP)
+        #expect(fallback.roster.gold == pinnedGold)
     }
 
     @Test func `combat loot resolves at provided encounter level instead of node depth`() throws {
@@ -118,7 +120,9 @@ struct StageRewardEncounterLevelTests {
         }
 
         let authored = grantedHeroXP(enemyEncounterLevel: 20)
-        let scaled = grantedHeroXP(enemyEncounterLevel: 13)
+        let scaled = grantedHeroXP(enemyEncounterLevel: 16)
+        let fallback = grantedHeroXP(enemyEncounterLevel: nil)
+        #expect(fallback == scaled)
 
         #expect(authored > 0)
         #expect(scaled > 0)
@@ -168,20 +172,18 @@ struct StageRewardEncounterLevelTests {
             return StageCompletion.partyAdjustedEncounterLevel(for: deepStage, save: save)
         case .spire:
             let topFloor = try ironVeinTopFloor()
-            return EncounterLevelResolver.partyAdjusted(
-                EncounterLevelResolver.spireEnemyLevel(for: topFloor),
-                partyAverageLevel: save.roster.activePartyAverageLevel,
-            )
+            return EncounterLevelResolver.spireEnemyLevel(for: topFloor)
         }
     }
 
     private func assertClaimModeExpectations(mode: ClaimFallbackMode, level: Int) throws {
         switch mode {
         case .journey:
-            #expect(level == 5)
+            let stage = try deepJourneyStage()
+            #expect(level == StageCompletion.resolvedEncounterLevel(for: stage, in: GameContent.chapters) - 3)
         case .spire:
             let topFloor = try ironVeinTopFloor()
-            #expect(level < EncounterLevelResolver.spireEnemyLevel(for: topFloor))
+            #expect(level == EncounterLevelResolver.spireEnemyLevel(for: topFloor))
         }
     }
 

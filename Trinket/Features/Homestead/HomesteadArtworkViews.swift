@@ -1,5 +1,4 @@
 import SwiftUI
-import TrinketAppState
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
@@ -40,7 +39,9 @@ struct HomesteadFocalArtwork: View {
     var displaySize: Image.PreparedArtworkDisplaySize = .full
     var interpolation: Image.Interpolation = .medium
 
-    private let sourceAspectRatio: CGFloat = 4.0 / 3.0
+    private var sourceAspectRatio: CGFloat {
+        art.sourceAspectRatio
+    }
 
     init(
         art: BackgroundArtReference,
