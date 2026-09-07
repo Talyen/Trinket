@@ -1166,85 +1166,85 @@ public enum ArtCatalog {
         var dict = [String: BackgroundArtReference]()
         dict["wheatField"] = BackgroundArtReference(
             imageName: "bg_homestead_wheat_field_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_wheat_field_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.72, y: 0.50)
         )
         dict["herbGarden"] = BackgroundArtReference(
             imageName: "bg_homestead_herb_garden_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_herb_garden_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["chickenCoop"] = BackgroundArtReference(
             imageName: "bg_homestead_chicken_coop_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_chicken_coop_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["pasture"] = BackgroundArtReference(
             imageName: "bg_homestead_pasture_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_pasture_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.28, y: 0.50)
         )
         dict["culinaryArts"] = BackgroundArtReference(
             imageName: "bg_homestead_culinary_arts_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_culinary_arts_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["blacksmithForge"] = BackgroundArtReference(
             imageName: "bg_homestead_blacksmith_forge_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_blacksmith_forge_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["woolTailoring"] = BackgroundArtReference(
             imageName: "bg_homestead_wool_tailoring_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_wool_tailoring_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["alchemyLab"] = BackgroundArtReference(
             imageName: "bg_homestead_alchemy_lab_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_alchemy_lab_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["crystalGarden"] = BackgroundArtReference(
             imageName: "bg_homestead_crystal_garden_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_crystal_garden_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["runesmithWorkshop"] = BackgroundArtReference(
             imageName: "bg_homestead_runesmith_workshop_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_runesmith_workshop_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["hunterLodge"] = BackgroundArtReference(
             imageName: "bg_homestead_hunter_lodge_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_hunter_lodge_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.38, y: 0.50)
         )
         dict["agilityTraining"] = BackgroundArtReference(
             imageName: "bg_homestead_agility_training_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_agility_training_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["moonlitSanctum"] = BackgroundArtReference(
             imageName: "bg_homestead_moonlit_sanctum_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_moonlit_sanctum_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict["wishingWell"] = BackgroundArtReference(
             imageName: "bg_homestead_wishing_well_portrait",
-            thumbnailImageName: nil,
+            thumbnailImageName: "bg_homestead_wishing_well_portrait_thumb",
             sourceAspectRatio: 0.558139534884,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
@@ -1529,6 +1529,7 @@ public extension ArtCatalog {
         }
         for reference in portraitBackgroundArtByID.values {
             names.insert(reference.imageName)
+            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
         }
         for reference in encounterArtByID.values {
             names.insert(reference.imageName)

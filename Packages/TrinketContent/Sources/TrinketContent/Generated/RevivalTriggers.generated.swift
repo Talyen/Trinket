@@ -4,6 +4,8 @@ import TrinketCore
 
 /// The `revival` trigger family of `CombatTraitTriggers`.
 public struct RevivalTriggers: Equatable, Hashable, Sendable {
+    public var undyingEmber: Bool = false
+    public var borrowedLife: Bool = false
     public var onceDeathReviveHealth: Int = 0
     public var onceDeathReviveBlock: Int = 0
     public var deathsDoorDurationBonusTurns: Int = 0
@@ -18,6 +20,8 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
     public var surviveDeathsDoorPartyHealPercent: Double = 0
 
     public init(
+        undyingEmber: Bool = false,
+        borrowedLife: Bool = false,
         onceDeathReviveHealth: Int = 0,
         onceDeathReviveBlock: Int = 0,
         deathsDoorDurationBonusTurns: Int = 0,
@@ -31,6 +35,8 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         onAllyDeathsDoorHealAndCleanse: Int = 0,
         surviveDeathsDoorPartyHealPercent: Double = 0
     ) {
+        self.undyingEmber = undyingEmber
+        self.borrowedLife = borrowedLife
         self.onceDeathReviveHealth = onceDeathReviveHealth
         self.onceDeathReviveBlock = onceDeathReviveBlock
         self.deathsDoorDurationBonusTurns = deathsDoorDurationBonusTurns
@@ -46,11 +52,13 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "onSurviveDeathsDoorDamageBonusPercent", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "onHeroFatalHealPercentMaxHealth", "onAllyDeathsDoorHealAndCleanse", "surviveDeathsDoorPartyHealPercent"]
+    public static let fieldNames: [String] = ["undyingEmber", "borrowedLife", "onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "onSurviveDeathsDoorDamageBonusPercent", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "onHeroFatalHealPercentMaxHealth", "onAllyDeathsDoorHealAndCleanse", "surviveDeathsDoorPartyHealPercent"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.undyingEmber != other.undyingEmber { names.append("undyingEmber") }
+        if self.borrowedLife != other.borrowedLife { names.append("borrowedLife") }
         if self.onceDeathReviveHealth != other.onceDeathReviveHealth { names.append("onceDeathReviveHealth") }
         if self.onceDeathReviveBlock != other.onceDeathReviveBlock { names.append("onceDeathReviveBlock") }
         if self.deathsDoorDurationBonusTurns != other.deathsDoorDurationBonusTurns { names.append("deathsDoorDurationBonusTurns") }
@@ -69,6 +77,8 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
 
 extension RevivalTriggers {
     mutating func merge(_ other: Self) {
+        undyingEmber = undyingEmber || other.undyingEmber
+        borrowedLife = borrowedLife || other.borrowedLife
         onceDeathReviveHealth = max(onceDeathReviveHealth, other.onceDeathReviveHealth)
         onceDeathReviveBlock += other.onceDeathReviveBlock
         deathsDoorDurationBonusTurns += other.deathsDoorDurationBonusTurns
@@ -88,6 +98,8 @@ extension RevivalTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            undyingEmber: values.decode(Bool.self, "undyingEmber", default: false),
+            borrowedLife: values.decode(Bool.self, "borrowedLife", default: false),
             onceDeathReviveHealth: values.decode(Int.self, "onceDeathReviveHealth", default: 0),
             onceDeathReviveBlock: values.decode(Int.self, "onceDeathReviveBlock", default: 0),
             deathsDoorDurationBonusTurns: values.decode(Int.self, "deathsDoorDurationBonusTurns", default: 0),
@@ -104,6 +116,8 @@ extension RevivalTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(undyingEmber, "undyingEmber", default: false)
+        try container.encodeNonDefault(borrowedLife, "borrowedLife", default: false)
         try container.encodeNonDefault(onceDeathReviveHealth, "onceDeathReviveHealth", default: 0)
         try container.encodeNonDefault(onceDeathReviveBlock, "onceDeathReviveBlock", default: 0)
         try container.encodeNonDefault(deathsDoorDurationBonusTurns, "deathsDoorDurationBonusTurns", default: 0)

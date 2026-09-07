@@ -426,3 +426,22 @@ wildcard_physical_t2_2	Cracked Guard	burst.fill	Breaking enemy Block with a Phys
 wildcard_physical_t3_1	Cold Read	burst.fill	A Physical card against a Frozen enemy restores 1 Health to you, once per turn.		coldRead:true
 wildcard_physical_t3_2	Feigned Miss	burst.fill	An enemy fully Blocking your Physical hit causes 1 Stun damage, once per turn.		feignedMiss:true
 wildcard_physical_t4_1	Paid in Full	burst.fill	A Physical card immediately following your card that granted Gold deals 1 additional Physical damage, once per turn.		paidInFull:true
+warlock_leech_t4_1	Emberdrinker	flame.fill	Your Burn damage Leeches Health.		burnDamageLeech:true
+frost_whelp_mana_t4_1	Dragon’s Patronage	sparkles	Your Mana can empower either ally’s Freeze cards.		dragonPatronage:true
+frost_whelp_dodge_t4_1	Winter’s Wake	wind.snow	Dodged attacks return half their damage as Freeze damage.		wintersWake:true
+lizard_scout_gold_t4_1	Carrion Claim	banknote.fill	Your Poison and Bleed damage steal 1 Gold.		carrionClaim:true
+panther_leech_t4_1	Blood Feast	drop.fill	Your Bleed damage Leeches Health.		bleedDamageLeech:true
+panther_dodge_t4_1	Killing Grace	pawprint.fill	Your Dodge chance also increases your Critical Hit chance.		killingGrace:true
+phoenix_deathsdoor_t4_1	Undying Ember	flame.fill	Burn heals you while you’re on Death’s Door.		undyingEmber:true
+golden_retriever_health_t4_1	Contagious Joy	heart.fill	Your healing uses the party’s highest Critical Hit chance.		contagiousJoy:true
+library_owl_cleanse_t4_1	Lesson Learned	book.closed.fill	Cleansed effects cannot return until your next turn.		lessonLearned:true
+library_owl_health_t4_1	Living Archive	books.vertical.fill	Your card healing echoes next turn at half strength.		livingArchive:true
+risen_skeleton_leech_t4_1	Marrowmend	shield.fill	Your excess Leech healing becomes Block, up to 6.		marrowmend:true
+risen_skeleton_deathsdoor_t4_1	Borrowed Life	heart.circle.fill	Your Physical damage Leeches Health while on Death’s Door.		borrowedLife:true
+mana_moth_mana_t4_1	Prismatic Scales	sparkles	Your Mana empowerment deals both Burn and Freeze damage.		prismaticScales:true
+mana_moth_freeze_t4_1	Ghostfrost	snowflake	Your Freeze damage ignores enemy Block.		ghostfrost:true
+pixie_health_t4_1	Wishspring	wand.and.stars	Your overhealing restores half as much Mana.		wishspring:true
+shield_scarab_block_t4_1	Sealed Sarcophagus	lock.shield.fill	Your Block cannot be stolen or Purged.		sealedSarcophagus:true
+shield_scarab_stun_t4_1	Resonant Shell	waveform	Your Thorns deal Stun damage instead of Physical damage.		resonantShell:true
+fox_gold_t4_1	Light-Fingered	hand.raised.fingers.spread.fill	Gaining Gold steals an equal amount of enemy Block.		lightFingered:true
+fox_stun_t4_1	Stolen Thunder	bolt.fill	Your Stun attacks spend Block for equal bonus damage.		stolenThunder:true

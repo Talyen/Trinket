@@ -1,17 +1,6 @@
-import SwiftUI
 import TrinketContent
 import TrinketCore
-import TrinketDesignSystem
-import TrinketFeatureSupport
 import TrinketPersistence
-
-public enum HomesteadProjectRowState: Equatable {
-    case prerequisiteLocked
-    case unbuilt(affordable: Bool)
-    case built
-    case upgradeReady
-    case completed
-}
 
 public struct HomesteadProjectStatus {
     public let definition: HomesteadNodeDefinition
@@ -55,29 +44,6 @@ public struct HomesteadProjectStatus {
 
     public var canBuildOrUpgrade: Bool {
         isUnlocked && isAffordable && !isComplete
-    }
-
-    public var rowState: HomesteadProjectRowState {
-        if !isUnlocked {
-            return .prerequisiteLocked
-        }
-        if isComplete {
-            return .completed
-        }
-        if currentTier == 0 {
-            return .unbuilt(affordable: isAffordable)
-        }
-        return isAffordable ? .upgradeReady : .built
-    }
-
-    public var statusColor: Color {
-        switch rowState {
-        case .prerequisiteLocked: .secondary
-        case let .unbuilt(affordable): affordable ? TrinketDesign.Colors.accent : .secondary
-        case .built: .secondary
-        case .upgradeReady: TrinketDesign.Colors.accent
-        case .completed: TrinketDesign.Colors.success
-        }
     }
 
     public func balance(for amount: ResourceAmount) -> Int {

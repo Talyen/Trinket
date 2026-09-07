@@ -8,18 +8,10 @@ import TrinketPersistence
 
 enum HomesteadDetailSheet: Hashable, Identifiable {
     case improvement(Int)
-    case benefits
     case wallet
 
     var id: Self {
         self
-    }
-
-    var isImprovement: Bool {
-        if case .improvement = self {
-            return true
-        }
-        return false
     }
 }
 
@@ -43,36 +35,33 @@ struct HomesteadNodeDetailView: View {
     }
 
     var body: some View {
-        ZStack {
-            portrait
-            LinearGradient(
-                colors: [TrinketDesign.Colors.Overlay.ink.opacity(0.64), .clear, .clear, TrinketDesign.Colors.Overlay.ink.opacity(0.38)],
-                startPoint: .top,
-                endPoint: .bottom,
-            )
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
+        GeometryReader { geometry in
+            ZStack {
+                portrait
+                LinearGradient(
+                    colors: [
+                        TrinketDesign.Colors.Overlay.ink.opacity(0.64),
+                        .clear,
+                        .clear,
+                        TrinketDesign.Colors.Overlay.ink.opacity(0.38),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom,
+                )
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
 
-            VStack(spacing: TrinketDesign.Spacing.large) {
-                navigationControls
-                buildingIdentity
-                Spacer(minLength: TrinketDesign.Spacing.large)
-                if !status.isComplete {
-                    Button {
-                        guard let nextTier = status.nextTier else { return }
-                        purchaseCommitted = false
-                        sheet = .improvement(nextTier.tier)
-                    } label: {
-                        Text(status.currentTier == 0 ? "Build" : "Improve")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.improveButton)
-                    .trinketCenteredPrimaryAction()
-                    .padding(.bottom, TrinketDesign.Spacing.large)
+                VStack(spacing: TrinketDesign.Spacing.large) {
+                    navigationControls
+                    buildingIdentity
+                    Spacer(minLength: TrinketDesign.Spacing.large)
+                    benefitsPanel
+                        .frame(maxHeight: geometry.size.height * 0.43, alignment: .bottom)
+                        .padding(.bottom, TrinketDesign.Spacing.small)
                 }
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.top, TrinketDesign.Spacing.small)
             }
-            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-            .padding(.top, TrinketDesign.Spacing.small)
         }
         .toolbar(.hidden, for: .navigationBar, .tabBar)
         .navigationBarBackButtonHidden()
@@ -128,13 +117,13 @@ struct HomesteadNodeDetailView: View {
                 Label("Back", systemImage: "chevron.left")
                     .labelStyle(.iconOnly)
             }
-            .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.backButton)
+            .trinketIconButton(accessibilityIdentifier: AccessibilityID.Homestead.backButton)
             Spacer()
             Button { sheet = .wallet } label: {
                 Label("Resources", systemImage: "bag")
                     .labelStyle(.iconOnly)
             }
-            .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.walletButton)
+            .trinketIconButton(accessibilityIdentifier: AccessibilityID.Homestead.walletButton)
         }
     }
 
@@ -144,32 +133,51 @@ struct HomesteadNodeDetailView: View {
                 .trinketTypography(.screenDisplay)
                 .multilineTextAlignment(.center)
                 .trinketOnArtText()
-            Button { sheet = .benefits } label: {
-                HStack(spacing: TrinketDesign.Spacing.small) {
-                    Text("Tier \(status.currentTier)")
-                        .contentTransition(.numericText())
-                    Image(systemName: "info.circle")
-                        .overlay {
-                            if status.isComplete {
-                                Circle().stroke(TrinketDesign.Colors.accent, lineWidth: 1).padding(-3)
-                            }
-                        }
+            HomesteadTierProgress(
+                currentTier: status.currentTier,
+                totalTiers: definition.maxTier,
+                celebrationCount: celebrationCount,
+            )
+            .frame(width: 132)
+            .accessibilityIdentifier(AccessibilityID.Homestead.progress(tier: status.currentTier))
+            .padding(.vertical, TrinketDesign.Spacing.small)
+        }
+    }
+
+    private var benefitsPanel: some View {
+        ViewThatFits(in: .vertical) {
+            panelContent.fixedSize(horizontal: false, vertical: true)
+            ScrollView { panelContent }
+        }
+    }
+
+    private var panelContent: some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
+            if let tier = status.currentStage ?? status.nextTier {
+                if status.currentStage == nil {
+                    Text("Build benefits")
+                        .trinketTypography(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .trinketTypography(.body)
-                .trinketOnArtText(.eyebrow)
-                .padding(.vertical, TrinketDesign.Spacing.small)
+                HomesteadBenefitsView(tier: tier, effectsIdentifier: AccessibilityID.Homestead.currentEffects)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Current benefits")
-            .accessibilityValue("Tier \(status.currentTier) of \(definition.maxTier)")
-            .accessibilityIdentifier(AccessibilityID.Homestead.benefitsButton)
-            .keyframeAnimator(initialValue: CGFloat(1), trigger: celebrationCount) { content, scale in
-                content.scaleEffect(scale)
-            } keyframes: { _ in
-                CubicKeyframe(HomesteadMotion.celebrationPeak, duration: HomesteadMotion.celebrationRise)
-                SpringKeyframe(1, duration: HomesteadMotion.celebrationSettle, spring: .smooth)
+            if !status.isComplete {
+                Button {
+                    guard let nextTier = status.nextTier else { return }
+                    purchaseCommitted = false
+                    sheet = .improvement(nextTier.tier)
+                } label: {
+                    Text(status.currentTier == 0 ? "Build" : "Improve")
+                        .frame(maxWidth: .infinity)
+                }
+                .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.improveButton)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(TrinketDesign.Spacing.large)
+        .background(TrinketDesign.Colors.surface, in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.card))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Homestead.benefitsPanel)
     }
 
     private var artworkPinKey: [String] {

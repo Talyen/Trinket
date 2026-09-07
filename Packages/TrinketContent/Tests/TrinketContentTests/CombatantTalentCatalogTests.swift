@@ -11,7 +11,7 @@ struct CombatantTalentCatalogTests {
             #expect(config.trees.count == 3)
             for tree in config.trees {
                 #expect(!tree.name.isEmpty)
-                #expect(tree.nodes.count >= 6)
+                #expect(tree.nodes.count >= 7)
                 #expect(tree.rows == Array(1 ... tree.rows.count))
                 for row in tree.rows {
                     let nodeCount = tree.nodes(forRow: row).count

@@ -1,135 +1,57 @@
 import SwiftUI
 import TrinketAppState
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureSupport
-import TrinketPersistence
 
-private enum HomesteadProjectRowMetrics {
-    static let artworkAspectRatio: CGFloat = 4.0 / 3.0
-    static let artworkHeight: CGFloat = 92
-    static var artworkWidth: CGFloat {
-        artworkHeight * artworkAspectRatio
-    }
-
-    static let artworkTextSpacing = TrinketDesign.Spacing.medium
-    static var dividerLeadingInset: CGFloat {
-        artworkWidth + artworkTextSpacing
-    }
-}
-
-struct HomesteadProjectRow: View {
+struct HomesteadProjectTile: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
     var zoomNamespace: Namespace.ID
 
-    private var isLocked: Bool {
-        if case .prerequisiteLocked = status.rowState {
-            return true
-        }
-        return false
-    }
-
     var body: some View {
         NavigationLink(value: HomesteadRoute.node(definition.id)) {
-            rowContent
-                .matchedTransitionSource(id: definition.id, in: zoomNamespace)
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                artwork
+                    .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: TrinketDesign.Corners.card)
+                            .strokeBorder(
+                                status.canBuildOrUpgrade ? TrinketDesign.Colors.accent : TrinketDesign.Colors.subtleStroke,
+                                lineWidth: status.canBuildOrUpgrade ? 2 : 1,
+                            )
+                    }
+                    .overlay(alignment: .bottomTrailing) {
+                        if !status.isUnlocked {
+                            Image(systemName: "lock.fill")
+                                .trinketTypography(.body)
+                                .trinketOnArtText()
+                                .padding(TrinketDesign.Spacing.medium)
+                                .accessibilityHidden(true)
+                        }
+                    }
+
+                Text(balanced: definition.title)
+                    .trinketTypography(.cardTitle)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .contentShape(Rectangle())
+            .matchedTransitionSource(id: definition.id, in: zoomNamespace)
         }
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 
-    private var rowContent: some View {
-        HStack(alignment: .center, spacing: 0) {
-            HomesteadBuildingArtwork(definition: definition, variant: .thumbnail)
-                .frame(
-                    width: HomesteadProjectRowMetrics.artworkWidth,
-                    height: HomesteadProjectRowMetrics.artworkHeight,
-                )
-                .saturation(isLocked ? 0.42 : 1)
-                .opacity(isLocked ? 0.72 : 1)
-                .padding(.trailing, HomesteadProjectRowMetrics.artworkTextSpacing)
-
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-                Text(balanced: definition.title)
-                    .trinketTypography(.rowTitle)
-                    .foregroundStyle(isLocked ? .secondary : .primary)
-                    .trinketFittedText()
-
-                if let tier = status.currentStage {
-                    HomesteadEffectDescription(tier: tier, typography: .caption)
-                } else {
-                    KeywordDescriptionText(text: definition.tiers.first?.bonus.title ?? definition.summary)
-                        .trinketTypography(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            HStack(spacing: TrinketDesign.Spacing.extraSmall) {
-                ZStack {
-                    Circle()
-                        .fill(status.isComplete ? status.statusColor.opacity(0.18) : .clear)
-                    Circle().strokeBorder(status.statusColor, lineWidth: 1)
-                    if isLocked {
-                        Image(systemName: "lock.fill")
-                    } else {
-                        Text("\(status.currentTier)")
-                    }
-                }
-                .frame(width: 24, height: 24)
-                Image(systemName: "chevron.right")
-            }
-            .trinketTypography(.caption)
-            .foregroundStyle(status.statusColor)
-            .accessibilityHidden(true)
-            .padding(.leading, TrinketDesign.Spacing.small)
-        }
-        .padding(.vertical, TrinketDesign.Spacing.small)
-    }
-}
-
-struct HomesteadProjectSection: View {
-    let category: HomesteadNodeCategory
-    let definitions: [HomesteadNodeDefinition]
-    let homestead: PlayerHomesteadState
-    let roster: PlayerRosterState
-    var zoomNamespace: Namespace.ID
-    var showsCategoryHeader = true
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
-            if showsCategoryHeader {
-                Text(category.rawValue)
-                    .trinketTypography(.sectionTitle)
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                    .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
-            }
-
-            VStack(spacing: 0) {
-                ForEach(Array(definitions.enumerated()), id: \.element.id) { index, definition in
-                    HomesteadProjectRow(
-                        definition: definition,
-                        status: HomesteadProjectStatus(
-                            definition: definition,
-                            homestead: homestead,
-                            roster: roster,
-                        ),
-                        zoomNamespace: zoomNamespace,
-                    )
-
-                    if index < definitions.count - 1 {
-                        Rectangle()
-                            .fill(TrinketDesign.Colors.subtleStroke.opacity(0.55))
-                            .frame(height: 0.5)
-                            .padding(.leading, HomesteadProjectRowMetrics.dividerLeadingInset)
-                    }
-                }
-            }
-            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+    @ViewBuilder
+    private var artwork: some View {
+        if let art = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {
+            HomesteadFocalArtwork(art: art, displaySize: .compact)
+                .saturation(status.isUnlocked ? 1 : 0.35)
+        } else {
+            TrinketDesign.Colors.surface
         }
     }
 }

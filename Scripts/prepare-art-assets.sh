@@ -14,6 +14,7 @@ source_hashes_file="$generated_dir/ArtSourceHashes.generated.tsv"
 
 heic_quality="${ART_HEIC_QUALITY:-80}"
 thumb_dimension="${ART_THUMB_DIMENSION:-480}"
+portrait_thumb_dimension="${ART_PORTRAIT_THUMB_DIMENSION:-960}"
 max_dimension_override="${ART_MAX_DIMENSION:-}"
 combatant_dimension="${ART_COMBATANT_DIMENSION:-${max_dimension_override:-1320}}"
 ability_dimension="${ART_ABILITY_DIMENSION:-${max_dimension_override:-960}}"
@@ -150,11 +151,11 @@ JSON
 
 # Catalog usage drives which variants we ship:
 # - every kind emits a full-size image
-# - resource / slot_background / portrait_background: full only
+# - resource / slot_background: full only
 # - combatant / ability / item / encounter / background: full + thumb
 emit_thumb_for_kind() {
   case "$1" in
-    resource|slot_background|portrait_background) return 1 ;;
+    resource|slot_background) return 1 ;;
     *) return 0 ;;
   esac
 }
@@ -239,6 +240,8 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
     want_thumb=true
   fi
   full_dimension="$(full_dimension_for_kind "$kind")"
+  selected_thumb_dimension="$thumb_dimension"
+  [[ "$kind" != "portrait_background" ]] || selected_thumb_dimension="$portrait_thumb_dimension"
 
   imageset="$asset_catalog/$asset_name.imageset"
   output_file="$imageset/$asset_name.heic"
@@ -263,7 +266,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
   # Output settings participate in invalidation so sizing-only pipeline changes
   # cannot silently leave stale oversized assets in the catalog.
   source_hash="$(printf '%s\t%s\t%s\t%s\t%s\n' \
-    "$source_file_hash" "$heic_quality" "$full_dimension" "$thumb_dimension" "$want_thumb" \
+    "$source_file_hash" "$heic_quality" "$full_dimension" "$selected_thumb_dimension" "$want_thumb" \
     | shasum -a 256 | awk '{print $1}')"
   trinket_asset_read_recorded_state recorded_hash recorded_profile "$asset_name"
   printf '%s\t%s\n' "$asset_name" "$source_hash" >> "$source_hashes_temp"
@@ -288,7 +291,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
       full_count=$((full_count + 1))
     fi
     if $want_thumb; then
-      write_imageset "$thumb_imageset" "$thumb_asset" "$thumb_output_file" "$source_file" "$thumb_dimension"
+      write_imageset "$thumb_imageset" "$thumb_asset" "$thumb_output_file" "$source_file" "$selected_thumb_dimension"
       thumb_count=$((thumb_count + 1))
     fi
   fi
@@ -356,7 +359,7 @@ SWIFT
     cat >> "$portrait_backgrounds_temp" <<SWIFT
         dict["$escaped_id"] = BackgroundArtReference(
             imageName: "$escaped_asset",
-            thumbnailImageName: nil,
+            thumbnailImageName: "$escaped_thumb",
             sourceAspectRatio: $source_aspect_ratio,
             focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
         )
@@ -567,6 +570,7 @@ public extension ArtCatalog {
         }
         for reference in portraitBackgroundArtByID.values {
             names.insert(reference.imageName)
+            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
         }
         for reference in encounterArtByID.values {
             names.insert(reference.imageName)

@@ -35,6 +35,7 @@ KINDS_REQUIRING_THUMB = {
     "talent",
     "encounter",
     "background",
+    "portrait_background",
 }
 
 

@@ -73,6 +73,7 @@ struct CollectionView: View {
     private var collectionBrowseContent: some View {
         let inventoryState = playerSave.inventory
         let rosterState = playerSave.roster
+        let ownedIDs = Set(inventoryState.items.map(\.id))
         let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
 
         let heroes = rosterState.collectionHeroes
@@ -99,7 +100,7 @@ struct CollectionView: View {
                 )
 
                 ForEach(CollectionItemCategory.allCases) { category in
-                    let items = inventoryState.items.filter(category.contains)
+                    let items = category.collectionItems(in: inventoryState.items)
                     if !items.isEmpty {
                         CategoryBrowseShelf(
                             title: category.rawValue,
@@ -111,6 +112,7 @@ struct CollectionView: View {
                             ForEach(Array(items.prefix(shelfLimit))) { item in
                                 SalvageItemButton(
                                     item: item,
+                                    isLocked: !ownedIDs.contains(item.id),
                                     showsName: false,
                                 ) {
                                     salvageDetail.select(item)

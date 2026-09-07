@@ -4,87 +4,96 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-struct HomesteadMaterialChip: View {
+struct HomesteadMaterialValue: View {
     let resource: HomesteadResource
     let value: String
-    var isShort = false
+    var available: Int?
 
     var body: some View {
-        TrinketCompactResourceChip(value: value, tint: isShort ? TrinketDesign.Colors.destructive : resource.tint) {
-            HomesteadResourceArtwork(resource: resource)
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
+            TrinketWalletResourcePill(title: resource.displayName, value: value) {
+                HomesteadResourceArtwork(resource: resource)
+            }
+            if let available {
+                Text("Have \(available)")
+                    .trinketTypography(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(resource.displayName)
-        .accessibilityValue(value)
+        .accessibilityValue(available.map { "\(value), have \($0)" } ?? value)
+    }
+}
+
+struct HomesteadBenefitsView: View {
+    let tier: HomesteadNodeTier
+    let effectsIdentifier: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: TrinketDesign.Spacing.medium) {
+            HomesteadEffectDescription(tier: tier)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier(effectsIdentifier)
+            if let production = tier.production {
+                HomesteadMaterialValue(resource: production.resource, value: "\(production.quantity) per day")
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+        }
     }
 }
 
 struct HomesteadEffectDescription: View {
     let tier: HomesteadNodeTier
-    var previousTier: HomesteadNodeTier?
-    var typography: TypographyRole = .body
 
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-            ForEach(HomesteadEffectComparison.lines(current: previousTier, proposed: tier)) { comparison in
-                if let effect = comparison.proposed {
-                    effectView(effect, previous: comparison.current?.value)
-                } else if let removed = comparison.current {
-                    KeywordDescriptionText(text: "\(removed.prefix) \(removed.value) \(removed.suffix)")
-                        .strikethrough()
-                }
+            ForEach(HomesteadEffectLine.lines(for: tier).filter { $0.resource == nil }) { effect in
+                Text(attributedEffect(effect))
             }
         }
-        .trinketTypography(typography)
-        .foregroundStyle(.secondary)
+        .trinketTypography(.body)
+        .foregroundStyle(.primary)
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    @ViewBuilder
-    private func effectView(_ effect: HomesteadEffectLine, previous: String?) -> some View {
-        if let resource = effect.resource {
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: TrinketDesign.Spacing.small) {
-                    KeywordDescriptionText(text: effect.prefix)
-                    resourceValues(effect, resource: resource, previous: previous)
-                    KeywordDescriptionText(text: effect.suffix)
-                }
-                .fixedSize(horizontal: true, vertical: false)
-                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
-                    KeywordDescriptionText(text: effect.prefix)
-                    resourceValues(effect, resource: resource, previous: previous)
-                    KeywordDescriptionText(text: effect.suffix)
-                }
-            }
-        } else {
-            Text(attributedEffect(effect, previous: previous))
-        }
-    }
-
-    private func resourceValues(_ effect: HomesteadEffectLine, resource: HomesteadResource, previous: String?) -> some View {
-        HStack(spacing: TrinketDesign.Spacing.extraSmall) {
-            if let previous, previous != effect.value {
-                HomesteadMaterialChip(resource: resource, value: previous)
-                Text("→")
-            }
-            HomesteadMaterialChip(resource: resource, value: effect.value)
-        }
-    }
-
-    private func attributedEffect(_ effect: HomesteadEffectLine, previous: String?) -> AttributedString {
-        var text = KeywordDescriptionText.attributedText(for: effect.prefix + " ")
-        if let previous, previous != effect.value {
-            var before = AttributedString(previous + " → ")
-            before.foregroundColor = .secondary
-            text += before
-        }
-        var value = AttributedString(effect.value)
+    private func attributedEffect(_ effect: HomesteadEffectLine) -> AttributedString {
+        var text = KeywordDescriptionText.attributedText(for: effect.label + " ")
+        var value = AttributedString(effect.displayValue)
         value.inlinePresentationIntent = .stronglyEmphasized
         value.foregroundColor = .primary
         text += value
-        if !effect.suffix.isEmpty {
-            text += KeywordDescriptionText.attributedText(for: " " + effect.suffix)
-        }
         return text
+    }
+}
+
+struct HomesteadTierProgress: View {
+    let currentTier: Int
+    let totalTiers: Int
+    var celebrationCount = 0
+
+    var body: some View {
+        HStack(spacing: TrinketDesign.Spacing.extraSmall) {
+            ForEach(0 ..< totalTiers, id: \.self) { index in
+                Capsule()
+                    .fill(index < currentTier ? TrinketDesign.Colors.accent : .clear)
+                    .overlay {
+                        Capsule().strokeBorder(
+                            index < currentTier ? TrinketDesign.Colors.accent : TrinketDesign.Colors.Overlay.paper.opacity(0.45),
+                            lineWidth: 1,
+                        )
+                    }
+                    .frame(height: 6)
+                    .keyframeAnimator(initialValue: CGFloat(1), trigger: celebrationCount) { content, scale in
+                        content.scaleEffect(y: index == currentTier - 1 ? scale : 1)
+                    } keyframes: { _ in
+                        CubicKeyframe(HomesteadMotion.celebrationPeak, duration: HomesteadMotion.celebrationRise)
+                        SpringKeyframe(1, duration: HomesteadMotion.celebrationSettle, spring: .smooth)
+                    }
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Building progress")
+        .accessibilityValue("\(currentTier) of \(totalTiers) upgrades")
     }
 }

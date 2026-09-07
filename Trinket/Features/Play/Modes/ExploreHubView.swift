@@ -36,6 +36,18 @@ struct ExploreHubView: View {
             }
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
             .trinketArtworkCardButtonStyle()
+
+            NavigationLink(value: PlayLaunchDestination.contracts) {
+                HubArtworkCard(
+                    title: "Contracts",
+                    subtitle: nil,
+                    symbolName: nil,
+                    artID: "gameModeExplore",
+                    fallbackArtID: "gameModeExplore",
+                )
+            }
+            .accessibilityIdentifier(AccessibilityID.Play.contractsModeCard)
+            .trinketArtworkCardButtonStyle()
         }
     }
 

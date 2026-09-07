@@ -11,9 +11,8 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
     }
 
     public let id: Key
-    public let prefix: String
+    public let label: String
     public let value: String
-    public let suffix: String
     public let resource: HomesteadResource?
 
     public static func lines(for tier: HomesteadNodeTier) -> [Self] {
@@ -25,27 +24,24 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         if bonus.astralChanceBonusPercent != 0 {
             lines.append(Self(
                 id: .astralFind,
-                prefix: "Find",
+                label: "Astral finds",
                 value: "\(bonus.astralChanceBonusPercent)%",
-                suffix: "more Astral items",
                 resource: nil,
             ))
         }
         if bonus.goldFindPercent != 0 {
             lines.append(Self(
                 id: .goldFind,
-                prefix: "Find",
+                label: "Gold finds",
                 value: "\(bonus.goldFindPercent)%",
-                suffix: "more",
-                resource: .gold,
+                resource: nil,
             ))
         }
         if let production = tier.production {
             lines.append(Self(
                 id: .production(production.resource),
-                prefix: "Produces",
+                label: production.resource.displayName,
                 value: production.quantity.formatted(),
-                suffix: "per day",
                 resource: production.resource,
             ))
         }
@@ -53,82 +49,52 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
     }
 
     private static func line(for modifier: AffixModifier, companion: Bool) -> Self {
-        let copy = copy(for: modifier)
+        let label = label(for: modifier)
         let value = modifier.numericValue * (modifier.isPercent ? 100 : 1)
         let formatted = value.formatted(.number.precision(.fractionLength(0 ... 2)))
-        let prefix: String = if companion, case .dodgeChanceBonus = modifier {
-            "Increase Companion Dodge by"
-        } else {
-            companion ? "Companion: \(copy.prefix)" : copy.prefix
-        }
+        let scopedLabel = companion ? "Companion \(label)" : label
         return Self(
             id: .modifier(modifier.mapInt { _ in 0 }.mapPercent { _ in 0 }, companion: companion),
-            prefix: prefix,
+            label: scopedLabel,
             value: formatted + (modifier.isPercent ? "%" : ""),
-            suffix: copy.suffix,
-            resource: copy.resource,
+            resource: nil,
         )
     }
 
-    // swiftlint:disable:next cyclomatic_complexity - Exhaustive modifier copy must reject missing cases at compile time
-    private static func copy(for modifier: AffixModifier) -> (prefix: String, suffix: String, resource: HomesteadResource?) {
-        switch modifier {
-        case .maximumHealth:
-            ("Increase Health by", "", nil)
-        case .maximumMana:
-            ("Increase Mana by", "", nil)
-        case let .damageDealt(keyword, _):
-            ("Increase \(keyword.rawValue) damage dealt by", "", nil)
-        case .poisonDamageDealtPercent:
-            ("Increase Poison damage dealt by", "", nil)
-        case .healthRestored:
-            ("Restore", "additional Health", nil)
-        case .leechGainedPercent:
-            ("Increase Leech gained by", "", nil)
-        case .leechHealing:
-            ("Increase Leech healing by", "", nil)
-        case .goldGained:
-            ("Gain", "additional", .gold)
-        case .goldGainedPercent:
-            ("Gain", "more", .gold)
-        case .blockGained:
-            ("Gain", "additional Block", nil)
-        case .bleedDuration:
-            ("Extend Bleed by", "turns", nil)
-        case let .damageTakenPercent(keyword, _):
-            ("Reduce \(keyword.rawValue) damage taken by", "", nil)
-        case let .damageTakenFlat(keyword, _):
-            ("Reduce \(keyword.rawValue) damage taken by", "", nil)
-        case let .damageTakenVulnerability(keyword, _):
-            ("Increase \(keyword.rawValue) damage taken by", "", nil)
-        case .companionDamageDealt:
-            ("Increase Companion damage dealt by", "", nil)
-        case .companionBleedDamageDealt:
-            ("Increase Companion Bleed damage dealt by", "", nil)
-        case .outgoingDamagePercent:
-            ("Increase Party damage by", "", nil)
-        case .incomingDamageReductionPercent:
-            ("Reduce Party damage taken by", "", nil)
-        case .dodgeChanceBonus:
-            ("Increase Dodge by", "", nil)
+    public var displayValue: String {
+        if resource != nil {
+            return value
         }
+        if case let .modifier(modifier, _) = id {
+            switch modifier {
+            case .damageTakenPercent, .damageTakenFlat, .incomingDamageReductionPercent:
+                return "−" + value
+            default: break
+            }
+        }
+        return "+" + value
     }
-}
 
-public struct HomesteadEffectComparison: Identifiable, Equatable, Sendable {
-    public let id: HomesteadEffectLine.Key
-    public let current: HomesteadEffectLine?
-    public let proposed: HomesteadEffectLine?
-
-    public static func lines(current: HomesteadNodeTier?, proposed: HomesteadNodeTier) -> [Self] {
-        let currentLines = current.map { HomesteadEffectLine.lines(for: $0) } ?? []
-        let proposedLines = HomesteadEffectLine.lines(for: proposed)
-        var comparisons = proposedLines.map { line in
-            Self(id: line.id, current: currentLines.first { $0.id == line.id }, proposed: line)
+    // swiftlint:disable:next cyclomatic_complexity - Exhaustive modifier labels must reject missing cases at compile time
+    private static func label(for modifier: AffixModifier) -> String {
+        switch modifier {
+        case .maximumHealth: "Health"
+        case .maximumMana: "Mana"
+        case let .damageDealt(keyword, _): "\(keyword.rawValue) damage dealt"
+        case .poisonDamageDealtPercent: "Poison damage dealt"
+        case .healthRestored: "Health restored"
+        case .leechGainedPercent: "Leech gained"
+        case .leechHealing: "Leech healing"
+        case .goldGained, .goldGainedPercent: "Gold gained"
+        case .blockGained: "Block gained"
+        case .bleedDuration: "Bleed duration (turns)"
+        case let .damageTakenPercent(keyword, _), let .damageTakenFlat(keyword, _), let .damageTakenVulnerability(keyword, _):
+            "\(keyword.rawValue) damage taken"
+        case .companionDamageDealt: "Companion damage"
+        case .companionBleedDamageDealt: "Companion Bleed damage"
+        case .outgoingDamagePercent: "Party damage"
+        case .incomingDamageReductionPercent: "Party damage taken"
+        case .dodgeChanceBonus: "Dodge"
         }
-        comparisons += currentLines.filter { currentLine in
-            !proposedLines.contains { $0.id == currentLine.id }
-        }.map { Self(id: $0.id, current: $0, proposed: nil) }
-        return comparisons
     }
 }

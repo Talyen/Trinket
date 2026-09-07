@@ -47,7 +47,7 @@ struct HomesteadPresentationTests {
     private func assertLockedPrerequisiteLifecycle() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .chickenCoop))
         let status = makeStatus(definition: definition, homestead: .freshStart)
-        #expect(status.rowState == .prerequisiteLocked)
+        #expect(!status.isUnlocked)
         #expect(status.currentStage?.bonus == nil)
         #expect(!status.missingPrerequisites.isEmpty)
         #expect(!status.canBuildOrUpgrade)
@@ -59,7 +59,7 @@ struct HomesteadPresentationTests {
             definition: definition,
             homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:]),
         )
-        #expect(status.rowState == .unbuilt(affordable: true))
+        #expect(status.currentTier == 0 && status.isAffordable)
         #expect(status.currentStage?.bonus == nil)
         #expect(status.canBuildOrUpgrade)
     }
@@ -67,7 +67,7 @@ struct HomesteadPresentationTests {
     private func assertUnbuiltUnaffordableLifecycle() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(definition: definition, homestead: .freshStart)
-        #expect(status.rowState == .unbuilt(affordable: false))
+        #expect(status.currentTier == 0 && !status.isAffordable)
         #expect(status.currentStage?.bonus == nil)
     }
 
@@ -77,7 +77,7 @@ struct HomesteadPresentationTests {
             definition: definition,
             homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1]),
         )
-        #expect(status.rowState == .built)
+        #expect(status.currentTier > 0 && !status.isAffordable)
         let activeBonus = try #require(definition.tier(1)?.bonus)
         #expect(status.currentStage?.bonus == activeBonus)
         #expect(status.currentStage?.bonus != definition.tier(2)?.bonus)
@@ -94,7 +94,7 @@ struct HomesteadPresentationTests {
             gold: 14,
         )
         let secondTier = try #require(definition.tier(2))
-        #expect(status.rowState == .upgradeReady)
+        #expect(status.canBuildOrUpgrade)
         #expect(status.nextTier == secondTier)
         #expect(status.canBuildOrUpgrade)
     }
@@ -106,7 +106,7 @@ struct HomesteadPresentationTests {
             homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1]),
         )
         let secondTier = try #require(definition.tier(2))
-        #expect(status.rowState == .built)
+        #expect(status.currentTier > 0 && !status.isAffordable)
         #expect(status.nextTier == secondTier)
         #expect(!status.canBuildOrUpgrade)
         #expect(status.materialShortfalls == secondTier.cost)
@@ -118,7 +118,7 @@ struct HomesteadPresentationTests {
             definition: definition,
             homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 4]),
         )
-        #expect(status.rowState == .completed)
+        #expect(status.isComplete)
         let activeBonus = try #require(definition.tier(4)?.bonus)
         #expect(status.currentStage?.bonus == activeBonus)
         #expect(!status.canBuildOrUpgrade)
@@ -161,37 +161,12 @@ struct HomesteadPresentationTests {
         #expect(after.currentStage?.tier == 10)
     }
 
-    @Test func `poison comparison uses tier totals rather than adding them`() throws {
+    @Test func `poison effects use resulting tier totals`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .alchemyLab))
-        let current = try #require(definition.tier(2))
-        let next = try #require(definition.tier(3))
-        let comparisons = HomesteadEffectComparison.lines(current: current, proposed: next)
-        #expect(comparisons.map(\.current?.value) == ["10%", "20%"])
-        #expect(comparisons.map(\.proposed?.value) == ["15%", "30%"])
-        #expect(comparisons[0].id != comparisons[1].id)
-    }
-
-    @Test func `comparisons keep production separate from combat and currency find`() throws {
-        let well = try #require(GameContent.homesteadNode(matching: .wishingWell))
-        let next = try #require(well.tier(2))
-        let comparisons = HomesteadEffectComparison.lines(current: well.tier(1), proposed: next)
-        let find = try #require(comparisons.first { $0.id == .goldFind })
-        let production = try #require(comparisons.first { $0.id == .production(.gold) })
-        #expect(find.current?.value == "5%")
-        #expect(find.proposed?.value == "10%")
-        #expect(production.current?.value == "1")
-        #expect(production.proposed?.value == "2")
-        #expect(find.proposed?.resource == .gold)
-        #expect(production.proposed?.resource == .gold)
-    }
-
-    @Test func `first build has no invented existing bonus`() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .runesmithWorkshop))
-        let first = try #require(definition.tier(1))
-        let comparisons = HomesteadEffectComparison.lines(current: nil, proposed: first)
-        #expect(comparisons.count == 3)
-        #expect(comparisons.allSatisfy { $0.current == nil && $0.proposed?.value == "1" })
-        #expect(Set(comparisons.map(\.id)).count == 3)
+        let tier = try #require(definition.tier(3))
+        let effects = HomesteadEffectLine.lines(for: tier)
+        #expect(effects.map(\.displayValue) == ["+15%", "−30%"])
+        #expect(effects[0].id != effects[1].id)
     }
 
     private func makeStatus(

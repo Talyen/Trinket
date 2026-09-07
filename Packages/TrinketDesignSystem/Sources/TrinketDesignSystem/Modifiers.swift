@@ -66,6 +66,7 @@ private struct GlassButtonModifier: ViewModifier {
     let labelColor: Color?
     let isProminent: Bool
     let accessibilityIdentifier: String?
+    var borderShape: ButtonBorderShape = .roundedRectangle
 
     func body(content: Content) -> some View {
         Group {
@@ -78,7 +79,7 @@ private struct GlassButtonModifier: ViewModifier {
         .tint(tint)
         .modifier(ForegroundModifier(color: labelColor))
         .controlSize(controlSize)
-        .buttonBorderShape(.roundedRectangle)
+        .buttonBorderShape(borderShape)
         .trinketAccessibilityIdentifier(accessibilityIdentifier)
     }
 
@@ -168,6 +169,18 @@ public extension View {
             isProminent: false,
             accessibilityIdentifier: accessibilityIdentifier,
         ))
+    }
+
+    func trinketIconButton(accessibilityIdentifier: String? = nil) -> some View {
+        labelStyle(.iconOnly)
+            .modifier(GlassButtonModifier(
+                controlSize: .large,
+                tint: TrinketDesign.Colors.Overlay.paper,
+                labelColor: TrinketDesign.Colors.Overlay.paper,
+                isProminent: false,
+                accessibilityIdentifier: accessibilityIdentifier,
+                borderShape: .circle,
+            ))
     }
 
     func trinketQuietTapButtonStyle() -> some View {

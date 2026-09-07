@@ -108,7 +108,7 @@ struct ArtCatalogIntegrationTests {
             let landscape = try #require(ArtCatalog.backgroundArtByID[node.id.rawValue])
             let portrait = try #require(ArtCatalog.portraitBackgroundArtByID[node.id.rawValue])
             #expect(landscape.imageName != portrait.imageName)
-            #expect(portrait.thumbnailImageName == nil)
+            #expect(portrait.thumbnailImageName != nil)
             #expect(portrait.sourceAspectRatio < 1)
             #expect(landscape.sourceAspectRatio > 1)
             #expect(ArtCatalog.allImageNamesSet.contains(portrait.imageName))

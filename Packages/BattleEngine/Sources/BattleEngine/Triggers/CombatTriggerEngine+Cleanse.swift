@@ -2,6 +2,15 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    static func preventsDebuff(_ effect: Effect, on target: Combatant, in context: BattleState) -> Bool {
+        guard effect.isRemovableDebuff else { return false }
+        if context.roster.runtime(for: target)?.cleansedKeywordProtection.contains(effect.keyword) == true {
+            return true
+        }
+        return effect.keyword == .burn && context.modifiers(for: target.id).triggers.undyingEmber
+            && context.roster.isDeathsDoorActive(for: target)
+    }
+
     static func performRandomCleanses(
         source: Combatant,
         target: Combatant,

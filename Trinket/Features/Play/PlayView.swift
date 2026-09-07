@@ -68,6 +68,8 @@ struct PlayView: View {
             [.explore, .spiresHub]
         case .labyrinthMap:
             [.explore, .labyrinthMap]
+        case .contracts:
+            [.explore, .contracts]
         case let .spireClimb(spireID):
             [.explore, .spiresHub, .spireClimb(spireID)]
         }

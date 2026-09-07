@@ -83,6 +83,11 @@ package extension DamagePipeline {
             ))
         }
 
+        if state.healthLost > 0, state.combatant.role == .enemy,
+           triggers.carrionClaim, keyword == .poison || keyword == .bleed {
+            state.damageEvents.append(contentsOf: context.grantGoldEvent(1, to: source, abilityName: "Carrion Claim"))
+        }
+
         if keyword == .holy {
             applyHolyStunReactions(
                 to: &state,

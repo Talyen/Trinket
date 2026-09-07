@@ -42,6 +42,39 @@ consume them. Full item and interaction rules live in
 
 Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../TrinketBattleFeature/README.md).
 
+## Talent interactions
+
+Authored talents and their short descriptions live in
+[the talent manifest](../../ContentManifest/talents.tsv). Talent rule changes
+reuse the ordinary damage, healing, control, and resource pipelines.
+
+- Elemental Leech uses the standard Leech rate, including damage-over-time
+  ticks; it does not add a second base Leech contribution to an already-Leeching
+  hit. Overhealing keeps its emitted reactions even when no Health is restored.
+- Living Archive stores half the resolved card healing on the original
+  recipient until the next party turn. Echoes do not reroll Critical Hits,
+  reapply healing magnitude bonuses, create further echoes, or revive defeated
+  recipients. Wishspring uses the original overhealing amount alongside existing
+  Block and maximum-Health conversions. Marrowmend fills existing Block only to 6.
+- Lesson Learned protects each cleansed keyword until the next party turn.
+  Protection prevents reapplication, not the associated damaging hit. Undying
+  Ember replaces incoming Burn damage with healing during Death’s Door before
+  Dodge or Block; existing Burn still decays normally.
+- Dragon’s Patronage uses the card owner’s Mana first, then the living patron’s
+  Mana, then any existing Block-for-Mana substitution. Spending reactions belong
+  to each actual payer. Prismatic Scales empowers existing Burn and Freeze
+  damage and supplies a missing element as a damaging hit, charging Mana once.
+- Block theft transfers only available Block without multiplying the amount.
+  Light-Fingered uses combat Gold gains, matching the engine’s existing Gold
+  theft representation. Sealed Sarcophagus protects Block from theft and Purge,
+  while damage, decay, and voluntary spending remain available. Stolen Thunder
+  spends Block once per attack; Resonant Shell consumes Thorns normally and
+  resolves their damage as Stun with normal buildup.
+
+Trigger and per-combatant talent storage retain value semantics through copy-on-write. Read accessors
+borrow stored fields instead of copying the complete trigger set onto the stack;
+this matters when attacks resolve nested companion actions.
+
 ## Balance sweep
 
 Manual CLI only — **no CI gates** or scheduled automations. Use the script's

@@ -4,6 +4,8 @@ import TrinketCore
 
 /// The `dodge` trigger family of `CombatTraitTriggers`.
 public struct DodgeTriggers: Equatable, Hashable, Sendable {
+    public var wintersWake: Bool = false
+    public var killingGrace: Bool = false
     public var dodgeNextHitPoisonAndBleedPercent: Double = 0
     public var dodgeSpendsHalfBlockAsPhysical: Bool = false
     public var dodgeDrawPoisonAndReadyCritical: Bool = false
@@ -47,6 +49,8 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var blindSpot: Bool = false
 
     public init(
+        wintersWake: Bool = false,
+        killingGrace: Bool = false,
         dodgeNextHitPoisonAndBleedPercent: Double = 0,
         dodgeSpendsHalfBlockAsPhysical: Bool = false,
         dodgeDrawPoisonAndReadyCritical: Bool = false,
@@ -89,6 +93,8 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         improvingOdds: Bool = false,
         blindSpot: Bool = false
     ) {
+        self.wintersWake = wintersWake
+        self.killingGrace = killingGrace
         self.dodgeNextHitPoisonAndBleedPercent = dodgeNextHitPoisonAndBleedPercent
         self.dodgeSpendsHalfBlockAsPhysical = dodgeSpendsHalfBlockAsPhysical
         self.dodgeDrawPoisonAndReadyCritical = dodgeDrawPoisonAndReadyCritical
@@ -133,11 +139,13 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "falseOpening", "missedOpportunity", "passingLuck", "scatteredCaltrops", "smokeTrick", "improvingOdds", "blindSpot"]
+    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "falseOpening", "missedOpportunity", "passingLuck", "scatteredCaltrops", "smokeTrick", "improvingOdds", "blindSpot"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.wintersWake != other.wintersWake { names.append("wintersWake") }
+        if self.killingGrace != other.killingGrace { names.append("killingGrace") }
         if self.dodgeNextHitPoisonAndBleedPercent != other.dodgeNextHitPoisonAndBleedPercent { names.append("dodgeNextHitPoisonAndBleedPercent") }
         if self.dodgeSpendsHalfBlockAsPhysical != other.dodgeSpendsHalfBlockAsPhysical { names.append("dodgeSpendsHalfBlockAsPhysical") }
         if self.dodgeDrawPoisonAndReadyCritical != other.dodgeDrawPoisonAndReadyCritical { names.append("dodgeDrawPoisonAndReadyCritical") }
@@ -185,6 +193,8 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
 
 extension DodgeTriggers {
     mutating func merge(_ other: Self) {
+        wintersWake = wintersWake || other.wintersWake
+        killingGrace = killingGrace || other.killingGrace
         dodgeNextHitPoisonAndBleedPercent = max(dodgeNextHitPoisonAndBleedPercent, other.dodgeNextHitPoisonAndBleedPercent)
         dodgeSpendsHalfBlockAsPhysical = dodgeSpendsHalfBlockAsPhysical || other.dodgeSpendsHalfBlockAsPhysical
         dodgeDrawPoisonAndReadyCritical = dodgeDrawPoisonAndReadyCritical || other.dodgeDrawPoisonAndReadyCritical
@@ -233,6 +243,8 @@ extension DodgeTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            wintersWake: values.decode(Bool.self, "wintersWake", default: false),
+            killingGrace: values.decode(Bool.self, "killingGrace", default: false),
             dodgeNextHitPoisonAndBleedPercent: values.decode(Double.self, "dodgeNextHitPoisonAndBleedPercent", default: 0),
             dodgeSpendsHalfBlockAsPhysical: values.decode(Bool.self, "dodgeSpendsHalfBlockAsPhysical", default: false),
             dodgeDrawPoisonAndReadyCritical: values.decode(Bool.self, "dodgeDrawPoisonAndReadyCritical", default: false),
@@ -278,6 +290,8 @@ extension DodgeTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(wintersWake, "wintersWake", default: false)
+        try container.encodeNonDefault(killingGrace, "killingGrace", default: false)
         try container.encodeNonDefault(dodgeNextHitPoisonAndBleedPercent, "dodgeNextHitPoisonAndBleedPercent", default: 0)
         try container.encodeNonDefault(dodgeSpendsHalfBlockAsPhysical, "dodgeSpendsHalfBlockAsPhysical", default: false)
         try container.encodeNonDefault(dodgeDrawPoisonAndReadyCritical, "dodgeDrawPoisonAndReadyCritical", default: false)

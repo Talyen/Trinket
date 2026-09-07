@@ -4,6 +4,10 @@ import TrinketCore
 
 /// The `healing` trigger family of `CombatTraitTriggers`.
 public struct HealingTriggers: Equatable, Hashable, Sendable {
+    public var contagiousJoy: Bool = false
+    public var livingArchive: Bool = false
+    public var marrowmend: Bool = false
+    public var wishspring: Bool = false
     public var cleanseSelfHeal: Int = 0
     public var cleanseBonusHeal: Int = 0
     public var onceBelowHealthPercentHeal: Int = 0
@@ -67,6 +71,10 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var verdantShelter: Bool = false
 
     public init(
+        contagiousJoy: Bool = false,
+        livingArchive: Bool = false,
+        marrowmend: Bool = false,
+        wishspring: Bool = false,
         cleanseSelfHeal: Int = 0,
         cleanseBonusHeal: Int = 0,
         onceBelowHealthPercentHeal: Int = 0,
@@ -129,6 +137,10 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         sharedRoots: Bool = false,
         verdantShelter: Bool = false
     ) {
+        self.contagiousJoy = contagiousJoy
+        self.livingArchive = livingArchive
+        self.marrowmend = marrowmend
+        self.wishspring = wishspring
         self.cleanseSelfHeal = cleanseSelfHeal
         self.cleanseBonusHeal = cleanseBonusHeal
         self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
@@ -193,11 +205,15 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "measuredDose", "coolingSalve", "reclaimedReagents", "sharedPrescription", "restorativeFumes", "masterworkMixture", "springSap", "pruningTouch", "quietGrove", "shelterSeed", "cleansingDew", "sharedRoots", "verdantShelter"]
+    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "measuredDose", "coolingSalve", "reclaimedReagents", "sharedPrescription", "restorativeFumes", "masterworkMixture", "springSap", "pruningTouch", "quietGrove", "shelterSeed", "cleansingDew", "sharedRoots", "verdantShelter"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.contagiousJoy != other.contagiousJoy { names.append("contagiousJoy") }
+        if self.livingArchive != other.livingArchive { names.append("livingArchive") }
+        if self.marrowmend != other.marrowmend { names.append("marrowmend") }
+        if self.wishspring != other.wishspring { names.append("wishspring") }
         if self.cleanseSelfHeal != other.cleanseSelfHeal { names.append("cleanseSelfHeal") }
         if self.cleanseBonusHeal != other.cleanseBonusHeal { names.append("cleanseBonusHeal") }
         if self.onceBelowHealthPercentHeal != other.onceBelowHealthPercentHeal { names.append("onceBelowHealthPercentHeal") }
@@ -265,6 +281,10 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
 
 extension HealingTriggers {
     mutating func merge(_ other: Self) {
+        contagiousJoy = contagiousJoy || other.contagiousJoy
+        livingArchive = livingArchive || other.livingArchive
+        marrowmend = marrowmend || other.marrowmend
+        wishspring = wishspring || other.wishspring
         cleanseSelfHeal += other.cleanseSelfHeal
         cleanseBonusHeal += other.cleanseBonusHeal
         onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
@@ -333,6 +353,10 @@ extension HealingTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            contagiousJoy: values.decode(Bool.self, "contagiousJoy", default: false),
+            livingArchive: values.decode(Bool.self, "livingArchive", default: false),
+            marrowmend: values.decode(Bool.self, "marrowmend", default: false),
+            wishspring: values.decode(Bool.self, "wishspring", default: false),
             cleanseSelfHeal: values.decode(Int.self, "cleanseSelfHeal", default: 0),
             cleanseBonusHeal: values.decode(Int.self, "cleanseBonusHeal", default: 0),
             onceBelowHealthPercentHeal: values.decode(Int.self, "onceBelowHealthPercentHeal", default: 0),
@@ -398,6 +422,10 @@ extension HealingTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(contagiousJoy, "contagiousJoy", default: false)
+        try container.encodeNonDefault(livingArchive, "livingArchive", default: false)
+        try container.encodeNonDefault(marrowmend, "marrowmend", default: false)
+        try container.encodeNonDefault(wishspring, "wishspring", default: false)
         try container.encodeNonDefault(cleanseSelfHeal, "cleanseSelfHeal", default: 0)
         try container.encodeNonDefault(cleanseBonusHeal, "cleanseBonusHeal", default: 0)
         try container.encodeNonDefault(onceBelowHealthPercentHeal, "onceBelowHealthPercentHeal", default: 0)

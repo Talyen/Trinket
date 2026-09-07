@@ -4,6 +4,7 @@ import TrinketCore
 
 /// The `cleanse` trigger family of `CombatTraitTriggers`.
 public struct CleanseTriggers: Equatable, Hashable, Sendable {
+    public var lessonLearned: Bool = false
     public var cleanseBonusDraw: Int = 0
     public var holyDamageCleanseCount: Int = 0
     public var holyDamagePurgeCount: Int = 0
@@ -29,6 +30,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var perfectPurity: Bool = false
 
     public init(
+        lessonLearned: Bool = false,
         cleanseBonusDraw: Int = 0,
         holyDamageCleanseCount: Int = 0,
         holyDamagePurgeCount: Int = 0,
@@ -53,6 +55,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         cleanBreak: Bool = false,
         perfectPurity: Bool = false
     ) {
+        self.lessonLearned = lessonLearned
         self.cleanseBonusDraw = cleanseBonusDraw
         self.holyDamageCleanseCount = holyDamageCleanseCount
         self.holyDamagePurgeCount = holyDamagePurgeCount
@@ -79,11 +82,12 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity"]
+    public static let fieldNames: [String] = ["lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.lessonLearned != other.lessonLearned { names.append("lessonLearned") }
         if self.cleanseBonusDraw != other.cleanseBonusDraw { names.append("cleanseBonusDraw") }
         if self.holyDamageCleanseCount != other.holyDamageCleanseCount { names.append("holyDamageCleanseCount") }
         if self.holyDamagePurgeCount != other.holyDamagePurgeCount { names.append("holyDamagePurgeCount") }
@@ -113,6 +117,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
 
 extension CleanseTriggers {
     mutating func merge(_ other: Self) {
+        lessonLearned = lessonLearned || other.lessonLearned
         cleanseBonusDraw += other.cleanseBonusDraw
         holyDamageCleanseCount += other.holyDamageCleanseCount
         holyDamagePurgeCount += other.holyDamagePurgeCount
@@ -143,6 +148,7 @@ extension CleanseTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            lessonLearned: values.decode(Bool.self, "lessonLearned", default: false),
             cleanseBonusDraw: values.decode(Int.self, "cleanseBonusDraw", default: 0),
             holyDamageCleanseCount: values.decode(Int.self, "holyDamageCleanseCount", default: 0),
             holyDamagePurgeCount: values.decode(Int.self, "holyDamagePurgeCount", default: 0),
@@ -170,6 +176,7 @@ extension CleanseTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(lessonLearned, "lessonLearned", default: false)
         try container.encodeNonDefault(cleanseBonusDraw, "cleanseBonusDraw", default: 0)
         try container.encodeNonDefault(holyDamageCleanseCount, "holyDamageCleanseCount", default: 0)
         try container.encodeNonDefault(holyDamagePurgeCount, "holyDamagePurgeCount", default: 0)

@@ -32,7 +32,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
     private var storage: Storage
 
     var fields: Fields {
-        get { storage.value }
+        _read { yield storage.value }
         _modify {
             if !isKnownUniquelyReferenced(&storage) {
                 storage = Storage(storage.value)
@@ -103,154 +103,154 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<DamageTriggers, T>) -> T {
-        fields.damage[keyPath: keyPath]
+        _read { yield storage.value.damage[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DamageTriggers, T>) -> T {
-        get { fields.damage[keyPath: keyPath] }
+        _read { yield storage.value.damage[keyPath: keyPath] }
         set {
             fields.damage[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<AttackTriggers, T>) -> T {
-        fields.attack[keyPath: keyPath]
+        _read { yield storage.value.attack[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<AttackTriggers, T>) -> T {
-        get { fields.attack[keyPath: keyPath] }
+        _read { yield storage.value.attack[keyPath: keyPath] }
         set {
             fields.attack[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<BlockTriggers, T>) -> T {
-        fields.block[keyPath: keyPath]
+        _read { yield storage.value.block[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<BlockTriggers, T>) -> T {
-        get { fields.block[keyPath: keyPath] }
+        _read { yield storage.value.block[keyPath: keyPath] }
         set {
             fields.block[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<MitigationTriggers, T>) -> T {
-        fields.mitigation[keyPath: keyPath]
+        _read { yield storage.value.mitigation[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<MitigationTriggers, T>) -> T {
-        get { fields.mitigation[keyPath: keyPath] }
+        _read { yield storage.value.mitigation[keyPath: keyPath] }
         set {
             fields.mitigation[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<DotTriggers, T>) -> T {
-        fields.dot[keyPath: keyPath]
+        _read { yield storage.value.dot[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DotTriggers, T>) -> T {
-        get { fields.dot[keyPath: keyPath] }
+        _read { yield storage.value.dot[keyPath: keyPath] }
         set {
             fields.dot[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<ControlTriggers, T>) -> T {
-        fields.control[keyPath: keyPath]
+        _read { yield storage.value.control[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<ControlTriggers, T>) -> T {
-        get { fields.control[keyPath: keyPath] }
+        _read { yield storage.value.control[keyPath: keyPath] }
         set {
             fields.control[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<DodgeTriggers, T>) -> T {
-        fields.dodge[keyPath: keyPath]
+        _read { yield storage.value.dodge[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DodgeTriggers, T>) -> T {
-        get { fields.dodge[keyPath: keyPath] }
+        _read { yield storage.value.dodge[keyPath: keyPath] }
         set {
             fields.dodge[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<ManaTriggers, T>) -> T {
-        fields.mana[keyPath: keyPath]
+        _read { yield storage.value.mana[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<ManaTriggers, T>) -> T {
-        get { fields.mana[keyPath: keyPath] }
+        _read { yield storage.value.mana[keyPath: keyPath] }
         set {
             fields.mana[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<GoldTriggers, T>) -> T {
-        fields.gold[keyPath: keyPath]
+        _read { yield storage.value.gold[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<GoldTriggers, T>) -> T {
-        get { fields.gold[keyPath: keyPath] }
+        _read { yield storage.value.gold[keyPath: keyPath] }
         set {
             fields.gold[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<HealingTriggers, T>) -> T {
-        fields.healing[keyPath: keyPath]
+        _read { yield storage.value.healing[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<HealingTriggers, T>) -> T {
-        get { fields.healing[keyPath: keyPath] }
+        _read { yield storage.value.healing[keyPath: keyPath] }
         set {
             fields.healing[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<RevivalTriggers, T>) -> T {
-        fields.revival[keyPath: keyPath]
+        _read { yield storage.value.revival[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<RevivalTriggers, T>) -> T {
-        get { fields.revival[keyPath: keyPath] }
+        _read { yield storage.value.revival[keyPath: keyPath] }
         set {
             fields.revival[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<CleanseTriggers, T>) -> T {
-        fields.cleanse[keyPath: keyPath]
+        _read { yield storage.value.cleanse[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<CleanseTriggers, T>) -> T {
-        get { fields.cleanse[keyPath: keyPath] }
+        _read { yield storage.value.cleanse[keyPath: keyPath] }
         set {
             fields.cleanse[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<EnemyTurnTriggers, T>) -> T {
-        fields.enemyTurn[keyPath: keyPath]
+        _read { yield storage.value.enemyTurn[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<EnemyTurnTriggers, T>) -> T {
-        get { fields.enemyTurn[keyPath: keyPath] }
+        _read { yield storage.value.enemyTurn[keyPath: keyPath] }
         set {
             fields.enemyTurn[keyPath: keyPath] = newValue
         }
     }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<OnHitTriggers, T>) -> T {
-        fields.onHit[keyPath: keyPath]
+        _read { yield storage.value.onHit[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<OnHitTriggers, T>) -> T {
-        get { fields.onHit[keyPath: keyPath] }
+        _read { yield storage.value.onHit[keyPath: keyPath] }
         set {
             fields.onHit[keyPath: keyPath] = newValue
         }

@@ -70,6 +70,11 @@ public final class PlayerSaveStore {
         set { mutate { $0.labyrinth = newValue } }
     }
 
+    public var contracts: PlayerContractsState {
+        get { observedSave.contracts }
+        set { mutate { $0.contracts = newValue } }
+    }
+
     public var corruptionAltarCooldownRemaining: Int {
         observedSave.corruptionAltarCooldownRemaining
     }
@@ -433,6 +438,9 @@ private extension PlayerSaveStore {
         }
         if slices.contains(.labyrinth) {
             observedSave.labyrinth = save.labyrinth
+        }
+        if slices.contains(.contracts) {
+            observedSave.contracts = save.contracts
         }
     }
 }

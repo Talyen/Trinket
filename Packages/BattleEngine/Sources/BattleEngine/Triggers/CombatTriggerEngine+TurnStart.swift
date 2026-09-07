@@ -27,6 +27,7 @@ package extension CombatTriggerEngine {
     static func atPlayerTurnStart(in context: inout BattleState) -> [ActionEvent] {
         resetTurnCadenceState(in: &context)
         var events = startHeroTalentTurn(in: &context)
+        events.append(contentsOf: HealingEngine.resolveHealingEchoes(in: &context))
         events.append(contentsOf: cleanseTeamIfNeeded(in: &context))
         for owner in [BattleParticipant.hero, .companion] {
             let runtime = context.roster[owner]
@@ -41,6 +42,7 @@ package extension CombatTriggerEngine {
         for owner in BattleParticipant.allCases {
             context.roster.mutateRuntime(for: context.roster[owner].combatant) { runtime in
                 runtime.resetTalentTurnState(currentTurn: context.turnCount)
+                runtime.cleansedKeywordProtection.removeAll()
             }
         }
     }

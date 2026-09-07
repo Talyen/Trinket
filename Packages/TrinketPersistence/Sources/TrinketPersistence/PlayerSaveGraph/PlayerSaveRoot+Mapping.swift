@@ -12,7 +12,8 @@ struct PlayerSaveSlice: OptionSet {
     static let homestead = Self(rawValue: 1 << 4)
     static let spires = Self(rawValue: 1 << 5)
     static let labyrinth = Self(rawValue: 1 << 6)
-    static let all: Self = [.root, .journey, .roster, .inventory, .homestead, .spires, .labyrinth]
+    static let contracts = Self(rawValue: 1 << 7)
+    static let all: Self = [.root, .journey, .roster, .inventory, .homestead, .spires, .labyrinth, .contracts]
 
     static func changed(
         between snapshot: PlayerSave,
@@ -47,6 +48,9 @@ struct PlayerSaveSlice: OptionSet {
         }
         if candidates.contains(.labyrinth), snapshot.labyrinth != candidate.labyrinth {
             slices.insert(.labyrinth)
+        }
+        if candidates.contains(.contracts), snapshot.contracts != candidate.contracts {
+            slices.insert(.contracts)
         }
         return slices
     }
@@ -107,6 +111,7 @@ public extension PlayerSaveRoot {
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
             spires: spires?.toPlayerSpiresState() ?? .freshStart,
             labyrinth: labyrinth?.toPlayerLabyrinthState() ?? .freshStart,
+            contracts: PlayerContractsState.decodePayload(contractsPayload),
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
         )
     }
@@ -222,6 +227,9 @@ extension PlayerSaveRoot {
             model.update(from: save.labyrinth)
             labyrinth = model
             model.root = self
+        }
+        if slices.contains(.contracts) {
+            contractsPayload = save.contracts.encodedPayload
         }
     }
 }

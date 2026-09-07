@@ -9,16 +9,39 @@ package enum CriticalChanceEngine {
         defender: Combatant,
         abilityBonus: Double = 0,
         countsBleedingDefender: Bool = false,
+        usePartyMaximum: Bool = false,
         in context: inout BattleState,
     ) -> Bool {
-        guard let actor = context.roster.combatant(for: actorID) else { return false }
+        var chance = chance(
+            actorID: actorID, defender: defender, abilityBonus: abilityBonus,
+            countsBleedingDefender: countsBleedingDefender, in: context,
+        )
+        if usePartyMaximum, let actor = context.roster.combatant(for: actorID), actor.role != .enemy {
+            for owner in [BattleParticipant.hero, .companion] where context.roster[owner].isAlive {
+                chance = max(chance, Self.chance(actorID: context.roster[owner].id, defender: defender, in: context))
+            }
+        }
+        return BattleChance.succeeds(probability: chance, using: &context.rng)
+    }
+
+    static func chance(
+        actorID: String,
+        defender: Combatant,
+        abilityBonus: Double = 0,
+        countsBleedingDefender: Bool = false,
+        in context: BattleState,
+    ) -> Double {
+        guard let actor = context.roster.combatant(for: actorID) else { return 0 }
         if actor.role == .enemy {
-            return false
+            return 0
         }
         var chance = 0.10
         chance += abilityBonus
         chance += context.modifiers(for: actorID).triggers.criticalChanceBonus
         chance += partyCritChanceBonus(actorRole: actor.role, in: context)
+        if context.modifiers(for: actorID).triggers.killingGrace {
+            chance += DamagePipeline.dodgeChance(for: actor.combatant, attackerID: context.roster.enemy.id, in: context)
+        }
         if countsBleedingDefender,
            context.roster.activeEffects(for: defender).contains(where: { $0.effect.keyword == .bleed }) {
             chance += context.modifiers(for: actorID).triggers.critChancePerBleedingEnemy
@@ -28,8 +51,7 @@ package enum CriticalChanceEngine {
                 chance += bonus
             }
         }
-        chance = min(0.75, max(0, chance))
-        return BattleChance.succeeds(probability: chance, using: &context.rng)
+        return min(0.75, max(0, chance))
     }
 
     private static func partyCritChanceBonus(

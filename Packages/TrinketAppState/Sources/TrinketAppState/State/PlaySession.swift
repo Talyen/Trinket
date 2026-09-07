@@ -17,6 +17,7 @@ public final class PlaySession {
     public let journey: JourneyPlayMode
     public let labyrinth: LabyrinthPlayMode
     public let spires: SpiresPlayMode
+    public let contracts: ContractsPlayMode
     public let encounters: EncounterPlayMode
 
     private let battleRunRegistry: PlayBattleRunRegistry
@@ -98,6 +99,7 @@ public final class PlaySession {
         self.journey = journey
         self.labyrinth = labyrinth
         self.spires = spires
+        contracts = ContractsPlayMode(playerSave: playerSave, battle: battle, battleLaunch: battleLaunch)
         self.encounters = encounters
         self.battleCompletion = battleCompletion
     }

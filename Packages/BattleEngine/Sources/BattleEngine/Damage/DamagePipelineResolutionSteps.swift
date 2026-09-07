@@ -153,12 +153,20 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard let keyword = state.damageKeyword, keyword == .physical,
+        guard let keyword = state.damageKeyword,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               state.combatant.role == .enemy
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
+        if keyword == .stun, state.options.isAttackHit, triggers.stolenThunder {
+            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
+            if block > 0, context.claimActionGuard(.stolenThunder, actorID: source.id) {
+                DefensePoolEngine.set(0, on: source.combatant, in: &context)
+                state.remaining += block
+            }
+        }
+        guard keyword == .physical else { return }
         let partyTriggers = CombatTriggerEngine.livingPartyTriggers(in: context)
         if triggers.batteringRam {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))

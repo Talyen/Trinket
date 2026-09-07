@@ -42,7 +42,7 @@ The pipeline writes **HEIC** (HEVC-based) images per manifest row. Which variant
 | `talent` | yes (default `960`) | yes (`thumb_dimension`, default `480`) |
 | `encounter` | yes (default `1320`) | yes (`thumb_dimension`, default `480`) |
 | `background` | yes (default `1600`) | yes (`thumb_dimension`, default `480`) |
-| `portrait_background` | yes (default `2752`) | no |
+| `portrait_background` | yes (default `2752`) | yes (default `960`) |
 | `resource` | yes (default `256`) | no |
 | `slot_background` | yes (default `720`) | no |
 
@@ -54,9 +54,11 @@ Portrait backgrounds use `ArtCatalog.portraitBackgroundArtByID` with the same no
 IDs as landscape backgrounds. They preserve the portrait source resolution for
 full-screen building details; landscape references and thumbnails remain available
 for overview/category/list surfaces. `ART_PORTRAIT_BACKGROUND_DIMENSION` controls
-the portrait export independently. Both kinds participate in prepared-artwork
-lookup and memory reporting. Portraits are prepared and pinned by their owning
-category/detail surface, rather than decoded during whole-catalog launch warmup. Focal points choose the visible horizontal crop on
+the full portrait export independently; `ART_PORTRAIT_THUMB_DIMENSION` defaults to
+960 for the two-column building gallery. Both kinds participate in prepared-artwork
+lookup and memory reporting. Full portraits are prepared and pinned by their owning
+category/detail surface, rather than decoded during whole-catalog launch warmup.
+Their gallery thumbnails participate in launch-priority preparation. Focal points choose the visible horizontal crop on
 taller phones; do not stretch images to the viewport ratio.
 
 ## Generate Curated Assets

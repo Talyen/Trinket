@@ -26,6 +26,17 @@ enum CollectionItemCategory: String, CaseIterable, Identifiable {
         }
     }
 
+    func collectionItems(in inventory: [InventoryItem]) -> [InventoryItem] {
+        let owned = inventory.filter(contains)
+        let catalog: [InventoryItem] = switch self {
+        case .trinkets: GameContent.trinketItems
+        case .uniqueGear: GameContent.uniqueItems
+        case .basicGear, .astralGear: []
+        }
+        let ownedIDs = Set(owned.map(\.id))
+        return owned + catalog.filter { !ownedIDs.contains($0.id) }
+    }
+
     func contains(_ item: InventoryItem) -> Bool {
         if item.isTrinket {
             return self == .trinkets
@@ -68,7 +79,8 @@ struct InventoryGridView: View {
     let category: CollectionItemCategory
 
     var body: some View {
-        let categoryItems = playerSave.inventory.items.filter(category.contains)
+        let ownedIDs = Set(playerSave.inventory.items.map(\.id))
+        let categoryItems = category.collectionItems(in: playerSave.inventory.items)
         let items = categoryItems.filter { item in
             selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
         }
@@ -76,6 +88,7 @@ struct InventoryGridView: View {
         CollectionGridShell(items: items) { item in
             SalvageItemButton(
                 item: item,
+                isLocked: !ownedIDs.contains(item.id),
                 showsName: true,
             ) {
                 salvageDetail.select(item)

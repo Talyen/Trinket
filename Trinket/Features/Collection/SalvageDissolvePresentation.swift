@@ -13,6 +13,7 @@ struct SalvageTransmutationEvent: Identifiable {
 
 struct SalvageItemButton: View {
     let item: InventoryItem
+    var isLocked = false
     let showsName: Bool
     let onSelect: () -> Void
 
@@ -21,11 +22,14 @@ struct SalvageItemButton: View {
             ItemCard(
                 item: item,
                 showsAffixCount: false,
+                isLocked: isLocked,
                 showsName: showsName,
             )
         }
         .trinketQuietTapButtonStyle()
-        .accessibilityLabel(item.displayName)
+        .disabled(isLocked)
+        .allowsHitTesting(!isLocked)
+        .accessibilityLabel(isLocked ? "\(item.displayName), locked" : item.displayName)
         .accessibilityIdentifier(AccessibilityID.Collection.itemCard(itemID: item.id))
     }
 }

@@ -121,7 +121,7 @@ struct TrinketApp: App {
         ).compactMap { $0.artReference?.thumbnailImageName }
         let collectionDetail = CollectionView.imminentDetailArtworkNames(roster: roster)
         let collectionItems = CollectionItemCategory.allCases.flatMap { category in
-            inventory.items.lazy.filter(category.contains).prefix(shelfLimit).compactMap {
+            category.collectionItems(in: inventory.items).prefix(shelfLimit).compactMap {
                 $0.artReference?.thumbnailImageName
             }
         }
@@ -131,6 +131,7 @@ struct TrinketApp: App {
         let homesteadCards = HomesteadNodeCategory.allCases.compactMap {
             ArtCatalog.backgroundArtByID[$0.artID]?.imageName
         }
+        let homesteadGalleryThumbnails = ArtCatalog.portraitBackgroundArtByID.values.compactMap(\.thumbnailImageName)
         let homesteadHero = ArtCatalog.backgroundArtByID["homestead"]?.imageName
         let resourceIcons = ArtCatalog.resourceArtByID.values.map(\.imageName)
 
@@ -156,6 +157,7 @@ struct TrinketApp: App {
             + collectionItems
             + playModeCards
             + homesteadCards
+            + homesteadGalleryThumbnails
             + resourceIcons
             + campaignRows
             + [homesteadHero, campaignHero].compactMap(\.self)
@@ -216,6 +218,7 @@ private struct PreparedAppRoot: View {
         .environment(appState.play.journey)
         .environment(appState.play.labyrinth)
         .environment(appState.play.spires)
+        .environment(appState.play.contracts)
         .environment(appState.play.encounters)
         .environment(appState.options)
         .environment(appState.playerSave)

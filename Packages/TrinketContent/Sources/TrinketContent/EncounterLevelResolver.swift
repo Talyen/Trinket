@@ -2,6 +2,15 @@ import Foundation
 import TrinketCore
 
 public enum EncounterLevelResolver {
+    public static func contractEnemyLevel(difficulty: ContractDifficulty, partyAverageLevel: Int) -> Int {
+        let level = max(1, partyAverageLevel)
+        switch difficulty {
+        case .easy: return max(1, level - 3)
+        case .standard: return level
+        case .hard: return level + min(3, Int.max - level)
+        }
+    }
+
     public static func campaignAdjusted(_ authoredLevel: Int, partyAverageLevel: Int) -> Int {
         let level = max(1, authoredLevel)
         return adjusted(level, partyAverageLevel: partyAverageLevel, minimum: max(1, level - 3))

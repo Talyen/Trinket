@@ -40,6 +40,14 @@ id	name	symbol_name	description	modifiers	triggers
 - `symbol_name`: SF Symbol system name for the talent node icon.
 - `modifiers` / `triggers`: same pipe-separated DSL as affixes (`damage_dealt:physical:1`, `blockPerTurn:2`). CamelCase schema field names are accepted as trigger tokens.
 
+Every Hero and Companion tree has two nodes in each of its first three rows,
+then a seventh talent at row 4, slot 1. Existing eighth talents remain supported.
+Keep talent descriptions around ten words and prefer thematic rule changes over
+arbitrary activation conditions. Damage types use “deal [type] damage”; the
+normal damaging hit produces its associated damage-over-time effect or control
+buildup. Row position does not increase a talent’s power budget; see
+[PD-013](../Docs/Product/Decisions.md).
+
 ### Enemy traits (`ContentManifest/traits.tsv`)
 
 Tab-separated columns:

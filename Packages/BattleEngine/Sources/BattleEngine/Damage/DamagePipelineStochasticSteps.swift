@@ -65,6 +65,7 @@ package extension DamagePipeline {
             milestone: nil,
         ))
         state.isDodged = true
+        applyWinterWake(to: &state, in: &context)
         if !state.options.causedByDodge {
             state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDodge(
                 by: state.combatant,
@@ -86,23 +87,31 @@ package extension DamagePipeline {
         for state: DamageResolutionState,
         in context: BattleState,
     ) -> Double {
-        if state.combatant.role == .enemy {
+        dodgeChance(for: state.combatant, attackerID: state.sourceActorID, in: context)
+    }
+
+    static func dodgeChance(
+        for combatant: Combatant,
+        attackerID: String?,
+        in context: BattleState,
+    ) -> Double {
+        if combatant.role == .enemy {
             return 0
         }
-        let history = context.heroTalents.history[state.combatant.id]
+        let history = context.heroTalents.history[combatant.id]
         var chance = 0.10 + Double(history?.dodgeGrowth ?? 0) / 100
         if history?.falseOpening == true { chance += 0.05 }
-        let profile = context.modifiers(for: state.combatant.id)
+        let profile = context.modifiers(for: combatant.id)
         chance += profile.triggers.dodgeChanceBonus
-        if let owner = context.roster.participant(for: state.combatant) {
+        if let owner = context.roster.participant(for: combatant) {
             chance += context.uniques.owners[owner]?.wrenflightDodge ?? 0
         }
-        chance += context.roster.runtime(for: state.combatant)?.bonusDodgeUntilNextTurn ?? 0
-        if context.roster.isDeathsDoorActive(for: state.combatant),
+        chance += context.roster.runtime(for: combatant)?.bonusDodgeUntilNextTurn ?? 0
+        if context.roster.isDeathsDoorActive(for: combatant),
            profile.triggers.deathsDoorDodgeAndDebuffImmunity {
             chance += 0.5
         }
-        if let attackerID = state.sourceActorID,
+        if let attackerID,
            let attacker = context.roster.combatant(for: attackerID),
            context.roster.activeEffects(for: attacker.combatant).contains(where: {
                $0.effect.keyword == .bleed
@@ -111,14 +120,14 @@ package extension DamagePipeline {
         }
         if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,
            profile.triggers.dodgeChanceBelowHealthPercentBonus > 0,
-           context.roster.maxHealth(for: state.combatant) > 0 {
-            let percent = Double(context.roster.health(for: state.combatant)) /
-                Double(context.roster.maxHealth(for: state.combatant))
+           context.roster.maxHealth(for: combatant) > 0 {
+            let percent = Double(context.roster.health(for: combatant)) /
+                Double(context.roster.maxHealth(for: combatant))
             if percent < profile.triggers.dodgeChanceBelowHealthPercentThreshold {
                 chance += profile.triggers.dodgeChanceBelowHealthPercentBonus
             }
         }
-        if context.roster.health(for: state.combatant) * 2 > context.roster.maxHealth(for: state.combatant) {
+        if context.roster.health(for: combatant) * 2 > context.roster.maxHealth(for: combatant) {
             chance += profile.triggers.dodgeChanceAboveHalfHealthBonus
         }
         return min(0.75, max(0, chance))
@@ -246,12 +255,12 @@ package extension DamagePipeline {
         else { return }
         let enemyBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
         guard enemyBlock > 0 else { return }
-        DefensePoolEngine.set(0, on: state.combatant, in: &context)
-        state.damageEvents.append(contentsOf: context.applyBlock(
+        state.damageEvents.append(contentsOf: DefensePoolEngine.steal(
             enemyBlock,
+            from: state.combatant,
             to: source.combatant,
-            source: source.combatant,
             abilityName: "Master Thief",
+            in: &context,
         ))
     }
 }

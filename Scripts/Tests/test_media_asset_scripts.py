@@ -58,16 +58,16 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
             self.assertEqual(first.returncode, 0, first.stderr)
             self.assertEqual(
                 sorted(log.read_text().splitlines()),
-                ["bg_field.heic:1600", "bg_field_portrait.heic:2752", "bg_field_thumb.heic:480"],
+                ["bg_field.heic:1600", "bg_field_portrait.heic:2752", "bg_field_portrait_thumb.heic:960", "bg_field_thumb.heic:480"],
             )
             catalog = root / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
             generated = catalog.read_text()
             self.assertIn("portraitBackgroundArtByID", generated)
-            self.assertIn("thumbnailImageName: nil", generated)
+            self.assertIn('thumbnailImageName: "bg_field_portrait_thumb"', generated)
             self.assertIn("sourceAspectRatio: 0.558139534884", generated)
             second = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
             self.assertEqual(second.returncode, 0, second.stderr)
-            self.assertEqual(len(log.read_text().splitlines()), 3)
+            self.assertEqual(len(log.read_text().splitlines()), 4)
             self.assertEqual(catalog.read_text(), generated)
 
     def test_sfx_cache_tracks_profile_state_output_and_force(self) -> None:

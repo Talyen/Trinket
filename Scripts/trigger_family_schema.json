@@ -7,6 +7,18 @@
     "family": "damage",
     "fields": [
       {
+        "name": "ghostfrost",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "stolenThunder",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "physicalBonusesApplyToHoly",
         "type": "Bool",
         "default": "false",
@@ -702,6 +714,12 @@
     "file_stem": "BlockTriggers",
     "family": "block",
     "fields": [
+      {
+        "name": "sealedSarcophagus",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "retainAllBlockBetweenTurns",
         "type": "Bool",
@@ -1759,6 +1777,18 @@
     "family": "dodge",
     "fields": [
       {
+        "name": "wintersWake",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "killingGrace",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "dodgeNextHitPoisonAndBleedPercent",
         "type": "Double",
         "default": "0",
@@ -2010,6 +2040,18 @@
     "file_stem": "ManaTriggers",
     "family": "mana",
     "fields": [
+      {
+        "name": "dragonPatronage",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "prismaticScales",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "freezeEmpowermentBlockPerMana",
         "type": "Int",
@@ -2341,6 +2383,18 @@
     "family": "gold",
     "fields": [
       {
+        "name": "carrionClaim",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "lightFingered",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "goldGainedNextHolyDamage",
         "type": "Bool",
         "default": "false",
@@ -2520,6 +2574,30 @@
     "file_stem": "HealingTriggers",
     "family": "healing",
     "fields": [
+      {
+        "name": "contagiousJoy",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "livingArchive",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "marrowmend",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "wishspring",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "cleanseSelfHeal",
         "type": "Int",
@@ -2893,6 +2971,18 @@
     "family": "revival",
     "fields": [
       {
+        "name": "undyingEmber",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "borrowedLife",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "onceDeathReviveHealth",
         "type": "Int",
         "default": "0",
@@ -2970,6 +3060,12 @@
     "file_stem": "CleanseTriggers",
     "family": "cleanse",
     "fields": [
+      {
+        "name": "lessonLearned",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "cleanseBonusDraw",
         "type": "Int",
@@ -3180,6 +3276,12 @@
     "file_stem": "OnHitTriggers",
     "family": "onHit",
     "fields": [
+      {
+        "name": "resonantShell",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "onHitAttackerBurn",
         "type": "Int",

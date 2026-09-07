@@ -23,7 +23,8 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-017 | Keep the existing roster catch-up XP mechanic. | Preserve role-specific catch-up against the highest hero or companion level when revising encounter scaling and adding leveling opportunities. |
 | PD-018 | Character levels and level-driven enemy power have no designed upper cap or terminal plateau. | Replace the enemy power plateau after level 40 with continuing growth; retain numeric safety and mechanic-specific probability limits. Finite content still ends. |
 | PD-019 | Campaign and Spires retain permanent completion without replays; Labyrinth continues through infinite floors. | Preserve saved completion and explored Labyrinth maps; no terminal Labyrinth depth is required. |
-| PD-020 | Contracts is the selected future renewable roster-leveling mode. | Design it after the current modes' scaling changes; keep existing catch-up XP. Contracts design and implementation are separate follow-up work. |
+| PD-020 | Superseded by PD-021. | Retained for decision history. |
+| PD-021 | Contracts provides unlimited single-battle jobs for any party from the start of Play. | Use three offers (Easy normal, Standard normal, Hard boss) at party-average −3/0/+3 levels, full regular rewards and catch-up XP, free refresh/retries, and no reward previews or separate statistics. [Contracts.md](Contracts.md) owns the full rules. |
 
 These are product constraints, not a backlog. Sibling product docs:
 [README.md](README.md). For source ownership and tests, read the relevant `Docs/AgentContext/` card.

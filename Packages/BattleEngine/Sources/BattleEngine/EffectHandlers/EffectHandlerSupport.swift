@@ -16,30 +16,38 @@ enum EffectRemoval {
     }
 
     @discardableResult
-    static func removeBuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> [ActiveEffect] {
-        removeMatching(from: &effects, keyword: keyword) { $0.effect.isRemovableBuff }
+    static func removeBuffs(
+        from effects: inout [ActiveEffect], keyword: Keyword?, preservingBlock: Bool = false,
+    ) -> [ActiveEffect] {
+        removeMatching(from: &effects, keyword: keyword) {
+            $0.effect.isRemovableBuff && !(preservingBlock && $0.effect.kind == .shield)
+        }
     }
 
     static func removeRandomBuff(
         from effects: inout [ActiveEffect],
+        preservingBlock: Bool = false,
         using rng: inout SeededRandomNumberGenerator,
     ) -> Keyword? {
-        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableBuff }
+        removeRandom(from: &effects, using: &rng) {
+            $0.effect.isRemovableBuff && !(preservingBlock && $0.effect.kind == .shield)
+        }
     }
 
     static func removeBuffs(
         from effects: inout [ActiveEffect],
         count: Int,
         removeAll: Bool,
+        preservingBlock: Bool = false,
         using rng: inout SeededRandomNumberGenerator,
     ) -> [Keyword] {
         if removeAll {
-            return removeBuffs(from: &effects, keyword: nil).map(\.keyword)
+            return removeBuffs(from: &effects, keyword: nil, preservingBlock: preservingBlock).map(\.keyword)
         }
 
         var removed: [Keyword] = []
         for _ in 0 ..< count {
-            guard let keyword = removeRandomBuff(from: &effects, using: &rng) else { break }
+            guard let keyword = removeRandomBuff(from: &effects, preservingBlock: preservingBlock, using: &rng) else { break }
             removed.append(keyword)
         }
         return removed

@@ -10,6 +10,7 @@ public enum ItemCardPresentation {
 public struct ItemCard<Art: View>: View {
     let item: InventoryItem
     var showsAffixCount: Bool
+    var isLocked = false
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
     var presentation: ItemCardPresentation = .standard
@@ -25,6 +26,7 @@ public struct ItemCard<Art: View>: View {
     public init(
         item: InventoryItem,
         showsAffixCount: Bool,
+        isLocked: Bool = false,
         showsName: Bool = true,
         reservesLabelSpace: Bool = true,
         presentation: ItemCardPresentation = .standard,
@@ -37,6 +39,7 @@ public struct ItemCard<Art: View>: View {
     ) {
         self.item = item
         self.showsAffixCount = showsAffixCount
+        self.isLocked = isLocked
         self.showsName = showsName
         self.reservesLabelSpace = reservesLabelSpace
         self.presentation = presentation
@@ -61,19 +64,28 @@ public struct ItemCard<Art: View>: View {
 
     public var body: some View {
         ProductCardShell(
+            isLocked: isLocked,
             isSelected: isSelected,
             appliesCardSurface: appliesCardSurface,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
-            shine: borderShine,
+            shine: isLocked ? .none : borderShine,
             shineLineWidth: shineLineWidth,
             art: art,
             label: {
-                switch presentation {
-                case .standard:
-                    standardLabel
-                case .reveal:
-                    revealLabel
+                if isLocked {
+                    Text(balanced: item.displayName)
+                        .trinketTypography(.cardLabel)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .trinketFittedText()
+                } else {
+                    switch presentation {
+                    case .standard:
+                        standardLabel
+                    case .reveal:
+                        revealLabel
+                    }
                 }
             },
         )
@@ -111,6 +123,7 @@ public extension ItemCard where Art == ItemArtwork {
     init(
         item: InventoryItem,
         showsAffixCount: Bool,
+        isLocked: Bool = false,
         showsName: Bool = true,
         reservesLabelSpace: Bool = true,
         presentation: ItemCardPresentation = .standard,
@@ -123,6 +136,7 @@ public extension ItemCard where Art == ItemArtwork {
         self.init(
             item: item,
             showsAffixCount: showsAffixCount,
+            isLocked: isLocked,
             showsName: showsName,
             reservesLabelSpace: reservesLabelSpace,
             presentation: presentation,

@@ -196,4 +196,5 @@ public struct HealRequest: Equatable, Hashable, Sendable {
 
     var isHoTTick: Bool
     var isDirectCardHeal = false
+    var usesResolvedHealing = false
 }

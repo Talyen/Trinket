@@ -4,22 +4,21 @@ Player-facing Homestead layout. Implementation lives in `Trinket/Features/Homest
 Locked rule is PD-012 in [Decisions.md](Decisions.md): build/upgrade is
 immediate, no confirmation dialog.
 
-- Art-led overview: full-bleed hero, compact eight-resource wallet, and Play Mode–style category cards (Farming / Crafting / Alchemy / Training / Arcana) with tier-sum constructed progress — tapping a category pushes its project list.
-- Category list keeps hero (category art) + wallet, drops the in-content category header, and lists that category’s projects; project rows stay tappable in every state (including prerequisite-locked) and push native `NavigationStack` detail while retaining the tab bar.
-- Project-list indicators use a small tier marker and a consistent navigation chevron. Gold emphasis means the next stage is affordable; a filled marker marks a finished project. Prerequisite locks remain inspectable.
-- Building detail uses its dedicated portrait artwork full-screen. Back returns to the category; the tab bar is hidden only inside a building. The name, tier/info control, resource pouch, and Build/Improve entry are the resting UI.
-- Build/Improve opens a compact native offer sheet containing the next stage, concise benefit summary, material cost chips, and the immediate Build/Upgrade purchase. This is offer navigation, not a purchase confirmation. Expand the summary for exact current-to-next effects; All tiers opens passive, scrollable history in the sheet.
-- Tier/info opens current benefits and history. The pouch opens read-only resource balances; material collection remains on the overview.
-- Descriptions use standard bold/color keywords and resource chips. Exact effects are assembled from the typed combat bonus and production values, with no truncation or fixed row heights. Progression follows the catalog's tier count, including longer future paths.
-- A successful saved purchase dismisses the offer and briefly settles the updated tier with one success haptic when enabled. Repeated input is bound to the displayed offer; animation never commits progress. Failed saves keep the offer and existing error handling. Backgrounding/navigation suppresses pending celebration.
-- Completed buildings keep their tier/info and wallet controls, gain a restrained finishing ring, and omit Build/Improve. No persistent completion banner or checkmark.
-- Unavailable purchases retain a disabled purchase control, visible costs, and an explanation of missing materials or prerequisite stages. Dense sheet content uses solid semantic surfaces; floating controls use shared glass chrome.
+- Art-led overview: full-bleed hero, compact eight-resource wallet, and Play Mode–style category cards (Farming / Crafting / Alchemy / Training / Arcana) with tier-sum constructed progress — tapping a category pushes its building gallery.
+- Categories use stable two-column portrait galleries with building names; segmented progression appears only on full-art building screens. Affordable improvements get a restrained border; prerequisite-locked buildings remain inspectable. Balances are available from a resource control instead of a persistent wallet or repeated category hero.
+- Building detail uses full-screen portrait artwork, circular Back/Resources controls, the building name and a segmented progress bar. The tab bar is hidden only inside a building.
+- A compact solid bottom panel always shows concise, exact current benefits with standard bold/color keywords and white values. Material production sits to the right of the bonuses, top-aligned: large artwork, material name and a white daily rate in the wallet style. Unbuilt buildings explicitly label their first-build benefits; completed buildings keep their benefits and omit Build/Improve.
+- Build/Improve opens the next-stage offer. The resulting next-stage effects appear immediately, with production on the right and a labeled Build cost/Upgrade cost section. Costs use large material artwork, names and white amounts; available balances appear only for shortages. The offer fits its measured content, expands and scrolls when needed, and dismisses by swiping down; it has no Close button or empty navigation bar. Wallet sheets retain their Close control. There is no summary disclosure, comparison, info sheet or future-tier browser.
+- Purchases remain immediate and bound to the displayed tier. Failed saves retain the existing error handling. A successful purchase closes the sheet and briefly emphasizes the newly earned segment; animation never commits progress. Backgrounding/navigation suppresses pending celebration.
+- Progression uses the catalog's actual tier count, including longer future paths. Descriptions wrap and panel content scrolls when needed. No persistent completion banner, checkmark or Tier N label is shown.
 
 Portrait and landscape sources coexist in `Raw Assets/Homestead/`. The art pipeline
-owns their separate exports and catalog references; see [ArtManifest](../../ArtManifest/README.md).
-Portraits stay out of broad launch warmup. Category navigation prepares and pins imminent portraits as well as existing
-landscape artwork. Both the category and detail release only their own pins when
-leaving; decoded artwork budgets remain owned by the performance playbook.
+owns full portraits and dedicated 960-pixel gallery thumbnails; see
+[ArtManifest](../../ArtManifest/README.md). Gallery thumbnails join launch-priority
+artwork so category first paint is prepared. Full portraits remain outside broad
+launch warmup and are pinned by imminent category/detail owners. Existing pins and
+memory limits remain intact. The overview retains its landscape sections and
+collection flow.
 
 ## Material collection
 

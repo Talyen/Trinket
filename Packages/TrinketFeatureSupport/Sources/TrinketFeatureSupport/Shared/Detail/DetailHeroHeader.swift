@@ -38,12 +38,16 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     }
 
     public var body: some View {
-        ZStack(alignment: .topLeading) {
-            art()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        Color.clear
+            .frame(height: baseHeight)
+            .overlay {
+                GeometryReader { geometry in
+                    art()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                }
                 .backgroundExtensionEffect()
                 .allowsHitTesting(false)
-                .frame(height: baseHeight)
                 .clipped()
                 .trinketArtworkBlend(.bottom(into: .canvas))
                 .visualEffect { content, proxy in
@@ -53,20 +57,17 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                         .scaleEffect(stretch, anchor: .top)
                         .offset(y: -overscroll)
                 }
-
-            VStack(alignment: .leading) {
-                titleBlock
-                footer()
             }
-            .padding(.horizontal, horizontalPadding)
-            .padding(.bottom, bottomPadding)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(maxHeight: .infinity, alignment: .bottom)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .frame(height: baseHeight)
-            .clipped()
-        }
-        .frame(height: baseHeight)
+            .overlay(alignment: .bottomLeading) {
+                VStack(alignment: .leading) {
+                    titleBlock
+                    footer()
+                }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.bottom, bottomPadding)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .clipped()
+            }
     }
 
     private var titleBlock: some View {

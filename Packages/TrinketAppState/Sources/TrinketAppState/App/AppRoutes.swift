@@ -69,6 +69,7 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
     case explore
     case spiresHub
     case labyrinthMap
+    case contracts
     case spireClimb(SpireID)
 
     public var id: String {
@@ -81,6 +82,8 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
             "spiresHub"
         case .labyrinthMap:
             "labyrinthMap"
+        case .contracts:
+            "contracts"
         case let .spireClimb(spireID):
             "spireClimb-\(spireID.rawValue)"
         }
@@ -96,6 +99,8 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
             .spireClimb(spireID)
         case .labyrinth:
             .labyrinthMap
+        case .contract:
+            .contracts
         }
     }
 }

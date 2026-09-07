@@ -1,38 +1,6 @@
 import SwiftUI
 import TrinketContent
-import TrinketDesignSystem
 import TrinketFeatureSupport
-
-struct HomesteadBuildingArtwork: View {
-    enum Variant: Equatable {
-        case full
-        case thumbnail
-    }
-
-    let definition: HomesteadNodeDefinition
-    var variant: Variant = .full
-
-    var body: some View {
-        Group {
-            if let art {
-                HomesteadFocalArtwork(
-                    art: art,
-                    displaySize: variant == .thumbnail ? .compact : .full,
-                    interpolation: variant == .thumbnail ? .low : .medium,
-                )
-            } else {
-                TrinketDesign.Colors.surface
-            }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous))
-    }
-
-    private var art: BackgroundArtReference? {
-        ArtCatalog.backgroundArtByID[definition.id.rawValue]
-            ?? ArtCatalog.backgroundArtByID["homestead"]
-            ?? ArtCatalog.backgroundArtByID["wheatField"]
-    }
-}
 
 struct HomesteadFocalArtwork: View {
     let art: BackgroundArtReference

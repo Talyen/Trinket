@@ -240,14 +240,15 @@ public struct Ability: Identifiable, Hashable, Sendable {
             }
     }
 
-    public func empoweredByMana(amount: Int = 1) -> Self {
+    public func empoweredByMana(amount: Int = 1, includingBothElements: Bool = false) -> Self {
         guard amount > 0, hasManaEmpowerableBurnOrFreezeDamage else { return self }
         return Self(
             id: id,
             name: name,
             tier: tier,
             description: descriptionOverride,
-            damageComponents: damageComponents.map { $0.withManaEmpowerment(amount) },
+            damageComponents: damageComponents.map { $0.withManaEmpowerment(amount) }
+                + (includingBothElements ? oppositeEmpowermentComponents(amount: amount) : []),
             targetedEffects: targetedEffects.map { targeted in
                 TargetedEffect(
                     targeted.effect.withManaEmpowerment(amount),
@@ -261,6 +262,21 @@ public struct Ability: Identifiable, Hashable, Sendable {
             hasLeech: hasLeech,
             repeatsManaEmpowerment: repeatsManaEmpowerment,
         )
+    }
+
+    private func oppositeEmpowermentComponents(amount: Int) -> [DamageComponent] {
+        let component = damageComponents.first(where: \.isManaEmpowerableBurnOrFreezeDamage)
+        let targeted = targetedEffects.first(where: \.effect.isManaEmpowerableBurnOrFreezeDamage)
+        guard component != nil || targeted != nil else { return [] }
+        return [Keyword.burn, .freeze].compactMap { keyword in
+            let alreadyPresent = damageComponents.contains { $0.keyword == keyword && $0.isManaEmpowerableBurnOrFreezeDamage }
+                || targetedEffects.contains { $0.effect.keyword == keyword && $0.effect.isManaEmpowerableBurnOrFreezeDamage }
+            guard !alreadyPresent else { return nil }
+            return DamageComponent(
+                amount, keyword: keyword, target: component?.target ?? targeted?.target ?? .abilityTarget,
+                condition: component?.condition ?? targeted?.condition,
+            )
+        }
     }
 }
 

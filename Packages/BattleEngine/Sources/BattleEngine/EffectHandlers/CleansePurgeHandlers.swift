@@ -122,7 +122,10 @@ struct CleansePurgeHandler: BattleEffectHandler {
         guard case let .purge(targetKeyword) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let removed = EffectRemoval.removeBuffs(from: &currentEffects, keyword: targetKeyword)
+        let removed = EffectRemoval.removeBuffs(
+            from: &currentEffects, keyword: targetKeyword,
+            preservingBlock: context.modifiers(for: target.id).triggers.sealedSarcophagus,
+        )
         guard !removed.isEmpty else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -153,7 +156,10 @@ struct CleansePurgeHandler: BattleEffectHandler {
         currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard let keyword = EffectRemoval.removeRandomBuff(from: &currentEffects, using: &context.rng) else {
+        let preservingBlock = context.modifiers(for: target.id).triggers.sealedSarcophagus
+        guard let keyword = EffectRemoval.removeRandomBuff(
+            from: &currentEffects, preservingBlock: preservingBlock, using: &context.rng,
+        ) else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         context.roster.setActiveEffects(currentEffects, for: target)

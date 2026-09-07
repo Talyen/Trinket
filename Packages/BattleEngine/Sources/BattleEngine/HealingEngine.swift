@@ -13,30 +13,13 @@ package enum HealingEngine {
             return .empty
         }
         let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
-        let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
-        var amount = request.amount + bonus
-        amount = CombatRounding.scaled(
-            amount,
-            multiplier: CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context),
-        )
-        if request.logAs != .leech, let sourceActorID = request.sourceActorID, !request.skipFightPacing {
-            amount = context.paced(amount, sourceActorID: sourceActorID)
-        }
         var flags: Set<CombatFlag> = []
-
-        if let crit = rollRestorationCritical(for: request, amount: &amount, in: &context) {
-            flags.insert(crit)
+        let amount = resolvedAmount(request, sourceTriggers: sourceTriggers, flags: &flags, in: &context)
+        if request.isDirectCardHeal, sourceTriggers?.livingArchive == true,
+           let sourceActorID = request.sourceActorID, amount > 0 {
+            let echo = HealingEcho(amount: CombatRounding.scaled(amount, multiplier: 0.5), sourceActorID: sourceActorID)
+            context.roster.mutateRuntime(for: request.target) { $0.healingEchoes.append(echo) }
         }
-
-        if let sourceTriggers,
-           sourceTriggers.healingBelowHealthPercentThreshold > 0,
-           context.roster.maxHealth(for: request.target) > 0,
-           Double(context.roster.health(for: request.target)) / Double(context.roster.maxHealth(for: request.target))
-           < sourceTriggers.healingBelowHealthPercentThreshold {
-            amount = CombatRounding.scaled(amount, multiplier: sourceTriggers.healingBelowHealthPercentMultiplier)
-        }
-
-        amount += CombatTriggerEngine.heroCardHealingBonus(request: request, amount: amount, in: &context)
 
         let preHealth = context.roster.health(for: request.target)
         let maxHealth = context.roster.maxHealth(for: request.target)
@@ -157,6 +140,61 @@ package enum HealingEngine {
         return CombatOutcome(healthDelta: restored, events: events, flags: flags)
     }
 
+    private static func resolvedAmount(
+        _ request: HealRequest,
+        sourceTriggers: CombatTraitTriggers?,
+        flags: inout Set<CombatFlag>,
+        in context: inout BattleState,
+    ) -> Int {
+        if request.usesResolvedHealing {
+            return max(0, request.amount)
+        }
+        let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
+        var amount = request.amount + bonus
+        amount = CombatRounding.scaled(
+            amount,
+            multiplier: CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context),
+        )
+        if request.logAs != .leech, let sourceActorID = request.sourceActorID, !request.skipFightPacing {
+            amount = context.paced(amount, sourceActorID: sourceActorID)
+        }
+
+        if let crit = rollRestorationCritical(for: request, amount: &amount, in: &context) {
+            flags.insert(crit)
+        }
+
+        if let sourceTriggers,
+           sourceTriggers.healingBelowHealthPercentThreshold > 0,
+           context.roster.maxHealth(for: request.target) > 0,
+           Double(context.roster.health(for: request.target)) / Double(context.roster.maxHealth(for: request.target))
+           < sourceTriggers.healingBelowHealthPercentThreshold {
+            amount = CombatRounding.scaled(amount, multiplier: sourceTriggers.healingBelowHealthPercentMultiplier)
+        }
+
+        amount += CombatTriggerEngine.heroCardHealingBonus(request: request, amount: amount, in: &context)
+
+        return max(0, amount)
+    }
+
+    static func resolveHealingEchoes(in context: inout BattleState) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        for owner in [BattleParticipant.hero, .companion] {
+            let target = context.roster[owner].combatant
+            let echoes = context.roster[owner].healingEchoes
+            context.roster.mutateRuntime(for: target) { $0.healingEchoes.removeAll() }
+            for echo in echoes {
+                guard let source = context.roster.combatant(for: echo.sourceActorID) else { continue }
+                var request = HealRequest(
+                    amount: echo.amount, target: target, sourceActorID: source.id,
+                    logAs: .instantHeal(actorName: source.name, abilityName: "Living Archive", keyword: .health),
+                )
+                request.usesResolvedHealing = true
+                events.append(contentsOf: resolveHeal(request, in: &context).events)
+            }
+        }
+        return events
+    }
+
     private static func rollRestorationCritical(
         for request: HealRequest,
         amount: inout Int,
@@ -182,6 +220,7 @@ package enum HealingEngine {
             keyword: critKeyword,
             actorID: sourceActorID,
             defender: request.target,
+            usePartyMaximum: context.modifiers(for: sourceActorID).triggers.contagiousJoy,
             in: &context,
         )
         else { return nil }
@@ -198,7 +237,14 @@ package enum HealingEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard overflow > 0 else { return [] }
-        var events: [ActionEvent] = []
+        var events = applyLeechOverhealing(overflow: overflow, request: request, sourceTriggers: sourceTriggers, in: &context)
+        if sourceTriggers?.wishspring == true {
+            events.append(contentsOf: context.restoreManaEmitting(
+                CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,
+                abilityName: "Wishspring",
+                actorName: request.sourceActorID.flatMap { context.roster.combatant(for: $0)?.name },
+            ))
+        }
         let conversion = overhealConversionTriggers(source: sourceTriggers, target: targetTriggers, request: request)
         var overflowRemaining = overflow
         if conversion.overhealConvertsToMaxHealth {
@@ -232,6 +278,26 @@ package enum HealingEngine {
                 source: request.target,
                 abilityName: "Aether Shield",
             ))
+        }
+        return events
+    }
+
+    private static func applyLeechOverhealing(
+        overflow: Int,
+        request: HealRequest,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        if request.logAs == .leech, sourceTriggers?.marrowmend == true,
+           request.sourceActorID == request.target.id {
+            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: request.target))
+            if block < 6 {
+                events.append(contentsOf: context.applyBlock(
+                    min(overflow, 6 - block), to: request.target, source: request.target,
+                    abilityName: "Marrowmend", applyOutgoingAdjustment: false,
+                ))
+            }
         }
         if request.logAs == .leech,
            let sourceActorID = request.sourceActorID,

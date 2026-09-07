@@ -1,0 +1,140 @@
+import SwiftUI
+import TrinketAppState
+import TrinketContent
+import TrinketCore
+import TrinketDesignSystem
+import TrinketFeatureAdapters
+import TrinketFeatureContracts
+import TrinketFeatureSupport
+import TrinketPersistence
+
+struct ContractsBoardView: View {
+    @Environment(ContractsPlayMode.self) private var contracts
+    @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(OptionsStore.self) private var options
+    @Environment(\.isBattleActive) private var isBattleActive
+    @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
+
+    @State private var message: StageMapMessage?
+    @State private var pinnedArtwork: [String] = []
+    @State private var feedbackTrigger = 0
+
+    var body: some View {
+        StageSelectScreen(
+            eyebrow: "Explore",
+            title: "Contracts",
+            subtitle: nil,
+            titleAccessibilityIdentifier: nil,
+        ) {
+            heroArtwork
+        } content: {
+            VStack(spacing: 0) {
+                if playerSave.contracts.offers.isEmpty {
+                    Button("Load Contracts") { perform { contracts.enter() } }
+                        .trinketPrimaryActionButton()
+                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                }
+                StageSelectList(
+                    rows: StageSelectRowPresentation<ContractOffer>.contractRows(
+                        offers: playerSave.contracts.offers,
+                    ),
+                    rowSpacing: TrinketDesign.Spacing.large,
+                    isPrimaryActionDisabled: { offer in
+                        isBattleActive || !isArtworkReady(for: offer)
+                    },
+                    onArtworkTap: inspect,
+                    onPrimaryAction: { offer in
+                        message = contracts.startBattle(offerID: offer.id)
+                        return message == nil
+                    },
+                    artwork: { offer, _ in contractArtwork(for: offer) },
+                    partyPickerSheet: { _ in StageBattlePartyPickerSheet() },
+                )
+                .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
+            }
+            .containerRelativeFrame(.horizontal)
+        }
+        .accessibilityIdentifier(AccessibilityID.Play.contractsBoard)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Refresh", systemImage: "arrow.clockwise") { perform { contracts.refresh() } }
+                    .disabled(isBattleActive)
+                    .accessibilityIdentifier(AccessibilityID.Play.contractsRefresh)
+            }
+        }
+        .trinketMessageAlert($message)
+        .trinketSensoryFeedback(.selection, trigger: feedbackTrigger, enabled: options.hapticsEnabled)
+        .task {
+            guard !isBattleActive else { return }
+            message = contracts.enter()
+        }
+        .task(id: artworkNames) { await refreshArtworkPins() }
+        .onDisappear {
+            PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
+            pinnedArtwork = []
+        }
+    }
+
+    private var heroArtwork: some View {
+        Color.clear
+            .overlay {
+                if let art = ArtCatalog.backgroundArtByID["gameModeExplore"], pinnedArtwork.contains(art.imageName) {
+                    Image.preparedAsset(art, displaySize: .full)
+                        .resizable()
+                        .scaledToFill()
+                        .decorativePreparedArtwork()
+                } else {
+                    TrinketDesign.Colors.canvas
+                }
+            }
+            .clipped()
+    }
+
+    @ViewBuilder
+    private func contractArtwork(for offer: ContractOffer) -> some View {
+        if isArtworkReady(for: offer), let art = GameContent.enemy(matching: offer.enemyID)?.combatant.artReference {
+            MapTileArtwork(art: art)
+        } else {
+            MapTilePlaceholder(tint: TrinketDesign.Colors.encounterBattle, symbolName: "person.crop.rectangle")
+        }
+    }
+
+    private var artworkNames: [String] {
+        let enemies = playerSave.contracts.offers.compactMap {
+            GameContent.enemy(matching: $0.enemyID)?.combatant.artReference?.imageName
+        }
+        return Array(Set(enemies + [ArtCatalog.backgroundArtByID["gameModeExplore"]?.imageName].compactMap(\.self))).sorted()
+    }
+
+    private func isArtworkReady(for offer: ContractOffer) -> Bool {
+        guard let name = GameContent.enemy(matching: offer.enemyID)?.combatant.artReference?.imageName else { return false }
+        return pinnedArtwork.contains(name)
+    }
+
+    private func refreshArtworkPins() async {
+        let next = Set(artworkNames)
+        let previous = Set(pinnedArtwork)
+        let added = next.subtracting(previous)
+        await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
+        guard !Task.isCancelled else {
+            PreparedArtworkCache.shared.releasePins(names: Array(added))
+            return
+        }
+        PreparedArtworkCache.shared.releasePins(names: Array(previous.subtracting(next)))
+        pinnedArtwork = Array(next)
+    }
+
+    private func inspect(_ offer: ContractOffer) {
+        guard isArtworkReady(for: offer), let enemy = GameContent.enemy(matching: offer.enemyID) else { return }
+        presentPlayCombatantDetail(CombatantCardDetail(
+            combatant: enemy.combatant,
+        ))
+    }
+
+    private func perform(_ action: () -> StageMapMessage?) {
+        message = action()
+        if message == nil {
+            feedbackTrigger &+= 1
+        }
+    }
+}

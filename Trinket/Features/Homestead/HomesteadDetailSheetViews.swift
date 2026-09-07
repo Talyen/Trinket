@@ -5,16 +5,12 @@ import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
-private enum HomesteadSheetDestination: Hashable {
-    case history
-}
-
 struct HomesteadDetailSheetView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
-    @State private var expanded = false
-    @State private var path: [HomesteadSheetDestination] = []
-    @State private var detent: PresentationDetent = .large
+
+    @State private var benefitsHeight: CGFloat = 0
+    @State private var controlsHeight: CGFloat = 0
 
     let definition: HomesteadNodeDefinition
     let kind: HomesteadDetailSheet
@@ -26,221 +22,106 @@ struct HomesteadDetailSheetView: View {
         HomesteadProjectStatus(definition: definition, homestead: playerSave.homestead, roster: playerSave.roster)
     }
 
-    private var offeredTier: HomesteadNodeTier? {
-        guard case let .improvement(tier) = kind else { return nil }
-        return definition.tier(tier)
-    }
-
-    private var compactDetent: PresentationDetent {
-        .height(purchaseCommitted || (status.isUnlocked && status.isAffordable) ? 340 : 440)
-    }
-
     var body: some View {
-        NavigationStack(path: $path) {
-            root
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { closeControl }
-                .navigationDestination(for: HomesteadSheetDestination.self) { _ in
-                    HomesteadTierHistory(definition: definition, currentTier: status.currentTier)
-                        .toolbar { closeControl }
-                }
-        }
-        .presentationDetents(kind.isImprovement ? [compactDetent, .height(540), .large] : [.medium, .large], selection: $detent)
-        .presentationDragIndicator(.visible)
-        .presentationBackground(TrinketDesign.Colors.surface)
-        .homesteadBuildErrorAlert(build: $build)
-        .onAppear { detent = kind.isImprovement ? compactDetent : .medium }
-        .onChange(of: expanded) { _, _ in updateDetent() }
-        .onChange(of: path) { _, _ in updateDetent() }
-    }
-
-    @ToolbarContentBuilder
-    private var closeControl: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button { dismiss() } label: {
-                Label("Close", systemImage: "xmark")
-            }
-            .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
-        }
+        root
+            .presentationDragIndicator(.visible)
+            .presentationBackground(TrinketDesign.Colors.surface)
+            .homesteadBuildErrorAlert(build: $build)
     }
 
     @ViewBuilder
     private var root: some View {
         switch kind {
-        case .improvement:
-            if let tier = offeredTier {
+        case let .improvement(number):
+            if let tier = definition.tier(number) {
                 improvement(tier)
             }
-        case .benefits:
-            currentBenefits
         case .wallet:
-            ScrollView {
-                HomesteadResourceWallet(homestead: playerSave.homestead, roster: playerSave.roster)
-                    .padding(TrinketDesign.Layout.contentMargin)
+            NavigationStack {
+                HomesteadWalletSheetContent()
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button { dismiss() } label: { Label("Close", systemImage: "xmark") }
+                                .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
+                        }
+                    }
             }
-            .navigationTitle("Resources")
+            .presentationDetents([.medium, .large])
         }
     }
 
     private func improvement(_ tier: HomesteadNodeTier) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
                 Text(tier.stageName)
                     .trinketTypography(.sectionDisplay)
-                    .foregroundStyle(.primary)
-                Button {
-                    withAnimation(TrinketMotion.Interaction.stateChange) { expanded.toggle() }
-                } label: {
-                    HStack {
-                        KeywordDescriptionText(text: tier.bonus.title)
-                            .multilineTextAlignment(.leading)
-                        Spacer(minLength: TrinketDesign.Spacing.small)
-                        Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                            .accessibilityHidden(true)
-                    }
-                    .trinketTypography(.body)
-                    .foregroundStyle(.primary)
-                    .padding(.vertical, TrinketDesign.Spacing.small)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityValue(expanded ? "Expanded" : "Collapsed")
-                .accessibilityIdentifier(AccessibilityID.Homestead.effectDisclosure)
-
-                if expanded {
-                    HomesteadEffectDescription(tier: tier, previousTier: definition.tier(tier.tier - 1))
-                    historyLink
-                }
+                HomesteadBenefitsView(tier: tier, effectsIdentifier: AccessibilityID.Homestead.upgradeEffects)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-            .padding(.bottom, TrinketDesign.Spacing.medium)
+            .padding(.top, TrinketDesign.Spacing.extraLarge)
+            .padding(.bottom, TrinketDesign.Spacing.small)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { benefitsHeight = $0 }
         }
-        .safeAreaInset(edge: .bottom) { purchaseControls(tier) }
+        .scrollBounceBehavior(.basedOnSize)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            purchaseControls(tier)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { controlsHeight = $0 }
+        }
+        .presentationDetents(benefitsHeight > 0 && controlsHeight > 0
+            ? [.height(benefitsHeight + controlsHeight), .large]
+            : [.medium, .large])
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.upgradeSheet)
     }
 
     private func purchaseControls(_ tier: HomesteadNodeTier) -> some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            if !status.missingPrerequisites.isEmpty {
-                ForEach(status.missingPrerequisites, id: \.nodeID) { requirement in
-                    if let project = GameContent.homesteadNode(matching: requirement.nodeID) {
-                        Text("Requires \(project.title), Tier \(requirement.minimumTier)")
-                            .trinketTypography(.secondaryBody)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+            Text(tier.tier == 1 ? "Build cost" : "Upgrade cost")
+                .trinketTypography(.cardTitle)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), alignment: .leading)], alignment: .leading) {
+                ForEach(tier.cost) { amount in
+                    HomesteadMaterialValue(
+                        resource: amount.resource,
+                        value: amount.quantity.formatted(),
+                        available: status.hasEnough(amount) ? nil : status.balance(for: amount),
+                    )
                 }
-            } else if !status.materialShortfalls.isEmpty {
-                Text("More materials needed")
-                    .trinketTypography(.secondaryBody)
-                    .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier(AccessibilityID.Homestead.upgradeCost)
+
+            ForEach(status.missingPrerequisites, id: \.nodeID) { requirement in
+                if let project = GameContent.homesteadNode(matching: requirement.nodeID) {
+                    Text("Requires \(project.title), \(project.tier(requirement.minimumTier)?.stageName ?? project.title)")
+                        .trinketTypography(.secondaryBody)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), alignment: .leading)], alignment: .leading) {
-                ForEach(tier.cost) { amount in
-                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
-                        HomesteadMaterialChip(
-                            resource: amount.resource,
-                            value: amount.quantity.formatted(),
-                            isShort: !status.hasEnough(amount),
-                        )
-                        if !status.hasEnough(amount) {
-                            Text("Have \(status.balance(for: amount))")
-                                .trinketTypography(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            }
             Button { onPurchase(tier.tier) } label: {
-                Text(tier.tier == 1 ? "Build" : "Upgrade")
-                    .frame(maxWidth: .infinity)
+                Text(tier.tier == 1 ? "Build" : "Upgrade").frame(maxWidth: .infinity)
             }
             .disabled(!status.canBuildOrUpgrade || status.nextTier?.tier != tier.tier || purchaseCommitted)
             .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.upgradeButton)
-            .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
         .background(TrinketDesign.Colors.surface)
     }
-
-    private var currentBenefits: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                if let tier = status.currentStage {
-                    Text(tier.stageName)
-                        .trinketTypography(.sectionDisplay)
-                        .accessibilityIdentifier(AccessibilityID.Homestead.tierNode(title: definition.title, tier: tier.tier))
-                    HomesteadEffectDescription(tier: tier)
-                } else {
-                    KeywordDescriptionText(text: definition.summary)
-                        .trinketTypography(.body)
-                }
-                historyLink
-            }
-            .padding(TrinketDesign.Layout.contentMargin)
-        }
-        .navigationTitle(definition.title)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.Homestead.benefitsSheet)
-    }
-
-    private var historyLink: some View {
-        NavigationLink(value: HomesteadSheetDestination.history) {
-            HStack {
-                Text("All tiers")
-                Spacer()
-                Image(systemName: "chevron.right").accessibilityHidden(true)
-            }
-            .trinketTypography(.body)
-            .foregroundStyle(.primary)
-            .padding(.vertical, TrinketDesign.Spacing.small)
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.Homestead.allTiersButton)
-    }
-
-    private func updateDetent() {
-        withAnimation(TrinketMotion.Interaction.stateChange) {
-            if !path.isEmpty {
-                detent = .large
-            } else if kind.isImprovement {
-                detent = expanded ? .height(540) : compactDetent
-            } else {
-                detent = .medium
-            }
-        }
-    }
 }
 
-private struct HomesteadTierHistory: View {
-    let definition: HomesteadNodeDefinition
-    let currentTier: Int
+struct HomesteadWalletSheetContent: View {
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraLarge) {
-                ForEach(definition.tiers, id: \.tier) { tier in
-                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(tier.stageName)
-                                .trinketTypography(.sectionDisplay)
-                            Spacer()
-                            Text("\(tier.tier)")
-                                .trinketTypography(.statValue)
-                        }
-                        .foregroundStyle(tier.tier == currentTier ? TrinketDesign.Colors.accent : .primary)
-                        HomesteadEffectDescription(tier: tier)
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Homestead.tierNode(title: definition.title, tier: tier.tier))
-                }
-            }
-            .padding(TrinketDesign.Layout.contentMargin)
+            HomesteadResourceWallet(homestead: playerSave.homestead, roster: playerSave.roster)
+                .padding(TrinketDesign.Layout.contentMargin)
         }
-        .navigationTitle("All tiers")
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.Homestead.tierHistory)
+        .navigationTitle("Resources")
     }
 }

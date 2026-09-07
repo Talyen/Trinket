@@ -4,6 +4,7 @@ import TrinketCore
 
 /// The `onHit` trigger family of `CombatTraitTriggers`.
 public struct OnHitTriggers: Equatable, Hashable, Sendable {
+    public var resonantShell: Bool = false
     public var onHitAttackerBurn: Int = 0
     public var onHitAttackerFreezeBuildup: Int = 0
     public var onHitAttackerPoison: Int = 0
@@ -12,6 +13,7 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
     public var onHitAttackerHoly: Int = 0
 
     public init(
+        resonantShell: Bool = false,
         onHitAttackerBurn: Int = 0,
         onHitAttackerFreezeBuildup: Int = 0,
         onHitAttackerPoison: Int = 0,
@@ -19,6 +21,7 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
         onHitAttackerBleedTurns: Int = 0,
         onHitAttackerHoly: Int = 0
     ) {
+        self.resonantShell = resonantShell
         self.onHitAttackerBurn = onHitAttackerBurn
         self.onHitAttackerFreezeBuildup = onHitAttackerFreezeBuildup
         self.onHitAttackerPoison = onHitAttackerPoison
@@ -28,11 +31,12 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["onHitAttackerBurn", "onHitAttackerFreezeBuildup", "onHitAttackerPoison", "onHitAttackerBleedPotency", "onHitAttackerBleedTurns", "onHitAttackerHoly"]
+    public static let fieldNames: [String] = ["resonantShell", "onHitAttackerBurn", "onHitAttackerFreezeBuildup", "onHitAttackerPoison", "onHitAttackerBleedPotency", "onHitAttackerBleedTurns", "onHitAttackerHoly"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.resonantShell != other.resonantShell { names.append("resonantShell") }
         if self.onHitAttackerBurn != other.onHitAttackerBurn { names.append("onHitAttackerBurn") }
         if self.onHitAttackerFreezeBuildup != other.onHitAttackerFreezeBuildup { names.append("onHitAttackerFreezeBuildup") }
         if self.onHitAttackerPoison != other.onHitAttackerPoison { names.append("onHitAttackerPoison") }
@@ -45,6 +49,7 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
 
 extension OnHitTriggers {
     mutating func merge(_ other: Self) {
+        resonantShell = resonantShell || other.resonantShell
         onHitAttackerBurn += other.onHitAttackerBurn
         onHitAttackerFreezeBuildup += other.onHitAttackerFreezeBuildup
         onHitAttackerPoison += other.onHitAttackerPoison
@@ -58,6 +63,7 @@ extension OnHitTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            resonantShell: values.decode(Bool.self, "resonantShell", default: false),
             onHitAttackerBurn: values.decode(Int.self, "onHitAttackerBurn", default: 0),
             onHitAttackerFreezeBuildup: values.decode(Int.self, "onHitAttackerFreezeBuildup", default: 0),
             onHitAttackerPoison: values.decode(Int.self, "onHitAttackerPoison", default: 0),
@@ -68,6 +74,7 @@ extension OnHitTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(resonantShell, "resonantShell", default: false)
         try container.encodeNonDefault(onHitAttackerBurn, "onHitAttackerBurn", default: 0)
         try container.encodeNonDefault(onHitAttackerFreezeBuildup, "onHitAttackerFreezeBuildup", default: 0)
         try container.encodeNonDefault(onHitAttackerPoison, "onHitAttackerPoison", default: 0)

@@ -15,6 +15,23 @@ package enum DamagePipeline {
             return
         }
 
+        if state.damageKeyword == .burn,
+           context.modifiers(for: state.combatant.id).triggers.undyingEmber,
+           context.roster.isDeathsDoorActive(for: state.combatant) {
+            applyOutgoingDamage(to: &state, in: &context)
+            applyMitigation(to: &state, in: &context)
+            var request = HealRequest(
+                amount: state.remaining, target: state.combatant, sourceActorID: state.combatant.id,
+                logAs: .instantHeal(actorName: state.combatant.name, abilityName: "Undying Ember", keyword: .health),
+            )
+            request.usesResolvedHealing = true
+            state.damageEvents.append(contentsOf: HealingEngine.resolveHeal(request, in: &context).events)
+            state.remaining = 0
+            state.buildupDamage = 0
+            state.dealt = 0
+            return
+        }
+
         applyDodgeGate(to: &state, in: &context)
         if state.isDodged {
             return
@@ -48,6 +65,33 @@ package enum DamagePipeline {
             applyControlMeter(to: &state, in: &context)
         }
         state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))
+    }
+
+    static func applyWinterWake(to state: inout DamageResolutionState, in context: inout BattleState) {
+        guard !state.options.causedByDodge, state.options.isAttackHit,
+              context.modifiers(for: state.combatant.id).triggers.wintersWake,
+              let attackerID = state.sourceActorID,
+              let attacker = context.roster.combatant(for: attackerID), attacker.isAlive else { return }
+        var preview = context
+        var avoided = state
+        avoided.targetStatus = DamageTargetStatus(for: state.combatant, in: preview)
+        applyOutgoingDamage(to: &avoided, in: &preview)
+        applyMitigation(to: &avoided, in: &preview)
+        let amount = CombatRounding.scaled(avoided.remaining, multiplier: 0.5)
+        guard amount > 0 else { return }
+        var options = DamageOptions.dodgeTriggeredControlReaction
+        options.usesResolvedOutgoingDamage = true
+        let outcome = context.resolveDamage(DamageRequest(
+            amount: amount, target: attacker.combatant, keyword: .freeze,
+            sourceActorID: state.combatant.id, options: options,
+        ))
+        state.damageEvents.append(contentsOf: outcome.events)
+        if outcome.healthLost > 0 {
+            state.damageEvents.append(context.nextEvent(
+                kind: .abilityDamage, actorName: state.combatant.name, abilityName: "Winter’s Wake",
+                target: attacker.combatant, amount: outcome.healthLost, keyword: .freeze,
+            ))
+        }
     }
 
     private static func applyOutgoingDamage(

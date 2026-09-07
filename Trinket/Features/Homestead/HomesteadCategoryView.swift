@@ -1,5 +1,4 @@
 import SwiftUI
-import TrinketAppState
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
@@ -12,6 +11,7 @@ struct HomesteadCategoryView: View {
     var zoomNamespace: Namespace.ID
 
     @Environment(PlayerSaveStore.self) private var playerSave
+    @State private var showsWallet = false
     @State private var pinnedHomesteadArtwork: [String] = []
 
     private var homestead: PlayerHomesteadState {
@@ -27,21 +27,46 @@ struct HomesteadCategoryView: View {
     }
 
     var body: some View {
-        HomesteadHeroScreen(
-            title: category.rawValue,
-            homestead: homestead,
-            roster: roster,
-        ) {
-            categoryHeroArt
-        } bodyContent: {
-            HomesteadProjectSection(
-                category: category,
-                definitions: definitions,
-                homestead: homestead,
-                roster: roster,
-                zoomNamespace: zoomNamespace,
-                showsCategoryHeader: false,
-            )
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: TrinketDesign.Spacing.large) {
+                ForEach(definitions) { definition in
+                    HomesteadProjectTile(
+                        definition: definition,
+                        status: HomesteadProjectStatus(definition: definition, homestead: homestead, roster: roster),
+                        zoomNamespace: zoomNamespace,
+                    )
+                }
+            }
+            .padding(TrinketDesign.Layout.contentMargin)
+            .padding(.bottom, TrinketDesign.Layout.tabBarContentClearance)
+        }
+        .trinketScreenBackground()
+        .navigationTitle(category.rawValue)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showsWallet = true } label: { Label("Resources", systemImage: "bag") }
+                    .labelStyle(.iconOnly)
+                    .accessibilityIdentifier(AccessibilityID.Homestead.walletButton)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Homestead.gallery)
+        .sheet(isPresented: $showsWallet) {
+            NavigationStack {
+                HomesteadWalletSheetContent()
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button { showsWallet = false } label: { Label("Close", systemImage: "xmark") }
+                                .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(TrinketDesign.Colors.surface)
         }
         .task(id: imminentHomesteadArtworkKey) {
             await refreshImminentHomesteadArtworkPins()
@@ -61,6 +86,9 @@ struct HomesteadCategoryView: View {
         for definition in definitions {
             if let portrait = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {
                 names.append(portrait.imageName)
+                if let thumbnail = portrait.thumbnailImageName {
+                    names.append(thumbnail)
+                }
             }
             if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
                 names.append(art.imageName)
@@ -96,15 +124,6 @@ struct HomesteadCategoryView: View {
             PreparedArtworkCache.shared.releasePins(names: Array(removed))
         }
         pinnedHomesteadArtwork = next
-    }
-
-    @ViewBuilder
-    private var categoryHeroArt: some View {
-        if let art = ArtCatalog.backgroundArtByID[category.artID] {
-            HomesteadFocalArtwork(art: art)
-        } else {
-            TrinketDesign.Colors.surface
-        }
     }
 }
 

@@ -314,14 +314,14 @@ public enum AccessibilityID {
     public enum Homestead {
         public static let resourceWallet = "Homestead Resource Wallet"
         public static let collectButton = "Homestead Collect Button"
+        public static let gallery = "Homestead Building Gallery"
+        public static let benefitsPanel = "Homestead Benefits Panel"
+        public static let currentEffects = "Homestead Current Effects"
+        public static let upgradeEffects = "Homestead Upgrade Effects"
+        public static let upgradeCost = "Homestead Upgrade Cost"
         public static let improveButton = "Homestead Improve Button"
         public static let upgradeButton = "Homestead Upgrade Button"
         public static let upgradeSheet = "Homestead Upgrade Sheet"
-        public static let effectDisclosure = "Homestead Effect Disclosure"
-        public static let allTiersButton = "Homestead All Tiers Button"
-        public static let tierHistory = "Homestead Tier History"
-        public static let benefitsButton = "Homestead Benefits Button"
-        public static let benefitsSheet = "Homestead Benefits Sheet"
         public static let walletButton = "Homestead Wallet Button"
         public static let closeSheetButton = "Homestead Close Sheet Button"
         public static let backButton = "Homestead Detail Back Button"
@@ -334,12 +334,12 @@ public enum AccessibilityID {
             "\(title) Homestead Node"
         }
 
-        public static func nodeDetail(title: String) -> String {
-            "\(title) Homestead Detail"
+        public static func progress(tier: Int) -> String {
+            "Homestead Progress \(tier)"
         }
 
-        public static func tierNode(title: String, tier: Int) -> String {
-            "\(title) Homestead Tier \(tier)"
+        public static func nodeDetail(title: String) -> String {
+            "\(title) Homestead Detail"
         }
     }
 
@@ -408,5 +408,30 @@ public enum AccessibilityID {
         public static func equipItem(_ itemID: String) -> String {
             "Equip Loadout Item \(itemID)"
         }
+    }
+}
+
+public extension AccessibilityID.Play {
+    static let contractsModeCard = "Contracts Mode Card"
+    static let contractsBoard = "Contracts Board"
+    static let contractsRefresh = "Contracts Refresh"
+    static func contractParty(_ difficulty: String) -> String {
+        "Contract Party \(difficulty)"
+    }
+
+    static func contractOffer(_ difficulty: String) -> String {
+        "Contract Offer \(difficulty)"
+    }
+
+    static func contractFight(_ difficulty: String) -> String {
+        "Contract Fight \(difficulty)"
+    }
+
+    static func contractEnemy(_ difficulty: String) -> String {
+        "Contract Enemy \(difficulty)"
+    }
+
+    static func contractDetail(_ difficulty: String) -> String {
+        "Contract Detail \(difficulty)"
     }
 }

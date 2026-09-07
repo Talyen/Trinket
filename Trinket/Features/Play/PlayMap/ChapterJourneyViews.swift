@@ -7,6 +7,7 @@ import TrinketFeatureSupport
 
 struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
     let rows: [StageSelectRowPresentation<Item>]
+    var rowSpacing: CGFloat = TrinketDesign.Spacing.extraSmall * 2
     let isPrimaryActionDisabled: (Item) -> Bool
     let onArtworkTap: (Item) -> Void
     let onPrimaryAction: (Item) -> Bool
@@ -14,7 +15,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
     @ViewBuilder let partyPickerSheet: (Item) -> PartyPickerSheet
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: rowSpacing - TrinketDesign.Spacing.extraSmall * 2) {
             ForEach(rows) { presentation in
                 StageSelectRow(
                     presentation: presentation,

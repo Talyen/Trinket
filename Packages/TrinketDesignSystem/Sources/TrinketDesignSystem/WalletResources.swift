@@ -53,6 +53,7 @@ public struct TrinketWalletGrid<Content: View>: View {
 public struct TrinketWalletResourcePill<Artwork: View>: View {
     private let title: String
     private let amount: Int
+    private var formattedValue: String?
     private let showsIncreasePrefix: Bool
     private let increaseAnimationDelay: TimeInterval
     private let keepsArtworkStationary: Bool
@@ -60,6 +61,9 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     @State private var increaseAnimationTrigger = 0
 
     private var displayedAmount: String {
+        if let formattedValue {
+            return formattedValue
+        }
         let value = WalletFormatting.displayString(for: amount)
         return showsIncreasePrefix ? "+\(value)" : value
     }
@@ -80,6 +84,11 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         self.artwork = artwork()
     }
 
+    public init(title: String, value: String, @ViewBuilder artwork: () -> Artwork) {
+        self.init(title: title, amount: 0, artwork: artwork)
+        formattedValue = value
+    }
+
     public var body: some View {
         HStack(spacing: TrinketDesign.Spacing.small) {
             artwork.frame(width: TrinketDesign.Layout.walletResourceArtworkSize, height: TrinketDesign.Layout.walletResourceArtworkSize)
@@ -87,7 +96,8 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                 Text(title).trinketTypography(.caption).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.76)
 
-                Text(displayedAmount).trinketTypography(.statValue).lineLimit(1).minimumScaleFactor(0.7).allowsTightening(true)
+                Text(displayedAmount).trinketTypography(.statValue).foregroundStyle(.primary).lineLimit(1).minimumScaleFactor(0.7)
+                    .allowsTightening(true)
                     .contentTransition(.numericText())
             }
             .walletIncreaseBump(

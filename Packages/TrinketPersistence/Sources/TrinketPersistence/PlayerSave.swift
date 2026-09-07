@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 16
+    public static let currentSchemaVersion = 17
 
     public enum Schema {
         public static let renamedItemSlots = 14
@@ -24,6 +24,7 @@ public struct PlayerSave: Equatable, Sendable {
     public var homestead: PlayerHomesteadState
     public var spires: PlayerSpiresState
     public var labyrinth: PlayerLabyrinthState
+    public var contracts: PlayerContractsState
     public var corruptionAltarCooldownRemaining: Int
 
     public static var fresh: Self {
@@ -93,6 +94,7 @@ public struct PlayerSave: Equatable, Sendable {
         homestead: PlayerHomesteadState = .freshStart,
         spires: PlayerSpiresState = .freshStart,
         labyrinth: PlayerLabyrinthState = .freshStart,
+        contracts: PlayerContractsState = .freshStart,
         corruptionAltarCooldownRemaining: Int = 0,
     ) {
         self.schemaVersion = schemaVersion
@@ -106,6 +108,7 @@ public struct PlayerSave: Equatable, Sendable {
         self.homestead = homestead
         self.spires = spires
         self.labyrinth = labyrinth
+        self.contracts = contracts
         self.corruptionAltarCooldownRemaining = max(0, corruptionAltarCooldownRemaining)
     }
 

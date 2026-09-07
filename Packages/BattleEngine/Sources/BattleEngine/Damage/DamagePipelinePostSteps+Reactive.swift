@@ -188,7 +188,7 @@ package extension DamagePipeline {
             }
             appendRetaliationDamage(
                 amount: wards.thornsStacks,
-                keyword: .physical,
+                keyword: context.modifiers(for: state.combatant.id).triggers.resonantShell ? .stun : .physical,
                 abilityName: "Thorns",
                 attacker: attacker,
                 to: &state,
@@ -245,19 +245,11 @@ package extension DamagePipeline {
                 target: attacker.combatant,
                 keyword: keyword,
                 sourceActorID: state.combatant.id,
-                options: .flatReaction,
+                options: keyword == .stun || keyword == .freeze ? .flatControlReaction : .flatReaction,
             ),
         )
         var retaliationEvents = outcome.events
-        if let lastIndex = retaliationEvents.indices.last {
-            let event = retaliationEvents[lastIndex]
-            retaliationEvents[lastIndex] = event.with(
-                effectKind: .thornsTriggered,
-                actorID: state.combatant.id,
-                actorName: state.combatant.name,
-                abilityName: abilityName,
-            )
-        } else if outcome.healthLost > 0 {
+        if outcome.healthLost > 0 {
             retaliationEvents.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .thornsTriggered,

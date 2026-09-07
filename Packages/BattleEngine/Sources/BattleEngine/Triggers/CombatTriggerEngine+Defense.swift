@@ -196,10 +196,12 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard purgeAll || count > 0 else { return [] }
         var enemyEffects = context.roster.activeEffects(for: target)
+        let preservingBlock = context.modifiers(for: target.id).triggers.sealedSarcophagus
         let removedKeywords = EffectRemoval.removeBuffs(
             from: &enemyEffects,
             count: count,
             removeAll: purgeAll,
+            preservingBlock: preservingBlock,
             using: &context.rng,
         )
         guard !removedKeywords.isEmpty else { return [] }

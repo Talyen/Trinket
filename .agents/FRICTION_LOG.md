@@ -19,6 +19,7 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 
 | Date | Area | Resolution (commit / owner link) |
 |------|------|------------------------------------|
+| 2026-09-07 | Talent catalog coverage | The [test ownership index](../Packages/TrinketContent/Tests/README.md) described fixed six-node trees despite authored extra rows; it now records the completed minimum of seven nodes per tree. |
 | 2026-09-06 | Homestead save failure | [Save recovery](../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) compensates affected graph slices without SwiftData rollback; disk-backed Food collection, reset, deferred failure, and retry regressions pass. |
 | 2026-09-06 | UI result finalization | [Diagnostics guidance](../Docs/AgentContext/ci-diagnostics.md) documents log-proven success, incomplete bundles, evidence retention, and separate motion recording. Existing watchdog regressions verify bounded completion and failure precedence; the Xcode finalization hang remains a supported tooling limitation. |
 | 2026-09-06 | Package test destination | [The package runner](../Scripts/test-package.sh) rejects non-simulator platforms and destinations combined with generic build-for-testing before side effects; simulator name/UUID overrides remain supported. |

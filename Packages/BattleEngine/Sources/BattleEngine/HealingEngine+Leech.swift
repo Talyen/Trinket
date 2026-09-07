@@ -33,6 +33,8 @@ package extension HealingEngine {
             || damageKeyword == .poison && profile.triggers.poisonDamageLeech
             || damageKeyword == .burn && profile.triggers.burnDamageLeech
             || damageKeyword == .bleed && profile.triggers.bleedDamageLeech
+            || damageKeyword == .physical && profile.triggers.borrowedLife
+            && context.roster.isDeathsDoorActive(for: actorCombatant)
         if leechPct == 0, keywordGrantsLeech {
             leechPct = Effect.abilityLeechPercent
         }
@@ -82,9 +84,10 @@ package extension HealingEngine {
                 ),
                 in: &context,
             )
-            guard healOutcome.healthRestored > 0 else { return .empty }
+            guard healOutcome.healthRestored > 0 else { return healOutcome }
             actualRestored = healOutcome.healthRestored
             leechFlags = healOutcome.flags
+            events.append(contentsOf: healOutcome.events)
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .leechHeal,
@@ -107,9 +110,10 @@ package extension HealingEngine {
                 ),
                 in: &context,
             )
-            guard healOutcome.healthRestored > 0 else { return .empty }
+            guard healOutcome.healthRestored > 0 else { return healOutcome }
             actualRestored = healOutcome.healthRestored
             leechFlags = healOutcome.flags
+            events.append(contentsOf: healOutcome.events)
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .leechHeal,

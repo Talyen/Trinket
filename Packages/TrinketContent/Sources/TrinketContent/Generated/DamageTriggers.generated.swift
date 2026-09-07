@@ -4,6 +4,8 @@ import TrinketCore
 
 /// The `damage` trigger family of `CombatTraitTriggers`.
 public struct DamageTriggers: Equatable, Hashable, Sendable {
+    public var ghostfrost: Bool = false
+    public var stolenThunder: Bool = false
     public var physicalBonusesApplyToHoly: Bool = false
     public var attacksIgnoreBlockWhileTargetPoisoned: Bool = false
     public var damageBelowHealthPercentThreshold: Double = 0
@@ -67,6 +69,8 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var elementalParadox: Bool = false
 
     public init(
+        ghostfrost: Bool = false,
+        stolenThunder: Bool = false,
         physicalBonusesApplyToHoly: Bool = false,
         attacksIgnoreBlockWhileTargetPoisoned: Bool = false,
         damageBelowHealthPercentThreshold: Double = 0,
@@ -129,6 +133,8 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         frostfire: Bool = false,
         elementalParadox: Bool = false
     ) {
+        self.ghostfrost = ghostfrost
+        self.stolenThunder = stolenThunder
         self.physicalBonusesApplyToHoly = physicalBonusesApplyToHoly
         self.attacksIgnoreBlockWhileTargetPoisoned = attacksIgnoreBlockWhileTargetPoisoned
         self.damageBelowHealthPercentThreshold = damageBelowHealthPercentThreshold
@@ -193,11 +199,13 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "damagePerCarriedGoldEvery", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox"]
+    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "damagePerCarriedGoldEvery", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
+        if self.ghostfrost != other.ghostfrost { names.append("ghostfrost") }
+        if self.stolenThunder != other.stolenThunder { names.append("stolenThunder") }
         if self.physicalBonusesApplyToHoly != other.physicalBonusesApplyToHoly { names.append("physicalBonusesApplyToHoly") }
         if self.attacksIgnoreBlockWhileTargetPoisoned != other.attacksIgnoreBlockWhileTargetPoisoned { names.append("attacksIgnoreBlockWhileTargetPoisoned") }
         if self.damageBelowHealthPercentThreshold != other.damageBelowHealthPercentThreshold { names.append("damageBelowHealthPercentThreshold") }
@@ -265,6 +273,8 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
 
 extension DamageTriggers {
     mutating func merge(_ other: Self) {
+        ghostfrost = ghostfrost || other.ghostfrost
+        stolenThunder = stolenThunder || other.stolenThunder
         physicalBonusesApplyToHoly = physicalBonusesApplyToHoly || other.physicalBonusesApplyToHoly
         attacksIgnoreBlockWhileTargetPoisoned = attacksIgnoreBlockWhileTargetPoisoned || other.attacksIgnoreBlockWhileTargetPoisoned
         damageBelowHealthPercentThreshold = max(damageBelowHealthPercentThreshold, other.damageBelowHealthPercentThreshold)
@@ -333,6 +343,8 @@ extension DamageTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
+            ghostfrost: values.decode(Bool.self, "ghostfrost", default: false),
+            stolenThunder: values.decode(Bool.self, "stolenThunder", default: false),
             physicalBonusesApplyToHoly: values.decode(Bool.self, "physicalBonusesApplyToHoly", default: false),
             attacksIgnoreBlockWhileTargetPoisoned: values.decode(Bool.self, "attacksIgnoreBlockWhileTargetPoisoned", default: false),
             damageBelowHealthPercentThreshold: values.decode(Double.self, "damageBelowHealthPercentThreshold", default: 0),
@@ -398,6 +410,8 @@ extension DamageTriggers {
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
+        try container.encodeNonDefault(ghostfrost, "ghostfrost", default: false)
+        try container.encodeNonDefault(stolenThunder, "stolenThunder", default: false)
         try container.encodeNonDefault(physicalBonusesApplyToHoly, "physicalBonusesApplyToHoly", default: false)
         try container.encodeNonDefault(attacksIgnoreBlockWhileTargetPoisoned, "attacksIgnoreBlockWhileTargetPoisoned", default: false)
         try container.encodeNonDefault(damageBelowHealthPercentThreshold, "damageBelowHealthPercentThreshold", default: 0)

@@ -10,7 +10,8 @@ What the player sees, in player terms. Locked rules live in
 | Journey | A guided run of encounters. |
 | Labyrinth | A deeper expedition; progress persists through its own save slice. |
 | Spire | An ascending challenge gauntlet. |
+| Contracts | Three renewable single-battle jobs under Explore, with regular rewards and party-based levels. See [Contracts.md](Contracts.md). |
 | Collection | The party's equipment and talents: hero and companion loadouts plus drill-in detail screens. |
-| Homestead | Permanent progression from gathered resources: art-led overview, category lists (Farming / Crafting / Alchemy / Training / Arcana), and immediate tier-path builds. See [Homestead.md](Homestead.md). |
+| Homestead | Permanent progression from gathered resources: art-led overview, category galleries (Farming / Crafting / Alchemy / Training / Arcana), and immediate tier-path builds. See [Homestead.md](Homestead.md). |
 | Shop | Spends rewards between encounters; leaves back to Play. |
 | Options | Device preferences only; never gates play or progress. Identity model: [Identity.md](Identity.md). |

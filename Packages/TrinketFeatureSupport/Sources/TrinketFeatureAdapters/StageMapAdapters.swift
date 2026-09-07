@@ -145,6 +145,33 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
     }
 }
 
+public extension StageSelectRowPresentation where Item == ContractOffer {
+    static func contractRows(offers: [ContractOffer]) -> [Self] {
+        offers.compactMap { offer in
+            guard let enemy = GameContent.enemy(matching: offer.enemyID) else { return nil }
+            let encounter = StageEncounter.battle(enemyID: offer.enemyID)
+            return Self(
+                item: offer,
+                isActive: true,
+                activeEyebrow: offer.difficulty.title,
+                mapLabel: offer.difficulty.title,
+                title: enemy.name,
+                encounterTypeTitle: enemy.isBoss ? "Boss" : encounter.title,
+                symbolName: encounter.symbolName,
+                tint: encounter.mapTint,
+                primaryActionTitle: "Battle",
+                showsPartyPicker: true,
+                isArtworkInteractive: true,
+                rowAccessibilityID: AccessibilityID.Play.contractOffer(offer.difficulty.rawValue),
+                artworkAccessibilityID: AccessibilityID.Play.contractEnemy(offer.difficulty.rawValue),
+                actionAccessibilityID: AccessibilityID.Play.contractFight(offer.difficulty.rawValue),
+                activeDetailAccessibilityID: AccessibilityID.Play.contractDetail(offer.difficulty.rawValue),
+                partyControlAccessibilityID: AccessibilityID.Play.contractParty(offer.difficulty.rawValue),
+            )
+        }
+    }
+}
+
 public extension [SpireDefinition] {
     func orderedForSpiresHub(
         progress: PlayerSpiresState,

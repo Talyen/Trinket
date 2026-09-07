@@ -4,6 +4,11 @@ The collection has one Unique for each of the 29 weapon, armor, and accessory
 bases. Trinkets remain a separate category. Uniques use their base item's artwork
 and the existing singleton ownership, equipment, reward, and corruption rules.
 
+Collection shows the full authored Unique and Trinket catalogs, with owned items
+first and missing entries locked in catalog order. Locked cards share the hero and
+companion treatment and cannot open details. Basic and Astral Gear show only owned
+items; Unique Gear slot filters include locked entries.
+
 ## Catalog contract
 
 The authored [Unique catalog](../../Packages/TrinketContent/Sources/TrinketContent/Content/UniqueCatalog.swift)

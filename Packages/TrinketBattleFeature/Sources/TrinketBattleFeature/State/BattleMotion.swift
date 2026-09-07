@@ -43,7 +43,7 @@ enum BattleMotion {
     static let dealInsertScale: CGFloat = 0.50
     static let cardInspectHoldDuration: TimeInterval = 0.5
     static let cardPressCommitDelay: TimeInterval = 0.11
-    static let tapLiftHeightFraction: CGFloat = 0.20
+    static let tapLiftHeightFraction: CGFloat = 0.40
     static let tapLiftPlayDelay: TimeInterval = 0.18
 
     static var cardPress: Animation {

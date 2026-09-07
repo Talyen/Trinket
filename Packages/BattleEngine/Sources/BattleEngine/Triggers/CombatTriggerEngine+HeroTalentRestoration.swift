@@ -98,6 +98,11 @@ extension CombatTriggerEngine {
         removed: [Keyword],
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        if source.role != .enemy, target.role != .enemy,
+           context.roster.health(for: source) > 0,
+           context.modifiers(for: source.id).triggers.lessonLearned {
+            context.roster.mutateRuntime(for: target) { $0.cleansedKeywordProtection.formUnion(removed) }
+        }
         guard context.allowsHeroTalentReaction, source.role != .enemy, target.role != .enemy,
               context.roster.health(for: source) > 0, context.roster.health(for: target) > 0 else { return [] }
         if context.hasHeroCard(for: source.id) {

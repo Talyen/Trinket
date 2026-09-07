@@ -84,6 +84,9 @@ package extension BattleState {
     }
 
     mutating func interceptDebuff(_ effect: Effect, on target: Combatant) -> Bool {
+        if CombatTriggerEngine.preventsDebuff(effect, on: target, in: self) {
+            return true
+        }
         guard effect.isRemovableDebuff,
               modifiers(for: target.id).triggers.blockFirstDebuffPerTurn,
               roster.runtime(for: target)?.faeWardBlockedThisTurn != true

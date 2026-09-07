@@ -3,6 +3,22 @@ import TrinketContent
 import TrinketCore
 
 package enum DefensePoolEngine {
+    static func steal(
+        _ amount: Int,
+        from target: Combatant,
+        to actor: Combatant,
+        abilityName: String,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard amount > 0, context.roster.health(for: target) > 0, context.roster.health(for: actor) > 0,
+              !context.modifiers(for: target.id).triggers.sealedSarcophagus else { return [] }
+        let block = blockPoints(in: context.roster.activeEffects(for: target))
+        let stolen = min(block, amount)
+        guard stolen > 0 else { return [] }
+        set(block - stolen, on: target, in: &context)
+        return context.applyBlock(stolen, to: actor, source: actor, abilityName: abilityName, applyOutgoingAdjustment: false)
+    }
+
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {
         effects.reduce(0) { sum, active in
             if case let .shield(_, buffer) = active.effect {
@@ -146,6 +162,9 @@ package enum DefensePoolEngine {
         in context: BattleState?,
     ) -> Bool {
         guard let keyword else { return false }
+        if keyword == .freeze, sourceTriggers.ghostfrost {
+            return true
+        }
         if keyword == .holy {
             if sourceTriggers.holyIgnoresBlock || sourceTriggers.holyIgnoresBlockAndDodge {
                 return true

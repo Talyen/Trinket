@@ -19,6 +19,7 @@ public struct TalentActionGuardKey: Hashable, Sendable {
         case cleanSlate
         case bloodrush
         case boneArmor
+        case stolenThunder
     }
 
     public var kind: Kind

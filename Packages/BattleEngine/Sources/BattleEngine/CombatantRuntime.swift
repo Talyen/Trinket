@@ -2,9 +2,16 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+struct HealingEcho: Hashable, Sendable {
+    let amount: Int
+    let sourceActorID: String
+}
+
 @dynamicMemberLookup
 public struct CombatantRuntime: Hashable {
     public struct TalentState: Equatable, Hashable, Sendable {
+        var healingEchoes: [HealingEcho] = []
+        var cleansedKeywordProtection: Set<Keyword> = []
         public var talentMaxHealthBonus: Int = 0
         public var permanentDamageBonus: Int = 0
         public var keywordDamageRamp: [Keyword: Int] = [:]
@@ -56,20 +63,39 @@ public struct CombatantRuntime: Hashable {
         }
     }
 
-    private var talentStateStorage = TalentState()
+    private final class TalentStorage: Hashable {
+        var value: TalentState
+
+        init(_ value: TalentState = TalentState()) {
+            self.value = value
+        }
+
+        static func == (lhs: TalentStorage, rhs: TalentStorage) -> Bool {
+            lhs === rhs || lhs.value == rhs.value
+        }
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(value)
+        }
+    }
+
+    private var talentStateStorage = TalentStorage()
 
     private mutating func mutateTalentState(_ body: (inout TalentState) -> Void) {
-        body(&talentStateStorage)
+        if !isKnownUniquelyReferenced(&talentStateStorage) {
+            talentStateStorage = TalentStorage(talentStateStorage.value)
+        }
+        body(&talentStateStorage.value)
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<TalentState, T>) -> T {
-        get { talentStateStorage[keyPath: keyPath] }
+        _read { yield talentStateStorage.value[keyPath: keyPath] }
         set { mutateTalentState { $0[keyPath: keyPath] = newValue } }
     }
 
     var talentState: TalentState {
-        get { talentStateStorage }
-        set { talentStateStorage = newValue }
+        _read { yield talentStateStorage.value }
+        set { talentStateStorage = TalentStorage(newValue) }
     }
 
     public let combatant: Combatant
@@ -121,7 +147,7 @@ public struct CombatantRuntime: Hashable {
         self.hasTriggeredSecondWind = hasTriggeredSecondWind
         self.hasTriggeredDeathRevive = hasTriggeredDeathRevive
         self.hasTriggeredPhoenixGift = hasTriggeredPhoenixGift
-        talentStateStorage = TalentState()
+        talentStateStorage = TalentStorage()
         currentHealth = initialHealth ?? CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus)
         currentMana = initialMana ?? CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus)
         activeEffects = initialActiveEffects

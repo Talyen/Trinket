@@ -33,6 +33,12 @@ package extension BattleState {
         ).events)
 
         let triggers = modifiers(for: combatant.id).triggers
+        if triggers.lightFingered {
+            events.append(contentsOf: DefensePoolEngine.steal(
+                granted, from: roster.enemy.combatant, to: combatant,
+                abilityName: "Light-Fingered", in: &self,
+            ))
+        }
         if triggers.onGainGoldDrawCardOncePerTurn,
            let owner = roster.participant(for: combatant),
            owner.isPartyMember,
@@ -196,72 +202,5 @@ package extension BattleState {
         let actual = runtime.spendMana(amount)
         roster.update(runtime)
         return actual
-    }
-}
-
-public extension BattleTurnEngine {
-    static let manaEmpowermentCost = 3
-    static let manaEmpowermentBonus = 1
-
-    @discardableResult
-    static func spendManaToEmpowerBurnOrFreezeIfNeeded(
-        for ability: inout Ability,
-        actor: Combatant,
-        context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
-        let empoweredKeyword = ability.damageComponents.first(where: \.isManaEmpowerableBurnOrFreezeDamage)?.keyword
-        let repeats = ability.repeatsManaEmpowerment
-            || (ability.hasManaEmpowerableBurnDamage
-                && context.modifiers(for: actor.id).triggers.repeatManaEmpowerment)
-        let triggers = context.modifiers(for: actor.id).triggers
-        let isHealingCard = ability.keywords.contains(.health)
-        let baseCost: Int = if isHealingCard, triggers.healingEmpowermentCostReduction > 0 {
-            max(0, manaEmpowermentCost - triggers.healingEmpowermentCostReduction)
-        } else if triggers.empowermentCostReduction > 0 {
-            max(0, manaEmpowermentCost - triggers.empowermentCostReduction)
-        } else {
-            manaEmpowermentCost
-        }
-        var events: [ActionEvent] = []
-        var purchases = 0
-        var totalManaSpent = 0
-        let maxMana = context.roster.runtime(for: actor)?.maxMana ?? 0
-        let firstDiscount = context.roster.runtime(for: actor)?.hasEmpoweredWithMana == false
-            && triggers.firstEmpowermentCostReduction > 0 ? 1 : 0
-        let maxPurchases = baseCost == 0 ? 1 : max(1, maxMana / baseCost + firstDiscount)
-        while purchases == 0 || repeats, purchases < maxPurchases {
-            guard let runtime = context.roster.runtime(for: actor), runtime.maxMana > 0 else { break }
-            let discount = runtime.hasEmpoweredWithMana ? 0 : triggers.firstEmpowermentCostReduction
-            let empowermentCost = max(0, baseCost - discount)
-            guard let spent = UniqueCombatEngine.payEmpowerment(
-                empowermentCost,
-                ability: ability,
-                actor: actor,
-                in: &context,
-            ) else { break }
-            context.roster.mutateRuntime(for: actor) { $0.hasEmpoweredWithMana = true }
-            purchases += 1
-            totalManaSpent += spent
-            ability = ability.empoweredByMana(amount: manaEmpowermentBonus + triggers.empowermentDamageBonus)
-            if spent > 0 {
-                events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
-                    by: actor,
-                    amountSpent: spent,
-                    in: &context,
-                ))
-            }
-        }
-        if purchases > 0 {
-            events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context))
-        }
-        if totalManaSpent > 0, let empoweredKeyword {
-            events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(
-                afterEmpowering: empoweredKeyword,
-                by: actor,
-                in: &context,
-            ))
-        }
-        return events
     }
 }

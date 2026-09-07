@@ -107,7 +107,7 @@ struct LabyrinthNodeInspector: View {
                         .trinketTypography(.eyebrow)
                         .trinketOnArtText(.title)
 
-                        Text(balanced: modifier.effect.description)
+                        KeywordDescriptionText(text: modifier.effect.description)
                             .trinketTypography(.footnote)
                             .trinketOnArtText(.eyebrow)
                             .lineLimit(nil)
