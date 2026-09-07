@@ -1,4 +1,5 @@
 .DerivedData/
+.DerivedData-stable/
 DerivedData/
 build/
 xcuserdata/
