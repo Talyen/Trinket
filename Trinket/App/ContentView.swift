@@ -40,7 +40,6 @@ struct ContentView: View {
             enabled: appState.options.hapticsEnabled,
         )
         .tint(TrinketDesign.Colors.accent)
-        .preferredColorScheme(.dark)
         .alert(
             "Progress Storage Issue",
             isPresented: Binding(
@@ -136,20 +135,7 @@ struct ContentView: View {
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
-                    OptionsView(
-                        persistenceStatusMessage: { appState.persistenceStatusMessage },
-                        applyMusicVolumeLive: { volume, phase in
-                            appState.applyMusicVolumeLive(volume, scenePhase: phase)
-                        },
-                        playToggleSFX: { isEnabled, volume in
-                            appState.sfxPlayer.play(
-                                isEnabled ? SFXID.uiToggleOn : SFXID.uiToggleOff,
-                                volume: volume,
-                            )
-                        },
-                        resetGameplayProgress: appState.resetGameplayProgress,
-                        unlockAllContent: appState.unlockAllContent,
-                    )
+                    makeOptionsView(appState: appState)
                 }
             }
         }

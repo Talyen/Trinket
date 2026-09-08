@@ -15,14 +15,14 @@ struct FightPacingTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: enemyID, role: .enemy, maxHealth: 50)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
             heroHealth: heroHP,
             companionHealth: companionHP,
             enemyHealth: enemyHP,
-            seed: 0,
+            rngSeed: 0,
             nextEffectID: 0,
             nextEventID: 0,
         )
@@ -96,14 +96,14 @@ struct FightPacingTests {
         let hero = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
             heroHealth: 10,
             companionHealth: 10,
             enemyHealth: 100,
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 0,
             nextEventID: 0,
         )

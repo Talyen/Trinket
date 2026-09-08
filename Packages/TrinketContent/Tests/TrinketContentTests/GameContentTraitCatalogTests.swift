@@ -48,38 +48,22 @@ struct GameContentTraitCatalogTests {
     }
 
     @Test func `boss damage auras match typed identity`() throws {
-        let golem = try #require(GameContent.traits.first { $0.id == "the_forge_golem_trait" })
-        try #expect(golem.triggers.turnRandomDamageAllEnemiesKeywordA == .stun)
-        try #expect(golem.triggers.turnRandomDamageAllEnemiesKeywordB == .burn)
-        try #expect(golem.triggers.turnRandomDamageAllEnemiesAmount == 1)
-
-        let bear = try #require(GameContent.traits.first { $0.id == "the_iron_bear_trait" })
-        try #expect(bear.triggers.turnRandomDamageAllEnemiesKeywordA == .physical)
-        try #expect(bear.triggers.turnRandomDamageAllEnemiesKeywordB == .stun)
-        try #expect(bear.triggers.turnRandomDamageAllEnemiesAmount == 1)
-
-        let treant = try #require(GameContent.traits.first { $0.id == "the_blight_treant_trait" })
-        try #expect(treant.triggers.turnRandomDamageAllEnemiesKeywordA == .poison)
-        try #expect(treant.triggers.turnRandomDamageAllEnemiesKeywordB == .bleed)
-        try #expect(treant.triggers.turnRandomDamageAllEnemiesAmount == 1)
+        try checkAura(id: "the_forge_golem_trait", keywordA: .stun, keywordB: .burn, amount: 1)
+        try checkAura(id: "the_iron_bear_trait", keywordA: .physical, keywordB: .stun, amount: 1)
+        try checkAura(id: "the_blight_treant_trait", keywordA: .poison, keywordB: .bleed, amount: 1)
+        try checkAura(id: "the_blood_countess_trait", keywordA: .bleed, keywordB: .bleed, amount: 1)
+        try checkAura(id: "the_seraph_trait", keywordA: .holy, keywordB: .holy, amount: 1)
+        try checkAura(id: "the_stone_titan_trait", keywordA: .stun, keywordB: .stun, amount: 1)
 
         let frostwarden = try #require(GameContent.traits.first { $0.id == "the_frostwarden_trait" })
         try #expect(frostwarden.triggers.turnFreezeDamageAllEnemies == 1)
         try #expect(frostwarden.triggers.turnRandomDamageAllEnemiesAmount == 0)
+    }
 
-        let countess = try #require(GameContent.traits.first { $0.id == "the_blood_countess_trait" })
-        try #expect(countess.triggers.turnRandomDamageAllEnemiesKeywordA == .bleed)
-        try #expect(countess.triggers.turnRandomDamageAllEnemiesKeywordB == .bleed)
-        try #expect(countess.triggers.turnRandomDamageAllEnemiesAmount == 1)
-
-        let seraph = try #require(GameContent.traits.first { $0.id == "the_seraph_trait" })
-        try #expect(seraph.triggers.turnRandomDamageAllEnemiesKeywordA == .holy)
-        try #expect(seraph.triggers.turnRandomDamageAllEnemiesKeywordB == .holy)
-        try #expect(seraph.triggers.turnRandomDamageAllEnemiesAmount == 1)
-
-        let titan = try #require(GameContent.traits.first { $0.id == "the_stone_titan_trait" })
-        try #expect(titan.triggers.turnRandomDamageAllEnemiesKeywordA == .stun)
-        try #expect(titan.triggers.turnRandomDamageAllEnemiesKeywordB == .stun)
-        try #expect(titan.triggers.turnRandomDamageAllEnemiesAmount == 1)
+    private func checkAura(id: String, keywordA: Keyword, keywordB: Keyword, amount: Int) throws {
+        let trait = try #require(GameContent.traits.first { $0.id == id })
+        try #expect(trait.triggers.turnRandomDamageAllEnemiesKeywordA == keywordA)
+        try #expect(trait.triggers.turnRandomDamageAllEnemiesKeywordB == keywordB)
+        try #expect(trait.triggers.turnRandomDamageAllEnemiesAmount == amount)
     }
 }

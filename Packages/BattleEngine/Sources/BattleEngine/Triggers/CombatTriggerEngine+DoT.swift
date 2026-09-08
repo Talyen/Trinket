@@ -177,6 +177,7 @@ package extension CombatTriggerEngine {
     static func detonateBleedAndPoison(
         on target: Combatant,
         sourceActorID: String,
+        includePoison: Bool = true,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard !context.isResolvingDoTDetonation else { return [] }
@@ -185,15 +186,21 @@ package extension CombatTriggerEngine {
 
         let currentEffects = context.roster.activeEffects(for: target)
         let bleeds = currentEffects.filter { $0.effect.isBleed && $0.remainingTurns > 0 }
-        let poisonPotency = currentEffects.reduce(0) { total, active in
+        let poisonPotency = includePoison ? currentEffects.reduce(0) { total, active in
             guard case let .poison(potency) = active.effect else { return total }
             return total + potency
-        }
+        } : 0
         guard !bleeds.isEmpty || poisonPotency > 0 else { return [] }
 
         context.roster.setActiveEffects(
             currentEffects.filter { active in
-                !active.effect.isBleed && active.effect.keyword != .poison
+                if active.effect.isBleed {
+                    return false
+                }
+                if includePoison, case .poison = active.effect {
+                    return false
+                }
+                return true
             },
             for: target,
         )

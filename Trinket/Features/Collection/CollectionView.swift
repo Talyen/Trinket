@@ -46,29 +46,13 @@ struct CollectionView: View {
                 salvageDetail: $salvageDetail,
                 hapticsEnabled: options.hapticsEnabled,
             )
-            .sheet(item: $selectedCombatant) { context in
-                NavigationStack {
-                    RosterCombatantDetailView(
-                        kind: context.kind,
-                        combatantID: context.combatantID,
-                        hapticsEnabled: options.hapticsEnabled,
-                        effectsVolume: options.effectsVolume,
-                    )
-                }
-                .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))
-                .fullGameOfferHost()
-                .trinketDetailSheet()
-                .appFramePacingSignpost(
-                    AppFramePacingSignposts.Name.sheetPresent,
-                    isActive: true,
-                )
-                .onAppear {
-                    AppFramePacingSignposts.event(
-                        AppFramePacingSignposts.Name.sheetPresent,
-                        detail: "collectionCombatant=\(context.combatantID)",
-                    )
-                }
-            }
+            .modifier(
+                CollectionCombatantDetailSheet(
+                    selection: $selectedCombatant,
+                    zoomNamespace: zoomNamespace,
+                    issuesSignposts: true,
+                ),
+            )
     }
 
     private var collectionBrowseContent: some View {
@@ -157,23 +141,10 @@ struct CollectionView: View {
     }
 
     private func refreshImminentDetailArtworkPins() async {
-        let next = Array(Set(Self.imminentDetailArtworkNames(roster: playerSave.roster))).sorted()
-        let previous = Set(pinnedDetailArtwork)
-        let added = Set(next).subtracting(previous)
-        let removed = previous.subtracting(next)
-        if !added.isEmpty {
-            let addedNames = Array(added)
-            await PreparedArtworkCache.shared.prepareAndPin(names: addedNames)
-            guard !Task.isCancelled else {
-                PreparedArtworkCache.shared.releasePins(names: addedNames)
-                return
-            }
-        }
-        guard !Task.isCancelled else { return }
-        if !removed.isEmpty {
-            PreparedArtworkCache.shared.releasePins(names: Array(removed))
-        }
-        pinnedDetailArtwork = next
+        pinnedDetailArtwork = await ArtworkPinSet.refresh(
+            next: Self.imminentDetailArtworkNames(roster: playerSave.roster),
+            current: pinnedDetailArtwork,
+        )
     }
 
     private func presentPendingLaunchRoute() {

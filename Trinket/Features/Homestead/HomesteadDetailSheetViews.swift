@@ -37,17 +37,8 @@ struct HomesteadDetailSheetView: View {
                 improvement(tier)
             }
         case .wallet:
-            NavigationStack {
-                HomesteadWalletSheetContent()
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button { dismiss() } label: { Label("Close", systemImage: "xmark") }
-                                .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
-                        }
-                    }
-            }
-            .presentationDetents([.medium, .large])
+            HomesteadWalletSheet(onClose: { dismiss() })
+                .presentationDetents([.medium, .large])
         }
     }
 
@@ -123,5 +114,22 @@ struct HomesteadWalletSheetContent: View {
                 .padding(TrinketDesign.Layout.contentMargin)
         }
         .navigationTitle("Resources")
+    }
+}
+
+struct HomesteadWalletSheet: View {
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            HomesteadWalletSheetContent()
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { onClose() } label: { Label("Close", systemImage: "xmark") }
+                            .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
+                    }
+                }
+        }
     }
 }

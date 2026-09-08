@@ -13,5 +13,5 @@ put product rules or save-store harnesses here — those live in
 - `ItemFixtures`: Bare inventory items via `makeBareItem` plus `baseType` lookups. Bare means no rolled affixes or stored powers (exercises the catalog-fallback path); for rolled items use `SaveTestSupport.makeGeneratedItem`. Default IDs are `"<base>-test"`. `TrinketContentTests` carries a mirrored copy because `TrinketContentTests` cannot depend on this package without a cycle — keep signatures in sync.
 
 Validate fixture changes in consuming packages’ tests before handoff
-(`BattleEngine`, `TrinketAppState`, `TrinketBattleFeature`, `TrinketPersistence`).
+(`BattleEngine`, `TrinketAppState`, `TrinketBattleFeature`, `TrinketFeatureSupport`).
 This package has no test target. Shared conventions: `Docs/Platform/Testing.md`.

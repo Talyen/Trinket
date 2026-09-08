@@ -92,7 +92,7 @@ extension UniqueCollectionTests {
     @Test func `viper readiness survives reaction and pays typed followups once`() throws {
         var context = try battle(["vipers_courtesy"], extra: CombatModifierProfile(damageDealtBonus: [.poison: 2, .bleed: 3]))
         let actor = context.roster.hero.combatant
-        _ = UniqueCombatEngine.afterDodge(by: actor, attackerID: context.roster.enemy.id, in: &context)
+        _ = UniqueCombatEngine.afterUniqueDodge(by: actor, attackerID: context.roster.enemy.id, in: &context)
         _ = context.resolveDamage(DamageRequest(
             amount: 1,
             target: context.roster.enemy.combatant,
@@ -121,7 +121,7 @@ extension UniqueCollectionTests {
             criticalChanceBonus: -1,
         )
         context.heroDeck = CombatDeck(abilities: [attack(id: "other"), poison])
-        _ = UniqueCombatEngine.afterDodge(by: context.roster.hero.combatant, attackerID: context.roster.enemy.id, in: &context)
+        _ = UniqueCombatEngine.afterUniqueDodge(by: context.roster.hero.combatant, attackerID: context.roster.enemy.id, in: &context)
         #expect(context.hand.cards.map(\.ability.id) == ["venom"])
         context.isResolvingAutoPlayCard = true
         try play(poison, in: &context)

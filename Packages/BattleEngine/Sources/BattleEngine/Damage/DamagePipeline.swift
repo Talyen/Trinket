@@ -19,7 +19,7 @@ package enum DamagePipeline {
            context.modifiers(for: state.combatant.id).triggers.undyingEmber,
            context.roster.isDeathsDoorActive(for: state.combatant) {
             applyOutgoingDamage(to: &state, in: &context)
-            applyMitigation(to: &state, in: &context)
+            applyTakenFlatAdjustments(to: &state, in: &context)
             var request = HealRequest(
                 amount: state.remaining, target: state.combatant, sourceActorID: state.combatant.id,
                 logAs: .instantHeal(actorName: state.combatant.name, abilityName: "Undying Ember", keyword: .health),
@@ -39,7 +39,7 @@ package enum DamagePipeline {
         state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
         applyOutgoingDamage(to: &state, in: &context)
         applyPreparedAttackReduction(to: &state, in: &context)
-        applyMitigation(to: &state, in: &context)
+        applyTakenFlatAdjustments(to: &state, in: &context)
         applyShieldAbsorption(to: &state, in: &context)
         applyTakeDamage(to: &state, in: &context)
         applyMarkedConsume(to: &state, in: &context)
@@ -83,7 +83,7 @@ package enum DamagePipeline {
         var avoided = state
         avoided.targetStatus = DamageTargetStatus(for: state.combatant, in: preview)
         applyOutgoingDamage(to: &avoided, in: &preview)
-        applyMitigation(to: &avoided, in: &preview)
+        applyTakenFlatAdjustments(to: &avoided, in: &preview)
         let amount = CombatRounding.scaled(avoided.remaining, multiplier: 0.5)
         guard amount > 0 else { return }
         var options = DamageOptions.dodgeTriggeredControlReaction
@@ -122,7 +122,7 @@ package enum DamagePipeline {
                 multiplier: state.isCritical ? criticalMultiplier(for: state.sourceActorID, in: context) : 1,
             )
         }
-        applyItemReduction(to: &state, in: &context)
+        applyTakenPercentAdjustments(to: &state, in: &context)
         if !state.options.usesResolvedOutgoingDamage {
             applyCriticalMultiply(to: &state, in: &context)
         }
@@ -138,5 +138,79 @@ package enum DamagePipeline {
                 in: &context,
             )
         }
+    }
+
+    static func resolveRetaliation(
+        amount: Int,
+        keyword: Keyword,
+        target: Combatant,
+        sourceActorID: String?,
+        controlMeter: Bool = false,
+        in context: inout BattleState,
+    ) -> CombatOutcome {
+        context.resolveDamage(DamageRequest(
+            amount: amount,
+            target: target,
+            keyword: keyword,
+            sourceActorID: sourceActorID,
+            options: controlMeter ? .flatControlReaction : .flatReaction,
+        ))
+    }
+
+    static func appendBleed(
+        potency: Int,
+        to target: Combatant,
+        sourceActorID: String,
+        durationTurns: Int? = nil,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        DoTApplicator.applyBleed(
+            potency: potency,
+            to: target,
+            sourceActorID: sourceActorID,
+            dealImmediateDamage: false,
+            suppressAffixReactions: true,
+            durationTurns: durationTurns,
+            in: &context,
+        )
+    }
+
+    static func appendMeterCharge(
+        _ amount: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?,
+        applyFightPacing: Bool = false,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        ControlMeterEngine.applyMeterCharge(
+            amount,
+            keyword: keyword,
+            to: combatant,
+            sourceActorID: sourceActorID,
+            applyFightPacing: applyFightPacing,
+            in: &context,
+        )
+    }
+
+    static func appendAbsorption(
+        _ amount: Int,
+        abilityName: String,
+        keyword: Keyword,
+        actorName: String,
+        target: Combatant,
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        state.remaining -= amount
+        state.damageEvents.append(context.nextEvent(
+            kind: .effect,
+            effectKind: .shieldAbsorbed,
+            actorName: actorName,
+            abilityName: abilityName,
+            target: target,
+            amount: amount,
+            keyword: keyword,
+        ))
     }
 }

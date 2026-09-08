@@ -23,10 +23,14 @@ Tab-separated columns:
 id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers
 ```
 
-- `slot`: `weapon`, `armor`, or `trinket`.
+- `slot`: `weapon`, `armor`, `accessory`, or `trinket`.
 - `keywords`: comma-separated keyword names (e.g. `physical,bleed`).
-- `*_modifiers`: pipe-separated DSL tokens (e.g. `strength:1|damage_dealt:physical:1`). Empty when the affix is trigger-only.
-- `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `refresh_bleed_on_reapply:true`). Empty for flat modifier affixes.
+- `*_modifiers`: pipe-separated DSL tokens (e.g. `maximum_health:6|damage_dealt:physical:1`). Empty when the affix is trigger-only.
+- `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `block_per_turn:2`). Empty for flat modifier affixes.
+
+Trigger tokens resolve against `Scripts/trigger_family_schema.json` (14 families → `Generated/*Triggers.generated.swift`): explicit aliases and multi-part parsers live in `Scripts/content_codegen_triggers.py`, otherwise `snake_case` maps to the schema field (`dodge_chance_bonus` → `dodgeChanceBonus`). Separate fields with `|` — gluing two fields with `,` inside one token is rejected. When the same token exists as both a modifier and a trigger (e.g. `dodge_chance_bonus`), the column decides which one it becomes.
+
+Merge semantics when trigger sources stack (schema `merge` op per field): `add` sums, `or` takes either, `max` takes the larger, `mul` multiplies (identity 1), `add_excess` adds only the excess over 1 (identity 1, for a few damage multipliers), `coalesce` keeps the later value, `union` merges the sorted set (only `bonusManaOnTurns`).
 
 ### Talents (`ContentManifest/talents.tsv`)
 
@@ -87,8 +91,8 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	en
 ```
 
 - `theme`: chapter theme enum case (`forest`, `dungeon`, `desert`, `tundra`).
-- `encounter`: `battle`, `random_battle`, `event`, `shop`, `rest`, `mystery`, or `recruit`.
-- `enemy_id`: required for `battle` (enemy catalog id). For `mystery` / `recruit`, optional event id — empty mystery picks a random non-recruit event at runtime; empty recruit picks any eligible unlock; `random-companion` picks an eligible companion only. Leave empty for `random_battle` / shop / rest / event.
+- `encounter`: `battle`, `random_battle`, `shop`, `rest`, `mystery`, or `recruit`.
+- `enemy_id`: required for `battle` (enemy catalog id). For `mystery` / `recruit`, optional event id — empty mystery picks a random non-recruit event at runtime; empty recruit picks any eligible unlock; `random-companion` picks an eligible companion only. Leave empty for `random_battle` / shop / rest.
 - Combat rewards (item / gold / materials) are resolved at runtime by `BattleLoot`, not authored here.
 - `encounter_art_id` / `encounter_art_title`: optional pair for non-battle, non-mystery stages; references `ArtCatalog.encounterArtByID`. Mystery recruit stages use combatant portrait art instead.
 
@@ -100,11 +104,11 @@ Tab-separated columns:
 id	name	slot	weapon_kind	keywords
 ```
 
-- `slot`: `weapon`, `armor`, or `trinket`.
+- `slot`: `weapon`, `armor`, `accessory`, or `trinket`.
 - `weapon_kind`: required for weapons (`one_handed`, `two_handed`, or `off_hand`) and empty otherwise.
 - `keywords`: comma-separated keyword affinities (e.g. `physical,bleed,poison`).
 
-Roster catalogs are manifest-driven via `combatants.tsv` and `enemies.tsv`. Hand-written roster Swift files are thin wrappers over generated output.
+Roster catalogs are manifest-driven via `combatants.tsv` and `enemies.tsv`. The `GameContent` registry reads the generated catalogs directly.
 
 ### Combatants (`ContentManifest/combatants.tsv`)
 
@@ -127,7 +131,7 @@ Tab-separated columns:
 id	name	max_health	is_boss	abilities	trait_id	faction
 ```
 
-- `max_health`: `default` uses `Enemy.defaultMaxHealth`, or an explicit integer; scaled at encounter level via `EnemyPowerCurve` normal/boss HP curves.
+- `max_health`: explicit positive integer; scaled at encounter level via `EnemyPowerCurve` normal/boss HP curves.
 - `is_boss`: `true` or `false`.
 - `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
@@ -149,7 +153,7 @@ node_id	title	summary	symbol_name	category	prerequisites	tier	stage_name	cost	bo
 - `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Combat tokens include `outgoing_damage_percent:0.02`, `incoming_damage_reduction_percent:0.02`, `dodge_chance_bonus:0.02` (all additive, rounded via `CombatRounding`). Homestead-only tokens: `astral_chance:N`, `gold_find:N`.
 - One row per tier; node metadata must match across tiers for the same `node_id`.
 
-Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. Hand-written homestead Swift files are thin wrappers over generated output.
+Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. The `GameContent` registry reads the generated catalogs directly; `HomesteadEffects` computes tier effects from them.
 
 ## Generate Catalogs
 

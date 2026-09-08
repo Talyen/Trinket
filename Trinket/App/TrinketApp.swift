@@ -5,7 +5,6 @@ import TrinketAppState
 import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
-import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -46,7 +45,7 @@ struct TrinketApp: App {
         do {
             let state = try makeState(nil)
             _appState = State(initialValue: state)
-            _launchPriorityImageNames = State(initialValue: Self.priorityImageNames(for: state))
+            _launchPriorityImageNames = State(initialValue: LaunchArtworkCensus.priorityImageNames(for: state))
         } catch {
             trinketAppLogger.error(
                 "AppState bootstrap failed: \(error.localizedDescription, privacy: .public)",
@@ -55,7 +54,7 @@ struct TrinketApp: App {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
                 let state = try makeState(fallbackSave)
                 _appState = State(initialValue: state)
-                _launchPriorityImageNames = State(initialValue: Self.priorityImageNames(for: state))
+                _launchPriorityImageNames = State(initialValue: LaunchArtworkCensus.priorityImageNames(for: state))
             } catch {
                 trinketAppLogger.fault(
                     "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)",
@@ -70,97 +69,36 @@ struct TrinketApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if let appState {
-                PreparedAppRoot(
-                    appState: appState,
-                    priorityImageNames: launchPriorityImageNames,
-                )
-                .scrollIndicators(.never)
-            } else {
-                AppBootstrapFailureView(
-                    message: bootstrapFailureMessage
-                        ?? "Progress storage could not be started on this device.",
-                )
+            Group {
+                if let appState {
+                    PreparedAppRoot(
+                        appState: appState,
+                        priorityImageNames: launchPriorityImageNames,
+                    )
+                    .scrollIndicators(.never)
+                } else {
+                    AppBootstrapFailureView(
+                        message: bootstrapFailureMessage
+                            ?? "Progress storage could not be started on this device.",
+                    )
+                }
             }
+            .preferredColorScheme(.dark)
         }
         .persistentSystemOverlays(.hidden)
     }
+}
 
-    private static func priorityImageNames(for appState: AppState) -> [String] {
-        let activeParty = [appState.playerSave.roster.activeHero, appState.playerSave.roster.activeCompanion]
-            .compactMap(\.artReference)
-            .flatMap { reference in
-                [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
-            }
-        let starterChoices: [String] =
-            if appState.playerSave.starterSelection.phase == .complete {
-                []
-            } else {
-                (GameContent.heroes + GameContent.companions)
-                    .compactMap { $0.artReference?.thumbnailImageName }
-            }
-        let activeEnemy = appState.playerSave.journey.activeStageID
-            .flatMap(GameContent.stage(id:))?
-            .encounterCombatantArtReference(worldSeed: appState.playerSave.worldSeed)
-        let enemyNames = activeEnemy.map { reference in
-            [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
-        } ?? []
-        return Array(
-            Set(activeParty + starterChoices + enemyNames + rootTabImageNames(for: appState)),
-        ).sorted()
-    }
+private struct AppBootstrapFailureView: View {
+    let message: String
 
-    private static func rootTabImageNames(for appState: AppState) -> [String] {
-        let roster = appState.playerSave.roster
-        let inventory = appState.playerSave.inventory
-        let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
-
-        let collectionCombatants = (
-            Array(roster.collectionHeroes.prefix(shelfLimit))
-                + Array(roster.collectionCompanions.prefix(shelfLimit)),
-        ).compactMap { $0.artReference?.thumbnailImageName }
-        let collectionDetail = CollectionView.imminentDetailArtworkNames(roster: roster)
-        let collectionItems = CollectionItemCategory.allCases.flatMap { category in
-            category.collectionItems(in: inventory.items).prefix(shelfLimit).compactMap {
-                $0.artReference?.thumbnailImageName
-            }
-        }
-        let playModeCards = ["gameModeCampaign", "gameModeExplore"].compactMap {
-            ArtCatalog.backgroundArtByID[$0]?.imageName
-        }
-        let homesteadCards = HomesteadNodeCategory.allCases.compactMap {
-            ArtCatalog.backgroundArtByID[$0.artID]?.imageName
-        }
-        let homesteadGalleryThumbnails = ArtCatalog.portraitBackgroundArtByID.values.compactMap(\.thumbnailImageName)
-        let homesteadHero = ArtCatalog.backgroundArtByID["homestead"]?.imageName
-        let resourceIcons = ArtCatalog.resourceArtByID.values.map(\.imageName)
-
-        let chapter = appState.play.journey.playChapter
-        let campaignHero = (
-            ArtCatalog.backgroundArtByID[chapter.id]
-                ?? ArtCatalog.backgroundArtByID["chapter-1"],
-        )?.imageName
-        let campaignRows = chapter.stages.flatMap { stage -> [String] in
-            if let combatant = stage.encounterCombatantArtReference(
-                worldSeed: appState.playerSave.worldSeed,
-            ) {
-                return [combatant.imageName, combatant.thumbnailImageName].compactMap(\.self)
-            }
-            if let encounter = stage.encounterArtReference {
-                return [encounter.imageName, encounter.thumbnailImageName].compactMap(\.self)
-            }
-            return []
-        }
-
-        return collectionCombatants
-            + collectionDetail
-            + collectionItems
-            + playModeCards
-            + homesteadCards
-            + homesteadGalleryThumbnails
-            + resourceIcons
-            + campaignRows
-            + [homesteadHero, campaignHero].compactMap(\.self)
+    var body: some View {
+        ContentUnavailableView(
+            "Can't Open Trinket",
+            systemImage: "exclamationmark.triangle",
+            description: Text(message),
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -168,7 +106,6 @@ private struct PreparedAppRoot: View {
     @Environment(\.displayScale) private var displayScale
     private let artworkCache = PreparedArtworkCache.shared
     @State private var isResourcePreparationComplete = false
-    @State private var isShellWarmupComplete = false
     @State private var isMinimumLoadingTimeComplete = false
     @State private var areCastEffectsPrepared = false
     @State private var didWarmHiddenTabs = false
@@ -251,7 +188,6 @@ private struct PreparedAppRoot: View {
                 appState.play.journey.prepareBattle(for: stage)
             }
             isResourcePreparationComplete = true
-            isShellWarmupComplete = true
             artworkCache.reportMemorySnapshot(label: "interactiveRoot")
         }
         .task(id: shouldWarmHiddenTabs) {
@@ -264,7 +200,6 @@ private struct PreparedAppRoot: View {
 
     private var isPreparationComplete: Bool {
         isResourcePreparationComplete
-            && isShellWarmupComplete
             && isMinimumLoadingTimeComplete
             && areCastEffectsPrepared
     }

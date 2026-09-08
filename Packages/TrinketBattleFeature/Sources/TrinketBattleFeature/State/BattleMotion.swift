@@ -71,20 +71,19 @@ enum BattleMotion {
     static let ultimateInFrameFadeDuration: TimeInterval = 0.25
     static let ultimateCinematicPlaybackSpeed = 1.2
 
-    static let chipDisplayDuration: TimeInterval = alchemyPopDisplayDuration
-    static let alchemyPopDisplayDuration: TimeInterval = 0.95
+    static let chipDisplayDuration: TimeInterval = 0.95
     static let feedbackStreamStagger: TimeInterval = 0.126
     static let chipTravelFraction: CGFloat = 0.48
     static let chipTopClearance: CGFloat = 4
-    static let alchemyPopStartScale: CGFloat = 0.5
-    static let alchemyPopOvershootScale: CGFloat = 2.0
-    static let alchemyPopHoldScale: CGFloat = 1.8
-    static let alchemyPopEndScale: CGFloat = 1.0
-    static let alchemyPopDuration: TimeInterval = 0.14
-    static let alchemyPopHoldDuration: TimeInterval = 0.14
-    static let alchemyPopShrinkDuration: TimeInterval = 0.45
-    static let alchemyPopRiseDuration: TimeInterval = 0.45
-    static let alchemyPopFadeDuration: TimeInterval = 0.28
+    static let chipPopStartScale: CGFloat = 0.5
+    static let chipPopOvershootScale: CGFloat = 2.0
+    static let chipPopHoldScale: CGFloat = 1.8
+    static let chipPopEndScale: CGFloat = 1.0
+    static let chipPopDuration: TimeInterval = 0.14
+    static let chipPopHoldDuration: TimeInterval = 0.14
+    static let chipPopShrinkDuration: TimeInterval = 0.45
+    static let chipPopRiseDuration: TimeInterval = 0.45
+    static let chipPopFadeDuration: TimeInterval = 0.28
     static let maxContinuousChipLifetime: TimeInterval = 1.2
 
     static var maxChipLifetime: TimeInterval {
@@ -106,40 +105,40 @@ enum BattleMotion {
     static let statusBorderPulseDimOpacity = 0.45
 
     static func chipMotionProgress(elapsed: TimeInterval) -> Double {
-        guard elapsed > alchemyHoldEndTime else { return 0 }
-        let riseProgress = (elapsed - alchemyHoldEndTime) / alchemyPopRiseDuration
+        guard elapsed > chipHoldEndTime else { return 0 }
+        let riseProgress = (elapsed - chipHoldEndTime) / chipPopRiseDuration
         let clamped = min(max(riseProgress, 0), 1)
         return clamped * clamped * clamped
     }
 
     static func chipScale(elapsed: TimeInterval) -> CGFloat {
         if elapsed <= 0 {
-            return alchemyPopStartScale
+            return chipPopStartScale
         }
-        if elapsed <= alchemyPopPeakTime {
-            let progress = elapsed / alchemyPopPeakTime
-            return lerp(alchemyPopStartScale, alchemyPopOvershootScale, progress)
+        if elapsed <= chipPopPeakTime {
+            let progress = elapsed / chipPopPeakTime
+            return lerp(chipPopStartScale, chipPopOvershootScale, progress)
         }
-        if elapsed <= alchemyPopEndTime {
-            let progress = (elapsed - alchemyPopPeakTime) / (alchemyPopEndTime - alchemyPopPeakTime)
-            return lerp(alchemyPopOvershootScale, alchemyPopHoldScale, progress)
+        if elapsed <= chipPopEndTime {
+            let progress = (elapsed - chipPopPeakTime) / (chipPopEndTime - chipPopPeakTime)
+            return lerp(chipPopOvershootScale, chipPopHoldScale, progress)
         }
-        if elapsed <= alchemyHoldEndTime {
-            return alchemyPopHoldScale
+        if elapsed <= chipHoldEndTime {
+            return chipPopHoldScale
         }
-        let shrinkProgress = min(1, (elapsed - alchemyHoldEndTime) / alchemyPopShrinkDuration)
-        return lerp(alchemyPopHoldScale, alchemyPopEndScale, shrinkProgress)
+        let shrinkProgress = min(1, (elapsed - chipHoldEndTime) / chipPopShrinkDuration)
+        return lerp(chipPopHoldScale, chipPopEndScale, shrinkProgress)
     }
 
     static func chipOpacity(elapsed: TimeInterval) -> Double {
-        if elapsed <= alchemyFadeStartTime {
+        if elapsed <= chipFadeStartTime {
             return 1
         }
-        if elapsed >= alchemyPopDisplayDuration {
+        if elapsed >= chipDisplayDuration {
             return 0
         }
-        let fadeProgress = (elapsed - alchemyFadeStartTime)
-            / (alchemyPopDisplayDuration - alchemyFadeStartTime)
+        let fadeProgress = (elapsed - chipFadeStartTime)
+            / (chipDisplayDuration - chipFadeStartTime)
         return lerp(1, 0, fadeProgress)
     }
 
@@ -149,20 +148,20 @@ enum BattleMotion {
         return max(0, min(proportionalTravel, topSafeTravel))
     }
 
-    static var alchemyPopPeakTime: TimeInterval {
-        alchemyPopDuration * 0.75
+    static var chipPopPeakTime: TimeInterval {
+        chipPopDuration * 0.75
     }
 
-    static var alchemyPopEndTime: TimeInterval {
-        alchemyPopDuration
+    static var chipPopEndTime: TimeInterval {
+        chipPopDuration
     }
 
-    static var alchemyHoldEndTime: TimeInterval {
-        alchemyPopEndTime + alchemyPopHoldDuration
+    static var chipHoldEndTime: TimeInterval {
+        chipPopEndTime + chipPopHoldDuration
     }
 
-    static var alchemyFadeStartTime: TimeInterval {
-        max(alchemyHoldEndTime, alchemyPopDisplayDuration - alchemyPopFadeDuration)
+    static var chipFadeStartTime: TimeInterval {
+        max(chipHoldEndTime, chipDisplayDuration - chipPopFadeDuration)
     }
 
     static func lerp(_ start: CGFloat, _ end: CGFloat, _ progress: Double) -> CGFloat {

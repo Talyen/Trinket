@@ -18,19 +18,19 @@ public struct BattleLootResult: Hashable, Sendable {
     }
 }
 
-public enum BattleLoot {
+enum BattleLoot {
     static let materialResources: [HomesteadResource] = [
         .wood, .stone, .iron, .food, .herbs, .hide, .crystal,
     ]
 
-    public static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {
+    static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {
         let clamped = max(1, level)
         let minQty = 3 + (clamped * 9) / 49
         let maxQty = max(minQty, 4 + (clamped * 20) / 49)
         return minQty ... maxQty
     }
 
-    public static func resolve(
+    static func resolve(
         encounterLevel: Int,
         enemyIsBoss: Bool,
         itemID: String,

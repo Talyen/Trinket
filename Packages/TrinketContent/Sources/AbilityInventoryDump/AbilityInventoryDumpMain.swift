@@ -1,5 +1,6 @@
 import Foundation
 import TrinketContent
+import TrinketCore
 
 @main
 enum AbilityInventoryDump {
@@ -14,10 +15,8 @@ enum AbilityInventoryDump {
 
     private static func run() throws {
         let sorted = AbilityCatalog.all.sorted { lhs, rhs in
-            let leftTier = lhs.tier.rawValue.lowercased()
-            let rightTier = rhs.tier.rawValue.lowercased()
-            if leftTier != rightTier {
-                return leftTier < rightTier
+            if lhs.tier != rhs.tier {
+                return tierRank(lhs.tier) < tierRank(rhs.tier)
             }
             return lhs.name.lowercased() < rhs.name.lowercased()
         }
@@ -32,6 +31,14 @@ enum AbilityInventoryDump {
             lines.append("\(ability.id)\t\(ability.name)\t\(tier)\t\(summary)")
         }
         print(lines.joined(separator: "\n"))
+    }
+
+    private static func tierRank(_ tier: AbilityTier) -> Int {
+        switch tier {
+        case .basic: 0
+        case .skill: 1
+        case .ultimate: 2
+        }
     }
 
     private enum DumpError: Error, CustomStringConvertible {

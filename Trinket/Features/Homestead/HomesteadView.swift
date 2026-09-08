@@ -27,32 +27,48 @@ struct HomesteadView: View {
     }
 
     var body: some View {
-        HomesteadHeroScreen(
+        DetailHeroScrollShell(
             title: "Homestead",
-            homestead: homestead,
-            roster: roster,
-            displayedBalances: displayedBalances,
-            increaseAnimationDelays: Dictionary(uniqueKeysWithValues: HomesteadResource.allCases.map { ($0, 0) }),
-            keepsWalletArtworkStationary: true,
-        ) {
-            if let art = ArtCatalog.backgroundArtByID["homestead"]
-                ?? ArtCatalog.backgroundArtByID["wheatField"] {
-                HomesteadFocalArtwork(art: art)
-            } else {
-                TrinketDesign.Colors.surface
-            }
-        } walletBottomContent: {
-            collectionSection
-        } bodyContent: {
-            LazyVGrid(
-                columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
-                spacing: TrinketDesign.Spacing.large,
+            heroHeightPolicy: .cinematicLandscape,
+        ) { baseHeight in
+            DetailHeroHeader(
+                title: "Homestead",
+                baseHeight: baseHeight,
+                horizontalPadding: TrinketDesign.Layout.contentMargin,
+                bottomPadding: TrinketDesign.Spacing.large,
             ) {
-                ForEach(HomesteadNodeCategory.allCases) { category in
-                    categoryCard(category)
+                if let art = ArtCatalog.backgroundArtByID["homestead"]
+                    ?? ArtCatalog.backgroundArtByID["wheatField"] {
+                    HomesteadFocalArtwork(art: art)
+                } else {
+                    TrinketDesign.Colors.surface
                 }
             }
-            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+        } bodyContent: {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
+                HomesteadResourceWallet(
+                    homestead: homestead,
+                    roster: roster,
+                    displayedBalances: displayedBalances,
+                    increaseAnimationDelays: Dictionary(uniqueKeysWithValues: HomesteadResource.allCases.map { ($0, 0) }),
+                    keepsArtworkStationary: true,
+                )
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+
+                collectionSection
+
+                LazyVGrid(
+                    columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
+                    spacing: TrinketDesign.Spacing.large,
+                ) {
+                    ForEach(HomesteadNodeCategory.allCases) { category in
+                        categoryCard(category)
+                    }
+                }
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            }
+            .padding(.top, TrinketDesign.Layout.sectionHeaderSpacing)
+            .padding(.bottom, TrinketDesign.Layout.tabBarContentClearance)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .modifier(HomesteadDepositOverlay(event: depositEvent, geometryChanged: updateDepositGeometry))
@@ -228,7 +244,6 @@ struct HomesteadView: View {
                 subtitle: progress.subtitle,
                 symbolName: "hammer.fill",
                 artID: category.artID,
-                fallbackArtID: category.artID,
             )
         }
         .trinketArtworkCardButtonStyle()

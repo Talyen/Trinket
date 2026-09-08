@@ -15,21 +15,16 @@ public extension BattleSession {
         await BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
         guard !Task.isCancelled else { return }
 
-        for run in preparedRuns {
-            prepareBattlePresentation(
-                heroActorID: run.configuration.hero.combatant.id,
-                heroUltimateID: run.configuration.hero.combatant.abilityLoadout.ultimate?.id,
-                companionActorID: run.configuration.companion.combatant.id,
-                companionUltimateID: run.configuration.companion.combatant.abilityLoadout.ultimate?.id,
-            )
-        }
-
+        var configurations = preparedRuns.map(\.configuration)
         if let activeConfiguration {
+            configurations.append(activeConfiguration)
+        }
+        for configuration in configurations {
             prepareBattlePresentation(
-                heroActorID: activeConfiguration.hero.combatant.id,
-                heroUltimateID: activeConfiguration.hero.combatant.abilityLoadout.ultimate?.id,
-                companionActorID: activeConfiguration.companion.combatant.id,
-                companionUltimateID: activeConfiguration.companion.combatant.abilityLoadout.ultimate?.id,
+                heroActorID: configuration.hero.combatant.id,
+                heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
+                companionActorID: configuration.companion.combatant.id,
+                companionUltimateID: configuration.companion.combatant.abilityLoadout.ultimate?.id,
             )
         }
 

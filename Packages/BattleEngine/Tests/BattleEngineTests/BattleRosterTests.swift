@@ -2,24 +2,9 @@ import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 
 struct BattleRosterTests {
-    private func combatant(
-        id: String,
-        role: Combatant.Role,
-        maxHealth: Int = 20,
-        actionIntervalTurns: Int? = nil,
-    ) -> Combatant {
-        Combatant(
-            id: id,
-            name: id.capitalized,
-            role: role,
-            maxHealth: maxHealth,
-            actionIntervalTurns: actionIntervalTurns,
-            abilities: [],
-        )
-    }
-
     private func runtime(
         id: String,
         role: Combatant.Role,
@@ -28,7 +13,7 @@ struct BattleRosterTests {
         initialHealth: Int? = nil,
     ) -> CombatantRuntime {
         CombatantRuntime(
-            combatant: combatant(id: id, role: role, maxHealth: maxHealth, actionIntervalTurns: actionIntervalTurns),
+            combatant: CombatantFixtures.combatant(id: id, role: role, maxHealth: maxHealth, actionIntervalTurns: actionIntervalTurns),
             initialHealth: initialHealth,
         )
     }

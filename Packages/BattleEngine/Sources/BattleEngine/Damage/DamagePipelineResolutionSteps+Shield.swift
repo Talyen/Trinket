@@ -133,9 +133,17 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> ShieldAbsorption {
         let absorbed = min(state.remaining, effectiveBuffer)
-        state.remaining -= absorbed
         state.blockedAmount += absorbed
         state.buildupDamage = max(0, state.buildupDamage - absorbed)
+        appendAbsorption(
+            absorbed,
+            abilityName: keyword.rawValue,
+            keyword: keyword,
+            actorName: keyword.rawValue,
+            target: state.combatant,
+            to: &state,
+            in: &context,
+        )
         let extraRemoved = extraBlockRemoval(
             absorbed: absorbed,
             buffer: buffer,
@@ -143,17 +151,6 @@ package extension DamagePipeline {
             targetIsStunned: targetIsStunned,
             damageKeyword: state.damageKeyword,
         )
-        state.damageEvents.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldAbsorbed,
-            actorName: keyword.rawValue,
-            abilityName: keyword.rawValue,
-            target: state.combatant,
-            amount: absorbed,
-            keyword: keyword,
-            appliedEffectSummaries: [],
-            milestone: nil,
-        ))
         return ShieldAbsorption(absorbed: absorbed, extraRemoved: extraRemoved)
     }
 
@@ -170,18 +167,17 @@ package extension DamagePipeline {
         guard let reduced = DefensePoolEngine.reduce(state.remaining, in: heroEffects)
         else { return }
         let heroAbsorbed = reduced.absorbed
-        state.remaining -= heroAbsorbed
         state.blockedAmount += heroAbsorbed
         state.buildupDamage = max(0, state.buildupDamage - heroAbsorbed)
-        state.damageEvents.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldAbsorbed,
-            actorName: reduced.keyword.rawValue,
+        appendAbsorption(
+            heroAbsorbed,
             abilityName: "Intercede",
-            target: context.roster.hero.combatant,
-            amount: heroAbsorbed,
             keyword: reduced.keyword,
-        ))
+            actorName: reduced.keyword.rawValue,
+            target: context.roster.hero.combatant,
+            to: &state,
+            in: &context,
+        )
         context.roster.setActiveEffects(reduced.effects, for: context.roster.hero.combatant)
         if reduced.broken {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
@@ -198,8 +194,8 @@ package extension DamagePipeline {
         targetIsStunned: Bool,
         targetIsFrozen: Bool,
         damageKeyword: Keyword?,
-        sourceActorID: String? = nil,
-        context: BattleState? = nil,
+        sourceActorID: String?,
+        context: BattleState,
     ) -> Int {
         var effectiveBuffer = buffer
         if let sourceTriggers {
@@ -225,7 +221,7 @@ package extension DamagePipeline {
         return effectiveBuffer
     }
 
-    static func handleTalentBlockedDamage(
+    private static func handleTalentBlockedDamage(
         absorbed: Int,
         defender: Combatant,
         attackerID: String?,
@@ -259,19 +255,25 @@ package extension DamagePipeline {
         return events
     }
 
+    private static func partyTrigger(
+        _ keyPath: KeyPath<CombatTraitTriggers, Bool>,
+        defender: Combatant,
+        in context: BattleState,
+    ) -> Bool {
+        context.modifiers(for: defender.id).triggers[keyPath: keyPath]
+            || CombatTriggerEngine.livingPartyTriggers(in: context)[keyPath: keyPath]
+    }
+
     private static func defenderTriggersContainStoredImpact(in context: BattleState, defender: Combatant) -> Bool {
-        context.modifiers(for: defender.id).triggers.storedImpact
-            || CombatTriggerEngine.livingPartyTriggers(in: context).storedImpact
+        partyTrigger(\.storedImpact, defender: defender, in: context)
     }
 
     private static func hasSeismicReversal(in context: BattleState, defender: Combatant) -> Bool {
-        context.modifiers(for: defender.id).triggers.seismicReversal
-            || CombatTriggerEngine.livingPartyTriggers(in: context).seismicReversal
+        partyTrigger(\.seismicReversal, defender: defender, in: context)
     }
 
     private static func hasGlacialReprieve(in context: BattleState, defender: Combatant) -> Bool {
-        context.modifiers(for: defender.id).triggers.glacialReprieve
-            || CombatTriggerEngine.livingPartyTriggers(in: context).glacialReprieve
+        partyTrigger(\.glacialReprieve, defender: defender, in: context)
     }
 
     private static func dealTalentDamage(
@@ -282,35 +284,14 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: target) > 0 else { return [] }
-        switch keyword {
-        case .stun, .freeze:
-            return context.resolveDamage(DamageRequest(
-                amount: amount,
-                target: target,
-                keyword: keyword,
-                sourceActorID: source.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true,
-                    applyControlMeter: true,
-                ),
-            )).events
-        default:
-            return context.resolveDamage(DamageRequest(
-                amount: amount,
-                target: target,
-                keyword: keyword,
-                sourceActorID: source.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true,
-                ),
-            )).events
-        }
+        return resolveRetaliation(
+            amount: amount,
+            keyword: keyword,
+            target: target,
+            sourceActorID: source.id,
+            controlMeter: keyword == .stun || keyword == .freeze,
+            in: &context,
+        ).events
     }
 
     private static func extraBlockRemoval(
@@ -353,14 +334,12 @@ package extension DamagePipeline {
            context.roster.health(for: attacker.combatant) > 0 {
             let reflection = defenderTriggers.onBlockHitDealHoly
             if reflection > 0 {
-                events.append(contentsOf: context.resolveDamage(
-                    DamageRequest(
-                        amount: reflection,
-                        target: attacker.combatant,
-                        keyword: .holy,
-                        sourceActorID: state.combatant.id,
-                        options: .flatReaction,
-                    ),
+                events.append(contentsOf: resolveRetaliation(
+                    amount: reflection,
+                    keyword: .holy,
+                    target: attacker.combatant,
+                    sourceActorID: state.combatant.id,
+                    in: &context,
                 ).events)
             }
             if defenderTriggers.onBlockReduceAttackerAccuracyPercent > 0 {
@@ -380,14 +359,12 @@ package extension DamagePipeline {
            let sourceTriggers, sourceTriggers.onEnemyBlockBrokenDealPhysical > 0,
            let attackerID = state.sourceActorID,
            context.roster.health(for: state.combatant) > 0 {
-            events.append(contentsOf: context.resolveDamage(
-                DamageRequest(
-                    amount: sourceTriggers.onEnemyBlockBrokenDealPhysical,
-                    target: state.combatant,
-                    keyword: .physical,
-                    sourceActorID: attackerID,
-                    options: .flatReaction,
-                ),
+            events.append(contentsOf: resolveRetaliation(
+                amount: sourceTriggers.onEnemyBlockBrokenDealPhysical,
+                keyword: .physical,
+                target: state.combatant,
+                sourceActorID: attackerID,
+                in: &context,
             ).events)
             state.activeEffects = context.roster.activeEffects(for: state.combatant)
         }

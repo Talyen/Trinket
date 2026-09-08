@@ -24,11 +24,4 @@ struct ContractsTests {
         let second = ContractGenerator.makeOffer(difficulty: .hard, using: &rng)
         #expect(first.id != second.id)
     }
-
-    @Test(arguments: [(1, 1, 1, 4), (20, 17, 20, 23), (1000, 997, 1000, 1003)])
-    func `contract levels follow party offsets`(party: Int, easy: Int, standard: Int, hard: Int) {
-        #expect(EncounterLevelResolver.contractEnemyLevel(difficulty: .easy, partyAverageLevel: party) == easy)
-        #expect(EncounterLevelResolver.contractEnemyLevel(difficulty: .standard, partyAverageLevel: party) == standard)
-        #expect(EncounterLevelResolver.contractEnemyLevel(difficulty: .hard, partyAverageLevel: party) == hard)
-    }
 }

@@ -188,11 +188,12 @@ struct BattleVictorySummaryTests {
         configuration: BattleRunConfiguration,
         context: BattlePresentationContext,
     ) throws -> BattleVictorySummary {
-        let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
-        session.installPresentationContext(context)
-        BattleSessionTestSupport.driveUntilOutcome(session)
-        return try #require(session.makeVictorySummary(for: configuration, presentation: context))
+        try #require(
+            BattleSessionTestSupport.makeDrivenVictorySummary(
+                configuration: configuration,
+                presentation: context,
+            ),
+        )
     }
 
     @Test func `make victory summary keeps raw battle gold separate from homestead display split`() throws {

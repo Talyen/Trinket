@@ -103,7 +103,7 @@ struct BattleMechanicsTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
@@ -134,7 +134,7 @@ struct BattleMechanicsTests {
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 6, sourceActorID: hero.id)
         let mark = ActiveEffect(id: 2, effect: .marked(5, 6), remainingTurns: 6, sourceActorID: hero.id)
 
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy,

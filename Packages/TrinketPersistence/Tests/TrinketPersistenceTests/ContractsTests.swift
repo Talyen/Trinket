@@ -93,15 +93,9 @@ struct ContractBoardTests {
     }
 }
 
-@MainActor
-final class ContractsPersistenceTests {
-    let context: PersistenceTestContext
-
-    init() throws {
-        context = try PersistenceTestContext()
-    }
-
-    @Test func `legacy missing board opens lazily and generated offers survive reload`() throws {
+struct ContractsPersistenceTests {
+    @Test @MainActor func `legacy missing board opens lazily and generated offers survive reload`() throws {
+        let context = try PersistenceTestContext()
         var legacy = PlayerSave.testSeed
         legacy.schemaVersion = 16
         try SaveTestSupport.writeRoot(legacy, to: context.storeURL()) { modelContext in
@@ -125,7 +119,8 @@ final class ContractsPersistenceTests {
     }
 
     #if DEBUG
-    @Test func `failed claim rolls back all slices and retries exactly once across reload`() throws {
+    @Test @MainActor func `failed claim rolls back all slices and retries exactly once across reload`() throws {
+        let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         #expect(store.persistBatch(logging: "Contracts test") { save in
             save.roster = .testSeed

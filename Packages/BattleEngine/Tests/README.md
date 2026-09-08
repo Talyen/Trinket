@@ -15,12 +15,12 @@ The authoritative suite inventory is the
 | Concern | Suite family |
 |---------|--------------|
 | Handler apply / status / turn advance | `EffectHandlers*Tests`, `EffectTurnEngineTests` |
-| Damage pipeline steps, DoT math | `CombatPipelineTests`, `DoT*Tests` |
+| Damage pipeline steps, DoT math | `DoT*Tests`, `BattleMechanicsTests`, `ReactionScopeTests` |
 | Engine cadence, fight pacing, control states | `BattleTurnEngineTests`, `FightPacingTests`, `ControlMeter*Tests`, `DeathsDoorEngineTests` |
 | Cross-boundary card combat | `BattleCardCombatTests` plus `*IntegrationTests` |
 | Builds, triggers, talents, traits, affixes, items, trinkets | `CombatBuildResolverTests`, `TalentCatalogRoundTripTests`, `CombatTriggerFieldCoverageTests`, `CombatTriggerTalent*Tests`, `TrinketEffectTests`, `*BattleTests` |
 | Catalog ability combos | `AbilityEffectIntegrationTests` |
-| Outcome, log, event formatting | `BattleOutcomeResolverTests`, `BattleLogReducerTests`, `EffectSummaryBuilderTests` |
+| Outcome, log, event formatting | `BattleOutcomeResolverTests`, `BattleLogReducerTests` |
 | Balance simulator and sweep tooling | `BattleBalanceToolsTests` (`BattleSimulator*`, `Balance*`, `ModeProgressionToolingTests`); `PlayPolicyTests` stays in `BattleEngineTests` (Auto Battle) |
 
 ## Conventions
@@ -33,7 +33,7 @@ The authoritative suite inventory is the
   `passiveCompanion`, `passiveEnemy`, `combatant`); `BattleTestFixtures` owns
   only play helpers (`playFirstPlayableCard`, `endTurn`, …) and `BattleState`
   assembly via the factory.
-- Use `BattleStateTestFactory.makeMinimalBattle(...)` (or `BattleTestFixtures.makePipelineContext` / `makeContext`) for pipeline tests that must skip deck bootstrap.
+- Use `BattleStateTestFactory.makeMinimalBattle(...)` for pipeline tests that must skip deck bootstrap.
 - Dispatch effects through `EffectHandlers.all`.
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.
 

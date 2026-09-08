@@ -55,6 +55,14 @@ public struct Stage: Identifiable, Hashable, Sendable {
         guard case .randomBattle = encounter else { return nil }
         return GameContent.pickRandomNonBossEnemyID(forStageID: id, worldSeed: worldSeed)
     }
+
+    public var mysteryEvent: MysteryEvent? {
+        if let eventID = encounter.mysteryEventID {
+            return GameContent.mysteryEvent(matching: eventID)
+        }
+        guard let eventID = encounter.recruitEventID else { return nil }
+        return GameContent.recruitEvent(matching: eventID)
+    }
 }
 
 enum StageTypeSymbol {

@@ -14,11 +14,7 @@ TRIGGER_FAMILY_SCHEMA = Path(__file__).resolve().parent / "trigger_family_schema
 @functools.cache
 def _trigger_families() -> list:
     payload = json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8"))
-    if isinstance(payload, dict):
-        families = payload.get("families", payload)
-        if isinstance(families, list):
-            return families
-    return payload
+    return payload["families"]
 
 
 def parse_trigger_tokens(raw: str) -> list[str]:
@@ -132,12 +128,7 @@ def _trigger_schema_info() -> tuple[dict[str, str], list[str], dict[str, str]]:
         for field in family["fields"]
     }
     group_order = [family["family"] for family in families]
-    family_types = {
-        family["family"]: family.get("file_stem") or "".join(
-            p.capitalize() for p in re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|[0-9]+", family["family"])
-        ) + "Triggers"
-        for family in families
-    }
+    family_types = {family["family"]: family["file_stem"] for family in families}
     return field_group, group_order, family_types
 
 

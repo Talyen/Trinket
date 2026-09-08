@@ -68,16 +68,15 @@ package extension DamagePipeline {
         let maxAbsorbPerHit = 5
         let absorbed = min(state.remaining, context.gold, maxAbsorbPerHit)
         context.gold -= absorbed
-        state.remaining -= absorbed
-        state.damageEvents.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldAbsorbed,
-            actorName: state.combatant.name,
+        appendAbsorption(
+            absorbed,
             abilityName: "Scavenger's Cache",
-            target: state.combatant,
-            amount: absorbed,
             keyword: .gold,
-        ))
+            actorName: state.combatant.name,
+            target: state.combatant,
+            to: &state,
+            in: &context,
+        )
     }
 
     @discardableResult
@@ -94,14 +93,12 @@ package extension DamagePipeline {
         else { return false }
         let redirected = state.remaining
         let companion = context.roster.companion.combatant
-        state.damageEvents.append(contentsOf: context.resolveDamage(
-            DamageRequest(
-                amount: redirected,
-                target: companion,
-                keyword: state.damageKeyword ?? .physical,
-                sourceActorID: state.sourceActorID,
-                options: .flatReaction,
-            ),
+        state.damageEvents.append(contentsOf: resolveRetaliation(
+            amount: redirected,
+            keyword: state.damageKeyword ?? .physical,
+            target: companion,
+            sourceActorID: state.sourceActorID,
+            in: &context,
         ).events)
         if context.roster.companion.isAlive, !context.roster.isDeathsDoorActive(for: companion) {
             state.damageEvents.append(contentsOf: context.applyBlock(

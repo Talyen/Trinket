@@ -7,6 +7,8 @@ enum BattleCardCueMotion {
     static let completion = Animation.easeOut(duration: 0.22)
     static let lightOpacity = 0.20
     static let travel: CGFloat = 3
+    static let deniedBlinkCount = 2
+    static let deniedBlinkInterval: Duration = .milliseconds(90)
 }
 
 struct BattleRecipientCueLane<Content: View>: View {
@@ -93,12 +95,12 @@ struct BattleRecipientCueLane<Content: View>: View {
         case .committed:
             withAnimation(BattleCardCueMotion.completion) { strength = 0 }
         case .denied:
-            for _ in 0 ..< 2 {
+            for _ in 0 ..< BattleCardCueMotion.deniedBlinkCount {
                 withAnimation(BattleCardCueMotion.arrival) { strength = 1 }
-                try? await Task.sleep(for: .milliseconds(90))
+                try? await Task.sleep(for: BattleCardCueMotion.deniedBlinkInterval)
                 guard !Task.isCancelled else { return }
                 withAnimation(BattleCardCueMotion.arrival) { strength = 0 }
-                try? await Task.sleep(for: .milliseconds(90))
+                try? await Task.sleep(for: BattleCardCueMotion.deniedBlinkInterval)
                 guard !Task.isCancelled else { return }
             }
         }

@@ -51,9 +51,7 @@ public enum BalanceFindingsReporter {
             lines.append("## Snapshot")
             lines.append("")
             for tier in identityTiers {
-                let winPct = tier.decidedBattles == 0
-                    ? 0
-                    : 100.0 * Double(tier.wins) / Double(tier.decidedBattles)
+                let winPct = BalanceStatsAggregator.winPercent(wins: tier.wins, decided: tier.decidedBattles)
                 var line = String(
                     format: "- %@: %d battles, %.1f%% win, %d timeouts, avg %.1f rounds",
                     tier.tier.displayName,
@@ -68,9 +66,7 @@ public enum BalanceFindingsReporter {
                         records: report.comparedRecords,
                     )
                     if let compared = comparedTiers.first(where: { $0.tier == tier.tier }) {
-                        let comparedPct = compared.decidedBattles == 0
-                            ? 0
-                            : 100.0 * Double(compared.wins) / Double(compared.decidedBattles)
+                        let comparedPct = BalanceStatsAggregator.winPercent(wins: compared.wins, decided: compared.decidedBattles)
                         line += String(
                             format: " · `%@` %.1f%% win (Δ%+.1f)",
                             comparedID,
@@ -114,10 +110,14 @@ public enum BalanceFindingsReporter {
             findings.append(contentsOf: identityFindings(tier: tier, records: report.records))
             findings.append(contentsOf: stallFindings(tier: tier, records: report.records))
         }
-        findings.append(contentsOf: contrastFindings(report.abilityContrasts, kind: "ability"))
-        findings.append(contentsOf: contrastFindings(report.affixContrasts, kind: "affix"))
-        findings.append(contentsOf: contrastFindings(report.talentContrasts, kind: "talent"))
-        findings.append(contentsOf: contrastFindings(report.talentKitContrasts, kind: "talent kit"))
+        for (kind, rows) in [
+            ("ability", report.abilityContrasts),
+            ("affix", report.affixContrasts),
+            ("talent", report.talentContrasts),
+            ("talent kit", report.talentKitContrasts),
+        ] {
+            findings.append(contentsOf: contrastFindings(rows, kind: kind))
+        }
         findings.append(contentsOf: progressionFindings(report.progressionHotspots))
         findings.append(contentsOf: crossTierFindings(tiers: tiers))
         return findings.sorted { lhs, rhs in
@@ -137,15 +137,19 @@ extension BalanceFindingsReporter {
         findings.append(contentsOf: enemyDurationFindings(tier.enemyDurations, tier: tier.tier))
         findings.append(contentsOf: combatantDurationFindings(tier.heroDurations, kind: "hero", tier: tier.tier))
         findings.append(contentsOf: combatantDurationFindings(tier.companionDurations, kind: "companion", tier: tier.tier))
-        findings.append(contentsOf: rosterFindings(tier.heroes, kind: "hero", tier: tier.tier))
-        findings.append(contentsOf: rosterFindings(tier.companions, kind: "companion", tier: tier.tier))
+        for (rows, kind) in [
+            (tier.heroes, "hero"),
+            (tier.companions, "companion"),
+            (tier.items, "item"),
+            (tier.abilities, "ability"),
+            (tier.talents, "talent"),
+            (tier.affixes, "affix"),
+            (tier.enemyAbilities, "enemy ability"),
+            (tier.enemyTraits, "enemy trait"),
+        ] {
+            findings.append(contentsOf: rosterFindings(rows, kind: kind, tier: tier.tier))
+        }
         findings.append(contentsOf: rosterFindings(tier.enemies, kind: "enemy", tier: tier.tier, records: records))
-        findings.append(contentsOf: rosterFindings(tier.items, kind: "item", tier: tier.tier))
-        findings.append(contentsOf: rosterFindings(tier.abilities, kind: "ability", tier: tier.tier))
-        findings.append(contentsOf: rosterFindings(tier.talents, kind: "talent", tier: tier.tier))
-        findings.append(contentsOf: rosterFindings(tier.affixes, kind: "affix", tier: tier.tier))
-        findings.append(contentsOf: rosterFindings(tier.enemyAbilities, kind: "enemy ability", tier: tier.tier))
-        findings.append(contentsOf: rosterFindings(tier.enemyTraits, kind: "enemy trait", tier: tier.tier))
         findings.append(contentsOf: collapsedSplit(
             split: tier.heroesBoss,
             kind: "hero",

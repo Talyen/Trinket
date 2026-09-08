@@ -1,4 +1,5 @@
 import Foundation
+import TrinketCore
 
 public extension GameContent {
     static func encounterArtID(for stage: Stage) -> String? {

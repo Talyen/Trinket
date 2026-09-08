@@ -54,19 +54,10 @@ struct HomesteadCategoryView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.gallery)
         .sheet(isPresented: $showsWallet) {
-            NavigationStack {
-                HomesteadWalletSheetContent()
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button { showsWallet = false } label: { Label("Close", systemImage: "xmark") }
-                                .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
-                        }
-                    }
-            }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .presentationBackground(TrinketDesign.Colors.surface)
+            HomesteadWalletSheet(onClose: { showsWallet = false })
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(TrinketDesign.Colors.surface)
         }
         .task(id: imminentHomesteadArtworkKey) {
             await refreshImminentHomesteadArtworkPins()
@@ -107,23 +98,10 @@ struct HomesteadCategoryView: View {
     }
 
     private func refreshImminentHomesteadArtworkPins() async {
-        let next = Array(Set(Self.imminentHomesteadArtworkNames(for: definitions))).sorted()
-        let previous = Set(pinnedHomesteadArtwork)
-        let added = Set(next).subtracting(previous)
-        let removed = previous.subtracting(Set(next))
-        if !added.isEmpty {
-            let addedNames = Array(added)
-            await PreparedArtworkCache.shared.prepareAndPin(names: addedNames)
-            guard !Task.isCancelled else {
-                PreparedArtworkCache.shared.releasePins(names: addedNames)
-                return
-            }
-        }
-        guard !Task.isCancelled else { return }
-        if !removed.isEmpty {
-            PreparedArtworkCache.shared.releasePins(names: Array(removed))
-        }
-        pinnedHomesteadArtwork = next
+        pinnedHomesteadArtwork = await ArtworkPinSet.refresh(
+            next: Self.imminentHomesteadArtworkNames(for: definitions),
+            current: pinnedHomesteadArtwork,
+        )
     }
 }
 

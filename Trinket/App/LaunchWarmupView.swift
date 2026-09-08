@@ -45,7 +45,6 @@ struct LaunchWarmupView: View {
         .padding(TrinketDesign.Layout.contentMargin)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
-        .preferredColorScheme(.dark)
         .accessibilityIdentifier(AccessibilityID.Screen.launchWarmup)
         .task {
             while !Task.isCancelled {

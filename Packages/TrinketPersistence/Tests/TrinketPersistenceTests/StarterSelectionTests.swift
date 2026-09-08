@@ -3,14 +3,9 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct StarterSelectionTests {
-    let context: PersistenceTestContext
-
-    init() throws {
-        context = try PersistenceTestContext()
-    }
-
     @Test(arguments: ["warlock", "alchemist", "druid", "wildcard"])
     @MainActor func `starter party survives reload`(heroID: String) throws {
+        let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         firstStore.contentAccess = .fullGame
 
@@ -46,6 +41,7 @@ struct StarterSelectionTests {
     }
 
     @Test @MainActor func `invalid drafts normalize and completed selection cannot reopen`() throws {
+        let context = try PersistenceTestContext()
         #expect(StarterSelectionState(phase: .chooseCompanion) == .fresh)
         #expect(StarterSelectionState(phase: .chooseCompanion, heroID: "enemy") == .fresh)
         #expect(StarterSelectionState(phase: .chooseHero, heroID: "knight") == .fresh)

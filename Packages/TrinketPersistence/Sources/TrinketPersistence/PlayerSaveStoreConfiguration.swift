@@ -34,25 +34,25 @@ enum PlayerSaveStoreConfiguration {
         cloudKitContainerIdentifier: String,
     ) -> ResolvedStore {
         let finalURL = resolveStoreURL(storeName: storeName, storeURL: storeURL)
-        let resolved: (ModelConfiguration, URL?) = {
-            if inMemoryOnly {
-                return (ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none), nil)
-            }
-            if storeName != nil {
-                return (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
-            }
-            if let storeURL {
-                return (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
-            }
-            if disableCloudSync {
-                return (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
-            }
-            return (
-                ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
-                nil,
+        if inMemoryOnly {
+            return ResolvedStore(
+                config: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none),
+                recoveryURL: nil,
+                finalURL: finalURL,
             )
-        }()
-        return ResolvedStore(config: resolved.0, recoveryURL: resolved.1, finalURL: finalURL)
+        }
+        if storeName != nil || storeURL != nil || disableCloudSync {
+            return ResolvedStore(
+                config: ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none),
+                recoveryURL: finalURL,
+                finalURL: finalURL,
+            )
+        }
+        return ResolvedStore(
+            config: ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
+            recoveryURL: nil,
+            finalURL: finalURL,
+        )
     }
 
     static func fetchRoot(in context: ModelContext, logger: Logger) throws -> PlayerSaveRoot? {

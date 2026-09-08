@@ -58,35 +58,6 @@ public enum BattleCardCombatEngine {
     }
 
     @discardableResult
-    public static func playCard(
-        cardID: Int,
-        context: inout BattleState,
-    ) throws -> [ActionEvent] {
-        guard let card = context.hand.card(id: cardID) else { throw BattlePlayError.cardNotInHand }
-        return try playDrawnCard(card, context: &context, allowBufferedRemoval: false)
-    }
-
-    static func playDrawnCard(
-        _ card: BattleCard,
-        context: inout BattleState,
-        allowBufferedRemoval: Bool = true,
-    ) throws -> [ActionEvent] {
-        if let error = playError(for: card, in: context) {
-            throw error
-        }
-        let ownerRuntime = context.roster[card.owner]
-        let removed: BattleCard? = if allowBufferedRemoval {
-            context.hand.removeFromAnyLocation(id: card.id)
-        } else {
-            context.hand.remove(id: card.id)
-        }
-        guard removed != nil else {
-            throw BattlePlayError.cardNotInHand
-        }
-        return resolvePlayedCard(card, ownerRuntime: ownerRuntime, context: &context)
-    }
-
-    @discardableResult
     public static func endTurn(
         context: inout BattleState,
     ) -> [ActionEvent] {

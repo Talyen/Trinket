@@ -158,10 +158,10 @@ struct BattleSimulatorTests {
         #expect(!BalanceTalentContrastRunner.isKitLegal(focus: fullFocus, tier: .early))
     }
 
-    @Test func `simulation policies make rejects unknown I ds`() {
-        #expect(SimulationPolicies.make(id: PlayPolicy.greedy.rawValue)?.id == PlayPolicy.greedy.rawValue)
-        #expect(SimulationPolicies.make(id: PlayPolicy.setupAware.rawValue)?.id == PlayPolicy.setupAware.rawValue)
-        #expect(SimulationPolicies.make(id: "setup-v2") == nil)
+    @Test func `play policy id round-trips known policies`() {
+        #expect(PlayPolicy(rawValue: PlayPolicy.greedy.rawValue)?.id == PlayPolicy.greedy.rawValue)
+        #expect(PlayPolicy(rawValue: PlayPolicy.setupAware.rawValue)?.id == PlayPolicy.setupAware.rawValue)
+        #expect(PlayPolicy(rawValue: "setup-v2") == nil)
     }
 
     @Test func `matchup builder and simulator preserve enemy faction`() throws {

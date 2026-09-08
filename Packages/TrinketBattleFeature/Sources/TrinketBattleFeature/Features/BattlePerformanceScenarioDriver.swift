@@ -67,18 +67,13 @@ struct BattlePerformanceScenarioDriver {
     }
 
     private func activationRequest(for card: BattleCard) -> CardActivationRequest {
-        let size = CGSize(
-            width: min(132, battleSize.width * 0.34),
-            height: min(184, battleSize.width * 0.47),
-        )
-        return CardActivationRequest(
-            artworkName: card.ability.artReference?.imageName,
-            center: CGPoint(x: battleSize.width / 2, y: battleSize.height * 0.78),
-            size: size,
-            rotation: 0,
-            verticalTilt: 0,
-            scale: 1,
-            keywords: card.ability.presentationKeywords,
+        let hand = battleSession.hand
+        let index = hand.firstIndex(where: { $0.id == card.id }) ?? 0
+        return CardActivationRequest.restingRequest(
+            for: card,
+            index: index,
+            cardCount: max(1, hand.count),
+            battleSize: battleSize,
         )
     }
 

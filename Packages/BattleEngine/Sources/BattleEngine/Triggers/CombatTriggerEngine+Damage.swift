@@ -460,23 +460,7 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard !context.isResolvingDoTDetonation else { return [] }
-        context.isResolvingDoTDetonation = true
-        defer { context.isResolvingDoTDetonation = false }
-
-        let currentEffects = context.roster.activeEffects(for: target)
-        let bleedsToDetonate = currentEffects.filter { $0.effect.isBleed && $0.remainingTurns > 0 }
-        guard !bleedsToDetonate.isEmpty else { return [] }
-        var remainingEffects = currentEffects
-        remainingEffects.removeAll {
-            if case .bleed = $0.effect {
-                return true
-            }
-            return false
-        }
-        context.roster.setActiveEffects(remainingEffects, for: target)
-
-        return detonateBleedStacks(bleedsToDetonate, on: target, sourceActorID: sourceActorID, in: &context)
+        detonateBleedAndPoison(on: target, sourceActorID: sourceActorID, includePoison: false, in: &context)
     }
 }
 

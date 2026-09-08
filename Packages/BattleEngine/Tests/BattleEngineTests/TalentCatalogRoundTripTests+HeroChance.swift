@@ -172,4 +172,74 @@ extension TalentCatalogRoundTripTests {
         #expect(original[0].amount == (original[0].isCritical ? 2 : 1))
         #expect(original[1].amount == (original[1].isCritical ? 1 : 0))
     }
+
+    @Test func `critical gold rolls once per card and theft does not trigger attack critical rewards`() throws {
+        var outcomes: Set<Bool> = []
+        let goldCard = Ability(id: "two-gold-gains", name: "Two Gold Gains", tier: .skill, targetedEffects: [
+            TargetedEffect(.resourceGain(.gold, 1)), TargetedEffect(.resourceGain(.gold, 3)),
+        ], stealsGold: true)
+        for seed in UInt64(1) ... 48 {
+            var battle = heroTalentBattle("wildcard_gold_t3_2", "lizard_scout_gold_t3_2", "rogue_gold_t4_1", seed: seed)
+            var expectedRNG = battle.rng
+            let chance = CriticalChanceEngine.chance(actorID: battle.hero.id, defender: battle.enemy, in: battle)
+            let critical = BattleChance.succeeds(probability: chance, using: &expectedRNG)
+            let events = try playHeroTalentCard(goldCard, in: &battle)
+            let gold = events.filter { $0.effectKind == .resourceGain && $0.keyword == .gold }
+            #expect(gold.map(\.isCritical) == [critical, critical])
+            #expect(gold.map(\.amount) == (critical ? [2, 6] : [1, 3]))
+            #expect(battle.heroTalents.history[battle.hero.id]?.stolenGoldDamage == battle.gold)
+            #expect(!events.contains { $0.abilityName == "Bounty Blade" })
+            #expect(battle.rng.next() == expectedRNG.next())
+            outcomes.insert(critical)
+        }
+        #expect(outcomes == [false, true])
+    }
+
+    @Test func `improving odds grows on connected dodgeable attacks including block and resets on dodge`() {
+        var battle = heroTalentBattle("wildcard_dodge_t3_2")
+        seedHeroTalentEffect(.shield(.block, 1000), on: .hero, in: &battle)
+        var exceededFive = false
+        for _ in 0 ..< 60 {
+            let previous = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth ?? 0
+            let outcome = battle.resolveDamage(DamageRequest(
+                amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, isAttackHit: true),
+            ))
+            let growth = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth ?? 0
+            #expect(growth == (outcome.flags.contains(.dodged) ? 0 : previous + 5))
+            #expect(outcome.healthLost == 0)
+            exceededFive = exceededFive || growth > 5
+            #expect(DamagePipeline.dodgeChance(for: battle.hero, attackerID: battle.enemy.id, in: battle) <= 0.75)
+        }
+        #expect(exceededFive)
+        let before = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+            options: DamageOptions(applyDodge: false, isAttackHit: true),
+        ))
+        #expect(battle.heroTalents.history[battle.hero.id]?.dodgeGrowth == before)
+    }
+
+    @Test func `blind spot refreshes and covers every physical hit of only the next owned card`() throws {
+        var battle = heroTalentBattle("wildcard_dodge_t4_1")
+        seedHeroTalentEffect(.shield(.block, 30), on: .enemy, in: &battle)
+        for _ in 0 ..< 2 {
+            seedHeroTalentEffect(.evadeNextHit, on: .hero, in: &battle)
+            _ = battle.resolveDamage(DamageRequest(amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id))
+        }
+        try playHeroTalentCard(.block, in: &battle)
+        try playHeroTalentCard(.stab, owner: .companion, in: &battle)
+        let block = talentPoints(.shield, on: .enemy, in: battle)
+        let doubleHit = Ability(
+            id: "physical-pair",
+            name: "Physical Pair",
+            tier: .basic,
+            damageComponents: [DamageComponent(1), DamageComponent(1)],
+        )
+        let events = try playHeroTalentCard(doubleHit, in: &battle)
+        #expect(events.filter { $0.kind == .abilityDamage }.allSatisfy { $0.amount > 0 })
+        #expect(talentPoints(.shield, on: .enemy, in: battle) == block)
+        try playHeroTalentCard(.stab, in: &battle)
+        #expect(talentPoints(.shield, on: .enemy, in: battle) < block)
+    }
 }

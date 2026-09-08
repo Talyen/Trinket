@@ -203,15 +203,8 @@ struct MysteryEncounterView: View {
     }
 
     private var heroArtworkNames: [String] {
-        if let artID = session.event.artID {
-            if let art = ArtCatalog.encounterArtByID[artID] {
-                return [art.imageName]
-            }
-            if let art = ArtCatalog.backgroundArtByID[artID] {
-                return [art.imageName]
-            }
-        }
-        return ArtCatalog.backgroundArtByID[session.stage.chapterID].map { [$0.imageName] } ?? []
+        MysteryEventArtwork.focalContent(event: session.event, chapterID: session.stage.chapterID)
+            .map { [$0.imageName] } ?? []
     }
 
     private var heroArtworkReady: Bool {
@@ -223,19 +216,7 @@ struct MysteryEncounterView: View {
     }
 
     private func refreshArtworkPins() async {
-        let next = artworkPinKey
-        let previous = Set(pinnedArtwork)
-        let added = Set(next).subtracting(previous)
-        if !added.isEmpty {
-            await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
-            guard !Task.isCancelled else {
-                PreparedArtworkCache.shared.releasePins(names: Array(added))
-                return
-            }
-        }
-        guard !Task.isCancelled else { return }
-        PreparedArtworkCache.shared.releasePins(names: Array(previous.subtracting(next)))
-        pinnedArtwork = next
+        pinnedArtwork = await ArtworkPinSet.refresh(next: artworkPinKey, current: pinnedArtwork)
     }
 
     private var readingContent: some View {

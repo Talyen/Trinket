@@ -57,7 +57,7 @@ struct ReactionScopeTests {
 
     @Test func `buildup damage invariant holds for blocked hit`() {
         let hero = CombatantFixtures.passiveHero(maxHealth: 100)
-        var state = BattleTestFixtures.makeContext(
+        var state = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),

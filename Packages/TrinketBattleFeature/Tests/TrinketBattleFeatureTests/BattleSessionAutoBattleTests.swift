@@ -221,7 +221,7 @@ struct BattleSessionAutoBattleTests {
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 500,
-                actionIntervalTurns: 100,
+                actionIntervalTurns: CombatantFixtures.passiveTurnInterval,
                 abilities: [],
             ),
         )
@@ -304,20 +304,20 @@ struct BattleSessionAutoBattleTests {
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
-                actionIntervalTurns: 1,
+                actionIntervalTurns: CombatantFixtures.quickWinTurnInterval,
                 abilities: [.slash],
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
-                actionIntervalTurns: 100,
+                actionIntervalTurns: CombatantFixtures.passiveTurnInterval,
                 abilities: [],
             ),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 100,
-                actionIntervalTurns: 100,
+                actionIntervalTurns: CombatantFixtures.passiveTurnInterval,
                 abilities: [],
             ),
         )

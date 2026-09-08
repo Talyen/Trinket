@@ -76,7 +76,9 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
 
     var encodedPayload: Data {
         do {
-            return try JSONEncoder().encode(self)
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .sortedKeys
+            return try encoder.encode(self)
         } catch {
             preconditionFailure("Contract offers must be JSON encodable")
         }

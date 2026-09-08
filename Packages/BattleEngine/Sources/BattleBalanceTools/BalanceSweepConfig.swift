@@ -104,7 +104,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         return Array(remainder.prefix(workLimit))
     }
 
-    public func localSlice(regionStart: Int, regionCount: Int) -> (offset: Int, limit: Int)? {
+    public func withLocalSlice(regionStart: Int, regionCount: Int) -> Self? {
         guard regionCount > 0 else { return nil }
         let globalStart = workOffset
         let globalEnd = workLimit.map { globalStart + $0 } ?? Int.max
@@ -112,16 +112,9 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         let start = max(globalStart, regionStart)
         let end = min(globalEnd, regionEnd)
         guard start < end else { return nil }
-        return (start - regionStart, end - start)
-    }
-
-    public func withLocalSlice(regionStart: Int, regionCount: Int) -> Self? {
-        guard let local = localSlice(regionStart: regionStart, regionCount: regionCount) else {
-            return nil
-        }
         var copy = self
-        copy.workOffset = local.offset
-        copy.workLimit = local.limit
+        copy.workOffset = start - regionStart
+        copy.workLimit = end - start
         return copy
     }
 
@@ -137,7 +130,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     }
 
     public var policy: PlayPolicy {
-        SimulationPolicies.make(id: policyID) ?? .greedy
+        PlayPolicy(rawValue: policyID) ?? .greedy
     }
 
     public var comparePolicy: PlayPolicy {

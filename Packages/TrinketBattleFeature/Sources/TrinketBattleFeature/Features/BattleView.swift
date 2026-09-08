@@ -141,7 +141,7 @@ public struct BattleView: View {
                 switch presentationContext.defeatPrimaryAction {
                 case .retreat:
                     DefeatView(
-                        enemyName: configuration.enemy?.name ?? "Enemy",
+                        enemyName: defeatEnemyName,
                         primaryButtonTitle: "Return to Map",
                         onPrimaryAction: {
                             retreat()
@@ -151,7 +151,7 @@ public struct BattleView: View {
                     .transition(.opacity)
                 case .restart:
                     DefeatView(
-                        enemyName: configuration.enemy?.name ?? "Enemy",
+                        enemyName: defeatEnemyName,
                         onPrimaryAction: {
                             restartBattle()
                             return true
@@ -189,6 +189,10 @@ public struct BattleView: View {
             battleSession.playPresentationSFX(SFXID.uiBuySell)
         }
         return didPersist
+    }
+
+    private var defeatEnemyName: String {
+        configuration.enemy?.name ?? "Enemy"
     }
 
     private var debugPerformanceScenario: BattlePerformanceScenario? {

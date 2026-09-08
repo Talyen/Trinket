@@ -1,3 +1,4 @@
+import BattleEngine
 import Observation
 import SwiftUI
 import TrinketCore
@@ -90,6 +91,38 @@ struct CardActivationRequest: Equatable, Identifiable {
         }
         self.keywords = uniqueKeywords.isEmpty ? [.physical] : uniqueKeywords
         particles = CardActivationParticle.make(count: particleCount)
+    }
+
+    static func restingRequest(
+        for card: BattleCard,
+        index: Int,
+        cardCount: Int,
+        battleSize: CGSize,
+        liftFraction: CGFloat = 0,
+    ) -> Self {
+        let metrics = BattleHandLayout.metrics(
+            containerWidth: battleSize.width,
+            cardCount: cardCount,
+        )
+        let restingCenter = BattleHandLayout.restingCenter(
+            index: index,
+            metrics: metrics,
+            cardCount: cardCount,
+            containerFrame: CGRect(origin: .zero, size: battleSize),
+        )
+        return Self(
+            artworkName: card.ability.artReference?.imageName,
+            center: CGPoint(
+                x: restingCenter.x,
+                y: restingCenter.y - metrics.cardHeight * liftFraction,
+            ),
+            size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
+            rotation: BattleHandLayout.rotation(index: index, cardCount: cardCount) * .pi / 180,
+            verticalTilt: 0,
+            scale: 1,
+            perspective: BattleMotion.cardPerspective,
+            keywords: card.ability.presentationKeywords,
+        )
     }
 }
 

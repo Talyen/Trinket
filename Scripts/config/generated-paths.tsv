@@ -26,6 +26,7 @@ content|Packages/TrinketContent/Sources/TrinketContent/Generated/RevivalTriggers
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/CleanseTriggers.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/EnemyTurnTriggers.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/OnHitTriggers.generated.swift
+content|Packages/TrinketContent/Sources/TrinketContent/Generated/CombatTraitTriggers.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/CombatantTalentCatalog.generated.swift
 asset|Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift
 asset|Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv

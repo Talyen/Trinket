@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketTestSupport
 @testable import BattleEngine
@@ -19,14 +20,14 @@ enum BattleSessionTestSupport {
         presentationEnvironment: BattleRuntimeDependencies? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
     ) -> BattleSession {
-        let resolvedHero = hero ?? CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            actionIntervalTurns: CombatantFixtures.quickWinTurnInterval,
-            abilities: [.slash],
+        let party = BattlePartyFixtures.quickWinParty(
+            hero: hero,
+            companion: companion,
+            enemy: enemy ?? CombatantFixtures.passiveEnemy(),
         )
-        let resolvedCompanion = companion ?? CombatantFixtures.passiveCompanion()
-        let resolvedEnemy = enemy ?? CombatantFixtures.passiveEnemy()
+        let resolvedHero = party.hero
+        let resolvedCompanion = party.companion
+        let resolvedEnemy = party.enemy
         let session = BattleSession(
             autoEndTurnDelay: autoEndTurnDelay,
             openingHandDrawStagger: 0,
@@ -153,6 +154,52 @@ enum BattleSessionTestSupport {
             at: date,
         )
         return session.outcome == .victory ? session.earnedGold : nil
+    }
+
+    static func makePassiveSession(
+        heroHealth: Int = 100,
+        heroMana: Int = 12,
+        enemyHealth: Int = 1000,
+        companionHealth: Int? = nil,
+        companionMana: Int? = nil,
+    ) -> BattleSession {
+        makeConfiguredSession(
+            hero: CombatantFixtures.passiveHero(maxHealth: heroHealth, maxMana: heroMana),
+            companion: CombatantFixtures.passiveCompanion(
+                maxHealth: companionHealth ?? heroHealth,
+                maxMana: companionMana ?? heroMana,
+            ),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyHealth),
+            autoEndTurnDelay: 60,
+        )
+    }
+
+    static func makeUltimateProbeParty(enemyHealth: Int) -> (hero: Combatant, companion: Combatant, enemy: Combatant) {
+        (
+            hero: CombatantFixtures.combatant(
+                id: "hero",
+                role: .hero,
+                abilities: [.slash, .fireball, .bloodthorn],
+            ),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: enemyHealth,
+                abilities: [],
+            ),
+        )
+    }
+
+    static func makeDrivenVictorySummary(
+        configuration: BattleRunConfiguration,
+        presentation: BattlePresentationContext,
+    ) -> BattleVictorySummary? {
+        let session = BattleSession(openingHandDrawStagger: 0)
+        _ = session.activate(configuration)
+        session.installPresentationContext(presentation)
+        driveUntilOutcome(session)
+        return session.makeVictorySummary(for: configuration, presentation: presentation)
     }
 
     static func greedyPlaySequence(from session: BattleSession) throws -> [Int] {

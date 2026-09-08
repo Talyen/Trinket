@@ -52,34 +52,12 @@ extension BattleFieldLane {
     ) -> CardActivationRequest? {
         let hand = battleSession.hand
         guard let index = hand.firstIndex(where: { $0.id == card.id }) else { return nil }
-
-        let metrics = BattleHandLayout.metrics(
-            containerWidth: battleSize.width,
-            cardCount: hand.count,
-        )
-        let restingCenter = BattleHandLayout.restingCenter(
+        return CardActivationRequest.restingRequest(
+            for: card,
             index: index,
-            metrics: metrics,
             cardCount: hand.count,
-            containerFrame: CGRect(origin: .zero, size: battleSize),
-        )
-        let center = CGPoint(
-            x: restingCenter.x,
-            y: restingCenter.y - metrics.cardHeight * BattleMotion.tapLiftHeightFraction,
-        )
-
-        return CardActivationRequest(
-            artworkName: card.ability.artReference?.imageName,
-            center: center,
-            size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
-            rotation: BattleHandLayout.rotation(
-                index: index,
-                cardCount: hand.count,
-            ) * .pi / 180,
-            verticalTilt: 0,
-            scale: 1,
-            perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.presentationKeywords,
+            battleSize: battleSize,
+            liftFraction: BattleMotion.tapLiftHeightFraction,
         )
     }
 }

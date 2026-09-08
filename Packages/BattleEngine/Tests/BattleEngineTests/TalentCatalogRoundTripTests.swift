@@ -45,7 +45,7 @@ struct TalentCatalogRoundTripTests {
     @Test func `intercede absorbs companion damage with hero block`() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "knight", talents: "knight_block_t2_1")
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
-        var battle = BattleTestFixtures.makeContext(
+        var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: build.combatant,
             companion: companion,
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
@@ -102,7 +102,7 @@ struct TalentCatalogRoundTripTests {
 
     @Test func `deep freeze blocks enemy block and healing`() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "wizard", talents: "wizard_freeze_t3_1")
-        var battle = BattleTestFixtures.makeContext(
+        var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: build.combatant,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
@@ -130,7 +130,7 @@ struct TalentCatalogRoundTripTests {
 
     @Test func `deep freeze does not deny frozen hero block or heal`() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "wizard", talents: "wizard_freeze_t3_1")
-        var battle = BattleTestFixtures.makeContext(
+        var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: build.combatant,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
@@ -159,7 +159,7 @@ struct TalentCatalogRoundTripTests {
     @Test func `phoenix gift heals hero from fatal damage`() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "phoenix", talents: "phoenix_health_t3_1")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        var battle = BattleTestFixtures.makeContext(
+        var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: build.combatant,
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
@@ -209,7 +209,7 @@ struct TalentCatalogRoundTripTests {
     @Test func `phoenix afterglow heals party on deaths door`() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "phoenix", talents: "phoenix_health_t2_1")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        var battle = BattleTestFixtures.makeContext(
+        var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: build.combatant,
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
@@ -234,7 +234,7 @@ struct TalentCatalogRoundTripTests {
 
     @Test func `phoenix vigor buffs damage after surviving deaths door`() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "phoenix", talents: "phoenix_deathsdoor_t2_2")
-        var battle = BattleTestFixtures.makeContext(
+        var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20),
             companion: build.combatant,
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
@@ -257,7 +257,7 @@ struct TalentCatalogRoundTripTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let build = try BattleTestFixtures.catalogBuild(combatantID: "phoenix", talents: "phoenix_deathsdoor_t1_1")
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: build.combatant,
             enemy: enemy,
@@ -299,7 +299,7 @@ struct TalentCatalogRoundTripTests {
             combatantID: "risen_skeleton",
             talents: "risen_skeleton_deathsdoor_t1_1",
         )
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: build.combatant,
             enemy: enemy,
@@ -358,7 +358,7 @@ struct TalentCatalogRoundTripTests {
         let build = try BattleTestFixtures.catalogBuild(combatantID: testCase.combatantID, talents: testCase.talentID)
         #expect(build.modifiers.triggerAbilityName("onHealGrantBlock", fallback: "") == testCase.abilityName)
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        var battle = BattleTestFixtures.makeContext(
+        var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: build.combatant,
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),

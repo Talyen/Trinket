@@ -118,4 +118,106 @@ package extension CombatTriggerEngine {
             in: &context,
         )
     }
+
+    // swiftlint:disable:next function_body_length - gold trigger fan-out is one ordered transaction
+    static func goldGainTriggerEvents(
+        granted: Int,
+        previousEarned: Int,
+        currentEarned: Int,
+        combatant: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events = healSelfAfterGoldGain(source: combatant, in: &context).events
+
+        let triggers = context.modifiers(for: combatant.id).triggers
+        if triggers.lightFingered {
+            events.append(contentsOf: DefensePoolEngine.steal(
+                granted, from: context.roster.enemy.combatant, to: combatant,
+                abilityName: "Light-Fingered", in: &context,
+            ))
+        }
+        if triggers.onGainGoldDrawCardOncePerTurn,
+           let owner = context.roster.participant(for: combatant),
+           owner.isPartyMember,
+           context.turnCadence.goldDrawOwners.insert(owner).inserted {
+            let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
+            if drawn > 0 {
+                events.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .cardsDrawn,
+                    actorName: combatant.name,
+                    abilityName: triggerAbilityName(
+                        "onGainGoldDrawCardOncePerTurn",
+                        for: combatant,
+                        fallback: "Golden Opportunity",
+                        in: context,
+                    ),
+                    target: combatant,
+                    amount: drawn,
+                    keyword: .physical,
+                ))
+            }
+        }
+        if triggers.onGainGoldHealParty > 0 {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                guard member.isAlive, member.id != combatant.id else { continue }
+                events.append(contentsOf: context.healEmitting(
+                    amount: triggers.onGainGoldHealParty,
+                    target: member.combatant,
+                    source: combatant,
+                    abilityName: triggerAbilityName(
+                        "onGainGoldHealParty",
+                        for: combatant,
+                        fallback: "Golden Recovery",
+                        in: context,
+                    ),
+                ))
+            }
+        }
+        if triggers.onGainGoldDoubleStatusEffectsNextCard {
+            context.roster.mutateRuntime(for: combatant) { $0.pendingDoubleStatusNextCard = true }
+        }
+        if granted > 0 {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                guard member.isAlive else { continue }
+                let percent = context.modifiers(for: member.id).triggers.goldGainBlockPercent
+                if percent > 0 {
+                    let block = Int((Double(granted) * percent).rounded(.down))
+                    if block > 0 {
+                        events.append(contentsOf: context.applyBlock(
+                            block,
+                            to: member.combatant,
+                            source: member.combatant,
+                            abilityName: triggerAbilityName(
+                                "goldGainBlockPercent",
+                                for: member.combatant,
+                                fallback: "Golden Guard",
+                                in: context,
+                            ),
+                        ))
+                    }
+                    continue
+                }
+                let every = context.modifiers(for: member.id).triggers.blockPerGoldEarnedEvery
+                guard every > 0 else { continue }
+                let newlyGranted = currentEarned / every - previousEarned / every
+                if newlyGranted > 0 {
+                    events.append(contentsOf: context.applyBlock(
+                        newlyGranted,
+                        to: member.combatant,
+                        source: member.combatant,
+                        abilityName: triggerAbilityName(
+                            "blockPerGoldEarnedEvery",
+                            for: member.combatant,
+                            fallback: "Golden Guard",
+                            in: context,
+                        ),
+                    ))
+                }
+            }
+        }
+        return events
+    }
 }

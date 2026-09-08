@@ -233,14 +233,12 @@ package extension CombatTriggerEngine {
         guard damage > 0 else { return [] }
         context.isResolvingTalentReaction = true
         defer { context.isResolvingTalentReaction = false }
-        return context.resolveDamage(
-            DamageRequest(
-                amount: damage,
-                target: context.roster.enemy.combatant,
-                keyword: .poison,
-                sourceActorID: actor.id,
-                options: .flatReaction,
-            ),
+        return DamagePipeline.resolveRetaliation(
+            amount: damage,
+            keyword: .poison,
+            target: context.roster.enemy.combatant,
+            sourceActorID: actor.id,
+            in: &context,
         ).events
     }
 

@@ -96,26 +96,7 @@ public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
 public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public let description: String
     public let modifiers: [AffixModifier]
-    public var triggers: CombatTraitTriggers {
-        get { triggerBox.value }
-        set {
-            if isKnownUniquelyReferenced(&triggerBox) {
-                triggerBox.value = newValue
-            } else {
-                triggerBox = TriggerBox(newValue)
-            }
-        }
-    }
-
-    // Concurrency-Safety: `@unchecked Sendable` — COW box is mutated only while
-    private final class TriggerBox: @unchecked Sendable {
-        var value: CombatTraitTriggers
-        init(_ value: CombatTraitTriggers) {
-            self.value = value
-        }
-    }
-
-    private var triggerBox: TriggerBox
+    public var triggers: CombatTraitTriggers
 
     public init(
         description: String,
@@ -124,7 +105,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     ) {
         self.description = description
         self.modifiers = modifiers
-        triggerBox = TriggerBox(triggers)
+        self.triggers = triggers
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -147,7 +128,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         } else {
             modifiers = (try? container.decode([AffixModifier].self, forKey: .modifiers)) ?? []
         }
-        triggerBox = try TriggerBox(container.decode(CombatTraitTriggers.self, forKey: .triggers))
+        triggers = try container.decode(CombatTraitTriggers.self, forKey: .triggers)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -155,18 +136,6 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         try container.encode(description, forKey: .description)
         try container.encode(modifiers, forKey: .modifiers)
         try container.encode(triggers, forKey: .triggers)
-    }
-
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.description == rhs.description
-            && lhs.modifiers == rhs.modifiers
-            && lhs.triggerBox.value == rhs.triggerBox.value
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(description)
-        hasher.combine(modifiers)
-        hasher.combine(triggerBox.value)
     }
 }
 
@@ -231,5 +200,15 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
             description: power.description,
             keywords: keywords,
         )
+    }
+}
+
+public enum ItemAffixPowerCoding {
+    public static func encode(_ powers: [ItemAffixPower]) throws -> Data {
+        try JSONEncoder().encode(powers)
+    }
+
+    public static func decode(_ data: Data) throws -> [ItemAffixPower] {
+        try JSONDecoder().decode([ItemAffixPower].self, from: data)
     }
 }

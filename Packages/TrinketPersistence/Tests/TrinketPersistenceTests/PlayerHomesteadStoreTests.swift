@@ -4,15 +4,9 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerHomesteadStoreTests {
-    let context: PersistenceTestContext
-
-    init() throws {
-        context = try PersistenceTestContext()
-    }
-
-    @Test func `build or upgrade node persists homestead and roster through hub`() throws {
+struct PlayerHomesteadStoreTests {
+    @Test @MainActor func `build or upgrade node persists homestead and roster through hub`() throws {
+        let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         firstStore.homestead = PlayerHomesteadState(
@@ -34,7 +28,8 @@ final class PlayerHomesteadStoreTests {
         try #expect(reloaded.homestead.resources[.herbs] == 5)
     }
 
-    @Test func `build or upgrade node returns insufficient resources without mutating`() throws {
+    @Test @MainActor func `build or upgrade node returns insufficient resources without mutating`() throws {
+        let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         store.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:])
@@ -44,7 +39,8 @@ final class PlayerHomesteadStoreTests {
         try #expect(store.homestead.tier(for: .wheatField) == 0)
     }
 
-    @Test func `build or upgrade node returns not available when max tier`() throws {
+    @Test @MainActor func `build or upgrade node returns not available when max tier`() throws {
+        let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let maxTier = try #require(definition.tiers.map(\.tier).max())
@@ -58,7 +54,8 @@ final class PlayerHomesteadStoreTests {
         try #expect(store.homestead.tier(for: .wheatField) == maxTier)
     }
 
-    @Test func `collect production persists pending materials and timestamp`() throws {
+    @Test @MainActor func `collect production persists pending materials and timestamp`() throws {
+        let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         let start = Date(timeIntervalSince1970: 0)
         let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
@@ -84,7 +81,8 @@ final class PlayerHomesteadStoreTests {
         try #expect(reloaded.homestead.lastProductionAt == collectionDate)
     }
 
-    @Test func `build settles production before changing node tier`() throws {
+    @Test @MainActor func `build settles production before changing node tier`() throws {
+        let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)

@@ -30,12 +30,6 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
         isSubscribed = true
     }
 
-    func stop() {
-        guard isSubscribed else { return }
-        MXMetricManager.shared.remove(self)
-        isSubscribed = false
-    }
-
     nonisolated func didReceive(_ payloads: [MXMetricPayload]) {
         for payload in payloads {
             guard let animation = payload.animationMetrics else { continue }
@@ -65,7 +59,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
         let periodEnd = payload.timeStampEnd.timeIntervalSince1970
 
         let crashes = (payload.crashDiagnostics ?? []).map { diagnostic in
-            MetricKitDiagnosticSnapshot(
+            makeSnapshot(
                 kind: .crash(
                     signal: diagnostic.signal?.intValue,
                     terminationReason: diagnostic.terminationReason,
@@ -76,7 +70,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
             )
         }
         let hangs = (payload.hangDiagnostics ?? []).map { diagnostic in
-            MetricKitDiagnosticSnapshot(
+            makeSnapshot(
                 kind: .hang(
                     durationSeconds: diagnostic.hangDuration.converted(to: .seconds).value,
                 ),
@@ -86,7 +80,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
             )
         }
         let diskWrites = (payload.diskWriteExceptionDiagnostics ?? []).map { diagnostic in
-            MetricKitDiagnosticSnapshot(
+            makeSnapshot(
                 kind: .diskWrite(
                     totalMegabytes: diagnostic.totalWritesCaused.converted(to: .megabytes).value,
                 ),
@@ -96,6 +90,20 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
             )
         }
         return crashes + hangs + diskWrites
+    }
+
+    nonisolated private static func makeSnapshot(
+        kind: MetricKitDiagnosticSnapshot.Kind,
+        applicationVersion: String,
+        periodStart: TimeInterval,
+        periodEnd: TimeInterval,
+    ) -> MetricKitDiagnosticSnapshot {
+        MetricKitDiagnosticSnapshot(
+            kind: kind,
+            applicationVersion: applicationVersion,
+            periodStart: periodStart,
+            periodEnd: periodEnd,
+        )
     }
 
     private func log(_ snapshot: MetricKitDiagnosticSnapshot) {

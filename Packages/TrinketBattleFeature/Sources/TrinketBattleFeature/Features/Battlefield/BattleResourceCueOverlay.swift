@@ -44,12 +44,12 @@ struct BattleResourceCueOverlay: View {
         if cue.phase == .denied,
            keyword == .health, cue.recipients[combatantID]?.kind == .deniedHealth {
             isDenied = true
-            for _ in 0 ..< 2 {
+            for _ in 0 ..< BattleCardCueMotion.deniedBlinkCount {
                 withAnimation(BattleCardCueMotion.arrival) { strength = 1 }
-                try? await Task.sleep(for: .milliseconds(90))
+                try? await Task.sleep(for: BattleCardCueMotion.deniedBlinkInterval)
                 guard !Task.isCancelled else { return }
                 withAnimation(BattleCardCueMotion.arrival) { strength = 0 }
-                try? await Task.sleep(for: .milliseconds(90))
+                try? await Task.sleep(for: BattleCardCueMotion.deniedBlinkInterval)
                 guard !Task.isCancelled else { return }
             }
             return

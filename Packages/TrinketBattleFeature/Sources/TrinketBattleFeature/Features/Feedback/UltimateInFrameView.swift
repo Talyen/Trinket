@@ -29,11 +29,7 @@ struct UltimateInFrameView: View {
                     .animation(.easeIn(duration: 0.18), value: showVideo)
                     .frame(width: max(0, width), height: max(0, height))
                     .clipped()
-                    .clipShape(TrinketDesign.cardShape)
-                    .overlay {
-                        TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-                            .opacity(0.6)
-                    }
+                    .combatantCardChrome(borderOpacity: 0.6)
                 }
             } else {
                 Color.clear

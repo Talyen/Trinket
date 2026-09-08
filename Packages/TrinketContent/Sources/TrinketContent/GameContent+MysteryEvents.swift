@@ -113,33 +113,6 @@ public extension GameContent {
         )
     }
 
-    static func syntheticLabyrinthStage(
-        nodeID: String,
-        encounter: StageEncounter,
-    ) -> Stage {
-        Stage(
-            id: nodeID,
-            chapterID: "labyrinth",
-            chapterNumber: 0,
-            stageNumber: 0,
-            encounter: encounter,
-            rewards: .empty,
-        )
-    }
-
-    static var nonBossEnemies: [Enemy] {
-        enemies.filter { !$0.isBoss }
-    }
-
-    static func pickRandomNonBossEnemyID(forStageID stageID: String, worldSeed: UInt64) -> String? {
-        var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: encounterSeed(worldSeed, salt: "random-battle-\(stageID)"),
-        )
-        return nonBossEnemies
-            .map(\.id)
-            .randomElement(using: &randomNumberGenerator)
-    }
-
     static func resolveRecruitEncounter(
         configuredEventID: String?,
         encounterID: String,

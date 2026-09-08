@@ -6,7 +6,7 @@ import TrinketTestSupport
 
 struct CleanseIntegrationTests {
     @Test func `panacea cleanses most debuffed and heals lowest as one action`() throws {
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
@@ -47,7 +47,7 @@ struct CleanseIntegrationTests {
     }
 
     @Test func `panacea cleanses most debuffed but heals lowest when split`() throws {
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
@@ -79,7 +79,7 @@ struct CleanseIntegrationTests {
     }
 
     @Test func `panacea heals base amount when no debuffs present`() throws {
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
@@ -114,7 +114,7 @@ struct CleanseIntegrationTests {
             description: "Cleanse Poisoned.",
             effects: [.cleanse(.poison)],
         )
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
             abilities: [cleansePoison],
         )
@@ -154,7 +154,7 @@ struct CleanseIntegrationTests {
             description: "Cleanse Stunned.",
             targetedEffects: [TargetedEffect(.cleanse(.stun))],
         )
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
@@ -186,7 +186,7 @@ struct CleanseIntegrationTests {
             description: "Cleanse all debuffs.",
             effects: [.cleanse(nil)],
         )
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 50,
             abilities: [cleanseAll],
         )
@@ -222,7 +222,7 @@ struct CleanseIntegrationTests {
             description: "Cleanse all debuffs.",
             effects: [.cleanse(nil)],
         )
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 50,
             abilities: [cleanseAll],
         )

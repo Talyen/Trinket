@@ -10,6 +10,25 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionSimulationTests {
+    @Test func `defeat presentation locks retreat without victory chrome`() {
+        let session = BattleSessionTestSupport.makeConfiguredSession(
+            hero: CombatantFixtures.passiveHero(maxHealth: 1),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 1),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 500,
+                actionIntervalTurns: CombatantFixtures.quickWinTurnInterval,
+                abilities: [.slash],
+            ),
+        )
+        BattleSessionTestSupport.driveUntilOutcome(session)
+
+        #expect(session.outcome == .defeat)
+        #expect(session.spectacle.outcomePresentation == .defeat)
+        #expect(!session.canRetreat)
+    }
+
     @Test func `victory presentation holds chrome and locks retreat until configured delay`() async throws {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0.05)
@@ -34,7 +53,7 @@ struct BattleSessionSimulationTests {
         let companionID = try #require(session.companionID)
         #expect(session.feedback.hitReactionsByTargetID[heroID]?.kind == .celebrate)
         #expect(session.feedback.hitReactionsByTargetID[companionID]?.kind == .celebrate)
-        let presentationTask = try #require(session.spectacle.pendingOutcomePresentationTask)
+        let presentationTask = try #require(session.spectacle.outcomeTask.task)
         await presentationTask.value
         #expect(session.spectacle.outcomePresentation.isOutcomePresented)
         #expect(session.spectacle.outcomePresentation.isVictoryPresented)
@@ -310,7 +329,7 @@ struct BattleSessionSimulationTests {
         let session = BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
         _ = session.playCard(cardID: card.id)
-        session.syncLogForDisplay()
+        session.syncEngineLog()
         #expect(!(session.logEntries.isEmpty))
 
         session.trimMemoryFootprint(releaseBattleLog: true)

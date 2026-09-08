@@ -47,24 +47,14 @@ struct ItemAffixCatalogTests {
     @Test func `each affix has positive weight and keywords`() throws {
         for definition in GameContent.itemAffixDefinitions {
             try #expect(definition.weight > 0, "\(definition.id) should have positive weight")
-            try #expect(!definition.keywords.isEmpty, "\(definition.id)) should declare keywords")
-        }
-    }
-
-    @Test func `item affixes do not grant primary stats`() {
-        for definition in GameContent.itemAffixDefinitions {
-            for power in [definition.basic, definition.astral] {
-                for modifier in power.modifiers {
-                    _ = modifier
-                }
-            }
+            try #expect(!definition.keywords.isEmpty, "\(definition.id) should declare keywords")
         }
     }
 
     @Test func `each affix defines basic and astral powers`() throws {
         for definition in GameContent.itemAffixDefinitions {
-            try #expect(!definition.basic.description.isEmpty, "\(definition.id)) basic description")
-            try #expect(!definition.astral.description.isEmpty, "\(definition.id)) astral description")
+            try #expect(!definition.basic.description.isEmpty, "\(definition.id) basic description")
+            try #expect(!definition.astral.description.isEmpty, "\(definition.id) astral description")
             if definition.slot == .trinket {
                 try #expect(definition.basic == definition.astral)
                 try #expect(definition.basic.triggers != CombatTraitTriggers(
@@ -74,12 +64,12 @@ struct ItemAffixCatalogTests {
             try #expect(
                 !definition.basic.modifiers.isEmpty || definition.basic.triggers != CombatTraitTriggers(
                 ),
-                "\(definition.id)) basic power",
+                "\(definition.id) basic power",
             )
             try #expect(
                 !definition.astral.modifiers.isEmpty || definition.astral.triggers != CombatTraitTriggers(
                 ),
-                "\(definition.id)) astral power",
+                "\(definition.id) astral power",
             )
         }
     }
@@ -90,7 +80,7 @@ struct ItemAffixCatalogTests {
                 definition.slot == baseType.slot &&
                     !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
             }
-            try #expect(!eligible.isEmpty, "\(baseType.id)) should have at least one eligible affix")
+            try #expect(!eligible.isEmpty, "\(baseType.id) should have at least one eligible affix")
         }
     }
 

@@ -1,7 +1,5 @@
 import SwiftUI
 import TrinketAppState
-import TrinketContent
-import TrinketDesignSystem
 
 struct HiddenTabPrewarm: View {
     let appState: AppState
@@ -16,20 +14,7 @@ struct HiddenTabPrewarm: View {
                 HomesteadView()
             }
             NavigationStack {
-                OptionsView(
-                    persistenceStatusMessage: { appState.persistenceStatusMessage },
-                    applyMusicVolumeLive: { volume, phase in
-                        appState.applyMusicVolumeLive(volume, scenePhase: phase)
-                    },
-                    playToggleSFX: { isEnabled, volume in
-                        appState.sfxPlayer.play(
-                            isEnabled ? SFXID.uiToggleOn : SFXID.uiToggleOff,
-                            volume: volume,
-                        )
-                    },
-                    resetGameplayProgress: appState.resetGameplayProgress,
-                    unlockAllContent: appState.unlockAllContent,
-                )
+                makeOptionsView(appState: appState)
             }
         }
         .opacity(0.001)

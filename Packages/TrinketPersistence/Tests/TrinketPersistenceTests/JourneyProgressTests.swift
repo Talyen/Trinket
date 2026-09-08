@@ -90,48 +90,45 @@ struct JourneyProgressTests {
     }
 
     @Test @MainActor func `journey persists progress`() throws {
-        let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyProgressTests")
-        defer { SaveTestSupport.removeTempDirectory(directoryURL) }
+        let context = try PersistenceTestContext()
 
-        let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let firstSaveStore = try context.makeSaveStore()
         try firstSaveStore.performBatchMutation { save in
             save.journey.complete(chapter.stages[0], in: GameContent.chapters)
         }
 
-        let secondSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let secondSaveStore = try context.makeReloadedStore()
         try #expect(secondSaveStore.journey.activeStageID == "chapter-1-stage-2")
         try #expect(secondSaveStore.journey.completedStageIDs.contains("chapter-1-stage-1"))
     }
 
     @Test @MainActor func `journey persists pinned mystery event I ds`() throws {
-        let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyPinTests")
-        defer { SaveTestSupport.removeTempDirectory(directoryURL) }
+        let context = try PersistenceTestContext()
 
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
-        let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let firstSaveStore = try context.makeSaveStore()
         try firstSaveStore.performBatchMutation { save in
             save.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] = event.id
         }
 
-        let secondSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let secondSaveStore = try context.makeReloadedStore()
         try #expect(
             secondSaveStore.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] == event.id,
         )
     }
 
     @Test @MainActor func `startup repairs duplicate journey stage rows`() throws {
-        let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyDuplicateStageTests")
-        defer { SaveTestSupport.removeTempDirectory(directoryURL) }
-        let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
+        let context = try PersistenceTestContext()
+        let storeURL = context.storeURL()
         let stageID = "chapter-1-stage-5"
         let eventID = try #require(GameContent.mysteryEvent(matching: "mana-berries")?.id)
 
         do {
-            _ = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+            _ = try context.makeSaveStore()
         }
         do {
-            let context = try SaveTestSupport.makeSideContext(storeURL: storeURL)
-            let journey = try #require(context.fetch(FetchDescriptor<JourneyProgressModel>()).first)
+            let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
+            let journey = try #require(sideContext.fetch(FetchDescriptor<JourneyProgressModel>()).first)
             let completed = JourneyStageProgressModel(
                 stageID: stageID,
                 isCompleted: true,
@@ -145,18 +142,18 @@ struct JourneyProgressTests {
             completed.journey = journey
             claimed.journey = journey
             journey.stages = [completed, claimed]
-            context.insert(completed)
-            context.insert(claimed)
-            try context.save()
+            sideContext.insert(completed)
+            sideContext.insert(claimed)
+            try sideContext.save()
         }
 
-        let repairedStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let repairedStore = try context.makeReloadedStore()
         try #expect(repairedStore.journey.completedStageIDs.contains(stageID))
         try #expect(repairedStore.journey.claimedRewardStageIDs.contains(stageID))
         try #expect(repairedStore.journey.pinnedMysteryEventIDs[stageID] == eventID)
 
-        let context = try SaveTestSupport.makeSideContext(storeURL: storeURL)
-        let stageRows = try context.fetch(FetchDescriptor<JourneyStageProgressModel>())
+        let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
+        let stageRows = try sideContext.fetch(FetchDescriptor<JourneyStageProgressModel>())
         try #expect(stageRows.count(where: { $0.stageID == stageID }) == 1)
     }
 }

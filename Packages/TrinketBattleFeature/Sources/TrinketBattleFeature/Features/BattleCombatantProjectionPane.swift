@@ -45,7 +45,6 @@ struct BattleCombatantProjectionPane: View {
                 mana: snapshot.mana,
                 maxMana: snapshot.maxMana,
                 borderAccentKeyword: snapshot.borderAccentKeyword,
-                buffAuraKind: snapshot.buffAuraKind,
                 hapticsEnabled: hapticsEnabled,
                 recoilDirection: role == .enemy ? .up : .down,
                 onCombatantTap: { onCombatantTap(snapshot.combatant) },

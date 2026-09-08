@@ -173,76 +173,8 @@ enum BattleTestFixtures {
         return nil
     }
 
-    static func statHero(
-        id: String = "hero",
-        abilities: [Ability],
-        maxHealth: Int = 20,
-        actionIntervalTurns: Int = 2,
-    ) -> Combatant {
-        CombatantFixtures.combatant(
-            id: id,
-            role: .hero,
-            maxHealth: maxHealth,
-            actionIntervalTurns: actionIntervalTurns,
-            abilities: abilities,
-        )
-    }
-
-    static func statBattle(
-        hero: Combatant,
-        enemy: Combatant? = nil,
-    ) -> BattleState {
-        standardParty(
-            hero: hero,
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: enemy ?? CombatantFixtures.passiveEnemy(),
-        )
-    }
-
     static func firstAbilityEvent(in events: [ActionEvent]) -> ActionEvent? {
         events.first { $0.kind == .ability }
-    }
-
-    static func makeContext(
-        hero: Combatant,
-        companion: Combatant,
-        enemy: Combatant,
-        heroEffects: [ActiveEffect] = [],
-        companionEffects: [ActiveEffect] = [],
-        enemyEffects: [ActiveEffect] = [],
-        heroHealth: Int? = nil,
-        companionHealth: Int? = nil,
-        enemyHealth: Int? = nil,
-        heroMana: Int? = nil,
-        companionMana: Int? = nil,
-        enemyMana: Int? = nil,
-        heroModifiers: CombatModifierProfile = .zero,
-        companionModifiers: CombatModifierProfile = .zero,
-        enemyModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
-        nextEffectID: Int? = nil,
-        nextEventID: Int = 0,
-    ) -> BattleState {
-        BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            heroEffects: heroEffects,
-            companionEffects: companionEffects,
-            enemyEffects: enemyEffects,
-            heroHealth: heroHealth,
-            companionHealth: companionHealth,
-            enemyHealth: enemyHealth,
-            heroMana: heroMana,
-            companionMana: companionMana,
-            enemyMana: enemyMana,
-            heroModifiers: heroModifiers,
-            companionModifiers: companionModifiers,
-            enemyModifiers: enemyModifiers,
-            rngSeed: seed,
-            nextEffectID: nextEffectID,
-            nextEventID: nextEventID,
-        )
     }
 }
 

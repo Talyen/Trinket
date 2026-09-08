@@ -364,16 +364,12 @@ package extension CombatTriggerEngine {
         guard let owner = context.roster.participant(for: source), owner.isPartyMember else {
             return []
         }
-        let drawn = BattleCardCombatEngine.drawCards(count: count, for: owner, context: &context)
-        guard drawn > 0 else { return [] }
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .cardsDrawn,
-            actorName: source.name,
+        return drawCards(
+            count,
+            for: owner,
+            actor: source,
             abilityName: triggerAbilityName("cleanseBonusDraw", for: source, fallback: traitName(for: source, in: context), in: context),
-            target: source,
-            amount: drawn,
-            keyword: .physical,
-        )]
+            in: &context,
+        )
     }
 }

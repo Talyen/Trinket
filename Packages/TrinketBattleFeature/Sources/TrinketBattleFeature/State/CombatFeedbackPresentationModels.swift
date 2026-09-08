@@ -88,31 +88,25 @@ enum CombatantHitReactionKind: String, CaseIterable, Equatable {
     case celebrate
 }
 
-struct CombatantHitReactionRecipe: Equatable {
-    let kind: CombatantHitReactionKind
+struct CombatReactionKeyframes: Equatable {
     let scaleX: [CombatFeedbackKeyframeSample]
     let scaleY: [CombatFeedbackKeyframeSample]
     let offsetX: [CombatFeedbackKeyframeSample]
     let offsetY: [CombatFeedbackKeyframeSample]
     let rotation: [CombatFeedbackKeyframeSample]
-    let duration: TimeInterval
 
     init(
-        kind: CombatantHitReactionKind,
         scaleX: [CombatFeedbackKeyframeSample],
         scaleY: [CombatFeedbackKeyframeSample],
         offsetX: [CombatFeedbackKeyframeSample],
         offsetY: [CombatFeedbackKeyframeSample],
         rotation: [CombatFeedbackKeyframeSample] = [],
-        duration: TimeInterval,
     ) {
-        self.kind = kind
         self.scaleX = scaleX
         self.scaleY = scaleY
         self.offsetX = offsetX
         self.offsetY = offsetY
         self.rotation = rotation
-        self.duration = duration
     }
 
     var impactDuration: TimeInterval {
@@ -153,6 +147,92 @@ struct CombatantHitReactionRecipe: Equatable {
 
     var recoverOffsetY: Double {
         offsetY[safe: 1]?.value ?? 0.0
+    }
+}
+
+struct CombatantHitReactionRecipe: Equatable {
+    let kind: CombatantHitReactionKind
+    let keyframes: CombatReactionKeyframes
+    let duration: TimeInterval
+
+    init(
+        kind: CombatantHitReactionKind,
+        scaleX: [CombatFeedbackKeyframeSample],
+        scaleY: [CombatFeedbackKeyframeSample],
+        offsetX: [CombatFeedbackKeyframeSample],
+        offsetY: [CombatFeedbackKeyframeSample],
+        rotation: [CombatFeedbackKeyframeSample] = [],
+        duration: TimeInterval,
+    ) {
+        self.kind = kind
+        keyframes = CombatReactionKeyframes(
+            scaleX: scaleX,
+            scaleY: scaleY,
+            offsetX: offsetX,
+            offsetY: offsetY,
+            rotation: rotation,
+        )
+        self.duration = duration
+    }
+
+    var scaleX: [CombatFeedbackKeyframeSample] {
+        keyframes.scaleX
+    }
+
+    var scaleY: [CombatFeedbackKeyframeSample] {
+        keyframes.scaleY
+    }
+
+    var offsetX: [CombatFeedbackKeyframeSample] {
+        keyframes.offsetX
+    }
+
+    var offsetY: [CombatFeedbackKeyframeSample] {
+        keyframes.offsetY
+    }
+
+    var rotation: [CombatFeedbackKeyframeSample] {
+        keyframes.rotation
+    }
+
+    var impactDuration: TimeInterval {
+        keyframes.impactDuration
+    }
+
+    var recoveryDuration: TimeInterval {
+        keyframes.recoveryDuration
+    }
+
+    var rawImpactScaleX: Double {
+        keyframes.rawImpactScaleX
+    }
+
+    var rawImpactScaleY: Double {
+        keyframes.rawImpactScaleY
+    }
+
+    var rawImpactOffsetX: Double {
+        keyframes.rawImpactOffsetX
+    }
+
+    var rawImpactOffsetY: Double {
+        keyframes.rawImpactOffsetY
+    }
+
+    var recoveryScaleX: Double {
+        keyframes.recoveryScaleX
+    }
+
+    var recoveryScaleY: Double {
+        keyframes.recoveryScaleY
+    }
+
+    var recoverOffsetX: Double {
+        keyframes.recoverOffsetX
+    }
+
+    var recoverOffsetY: Double {
+        keyframes.recoverOffsetY
     }
 }
 
@@ -210,11 +290,7 @@ enum CombatantAttackAim: String, CaseIterable, Equatable {
 
 struct CombatantAttackReactionRecipe: Equatable {
     let kind: CombatantAttackReactionKind
-    let scaleX: [CombatFeedbackKeyframeSample]
-    let scaleY: [CombatFeedbackKeyframeSample]
-    let offsetX: [CombatFeedbackKeyframeSample]
-    let offsetY: [CombatFeedbackKeyframeSample]
-    let rotation: [CombatFeedbackKeyframeSample]
+    let keyframes: CombatReactionKeyframes
     let impactDelay: TimeInterval
     let duration: TimeInterval
 
@@ -229,13 +305,35 @@ struct CombatantAttackReactionRecipe: Equatable {
         duration: TimeInterval,
     ) {
         self.kind = kind
-        self.scaleX = scaleX
-        self.scaleY = scaleY
-        self.offsetX = offsetX
-        self.offsetY = offsetY
-        self.rotation = rotation
+        keyframes = CombatReactionKeyframes(
+            scaleX: scaleX,
+            scaleY: scaleY,
+            offsetX: offsetX,
+            offsetY: offsetY,
+            rotation: rotation,
+        )
         self.impactDelay = impactDelay
         self.duration = duration
+    }
+
+    var scaleX: [CombatFeedbackKeyframeSample] {
+        keyframes.scaleX
+    }
+
+    var scaleY: [CombatFeedbackKeyframeSample] {
+        keyframes.scaleY
+    }
+
+    var offsetX: [CombatFeedbackKeyframeSample] {
+        keyframes.offsetX
+    }
+
+    var offsetY: [CombatFeedbackKeyframeSample] {
+        keyframes.offsetY
+    }
+
+    var rotation: [CombatFeedbackKeyframeSample] {
+        keyframes.rotation
     }
 
     var windUpDuration: TimeInterval {

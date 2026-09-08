@@ -97,7 +97,7 @@ package extension DamagePipeline {
             ))
         }
         if triggers.iceboundExchange, keyword == .freeze {
-            state.damageEvents.append(contentsOf: grantTalentPartyBlockFromBlockedAmount(
+            state.damageEvents.append(contentsOf: grantTalentPartyBlock(
                 state.blockedAmount,
                 source: source.combatant,
                 in: &context,
@@ -240,15 +240,6 @@ package extension DamagePipeline {
             guard member.isAlive else { return [] }
             return context.applyBlock(amount, to: member.combatant, source: source, abilityName: "Sunwall")
         }
-    }
-
-    private static func grantTalentPartyBlockFromBlockedAmount(
-        _ amount: Int,
-        source: Combatant,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard amount > 0 else { return [] }
-        return grantTalentPartyBlock(amount, source: source, in: &context)
     }
 
     private static func drawTalentCard(

@@ -13,41 +13,31 @@ struct ExploreHubView: View {
             title: "Explore",
             accessibilityIdentifier: AccessibilityID.Play.exploreHub,
         ) {
-            NavigationLink(value: PlayLaunchDestination.spiresHub) {
-                HubArtworkCard(
-                    title: "The Spires",
-                    subtitle: spiresProgressSubtitle,
-                    symbolName: nil,
-                    artID: "gameModeSpires",
-                    fallbackArtID: "gameModeExplore",
-                )
-            }
-            .accessibilityIdentifier(AccessibilityID.Play.spiresModeCard)
-            .trinketArtworkCardButtonStyle()
+            HubArtworkNavigationLink(
+                destination: PlayLaunchDestination.spiresHub,
+                title: "The Spires",
+                subtitle: spiresProgressSubtitle,
+                artID: "gameModeSpires",
+                fallbackArtID: "gameModeExplore",
+                accessibilityIdentifier: AccessibilityID.Play.spiresModeCard,
+            )
 
-            NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
-                HubArtworkCard(
-                    title: "Labyrinth",
-                    subtitle: "Floor \(max(1, playerSave.labyrinth.currentFloorNumber))",
-                    symbolName: nil,
-                    artID: "gameModeLabyrinth",
-                    fallbackArtID: "gameModeExplore",
-                )
-            }
-            .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
-            .trinketArtworkCardButtonStyle()
+            HubArtworkNavigationLink(
+                destination: PlayLaunchDestination.labyrinthMap,
+                title: "Labyrinth",
+                subtitle: "Floor \(max(1, playerSave.labyrinth.currentFloorNumber))",
+                artID: "gameModeLabyrinth",
+                fallbackArtID: "gameModeExplore",
+                accessibilityIdentifier: AccessibilityID.Play.labyrinthModeCard,
+            )
 
-            NavigationLink(value: PlayLaunchDestination.contracts) {
-                HubArtworkCard(
-                    title: "Contracts",
-                    subtitle: nil,
-                    symbolName: nil,
-                    artID: "gameModeExplore",
-                    fallbackArtID: "gameModeExplore",
-                )
-            }
-            .accessibilityIdentifier(AccessibilityID.Play.contractsModeCard)
-            .trinketArtworkCardButtonStyle()
+            HubArtworkNavigationLink(
+                destination: PlayLaunchDestination.contracts,
+                title: "Contracts",
+                subtitle: nil,
+                artID: "gameModeExplore",
+                accessibilityIdentifier: AccessibilityID.Play.contractsModeCard,
+            )
         }
     }
 
@@ -56,11 +46,11 @@ struct ExploreHubView: View {
             partialResult + spire.floorCount
         }
         let clearedFloors = GameContent.spires.reduce(0) { partialResult, spire in
-            partialResult + min(
-                playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
-                spire.floorCount,
+            partialResult + SpiresProgress.clampedClearedFloors(
+                highestCleared: playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
+                floorCount: spire.floorCount,
             )
         }
-        return "\(clearedFloors) / \(totalFloors) Floors"
+        return SpiresProgress.floorsText(cleared: clearedFloors, total: totalFloors)
     }
 }

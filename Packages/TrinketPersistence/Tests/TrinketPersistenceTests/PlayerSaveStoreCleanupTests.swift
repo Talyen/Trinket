@@ -4,15 +4,9 @@ import Testing
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerSaveStoreCleanupTests {
-    let context: PersistenceTestContext
-
-    init() throws {
-        context = try PersistenceTestContext()
-    }
-
-    @Test func `clean store files deletes sqlite sidecars`() throws {
+struct PlayerSaveStoreCleanupTests {
+    @Test @MainActor func `clean store files deletes sqlite sidecars`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         do {
             _ = try PlayerSaveStore(
@@ -33,7 +27,8 @@ final class PlayerSaveStoreCleanupTests {
         try #expect(!FileManager.default.fileExists(atPath: shmURL.path))
     }
 
-    @Test func `reset state true wipes prior progress`() throws {
+    @Test @MainActor func `reset state true wipes prior progress`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         do {
             let store = try PlayerSaveStore(
@@ -58,7 +53,8 @@ final class PlayerSaveStoreCleanupTests {
         try #expect(primaryRootCount(at: storeURL) == 1)
     }
 
-    @Test func `duplicate primary roots keep the newest on open`() throws {
+    @Test @MainActor func `duplicate primary roots keep the newest on open`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         do {
             let firstStore = try PlayerSaveStore(
@@ -82,7 +78,8 @@ final class PlayerSaveStoreCleanupTests {
         try #expect(primaryRootCount(at: storeURL) == 1)
     }
 
-    @Test func `duplicate primary roots with equal modified at keep higher session generation`() throws {
+    @Test @MainActor func `duplicate primary roots with equal modified at keep higher session generation`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let timestamp = Date()
         do {

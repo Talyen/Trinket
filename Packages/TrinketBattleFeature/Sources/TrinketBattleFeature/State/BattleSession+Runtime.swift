@@ -105,42 +105,43 @@ extension BattleSession {
         return preparedBattleRunsByKey.values.first
     }
 
-    func openingHandArtworkNames(for preparedRun: PreparedBattleRun) -> [String] {
-        var preview = preparedRun.state
-        preview.drawOpeningHand(rebuildLog: false)
-        return preview.hand.cards.compactMap { $0.ability.artReference?.imageName }
-    }
-
-    func activeOpeningHandArtworkNames() -> [String] {
-        guard var preview = engineState else { return [] }
+    func openingHandArtworkNames(for state: BattleState) -> [String] {
+        var preview = state
         if preview.hand.cards.isEmpty {
             preview.drawOpeningHand(rebuildLog: false)
         }
         return preview.hand.cards.compactMap { $0.ability.artReference?.imageName }
     }
 
+    func openingHandArtworkNames(for preparedRun: PreparedBattleRun) -> [String] {
+        openingHandArtworkNames(for: preparedRun.state)
+    }
+
+    func activeOpeningHandArtworkNames() -> [String] {
+        guard let engineState else { return [] }
+        return openingHandArtworkNames(for: engineState)
+    }
+
+    func mutateEngine<T>(_ work: (inout BattleState) -> T) -> T? {
+        guard var engineState else { return nil }
+        let result = work(&engineState)
+        self.engineState = engineState
+        return result
+    }
+
     @discardableResult
     func drawOpeningHand() -> [ActionEvent] {
-        guard var engineState else { return [] }
-        let events = engineState.drawOpeningHand(rebuildLog: false)
-        self.engineState = engineState
-        return events
+        mutateEngine { $0.drawOpeningHand(rebuildLog: false) } ?? []
     }
 
     @discardableResult
     func drawNextOpeningHandCard() -> Bool {
-        guard var engineState else { return false }
-        let didDraw = engineState.drawNextOpeningHandCard(rebuildLog: false)
-        self.engineState = engineState
-        return didDraw
+        mutateEngine { $0.drawNextOpeningHandCard(rebuildLog: false) } ?? false
     }
 
     @discardableResult
     func finalizeOpeningHand() -> [ActionEvent] {
-        guard var engineState else { return [] }
-        let events = engineState.finalizeOpeningHand()
-        self.engineState = engineState
-        return events
+        mutateEngine { $0.finalizeOpeningHand() } ?? []
     }
 
     @discardableResult
@@ -153,34 +154,22 @@ extension BattleSession {
 
     @discardableResult
     func endEngineTurn() -> [ActionEvent] {
-        guard var engineState else { return [] }
-        let events = engineState.endTurn(rebuildLog: false)
-        self.engineState = engineState
-        return events
+        mutateEngine { $0.endTurn(rebuildLog: false) } ?? []
     }
 
     @discardableResult
     func endTurnWithoutDraw() -> [ActionEvent] {
-        guard var engineState else { return [] }
-        let events = engineState.endTurnWithoutDraw(rebuildLog: false)
-        self.engineState = engineState
-        return events
+        mutateEngine { $0.endTurnWithoutDraw(rebuildLog: false) } ?? []
     }
 
     @discardableResult
     func drawNextTurnStartCard() -> Bool {
-        guard var engineState else { return false }
-        let didDraw = engineState.drawNextTurnStartCard(rebuildLog: false)
-        self.engineState = engineState
-        return didDraw
+        mutateEngine { $0.drawNextTurnStartCard(rebuildLog: false) } ?? false
     }
 
     @discardableResult
     func finalizeTurnStart() -> [ActionEvent] {
-        guard var engineState else { return [] }
-        let events = engineState.finalizeTurnStart(rebuildLog: false)
-        self.engineState = engineState
-        return events
+        mutateEngine { $0.finalizeTurnStart() } ?? []
     }
 
     @discardableResult
@@ -192,15 +181,11 @@ extension BattleSession {
     }
 
     func syncEngineLog() {
-        guard var engineState else { return }
-        engineState.syncLog()
-        self.engineState = engineState
+        mutateEngine { $0.syncLog() }
     }
 
     func releaseEngineLogProjection() {
-        guard var engineState else { return }
-        engineState.releaseLogProjection()
-        self.engineState = engineState
+        mutateEngine { $0.releaseLogProjection() }
     }
 
     func shouldTelegraphEnemyAttack() -> Bool {
@@ -276,9 +261,7 @@ extension BattleSession {
         _ configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext?,
     ) -> Bool {
-        guard activeBattle == nil else { return false }
-        replaceActiveBattle(with: configuration, presentation: presentation)
-        return true
+        install(configuration: configuration, presentation: presentation, mode: .fresh)
     }
 
     @discardableResult
@@ -291,9 +274,7 @@ extension BattleSession {
         _ configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext?,
     ) -> Bool {
-        guard activeBattle != nil else { return false }
-        replaceActiveBattle(with: configuration, presentation: presentation)
-        return true
+        install(configuration: configuration, presentation: presentation, mode: .restart)
     }
 
     public func endBattle() {
@@ -327,14 +308,28 @@ extension BattleSession {
         trimPresentationMemory()
     }
 
-    private func replaceActiveBattle(
-        with configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext? = nil,
-    ) {
+    private enum BattleInstallMode {
+        case fresh
+        case restart
+    }
+
+    @discardableResult
+    private func install(
+        configuration: BattleRunConfiguration,
+        presentation: BattlePresentationContext?,
+        mode: BattleInstallMode,
+    ) -> Bool {
+        switch mode {
+        case .fresh:
+            guard activeBattle == nil else { return false }
+        case .restart:
+            guard activeBattle != nil else { return false }
+        }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         releasePreparedArtworkPins()
         engineState = makeBattleState(from: configuration)
         installActiveBattle(configuration, presentation: presentation)
+        return true
     }
 
     private func makeBattleState(from configuration: BattleRunConfiguration) -> BattleState {

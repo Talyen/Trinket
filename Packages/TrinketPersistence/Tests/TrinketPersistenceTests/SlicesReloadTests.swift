@@ -5,15 +5,9 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
-final class SlicesReloadTests {
-    let context: PersistenceTestContext
-
-    init() throws {
-        context = try PersistenceTestContext()
-    }
-
-    @Test func `spires floor clamp survives reload`() throws {
+struct SlicesReloadTests {
+    @Test @MainActor func `spires floor clamp survives reload`() throws {
+        let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         let spire = try #require(GameContent.spires.first)
         var spires = firstStore.spires
@@ -25,7 +19,8 @@ final class SlicesReloadTests {
         try #expect(reloaded.spires.highestClearedFloor(for: spire.id.rawValue) == spire.floorCount)
     }
 
-    @Test func `custom ability loadout survives reload`() throws {
+    @Test @MainActor func `custom ability loadout survives reload`() throws {
+        let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var loadout = knight.abilityLoadout
@@ -45,10 +40,11 @@ final class SlicesReloadTests {
         try #expect(persistedLoadout == loadout)
     }
 
-    @Test func `companion armor from old save unequips on reload and item survives`() throws {
+    @Test @MainActor func `companion armor from old save unequips on reload and item survives`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
-        let leatherBase = try #require(GameContent.itemBaseTypes.first { $0.id == "leather_armor" })
+        let leatherBase = try #require(GameContent.itemBaseType(matching: "leather_armor"))
         let armor = InventoryItem(
             id: "companion-armor",
             baseType: leatherBase,
@@ -72,7 +68,8 @@ final class SlicesReloadTests {
         )
     }
 
-    @Test func `tower floor clear survives reload`() throws {
+    @Test @MainActor func `tower floor clear survives reload`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let spire = try #require(GameContent.spire(id: .ironVein))
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
@@ -96,7 +93,8 @@ final class SlicesReloadTests {
         try #expect(clearedXP > 0)
     }
 
-    @Test func `claimed journey XP survives reload`() throws {
+    @Test @MainActor func `claimed journey XP survives reload`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let chapter = try #require(GameContent.chapters.first)
         let stage = try #require(chapter.stages.first)

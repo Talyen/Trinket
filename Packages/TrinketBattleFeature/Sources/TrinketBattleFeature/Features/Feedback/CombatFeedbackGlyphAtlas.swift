@@ -207,12 +207,10 @@ final class CombatFeedbackGlyphAtlas {
                         requests.append(.fragment(key, recipe))
                     }
                 }
-                if role == .headline {
-                    for fragment in Self.wordAtlasFragments(for: typography) {
-                        let key = FragmentKey(face: face, text: fragment)
-                        if fragments[key] == nil {
-                            requests.append(.fragment(key, recipe))
-                        }
+                for fragment in Self.wordAtlasFragments(for: typography) {
+                    let key = FragmentKey(face: face, text: fragment)
+                    if fragments[key] == nil {
+                        requests.append(.fragment(key, recipe))
                     }
                 }
             }

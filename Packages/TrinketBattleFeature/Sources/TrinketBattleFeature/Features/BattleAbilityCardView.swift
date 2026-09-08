@@ -490,9 +490,6 @@ struct BattleAbilityCardFace: View, Equatable {
                 PlaceholderArtwork(.ability)
             }
         }
-        .clipShape(TrinketDesign.cardShape)
-        .overlay {
-            TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-        }
+        .combatantCardChrome()
     }
 }

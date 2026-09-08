@@ -12,7 +12,6 @@ struct BattleCombatantPresentation: Equatable {
     let mana: Int
     let maxMana: Int
     let borderAccentKeyword: Keyword?
-    let buffAuraKind: CombatantBuffAuraKind?
 }
 
 struct BattlePresentationSnapshot: Equatable {
@@ -63,7 +62,6 @@ struct BattlePresentationSnapshot: Equatable {
                 from: effects,
                 controlAccentRequiresPendingSkip: combatant.role != .enemy,
             ),
-            buffAuraKind: nil,
         )
     }
 }

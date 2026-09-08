@@ -42,9 +42,9 @@ public final class BattleSpectacleState {
     var actorsWhoPresentedUltimateThisBattle: Set<String> = []
 
     @ObservationIgnored
-    var pendingOutcomePresentationTask: Task<Void, Never>?
+    var outcomeTask = CancellableGeneration()
     @ObservationIgnored
-    var pendingPartyCelebrateTask: Task<Void, Never>?
+    var celebrateTask = CancellableGeneration()
     @ObservationIgnored
     var pendingUltimateHighlightTasksByActorID: [String: Task<Void, Never>] = [:]
 }

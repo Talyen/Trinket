@@ -114,10 +114,9 @@ struct LabyrinthProgressTests {
     }
 
     @Test @MainActor func `labyrinth persists through store`() throws {
-        let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-progress")
-        defer { SaveTestSupport.removeTempDirectory(directory) }
+        let context = try PersistenceTestContext()
 
-        let first = try SaveTestSupport.makeSaveStore(directoryURL: directory)
+        let first = try context.makeSaveStore()
         var progress = first.labyrinth
         progress.ensureMap(seed: 55)
         let firstReachable = try #require(progress.reachableNodeIDs().first)
@@ -125,7 +124,7 @@ struct LabyrinthProgressTests {
         progress.runHealthByCombatantID = ["knight": 11, "wolf": 6]
         first.labyrinth = progress
 
-        let second = try SaveTestSupport.makeSaveStore(directoryURL: directory)
+        let second = try context.makeReloadedStore()
         #expect(second.labyrinth.hasMap)
         #expect(second.labyrinth.nodes[firstReachable]?.isCleared == true)
         #expect(second.labyrinth.worldSeed == 55)

@@ -139,6 +139,11 @@ extension PlayerSaveRoot {
         if labyrinth == nil {
             slices.insert(.labyrinth)
         }
+        if let payload = contractsPayload,
+           payload != sanitizedSave.contracts.encodedPayload,
+           PlayerContractsState.decodePayload(payload) == sanitizedSave.contracts {
+            slices.insert(.contracts)
+        }
         return slices
     }
 

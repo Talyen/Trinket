@@ -186,6 +186,7 @@ struct BattleSessionPreparationTests {
 
         #expect(session.hand.isEmpty)
         #expect(session.isDealingOpeningHand)
+        #expect(session.openingHandDeal.hasPendingTask)
         let dealtDuringFade = try await BattleSessionTestSupport.waitUntil(
             timeout: .milliseconds(100),
         ) {

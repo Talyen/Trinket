@@ -17,18 +17,49 @@ enum BattleCardPlayResolution: Equatable {
 }
 
 @MainActor
+struct CancellableGeneration {
+    var generation = 0
+    var task: Task<Void, Never>?
+
+    var hasPendingTask: Bool {
+        task != nil
+    }
+
+    mutating func invalidate() {
+        generation &+= 1
+        task?.cancel()
+        task = nil
+    }
+
+    mutating func claim() -> Int {
+        invalidate()
+        return generation
+    }
+
+    mutating func finish(generation: Int) {
+        if self.generation == generation {
+            task = nil
+        }
+    }
+
+    func isCurrent(_ generation: Int) -> Bool {
+        self.generation == generation
+    }
+}
+
+@MainActor
 @Observable
 public final class BattleSession: BattleRuntime {
     let feedback = BattleFeedbackLane()
     let cardCues = BattleCardCueState()
     public let spectacle = BattleSpectacleState()
     @ObservationIgnored
-    let presentationEnvironment: BattleRuntimeDependencies
+    let dependencies: BattleRuntimeDependencies
     public var isAutoBattleEnabled: Bool {
         didSet {
             guard oldValue != isAutoBattleEnabled else { return }
-            guard presentationEnvironment.rememberAutoBattlePreference() else { return }
-            presentationEnvironment.setAutoBattleEnabled(isAutoBattleEnabled)
+            guard dependencies.rememberAutoBattlePreference() else { return }
+            dependencies.setAutoBattleEnabled(isAutoBattleEnabled)
         }
     }
 
@@ -59,22 +90,18 @@ public final class BattleSession: BattleRuntime {
     let autoEndTurnDelay: Duration
     let enemyAttackImpactDelayOverride: Duration?
     @ObservationIgnored
-    var pendingAutoEndTask: Task<Void, Never>?
+    var autoEnd = CancellableGeneration()
     @ObservationIgnored
-    var pendingOpeningHandDealTask: Task<Void, Never>?
+    var openingHandDeal = CancellableGeneration()
     @ObservationIgnored
-    var openingHandDealGeneration = 0
-    @ObservationIgnored
-    var pendingTurnDrawTask: Task<Void, Never>?
-    @ObservationIgnored
-    var turnDrawGeneration = 0
+    var turnDraw = CancellableGeneration()
     @ObservationIgnored
     var preparedArtworkNames: Set<String> = []
 
     public internal(set) var isDealingOpeningHand = false
 
     var hasPendingAutoEnd: Bool {
-        pendingAutoEndTask != nil
+        autoEnd.hasPendingTask
     }
 
     @ObservationIgnored
@@ -89,8 +116,6 @@ public final class BattleSession: BattleRuntime {
 
     @ObservationIgnored
     var ultimateInFrameDurationOverride: Duration?
-
-    public static let autoEndTurnDelay: Duration = .milliseconds(400)
 
     public init(
         autoEndTurnDelay: TimeInterval = 0.4,
@@ -107,17 +132,17 @@ public final class BattleSession: BattleRuntime {
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride.map { .seconds($0) }
         self.partyCelebrateDelayOverride = partyCelebrateDelayOverride.map { .seconds($0) }
         self.ultimateInFrameDurationOverride = ultimateInFrameDurationOverride.map { .seconds($0) }
-        self.presentationEnvironment = presentationEnvironment
+        dependencies = presentationEnvironment
         isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
             from: presentationEnvironment,
         )
     }
 
     static func preferredAutoBattleEnabled(
-        from presentationEnvironment: BattleRuntimeDependencies,
+        from dependencies: BattleRuntimeDependencies,
     ) -> Bool {
-        presentationEnvironment.rememberAutoBattlePreference()
-            && presentationEnvironment.autoBattleEnabled()
+        dependencies.rememberAutoBattlePreference()
+            && dependencies.autoBattleEnabled()
     }
 
     var outcome: BattleSimulationOutcome? {
@@ -147,19 +172,19 @@ public final class BattleSession: BattleRuntime {
     }
 
     var hapticsEnabled: Bool {
-        presentationEnvironment.hapticsEnabled()
+        dependencies.hapticsEnabled()
     }
 
     var effectsVolume: Double {
-        presentationEnvironment.effectsVolume()
+        dependencies.effectsVolume()
     }
 
     var areUltimateCinematicAnimationsEnabled: Bool {
-        presentationEnvironment.ultimateCinematicAnimationsEnabled()
+        dependencies.ultimateCinematicAnimationsEnabled()
     }
 
     func playPresentationSFX(_ id: String) {
-        presentationEnvironment.playSFX([id])
+        dependencies.playSFX([id])
     }
 
     var hasPlayableCard: Bool {
@@ -241,7 +266,7 @@ public final class BattleSession: BattleRuntime {
 
     public func presentBattleLog() {
         clearCardCues()
-        syncLogForDisplay()
+        syncEngineLog()
         isShowingBattleLog = true
     }
 
@@ -274,22 +299,17 @@ public final class BattleSession: BattleRuntime {
     }
 
     func clearOutcomePresentation() {
-        spectacle.pendingOutcomePresentationTask?.cancel()
-        spectacle.pendingOutcomePresentationTask = nil
+        spectacle.outcomeTask.invalidate()
         spectacle.outcomePresentation = .battle
     }
 
     func trimPresentationMemory() {
         let date = Date.now
         feedback.pruneExpired(at: date)
-        resetFeedbackRasterMemory()
-        CombatFeedbackGlyphAtlas.shared.removeAll()
-        CardDissolveTexture.clearCache()
-    }
-
-    func resetFeedbackRasterMemory() {
         CombatFeedbackRasterPool.shared.removeAll()
         CombatFeedbackRasterPool.shared.resetDiagnostics()
+        CombatFeedbackGlyphAtlas.shared.removeAll()
+        CardDissolveTexture.clearCache()
     }
 
     func resetFeedbackRasterDiagnostics() {
@@ -302,7 +322,7 @@ public final class BattleSession: BattleRuntime {
         companionActorID: String?,
         companionUltimateID: String?,
     ) {
-        presentationEnvironment.warmSFX(SFXID.battlePrewarmIDs, 2)
+        dependencies.warmSFX(SFXID.battlePrewarmIDs, 2)
         BattleCinematicPlayer.shared.isEnabled = areUltimateCinematicAnimationsEnabled
         guard areUltimateCinematicAnimationsEnabled else { return }
         BattleCinematicPlayer.shared.warmLoadout(
@@ -311,10 +331,6 @@ public final class BattleSession: BattleRuntime {
             companionActorID: companionActorID,
             companionUltimateID: companionUltimateID,
         )
-    }
-
-    func syncLogForDisplay() {
-        syncEngineLog()
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {

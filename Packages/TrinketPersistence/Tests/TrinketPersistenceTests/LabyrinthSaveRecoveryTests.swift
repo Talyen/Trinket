@@ -25,9 +25,8 @@ struct LabyrinthSaveRecoveryTests {
     }
 
     @Test @MainActor func `store reload heals corrupt map blob`() throws {
-        let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-corrupt-enter")
-        defer { SaveTestSupport.removeTempDirectory(directory) }
-        let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directory)
+        let context = try PersistenceTestContext()
+        let storeURL = context.storeURL()
         let corruptBlob = Data("{not-valid-labyrinth-json".utf8)
 
         do {
@@ -40,12 +39,12 @@ struct LabyrinthSaveRecoveryTests {
         }
 
         do {
-            let context = try SaveTestSupport.makeSideContext(storeURL: storeURL)
-            let model = try #require(context.fetch(FetchDescriptor<LabyrinthProgressModel>()).first)
+            let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
+            let model = try #require(sideContext.fetch(FetchDescriptor<LabyrinthProgressModel>()).first)
             model.worldSeed = 55
             model.hasEntered = true
             model.mapPayload = corruptBlob
-            try context.save()
+            try sideContext.save()
         }
 
         let loaded = try PlayerSaveStore(
@@ -62,9 +61,8 @@ struct LabyrinthSaveRecoveryTests {
     }
 
     @Test @MainActor func `labyrinth setter migrates legacy map with roster recruit eligibility`() throws {
-        let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-setter-recruits")
-        defer { SaveTestSupport.removeTempDirectory(directory) }
-        let store = try SaveTestSupport.makeSaveStore(directoryURL: directory)
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
         let recruitIDs = store.roster.eligibleRecruitEventIDs
         try #require(!recruitIDs.isEmpty)
 

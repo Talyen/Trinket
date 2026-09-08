@@ -35,34 +35,27 @@ enum BalanceAbilityContrastRunner {
 
     static func workCount(config: BalanceSweepConfig) -> Int {
         let roster = config.resolvedRoster
-        let fociCount = foci(
-            heroes: roster.heroes,
-            companions: roster.companions,
-            focusIDs: config.focusIDs,
-        ).count
-        return fociCount * config.tiers.count * config.battlesPerTier
+        return BalanceContrastSupport.workCount(
+            fociCount: foci(
+                heroes: roster.heroes,
+                companions: roster.companions,
+                focusIDs: config.focusIDs,
+            ).count,
+            config: config,
+        )
     }
 
     static func run(
         context: BalanceContrastContext,
         policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
-        guard !context.heroes.isEmpty,
-              !context.companions.isEmpty,
-              !context.enemies.isEmpty
-        else { return [] }
-
-        let foci = foci(
-            heroes: context.heroes,
-            companions: context.companions,
-            focusIDs: context.config.focusIDs,
-        )
-        guard !foci.isEmpty else { return [] }
-
-        return BalanceContrastSupport.runSweep(
+        BalanceContrastSupport.runContrast(
             context: context,
-            foci: foci,
-            tiers: context.config.tiers,
+            foci: foci(
+                heroes: context.heroes,
+                companions: context.companions,
+                focusIDs: context.config.focusIDs,
+            ),
             summarize: {
                 (
                     entityID: $0.focus.id,

@@ -11,18 +11,10 @@ public enum MysteryOfferPersistence {
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) throws -> [MysteryOffer] {
         guard event.choices.contains(where: { $0.itemPool != nil }) else { return [] }
-        let payload: Data?
-        if let labyrinthNodeID {
-            guard let node = save.labyrinth.nodes[labyrinthNodeID], !node.isCleared else {
-                throw MysteryOfferError.unavailableEncounter
-            }
-            payload = node.mysteryOffersPayload
-        } else {
-            guard !save.journey.completedStageIDs.contains(stage.id) else {
-                throw MysteryOfferError.unavailableEncounter
-            }
-            payload = save.journey.mysteryOfferPayloads[stage.id]
+        guard isPlayable(stage: stage, labyrinthNodeID: labyrinthNodeID, save: save) else {
+            throw MysteryOfferError.unavailableEncounter
         }
+        let payload = payload(stageID: stage.id, labyrinthNodeID: labyrinthNodeID, save: save)
         let snapshot = try payload.map { try JSONDecoder().decode(MysteryOfferSnapshot.self, from: $0) }
         let previous = if let snapshot, snapshot.eventID == event.id {
             try snapshot.resolvedOffers()
@@ -56,11 +48,7 @@ public enum MysteryOfferPersistence {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .sortedKeys
             let data = try encoder.encode(MysteryOfferSnapshot(eventID: event.id, offers: offers))
-            if let labyrinthNodeID {
-                save.labyrinth.nodes[labyrinthNodeID]?.mysteryOffersPayload = data
-            } else {
-                save.journey.mysteryOfferPayloads[stage.id] = data
-            }
+            setPayload(data, stageID: stage.id, labyrinthNodeID: labyrinthNodeID, save: &save)
         }
         return offers
     }
@@ -71,15 +59,10 @@ public enum MysteryOfferPersistence {
         labyrinthNodeID: String?,
         save: inout PlayerSave,
     ) -> MysteryEffectResult {
-        let payload: Data?
-        if let labyrinthNodeID {
-            guard let node = save.labyrinth.nodes[labyrinthNodeID], !node.isCleared else { return MysteryEffectResult() }
-            payload = node.mysteryOffersPayload
-        } else {
-            guard !save.journey.completedStageIDs.contains(stage.id) else { return MysteryEffectResult() }
-            payload = save.journey.mysteryOfferPayloads[stage.id]
+        guard isPlayable(stage: stage, labyrinthNodeID: labyrinthNodeID, save: save) else { return MysteryEffectResult() }
+        guard let payload = payload(stageID: stage.id, labyrinthNodeID: labyrinthNodeID, save: save) else {
+            return MysteryEffectResult()
         }
-        guard let payload else { return MysteryEffectResult() }
         let saved: [MysteryOffer]
         do {
             let snapshot = try JSONDecoder().decode(MysteryOfferSnapshot.self, from: payload)
@@ -103,10 +86,29 @@ public enum MysteryOfferPersistence {
     }
 
     private static func clear(stageID: String, labyrinthNodeID: String?, save: inout PlayerSave) {
+        setPayload(nil, stageID: stageID, labyrinthNodeID: labyrinthNodeID, save: &save)
+    }
+
+    private static func isPlayable(stage: Stage, labyrinthNodeID: String?, save: PlayerSave) -> Bool {
         if let labyrinthNodeID {
-            save.labyrinth.nodes[labyrinthNodeID]?.mysteryOffersPayload = nil
+            guard let node = save.labyrinth.nodes[labyrinthNodeID] else { return false }
+            return !node.isCleared
+        }
+        return !save.journey.completedStageIDs.contains(stage.id)
+    }
+
+    private static func payload(stageID: String, labyrinthNodeID: String?, save: PlayerSave) -> Data? {
+        if let labyrinthNodeID {
+            return save.labyrinth.nodes[labyrinthNodeID]?.mysteryOffersPayload
+        }
+        return save.journey.mysteryOfferPayloads[stageID]
+    }
+
+    private static func setPayload(_ data: Data?, stageID: String, labyrinthNodeID: String?, save: inout PlayerSave) {
+        if let labyrinthNodeID {
+            save.labyrinth.nodes[labyrinthNodeID]?.mysteryOffersPayload = data
         } else {
-            save.journey.mysteryOfferPayloads[stageID] = nil
+            save.journey.mysteryOfferPayloads[stageID] = data
         }
     }
 

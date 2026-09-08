@@ -70,7 +70,7 @@ package extension DamagePipeline {
         state.isDodged = true
         applyWinterWake(to: &state, in: &context)
         if !state.options.causedByDodge {
-            state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDodge(
+            state.damageEvents.append(contentsOf: UniqueCombatEngine.afterUniqueDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
                 in: &context,
@@ -234,14 +234,6 @@ package extension DamagePipeline {
             return true
         }
         return false
-    }
-
-    static func dodgeChanceCap(for _: Combatant) -> Double {
-        0.75
-    }
-
-    static func criticalChanceCap(for _: Combatant) -> Double {
-        0.75
     }
 
     private static func applyCritical(to state: inout DamageResolutionState) {

@@ -220,4 +220,18 @@ public extension GameContent {
     static func labyrinthModifier(id: LabyrinthModifierID) -> LabyrinthModifierDefinition? {
         LabyrinthCatalog.modifier(id: id)
     }
+
+    static func syntheticLabyrinthStage(
+        nodeID: String,
+        encounter: StageEncounter,
+    ) -> Stage {
+        Stage(
+            id: nodeID,
+            chapterID: "labyrinth",
+            chapterNumber: 0,
+            stageNumber: 0,
+            encounter: encounter,
+            rewards: .empty,
+        )
+    }
 }

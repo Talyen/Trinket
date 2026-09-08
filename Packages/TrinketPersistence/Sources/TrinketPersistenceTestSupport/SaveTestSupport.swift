@@ -128,7 +128,7 @@ public enum SaveTestSupport {
         templateID: String? = nil,
         seed: UInt64 = 11,
     ) throws -> InventoryItem {
-        guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == baseID }) else {
+        guard let baseType = GameContent.itemBaseType(matching: baseID) else {
             throw PlayerSavePersistenceError.invalidSave("Unknown item base \(baseID)")
         }
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)

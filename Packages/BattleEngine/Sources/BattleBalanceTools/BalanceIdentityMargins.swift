@@ -50,12 +50,7 @@ enum BalanceIdentityMargins {
                 ),
             )
         }
-        .sorted { lhs, rhs in
-            if lhs.flagged != rhs.flagged {
-                return lhs.flagged && !rhs.flagged
-            }
-            return abs(lhs.deltaVsPeer) > abs(rhs.deltaVsPeer)
-        }
+        .sorted(by: flaggedFirst)
     }
 
     static func margin(
@@ -92,12 +87,7 @@ enum BalanceIdentityMargins {
                 ),
             )
         }
-        .sorted { lhs, rhs in
-            if lhs.flagged != rhs.flagged {
-                return lhs.flagged && !rhs.flagged
-            }
-            return abs(lhs.deltaVsPeer) > abs(rhs.deltaVsPeer)
-        }
+        .sorted(by: flaggedFirst)
     }
 
     static func withinOwnerMargins(
@@ -134,12 +124,7 @@ enum BalanceIdentityMargins {
                 ),
             )
         }
-        .sorted { lhs, rhs in
-            if lhs.flagged != rhs.flagged {
-                return lhs.flagged && !rhs.flagged
-            }
-            return abs(lhs.deltaVsPeer) > abs(rhs.deltaVsPeer)
-        }
+        .sorted(by: flaggedFirst)
     }
 
     static func flaggedPairCells(
@@ -180,6 +165,13 @@ enum BalanceIdentityMargins {
             )
         }
         .sorted { abs($0.deltaVsPeer) > abs($1.deltaVsPeer) }
+    }
+
+    private static func flaggedFirst(_ lhs: WinRateSummary, _ rhs: WinRateSummary) -> Bool {
+        if lhs.flagged != rhs.flagged {
+            return lhs.flagged && !rhs.flagged
+        }
+        return abs(lhs.deltaVsPeer) > abs(rhs.deltaVsPeer)
     }
 
     static func makeWinRate(_ spec: WinRateSpec) -> WinRateSummary {

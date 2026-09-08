@@ -112,16 +112,7 @@ struct ContractsBoardView: View {
     }
 
     private func refreshArtworkPins() async {
-        let next = Set(artworkNames)
-        let previous = Set(pinnedArtwork)
-        let added = next.subtracting(previous)
-        await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
-        guard !Task.isCancelled else {
-            PreparedArtworkCache.shared.releasePins(names: Array(added))
-            return
-        }
-        PreparedArtworkCache.shared.releasePins(names: Array(previous.subtracting(next)))
-        pinnedArtwork = Array(next)
+        pinnedArtwork = await ArtworkPinSet.refresh(next: artworkNames, current: pinnedArtwork)
     }
 
     private func inspect(_ offer: ContractOffer) {

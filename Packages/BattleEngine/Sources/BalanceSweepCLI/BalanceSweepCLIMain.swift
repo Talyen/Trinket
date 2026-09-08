@@ -231,7 +231,7 @@ enum BalanceSweepCLI {
                 }
             case "--policy":
                 policyID = try stringValue(after: arg, in: arguments, index: &index)
-                guard SimulationPolicies.make(id: policyID) != nil else {
+                guard PlayPolicy(rawValue: policyID) != nil else {
                     throw CLIError.invalidPolicy(policyID)
                 }
             case "--policy-compare":

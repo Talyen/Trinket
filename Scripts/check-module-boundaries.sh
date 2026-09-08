@@ -134,6 +134,7 @@ while IFS= read -r file; do
     Trinket/Features/Options/OptionsView.swift|\
     Trinket/Features/Play/PlayView.swift|\
     Trinket/Features/Play/PlayBrowsingStack.swift|\
+    Trinket/Features/Play/PlayBattleOverlay.swift|\
     Trinket/Features/Play/PlayMap/ChapterStageSelectView.swift|\
     Trinket/Features/Play/PlayMap/CurrentStageCard.swift|\
     Trinket/Features/Play/Modes/LabyrinthMapClusterViews.swift|\

@@ -327,13 +327,7 @@ struct LabyrinthNodeArtwork: View {
                       unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
                       access: playerSave.contentAccess,
                   ) {
-            Image.preparedAsset(
-                art,
-                displaySize: prefersThumbnail ? .compact : .full,
-            )
-            .resizable()
-            .scaledToFill()
-            .decorativePreparedArtwork()
+            MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
         } else if let event = resolvedMysteryEvent, !event.isRecruit {
             MysteryEventHeroArtwork(
                 event: event,
@@ -342,13 +336,7 @@ struct LabyrinthNodeArtwork: View {
             )
         } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
                   let art = ArtCatalog.encounterArtByID[artID] {
-            Image.preparedAsset(
-                art,
-                displaySize: prefersThumbnail ? .compact : .full,
-            )
-            .resizable()
-            .scaledToFill()
-            .decorativePreparedArtwork()
+            MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
         } else {
             ZStack {
                 LabyrinthMapPresentation.tint(for: type).opacity(0.16)
@@ -389,12 +377,12 @@ struct LabyrinthNodeArtwork: View {
 
     @ViewBuilder
     private func hexMysteryFocalContent(for event: MysteryEvent) -> some View {
-        if let artID = event.artID, let art = ArtCatalog.encounterArtByID[artID] {
-            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
-        } else if let artID = event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
-            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: art.focalPoint)
-        } else if let art = ArtCatalog.backgroundArtByID["labyrinth"] {
-            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: art.focalPoint)
+        if let resolved = MysteryEventArtwork.focalContent(event: event, chapterID: "labyrinth") {
+            encounterFocal(
+                imageName: resolved.imageName,
+                thumbnailName: resolved.thumbnailName,
+                focalPoint: resolved.focalPoint,
+            )
         } else {
             fallbackSymbol
         }

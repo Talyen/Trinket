@@ -222,6 +222,11 @@ public enum BalanceStatsAggregator {
         )
     }
 
+    public static func winPercent(wins: Int, decided: Int) -> Double {
+        guard decided > 0 else { return 0 }
+        return 100.0 * Double(wins) / Double(decided)
+    }
+
     public static func wilson(wins: Int, battles: Int, z: Double = 1.96) -> (low: Double, high: Double) {
         guard battles > 0 else { return (0, 0) }
         let n = Double(battles)

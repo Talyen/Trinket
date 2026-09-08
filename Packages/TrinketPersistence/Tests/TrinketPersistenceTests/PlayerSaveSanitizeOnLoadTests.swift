@@ -6,15 +6,9 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerSaveSanitizeOnLoadTests {
-    let context: PersistenceTestContext
-
-    init() throws {
-        context = try PersistenceTestContext()
-    }
-
-    @Test func `ensure required graph persists semantic sanitize diffs`() throws {
+struct PlayerSaveSanitizeOnLoadTests {
+    @Test @MainActor func `ensure required graph persists semantic sanitize diffs`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         var dirty = PlayerSave.testSeed
         dirty.homestead.resources[.wood] = -12

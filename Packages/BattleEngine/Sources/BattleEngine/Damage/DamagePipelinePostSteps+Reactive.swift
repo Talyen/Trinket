@@ -43,12 +43,10 @@ package extension DamagePipeline {
         else { return }
         let potency = runtime.pendingBleedAfterDodge
         context.roster.mutateRuntime(for: attacker.combatant) { $0.pendingBleedAfterDodge = 0 }
-        state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+        state.damageEvents.append(contentsOf: appendBleed(
             potency: potency,
             to: state.combatant,
             sourceActorID: sourceActorID,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
             in: &context,
         ))
     }
@@ -78,12 +76,11 @@ package extension DamagePipeline {
     ) {
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         if defenderTriggers.onHitAttackerFreezeBuildup > 0, context.roster.health(for: attacker.combatant) > 0 {
-            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+            state.damageEvents.append(contentsOf: appendMeterCharge(
                 defenderTriggers.onHitAttackerFreezeBuildup,
                 keyword: .freeze,
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
-                applyFightPacing: false,
                 in: &context,
             ))
         }
@@ -98,12 +95,10 @@ package extension DamagePipeline {
             ))
         }
         if defenderTriggers.onHitAttackerBleedPotency > 0, context.roster.health(for: attacker.combatant) > 0 {
-            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+            state.damageEvents.append(contentsOf: appendBleed(
                 potency: defenderTriggers.onHitAttackerBleedPotency,
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
                 durationTurns: defenderTriggers.onHitAttackerBleedTurns > 0
                     ? defenderTriggers.onHitAttackerBleedTurns
                     : nil,
@@ -111,14 +106,12 @@ package extension DamagePipeline {
             ))
         }
         if defenderTriggers.onHitAttackerHoly > 0, context.roster.health(for: attacker.combatant) > 0 {
-            state.damageEvents.append(contentsOf: context.resolveDamage(
-                DamageRequest(
-                    amount: defenderTriggers.onHitAttackerHoly,
-                    target: attacker.combatant,
-                    keyword: .holy,
-                    sourceActorID: state.combatant.id,
-                    options: .flatReaction,
-                ),
+            state.damageEvents.append(contentsOf: resolveRetaliation(
+                amount: defenderTriggers.onHitAttackerHoly,
+                keyword: .holy,
+                target: attacker.combatant,
+                sourceActorID: state.combatant.id,
+                in: &context,
             ).events)
         }
     }
@@ -206,11 +199,12 @@ package extension DamagePipeline {
             return false
         }
         let threshold = ControlMeterEngine.threshold(for: attacker.combatant, in: context)
-        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+        state.damageEvents.append(contentsOf: appendMeterCharge(
             threshold,
             keyword: .freeze,
             to: attacker.combatant,
             sourceActorID: state.combatant.id,
+            applyFightPacing: true,
             in: &context,
         ))
     }
@@ -260,14 +254,13 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard amount > 0 else { return }
-        let outcome = context.resolveDamage(
-            DamageRequest(
-                amount: amount,
-                target: attacker.combatant,
-                keyword: keyword,
-                sourceActorID: state.combatant.id,
-                options: keyword == .stun || keyword == .freeze ? .flatControlReaction : .flatReaction,
-            ),
+        let outcome = resolveRetaliation(
+            amount: amount,
+            keyword: keyword,
+            target: attacker.combatant,
+            sourceActorID: state.combatant.id,
+            controlMeter: keyword == .stun || keyword == .freeze,
+            in: &context,
         )
         var retaliationEvents = outcome.events
         if outcome.healthLost > 0 {

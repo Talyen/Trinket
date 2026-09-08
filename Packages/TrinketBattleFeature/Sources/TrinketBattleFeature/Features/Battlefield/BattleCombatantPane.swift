@@ -5,6 +5,28 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
+struct CombatantCardChrome: ViewModifier {
+    var borderOpacity: Double = 1
+
+    func body(content: Content) -> some View {
+        content
+            .clipShape(TrinketDesign.cardShape)
+            .overlay {
+                TrinketDesign.cardShape.strokeBorder(
+                    TrinketDesign.Colors.subtleStroke,
+                    lineWidth: 1,
+                )
+                .opacity(borderOpacity)
+            }
+    }
+}
+
+extension View {
+    func combatantCardChrome(borderOpacity: Double = 1) -> some View {
+        modifier(CombatantCardChrome(borderOpacity: borderOpacity))
+    }
+}
+
 struct BattleCombatantPane: View {
     @Environment(BattleSession.self) private var battleSession
     let combatant: Combatant
@@ -13,7 +35,6 @@ struct BattleCombatantPane: View {
     let mana: Int
     let maxMana: Int
     let borderAccentKeyword: Keyword?
-    let buffAuraKind: CombatantBuffAuraKind?
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
     let onCombatantTap: () -> Void
@@ -34,7 +55,6 @@ struct BattleCombatantPane: View {
                     recoilDirection: recoilDirection,
                     borderVisible: !isDefeated,
                     borderAccentKeyword: borderAccentKeyword,
-                    buffAuraKind: buffAuraKind,
                 ) {
                     BattleRecipientCueLane(combatantID: combatant.id) {
                         ZStack(alignment: .bottom) {
@@ -115,7 +135,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     let recoilDirection: CombatantHitRecoilDirection
     let borderVisible: Bool
     let borderAccentKeyword: Keyword?
-    let buffAuraKind: CombatantBuffAuraKind?
     @ViewBuilder let artwork: () -> Artwork
 
     @State private var playToken = 0
@@ -201,7 +220,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
 
     private func hitReactionArtwork(_ state: CardReactionAnimationState) -> some View {
         artwork()
-            .clipShape(TrinketDesign.cardShape)
+            .combatantCardChrome()
             .overlay {
                 cardBorder
                     .opacity(borderVisible ? 1 : 0)

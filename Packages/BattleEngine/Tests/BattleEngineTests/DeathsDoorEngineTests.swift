@@ -182,7 +182,7 @@ struct DeathsDoorEngineTests {
     }
 
     private func makeLegionContext(heroHealth: Int) -> BattleState {
-        BattleTestFixtures.makeContext(
+        BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(),

@@ -39,12 +39,10 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.onLeechApplyBleed > 0 {
-            events.append(contentsOf: DoTApplicator.applyBleed(
+            events.append(contentsOf: DamagePipeline.appendBleed(
                 potency: triggers.onLeechApplyBleed,
                 to: target,
                 sourceActorID: actor.id,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
                 in: &context,
             ))
         }
@@ -61,12 +59,5 @@ package extension CombatTriggerEngine {
         }
 
         return events
-    }
-
-    static func shareHeroLeechWithCompanion(
-        restored: Int,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        HealingEngine.shareHeroLeechWithCompanion(restored: restored, in: &context)
     }
 }

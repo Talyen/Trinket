@@ -187,6 +187,14 @@ enum BalanceIdentityTables {
         var affixes: [WinRateSummary]
     }
 
+    private static func ownerIDPairs(
+        _ record: BalanceBattleRecord,
+        heroIDs: [String],
+        companionIDs: [String],
+    ) -> [(String, String)] {
+        heroIDs.map { (record.heroID, $0) } + companionIDs.map { (record.companionID, $0) }
+    }
+
     private static func partyLoadoutBundle(
         decided: [BalanceBattleRecord],
         ownerRates: [String: Double],
@@ -198,32 +206,28 @@ enum BalanceIdentityTables {
                 ownerRates: ownerRates,
                 threshold: threshold,
             ) { record in
-                record.heroItemBaseIDs.map { (record.heroID, $0) }
-                    + record.companionItemBaseIDs.map { (record.companionID, $0) }
+                ownerIDPairs(record, heroIDs: record.heroItemBaseIDs, companionIDs: record.companionItemBaseIDs)
             },
             abilities: partyPresenceMargins(
                 records: decided,
                 ownerRates: ownerRates,
                 threshold: threshold,
             ) { record in
-                record.heroAbilityIDs.map { (record.heroID, $0) }
-                    + record.companionAbilityIDs.map { (record.companionID, $0) }
+                ownerIDPairs(record, heroIDs: record.heroAbilityIDs, companionIDs: record.companionAbilityIDs)
             },
             talents: partyPresenceMargins(
                 records: decided,
                 ownerRates: ownerRates,
                 threshold: threshold,
             ) { record in
-                record.heroTalentIDs.map { (record.heroID, $0) }
-                    + record.companionTalentIDs.map { (record.companionID, $0) }
+                ownerIDPairs(record, heroIDs: record.heroTalentIDs, companionIDs: record.companionTalentIDs)
             },
             affixes: partyPresenceMargins(
                 records: decided,
                 ownerRates: ownerRates,
                 threshold: threshold,
             ) { record in
-                record.heroAffixIDs.map { (record.heroID, $0) }
-                    + record.companionAffixIDs.map { (record.companionID, $0) }
+                ownerIDPairs(record, heroIDs: record.heroAffixIDs, companionIDs: record.companionAffixIDs)
             },
         )
     }

@@ -197,18 +197,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func refreshArtworkPins() async {
-        let next = Array(Set(artworkPinKey)).sorted()
-        let added = Set(next).subtracting(pinnedArtwork)
-        if !added.isEmpty {
-            await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
-            guard !Task.isCancelled else {
-                PreparedArtworkCache.shared.releasePins(names: Array(added))
-                return
-            }
-        }
-        guard !Task.isCancelled else { return }
-        PreparedArtworkCache.shared.releasePins(names: Array(Set(pinnedArtwork).subtracting(next)))
-        pinnedArtwork = next
+        pinnedArtwork = await ArtworkPinSet.refresh(next: artworkPinKey, current: pinnedArtwork)
     }
 
     private func buildOrUpgrade(_ expectedTier: Int) {

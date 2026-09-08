@@ -78,7 +78,6 @@ enum ModelContainerBootstrap {
             base.appendingPathExtension(shmExtension),
             base.appendingPathExtension(walExtension),
             base.appendingPathExtension(journalExtension),
-            URL(fileURLWithPath: url.path + "-journal"),
         ]
         for candidate in candidates {
             guard FileManager.default.fileExists(atPath: candidate.path) else { continue }

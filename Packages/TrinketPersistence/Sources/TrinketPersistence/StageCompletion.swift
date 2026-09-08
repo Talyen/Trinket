@@ -17,10 +17,6 @@ public enum StageCompletion {
         )
     }
 
-    static func adjustedExperienceAward(_ base: Int, experienceEarnedPercent: Int) -> Int {
-        CombatRounding.scaled(base, byPercent: experienceEarnedPercent)
-    }
-
     public static func grantBattleExperience(
         enemyLevel: Int,
         to combatant: Combatant,

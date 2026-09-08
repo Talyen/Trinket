@@ -18,9 +18,13 @@ public enum BalanceProgressionRunner {
         let totalRuns = max(1, config.battlesPerTier)
         let work = config.sliceWork(Array(0 ..< totalRuns))
 
-        let results = work.map { runIndex in
-            simulateRun(config: config, policy: policy, runIndex: runIndex)
+        // Concurrency-Safety: disjoint indices written by pool workers, no overlap
+        nonisolated(unsafe) var buffered: [(records: [ProgressionBattleRecord], endState: PlayerProgressionState, didTruncate: Bool)?] =
+            Array(repeating: nil, count: work.count)
+        SweepWorkerPool.forEach(count: work.count, jobs: config.resolvedJobs) { index in
+            buffered[index] = simulateRun(config: config, policy: policy, runIndex: work[index])
         }
+        let results = buffered.compactMap(\.self)
 
         let allRecords = results.flatMap(\.records)
         let allStates = results.map(\.endState)

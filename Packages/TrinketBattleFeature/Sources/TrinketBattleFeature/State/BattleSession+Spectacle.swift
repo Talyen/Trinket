@@ -86,18 +86,17 @@ extension BattleSession {
     }
 
     func publishPartyCelebrateReactions(at date: Date) {
-        spectacle.pendingPartyCelebrateTask?.cancel()
-        spectacle.pendingPartyCelebrateTask = nil
+        spectacle.celebrateTask.invalidate()
         let delay = partyCelebrateDelayOverride ?? .seconds(0.032)
         if delay <= .zero {
             publishPartyCelebrateReactionsNow(at: date)
             return
         }
-        spectacle.pendingPartyCelebrateTask = Task { @MainActor [weak self] in
+        spectacle.celebrateTask.task = Task { @MainActor [weak self] in
             try? await Task.sleep(for: delay)
             guard let self, !Task.isCancelled else { return }
             publishPartyCelebrateReactionsNow(at: date)
-            spectacle.pendingPartyCelebrateTask = nil
+            spectacle.celebrateTask.task = nil
         }
     }
 
@@ -105,12 +104,15 @@ extension BattleSession {
         guard let heroID,
               let companionID
         else { return }
-        let baseID = -1 * max(1, Int(date.timeIntervalSinceReferenceDate * 1000))
+        spectacle.nextID += 1
+        let heroCelebrateID = -spectacle.nextID
+        spectacle.nextID += 1
+        let companionCelebrateID = -spectacle.nextID
         let celebrateExpiry = date.addingTimeInterval(BattleMotion.chipDisplayDuration)
         var didPublish = false
         if isHeroAlive {
             feedback.hitReactionsByTargetID[heroID] = CombatantHitReaction(
-                id: baseID,
+                id: heroCelebrateID,
                 kind: .celebrate,
             )
             feedback.celebrateReactionExpiresAt[heroID] = celebrateExpiry
@@ -118,7 +120,7 @@ extension BattleSession {
         }
         if isCompanionAlive {
             feedback.hitReactionsByTargetID[companionID] = CombatantHitReaction(
-                id: baseID &- 1,
+                id: companionCelebrateID,
                 kind: .celebrate,
             )
             feedback.celebrateReactionExpiresAt[companionID] = celebrateExpiry
@@ -164,12 +166,11 @@ extension BattleSession {
 
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
-        spectacle.pendingOutcomePresentationTask?.cancel()
-        spectacle.pendingOutcomePresentationTask = nil
+        spectacle.outcomeTask.invalidate()
         clearSpectacle()
         guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
         spectacle.outcomePresentation = .victory(summary)
-        presentationEnvironment.playSFX([SFXID.victory])
+        dependencies.playSFX([SFXID.victory])
     }
     #endif
 
@@ -189,8 +190,7 @@ extension BattleSession {
         sfx: String,
         show: @escaping @MainActor (BattleSession) -> Void,
     ) {
-        spectacle.pendingOutcomePresentationTask?.cancel()
-        spectacle.pendingOutcomePresentationTask = nil
+        spectacle.outcomeTask.invalidate()
         let latestFeedbackDelay = feedback.activeItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
@@ -200,21 +200,21 @@ extension BattleSession {
         let delay = outcomePresentationDelayOverride ?? spectacleDelay
         guard delay > .zero else {
             show(self)
-            presentationEnvironment.playSFX([sfx])
+            dependencies.playSFX([sfx])
             return
         }
-        spectacle.pendingOutcomePresentationTask = Task { @MainActor [weak self] in
+        spectacle.outcomeTask.task = Task { @MainActor [weak self] in
             try? await Task.sleep(for: delay)
             guard let self, !Task.isCancelled, outcome == expected else { return }
             show(self)
-            presentationEnvironment.playSFX([sfx])
-            spectacle.pendingOutcomePresentationTask = nil
+            dependencies.playSFX([sfx])
+            spectacle.outcomeTask.task = nil
         }
     }
 
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
         let nonMilestone = events.filter { $0.kind != .milestone }
-        feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
+        feedback.record(nonMilestone, at: date, environment: dependencies)
         guard let heroID,
               let companionID
         else { return }
@@ -232,7 +232,7 @@ extension BattleSession {
     func triggerUltimateInFrameHighlight(from event: ActionEvent, at date: Date) {
         BattleCinematicPlayer.shared.isEnabled = areUltimateCinematicAnimationsEnabled
         guard areUltimateCinematicAnimationsEnabled else { return }
-        let autoSkip = presentationEnvironment.shouldAutoSkipUltimateCinematic(
+        let autoSkip = dependencies.shouldAutoSkipUltimateCinematic(
             event.actorID,
             spectacle.actorsWhoPresentedUltimateThisBattle,
         )
@@ -280,8 +280,7 @@ extension BattleSession {
     }
 
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {
-        spectacle.pendingPartyCelebrateTask?.cancel()
-        spectacle.pendingPartyCelebrateTask = nil
+        spectacle.celebrateTask.invalidate()
         cancelUltimateHighlightWatchdogs()
         if !spectacle.ultimateHighlightsByActorID.isEmpty {
             spectacle.ultimateHighlightsByActorID = [:]
@@ -301,12 +300,8 @@ extension BattleSession {
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
-        feedback.clear()
-        resetFeedbackRasterDiagnostics()
-        clearSpectacle(releaseCinematicPlayers: false)
-        clearOutcomePresentation()
-        resetEphemeralOverlays()
-        let preferred = Self.preferredAutoBattleEnabled(from: presentationEnvironment)
+        clearSharedPresentation(releaseCinematicPlayers: false)
+        let preferred = Self.preferredAutoBattleEnabled(from: dependencies)
         if isAutoBattleEnabled != preferred {
             isAutoBattleEnabled = preferred
         }
@@ -323,15 +318,19 @@ extension BattleSession {
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
         presentation.clear()
-        feedback.clear()
-        resetFeedbackRasterDiagnostics()
-        clearSpectacle()
-        clearOutcomePresentation()
+        clearSharedPresentation(releaseCinematicPlayers: true)
         feedback.release()
         CombatFeedbackGlyphAtlas.shared.removeAll()
         CardDissolveTexture.clearCache()
-        resetEphemeralOverlays()
         presentationContext = nil
+    }
+
+    private func clearSharedPresentation(releaseCinematicPlayers: Bool) {
+        feedback.clear()
+        resetFeedbackRasterDiagnostics()
+        clearSpectacle(releaseCinematicPlayers: releaseCinematicPlayers)
+        clearOutcomePresentation()
+        resetEphemeralOverlays()
     }
 
     private func cancelPendingBattleTasks() {

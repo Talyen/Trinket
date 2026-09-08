@@ -370,7 +370,7 @@ package extension DamagePipeline {
         }
     }
 
-    static func applyItemReduction(
+    static func applyTakenPercentAdjustments(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
@@ -438,7 +438,7 @@ package extension DamagePipeline {
         return multiplier
     }
 
-    static func applyMitigation(
+    static func applyTakenFlatAdjustments(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
@@ -486,7 +486,7 @@ package extension DamagePipeline {
         state.buildupDamage = state.remaining
         assert(
             state.buildupDamage == state.remaining,
-            "buildupDamage invariant: \(state.buildupDamage) != remaining \(state.remaining) after applyMitigation",
+            "buildupDamage invariant: \(state.buildupDamage) != remaining \(state.remaining) after applyTakenFlatAdjustments",
         )
     }
 

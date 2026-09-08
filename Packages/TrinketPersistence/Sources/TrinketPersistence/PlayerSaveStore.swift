@@ -122,7 +122,7 @@ public final class PlayerSaveStore {
             cloudKitContainerIdentifier: Self.cloudKitContainerIdentifier,
         )
 
-        if resetState, !inMemoryOnly {
+        if resetState, !inMemoryOnly, resolved.recoveryURL != nil {
             PlayerSaveStoreConfiguration.cleanStoreFiles(at: resolved.finalURL)
         }
 
@@ -186,14 +186,7 @@ public final class PlayerSaveStore {
         installObservedSave(candidate, slices: changedSlices)
 
         if persistImmediately {
-            do {
-                try saveGraph()
-                clearPendingDeferredPersistence()
-                lastPersistenceError = nil
-            } catch {
-                restoreSnapshot(snapshot, slices: changedSlices)
-                throw PlayerSavePersistenceError.writeFailed
-            }
+            try persistAppliedSnapshot(snapshot, slices: changedSlices)
         } else {
             if pendingRollbackSnapshot == nil {
                 pendingRollbackSnapshot = snapshot
@@ -211,8 +204,9 @@ public final class PlayerSaveStore {
             try performBatchMutation(mutation)
             return true
         } catch {
+            lastPersistenceError = (error as? PlayerSavePersistenceError) ?? .writeFailed
             logger.error(
-                "\(message, privacy: .public): \(error.localizedDescription, privacy: .public)",
+                "\(message, privacy: .public): \(String(describing: error), privacy: .public)",
             )
             return false
         }
@@ -236,13 +230,7 @@ public final class PlayerSaveStore {
         let sanitized = PlayerSaveSanitizer.sanitize(save)
         root.update(from: sanitized, context: context)
         installObservedSave(sanitized)
-        do {
-            try saveGraph()
-            clearPendingDeferredPersistence()
-        } catch {
-            restoreSnapshot(snapshot)
-            throw error
-        }
+        try persistAppliedSnapshot(snapshot, slices: .all)
     }
 
     public func resetGameplayProgress() throws {
@@ -291,6 +279,17 @@ public final class PlayerSaveStore {
         } catch {
             lastPersistenceError = .writeFailed
             logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
+            throw PlayerSavePersistenceError.writeFailed
+        }
+    }
+
+    private func persistAppliedSnapshot(_ snapshot: PlayerSave, slices: PlayerSaveSlice) throws {
+        do {
+            try saveGraph()
+            clearPendingDeferredPersistence()
+            lastPersistenceError = nil
+        } catch {
+            restoreSnapshot(snapshot, slices: slices)
             throw PlayerSavePersistenceError.writeFailed
         }
     }

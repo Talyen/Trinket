@@ -2,23 +2,14 @@ import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 
 struct BattleStateStartingHealthTests {
-    private func combatant(id: String, role: Combatant.Role, maxHealth: Int) -> Combatant {
-        Combatant(
-            id: id,
-            name: id.capitalized,
-            role: role,
-            maxHealth: maxHealth,
-            abilities: [],
-        )
-    }
-
     @Test func `battle state seeds party starting health`() {
         let state = BattleState(
-            hero: combatant(id: "hero", role: .hero, maxHealth: 50),
-            companion: combatant(id: "companion", role: .companion, maxHealth: 40),
-            enemy: combatant(id: "enemy", role: .enemy, maxHealth: 30),
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 40),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30),
             heroStartingHealth: 17,
             companionStartingHealth: 9,
             dealOpeningHand: false,
@@ -31,9 +22,9 @@ struct BattleStateStartingHealthTests {
 
     @Test func `battle state defaults party to full health`() {
         let state = BattleState(
-            hero: combatant(id: "hero", role: .hero, maxHealth: 50),
-            companion: combatant(id: "companion", role: .companion, maxHealth: 40),
-            enemy: combatant(id: "enemy", role: .enemy, maxHealth: 30),
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 40),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30),
             dealOpeningHand: false,
         )
 

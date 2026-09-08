@@ -1,5 +1,4 @@
 import BattleEngine
-import Dispatch
 import Foundation
 import TrinketContent
 import TrinketCore
@@ -141,25 +140,9 @@ public enum BalanceSweepRunner {
             },
         )
         let jobs = config.resolvedJobs
-        if jobs <= 1 || work.count <= 1 {
-            return work.map { entry in
-                simulateIdentityBattle(
-                    IdentityBattleWork(
-                        config: config,
-                        policy: policy,
-                        heroes: heroes,
-                        companions: companions,
-                        enemies: enemies,
-                        tier: entry.0,
-                        enemyIndex: entry.1,
-                        sampleIndex: entry.2,
-                    ),
-                )
-            }
-        }
-        // Concurrency-Safety: disjoint indices written by concurrentPerform, no overlap
+        // Concurrency-Safety: disjoint indices written by pool workers, no overlap
         nonisolated(unsafe) var results = [BalanceBattleRecord?](repeating: nil, count: work.count)
-        DispatchQueue.concurrentPerform(iterations: work.count) { index in
+        SweepWorkerPool.forEach(count: work.count, jobs: jobs) { index in
             let entry = work[index]
             let record = simulateIdentityBattle(
                 IdentityBattleWork(

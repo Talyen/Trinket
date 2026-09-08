@@ -1,7 +1,8 @@
 import Foundation
+import TrinketCore
 
 public extension GameContent {
-    static let chapters: [Chapter] = GameContentChapters.chapters
+    static let chapters: [Chapter] = GameContentChaptersGenerated.chapters
 
     static func chapter(containing stage: Stage) -> Chapter {
         chapters.first { $0.id == stage.chapterID } ?? chapters[0]

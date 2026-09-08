@@ -6,15 +6,9 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerSaveGraphIdentityTests {
-    let context: PersistenceTestContext
-
-    init() throws {
-        context = try PersistenceTestContext()
-    }
-
-    @Test func `unrelated slice write preserves inventory and roster row identity`() throws {
+struct PlayerSaveGraphIdentityTests {
+    @Test @MainActor func `unrelated slice write preserves inventory and roster row identity`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try makeStore(at: storeURL)
         try store.applyTestSeed()
@@ -30,7 +24,8 @@ final class PlayerSaveGraphIdentityTests {
         try #expect(after.rosterProgressions == before.rosterProgressions)
     }
 
-    @Test func `inventory reconciliation preserves unchanged rows and ordering`() throws {
+    @Test @MainActor func `inventory reconciliation preserves unchanged rows and ordering`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try makeStore(at: storeURL)
         try store.applyTestSeed()
@@ -57,7 +52,8 @@ final class PlayerSaveGraphIdentityTests {
         try #expect(reloaded.inventory.items.first?.displayName == "\(changedItem.displayName) +1")
     }
 
-    @Test func `inventory only mutation persists sanitized loadout removal`() throws {
+    @Test @MainActor func `inventory only mutation persists sanitized loadout removal`() throws {
+        let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try makeStore(at: storeURL)
         let item = try #require(GameContent.itemTemplate(matching: "shortsword-basic")).rewardInstance(
@@ -79,7 +75,7 @@ final class PlayerSaveGraphIdentityTests {
         try #expect(slots.allSatisfy { $0.itemID != item.id })
     }
 
-    private func makeStore(at storeURL: URL) throws -> PlayerSaveStore {
+    @MainActor private func makeStore(at storeURL: URL) throws -> PlayerSaveStore {
         try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,

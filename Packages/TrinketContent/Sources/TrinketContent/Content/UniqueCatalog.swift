@@ -3,83 +3,70 @@ import TrinketCore
 
 enum UniqueCatalog {
     static let definitions: [UniqueItemDefinition] = [
-        wardbreaker,
-        danceOfBlades,
+        unique(
+            id: "wardbreaker",
+            name: "Wardbreaker",
+            base: "flail",
+            keywords: [.stun, .holy],
+            description: "Purge all beneficial status effects when you Stun an enemy. Deal 2 Holy damage for each effect removed.",
+            triggers: CombatTraitTriggers(
+                control: ControlTriggers(
+                    stunPurgeDealHolyPerEffect: 2,
+                ),
+            ),
+            supports: ["dazed", "concussive", "sentinel"],
+        ),
+        unique(
+            id: "dance_of_blades",
+            name: "Dance of Blades",
+            base: "leather_armor",
+            keywords: [.dodge],
+            description: "When you Dodge, immediately draw and play a card. If it's a Critical Hit, repeat this effect.",
+            triggers: CombatTraitTriggers(
+                dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
+            ),
+            supports: ["riposte", "untouchable", "sidestep"],
+        ),
         bloodfireSignet,
         rimeheartLocket,
-        blackfletch,
-        twinCasting,
+        unique(
+            id: "blackfletch",
+            name: "Blackfletch",
+            base: "crossbow",
+            keywords: [.physical, .bleed, .poison],
+            description: "Critical Hits detonate and consume all remaining Bleed and Poison damage.",
+            triggers: CombatTraitTriggers(
+                dot: DotTriggers(criticalDetonateBleedAndPoison: true),
+            ),
+            supports: ["infected", "lingering", "contagion"],
+        ),
+        unique(
+            id: "twin_casting",
+            name: "Twin Casting",
+            base: "staff",
+            keywords: [.burn, .freeze, .mana],
+            description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa.",
+            triggers: CombatTraitTriggers(
+                mana: ManaTriggers(empoweredElementDrawOpposite: true),
+            ),
+            supports: ["smoldering", "glacial", "channeled"],
+        ),
         saintfallPlate,
-        goldenVerdict,
+        unique(
+            id: "golden_verdict",
+            name: "Golden Verdict",
+            base: "topaz_ring",
+            keywords: [.holy, .gold, .stun],
+            description: "Holy damage builds an equal amount of Stun. When this Stuns an enemy, gain 1 Gold.",
+            triggers: CombatTraitTriggers(
+                control: ControlTriggers(
+                    holyStunBuildupPercent: 1,
+                    holyTriggeredStunGoldFlat: 1,
+                ),
+            ),
+            supports: ["stunning", "lucky", "absolving"],
+        ),
     ] + meleeDefinitions + rangedDefinitions + offhandDefinitions + accessoryDefinitions
-
-    private static let wardbreaker = UniqueItemDefinition(
-        id: "wardbreaker",
-        displayName: "Wardbreaker",
-        baseTypeID: "flail",
-        affixes: [
-            .bespoke(ItemAffixDefinition(
-                id: "wardbreaker",
-                title: "Wardbreaker",
-                slot: .weapon,
-                keywords: [.stun, .holy],
-                weight: 0,
-                basic: ItemAffixPower(
-                    description: "Purge all beneficial status effects when you Stun an enemy. Deal 2 Holy damage for each effect removed.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        control: ControlTriggers(
-                            stunPurgeDealHolyPerEffect: 2,
-                        ),
-                    ),
-                ),
-                astral: ItemAffixPower(
-                    description: "Purge all beneficial status effects when you Stun an enemy. Deal 2 Holy damage for each effect removed.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        control: ControlTriggers(
-                            stunPurgeDealHolyPerEffect: 2,
-                        ),
-                    ),
-                ),
-            )),
-            .catalog(id: "dazed"),
-            .catalog(id: "concussive"),
-            .catalog(id: "sentinel"),
-        ],
-    )
-
-    private static let danceOfBlades = UniqueItemDefinition(
-        id: "dance_of_blades",
-        displayName: "Dance of Blades",
-        baseTypeID: "leather_armor",
-        affixes: [
-            .bespoke(ItemAffixDefinition(
-                id: "dance_of_blades",
-                title: "Dance of Blades",
-                slot: .armor,
-                keywords: [.dodge],
-                weight: 0,
-                basic: ItemAffixPower(
-                    description: "When you Dodge, immediately draw and play a card. If it's a Critical Hit, repeat this effect.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
-                    ),
-                ),
-                astral: ItemAffixPower(
-                    description: "When you Dodge, immediately draw and play a card. If it's a Critical Hit, repeat this effect.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
-                    ),
-                ),
-            )),
-            .catalog(id: "riposte"),
-            .catalog(id: "untouchable"),
-            .catalog(id: "sidestep"),
-        ],
-    )
 
     private static let bloodfireSignet = UniqueItemDefinition(
         id: "bloodfire_signet",
@@ -171,70 +158,6 @@ enum UniqueCatalog {
         ],
     )
 
-    private static let blackfletch = UniqueItemDefinition(
-        id: "blackfletch",
-        displayName: "Blackfletch",
-        baseTypeID: "crossbow",
-        affixes: [
-            .bespoke(ItemAffixDefinition(
-                id: "blackfletch",
-                title: "Blackfletch",
-                slot: .weapon,
-                keywords: [.physical, .bleed, .poison],
-                weight: 0,
-                basic: ItemAffixPower(
-                    description: "Critical Hits detonate and consume all remaining Bleed and Poison damage.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        dot: DotTriggers(criticalDetonateBleedAndPoison: true),
-                    ),
-                ),
-                astral: ItemAffixPower(
-                    description: "Critical Hits detonate and consume all remaining Bleed and Poison damage.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        dot: DotTriggers(criticalDetonateBleedAndPoison: true),
-                    ),
-                ),
-            )),
-            .catalog(id: "infected"),
-            .catalog(id: "lingering"),
-            .catalog(id: "contagion"),
-        ],
-    )
-
-    private static let twinCasting = UniqueItemDefinition(
-        id: "twin_casting",
-        displayName: "Twin Casting",
-        baseTypeID: "staff",
-        affixes: [
-            .bespoke(ItemAffixDefinition(
-                id: "twin_casting",
-                title: "Twin Casting",
-                slot: .weapon,
-                keywords: [.burn, .freeze, .mana],
-                weight: 0,
-                basic: ItemAffixPower(
-                    description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        mana: ManaTriggers(empoweredElementDrawOpposite: true),
-                    ),
-                ),
-                astral: ItemAffixPower(
-                    description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        mana: ManaTriggers(empoweredElementDrawOpposite: true),
-                    ),
-                ),
-            )),
-            .catalog(id: "smoldering"),
-            .catalog(id: "glacial"),
-            .catalog(id: "channeled"),
-        ],
-    )
-
     private static let saintfallPlate = UniqueItemDefinition(
         id: "saintfall_plate",
         displayName: "Saintfall Plate",
@@ -264,44 +187,6 @@ enum UniqueCatalog {
             .catalog(id: "bulwark"),
             .catalog(id: "sanctum"),
             .catalog(id: "vital"),
-        ],
-    )
-
-    private static let goldenVerdict = UniqueItemDefinition(
-        id: "golden_verdict",
-        displayName: "Golden Verdict",
-        baseTypeID: "topaz_ring",
-        affixes: [
-            .bespoke(ItemAffixDefinition(
-                id: "golden_verdict",
-                title: "Golden Verdict",
-                slot: .accessory,
-                keywords: [.holy, .gold, .stun],
-                weight: 0,
-                basic: ItemAffixPower(
-                    description: "Holy damage builds an equal amount of Stun. When this Stuns an enemy, gain 1 Gold.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        control: ControlTriggers(
-                            holyStunBuildupPercent: 1,
-                            holyTriggeredStunGoldFlat: 1,
-                        ),
-                    ),
-                ),
-                astral: ItemAffixPower(
-                    description: "Holy damage builds an equal amount of Stun. When this Stuns an enemy, gain 1 Gold.",
-                    modifiers: [],
-                    triggers: CombatTraitTriggers(
-                        control: ControlTriggers(
-                            holyStunBuildupPercent: 1,
-                            holyTriggeredStunGoldFlat: 1,
-                        ),
-                    ),
-                ),
-            )),
-            .catalog(id: "stunning"),
-            .catalog(id: "lucky"),
-            .catalog(id: "absolving"),
         ],
     )
 }

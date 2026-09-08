@@ -135,12 +135,7 @@ struct BattleSessionCardCueTests {
     }
 
     private func makeSession() -> BattleSession {
-        BattleSessionTestSupport.makeConfiguredSession(
-            hero: CombatantFixtures.passiveHero(maxHealth: 100, maxMana: 12),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 100, maxMana: 12),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
-            autoEndTurnDelay: 60,
-        )
+        BattleSessionTestSupport.makePassiveSession()
     }
 
     private func install(_ ability: Ability, in session: BattleSession) throws -> BattleCard {

@@ -74,7 +74,7 @@ struct BattleTurnEngineTests {
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
@@ -84,7 +84,7 @@ struct BattleTurnEngineTests {
                     blockOnDeathsDoor: 8,
                 ),
             )),
-            seed: 0,
+            rngSeed: 0,
             nextEventID: 0,
         )
 
@@ -139,12 +139,12 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0)],
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -181,11 +181,11 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
@@ -215,14 +215,14 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
             enemyEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2),
             ],
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
@@ -258,11 +258,11 @@ struct BattleTurnEngineTests {
             role: .enemy,
             maxHealth: 5,
         )
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            seed: 0,
+            rngSeed: 0,
             nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
@@ -323,12 +323,12 @@ struct BattleTurnEngineBurnBonusTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -362,12 +362,12 @@ struct BattleTurnEngineBurnBonusTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -393,11 +393,11 @@ struct BattleTurnEngineBurnBonusTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [Ability.kindling])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 1,
             nextEventID: 0,
         )
@@ -424,12 +424,12 @@ struct BattleTurnEngineBurnBonusTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [Ability.kindling])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -463,12 +463,12 @@ struct BattleTurnEngineComponentTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 200)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)],
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEffectID: 2,
             nextEventID: 0,
         )
@@ -501,11 +501,11 @@ struct BattleTurnEngineComponentTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleTestFixtures.makeContext(
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            seed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             nextEventID: 0,
         )
 

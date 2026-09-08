@@ -321,12 +321,12 @@ struct BattleSpectacleSessionTests {
 
         session.scheduleVictoryPresentation(after: .now)
 
-        #expect(session.spectacle.pendingPartyCelebrateTask != nil)
-        #expect(session.spectacle.pendingOutcomePresentationTask != nil)
+        #expect(session.spectacle.celebrateTask.task != nil)
+        #expect(session.spectacle.outcomeTask.task != nil)
 
         session.clearAllPresentation()
 
-        #expect(session.spectacle.pendingPartyCelebrateTask == nil)
-        #expect(session.spectacle.pendingOutcomePresentationTask == nil)
+        #expect(session.spectacle.celebrateTask.task == nil)
+        #expect(session.spectacle.outcomeTask.task == nil)
     }
 }

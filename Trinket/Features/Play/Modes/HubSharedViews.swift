@@ -3,17 +3,44 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
+struct HubGridScaffold<Content: View>: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    let title: String
+    let accessibilityIdentifier: String
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(
+                columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
+                spacing: TrinketDesign.Spacing.large,
+            ) {
+                content()
+            }
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
+            .padding(.bottom, TrinketDesign.Spacing.extraLarge)
+        }
+        .scrollIndicators(.hidden)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.large)
+        .trinketScreenBackground()
+        .accessibilityIdentifier(accessibilityIdentifier)
+    }
+}
+
 struct HubArtworkCard: View {
     let title: String
     let subtitle: String?
     let symbolName: String?
     let artID: String
-    let fallbackArtID: String
+    var fallbackArtID: String?
     var isLocked = false
 
     private var art: BackgroundArtReference? {
         ArtCatalog.backgroundArtByID[artID]
-            ?? ArtCatalog.backgroundArtByID[fallbackArtID]
+            ?? fallbackArtID.flatMap { ArtCatalog.backgroundArtByID[$0] }
     }
 
     var body: some View {
@@ -62,5 +89,41 @@ struct HubArtworkCard: View {
             radius: 12,
             y: 6,
         )
+    }
+}
+
+struct HubArtworkNavigationLink<Destination: Hashable>: View {
+    let destination: Destination
+    let title: String
+    let subtitle: String?
+    var symbolName: String?
+    let artID: String
+    var fallbackArtID: String?
+    var isLocked = false
+    let accessibilityIdentifier: String
+
+    var body: some View {
+        NavigationLink(value: destination) {
+            HubArtworkCard(
+                title: title,
+                subtitle: subtitle,
+                symbolName: symbolName,
+                artID: artID,
+                fallbackArtID: fallbackArtID,
+                isLocked: isLocked,
+            )
+        }
+        .trinketArtworkCardButtonStyle()
+        .accessibilityIdentifier(accessibilityIdentifier)
+    }
+}
+
+enum SpiresProgress {
+    static func clampedClearedFloors(highestCleared: Int, floorCount: Int) -> Int {
+        min(highestCleared, floorCount)
+    }
+
+    static func floorsText(cleared: Int, total: Int) -> String {
+        "\(cleared) / \(total) Floors"
     }
 }
