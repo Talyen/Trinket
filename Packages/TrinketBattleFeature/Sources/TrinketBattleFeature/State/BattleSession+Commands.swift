@@ -16,7 +16,9 @@ extension BattleSession {
     func playCard(
         cardID: Int,
         at date: Date = .now,
+        requiresLift: Bool = false,
     ) -> BattleCardPlayResolution {
+        guard !requiresLift || cardCues.hasLift(for: cardID) else { return .rejected }
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
         guard spectacle.outcomePresentation == .battle,
@@ -24,11 +26,17 @@ extension BattleSession {
               !isBattleOver,
               !isSuspendedForScenePhase
         else {
+            clearCardCues()
             feedback.noteItemsChanged()
             return .rejected
         }
 
         do {
+            if cardCues.current?.cardID == cardID, let card = engineState?.hand.card(id: cardID) {
+                if let assessment = engineState?.assessCard(card), assessment.denial == nil {
+                    cardCues.begin(cardID: cardID, assessment: assessment)
+                }
+            }
             let events = try measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardEngine,
             ) {
@@ -37,6 +45,8 @@ extension BattleSession {
             guard hasActiveSimulation, activeBattle?.id != nil else {
                 return .rejected
             }
+
+            cardCues.commit(cardID: cardID)
 
             measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardProjection,
@@ -52,6 +62,9 @@ extension BattleSession {
             scheduleAutoEndIfNeeded()
             return .committed
         } catch {
+            if let card = engineState?.hand.card(id: cardID) {
+                denyCardCue(card)
+            }
             Self.commandLogger.error(
                 "playCard failed for card \(cardID, privacy: .public): \(error.localizedDescription, privacy: .public)",
             )
@@ -65,6 +78,7 @@ extension BattleSession {
     }
 
     func endTurn(at date: Date = .now) {
+        clearCardCues()
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
         guard canEndTurn, hasActiveSimulation, !isSuspendedForScenePhase else {

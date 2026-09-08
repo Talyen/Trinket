@@ -694,6 +694,8 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
 
     def test_handoff_default_headless_compile_proof(self) -> None:
+        environment = os.environ.copy()
+        environment.pop("TRINKET_ENABLE_SMOKE", None)
         result = subprocess.run(
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
@@ -702,6 +704,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                 "Trinket/Features/Play/Mystery/MysteryChoiceCard.swift",
             ],
             cwd=ROOT,
+            env=environment,
             capture_output=True,
             text=True,
             check=False,

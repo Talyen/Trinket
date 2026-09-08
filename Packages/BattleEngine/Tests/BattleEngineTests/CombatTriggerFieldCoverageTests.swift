@@ -3,14 +3,15 @@ import Testing
 import TrinketContent
 
 struct CombatTriggerFieldCoverageTests {
-    @Test func `every trigger field is read by battle engine`() throws {
+    @Test func `every active trigger field is read by battle engine`() throws {
         let names = CombatTraitTriggers.allFieldNames
         try #expect(!names.isEmpty)
         try #expect(Set(names).count == names.count, "duplicate trigger field names: \(duplicateNames(names))")
 
         let referencedIdentifiers = try engineReferencedIdentifiers()
+        let legacyInventoryFields: Set = ["heldCardNextAttackDamage"]
         let missing = names.filter { name in
-            !referencedIdentifiers.contains(name)
+            !referencedIdentifiers.contains(name) && !legacyInventoryFields.contains(name)
         }
         try #expect(missing.isEmpty, "Trigger fields never read by BattleEngine: \(missing.sorted())")
     }

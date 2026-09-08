@@ -36,7 +36,7 @@ identifiers use underscores.
 | Greatsword | Everkeen | Once per turn, your first Critical Hit strikes again. |
 | Hatchet | Red Harvest | Once per turn, an attack card you play against a Bleeding enemy returns to your hand. |
 | Longsword | Oathkeeper | Your Physical damage bonuses also strengthen Holy damage. |
-| Shortsword | The Patient Edge | Each of your cards left in hand at turn end adds 2 damage to your first attack next turn. |
+| Shortsword | The Patient Edge | Your first attack each turn deals +2 damage if your partner has already played a card. |
 | Dagger | Viper’s Courtesy | After Dodging, your next hit deals additional Poison and Bleed damage, each equal to half its damage. |
 | Mace | The Lingering Bell | Stunning an enemy preserves a quarter of the Stun buildup that triggered it. |
 | Longbow | Huntsmaster’s Call | Your first Critical Hit each turn makes your Companion use its Basic Ability. |
@@ -67,9 +67,13 @@ card's effects and on-play draws before returning it. The existing visible hand
 and FIFO buffer both accept returned cards. Red Harvest checks Bleed at the
 start of the play. The Returning Flight recovers from the wearer's deck before
 normal turn draws and does nothing if the card is already held or absent.
-The Patient Edge counts the wearer's visible and buffered cards when the player
-ends the turn; its bonus affects the first damage component of the first attack
-next turn and expires if unused. Threefold Grace grants one draw for each new
+The Patient Edge checks whether the partner has played an ordinary card before
+the wearer's first attack that turn. Attacking first forfeits that turn's bonus;
+non-attacking cards do not consume the opportunity. It adds damage to one
+original enemy-directed hit, with normal mitigation and critical multiplication,
+and does not add the bonus to repeated hits. Auto Battle plays count; triggered
+abilities do not. Existing saved signatures resolve to the new rule while
+preserving their magnitude. Threefold Grace grants one draw for each new
 matching elemental allowance, including multiple draws for a mixed card.
 
 Everkeen reuses the triggering packet's outgoing magnitude and Critical

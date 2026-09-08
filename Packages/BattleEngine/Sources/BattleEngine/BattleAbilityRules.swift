@@ -4,30 +4,40 @@ import TrinketCore
 enum BattleAbilityRules {
     static func canPayHealthCost(_ ability: Ability, actor: Combatant, in context: BattleState) -> Bool {
         let componentSets = ability.outcomeBranches?.map(\.damageComponents) ?? [ability.damageComponents]
-        let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
-        let cost = componentSets.map { components in
-            components.reduce(0) { total, component in
-                let target = BattleTargetResolver.effectTarget(
-                    component.target, actor: actor, abilityTarget: abilityTarget, in: context,
-                )
-                guard target.id == actor.id else { return total }
-                var amount = component.amount
-                if let condition = component.condition {
-                    if BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
-                        amount += component.bonusAmount
-                    } else if component.bonusAmount == 0 {
-                        return total
-                    }
-                }
-                return total + max(0, amount)
-            }
-        }.max() ?? 0
+        let cost = componentSets.map { healthCost($0, actor: actor, in: context) }.max() ?? 0
         return context.roster.health(for: actor) > cost
+    }
+
+    static func healthCost(_ components: [DamageComponent], actor: Combatant, in context: BattleState) -> Int {
+        let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
+        return components.reduce(0) { total, component in
+            let target = BattleTargetResolver.effectTarget(
+                component.target, actor: actor, abilityTarget: abilityTarget, in: context,
+            )
+            guard target.id == actor.id else { return total }
+            var amount = component.amount
+            if let condition = component.condition {
+                if BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
+                    amount += component.bonusAmount
+                } else if component.bonusAmount == 0 {
+                    return total
+                }
+            }
+            return total + max(0, amount)
+        }
     }
 
     static func resolveOutcome(_ ability: Ability, actor: Combatant, in context: inout BattleState) -> Ability {
         guard let branches = ability.outcomeBranches else { return ability }
-        let eligible = branches.compactMap { branch -> AbilityOutcomeBranch? in
+        let eligible = eligibleOutcomes(branches, actor: actor, in: context)
+        guard let selected = eligible.randomElement(using: &context.rng) else { return ability }
+        return ability.resolving(branch: selected, using: &context.rng)
+    }
+
+    static func eligibleOutcomes(
+        _ branches: [AbilityOutcomeBranch], actor: Combatant, in context: BattleState,
+    ) -> [AbilityOutcomeBranch] {
+        branches.compactMap { branch -> AbilityOutcomeBranch? in
             guard let resource = branch.restorationResource else { return branch }
             guard let target = restorationTarget(resource, actor: actor, in: context) else { return nil }
             return AbilityOutcomeBranch(
@@ -38,8 +48,6 @@ enum BattleAbilityRules {
                 randomizeDamageKeywords: branch.randomizeDamageKeywords,
             )
         }
-        guard let selected = eligible.randomElement(using: &context.rng) else { return ability }
-        return ability.resolving(branch: selected, using: &context.rng)
     }
 
     private static func restorationTarget(

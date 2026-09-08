@@ -20,6 +20,7 @@ enum BattleCardPlayResolution: Equatable {
 @Observable
 public final class BattleSession: BattleRuntime {
     let feedback = BattleFeedbackLane()
+    let cardCues = BattleCardCueState()
     public let spectacle = BattleSpectacleState()
     @ObservationIgnored
     let presentationEnvironment: BattleRuntimeDependencies
@@ -239,6 +240,7 @@ public final class BattleSession: BattleRuntime {
     }
 
     public func presentBattleLog() {
+        clearCardCues()
         syncLogForDisplay()
         isShowingBattleLog = true
     }
@@ -255,6 +257,7 @@ public final class BattleSession: BattleRuntime {
         _ configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext? = nil,
     ) {
+        clearCardCues()
         let holdOpeningHandForOverlayFade = activeBattle == nil
         activeBattle = configuration
         presentationContext = presentation

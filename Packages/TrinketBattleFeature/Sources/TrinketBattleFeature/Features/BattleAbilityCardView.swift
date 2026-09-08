@@ -19,8 +19,8 @@ struct BattleAbilityCardView: View {
     let onPlay: (CardActivationRequest) -> Bool
     let onPlayDenied: () -> Void
     let onInteractionChanged: (Bool) -> Void
-    var onAttackWindUp: (() -> Void)?
-    var onAttackCancel: (() -> Void)?
+    var onLift: (() -> Void)?
+    var onLiftCancel: (() -> Void)?
 
     @State private var dragTranslation: CGSize = .zero
     @State private var predictedEndTranslation: CGSize = .zero
@@ -116,6 +116,7 @@ struct BattleAbilityCardView: View {
                 enabled: hapticsEnabled,
             )
             .onDisappear {
+                cancelAnnouncedWindUp()
                 cancelInspection()
                 cancelPressCommit()
                 cancelTapLift()
@@ -130,6 +131,11 @@ struct BattleAbilityCardView: View {
             .onChange(of: isGestureActive) { wasActive, isActive in
                 guard wasActive, !isActive, interactionResolution != .idle else { return }
                 returnDrag()
+            }
+            .onChange(of: isPlayable) { _, playable in
+                if !playable {
+                    returnDrag()
+                }
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(card.ability.name)
@@ -453,13 +459,13 @@ private extension BattleAbilityCardView {
     func announceWindUpIfNeeded() {
         guard !didAnnounceWindUp, isPlayable else { return }
         didAnnounceWindUp = true
-        onAttackWindUp?()
+        onLift?()
     }
 
     func cancelAnnouncedWindUp() {
         guard didAnnounceWindUp else { return }
         didAnnounceWindUp = false
-        onAttackCancel?()
+        onLiftCancel?()
     }
 
     func reportPlayDeniedIfNeeded() {

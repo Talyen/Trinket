@@ -52,8 +52,8 @@ extension UniqueCatalog {
             name: "The Patient Edge",
             base: "shortsword",
             keywords: [.physical],
-            description: "Each of your cards left in hand at turn end adds 2 damage to your first attack next turn.",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(heldCardNextAttackDamage: 2)),
+            description: "Your first attack each turn deals +2 damage if your partner has already played a card.",
+            triggers: CombatTraitTriggers(attack: AttackTriggers(partnerFirstAttackDamage: 2)),
             supports: ["keen", "serrated", "envenomed"],
         ),
         unique(

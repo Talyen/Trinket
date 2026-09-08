@@ -95,14 +95,13 @@ extension UniqueCollectionTests {
         }
     }
 
-    @Test func `patient edge counts owned visible and buffered cards for one hit`() throws {
-        var context = try battle(["the_patient_edge"])
-        context.hand = BattleHand(
-            cards: [BattleCard(id: 91, ability: attack(), owner: .hero), BattleCard(id: 92, ability: attack(), owner: .companion)],
-            buffer: [BattleCard(id: 93, ability: attack(), owner: .hero)],
-        )
-        _ = BattleCardCombatEngine.endTurnWithoutDraw(context: &context)
-        #expect(context.uniques.owners[.hero]?.heldCardDamage == 4)
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `patient edge rewards partner first on only one original hit`(owner: BattleParticipant) throws {
+        var context = try battle(["the_patient_edge"], owner: owner)
+        let partner: BattleParticipant = owner == .hero ? .companion : .hero
+        let setup = Ability(id: "setup", name: "Setup", tier: .skill, effects: [.shield(.block, 1)])
+        try play(setup, owner: owner, in: &context)
+        try play(setup, owner: partner, in: &context)
         let ability = Ability(
             id: "two",
             name: "two",
@@ -111,10 +110,51 @@ extension UniqueCollectionTests {
             criticalChanceBonus: -1,
         )
         let before = context.roster.enemy.currentHealth
-        try play(ability, in: &context)
-        #expect(before - context.roster.enemy.currentHealth == 24)
+        try play(ability, owner: owner, in: &context)
+        #expect(before - context.roster.enemy.currentHealth == 22)
+        try play(attack(), owner: owner, in: &context)
+        #expect(before - context.roster.enemy.currentHealth == 32)
+    }
+
+    @Test func `patient edge forfeits early attack and resets next turn`() throws {
+        var context = try battle(["the_patient_edge"])
+        let before = context.roster.enemy.currentHealth
         try play(attack(), in: &context)
-        #expect(before - context.roster.enemy.currentHealth == 34)
+        try play(attack(), owner: .companion, in: &context)
+        try play(attack(), in: &context)
+        #expect(before - context.roster.enemy.currentHealth == 30)
+        _ = UniqueCombatEngine.startTurn(in: &context)
+        try play(attack(), owner: .companion, in: &context)
+        try play(attack(), in: &context)
+        #expect(before - context.roster.enemy.currentHealth == 52)
+    }
+
+    @Test func `patient edge ignores automatic partner actions and wearer attacks`() throws {
+        var context = try battle(["the_patient_edge"])
+        context.isResolvingAutoPlayCard = true
+        try play(attack(), owner: .companion, in: &context)
+        try play(attack(), in: &context)
+        context.isResolvingAutoPlayCard = false
+        #expect(context.uniques.owners[.hero]?.hasAttacked != true)
+        let before = context.roster.enemy.currentHealth
+        try play(attack(), in: &context)
+        #expect(before - context.roster.enemy.currentHealth == 10)
+    }
+
+    @Test func `patient edge bonus is not copied by a critical repeat`() throws {
+        var extra = CombatModifierProfile.zero
+        extra.triggers.firstCriticalHitRepeatsPerTurn = true
+        var context = try battle(["the_patient_edge"], extra: extra)
+        try play(attack(), owner: .companion, in: &context)
+        let before = context.roster.enemy.currentHealth
+        try play(attack(), critical: true, in: &context)
+        let withEdge = before - context.roster.enemy.currentHealth
+        var control = try battle([], extra: extra)
+        try play(attack(), owner: .companion, in: &control)
+        let controlBefore = control.roster.enemy.currentHealth
+        try play(attack(), critical: true, in: &control)
+        let criticalBonus = CombatRounding.scaled(2, multiplier: 2)
+        #expect(withEdge - (controlBefore - control.roster.enemy.currentHealth) == criticalBonus)
     }
 
     @Test func `threefold grace uses each matching element once without drawing resolving card`() throws {

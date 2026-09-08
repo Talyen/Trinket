@@ -48,8 +48,11 @@ package enum UniqueCombatEngine {
               ability.damageComponents.contains(where: { $0.target != .actor }) else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.uniques.owners[play.owner, default: .init()]
-        play.attackBonus = owner.heldCardDamage
-        owner.heldCardDamage = 0
+        let partner: BattleParticipant = play.owner == .hero ? .companion : .hero
+        if !owner.hasAttacked, context.uniques.owners[partner, default: .init()].cardsPlayed > 0 {
+            play.attackBonus = triggers.partnerFirstAttackDamage
+        }
+        owner.hasAttacked = true
         if triggers.recoverLastAttackCardEachTurn {
             owner.lastAttack = play.originalAbility
         }
@@ -84,15 +87,6 @@ package enum UniqueCombatEngine {
         else { return nil }
         _ = BattleCardCombatEngine.deal(card.ability, owner: card.owner, context: &context)
         return cardReturnEvent(owner: card.owner, name: name, in: &context)
-    }
-
-    static func captureHeldCards(in context: inout BattleState) {
-        for owner in [BattleParticipant.hero, .companion] {
-            let actor = context.roster[owner]
-            let perCard = context.modifiers(for: actor.id).triggers.heldCardNextAttackDamage
-            let held = (context.hand.cards + context.hand.buffer).count { $0.owner == owner }
-            context.uniques.owners[owner, default: .init()].heldCardDamage = actor.isAlive ? perCard * held : 0
-        }
     }
 
     static func startTurn(in context: inout BattleState) -> [ActionEvent] {

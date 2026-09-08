@@ -259,8 +259,8 @@ struct BattleFieldLane: View {
                     interactionState: interactionState,
                     onPlay: playCard(_:request:),
                     onInteractionChanged: updateCombatantTapSuppression(_:),
-                    onAttackWindUp: beginPartyAttackWindUp(for:),
-                    onAttackCancel: cancelPartyAttack(for:),
+                    onLift: beginCardLift(for:),
+                    onLiftCancel: cancelCardLift(for:),
                 )
                 .frame(height: BattleCardGridLayout.handReservedHeight)
                 .offset(y: -BattleHandLayout.bottomRise)
@@ -301,9 +301,8 @@ struct BattleFieldLane: View {
         .ignoresSafeArea(.container, edges: .bottom)
     }
 
-    private func beginPartyAttackWindUp(for card: BattleCard) {
-        guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
-        battleSession.publishAttackTelegraph(.windUp, for: combatantID)
+    private func beginCardLift(for card: BattleCard) {
+        battleSession.beginCardCue(card)
     }
 
     private func showDetails(for combatant: Combatant) {
@@ -342,8 +341,8 @@ private struct BattleHandProjectionLane: View {
     let interactionState: BattleInteractionState
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
-    let onAttackWindUp: (BattleCard) -> Void
-    let onAttackCancel: (BattleCard) -> Void
+    let onLift: (BattleCard) -> Void
+    let onLiftCancel: (BattleCard) -> Void
 
     @State private var cardPlayFeedbackToken = 0
 
@@ -363,15 +362,16 @@ private struct BattleHandProjectionLane: View {
                 }
                 return didPlay
             },
-            onPlayDenied: {
+            onPlayDenied: { card in
+                battleSession.denyCardCue(card)
                 battleSession.playPresentationSFX(SFXID.uiDeny)
             },
             hapticsEnabled: hapticsEnabled,
             battleFrame: CGRect(origin: .zero, size: battleSize),
             autoLiftCardID: interactionState.autoLiftCardID,
             onCardInteractionChanged: onInteractionChanged,
-            onAttackWindUp: onAttackWindUp,
-            onAttackCancel: onAttackCancel,
+            onLift: onLift,
+            onLiftCancel: onLiftCancel,
         )
         .trinketSensoryFeedback(
             .impact(weight: .medium),

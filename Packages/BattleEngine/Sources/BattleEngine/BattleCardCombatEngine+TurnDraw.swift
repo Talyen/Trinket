@@ -12,7 +12,6 @@ public extension BattleCardCombatEngine {
             return []
         }
 
-        UniqueCombatEngine.captureHeldCards(in: &context)
         var events = advanceRoundCommon(context: &context)
         if context.phase == .ended {
             return events

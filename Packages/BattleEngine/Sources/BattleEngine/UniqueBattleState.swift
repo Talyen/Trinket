@@ -11,7 +11,7 @@ package struct UniqueBattleState {
         var usedFinalSpark = false
         var usedElements: Set<Keyword> = []
         var lastAttack: Ability?
-        var heldCardDamage = 0
+        var hasAttacked = false
         var viperReady = false
         var wildheartReady = false
         var goldDamage = 0
@@ -19,6 +19,7 @@ package struct UniqueBattleState {
 
         mutating func resetTurn() {
             cardsPlayed = 0
+            hasAttacked = false
             returnedHarvest = false
             repeatedCritical = false
             calledCompanion = false

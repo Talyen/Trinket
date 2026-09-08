@@ -1,6 +1,5 @@
 import BattleEngine
 import SwiftUI
-import TrinketDesignSystem
 
 extension BattleFieldLane {
     var autoBattleTaskID: String {
@@ -18,33 +17,32 @@ extension BattleFieldLane {
 
         try? await Task.sleep(for: .seconds(BattleMotion.tapLiftPlayDelay))
         guard !Task.isCancelled, battleSession.isAutoBattleEnabled else {
-            cancelPartyAttack(for: card)
+            cancelCardLift(for: card)
             return false
         }
         guard let request = activationRequest(for: card, battleSize: battleSize) else {
-            cancelPartyAttack(for: card)
+            cancelCardLift(for: card)
             return false
         }
         let didPlay = playCard(card, request: request)
         if !didPlay {
-            cancelPartyAttack(for: card)
+            cancelCardLift(for: card)
         }
         return didPlay
     }
 
     func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
-        let outcome = battleSession.playCard(cardID: card.id)
+        let outcome = battleSession.playCard(cardID: card.id, requiresLift: true)
         guard case .committed = outcome else { return false }
-        if let actorID = battleSession.combatantID(for: card.owner) {
+        if card.ability.dealsCombatDamage, let actorID = battleSession.combatantID(for: card.owner) {
             battleSession.publishAttackTelegraph(.swing, for: actorID)
         }
         castPresentation.append(request)
         return true
     }
 
-    func cancelPartyAttack(for card: BattleCard) {
-        guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
-        battleSession.publishAttackTelegraph(.cancel, for: combatantID)
+    func cancelCardLift(for card: BattleCard) {
+        battleSession.cancelCardCue(card)
     }
 
     private func activationRequest(

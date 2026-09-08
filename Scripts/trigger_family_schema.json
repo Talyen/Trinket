@@ -409,6 +409,12 @@
         "merge": "max"
       },
       {
+        "name": "partnerFirstAttackDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
         "name": "firstCriticalHitCompanionBasicPerTurn",
         "type": "Bool",
         "default": "false",

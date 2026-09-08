@@ -118,7 +118,7 @@ package enum DamagePipeline {
             applyMarkedBonus(to: &state, in: &context)
             UniqueCombatEngine.applyStoredDamage(to: &state, in: &context)
             state.uniqueOutgoingDamage = CombatRounding.scaled(
-                state.remaining,
+                state.remaining - state.options.partnerFirstAttackBonus,
                 multiplier: state.isCritical ? criticalMultiplier(for: state.sourceActorID, in: context) : 1,
             )
         }

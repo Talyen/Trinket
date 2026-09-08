@@ -5,6 +5,35 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct UniqueItemRuleTests {
+    @Test @MainActor func `saved patient edge upgrades its signature without losing ownership or magnitude`() throws {
+        let item = try #require(GameContent.unique(matching: "the_patient_edge"))
+        var powers = try #require(item.affixPowers)
+        powers[0] = ItemAffixPower(
+            description: "Old held-card bonus",
+            modifiers: [],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(heldCardNextAttackDamage: 3)),
+        )
+        let legacy = InventoryItem(
+            id: item.id, templateID: item.templateID, baseType: item.baseType,
+            rarity: item.rarity, displayName: item.displayName, affixes: item.affixes,
+            affixPowers: powers,
+        )
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        try store.performBatchMutation {
+            $0.inventory.items = [legacy]
+            $0.roster.equipmentLoadouts["knight"] = EquipmentLoadout(itemIDsBySlot: [.weapon: legacy.id])
+        }
+        let reloaded = try PlayerSaveStore(storeURL: context.storeURL(), disableCloudSync: true)
+        let restored = try #require(reloaded.inventory.items.first)
+        let signature = try #require(restored.resolvedPower(at: 0))
+        #expect(signature.triggers.partnerFirstAttackDamage == 3)
+        #expect(signature.triggers.heldCardNextAttackDamage == 0)
+        #expect(restored.affixPowers?.dropFirst() == powers.dropFirst())
+        #expect(reloaded.inventory.ownedUniqueIDs.contains(item.templateID))
+        #expect(reloaded.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == item.id)
+    }
+
     @Test @MainActor func `unique survives save round trip with pinned powers`() throws {
         let uniques = GameContent.uniqueItems
         let context = try PersistenceTestContext()

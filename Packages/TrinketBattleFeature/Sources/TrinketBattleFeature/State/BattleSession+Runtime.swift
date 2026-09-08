@@ -309,6 +309,7 @@ extension BattleSession {
         guard isSuspendedForScenePhase != suspended else { return }
         isSuspendedForScenePhase = suspended
         if suspended {
+            clearCardCues()
             cancelPendingAutoEnd()
             cancelPendingTurnDraw()
         } else {

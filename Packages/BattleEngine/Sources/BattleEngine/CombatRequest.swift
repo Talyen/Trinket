@@ -20,6 +20,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     var isOriginalCardDamage = false
     var isOrdinaryUniqueCardDamage = false
     var usesResolvedOutgoingDamage = false
+    var partnerFirstAttackBonus = 0
 
     public init(
         applyStatBonus: Bool = true,

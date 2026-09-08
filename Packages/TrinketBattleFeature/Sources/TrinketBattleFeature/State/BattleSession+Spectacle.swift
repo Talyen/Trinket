@@ -7,10 +7,12 @@ import TrinketFeatureSupport
 
 extension BattleSession {
     public func presentCombatantDetail(_ detail: CombatantCardDetail) {
+        clearCardCues()
         overlayCombatantDetail = detail
     }
 
     public func presentAbilityDetail(_ ability: Ability) {
+        clearCardCues()
         overlayAbilityDetail = ability
     }
 
@@ -54,6 +56,7 @@ extension BattleSession {
         else { return }
         switch outcome {
         case .victory:
+            clearCardCues()
             if context.stageRewardsAlreadyClaimed {
                 publishPartyCelebrateReactions(at: date)
                 deliverClaimedVictoryIfNeeded()
@@ -63,6 +66,7 @@ extension BattleSession {
             spectacle.outcomePresentation = .pendingVictory(summary)
             scheduleVictoryPresentation(after: date)
         case .defeat:
+            clearCardCues()
             scheduleDefeatPresentation(after: date)
         case .none:
             break
@@ -315,6 +319,7 @@ extension BattleSession {
     }
 
     func clearRunState() {
+        clearCardCues()
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
         presentation.clear()

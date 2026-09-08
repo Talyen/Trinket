@@ -339,7 +339,7 @@ extension BattleTurnEngine {
         }
     }
 
-    private static func activeDamageKeywordOverride(
+    static func activeDamageKeywordOverride(
         for actor: Combatant,
         in context: BattleState,
     ) -> (keyword: Keyword, bonus: Int)? {

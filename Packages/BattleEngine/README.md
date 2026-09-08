@@ -42,6 +42,16 @@ consume them. Full item and interaction rules live in
 
 Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../TrinketBattleFeature/README.md).
 
+`BattleState.assessCard(_:)` provides read-only availability, certain effect
+recipients, and resource-use quotes for the battle interaction cues. It shares
+affordability, eligible outcomes, targeting, and the Mana empowerment budget with
+resolution. Assessment never advances RNG or consumes combat preparations.
+Targets that depend on preceding effects remain unresolved; Panacea exposes
+its separate cleanse and healing recipients. Branch-dependent costs and reactive repeated payments remain non-quantitative;
+only resolved combat events establish the result. The legacy
+`heldCardNextAttackDamage` trigger is retained for saved-item conversion in
+`InventoryItem.resolvedPower(at:)`, not as an active combat rule.
+
 ## Talent interactions
 
 Authored talents and their short descriptions live in

@@ -6,13 +6,15 @@ extension UniqueCombatEngine {
         guard !request.options.isHealthCost, let sourceID = request.sourceActorID,
               isOrdinaryAction(actorID: sourceID, in: context) else { return request }
         var prepared = request
-        prepared.amount += context.uniques.card?.attackBonus ?? 0
-        context.uniques.card?.attackBonus = 0
         prepared.options.isOrdinaryUniqueCardDamage = true
         if context.uniques.card?.guaranteedCritical == true {
             prepared.options.guaranteedCritical = true
         }
         context.uniques.card?.damageRequests.append(prepared)
+        if request.target.role == .enemy, request.amount > 0 {
+            prepared.options.partnerFirstAttackBonus = context.uniques.card?.attackBonus ?? 0
+            context.uniques.card?.attackBonus = 0
+        }
         return prepared
     }
 
@@ -35,6 +37,7 @@ extension UniqueCombatEngine {
 
     static func applyStoredDamage(to damage: inout DamageResolutionState, in context: inout BattleState) {
         damage.remaining += damage.uniqueEnemyBlock
+        damage.remaining += damage.options.partnerFirstAttackBonus
         guard damage.options.isOrdinaryUniqueCardDamage, damage.damageKeyword == .holy,
               let source = damage.partySource(in: context),
               let owner = context.roster.participant(for: source.combatant)

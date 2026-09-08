@@ -71,16 +71,10 @@ public enum BattleCardCombatEngine {
         context: inout BattleState,
         allowBufferedRemoval: Bool = true,
     ) throws -> [ActionEvent] {
-        guard !context.isBattleOver else { throw BattlePlayError.battleOver }
-        guard context.phase == .playerTurn else { throw BattlePlayError.notPlayerTurn }
+        if let error = playError(for: card, in: context) {
+            throw error
+        }
         let ownerRuntime = context.roster[card.owner]
-        guard ownerRuntime.isAlive else { throw BattlePlayError.ownerDefeated }
-        guard !context.ownersSkippingThisPlayerTurn.contains(card.owner) else {
-            throw BattlePlayError.ownerSkipping
-        }
-        guard BattleAbilityRules.canPayHealthCost(card.ability, actor: ownerRuntime.combatant, in: context) else {
-            throw BattlePlayError.insufficientHealth
-        }
         let removed: BattleCard? = if allowBufferedRemoval {
             context.hand.removeFromAnyLocation(id: card.id)
         } else {
@@ -130,11 +124,19 @@ public enum BattleCardCombatEngine {
     }
 
     public static func isCardPlayable(_ card: BattleCard, in context: BattleState) -> Bool {
-        guard context.phase == .playerTurn, !context.isBattleOver else { return false }
+        playError(for: card, in: context) == nil
+    }
+
+    static func playError(for card: BattleCard, in context: BattleState) -> BattlePlayError? {
+        guard !context.isBattleOver else { return .battleOver }
+        guard context.phase == .playerTurn else { return .notPlayerTurn }
         let runtime = context.roster[card.owner]
-        guard runtime.isAlive else { return false }
-        return !context.ownersSkippingThisPlayerTurn.contains(card.owner)
-            && BattleAbilityRules.canPayHealthCost(card.ability, actor: runtime.combatant, in: context)
+        guard runtime.isAlive else { return .ownerDefeated }
+        guard !context.ownersSkippingThisPlayerTurn.contains(card.owner) else { return .ownerSkipping }
+        guard BattleAbilityRules.canPayHealthCost(card.ability, actor: runtime.combatant, in: context) else {
+            return .insufficientHealth
+        }
+        return nil
     }
 
     @discardableResult

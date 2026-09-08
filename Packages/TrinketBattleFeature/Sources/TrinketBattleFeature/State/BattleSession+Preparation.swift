@@ -64,5 +64,10 @@ public extension BattleSession {
     internal func installSimulationPresentation() {
         guard let snapshot = presentationSnapshot() else { return }
         presentation.install(snapshot)
+        if let cue = cardCues.current, cue.phase == .lifted,
+           !snapshot.playableCardIDs.contains(cue.cardID) {
+            publishAttackTelegraph(.cancel, for: cue.actorID)
+            cardCues.cancel(cardID: cue.cardID)
+        }
     }
 }

@@ -16,6 +16,29 @@ Battle simulation rules remain in `BattleEngine`. App options and audio enter th
 the closure-backed `BattleRuntimeDependencies`; this package must not import or
 depend on `TrinketAppState`. Cross-package contract: [battle-runtime.md](../../Docs/AgentContext/battle-runtime.md).
 
+## Card interaction cues
+
+Cards remain artwork-only. Taps use the existing 180 ms lift; dragging uses the
+same begin/commit/cancel cue lifecycle, including Auto Battle. Recipient cues
+use small motions and established keyword colors: contracting attack light,
+rising restoration, a protective brace, an outward cleanse, gathered preparation,
+and a gain/draw lift. Combined effects use one motion per recipient, preferring
+cleanse, restoration, protection, attack, preparation, then gain.
+
+`BattleCardCueState` owns transient cue identity and cleanup separately from
+combat projection. `BattleState.assessCard(_:)` supplies rules-derived intent;
+random outcomes show only common recipients. Health and Mana costs highlight
+the consumed segment of the existing bar without changing its value. Uncertain
+costs use a non-quantitative highlight; Block-for-Mana substitution emphasizes
+the payer's protection. When no stronger recipient cue applies, the payer also
+receives a resource-colored preparation cue so a lifted card cannot hide all
+spending feedback. Normal combat feedback owns actual results.
+
+Denied Health costs pulse the owner's Health bar, control emphasizes the owner's
+status, and defeat emphasizes the dimmed portrait. Stale or unavailable battle
+state never claims a resource problem. Inspection, backgrounding, battle changes,
+and cancellation clear previews; a late cancellation cannot erase a newer cue.
+
 ## UIKit feedback island
 
 Combat floating chips use always-mounted UIKit hosts (`CombatFeedbackRasterHost`,

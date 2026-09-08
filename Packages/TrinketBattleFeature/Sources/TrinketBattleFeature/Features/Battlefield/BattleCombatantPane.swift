@@ -36,9 +36,11 @@ struct BattleCombatantPane: View {
                     borderAccentKeyword: borderAccentKeyword,
                     buffAuraKind: buffAuraKind,
                 ) {
-                    ZStack(alignment: .bottom) {
-                        artworkPresentation
-                        resourceBars
+                    BattleRecipientCueLane(combatantID: combatant.id) {
+                        ZStack(alignment: .bottom) {
+                            artworkPresentation
+                            resourceBars
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -93,9 +95,11 @@ struct BattleCombatantPane: View {
                 maxValue: maxHealth,
                 style: .healthBattle,
             )
+            .overlay { BattleResourceCueOverlay(combatantID: combatant.id, keyword: .health) }
 
             if hasMana {
                 CombatResourceBar(value: mana, maxValue: maxMana, style: .mana)
+                    .overlay { BattleResourceCueOverlay(combatantID: combatant.id, keyword: .mana) }
             }
         }
         .frame(maxWidth: .infinity)

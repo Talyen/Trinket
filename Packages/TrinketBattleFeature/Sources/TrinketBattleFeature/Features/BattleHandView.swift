@@ -23,13 +23,13 @@ struct BattleHandView: View {
     let isPlayable: (BattleCard) -> Bool
     let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
-    let onPlayDenied: () -> Void
+    let onPlayDenied: (BattleCard) -> Void
     let hapticsEnabled: Bool
     let battleFrame: CGRect
     var autoLiftCardID: Int?
     var onCardInteractionChanged: ((Bool) -> Void)?
-    var onAttackWindUp: ((BattleCard) -> Void)?
-    var onAttackCancel: ((BattleCard) -> Void)?
+    var onLift: ((BattleCard) -> Void)?
+    var onLiftCancel: ((BattleCard) -> Void)?
 
     @State private var heldInteraction: HeldCardInteraction?
 
@@ -38,13 +38,13 @@ struct BattleHandView: View {
         isPlayable: @escaping (BattleCard) -> Bool,
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
-        onPlayDenied: @escaping () -> Void,
+        onPlayDenied: @escaping (BattleCard) -> Void,
         hapticsEnabled: Bool,
         battleFrame: CGRect,
         autoLiftCardID: Int? = nil,
         onCardInteractionChanged: ((Bool) -> Void)? = nil,
-        onAttackWindUp: ((BattleCard) -> Void)? = nil,
-        onAttackCancel: ((BattleCard) -> Void)? = nil,
+        onLift: ((BattleCard) -> Void)? = nil,
+        onLiftCancel: ((BattleCard) -> Void)? = nil,
     ) {
         self.cards = cards
         self.isPlayable = isPlayable
@@ -55,8 +55,8 @@ struct BattleHandView: View {
         self.battleFrame = battleFrame
         self.autoLiftCardID = autoLiftCardID
         self.onCardInteractionChanged = onCardInteractionChanged
-        self.onAttackWindUp = onAttackWindUp
-        self.onAttackCancel = onAttackCancel
+        self.onLift = onLift
+        self.onLiftCancel = onLiftCancel
     }
 
     var body: some View {
@@ -87,7 +87,7 @@ struct BattleHandView: View {
                         autoLiftCardID: autoLiftCardID,
                         onInspect: { onInspect(card) },
                         onPlay: { command in onPlay(card, command) },
-                        onPlayDenied: onPlayDenied,
+                        onPlayDenied: { onPlayDenied(card) },
                         onInteractionChanged: { isActive in
                             if isActive {
                                 if heldInteraction?.cardID != card.id {
@@ -102,8 +102,8 @@ struct BattleHandView: View {
                                 onCardInteractionChanged?(false)
                             }
                         },
-                        onAttackWindUp: { onAttackWindUp?(card) },
-                        onAttackCancel: { onAttackCancel?(card) },
+                        onLift: { onLift?(card) },
+                        onLiftCancel: { onLiftCancel?(card) },
                     )
                     .offset(x: snapshot.fanOffsetX)
                     .zIndex((isHeld || autoLiftCardID == card.id) ? 100 : Double(index))

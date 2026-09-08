@@ -72,6 +72,19 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
                 triggers: triggers,
             )
         }
+        if affixes.indices.contains(affixIndex), affixes[affixIndex].id == "the_patient_edge",
+           power.triggers.heldCardNextAttackDamage > 0 {
+            var triggers = power.triggers
+            triggers.partnerFirstAttackDamage = max(
+                triggers.partnerFirstAttackDamage, triggers.heldCardNextAttackDamage,
+            )
+            triggers.heldCardNextAttackDamage = 0
+            power = ItemAffixPower(
+                description: "Your first attack each turn deals +\(triggers.partnerFirstAttackDamage) damage if your partner has already played a card.",
+                modifiers: power.modifiers,
+                triggers: triggers,
+            )
+        }
         return power.scaled(by: baseType.affixPowerMultiplier)
     }
 
