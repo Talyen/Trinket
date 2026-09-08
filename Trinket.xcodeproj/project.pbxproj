@@ -45,17 +45,17 @@
 		929F7A06B8C849A87066F3DE /* TrinketTestSupport */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketTestSupport; path = Packages/TrinketTestSupport; sourceTree = SOURCE_ROOT; };
 		9C0890BB8BE4806E4AEDBE9B /* TrinketAppState */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketAppState; path = Packages/TrinketAppState; sourceTree = SOURCE_ROOT; };
 		ADA42E5A1490B3683FC93B52 /* Media */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Media; path = Trinket/Media; sourceTree = SOURCE_ROOT; };
-		B16CD0B73E69AB7EEA6213A0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B16CD0B73E69AB7EEA6213A0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C8EFA27866F6BA45C26D504E /* TrinketBattleFeature */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketBattleFeature; path = Packages/TrinketBattleFeature; sourceTree = SOURCE_ROOT; };
-		D77B1B572840FE4B65134F04 /* Smoke.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Smoke.xctestplan; sourceTree = "<group>"; };
+		D77B1B572840FE4B65134F04 /* Smoke.xctestplan */ = {isa = PBXFileReference; path = Smoke.xctestplan; sourceTree = "<group>"; };
 		E43AF427DA2725C7880E05D0 /* BattleEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BattleEngine; path = Packages/BattleEngine; sourceTree = SOURCE_ROOT; };
-		E89691B00998EAF137303F2E /* FullUI.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = FullUI.xctestplan; sourceTree = "<group>"; };
+		E89691B00998EAF137303F2E /* FullUI.xctestplan */ = {isa = PBXFileReference; path = FullUI.xctestplan; sourceTree = "<group>"; };
 		FB2F3612614E891F44DD2597 /* TrinketContent */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketContent; path = Packages/TrinketContent; sourceTree = SOURCE_ROOT; };
-		FCEFEE1788152B3F8E259A13 /* BattlePerformance.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = BattlePerformance.xctestplan; sourceTree = "<group>"; };
+		FCEFEE1788152B3F8E259A13 /* BattlePerformance.xctestplan */ = {isa = PBXFileReference; path = BattlePerformance.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F123AF17EB848F3F64E10FC1 /* Exceptions for "Trinket/Features" folder in "Trinket" target */ = {
+		F123AF17EB848F3F64E10FC1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AGENTS.md,
@@ -68,18 +68,30 @@
 		20206A96AF5435A31C3C85EA /* Trinket/Features */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F123AF17EB848F3F64E10FC1 /* Exceptions for "Trinket/Features" folder in "Trinket" target */,
+				F123AF17EB848F3F64E10FC1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
 			);
 			path = Trinket/Features;
 			sourceTree = "<group>";
 		};
 		4B97B7A08C91F1C36701801E /* Trinket/App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
 			path = Trinket/App;
 			sourceTree = "<group>";
 		};
 		BEEC1715CF8233C71D0F54CB /* TrinketUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
 			path = TrinketUITests;
 			sourceTree = "<group>";
 		};
@@ -204,8 +216,8 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				20206A96AF5435A31C3C85EA /* Trinket/Features */,
 				4B97B7A08C91F1C36701801E /* Trinket/App */,
+				20206A96AF5435A31C3C85EA /* Trinket/Features */,
 			);
 			name = Trinket;
 			packageProductDependencies = (
