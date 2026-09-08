@@ -20,6 +20,7 @@ public enum AccessibilityID {
     }
 
     public enum Screen {
+        public static let launchWarmup = "Launch Warmup"
         public static let play = "Play Screen"
         public static let collection = "Collection Screen"
         public static let homestead = "Homestead Screen"

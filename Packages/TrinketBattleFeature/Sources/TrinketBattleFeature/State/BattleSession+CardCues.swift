@@ -5,6 +5,9 @@ import TrinketCore
 extension BattleSession {
     func beginCardCue(_ card: BattleCard) {
         guard canPresentCardCue, let state = engineState else { return }
+        if cardCues.current?.cardID == card.id, cardCues.current?.phase == .lifted {
+            return
+        }
         let assessment = state.assessCard(card)
         guard assessment.denial == nil else { return }
         if let previous = cardCues.current, previous.phase == .lifted, previous.cardID != card.id {

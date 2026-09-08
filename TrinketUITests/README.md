@@ -27,6 +27,11 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
 
 **Default smoke args:** `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`.
 
+`launchApp` waits for the launch artwork cover to finish before returning, so
+screen-readiness assertions measure their destination rather than cold artwork
+preparation. Its bounded timeout lives in `TrinketUITestCase`; a warmup timeout
+fails explicitly instead of being reported as a missing destination.
+
 Common screen-entry arguments are `-launch-screen` and `-selectedTab`; state
 seeding uses `-completed-stages`, `-starting-gold`, and the reset/cloud-sync
 flags. Performance-only frame metrics are opt-in and never belong to smoke.

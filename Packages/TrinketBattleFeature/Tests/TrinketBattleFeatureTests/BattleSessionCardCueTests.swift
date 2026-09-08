@@ -1,3 +1,4 @@
+import SwiftUI
 import Testing
 import TrinketContent
 import TrinketCore
@@ -7,6 +8,25 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionCardCueTests {
+    @Test func `auto battle starts its cue before the hand view renders`() async throws {
+        let session = makeSession()
+        let card = try install(.slash, in: session)
+        session.isAutoBattleEnabled = true
+        let configuration = try #require(session.activeBattle)
+        let presentation = try #require(session.presentationContext)
+        let field = BattleFieldLane(
+            configuration: configuration,
+            presentationContext: presentation,
+            battleSession: session,
+            interactionState: BattleInteractionState(),
+            castPresentation: BattleCastPresentationState(),
+        )
+        let played = await field.playCardWithTapLift(card, battleSize: CGSize(width: 375, height: 667))
+        #expect(played)
+        #expect(!session.hand.contains(card))
+        session.clearCardCues()
+    }
+
     @Test func `lifting a mixed card cues its actual recipients without playing it`() throws {
         let session = makeSession()
         let card = try install(.spikedShield, in: session)

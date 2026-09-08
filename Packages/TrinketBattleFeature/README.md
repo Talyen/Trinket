@@ -25,6 +25,10 @@ rising restoration, a protective brace, an outward cleanse, gathered preparation
 and a gain/draw lift. Combined effects use one motion per recipient, preferring
 cleanse, restoration, protection, attack, preparation, then gain.
 
+Auto Battle begins its cue synchronously with the play request, before the hand
+renders the lift. A delayed rendering callback cannot prevent a valid play or
+restart an already active cue.
+
 `BattleCardCueState` owns transient cue identity and cleanup separately from
 combat projection. `BattleState.assessCard(_:)` supplies rules-derived intent;
 random outcomes show only common recipients. Health and Mana costs highlight

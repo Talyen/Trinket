@@ -46,7 +46,7 @@ struct LaunchWarmupView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
         .preferredColorScheme(.dark)
-        .accessibilityIdentifier("Launch Warmup")
+        .accessibilityIdentifier(AccessibilityID.Screen.launchWarmup)
         .task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(750))

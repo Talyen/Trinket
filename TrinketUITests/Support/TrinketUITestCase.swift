@@ -120,6 +120,7 @@ enum TestLaunchArg {
 class TrinketUITestCase: XCTestCase {
     static let defaultTimeout: TimeInterval = 12
     static let deepLinkTimeout: TimeInterval = 15
+    static let launchWarmupTimeout: TimeInterval = 60
 
     // swiftlint:disable:next implicitly_unwrapped_optional - XCTest installs the app before each test
     private(set) var app: XCUIApplication!
@@ -178,6 +179,13 @@ class TrinketUITestCase: XCTestCase {
         }
         app.launchEnvironment = launchEnvironment
         app.launch()
+        let warmup = app.descendants(matching: .any)
+            .matching(identifier: AccessibilityID.Screen.launchWarmup)
+            .firstMatch
+        XCTAssertTrue(
+            warmup.waitForNonExistence(timeout: Self.launchWarmupTimeout),
+            "Launch artwork preparation did not finish",
+        )
     }
 
     func button(_ identifier: String) -> XCUIElement {
