@@ -37,7 +37,6 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
-                isAttackHit: state.options.isAttackHit,
                 in: &context,
             ))
         case .stun:
@@ -85,10 +84,16 @@ package extension DamagePipeline {
 
         if state.healthLost > 0, state.combatant.role == .enemy,
            triggers.carrionClaim, keyword == .poison || keyword == .bleed {
-            state.damageEvents.append(contentsOf: context.grantGoldEvent(1, to: source, abilityName: "Carrion Claim"))
+            state.damageEvents.append(contentsOf: context.grantGoldEvent(1, to: source, abilityName: "Carrion Claim", isTheft: true))
         }
 
         if keyword == .holy {
+            if triggers.blindingLight, state.options.isAttackHit, !state.options.isRetaliation,
+               state.combatant.role == .enemy {
+                let reduction = CombatRounding.scaled(state.healthLost + state.blockedAmount, multiplier: 0.5)
+                let current = context.heroTalents.history[state.combatant.id]?.blindingReduction ?? 0
+                context.heroTalents.history[state.combatant.id, default: HeroTalentHistory()].blindingReduction = max(current, reduction)
+            }
             applyHolyStunReactions(
                 to: &state,
                 source: source,
@@ -341,6 +346,8 @@ package extension DamagePipeline {
                 triggers.basicAttackStealGold,
                 to: source,
                 abilityName: "Snatch",
+                isTheft: true,
+                isDirectCardGain: state.options.isOriginalCardDamage,
             ))
         }
     }
@@ -362,6 +369,8 @@ package extension DamagePipeline {
                 triggers.onAttackStealGold,
                 to: source,
                 abilityName: "Pickpocket",
+                isTheft: true,
+                isDirectCardGain: state.options.isOriginalCardDamage,
             ))
         }
         if triggers.onAttackFrozenEnemyGainMana > 0, targetIsFrozen {

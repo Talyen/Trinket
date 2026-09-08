@@ -20,7 +20,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var onStunEnemyApplyBurn: Int = 0
     public var onceBelowHealthPercentStunAllEnemies: Bool = false
     public var freezeCardsPlayedThisTurnFreezeAll: Int = 0
-    public var spendManaFreezeThreshold: Int = 0
+    public var flashFreeze: Bool = false
     public var everyNTurnsFreezeAllEnemiesInterval: Int = 0
     public var everyNTurnsFreezeAllEnemiesAmount: Int = 0
     public var everyNTurnsStunBuildupInterval: Int = 0
@@ -56,7 +56,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         onStunEnemyApplyBurn: Int = 0,
         onceBelowHealthPercentStunAllEnemies: Bool = false,
         freezeCardsPlayedThisTurnFreezeAll: Int = 0,
-        spendManaFreezeThreshold: Int = 0,
+        flashFreeze: Bool = false,
         everyNTurnsFreezeAllEnemiesInterval: Int = 0,
         everyNTurnsFreezeAllEnemiesAmount: Int = 0,
         everyNTurnsStunBuildupInterval: Int = 0,
@@ -91,7 +91,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.onStunEnemyApplyBurn = onStunEnemyApplyBurn
         self.onceBelowHealthPercentStunAllEnemies = onceBelowHealthPercentStunAllEnemies
         self.freezeCardsPlayedThisTurnFreezeAll = freezeCardsPlayedThisTurnFreezeAll
-        self.spendManaFreezeThreshold = spendManaFreezeThreshold
+        self.flashFreeze = flashFreeze
         self.everyNTurnsFreezeAllEnemiesInterval = everyNTurnsFreezeAllEnemiesInterval
         self.everyNTurnsFreezeAllEnemiesAmount = everyNTurnsFreezeAllEnemiesAmount
         self.everyNTurnsStunBuildupInterval = everyNTurnsStunBuildupInterval
@@ -112,7 +112,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "spendManaFreezeThreshold", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard"]
+    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "flashFreeze", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -133,7 +133,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         if self.onStunEnemyApplyBurn != other.onStunEnemyApplyBurn { names.append("onStunEnemyApplyBurn") }
         if self.onceBelowHealthPercentStunAllEnemies != other.onceBelowHealthPercentStunAllEnemies { names.append("onceBelowHealthPercentStunAllEnemies") }
         if self.freezeCardsPlayedThisTurnFreezeAll != other.freezeCardsPlayedThisTurnFreezeAll { names.append("freezeCardsPlayedThisTurnFreezeAll") }
-        if self.spendManaFreezeThreshold != other.spendManaFreezeThreshold { names.append("spendManaFreezeThreshold") }
+        if self.flashFreeze != other.flashFreeze { names.append("flashFreeze") }
         if self.everyNTurnsFreezeAllEnemiesInterval != other.everyNTurnsFreezeAllEnemiesInterval { names.append("everyNTurnsFreezeAllEnemiesInterval") }
         if self.everyNTurnsFreezeAllEnemiesAmount != other.everyNTurnsFreezeAllEnemiesAmount { names.append("everyNTurnsFreezeAllEnemiesAmount") }
         if self.everyNTurnsStunBuildupInterval != other.everyNTurnsStunBuildupInterval { names.append("everyNTurnsStunBuildupInterval") }
@@ -173,7 +173,7 @@ extension ControlTriggers {
         onStunEnemyApplyBurn += other.onStunEnemyApplyBurn
         onceBelowHealthPercentStunAllEnemies = onceBelowHealthPercentStunAllEnemies || other.onceBelowHealthPercentStunAllEnemies
         freezeCardsPlayedThisTurnFreezeAll += other.freezeCardsPlayedThisTurnFreezeAll
-        spendManaFreezeThreshold += other.spendManaFreezeThreshold
+        flashFreeze = flashFreeze || other.flashFreeze
         everyNTurnsFreezeAllEnemiesInterval = max(everyNTurnsFreezeAllEnemiesInterval, other.everyNTurnsFreezeAllEnemiesInterval)
         everyNTurnsFreezeAllEnemiesAmount += other.everyNTurnsFreezeAllEnemiesAmount
         everyNTurnsStunBuildupInterval = max(everyNTurnsStunBuildupInterval, other.everyNTurnsStunBuildupInterval)
@@ -214,7 +214,7 @@ extension ControlTriggers {
             onStunEnemyApplyBurn: values.decode(Int.self, "onStunEnemyApplyBurn", default: 0),
             onceBelowHealthPercentStunAllEnemies: values.decode(Bool.self, "onceBelowHealthPercentStunAllEnemies", default: false),
             freezeCardsPlayedThisTurnFreezeAll: values.decode(Int.self, "freezeCardsPlayedThisTurnFreezeAll", default: 0),
-            spendManaFreezeThreshold: values.decode(Int.self, "spendManaFreezeThreshold", default: 0),
+            flashFreeze: values.decode(Bool.self, "flashFreeze", default: false),
             everyNTurnsFreezeAllEnemiesInterval: values.decode(Int.self, "everyNTurnsFreezeAllEnemiesInterval", default: 0),
             everyNTurnsFreezeAllEnemiesAmount: values.decode(Int.self, "everyNTurnsFreezeAllEnemiesAmount", default: 0),
             everyNTurnsStunBuildupInterval: values.decode(Int.self, "everyNTurnsStunBuildupInterval", default: 0),
@@ -252,7 +252,7 @@ extension ControlTriggers {
         try container.encodeNonDefault(onStunEnemyApplyBurn, "onStunEnemyApplyBurn", default: 0)
         try container.encodeNonDefault(onceBelowHealthPercentStunAllEnemies, "onceBelowHealthPercentStunAllEnemies", default: false)
         try container.encodeNonDefault(freezeCardsPlayedThisTurnFreezeAll, "freezeCardsPlayedThisTurnFreezeAll", default: 0)
-        try container.encodeNonDefault(spendManaFreezeThreshold, "spendManaFreezeThreshold", default: 0)
+        try container.encodeNonDefault(flashFreeze, "flashFreeze", default: false)
         try container.encodeNonDefault(everyNTurnsFreezeAllEnemiesInterval, "everyNTurnsFreezeAllEnemiesInterval", default: 0)
         try container.encodeNonDefault(everyNTurnsFreezeAllEnemiesAmount, "everyNTurnsFreezeAllEnemiesAmount", default: 0)
         try container.encodeNonDefault(everyNTurnsStunBuildupInterval, "everyNTurnsStunBuildupInterval", default: 0)

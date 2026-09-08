@@ -38,6 +38,13 @@ package enum HealingEngine {
         }
 
         let overflow = max(0, amount - max(0, maxHealth - preHealth))
+        if restored > 0, preHealth * 2 < maxHealth, request.target.role != .enemy,
+           sourceTriggers?.shelterSeed == true, let sourceID = request.sourceActorID,
+           let source = context.roster.combatant(for: sourceID), source.isAlive {
+            events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
+                to: request.target, source: source.combatant, amount: restored, name: "Shelter Seed", in: &context,
+            ))
+        }
         events.append(contentsOf: CombatTriggerEngine.afterHeroCardHeal(
             request: request, restored: restored, overflow: overflow, in: &context,
         ))

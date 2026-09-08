@@ -3,11 +3,25 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
+    static func applyPreparedAttackReduction(to state: inout DamageResolutionState, in context: inout BattleState) {
+        guard state.options.isAttackHit, !state.options.isRetaliation,
+              let action = context.heroTalents.actions.last, action.actorID == state.sourceActorID else { return }
+        let reduction = min(max(0, state.remaining), action.blindingReduction)
+        state.remaining -= reduction
+        context.heroTalents.actions[context.heroTalents.actions.count - 1].blindingReduction -= reduction
+    }
+
     static func applyDamageBonus(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
         applyBaseAndScaledDamage(to: &state, in: &context)
+        if state.options.isAttackHit, state.amount > 0,
+           let action = context.heroTalents.actions.last, action.actorID == state.sourceActorID {
+            state.remaining += action.goldDamage
+            state.itemBonus += action.goldDamage
+            context.heroTalents.actions[context.heroTalents.actions.count - 1].goldDamage = 0
+        }
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)

@@ -15,7 +15,6 @@ extension BattleCardCombatEngine {
         var facts = HeroTalentCardFacts(actorID: actor.id, tier: card.ability.tier)
         facts.playSerial = context.heroTalents.nextPlaySerial
         facts.previousDamageKeywords = context.heroTalents.history[actor.id]?.lastDamageKeywords ?? []
-        facts.previousGrantedGold = context.heroTalents.history[actor.id]?.lastGrantedGold ?? false
         context.heroTalents.nextPlaySerial += 1
         context.heroTalents.cards.append(facts)
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)

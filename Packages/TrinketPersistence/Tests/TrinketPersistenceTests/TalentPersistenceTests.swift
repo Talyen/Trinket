@@ -6,6 +6,34 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct TalentPersistenceTests {
+    @Test(arguments: ["wildcard", "druid"], [false, true])
+    @MainActor func `reordered trees preserve old partial and complete purchases across reload`(
+        combatantID: String, complete: Bool,
+    ) throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let partial: Set<String> = combatantID == "wildcard"
+            ? ["wildcard_dodge_t1_1", "wildcard_dodge_t1_2", "wildcard_dodge_t2_1"]
+            : ["druid_health_t1_1", "druid_health_t1_2", "druid_health_t2_1", "druid_mana_t1_1"]
+        let purchased = complete ? CombatantTalentCatalog.validNodeIDs(for: combatantID) : partial
+        try store.performBatchMutation { save in
+            save.roster.progressions[combatantID] = .at(level: 100)
+            save.roster.unlockedTalents[combatantID] = purchased
+        }
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.unlockedTalents(for: combatantID) == purchased)
+        let progression = try #require(reloaded.roster.progressions[combatantID])
+        #expect(reloaded.roster.availableTalentPoints(for: combatantID) == progression.totalTalentPoints - purchased.count)
+        if !complete {
+            let keyword: Keyword = combatantID == "wildcard" ? .dodge : .health
+            let tree = try #require(CombatantTalentCatalog.config(for: combatantID).tree(for: keyword))
+            let introductory = try #require(tree.nodes(forRow: 1).first)
+            #expect(reloaded.unlockTalent(nodeID: introductory.id, treeID: tree.id, for: combatantID) == .unlocked)
+            let savedAgain = try context.makeReloadedStore()
+            #expect(savedAgain.roster.unlockedTalents(for: combatantID) == purchased.union([introductory.id]))
+        }
+    }
+
     @Test @MainActor func `talent loadouts survive player save store round trip`() throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()

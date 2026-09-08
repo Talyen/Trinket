@@ -42,6 +42,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     public let guaranteedCriticalIfEnemyBuffed: Bool
     public let hasLeech: Bool
     public let repeatsManaEmpowerment: Bool
+    public let stealsGold: Bool
 
     public var effects: [Effect] {
         targetedEffects.map(\.effect)
@@ -60,6 +61,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         hasLeech: Bool = false,
         repeatsManaEmpowerment: Bool = false,
+        stealsGold: Bool = false,
     ) {
         self.id = id
         self.name = name
@@ -71,6 +73,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
         self.hasLeech = hasLeech
         self.repeatsManaEmpowerment = repeatsManaEmpowerment
+        self.stealsGold = stealsGold
         if let targetedEffects {
             self.targetedEffects = targetedEffects
         } else {
@@ -92,6 +95,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         hasLeech: Bool = false,
         repeatsManaEmpowerment: Bool = false,
+        stealsGold: Bool = false,
     ) {
         let components = directDamage > 0
             ? [DamageComponent(directDamage, keyword: damageKeyword)]
@@ -109,6 +113,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech,
             repeatsManaEmpowerment: repeatsManaEmpowerment,
+            stealsGold: stealsGold,
         )
     }
 
@@ -225,6 +230,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech,
             repeatsManaEmpowerment: repeatsManaEmpowerment,
+            stealsGold: stealsGold,
         )
     }
 
@@ -261,6 +267,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech,
             repeatsManaEmpowerment: repeatsManaEmpowerment,
+            stealsGold: stealsGold,
         )
     }
 

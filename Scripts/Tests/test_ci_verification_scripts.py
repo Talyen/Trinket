@@ -498,7 +498,9 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             [
                 "bash",
                 "-c",
-                'source "$1" && export TRINKET_DIAGNOSTICS_SESSION_ID="parent-session" && '
+                'source "$1" && unset TRINKET_ISOLATE TRINKET_RUN_ID DERIVED_DATA_PATH RESULTS_DIR '
+                'TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT && '
+                'export TRINKET_DIAGNOSTICS_SESSION_ID="parent-session" && '
                 "trinket_run_env_init >/dev/null && printf '%s' \"$TRINKET_DIAGNOSTICS_SESSION_ID\"",
                 "_",
                 str(run_env),

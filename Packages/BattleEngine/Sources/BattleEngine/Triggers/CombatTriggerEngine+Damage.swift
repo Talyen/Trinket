@@ -172,9 +172,6 @@ package extension CombatTriggerEngine {
             let missing = max(0, context.roster.maxHealth(for: source.combatant) - context.roster.health(for: source.combatant))
             bonus += missing / triggers.damagePerMissingHealthEvery
         }
-        if triggers.damagePerCarriedGoldEvery > 0 {
-            bonus += context.gold / triggers.damagePerCarriedGoldEvery
-        }
         if triggers.goldReservesDamageEvery > 0 {
             let uncapped = context.gold / triggers.goldReservesDamageEvery
             bonus += triggers.goldReservesDamageCap > 0

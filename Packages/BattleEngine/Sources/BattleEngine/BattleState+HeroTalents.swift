@@ -1,12 +1,25 @@
 import TrinketContent
 import TrinketCore
 
+enum TalentPreparation: Hashable {
+    case bleedDamage
+    case poisonDamage
+    case doublePoison
+    case ignorePhysicalBlock
+    case stealGold
+}
+
+struct TalentActionFacts {
+    var actorID: String
+    var goldDamage = 0
+    var blindingReduction = 0
+}
+
 struct HeroTalentCardFacts {
     var actorID: String
     var tier: AbilityTier
     var playSerial = 0
     var previousDamageKeywords: Set<Keyword> = []
-    var previousGrantedGold = false
     var isRandom = false
     var damageKeywords: Set<Keyword> = []
     var cleanses = false
@@ -14,12 +27,13 @@ struct HeroTalentCardFacts {
     var restoredHealth = false
     var restoredMana = false
     var grantedGold = false
-    var gainedThornsOn: Set<String> = []
     var capturedOutcome = false
     var appliedBonuses: Set<String> = []
     var preparedHeal = false
-    var preparedBlockIgnore: Set<String> = []
-    var preparedCoin: Set<String> = []
+    var preparations: Set<TalentPreparation> = []
+    var capturedPreparations = false
+    var gildedDamage = 0
+    var criticalGold: Bool?
 }
 
 struct HeroTalentHistory {
@@ -27,18 +41,14 @@ struct HeroTalentHistory {
     var lastDamageKeywords: Set<Keyword> = []
     var lastGrantedGold = false
     var tiers: Set<AbilityTier> = []
-    var playedPoison = false
-    var restoredHealth = false
     var playedStun = false
     var spentMana = false
-    var dodged = false
-    var startingMana = 0
-    var pendingCompanionBlock = false
     var preparedHeal = false
     var preparedGold = false
     var preparedPhysical = false
-    var preparedBlockIgnore = false
-    var preparedCoin = false
+    var preparations: Set<TalentPreparation> = []
+    var stolenGoldDamage = 0
+    var blindingReduction = 0
     var dodgeGrowth = 0
     var falseOpening = false
 }
@@ -46,6 +56,7 @@ struct HeroTalentHistory {
 struct HeroTalentState {
     var nextPlaySerial = 0
     var cards: [HeroTalentCardFacts] = []
+    var actions: [TalentActionFacts] = []
     var history: [String: HeroTalentHistory] = [:]
     var turnClaims: [String: Int] = [:]
     var battleClaims: Set<String> = []

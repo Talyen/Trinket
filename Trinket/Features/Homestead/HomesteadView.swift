@@ -16,7 +16,6 @@ struct HomesteadView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var depositGeometry = HomesteadDepositGeometry()
     @State private var collectionSuccessTrigger = 0
-    @State private var attentionTrigger = 0
     @State private var collectionErrorTrigger = 0
 
     private var homestead: PlayerHomesteadState {
@@ -90,14 +89,16 @@ struct HomesteadView: View {
             let amounts = depositEvent?.amounts ?? pending
             Group {
                 if !amounts.isEmpty {
-                    HStack(spacing: TrinketDesign.Spacing.large) {
-                        Spacer(minLength: 0)
+                    let layout = playerSave.isCloudSyncEnabled
+                        ? AnyLayout(HStackLayout(spacing: TrinketDesign.Spacing.large))
+                        : AnyLayout(VStackLayout(spacing: TrinketDesign.Spacing.small))
+                    layout {
                         if playerSave.isCloudSyncEnabled {
                             Text("Unavailable with cloud sync")
                                 .trinketTypography(.caption)
                                 .foregroundStyle(.secondary)
                         } else {
-                            collectResourceIcons(amounts)
+                            HomesteadCollectionPreview(amounts: amounts, isCollecting: depositEvent != nil)
                         }
                         Button {
                             collectProduction(at: context.date)
@@ -113,17 +114,12 @@ struct HomesteadView: View {
                             radius: TrinketDesign.Spacing.medium,
                         )
                         .opacity(depositEvent?.gathered == true ? 0 : 1)
-                        Spacer(minLength: 0)
                     }
+                    .frame(maxWidth: .infinity)
                     .transition(.opacity)
                 }
             }
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-            .onChange(of: !pending.isEmpty, initial: true) { _, isReady in
-                if isReady, depositEvent == nil, !playerSave.isCloudSyncEnabled {
-                    attentionTrigger &+= 1
-                }
-            }
         }
     }
 
@@ -143,28 +139,6 @@ struct HomesteadView: View {
             let held = depositEvent.landed.contains(amount.resource) ? 0 : amount.quantity
             return (amount.resource, max(0, homestead.balance(for: amount.resource, roster: roster) - held))
         })
-    }
-
-    private func collectResourceIcons(_ amounts: [ResourceAmount]) -> some View {
-        HStack(spacing: -TrinketDesign.Spacing.large) {
-            ForEach(amounts) { amount in
-                HomesteadResourceArtwork(resource: amount.resource)
-                    .frame(
-                        width: TrinketDesign.Layout.walletResourceArtworkSize,
-                        height: TrinketDesign.Layout.walletResourceArtworkSize,
-                    )
-                    .anchorPreference(key: HomesteadCollectionArtworkAnchors.self, value: .bounds) {
-                        [amount.resource: $0]
-                    }
-                    .keyframeAnimator(initialValue: CGFloat(0), trigger: attentionTrigger) { content, lift in
-                        content.offset(y: depositEvent == nil ? lift : 0)
-                    } keyframes: { _ in
-                        CubicKeyframe(-2, duration: 0.18)
-                        SpringKeyframe(0, duration: 0.3, spring: .smooth)
-                    }
-                    .opacity(depositEvent == nil ? 1 : 0)
-            }
-        }
     }
 
     private func collectProduction(at date: Date) {

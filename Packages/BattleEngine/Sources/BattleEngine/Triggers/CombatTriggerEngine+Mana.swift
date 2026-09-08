@@ -194,20 +194,6 @@ package extension CombatTriggerEngine {
                 ).events)
             }
         }
-        let freezeMet = triggers.spendManaFreezeThreshold > 0
-            && amountSpent >= triggers.spendManaFreezeThreshold
-            && context.roster.enemy.isAlive
-        if freezeMet, context.claimActionGuard(.spendFreeze, actorID: actor.id) {
-            let freezeAmount = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
-            events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                freezeAmount,
-                keyword: .freeze,
-                to: context.roster.enemy.combatant,
-                sourceActorID: actor.id,
-                in: &context,
-            ))
-        }
-
         if triggers.spendManaDamageBonusPerMana > 0,
            amountSpent >= BattleTurnEngine.manaEmpowermentCost {
             context.roster.mutateRuntime(for: actor) {

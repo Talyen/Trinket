@@ -43,6 +43,9 @@ package extension DamagePipeline {
             dodged = BattleChance.succeeds(probability: chance, using: &context.rng)
         }
         guard dodged else {
+            if state.options.isAttackHit, profile.triggers.improvingOdds {
+                context.heroTalents.history[state.combatant.id, default: HeroTalentHistory()].dodgeGrowth += 5
+            }
             return
         }
         if hasEvadeNextHit {
@@ -107,6 +110,7 @@ package extension DamagePipeline {
             chance += context.uniques.owners[owner]?.wrenflightDodge ?? 0
         }
         chance += context.roster.runtime(for: combatant)?.bonusDodgeUntilNextTurn ?? 0
+        if context.roster.runtime(for: combatant)?.subzeroMistActive == true { chance += 0.20 }
         if context.roster.isDeathsDoorActive(for: combatant),
            profile.triggers.deathsDoorDodgeAndDebuffImmunity {
             chance += 0.5

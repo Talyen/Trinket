@@ -4,6 +4,52 @@ import TrinketCore
 @testable import BattleEngine
 
 extension CombatTriggerTalentDamageTests {
+    @Test func `dense bones gains reduction only from attack hits up to four`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxHealth: 100,
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                mitigation: MitigationTriggers(toughnessOnHit: 1, toughnessOnHitCap: 4),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        for options in [DamageOptions.doTTick, .healthCost, .flatReaction] {
+            let outcome = battle.resolveDamage(DamageRequest(
+                amount: 2, target: battle.companion, keyword: .bleed,
+                sourceActorID: options.isHealthCost ? battle.companion.id : battle.enemy.id,
+                options: options,
+            ))
+            #expect(outcome.healthLost == 2)
+            #expect(battle.roster.runtime(for: battle.companion)?.flatDamageReductionBonus == 0)
+        }
+        for hit in 0 ..< 6 {
+            let outcome = battle.resolveDamage(DamageRequest(
+                amount: 6, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false, isAttackHit: true),
+            ))
+            #expect(outcome.healthLost == 6 - min(hit, 4))
+            #expect(battle.roster.runtime(for: battle.companion)?.flatDamageReductionBonus == min(hit + 1, 4))
+        }
+    }
+
+    @Test(arguments: [DamageOptions.healthCost, .doTTick, .flatReaction])
+    func `soul sharing heals from enemy damage but not skeleton health costs`(options: DamageOptions) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                healing: HealingTriggers(companionDamageLeechesToHeroPercent: 0.5),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: 4, target: options.isHealthCost ? battle.companion : battle.enemy,
+            keyword: .bleed, sourceActorID: battle.companion.id, options: options,
+        ))
+        #expect(outcome.healthLost == 4)
+        #expect(battle.health(of: battle.hero) == (options.isHealthCost ? 5 : 7))
+    }
+
     @Test func `bloodrush draws only once per owner per turn including ticks`() {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(dot: DotTriggers(bloodrush: true)))
         var battle = BattleStateTestFactory.makeBattleWithAbilities(

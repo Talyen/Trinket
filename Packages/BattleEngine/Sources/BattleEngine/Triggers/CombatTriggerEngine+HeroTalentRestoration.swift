@@ -43,13 +43,24 @@ extension CombatTriggerEngine {
               target.role != .enemy else { return [] }
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
+        if overflow > 0, triggers.masterworkMixture {
+            let other = target.role == .hero ? context.roster.companion : context.roster.hero
+            let amount = min(overflow, max(0, other.maxHealth - other.currentHealth))
+            if other.isAlive, amount > 0 {
+                var transfer = HealRequest(
+                    amount: amount, target: other.combatant, sourceActorID: source.id,
+                    logAs: .instantHeal(actorName: source.name, abilityName: "Masterwork Mixture", keyword: .health),
+                )
+                transfer.usesResolvedHealing = true
+                events.append(contentsOf: HealingEngine.resolveHeal(transfer, in: &context).events)
+            }
+        }
         if overflow > 0, triggers.reclaimedReagents,
            context.claimHeroTalent("reclaimedReagents", actorID: source.id, battle: true) {
             events.append(contentsOf: heroTalentMana(to: target, source: source, name: "Reclaimed Reagents", in: &context))
         }
         guard restored > 0 else { return events }
         context.mutateHeroCard { $0.restoredHealth = true }
-        context.heroTalents.history[source.id, default: HeroTalentHistory()].restoredHealth = true
         if triggers.cleansingDew, context.claimHeroTalent("cleansingDew", actorID: source.id) {
             context.removeTalentPoint(.poison, from: target)
         }
@@ -92,6 +103,18 @@ extension CombatTriggerEngine {
         return 1
     }
 
+    static func heroCardGoldCritical(source: Combatant, in context: inout BattleState) -> Bool {
+        guard context.hasHeroCard(for: source.id), context.modifiers(for: source.id).triggers.sleightOfCoin else { return false }
+        if let critical = context.heroTalents.cards.last?.criticalGold {
+            return critical
+        }
+        let critical = CriticalChanceEngine.rollSucceeds(
+            keyword: .gold, actorID: source.id, defender: context.roster.enemy.combatant, in: &context,
+        )
+        context.mutateHeroCard { $0.criticalGold = critical }
+        return critical
+    }
+
     static func afterHeroCleanse(
         source: Combatant,
         target: Combatant,
@@ -120,12 +143,17 @@ extension CombatTriggerEngine {
         if removed.contains(.poison), triggers.antitoxinCoating, context.claimHeroTalent("antitoxinCoating", actorID: source.id) {
             events.append(contentsOf: heroTalentThorns(to: target, source: source, name: "Antitoxin Coating", in: &context))
         }
-        if !removed.isEmpty, !context.hasTalentDebuff(on: target), triggers.cleanBreak,
-           context.claimHeroTalent("cleanBreak", actorID: source.id) {
-            if context.hasHeroCard(for: source.id) {
-                context.mutateHeroCard { $0.preparedBlockIgnore.insert(target.id) }
-            } else {
-                context.heroTalents.history[target.id, default: HeroTalentHistory()].preparedBlockIgnore = true
+        if !removed.isEmpty {
+            if triggers.perfectPurity {
+                context.heroTalents.history[target.id, default: HeroTalentHistory()].preparations.insert(.poisonDamage)
+            }
+            if !context.hasTalentDebuff(on: target), triggers.cleanBreak,
+               let owner = context.roster.participant(for: source),
+               BattleCardCombatEngine.drawFirstCard(matching: .poison, for: owner, context: &context) != nil {
+                events.append(context.nextEvent(
+                    kind: .effect, effectKind: .cardsDrawn, actorName: source.name,
+                    abilityName: "Clean Break", target: source, amount: 1, keyword: .poison,
+                ))
             }
         }
         return events

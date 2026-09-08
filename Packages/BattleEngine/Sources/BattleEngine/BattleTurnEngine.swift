@@ -64,10 +64,17 @@ public enum BattleTurnEngine {
         context.uniques.ordinaryActionActorID = context.uniques.pendingOrdinaryActorID == actor.id ? actor.id : nil
         context.uniques.pendingOrdinaryActorID = nil
         defer { context.uniques.ordinaryActionActorID = previousOrdinaryActor }
-        guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else { return [] }
+        guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else {
+            if actor.role == .enemy {
+                recordAction(for: actor, context: &context)
+            }
+            return []
+        }
         var resolvedAbility = BattleAbilityRules.resolveOutcome(ability, actor: actor, in: &context)
         UniqueCombatEngine.prepareResolvedAttack(resolvedAbility, actor: actor, in: &context)
         CombatTriggerEngine.captureHeroOutcome(original: ability, resolved: resolvedAbility, actor: actor, in: &context)
+        resolvedAbility = prepareTalentAction(ability: resolvedAbility, actor: actor, in: &context)
+        defer { context.heroTalents.actions.removeLast() }
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &resolvedAbility,
             actor: actor,
@@ -459,7 +466,8 @@ extension BattleTurnEngine {
                 in: context,
             )
 
-            if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context) {
+            if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context)
+                || CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context) {
                 continue
             }
 

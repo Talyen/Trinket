@@ -139,6 +139,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
             amount: 0,
             keyword: targetKeyword ?? .purge,
         )
+        CombatTriggerEngine.protectPurgedEffects(removed, source: source, target: target, in: &context)
         var events = [event]
         events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
             removedCount: removed.count,
@@ -157,7 +158,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         let preservingBlock = context.modifiers(for: target.id).triggers.sealedSarcophagus
-        guard let keyword = EffectRemoval.removeRandomBuff(
+        guard let removed = EffectRemoval.removeRandomBuff(
             from: &currentEffects, preservingBlock: preservingBlock, using: &context.rng,
         ) else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -170,8 +171,9 @@ struct CleansePurgeHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: keyword,
+            keyword: removed.keyword,
         )
+        CombatTriggerEngine.protectPurgedEffects([removed], source: source, target: target, in: &context)
         var events = [event]
         events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
             removedCount: 1,

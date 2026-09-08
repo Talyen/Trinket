@@ -8,7 +8,6 @@ public struct TalentActionGuardKey: Hashable, Sendable {
         case spendOvercharge
         case spendCleanse
         case spendChaosRift
-        case spendFreeze
         case darkRecovery
         case arcaneBurst
         case surpriseStrike

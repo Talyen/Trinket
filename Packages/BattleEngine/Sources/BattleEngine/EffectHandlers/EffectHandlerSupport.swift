@@ -12,7 +12,7 @@ enum EffectRemoval {
         from effects: inout [ActiveEffect],
         using rng: inout SeededRandomNumberGenerator,
     ) -> Keyword? {
-        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableDebuff }
+        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableDebuff }?.keyword
     }
 
     @discardableResult
@@ -28,7 +28,7 @@ enum EffectRemoval {
         from effects: inout [ActiveEffect],
         preservingBlock: Bool = false,
         using rng: inout SeededRandomNumberGenerator,
-    ) -> Keyword? {
+    ) -> ActiveEffect? {
         removeRandom(from: &effects, using: &rng) {
             $0.effect.isRemovableBuff && !(preservingBlock && $0.effect.kind == .shield)
         }
@@ -40,12 +40,12 @@ enum EffectRemoval {
         removeAll: Bool,
         preservingBlock: Bool = false,
         using rng: inout SeededRandomNumberGenerator,
-    ) -> [Keyword] {
+    ) -> [ActiveEffect] {
         if removeAll {
-            return removeBuffs(from: &effects, keyword: nil, preservingBlock: preservingBlock).map(\.keyword)
+            return removeBuffs(from: &effects, keyword: nil, preservingBlock: preservingBlock)
         }
 
-        var removed: [Keyword] = []
+        var removed: [ActiveEffect] = []
         for _ in 0 ..< count {
             guard let keyword = removeRandomBuff(from: &effects, preservingBlock: preservingBlock, using: &rng) else { break }
             removed.append(keyword)
@@ -77,11 +77,11 @@ enum EffectRemoval {
         from effects: inout [ActiveEffect],
         using rng: inout SeededRandomNumberGenerator,
         where matches: (ActiveEffect) -> Bool,
-    ) -> Keyword? {
+    ) -> ActiveEffect? {
         let candidates = effects.filter(matches)
         guard let removed = candidates.randomElement(using: &rng) else { return nil }
         effects.removeAll { $0.id == removed.id }
-        return removed.keyword
+        return removed
     }
 }
 

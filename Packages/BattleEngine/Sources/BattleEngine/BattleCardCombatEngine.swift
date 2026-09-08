@@ -173,7 +173,11 @@ public enum BattleCardCombatEngine {
         }
 
         UniqueCombatEngine.recoverStunBeforeClearing(on: enemy, in: &context)
+        let wasFrozen = context.roster.hasControlStatus(for: enemy, keyword: .freeze)
         context.roster.clearControlStatusLinger(for: enemy)
+        if wasFrozen {
+            CombatTriggerEngine.afterEnemyFreezeRecover(in: &context)
+        }
 
         let avoidance = CombatTriggerEngine.enemyActAvoidance(in: &context)
         leadingEvents.append(contentsOf: avoidance.events)

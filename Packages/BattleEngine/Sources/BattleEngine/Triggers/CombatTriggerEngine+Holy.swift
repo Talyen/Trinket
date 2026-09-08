@@ -2,11 +2,10 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    // swiftlint:disable:next function_body_length cyclomatic_complexity - holy triggers share one ordered cadence
+    // swiftlint:disable:next function_body_length - holy triggers share one ordered cadence
     static func afterHolyDamageDealt(
         to enemy: Combatant,
         source: Combatant,
-        isAttackHit: Bool = true,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: source.id)
@@ -80,11 +79,6 @@ package extension CombatTriggerEngine {
             context.roster.mutateRuntime(for: source) {
                 $0.pendingNextAttackHolyBonus += profile.triggers.holyDamageNextAttackHolyBonus
             }
-        }
-        if profile.triggers.holyDamageTargetMissNextAttack,
-           isAttackHit,
-           context.roster.health(for: enemy) > 0 {
-            context.prependEffect(.evadeNextHit, to: enemy, remainingTurns: 0)
         }
         if profile.triggers.holyDamageReduceTargetDamage > 0, context.roster.health(for: enemy) > 0 {
             context.appendEffect(

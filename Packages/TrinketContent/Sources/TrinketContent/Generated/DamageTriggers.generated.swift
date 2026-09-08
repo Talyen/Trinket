@@ -37,7 +37,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var burnDamageVsNoBlockMultiplier: Double = 1
     public var physicalDamageVsBleedingMultiplier: Double = 1
     public var damagePerMissingHealthEvery: Int = 0
-    public var damagePerCarriedGoldEvery: Int = 0
+    public var gildedClaws: Bool = false
     public var goldReservesDamageEvery: Int = 0
     public var goldReservesDamageCap: Int = 0
     public var damageVsLowerHealthEnemyBonus: Int = 0
@@ -102,7 +102,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         burnDamageVsNoBlockMultiplier: Double = 1,
         physicalDamageVsBleedingMultiplier: Double = 1,
         damagePerMissingHealthEvery: Int = 0,
-        damagePerCarriedGoldEvery: Int = 0,
+        gildedClaws: Bool = false,
         goldReservesDamageEvery: Int = 0,
         goldReservesDamageCap: Int = 0,
         damageVsLowerHealthEnemyBonus: Int = 0,
@@ -166,7 +166,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         self.burnDamageVsNoBlockMultiplier = burnDamageVsNoBlockMultiplier
         self.physicalDamageVsBleedingMultiplier = physicalDamageVsBleedingMultiplier
         self.damagePerMissingHealthEvery = damagePerMissingHealthEvery
-        self.damagePerCarriedGoldEvery = damagePerCarriedGoldEvery
+        self.gildedClaws = gildedClaws
         self.goldReservesDamageEvery = goldReservesDamageEvery
         self.goldReservesDamageCap = goldReservesDamageCap
         self.damageVsLowerHealthEnemyBonus = damageVsLowerHealthEnemyBonus
@@ -199,7 +199,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "damagePerCarriedGoldEvery", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox"]
+    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "gildedClaws", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -237,7 +237,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         if self.burnDamageVsNoBlockMultiplier != other.burnDamageVsNoBlockMultiplier { names.append("burnDamageVsNoBlockMultiplier") }
         if self.physicalDamageVsBleedingMultiplier != other.physicalDamageVsBleedingMultiplier { names.append("physicalDamageVsBleedingMultiplier") }
         if self.damagePerMissingHealthEvery != other.damagePerMissingHealthEvery { names.append("damagePerMissingHealthEvery") }
-        if self.damagePerCarriedGoldEvery != other.damagePerCarriedGoldEvery { names.append("damagePerCarriedGoldEvery") }
+        if self.gildedClaws != other.gildedClaws { names.append("gildedClaws") }
         if self.goldReservesDamageEvery != other.goldReservesDamageEvery { names.append("goldReservesDamageEvery") }
         if self.goldReservesDamageCap != other.goldReservesDamageCap { names.append("goldReservesDamageCap") }
         if self.damageVsLowerHealthEnemyBonus != other.damageVsLowerHealthEnemyBonus { names.append("damageVsLowerHealthEnemyBonus") }
@@ -306,7 +306,7 @@ extension DamageTriggers {
         burnDamageVsNoBlockMultiplier *= other.burnDamageVsNoBlockMultiplier
         physicalDamageVsBleedingMultiplier *= other.physicalDamageVsBleedingMultiplier
         damagePerMissingHealthEvery = max(damagePerMissingHealthEvery, other.damagePerMissingHealthEvery)
-        damagePerCarriedGoldEvery = max(damagePerCarriedGoldEvery, other.damagePerCarriedGoldEvery)
+        gildedClaws = gildedClaws || other.gildedClaws
         goldReservesDamageEvery = max(goldReservesDamageEvery, other.goldReservesDamageEvery)
         goldReservesDamageCap = max(goldReservesDamageCap, other.goldReservesDamageCap)
         damageVsLowerHealthEnemyBonus += other.damageVsLowerHealthEnemyBonus
@@ -376,7 +376,7 @@ extension DamageTriggers {
             burnDamageVsNoBlockMultiplier: values.decode(Double.self, "burnDamageVsNoBlockMultiplier", default: 1),
             physicalDamageVsBleedingMultiplier: values.decode(Double.self, "physicalDamageVsBleedingMultiplier", default: 1),
             damagePerMissingHealthEvery: values.decode(Int.self, "damagePerMissingHealthEvery", default: 0),
-            damagePerCarriedGoldEvery: values.decode(Int.self, "damagePerCarriedGoldEvery", default: 0),
+            gildedClaws: values.decode(Bool.self, "gildedClaws", default: false),
             goldReservesDamageEvery: values.decode(Int.self, "goldReservesDamageEvery", default: 0),
             goldReservesDamageCap: values.decode(Int.self, "goldReservesDamageCap", default: 0),
             damageVsLowerHealthEnemyBonus: values.decode(Int.self, "damageVsLowerHealthEnemyBonus", default: 0),
@@ -443,7 +443,7 @@ extension DamageTriggers {
         try container.encodeNonDefault(burnDamageVsNoBlockMultiplier, "burnDamageVsNoBlockMultiplier", default: 1)
         try container.encodeNonDefault(physicalDamageVsBleedingMultiplier, "physicalDamageVsBleedingMultiplier", default: 1)
         try container.encodeNonDefault(damagePerMissingHealthEvery, "damagePerMissingHealthEvery", default: 0)
-        try container.encodeNonDefault(damagePerCarriedGoldEvery, "damagePerCarriedGoldEvery", default: 0)
+        try container.encodeNonDefault(gildedClaws, "gildedClaws", default: false)
         try container.encodeNonDefault(goldReservesDamageEvery, "goldReservesDamageEvery", default: 0)
         try container.encodeNonDefault(goldReservesDamageCap, "goldReservesDamageCap", default: 0)
         try container.encodeNonDefault(damageVsLowerHealthEnemyBonus, "damageVsLowerHealthEnemyBonus", default: 0)

@@ -237,7 +237,7 @@ struct CombatTriggerTalentDamageTests {
             companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(holyDamageTargetMissNextAttack: true),
+                mitigation: MitigationTriggers(blindingLight: true),
                 dot: DotTriggers(onBurnTickHolyDamage: 1),
             )),
             dealOpeningHand: false,
@@ -255,13 +255,7 @@ struct CombatTriggerTalentDamageTests {
                 isAttackHit: false,
             ),
         ))
-        let hasEvade = battle.roster.activeEffects(for: battle.roster.enemy.combatant).contains {
-            if case .evadeNextHit = $0.effect {
-                return true
-            }
-            return false
-        }
-        #expect(!hasEvade)
+        #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction ?? 0 == 0)
     }
 
     @Test func `afflicted damage auras stack additively`() {

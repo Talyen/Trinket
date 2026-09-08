@@ -7,7 +7,7 @@ enum BalanceTalentContrastRunner {
     struct SiblingFocus {
         var owner: Combatant
         var focusID: String
-        var siblingID: String
+        var siblingID: String?
         var prefix: Set<String>
         var treeKeyword: Keyword
     }
@@ -21,19 +21,13 @@ enum BalanceTalentContrastRunner {
         let wanted = Set(focusIDs)
         return (heroes + companions).flatMap { owner -> [SiblingFocus] in
             CombatantTalentCatalog.config(for: owner.id).trees.flatMap { tree -> [SiblingFocus] in
-                (1 ... 3).compactMap { row -> SiblingFocus? in
+                tree.rows.compactMap { row -> SiblingFocus? in
                     let nodes = tree.nodes(forRow: row).sorted { $0.id < $1.id }
-                    guard nodes.count >= 2 else { return nil }
-                    guard wanted.isEmpty
-                        || wanted.contains(nodes[0].id)
-                        || wanted.contains(nodes[1].id)
-                    else {
-                        return nil
-                    }
+                    guard let focus = nodes.first(where: { wanted.isEmpty || wanted.contains($0.id) }) else { return nil }
                     return SiblingFocus(
                         owner: owner,
-                        focusID: nodes[0].id,
-                        siblingID: nodes[1].id,
+                        focusID: focus.id,
+                        siblingID: nodes.first(where: { $0.id != focus.id })?.id,
                         prefix: SimulationMatchupBuilder.minimalPrefix(for: tree, throughRow: row),
                         treeKeyword: tree.keyword,
                     )
@@ -136,9 +130,9 @@ enum BalanceTalentContrastRunner {
             summarize: {
                 (
                     entityID: $0.focusID,
-                    baselineID: $0.siblingID,
+                    baselineID: $0.siblingID ?? "none",
                     ownerID: $0.owner.id,
-                    baselineKind: .sibling,
+                    baselineKind: $0.siblingID == nil ? .none : .sibling,
                     nonCombat: $0.treeKeyword == .gold,
                 )
             },
@@ -148,7 +142,7 @@ enum BalanceTalentContrastRunner {
                 return makeTalentPair(
                     owner: focus.owner,
                     entityTalents: focus.prefix.union([focus.focusID]),
-                    baselineTalents: focus.prefix.union([focus.siblingID]),
+                    baselineTalents: focus.prefix.union([focus.siblingID].compactMap(\.self)),
                     tier: tier,
                     pairIndex: pairIndex,
                     context: context,

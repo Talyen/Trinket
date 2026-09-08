@@ -42,6 +42,11 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         self.card = card
     }
 
+    private struct PrewarmKey: Equatable {
+        let visibleIDs: Set<Item.ID>
+        let orderedIDs: [Item.ID]
+    }
+
     public var body: some View {
         ScrollView {
             LazyVGrid(
@@ -67,6 +72,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                     .trinketSelectionCardButtonStyle()
                     .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
                     .accessibilityIdentifier(accessibilityIdentifier(item))
+                    .id(item.id)
                     .onAppear {
                         guard artworkNameProvider != nil else { return }
                         visibleIDs.insert(item.id)
@@ -84,7 +90,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
             guard artworkNameProvider != nil else { return }
             visibleIDs.formIntersection(items.lazy.map(\.id))
         }
-        .task(id: visibleIDs) {
+        .task(id: PrewarmKey(visibleIDs: visibleIDs, orderedIDs: items.map(\.id))) {
             guard let provider = artworkNameProvider else { return }
             await ArtworkViewportPrewarm.prewarm(
                 orderedItems: items,

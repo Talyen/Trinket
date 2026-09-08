@@ -85,7 +85,7 @@ private struct KeywordShineBorderStroke: View {
                     lineWidth: lineWidth,
                 )
         }
-        .compositingGroup()
+        .drawingGroup()
     }
 
     private func gradientStops(for colors: [Color]) -> [Gradient.Stop] {

@@ -20,10 +20,6 @@ extension CombatTriggerEngine {
             }
         }
         if keyword == .physical {
-            if triggers.paidInFull, context.heroTalents.cards.last?.previousGrantedGold == true,
-               context.claimHeroTalent("paidInFull", actorID: sourceID) {
-                bonus += 1
-            }
             if history.preparedPhysical, context.claimHeroCardBonus("improvisedAssault", actorID: sourceID) {
                 context.heroTalents.history[sourceID, default: HeroTalentHistory()].preparedPhysical = false
                 bonus += 1
@@ -36,11 +32,6 @@ extension CombatTriggerEngine {
         guard let sourceID, context.hasHeroCard(for: sourceID),
               context.roster.combatant(for: sourceID)?.isAlive == true else { return 0 }
         var ignored = 0
-        if context.heroTalents.history[sourceID]?.preparedBlockIgnore == true,
-           context.claimHeroCardBonus("cleanBreak", actorID: sourceID) {
-            context.heroTalents.history[sourceID, default: HeroTalentHistory()].preparedBlockIgnore = false
-            ignored += 1
-        }
         if keyword == .poison, context.modifiers(for: sourceID).triggers.rootPassage,
            context.roster.companion.isAlive,
            context.hasTalentStatus(.thorns, on: context.roster.companion.combatant),
@@ -103,17 +94,6 @@ extension CombatTriggerEngine {
         }
         guard context.allowsHeroTalentReaction else { return [] }
         var events: [ActionEvent] = []
-        if target.role != .enemy, context.roster.health(for: target) > 0,
-           context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
-           context.modifiers(for: target.id).triggers.shelterSeed,
-           context.claimHeroTalent("shelterSeed", actorID: target.id, battle: true) {
-            events.append(contentsOf: heroTalentThorns(
-                to: context.roster.companion.combatant,
-                source: target,
-                name: "Shelter Seed",
-                in: &context,
-            ))
-        }
         if keyword == .poison, target.role == .enemy, let sourceID,
            let source = context.roster.combatant(for: sourceID), source.isAlive,
            context.modifiers(for: sourceID).triggers.barbedSpores,
@@ -130,15 +110,8 @@ extension CombatTriggerEngine {
 
     static func afterHeroTalentDodge(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard context.allowsHeroTalentReaction, context.roster.health(for: actor) > 0 else { return [] }
-        context.heroTalents.history[actor.id, default: HeroTalentHistory()].dodged = true
+        context.heroTalents.history[actor.id, default: HeroTalentHistory()].dodgeGrowth = 0
         let triggers = context.modifiers(for: actor.id).triggers
-        if triggers.sleightOfCoin {
-            if context.heroTalents.cards.isEmpty {
-                context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparedCoin = true
-            } else {
-                context.mutateHeroCard { $0.preparedCoin.insert(actor.id) }
-            }
-        }
         var events: [ActionEvent] = []
         if triggers.passingLuck, context.claimHeroTalent("passingLuck", actorID: actor.id) {
             events.append(contentsOf: heroTalentHeal(
@@ -148,8 +121,8 @@ extension CombatTriggerEngine {
                 in: &context,
             ))
         }
-        if triggers.blindSpot, context.claimHeroTalent("blindSpot", actorID: actor.id) {
-            context.removeTalentPoint(.shield, from: context.roster.enemy.combatant)
+        if triggers.blindSpot {
+            context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparations.insert(.ignorePhysicalBlock)
         }
         if actor.role == .companion, context.roster.hero.isAlive, context.heroModifiers.triggers.scatteredCaltrops,
            context.claimHeroTalent("scatteredCaltrops", actorID: context.roster.hero.id) {

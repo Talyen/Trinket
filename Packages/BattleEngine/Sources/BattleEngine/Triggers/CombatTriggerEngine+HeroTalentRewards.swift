@@ -2,11 +2,13 @@ import TrinketContent
 import TrinketCore
 
 extension CombatTriggerEngine {
-    static func heroTalentThorns(to target: Combatant, source: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {
-        guard context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return [] }
+    static func heroTalentThorns(
+        to target: Combatant, source: Combatant, amount: Int = 1, name: String, in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard amount > 0, context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return [] }
         context.heroTalents.reactionDepth += 1
         defer { context.heroTalents.reactionDepth -= 1 }
-        let total = context.roster.activeEffects(for: target).reduce(1) { sum, active in
+        let total = context.roster.activeEffects(for: target).reduce(amount) { sum, active in
             if case let .thorns(amount) = active.effect {
                 return sum + amount
             }
@@ -20,7 +22,7 @@ extension CombatTriggerEngine {
             actorName: source.name,
             abilityName: name,
             target: target,
-            amount: 1,
+            amount: amount,
             keyword: .physical,
         )]
     }
@@ -46,11 +48,11 @@ extension CombatTriggerEngine {
         return context.restoreManaEmitting(1, to: target, abilityName: name)
     }
 
-    static func heroTalentGold(to source: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {
+    static func heroTalentGold(to source: Combatant, amount: Int = 1, name: String, in context: inout BattleState) -> [ActionEvent] {
         guard context.roster.health(for: source) > 0 else { return [] }
         context.heroTalents.reactionDepth += 1
         defer { context.heroTalents.reactionDepth -= 1 }
-        return context.grantGoldEvent(1, to: source, abilityName: name)
+        return context.grantGoldEvent(amount, to: source, abilityName: name)
     }
 
     static func heroTalentBlock(to target: Combatant, source: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {

@@ -15,8 +15,8 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     public var enemyBleedStacksDamageReductionPercent: Double = 0
     public var poisonedEnemyAccuracyPenaltyPercent: Double = 0
     public var poisonedEnemyMissChancePercent: Double = 0
-    public var frozenEnemyMissChanceVsCompanionPercent: Double = 0
-    public var holyDamageTargetMissNextAttack: Bool = false
+    public var subzeroMist: Bool = false
+    public var blindingLight: Bool = false
     public var holyDamageReduceTargetDamage: Int = 0
     public var bleedingEnemyAttackDealDamage: Int = 0
     public var onAllyDamageHeal: Int = 0
@@ -38,8 +38,8 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         enemyBleedStacksDamageReductionPercent: Double = 0,
         poisonedEnemyAccuracyPenaltyPercent: Double = 0,
         poisonedEnemyMissChancePercent: Double = 0,
-        frozenEnemyMissChanceVsCompanionPercent: Double = 0,
-        holyDamageTargetMissNextAttack: Bool = false,
+        subzeroMist: Bool = false,
+        blindingLight: Bool = false,
         holyDamageReduceTargetDamage: Int = 0,
         bleedingEnemyAttackDealDamage: Int = 0,
         onAllyDamageHeal: Int = 0,
@@ -60,8 +60,8 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.enemyBleedStacksDamageReductionPercent = enemyBleedStacksDamageReductionPercent
         self.poisonedEnemyAccuracyPenaltyPercent = poisonedEnemyAccuracyPenaltyPercent
         self.poisonedEnemyMissChancePercent = poisonedEnemyMissChancePercent
-        self.frozenEnemyMissChanceVsCompanionPercent = frozenEnemyMissChanceVsCompanionPercent
-        self.holyDamageTargetMissNextAttack = holyDamageTargetMissNextAttack
+        self.subzeroMist = subzeroMist
+        self.blindingLight = blindingLight
         self.holyDamageReduceTargetDamage = holyDamageReduceTargetDamage
         self.bleedingEnemyAttackDealDamage = bleedingEnemyAttackDealDamage
         self.onAllyDamageHeal = onAllyDamageHeal
@@ -73,7 +73,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["passiveMitigationFlat", "thornsPercent", "bleedResistance", "absorbHeroDamageFlat", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "frozenEnemyMissChanceVsCompanionPercent", "holyDamageTargetMissNextAttack", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance"]
+    public static let fieldNames: [String] = ["passiveMitigationFlat", "thornsPercent", "bleedResistance", "absorbHeroDamageFlat", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -89,8 +89,8 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         if self.enemyBleedStacksDamageReductionPercent != other.enemyBleedStacksDamageReductionPercent { names.append("enemyBleedStacksDamageReductionPercent") }
         if self.poisonedEnemyAccuracyPenaltyPercent != other.poisonedEnemyAccuracyPenaltyPercent { names.append("poisonedEnemyAccuracyPenaltyPercent") }
         if self.poisonedEnemyMissChancePercent != other.poisonedEnemyMissChancePercent { names.append("poisonedEnemyMissChancePercent") }
-        if self.frozenEnemyMissChanceVsCompanionPercent != other.frozenEnemyMissChanceVsCompanionPercent { names.append("frozenEnemyMissChanceVsCompanionPercent") }
-        if self.holyDamageTargetMissNextAttack != other.holyDamageTargetMissNextAttack { names.append("holyDamageTargetMissNextAttack") }
+        if self.subzeroMist != other.subzeroMist { names.append("subzeroMist") }
+        if self.blindingLight != other.blindingLight { names.append("blindingLight") }
         if self.holyDamageReduceTargetDamage != other.holyDamageReduceTargetDamage { names.append("holyDamageReduceTargetDamage") }
         if self.bleedingEnemyAttackDealDamage != other.bleedingEnemyAttackDealDamage { names.append("bleedingEnemyAttackDealDamage") }
         if self.onAllyDamageHeal != other.onAllyDamageHeal { names.append("onAllyDamageHeal") }
@@ -116,8 +116,8 @@ extension MitigationTriggers {
         enemyBleedStacksDamageReductionPercent += other.enemyBleedStacksDamageReductionPercent
         poisonedEnemyAccuracyPenaltyPercent += other.poisonedEnemyAccuracyPenaltyPercent
         poisonedEnemyMissChancePercent += other.poisonedEnemyMissChancePercent
-        frozenEnemyMissChanceVsCompanionPercent += other.frozenEnemyMissChanceVsCompanionPercent
-        holyDamageTargetMissNextAttack = holyDamageTargetMissNextAttack || other.holyDamageTargetMissNextAttack
+        subzeroMist = subzeroMist || other.subzeroMist
+        blindingLight = blindingLight || other.blindingLight
         holyDamageReduceTargetDamage += other.holyDamageReduceTargetDamage
         bleedingEnemyAttackDealDamage += other.bleedingEnemyAttackDealDamage
         onAllyDamageHeal += other.onAllyDamageHeal
@@ -144,8 +144,8 @@ extension MitigationTriggers {
             enemyBleedStacksDamageReductionPercent: values.decode(Double.self, "enemyBleedStacksDamageReductionPercent", default: 0),
             poisonedEnemyAccuracyPenaltyPercent: values.decode(Double.self, "poisonedEnemyAccuracyPenaltyPercent", default: 0),
             poisonedEnemyMissChancePercent: values.decode(Double.self, "poisonedEnemyMissChancePercent", default: 0),
-            frozenEnemyMissChanceVsCompanionPercent: values.decode(Double.self, "frozenEnemyMissChanceVsCompanionPercent", default: 0),
-            holyDamageTargetMissNextAttack: values.decode(Bool.self, "holyDamageTargetMissNextAttack", default: false),
+            subzeroMist: values.decode(Bool.self, "subzeroMist", default: false),
+            blindingLight: values.decode(Bool.self, "blindingLight", default: false),
             holyDamageReduceTargetDamage: values.decode(Int.self, "holyDamageReduceTargetDamage", default: 0),
             bleedingEnemyAttackDealDamage: values.decode(Int.self, "bleedingEnemyAttackDealDamage", default: 0),
             onAllyDamageHeal: values.decode(Int.self, "onAllyDamageHeal", default: 0),
@@ -169,8 +169,8 @@ extension MitigationTriggers {
         try container.encodeNonDefault(enemyBleedStacksDamageReductionPercent, "enemyBleedStacksDamageReductionPercent", default: 0)
         try container.encodeNonDefault(poisonedEnemyAccuracyPenaltyPercent, "poisonedEnemyAccuracyPenaltyPercent", default: 0)
         try container.encodeNonDefault(poisonedEnemyMissChancePercent, "poisonedEnemyMissChancePercent", default: 0)
-        try container.encodeNonDefault(frozenEnemyMissChanceVsCompanionPercent, "frozenEnemyMissChanceVsCompanionPercent", default: 0)
-        try container.encodeNonDefault(holyDamageTargetMissNextAttack, "holyDamageTargetMissNextAttack", default: false)
+        try container.encodeNonDefault(subzeroMist, "subzeroMist", default: false)
+        try container.encodeNonDefault(blindingLight, "blindingLight", default: false)
         try container.encodeNonDefault(holyDamageReduceTargetDamage, "holyDamageReduceTargetDamage", default: 0)
         try container.encodeNonDefault(bleedingEnemyAttackDealDamage, "bleedingEnemyAttackDealDamage", default: 0)
         try container.encodeNonDefault(onAllyDamageHeal, "onAllyDamageHeal", default: 0)

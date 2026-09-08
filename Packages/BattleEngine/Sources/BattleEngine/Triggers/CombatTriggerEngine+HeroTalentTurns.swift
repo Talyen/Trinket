@@ -3,31 +3,15 @@ import TrinketCore
 
 extension CombatTriggerEngine {
     static func startHeroTalentTurn(in context: inout BattleState) -> [ActionEvent] {
-        var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
             let actor = context.roster[owner].combatant
             var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
-            let pendingBlock = history.pendingCompanionBlock
-            history.tiers = []
-            history.playedPoison = false
-            history.restoredHealth = false
             history.playedStun = false
             history.spentMana = false
-            history.dodged = false
             history.falseOpening = false
-            history.startingMana = context.roster[owner].currentMana
-            history.pendingCompanionBlock = false
             context.heroTalents.history[actor.id] = history
-            if pendingBlock {
-                events.append(contentsOf: heroTalentBlock(
-                    to: context.roster.companion.combatant,
-                    source: actor,
-                    name: "Grove Reserve",
-                    in: &context,
-                ))
-            }
         }
-        return events
+        return []
     }
 
     static func endHeroTalentTurn(in context: inout BattleState) -> [ActionEvent] {
@@ -38,23 +22,14 @@ extension CombatTriggerEngine {
             let actor = runtime.combatant
             let triggers = context.modifiers(for: actor.id).triggers
             let history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
-            if triggers.sealedVial, context.hasTalentStatus(.poison, on: context.roster.enemy.combatant) {
-                context.removeTalentPoint(.poison, from: actor)
-            }
-            if triggers.masterworkMixture, history.playedPoison, history.restoredHealth,
-               context.roster.hero.isAlive, context.roster.companion.isAlive {
-                for target in [context.roster.hero.combatant, context.roster.companion.combatant] {
-                    events.append(contentsOf: heroTalentHeal(to: target, source: actor, name: "Masterwork Mixture", in: &context))
-                }
-            }
             if triggers.lastWager, history.lastGrantedGold, context.turnCadence.cardsPlayed[owner, default: 0] > 0 {
                 events.append(contentsOf: heroTalentThorns(to: actor, source: actor, name: "Last Wager", in: &context))
             }
-            if triggers.improvingOdds, !history.dodged {
-                context.heroTalents.history[actor.id, default: HeroTalentHistory()].dodgeGrowth = min(5, history.dodgeGrowth + 1)
-            }
-            if triggers.groveReserve, runtime.currentMana < history.startingMana, context.roster.companion.isAlive {
-                context.heroTalents.history[actor.id, default: HeroTalentHistory()].pendingCompanionBlock = true
+            if triggers.groveReserve, runtime.currentMana >= 2, context.roster.companion.isAlive {
+                events.append(contentsOf: context.applyBlock(
+                    runtime.currentMana / 2, to: context.roster.companion.combatant,
+                    source: actor, abilityName: "Grove Reserve",
+                ))
             }
         }
         return events
@@ -68,10 +43,13 @@ extension CombatTriggerEngine {
         return heroTalentHeal(to: context.roster.companion.combatant, source: actor, name: "Quiet Grove", in: &context)
     }
 
-    static func afterHeroTalentPoisonExpiry(sourceID: String?, in context: inout BattleState) -> [ActionEvent] {
+    static func afterHeroTalentPoisonExpiry(sourceID: String?, target: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard context.allowsHeroTalentReaction, let sourceID,
               let source = context.roster.combatant(for: sourceID), source.isAlive else { return [] }
         let triggers = context.modifiers(for: sourceID).triggers
+        if triggers.unstableCulture, target.role == .enemy {
+            context.heroTalents.history[sourceID, default: HeroTalentHistory()].preparations.insert(.doublePoison)
+        }
         var events: [ActionEvent] = []
         if triggers.spentReagents, context.claimHeroTalent("spentReagents", actorID: sourceID) {
             events.append(contentsOf: heroTalentMana(
@@ -107,9 +85,10 @@ extension CombatTriggerEngine {
         guard amount > 0 else { return events }
         context.heroTalents.history[actor.id, default: HeroTalentHistory()].spentMana = true
         let hero = context.roster.hero.combatant
-        if actor.role == .companion, context.roster.hero.isAlive, context.heroModifiers.triggers.sharedCurrent,
-           context.claimHeroTalent("sharedCurrent", actorID: hero.id) {
-            context.removeTalentPoint(.poison, from: hero)
+        if actor.role == .companion, context.roster.hero.isAlive, context.heroModifiers.triggers.sharedCurrent {
+            events.append(contentsOf: heroTalentThorns(
+                to: hero, source: hero, amount: amount, name: "Shared Current", in: &context,
+            ))
         }
         if context.roster.hero.isAlive, context.roster.companion.isAlive,
            context.heroTalents.history[hero.id]?.spentMana == true,
@@ -120,15 +99,5 @@ extension CombatTriggerEngine {
             }
         }
         return events
-    }
-
-    static func heroTalentBlockGainReduction(target: Combatant, amount: Int, in context: inout BattleState) -> Int {
-        guard amount > 0, target.role == .enemy, context.allowsHeroTalentReaction,
-              context.roster.hero.isAlive, context.roster.companion.isAlive,
-              context.heroModifiers.triggers.perfectPurity,
-              !context.hasTalentDebuff(on: context.roster.hero.combatant),
-              !context.hasTalentDebuff(on: context.roster.companion.combatant),
-              context.claimHeroTalent("perfectPurity", actorID: context.roster.hero.id) else { return 0 }
-        return 1
     }
 }

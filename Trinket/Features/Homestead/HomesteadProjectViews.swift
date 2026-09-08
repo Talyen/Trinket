@@ -19,10 +19,11 @@ struct HomesteadProjectTile: View {
                     .overlay {
                         RoundedRectangle(cornerRadius: TrinketDesign.Corners.card)
                             .strokeBorder(
-                                status.canBuildOrUpgrade ? TrinketDesign.Colors.accent : TrinketDesign.Colors.subtleStroke,
-                                lineWidth: status.canBuildOrUpgrade ? 2 : 1,
+                                TrinketDesign.Colors.subtleStroke,
+                                lineWidth: 1,
                             )
                     }
+                    .shadow(color: TrinketDesign.Colors.accent.opacity(status.canBuildOrUpgrade ? 0.4 : 0), radius: 8)
                     .overlay(alignment: .bottomTrailing) {
                         if !status.isUnlocked {
                             Image(systemName: "lock.fill")

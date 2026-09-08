@@ -18,6 +18,7 @@ enum AbilityCatalogBasic {
         targetedEffects: [
             TargetedEffect(.resourceGain(.gold, 2), condition: .enemyStunned),
         ],
+        stealsGold: true,
     )
 
     static let block = AbilityBuilder.buffOnly(

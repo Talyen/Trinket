@@ -38,6 +38,7 @@ package enum DamagePipeline {
         }
         state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
         applyOutgoingDamage(to: &state, in: &context)
+        applyPreparedAttackReduction(to: &state, in: &context)
         applyMitigation(to: &state, in: &context)
         applyShieldAbsorption(to: &state, in: &context)
         applyTakeDamage(to: &state, in: &context)
@@ -52,6 +53,12 @@ package enum DamagePipeline {
             ))
         }
 
+        if state.damageKeyword == .bleed {
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBleedDamage(
+                healthLost: state.healthLost, target: state.combatant,
+                sourceActorID: state.sourceActorID, in: &context,
+            ))
+        }
         applyLeech(to: &state, in: &context)
         applyTalentDamageApplications(to: &state, in: &context)
         applyTalentMirroredReactions(to: &state, in: &context)

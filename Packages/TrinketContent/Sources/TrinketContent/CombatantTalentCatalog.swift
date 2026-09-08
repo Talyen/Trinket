@@ -24,6 +24,15 @@ public struct CombatantTalentEffect: Sendable {
 }
 
 public enum CombatantTalentCatalog {
+    private static let positions: [String: (row: Int, slot: Int)] = [
+        "wildcard_dodge_t3_2": (1, 1),
+        "wildcard_dodge_t1_1": (3, 2),
+        "druid_health_t2_2": (1, 1),
+        "druid_health_t1_1": (2, 2),
+        "druid_mana_t2_2": (1, 1),
+        "druid_mana_t1_1": (2, 2),
+    ]
+
     public struct TreeAffinity: Sendable, Hashable {
         public let name: String
         public let keyword: Keyword
@@ -195,13 +204,13 @@ public enum CombatantTalentCatalog {
     }
 
     private static func makeTree(combatantID: String, name: String, keyword: Keyword) -> TalentTree {
-        var nodes = [TalentNode]()
+        var nodes: [(node: TalentNode, slot: Int)] = []
         nodes.reserveCapacity(10)
 
         let kwSlug = keyword.rawValue.lowercased().filter { $0.isLetter || $0.isNumber }
         var row = 1
         while row <= 20 {
-            var rowNodes: [TalentNode] = []
+            var rowNodes: [(node: TalentNode, slot: Int)] = []
             for col in 1 ... 2 {
                 let nodeID = "\(combatantID)_\(kwSlug)_t\(row)_\(col)"
                 guard let signature = signatureTalents[nodeID] else {
@@ -214,16 +223,17 @@ public enum CombatantTalentCatalog {
                     #endif
                     continue
                 }
-                rowNodes.append(
+                let position = positions[nodeID] ?? (row, col)
+                rowNodes.append((
                     TalentNode(
                         id: nodeID,
                         name: signature.name,
                         keyword: keyword,
-                        row: row,
+                        row: position.row,
                         symbolName: signature.symbolName.isEmpty ? nil : signature.symbolName,
                         description: signature.description,
-                    ),
-                )
+                    ), position.slot,
+                ))
             }
             if row <= 3 {
                 precondition(rowNodes.count == 2, "Missing authored talent row \(row) for \(combatantID) \(keyword.rawValue)")
@@ -236,6 +246,9 @@ public enum CombatantTalentCatalog {
         }
         precondition(row <= 20, "Talent row generation exceeded safety limit for \(combatantID) \(keyword.rawValue)")
 
-        return TalentTree(name: name, keyword: keyword, nodes: nodes)
+        let ordered = nodes.sorted {
+            ($0.node.row, $0.slot) < ($1.node.row, $1.slot)
+        }.map(\.node)
+        return TalentTree(name: name, keyword: keyword, nodes: ordered)
     }
 }

@@ -43,6 +43,7 @@ package extension CombatTriggerEngine {
             context.roster.mutateRuntime(for: context.roster[owner].combatant) { runtime in
                 runtime.resetTalentTurnState(currentTurn: context.turnCount)
                 runtime.cleansedKeywordProtection.removeAll()
+                runtime.purgedEffectProtection.removeAll()
             }
         }
     }

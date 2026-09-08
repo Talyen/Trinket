@@ -57,21 +57,19 @@ extension TalentCatalogRoundTripTests {
         #expect(original[1].amount == (original[1].isCritical ? 2 : 1))
     }
 
-    @Test(arguments: ["alchemist_poison_t3_2", "wildcard_physical_t1_1"])
-    func `typed chance rewards roll once and damage only the new point`(talent: String) throws {
+    @Test func `prismatic edge rolls once and damages only the new point`() throws {
         var successes = 0
         var freezeCount = 0
         for seed in UInt64(1) ... 48 {
-            let ability: Ability = talent.hasPrefix("alchemist") ? .poisonDagger : .slash
             var baseline = heroTalentBattle(seed: seed)
-            var enhanced = heroTalentBattle(talent, seed: seed)
+            var enhanced = heroTalentBattle("wildcard_physical_t1_1", seed: seed)
             seedHeroTalentEffect(.burn(10), on: .enemy, in: &baseline)
             seedHeroTalentEffect(.burn(10), on: .enemy, in: &enhanced)
-            try playHeroTalentCard(ability, in: &baseline)
+            try playHeroTalentCard(.slash, in: &baseline)
             var expectedRNG = baseline.rng
             let expected = BattleChance.succeeds(probability: 0.25, using: &expectedRNG)
-            let expectedFreeze = expected && talent.hasPrefix("wildcard") && !Bool.random(using: &expectedRNG)
-            try playHeroTalentCard(ability, in: &enhanced)
+            let expectedFreeze = expected && !Bool.random(using: &expectedRNG)
+            try playHeroTalentCard(.slash, in: &enhanced)
             #expect(baseline.roster.enemy.currentHealth - enhanced.roster.enemy.currentHealth == (expected ? 1 : 0))
             #expect(talentPoints(.burn, on: .enemy, in: enhanced) == (expected && !expectedFreeze ? 11 : 10))
             if expected {
@@ -82,9 +80,7 @@ extension TalentCatalogRoundTripTests {
             }
         }
         #expect(successes > 0 && successes < 48)
-        if talent.hasPrefix("wildcard") {
-            #expect(freezeCount > 0 && freezeCount < successes)
-        }
+        #expect(freezeCount > 0 && freezeCount < successes)
     }
 
     @Test(arguments: [true, false])
@@ -124,7 +120,7 @@ extension TalentCatalogRoundTripTests {
         }
         #expect(battle.roster.companion.currentHealth == 2)
         #expect(talentPoints(.thorns, on: .hero, in: battle) == 1)
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 1)
+        #expect(talentPoints(.shield, on: .enemy, in: battle) == 2)
     }
 
     @Test func `physical critical and frozen hits have separate once per turn rewards`() throws {

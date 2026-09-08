@@ -628,7 +628,7 @@ public extension CombatantTalentCatalog {
             "druid_health_t2_2": CombatantTalentEffect(
                 name: "Shelter Seed",
                 symbolName: "heart.fill",
-                description: "The first time you fall below half Health each battle, grant your Companion 1 Thorns.",
+                description: "Healing an ally below half Health grants them equal Thorns.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(shelterSeed: true))
             ),
@@ -698,7 +698,7 @@ public extension CombatantTalentCatalog {
             "druid_poison_t4_1": CombatantTalentEffect(
                 name: "Thorn Shedding",
                 symbolName: "drop.fill",
-                description: "Gaining Thorns from a card removes 1 Poison from you, once per turn.",
+                description: "Your Companion’s Thorns deal Poison damage instead of Physical damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(thornShedding: true))
             ),
@@ -719,7 +719,7 @@ public extension CombatantTalentCatalog {
             "druid_mana_t2_1": CombatantTalentEffect(
                 name: "Grove Reserve",
                 symbolName: "flame.fill",
-                description: "Ending a turn with less Mana than you started grants your Companion 1 Block at the next turn’s start.",
+                description: "At turn end, grant your Companion 1 Block per 2 unspent Mana.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(groveReserve: true))
             ),
@@ -733,7 +733,7 @@ public extension CombatantTalentCatalog {
             "druid_mana_t3_1": CombatantTalentEffect(
                 name: "Shared Current",
                 symbolName: "flame.fill",
-                description: "Your Companion spending Mana removes 1 Poison from you, once per turn.",
+                description: "Your Companion spending Mana grants you equal Thorns.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(sharedCurrent: true))
             ),
@@ -949,14 +949,14 @@ public extension CombatantTalentCatalog {
             "alchemist_poison_t3_2": CombatantTalentEffect(
                 name: "Unstable Culture",
                 symbolName: "drop.fill",
-                description: "Your first Poison card each turn has a 25% chance to deal 1 Burn damage.",
+                description: "Your Poison expiring naturally on the enemy doubles your next Poison card’s Poison damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(unstableCulture: true))
             ),
             "alchemist_poison_t4_1": CombatantTalentEffect(
                 name: "Sealed Vial",
                 symbolName: "drop.fill",
-                description: "At turn end, remove 1 Poison from yourself if the enemy is Poisoned.",
+                description: "Your Poison cards consume your Poison to deal equal additional Poison damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(sealedVial: true))
             ),
@@ -998,14 +998,14 @@ public extension CombatantTalentCatalog {
             "alchemist_cleanse_t3_2": CombatantTalentEffect(
                 name: "Clean Break",
                 symbolName: "sparkles",
-                description: "Removing an ally’s last debuff lets their next attack ignore 1 Block, once per turn.",
+                description: "Removing an ally’s last debuff draws a Poison card.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanBreak: true))
             ),
             "alchemist_cleanse_t4_1": CombatantTalentEffect(
                 name: "Perfect Purity",
                 symbolName: "sparkles",
-                description: "While both allies have no debuffs, the enemy’s first Block gain each turn is reduced by 1.",
+                description: "Cleansing an ally makes their next attack deal 2 additional Poison damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(perfectPurity: true))
             ),
@@ -1054,7 +1054,7 @@ public extension CombatantTalentCatalog {
             "alchemist_health_t4_1": CombatantTalentEffect(
                 name: "Masterwork Mixture",
                 symbolName: "heart.fill",
-                description: "Playing both Poison cards and cards that restore Health in a turn restores 1 Health to both allies at turn end.",
+                description: "Your healing cards transfer overhealing to the other ally.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(masterworkMixture: true))
             )
@@ -1078,7 +1078,7 @@ public extension CombatantTalentCatalog {
             "wildcard_gold_t2_1": CombatantTalentEffect(
                 name: "Full House",
                 symbolName: "suit.diamond.fill",
-                description: "Playing a Basic, Skill, and Ultimate in one turn grants 1 Gold.",
+                description: "Playing a set of Basic, Skill, and Ultimate cards grants 5 Gold and draws a card.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(gold: GoldTriggers(fullHouse: true))
             ),
@@ -1099,7 +1099,7 @@ public extension CombatantTalentCatalog {
             "wildcard_gold_t3_2": CombatantTalentEffect(
                 name: "Sleight of Coin",
                 symbolName: "suit.diamond.fill",
-                description: "After Dodging, your next card that grants Gold removes 1 Thorns from the enemy, once per turn.",
+                description: "Your Gold cards can Critically Hit, doubling the Gold they grant.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(gold: GoldTriggers(sleightOfCoin: true))
             ),
@@ -1148,14 +1148,14 @@ public extension CombatantTalentCatalog {
             "wildcard_dodge_t3_2": CombatantTalentEffect(
                 name: "Improving Odds",
                 symbolName: "wind",
-                description: "Each round without Dodging grants 1% Dodge, up to 5% this battle.",
+                description: "Each undodged attack increases your Dodge chance by 5%. Dodging resets this bonus.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(improvingOdds: true))
             ),
             "wildcard_dodge_t4_1": CombatantTalentEffect(
                 name: "Blind Spot",
                 symbolName: "wind",
-                description: "Your first Dodge each turn removes 1 Block from the enemy.",
+                description: "Dodging lets your next Physical card ignore enemy Block.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(blindSpot: true))
             ),
@@ -1204,7 +1204,7 @@ public extension CombatantTalentCatalog {
             "wildcard_physical_t4_1": CombatantTalentEffect(
                 name: "Paid in Full",
                 symbolName: "burst.fill",
-                description: "A Physical card immediately following your card that granted Gold deals 1 additional Physical damage, once per turn.",
+                description: "Your Gold cards make your next Physical card steal 2 Gold.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(paidInFull: true))
             )
@@ -1790,9 +1790,9 @@ public extension CombatantTalentCatalog {
             "lizard_scout_gold_t3_2": CombatantTalentEffect(
                 name: "Gilded Claws",
                 symbolName: "dollarsign.circle.fill",
-                description: "Deal 1 bonus damage for every 20 Gold carried.",
+                description: "Stealing Gold increases your next attack’s damage by the amount stolen.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damagePerCarriedGoldEvery: 20))
+                triggers: CombatTraitTriggers(damage: DamageTriggers(gildedClaws: true))
             ),
             "lizard_scout_poison_t4_1": CombatantTalentEffect(
                 name: "Toxic Coma",
@@ -1961,9 +1961,9 @@ public extension CombatantTalentCatalog {
             "panther_bleed_t4_2": CombatantTalentEffect(
                 name: "Redline",
                 symbolName: "drop.triangle.fill",
-                description: "Physical Critical Hits double Bleed duration.",
+                description: "Detonating Bleed makes your next Physical card deal 2 additional Bleed damage.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onCritDoubleBleedDuration: true))
+                triggers: CombatTraitTriggers(dot: DotTriggers(redline: true))
             ),
             "panther_leech_t4_1": CombatantTalentEffect(
                 name: "Blood Feast",
@@ -2299,9 +2299,9 @@ public extension CombatantTalentCatalog {
             "library_owl_holy_t2_1": CombatantTalentEffect(
                 name: "Blinding Light",
                 symbolName: "sun.max.fill",
-                description: "When you hit with Holy damage, the target misses their next attack.",
+                description: "Your Holy hits reduce the enemy’s next attack damage by half the damage dealt.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(holyDamageTargetMissNextAttack: true))
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(blindingLight: true))
             ),
             "library_owl_holy_t2_2": CombatantTalentEffect(
                 name: "Radiant Wisdom",
@@ -2411,9 +2411,9 @@ public extension CombatantTalentCatalog {
             "library_owl_holy_t4_1": CombatantTalentEffect(
                 name: "Interdict",
                 symbolName: "cross.fill",
-                description: "Holy damage Purges all positive enemy effects.",
+                description: "Effects you Purge cannot return until your next turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamagePurgeAll: true))
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(interdict: true))
             ),
             "library_owl_cleanse_t4_1": CombatantTalentEffect(
                 name: "Lesson Learned",
@@ -2648,16 +2648,16 @@ public extension CombatantTalentCatalog {
             "mana_moth_freeze_t2_2": CombatantTalentEffect(
                 name: "Subzero Mist",
                 symbolName: "wind.snow",
-                description: "Frozen enemies have a 20% chance to miss attacks against Moth.",
+                description: "When Freeze ends on the enemy, gain 20% Dodge until your next turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(frozenEnemyMissChanceVsCompanionPercent: 0.20))
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(subzeroMist: true))
             ),
             "mana_moth_freeze_t3_1": CombatantTalentEffect(
                 name: "Flash Freeze",
                 symbolName: "lock.fill",
-                description: "Spending 4 or more Mana on a card instantly Freezes the enemy.",
+                description: "Mana empowerment increases the empowered card’s Freeze damage by 2.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(spendManaFreezeThreshold: 4))
+                triggers: CombatTraitTriggers(control: ControlTriggers(flashFreeze: true))
             ),
             "mana_moth_freeze_t3_2": CombatantTalentEffect(
                 name: "Frost Nova",

@@ -68,7 +68,10 @@ struct ResourceGainHandler: BattleEffectHandler {
         case .gold:
             let bonus = CombatTriggerEngine.heroCardGoldBonus(source: source, amount: amount, in: &context)
             return EffectApplyOutcome(
-                events: context.grantGoldEvent(amount + bonus, to: source, abilityName: ability.name),
+                events: context.grantGoldEvent(
+                    amount + bonus, to: source, abilityName: ability.name,
+                    isTheft: ability.stealsGold, isDirectCardGain: true,
+                ),
                 didApply: true,
             )
         default:

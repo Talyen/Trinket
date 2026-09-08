@@ -1,6 +1,9 @@
 # System XCUITest chrome that is not product AccessibilityID surface.
 # One literal per line. Used by Scripts/check-accessibility-ids.py.
 Close
+close
 Clear text
 # SwiftUI alert actions often expose the button title, not accessibilityIdentifier.
 Salvage
+# Native submenu options can omit their assigned accessibility identifiers.
+Astral

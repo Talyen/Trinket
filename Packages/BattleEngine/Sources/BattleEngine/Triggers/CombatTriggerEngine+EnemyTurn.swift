@@ -101,35 +101,9 @@ package extension CombatTriggerEngine {
             return companionNegation
         }
 
-        var events: [ActionEvent] = []
         let abilityTarget = context.talentAdjustedEnemyTarget
-        let enemy = context.enemy
         if let poisonMiss = poisonedEnemyMiss(abilityTarget: abilityTarget, in: &context) {
             return poisonMiss
-        }
-        if context.roster.hasControlStatus(for: enemy, keyword: .freeze),
-           abilityTarget.id == context.roster.companion.id,
-           context.roster.companion.isAlive,
-           context.companionModifiers.triggers.frozenEnemyMissChanceVsCompanionPercent > 0,
-           BattleChance.succeeds(
-               probability: context.companionModifiers.triggers.frozenEnemyMissChanceVsCompanionPercent,
-               using: &context.rng,
-           ) {
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .dodgeApplied,
-                actorName: context.roster.enemy.name,
-                abilityName: triggerAbilityName(
-                    "frozenEnemyMissChanceVsCompanionPercent",
-                    for: context.roster.companion.combatant,
-                    fallback: "Subzero Mist",
-                    in: context,
-                ),
-                target: abilityTarget,
-                amount: 0,
-                keyword: .dodge,
-            ))
-            return (events, true)
         }
         if abilityTarget.id == context.roster.hero.id,
            context.roster.companion.isAlive,
@@ -140,7 +114,15 @@ package extension CombatTriggerEngine {
            ) {
             context.prependEffect(.evadeNextHit, to: context.roster.hero.combatant, remainingTurns: 0)
         }
-        return (events, false)
+        return ([], false)
+    }
+
+    static func afterEnemyFreezeRecover(in context: inout BattleState) {
+        for owner in [BattleParticipant.hero, .companion] {
+            let runtime = context.roster[owner]
+            guard runtime.isAlive, context.modifiers(for: runtime.id).triggers.subzeroMist else { continue }
+            context.roster.mutateRuntime(for: runtime.combatant) { $0.subzeroMistActive = true }
+        }
     }
 
     private static func poisonedEnemyMiss(

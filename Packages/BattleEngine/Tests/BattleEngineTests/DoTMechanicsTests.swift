@@ -191,4 +191,57 @@ struct DoTMechanicsTests {
         #expect(battle.roster.hero.currentHealth == (health == 10 ? 12 : health))
         #expect(events.contains { $0.effectKind == .resourceGain } == (health == 10))
     }
+
+    @Test(arguments: [false, true], [false, true])
+    func `bleed rewards require health loss from cards and ticks`(isTick: Bool, blocked: Bool) throws {
+        let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                attack: AttackTriggers(onBleedDamageNextBasicCritBonus: 0.35),
+                dot: DotTriggers(onBleedDamageHealSelf: 2),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
+        battle.roster.setActiveEffects(
+            [bleed] + (blocked ? [ActiveEffect(id: 101, effect: .shield(.block, 10), remainingTurns: 0)] : []),
+            for: battle.enemy,
+        )
+        if isTick {
+            let handler = try #require(EffectHandlers.all[.bleed])
+            _ = handler.advanceTurn(bleed, on: battle.enemy, in: &battle)
+        } else {
+            _ = BattleTurnEngine.performAction(
+                ability: .rendingSlash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+            )
+        }
+        #expect(battle.roster.hero.currentHealth == (blocked ? 10 : 12))
+        #expect(battle.roster.hero.pendingBasicCritBonus == (blocked ? 0 : 0.35))
+    }
+
+    @Test(arguments: [false, true])
+    func `noxious reaction uses current poison without consuming it`(isTick: Bool) throws {
+        let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                dot: DotTriggers(onBleedDamagePoisonTick: 1),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.roster.setActiveEffects(
+            [bleed, ActiveEffect(id: 101, effect: .poison(6), remainingTurns: 0, sourceActorID: "hero")],
+            for: battle.enemy,
+        )
+        let events: [ActionEvent]
+        if isTick {
+            let handler = try #require(EffectHandlers.all[.bleed])
+            events = handler.advanceTurn(bleed, on: battle.enemy, in: &battle).events
+        } else {
+            events = BattleTurnEngine.performAction(
+                ability: .rendingSlash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+            )
+        }
+        #expect(statusAmounts(from: events, keyword: .poison) == [6])
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .poison(6) })
+    }
 }

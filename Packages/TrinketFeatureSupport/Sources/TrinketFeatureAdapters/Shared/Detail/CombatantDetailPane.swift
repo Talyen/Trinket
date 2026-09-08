@@ -27,6 +27,9 @@ public struct CombatantDetailPane: View {
     var onResetTalents: (() -> Void)?
 
     @State private var selectedItemSlot: ItemSlot?
+    @State private var requestedItemSlot: ItemSlot?
+    @State private var pickerItems = ItemPickerItems()
+    @State private var pickerArtworkLease: ItemPickerArtworkLease?
     @State private var selectedAbilityTier: AbilityTier?
     @State private var viewingAbility: Ability?
     @State private var viewingItem: InventoryItem?
@@ -87,8 +90,27 @@ public struct CombatantDetailPane: View {
                 slot: slot,
                 equipmentLoadout: equipmentLoadout,
                 inventoryItems: inventoryItems,
+                initialItems: pickerItems,
                 onEquip: { equip($0, in: slot) },
             )
+        }
+        .task(id: requestedItemSlot) {
+            guard let slot = requestedItemSlot else { return }
+            var items = ItemPickerItems()
+            items.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
+            let lease = await ItemPickerArtworkLease(items: items.eligible)
+            guard !Task.isCancelled else { return }
+            pickerItems = items
+            pickerArtworkLease = lease
+            selectedItemSlot = slot
+            requestedItemSlot = nil
+        }
+        .onChange(of: selectedItemSlot) { _, slot in
+            if slot == nil {
+                requestedItemSlot = nil
+                pickerArtworkLease = nil
+                pickerItems = ItemPickerItems()
+            }
         }
         .navigationDestination(item: $selectedAbilityTier) { tier in
             AbilityTierPickerSheet(
@@ -132,6 +154,9 @@ public struct CombatantDetailPane: View {
             await refreshDetailArtworkPins()
         }
         .onDisappear {
+            if selectedItemSlot == nil {
+                requestedItemSlot = nil
+            }
             PreparedArtworkCache.shared.releasePins(names: pinnedDetailArtwork)
             pinnedDetailArtwork = []
         }
@@ -257,7 +282,7 @@ public struct CombatantDetailPane: View {
                     role: combatant.role,
                     equipmentLoadout: equipmentLoadout,
                     inventoryItems: inventoryItems,
-                    onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil,
+                    onSelect: allowsEditing ? { requestedItemSlot = $0 } : nil,
                     onViewItem: allowsEditing ? nil : { viewingItem = $0 },
                 )
                 .padding(.vertical, TrinketDesign.Spacing.extraSmall)

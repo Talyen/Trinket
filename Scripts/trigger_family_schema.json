@@ -205,10 +205,10 @@
         "merge": "max"
       },
       {
-        "name": "damagePerCarriedGoldEvery",
-        "type": "Int",
-        "default": "0",
-        "merge": "max"
+        "name": "gildedClaws",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
         "name": "goldReservesDamageEvery",
@@ -1105,13 +1105,13 @@
         "merge": "add"
       },
       {
-        "name": "frozenEnemyMissChanceVsCompanionPercent",
-        "type": "Double",
-        "default": "0",
-        "merge": "add"
+        "name": "subzeroMist",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
-        "name": "holyDamageTargetMissNextAttack",
+        "name": "blindingLight",
         "type": "Bool",
         "default": "false",
         "merge": "or"
@@ -1170,6 +1170,12 @@
     "file_stem": "DotTriggers",
     "family": "dot",
     "fields": [
+      {
+        "name": "redline",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "bleedHalvesAfterExpiration",
         "type": "Bool",
@@ -1663,10 +1669,10 @@
         "merge": "add"
       },
       {
-        "name": "spendManaFreezeThreshold",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
+        "name": "flashFreeze",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
         "name": "everyNTurnsFreezeAllEnemiesInterval",
@@ -3060,6 +3066,12 @@
     "file_stem": "CleanseTriggers",
     "family": "cleanse",
     "fields": [
+      {
+        "name": "interdict",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
       {
         "name": "lessonLearned",
         "type": "Bool",

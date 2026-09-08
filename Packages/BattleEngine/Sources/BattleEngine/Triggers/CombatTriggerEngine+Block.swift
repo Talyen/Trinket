@@ -146,7 +146,6 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: afterHolyDamageDealt(
                     to: attacker.combatant,
                     source: target,
-                    isAttackHit: false,
                     in: &context,
                 ))
             }

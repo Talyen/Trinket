@@ -75,10 +75,10 @@ package enum DefensePoolEngine {
         applyFightPacing: Bool = true,
         in context: inout BattleState,
     ) -> Int {
-        var pacedAmount = applyFightPacing
+        guard !CombatTriggerEngine.preventsPurgedEffect(.shield(keyword, amount), on: target, in: context) else { return 0 }
+        let pacedAmount = applyFightPacing
             ? (sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount)
             : amount
-        pacedAmount -= CombatTriggerEngine.heroTalentBlockGainReduction(target: target, amount: pacedAmount, in: &context)
         guard pacedAmount > 0 else { return 0 }
         var effects = context.roster.activeEffects(for: target)
         if let index = effects.firstIndex(where: {

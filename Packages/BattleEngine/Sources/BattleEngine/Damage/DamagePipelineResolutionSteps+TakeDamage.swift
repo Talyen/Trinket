@@ -124,7 +124,7 @@ package extension DamagePipeline {
                 abilityName: "Grizzly Guard",
             ))
         }
-        if defenderTriggers.toughnessOnHit > 0 {
+        if defenderTriggers.toughnessOnHit > 0, isAttackHit, !isRetaliation {
             context.roster.mutateRuntime(for: defender) { runtime in
                 if runtime.flatDamageReductionBonus < defenderTriggers.toughnessOnHitCap {
                     runtime.flatDamageReductionBonus += defenderTriggers.toughnessOnHit
@@ -173,11 +173,12 @@ package extension DamagePipeline {
 
     private static func applyCompanionLeechToHero(
         lost: Int,
-        defender _: Combatant,
+        defender: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard let sourceActorID,
+        guard defender.role == .enemy,
+              let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               source.role == .companion,
               context.roster.hero.isAlive

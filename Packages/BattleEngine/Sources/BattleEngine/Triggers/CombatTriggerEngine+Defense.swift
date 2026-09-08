@@ -197,16 +197,17 @@ package extension CombatTriggerEngine {
         guard purgeAll || count > 0 else { return [] }
         var enemyEffects = context.roster.activeEffects(for: target)
         let preservingBlock = context.modifiers(for: target.id).triggers.sealedSarcophagus
-        let removedKeywords = EffectRemoval.removeBuffs(
+        let removed = EffectRemoval.removeBuffs(
             from: &enemyEffects,
             count: count,
             removeAll: purgeAll,
             preservingBlock: preservingBlock,
             using: &context.rng,
         )
-        guard !removedKeywords.isEmpty else { return [] }
+        guard !removed.isEmpty else { return [] }
         context.roster.setActiveEffects(enemyEffects, for: target)
-        var events = removedKeywords.map { keyword in
+        protectPurgedEffects(removed, source: source, target: target, in: &context)
+        var events = removed.map { active in
             context.nextEvent(
                 kind: .effect,
                 effectKind: .purgeApplied,
@@ -214,11 +215,22 @@ package extension CombatTriggerEngine {
                 abilityName: abilityName,
                 target: target,
                 amount: 0,
-                keyword: keyword,
+                keyword: active.keyword,
             )
         }
-        events.append(contentsOf: crownfallDamage(removedCount: removedKeywords.count, source: source, target: target, in: &context))
+        events.append(contentsOf: crownfallDamage(removedCount: removed.count, source: source, target: target, in: &context))
         return events
+    }
+
+    static func protectPurgedEffects(
+        _ removed: [ActiveEffect], source: Combatant, target: Combatant, in context: inout BattleState,
+    ) {
+        guard context.modifiers(for: source.id).triggers.interdict, context.roster.health(for: source) > 0 else { return }
+        context.roster.mutateRuntime(for: target) { $0.purgedEffectProtection.formUnion(removed.map(\.effect.kind)) }
+    }
+
+    static func preventsPurgedEffect(_ effect: Effect, on target: Combatant, in context: BattleState) -> Bool {
+        effect.isRemovableBuff && context.roster.runtime(for: target)?.purgedEffectProtection.contains(effect.kind) == true
     }
 
     static func crownfallDamage(

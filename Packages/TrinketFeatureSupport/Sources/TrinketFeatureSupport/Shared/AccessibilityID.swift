@@ -377,6 +377,12 @@ public enum AccessibilityID {
     }
 
     public enum LoadoutPicker {
+        public static let itemFilter = "Loadout Item Filter"
+        public static let itemRarityFilter = "Loadout Item Rarity Filter"
+        public static let itemKeywordFilter = "Loadout Item Keyword Filter"
+        public static let clearItemFilters = "Clear Loadout Item Filters"
+        public static let itemsNoResults = "Loadout Items No Results"
+
         public static func abilityGrid(_ tier: String) -> String {
             "Loadout Ability Grid \(tier)"
         }

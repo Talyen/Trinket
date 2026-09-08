@@ -29,41 +29,81 @@ struct HomesteadMaterialValue: View {
 struct HomesteadBenefitsView: View {
     let tier: HomesteadNodeTier
     let effectsIdentifier: String
+    var highlightedEffects: Set<HomesteadEffectLine.Key> = []
+    var highlightsProduction = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: TrinketDesign.Spacing.medium) {
-            HomesteadEffectDescription(tier: tier)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityIdentifier(effectsIdentifier)
-            if let production = tier.production {
-                HomesteadMaterialValue(resource: production.resource, value: "\(production.quantity) per day")
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+            Text("Bonus")
+                .trinketTypography(.secondaryBody)
+                .foregroundStyle(.secondary)
+            HStack(alignment: .center, spacing: TrinketDesign.Spacing.medium) {
+                HomesteadEffectDescription(tier: tier, highlightedEffects: highlightedEffects)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier(effectsIdentifier)
+                if let production = tier.production {
+                    HomesteadProductionValue(
+                        resource: production.resource,
+                        quantity: production.quantity,
+                        isHighlighted: highlightsProduction,
+                    )
                     .fixedSize(horizontal: true, vertical: false)
+                }
             }
         }
     }
 }
 
+private struct HomesteadProductionValue: View {
+    let resource: HomesteadResource
+    let quantity: Int
+    let isHighlighted: Bool
+
+    var body: some View {
+        HStack(spacing: TrinketDesign.Spacing.small) {
+            HomesteadResourceArtwork(resource: resource)
+                .frame(width: TrinketDesign.Layout.walletResourceArtworkSize, height: TrinketDesign.Layout.walletResourceArtworkSize)
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
+                Text(resource.displayName)
+                    .trinketTypography(.caption)
+                    .foregroundStyle(.secondary)
+                Text("\(quantity) per day")
+                    .trinketTypography(.statValue)
+                    .foregroundStyle(isHighlighted ? TrinketDesign.Colors.accent : .primary)
+                    .contentTransition(.numericText())
+                    .scaleEffect(isHighlighted ? 1.08 : 1, anchor: .leading)
+            }
+        }
+        .frame(minHeight: TrinketDesign.Layout.walletResourceRowMinHeight)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(resource.displayName)
+        .accessibilityValue("\(quantity) per day")
+    }
+}
+
 struct HomesteadEffectDescription: View {
     let tier: HomesteadNodeTier
+    var highlightedEffects: Set<HomesteadEffectLine.Key> = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             ForEach(HomesteadEffectLine.lines(for: tier).filter { $0.resource == nil }) { effect in
-                Text(attributedEffect(effect))
+                HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.extraSmall) {
+                    Text(KeywordDescriptionText.attributedText(for: effect.label))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(effect.displayValue)
+                        .bold()
+                        .foregroundStyle(highlightedEffects.contains(effect.id) ? TrinketDesign.Colors.accent : .primary)
+                        .contentTransition(.numericText())
+                        .scaleEffect(highlightedEffects.contains(effect.id) ? 1.08 : 1, anchor: .leading)
+                        .fixedSize()
+                }
+                .accessibilityElement(children: .combine)
             }
         }
         .trinketTypography(.body)
         .foregroundStyle(.primary)
         .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func attributedEffect(_ effect: HomesteadEffectLine) -> AttributedString {
-        var text = KeywordDescriptionText.attributedText(for: effect.label + " ")
-        var value = AttributedString(effect.displayValue)
-        value.inlinePresentationIntent = .stronglyEmphasized
-        value.foregroundColor = .primary
-        text += value
-        return text
     }
 }
 
@@ -75,20 +115,38 @@ struct HomesteadTierProgress: View {
     var body: some View {
         HStack(spacing: TrinketDesign.Spacing.extraSmall) {
             ForEach(0 ..< totalTiers, id: \.self) { index in
-                Capsule()
-                    .fill(index < currentTier ? TrinketDesign.Colors.accent : .clear)
-                    .overlay {
-                        Capsule().strokeBorder(
-                            index < currentTier ? TrinketDesign.Colors.accent : TrinketDesign.Colors.Overlay.paper.opacity(0.45),
-                            lineWidth: 1,
-                        )
-                    }
+                Color.clear
                     .frame(height: 6)
-                    .keyframeAnimator(initialValue: CGFloat(1), trigger: celebrationCount) { content, scale in
-                        content.scaleEffect(y: index == currentTier - 1 ? scale : 1)
+                    .keyframeAnimator(initialValue: HomesteadSegmentMotion(), trigger: celebrationCount) { _, motion in
+                        Capsule()
+                            .fill(index < currentTier ? TrinketDesign.Colors.accent : .clear)
+                            .scaleEffect(x: index == currentTier - 1 ? motion.fill : 1, anchor: .leading)
+                            .overlay {
+                                Capsule().strokeBorder(
+                                    index < currentTier ? TrinketDesign.Colors.accent : TrinketDesign.Colors.Overlay.paper.opacity(0.45),
+                                    lineWidth: 1,
+                                )
+                            }
+                            .scaleEffect(
+                                x: index == currentTier - 1 ? 1 + (motion.scale - 1) * 0.08 : 1,
+                                y: index == currentTier - 1 ? motion.scale : 1,
+                            )
+                            .shadow(
+                                color: TrinketDesign.Colors.accent.opacity(
+                                    index == currentTier - 1 ? max(0, Double(motion.scale - 1)) * 0.4 : 0,
+                                ),
+                                radius: 6,
+                            )
+                            .frame(height: 6)
                     } keyframes: { _ in
-                        CubicKeyframe(HomesteadMotion.celebrationPeak, duration: HomesteadMotion.celebrationRise)
-                        SpringKeyframe(1, duration: HomesteadMotion.celebrationSettle, spring: .smooth)
+                        KeyframeTrack(\.fill) {
+                            LinearKeyframe(0, duration: 0)
+                            CubicKeyframe(1, duration: HomesteadMotion.celebrationRise)
+                        }
+                        KeyframeTrack(\.scale) {
+                            CubicKeyframe(HomesteadMotion.celebrationPeak, duration: HomesteadMotion.celebrationRise)
+                            SpringKeyframe(1, duration: HomesteadMotion.celebrationSettle, spring: .smooth)
+                        }
                     }
             }
         }
@@ -96,4 +154,9 @@ struct HomesteadTierProgress: View {
         .accessibilityLabel("Building progress")
         .accessibilityValue("\(currentTier) of \(totalTiers) upgrades")
     }
+}
+
+private struct HomesteadSegmentMotion {
+    var fill: CGFloat = 1
+    var scale: CGFloat = 1
 }

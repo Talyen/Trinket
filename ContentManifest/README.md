@@ -36,7 +36,7 @@ Tab-separated columns:
 id	name	symbol_name	description	modifiers	triggers
 ```
 
-- `id`: `{combatantID}_{keyword}_t{row}_{slot}` matching `CombatantTalentCatalog` tree nodes.
+- `id`: stable `{combatantID}_{keyword}_t{row}_{slot}` identity. The encoded position is historical; `CombatantTalentCatalog` owns explicit position overrides when nodes move. Preserve these IDs and existing purchases when reordering.
 - `symbol_name`: SF Symbol system name for the talent node icon.
 - `modifiers` / `triggers`: same pipe-separated DSL as affixes (`damage_dealt:physical:1`, `blockPerTurn:2`). CamelCase schema field names are accepted as trigger tokens.
 

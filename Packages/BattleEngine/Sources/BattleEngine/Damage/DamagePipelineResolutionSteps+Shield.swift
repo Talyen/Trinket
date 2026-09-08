@@ -14,7 +14,10 @@ package extension DamagePipeline {
         )
         var effects = context.roster.activeEffects(for: state.combatant)
 
-        if UniqueCombatEngine.ignoresBlock(for: state, in: context) {
+        let blindSpot = state.options.isOriginalCardDamage && state.damageKeyword == .physical
+            && context.heroTalents.cards.last?.actorID == state.sourceActorID
+            && context.heroTalents.cards.last?.preparations.contains(.ignorePhysicalBlock) == true
+        if blindSpot || UniqueCombatEngine.ignoresBlock(for: state, in: context) {
             state.activeEffects = effects
             return
         }

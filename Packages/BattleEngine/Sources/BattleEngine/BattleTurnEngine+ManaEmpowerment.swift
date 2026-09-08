@@ -46,10 +46,7 @@ public extension BattleTurnEngine {
             context.roster.mutateRuntime(for: actor) { $0.hasEmpoweredWithMana = true }
             purchases += 1
             totalManaSpent += payment.reduce(0) { $0 + $1.amount }
-            ability = ability.empoweredByMana(
-                amount: manaEmpowermentBonus + triggers.empowermentDamageBonus,
-                includingBothElements: triggers.prismaticScales,
-            )
+            ability = empoweredAbility(ability, triggers: triggers)
             for contribution in payment where contribution.amount > 0 {
                 events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
                     by: contribution.actor, amountSpent: contribution.amount, in: &context,
@@ -71,6 +68,24 @@ public extension BattleTurnEngine {
 }
 
 private extension BattleTurnEngine {
+    static func empoweredAbility(_ original: Ability, triggers: CombatTraitTriggers) -> Ability {
+        let ability = original.empoweredByMana(
+            amount: manaEmpowermentBonus + triggers.empowermentDamageBonus,
+            includingBothElements: triggers.prismaticScales,
+        )
+        guard triggers.flashFreeze else { return ability }
+        return replacingTalentDamage(
+            in: ability,
+            components: ability.damageComponents.map {
+                $0.keyword == .freeze ? $0.withManaEmpowerment(2) : $0
+            },
+            effects: ability.targetedEffects.map {
+                guard $0.effect.keyword == .freeze else { return $0 }
+                return TargetedEffect($0.effect.withManaEmpowerment(2), target: $0.target, condition: $0.condition)
+            },
+        )
+    }
+
     struct ManaContribution {
         let actor: Combatant
         let amount: Int

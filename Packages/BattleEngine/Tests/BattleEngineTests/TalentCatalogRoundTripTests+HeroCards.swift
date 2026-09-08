@@ -168,23 +168,34 @@ extension TalentCatalogRoundTripTests {
         #expect(burnRolls > 0 && poisonRolls > 0)
     }
 
-    @Test func `sediment and paid in full track only the actors consecutive cards`() throws {
-        let cases: [(String, Ability, Ability, Keyword)] = [
-            ("alchemist_poison_t2_1", Ability.kindling, .poisonDagger, Keyword.poison),
-            ("wildcard_physical_t4_1", heroTalentGoldCard, heroTalentPhysicalCard, .physical),
-        ]
-        for (talent, preceding, following, keyword) in cases {
-            var battle = heroTalentBattle(talent)
-            try playHeroTalentCard(preceding, in: &battle)
-            try playHeroTalentCard(.block, owner: .companion, in: &battle)
-            let events = try playHeroTalentCard(following, in: &battle)
-            let hit = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == keyword })
-            let base = following.damageComponents[0].amount * (hit.isCritical ? 2 : 1)
-            #expect(hit.amount == base + 1)
-            let again = try playHeroTalentCard(following, in: &battle)
-            let repeated = try #require(again.first { $0.kind == .abilityDamage && $0.keyword == keyword })
-            #expect(repeated.amount == following.damageComponents[0].amount * (repeated.isCritical ? 2 : 1))
+    @Test func `reactive sediment tracks the actors consecutive cards`() throws {
+        var battle = heroTalentBattle("alchemist_poison_t2_1")
+        try playHeroTalentCard(.kindling, in: &battle)
+        try playHeroTalentCard(.block, owner: .companion, in: &battle)
+        let events = try playHeroTalentCard(.poisonDagger, in: &battle)
+        let hit = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == .poison })
+        #expect(hit.amount == Ability.poisonDagger.damageComponents[0].amount * (hit.isCritical ? 2 : 1) + 1)
+        let again = try playHeroTalentCard(.poisonDagger, in: &battle)
+        let repeated = try #require(again.first { $0.kind == .abilityDamage && $0.keyword == .poison })
+        #expect(repeated.amount == Ability.poisonDagger.damageComponents[0].amount * (repeated.isCritical ? 2 : 1))
+    }
+
+    @Test func `paid in full waits through intervening cards and does not rearm itself`() throws {
+        var battle = heroTalentBattle("wildcard_physical_t4_1")
+        for _ in 0 ..< 2 {
+            try playHeroTalentCard(.goldenPlate, in: &battle)
         }
+        try playHeroTalentCard(.block, in: &battle)
+        let before = battle.gold
+        let first = try playHeroTalentCard(.slash, in: &battle)
+        #expect(battle.gold == before + 2)
+        #expect(first.count { $0.abilityName == "Paid in Full" && $0.keyword == .gold } == 1)
+        try playHeroTalentCard(.slash, in: &battle)
+        #expect(battle.gold == before + 2)
+        try playHeroTalentCard(.goldenPlate, in: &battle)
+        let beforeAgain = battle.gold
+        try playHeroTalentCard(.slash, in: &battle)
+        #expect(battle.gold == beforeAgain + 2)
     }
 
     @Test func `entangling growth requires companion stun in the same turn`() throws {
@@ -236,24 +247,34 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.thorns, on: .enemy, in: battle) == 1)
     }
 
-    @Test func `gold cards clean poison and consume dodge preparation once`() throws {
+    @Test func `lucky charm retains its cadence alongside critical gold`() throws {
         var battle = heroTalentBattle("wildcard_gold_t2_2", "wildcard_gold_t3_2")
         seedHeroTalentEffect(.poison(2), on: .hero, in: &battle)
         seedHeroTalentEffect(.thorns(2), on: .enemy, in: &battle)
-        _ = CombatTriggerEngine.afterHeroTalentDodge(by: battle.hero, in: &battle)
         try playHeroTalentCard(heroTalentGoldCard, in: &battle)
         try playHeroTalentCard(heroTalentGoldCard, in: &battle)
         #expect(talentPoints(.poison, on: .hero, in: battle) == 1)
-        #expect(talentPoints(.thorns, on: .enemy, in: battle) == 1)
+        #expect(talentPoints(.thorns, on: .enemy, in: battle) == 2)
     }
 
-    @Test func `full house requires all three tiers and pays only once`() throws {
+    @Test func `full house carries across turns and pays for each fresh set`() throws {
         var battle = heroTalentBattle("wildcard_gold_t2_1")
-        for ability in [Ability.block, .stoneskinPotion, Ability(id: "test-ultimate", name: "Ultimate", tier: .ultimate)] {
+        for ability in [Ability.block, .block, .stoneskinPotion, .stoneskinPotion] {
             try playHeroTalentCard(ability, in: &battle)
         }
-        #expect(battle.gold == 1)
+        #expect(battle.gold == 0)
+        battle.turnCount += 1
+        _ = CombatTriggerEngine.startHeroTalentTurn(in: &battle)
+        try playHeroTalentCard(.thornMail, owner: .companion, in: &battle)
+        #expect(battle.gold == 0)
+        let first = try playHeroTalentCard(.thornMail, in: &battle)
+        #expect(battle.gold == 5)
+        #expect(first.contains { $0.abilityName == "Full House" && $0.effectKind == .cardsDrawn && $0.amount == 1 })
         try playHeroTalentCard(.block, in: &battle)
-        #expect(battle.gold == 1)
+        try playHeroTalentCard(.stoneskinPotion, in: &battle)
+        #expect(battle.gold == 5)
+        let second = try playHeroTalentCard(.thornMail, in: &battle)
+        #expect(battle.gold == 10)
+        #expect(second.contains { $0.abilityName == "Full House" && $0.effectKind == .cardsDrawn })
     }
 }

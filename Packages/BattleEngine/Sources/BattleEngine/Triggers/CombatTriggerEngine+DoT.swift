@@ -2,6 +2,49 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    static func afterBleedDamage(
+        healthLost: Int,
+        target: Combatant,
+        sourceActorID: String?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard healthLost > 0, let sourceActorID,
+              let caster = context.roster.combatant(for: sourceActorID), caster.isAlive,
+              caster.id != target.id else { return [] }
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        if triggers.onBleedDamageNextBasicGuaranteedCrit {
+            context.roster.mutateRuntime(for: caster.combatant) { $0.pendingBasicGuaranteedCrit = true }
+        }
+        if triggers.onBleedDamageNextBasicCritBonus > 0 {
+            context.roster.mutateRuntime(for: caster.combatant) {
+                $0.pendingBasicCritBonus = max($0.pendingBasicCritBonus, triggers.onBleedDamageNextBasicCritBonus)
+            }
+        }
+        var events: [ActionEvent] = []
+        if triggers.onBleedDamageHealSelf > 0 {
+            events.append(contentsOf: HealingEngine.resolveHeal(
+                HealRequest(amount: triggers.onBleedDamageHealSelf, target: caster.combatant, sourceActorID: sourceActorID),
+                in: &context,
+            ).events)
+        }
+        if triggers.onBleedDamagePoisonTick > 0 {
+            let poisonPotency = context.roster.activeEffects(for: target).reduce(0) { sum, active in
+                guard case let .poison(potency) = active.effect else { return sum }
+                return sum + potency
+            }
+            if poisonPotency > 0 {
+                events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                    basePotency: poisonPotency,
+                    keyword: .poison,
+                    target: target,
+                    sourceActorID: sourceActorID,
+                    in: &context,
+                ).events)
+            }
+        }
+        return events
+    }
+
     static func afterDoTTick(
         keyword: Keyword,
         healthLost: Int,
@@ -182,6 +225,10 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        if context.modifiers(for: sourceActorID).triggers.redline,
+           bleeds.contains(where: { $0.remainingTurns > 0 && ($0.effect.potency ?? 0) > 0 }) {
+            context.heroTalents.history[sourceActorID, default: HeroTalentHistory()].preparations.insert(.bleedDamage)
+        }
         var events: [ActionEvent] = []
         for active in bleeds {
             guard case let .bleed(potency) = active.effect else { continue }

@@ -65,7 +65,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         var updated = active
         updated.effect = Effect.decayingDoT(keyword: keyword, potency: 0)
         let events = keyword == .poison
-            ? CombatTriggerEngine.afterHeroTalentPoisonExpiry(sourceID: active.sourceActorID, in: &context) : []
+            ? CombatTriggerEngine.afterHeroTalentPoisonExpiry(sourceID: active.sourceActorID, target: target, in: &context) : []
         return EffectTurnOutcome(events: events, updatedStack: updated, removeAfter: true)
     }
 
@@ -144,7 +144,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
 struct BleedHandler: BattleEffectHandler {
     let kind: EffectKind = .bleed
 
-    // swiftlint:disable:next function_body_length - one handler owns the full damage-over-time application
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
             return EffectTurnOutcome()
@@ -173,51 +172,12 @@ struct BleedHandler: BattleEffectHandler {
             ))
         }
 
-        if let sourceTriggers,
-           let attackerID = active.sourceActorID,
-           let caster = context.roster.combatant(for: attackerID) {
-            if sourceTriggers.onBleedDamageNextBasicGuaranteedCrit {
-                context.roster.mutateRuntime(for: caster.combatant) { $0.pendingBasicGuaranteedCrit = true }
-            }
-            if sourceTriggers.onBleedDamageNextBasicCritBonus > 0 {
-                context.roster.mutateRuntime(for: caster.combatant) {
-                    $0.pendingBasicCritBonus = max($0.pendingBasicCritBonus, sourceTriggers.onBleedDamageNextBasicCritBonus)
-                }
-            }
-        }
-
-        if let sourceTriggers, let attackerID = active.sourceActorID {
-            if sourceTriggers.bleedStripsBlockPerTurn > 0,
-               let reduced = DefensePoolEngine.reduce(
-                   sourceTriggers.bleedStripsBlockPerTurn,
-                   in: context.roster.activeEffects(for: target),
-               ) {
-                context.roster.setActiveEffects(reduced.effects, for: target)
-            }
-            if sourceTriggers.onBleedDamageHealSelf > 0,
-               let caster = context.roster.combatant(for: attackerID) {
-                events.append(contentsOf: HealingEngine.resolveHeal(
-                    HealRequest(amount: sourceTriggers.onBleedDamageHealSelf, target: caster.combatant, sourceActorID: attackerID),
-                    in: &context,
-                ).events)
-            }
-            if sourceTriggers.onBleedDamagePoisonTick > 0 {
-                let poisonPotency = context.roster.activeEffects(for: target).reduce(0) { sum, active in
-                    if case let .poison(potency) = active.effect, active.remainingTurns > 0 {
-                        return sum + potency
-                    }
-                    return sum
-                }
-                if poisonPotency > 0 {
-                    events.append(contentsOf: DoTDamage.resolveTurnDamage(
-                        basePotency: poisonPotency,
-                        keyword: .poison,
-                        target: target,
-                        sourceActorID: attackerID,
-                        in: &context,
-                    ).events)
-                }
-            }
+        if let sourceTriggers, sourceTriggers.bleedStripsBlockPerTurn > 0,
+           let reduced = DefensePoolEngine.reduce(
+               sourceTriggers.bleedStripsBlockPerTurn,
+               in: context.roster.activeEffects(for: target),
+           ) {
+            context.roster.setActiveEffects(reduced.effects, for: target)
         }
 
         var updated = active

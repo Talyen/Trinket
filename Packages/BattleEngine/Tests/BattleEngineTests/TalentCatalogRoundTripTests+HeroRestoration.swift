@@ -119,23 +119,22 @@ extension TalentCatalogRoundTripTests {
         #expect(events.count { $0.abilityName == "Verdant Shelter" } == 1)
     }
 
-    @Test func `clean break requires last debuff and is consumed by one attack`() throws {
+    @Test func `clean break draws poison only when the last debuff is removed and can repeat`() throws {
         var battle = heroTalentBattle("alchemist_cleanse_t3_2")
+        battle.heroDeck = CombatDeck(abilities: [.block, .causticJab, .causticJab])
         seedHeroTalentEffect(.poison(2), on: .hero, in: &battle)
-        let cleanse = Ability(
-            id: "test-cleanse",
-            name: "Cleanse",
-            tier: .basic,
-            targetedEffects: [TargetedEffect(.cleanse(nil), target: .hero)],
-        )
-        try playHeroTalentCard(cleanse, in: &battle)
-        seedHeroTalentEffect(.shield(.block, 1), on: .enemy, in: &battle)
-        let events = try playHeroTalentCard(heroTalentPhysicalCard, in: &battle)
-        let hit = try #require(events.first { $0.kind == .abilityDamage })
-        #expect(hit.amount == (hit.isCritical ? 2 : 1))
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 1)
-        try playHeroTalentCard(heroTalentPhysicalCard, in: &battle)
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
+        seedHeroTalentEffect(.burn(2), on: .hero, in: &battle)
+        let partial = Ability(id: "cleanse-poison", name: "Antitoxin", tier: .skill, effects: [.cleanse(.poison)])
+        let first = try playHeroTalentCard(partial, in: &battle)
+        #expect(!first.contains { $0.abilityName == "Clean Break" })
+        let complete = try playHeroTalentCard(.cleanse, in: &battle)
+        #expect(complete.contains { $0.abilityName == "Clean Break" && $0.effectKind == .cardsDrawn })
+        #expect(battle.hand.cards.contains { $0.owner == .hero && $0.ability.id == Ability.causticJab.id })
+        let empty = try playHeroTalentCard(.cleanse, in: &battle)
+        #expect(!empty.contains { $0.abilityName == "Clean Break" })
+        seedHeroTalentEffect(.poison(2), on: .hero, in: &battle)
+        let repeated = try playHeroTalentCard(.cleanse, in: &battle)
+        #expect(repeated.contains { $0.abilityName == "Clean Break" && $0.effectKind == .cardsDrawn })
     }
 
     @Test func `first bloom deep roots and living conduit require actual mana gain`() throws {
@@ -154,25 +153,40 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.thorns, on: .companion, in: battle) == 1)
     }
 
-    @Test func `thorns from A card remove only one poison and not A cleanse`() throws {
-        var battle = heroTalentBattle("druid_poison_t4_1", "alchemist_cleanse_t2_2", "alchemist_poison_t2_2")
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
-        seedHeroTalentEffect(.poison(1), on: .hero, in: &battle)
-        try playHeroTalentCard(.briarShield, in: &battle)
-        #expect(talentPoints(.poison, on: .hero, in: battle) == 0)
-        #expect(talentPoints(.thorns, on: .hero, in: battle) == 3)
-        #expect(battle.roster.hero.currentMana == 0)
+    @Test func `shelter seed grants actual healing as thorns to injured allies repeatedly`() throws {
+        var battle = heroTalentBattle("druid_health_t2_2")
+        battle.roster.hero.currentHealth = 1
+        for _ in 0 ..< 2 {
+            let before = battle.roster.hero.currentHealth
+            let thorns = talentPoints(.thorns, on: .hero, in: battle)
+            try playHeroTalentCard(.apple, in: &battle)
+            #expect(talentPoints(.thorns, on: .hero, in: battle) == thorns + battle.roster.hero.currentHealth - before)
+        }
+        battle.roster.hero.currentHealth = 20
+        let before = talentPoints(.thorns, on: .hero, in: battle)
+        try playHeroTalentCard(.apple, in: &battle)
+        #expect(talentPoints(.thorns, on: .hero, in: battle) == before)
+        battle.roster.companion.currentHealth = 1
+        let allyHeal = Ability(id: "ally-heal", name: "Ally Heal", tier: .skill, targetedEffects: [
+            TargetedEffect(.instantHeal(.health, 12), target: .companion),
+        ])
+        try playHeroTalentCard(allyHeal, in: &battle)
+        #expect(talentPoints(.thorns, on: .companion, in: battle) == battle.roster.companion.currentHealth - 1)
     }
 
-    @Test func `thorn shedding follows the thorns recipient`() throws {
+    @Test func `thorn shedding converts only companion thorns and consumes the full pool`() {
         var battle = heroTalentBattle("druid_poison_t4_1")
-        seedHeroTalentEffect(.poison(2), on: .hero, in: &battle)
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 1 }
-        let card = Ability(
-            id: "test-ally-thorns", name: "Ally Thorns", tier: .skill,
-            targetedEffects: [TargetedEffect(.thorns(1), target: .lowestHealthAlly)],
-        )
-        try playHeroTalentCard(card, owner: .companion, in: &battle)
-        #expect(talentPoints(.poison, on: .hero, in: battle) == 1)
+        for owner in [BattleParticipant.hero, .companion] {
+            seedHeroTalentEffect(.thorns(7), on: owner, in: &battle)
+            let target = battle.roster[owner].combatant
+            let events = battle.resolveDamage(DamageRequest(
+                amount: 1, target: target, keyword: .physical, sourceActorID: battle.enemy.id,
+                options: DamageOptions(applyDodge: false, isAttackHit: true),
+            )).events
+            let keyword: Keyword = owner == .companion ? .poison : .physical
+            #expect(events.contains { $0.effectKind == .thornsTriggered && $0.keyword == keyword && $0.amount == 7 })
+            #expect(talentPoints(.thorns, on: owner, in: battle) == 0)
+        }
+        #expect(talentPoints(.poison, on: .enemy, in: battle) == 7)
     }
 }

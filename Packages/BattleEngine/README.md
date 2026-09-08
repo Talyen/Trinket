@@ -70,6 +70,29 @@ reuse the ordinary damage, healing, control, and resource pipelines.
   while damage, decay, and voluntary spending remain available. Stolen Thunder
   spends Block once per attack; Resonant Shell consumes Thorns normally and
   resolves their damage as Stun with normal buildup.
+- Next-card preparations are captured before a card resolves, refresh instead
+  of accumulating, and cannot be consumed by the card that created them, even
+  when it repeats. Typed damage bonuses strengthen an existing unconditional hit
+  of that type when present, avoiding duplicate equipment bonuses. Gilded Claws
+  instead accumulates actual Gold stolen until the next attack. Authored
+  `Ability.stealsGold` identifies theft from Steal,
+  Bounty Shot, Blackjack, and Tithe, and survives outcome resolution and empowerment.
+- Sleight of Coin rolls the owner's Critical Hit chance once per Gold card and
+  doubles its resolved Gold gains, including theft; these are not attack
+  Critical Hits. Full House carries its set of card types across turns, clears
+  the set on payout, and does not bank repeated types.
+- Interdict prevents reapplication of the buff kinds actually Purged until the
+  next party turn, including Block but excluding instant healing and resources.
+  Blinding Light retains the strongest half-Holy-hit reduction, counting Health
+  damage and absorbed Block, and spends it across the next enemy attack's hits;
+  ongoing damage does not consume it. Subzero Mist grants Dodge when the enemy
+  recovers from Freeze and expires at the next party turn.
+- Shelter Seed checks Health before healing and grants only actual restoration
+  as Thorns. Masterwork Mixture transfers resolved card overhealing only into
+  the other living ally's missing Health, without rerolling bonuses or bouncing
+  back. Thorn Shedding consumes Companion Thorns as Poison damage with normal
+  Poison application; the Companion's own Resonant Shell conversion takes
+  precedence when both are present.
 
 Trigger and per-combatant talent storage retain value semantics through copy-on-write. Read accessors
 borrow stored fields instead of copying the complete trigger set onto the stack;
@@ -123,6 +146,11 @@ with sparse samples or omitted modes does not establish balance. Increase
 `--samples`, confirm across seeds, and use `--policy-compare` to check whether an
 identity finding depends on autoplay choices. Durations are battle rounds, not
 wall-clock seconds or animation timings.
+
+Talent contrasts include every authored row. A focused node is compared with
+its sibling when present, or with the same prerequisite build without that node
+for a single-node row. Reordered nodes use their current positions for legality;
+tiers without enough talent points are skipped rather than given illegal builds.
 
 ## Adding a new effect
 

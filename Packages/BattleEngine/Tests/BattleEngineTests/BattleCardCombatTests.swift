@@ -386,3 +386,26 @@ struct BattleCardCombatTests {
         try #expect(battle.drawAndPlayDepth == 0)
     }
 }
+
+extension BattleCardCombatTests {
+    @Test func `enemy resumes basic attacks after an unaffordable health cost skill`() throws {
+        let enemy = try #require(GameContent.enemy(matching: "necromancer")).combatant
+        var context = BattleStateTestFactory.makeBattle(enemy: enemy)
+        context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 1 }
+
+        for _ in 0 ..< 2 {
+            let events = BattleCardCombatEngine.resolveEnemyTurn(context: &context)
+            #expect(events.contains { $0.kind == .ability && $0.abilityTier == .basic })
+        }
+        let skippedEvents = BattleCardCombatEngine.resolveEnemyTurn(context: &context)
+
+        #expect(skippedEvents.isEmpty)
+        #expect(context.roster.enemy.currentHealth == 1)
+        #expect(context.roster.enemy.actionCount == 3)
+
+        let resumedEvents = BattleCardCombatEngine.resolveEnemyTurn(context: &context)
+
+        #expect(resumedEvents.contains { $0.kind == .ability && $0.abilityID == Ability.rendingSlash.id })
+        #expect(context.roster.enemy.actionCount == 4)
+    }
+}

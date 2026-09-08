@@ -33,6 +33,7 @@ enum AbilityCatalogSkill {
                 targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))],
             ),
         ],
+        stealsGold: true,
     )
 
     static let briarShield = Ability(
@@ -172,6 +173,7 @@ enum AbilityCatalogSkill {
         id: "steal", name: "Steal", tier: .skill,
         damageComponents: [DamageComponent(2, keyword: .physical)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
+        stealsGold: true,
     )
 
     static let stoneskinPotion = AbilityBuilder.buffOnly(
@@ -193,6 +195,7 @@ enum AbilityCatalogSkill {
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .holy)]),
             AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)]),
         ],
+        stealsGold: true,
     )
 
     static let venomFangs = AbilityBuilder.directHit(

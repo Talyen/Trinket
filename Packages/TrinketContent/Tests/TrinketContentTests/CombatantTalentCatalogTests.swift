@@ -3,6 +3,28 @@ import TrinketCore
 @testable import TrinketContent
 
 struct CombatantTalentCatalogTests {
+    @Test(arguments: [
+        ("wildcard", Keyword.dodge, "wildcard_dodge_t3_2", "wildcard_dodge_t1_1", 3),
+        ("druid", .health, "druid_health_t2_2", "druid_health_t1_1", 2),
+        ("druid", .mana, "druid_mana_t2_2", "druid_mana_t1_1", 2),
+    ])
+    func `talent positions can move without changing identity or row prerequisites`(
+        combatantID: String, keyword: Keyword, introductoryID: String, laterID: String, laterRow: Int,
+    ) throws {
+        let tree = try #require(CombatantTalentCatalog.config(for: combatantID).tree(for: keyword))
+        let introductory = try #require(tree.nodes.first { $0.id == introductoryID })
+        let later = try #require(tree.nodes.first { $0.id == laterID })
+        #expect(introductory.row == 1)
+        #expect(later.row == laterRow)
+        #expect(tree.nodes(forRow: 1).first?.id == introductoryID)
+        #expect(tree.nodes(forRow: laterRow).last?.id == laterID)
+        #expect(tree.canUnlock(node: introductory, unlockedNodeIDs: [], availablePoints: 1))
+        #expect(!tree.canUnlock(node: later, unlockedNodeIDs: [], availablePoints: 1))
+        let prerequisites = Set(tree.nodes.filter { $0.row < laterRow }.map(\.id))
+        #expect(tree.canUnlock(node: later, unlockedNodeIDs: prerequisites, availablePoints: 1))
+        #expect(CombatantTalentCatalog.effect(for: introductoryID)?.name == introductory.name)
+    }
+
     @Test func `all combatants have three keywords and contiguous authored rows`() {
         let combatants = GameContent.heroes + GameContent.companions
         for combatant in combatants {

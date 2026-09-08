@@ -179,22 +179,7 @@ package extension DamagePipeline {
     ) {
         let wards = onHitWardTotals(from: context.roster.activeEffects(for: state.combatant))
 
-        if wards.thornsStacks > 0 {
-            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-                if case .thorns = $0 {
-                    return true
-                }
-                return false
-            }
-            appendRetaliationDamage(
-                amount: wards.thornsStacks,
-                keyword: context.modifiers(for: state.combatant.id).triggers.resonantShell ? .stun : .physical,
-                abilityName: "Thorns",
-                attacker: attacker,
-                to: &state,
-                in: &context,
-            )
-        }
+        applyThornsRetaliation(amount: wards.thornsStacks, attacker: attacker, to: &state, in: &context)
 
         for (keyword, amount) in wards.onHitDamage.sorted(by: { $0.key.rawValue < $1.key.rawValue }) where amount > 0 {
             ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
@@ -228,6 +213,42 @@ package extension DamagePipeline {
             sourceActorID: state.combatant.id,
             in: &context,
         ))
+    }
+
+    private static func applyThornsRetaliation(
+        amount: Int,
+        attacker: CombatantRuntime,
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard amount > 0 else { return }
+        ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
+            if case .thorns = $0 {
+                return true
+            }
+            return false
+        }
+        let keyword: Keyword = if context.modifiers(for: state.combatant.id).triggers.resonantShell {
+            .stun
+        } else if state.combatant.role == .companion, context.roster.hero.isAlive, context.heroModifiers.triggers.thornShedding {
+            .poison
+        } else {
+            .physical
+        }
+        appendRetaliationDamage(
+            amount: amount,
+            keyword: keyword,
+            abilityName: "Thorns",
+            attacker: attacker,
+            to: &state,
+            in: &context,
+        )
+        if keyword == .poison {
+            state.damageEvents.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison, potency: amount, to: attacker.combatant,
+                sourceActorID: state.combatant.id, dealImmediateDamage: false, suppressAffixReactions: true,
+            ))
+        }
     }
 
     private static func appendRetaliationDamage(

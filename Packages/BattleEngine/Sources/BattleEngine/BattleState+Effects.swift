@@ -48,7 +48,8 @@ package extension BattleState {
         abilityName: String,
         applyOutgoingAdjustment: Bool = true,
     ) -> BlockGain {
-        if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self) {
+        if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self)
+            || CombatTriggerEngine.preventsPurgedEffect(.shield(.block, amount), on: target, in: self) {
             return BlockGain(applied: 0, events: [])
         }
         let (keyword, buffer): (Keyword, Int)
@@ -102,7 +103,8 @@ package extension BattleState {
         remainingTurns: Int,
         at index: Int? = nil,
     ) {
-        guard !interceptDebuff(effect, on: target) else { return }
+        guard !CombatTriggerEngine.preventsPurgedEffect(effect, on: target, in: self),
+              !interceptDebuff(effect, on: target) else { return }
         let effectID = consumeNextEffectID()
         let activeEffect = ActiveEffect(
             id: effectID,

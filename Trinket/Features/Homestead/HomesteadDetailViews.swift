@@ -25,7 +25,9 @@ struct HomesteadNodeDetailView: View {
     @State private var sheet: HomesteadDetailSheet?
     @State private var purchaseCommitted = false
     @State private var pendingCelebration = false
+    @State private var purchasePresentation: HomesteadPurchasePresentation?
     @State private var celebrationCount = 0
+    @State private var celebrationGeneration = 0
     @State private var buildErrorTrigger = 0
 
     let definition: HomesteadNodeDefinition
@@ -52,7 +54,6 @@ struct HomesteadNodeDetailView: View {
                 .allowsHitTesting(false)
 
                 VStack(spacing: TrinketDesign.Spacing.large) {
-                    navigationControls
                     buildingIdentity
                     Spacer(minLength: TrinketDesign.Spacing.large)
                     benefitsPanel
@@ -63,7 +64,12 @@ struct HomesteadNodeDetailView: View {
                 .padding(.top, TrinketDesign.Spacing.small)
             }
         }
-        .toolbar(.hidden, for: .navigationBar, .tabBar)
+        .toolbar(.visible, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { navigationControls }
+        .tint(TrinketDesign.Colors.accent)
         .navigationBarBackButtonHidden()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
@@ -86,15 +92,16 @@ struct HomesteadNodeDetailView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
-                pendingCelebration = false
+                cancelCelebration()
             }
         }
         .onAppear {
             AppFramePacingSignposts.event(AppFramePacingSignposts.Name.navigationPush, detail: "homestead=\(definition.id)")
         }
+        .task(id: celebrationGeneration) { await celebratePurchase() }
         .task(id: artworkPinKey) { await refreshArtworkPins() }
         .onDisappear {
-            pendingCelebration = false
+            cancelCelebration()
             PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
             pinnedArtwork = []
         }
@@ -111,19 +118,21 @@ struct HomesteadNodeDetailView: View {
         }
     }
 
-    private var navigationControls: some View {
-        HStack {
+    @ToolbarContentBuilder
+    private var navigationControls: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
             Button { dismiss() } label: {
                 Label("Back", systemImage: "chevron.left")
-                    .labelStyle(.iconOnly)
             }
-            .trinketIconButton(accessibilityIdentifier: AccessibilityID.Homestead.backButton)
-            Spacer()
+            .labelStyle(.iconOnly)
+            .accessibilityIdentifier(AccessibilityID.Homestead.backButton)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
             Button { sheet = .wallet } label: {
                 Label("Resources", systemImage: "bag")
-                    .labelStyle(.iconOnly)
             }
-            .trinketIconButton(accessibilityIdentifier: AccessibilityID.Homestead.walletButton)
+            .labelStyle(.iconOnly)
+            .accessibilityIdentifier(AccessibilityID.Homestead.walletButton)
         }
     }
 
@@ -134,7 +143,7 @@ struct HomesteadNodeDetailView: View {
                 .multilineTextAlignment(.center)
                 .trinketOnArtText()
             HomesteadTierProgress(
-                currentTier: status.currentTier,
+                currentTier: purchasePresentation?.displayedTierNumber ?? status.currentTier,
                 totalTiers: definition.maxTier,
                 celebrationCount: celebrationCount,
             )
@@ -153,17 +162,18 @@ struct HomesteadNodeDetailView: View {
 
     private var panelContent: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            if let tier = status.currentStage ?? status.nextTier {
-                if status.currentStage == nil {
-                    Text("Build benefits")
-                        .trinketTypography(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                HomesteadBenefitsView(tier: tier, effectsIdentifier: AccessibilityID.Homestead.currentEffects)
+            if let tier = purchasePresentation?.displayedTier ?? status.currentStage ?? status.nextTier {
+                HomesteadBenefitsView(
+                    tier: tier,
+                    effectsIdentifier: AccessibilityID.Homestead.currentEffects,
+                    highlightedEffects: purchasePresentation?.highlightedEffects ?? [],
+                    highlightsProduction: purchasePresentation?.highlightsProduction ?? false,
+                )
             }
             if !status.isComplete {
                 Button {
                     guard let nextTier = status.nextTier else { return }
+                    cancelCelebration()
                     purchaseCommitted = false
                     sheet = .improvement(nextTier.tier)
                 } label: {
@@ -202,8 +212,10 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func buildOrUpgrade(_ expectedTier: Int) {
-        guard !purchaseCommitted, status.nextTier?.tier == expectedTier else { return }
+        guard !purchaseCommitted, let nextTier = status.nextTier, nextTier.tier == expectedTier else { return }
+        let presentation = HomesteadPurchasePresentation(previousTier: status.currentStage, targetTier: nextTier)
         build.perform(definition, saveStore: playerSave) { _ in
+            purchasePresentation = presentation
             purchaseCommitted = true
             pendingCelebration = true
             sheet = nil
@@ -212,8 +224,59 @@ struct HomesteadNodeDetailView: View {
 
     private func finishSheetDismissal() {
         if pendingCelebration, scenePhase == .active {
+            purchasePresentation?.displayedTierNumber = status.currentTier
             celebrationCount &+= 1
+            celebrationGeneration &+= 1
         }
         pendingCelebration = false
+    }
+
+    private func celebratePurchase() async {
+        guard celebrationCount > 0, purchasePresentation != nil else { return }
+        do {
+            try await Task.sleep(for: .seconds(HomesteadMotion.segmentDuration))
+            guard !Task.isCancelled, scenePhase == .active, purchasePresentation != nil else { return }
+            withAnimation(HomesteadMotion.valueReveal) {
+                purchasePresentation?.revealValues()
+            }
+            try await Task.sleep(for: .seconds(HomesteadMotion.valueHighlightDuration))
+            guard !Task.isCancelled, purchasePresentation != nil else { return }
+            withAnimation(HomesteadMotion.valueSettle) {
+                purchasePresentation = nil
+            }
+        } catch {
+            return
+        }
+    }
+
+    private func cancelCelebration() {
+        pendingCelebration = false
+        purchasePresentation = nil
+        celebrationGeneration &+= 1
+    }
+}
+
+private struct HomesteadPurchasePresentation {
+    let previousTier: HomesteadNodeTier?
+    let targetTier: HomesteadNodeTier
+    var displayedTier: HomesteadNodeTier
+    var displayedTierNumber: Int
+    var highlightedEffects: Set<HomesteadEffectLine.Key> = []
+    var highlightsProduction = false
+
+    init(previousTier: HomesteadNodeTier?, targetTier: HomesteadNodeTier) {
+        self.previousTier = previousTier
+        self.targetTier = targetTier
+        displayedTier = previousTier ?? targetTier
+        displayedTierNumber = previousTier?.tier ?? 0
+    }
+
+    mutating func revealValues() {
+        let previous = previousTier.map(HomesteadEffectLine.lines(for:)) ?? []
+        highlightedEffects = Set(HomesteadEffectLine.lines(for: targetTier).filter { line in
+            line.resource == nil && !previous.contains { $0.id == line.id && $0.value == line.value }
+        }.map(\.id))
+        highlightsProduction = (targetTier.production?.quantity ?? 0) > (previousTier?.production?.quantity ?? 0)
+        displayedTier = targetTier
     }
 }

@@ -182,38 +182,21 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(poisoned)
     }
 
-    @Test func `blinding light applies evade to target not attacker`() {
+    @Test func `blinding light stores the strongest reduction from resolved holy hits`() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(holyDamageTargetMissNextAttack: true),
+                damage: DamageTriggers(criticalChanceBonus: -1), mitigation: MitigationTriggers(blindingLight: true),
             )),
         )
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1,
-            target: battle.roster.enemy.combatant,
-            keyword: .holy,
-            sourceActorID: battle.roster.hero.id,
-            options: DamageOptions(
-                applyStatBonus: false,
-                applyItemBonus: false,
-                applyDodge: false,
-                isAttackHit: true,
-            ),
-        ))
-        let enemyHasEvade = battle.roster.activeEffects(for: battle.roster.enemy.combatant).contains {
-            if case .evadeNextHit = $0.effect {
-                return true
-            }
-            return false
+        battle.appliesFightPacing = false
+        for amount in [6, 2, 4] {
+            _ = battle.resolveDamage(DamageRequest(
+                amount: amount, target: battle.enemy, keyword: .holy, sourceActorID: battle.hero.id,
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false, isAttackHit: true),
+            ))
+            #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction == 3)
         }
-        let heroHasEvade = battle.roster.activeEffects(for: battle.roster.hero.combatant).contains {
-            if case .evadeNextHit = $0.effect {
-                return true
-            }
-            return false
-        }
-        #expect(enemyHasEvade)
-        #expect(!heroHasEvade)
+        #expect(!battle.roster.activeEffects(for: battle.enemy).contains { $0.effect == .evadeNextHit })
     }
 
     @Test func `pinning strike and paralytic poison require living owner`() {

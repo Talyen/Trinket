@@ -12,6 +12,8 @@ public struct CombatantRuntime: Hashable {
     public struct TalentState: Equatable, Hashable, Sendable {
         var healingEchoes: [HealingEcho] = []
         var cleansedKeywordProtection: Set<Keyword> = []
+        var purgedEffectProtection: Set<EffectKind> = []
+        var subzeroMistActive = false
         public var talentMaxHealthBonus: Int = 0
         public var permanentDamageBonus: Int = 0
         public var keywordDamageRamp: [Keyword: Int] = [:]
@@ -49,6 +51,7 @@ public struct CombatantRuntime: Hashable {
         public init() {}
 
         mutating func resetForNewTurn(currentTurn: Int) {
+            subzeroMistActive = false
             if bonusDodgeExpiresAtTurn == 0 || currentTurn >= bonusDodgeExpiresAtTurn {
                 bonusDodgeUntilNextTurn = 0
                 bonusDodgeExpiresAtTurn = 0

@@ -12,10 +12,17 @@ package extension BattleState {
         _ amount: Int,
         to combatant: Combatant,
         abilityName: String,
+        isTheft: Bool = false,
+        isDirectCardGain: Bool = false,
     ) -> [ActionEvent] {
-        let granted = goldGranted(for: amount, sourceActorID: combatant.id)
+        let baseGold = goldGranted(for: amount, sourceActorID: combatant.id)
+        let critical = baseGold > 0 && isDirectCardGain && CombatTriggerEngine.heroCardGoldCritical(source: combatant, in: &self)
+        let granted = baseGold * (critical ? 2 : 1)
         let previousEarned = max(0, gold - initialGold)
         gold += granted
+        if isTheft, granted > 0, modifiers(for: combatant.id).triggers.gildedClaws {
+            heroTalents.history[combatant.id, default: HeroTalentHistory()].stolenGoldDamage += granted
+        }
         UniqueCombatEngine.gainedGold(granted, by: combatant, in: &self)
         let currentEarned = max(0, gold - initialGold)
         var events = [nextEvent(
@@ -26,6 +33,7 @@ package extension BattleState {
             target: combatant,
             amount: granted,
             keyword: .gold,
+            isCritical: critical,
         )]
         events.append(contentsOf: CombatTriggerEngine.healSelfAfterGoldGain(
             source: combatant,

@@ -41,10 +41,6 @@ extension CombatTriggerEngine {
             .playSerial ?? -1
         context.heroTalents.history[actor.id, default: HeroTalentHistory()].lastDamageKeywords = keywords
         context.heroTalents.history[actor.id, default: HeroTalentHistory()].lastGrantedGold = false
-        context.heroTalents.history[actor.id, default: HeroTalentHistory()].tiers.insert(resolved.tier)
-        if keywords.contains(.poison) {
-            context.heroTalents.history[actor.id, default: HeroTalentHistory()].playedPoison = true
-        }
         if keywords.contains(.stun) {
             context.heroTalents.history[actor.id, default: HeroTalentHistory()].playedStun = true
         }
@@ -57,9 +53,15 @@ extension CombatTriggerEngine {
     }
 
     static func finishHeroCard(actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
-        guard let card = context.heroTalents.cards.popLast() else { return [] }
+        var events: [ActionEvent] = []
+        if context.roster.health(for: actor) > 0, context.heroTalents.cards.last?.preparations.contains(.stealGold) == true {
+            events.append(contentsOf: context.grantGoldEvent(
+                2, to: actor, abilityName: "Paid in Full", isTheft: true, isDirectCardGain: true,
+            ))
+        }
+        guard let card = context.heroTalents.cards.popLast() else { return events }
         guard context.roster.health(for: actor) > 0 else { return [] }
-        var events = heroPoisonCard(card, actor: actor, in: &context)
+        events.append(contentsOf: heroPoisonCard(card, actor: actor, in: &context))
         events.append(contentsOf: heroRestorationCard(card, actor: actor, in: &context))
         events.append(contentsOf: heroFortuneCard(card, actor: actor, in: &context))
         var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
@@ -68,21 +70,16 @@ extension CombatTriggerEngine {
             history.lastGrantedGold = card.grantedGold
         }
         history.tiers.insert(card.tier)
-        history.playedPoison = history.playedPoison || card.damageKeywords.contains(.poison)
-        history.restoredHealth = history.restoredHealth || card.restoredHealth
         history.playedStun = history.playedStun || card.damageKeywords.contains(.stun)
         history.preparedHeal = history.preparedHeal || card.preparedHeal
         context.heroTalents.history[actor.id] = history
-        for targetID in card.preparedBlockIgnore {
-            context.heroTalents.history[targetID, default: HeroTalentHistory()].preparedBlockIgnore = true
-        }
-        for targetID in card.preparedCoin {
-            context.heroTalents.history[targetID, default: HeroTalentHistory()].preparedCoin = true
-        }
         let triggers = context.modifiers(for: actor.id).triggers
-        if triggers.fullHouse, history.tiers.count == 3,
-           context.claimHeroTalent("fullHouse", actorID: actor.id) {
-            events.append(contentsOf: heroTalentGold(to: actor, name: "Full House", in: &context))
+        if triggers.fullHouse, history.tiers.count == 3 {
+            context.heroTalents.history[actor.id, default: HeroTalentHistory()].tiers = []
+            events.append(contentsOf: heroTalentGold(to: actor, amount: 5, name: "Full House", in: &context))
+            if let owner = context.roster.participant(for: actor) {
+                events.append(contentsOf: drawCards(1, for: owner, actor: actor, abilityName: "Full House", in: &context))
+            }
         }
         return events
     }
@@ -97,10 +94,6 @@ extension CombatTriggerEngine {
         }
         if triggers.safeHandling, context.claimHeroTalent("safeHandling", actorID: actor.id) {
             context.removeTalentPoint(.burn, from: actor)
-        }
-        if triggers.unstableCulture, context.claimHeroTalent("unstableCulture", actorID: actor.id),
-           BattleChance.succeeds(probability: 0.25, using: &context.rng) {
-            events.append(contentsOf: heroTalentDamage(.burn, source: actor, in: &context))
         }
         if triggers.livingBark, context.hasTalentStatus(.thorns, on: actor),
            context.claimHeroTalent("livingBark", actorID: actor.id) {
@@ -155,13 +148,6 @@ extension CombatTriggerEngine {
                 events.append(contentsOf: heroTalentThorns(to: companion, source: actor, name: "Living Conduit", in: &context))
             }
         }
-        for targetID in card.gainedThornsOn.sorted() {
-            if context.modifiers(for: targetID).triggers.thornShedding,
-               let target = context.roster.combatant(for: targetID), target.isAlive,
-               context.claimHeroTalent("thornShedding", actorID: targetID) {
-                context.removeTalentPoint(.poison, from: target.combatant)
-            }
-        }
         return events
     }
 
@@ -189,10 +175,8 @@ extension CombatTriggerEngine {
             if triggers.luckyCharm, context.claimHeroTalent("luckyCharm", actorID: actor.id) {
                 context.removeTalentPoint(.poison, from: actor)
             }
-            if triggers.sleightOfCoin, context.heroTalents.history[actor.id]?.preparedCoin == true,
-               context.claimHeroTalent("sleightOfCoin", actorID: actor.id) {
-                context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparedCoin = false
-                context.removeTalentPoint(.thorns, from: context.roster.enemy.combatant)
+            if triggers.paidInFull {
+                context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparations.insert(.stealGold)
             }
         }
         if card.tier == .skill, triggers.luckyBreak, context.claimHeroTalent("luckyBreak", actorID: actor.id) {
