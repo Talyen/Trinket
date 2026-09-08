@@ -39,7 +39,8 @@ public final class EncounterPlayMode {
     func beginShopEncounter(
         origin: PlayEncounterOrigin,
     ) -> ShopEncounterOpenResult {
-        guard canBeginTransientEncounter else { return .unavailable }
+        guard playerSave.encounterAccessRestriction(for: origin) == nil,
+              canBeginTransientEncounter else { return .unavailable }
 
         let nodeEffects = origin.labyrinthNodeID.map {
             playerSave.labyrinth.effects(for: $0)

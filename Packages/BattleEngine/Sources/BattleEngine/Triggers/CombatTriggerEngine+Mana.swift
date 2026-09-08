@@ -120,35 +120,10 @@ package extension CombatTriggerEngine {
             }
         }
 
-        let cocoonMet = triggers.spendManaThresholdBlockThreshold > 0
-            && amountSpent >= triggers.spendManaThresholdBlockThreshold
-        if cocoonMet, context.claimActionGuard(.spendCocoon, actorID: actor.id) {
-            if triggers.spendManaThresholdBlockBlock > 0 {
-                events.append(contentsOf: context.applyBlock(
-                    triggers.spendManaThresholdBlockBlock,
-                    to: actor,
-                    source: actor,
-                    abilityName: triggerAbilityName(
-                        "spendManaThresholdBlockThreshold",
-                        for: actor,
-                        fallback: "Mana Cocoon",
-                        in: context,
-                    ),
-                ))
-            }
-            if triggers.spendManaThresholdBlockHealth > 0 {
-                events.append(contentsOf: context.healEmitting(
-                    amount: triggers.spendManaThresholdBlockHealth,
-                    target: actor,
-                    source: actor,
-                    abilityName: triggerAbilityName(
-                        "spendManaThresholdBlockThreshold",
-                        for: actor,
-                        fallback: "Mana Cocoon",
-                        in: context,
-                    ),
-                ))
-            }
+        if triggers.spendManaGrantsEqualBlock, amountSpent > 0 {
+            events.append(contentsOf: context.applyBlock(
+                amountSpent, to: actor, source: actor, abilityName: "Mana Cocoon",
+            ))
         }
         let overchargeMet = triggers.spendManaEmpowerNextCardThreshold > 0
             && amountSpent >= triggers.spendManaEmpowerNextCardThreshold
@@ -159,33 +134,21 @@ package extension CombatTriggerEngine {
                 }
             }
         }
-        let cleanseMet = triggers.spendManaThresholdCleanseCount > 0
-            && amountSpent >= triggers.spendManaThresholdCleanseCount
-        if cleanseMet, context.claimActionGuard(.spendCleanse, actorID: actor.id) {
-            events.append(contentsOf: performRandomCleanses(
-                source: actor,
-                target: actor,
-                count: 1,
-                abilityName: triggerAbilityName(
-                    "spendManaThresholdCleanseCount",
-                    for: actor,
-                    fallback: "Arcane Cleansing",
-                    in: context,
-                ),
-                in: &context,
-            ))
+        if triggers.spendManaRemovesAfflictions, amountSpent > 0 {
+            let keywords = [Keyword.burn, .poison].filter { keyword in
+                context.roster.activeEffects(for: actor).contains { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }
+            }
+            if let keyword = keywords.randomElement(using: &context.rng) {
+                _ = DoTApplicator.consume(keyword, upTo: amountSpent, on: actor, in: &context)
+            }
         }
-        let chaosRiftMet = triggers.spendManaChaosRiftThreshold > 0
-            && amountSpent >= triggers.spendManaChaosRiftThreshold
-            && triggers.spendManaChaosRiftDamage > 0
-            && context.roster.enemy.isAlive
-        if chaosRiftMet, context.claimActionGuard(.spendChaosRift, actorID: actor.id) {
-            let half = triggers.spendManaChaosRiftDamage / 2
+        if triggers.spendManaRandomElementDamage, amountSpent > 0, context.roster.enemy.isAlive {
             let keywords = [Keyword.freeze, .burn, .poison, .holy].shuffled(using: &context.rng)
-            for keyword in keywords.prefix(2) {
+            let amounts = [amountSpent / 2 + amountSpent % 2, amountSpent / 2]
+            for (keyword, amount) in zip(keywords.prefix(2), amounts) where amount > 0 {
                 events.append(contentsOf: context.resolveDamage(
                     DamageRequest(
-                        amount: half,
+                        amount: amount,
                         target: context.roster.enemy.combatant,
                         keyword: keyword,
                         sourceActorID: actor.id,

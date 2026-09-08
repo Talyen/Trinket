@@ -73,6 +73,7 @@ struct StageSelectCompletionPanel: View {
 @MainActor
 struct StageSelectPrepareDependency: Equatable {
     let runKey: String
+    let contentAccess: ContentAccessPolicy
     let roster: PlayerRosterState
     let inventory: PlayerInventoryState
     let homestead: PlayerHomesteadState
@@ -112,6 +113,7 @@ struct StageSelectPrepareDependency: Equatable {
         stageRewardsAlreadyClaimed: Bool = false,
     ) {
         self.runKey = runKey
+        contentAccess = playerSave.contentAccess
         roster = playerSave.roster
         inventory = playerSave.inventory
         homestead = playerSave.homestead
@@ -164,9 +166,12 @@ struct ChapterStageSelectView: View {
                 if isCampaignComplete {
                     campaignCompletionState
                 } else {
+                    if !playerSave.contentAccess.allowsChapter(chapter.number) {
+                        FullGameBoundaryView(title: chapter.title, origin: .campaign(chapter: chapter.number))
+                    }
                     StageSelectList(
                         rows: stageRows,
-                        isPrimaryActionDisabled: { _ in false },
+                        isPrimaryActionDisabled: { _ in !playerSave.contentAccess.allowsChapter(chapter.number) },
                         onArtworkTap: onEnemyTap,
                         onPrimaryAction: handlePrimaryAction,
                         artwork: { stage, isActive in

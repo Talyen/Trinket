@@ -1,29 +1,30 @@
 {
-  "configurations" : [
+  "configurations": [
     {
-      "id" : "E553A354-9EE9-47F1-8B41-26ED7EF6771F",
-      "name" : "Default Configuration",
-      "options" : {}
+      "id": "E553A354-9EE9-47F1-8B41-26ED7EF6771F",
+      "name": "Default Configuration",
+      "options": {}
     }
   ],
-  "defaultOptions" : {
-    "testExecutionOrdering" : "alphabetical"
+  "defaultOptions": {
+    "testExecutionOrdering": "alphabetical"
   },
-  "testTargets" : [
+  "testTargets": [
     {
-      "automaticallyIncludesTests" : false,
-      "selectedTests" : [
+      "automaticallyIncludesTests": false,
+      "selectedTests": [
         "SmokeBattleTests",
         "SmokeShellTests",
         "SmokeShopTests",
-        "StarterOnboardingSmokeTests"
+        "StarterOnboardingSmokeTests",
+        "FullGamePurchaseSmokeTests"
       ],
-      "target" : {
-        "containerPath" : "container:Trinket.xcodeproj",
-        "identifier" : "2B112CD93B7BA74516E26AC2",
-        "name" : "TrinketUITests"
+      "target": {
+        "containerPath": "container:Trinket.xcodeproj",
+        "identifier": "2B112CD93B7BA74516E26AC2",
+        "name": "TrinketUITests"
       }
     }
   ],
-  "version" : 1
+  "version": 1
 }

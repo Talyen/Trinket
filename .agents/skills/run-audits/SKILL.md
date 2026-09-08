@@ -52,7 +52,10 @@ union of changed and deleted paths. Do not duplicate the full gate across worker
 
 Use [the audit policy](../../../Docs/Audits/README.md) for proposal recording,
 accepted non-findings, and actual review coverage. Check remedies against [Testing.md](../../../Docs/Platform/Testing.md) and the root change discipline;
-a green gate does not justify unnecessary abstractions or tests.
+a green gate does not justify unnecessary abstractions or tests. Consider deletion,
+consolidation, strengthening, or moving existing coverage before adding cases. Apply
+Testing.md's retirement rules and report meaningful coverage tradeoffs, including
+any distinct coverage deliberately retired without replacement.
 
 Report fixed findings by audit, zero-finding audits, pending proposals, verification
 results, actual scope (including any incremental range), and any skips or blockers.

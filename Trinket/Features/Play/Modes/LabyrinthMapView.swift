@@ -11,6 +11,7 @@ struct LabyrinthMapView: View {
     private static let inspectorScrollClearance: CGFloat = 360
 
     @Environment(LabyrinthPlayMode.self) private var labyrinth
+    @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @State private var nodeMessage: StageMapMessage?
@@ -57,7 +58,7 @@ struct LabyrinthMapView: View {
             if enteredMap, let message = labyrinth.enter() {
                 nodeMessage = message
             }
-            viewedFloor = max(1, state.currentFloorNumber)
+            viewedFloor = accessibleFloor(state.currentFloorNumber)
             if !enteredMap {
                 labyrinth.prepareReachableBattles()
             }
@@ -65,7 +66,7 @@ struct LabyrinthMapView: View {
         .onChange(of: playerSave.labyrinth) { previous, current in
             if current.currentFloorNumber > previous.currentFloorNumber {
                 selectedNodeID = nil
-                showFloor(current.currentFloorNumber)
+                showFloor(accessibleFloor(current.currentFloorNumber))
             } else if let selectedNodeID, current.node(id: selectedNodeID)?.isCleared == true {
                 self.selectedNodeID = nil
             }
@@ -73,19 +74,44 @@ struct LabyrinthMapView: View {
         .onChange(of: StageSelectPrepareDependency.labyrinth(playerSave: playerSave)) { _, _ in
             labyrinth.prepareReachableBattles()
         }
+        .safeAreaInset(edge: .bottom) {
+            if state.currentFloorNumber > ContentAccessPolicy.freeLabyrinthFloorCount, !playerSave.contentAccess.hasFullGame,
+               selectedNode == nil {
+                FullGameBoundaryView(
+                    title: "Continue to Floor \(ContentAccessPolicy.freeLabyrinthFloorCount + 1)",
+                    origin: .labyrinth(floor: ContentAccessPolicy.freeLabyrinthFloorCount + 1),
+                )
+                .trinketScreenBackground()
+            }
+        }
+        .onChange(of: playerSave.contentAccess) { _, access in
+            if !access.allowsLabyrinthFloor(viewedFloor) {
+                selectedNodeID = nil
+                viewedFloor = accessibleFloor(viewedFloor)
+            }
+        }
         .trinketMessageAlert($nodeMessage)
+    }
+
+    private func accessibleFloor(_ floor: Int) -> Int {
+        max(1, playerSave.contentAccess.hasFullGame ? floor : min(floor, ContentAccessPolicy.freeLabyrinthFloorCount))
     }
 
     private var floorMenu: some View {
         Menu {
             ForEach(floors) { floor in
                 Button {
-                    showFloor(floor.depthBand)
+                    if playerSave.contentAccess.allowsLabyrinthFloor(floor.depthBand) {
+                        showFloor(floor.depthBand)
+                    } else {
+                        requestOffer(.labyrinth(floor: floor.depthBand))
+                    }
                 } label: {
                     if floor.depthBand == viewedFloor {
                         Label("Floor \(floor.depthBand)", systemImage: "checkmark")
                     } else {
-                        Text("Floor \(floor.depthBand)")
+                        Text(playerSave.contentAccess
+                            .allowsLabyrinthFloor(floor.depthBand) ? "Floor \(floor.depthBand)" : "Floor \(floor.depthBand) · Full Game")
                     }
                 }
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthFloor(floor.depthBand))
@@ -106,7 +132,7 @@ struct LabyrinthMapView: View {
                 if let message = labyrinth.enter() {
                     nodeMessage = message
                 } else {
-                    viewedFloor = max(1, state.currentFloorNumber)
+                    viewedFloor = accessibleFloor(state.currentFloorNumber)
                 }
             }
             .frame(maxWidth: .infinity)

@@ -98,9 +98,10 @@ Explain routed change-budget warnings and the simpler rejected alternative under
 [AGENTS.md](../../AGENTS.md). Do not preserve redundant paths to avoid migration work.
 
 Verification does not require new tests. Use the coverage decision and semantic
-owners in [Testing.md](../Platform/Testing.md); preserve distinct consequential
-coverage and remove tests made redundant. Parameterization alone does not reduce
-expanded executions or prove that cases are interchangeable.
+owners and retirement rules in [Testing.md](../Platform/Testing.md). Consider
+consolidation, moving coverage, and justified retirement before additions; distinguish
+redundancy from distinct low-value cases retired without replacement. Parameterization
+alone does not reduce expanded executions or prove that cases are interchangeable.
 
 ### Verification and handoff
 

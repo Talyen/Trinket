@@ -1,0 +1,33 @@
+{
+  "identifier": "0D9A81ED-C24C-4B66-8CD9-4DC564583A16",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "4.99",
+      "familyShareable": true,
+      "internalID": "1000000001",
+      "localizations": [
+        {
+          "description": "All adventures and characters. One purchase.",
+          "displayName": "Full Game",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.ryanmcintire.Trinket.fullgame",
+      "referenceName": "Full Game",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_askToBuyEnabled": false,
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

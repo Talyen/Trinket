@@ -4,10 +4,7 @@ import TrinketCore
 
 public struct TalentActionGuardKey: Hashable, Sendable {
     public enum Kind: Hashable, Sendable {
-        case spendCocoon
         case spendOvercharge
-        case spendCleanse
-        case spendChaosRift
         case darkRecovery
         case arcaneBurst
         case surpriseStrike

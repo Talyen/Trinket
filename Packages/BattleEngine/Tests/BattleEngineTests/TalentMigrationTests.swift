@@ -379,24 +379,6 @@ struct TalentMigrationTests {
         #expect(!battle.withEngineContext { $0.primedRepeatKeywords.contains(Keyword.physical) })
     }
 
-    @Test func `bountyBlade crit grants gold and draw`() {
-        var battle = makeBattle(
-            heroTriggers: CombatTraitTriggers(gold: GoldTriggers(bountyBlade: true)),
-            heroAbilities: [.slash],
-        )
-        let goldBefore = battle.gold
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 10,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(guaranteedCritical: true, isAttackHit: true),
-            ))
-        }
-        #expect(battle.gold > goldBefore)
-    }
-
     @Test func `purifyingWaters cleanse heals per effect`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true)))
         battle.withEngineContext { ctx in

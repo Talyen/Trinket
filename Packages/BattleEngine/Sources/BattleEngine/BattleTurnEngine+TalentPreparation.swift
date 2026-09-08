@@ -18,6 +18,12 @@ extension BattleTurnEngine {
             action.goldDamage = context.heroTalents.cards.last?.gildedDamage ?? 0
             context.mutateHeroCard { $0.gildedDamage = 0 }
             prepareCardDamage(components: &components, effects: &effects, actor: actor, in: &context)
+            if ability.keywords.contains(.freeze), context.modifiers(for: actor.id).triggers.steamExplosion {
+                let burn = DoTApplicator.consume(.burn, on: context.roster.enemy.combatant, in: &context)
+                if burn > 0 {
+                    increaseCardDamage(burn, keyword: .freeze, components: &components)
+                }
+            }
         } else if ability.dealsCombatDamage {
             action.goldDamage = context.heroTalents.history[actor.id]?.stolenGoldDamage ?? 0
             context.heroTalents.history[actor.id, default: HeroTalentHistory()].stolenGoldDamage = 0

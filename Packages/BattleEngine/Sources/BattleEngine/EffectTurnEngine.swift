@@ -45,15 +45,10 @@ package enum EffectTurnEngine {
         context: inout BattleState,
     ) -> (events: [ActionEvent], updated: [ActiveEffect]) {
         var events: [ActionEvent] = []
-        var turnOutcomes: [Int: (updatedStack: ActiveEffect?, removeAfter: Bool)] = [:]
-
-        guard context.roster.health(for: target) > 0 else {
-            return (events, effects)
-        }
-
-        for activeEffect in effects {
+        for scheduledEffect in effects {
             guard context.roster.health(for: target) > 0 else { break }
-            guard context.roster.activeEffects(for: target).contains(where: { $0.id == activeEffect.id }) else { continue }
+            guard let activeEffect = context.roster.activeEffects(for: target).first(where: { $0.id == scheduledEffect.id })
+            else { continue }
             guard let handler = EffectHandlers.all[activeEffect.effect.kind] else {
                 logger.error(
                     "Missing effect handler for turn of \(String(describing: activeEffect.effect.kind), privacy: .public)",
@@ -62,32 +57,22 @@ package enum EffectTurnEngine {
             }
             let outcome = handler.advanceTurn(activeEffect, on: target, in: &context)
             events.append(contentsOf: outcome.events)
-            turnOutcomes[activeEffect.id] = (outcome.updatedStack, outcome.removeAfter)
-        }
-
-        var merged = context.roster.activeEffects(for: target)
-        if !turnOutcomes.isEmpty {
-            let originalByID = Dictionary(uniqueKeysWithValues: effects.map { ($0.id, $0) })
-            merged = merged.compactMap { activeEffect in
-                guard let outcome = turnOutcomes[activeEffect.id] else { return activeEffect }
-                if outcome.removeAfter {
-                    return nil
+            var currentEffects = context.roster.activeEffects(for: target)
+            guard let index = currentEffects.firstIndex(where: { $0.id == activeEffect.id }) else { continue }
+            if outcome.removeAfter {
+                currentEffects.remove(at: index)
+            } else if let updated = outcome.updatedStack {
+                currentEffects[index].remainingTurns = updated.remainingTurns
+                if currentEffects[index].sourceActorID == activeEffect.sourceActorID {
+                    currentEffects[index].sourceActorID = updated.sourceActorID
                 }
-                if let updated = outcome.updatedStack {
-                    var preserved = activeEffect
-                    preserved.remainingTurns = updated.remainingTurns
-                    preserved.sourceActorID = updated.sourceActorID
-                    if activeEffect.effect.kind == updated.effect.kind,
-                       activeEffect.effect == originalByID[activeEffect.id]?.effect {
-                        preserved.effect = updated.effect
-                    }
-                    return preserved
+                if currentEffects[index].effect == activeEffect.effect {
+                    currentEffects[index].effect = updated.effect
                 }
-                return activeEffect
             }
+            context.roster.setActiveEffects(currentEffects, for: target)
         }
-
-        return (events, merged)
+        return (events, context.roster.activeEffects(for: target))
     }
 
     private static func accelerateDebuffExpiration(_ effects: [ActiveEffect]) -> [ActiveEffect] {

@@ -84,15 +84,20 @@ package enum DoTApplicator {
         let alreadyBleeding = context.roster.activeEffects(for: effectTarget).contains(where: \.effect.isBleed)
         if alreadyBleeding {
             let sourceTriggers = context.modifiers(for: sourceActorID).triggers
-            if sourceTriggers.onBleedAppliedToBleedingExtendTurns > 0 {
-                var effects = context.roster.activeEffects(for: effectTarget)
-                for index in effects.indices where effects[index].effect.isBleed {
-                    effects[index].remainingTurns = min(
-                        5,
-                        effects[index].remainingTurns + sourceTriggers.onBleedAppliedToBleedingExtendTurns,
-                    )
+            if sourceTriggers.bleedApplicationTicksExisting {
+                let bleeds = context.roster.activeEffects(for: effectTarget).filter {
+                    $0.effect.isBleed && $0.remainingTurns > 0
                 }
-                context.roster.setActiveEffects(effects, for: effectTarget)
+                for bleed in bleeds {
+                    guard context.roster.health(for: effectTarget) > 0 else { break }
+                    collected.append(contentsOf: DoTDamage.resolveTurnDamage(
+                        basePotency: bleed.effect.potency ?? 0,
+                        keyword: .bleed,
+                        target: effectTarget,
+                        sourceActorID: bleed.sourceActorID ?? sourceActorID,
+                        in: &context,
+                    ).events)
+                }
             }
             if sourceTriggers.onBleedAppliedToBleedingDealDamage > 0 {
                 collected.append(contentsOf: DoTDamage.resolveTurnDamage(
@@ -119,6 +124,26 @@ package enum DoTApplicator {
             ))
         }
         return collected
+    }
+
+    static func consume(
+        _ keyword: Keyword,
+        upTo amount: Int = .max,
+        on target: Combatant,
+        in context: inout BattleState,
+    ) -> Int {
+        guard amount > 0 else { return 0 }
+        var remaining = amount
+        var effects = context.roster.activeEffects(for: target)
+        for index in effects.indices where effects[index].effect.keyword == keyword && effects[index].effect.isDecayingDoT {
+            let potency = effects[index].effect.potency ?? 0
+            let consumed = min(potency, remaining)
+            effects[index].effect = .decayingDoT(keyword: keyword, potency: potency - consumed)
+            remaining -= consumed
+        }
+        effects.removeAll { $0.effect.keyword == keyword && $0.effect.isDecayingDoT && $0.effect.potency == 0 }
+        context.roster.setActiveEffects(effects, for: target)
+        return amount - remaining
     }
 
     private static func goldenTouchPotency(

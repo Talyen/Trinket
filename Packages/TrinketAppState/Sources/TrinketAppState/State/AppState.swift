@@ -23,6 +23,8 @@ public final class AppState {
     public let sfxPlayer: SFXPlayer
     public var options: OptionsStore
     public let play: PlaySession
+    public let fullGame = FullGameStore()
+    var preparedContentAccess = ContentAccessPolicy.free
 
     private(set) var pendingCollectionPresentation: LaunchPresentation?
     public var selectedTab: AppTab {

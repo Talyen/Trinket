@@ -110,6 +110,11 @@ unrelated work to obtain a pass. If blocked, report the failed command, known
 cause, and remaining verification. Rerun affected checks after a fix; broaden
 verification only when the failure exposes another affected owner.
 
+Evidence-based test retirement follows [Testing.md](Testing.md#consolidation-and-retirement);
+it must not conceal a defect. Run the routed handoff for changed and deleted paths
+after pruning, including affected test registration. Verification requires evidence,
+not accompanying test-file edits for every production change.
+
 Read structured invocation reports before raw build logs. Use
 `./Scripts/ci-diagnostics.sh <results-dir>` to aggregate them and follow
 [CI diagnostics](../AgentContext/ci-diagnostics.md) for classification and

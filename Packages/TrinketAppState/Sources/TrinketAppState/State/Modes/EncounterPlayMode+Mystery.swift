@@ -26,6 +26,9 @@ public extension EncounterPlayMode {
         origin: PlayEncounterOrigin,
         forcedEventID: String? = nil,
     ) -> StageMapMessage? {
+        if let restriction = playerSave.encounterAccessRestriction(for: origin) {
+            return restriction
+        }
         guard canBeginTransientEncounter else { return nil }
 
         let inputs = mysteryPickInputs(origin: origin)
@@ -41,6 +44,10 @@ public extension EncounterPlayMode {
             pinnedLabyrinthEventID: pinnedLabyrinthEventID,
             pinnedJourneyEventID: pinnedJourneyEventID,
         )
+
+        if let id = opened.session.event.unlockCombatantID, !playerSave.contentAccess.allowsCombatant(id) {
+            return .fullGameRequired(.combatant(id))
+        }
 
         if let pinFailure = pinMysteryEventIfNeeded(
             origin: origin,
@@ -110,6 +117,10 @@ public extension EncounterPlayMode {
     @discardableResult
     func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
+        if let id = mysterySession.event.unlockCombatantID, !playerSave.contentAccess.allowsCombatant(id) {
+            mysterySession.markPersistFailed("This character requires Full Game. Progress is preserved.")
+            return false
+        }
         guard mysterySession.canResolveChoice else {
             mysterySession.markChoiceUnavailable()
             return false

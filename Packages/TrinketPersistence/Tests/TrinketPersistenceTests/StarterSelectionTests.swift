@@ -12,11 +12,13 @@ struct StarterSelectionTests {
     @Test(arguments: ["warlock", "alchemist", "druid", "wildcard"])
     @MainActor func `starter party survives reload`(heroID: String) throws {
         let firstStore = try context.makeSaveStore()
+        firstStore.contentAccess = .fullGame
 
         #expect(firstStore.starterSelection == .fresh)
         #expect(firstStore.confirmStarterHero(heroID))
 
         let resumedStore = try context.makeReloadedStore()
+        resumedStore.contentAccess = .fullGame
         #expect(
             resumedStore.starterSelection
                 == StarterSelectionState(phase: .chooseCompanion, heroID: heroID),

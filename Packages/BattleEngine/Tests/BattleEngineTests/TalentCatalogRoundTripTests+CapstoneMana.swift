@@ -112,4 +112,33 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.shield, on: .companion, in: battle) == 5)
         #expect(battle.gold == 6)
     }
+
+    @Test(arguments: [1, 2, 3, 5])
+    func `mana conversion talents use every payment including odd amounts`(amount: Int) {
+        var battle = capstoneBattle(hero: ["warlock_mana_t3_1"], companion: ["mana_moth_mana_t2_1"])
+        battle.roster.companion.currentHealth = 20
+        for payment in 1 ... 2 {
+            _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: amount, in: &battle)
+            _ = CombatTriggerEngine.afterSpendMana(by: battle.companion, amountSpent: amount, in: &battle)
+            #expect(battle.roster.enemy.currentHealth == 200 - amount * payment)
+            #expect(talentPoints(.shield, on: .companion, in: battle) == amount * payment)
+            #expect(battle.roster.companion.currentHealth == 20)
+        }
+    }
+
+    @Test(arguments: [Keyword.burn, .poison])
+    func `arcane cleansing spends its removal on an existing affliction`(keyword: Keyword) {
+        var battle = capstoneBattle(hero: ["wizard_mana_t2_2"])
+        seedHeroTalentEffect(.decayingDoT(keyword: keyword, potency: 6), on: .hero, in: &battle, source: .enemy)
+        seedHeroTalentEffect(.bleed(2), on: .hero, in: &battle, source: .enemy)
+        for (amount, remaining) in [(1, 5), (3, 2), (5, 0)] {
+            _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: amount, in: &battle)
+            let potency = battle.activeEffects(of: battle.hero).filter { $0.keyword == keyword }
+                .reduce(0) { $0 + ($1.effect.potency ?? 0) }
+            #expect(potency == remaining)
+        }
+        #expect(!battle.activeEffects(of: battle.hero).contains { $0.keyword == keyword })
+        #expect(talentPoints(.bleed, on: .hero, in: battle) == 2)
+        #expect(battle.roster.hero.currentHealth == 40)
+    }
 }

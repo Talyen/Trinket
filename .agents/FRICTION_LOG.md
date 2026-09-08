@@ -19,6 +19,8 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 
 | Date | Area | Resolution (commit / owner link) |
 |------|------|------------------------------------|
+| 2026-09-08 | UI launch lifecycle | [UI speed guidance](../TrinketUITests/README.md#speed) now states one launch per test: XCTest setup runs before each method, and explicit launches avoid replacing a setup-launched app when arguments differ. |
+| 2026-09-08 | Test portfolio value | [Testing policy](../Docs/Platform/Testing.md#consolidation-and-retirement) now permits justified retirement without replacement; aligned audit/local guidance and removed the [budget advisory](../Scripts/change-budget.sh) that treated absent test-file edits as a coverage signal. |
 | 2026-09-07 | Talent catalog coverage | The [test ownership index](../Packages/TrinketContent/Tests/README.md) described fixed six-node trees despite authored extra rows; it now records the completed minimum of seven nodes per tree. |
 | 2026-09-06 | Homestead save failure | [Save recovery](../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) compensates affected graph slices without SwiftData rollback; disk-backed Food collection, reset, deferred failure, and retry regressions pass. |
 | 2026-09-06 | UI result finalization | [Diagnostics guidance](../Docs/AgentContext/ci-diagnostics.md) documents log-proven success, incomplete bundles, evidence retention, and separate motion recording. Existing watchdog regressions verify bounded completion and failure precedence; the Xcode finalization hang remains a supported tooling limitation. |

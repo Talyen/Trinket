@@ -27,11 +27,8 @@ package extension CombatTriggerEngine {
                 in: &context,
             ).events)
         }
-        if triggers.onBleedDamagePoisonTick > 0 {
-            let poisonPotency = context.roster.activeEffects(for: target).reduce(0) { sum, active in
-                guard case let .poison(potency) = active.effect else { return sum }
-                return sum + potency
-            }
+        if triggers.bleedConsumesPoison, context.roster.health(for: target) > 0 {
+            let poisonPotency = DoTApplicator.consume(.poison, upTo: healthLost, on: target, in: &context)
             if poisonPotency > 0 {
                 events.append(contentsOf: DoTDamage.resolveTurnDamage(
                     basePotency: poisonPotency,

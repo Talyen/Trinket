@@ -56,7 +56,7 @@ work. Unrelated dirty work is never permission to overwrite it.
 
 ## Verify and hand off
 
-- Use [Testing.md](Docs/Platform/Testing.md) for consequential coverage in the cheapest owner; new tests are not automatic.
+- Prefer fewer, higher-value tests. Use [Testing.md](Docs/Platform/Testing.md) to justify additions and proactively consolidate, streamline, or retire tests within scope; evidence-based retirement needs no separate approval.
 - Run `./Scripts/handoff.sh --isolate --paths <file...>` for the union of requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification.md](Docs/Platform/Verification.md) owns gates, simulator limits, and failures.
 - Review the final diff for scope and generated consistency. Report results, verification, adopted fixes separately, and exact blockers/skips. Do not claim verified completion with unresolved required checks.
 

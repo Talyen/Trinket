@@ -3,10 +3,10 @@ import TrinketContent
 import TrinketCore
 
 public enum LabyrinthCompletion {
-    public static func enter(save: inout PlayerSave) {
+    public static func enter(save: inout PlayerSave, access: ContentAccessPolicy = .fullGame) {
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
-            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs,
+            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs(access: access),
         )
     }
 
@@ -58,8 +58,9 @@ public enum LabyrinthCompletion {
         loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
+        access: ContentAccessPolicy = .fullGame,
     ) {
-        let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
+        let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs(access: access)
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,

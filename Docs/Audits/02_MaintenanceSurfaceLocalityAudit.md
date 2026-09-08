@@ -24,8 +24,9 @@ A split is useful when it reduces unrelated context; a smaller file is not itsel
 
 Compare like artifacts and report a relevant before/after direction: touchpoints,
 prereads, duplicated facts, verification cost, or authored maintenance surface.
-Keep correctness coverage intact; do not narrow checks or suppress diagnostics
-without dependency and behavior evidence.
+Apply [Testing.md](../Platform/Testing.md#consolidation-and-retirement) when reducing
+test coverage; do not narrow checks or suppress diagnostics without dependency and
+behavior evidence.
 
 ## Boundaries
 

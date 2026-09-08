@@ -8,6 +8,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var lightFingered: Bool = false
     public var goldGainedNextHolyDamage: Bool = false
     public var gainGoldBonusHealSelf: Int = 0
+    public var defeatBleedingEnemyGold: Int = 0
     public var defeatEnemyGoldFlat: Int = 0
     public var leechGoldFlat: Int = 0
     public var goldPerTurn: Int = 0
@@ -41,6 +42,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         lightFingered: Bool = false,
         goldGainedNextHolyDamage: Bool = false,
         gainGoldBonusHealSelf: Int = 0,
+        defeatBleedingEnemyGold: Int = 0,
         defeatEnemyGoldFlat: Int = 0,
         leechGoldFlat: Int = 0,
         goldPerTurn: Int = 0,
@@ -73,6 +75,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.lightFingered = lightFingered
         self.goldGainedNextHolyDamage = goldGainedNextHolyDamage
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
+        self.defeatBleedingEnemyGold = defeatBleedingEnemyGold
         self.defeatEnemyGoldFlat = defeatEnemyGoldFlat
         self.leechGoldFlat = leechGoldFlat
         self.goldPerTurn = goldPerTurn
@@ -103,7 +106,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldDrawCardOncePerTurn", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak"]
+    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldDrawCardOncePerTurn", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -112,6 +115,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.lightFingered != other.lightFingered { names.append("lightFingered") }
         if self.goldGainedNextHolyDamage != other.goldGainedNextHolyDamage { names.append("goldGainedNextHolyDamage") }
         if self.gainGoldBonusHealSelf != other.gainGoldBonusHealSelf { names.append("gainGoldBonusHealSelf") }
+        if self.defeatBleedingEnemyGold != other.defeatBleedingEnemyGold { names.append("defeatBleedingEnemyGold") }
         if self.defeatEnemyGoldFlat != other.defeatEnemyGoldFlat { names.append("defeatEnemyGoldFlat") }
         if self.leechGoldFlat != other.leechGoldFlat { names.append("leechGoldFlat") }
         if self.goldPerTurn != other.goldPerTurn { names.append("goldPerTurn") }
@@ -149,6 +153,7 @@ extension GoldTriggers {
         lightFingered = lightFingered || other.lightFingered
         goldGainedNextHolyDamage = goldGainedNextHolyDamage || other.goldGainedNextHolyDamage
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
+        defeatBleedingEnemyGold += other.defeatBleedingEnemyGold
         defeatEnemyGoldFlat += other.defeatEnemyGoldFlat
         leechGoldFlat += other.leechGoldFlat
         goldPerTurn += other.goldPerTurn
@@ -187,6 +192,7 @@ extension GoldTriggers {
             lightFingered: values.decode(Bool.self, "lightFingered", default: false),
             goldGainedNextHolyDamage: values.decode(Bool.self, "goldGainedNextHolyDamage", default: false),
             gainGoldBonusHealSelf: values.decode(Int.self, "gainGoldBonusHealSelf", default: 0),
+            defeatBleedingEnemyGold: values.decode(Int.self, "defeatBleedingEnemyGold", default: 0),
             defeatEnemyGoldFlat: values.decode(Int.self, "defeatEnemyGoldFlat", default: 0),
             leechGoldFlat: values.decode(Int.self, "leechGoldFlat", default: 0),
             goldPerTurn: values.decode(Int.self, "goldPerTurn", default: 0),
@@ -222,6 +228,7 @@ extension GoldTriggers {
         try container.encodeNonDefault(lightFingered, "lightFingered", default: false)
         try container.encodeNonDefault(goldGainedNextHolyDamage, "goldGainedNextHolyDamage", default: false)
         try container.encodeNonDefault(gainGoldBonusHealSelf, "gainGoldBonusHealSelf", default: 0)
+        try container.encodeNonDefault(defeatBleedingEnemyGold, "defeatBleedingEnemyGold", default: 0)
         try container.encodeNonDefault(defeatEnemyGoldFlat, "defeatEnemyGoldFlat", default: 0)
         try container.encodeNonDefault(leechGoldFlat, "leechGoldFlat", default: 0)
         try container.encodeNonDefault(goldPerTurn, "goldPerTurn", default: 0)

@@ -406,7 +406,7 @@ struct AppStateLabyrinthTests {
         let message = try #require(
             state.encounters.beginMysteryEncounter(origin: .labyrinth(nodeID: "missing-node")),
         )
-        #expect(message.title == "Couldn't Save Progress")
+        #expect(message.fullGameOffer == nil)
         #expect(state.encounters.activeMysteryEncounter == nil)
     }
 }

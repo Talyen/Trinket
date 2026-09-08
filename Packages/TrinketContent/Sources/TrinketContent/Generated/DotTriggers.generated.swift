@@ -19,8 +19,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var onBurnDamageDetonateBleedChancePercent: Double = 0
     public var poisonStunChancePercent: Double = 0
     public var freezeDamageWhileBurningBonus: Int = 0
-    public var onBleedDamagePoisonTick: Int = 0
-    public var onBleedAppliedToBleedingExtendTurns: Int = 0
+    public var bleedConsumesPoison: Bool = false
+    public var bleedApplicationTicksExisting: Bool = false
     public var onBleedAppliedToBleedingDealDamage: Int = 0
     public var bleedsIgnoreMitigation: Bool = false
     public var onBleedDamageHealSelf: Int = 0
@@ -87,8 +87,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         onBurnDamageDetonateBleedChancePercent: Double = 0,
         poisonStunChancePercent: Double = 0,
         freezeDamageWhileBurningBonus: Int = 0,
-        onBleedDamagePoisonTick: Int = 0,
-        onBleedAppliedToBleedingExtendTurns: Int = 0,
+        bleedConsumesPoison: Bool = false,
+        bleedApplicationTicksExisting: Bool = false,
         onBleedAppliedToBleedingDealDamage: Int = 0,
         bleedsIgnoreMitigation: Bool = false,
         onBleedDamageHealSelf: Int = 0,
@@ -154,8 +154,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.onBurnDamageDetonateBleedChancePercent = onBurnDamageDetonateBleedChancePercent
         self.poisonStunChancePercent = poisonStunChancePercent
         self.freezeDamageWhileBurningBonus = freezeDamageWhileBurningBonus
-        self.onBleedDamagePoisonTick = onBleedDamagePoisonTick
-        self.onBleedAppliedToBleedingExtendTurns = onBleedAppliedToBleedingExtendTurns
+        self.bleedConsumesPoison = bleedConsumesPoison
+        self.bleedApplicationTicksExisting = bleedApplicationTicksExisting
         self.onBleedAppliedToBleedingDealDamage = onBleedAppliedToBleedingDealDamage
         self.bleedsIgnoreMitigation = bleedsIgnoreMitigation
         self.onBleedDamageHealSelf = onBleedDamageHealSelf
@@ -208,7 +208,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "onBleedDamagePoisonTick", "onBleedAppliedToBleedingExtendTurns", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "bloodrush", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding"]
+    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "bloodrush", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -228,8 +228,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.onBurnDamageDetonateBleedChancePercent != other.onBurnDamageDetonateBleedChancePercent { names.append("onBurnDamageDetonateBleedChancePercent") }
         if self.poisonStunChancePercent != other.poisonStunChancePercent { names.append("poisonStunChancePercent") }
         if self.freezeDamageWhileBurningBonus != other.freezeDamageWhileBurningBonus { names.append("freezeDamageWhileBurningBonus") }
-        if self.onBleedDamagePoisonTick != other.onBleedDamagePoisonTick { names.append("onBleedDamagePoisonTick") }
-        if self.onBleedAppliedToBleedingExtendTurns != other.onBleedAppliedToBleedingExtendTurns { names.append("onBleedAppliedToBleedingExtendTurns") }
+        if self.bleedConsumesPoison != other.bleedConsumesPoison { names.append("bleedConsumesPoison") }
+        if self.bleedApplicationTicksExisting != other.bleedApplicationTicksExisting { names.append("bleedApplicationTicksExisting") }
         if self.onBleedAppliedToBleedingDealDamage != other.onBleedAppliedToBleedingDealDamage { names.append("onBleedAppliedToBleedingDealDamage") }
         if self.bleedsIgnoreMitigation != other.bleedsIgnoreMitigation { names.append("bleedsIgnoreMitigation") }
         if self.onBleedDamageHealSelf != other.onBleedDamageHealSelf { names.append("onBleedDamageHealSelf") }
@@ -300,8 +300,8 @@ extension DotTriggers {
         onBurnDamageDetonateBleedChancePercent += other.onBurnDamageDetonateBleedChancePercent
         poisonStunChancePercent += other.poisonStunChancePercent
         freezeDamageWhileBurningBonus += other.freezeDamageWhileBurningBonus
-        onBleedDamagePoisonTick += other.onBleedDamagePoisonTick
-        onBleedAppliedToBleedingExtendTurns += other.onBleedAppliedToBleedingExtendTurns
+        bleedConsumesPoison = bleedConsumesPoison || other.bleedConsumesPoison
+        bleedApplicationTicksExisting = bleedApplicationTicksExisting || other.bleedApplicationTicksExisting
         onBleedAppliedToBleedingDealDamage += other.onBleedAppliedToBleedingDealDamage
         bleedsIgnoreMitigation = bleedsIgnoreMitigation || other.bleedsIgnoreMitigation
         onBleedDamageHealSelf += other.onBleedDamageHealSelf
@@ -373,8 +373,8 @@ extension DotTriggers {
             onBurnDamageDetonateBleedChancePercent: values.decode(Double.self, "onBurnDamageDetonateBleedChancePercent", default: 0),
             poisonStunChancePercent: values.decode(Double.self, "poisonStunChancePercent", default: 0),
             freezeDamageWhileBurningBonus: values.decode(Int.self, "freezeDamageWhileBurningBonus", default: 0),
-            onBleedDamagePoisonTick: values.decode(Int.self, "onBleedDamagePoisonTick", default: 0),
-            onBleedAppliedToBleedingExtendTurns: values.decode(Int.self, "onBleedAppliedToBleedingExtendTurns", default: 0),
+            bleedConsumesPoison: values.decode(Bool.self, "bleedConsumesPoison", default: false),
+            bleedApplicationTicksExisting: values.decode(Bool.self, "bleedApplicationTicksExisting", default: false),
             onBleedAppliedToBleedingDealDamage: values.decode(Int.self, "onBleedAppliedToBleedingDealDamage", default: 0),
             bleedsIgnoreMitigation: values.decode(Bool.self, "bleedsIgnoreMitigation", default: false),
             onBleedDamageHealSelf: values.decode(Int.self, "onBleedDamageHealSelf", default: 0),
@@ -443,8 +443,8 @@ extension DotTriggers {
         try container.encodeNonDefault(onBurnDamageDetonateBleedChancePercent, "onBurnDamageDetonateBleedChancePercent", default: 0)
         try container.encodeNonDefault(poisonStunChancePercent, "poisonStunChancePercent", default: 0)
         try container.encodeNonDefault(freezeDamageWhileBurningBonus, "freezeDamageWhileBurningBonus", default: 0)
-        try container.encodeNonDefault(onBleedDamagePoisonTick, "onBleedDamagePoisonTick", default: 0)
-        try container.encodeNonDefault(onBleedAppliedToBleedingExtendTurns, "onBleedAppliedToBleedingExtendTurns", default: 0)
+        try container.encodeNonDefault(bleedConsumesPoison, "bleedConsumesPoison", default: false)
+        try container.encodeNonDefault(bleedApplicationTicksExisting, "bleedApplicationTicksExisting", default: false)
         try container.encodeNonDefault(onBleedAppliedToBleedingDealDamage, "onBleedAppliedToBleedingDealDamage", default: 0)
         try container.encodeNonDefault(bleedsIgnoreMitigation, "bleedsIgnoreMitigation", default: false)
         try container.encodeNonDefault(onBleedDamageHealSelf, "onBleedDamageHealSelf", default: 0)

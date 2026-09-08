@@ -2,6 +2,17 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
+    static func applyBackdraftBonus(to state: inout DamageResolutionState, in context: inout BattleState) {
+        guard state.isCritical, state.options.isAttackHit, !state.options.isRetaliation,
+              state.combatant.role == .enemy,
+              let source = state.partySource(in: context),
+              context.modifiers(for: source.id).triggers.backdraft else { return }
+        let burn = DoTApplicator.consume(.burn, on: state.combatant, in: &context)
+        state.remaining += burn
+        state.buildupDamage += burn
+        state.uniqueOutgoingDamage += burn
+    }
+
     static func applyTalentMirroredReactions(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -109,34 +120,16 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         if triggers.shatterpoint, keyword == .freeze {
-            state.damageEvents.append(contentsOf: detonateTalent(
-                .bleed,
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
                 on: state.combatant,
-                source: source.combatant,
-                in: &context,
-            ))
-        }
-        if triggers.steamExplosion, keyword == .freeze {
-            state.damageEvents.append(contentsOf: detonateTalent(
-                .burn,
-                on: state.combatant,
-                source: source.combatant,
-                in: &context,
-            ))
-        }
-        if triggers.backdraft, keyword == .burn, state.isCritical {
-            state.damageEvents.append(contentsOf: detonateTalent(
-                .burn,
-                on: state.combatant,
-                source: source.combatant,
+                sourceActorID: source.id,
                 in: &context,
             ))
         }
         if triggers.arterialCascade, keyword == .physical, state.isCritical {
-            state.damageEvents.append(contentsOf: detonateTalent(
-                .bleed,
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
                 on: state.combatant,
-                source: source.combatant,
+                sourceActorID: source.id,
                 in: &context,
             ))
         }
@@ -170,15 +163,9 @@ package extension DamagePipeline {
                 to: source.combatant,
                 abilityName: "Bounty Blade",
             ))
-            if let owner = context.roster.participant(for: source.combatant) {
-                state.damageEvents.append(contentsOf: CombatTriggerEngine.drawCards(
-                    1,
-                    for: owner,
-                    actor: source.combatant,
-                    abilityName: "Bounty Blade",
-                    in: &context,
-                ))
-            }
+            state.damageEvents.append(contentsOf: DefensePoolEngine.steal(
+                3, from: state.combatant, to: source.combatant, abilityName: "Bounty Blade", in: &context,
+            ))
         }
         if triggers.perfectTempo, keyword == .physical, state.isCritical {
             context.prependEffect(.evadeNextHit, to: source.combatant, remainingTurns: 0)
@@ -262,33 +249,6 @@ package extension DamagePipeline {
     ) -> [ActionEvent] {
         guard amount > 0 else { return [] }
         return grantTalentPartyBlock(amount, source: source, in: &context)
-    }
-
-    private static func detonateTalent(
-        _ keyword: Keyword,
-        on target: Combatant,
-        source: Combatant,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        if keyword == .bleed {
-            return CombatTriggerEngine.detonateBleed(on: target, sourceActorID: source.id, in: &context)
-        }
-        guard !context.isResolvingDoTDetonation else { return [] }
-        context.isResolvingDoTDetonation = true
-        defer { context.isResolvingDoTDetonation = false }
-        var effects = context.roster.activeEffects(for: target)
-        let matching = effects.filter { $0.effect.keyword == keyword }
-        effects.removeAll { $0.effect.keyword == keyword }
-        context.roster.setActiveEffects(effects, for: target)
-        return matching.flatMap { effect in
-            DoTDamage.resolveTurnDamage(
-                basePotency: effect.effect.potency ?? 0,
-                keyword: keyword,
-                target: target,
-                sourceActorID: source.id,
-                in: &context,
-            ).events
-        }
     }
 
     private static func drawTalentCard(

@@ -220,6 +220,7 @@ private struct PreparedAppRoot: View {
         .environment(appState.play.spires)
         .environment(appState.play.contracts)
         .environment(appState.play.encounters)
+        .environment(appState.fullGame)
         .environment(appState.options)
         .environment(appState.playerSave)
         .environment(battleSession)
@@ -229,6 +230,13 @@ private struct PreparedAppRoot: View {
         #if DEBUG
         .debugFPSOverlay()
         #endif
+        .task {
+            await appState.fullGame.start()
+            appState.synchronizePurchaseAccess()
+        }
+        .onChange(of: appState.fullGame.ownership) { _, _ in
+            appState.synchronizePurchaseAccess()
+        }
         .task {
             MetricKitSubscriber.shared.start()
             guard !isResourcePreparationComplete else { return }

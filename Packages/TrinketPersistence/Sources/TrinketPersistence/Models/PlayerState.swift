@@ -98,16 +98,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         (progression(for: activeHero).level + progression(for: activeCompanion).level) / 2
     }
 
-    public var eligibleRecruitEventIDs: [String] {
-        GameContent.recruitEvents.compactMap { event in
-            guard let combatantID = event.unlockCombatantID,
-                  !unlockedHeroIDs.contains(combatantID),
-                  !unlockedCompanionIDs.contains(combatantID)
-            else { return nil }
-            return event.id
-        }
-    }
-
     public static let maxGoldBalance = 999
 
     public var gold: Int = 0 {
@@ -450,6 +440,11 @@ public struct PlayerRosterState: Equatable, Sendable {
         configuredCombatants(combatants)
             .enumerated()
             .sorted { left, right in
+                let leftFree = ContentAccessPolicy.isFreeCombatant(left.element.id)
+                let rightFree = ContentAccessPolicy.isFreeCombatant(right.element.id)
+                if leftFree != rightFree {
+                    return leftFree
+                }
                 let leftUnlocked = isUnlocked(left.element)
                 let rightUnlocked = isUnlocked(right.element)
 

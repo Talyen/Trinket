@@ -30,7 +30,7 @@ struct StarterSelectionFlow: View {
         NavigationStack(path: $path) {
             StarterRouletteScreen(
                 role: .hero,
-                combatants: GameContent.heroes,
+                combatants: ContentAccessPolicy.freeFirst(GameContent.heroes),
                 screenAccessibilityID: AccessibilityID.Onboarding.heroScreen,
                 initialSelectionID: initialHeroID,
                 onConfirm: confirmSelectedHero,
@@ -38,7 +38,7 @@ struct StarterSelectionFlow: View {
             .navigationDestination(for: Destination.self) { _ in
                 StarterRouletteScreen(
                     role: .companion,
-                    combatants: GameContent.companions,
+                    combatants: ContentAccessPolicy.freeFirst(GameContent.companions),
                     screenAccessibilityID: AccessibilityID.Onboarding.companionScreen,
                     onConfirm: confirmSelectedCompanion,
                 )

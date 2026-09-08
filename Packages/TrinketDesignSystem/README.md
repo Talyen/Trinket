@@ -116,6 +116,9 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketArtworkBlend(_:)` | Optional `.bottom` blend into a semantic destination surface; defaults to `.none` |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 
+Native toolbar buttons use the system-provided container without custom glass
+button styling. Reserve `.trinketIconButton()` for controls outside native toolbars.
+
 Glass chrome routes through `.glassEffect` inside this package only.
 
 Artwork blends provide a transition into destination surfaces. Use `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.

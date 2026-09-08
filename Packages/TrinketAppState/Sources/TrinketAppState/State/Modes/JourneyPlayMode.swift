@@ -70,6 +70,9 @@ public final class JourneyPlayMode {
 
     @discardableResult
     public func startBattle(for stage: Stage) -> StageMapMessage? {
+        if let restriction = playerSave.accessRestriction(for: .journey(stageID: stage.id)) {
+            return restriction
+        }
         guard encounters.canBeginTransientEncounter else { return nil }
 
         guard let encounter = resolvedEncounter(for: stage) else {
@@ -87,6 +90,7 @@ public final class JourneyPlayMode {
     }
 
     public func prepareBattle(for stage: Stage) {
+        guard playerSave.accessRestriction(for: .journey(stageID: stage.id)) == nil else { return }
         guard battle.lifecyclePhase != .active,
               let encounter = resolvedEncounter(for: stage)
         else { return }
@@ -115,6 +119,9 @@ public final class JourneyPlayMode {
 
     @discardableResult
     public func handleStagePrimaryAction(for stage: Stage) -> StageMapMessage? {
+        if let restriction = playerSave.accessRestriction(for: .journey(stageID: stage.id)) {
+            return restriction
+        }
         let resolvedStage = resolvedCampaignStage(stage)
         switch resolvedStage.encounter {
         case .battle, .randomBattle:
@@ -160,6 +167,7 @@ public final class JourneyPlayMode {
             worldSeed: playerSave.worldSeed,
             unlockedHeroIDs: roster.unlockedHeroIDs,
             unlockedCompanionIDs: roster.unlockedCompanionIDs,
+            access: playerSave.contentAccess,
         )
     }
 

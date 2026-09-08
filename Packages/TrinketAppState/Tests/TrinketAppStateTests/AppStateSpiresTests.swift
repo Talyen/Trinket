@@ -42,7 +42,7 @@ struct AppStateSpiresTests {
 
     @Test func `start spire battle requires attunement`() throws {
         let state = try context.makePlaySession()
-        try PlayBattleLaunchTestSupport.setActiveParty(heroID: "rogue", companionID: "frost_whelp", in: state)
+        try PlayBattleLaunchTestSupport.setActiveParty(heroID: "rogue", companionID: "mana_moth", in: state)
 
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
         let message = state.spires.startBattle(for: floor)

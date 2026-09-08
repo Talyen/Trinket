@@ -36,7 +36,6 @@ struct SpiresHubView: View {
                 isLocked: isLocked,
             )
         }
-        .disabled(isLocked)
         .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Play.spireRow(spire.id.rawValue))
     }
@@ -48,8 +47,8 @@ struct SpiresHubView: View {
     private func isSpireUnlocked(_ spire: SpireDefinition) -> Bool {
         SpireAttunement.canEnter(
             spire,
-            heroes: playerSave.roster.heroes,
-            companions: playerSave.roster.companions,
+            heroes: playerSave.roster.heroes.filter { playerSave.contentAccess.allowsCombatant($0.id) },
+            companions: playerSave.roster.companions.filter { playerSave.contentAccess.allowsCombatant($0.id) },
         )
     }
 
@@ -62,6 +61,7 @@ struct SpiresHubView: View {
             playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
             spire.floorCount,
         )
-        return "\(clearedFloors) / \(spire.floorCount) Floors"
+        let progress = "\(clearedFloors) / \(spire.floorCount) Floors"
+        return playerSave.contentAccess.hasFullGame ? progress : "\(progress) · First \(ContentAccessPolicy.freeSpireFloorCount) free"
     }
 }

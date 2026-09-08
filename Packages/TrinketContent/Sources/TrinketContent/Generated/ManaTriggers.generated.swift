@@ -16,14 +16,13 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var drawOnSpendMana: Int = 0
     public var repeatManaEmpowerment: Bool = false
     public var unspentManaConvertsToBlock: Bool = false
-    public var spendManaThresholdCleanseCount: Int = 0
+    public var spendManaRemovesAfflictions: Bool = false
     public var spendManaEmpowerNextCardThreshold: Int = 0
     public var nextCardEmpowerPercent: Double = 0
     public var startTurnFullManaDrawCards: Int = 0
     public var firstSkillCardPlaysTwicePerBattle: Bool = false
     public var onReachZeroManaRestoreMana: Int = 0
-    public var spendManaChaosRiftThreshold: Int = 0
-    public var spendManaChaosRiftDamage: Int = 0
+    public var spendManaRandomElementDamage: Bool = false
     public var onGainManaHealFlat: Int = 0
     public var startBattleBonusMana: Int = 0
     public var empowermentDamageBonus: Int = 0
@@ -34,9 +33,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var empowermentCostReduction: Int = 0
     public var healingEmpowermentCostReduction: Int = 0
     public var bonusManaOnTurns: [Int] = []
-    public var spendManaThresholdBlockThreshold: Int = 0
-    public var spendManaThresholdBlockBlock: Int = 0
-    public var spendManaThresholdBlockHealth: Int = 0
+    public var spendManaGrantsEqualBlock: Bool = false
     public var manaGainDoubleChancePercent: Double = 0
     public var spendManaThresholdAutoPlayCard: Int = 0
     public var onSpendManaBurnBurningEnemies: Int = 0
@@ -74,14 +71,13 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         drawOnSpendMana: Int = 0,
         repeatManaEmpowerment: Bool = false,
         unspentManaConvertsToBlock: Bool = false,
-        spendManaThresholdCleanseCount: Int = 0,
+        spendManaRemovesAfflictions: Bool = false,
         spendManaEmpowerNextCardThreshold: Int = 0,
         nextCardEmpowerPercent: Double = 0,
         startTurnFullManaDrawCards: Int = 0,
         firstSkillCardPlaysTwicePerBattle: Bool = false,
         onReachZeroManaRestoreMana: Int = 0,
-        spendManaChaosRiftThreshold: Int = 0,
-        spendManaChaosRiftDamage: Int = 0,
+        spendManaRandomElementDamage: Bool = false,
         onGainManaHealFlat: Int = 0,
         startBattleBonusMana: Int = 0,
         empowermentDamageBonus: Int = 0,
@@ -92,9 +88,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         empowermentCostReduction: Int = 0,
         healingEmpowermentCostReduction: Int = 0,
         bonusManaOnTurns: [Int] = [],
-        spendManaThresholdBlockThreshold: Int = 0,
-        spendManaThresholdBlockBlock: Int = 0,
-        spendManaThresholdBlockHealth: Int = 0,
+        spendManaGrantsEqualBlock: Bool = false,
         manaGainDoubleChancePercent: Double = 0,
         spendManaThresholdAutoPlayCard: Int = 0,
         onSpendManaBurnBurningEnemies: Int = 0,
@@ -131,14 +125,13 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.drawOnSpendMana = drawOnSpendMana
         self.repeatManaEmpowerment = repeatManaEmpowerment
         self.unspentManaConvertsToBlock = unspentManaConvertsToBlock
-        self.spendManaThresholdCleanseCount = spendManaThresholdCleanseCount
+        self.spendManaRemovesAfflictions = spendManaRemovesAfflictions
         self.spendManaEmpowerNextCardThreshold = spendManaEmpowerNextCardThreshold
         self.nextCardEmpowerPercent = nextCardEmpowerPercent
         self.startTurnFullManaDrawCards = startTurnFullManaDrawCards
         self.firstSkillCardPlaysTwicePerBattle = firstSkillCardPlaysTwicePerBattle
         self.onReachZeroManaRestoreMana = onReachZeroManaRestoreMana
-        self.spendManaChaosRiftThreshold = spendManaChaosRiftThreshold
-        self.spendManaChaosRiftDamage = spendManaChaosRiftDamage
+        self.spendManaRandomElementDamage = spendManaRandomElementDamage
         self.onGainManaHealFlat = onGainManaHealFlat
         self.startBattleBonusMana = startBattleBonusMana
         self.empowermentDamageBonus = empowermentDamageBonus
@@ -149,9 +142,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.empowermentCostReduction = empowermentCostReduction
         self.healingEmpowermentCostReduction = healingEmpowermentCostReduction
         self.bonusManaOnTurns = bonusManaOnTurns
-        self.spendManaThresholdBlockThreshold = spendManaThresholdBlockThreshold
-        self.spendManaThresholdBlockBlock = spendManaThresholdBlockBlock
-        self.spendManaThresholdBlockHealth = spendManaThresholdBlockHealth
+        self.spendManaGrantsEqualBlock = spendManaGrantsEqualBlock
         self.manaGainDoubleChancePercent = manaGainDoubleChancePercent
         self.spendManaThresholdAutoPlayCard = spendManaThresholdAutoPlayCard
         self.onSpendManaBurnBurningEnemies = onSpendManaBurnBurningEnemies
@@ -178,7 +169,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["dragonPatronage", "prismaticScales", "freezeEmpowermentBlockPerMana", "lastManaEmpowermentRepeatsDamage", "spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaThresholdCleanseCount", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaChaosRiftThreshold", "spendManaChaosRiftDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaThresholdBlockThreshold", "spendManaThresholdBlockBlock", "spendManaThresholdBlockHealth", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "firstBloom", "barkweave", "groveReserve", "livingConduit", "sharedCurrent", "deepRoots", "groveAccord"]
+    public static let fieldNames: [String] = ["dragonPatronage", "prismaticScales", "freezeEmpowermentBlockPerMana", "lastManaEmpowermentRepeatsDamage", "spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaRemovesAfflictions", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "firstSkillCardPlaysTwicePerBattle", "onReachZeroManaRestoreMana", "spendManaRandomElementDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaGrantsEqualBlock", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "firstBloom", "barkweave", "groveReserve", "livingConduit", "sharedCurrent", "deepRoots", "groveAccord"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -195,14 +186,13 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         if self.drawOnSpendMana != other.drawOnSpendMana { names.append("drawOnSpendMana") }
         if self.repeatManaEmpowerment != other.repeatManaEmpowerment { names.append("repeatManaEmpowerment") }
         if self.unspentManaConvertsToBlock != other.unspentManaConvertsToBlock { names.append("unspentManaConvertsToBlock") }
-        if self.spendManaThresholdCleanseCount != other.spendManaThresholdCleanseCount { names.append("spendManaThresholdCleanseCount") }
+        if self.spendManaRemovesAfflictions != other.spendManaRemovesAfflictions { names.append("spendManaRemovesAfflictions") }
         if self.spendManaEmpowerNextCardThreshold != other.spendManaEmpowerNextCardThreshold { names.append("spendManaEmpowerNextCardThreshold") }
         if self.nextCardEmpowerPercent != other.nextCardEmpowerPercent { names.append("nextCardEmpowerPercent") }
         if self.startTurnFullManaDrawCards != other.startTurnFullManaDrawCards { names.append("startTurnFullManaDrawCards") }
         if self.firstSkillCardPlaysTwicePerBattle != other.firstSkillCardPlaysTwicePerBattle { names.append("firstSkillCardPlaysTwicePerBattle") }
         if self.onReachZeroManaRestoreMana != other.onReachZeroManaRestoreMana { names.append("onReachZeroManaRestoreMana") }
-        if self.spendManaChaosRiftThreshold != other.spendManaChaosRiftThreshold { names.append("spendManaChaosRiftThreshold") }
-        if self.spendManaChaosRiftDamage != other.spendManaChaosRiftDamage { names.append("spendManaChaosRiftDamage") }
+        if self.spendManaRandomElementDamage != other.spendManaRandomElementDamage { names.append("spendManaRandomElementDamage") }
         if self.onGainManaHealFlat != other.onGainManaHealFlat { names.append("onGainManaHealFlat") }
         if self.startBattleBonusMana != other.startBattleBonusMana { names.append("startBattleBonusMana") }
         if self.empowermentDamageBonus != other.empowermentDamageBonus { names.append("empowermentDamageBonus") }
@@ -213,9 +203,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         if self.empowermentCostReduction != other.empowermentCostReduction { names.append("empowermentCostReduction") }
         if self.healingEmpowermentCostReduction != other.healingEmpowermentCostReduction { names.append("healingEmpowermentCostReduction") }
         if self.bonusManaOnTurns != other.bonusManaOnTurns { names.append("bonusManaOnTurns") }
-        if self.spendManaThresholdBlockThreshold != other.spendManaThresholdBlockThreshold { names.append("spendManaThresholdBlockThreshold") }
-        if self.spendManaThresholdBlockBlock != other.spendManaThresholdBlockBlock { names.append("spendManaThresholdBlockBlock") }
-        if self.spendManaThresholdBlockHealth != other.spendManaThresholdBlockHealth { names.append("spendManaThresholdBlockHealth") }
+        if self.spendManaGrantsEqualBlock != other.spendManaGrantsEqualBlock { names.append("spendManaGrantsEqualBlock") }
         if self.manaGainDoubleChancePercent != other.manaGainDoubleChancePercent { names.append("manaGainDoubleChancePercent") }
         if self.spendManaThresholdAutoPlayCard != other.spendManaThresholdAutoPlayCard { names.append("spendManaThresholdAutoPlayCard") }
         if self.onSpendManaBurnBurningEnemies != other.onSpendManaBurnBurningEnemies { names.append("onSpendManaBurnBurningEnemies") }
@@ -257,14 +245,13 @@ extension ManaTriggers {
         drawOnSpendMana += other.drawOnSpendMana
         repeatManaEmpowerment = repeatManaEmpowerment || other.repeatManaEmpowerment
         unspentManaConvertsToBlock = unspentManaConvertsToBlock || other.unspentManaConvertsToBlock
-        spendManaThresholdCleanseCount += other.spendManaThresholdCleanseCount
+        spendManaRemovesAfflictions = spendManaRemovesAfflictions || other.spendManaRemovesAfflictions
         spendManaEmpowerNextCardThreshold = max(spendManaEmpowerNextCardThreshold, other.spendManaEmpowerNextCardThreshold)
         nextCardEmpowerPercent += other.nextCardEmpowerPercent
         startTurnFullManaDrawCards += other.startTurnFullManaDrawCards
         firstSkillCardPlaysTwicePerBattle = firstSkillCardPlaysTwicePerBattle || other.firstSkillCardPlaysTwicePerBattle
         onReachZeroManaRestoreMana += other.onReachZeroManaRestoreMana
-        spendManaChaosRiftThreshold = max(spendManaChaosRiftThreshold, other.spendManaChaosRiftThreshold)
-        spendManaChaosRiftDamage += other.spendManaChaosRiftDamage
+        spendManaRandomElementDamage = spendManaRandomElementDamage || other.spendManaRandomElementDamage
         onGainManaHealFlat += other.onGainManaHealFlat
         startBattleBonusMana += other.startBattleBonusMana
         empowermentDamageBonus += other.empowermentDamageBonus
@@ -275,9 +262,7 @@ extension ManaTriggers {
         empowermentCostReduction += other.empowermentCostReduction
         healingEmpowermentCostReduction += other.healingEmpowermentCostReduction
         bonusManaOnTurns = Array(Set(bonusManaOnTurns).union(other.bonusManaOnTurns)).sorted()
-        spendManaThresholdBlockThreshold = max(spendManaThresholdBlockThreshold, other.spendManaThresholdBlockThreshold)
-        spendManaThresholdBlockBlock += other.spendManaThresholdBlockBlock
-        spendManaThresholdBlockHealth += other.spendManaThresholdBlockHealth
+        spendManaGrantsEqualBlock = spendManaGrantsEqualBlock || other.spendManaGrantsEqualBlock
         manaGainDoubleChancePercent += other.manaGainDoubleChancePercent
         spendManaThresholdAutoPlayCard = max(spendManaThresholdAutoPlayCard, other.spendManaThresholdAutoPlayCard)
         onSpendManaBurnBurningEnemies += other.onSpendManaBurnBurningEnemies
@@ -320,14 +305,13 @@ extension ManaTriggers {
             drawOnSpendMana: values.decode(Int.self, "drawOnSpendMana", default: 0),
             repeatManaEmpowerment: values.decode(Bool.self, "repeatManaEmpowerment", default: false),
             unspentManaConvertsToBlock: values.decode(Bool.self, "unspentManaConvertsToBlock", default: false),
-            spendManaThresholdCleanseCount: values.decode(Int.self, "spendManaThresholdCleanseCount", default: 0),
+            spendManaRemovesAfflictions: values.decode(Bool.self, "spendManaRemovesAfflictions", default: false),
             spendManaEmpowerNextCardThreshold: values.decode(Int.self, "spendManaEmpowerNextCardThreshold", default: 0),
             nextCardEmpowerPercent: values.decode(Double.self, "nextCardEmpowerPercent", default: 0),
             startTurnFullManaDrawCards: values.decode(Int.self, "startTurnFullManaDrawCards", default: 0),
             firstSkillCardPlaysTwicePerBattle: values.decode(Bool.self, "firstSkillCardPlaysTwicePerBattle", default: false),
             onReachZeroManaRestoreMana: values.decode(Int.self, "onReachZeroManaRestoreMana", default: 0),
-            spendManaChaosRiftThreshold: values.decode(Int.self, "spendManaChaosRiftThreshold", default: 0),
-            spendManaChaosRiftDamage: values.decode(Int.self, "spendManaChaosRiftDamage", default: 0),
+            spendManaRandomElementDamage: values.decode(Bool.self, "spendManaRandomElementDamage", default: false),
             onGainManaHealFlat: values.decode(Int.self, "onGainManaHealFlat", default: 0),
             startBattleBonusMana: values.decode(Int.self, "startBattleBonusMana", default: 0),
             empowermentDamageBonus: values.decode(Int.self, "empowermentDamageBonus", default: 0),
@@ -338,9 +322,7 @@ extension ManaTriggers {
             empowermentCostReduction: values.decode(Int.self, "empowermentCostReduction", default: 0),
             healingEmpowermentCostReduction: values.decode(Int.self, "healingEmpowermentCostReduction", default: 0),
             bonusManaOnTurns: values.decode([Int].self, "bonusManaOnTurns", default: []),
-            spendManaThresholdBlockThreshold: values.decode(Int.self, "spendManaThresholdBlockThreshold", default: 0),
-            spendManaThresholdBlockBlock: values.decode(Int.self, "spendManaThresholdBlockBlock", default: 0),
-            spendManaThresholdBlockHealth: values.decode(Int.self, "spendManaThresholdBlockHealth", default: 0),
+            spendManaGrantsEqualBlock: values.decode(Bool.self, "spendManaGrantsEqualBlock", default: false),
             manaGainDoubleChancePercent: values.decode(Double.self, "manaGainDoubleChancePercent", default: 0),
             spendManaThresholdAutoPlayCard: values.decode(Int.self, "spendManaThresholdAutoPlayCard", default: 0),
             onSpendManaBurnBurningEnemies: values.decode(Int.self, "onSpendManaBurnBurningEnemies", default: 0),
@@ -380,14 +362,13 @@ extension ManaTriggers {
         try container.encodeNonDefault(drawOnSpendMana, "drawOnSpendMana", default: 0)
         try container.encodeNonDefault(repeatManaEmpowerment, "repeatManaEmpowerment", default: false)
         try container.encodeNonDefault(unspentManaConvertsToBlock, "unspentManaConvertsToBlock", default: false)
-        try container.encodeNonDefault(spendManaThresholdCleanseCount, "spendManaThresholdCleanseCount", default: 0)
+        try container.encodeNonDefault(spendManaRemovesAfflictions, "spendManaRemovesAfflictions", default: false)
         try container.encodeNonDefault(spendManaEmpowerNextCardThreshold, "spendManaEmpowerNextCardThreshold", default: 0)
         try container.encodeNonDefault(nextCardEmpowerPercent, "nextCardEmpowerPercent", default: 0)
         try container.encodeNonDefault(startTurnFullManaDrawCards, "startTurnFullManaDrawCards", default: 0)
         try container.encodeNonDefault(firstSkillCardPlaysTwicePerBattle, "firstSkillCardPlaysTwicePerBattle", default: false)
         try container.encodeNonDefault(onReachZeroManaRestoreMana, "onReachZeroManaRestoreMana", default: 0)
-        try container.encodeNonDefault(spendManaChaosRiftThreshold, "spendManaChaosRiftThreshold", default: 0)
-        try container.encodeNonDefault(spendManaChaosRiftDamage, "spendManaChaosRiftDamage", default: 0)
+        try container.encodeNonDefault(spendManaRandomElementDamage, "spendManaRandomElementDamage", default: false)
         try container.encodeNonDefault(onGainManaHealFlat, "onGainManaHealFlat", default: 0)
         try container.encodeNonDefault(startBattleBonusMana, "startBattleBonusMana", default: 0)
         try container.encodeNonDefault(empowermentDamageBonus, "empowermentDamageBonus", default: 0)
@@ -398,9 +379,7 @@ extension ManaTriggers {
         try container.encodeNonDefault(empowermentCostReduction, "empowermentCostReduction", default: 0)
         try container.encodeNonDefault(healingEmpowermentCostReduction, "healingEmpowermentCostReduction", default: 0)
         try container.encodeNonDefault(bonusManaOnTurns, "bonusManaOnTurns", default: [])
-        try container.encodeNonDefault(spendManaThresholdBlockThreshold, "spendManaThresholdBlockThreshold", default: 0)
-        try container.encodeNonDefault(spendManaThresholdBlockBlock, "spendManaThresholdBlockBlock", default: 0)
-        try container.encodeNonDefault(spendManaThresholdBlockHealth, "spendManaThresholdBlockHealth", default: 0)
+        try container.encodeNonDefault(spendManaGrantsEqualBlock, "spendManaGrantsEqualBlock", default: false)
         try container.encodeNonDefault(manaGainDoubleChancePercent, "manaGainDoubleChancePercent", default: 0)
         try container.encodeNonDefault(spendManaThresholdAutoPlayCard, "spendManaThresholdAutoPlayCard", default: 0)
         try container.encodeNonDefault(onSpendManaBurnBurningEnemies, "onSpendManaBurnBurningEnemies", default: 0)

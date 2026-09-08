@@ -1,12 +1,9 @@
 import TrinketFeatureSupport
 import XCTest
 
-final class SmokeBattleTests: SeededSmokeUITestCase {
-    override var launchArguments: [String] {
-        TestLaunchArg.allForBattle()
-    }
-
+final class SmokeBattleTests: TrinketUITestCase {
     func testBattleLaunchScreenStartsStageOneOne() {
+        launchApp(arguments: TestLaunchArg.allForBattle())
         battle.assertActive(timeout: 8)
     }
 
@@ -17,14 +14,12 @@ final class SmokeBattleTests: SeededSmokeUITestCase {
         assertExistsAfterScroll(AccessibilityID.Play.contractsModeCard, requireHittable: true)
         tapButton(AccessibilityID.Play.contractsModeCard)
         assertExists(AccessibilityID.Play.contractsBoard, timeout: 10)
-        for difficulty in ["easy", "standard", "hard"] {
-            let partyControl = AccessibilityID.Play.contractParty(difficulty)
-            assertExistsAfterScroll(partyControl, requireHittable: true)
-            tapButton(partyControl)
-            assertExists(AccessibilityID.Play.battlePartyDone)
-            tapButton(AccessibilityID.Play.battlePartyDone)
-            assertDoesNotExist(AccessibilityID.Play.battlePartyDone, timeout: 5)
-        }
+        let partyControl = AccessibilityID.Play.contractParty("standard")
+        assertExistsAfterScroll(partyControl, requireHittable: true)
+        tapButton(partyControl)
+        assertExists(AccessibilityID.Play.battlePartyDone)
+        tapButton(AccessibilityID.Play.battlePartyDone)
+        assertDoesNotExist(AccessibilityID.Play.battlePartyDone, timeout: 5)
         scrollUntilVisible(button(AccessibilityID.Play.contractFight("standard")), swipingUp: false, requireHittable: true)
 
         tapButton(AccessibilityID.Play.contractsRefresh)

@@ -2,7 +2,9 @@
 
 UI test mechanics for Trinket. Agent workflow: `AGENTS.md`. Semantic test
 ownership and keep/drop rules: [`Docs/Platform/Testing.md`](../Docs/Platform/Testing.md).
-UI selector constants live in `Packages/TrinketFeatureSupport`.
+UI selector constants live in `Packages/TrinketFeatureSupport`. “Exhaustive” names
+the existing suite, not a requirement to cover every mechanic or interaction;
+use the canonical value and retirement rules for selective player journeys.
 
 ## Layout
 
@@ -16,13 +18,15 @@ UI selector constants live in `Packages/TrinketFeatureSupport`.
 Smoke membership is defined by the selected tests in `Smoke.xctestplan`,
 mirrored in `Scripts/config/smoke-classes.txt`; `check-docs.py` fails when they
 diverge, so update both together. The smoke command can filter the plan for
-focused iteration.
+focused iteration. When deleting or consolidating a UI class, remove obsolete
+references from the affected test plan, smoke registry, and CI matrix together.
+Keep registration checks so retained tests cannot be silently skipped.
 
 ## Launch args
 
 Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
 `AppEnvironment`. Helpers include `allForScreen`, `allForTab`, `allForBattle`,
-`allForBattleVictory`, `allForMidBattle`, `allForShop`, and
+`allForMidBattle`, `allForShop`, and
 `completedStages`. Use the source type for the complete, current catalog.
 
 **Default smoke args:** `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`.
@@ -43,7 +47,7 @@ product contract. UI tests tap tab labels, not `AppTab` raw values.
 ## Speed
 
 - Prefer `-launch-screen` / `-selectedTab` deep links; do not re-navigate a screen launch args already opened.
-- Prefer one launch per class (`SeededSmokeUITestCase` or shared `setUp`) when methods share args; avoid `app.terminate()` + relaunch mid-suite unless args must change (then split classes).
+- Prefer one launch per test. `SeededSmokeUITestCase` launches in per-test setup; use explicit launches when methods need different args so setup does not launch an app that the test immediately replaces. Relaunch only when the journey must verify persistence.
 - Prefer one launch + `TabBar` for round-trips that must exercise the tab bar itself.
 - Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.

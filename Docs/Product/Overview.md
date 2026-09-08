@@ -14,4 +14,4 @@ What the player sees, in player terms. Locked rules live in
 | Collection | The party's equipment and talents: hero and companion loadouts plus drill-in detail screens. |
 | Homestead | Permanent progression from gathered resources: art-led overview, category galleries (Farming / Crafting / Alchemy / Training / Arcana), and immediate tier-path builds. See [Homestead.md](Homestead.md). |
 | Shop | Spends rewards between encounters; leaves back to Play. |
-| Options | Device preferences only; never gates play or progress. Identity model: [Identity.md](Identity.md). |
+| Options | Device preferences, Full Game purchases/restoration, and support; never gates free play. Identity model: [Identity.md](Identity.md). |

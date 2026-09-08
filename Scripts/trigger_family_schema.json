@@ -1267,16 +1267,16 @@
         "merge": "add"
       },
       {
-        "name": "onBleedDamagePoisonTick",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
+        "name": "bleedConsumesPoison",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
-        "name": "onBleedAppliedToBleedingExtendTurns",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
+        "name": "bleedApplicationTicksExisting",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
         "name": "onBleedAppliedToBleedingDealDamage",
@@ -2125,10 +2125,10 @@
         "merge": "or"
       },
       {
-        "name": "spendManaThresholdCleanseCount",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
+        "name": "spendManaRemovesAfflictions",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
         "name": "spendManaEmpowerNextCardThreshold",
@@ -2161,16 +2161,10 @@
         "merge": "add"
       },
       {
-        "name": "spendManaChaosRiftThreshold",
-        "type": "Int",
-        "default": "0",
-        "merge": "max"
-      },
-      {
-        "name": "spendManaChaosRiftDamage",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
+        "name": "spendManaRandomElementDamage",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
         "name": "onGainManaHealFlat",
@@ -2233,22 +2227,10 @@
         "merge": "union"
       },
       {
-        "name": "spendManaThresholdBlockThreshold",
-        "type": "Int",
-        "default": "0",
-        "merge": "max"
-      },
-      {
-        "name": "spendManaThresholdBlockBlock",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
-      },
-      {
-        "name": "spendManaThresholdBlockHealth",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
+        "name": "spendManaGrantsEqualBlock",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       },
       {
         "name": "manaGainDoubleChancePercent",
@@ -2414,6 +2396,12 @@
       },
       {
         "name": "gainGoldBonusHealSelf",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "defeatBleedingEnemyGold",
         "type": "Int",
         "default": "0",
         "merge": "add"

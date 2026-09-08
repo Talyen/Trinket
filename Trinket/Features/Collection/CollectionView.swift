@@ -56,6 +56,7 @@ struct CollectionView: View {
                     )
                 }
                 .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))
+                .fullGameOfferHost()
                 .trinketDetailSheet()
                 .appFramePacingSignpost(
                     AppFramePacingSignposts.Name.sheetPresent,
@@ -212,7 +213,7 @@ struct CollectionView: View {
             ForEach(combatants) { combatant in
                 CollectionCombatantButton(
                     combatant: combatant,
-                    isLocked: !roster.isUnlocked(combatant),
+                    isLocked: !roster.isUnlocked(combatant) || !playerSave.contentAccess.allowsCombatant(combatant.id),
                     cardWidth: nil,
                     showsName: false,
                 ) {

@@ -191,4 +191,57 @@ extension TalentCatalogRoundTripTests {
         battle.actionCount += 1
         #expect(battle.resolveDamage(hit).healthLost == 5)
     }
+
+    @Test(arguments: [3, 10])
+    func `bounty blade steals available block without replacing the played card`(block: Int) {
+        var battle = capstoneBattle(hero: ["rogue_gold_t4_1"])
+        battle.heroDeck.putOnBottom(.slash)
+        seedHeroTalentEffect(.shield(.block, block), on: .enemy, in: &battle)
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: DamageOptions(applyDodge: false, guaranteedCritical: true, isAttackHit: true),
+        ))
+        #expect(outcome.isCritical)
+        #expect(battle.gold == 3)
+        #expect(talentPoints(.shield, on: .hero, in: battle) == min(3, block - 2))
+        #expect(talentPoints(.shield, on: .enemy, in: battle) == max(0, block - 5))
+        #expect(battle.hand.totalCount == 0)
+        #expect(!outcome.events.contains { $0.effectKind == .cardsDrawn })
+    }
+
+    @Test(arguments: [Ability.frostbolt, .rayOfFrost])
+    func `steam explosion consumes burn for freeze cards but not frostfire reactions`(card: Ability) throws {
+        var battle = capstoneBattle(companion: ["mana_moth_burn_t4_1", "mana_moth_burn_t4_2"])
+        battle.roster.companion.currentMana = 0
+        seedHeroTalentEffect(.burn(8), on: .enemy, in: &battle, source: .companion)
+        _ = battle.resolveDamage(.doTTick(
+            amount: 4, target: battle.enemy, keyword: .burn, sourceActorID: battle.companion.id,
+        ))
+        #expect(talentPoints(.burn, on: .enemy, in: battle) == 8)
+        let events = try playHeroTalentCard(card, owner: .companion, in: &battle)
+        let hit = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == .freeze })
+        let damage = card == .frostbolt ? 11 : 8
+        #expect(hit.amount == damage * (hit.isCritical ? 2 : 1))
+        #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
+    }
+
+    @Test(arguments: [Keyword.physical, .burn, .poison, .bleed, .holy, .freeze, .stun])
+    func `backdraft converts burn into the critical attacks element without retriggering`(keyword: Keyword) {
+        var battle = capstoneBattle(hero: ["wizard_burn_t4_1"])
+        seedHeroTalentEffect(.burn(5), on: .enemy, in: &battle)
+        _ = battle.resolveDamage(.doTTick(
+            amount: 2, target: battle.enemy, keyword: .burn, sourceActorID: battle.hero.id,
+        ))
+        #expect(talentPoints(.burn, on: .enemy, in: battle) == 5)
+        let request = DamageRequest(
+            amount: 2, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
+            options: DamageOptions(applyDodge: false, guaranteedCritical: true, isAttackHit: true),
+        )
+        let hit = battle.resolveDamage(request)
+        #expect(hit.isCritical)
+        #expect(hit.healthLost == 9)
+        #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
+        let next = battle.resolveDamage(request)
+        #expect(next.healthLost == 4)
+    }
 }

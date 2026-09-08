@@ -146,6 +146,7 @@ public extension GameContent {
         worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>,
+        access: ContentAccessPolicy = .fullGame,
     ) -> RecruitEncounterResolution {
         let roleFilter: Combatant.Role? =
             configuredEventID == StageEncounter.randomCompanionRecruitID ? .companion : nil
@@ -153,7 +154,7 @@ public extension GameContent {
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs,
             role: roleFilter,
-        )
+        ).filter { $0.unlockCombatantID.map(access.allowsCombatant) == true }
         let configuredID = configuredEventID.flatMap { id -> String? in
             guard !id.isEmpty, id != StageEncounter.randomCompanionRecruitID else { return nil }
             return id
@@ -178,6 +179,7 @@ public extension GameContent {
         worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>,
+        access: ContentAccessPolicy = .fullGame,
     ) -> Stage {
         guard case .recruit = stage.encounter else { return stage }
         let resolution = resolveRecruitEncounter(
@@ -186,6 +188,7 @@ public extension GameContent {
             worldSeed: worldSeed,
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs,
+            access: access,
         )
         return Stage(
             id: stage.id,

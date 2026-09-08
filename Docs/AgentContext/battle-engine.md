@@ -11,6 +11,10 @@ On-hit and reaction work is split on purpose:
 
 Do not fold those cadences into the pipeline or merge affix scalar fields on `CombatModifierProfile` with `triggers`; the dual channel is intentional.
 
-For a new effect kind, update registry parity and `EffectHandlersApplyTests`; use a thin integration test only for multi-effect interactions. Test conventions (fixtures, seeds, dispatch) live in `Docs/Platform/Testing.md`.
+For a new effect kind, maintain registry parity. Existing handler and turn-processing
+coverage may suffice; add or extend `EffectHandlersApplyTests` only for a consequential
+behavior gap. Use a thin integration case when a meaningful interaction cannot be
+proved by the existing owner. Apply [Testing.md](../Platform/Testing.md) for value,
+retirement, fixtures, seeds, and dispatch conventions.
 
 Keep balance/scaling details in [battle-balance.md](battle-balance.md).

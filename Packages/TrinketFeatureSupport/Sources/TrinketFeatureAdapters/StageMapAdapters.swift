@@ -8,20 +8,34 @@ import TrinketPersistence
 
 public extension View {
     func trinketMessageAlert(_ message: Binding<StageMapMessage?>) -> some View {
-        alert(
-            message.wrappedValue?.title ?? "",
+        modifier(StageMessageModifier(message: message))
+    }
+}
+
+private struct StageMessageModifier: ViewModifier {
+    @Environment(\.requestFullGameOffer) private var requestFullGameOffer
+    @Binding var message: StageMapMessage?
+
+    func body(content: Content) -> some View {
+        content.alert(
+            message?.title ?? "",
             isPresented: Binding(
-                get: { message.wrappedValue != nil },
+                get: { message != nil && message?.fullGameOffer == nil },
                 set: { isPresented in
                     if !isPresented {
-                        message.wrappedValue = nil
+                        message = nil
                     }
                 },
             ),
         ) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(message.wrappedValue?.message ?? "")
+            Text(message?.message ?? "")
+        }
+        .onChange(of: message) { _, current in
+            guard let origin = current?.fullGameOffer else { return }
+            message = nil
+            requestFullGameOffer(origin)
         }
     }
 }

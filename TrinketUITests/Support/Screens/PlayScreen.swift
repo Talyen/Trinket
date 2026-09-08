@@ -52,7 +52,7 @@ struct PlayScreen {
         assertModeHub()
     }
 
-    func openCampaign() {
+    func openCampaign(number: Int = 1) {
         openModeHub()
         let campaign = app.buttons[AccessibilityID.Play.campaignModeCard]
         XCTAssertTrue(
@@ -64,7 +64,7 @@ struct PlayScreen {
         } else {
             campaign.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
-        assertCampaignLoaded()
+        assertCampaignLoaded(number: number)
     }
 
     func openExplore() {
@@ -79,10 +79,6 @@ struct PlayScreen {
         assertElementExists(AccessibilityID.Play.exploreHub)
     }
 
-    func openStage(_ actionID: String) {
-        app.buttons[actionID].tap()
-    }
-
     private func assertElementExists(
         _ identifier: String,
         timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
@@ -91,10 +87,6 @@ struct PlayScreen {
     ) {
         let element = app.descendants(matching: .any)[identifier]
         XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "Element '\(identifier)' not found", file: file, line: line)
-    }
-
-    func openStage(chapter: Int, stage: Int) {
-        openStage(AccessibilityID.Play.stageAction(chapter: chapter, stage: stage))
     }
 
     func startBattle(chapter: Int, stage: Int) {

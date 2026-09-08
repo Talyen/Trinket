@@ -5,6 +5,7 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureSupport
+import TrinketPersistence
 
 private enum StarterRouletteMotion {
     static var plateSwap: Animation {
@@ -13,6 +14,8 @@ private enum StarterRouletteMotion {
 }
 
 struct StarterRouletteScreen: View {
+    @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(OptionsStore.self) private var options
 
     let role: Combatant.Role
@@ -230,12 +233,15 @@ struct StarterRouletteScreen: View {
     }
 
     private var continueAction: some View {
-        Button("Continue", action: confirm)
-            .disabled(selectedCombatant == nil)
-            .trinketPrimaryActionButton(
-                accessibilityIdentifier: AccessibilityID.Onboarding.confirm(role: role),
-            )
-            .trinketCenteredPrimaryAction()
+        Button(
+            selectedCombatant.map { playerSave.contentAccess.allowsCombatant($0.id) } == false ? "Unlock Full Game" : "Continue",
+            action: confirm,
+        )
+        .disabled(selectedCombatant == nil)
+        .trinketPrimaryActionButton(
+            accessibilityIdentifier: AccessibilityID.Onboarding.confirm(role: role),
+        )
+        .trinketCenteredPrimaryAction()
     }
 
     private func center(on combatant: Combatant) {
@@ -247,6 +253,10 @@ struct StarterRouletteScreen: View {
 
     private func confirm() {
         guard let selectedCombatant else { return }
+        guard playerSave.contentAccess.allowsCombatant(selectedCombatant.id) else {
+            requestOffer(.combatant(selectedCombatant.id))
+            return
+        }
         if !onConfirm(selectedCombatant.id) {
             saveErrorTrigger += 1
             persistError = "Your choice was not saved. Please try again."

@@ -130,4 +130,79 @@ extension TalentCatalogRoundTripTests {
             #expect(before - battle.roster.hero.currentHealth == expected)
         }
     }
+
+    @Test func `serrated blades ticks existing bleeds without shortening or refilling poison`() {
+        var battle = capstoneBattle(hero: ["rogue_bleed_t1_1", "rogue_poison_t2_1", "rogue_bleed_t2_2"])
+        battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 10)
+        battle.appendEffect(.bleed(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 4)
+        seedHeroTalentEffect(.poison(6), on: .enemy, in: &battle)
+        let health = battle.roster.enemy.currentHealth
+        _ = DoTApplicator.applyBleed(
+            potency: 1, to: battle.enemy, sourceActorID: battle.hero.id,
+            dealImmediateDamage: false, in: &battle,
+        )
+        #expect(health - battle.roster.enemy.currentHealth == 10)
+        #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
+        let durations = battle.activeEffects(of: battle.enemy).filter(\.effect.isBleed).map(\.remainingTurns)
+        #expect(durations == [10, 4, Effect.bleedDoTTurnCount])
+        _ = DoTApplicator.applyBleed(
+            potency: 1, to: battle.enemy, sourceActorID: battle.hero.id,
+            dealImmediateDamage: false, in: &battle,
+        )
+        #expect(health - battle.roster.enemy.currentHealth == 17)
+        #expect(talentPoints(.poison, on: .enemy, in: battle) == 0)
+        #expect(battle.gold == 0)
+    }
+
+    @Test(arguments: [false, true])
+    func `blood money rewards only the lethal hit including consumed bleed`(detonates: Bool) {
+        var battle = capstoneBattle(hero: ["rogue_bleed_t2_2"])
+        battle.roster.enemy.currentHealth = 6
+        battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 2, target: battle.enemy, keyword: .physical,
+            sourceActorID: battle.hero.id, options: .flatReaction,
+        ))
+        #expect(battle.gold == 0)
+        if detonates {
+            _ = CombatTriggerEngine.detonateBleed(on: battle.enemy, sourceActorID: battle.hero.id, in: &battle)
+        } else {
+            _ = battle.resolveDamage(DamageRequest(
+                amount: 4, target: battle.enemy, keyword: .physical,
+                sourceActorID: battle.hero.id, options: .flatReaction,
+            ))
+        }
+        #expect(battle.roster.enemy.currentHealth == 0)
+        #expect(battle.gold == 5)
+        _ = battle.resolveDamage(.doTTick(
+            amount: 4, target: battle.enemy, keyword: .bleed, sourceActorID: battle.hero.id,
+        ))
+        #expect(battle.gold == 5)
+    }
+
+    @Test(arguments: [false, true])
+    func `blood money requires bleeding and the talent owner to defeat the enemy`(companionKill: Bool) {
+        var battle = capstoneBattle(hero: ["rogue_bleed_t2_2"])
+        if companionKill {
+            seedHeroTalentEffect(.bleed(2), on: .enemy, in: &battle)
+        }
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 200, target: battle.enemy, keyword: .physical,
+            sourceActorID: companionKill ? battle.companion.id : battle.hero.id, options: .flatReaction,
+        ))
+        #expect(battle.gold == 0)
+    }
+
+    @Test(arguments: [false, true])
+    func `noxious reaction consumes the live poison pool in either tick order`(poisonFirst: Bool) {
+        var battle = capstoneBattle(hero: ["rogue_poison_t2_1"])
+        let effects: [Effect] = poisonFirst ? [.poison(6), .bleed(4)] : [.bleed(4), .poison(6)]
+        for effect in effects {
+            battle.appendEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: effect.isBleed ? 2 : 0)
+        }
+        _ = EffectTurnEngine.advanceAll(context: &battle)
+        #expect(battle.roster.enemy.currentHealth == (poisonFirst ? 187 : 191))
+        #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
+        #expect(battle.activeEffects(of: battle.enemy).first { $0.effect.isBleed }?.remainingTurns == 1)
+    }
 }

@@ -18,8 +18,11 @@ or similar assertions. A smaller portfolio is not inherently a better one.
 
 ## Evidence and remedy
 
-For removal/merging, identify the surviving owner and show it covers the same
-consequential behavior under the relevant conditions. For missing coverage, apply
+For redundant removal/merging, identify the surviving owner and show it covers the
+same consequential behavior under the relevant conditions. For distinct low-value
+cases, apply Testing.md's retirement rules; equivalent replacement coverage is not
+required. Consider strengthening or moving existing coverage before additions.
+For missing coverage, apply
 Testing.md's coverage decision and strengthen the cheapest existing semantic owner.
 A lack of test files or a low case count is not evidence of a gap.
 
@@ -36,8 +39,8 @@ setup/executed work, clearer ownership, or repaired nondeterminism.
 
 ## Boundaries
 
-- Preserve distinct battle, persistence, balance, transition, and player-flow coverage.
-  Do not delete failures or relax assertions to make the suite green.
+- Preserve consequential correctness evidence under Testing.md; distinctness alone
+  does not justify retention. Do not delete failures or relax assertions to make the suite green.
 - Apply Testing.md's exclusions for presentation/plumbing tests; do not reproduce
   a parallel list of banned test shapes here.
 - Do not force shared fixtures across package boundaries or introduce production

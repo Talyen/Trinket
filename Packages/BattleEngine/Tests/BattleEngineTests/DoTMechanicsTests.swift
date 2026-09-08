@@ -220,12 +220,10 @@ struct DoTMechanicsTests {
     }
 
     @Test(arguments: [false, true])
-    func `noxious reaction uses current poison without consuming it`(isTick: Bool) throws {
+    func `noxious reaction consumes poison equal to bleed damage`(isTick: Bool) throws {
         let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                dot: DotTriggers(onBleedDamagePoisonTick: 1),
-            )),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"]),
             dealOpeningHand: false,
         )
         battle.roster.setActiveEffects(
@@ -241,7 +239,12 @@ struct DoTMechanicsTests {
                 ability: .rendingSlash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
             )
         }
-        #expect(statusAmounts(from: events, keyword: .poison) == [6])
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .poison(6) })
+        let bleedDamage = events.filter {
+            $0.keyword == .bleed && $0.kind == (isTick ? .status : .abilityDamage)
+        }.reduce(0) { $0 + $1.amount }
+        let consumed = min(6, bleedDamage)
+        #expect(consumed > 0)
+        #expect(statusAmounts(from: events, keyword: .poison) == [consumed])
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .poison(6 - consumed) })
     }
 }

@@ -8,6 +8,7 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | [Testing.md](Testing.md) | Unit / smoke / UI conventions and keep/drop rubric |
 | [Verification.md](Verification.md) | Task routing, gate composition, CI, style, and handoff |
 | [SimulatorOperations.md](SimulatorOperations.md) | Managed simulator isolation and local Xcode operations |
+| [Purchases.md](Purchases.md) | StoreKit testing, purchase ownership, and release prerequisites |
 | [Release.md](Release.md) | Versions, release notes, tags, and App Store handoff |
 | [iOS26AppleReference.md](iOS26AppleReference.md) | Trinket Apple API choices |
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Human CloudKit / App Store enablement checklist |

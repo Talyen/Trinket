@@ -5,6 +5,7 @@ options:
   deploymentTarget:
     iOS: "26.0"
 fileGroups:
+  - StoreKit/Trinket.storekit
   - Smoke.xctestplan
   - BattlePerformance.xctestplan
   - FullUI.xctestplan
@@ -65,6 +66,7 @@ targets:
     entitlements:
       path: Trinket/Trinket.entitlements
     dependencies:
+      - sdk: StoreKit.framework
       - package: TrinketCore
       - package: TrinketContent
       - package: BattleEngine
@@ -95,6 +97,8 @@ targets:
     sources:
       - path: TrinketUITests
         type: syncedFolder
+      - path: StoreKit/Trinket.storekit
+        buildPhase: resources
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
@@ -118,3 +122,11 @@ schemes:
         - TrinketUITests
     run:
       target: Trinket
+  Trinket Development:
+    build:
+      targets:
+        Trinket: all
+    run:
+      config: Debug
+      target: Trinket
+      storeKitConfiguration: StoreKit/Trinket.storekit

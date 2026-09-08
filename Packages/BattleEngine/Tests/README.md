@@ -4,7 +4,10 @@ Ownership rules for combat package tests. Prefer focused unit tests for
 handlers and pipelines; use `BattleCardCombatTests` / `*IntegrationTests`
 suites for cross-boundary contracts through `BattleState.playCard` / `endTurn`.
 Extend the suite that already owns a concern; add a new suite only for a
-genuinely new concern. The authoritative suite inventory is the
+genuinely new concern. Apply [Testing.md](../../../Docs/Platform/Testing.md) to
+additions and retirement: prefer representative behavior families and targeted
+interaction regressions over per-mechanic or combinatorial matrices.
+The authoritative suite inventory is the
 `Tests/BattleEngineTests/` directory; this guide names stable families.
 
 ## Ownership rules

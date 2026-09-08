@@ -5,3 +5,4 @@ BATTLE=SmokeBattleTests
 SHELL=SmokeShellTests
 SHOP=SmokeShopTests
 ONBOARDING=StarterOnboardingSmokeTests
+MONETIZATION=FullGamePurchaseSmokeTests

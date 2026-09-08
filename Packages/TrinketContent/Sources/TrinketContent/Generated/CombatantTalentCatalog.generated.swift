@@ -321,9 +321,9 @@ public extension CombatantTalentCatalog {
             "rogue_poison_t2_1": CombatantTalentEffect(
                 name: "Noxious Reaction",
                 symbolName: "flame.circle.fill",
-                description: "Bleed damage also deals Poison's current damage immediately.",
+                description: "Bleed damage consumes equal Poison, dealing that much Poison damage.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDamagePoisonTick: 1))
+                triggers: CombatTraitTriggers(dot: DotTriggers(bleedConsumesPoison: true))
             ),
             "rogue_poison_t2_2": CombatantTalentEffect(
                 name: "Blinding Fumes",
@@ -349,9 +349,9 @@ public extension CombatantTalentCatalog {
             "rogue_bleed_t1_1": CombatantTalentEffect(
                 name: "Serrated Blades",
                 symbolName: "triangle.fill",
-                description: "Applying Bleed to a Bleeding target extends its duration by 1 turn.",
+                description: "Applying Bleed immediately triggers existing Bleeds.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBleedAppliedToBleedingExtendTurns: 1))
+                triggers: CombatTraitTriggers(dot: DotTriggers(bleedApplicationTicksExisting: true))
             ),
             "rogue_bleed_t1_2": CombatantTalentEffect(
                 name: "Deep Wounds",
@@ -370,9 +370,9 @@ public extension CombatantTalentCatalog {
             "rogue_bleed_t2_2": CombatantTalentEffect(
                 name: "Blood Money",
                 symbolName: "banknote.fill",
-                description: "When Bleed deals damage, gain 2 Gold.",
+                description: "Defeating Bleeding enemies grants 5 bonus Gold.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(bleedDamageGoldFlat: 2))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(defeatBleedingEnemyGold: 5))
             ),
             "rogue_bleed_t3_1": CombatantTalentEffect(
                 name: "Exsanguinate",
@@ -433,7 +433,7 @@ public extension CombatantTalentCatalog {
             "rogue_gold_t4_1": CombatantTalentEffect(
                 name: "Bounty Blade",
                 symbolName: "dollarsign.circle.fill",
-                description: "Critical Hits grant 3 Gold and draw a card.",
+                description: "Critical Hits grant 3 Gold and steal 3 Block.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(gold: GoldTriggers(bountyBlade: true))
             ),
@@ -562,9 +562,9 @@ public extension CombatantTalentCatalog {
             "wizard_mana_t2_2": CombatantTalentEffect(
                 name: "Arcane Cleansing",
                 symbolName: "sparkles",
-                description: "Spending 3 or more Mana in a turn cleanses 1 negative effect.",
+                description: "Spending Mana removes equal Burn or Poison from you.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaThresholdCleanseCount: 3))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaRemovesAfflictions: true))
             ),
             "wizard_mana_t3_1": CombatantTalentEffect(
                 name: "Arcane Surge",
@@ -590,7 +590,7 @@ public extension CombatantTalentCatalog {
             "wizard_burn_t4_1": CombatantTalentEffect(
                 name: "Backdraft",
                 symbolName: "flame.fill",
-                description: "Critical Hits detonate and consume all Burn.",
+                description: "Critical Hits consume Burn for equal damage matching their element.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(backdraft: true))
             ),
@@ -799,7 +799,7 @@ public extension CombatantTalentCatalog {
             "warlock_leech_t1_1": CombatantTalentEffect(
                 name: "Vampiric Touch",
                 symbolName: "hand.raised.fill",
-                description: "Your Leech restores Health to you even when striking enemy Block.",
+                description: "Leech also heals from damage absorbed by enemy Block.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechOnBlockDamage: true))
             ),
@@ -869,9 +869,9 @@ public extension CombatantTalentCatalog {
             "warlock_mana_t3_1": CombatantTalentEffect(
                 name: "Chaos Rift",
                 symbolName: "burst.fill",
-                description: "Spending 4 Mana in a turn deals 8 damage across 2 random elements.",
+                description: "Spending Mana deals equal damage across two random elements.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaChaosRiftThreshold: 4, spendManaChaosRiftDamage: 8))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaRandomElementDamage: true))
             ),
             "warlock_mana_t3_2": CombatantTalentEffect(
                 name: "Life Tap",
@@ -2599,9 +2599,9 @@ public extension CombatantTalentCatalog {
             "mana_moth_mana_t2_1": CombatantTalentEffect(
                 name: "Mana Cocoon",
                 symbolName: "circle.circle.fill",
-                description: "Spending 3 or more Mana in a turn grants 3 Block and 1 Health.",
+                description: "Spending Mana grants equal Block.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaThresholdBlockThreshold: 3, spendManaThresholdBlockBlock: 3, spendManaThresholdBlockHealth: 1))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaGrantsEqualBlock: true))
             ),
             "mana_moth_mana_t2_2": CombatantTalentEffect(
                 name: "Aetherial Flow",
@@ -2711,7 +2711,7 @@ public extension CombatantTalentCatalog {
             "mana_moth_burn_t4_1": CombatantTalentEffect(
                 name: "Steam Explosion",
                 symbolName: "burst.fill",
-                description: "Freeze damage detonates and consumes all Burn.",
+                description: "Your Freeze cards consume Burn for equal additional Freeze damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(steamExplosion: true))
             ),

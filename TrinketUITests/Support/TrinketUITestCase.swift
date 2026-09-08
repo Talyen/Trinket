@@ -11,10 +11,6 @@ private func trinketWaitForExistenceMainActorSafe(_ element: XCUIElement, timeou
 }
 
 enum TestLaunchArg {
-    static func tab(_ tab: String) -> String {
-        "-selectedTab \(tab)"
-    }
-
     static let resetState = "-reset-state"
     static let seedTestProgress = "-seed-test-progress"
     static let skipStarterSelection = "-skip-starter-selection"
@@ -92,10 +88,6 @@ enum TestLaunchArg {
         result.removeAll { $0 == "-disable-audio" || $0 == enableFrameMetrics }
         result.append(enableFrameMetrics)
         return result
-    }
-
-    static func allForBattleVictory(reset: Bool = true) -> [String] {
-        allForScreen("battle-victory", reset: reset)
     }
 
     static func allForMidBattle() -> [String] {
@@ -220,23 +212,6 @@ class TrinketUITestCase: XCTestCase {
         trinketWaitForExistenceMainActorSafe(element, timeout: timeout)
     }
 
-    @discardableResult
-    func waitForHittable(
-        _ element: XCUIElement,
-        timeout: TimeInterval,
-        file _: StaticString = #file,
-        line _: UInt = #line,
-    ) -> Bool {
-        let deadline = Date().addingTimeInterval(timeout)
-        while Date() < deadline {
-            if element.exists, element.isHittable {
-                return true
-            }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-        }
-        return element.exists && element.isHittable
-    }
-
     func tapWhenReady(_ element: XCUIElement) {
         let deadline = Date().addingTimeInterval(2)
         while Date() < deadline, !element.isHittable {
@@ -247,27 +222,6 @@ class TrinketUITestCase: XCTestCase {
         } else {
             element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
-    }
-
-    @discardableResult
-    func waitForEnabled(
-        _ element: XCUIElement,
-        timeout: TimeInterval = 12,
-        file: StaticString = #file,
-        line: UInt = #line,
-    ) -> Bool {
-        let deadline = Date().addingTimeInterval(timeout)
-        while Date() < deadline {
-            if element.exists, element.isEnabled {
-                return true
-            }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
-        }
-        if element.exists, element.isEnabled {
-            return true
-        }
-        fail("Element never became enabled", file: file, line: line)
-        return false
     }
 
     func assertButtonExists(
@@ -305,23 +259,6 @@ class TrinketUITestCase: XCTestCase {
         guard waitForExistence(element, timeout: timeout) else {
             fail(missingElementMessage("Element not found"), file: file, line: line)
             return
-        }
-    }
-
-    func assertSingleElement(
-        _ identifier: String,
-        timeout: TimeInterval = defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line,
-    ) {
-        let query = app.descendants(matching: .any).matching(identifier: identifier)
-        guard waitForExistence(query.firstMatch, timeout: timeout) else {
-            fail(missingElementMessage("Element '\(identifier)' not found"), file: file, line: line)
-            return
-        }
-        let count = query.count
-        if count != 1 {
-            fail("Expected single element '\(identifier)' but found \(count)", file: file, line: line)
         }
     }
 
@@ -456,10 +393,6 @@ class TrinketUITestCase: XCTestCase {
 
     var edgeBackSwipeEnd: XCUICoordinate {
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.45))
-    }
-
-    func clearAndEnterText(_ element: XCUIElement, _ text: String) {
-        replaceText(in: element, with: text)
     }
 
     func replaceText(in element: XCUIElement, with text: String) {

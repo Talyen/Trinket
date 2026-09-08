@@ -58,6 +58,24 @@ Authored talents and their short descriptions live in
 [the talent manifest](../../ContentManifest/talents.tsv). Talent rule changes
 reuse the ordinary damage, healing, control, and resource pipelines.
 
+- Damage conversions consume their stored effect before resolving the bonus.
+  Noxious Reaction spends Poison up to actual Bleed Health damage without
+  reapplying it. Serrated Blades ticks existing Bleeds with their original
+  owners and durations; it does not apply another Bleed for each tick. Blood
+  Money rewards its owner's lethal hit against a Bleeding enemy, including
+  lethal Bleed detonations, instead of rewarding each damage event.
+  Turn effects read and commit live state, so later ticks use only the
+  remaining potency after earlier decay and consumption.
+- Mana Cocoon, Arcane Cleansing, and Chaos Rift use each actual Mana payment.
+  Arcane Cleansing removes potency from a randomly chosen present Burn or
+  Poison effect, without firing Cleanse or natural-expiry reactions. Chaos
+  Rift divides the payment between two distinct elements from its existing
+  Freeze, Burn, Poison, and Holy pool; the first receives any odd remainder.
+- Steam Explosion consumes Burn during Freeze-card preparation and adds its
+  potency to the card's Freeze damage; secondary Freeze reactions do not
+  activate it. Backdraft consumes Burn on a critical attack and adds its
+  potency after the Critical Hit multiplier, before defenses, in that hit's
+  element. Neither conversion detonates Burn or creates another attack.
 - Elemental Leech uses the standard Leech rate, including damage-over-time
   ticks; it does not add a second base Leech contribution to an already-Leeching
   hit. Overhealing keeps its emitted reactions even when no Health is restored.

@@ -189,4 +189,24 @@ extension TalentCatalogRoundTripTests {
         }
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 7)
     }
+
+    @Test(arguments: [4, 20])
+    func `vampiric touch leeches blocked damage and activates soul drain`(block: Int) {
+        var battle = capstoneBattle(hero: ["warlock_leech_t1_1", "warlock_leech_t2_2"])
+        battle.roster.hero.currentHealth = 10
+        battle.roster.hero.currentMana = 0
+        var unblocked = battle
+        seedHeroTalentEffect(.shield(.block, block), on: .enemy, in: &battle)
+        var options = DamageOptions.doTTick
+        options.abilityHasLeech = true
+        let request = DamageRequest(
+            amount: 8, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id, options: options,
+        )
+        _ = unblocked.resolveDamage(request)
+        let hit = battle.resolveDamage(request)
+        #expect(hit.healthLost == max(0, 8 - block))
+        #expect(battle.roster.hero.currentHealth == unblocked.roster.hero.currentHealth)
+        #expect(battle.roster.hero.currentHealth > 10)
+        #expect(battle.roster.hero.currentMana == 1)
+    }
 }

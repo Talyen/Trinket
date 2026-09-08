@@ -3,12 +3,15 @@ import SwiftUI
 import TrinketAppState
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 #if DEBUG
 import TrinketBattleFeature
 #endif
 
 struct OptionsView: View {
+    @Environment(FullGameStore.self) private var fullGame
+    @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(OptionsStore.self) private var optionsStore
     @Environment(\.scenePhase) private var scenePhase
     @State private var isResetConfirmationPresented = false
@@ -90,6 +93,7 @@ struct OptionsView: View {
                 }
             }
 
+            purchaseSection
             gameDataSection
         }
         .scrollContentBackground(.hidden)
@@ -124,6 +128,38 @@ struct OptionsView: View {
             trigger: actionErrorTrigger,
             enabled: optionsStore.hapticsEnabled,
         )
+    }
+
+    private var purchaseSection: some View {
+        Section("Full Game") {
+            if fullGame.ownership.access.hasFullGame {
+                Label(
+                    fullGame.ownership == .familyShared ? "Shared with your family" : "Full Game purchased",
+                    systemImage: "checkmark.circle",
+                )
+                .trinketTypography(.body)
+            } else {
+                Button("View Full Game") { requestOffer(.options) }
+                    .trinketTypography(.body)
+                    .accessibilityIdentifier(AccessibilityID.FullGame.options)
+            }
+            Button(fullGame.isRestoring ? "Restoring…" : "Restore Purchases") {
+                Task { await fullGame.restore() }
+            }
+            .trinketTypography(.body)
+            .disabled(fullGame.isRestoring || fullGame.isPurchasing)
+            .accessibilityIdentifier(AccessibilityID.FullGame.restore)
+            if let message = fullGame.message {
+                Text(message)
+                    .trinketTypography(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier(AccessibilityID.FullGame.status)
+            }
+            Link("Privacy", destination: TrinketPublicPages.privacy)
+                .trinketTypography(.body)
+            Link("Support", destination: TrinketPublicPages.support)
+                .trinketTypography(.body)
+        }
     }
 
     @ViewBuilder

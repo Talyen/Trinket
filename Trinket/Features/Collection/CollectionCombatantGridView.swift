@@ -33,7 +33,7 @@ struct CollectionCombatantGridView: View {
         CollectionGridShell(items: combatants) { combatant in
             CollectionCombatantButton(
                 combatant: combatant,
-                isLocked: !playerSave.roster.isUnlocked(combatant),
+                isLocked: !playerSave.roster.isUnlocked(combatant) || !playerSave.contentAccess.allowsCombatant(combatant.id),
                 cardWidth: nil,
             ) {
                 selectedCombatant = CombatantDetailContext(
@@ -62,6 +62,7 @@ struct CollectionCombatantGridView: View {
                 )
             }
             .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))
+            .fullGameOfferHost()
             .trinketDetailSheet()
         }
     }

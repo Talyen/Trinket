@@ -14,6 +14,7 @@ public enum LabyrinthMapPresentation {
         worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>,
+        access: ContentAccessPolicy = .fullGame,
     ) -> LabyrinthNodeType {
         guard node.type.canonical == .recruit else { return node.type.canonical }
         let resolution = GameContent.resolveRecruitEncounter(
@@ -22,6 +23,7 @@ public enum LabyrinthMapPresentation {
             worldSeed: worldSeed,
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs,
+            access: access,
         )
         if case .mystery = resolution {
             return .mystery
@@ -71,6 +73,7 @@ public enum LabyrinthMapPresentation {
         worldSeed: UInt64,
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>,
+        access: ContentAccessPolicy = .fullGame,
     ) -> EncounterArtReference? {
         let resolution = GameContent.resolveRecruitEncounter(
             configuredEventID: node.recruitEventID,
@@ -78,6 +81,7 @@ public enum LabyrinthMapPresentation {
             worldSeed: worldSeed,
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs,
+            access: access,
         )
         guard case let .recruit(event) = resolution else { return nil }
         return GameContent.recruitEncounterArtReference(for: event)

@@ -161,6 +161,7 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
+        guard playerSave.contentAccess.allowsCombatant(combatant.id) else { return }
         let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
             slot.select(combatant, in: &$0)
         }
@@ -174,6 +175,7 @@ struct StageBattlePartyPickerSheet: View {
 
     private func orderedCombatants(for slot: BattlePartySlot) -> [Combatant] {
         slot.orderedCombatants(in: playerSave.roster, spire: spire)
+            .filter { playerSave.contentAccess.allowsCombatant($0.id) }
     }
 
     private var partyPickerAccessibilityID: String {
@@ -232,9 +234,11 @@ private struct BattlePartySlotGridView: View {
 
     private var orderedCombatants: [Combatant] {
         slot.orderedCombatants(in: playerSave.roster, spire: spire)
+            .filter { playerSave.contentAccess.allowsCombatant($0.id) }
     }
 
     private func select(_ combatant: Combatant) {
+        guard playerSave.contentAccess.allowsCombatant(combatant.id) else { return }
         guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
         let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
             slot.select(combatant, in: &$0)

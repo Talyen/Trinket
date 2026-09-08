@@ -20,7 +20,8 @@ struct PlayBattleLaunch {
 
     @discardableResult
     func activateCombat(_ request: PlayCombatRequest) -> Bool {
-        activateBattle(
+        guard playerSave.accessRestriction(for: request.origin) == nil else { return false }
+        return activateBattle(
             makeLaunchInput(for: request),
             route: request.route,
         )
@@ -28,6 +29,7 @@ struct PlayBattleLaunch {
 
     @discardableResult
     func prepareCombat(_ request: PlayCombatRequest) -> Bool {
+        guard playerSave.accessRestriction(for: request.origin) == nil else { return false }
         let launch = makeBattleLaunch(makeLaunchInput(for: request))
         guard PlayBattleRoute.matches(
             request.route,
@@ -53,6 +55,9 @@ struct PlayBattleLaunch {
         _ input: BattleLaunchInput,
         route: PlayBattleRoute? = nil,
     ) -> Bool {
+        guard playerSave.accessRestriction(for: input.origin) == nil,
+              playerSave.contentAccess.allowsCombatant(input.hero.id),
+              playerSave.contentAccess.allowsCombatant(input.companion.id) else { return false }
         guard PlayBattleRoute.matches(
             route,
             runKey: input.origin?.runKey,
@@ -168,22 +173,27 @@ struct PlayBattleLaunch {
 }
 
 public extension PlaySession {
-    func restartActiveBattle() {
-        guard let activeBattle = battle.activeBattle else { return }
+    @discardableResult
+    func restartActiveBattle() -> StageMapMessage? {
+        guard let activeBattle = battle.activeBattle else { return nil }
 
         let registration = battleRegistration(for: activeBattle.runKey)
         let route = registration?.route
+        if let restriction = playerSave.accessRestriction(for: route?.origin) {
+            endBattleReturningToOrigin()
+            return restriction
+        }
         guard PlayBattleRoute.matches(
             route,
             runKey: activeBattle.runKey,
             missingLog: "Missing route for active battle restart",
         ) else {
-            return
+            return nil
         }
         let presentation = registration?.presentation
         guard activeBattle.runKey == nil || presentation != nil else {
             appStateLogger.error("Missing presentation metadata for active battle restart")
-            return
+            return nil
         }
         let universalModifiers = registration?.universalModifiers ?? []
         battleLaunch.restartActiveBattle(
@@ -192,5 +202,6 @@ public extension PlaySession {
             presentation: presentation,
             universalModifiers: universalModifiers,
         )
+        return nil
     }
 }

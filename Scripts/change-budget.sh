@@ -120,34 +120,3 @@ LC_ALL=C awk \
     if (!warnings) print "  Warnings: none"
   }
 ' "$stats" "$patch"
-
-# Advisory: production Swift in a package with no matching test-path edits.
-prod_packages=""
-test_packages=""
-for path in "${TRINKET_CHANGED_PATHS[@]}"; do
-  [[ "$path" == *.swift ]] || continue
-  [[ "$path" == */Generated/* || "$path" == *.generated.swift ]] && continue
-  case "$path" in
-    Packages/*/Tests/*)
-      package="${path#Packages/}"
-      test_packages+="${package%%/*}"$'\n'
-      ;;
-    Packages/*/Sources/*)
-      package="${path#Packages/}"
-      prod_packages+="${package%%/*}"$'\n'
-      ;;
-  esac
-done
-missing=()
-while IFS= read -r package; do
-  [[ -z "$package" ]] && continue
-  if ! printf '%s' "$test_packages" | grep -Fxq "$package"; then
-    missing+=("$package")
-  fi
-done < <(printf '%s' "$prod_packages" | LC_ALL=C sort -u)
-if ((${#missing[@]} > 0)); then
-  echo "  Package test coverage:"
-  for package in "${missing[@]}"; do
-    echo "    - production Swift in ${package} changed with no test path in that package"
-  done
-fi

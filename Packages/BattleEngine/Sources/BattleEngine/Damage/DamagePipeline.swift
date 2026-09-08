@@ -126,6 +126,7 @@ package enum DamagePipeline {
         if !state.options.usesResolvedOutgoingDamage {
             applyCriticalMultiply(to: &state, in: &context)
         }
+        applyBackdraftBonus(to: &state, in: &context)
         if state.options.isOriginalCardDamage, state.amount > 0, state.combatant.role == .enemy {
             let bonus = CombatTriggerEngine.heroCardDamageBonus(keyword: state.damageKeyword, sourceID: state.sourceActorID, in: &context)
             state.remaining += bonus

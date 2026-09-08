@@ -53,9 +53,9 @@ struct BattleSessionAppIntegrationTests {
             rewards: .empty,
         )
 
-        let message = appState.journey.startBattle(for: brokenStage)
+        let message = try #require(appState.journey.startBattle(for: brokenStage))
 
-        #expect(message?.title == "Encounter Missing")
+        #expect(message.fullGameOffer == nil)
         #expect(appState.battle.activeBattle == nil)
     }
 

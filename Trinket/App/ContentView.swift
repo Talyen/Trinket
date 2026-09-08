@@ -32,6 +32,7 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
+        .fullGameOfferHost()
         .animation(TrinketMotion.Screen.crossfade, value: playerSave.starterSelection.phase)
         .trinketSensoryFeedback(
             .success,
@@ -74,15 +75,29 @@ struct ContentView: View {
             )
         }
         .onChange(of: battle.activeBattle?.id) { _, newValue in
+            if newValue == nil {
+                appState.synchronizePurchaseAccess()
+            }
             appState.reconcileShellState(
                 .activeBattleChanged(started: newValue != nil),
                 scenePhase: scenePhase,
             )
         }
+        .onChange(of: appState.play.isGameplayActive) { _, active in
+            if !active {
+                appState.synchronizePurchaseAccess()
+            }
+        }
         .onChange(of: appState.options.musicVolume) { _, _ in
             appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task {
+                    await appState.fullGame.refreshOwnership()
+                    appState.synchronizePurchaseAccess()
+                }
+            }
             appState.reconcileShellState(.scenePhaseChanged, scenePhase: newPhase)
         }
     }

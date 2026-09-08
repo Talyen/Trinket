@@ -21,8 +21,17 @@ package extension DamagePipeline {
         var lost = 0
         context.roster.mutateRuntime(for: state.combatant) { lost = $0.takeRawDamage(state.remaining) }
         state.healthLost = lost
-        if state.combatant.role == .enemy, context.roster.health(for: state.combatant) == 0 {
+        if lost > 0, state.combatant.role == .enemy, context.roster.health(for: state.combatant) == 0 {
             context.lastEnemyDefeatWasCritical = state.isCritical
+            if state.targetStatus.isBleeding || state.damageKeyword == .bleed,
+               let source = state.partySource(in: context) {
+                let gold = context.modifiers(for: source.id).triggers.defeatBleedingEnemyGold
+                if gold > 0 {
+                    state.damageEvents.append(contentsOf: context.grantGoldEvent(
+                        gold, to: source.combatant, abilityName: "Blood Money",
+                    ))
+                }
+            }
         }
         if lost > 0 {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(

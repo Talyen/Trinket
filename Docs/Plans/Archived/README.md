@@ -7,6 +7,7 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| Monetization | 2026-09-08 | Implemented the permanent Full Game offer, free-content boundaries, earned recruitment, free-first roster ordering, all-ability Spire matching, StoreKit development purchases, and support/privacy page sources. Developer enrollment, live store setup, public support contact, and website publication remain release prerequisites. |
 | Battle card cues | 2026-09-08 | Reworked The Patient Edge around partner-first attacks with saved-power compatibility; added artwork-first recipient cues, resource-use previews, and denial feedback for taps, drags, and Auto Battle; covered interrupted, rapid, and pre-render Auto Battle input, isolated inherited smoke settings, and separated cold launch readiness from screen assertions. |
 | Talent reworks | 2026-09-07 | Reworked 20 talents without their former activation limits/caps, preserved saved IDs through three node swaps, extended balance contrasts to final rows, and isolated the shared-session verification fixture; Grove Reserve remains a tuning follow-up against First Bloom. |
 | Contracts | 2026-09-07 | Added persistent, renewable Easy/Standard/Hard jobs with full regular rewards, party-average level offsets, atomic claims, and free refresh/retries; reused Campaign/Spire Stage UI, preserved old saves, and verified the board, battle routing, and reward behavior. |

@@ -23,6 +23,7 @@ struct LabyrinthNodeInspector: View {
             worldSeed: playerSave.worldSeed,
             unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
             unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
+            access: playerSave.contentAccess,
         )
     }
 

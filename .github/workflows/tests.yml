@@ -172,7 +172,7 @@ jobs:
       matrix:
         include:
           - name: Shell
-            target: SmokeShellTests StarterOnboardingSmokeTests
+            target: SmokeShellTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests
           - name: Play
             target: SmokeBattleTests SmokeShopTests
     runs-on: macos-26
@@ -229,7 +229,7 @@ jobs:
           - name: Homestead
             target: HomesteadNodeDetailUITests
           - name: Play
-            target: PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests ShopFlowUITests
+            target: PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests
     runs-on: macos-26
     timeout-minutes: 25
     steps:

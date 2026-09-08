@@ -49,6 +49,7 @@ struct LabyrinthFloorMap: View {
                     worldSeed: playerSave.worldSeed,
                     unlockedHeroIDs: roster.unlockedHeroIDs,
                     unlockedCompanionIDs: roster.unlockedCompanionIDs,
+                    access: playerSave.contentAccess,
                 ),
                 position: point(
                     for: node,
@@ -324,6 +325,7 @@ struct LabyrinthNodeArtwork: View {
                       worldSeed: playerSave.worldSeed,
                       unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
                       unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
+                      access: playerSave.contentAccess,
                   ) {
             Image.preparedAsset(
                 art,
@@ -372,6 +374,7 @@ struct LabyrinthNodeArtwork: View {
                       worldSeed: playerSave.worldSeed,
                       unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
                       unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
+                      access: playerSave.contentAccess,
                   ) {
             encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
         } else if let event = resolvedMysteryEvent, !event.isRecruit {

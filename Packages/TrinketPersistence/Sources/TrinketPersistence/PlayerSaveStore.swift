@@ -31,6 +31,8 @@ public final class PlayerSaveStore {
 
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
 
+    public var contentAccess: ContentAccessPolicy = .free
+
     public private(set) var isPersistenceDegraded = false
 
     public private(set) var recoveredAfterStoreDeletion = false

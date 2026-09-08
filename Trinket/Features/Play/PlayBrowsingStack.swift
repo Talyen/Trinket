@@ -126,7 +126,9 @@ struct PlayBattleOverlay: View {
                             )
                         },
                         restartBattle: { [weak play] in
-                            play?.restartActiveBattle()
+                            if let message = play?.restartActiveBattle() {
+                                stageMessage = message
+                            }
                         },
                         retreat: { [weak play] in
                             play?.endBattleReturningToOrigin()

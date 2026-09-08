@@ -88,7 +88,9 @@ public enum SpireAttunement: Equatable, Sendable {
     }
 
     public static func matches(_ combatant: Combatant, spire: SpireDefinition) -> Bool {
-        combatant.keywordProfile.contains(spire.keyword)
+        let choices = combatant.abilityChoices
+        return (choices.basics + choices.skills + choices.ultimates)
+            .contains { $0.keywords.contains(spire.keyword) }
     }
 
     public static func canEnter(

@@ -4,7 +4,6 @@ BattleFlowUITests
 MysteryRecruitUITests
 PlayMapUITests
 PlayModeNavigationUITests
-ShopFlowUITests
 TabNavigationUITests
 HeroDetailAbilityPickerUITests
 HomesteadNodeDetailUITests

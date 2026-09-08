@@ -5,6 +5,7 @@ Player-facing standing policy. Engineering policy lives in
 
 | Document | Purpose |
 |----------|---------|
+| [Monetization.md](Monetization.md) | Free edition, permanent Full Game access, and offer copy |
 | [Decisions.md](Decisions.md) | Locked player-facing choices (PD-001–PD-021) |
 | [Contracts.md](Contracts.md) | Renewable contract board, difficulty, rewards, and saved offers |
 | [Overview.md](Overview.md) | Game surfaces and modes in player terms |

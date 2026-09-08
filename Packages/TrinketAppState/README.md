@@ -28,3 +28,8 @@ voices running. Sound buffers, voice counts, gains, and interruption behavior ar
 ```sh
 ./Scripts/test-package.sh TrinketAppState
 ```
+
+`FullGameStore` owns StoreKit product loading, verified purchase ownership,
+transaction delivery, and explicit restoration. AppState supplies its transient
+access snapshot to the player store and reconciles the party at safe boundaries.
+[Purchases](../../Docs/Platform/Purchases.md) owns setup and release prerequisites.

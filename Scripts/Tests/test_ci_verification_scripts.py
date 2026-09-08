@@ -63,14 +63,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         script = (ROOT / "Scripts" / "lint-analyze.sh").read_text(encoding="utf-8")
         self.assertIn("unused_import", script)
 
-    def test_change_budget_warns_when_package_production_lacks_tests(self) -> None:
-        text = (ROOT / "Scripts" / "change-budget.sh").read_text(encoding="utf-8")
-        self.assertIn("--base", text)
-        self.assertIn(
-            "production Swift in ${package} changed with no test path in that package",
-            text,
-        )
-
     def test_ci_diff_review_is_advisory(self) -> None:
         text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
         self.assertRegex(text, r"diff-review:\n(?:.*\n){0,8}    continue-on-error: true")

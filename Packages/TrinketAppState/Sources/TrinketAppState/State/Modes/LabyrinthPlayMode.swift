@@ -63,7 +63,7 @@ public final class LabyrinthPlayMode {
             )
         }
         guard playerSave.persistBatch(logging: "Failed to enter Labyrinth", { save in
-            LabyrinthCompletion.enter(save: &save)
+            LabyrinthCompletion.enter(save: &save, access: playerSave.contentAccess)
         }) else {
             return StageMapMessage(title: "Labyrinth Error", message: "Could not open Labyrinth.")
         }
@@ -72,6 +72,9 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     public func handleNodeAction(nodeID: String) -> StageMapMessage? {
+        if let restriction = playerSave.accessRestriction(for: .labyrinth(nodeID: nodeID)) {
+            return restriction
+        }
         guard canBeginTransientEncounter else { return nil }
         let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID) else {
@@ -101,6 +104,7 @@ public final class LabyrinthPlayMode {
                 worldSeed: playerSave.worldSeed,
                 unlockedHeroIDs: roster.unlockedHeroIDs,
                 unlockedCompanionIDs: roster.unlockedCompanionIDs,
+                access: playerSave.contentAccess,
             )
             return beginMysteryEncounter(
                 nodeID: nodeID,
@@ -120,6 +124,9 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     func startBattle(nodeID: String) -> StageMapMessage? {
+        if let restriction = playerSave.accessRestriction(for: .labyrinth(nodeID: nodeID)) {
+            return restriction
+        }
         guard canBeginTransientEncounter else { return nil }
         let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else {
@@ -154,6 +161,7 @@ public final class LabyrinthPlayMode {
                 worldSeed: playerSave.worldSeed,
                 unlockedHeroIDs: roster.unlockedHeroIDs,
                 unlockedCompanionIDs: roster.unlockedCompanionIDs,
+                access: playerSave.contentAccess,
             )
             if case let .mystery(event) = resolution {
                 return event
@@ -180,6 +188,7 @@ public final class LabyrinthPlayMode {
         var preparedAll = true
         var preparedKeys: Set<BattleRunKey> = []
         for nodeID in labyrinth.reachableNodeIDs() {
+            guard playerSave.accessRestriction(for: .labyrinth(nodeID: nodeID)) == nil else { continue }
             guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { continue }
             if prepareBattle(node: node, labyrinth: labyrinth) {
                 preparedKeys.insert(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
@@ -257,6 +266,7 @@ public final class LabyrinthPlayMode {
                 loot: loot,
                 enemyEncounterLevel: enemyEncounterLevel,
                 save: &save,
+                access: playerSave.contentAccess,
             )
         }
     }

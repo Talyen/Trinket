@@ -69,6 +69,9 @@ public final class SpiresPlayMode {
 
     @discardableResult
     public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
+        if let restriction = playerSave.accessRestriction(for: .spire(spireID: floor.spireID, floor: floor.floor)) {
+            return restriction
+        }
         guard let spire = GameContent.spire(id: floor.spireID) else {
             return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
         }
@@ -117,6 +120,7 @@ public final class SpiresPlayMode {
     }
 
     public func prepareBattle(for floor: SpireFloor) {
+        guard playerSave.accessRestriction(for: .spire(spireID: floor.spireID, floor: floor.floor)) == nil else { return }
         let spires = playerSave.spires
         let roster = playerSave.roster
         guard battle.lifecyclePhase != .active,

@@ -16,10 +16,6 @@ struct BattleScreen {
         )
     }
 
-    var victory: XCUIElement {
-        app.descendants(matching: .any)[AccessibilityID.Battle.victory]
-    }
-
     var actionsMenu: XCUIElement {
         app.buttons[AccessibilityID.Battle.actionsMenu]
     }
@@ -28,35 +24,12 @@ struct BattleScreen {
         app.buttons[AccessibilityID.Battle.autoBattleToggle]
     }
 
-    var combatLogAction: XCUIElement {
-        app.buttons[AccessibilityID.Battle.combatLog]
-    }
-
     var retreatAction: XCUIElement {
         app.buttons[AccessibilityID.Battle.retreat]
     }
 
     var retreatConfirmAction: XCUIElement {
         app.buttons[AccessibilityID.Battle.retreatConfirm].firstMatch
-    }
-
-    func assertPresented(
-        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
-        file: StaticString = #file,
-        line: UInt = #line,
-    ) {
-        let handChrome = app.descendants(matching: .any)
-            .matching(identifier: AccessibilityID.Battle.hand)
-            .firstMatch
-        if handChrome.trinketWaitForExistence(timeout: timeout) {
-            return
-        }
-        XCTAssertTrue(
-            victory.trinketWaitForExistence(timeout: 1),
-            "Battle chrome not found",
-            file: file,
-            line: line,
-        )
     }
 
     func assertActive(

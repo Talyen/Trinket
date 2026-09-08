@@ -37,6 +37,7 @@ public enum AccessibilityID {
     public enum Options {
         public static let hapticsToggle = "Haptics Toggle"
         public static let rememberAutoBattleToggle = "Remember Auto-Battle Preference Toggle"
+        public static let resetProgressConfirmation = "Reset Game Progress"
         public static let resetProgressButton = "Reset Game Progress Button"
         public static let progressStatusMessage = "Progress Status Message"
         public static let showAnimationsPicker = "Show Ultimate Animations Picker"

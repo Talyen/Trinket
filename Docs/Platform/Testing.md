@@ -54,12 +54,22 @@ here.
 
 ## Coverage decision (new and changed behavior)
 
-Verification does not imply authoring new tests. Add or expand coverage only when all are true:
+Maintain the smallest test portfolio that provides strong confidence in consequential
+game behavior. Verification does not imply authoring new tests; existing coverage
+or no new test can be the right outcome. Add or expand coverage only when all are true:
 
 1. The change introduces or repairs a distinct, consequential behavior or invariant.
 2. Existing assertions do not already prove the changed behavior or invariant.
 3. The proposed assertion would fail before the fix, except for genuinely new behavior.
 4. The cheapest suitable tier can express it without duplicating a stronger owner.
+5. Its added confidence justifies its runtime, setup, brittleness, and maintenance.
+
+Prefer shared invariants, representative behavior families, and meaningful boundaries.
+Hundreds of mechanics do not justify per-mechanic UI journeys or exhaustive combination
+matrices. Add mechanic-specific cases or targeted interaction regressions when they
+exercise materially different, consequential failure modes. Cheap catalog-wide
+invariants remain useful when they detect content errors that representative cases
+cannot; case count alone establishes neither value nor waste.
 
 Extend the existing semantic matrix, journey, method, or file first. Add a new
 owner only when the behavior cannot fit coherently in an existing one. Prefer
@@ -67,7 +77,26 @@ adding a declaration over a new file or class. Remove or merge coverage made red
 
 **Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketAppStateTests`.
 
-New user flows still need a stable `AccessibilityID` selector (or an existing appropriate one), but add or extend a UI test only when the keep/drop rubric below applies. Prefer an existing smoke/exhaustive method over a new class; assert visible outcomes, not custom accessibility prose. Per PD-014, assertions may rely on identifiers and hittability only; accessibility wording is not a stable test contract.
+New user flows still need a stable `AccessibilityID` selector (or an existing appropriate one), but add or extend a UI test only when the keep/drop rubric below applies. Prefer a coherent existing smoke/exhaustive journey over a new class; assert visible outcomes, not custom accessibility prose. Per PD-014, assertions may rely on identifiers and hittability only; accessibility wording is not a stable test contract.
+
+### Consolidation and retirement
+
+Proactively consolidate, streamline, move, or delete tests in the area being changed
+when the evidence justifies it; no separate approval or replacement test is required.
+For redundant coverage, identify the surviving owner and the relevant conditions it
+proves. A distinct case may also be retired when its practical confidence is too low
+for its cost. Explain what it proved, why it is being retired, and the surviving
+protection or deliberately relinquished coverage and material remaining risk.
+
+Preserve effective protection for consequential contracts such as save integrity,
+meaningful battle invariants, and critical player outcomes. Failure or slowness alone
+is not grounds for removal; diagnose failures and never delete or weaken assertions
+to conceal a defect. Distinctness alone is not a reason to keep a low-value case.
+
+Judge simplification by maintenance, expanded executions, setup, launches, waits,
+and diagnostic clarity. Parameterization can reduce duplication without reducing
+executed work. Do not combine unrelated cases into a long journey merely to lower
+declaration counts. Remove unused fixtures and support code left by retirement.
 
 ### Presentation / accessibility-ID changes (before push)
 
@@ -83,7 +112,12 @@ Command routing, isolation, and mid-task `--no-build` live in
 
 ## UI keep / drop rubric
 
-Keep a UI test only if it asserts a **shipping product outcome** that unit/package tests cannot own:
+UI tests selectively prove critical journeys and interaction wiring once; battle
+rules belong in package tests, and cross-module contracts use the cheapest tier that
+actually exercises the boundary. “Exhaustive” is a suite name, not a coverage obligation.
+
+Apply the coverage decision to additions and the retirement rules to existing cases.
+Keep UI tests only for a **shipping product outcome** that unit/package tests cannot own:
 
 1. **Shell / entry** — a major surface becomes usable (Play chooser, Homestead wallet, Shop controls, Battle chrome).
 2. **State-changing journey** — a user action mutates durable or navigable state (shop leave returns to Play, retreat returns to Play, recruit continue).

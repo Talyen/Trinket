@@ -12,7 +12,8 @@ public enum TalentUnlockResult: Equatable, Sendable {
 public extension PlayerSaveStore {
     @discardableResult
     func confirmStarterHero(_ heroID: String) -> Bool {
-        guard starterSelection.phase != .complete,
+        guard contentAccess.allowsCombatant(heroID),
+              starterSelection.phase != .complete,
               GameContent.heroes.map(\.id).contains(heroID)
         else { return false }
         return persistBatch(logging: "Failed to save starter Hero") { save in
@@ -28,6 +29,8 @@ public extension PlayerSaveStore {
         let selection = starterSelection
         guard selection.phase == .chooseCompanion,
               let heroID = selection.heroID,
+              contentAccess.allowsCombatant(heroID),
+              contentAccess.allowsCombatant(companionID),
               GameContent.heroes.map(\.id).contains(heroID),
               GameContent.companions.map(\.id).contains(companionID)
         else { return false }

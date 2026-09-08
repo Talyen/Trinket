@@ -15,3 +15,7 @@ Live CloudKit stays off until [CloudKitPreShipChecklist.md](../../Docs/Platform/
 ```sh
 ./Scripts/test-package.sh TrinketPersistence
 ```
+
+Purchase access is a transient `PlayerSaveStore.contentAccess` input supplied by
+AppState from StoreKit. It is never serialized into the player save or synced
+through CloudKit. [Purchases](../../Docs/Platform/Purchases.md) owns the lifecycle.

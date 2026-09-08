@@ -13,8 +13,7 @@ package extension HealingEngine {
         damageKeyword: Keyword? = nil,
         in context: inout BattleState,
     ) -> CombatOutcome {
-        guard damage > 0,
-              let actor = context.roster.combatant(for: sourceActorID),
+        guard let actor = context.roster.combatant(for: sourceActorID),
               context.roster.health(for: actor.combatant) > 0
         else { return .empty }
         let actorCombatant = actor.combatant
@@ -24,6 +23,7 @@ package extension HealingEngine {
         if profile.triggers.leechOnBlockDamage, blockedAmount > 0 {
             baseDamage += blockedAmount
         }
+        guard baseDamage > 0 else { return .empty }
 
         var leechPct = 0.0
         if abilityHasLeech {

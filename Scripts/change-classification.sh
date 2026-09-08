@@ -241,6 +241,9 @@ trinket_add_smoke_target_for_path() {
   local path="$1"
 
   case "$path" in
+    Trinket/Features/Monetization/*)
+      trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_MONETIZATION"
+      ;;
     Packages/TrinketBattleFeature/Sources/*|TrinketUITests/Battle/*)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_BATTLE"
       ;;
@@ -250,7 +253,7 @@ trinket_add_smoke_target_for_path() {
     Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       ;;
-    Trinket/Features/Play/Shop/*|TrinketUITests/Play/ShopFlowUITests.swift)
+    Trinket/Features/Play/Shop/*)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHOP"
       ;;
     Trinket/Features/Onboarding/*)

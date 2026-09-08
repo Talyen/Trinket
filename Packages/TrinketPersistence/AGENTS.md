@@ -4,4 +4,6 @@ Persistence behavior must conform to the [persistence guide](../../Docs/AgentCon
 
 Save-store harnesses (`SaveTestSupport`) live in the `TrinketPersistenceTestSupport` target of this package — not in `TrinketTestSupport` — so TestSupport stays Persistence-free and the package graph stays acyclic.
 
-New store APIs must prove read/write survival across reload in `TrinketPersistenceTests`.
+Durable store behavior must have evidence of read/write survival across reload in
+`TrinketPersistenceTests`; existing coverage may suffice. New APIs do not automatically
+require new tests. Apply [Testing.md](../../Docs/Platform/Testing.md) to additions and retirement.

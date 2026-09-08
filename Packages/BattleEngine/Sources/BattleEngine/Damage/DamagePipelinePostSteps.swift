@@ -7,8 +7,8 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard state.healthLost > 0,
-              let sourceActorID = state.sourceActorID,
+        guard let sourceActorID = state.sourceActorID,
+              state.healthLost > 0 || (state.blockedAmount > 0 && context.modifiers(for: sourceActorID).triggers.leechOnBlockDamage),
               sourceActorID != state.combatant.id
         else { return }
         let leechOutcome = HealingEngine.leechFromDamage(
