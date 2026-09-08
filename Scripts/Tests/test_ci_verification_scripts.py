@@ -152,6 +152,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         ).read_text(encoding="utf-8")
         sparse_list = checkout.split("sparse-checkout: |", 1)[1].split("- name:", 1)[0]
         self.assertIn(".github", sparse_list)
+        self.assertIn("StoreKit", sparse_list)
         self.assertNotIn("Raw Assets", sparse_list)
 
     def test_ci_gate_fast_skips_generation_and_style(self) -> None:
