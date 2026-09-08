@@ -29,6 +29,27 @@ route; rerun it when requested work or an encountered fix crosses into another
 owner. The final path list is the union of requested work and every explicitly
 adopted fix, not the task's initial path list.
 
+## Generated project consistency
+
+`./Scripts/generate.sh` runs XcodeGen through the pinned wrapper with a fresh
+cache location on every invocation. `--force-xcodegen` remains an explicit name
+for that default; `--skip-xcodegen` still selects content/asset generation only.
+Handoff regenerates, then forces a second generation to check idempotence.
+Changes to the spec, tool pins, or wrapper route project verification; ordinary
+code edits in synchronized source folders do not add project generation.
+
+With hooks enabled, pre-commit checks either staged project-generation inputs or
+staged `Trinket.xcodeproj/project.pbxproj`. It exports an index snapshot and
+compares its regenerated project with the staged project. Partially staged
+project inputs are supported; partially staged tool or hook changes are rejected
+before tool installation because tooling runs from the primary checkout. The
+check preserves the index and working files, including unrelated edits.
+
+When the staged project is stale, edit the authored inputs, run
+`./Scripts/generate.sh`, review the project diff, and stage the canonical output
+with its inputs. Do not hand-edit the project. Pre-push and CI retain their
+forced generation and comparison against committed output.
+
 ## Test tiers
 
 | Tier | Command | Notes |

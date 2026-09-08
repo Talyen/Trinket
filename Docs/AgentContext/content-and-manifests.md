@@ -12,8 +12,11 @@ README; open only the manifest README for the input being changed.
 | Content manifests or authored catalog Swift | `./Scripts/generate.sh` | Expected catalog diff and content tests when semantics change |
 | Trigger-family schema | `./Scripts/generate.sh` | Generated trigger output; authored exceptions stay authored |
 | Media manifests or matching raw inputs | `./Scripts/generate.sh --assets` | Generated catalog plus expected processed files |
-| `project.yml` | `./Scripts/generate.sh` | Regenerated project diff |
+| `project.yml` or XcodeGen tool/wrapper inputs | `./Scripts/generate.sh` | Stage authored inputs and canonical project output together |
 | Content/assets without regenerating the Xcode project | `./Scripts/generate.sh --skip-xcodegen` | Catalog/asset diff only |
+
+Project consistency and staged commit validation follow
+[Verification.md](../Platform/Verification.md#generated-project-consistency).
 
 After content edits, stage `Packages/TrinketContent/Sources/TrinketContent/Generated/`. Pipeline formats live in each manifest directory's README; each `prepare-<media>-assets.sh` is that pipeline's focused debugging entry point.
 

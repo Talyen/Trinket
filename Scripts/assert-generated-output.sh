@@ -132,9 +132,9 @@ trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" true
 
 run_generate() {
   if [[ "$INCLUDE_ASSETS" == true ]]; then
-    ./Scripts/generate.sh --assets
+    ./Scripts/generate.sh --assets --force-xcodegen
   else
-    ./Scripts/generate.sh
+    ./Scripts/generate.sh --force-xcodegen
   fi
 }
 

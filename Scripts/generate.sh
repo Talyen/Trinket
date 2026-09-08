@@ -60,14 +60,12 @@ ensure_xcode_macos_sdk
 
 INCLUDE_ASSETS=false
 SKIP_XCODEGEN=false
-FORCE_XCODEGEN=false
 
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
 trinket_run_env_init
 
 GENERATION_LOCK_DIR="$TRINKET_GENERATE_LOCK_DIR"
-XCODEGEN_CACHE_PATH="$TRINKET_XCODEGEN_CACHE_PATH"
 LOCK_TIMEOUT_SECONDS="${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
 
 # Shared directory-lock primitive lives in Scripts/lib/lock.sh.
@@ -82,49 +80,6 @@ acquire_generation_lock() {
   trinket_dir_lock_acquire "$GENERATION_LOCK_DIR" "$LOCK_TIMEOUT_SECONDS"
 }
 
-ensure_pinned_xcodegen_path() {
-  # Prefer pinned .tools XcodeGen so local/agent output matches CI.
-  trinket_prepend_pinned_tools
-
-  if [[ "${TRINKET_REQUIRE_PINNED_TOOLS:-0}" == "1" ]]; then
-    if [[ ! -x "$PWD/.tools/xcodegen" ]]; then
-      echo "Pinned XcodeGen missing at .tools/xcodegen. Run ./Scripts/ensure-ci-tools.sh first." >&2
-      return 1
-    fi
-    if [[ "$(command -v xcodegen)" != "$PWD/.tools/xcodegen" ]]; then
-      echo "PATH must resolve xcodegen to .tools/xcodegen when TRINKET_REQUIRE_PINNED_TOOLS=1." >&2
-      echo "Resolved: $(command -v xcodegen 2>/dev/null || echo missing)" >&2
-      return 1
-    fi
-  fi
-}
-
-should_force_xcodegen() {
-  if [[ "$FORCE_XCODEGEN" == true || "${TRINKET_FORCE_XCODEGEN:-0}" == "1" ]]; then
-    return 0
-  fi
-  if [[ -f project.yml ]]; then
-    if [[ ! -f "$XCODEGEN_CACHE_PATH" ]]; then
-      return 0
-    fi
-    if [[ project.yml -nt "$XCODEGEN_CACHE_PATH" ]]; then
-      return 0
-    fi
-    # Clock skew can make project.yml appear older than cache after a CI checkout;
-    # fall back to content hash so stale project.yml still triggers regeneration.
-    local current_hash=""
-    local cached_hash=""
-    if command -v shasum >/dev/null 2>&1; then
-      current_hash="$(shasum -a 256 project.yml 2>/dev/null | awk '{print $1}')"
-      cached_hash="$(cat "$XCODEGEN_CACHE_PATH.hash" 2>/dev/null || true)"
-      if [[ -n "$current_hash" && "$current_hash" != "$cached_hash" ]]; then
-        return 0
-      fi
-    fi
-  fi
-  return 1
-}
-
 usage() {
   cat <<'EOF'
 Usage: ./Scripts/generate.sh [options]
@@ -133,7 +88,7 @@ Runs manifest validation, content codegen, optional asset pipelines, and XcodeGe
 
 Options:
   --assets          Also run art, music, SFX, cinematic, and app-icon asset pipelines (slow; for manifest edits)
-  --force-xcodegen  Ignore XcodeGen cache and rewrite project.pbxproj (matches CI assert)
+  --force-xcodegen  Explicitly request the default uncached XcodeGen generation
   --skip-xcodegen   Skip XcodeGen (content/asset codegen only)
   -h, --help        Show this help
 
@@ -154,7 +109,6 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --force-xcodegen)
-      FORCE_XCODEGEN=true
       shift
       ;;
     --skip-xcodegen)
@@ -186,29 +140,8 @@ fi
 
 if [[ "$SKIP_XCODEGEN" == false ]]; then
   echo "=== Generating Xcode project ==="
-  ensure_pinned_xcodegen_path
-  if ! command -v xcodegen >/dev/null 2>&1; then
-    echo "error: xcodegen not found on PATH." >&2
-    echo "Install the pinned toolchain with ./Scripts/ensure-ci-tools.sh (places .tools/xcodegen)." >&2
-    echo "XcodeGen is required; the legacy sync-xcodeproj-sources.py fallback was removed." >&2
-    exit 1
-  fi
-  if should_force_xcodegen; then
-    echo "Forcing XcodeGen regenerate (cache ignored)."
-    rm -f "$XCODEGEN_CACHE_PATH" "$XCODEGEN_CACHE_PATH.hash"
-    mkdir -p "$(dirname "$XCODEGEN_CACHE_PATH")"
-    xcodegen generate --cache-path "$XCODEGEN_CACHE_PATH"
-    if command -v shasum >/dev/null 2>&1; then
-      shasum -a 256 project.yml 2>/dev/null | awk '{print $1}' > "$XCODEGEN_CACHE_PATH.hash" || true
-    fi
-  else
-    xcodegen generate \
-      --use-cache \
-      --cache-path "$XCODEGEN_CACHE_PATH"
-    if command -v shasum >/dev/null 2>&1; then
-      shasum -a 256 project.yml 2>/dev/null | awk '{print $1}' > "$XCODEGEN_CACHE_PATH.hash" || true
-    fi
-  fi
+  source Scripts/lib/project-generation.sh
+  trinket_generate_project "$PWD" "$PWD"
 fi
 
 echo "=== Generate complete ==="

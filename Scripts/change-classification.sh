@@ -20,6 +20,8 @@ source "$TRINKET_CHANGE_CLASSIFICATION_DIR/swift-source-dirs.env"
 # shellcheck source=lib/classification-plan.sh
 source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/classification-plan.sh"
 
+source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/project-generation.sh"
+
 TRINKET_CHANGED_PATHS=()
 TRINKET_AUTHORED_PATHS=()
 TRINKET_GENERATED_PATHS=()
@@ -371,6 +373,11 @@ trinket_add_knowledge_for_path() {
 trinket_classify_path() {
   local path="$1"
 
+  if trinket_is_project_generation_input "$path"; then
+    TRINKET_HAS_PROJECT=true
+    TRINKET_NEEDS_PROJECT_GENERATION=true
+  fi
+
   case "$path" in
     .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/swift-source-dirs.env)
       TRINKET_NEEDS_STYLE=true
@@ -452,7 +459,7 @@ trinket_classify_path() {
       TRINKET_NEEDS_APP_BUILD=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Scripts/*|.github/*)
+    Scripts/*|.github/*|.githooks/*)
       TRINKET_NEEDS_SCRIPT_TESTS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;

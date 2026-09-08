@@ -55,7 +55,8 @@ plain text and localizable, and permits up to 4,000 characters. See
 
 ## Local hooks and push discipline
 
-`git config core.hooksPath .githooks` enables the advisory commit-message hook
+`git config core.hooksPath .githooks` enables the advisory commit-message hook,
+the [staged project check](Verification.md#generated-project-consistency),
 and the pre-push style/generation checks. Pre-push styles Swift files in the
 commits being pushed (platform bans stay full-tree), runs the internal
 `agent-push-gate.sh` component (regenerate only when classification says

@@ -59,7 +59,8 @@ Read these focused guides:
 
 | Command | Purpose |
 |---|---|
-| `./Scripts/generate.sh` | Generate the Xcode project and authored derived content |
+| `./Scripts/generate.sh` | Generate the Xcode project without cache reuse and authored derived content |
+| `./Scripts/check-staged-project.sh` | Pre-commit check of the staged project against staged inputs; preserves the index and working files |
 | `./Scripts/generate.sh --assets` | Also prepare art, music, SFX, and cinematics |
 | `./Scripts/assert-generated-output.sh --idempotent` | Confirm regeneration produces no diff |
 | `./Scripts/build.sh` | Alias for `build-for-testing.sh --app-only` (kept for the short name) |

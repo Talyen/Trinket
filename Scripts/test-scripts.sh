@@ -65,7 +65,7 @@ python_log="$TEST_LOG_DIR/python.log"
 if [[ "$FAST" == true ]]; then
   # Fast loop skips the slowest fixture-heavy module (media audio encodes);
   # full mode and CI still run it.
-  if PYTHONPATH=Scripts/Tests python3 -m unittest -b test_agent_context test_aggregate_performance test_check_unused_assets test_ci_path_filter test_ci_verification_scripts test_compare_performance test_content_and_policy_scripts test_failure_diagnostics test_release_notes_user test_test_timing test_verification_improvements test_exec_wrappers >"$python_log" 2>&1; then
+  if PYTHONPATH=Scripts/Tests python3 -m unittest -b test_agent_context test_aggregate_performance test_check_unused_assets test_ci_path_filter test_ci_verification_scripts test_project_generation test_compare_performance test_content_and_policy_scripts test_failure_diagnostics test_release_notes_user test_test_timing test_verification_improvements test_exec_wrappers >"$python_log" 2>&1; then
     echo "Python script regressions passed (fast: media audio fixtures skipped)."
   else
     report_failure "Python script regressions" "$python_log" "$?"

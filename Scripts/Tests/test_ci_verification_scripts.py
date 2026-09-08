@@ -82,7 +82,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
 
     def test_generate_requires_xcodegen(self) -> None:
         text = (ROOT / "Scripts" / "generate.sh").read_text(encoding="utf-8")
-        self.assertIn("xcodegen not found on PATH", text)
+        self.assertIn('trinket_generate_project "$PWD" "$PWD"', text)
         self.assertNotIn("python3 Scripts/sync-xcodeproj-sources.py", text)
         self.assertFalse((ROOT / "Scripts" / "sync-xcodeproj-sources.py").exists())
 
@@ -932,7 +932,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                     'trinket_run_env_init() { export RESULTS_DIR="$PWD/results"; }\n'
                 )
                 generate = root / "Scripts/generate.sh"
-                generate.write_text("#!/bin/bash\nprintf called >> calls\n" + generator + "\n")
+                generate.write_text('#!/bin/bash\n[[ "$*" == "--force-xcodegen" ]] || exit 9\nprintf called >> calls\n' + generator + "\n")
                 generate.chmod(0o755)
                 identifier = "A" * 24
                 (root / "Trinket.xcodeproj/project.pbxproj").write_text(
@@ -953,6 +953,10 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
 
     def test_generation_tracks_shared_generator_helpers(self) -> None:
         for relative, expected in (
+            ("Scripts/lib/project-generation.sh", ""),
+            ("Scripts/tool-versions.env", ""),
+            ("Scripts/lib/ci-tools.d/xcodegen.sh", ""),
+            ("Trinket.xcodeproj/project.pbxproj", ""),
             ("Scripts/content_codegen_modifiers.py", "--skip-xcodegen"),
             ("Scripts/content_codegen_triggers.py", "--skip-xcodegen"),
             ("Scripts/lib/media-assets.sh", "--assets"),
@@ -968,6 +972,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                 (root / "project.yml").touch()
                 for filename in ("build-freshness.sh", "build-inputs.env"):
                     shutil.copy2(ROOT / "Scripts" / filename, root / "Scripts" / filename)
+                (root / relative).parent.mkdir(parents=True, exist_ok=True)
                 (root / relative).touch()
                 generate = root / "Scripts/generate.sh"
                 generate.write_text('#!/bin/bash\nprintf "%s" "$*" > calls\n')

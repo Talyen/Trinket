@@ -23,6 +23,10 @@ generation_paths_newer_than() {
 
 content_generation_inputs=("${TRINKET_CONTENT_GENERATION_INPUTS[@]}")
 asset_generation_inputs=("${TRINKET_ASSET_GENERATION_INPUTS[@]}")
+project_generation_inputs=(project.yml Scripts/tool-versions.env Scripts/generate.sh
+  Scripts/ensure-ci-tools.sh Scripts/lib/ci-tools.d/xcodegen.sh
+  Scripts/lib/tools.sh Scripts/lib/tool-install.sh Scripts/lib/project-generation.sh
+  Trinket.xcodeproj/project.pbxproj)
 build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")
 
 generation_inputs_are_dirty() {
@@ -84,13 +88,13 @@ prepare_generated_inputs() {
 
   if [[ -f "$stamp" ]]; then
     content_changed="$(generation_paths_newer_than "$stamp" "${content_generation_inputs[@]}")"
-    project_changed="$(generation_paths_newer_than "$stamp" project.yml)"
+    project_changed="$(generation_paths_newer_than "$stamp" "${project_generation_inputs[@]}")"
     assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}")"
   fi
   if [[ -z "$content_changed" ]] && generation_inputs_are_dirty "${content_generation_inputs[@]}"; then
     content_changed="dirty content input"
   fi
-  if [[ -z "$project_changed" ]] && generation_inputs_are_dirty project.yml; then
+  if [[ -z "$project_changed" ]] && generation_inputs_are_dirty "${project_generation_inputs[@]}"; then
     project_changed="dirty project input"
   fi
   if [[ -z "$assets_changed" ]] && generation_inputs_are_dirty "${asset_generation_inputs[@]}"; then
