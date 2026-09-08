@@ -41,20 +41,44 @@ _MODIFIER_SIMPLE: dict[str, str] = {
 }
 
 
+VALID_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "physical",
+        "bleed",
+        "burn",
+        "freeze",
+        "poison",
+        "holy",
+        "stun",
+        "health",
+        "block",
+        "leech",
+        "gold",
+        "mana",
+        "dodge",
+        "purge",
+        "cleanse",
+        "deathsDoor",
+    }
+)
+
+
 def modifier_token_to_swift(token: str) -> str:
     if ":" not in token:
         raise ValueError(f"Unknown modifier token: {token}")
     prefix, rest = token.split(":", 1)
     if prefix in _MODIFIER_SIMPLE:
         return f"{_MODIFIER_SIMPLE[prefix]}({rest})"
-    if prefix == "damage_dealt":
+    if prefix in ("damage_dealt", "damage_taken_percent", "damage_taken_vulnerability"):
+        if ":" not in rest:
+            raise ValueError(f"Malformed modifier token {token!r}: expected keyword:amount")
         keyword, amount = rest.split(":", 1)
-        return f".damageDealt(.{keyword}, {amount})"
-    if prefix == "damage_taken_percent":
-        keyword, amount = rest.split(":", 1)
-        return f".damageTakenPercent(.{keyword}, {amount})"
-    if prefix == "damage_taken_vulnerability":
-        keyword, amount = rest.split(":", 1)
+        if keyword not in VALID_KEYWORDS:
+            raise ValueError(f"Unknown keyword {keyword!r} in modifier token {token!r}")
+        if prefix == "damage_dealt":
+            return f".damageDealt(.{keyword}, {amount})"
+        if prefix == "damage_taken_percent":
+            return f".damageTakenPercent(.{keyword}, {amount})"
         return f".damageTakenVulnerability(.{keyword}, {amount})"
     raise ValueError(f"Unknown modifier token: {token}")
 

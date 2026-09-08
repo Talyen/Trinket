@@ -38,14 +38,18 @@ final class MusicPlayer {
         currentPlayer != nil || preparedPlayer != nil || inFlightRequest != nil
     }
 
-    func update(route: MusicRoute, volume: Double) {
+    func update(route: MusicRoute, volume: Double, immediate: Bool = false) {
         guard !isDisabled else { return }
 
         let resolvedVolume = Float(max(0, min(volume, 1)))
 
         switch route {
         case let .silence(preservingPosition):
-            fadeOutCurrent(preservingPosition: preservingPosition)
+            if immediate {
+                silenceImmediately(preservingPosition: preservingPosition)
+            } else {
+                fadeOutCurrent(preservingPosition: preservingPosition)
+            }
         case let .track(request):
             play(request, volume: resolvedVolume)
         }
@@ -88,13 +92,21 @@ final class MusicPlayer {
     }
 
     func stop() {
+        silenceImmediately(preservingPosition: true)
+    }
+
+    func silenceImmediately(preservingPosition: Bool) {
+        guard currentPlayer != nil else { return }
         cancelPendingLoad()
         clearPrepared()
+        if preservingPosition {
+            saveCurrentPosition()
+        }
+        let oldPlayer = currentPlayer
         cancelActiveFades()
-        saveCurrentPosition()
-        currentPlayer?.stop()
         currentPlayer = nil
         currentRequest = nil
+        oldPlayer?.stop()
     }
 
     func cancelActiveFades() {
@@ -111,6 +123,7 @@ final class MusicPlayer {
     private func play(_ request: MusicPlaybackRequest, volume: Float) {
         if let currentPlayer,
            currentRequest?.resumeKey == request.resumeKey {
+            cancelActiveFades()
             currentPlayer.numberOfLoops = request.track.isLooping ? -1 : 0
             currentPlayer.volume = targetVolume(for: request, appVolume: volume)
             if !currentPlayer.isPlaying {
@@ -326,8 +339,13 @@ final class MusicPlayer {
 
     private static func loadPlayer(url: URL) async -> LoadedMusicPlayer? {
         await Task.detached(priority: .utility) {
+            guard !Task.isCancelled else { return nil }
             do {
                 let player = try AVAudioPlayer(contentsOf: url)
+                guard !Task.isCancelled else {
+                    player.stop()
+                    return nil
+                }
                 player.prepareToPlay()
                 return LoadedMusicPlayer(player: player)
             } catch {

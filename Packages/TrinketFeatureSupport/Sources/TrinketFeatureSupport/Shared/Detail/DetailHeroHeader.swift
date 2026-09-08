@@ -85,40 +85,23 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
 
     @ViewBuilder
     private var titleText: some View {
-        if singleLineTitle {
-            singleLineTitleText
-        } else {
-            wrappedTitleText
+        let text = Group {
+            if singleLineTitle {
+                Text(title)
+                    .trinketSingleLineFittedText()
+            } else {
+                Text(balanced: title)
+                    .trinketFittedText()
+            }
         }
-    }
-
-    @ViewBuilder
-    private var singleLineTitleText: some View {
-        let label = Text(title)
-            .trinketTypography(.screenDisplay)
-            .shineText(titleShine)
-            .trinketOnArtText(.title)
-            .trinketSingleLineFittedText()
+        .trinketTypography(.screenDisplay)
+        .shineText(titleShine)
+        .trinketOnArtText(.title)
 
         if let titleAccessibilityIdentifier {
-            label.accessibilityIdentifier(titleAccessibilityIdentifier)
+            text.accessibilityIdentifier(titleAccessibilityIdentifier)
         } else {
-            label
-        }
-    }
-
-    @ViewBuilder
-    private var wrappedTitleText: some View {
-        let label = Text(balanced: title)
-            .trinketTypography(.screenDisplay)
-            .shineText(titleShine)
-            .trinketOnArtText(.title)
-            .trinketFittedText()
-
-        if let titleAccessibilityIdentifier {
-            label.accessibilityIdentifier(titleAccessibilityIdentifier)
-        } else {
-            label
+            text
         }
     }
 }

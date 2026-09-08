@@ -60,7 +60,14 @@ printf cached > "$cache"
             path.chmod(0o755)
 
     def run_command(self, *args, expected=0):
-        result = subprocess.run(args, cwd=self.root, env=self.env, text=True, capture_output=True)
+        result = subprocess.run(
+            args,
+            cwd=self.root,
+            env=self.env,
+            text=True,
+            capture_output=True,
+            stdin=subprocess.DEVNULL,
+        )
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result
 

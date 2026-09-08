@@ -78,7 +78,7 @@ struct ItemSlotPickerView: View {
                 }
             }
             .onChange(of: filter) { _, _ in
-                if let first = model.matching(filter).first {
+                if let first = displayItems.first {
                     proxy.scrollTo(first.id, anchor: .top)
                 }
             }

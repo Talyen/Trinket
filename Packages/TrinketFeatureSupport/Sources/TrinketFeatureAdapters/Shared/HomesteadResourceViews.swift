@@ -31,14 +31,9 @@ public struct HomesteadResourceWallet: View {
 
     public var body: some View {
         TrinketWalletGrid {
-            walletPill(for: .wood, index: 0)
-            walletPill(for: .stone, index: 1)
-            walletPill(for: .iron, index: 2)
-            walletPill(for: .food, index: 3)
-            walletPill(for: .herbs, index: 4)
-            walletPill(for: .hide, index: 5)
-            walletPill(for: .crystal, index: 6)
-            walletPill(for: .gold, index: 7)
+            ForEach(Array(HomesteadResource.allCases.enumerated()), id: \.element) { index, resource in
+                walletPill(for: resource, index: index)
+            }
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
     }

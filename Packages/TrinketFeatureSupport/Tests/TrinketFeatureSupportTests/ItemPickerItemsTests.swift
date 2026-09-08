@@ -17,6 +17,14 @@ struct ItemPickerItemsTests {
         #expect(!model.keywords.contains(.poison))
     }
 
+    @Test func `filter active state handles empty and trimmed whitespace`() {
+        #expect(!ItemPickerFilter().isActive)
+        #expect(!ItemPickerFilter(search: "   \n\t  ").isActive)
+        #expect(ItemPickerFilter(search: "sword").isActive)
+        #expect(ItemPickerFilter(rarity: .astral).isActive)
+        #expect(ItemPickerFilter(keyword: .burn).isActive)
+    }
+
     @Test func `order is deterministic and stable during visit`() {
         let items = [
             makeItem("z", rarity: .astral), makeItem("b", rarity: .unique),

@@ -24,6 +24,16 @@ struct ExperienceBarTests {
             post: CombatantProgression(level: 1, currentXP: 9, requiredXP: 10).addingExperience(20),
             expectedCount: 3,
         ),
+        (
+            pre: CombatantProgression(level: 3, currentXP: 10, requiredXP: 22),
+            post: CombatantProgression(level: 1, currentXP: 2, requiredXP: 10),
+            expectedCount: 1,
+        ),
+        (
+            pre: CombatantProgression(level: 2, currentXP: 8, requiredXP: 15),
+            post: CombatantProgression(level: 2, currentXP: 3, requiredXP: 15),
+            expectedCount: 1,
+        ),
     ])
     func `experience segments cover progression cases`(
         pre: CombatantProgression,

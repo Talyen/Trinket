@@ -617,6 +617,6 @@ for dir in "$asset_catalog"/*/*.imageset "$asset_catalog"/*.imageset; do
 done
 shopt -u nullglob
 
-rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$portrait_backgrounds_temp" "$encounters_temp" "$resources_temp" "$active_assets_temp" "$seen_ids_temp" "$seen_assets_temp" "$source_hashes_temp"
+rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$portrait_backgrounds_temp" "$encounters_temp" "$resources_temp" "$talents_temp" "$active_assets_temp" "$seen_ids_temp" "$seen_assets_temp" "$source_hashes_temp"
 
 echo "Prepared $processed_count curated art asset(s) (converted $full_count full / $thumb_count thumb this run; kind-aware variants)."

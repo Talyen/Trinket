@@ -77,9 +77,58 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
 
     def test_modifier_token_to_swift_multipart_keyword(self) -> None:
         self.assertEqual(
-            self.codegen.modifier_token_to_swift("damage_dealt:fire:3"),
-            ".damageDealt(.fire, 3)",
+            self.codegen.modifier_token_to_swift("damage_dealt:burn:3"),
+            ".damageDealt(.burn, 3)",
         )
+
+    def test_modifier_token_to_swift_rejects_unknown_keyword(self) -> None:
+        with self.assertRaises(ValueError):
+            self.codegen.modifier_token_to_swift("damage_dealt:shadow:3")
+        with self.assertRaises(ValueError):
+            self.codegen.modifier_token_to_swift("damage_taken_percent:arcane:0.2")
+
+    def test_modifier_token_to_swift_rejects_malformed_token(self) -> None:
+        with self.assertRaises(ValueError):
+            self.codegen.modifier_token_to_swift("damage_dealt:fire")
+
+    def test_talent_validation_requires_known_combatant(self) -> None:
+        row = self.codegen.TalentRow(
+            id="unknown_hero_burn_t1_1",
+            name="Flame",
+            symbol_name="flame.fill",
+            description="Burns target",
+            modifiers="",
+            triggers="",
+        )
+        with self.assertRaises(ValueError):
+            self.codegen.validate_talent_rows([row], combatant_ids=["knight", "ranger"])
+
+    def test_parse_tsv_rows_pads_optional_columns_and_enforces_min_columns(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            tsv_path = Path(directory) / "test.tsv"
+            tsv_path.write_text("id\tname\topt1\topt2\nitem1\tItem One\n", encoding="utf-8")
+            from dataclasses import dataclass
+
+            @dataclass
+            class DummyRow:
+                id: str
+                name: str
+                opt1: str
+                opt2: str
+
+            rows = self.codegen._parse_tsv_rows(tsv_path, ["id", "name", "opt1", "opt2"], DummyRow, min_columns=2)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0].id, "item1")
+            self.assertEqual(rows[0].opt1, "")
+            self.assertEqual(rows[0].opt2, "")
+
+            with self.assertRaises(ValueError):
+                self.codegen._parse_tsv_rows(tsv_path, ["id", "name", "opt1", "opt2"], DummyRow, min_columns=3)
+
+    def test_ability_inventory_digest_computes_fingerprint(self) -> None:
+        digest = self.codegen._ability_inventory_digest()
+        self.assertIsInstance(digest, str)
+        self.assertEqual(len(digest), 64)
 
     def test_plan_metadata_requires_lifecycle_fields_and_blocked_reason(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -15,6 +15,8 @@ struct TextBalanceTests {
         static let twoWordsWithTrailingWhitespace = Self(input: "Defeat King  ", expected: "Defeat\u{00A0}King  ")
         static let multipleInterWordSpaces = Self(input: "Defeat  King", expected: "Defeat \u{00A0}King")
         static let onlyWhitespace = Self(input: "   ", expected: "   ")
+        static let newlinePreserved = Self(input: "Defeat\nKing", expected: "Defeat\nKing")
+        static let multiLineWithSpacedLastLine = Self(input: "Chapter 1\nDefeat King", expected: "Chapter 1\nDefeat\u{00A0}King")
     }
 
     @Test(arguments: [
@@ -27,6 +29,8 @@ struct TextBalanceTests {
         .twoWordsWithTrailingWhitespace,
         .multipleInterWordSpaces,
         .onlyWhitespace,
+        .newlinePreserved,
+        .multiLineWithSpacedLastLine,
     ])
     private func `trinket balanced binds only the last space`(_ testCase: BalanceCase) {
         #expect(testCase.input.trinketBalanced() == testCase.expected)

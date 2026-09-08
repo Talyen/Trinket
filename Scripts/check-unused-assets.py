@@ -42,26 +42,22 @@ KINDS_REQUIRING_THUMB = {
 def read_tsv_rows(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         return []
+    header: list[str] = []
+    result: list[dict[str, str]] = []
     with open(path, "r", encoding="utf-8") as f:
         reader = csv.reader(f, delimiter="\t")
-        rows = [r for r in reader if r and not r[0].startswith("#")]
-    if not rows:
-        return []
-
-    # Read header from line 1
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("#"):
-                header = [c.strip() for c in line.lstrip("#").strip().split("\t")]
-                break
-        else:
-            return []
-
-    result = []
-    for r in rows:
-        if len(r) >= len(header):
-            result.append({k: v.strip() for k, v in zip(header, r)})
+        for row in reader:
+            if not row:
+                continue
+            first = row[0].strip()
+            if not header and first.startswith("#"):
+                clean_first = first.lstrip("#").strip()
+                header = [clean_first] + [c.strip() for c in row[1:]]
+                continue
+            if first.startswith("#"):
+                continue
+            if header and len(row) >= len(header):
+                result.append({k: v.strip() for k, v in zip(header, row)})
     return result
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import functools
 import json
+import os
 import re
 import subprocess
 import sys
@@ -18,6 +19,7 @@ try:
         MEMBER as MEMBER,
         NESTED_TYPE as NESTED_TYPE,
         TOP_LEVEL as TOP_LEVEL,
+        VALID_KEYWORDS as VALID_KEYWORDS,
         modifier_token_to_swift as modifier_token_to_swift,
         modifiers_swift as modifiers_swift,
         parse_modifier_tokens as parse_modifier_tokens,
@@ -34,6 +36,7 @@ except ModuleNotFoundError:
         MEMBER as MEMBER,
         NESTED_TYPE as NESTED_TYPE,
         TOP_LEVEL as TOP_LEVEL,
+        VALID_KEYWORDS as VALID_KEYWORDS,
         modifier_token_to_swift as modifier_token_to_swift,
         modifiers_swift as modifiers_swift,
         parse_modifier_tokens as parse_modifier_tokens,
@@ -52,6 +55,7 @@ GENERATED_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketConte
 CONTENT_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Content"
 TRINKET_CONTENT_PACKAGE = ROOT / "Packages" / "TrinketContent"
 TRIGGER_FAMILY_SCHEMA = ROOT / "Scripts" / "trigger_family_schema.json"
+ABILITY_INVENTORY_STAMP = ROOT / ".DerivedData" / "AbilityInventory.stamp"
 
 
 VALID_SLOTS = frozenset({"weapon", "armor", "accessory", "trinket"})
@@ -84,27 +88,6 @@ VALID_HOMESTEAD_NODE_IDS = frozenset(
         "agilityTraining",
         "moonlitSanctum",
         "wishingWell",
-    }
-)
-VALID_KEYWORDS = frozenset(
-    {
-        "physical",
-        "bleed",
-        "burn",
-        "freeze",
-        "poison",
-        "holy",
-        "stun",
-        "health",
-        "block",
-        "leech",
-        "gold",
-        "mana",
-        "dodge",
-        "purge",
-        "cleanse",
-        "deathsDoor",
-        "deaths_door",
     }
 )
 SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -217,13 +200,16 @@ def read_tsv(path: Path) -> list[list[str]]:
     return [list(row) for row in _read_tsv_cached(path)]
 
 
-def _parse_tsv_rows(path: Path, expected: list[str], row_type):
+def _parse_tsv_rows(path: Path, expected: list[str], row_type, min_columns: int | None = None):
     lines = read_tsv(path)
     header = lines[0]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
+    min_cols = min_columns if min_columns is not None else len(expected)
     rows: list = []
-    for raw in lines[1:]:
+    for idx, raw in enumerate(lines[1:], start=2):
+        if len(raw) < min_cols:
+            raise ValueError(f"{path}:{idx} missing required columns: expected at least {min_cols}, got {len(raw)}")
         padded = raw + [""] * (len(expected) - len(raw))
         rows.append(row_type(*padded[: len(expected)]))
     return rows
@@ -231,30 +217,24 @@ def _parse_tsv_rows(path: Path, expected: list[str], row_type):
 
 @functools.cache
 def parse_affix_rows() -> list[AffixRow]:
-    path = MANIFEST_DIR / "affixes.tsv"
-    expected = [
-        "id",
-        "title",
-        "slot",
-        "keywords",
-        "weight",
-        "basic_description",
-        "astral_description",
-        "basic_modifiers",
-        "astral_modifiers",
-        "basic_triggers",
-        "astral_triggers",
-    ]
-    lines = read_tsv(path)
-    if lines[0] != expected:
-        raise ValueError(f"{path} header mismatch: {lines[0]}")
-    rows: list[AffixRow] = []
-    for idx, raw in enumerate(lines[1:], start=2):
-        if len(raw) < 9:
-            raise ValueError(f"{path}:{idx} missing required columns: expected at least 9, got {len(raw)}")
-        padded = raw + [""] * (len(expected) - len(raw))
-        rows.append(AffixRow(*padded[: len(expected)]))
-    return rows
+    return _parse_tsv_rows(
+        MANIFEST_DIR / "affixes.tsv",
+        [
+            "id",
+            "title",
+            "slot",
+            "keywords",
+            "weight",
+            "basic_description",
+            "astral_description",
+            "basic_modifiers",
+            "astral_modifiers",
+            "basic_triggers",
+            "astral_triggers",
+        ],
+        AffixRow,
+        min_columns=9,
+    )
 
 
 @functools.cache
@@ -1364,19 +1344,17 @@ def generate_item_bases_catalog(rows: list[ItemBaseRow]) -> None:
 
 
 def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
-    entries: list[str] = []
+    entries: list[tuple[str, str, str]] = []
     for row in rows:
         if not row.encounter_art_id.strip():
             continue
         stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
-        entries.append(
-            f'        "{swift_escape(stage_id)}": (id: "{swift_escape(row.encounter_art_id)}", '
-            f'title: "{swift_escape(row.encounter_art_title)}")'
-        )
+        entries.append((stage_id, row.encounter_art_id, row.encounter_art_title))
     capacity = len(entries)
     appends = "\n".join(
-        f"        dict[{entry.strip().split(':', 1)[0].strip()}] = {entry.strip().split(':', 1)[1].strip()}"
-        for entry in entries
+        f'        dict["{swift_escape(stage_id)}"] = (id: "{swift_escape(art_id)}", '
+        f'title: "{swift_escape(art_title)}")'
+        for stage_id, art_id, art_title in entries
     )
     body = (
         "enum GameContentEncounterArtGenerated {\n"
@@ -1403,26 +1381,26 @@ class TalentRow:
 
 @functools.cache
 def parse_talent_rows() -> list[TalentRow]:
-    path = MANIFEST_DIR / "talents.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
-    expected = ["id", "name", "symbol_name", "description", "modifiers", "triggers"]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
-    return [TalentRow(*row) for row in lines[1:]]
+    return _parse_tsv_rows(
+        MANIFEST_DIR / "talents.tsv",
+        ["id", "name", "symbol_name", "description", "modifiers", "triggers"],
+        TalentRow,
+        min_columns=4,
+    )
 
 
-def combatant_id_for_talent(talent_id: str, combatant_ids: list[str]) -> str:
-    for combatant_id in sorted(combatant_ids, key=len, reverse=True):
+def combatant_id_for_talent(talent_id: str, sorted_combatant_ids: list[str]) -> str:
+    for combatant_id in sorted_combatant_ids:
         if talent_id.startswith(f"{combatant_id}_"):
             return combatant_id
     raise ValueError(f"Talent {talent_id} does not match a combatant id")
 
 
 def generate_talent_catalog(rows: list[TalentRow], combatant_ids: list[str]) -> None:
+    sorted_cids = sorted(combatant_ids, key=len, reverse=True)
     grouped: dict[str, list[TalentRow]] = {combatant_id: [] for combatant_id in combatant_ids}
     for row in rows:
-        grouped[combatant_id_for_talent(row.id, combatant_ids)].append(row)
+        grouped[combatant_id_for_talent(row.id, sorted_cids)].append(row)
 
     def render_entry(row: TalentRow) -> str:
         return (
@@ -1472,14 +1450,17 @@ def generate_talent_catalog(rows: list[TalentRow], combatant_ids: list[str]) -> 
     write_generated_file(GENERATED_DIR / "CombatantTalentCatalog.generated.swift", body)
 
 
-def validate_talent_rows(rows: list[TalentRow]) -> None:
+def validate_talent_rows(rows: list[TalentRow], combatant_ids: list[str] | None = None) -> None:
     seen: set[str] = set()
+    sorted_cids = sorted(combatant_ids, key=len, reverse=True) if combatant_ids is not None else None
     for row in rows:
         if row.id in seen:
             raise ValueError(f"Duplicate talent id: {row.id}")
         seen.add(row.id)
 
         _validate_snake_id("talent id", row.id, row.id)
+        if sorted_cids is not None:
+            combatant_id_for_talent(row.id, sorted_cids)
         _require_non_empty("talent name", row.name, row.id)
         _require_non_empty("talent symbol_name", row.symbol_name, row.id)
         _require_non_empty("talent description", row.description, row.id)
@@ -1497,6 +1478,7 @@ def validate_manifests() -> tuple[
     list[EnemyRow],
     list[HomesteadNodeRow],
     list[ItemBaseRow],
+    list[TalentRow],
 ]:
     affix_rows = parse_affix_rows()
     trait_rows = parse_trait_rows()
@@ -1508,15 +1490,16 @@ def validate_manifests() -> tuple[
     talent_rows = parse_talent_rows()
     ability_symbols = collect_ability_symbols()
     ability_tiers = collect_ability_tiers()
+    combatant_ids = [row.id for row in combatant_rows]
 
     validate_affix_rows(affix_rows)
     validate_trait_rows(trait_rows)
-    validate_talent_rows(talent_rows)
+    validate_talent_rows(talent_rows, combatant_ids)
     validate_combatant_rows(combatant_rows, ability_symbols, ability_tiers)
     validate_enemy_rows(
         enemy_rows,
         ability_symbols,
-        {row.id for row in combatant_rows},
+        set(combatant_ids),
         {row.id for row in trait_rows},
     )
     validate_stage_rows(stage_rows, enemy_ids={row.id for row in enemy_rows})
@@ -1530,6 +1513,7 @@ def validate_manifests() -> tuple[
         enemy_rows,
         homestead_rows,
         item_base_rows,
+        talent_rows,
     )
 
 
@@ -1571,10 +1555,37 @@ def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
     return rows
 
 
+def _ability_inventory_digest() -> str:
+    import hashlib
+
+    inputs = [
+        CONTENT_DIR / "AbilityCatalogBasic.swift",
+        CONTENT_DIR / "AbilityCatalogSkill.swift",
+        CONTENT_DIR / "AbilityCatalogUltimate.swift",
+        TRINKET_CONTENT_PACKAGE / "Sources" / "TrinketContent" / "Ability.swift",
+        TRINKET_CONTENT_PACKAGE / "Sources" / "AbilityInventoryDump" / "AbilityInventoryDumpMain.swift",
+    ]
+    hasher = hashlib.sha256()
+    for p in inputs:
+        if p.is_file():
+            hasher.update(p.read_bytes())
+    return hasher.hexdigest()
+
+
 def generate_ability_inventory() -> None:
     """Dump id/name/tier/summary from Swift Ability.summary for humans/agents."""
+    out = GENERATED_DIR / "AbilityInventory.generated.tsv"
     expected = parse_authored_ability_inventory_rows()
     expected_ids = {ability_id for ability_id, _, _ in expected}
+
+    force = (
+        os.environ.get("TRINKET_FORCE_ABILITY_DUMP") == "1"
+        or os.environ.get("FORCE_ASSET_REENCODE") == "1"
+    )
+    current_digest = _ability_inventory_digest()
+    if not force and out.is_file() and ABILITY_INVENTORY_STAMP.is_file():
+        if ABILITY_INVENTORY_STAMP.read_text(encoding="utf-8").strip() == current_digest:
+            return
 
     completed = subprocess.run(
         [
@@ -1644,13 +1655,13 @@ def generate_ability_inventory() -> None:
                 f"expected name={expected_name!r} tier={expected_tier!r}"
             )
 
-    out = GENERATED_DIR / "AbilityInventory.generated.tsv"
     # Skip rewrite when unchanged so generate no-ops do not bump mtimes under
     # Packages/TrinketContent (Xcode watches the package tree).
-    if out.exists() and out.read_text(encoding="utf-8") == tsv:
-        return
-    out.write_text(tsv)
+    if not (out.exists() and out.read_text(encoding="utf-8") == tsv):
+        out.write_text(tsv)
 
+    ABILITY_INVENTORY_STAMP.parent.mkdir(parents=True, exist_ok=True)
+    ABILITY_INVENTORY_STAMP.write_text(current_digest, encoding="utf-8")
 
 
 def main() -> int:
@@ -1668,6 +1679,7 @@ def main() -> int:
             enemy_rows,
             homestead_rows,
             item_base_rows,
+            talent_rows,
         ) = validate_manifests()
         ability_count = len(collect_ability_symbols())
         print(
@@ -1677,8 +1689,9 @@ def main() -> int:
             f"{len(stage_rows)} stages, "
             f"{len(combatant_rows)} combatants, "
             f"{len(enemy_rows)} enemies, "
-            f"{len(homestead_rows)} homestead tiers, and "
-            f"{len(item_base_rows)} item bases"
+            f"{len(homestead_rows)} homestead tiers, "
+            f"{len(item_base_rows)} item bases, and "
+            f"{len(talent_rows)} talents"
         )
         return 0
     if command == "shorthand":
@@ -1695,6 +1708,7 @@ def main() -> int:
         enemy_rows,
         homestead_rows,
         item_base_rows,
+        talent_rows,
     ) = validate_manifests()
     generate_affix_catalog(affix_rows)
     generate_traits_catalog(trait_rows)
@@ -1706,7 +1720,6 @@ def main() -> int:
     generate_item_bases_catalog(item_base_rows)
     generate_encounter_art_catalog(stage_rows)
     generate_trigger_families()
-    talent_rows = parse_talent_rows()
     generate_talent_catalog(talent_rows, [row.id for row in combatant_rows])
     generate_ability_shorthand()
     generate_ability_inventory()

@@ -137,6 +137,12 @@ public struct ExperienceBar: View {
             snapToPost()
             reportCompletion()
         }
+        .onChange(of: pre) { _, _ in
+            snapToPost()
+        }
+        .onChange(of: post) { _, _ in
+            snapToPost()
+        }
         .onDisappear {
             animationTask?.cancel()
             animationTask = nil
@@ -259,7 +265,7 @@ public struct ExperienceBar: View {
             return []
         }
 
-        if pre.level == post.level {
+        if post.level <= pre.level {
             return [Segment(
                 startFraction: pre.progressFraction,
                 endFraction: post.progressFraction,

@@ -7,10 +7,33 @@ import TrinketContent
 public final class SFXPlayer {
     private let isDisabled: Bool
     private let playback = SFXPlayback()
-    private var pendingCommand: Task<Void, Never>?
+    private let continuation: AsyncStream<@Sendable (isolated SFXPlayback) -> Void>.Continuation?
+    private var workerTask: Task<Void, Never>?
 
     public init(isDisabled: Bool) {
         self.isDisabled = isDisabled
+        if isDisabled {
+            continuation = nil
+            workerTask = nil
+        } else {
+            var streamContinuation: AsyncStream<@Sendable (isolated SFXPlayback) -> Void>.Continuation?
+            let stream = AsyncStream<@Sendable (isolated SFXPlayback) -> Void> { cont in
+                streamContinuation = cont
+            }
+            continuation = streamContinuation
+            let playback = playback
+            workerTask = Task {
+                for await operation in stream {
+                    guard !Task.isCancelled else { break }
+                    await operation(playback)
+                }
+            }
+        }
+    }
+
+    isolated deinit {
+        workerTask?.cancel()
+        continuation?.finish()
     }
 
     public func play(_ id: String, volume: Double) {
@@ -41,12 +64,7 @@ public final class SFXPlayer {
     }
 
     private func enqueue(_ operation: @escaping @Sendable (isolated SFXPlayback) -> Void) {
-        let previousCommand = pendingCommand
-        let playback = playback
-        pendingCommand = Task {
-            await previousCommand?.value
-            await operation(playback)
-        }
+        continuation?.yield(operation)
     }
 }
 

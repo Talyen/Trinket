@@ -239,6 +239,7 @@ public final class AppState {
         musicPlayer.update(
             route: musicRoute(scenePhase: scenePhase, musicVolume: volume),
             volume: volume,
+            immediate: scenePhase != .active,
         )
         prepareMutedMusicIfNeeded(scenePhase: scenePhase)
     }

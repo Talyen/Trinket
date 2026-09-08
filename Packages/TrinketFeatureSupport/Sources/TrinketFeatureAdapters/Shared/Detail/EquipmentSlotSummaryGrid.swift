@@ -12,6 +12,13 @@ struct EquipmentSlotSummaryGrid: View {
     var onViewItem: ((InventoryItem) -> Void)?
 
     var body: some View {
+        let equippedItemIDs = Set(equipmentLoadout.itemIDsBySlot.values)
+        let equippedItemsByID = Dictionary(
+            uniqueKeysWithValues: inventoryItems.lazy
+                .filter { equippedItemIDs.contains($0.id) }
+                .map { ($0.id, $0) },
+        )
+
         VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
             ForEach(slotRows, id: \.self) { row in
                 SlotSummaryGrid(
@@ -19,16 +26,16 @@ struct EquipmentSlotSummaryGrid: View {
                     isLocked: {
                         !equipmentLoadout.isAvailable($0, inventory: inventoryItems)
                     },
-                    hasItem: { equippedItem(for: $0) != nil },
+                    hasItem: { equippedItem(for: $0, in: equippedItemsByID) != nil },
                     onSelect: onSelect,
                     onView: onViewItem != nil ? { slot in
-                        if let item = equippedItem(for: slot) {
+                        if let item = equippedItem(for: slot, in: equippedItemsByID) {
                             onViewItem?(item)
                         }
                     } : nil,
                     accessibilityIdentifier: { $0.accessibilityIdentifier },
                     card: { slot in
-                        if let item = equippedItem(for: slot) {
+                        if let item = equippedItem(for: slot, in: equippedItemsByID) {
                             ItemCard(
                                 item: item,
                                 showsAffixCount: false,
@@ -53,7 +60,10 @@ struct EquipmentSlotSummaryGrid: View {
         }
     }
 
-    private func equippedItem(for slot: ItemSlot) -> InventoryItem? {
-        inventoryItems.first { $0.id == equipmentLoadout.itemID(for: slot) }
+    private func equippedItem(
+        for slot: ItemSlot,
+        in equippedItemsByID: [String: InventoryItem],
+    ) -> InventoryItem? {
+        equipmentLoadout.itemID(for: slot).flatMap { equippedItemsByID[$0] }
     }
 }

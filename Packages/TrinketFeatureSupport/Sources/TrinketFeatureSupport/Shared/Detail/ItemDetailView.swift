@@ -140,21 +140,7 @@ public struct ItemDetailView: View {
         } message: {
             Text(salvageConfirmationMessage)
         }
-        .alert(
-            "Salvage Failed",
-            isPresented: Binding(
-                get: { salvageErrorMessage != nil },
-                set: {
-                    if !$0 {
-                        salvageErrorMessage = nil
-                    }
-                },
-            ),
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(salvageErrorMessage ?? "")
-        }
+        .trinketFailureAlert("Salvage Failed", message: $salvageErrorMessage)
     }
 
     @ViewBuilder

@@ -1,4 +1,5 @@
 import CoreGraphics
+import os
 import SwiftUI
 import Testing
 import TrinketContent
@@ -100,5 +101,46 @@ struct PresentationModelTests {
         #expect(emptyBattleContext.defeatPrimaryAction == .restart)
         #expect(emptyBattleContext.goldFindPercent == 0)
         #expect(emptyBattleContext.materialRewards.isEmpty)
+    }
+
+    @Test func `frame pacing signpost support event logging`() {
+        let log = OSLog(subsystem: FramePacingSignpostSupport.subsystem, category: "Test")
+        FramePacingSignpostSupport.event(log: log, name: "test_event", detail: "test_detail")
+        #expect(FramePacingSignpostSupport.subsystem == "com.trinket.framepacing")
+    }
+
+    @Test func `homestead effect line display formatting`() {
+        let tier = HomesteadNodeTier(
+            tier: 1,
+            stageName: "T1",
+            cost: [],
+            bonus: .init(title: "Bonus", description: "Desc"),
+            combatBonus: .init(
+                heroModifiers: [
+                    .maximumHealth(10),
+                    .damageTakenPercent(.physical, 0.15),
+                ],
+                astralChanceBonusPercent: 5,
+                goldFindPercent: 10,
+            ),
+            production: .init(.wood, 25),
+        )
+        let lines = HomesteadEffectLine.lines(for: tier)
+        let healthLine = lines.first(where: { $0.label == "Health" })
+        #expect(healthLine?.displayValue == "+10")
+
+        let damageTakenLine = lines.first(where: { $0.label == "Physical damage taken" })
+        #expect(damageTakenLine?.displayValue == "−15%")
+
+        let astralLine = lines.first(where: { $0.id == .astralFind })
+        #expect(astralLine?.displayValue == "+5%")
+
+        let productionLine = lines.first(where: { $0.id == .production(.wood) })
+        #expect(productionLine?.displayValue == "25")
+    }
+
+    @Test func `accessibility id full game and contracts mode presence`() {
+        #expect(AccessibilityID.FullGame.offer == "Full Game Offer")
+        #expect(AccessibilityID.Play.contractsModeCard == "Contracts Mode Card")
     }
 }

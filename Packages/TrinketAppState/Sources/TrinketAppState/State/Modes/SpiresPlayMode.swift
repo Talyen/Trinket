@@ -138,12 +138,13 @@ public final class SpiresPlayMode {
               let encounter = resolvedEncounter(for: floor)
         else { return }
 
-        let request = combatRequest(for: floor, encounter: encounter)
         let inputs = preparationInputs(for: floor)
+        let runKey = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor).runKey
         guard preparationTracker.shouldPrepare(
             for: inputs,
-            hasPreparedRun: battle.hasPreparedRun(request.origin.runKey),
+            hasPreparedRun: battle.hasPreparedRun(runKey),
         ) else { return }
+        let request = combatRequest(for: floor, encounter: encounter)
         let prepared = battleLaunch.prepareCombat(request)
         if prepared {
             preparationTracker.notePrepared(inputs)

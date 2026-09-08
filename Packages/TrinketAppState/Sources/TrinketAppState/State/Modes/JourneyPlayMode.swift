@@ -94,12 +94,17 @@ public final class JourneyPlayMode {
         guard battle.lifecyclePhase != .active,
               let encounter = resolvedEncounter(for: stage)
         else { return }
-        let request = combatRequest(for: stage, encounter: encounter)
-        let inputs = preparationInputs(for: stage, stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed)
+        let stageRewardsAlreadyClaimed = Self.stageRewardsAlreadyClaimed(
+            for: stage,
+            journey: playerSave.journey,
+        )
+        let inputs = preparationInputs(for: stage, stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed)
+        let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
         guard preparationTracker.shouldPrepare(
             for: inputs,
-            hasPreparedRun: battle.hasPreparedRun(request.origin.runKey),
+            hasPreparedRun: battle.hasPreparedRun(runKey),
         ) else { return }
+        let request = combatRequest(for: stage, encounter: encounter)
         let prepared = battleLaunch.prepareCombat(request)
         if prepared {
             preparationTracker.notePrepared(inputs)

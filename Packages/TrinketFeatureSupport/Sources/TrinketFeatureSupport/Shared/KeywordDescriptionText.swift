@@ -87,9 +87,10 @@ public struct KeywordDescriptionText: View {
 
     private static func highlightSpans(in text: String) -> [KeywordSpan] {
         guard let regex = keywordHighlightRegex else { return [] }
-        let fullRange = NSRange(location: 0, length: (text as NSString).length)
+        let nsText = text as NSString
+        let fullRange = NSRange(location: 0, length: nsText.length)
         return regex.matches(in: text, options: [], range: fullRange).compactMap { match in
-            let matched = (text as NSString).substring(with: match.range).lowercased()
+            let matched = nsText.substring(with: match.range).lowercased()
             guard let keyword = keywordHighlightLookup[matched] else { return nil }
             return KeywordSpan(range: match.range, keyword: keyword)
         }

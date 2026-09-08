@@ -48,6 +48,8 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     }
 
     public var body: some View {
+        let itemIDs = items.map(\.id)
+
         ScrollView {
             LazyVGrid(
                 columns: TrinketDesign.Layout.partyPickerGridItems,
@@ -86,11 +88,11 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
             .padding(.vertical, TrinketDesign.Spacing.medium)
         }
-        .onChange(of: items.map(\.id)) { _, _ in
+        .onChange(of: itemIDs) { _, _ in
             guard artworkNameProvider != nil else { return }
-            visibleIDs.formIntersection(items.lazy.map(\.id))
+            visibleIDs.formIntersection(itemIDs)
         }
-        .task(id: PrewarmKey(visibleIDs: visibleIDs, orderedIDs: items.map(\.id))) {
+        .task(id: PrewarmKey(visibleIDs: visibleIDs, orderedIDs: itemIDs)) {
             guard let provider = artworkNameProvider else { return }
             await ArtworkViewportPrewarm.prewarm(
                 orderedItems: items,

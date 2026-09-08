@@ -71,14 +71,11 @@ public struct KeywordPlasmaBackground: View {
                     time: time,
                 )
             }
-            .ignoresSafeArea()
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .animation(reduceMotion ? nil : TrinketMotion.Content.fade, value: keywords)
-        .animation(nil, value: isMotionActive)
-        .animation(nil, value: reduceMotion)
     }
 
     nonisolated static func colors(for keywords: [Keyword]) -> (primary: Color, secondary: Color) {

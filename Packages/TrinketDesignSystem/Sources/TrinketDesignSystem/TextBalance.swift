@@ -6,7 +6,7 @@ public extension String {
             return self
         }
         let prefix = self[...lastNonWhitespace]
-        guard let lastWordStart = prefix.lastIndex(where: { $0.isWhitespace }) else {
+        guard let lastWordStart = prefix.lastIndex(where: { $0.isWhitespace && !$0.isNewline }) else {
             return self
         }
         var result = self

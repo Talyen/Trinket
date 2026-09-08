@@ -123,13 +123,26 @@ def _apply_simple_trigger(token: str, values: dict[str, str]) -> bool:
     return False
 
 
-def triggers_swift(raw: str) -> str:
+@functools.cache
+def _trigger_schema_info() -> tuple[dict[str, str], list[str], dict[str, str]]:
     families = _trigger_families()
     field_group = {
         field["name"]: family["family"]
         for family in families
         for field in family["fields"]
     }
+    group_order = [family["family"] for family in families]
+    family_types = {
+        family["family"]: family.get("file_stem") or "".join(
+            p.capitalize() for p in re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|[0-9]+", family["family"])
+        ) + "Triggers"
+        for family in families
+    }
+    return field_group, group_order, family_types
+
+
+def triggers_swift(raw: str) -> str:
+    field_group, group_order, family_types = _trigger_schema_info()
     known_fields = set(field_group)
     values: dict[str, str] = {}
     for token in parse_trigger_tokens(raw):
@@ -188,7 +201,6 @@ def triggers_swift(raw: str) -> str:
                     f"Glued trigger token {token!r}; separate fields with |"
                 )
             values[field] = value
-    group_order = [family["family"] for family in families]
     grouped: dict[str, list[str]] = {g: [] for g in group_order}
     for label in values:
         try:
@@ -200,7 +212,7 @@ def triggers_swift(raw: str) -> str:
         fields = grouped[g]
         if not fields:
             continue
-        gtype = "".join(p.capitalize() for p in re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|[0-9]+", g)) + "Triggers"
+        gtype = family_types[g]
         inner = ", ".join(f"{label}: {values[label]}" for label in fields)
         parts.append(f"{g}: {gtype}({inner})")
     if not parts:

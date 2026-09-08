@@ -192,7 +192,7 @@ public extension View {
     }
 
     func trinketSelectionCardButtonStyle() -> some View {
-        buttonStyle(TrinketPressButtonStyle(pressedScale: TrinketMotion.Interaction.artworkCardPressedScale))
+        trinketArtworkCardButtonStyle()
     }
 
     func trinketSensoryFeedback(_ feedback: SensoryFeedback, trigger: some Equatable, enabled: Bool) -> some View {

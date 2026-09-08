@@ -34,6 +34,39 @@ public enum FramePacingMeasurementControl {
 
 extension View {
     func battleFramePacingSignpost(_ name: StaticString, isActive: Bool) -> some View {
-        framePacingInterval(signposter: BattleFramePacingSignposts.signposter, name: name, isActive: isActive)
+        modifier(BattleFramePacingIntervalModifier(signposter: BattleFramePacingSignposts.signposter, name: name, isActive: isActive))
+    }
+}
+
+private struct BattleFramePacingIntervalModifier: ViewModifier {
+    let signposter: OSSignposter
+    let name: StaticString
+    let isActive: Bool
+
+    @State private var intervalState: OSSignpostIntervalState?
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: isActive, initial: true) { _, active in
+                if active {
+                    beginIfNeeded()
+                } else {
+                    endIfNeeded()
+                }
+            }
+            .onDisappear {
+                endIfNeeded()
+            }
+    }
+
+    private func beginIfNeeded() {
+        guard intervalState == nil else { return }
+        intervalState = signposter.beginInterval(name)
+    }
+
+    private func endIfNeeded() {
+        guard let intervalState else { return }
+        signposter.endInterval(name, intervalState)
+        self.intervalState = nil
     }
 }

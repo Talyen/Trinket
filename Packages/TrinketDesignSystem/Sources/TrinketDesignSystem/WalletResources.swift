@@ -8,23 +8,13 @@ enum WalletFormatting {
 }
 
 extension View {
-    @ViewBuilder
     func walletIncreaseBump(trigger: Int, delay: TimeInterval = 0) -> some View {
-        if delay > 0 {
-            keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { content, scale in
-                content.scaleEffect(scale)
-            } keyframes: { _ in
-                LinearKeyframe(1, duration: delay)
-                CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
-                SpringKeyframe(1, duration: 0.18, spring: .smooth)
-            }
-        } else {
-            keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { content, scale in
-                content.scaleEffect(scale)
-            } keyframes: { _ in
-                CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
-                SpringKeyframe(1, duration: 0.18, spring: .smooth)
-            }
+        keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { content, scale in
+            content.scaleEffect(scale)
+        } keyframes: { _ in
+            LinearKeyframe(1, duration: max(0, delay))
+            CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
+            SpringKeyframe(1, duration: 0.18, spring: .smooth)
         }
     }
 }
@@ -46,7 +36,7 @@ public struct TrinketWalletGrid<Content: View>: View {
         ) { content }
             .padding(.horizontal, TrinketDesign.Spacing.medium)
             .padding(.vertical, TrinketDesign.Spacing.extraSmall)
-            .trinketMaterial(.homesteadFooter)
+            .trinketMaterial(.bottomBar)
     }
 }
 
@@ -190,12 +180,8 @@ private struct TrinketWalletGridLayout: Layout {
         let idealWidth = idealColumnWidths.reduce(0, +) + columnGaps
         let minimumColumnWidth = TrinketDesign.Layout.walletResourceArtworkSize + TrinketDesign.Spacing.small + 16
         let minimumArtworkColumnWidth = TrinketDesign.Layout.walletResourceArtworkSize + TrinketDesign.Spacing.small
-        let isUnspecified = proposal.width == nil || proposal.width?.isInfinite == true || (proposal.width ?? 0) < 10
-
         let columnWidths: [CGFloat]
-        if isUnspecified {
-            columnWidths = idealColumnWidths.map { max($0, minimumColumnWidth) }
-        } else if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth < idealWidth {
+        if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth >= 10, proposedWidth < idealWidth {
             let equalizedWidth = max(minimumArtworkColumnWidth, (proposedWidth - columnGaps) / CGFloat(columns))
             let clampedEqualized = max(minimumColumnWidth, equalizedWidth)
             if clampedEqualized * CGFloat(columns) + columnGaps <= proposedWidth + 0.5 {
