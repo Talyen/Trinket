@@ -9,6 +9,7 @@ struct DesignAssetCatalogTests {
         let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
         let lightTraits = UITraitCollection(userInterfaceStyle: .light)
 
+        // UIStyleCheck: allow - test resolves authored asset components, not semantic Color roles.
         let darkColor = try #require(UIColor(named: assetName, in: .module, compatibleWith: darkTraits))
         let lightColor = try #require(UIColor(named: assetName, in: .module, compatibleWith: lightTraits))
 
