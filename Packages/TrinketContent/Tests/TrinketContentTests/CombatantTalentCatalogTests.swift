@@ -26,8 +26,7 @@ struct CombatantTalentCatalogTests {
     }
 
     @Test func `all combatants have three keywords and contiguous authored rows`() {
-        let combatants = GameContent.heroes + GameContent.companions
-        for combatant in combatants {
+        for combatant in GameContent.combatants {
             let config = CombatantTalentCatalog.config(for: combatant.id)
             #expect(config.combatantID == combatant.id)
             #expect(config.trees.count == 3)
@@ -48,7 +47,7 @@ struct CombatantTalentCatalogTests {
             let config = CombatantTalentCatalog.config(for: combatantID)
             #expect(config.trees.map(\.keyword) == affinities.map(\.keyword))
         }
-        for combatant in GameContent.heroes + GameContent.companions {
+        for combatant in GameContent.combatants {
             #expect(combatant.affinityKeywords == CombatantTalentCatalog.combatantTreeAffinities[combatant.id]?.map(\.keyword) ?? [])
         }
     }
@@ -159,15 +158,14 @@ struct CombatantTalentCatalogTests {
         #expect(GameContent.heroes.allSatisfy { $0.role == .hero })
         #expect(GameContent.companions.allSatisfy { $0.role == .companion })
 
-        let allStarters = GameContent.heroes + GameContent.companions
-        for combatant in allStarters {
+        for combatant in GameContent.combatants {
             let affinities = CombatantTalentCatalog.combatantTreeAffinities[combatant.id]
             #expect(affinities?.count == 3, "\(combatant.id) must have exactly 3 authored tree affinities")
         }
     }
 
     @Test func `tree affinity keys match hero and companion roster`() {
-        let rosterIDs = Set((GameContent.heroes + GameContent.companions).map(\.id))
+        let rosterIDs = Set(GameContent.combatants.map(\.id))
         #expect(Set(CombatantTalentCatalog.combatantTreeAffinities.keys) == rosterIDs)
     }
 }

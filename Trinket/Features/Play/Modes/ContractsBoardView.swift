@@ -75,19 +75,13 @@ struct ContractsBoardView: View {
         }
     }
 
+    @ViewBuilder
     private var heroArtwork: some View {
-        Color.clear
-            .overlay {
-                if let art = ArtCatalog.backgroundArtByID["gameModeExplore"], pinnedArtwork.contains(art.imageName) {
-                    Image.preparedAsset(art, displaySize: .full)
-                        .resizable()
-                        .scaledToFill()
-                        .decorativePreparedArtwork()
-                } else {
-                    TrinketDesign.Colors.canvas
-                }
-            }
-            .clipped()
+        if let art = ArtCatalog.backgroundArtByID["gameModeExplore"], pinnedArtwork.contains(art.imageName) {
+            FocalBackgroundArtwork(art: art)
+        } else {
+            TrinketDesign.Colors.canvas
+        }
     }
 
     @ViewBuilder

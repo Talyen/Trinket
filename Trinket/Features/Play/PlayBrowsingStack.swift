@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketAppState
 import TrinketContent
+import TrinketDesignSystem
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
@@ -9,21 +10,34 @@ struct PlayBrowsingStack: View {
     @Environment(PlaySession.self) private var play
     @Environment(JourneyPlayMode.self) private var journey
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(OptionsStore.self) private var options
     @Environment(\.isBattleActive) private var isBattleActive
     @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
+    @State private var modeSelectionTrigger = 0
     @Binding var navigationPath: [PlayLaunchDestination]
     @Binding var stageMessage: StageMapMessage?
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            PlayModeHubView(
-                onOpenCampaign: { openMode(.campaign) },
-                onOpenExplore: { openMode(.explore) },
-            )
-            .navigationDestination(for: PlayLaunchDestination.self) { destination in
-                destinationView(for: destination)
-            }
+        NavigationStack(path: browsingPath) {
+            PlayModeHubView()
+                .navigationDestination(for: PlayLaunchDestination.self) { destination in
+                    destinationView(for: destination)
+                }
         }
+        .trinketSensoryFeedback(.selection, trigger: modeSelectionTrigger, enabled: options.hapticsEnabled)
+    }
+
+    private var browsingPath: Binding<[PlayLaunchDestination]> {
+        Binding(
+            get: { navigationPath },
+            set: { newPath in
+                if navigationPath.isEmpty, !newPath.isEmpty {
+                    guard !isBattleActive else { return }
+                    modeSelectionTrigger &+= 1
+                }
+                navigationPath = newPath
+            },
+        )
     }
 
     @ViewBuilder
@@ -45,12 +59,6 @@ struct PlayBrowsingStack: View {
         case let .spireClimb(spireID):
             SpireClimbView(spireID: spireID)
         }
-    }
-
-    private func openMode(_ destination: PlayLaunchDestination) -> Bool {
-        guard !isBattleActive else { return false }
-        navigationPath.append(destination)
-        return true
     }
 
     private func handleStageTap(_ stage: Stage) -> Bool {

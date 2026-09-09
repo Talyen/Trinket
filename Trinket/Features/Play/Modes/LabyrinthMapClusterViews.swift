@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketAppState
-import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureAdapters
@@ -338,14 +337,7 @@ struct LabyrinthNodeArtwork: View {
                   let art = ArtCatalog.encounterArtByID[artID] {
             MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
         } else {
-            ZStack {
-                LabyrinthMapPresentation.tint(for: type).opacity(0.16)
-                Image(systemName: symbolName)
-                    .trinketTypography(.sectionDisplay)
-                    .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
-                    .symbolRenderingMode(.hierarchical)
-                    .accessibilityHidden(true)
-            }
+            fallbackSymbol
         }
     }
 

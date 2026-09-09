@@ -172,7 +172,6 @@ struct MysterySpecialChoiceCard: View {
     }
 
     private func combatantName(id: String) -> String {
-        let combatant = (GameContent.heroes + GameContent.companions).first { $0.id == id }
-        return combatant?.name ?? "Combatant"
+        GameContent.combatant(matching: id)?.name ?? "Combatant"
     }
 }

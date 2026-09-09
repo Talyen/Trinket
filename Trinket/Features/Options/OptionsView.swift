@@ -10,6 +10,7 @@ import TrinketBattleFeature
 #endif
 
 struct OptionsView: View {
+    @Environment(AppState.self) private var appState
     @Environment(FullGameStore.self) private var fullGame
     @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(OptionsStore.self) private var optionsStore
@@ -18,17 +19,11 @@ struct OptionsView: View {
     @State private var actionErrorMessage: String?
     @State private var actionErrorTrigger = 0
 
-    let persistenceStatusMessage: () -> String?
-    let applyMusicVolumeLive: (Double, ScenePhase) -> Void
-    let playToggleSFX: (Bool, Double) -> Void
-    let resetGameplayProgress: () -> Bool
-    let unlockAllContent: () -> Bool
-
     var body: some View {
         @Bindable var options = optionsStore
 
         Form {
-            if let message = persistenceStatusMessage() {
+            if let message = appState.persistenceStatusMessage {
                 Section("Progress Status") {
                     Label(message, systemImage: "externaldrive.badge.exclamationmark")
                         .trinketTypography(.secondaryBody)
@@ -42,7 +37,7 @@ struct OptionsView: View {
                     title: "Music",
                     value: $options.musicVolume,
                     onLiveChange: { volume in
-                        applyMusicVolumeLive(volume, scenePhase)
+                        appState.applyMusicVolumeLive(volume, scenePhase: scenePhase)
                     },
                 )
 
@@ -107,7 +102,7 @@ struct OptionsView: View {
             isPresented: $isResetConfirmationPresented,
         ) {
             Button("Reset Game Progress", role: .destructive) {
-                if !resetGameplayProgress() {
+                if !appState.resetGameplayProgress() {
                     actionErrorMessage = "Couldn't reset progress. Try again."
                     actionErrorTrigger &+= 1
                 }
@@ -178,7 +173,7 @@ struct OptionsView: View {
             }
 
             Button("Unlock All") {
-                if !unlockAllContent() {
+                if !appState.unlockAllContent() {
                     actionErrorMessage = "Couldn't unlock content. Try again."
                     actionErrorTrigger &+= 1
                 }
@@ -188,5 +183,12 @@ struct OptionsView: View {
             Text("Developer")
         }
         #endif
+    }
+
+    private func playToggleSFX(_ isEnabled: Bool, _ volume: Double) {
+        appState.sfxPlayer.play(
+            isEnabled ? SFXID.uiToggleOn : SFXID.uiToggleOff,
+            volume: volume,
+        )
     }
 }

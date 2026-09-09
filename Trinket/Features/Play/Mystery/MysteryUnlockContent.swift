@@ -159,8 +159,7 @@ struct MysteryUnlockContent: View {
         if let sessionCombatant = session.combatant, sessionCombatant.id == id {
             return playerSave.roster.configuredCombatant(sessionCombatant)
         }
-        let catalog = GameContent.heroes + GameContent.companions
-        guard let combatant = catalog.first(where: { $0.id == id }) else { return nil }
+        guard let combatant = GameContent.combatant(matching: id) else { return nil }
         return playerSave.roster.configuredCombatant(combatant)
     }
 }

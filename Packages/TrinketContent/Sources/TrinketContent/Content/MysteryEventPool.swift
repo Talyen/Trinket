@@ -69,11 +69,12 @@ enum MysteryEventPool {
         eventsByID[id]
     }
 
+    private static let nonAltarEvents: [MysteryEvent] = all.filter { $0.id != corruptionAltarID }
+
     static func pickMysteryEvent(
         context: MysteryEventPickContext,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> MysteryEvent {
-        let nonAltar = all.filter { $0.id != corruptionAltarID }
         let canOfferAltar = context.allowsCorruptionAltar
             && context.hasEligibleCorruptTarget
             && context.corruptionAltarCooldownRemaining == 0
@@ -86,7 +87,7 @@ enum MysteryEventPool {
            let altar = event(matching: corruptionAltarID) {
             return altar
         }
-        guard let event = nonAltar.randomElement(using: &randomNumberGenerator) else {
+        guard let event = nonAltarEvents.randomElement(using: &randomNumberGenerator) else {
             preconditionFailure("MysteryEventPool must contain non-altar events")
         }
         return event

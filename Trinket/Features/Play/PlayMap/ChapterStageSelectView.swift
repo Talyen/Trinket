@@ -70,58 +70,6 @@ struct StageSelectCompletionPanel: View {
     }
 }
 
-@MainActor
-struct StageSelectPrepareDependency: Equatable {
-    let runKey: String
-    let contentAccess: ContentAccessPolicy
-    let roster: PlayerRosterState
-    let inventory: PlayerInventoryState
-    let homestead: PlayerHomesteadState
-    let worldSeed: UInt64
-    let stageRewardsAlreadyClaimed: Bool
-
-    static func journey(playerSave: PlayerSaveStore) -> Self? {
-        guard let stageID = playerSave.journey.activeStageID,
-              let stage = GameContent.stage(id: stageID),
-              stage.encounter.isCombat
-        else { return nil }
-        return Self(
-            runKey: stageID,
-            playerSave: playerSave,
-            stageRewardsAlreadyClaimed: playerSave.journey.hasClaimedRewards(for: stage),
-        )
-    }
-
-    static func spire(spireID: SpireID, floor: Int, playerSave: PlayerSaveStore) -> Self {
-        Self(runKey: "\(spireID.rawValue)|\(floor)", playerSave: playerSave)
-    }
-
-    static func labyrinth(playerSave: PlayerSaveStore) -> Self {
-        let labyrinth = playerSave.labyrinth
-        let runKey = labyrinth.reachableNodeIDs().compactMap { nodeID -> String? in
-            guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return nil }
-            return "\(nodeID)|\(node.modifierIDs.map(\.rawValue).joined(separator: ","))"
-        }
-        .sorted()
-        .joined(separator: ";")
-        return Self(runKey: runKey, playerSave: playerSave)
-    }
-
-    private init(
-        runKey: String,
-        playerSave: PlayerSaveStore,
-        stageRewardsAlreadyClaimed: Bool = false,
-    ) {
-        self.runKey = runKey
-        contentAccess = playerSave.contentAccess
-        roster = playerSave.roster
-        inventory = playerSave.inventory
-        homestead = playerSave.homestead
-        worldSeed = playerSave.worldSeed
-        self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
-    }
-}
-
 struct ChapterStageSelectView: View {
     @Environment(JourneyPlayMode.self) private var journey
     @Environment(PlayerSaveStore.self) private var playerSave
@@ -157,7 +105,7 @@ struct ChapterStageSelectView: View {
         ) {
             if let art = ArtCatalog.backgroundArtByID[chapter.id]
                 ?? ArtCatalog.backgroundArtByID["chapter-1"] {
-                ChapterHeroFocalArtwork(art: art)
+                FocalBackgroundArtwork(art: art)
             } else {
                 chapter.theme.tint
             }
@@ -225,34 +173,5 @@ struct ChapterStageSelectView: View {
     private func handlePrimaryAction(_ stage: Stage) -> Bool {
         guard playerSave.journey.isActive(stage) else { return false }
         return onStageTap(stage)
-    }
-}
-
-private struct ChapterHeroFocalArtwork: View {
-    let art: BackgroundArtReference
-
-    private let sourceAspectRatio: CGFloat = 4.0 / 3.0
-
-    var body: some View {
-        GeometryReader { geometry in
-            let container = geometry.size
-            let scale = max(container.width / sourceAspectRatio, container.height)
-            let renderedWidth = sourceAspectRatio * scale
-            let renderedHeight = scale
-            let overflowX = max(renderedWidth - container.width, 0)
-            let overflowY = max(renderedHeight - container.height, 0)
-            let offsetX = (0.5 - art.focalPoint.x) * overflowX
-            let offsetY = (0.5 - art.focalPoint.y) * overflowY
-
-            Image.preparedAsset(art, displaySize: .full)
-                .resizable()
-                .interpolation(.medium)
-                .scaledToFill()
-                .frame(width: container.width, height: container.height)
-                .decorativePreparedArtwork()
-                .offset(x: offsetX, y: offsetY)
-        }
-        .clipped()
-        .allowsHitTesting(false)
     }
 }

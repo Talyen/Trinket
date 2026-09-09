@@ -16,7 +16,7 @@ public struct StarterSelectionState: Equatable, Sendable {
             self.phase = .chooseHero
             self.heroID = nil
         case .chooseCompanion:
-            if let heroID, GameContent.heroes.map(\.id).contains(heroID) {
+            if let heroID, GameContent.hero(matching: heroID) != nil {
                 self.phase = .chooseCompanion
                 self.heroID = heroID
             } else {

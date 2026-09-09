@@ -1,8 +1,6 @@
 import SwiftUI
-import TrinketAppState
 
 struct HiddenTabPrewarm: View {
-    let appState: AppState
     var onFirstLayout: () -> Void = {}
 
     var body: some View {
@@ -14,7 +12,7 @@ struct HiddenTabPrewarm: View {
                 HomesteadView()
             }
             NavigationStack {
-                makeOptionsView(appState: appState)
+                OptionsView()
             }
         }
         .opacity(0.001)

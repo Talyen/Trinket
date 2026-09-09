@@ -42,14 +42,14 @@ struct StageRewardTests {
         let heroLevel = PlayerRosterState.testSeed.progression(for: hero).level
         let companionLevel = PlayerRosterState.testSeed.progression(for: companion).level
         let expectedHeroProgression = PlayerRosterState.testSeed.progression(for: hero).addingExperience(
-            StageCompletion.battleExperienceAward(
+            VictoryRewardApplier.battleExperienceAward(
                 playerLevel: heroLevel,
                 enemyLevel: encounterLevel,
                 highestLevel: PlayerRosterState.testSeed.highestHeroLevel,
             ),
         )
         let expectedCompanionProgression = PlayerRosterState.testSeed.progression(for: companion).addingExperience(
-            StageCompletion.battleExperienceAward(
+            VictoryRewardApplier.battleExperienceAward(
                 playerLevel: companionLevel,
                 enemyLevel: encounterLevel,
                 highestLevel: PlayerRosterState.testSeed.highestCompanionLevel,
@@ -303,14 +303,14 @@ struct StageRewardTests {
 
     @Test func `resolved gold reward does not go negative`() {
         #expect(
-            StageCompletion.resolvedGoldReward(
+            VictoryRewardApplier.resolvedGoldReward(
                 stageGold: 0,
                 battleEarnedGold: -3,
                 goldFoundPercent: 0,
             ) == 0,
         )
         #expect(
-            StageCompletion.resolvedGoldReward(
+            VictoryRewardApplier.resolvedGoldReward(
                 stageGold: 10,
                 battleEarnedGold: -3,
                 goldFoundPercent: 0,
@@ -377,7 +377,7 @@ extension StageRewardTests {
 
     @Test func `negative gold find reduces rewards`() {
         #expect(
-            StageCompletion.resolvedGoldReward(
+            VictoryRewardApplier.resolvedGoldReward(
                 stageGold: 10,
                 battleEarnedGold: 0,
                 goldFoundPercent: -50,

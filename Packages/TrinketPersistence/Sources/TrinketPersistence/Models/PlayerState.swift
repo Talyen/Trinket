@@ -294,43 +294,28 @@ public struct PlayerRosterState: Equatable, Sendable {
 
     @discardableResult
     public mutating func unlockHero(id heroID: String) -> Bool {
-        var ids = unlockedHeroIDs
-        let result = unlock(id: heroID, catalog: GameContent.heroes, into: &ids)
-        unlockedHeroIDs = ids
-        return result
+        guard GameContent.hero(matching: heroID) != nil else { return false }
+        let inserted = unlockedHeroIDs.insert(heroID).inserted
+        if progressions[heroID] == nil {
+            progressions[heroID] = .initial
+        }
+        return inserted
     }
 
     @discardableResult
     public mutating func unlockCompanion(id companionID: String) -> Bool {
-        var ids = unlockedCompanionIDs
-        let result = unlock(id: companionID, catalog: GameContent.companions, into: &ids)
-        unlockedCompanionIDs = ids
-        return result
-    }
-
-    @discardableResult
-    private mutating func unlock(
-        id combatantID: String,
-        catalog: [Combatant],
-        into unlockedIDs: inout Set<String>,
-    ) -> Bool {
-        guard catalog.contains(where: { $0.id == combatantID }) else { return false }
-        let inserted = unlockedIDs.insert(combatantID).inserted
-        if progressions[combatantID] == nil {
-            progressions[combatantID] = .initial
+        guard GameContent.companion(matching: companionID) != nil else { return false }
+        let inserted = unlockedCompanionIDs.insert(companionID).inserted
+        if progressions[companionID] == nil {
+            progressions[companionID] = .initial
         }
         return inserted
     }
 
     @discardableResult
     public mutating func unlockCombatant(id combatantID: String) -> Bool {
-        if GameContent.heroes.contains(where: { $0.id == combatantID }) {
-            return unlockHero(id: combatantID)
-        }
-        if GameContent.companions.contains(where: { $0.id == combatantID }) {
-            return unlockCompanion(id: combatantID)
-        }
-        return false
+        guard let combatant = GameContent.combatant(matching: combatantID) else { return false }
+        return unlock(combatant)
     }
 
     public mutating func unlockAllCombatants(atLevel level: Int = 20) {
@@ -412,7 +397,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         if let hero = heroes.first(where: { $0.id == activeHeroID }) ?? heroes.first {
             return hero
         }
-        if let starter = GameContent.heroes.first(where: { $0.id == Self.starterHeroID })
+        if let starter = GameContent.hero(matching: Self.starterHeroID)
             ?? collectionHeroes.first {
             return starter
         }
@@ -428,9 +413,8 @@ public struct PlayerRosterState: Equatable, Sendable {
         if let companion = companions.first(where: { $0.id == activeCompanionID }) ?? companions.first {
             return companion
         }
-        if let starter = GameContent.companions.first(where: {
-            $0.id == Self.starterCompanionID
-        }) ?? collectionCompanions.first {
+        if let starter = GameContent.companion(matching: Self.starterCompanionID)
+            ?? collectionCompanions.first {
             return starter
         }
         preconditionFailure("GameContent.companions must be non-empty")

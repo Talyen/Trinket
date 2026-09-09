@@ -47,7 +47,7 @@ struct CollectionCombatantGridView: View {
                 systemImage: "person.3",
                 description: Text("Unlock heroes and companions by progressing through the campaign."),
             )
-            .accessibilityIdentifier("Collection combatants empty state")
+            .accessibilityIdentifier(AccessibilityID.Collection.combatantsEmptyState)
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)

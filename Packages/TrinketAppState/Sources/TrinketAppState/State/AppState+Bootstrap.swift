@@ -93,10 +93,7 @@ private extension PlaySession {
     func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
         guard !completedStageIDs.isEmpty else { return }
 
-        let stagesByID = Dictionary(
-            uniqueKeysWithValues: GameContent.stages.map { ($0.id, $0) },
-        )
-        let stages = completedStageIDs.compactMap { stagesByID[$0] }
+        let stages = completedStageIDs.compactMap(GameContent.stage(id:))
         guard !stages.isEmpty else { return }
 
         let roster = playerSave.roster

@@ -14,7 +14,7 @@ public extension PlayerSaveStore {
     func confirmStarterHero(_ heroID: String) -> Bool {
         guard contentAccess.allowsCombatant(heroID),
               starterSelection.phase != .complete,
-              GameContent.heroes.map(\.id).contains(heroID)
+              GameContent.hero(matching: heroID) != nil
         else { return false }
         return persistBatch(logging: "Failed to save starter Hero") { save in
             save.starterSelection = StarterSelectionState(
@@ -31,8 +31,8 @@ public extension PlayerSaveStore {
               let heroID = selection.heroID,
               contentAccess.allowsCombatant(heroID),
               contentAccess.allowsCombatant(companionID),
-              GameContent.heroes.map(\.id).contains(heroID),
-              GameContent.companions.map(\.id).contains(companionID)
+              GameContent.hero(matching: heroID) != nil,
+              GameContent.companion(matching: companionID) != nil
         else { return false }
 
         return persistBatch(logging: "Failed to save starter party") { save in
@@ -67,9 +67,9 @@ public extension PlayerSaveStore {
         treeID: String,
         for combatantID: String,
     ) -> TalentUnlockResult {
-        guard let config = CombatantTalentCatalog.allConfigs[combatantID],
-              let tree = config.trees.first(where: { $0.id == treeID }),
-              let node = tree.nodes.first(where: { $0.id == nodeID })
+        guard let config = CombatantTalentCatalog.configIfAvailable(for: combatantID),
+              let tree = config.tree(matching: treeID),
+              let node = tree.node(matching: nodeID)
         else { return .unavailable }
 
         let unlocked = roster.unlockedTalents(for: combatantID)

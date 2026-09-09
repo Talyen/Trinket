@@ -177,7 +177,7 @@ struct AppStatePlayFlowTests {
         let configuration = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let initialGold = state.playerSave.roster.gold
-        let expectedGold = StageCompletion.resolvedGoldReward(
+        let expectedGold = VictoryRewardApplier.resolvedGoldReward(
             stageGold: presentation.stageReward?.gold ?? 0,
             battleEarnedGold: 5,
             homestead: state.playerSave.homestead,
@@ -397,7 +397,7 @@ struct AppStatePlayFlowTests {
         let configuration = try #require(state.battle.activeBattle)
         let rawBattleEarnedGold = 20
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
-        let expectedTotal = StageCompletion.resolvedGoldReward(
+        let expectedTotal = VictoryRewardApplier.resolvedGoldReward(
             stageGold: presentation.stageReward?.gold ?? 0,
             battleEarnedGold: rawBattleEarnedGold,
             homestead: state.playerSave.homestead,

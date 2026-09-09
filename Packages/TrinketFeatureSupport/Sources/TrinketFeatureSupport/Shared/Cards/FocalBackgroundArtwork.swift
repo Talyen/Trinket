@@ -1,17 +1,16 @@
 import SwiftUI
 import TrinketContent
-import TrinketFeatureSupport
 
-struct HomesteadFocalArtwork: View {
-    let art: BackgroundArtReference
-    var displaySize: Image.PreparedArtworkDisplaySize = .full
-    var interpolation: Image.Interpolation = .medium
+public struct FocalBackgroundArtwork: View {
+    public let art: BackgroundArtReference
+    public var displaySize: Image.PreparedArtworkDisplaySize
+    public var interpolation: Image.Interpolation
 
     private var sourceAspectRatio: CGFloat {
         art.sourceAspectRatio
     }
 
-    init(
+    public init(
         art: BackgroundArtReference,
         displaySize: Image.PreparedArtworkDisplaySize = .full,
         interpolation: Image.Interpolation = .medium,
@@ -21,7 +20,7 @@ struct HomesteadFocalArtwork: View {
         self.interpolation = interpolation
     }
 
-    var body: some View {
+    public var body: some View {
         GeometryReader { geometry in
             let container = geometry.size
             let scale = max(container.width / sourceAspectRatio, container.height)

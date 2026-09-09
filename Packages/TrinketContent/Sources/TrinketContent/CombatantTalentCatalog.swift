@@ -189,9 +189,6 @@ public enum CombatantTalentCatalog {
             if let combatant = GameContent.combatant(matching: combatantID),
                combatant.role != .enemy {
                 assertionFailure("Missing talent config for \(combatantID) (\(combatant.role.rawValue))")
-            } else if GameContent.heroes.contains(where: { $0.id == combatantID })
-                || GameContent.companions.contains(where: { $0.id == combatantID }) {
-                assertionFailure("Missing talent config for \(combatantID)")
             }
             #endif
             return nil

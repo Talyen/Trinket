@@ -113,10 +113,7 @@ struct SpireClimbView: View {
     @ViewBuilder
     private func spireHeroArtwork(for spire: SpireDefinition) -> some View {
         if let art = ArtCatalog.backgroundArtByID["spire-\(spire.id.rawValue)"] {
-            Image.preparedAsset(art, displaySize: .full)
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
+            FocalBackgroundArtwork(art: art)
         } else {
             spire.keyword.visualStyle.color
         }

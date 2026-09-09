@@ -3,9 +3,12 @@ import TrinketCore
 
 public extension GameContent {
     internal static let traits: [CombatantTraitDefinition] = GameContentTraitsGenerated.definitions
+    private static let traitsByID: [String: CombatantTraitDefinition] = Dictionary(
+        uniqueKeysWithValues: traits.map { ($0.id, $0) },
+    )
 
     static func trait(id: String) -> CombatantTraitDefinition? {
-        traits.first { $0.id == id }
+        traitsByID[id]
     }
 
     static func trait(for enemy: Enemy) -> CombatantTraitDefinition? {

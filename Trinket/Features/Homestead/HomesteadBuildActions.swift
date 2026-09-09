@@ -54,28 +54,10 @@ struct HomesteadCollectionControl {
 
 extension View {
     func homesteadBuildErrorAlert(build: Binding<HomesteadBuildControl>) -> some View {
-        homesteadErrorAlert(title: "Build Failed", message: build.error)
+        trinketFailureAlert("Build Failed", message: build.error)
     }
 
     func homesteadCollectionErrorAlert(collection: Binding<HomesteadCollectionControl>) -> some View {
-        homesteadErrorAlert(title: "Collection Failed", message: collection.error)
-    }
-
-    private func homesteadErrorAlert(title: String, message: Binding<String?>) -> some View {
-        alert(
-            title,
-            isPresented: Binding(
-                get: { message.wrappedValue != nil },
-                set: {
-                    if !$0 {
-                        message.wrappedValue = nil
-                    }
-                },
-            ),
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(message.wrappedValue ?? "")
-        }
+        trinketFailureAlert("Collection Failed", message: collection.error)
     }
 }

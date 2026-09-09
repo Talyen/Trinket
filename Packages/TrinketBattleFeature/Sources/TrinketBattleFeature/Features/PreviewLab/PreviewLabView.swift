@@ -154,7 +154,7 @@ public struct PreviewLabView: View {
     }
 
     private func warmArtwork() async {
-        let hero = GameContent.heroes.first { $0.id == selectedHeroID }
+        let hero = GameContent.hero(matching: selectedHeroID)
         let companion = PreviewLab.companionOptions.first { $0.id == selectedCompanionID }
         let enemy = GameContent.enemy(matching: selectedEnemyID)?.combatant
         let combatants = [hero, companion, enemy].compactMap(\.self)
@@ -170,7 +170,7 @@ public struct PreviewLabView: View {
     }
 
     private static var defaultHeroID: String {
-        GameContent.heroes.first { $0.id == "rogue" }?.id ?? GameContent.heroes.first?.id ?? ""
+        GameContent.hero(matching: "rogue")?.id ?? GameContent.heroes.first?.id ?? ""
     }
 
     private static var defaultCompanionID: String {
@@ -192,7 +192,7 @@ private enum PreviewLab {
     }
 
     static var companionOptions: [Combatant] {
-        GameContent.heroes + GameContent.companions
+        GameContent.combatants
     }
 
     static func cinematicUltimate(for combatantID: String) -> Ability? {
@@ -208,7 +208,7 @@ private enum PreviewLab {
         heroID: String,
         companionID: String,
     ) -> BattleRunConfiguration {
-        let hero = GameContent.heroes.first { $0.id == heroID } ?? GameContent.heroes.first
+        let hero = GameContent.hero(matching: heroID) ?? GameContent.heroes.first
         let companion = companionOptions.first { $0.id == companionID } ?? GameContent.companions.first
         let enemy = GameContent.enemy(matching: enemyID) ?? GameContent.enemies.first
         return BattleRunConfiguration(

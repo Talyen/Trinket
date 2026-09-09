@@ -175,7 +175,7 @@ public extension GameContent {
 
     static func combatant(forMysteryEvent event: MysteryEvent) -> Combatant? {
         guard let combatantID = event.unlockCombatantID else { return nil }
-        return heroes.first { $0.id == combatantID } ?? companions.first { $0.id == combatantID }
+        return combatant(matching: combatantID)
     }
 
     static func recruitEncounterArtReference(for role: Combatant.Role) -> EncounterArtReference? {

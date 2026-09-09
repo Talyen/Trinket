@@ -135,7 +135,7 @@ struct ArtCatalogIntegrationTests {
 
     private func referencedAbilityIDs() -> Set<String> {
         var ids = Set<String>()
-        let combatants = GameContent.heroes + GameContent.companions + GameContent.enemies.map(\.combatant)
+        let combatants = GameContent.combatants + GameContent.enemies.map(\.combatant)
         for combatant in combatants {
             for ability in combatant.abilityChoices.basics + combatant.abilityChoices.skills + combatant.abilityChoices.ultimates {
                 ids.insert(ability.id)

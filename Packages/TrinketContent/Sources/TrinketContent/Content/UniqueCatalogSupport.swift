@@ -26,7 +26,7 @@ extension UniqueCatalog {
         )
         let supporting: [UniqueAffixSource] = supports.map { supportID in
             guard pinned.contains(supportID) else { return .catalog(id: supportID) }
-            guard let definition = ItemAffixCatalog.definitions.first(where: { $0.id == supportID }) else {
+            guard let definition = GameContent.itemAffixDefinition(matching: supportID) else {
                 preconditionFailure("Missing Unique supporting affix: \(supportID)")
             }
             return .bespoke(ItemAffixDefinition(

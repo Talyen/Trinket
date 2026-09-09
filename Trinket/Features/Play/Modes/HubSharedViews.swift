@@ -47,8 +47,7 @@ struct HubArtworkCard: View {
         ZStack(alignment: .bottomLeading) {
             Group {
                 if let art {
-                    HomesteadFocalArtwork(art: art)
-
+                    FocalBackgroundArtwork(art: art)
                 } else {
                     TrinketDesign.Colors.surface
                 }

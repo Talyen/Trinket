@@ -20,7 +20,7 @@ struct CombatantCatalogTests {
     }
 
     @Test func `player combatants have complete ability choices and loadouts`() throws {
-        for combatant in GameContent.heroes + GameContent.companions {
+        for combatant in GameContent.combatants {
             for tier in AbilityTier.allCases {
                 let choices = combatant.abilityChoices.abilities(for: tier)
                 try #expect(choices.count == 4, "\(combatant.name) should have four \(tier.rawValue) choices")
@@ -35,7 +35,7 @@ struct CombatantCatalogTests {
     }
 
     @Test func `player combatants have valid health and mana`() throws {
-        for combatant in GameContent.heroes + GameContent.companions {
+        for combatant in GameContent.combatants {
             try #expect(combatant.maxHealth >= 6, "\(combatant.name) should have at least 6 health")
             try #expect(combatant.maxMana >= 0, "\(combatant.name) should have non-negative mana")
         }

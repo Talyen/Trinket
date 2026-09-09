@@ -96,9 +96,14 @@ public enum MysteryEffectApplier {
         labyrinthNodeID: String?,
         save: PlayerSave,
     ) -> Int {
-        StageCompletion.partyAdjustedEncounterLevel(
+        if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
+            return EncounterLevelResolver.labyrinthAdjusted(
+                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
+                partyAverageLevel: save.roster.activePartyAverageLevel,
+            )
+        }
+        return StageCompletion.partyAdjustedEncounterLevel(
             for: stage,
-            labyrinthNodeID: labyrinthNodeID,
             save: save,
         )
     }

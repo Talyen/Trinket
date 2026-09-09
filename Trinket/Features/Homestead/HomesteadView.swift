@@ -39,7 +39,7 @@ struct HomesteadView: View {
             ) {
                 if let art = ArtCatalog.backgroundArtByID["homestead"]
                     ?? ArtCatalog.backgroundArtByID["wheatField"] {
-                    HomesteadFocalArtwork(art: art)
+                    FocalBackgroundArtwork(art: art)
                 } else {
                     TrinketDesign.Colors.surface
                 }

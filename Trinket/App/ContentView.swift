@@ -135,7 +135,7 @@ struct ContentView: View {
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
-                    makeOptionsView(appState: appState)
+                    OptionsView()
                 }
             }
         }

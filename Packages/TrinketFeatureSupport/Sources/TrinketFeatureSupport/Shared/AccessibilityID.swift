@@ -295,6 +295,7 @@ public enum AccessibilityID {
         public static let uniqueGearCategory = "Unique Gear collection category"
         public static let trinketsCategory = "Trinkets collection category"
         public static let itemsEmptyState = "Collection Items Empty State"
+        public static let combatantsEmptyState = "Collection combatants empty state"
         public static let itemsNoResults = "Collection Items No Results"
         public static let gearFilter = "Collection gear filter"
         public static let salvageButton = "Salvage Item Button"

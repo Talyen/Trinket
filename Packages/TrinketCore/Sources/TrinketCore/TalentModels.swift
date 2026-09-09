@@ -61,6 +61,10 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
         guard !rowNodes.isEmpty else { return false }
         return rowNodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
     }
+
+    public func node(matching id: String) -> TalentNode? {
+        nodes.first { $0.id == id }
+    }
 }
 
 public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
@@ -80,9 +84,13 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
         trees.first { $0.keyword == keyword }
     }
 
+    public func tree(matching id: String) -> TalentTree? {
+        trees.first { $0.id == id }
+    }
+
     public func node(matching id: String) -> TalentNode? {
         for tree in trees {
-            if let node = tree.nodes.first(where: { $0.id == id }) {
+            if let node = tree.node(matching: id) {
                 return node
             }
         }

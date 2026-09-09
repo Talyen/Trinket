@@ -100,8 +100,12 @@ enum RecruitEventPool {
         ),
     ]
 
+    private static let eventsByID: [String: MysteryEvent] = Dictionary(
+        uniqueKeysWithValues: all.map { ($0.id, $0) },
+    )
+
     static func event(matching id: String) -> MysteryEvent? {
-        all.first { $0.id == id }
+        eventsByID[id]
     }
 
     static func event(unlocking combatantID: String) -> MysteryEvent? {
@@ -119,9 +123,7 @@ enum RecruitEventPool {
                   !unlockedCompanionIDs.contains(combatantID)
             else { return false }
             guard let role else { return true }
-            let combatant = GameContent.heroes.first { $0.id == combatantID }
-                ?? GameContent.companions.first { $0.id == combatantID }
-            return combatant?.role == role
+            return GameContent.combatant(matching: combatantID)?.role == role
         }
     }
 }

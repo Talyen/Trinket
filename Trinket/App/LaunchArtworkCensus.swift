@@ -15,7 +15,7 @@ enum LaunchArtworkCensus {
             if appState.playerSave.starterSelection.phase == .complete {
                 []
             } else {
-                (GameContent.heroes + GameContent.companions)
+                GameContent.combatants
                     .compactMap { $0.artReference?.thumbnailImageName }
             }
         let activeEnemy = appState.playerSave.journey.activeStageID

@@ -184,9 +184,7 @@ extension BattleTestFixtures {
     }
 
     static func catalogBuild(combatantID: String, talents: String...) throws -> CombatBuild {
-        guard let combatant = GameContent.heroes.first(where: { $0.id == combatantID })
-            ?? GameContent.companions.first(where: { $0.id == combatantID })
-        else {
+        guard let combatant = GameContent.combatant(matching: combatantID) else {
             throw CatalogBuildError.missingCombatant(combatantID)
         }
         return CombatBuildResolver.build(

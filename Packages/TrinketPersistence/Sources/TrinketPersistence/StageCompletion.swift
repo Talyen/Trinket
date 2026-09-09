@@ -3,34 +3,6 @@ import TrinketContent
 import TrinketCore
 
 public enum StageCompletion {
-    public static func battleExperienceAward(
-        playerLevel: Int,
-        enemyLevel: Int,
-        highestLevel: Int,
-        experienceEarnedPercent: Int = 0,
-    ) -> Int {
-        VictoryRewardApplier.battleExperienceAward(
-            playerLevel: playerLevel,
-            enemyLevel: enemyLevel,
-            highestLevel: highestLevel,
-            experienceEarnedPercent: experienceEarnedPercent,
-        )
-    }
-
-    public static func grantBattleExperience(
-        enemyLevel: Int,
-        to combatant: Combatant,
-        roster: inout PlayerRosterState,
-        experienceEarnedPercent: Int = 0,
-    ) {
-        VictoryRewardApplier.grantBattleExperience(
-            enemyLevel: enemyLevel,
-            to: combatant,
-            roster: &roster,
-            experienceEarnedPercent: experienceEarnedPercent,
-        )
-    }
-
     public static func resolvedMaterialRewards(
         stageReward: StageReward,
         override: [ResourceAmount]? = nil,
@@ -63,30 +35,6 @@ public enum StageCompletion {
         )
     }
 
-    public static func resolvedGoldReward(
-        stageGold: Int,
-        battleEarnedGold: Int,
-        goldFoundPercent: Int,
-    ) -> Int {
-        VictoryRewardApplier.resolvedGoldReward(
-            stageGold: stageGold,
-            battleEarnedGold: battleEarnedGold,
-            goldFoundPercent: goldFoundPercent,
-        )
-    }
-
-    public static func resolvedGoldReward(
-        stageGold: Int,
-        battleEarnedGold: Int,
-        homestead: PlayerHomesteadState,
-    ) -> Int {
-        VictoryRewardApplier.resolvedGoldReward(
-            stageGold: stageGold,
-            battleEarnedGold: battleEarnedGold,
-            homestead: homestead,
-        )
-    }
-
     public static func resolvedEncounterLevel(for stage: Stage, in chapters: [Chapter]) -> Int {
         guard let chapter = chapters.first(where: { $0.id == stage.chapterID }) else {
             return 1
@@ -96,17 +44,10 @@ public enum StageCompletion {
 
     public static func partyAdjustedEncounterLevel(
         for stage: Stage,
-        labyrinthNodeID: String? = nil,
         in chapters: [Chapter] = GameContent.chapters,
         save: PlayerSave,
     ) -> Int {
-        if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
-            return EncounterLevelResolver.labyrinthAdjusted(
-                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-                partyAverageLevel: save.roster.activePartyAverageLevel,
-            )
-        }
-        return EncounterLevelResolver.campaignAdjusted(
+        EncounterLevelResolver.campaignAdjusted(
             resolvedEncounterLevel(for: stage, in: chapters),
             partyAverageLevel: save.roster.activePartyAverageLevel,
         )

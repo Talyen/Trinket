@@ -130,7 +130,7 @@ private struct PreparedAppRoot: View {
                 ContentView()
             }
             if shouldWarmHiddenTabs {
-                HiddenTabPrewarm(appState: appState) {
+                HiddenTabPrewarm {
                     didWarmHiddenTabs = true
                 }
             }

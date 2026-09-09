@@ -110,7 +110,7 @@ struct HomesteadNodeDetailView: View {
     @ViewBuilder
     private var portrait: some View {
         if let art = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {
-            HomesteadFocalArtwork(art: art)
+            FocalBackgroundArtwork(art: art)
                 .ignoresSafeArea()
                 .saturation(status.isUnlocked ? 1 : 0.35)
         } else {

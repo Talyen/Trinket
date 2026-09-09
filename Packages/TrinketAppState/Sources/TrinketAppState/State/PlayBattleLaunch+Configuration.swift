@@ -116,13 +116,13 @@ extension PlayBattleLaunch {
             defeatPrimaryAction: defeatPrimaryAction,
             hasProgressionRewards: hasProgressionRewards,
             musicStageID: musicStageID,
-            heroExperienceAward: StageCompletion.battleExperienceAward(
+            heroExperienceAward: VictoryRewardApplier.battleExperienceAward(
                 playerLevel: heroMember.progression.level,
                 enemyLevel: enemyLevel,
                 highestLevel: rosterState.highestHeroLevel,
                 experienceEarnedPercent: input.experienceBonusPercent,
             ),
-            companionExperienceAward: StageCompletion.battleExperienceAward(
+            companionExperienceAward: VictoryRewardApplier.battleExperienceAward(
                 playerLevel: companionMember.progression.level,
                 enemyLevel: enemyLevel,
                 highestLevel: rosterState.highestCompanionLevel,

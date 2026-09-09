@@ -7,6 +7,14 @@ public extension GameContent {
     static let combatants: [Combatant] = heroes + companions
     static let enemies: [Enemy] = GameContentEnemiesGenerated.enemies
 
+    private static let heroesByID: [String: Combatant] = Dictionary(
+        uniqueKeysWithValues: heroes.map { ($0.id, $0) },
+    )
+
+    private static let companionsByID: [String: Combatant] = Dictionary(
+        uniqueKeysWithValues: companions.map { ($0.id, $0) },
+    )
+
     private static let combatantsByID: [String: Combatant] = Dictionary(
         uniqueKeysWithValues: combatants.map { ($0.id, $0) },
     )
@@ -14,6 +22,14 @@ public extension GameContent {
     private static let enemiesByID: [String: Enemy] = Dictionary(
         uniqueKeysWithValues: enemies.map { ($0.id, $0) },
     )
+
+    static func hero(matching id: String) -> Combatant? {
+        heroesByID[id]
+    }
+
+    static func companion(matching id: String) -> Combatant? {
+        companionsByID[id]
+    }
 
     static func combatant(matching id: String) -> Combatant? {
         combatantsByID[id]

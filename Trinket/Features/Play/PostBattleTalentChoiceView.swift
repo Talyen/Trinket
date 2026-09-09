@@ -22,7 +22,7 @@ struct PostBattleTalentChoiceView: View {
             if let combatant, let config {
                 treeSelection(combatant: combatant, config: config)
                     .navigationDestination(for: String.self) { treeID in
-                        if let tree = config.trees.first(where: { $0.id == treeID }) {
+                        if let tree = config.tree(matching: treeID) {
                             talentSelection(combatant: combatant, tree: tree)
                         }
                     }
@@ -53,13 +53,12 @@ struct PostBattleTalentChoiceView: View {
 
     private var combatant: Combatant? {
         guard let combatantID = play.currentPostBattleTalentCombatantID else { return nil }
-        return GameContent.heroes.first(where: { $0.id == combatantID })
-            ?? GameContent.companions.first(where: { $0.id == combatantID })
+        return GameContent.combatant(matching: combatantID)
     }
 
     private var config: CombatantTalentConfig? {
         guard let combatantID = play.currentPostBattleTalentCombatantID else { return nil }
-        return CombatantTalentCatalog.allConfigs[combatantID]
+        return CombatantTalentCatalog.config(for: combatantID)
     }
 
     private func treeSelection(

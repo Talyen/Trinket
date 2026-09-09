@@ -49,7 +49,7 @@ struct HomesteadProjectTile: View {
     @ViewBuilder
     private var artwork: some View {
         if let art = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {
-            HomesteadFocalArtwork(art: art, displaySize: .compact)
+            FocalBackgroundArtwork(art: art, displaySize: .compact)
                 .saturation(status.isUnlocked ? 1 : 0.35)
         } else {
             TrinketDesign.Colors.surface
