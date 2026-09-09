@@ -93,16 +93,29 @@ public final class EncounterPlayMode {
             shopSession.markPurchaseFinished(offerID: offerID)
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
             return true
-        case .insufficientGold, .alreadyOwned, .invalidOffer:
+        case .insufficientGold, .alreadyOwned, .invalidOffer, .none:
             shopSession.markPurchaseFailed(
                 message: purchaseResult?.failureMessage ?? "Purchase failed.",
             )
             sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
             return false
-        case .none:
-            shopSession.markPurchaseFailed(message: "Purchase failed.")
-            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
-            return false
+        }
+    }
+
+    @discardableResult
+    func beginShopOrAutoComplete(
+        origin: PlayEncounterOrigin,
+        identifier: String,
+        onAutoComplete: () -> StageMapMessage?,
+    ) -> StageMapMessage? {
+        switch beginShopEncounter(origin: origin) {
+        case .autoCompleted:
+            if let failure = onAutoComplete() {
+                return failure
+            }
+            return emptyShopClosedMessage(identifier: identifier)
+        case .opened, .unavailable:
+            return nil
         }
     }
 

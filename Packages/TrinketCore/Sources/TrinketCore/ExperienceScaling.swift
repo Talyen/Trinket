@@ -6,10 +6,10 @@ enum ProgressionBracket: Equatable {
     case late
 
     static func forLevel(_ level: Int) -> Self {
-        if level < 20 {
+        if level < EnemyPowerCurve.midLevel {
             return .early
         }
-        if level < 40 {
+        if level < EnemyPowerCurve.lateLevel {
             return .mid
         }
         return .late
@@ -27,6 +27,7 @@ enum ProgressionBracket: Equatable {
 public enum ExperienceScaling {
     public static let underlevelCutoff = 10
     public static let maxGrantLevelsEquivalent = 3
+    private static let catchUpDecayConstant = 2.0
 
     public static func levelDeltaMultiplier(playerLevel: Int, enemyLevel: Int) -> Double {
         let gap = playerLevel - enemyLevel
@@ -97,7 +98,6 @@ public enum ExperienceScaling {
     ) -> Double {
         let gap = max(0, highestLevel - combatantLevel)
         guard gap > 0 else { return 1.0 }
-        let decayConstant = 2.0
-        return 1.0 + (maxMultiplier - 1.0) * (1.0 - exp(-Double(gap) / decayConstant))
+        return 1.0 + (maxMultiplier - 1.0) * (1.0 - exp(-Double(gap) / catchUpDecayConstant))
     }
 }

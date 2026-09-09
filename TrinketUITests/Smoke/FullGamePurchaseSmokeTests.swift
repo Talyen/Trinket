@@ -23,9 +23,9 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
     }
 
     func testOfferDismissalPurchaseAndGameplayReset() throws {
+        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
         let session = try XCTUnwrap(storeSession)
         session.askToBuyEnabled = true
-        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
         tapButton(AccessibilityID.FullGame.options)
         assertExists(AccessibilityID.FullGame.offer)

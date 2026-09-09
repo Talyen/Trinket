@@ -94,9 +94,11 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
         guard budget > 0 else { return [] }
         var kept: Set<String> = []
         let rows = Set(trees.flatMap(\.rows)).sorted()
+        let maps = trees.map { Dictionary(grouping: $0.nodes, by: \.row) }
         for row in rows {
-            for tree in trees {
-                for node in tree.nodes(forRow: row) {
+            for (tree, map) in zip(trees, maps) {
+                guard let rowNodes = map[row] else { continue }
+                for node in rowNodes {
                     guard nodeIDs.contains(node.id), kept.count < budget else { continue }
                     let remaining = budget - kept.count
                     guard tree.canUnlock(

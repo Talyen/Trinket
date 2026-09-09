@@ -122,6 +122,7 @@ schemes:
         - TrinketUITests
     run:
       target: Trinket
+      storeKitConfiguration: StoreKit/Trinket.storekit
   Trinket Development:
     build:
       targets:

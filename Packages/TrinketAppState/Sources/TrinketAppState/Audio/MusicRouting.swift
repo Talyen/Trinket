@@ -12,7 +12,6 @@ struct MusicResumeKey: Hashable {
 struct MusicPlaybackRequest: Equatable {
     let track: MusicTrack
     let resumeKey: MusicResumeKey
-    let shouldResume: Bool
 
     static func resumable(
         track: MusicTrack,
@@ -28,7 +27,6 @@ struct MusicPlaybackRequest: Equatable {
                 enemyID: enemyID,
                 trackID: track.id,
             ),
-            shouldResume: true,
         )
     }
 }

@@ -28,6 +28,17 @@ struct PlayBattleLaunch {
     }
 
     @discardableResult
+    func activateRequest(
+        _ request: PlayCombatRequest,
+        onActivated: () -> Void = {},
+    ) -> StageMapMessage? {
+        guard battle.lifecyclePhase != .active else { return Self.activationFailureMessage }
+        guard activateCombat(request) else { return Self.activationFailureMessage }
+        onActivated()
+        return nil
+    }
+
+    @discardableResult
     func prepareCombat(_ request: PlayCombatRequest) -> Bool {
         guard playerSave.accessRestriction(for: request.origin) == nil else { return false }
         let launch = makeBattleLaunch(makeLaunchInput(for: request))
@@ -48,6 +59,22 @@ struct PlayBattleLaunch {
     func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
         battle.keepPreparedRuns(keys)
         runRegistry.keep(keys)
+    }
+
+    func prepareIfNeeded<Input: Equatable>(
+        tracker: inout PlayBattlePreparationTracker<Input>,
+        inputs: Input,
+        runKey: BattleRunKey,
+        makeRequest: () -> PlayCombatRequest,
+    ) {
+        guard battle.lifecyclePhase != .active else { return }
+        guard tracker.shouldPrepare(
+            for: inputs,
+            hasPreparedRun: battle.hasPreparedRun(runKey),
+        ) else { return }
+        if prepareCombat(makeRequest()) {
+            tracker.notePrepared(inputs)
+        }
     }
 
     @discardableResult

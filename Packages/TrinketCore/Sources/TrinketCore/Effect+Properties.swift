@@ -46,6 +46,96 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case hemorrhage
 }
 
+public extension EffectKind {
+    var isRemovableDebuff: Bool {
+        behavior.isRemovableDebuff
+    }
+
+    var isRemovableBuff: Bool {
+        behavior.isRemovableBuff
+    }
+
+    var advancesEachTurn: Bool {
+        behavior.advancesEachTurn
+    }
+
+    var isInstant: Bool {
+        behavior.isInstant
+    }
+
+    var isDecayingDoT: Bool {
+        behavior.isDecayingDoT
+    }
+
+    var isBleed: Bool {
+        behavior.isBleed
+    }
+
+    private var behavior: (
+        isRemovableDebuff: Bool,
+        isRemovableBuff: Bool,
+        advancesEachTurn: Bool,
+        isInstant: Bool,
+        isDecayingDoT: Bool,
+        isBleed: Bool,
+    ) {
+        switch self {
+        case .burn, .poison:
+            (true, false, true, false, true, false)
+        case .bleed:
+            (true, false, true, false, false, true)
+        case .controlMeter:
+            (true, false, true, false, false, false)
+        case .shield:
+            (false, true, false, false, false, false)
+        case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards,
+             .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom,
+             .purge, .purgeRandom, .halveShield,
+             .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
+             .multiplyDoT, .detonateDoT, .revive:
+            (false, false, false, true, false, false)
+        case .deathsDoor:
+            (false, false, true, false, false, false)
+        case .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
+             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage:
+            (false, true, false, false, false, false)
+        case .maximumManaBonus:
+            (false, true, false, true, false, false)
+        case .marked, .recurringDamage, .damageReductionPercent,
+             .damageReductionFlat, .healingReductionPercent:
+            (true, false, true, false, false, false)
+        case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride, .avatar:
+            (false, true, true, false, false, false)
+        case .hemorrhage:
+            (true, false, false, false, false, false)
+        }
+    }
+
+    static func requiredBattleSummaryPhrase(for kind: EffectKind) -> String {
+        guard let phrase = battleSummaryPhrase(for: kind) else {
+            preconditionFailure("Every flag effect needs a battle summary phrase; missing \(kind)")
+        }
+        return phrase
+    }
+
+    static func battleSummaryPhrase(for kind: EffectKind) -> String? {
+        switch kind {
+        case .nextHolyStrike:
+            "Holy Strike: Next attack deals double Holy damage and applies Burning."
+        case .nextStrikeDouble:
+            "Double Strike: Next attack deals double damage."
+        case .evadeNextHit:
+            "Evasion: Dodges the next attack."
+        case .nextStrikeCritical:
+            "Critical Focus: Next attack is a guaranteed Critical Hit."
+        case .freezeNextAttacker:
+            "Glacial Ward: Freezes the next attacker."
+        default:
+            nil
+        }
+    }
+}
+
 public extension Effect {
     var kind: EffectKind {
         switch self {
@@ -95,32 +185,28 @@ public extension Effect {
         }
     }
 
-    private var behaviorMetadata: EffectBehaviorMetadata {
-        EffectMetadata.behavior(for: kind)
-    }
-
     var isRemovableDebuff: Bool {
-        behaviorMetadata.isRemovableDebuff
+        kind.isRemovableDebuff
     }
 
     var isRemovableBuff: Bool {
-        behaviorMetadata.isRemovableBuff
+        kind.isRemovableBuff
     }
 
     var advancesEachTurn: Bool {
-        behaviorMetadata.advancesEachTurn
+        kind.advancesEachTurn
     }
 
     var isInstant: Bool {
-        behaviorMetadata.isInstant
+        kind.isInstant
     }
 
     var isDecayingDoT: Bool {
-        behaviorMetadata.isDecayingDoT
+        kind.isDecayingDoT
     }
 
     var isBleed: Bool {
-        behaviorMetadata.isBleed
+        kind.isBleed
     }
 
     var controlMeterValues: (amount: Int, threshold: Int)? {

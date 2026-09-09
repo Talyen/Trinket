@@ -39,7 +39,7 @@ public enum LabyrinthMapPresentation {
         case .battle: "Battle"
         case .boss: "Challenge Boss"
         case .shop: "Visit Shop"
-        case .mystery, .event, .craft, .rest: "Approach Mystery"
+        case .mystery, .event, .craft: "Approach Mystery"
         case .recruit: "Recruit"
         case .entrance: "Enter Labyrinth"
         }
@@ -47,8 +47,6 @@ public enum LabyrinthMapPresentation {
 
     public static func tint(for type: LabyrinthNodeType) -> Color {
         switch type {
-        case .rest:
-            TrinketDesign.Colors.encounterRest
         case .battle, .boss:
             TrinketDesign.Colors.encounterBattle
         case .shop:
@@ -90,7 +88,7 @@ public enum LabyrinthMapPresentation {
     public static func destinationEncounterArtID(for type: LabyrinthNodeType) -> String? {
         switch type.canonical {
         case .shop: "destination-merchant-shop"
-        case .battle, .boss, .mystery, .event, .recruit, .craft, .entrance, .rest:
+        case .battle, .boss, .mystery, .event, .recruit, .craft, .entrance:
             nil
         }
     }

@@ -151,7 +151,7 @@ public enum LabyrinthCatalog {
             modifiers.filter { $0.applies(to: .shop) }
         case .mystery:
             modifiers.filter { $0.applies(to: .mystery) }
-        case .rest, .event, .recruit, .craft, .entrance:
+        case .event, .recruit, .craft, .entrance:
             []
         }
         guard !pool.isEmpty else { return [] }

@@ -69,7 +69,6 @@ enum StageTypeSymbol {
     static let battle = "bolt.fill"
     static let boss = "crown.fill"
     static let shop = "bag.fill"
-    static let rest = "tent.fill"
     static let mystery = "sparkles"
     static let recruitHero = "person.2.fill"
     static let recruitCompanion = "pawprint.fill"
@@ -82,7 +81,6 @@ public enum StageEncounter: Hashable, Sendable {
     case battle(enemyID: String)
     case randomBattle
     case shop
-    case rest
     case mysteryEvent(eventID: String)
     case recruit(eventID: String)
 
@@ -94,8 +92,6 @@ public enum StageEncounter: Hashable, Sendable {
             "Battle"
         case .shop:
             "Shop"
-        case .rest:
-            "Rest"
         case .mysteryEvent:
             "Mystery"
         case .recruit:
@@ -113,8 +109,6 @@ public enum StageEncounter: Hashable, Sendable {
             StageTypeSymbol.battle
         case .shop:
             StageTypeSymbol.shop
-        case .rest:
-            StageTypeSymbol.rest
         case .mysteryEvent:
             StageTypeSymbol.mystery
         case let .recruit(eventID):
@@ -128,8 +122,6 @@ public enum StageEncounter: Hashable, Sendable {
             "Battle"
         case .shop:
             "Shop"
-        case .rest:
-            "Rest"
         case .mysteryEvent:
             "Approach"
         case .recruit:
@@ -141,7 +133,7 @@ public enum StageEncounter: Hashable, Sendable {
         switch self {
         case .battle, .randomBattle:
             true
-        case .shop, .rest, .mysteryEvent, .recruit:
+        case .shop, .mysteryEvent, .recruit:
             false
         }
     }

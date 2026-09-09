@@ -15,33 +15,20 @@ struct LabyrinthMigrationTests {
         #expect(migratedFloor.nodeIDs.allSatisfy { !$0.contains("ironGalleries") })
     }
 
-    @Test func `preserves run health across map version regeneration`() throws {
-        var legacy = try makeVersionFourState(seed: 9, clearedNodeCount: 2)
-        legacy.runHealthByCombatantID = ["knight": 7, "wolf": 4]
-
-        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
-
-        #expect(sanitized.runHealthByCombatantID == ["knight": 7, "wolf": 4])
-        #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
-    }
-
     @Test @MainActor func `version four migration survives reload`() throws {
         let context = try PersistenceTestContext()
         var save = SaveTestSupport.makeSave(worldSeed: 9)
         save.labyrinth = try makeVersionFourState(seed: 9, clearedNodeCount: 2)
-        save.labyrinth.runHealthByCombatantID = ["knight": 7, "wolf": 4]
         try SaveTestSupport.writeRoot(save, to: context.storeURL())
 
         let store = try context.makeReloadedStore()
         #expect(store.labyrinth.mapVersion == LabyrinthGenerator.currentMapVersion)
-        #expect(store.labyrinth.runHealthByCombatantID == ["knight": 7, "wolf": 4])
         #expect(store.labyrinth.worldSeed == 9)
         #expect(store.labyrinth.hasMap)
         #expect(store.labyrinth.nodes.values.filter(\.isCleared).count == 3)
 
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.labyrinth.mapVersion == LabyrinthGenerator.currentMapVersion)
-        #expect(reloaded.labyrinth.runHealthByCombatantID == ["knight": 7, "wolf": 4])
         #expect(reloaded.labyrinth.worldSeed == 9)
         #expect(reloaded.labyrinth.hasMap)
         #expect(reloaded.labyrinth.nodes.values.filter(\.isCleared).count == 3)

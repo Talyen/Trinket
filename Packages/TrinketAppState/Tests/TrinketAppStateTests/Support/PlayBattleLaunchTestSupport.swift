@@ -25,6 +25,13 @@ enum PlayBattleLaunchTestSupport {
         state.playerSave.roster = roster
     }
 
+    static func setActiveCompanion(_ companion: Combatant, in state: PlaySession) {
+        var roster = state.playerSave.roster
+        _ = roster.unlock(companion)
+        roster.setActiveCompanion(companion)
+        state.playerSave.roster = roster
+    }
+
     static func make(
         origin: PlayBattleOrigin? = nil,
         runKey: BattleRunKey? = nil,

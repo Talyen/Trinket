@@ -1,7 +1,6 @@
 import Foundation
 import Testing
 import TrinketContent
-import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 @testable import TrinketAppState

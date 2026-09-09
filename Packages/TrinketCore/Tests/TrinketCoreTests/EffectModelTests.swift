@@ -2,27 +2,27 @@ import Testing
 import TrinketCore
 
 struct EffectModelTests {
-    @Test func `representative effect properties`() throws {
-        try #expect(Effect.burn(4).potencyAfterTurn() == 2)
-        try #expect(Effect.bleed(3).isBleed)
-        try #expect(Effect.instantHeal(.health, 5).isInstant)
-        try #expect(Effect.drawCards(2).isInstant)
+    @Test func `representative effect properties`() {
+        #expect(Effect.burn(4).potencyAfterTurn() == 2)
+        #expect(Effect.bleed(3).isBleed)
+        #expect(Effect.instantHeal(.health, 5).isInstant)
+        #expect(Effect.drawCards(2).isInstant)
     }
 
-    @Test func `avatar effect models self buff pulse`() throws {
+    @Test func `avatar effect models self buff pulse`() {
         let avatar = Effect.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)
-        try #expect(avatar.keyword == .holy)
-        try #expect(avatar.potency == 6)
-        try #expect(avatar.durationTurns == 1)
-        try #expect(avatar.advancesEachTurn)
-        try #expect(avatar.isRemovableBuff)
-        try #expect(!avatar.isRemovableDebuff)
-        try #expect(!avatar.isInstant)
-        try #expect(!avatar.isDecayingDoT)
-        try #expect(!avatar.isManaEmpowerableBurnOrFreezeDamage)
-        try #expect(avatar.withManaEmpowerment() == avatar)
-        try #expect(Effect.defaultTarget(for: avatar) == .actor)
-        try #expect(avatar.kind == .avatar)
+        #expect(avatar.keyword == .holy)
+        #expect(avatar.potency == 6)
+        #expect(avatar.durationTurns == 1)
+        #expect(avatar.advancesEachTurn)
+        #expect(avatar.isRemovableBuff)
+        #expect(!avatar.isRemovableDebuff)
+        #expect(!avatar.isInstant)
+        #expect(!avatar.isDecayingDoT)
+        #expect(!avatar.isManaEmpowerableBurnOrFreezeDamage)
+        #expect(avatar.withManaEmpowerment() == avatar)
+        #expect(Effect.defaultTarget(for: avatar) == .actor)
+        #expect(avatar.kind == .avatar)
     }
 
     @Test func `damage and strength reduction default to ability target`() {
@@ -30,135 +30,144 @@ struct EffectModelTests {
         #expect(Effect.defaultTarget(for: .damageReductionFlat(3, 1)) == .abilityTarget)
     }
 
-    @Test func `mana empowerment raises burn and freeze damage numbers only`() throws {
-        try #expect(Effect.burn(2).isManaEmpowerableBurnOrFreezeDamage)
-        try #expect(Effect.recurringDamage(.freeze, 2, 2).isManaEmpowerableBurnOrFreezeDamage)
-        try #expect(!Effect.poison(2).isManaEmpowerableBurnOrFreezeDamage)
-        try #expect(!Effect.multiplyDoT(.burn, 2).isManaEmpowerableBurnOrFreezeDamage)
-        try #expect(Effect.burn(2).withManaEmpowerment() == .burn(3))
-        try #expect(
+    @Test func `zero duration covers instants and indefinite buffs`() {
+        #expect(Effect.deathsDoor.durationTurns == 0)
+        #expect(Effect.deathsDoor.advancesEachTurn)
+        #expect(!Effect.deathsDoor.isInstant)
+        #expect(!Effect.deathsDoor.isRemovableDebuff)
+        #expect(!Effect.deathsDoor.isRemovableBuff)
+        #expect(Effect.hemorrhage(5).durationTurns == 0)
+        #expect(Effect.hemorrhage(5).isRemovableDebuff)
+        #expect(!Effect.hemorrhage(5).advancesEachTurn)
+        #expect(!Effect.hemorrhage(5).isInstant)
+        #expect(Effect.maximumManaBonus(2).isInstant)
+        #expect(Effect.maximumManaBonus(2).isRemovableBuff)
+    }
+
+    @Test func `mana empowerment raises burn and freeze damage numbers only`() {
+        #expect(Effect.burn(2).isManaEmpowerableBurnOrFreezeDamage)
+        #expect(Effect.recurringDamage(.freeze, 2, 2).isManaEmpowerableBurnOrFreezeDamage)
+        #expect(!Effect.poison(2).isManaEmpowerableBurnOrFreezeDamage)
+        #expect(!Effect.multiplyDoT(.burn, 2).isManaEmpowerableBurnOrFreezeDamage)
+        #expect(Effect.burn(2).withManaEmpowerment() == .burn(3))
+        #expect(
             Effect.recurringDamage(.freeze, 2, 2).withManaEmpowerment()
                 == .recurringDamage(.freeze, 3, 2),
         )
-        try #expect(Effect.poison(2).withManaEmpowerment() == .poison(2))
-        try #expect(DamageComponent(2, keyword: .burn).withManaEmpowerment().amount == 3)
-        try #expect(DamageComponent(2, keyword: .physical).withManaEmpowerment().amount == 2)
+        #expect(Effect.poison(2).withManaEmpowerment() == .poison(2))
+        #expect(DamageComponent(2, keyword: .burn).withManaEmpowerment().amount == 3)
+        #expect(DamageComponent(2, keyword: .physical).withManaEmpowerment().amount == 2)
         let empoweredBonus = DamageComponent(
             4,
             keyword: .burn,
             bonusAmount: 4,
             condition: .enemyBurning,
         ).withManaEmpowerment()
-        try #expect(empoweredBonus.amount == 5)
-        try #expect(empoweredBonus.bonusAmount == 5)
+        #expect(empoweredBonus.amount == 5)
+        #expect(empoweredBonus.bonusAmount == 5)
     }
 
-    @Test func `effect classification flags match definitions`() throws {
-        try #expect(Effect.burn(1).isRemovableDebuff)
-        try #expect(Effect.poison(1).isRemovableDebuff)
-        try #expect(Effect.bleed(1).isRemovableDebuff)
-        try #expect(Effect.controlMeter(.stun, 1, 10).isRemovableDebuff)
-        try #expect(!(Effect.shield(.block, 1)).isRemovableDebuff)
-        try #expect(!(Effect.cleanse(.poison)).isRemovableDebuff)
-        try #expect(!(Effect.cleanse(nil)).isRemovableDebuff)
-        try #expect(!(Effect.instantHeal(.health, 1)).isRemovableDebuff)
-        try #expect(!(Effect.resourceGain(.gold, 1)).isRemovableDebuff)
-        try #expect(!(Effect.cleanseRandom.isRemovableDebuff))
-        try #expect(!(Effect.purge(.block)).isRemovableDebuff)
-        try #expect(!(Effect.purgeRandom.isRemovableDebuff))
-        try #expect(!(Effect.halveShield(.block)).isRemovableDebuff)
+    @Test func `effect classification flags match definitions`() {
+        #expect(Effect.burn(1).isRemovableDebuff)
+        #expect(Effect.poison(1).isRemovableDebuff)
+        #expect(Effect.bleed(1).isRemovableDebuff)
+        #expect(Effect.controlMeter(.stun, 1, 10).isRemovableDebuff)
+        #expect(!(Effect.shield(.block, 1)).isRemovableDebuff)
+        #expect(!(Effect.cleanse(.poison)).isRemovableDebuff)
+        #expect(!(Effect.cleanse(nil)).isRemovableDebuff)
+        #expect(!(Effect.instantHeal(.health, 1)).isRemovableDebuff)
+        #expect(!(Effect.resourceGain(.gold, 1)).isRemovableDebuff)
+        #expect(!(Effect.cleanseRandom.isRemovableDebuff))
+        #expect(!(Effect.purge(.block)).isRemovableDebuff)
+        #expect(!(Effect.purgeRandom.isRemovableDebuff))
+        #expect(!(Effect.halveShield(.block)).isRemovableDebuff)
 
-        try #expect(Effect.shield(.block, 1).isRemovableBuff)
-        try #expect(!(Effect.burn(1)).isRemovableBuff)
-        try #expect(!(Effect.poison(1)).isRemovableBuff)
-        try #expect(!(Effect.controlMeter(.stun, 1, 10)).isRemovableBuff)
+        #expect(Effect.shield(.block, 1).isRemovableBuff)
+        #expect(!(Effect.burn(1)).isRemovableBuff)
+        #expect(!(Effect.poison(1)).isRemovableBuff)
+        #expect(!(Effect.controlMeter(.stun, 1, 10)).isRemovableBuff)
 
-        try #expect(Effect.burn(1).advancesEachTurn)
-        try #expect(Effect.poison(1).advancesEachTurn)
-        try #expect(Effect.bleed(1).advancesEachTurn)
-        try #expect(Effect.controlMeter(.stun, 1, 10).advancesEachTurn)
-        try #expect(!(Effect.shield(.block, 1)).advancesEachTurn)
-        try #expect(!(Effect.nextHolyStrike.advancesEachTurn))
-        try #expect(!(Effect.nextStrikeDouble.advancesEachTurn))
-        try #expect(!(Effect.evadeNextHit.advancesEachTurn))
-        try #expect(Effect.nextStrikeDouble.isRemovableBuff)
-        try #expect(Effect.evadeNextHit.isRemovableBuff)
-        try #expect(!(Effect.instantHeal(.health, 1)).advancesEachTurn)
-        try #expect(!(Effect.resourceGain(.gold, 1)).advancesEachTurn)
-        try #expect(!(Effect.cleanse(.poison)).advancesEachTurn)
-        try #expect(!(Effect.cleanse(nil)).advancesEachTurn)
-        try #expect(!(Effect.cleanseRandom.advancesEachTurn))
-        try #expect(!(Effect.purge(.block)).advancesEachTurn)
-        try #expect(!(Effect.purgeRandom.advancesEachTurn))
-        try #expect(!(Effect.halveShield(.block)).advancesEachTurn)
+        #expect(Effect.burn(1).advancesEachTurn)
+        #expect(Effect.poison(1).advancesEachTurn)
+        #expect(Effect.bleed(1).advancesEachTurn)
+        #expect(Effect.controlMeter(.stun, 1, 10).advancesEachTurn)
+        #expect(!(Effect.shield(.block, 1)).advancesEachTurn)
+        #expect(!(Effect.nextHolyStrike.advancesEachTurn))
+        #expect(!(Effect.nextStrikeDouble.advancesEachTurn))
+        #expect(!(Effect.evadeNextHit.advancesEachTurn))
+        #expect(Effect.nextStrikeDouble.isRemovableBuff)
+        #expect(Effect.evadeNextHit.isRemovableBuff)
+        #expect(!(Effect.instantHeal(.health, 1)).advancesEachTurn)
+        #expect(!(Effect.resourceGain(.gold, 1)).advancesEachTurn)
+        #expect(!(Effect.cleanse(.poison)).advancesEachTurn)
+        #expect(!(Effect.cleanse(nil)).advancesEachTurn)
+        #expect(!(Effect.cleanseRandom.advancesEachTurn))
+        #expect(!(Effect.purge(.block)).advancesEachTurn)
+        #expect(!(Effect.purgeRandom.advancesEachTurn))
+        #expect(!(Effect.halveShield(.block)).advancesEachTurn)
     }
 
-    private static let sampleEffects: [Effect] = [
-        .burn(2),
-        .poison(3),
-        .bleed(4),
-        .controlMeter(.stun, 2, 6),
-        .shield(.block, 4),
-        .shield(.holy, 4),
-        .instantHeal(.health, 5),
-        .instantHeal(.holy, 5),
-        .resourceGain(.gold, 10),
-        .resourceGain(.mana, 2),
-        .resourceGain(.holy, 1),
-        .drawCards(1),
-        .drawCards(3),
-        .drawAndPlayCards(1),
-        .drawAndPlayCards(2),
-        .cleanse(.poison),
-        .cleanse(nil),
-        .cleanseHealPerDebuff(2),
-        .panacea(baseHeal: 3, healPerDebuff: 2),
-        .cleanseRandom,
-        .purge(.block),
-        .purge(nil),
-        .purgeRandom,
-        .halveShield(.block),
-        .halveShield(.holy),
-        .deathsDoor,
-        .thorns(2),
-        .marked(2, 6),
-        .criticalChanceBonus(0.25, 2),
-        .restoreManaOnHit(1, 2),
-        .damageKeywordOverride(.holy, 2, 2),
-        .nextHolyStrike,
-        .nextStrikeDouble,
-        .nextBurnBonus(1),
-        .evadeNextHit,
-        .convertManaToBlock,
-        .shieldFromMana,
-        .shieldFromHalfMana,
-        .shieldFromGold(goldPerBlock: 5),
-        .maximumManaBonus(2),
-        .nextStrikeCritical,
-        .freezeNextAttacker,
-        .onHitDamage(.holy, 3),
-        .multiplyDoT(.burn, 2),
-        .multiplyDoT(.poison, 3),
-        .detonateDoT(.burn, 2),
-        .detonateDoT(.poison, 3),
-        .recurringDamage(.freeze, 3, 2),
-        .avatar(holyDamage: 6, blockPerTurn: 4, turns: 2),
-        .revive(10),
-        .damageReductionPercent(0.20, 2),
-        .damageReductionFlat(3, 2),
-        .healingReductionPercent(0.25, 3),
-        .hemorrhage(5),
-    ]
+    // swiftlint:disable cyclomatic_complexity - exhaustive kind mapping must reject missing cases at compile time
+    private static func representativeEffect(for kind: EffectKind) -> Effect {
+        switch kind {
+        case .burn: .burn(2)
+        case .poison: .poison(3)
+        case .bleed: .bleed(4)
+        case .controlMeter: .controlMeter(.stun, 2, 6)
+        case .shield: .shield(.block, 4)
+        case .instantHeal: .instantHeal(.health, 5)
+        case .resourceGain: .resourceGain(.gold, 10)
+        case .drawCards: .drawCards(1)
+        case .drawAndPlayCards: .drawAndPlayCards(1)
+        case .cleanse: .cleanse(.poison)
+        case .cleanseHealPerDebuff: .cleanseHealPerDebuff(2)
+        case .panacea: .panacea(baseHeal: 3, healPerDebuff: 2)
+        case .cleanseRandom: .cleanseRandom
+        case .purge: .purge(.block)
+        case .purgeRandom: .purgeRandom
+        case .halveShield: .halveShield(.block)
+        case .deathsDoor: .deathsDoor
+        case .thorns: .thorns(2)
+        case .marked: .marked(2, 6)
+        case .criticalChanceBonus: .criticalChanceBonus(0.25, 2)
+        case .restoreManaOnHit: .restoreManaOnHit(1, 2)
+        case .damageKeywordOverride: .damageKeywordOverride(.holy, 2, 2)
+        case .nextHolyStrike: .nextHolyStrike
+        case .nextStrikeDouble: .nextStrikeDouble
+        case .nextBurnBonus: .nextBurnBonus(1)
+        case .evadeNextHit: .evadeNextHit
+        case .convertManaToBlock: .convertManaToBlock
+        case .shieldFromMana: .shieldFromMana
+        case .shieldFromHalfMana: .shieldFromHalfMana
+        case .shieldFromGold: .shieldFromGold(goldPerBlock: 5)
+        case .maximumManaBonus: .maximumManaBonus(2)
+        case .nextStrikeCritical: .nextStrikeCritical
+        case .freezeNextAttacker: .freezeNextAttacker
+        case .onHitDamage: .onHitDamage(.holy, 3)
+        case .multiplyDoT: .multiplyDoT(.burn, 2)
+        case .detonateDoT: .detonateDoT(.burn, 2)
+        case .recurringDamage: .recurringDamage(.freeze, 3, 2)
+        case .avatar: .avatar(holyDamage: 6, blockPerTurn: 4, turns: 2)
+        case .revive: .revive(10)
+        case .damageReductionPercent: .damageReductionPercent(0.20, 2)
+        case .damageReductionFlat: .damageReductionFlat(3, 2)
+        case .healingReductionPercent: .healingReductionPercent(0.25, 3)
+        case .hemorrhage: .hemorrhage(5)
+        }
+    }
+
+    // swiftlint:enable cyclomatic_complexity
 
     @Test func `every effect kind has behavior metadata`() {
         for kind in EffectKind.allCases {
-            _ = EffectMetadata.behavior(for: kind)
+            _ = (kind.isRemovableDebuff, kind.isRemovableBuff, kind.advancesEachTurn, kind.isInstant, kind.isDecayingDoT, kind.isBleed)
+            #expect(Self.representativeEffect(for: kind).kind == kind)
         }
     }
 
     @Test func `every effect kind has a descriptive apply phrase`() {
-        #expect(Set(Self.sampleEffects.map(\.kind)) == Set(EffectKind.allCases))
-        for effect in Self.sampleEffects {
+        for kind in EffectKind.allCases {
+            let effect = Self.representativeEffect(for: kind)
             let phrase = EffectPresentation.applyPhrase(for: effect)
             #expect(!phrase.isEmpty)
             #expect(phrase != effect.keyword.rawValue, "\(effect) must describe more than its keyword")
@@ -176,9 +185,9 @@ struct EffectModelTests {
 
     @Test func `flag effect summary phrases are registered`() {
         for kind in [EffectKind.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical, .freezeNextAttacker] {
-            #expect(!EffectMetadata.requiredBattleSummaryPhrase(for: kind).isEmpty)
-            #expect(EffectMetadata.battleSummaryPhrase(for: kind) != nil)
+            #expect(!EffectKind.requiredBattleSummaryPhrase(for: kind).isEmpty)
+            #expect(EffectKind.battleSummaryPhrase(for: kind) != nil)
         }
-        #expect(EffectMetadata.battleSummaryPhrase(for: .burn) == nil)
+        #expect(EffectKind.battleSummaryPhrase(for: .burn) == nil)
     }
 }

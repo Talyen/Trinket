@@ -14,7 +14,6 @@ enum DesignAssetColors {
         "ChapterTundra",
         "EncounterBattle",
         "EncounterEvent",
-        "EncounterRest",
         "EncounterShop",
         "KeywordBleed",
         "KeywordBlock",

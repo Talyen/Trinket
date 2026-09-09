@@ -6,7 +6,6 @@ import TrinketContent
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistenceTestSupport
-import TrinketTestSupport
 @testable import TrinketAppState
 @testable import TrinketPersistence
 
@@ -81,10 +80,7 @@ struct AppStatePlayFlowTests {
         state.journey.prepareBattle(for: stage)
         let preparedRevision = battle.preparedBattlePresentationRevision
 
-        var roster = state.playerSave.roster
-        _ = roster.unlock(otherCompanion)
-        roster.setActiveCompanion(otherCompanion)
-        state.playerSave.roster = roster
+        PlayBattleLaunchTestSupport.setActiveCompanion(otherCompanion, in: state)
         state.journey.prepareBattle(for: stage)
 
         #expect(battle.preparedBattlePresentationRevision == preparedRevision + 1)
@@ -165,10 +161,7 @@ struct AppStatePlayFlowTests {
         state.journey.prepareBattle(for: stage)
         #expect(battle.hasPreparedRun(runKey))
 
-        var roster = state.playerSave.roster
-        _ = roster.unlock(otherCompanion)
-        roster.setActiveCompanion(otherCompanion)
-        state.playerSave.roster = roster
+        PlayBattleLaunchTestSupport.setActiveCompanion(otherCompanion, in: state)
 
         let message = state.journey.startBattle(for: stage)
         #expect(message?.title == PlayBattleLaunch.activationFailureMessage.title)

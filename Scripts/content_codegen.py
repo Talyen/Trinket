@@ -42,7 +42,7 @@ ABILITY_INVENTORY_STAMP = ROOT / ".DerivedData" / "AbilityInventory.stamp"
 VALID_SLOTS = frozenset({"weapon", "armor", "accessory", "trinket"})
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
 VALID_ENCOUNTERS = frozenset(
-    {"battle", "shop", "rest", "mystery", "recruit", "random_battle"}
+    {"battle", "shop", "mystery", "recruit", "random_battle"}
 )
 VALID_CHAPTER_THEMES = frozenset({"forest", "dungeon", "desert", "tundra"})
 # Recruit sentinel: empty id = any eligible unlock; this id = companion-only pool.
@@ -766,8 +766,6 @@ def render_stage_encounter(row: StageRow) -> str:
         return ".randomBattle"
     if row.encounter == "shop":
         return ".shop"
-    if row.encounter == "rest":
-        return ".rest"
     if row.encounter == "mystery":
         event_id = row.enemy_id.strip()
         return f'.mysteryEvent(eventID: "{swift_escape(event_id)}")'

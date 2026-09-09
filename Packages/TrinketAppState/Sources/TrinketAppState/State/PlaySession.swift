@@ -90,6 +90,7 @@ public final class PlaySession {
             playerSave: playerSave,
             battle: battle,
             battleLaunch: battleLaunch,
+            encounters: encounters,
         )
         let battleCompletion = PlayBattleCompletion(
             playerSave: playerSave,
@@ -99,7 +100,7 @@ public final class PlaySession {
         self.journey = journey
         self.labyrinth = labyrinth
         self.spires = spires
-        contracts = ContractsPlayMode(playerSave: playerSave, battle: battle, battleLaunch: battleLaunch)
+        contracts = ContractsPlayMode(playerSave: playerSave, battle: battle, battleLaunch: battleLaunch, encounters: encounters)
         self.encounters = encounters
         self.battleCompletion = battleCompletion
     }

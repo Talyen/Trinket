@@ -52,6 +52,14 @@ enum LabyrinthTestSupport {
         firstReachableNodeID(where: { $0.type.isCombat && matches($0) }, in: state)
     }
 
+    static func firstUnrecruitedEvent(in state: PlaySession) -> MysteryEvent? {
+        GameContent.recruitEvents.first { event in
+            guard let combatantID = event.unlockCombatantID else { return false }
+            return !state.playerSave.roster.unlockedHeroIDs.contains(combatantID)
+                && !state.playerSave.roster.unlockedCompanionIDs.contains(combatantID)
+        }
+    }
+
     static func installRecruitNode(eventID: String?, in state: PlaySession) -> String? {
         guard let nodeID = state.playerSave.labyrinth.reachableNodeIDs().first,
               let node = state.playerSave.labyrinth.nodes[nodeID]

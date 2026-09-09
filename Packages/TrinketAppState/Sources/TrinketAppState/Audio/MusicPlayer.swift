@@ -334,7 +334,7 @@ final class MusicPlayer {
     }
 
     private func applyResumePosition(_ player: AVAudioPlayer, request: MusicPlaybackRequest) {
-        player.currentTime = request.shouldResume ? resumePositions[request.resumeKey, default: 0] : 0
+        player.currentTime = resumePositions[request.resumeKey, default: 0]
     }
 
     private static func loadPlayer(url: URL) async -> LoadedMusicPlayer? {

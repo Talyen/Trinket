@@ -79,14 +79,9 @@ public final class JourneyPlayMode {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
-        let request = combatRequest(for: stage, encounter: encounter)
-        guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
-        let activated = battleLaunch.activateCombat(request)
-        if activated {
+        return battleLaunch.activateRequest(combatRequest(for: stage, encounter: encounter)) {
             preparationTracker.invalidate()
-            return nil
         }
-        return PlayBattleLaunch.activationFailureMessage
     }
 
     public func prepareBattle(for stage: Stage) {
@@ -100,15 +95,11 @@ public final class JourneyPlayMode {
         )
         let inputs = preparationInputs(for: stage, stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed)
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
-        guard preparationTracker.shouldPrepare(
-            for: inputs,
-            hasPreparedRun: battle.hasPreparedRun(runKey),
-        ) else { return }
-        let request = combatRequest(for: stage, encounter: encounter)
-        let prepared = battleLaunch.prepareCombat(request)
-        if prepared {
-            preparationTracker.notePrepared(inputs)
-        }
+        battleLaunch.prepareIfNeeded(
+            tracker: &preparationTracker,
+            inputs: inputs,
+            runKey: runKey,
+        ) { combatRequest(for: stage, encounter: encounter) }
     }
 
     @discardableResult
@@ -139,14 +130,11 @@ public final class JourneyPlayMode {
                 forcedEventID: resolvedStage.encounter.recruitEventID,
             )
         case .shop:
-            return PlayShopEncounterRouting.handle(
-                encounters: encounters,
+            return encounters.beginShopOrAutoComplete(
                 origin: .journey(stage: resolvedStage),
                 identifier: resolvedStage.id,
                 onAutoComplete: { completeStageOrPersistFailure(resolvedStage) },
             )
-        case .rest:
-            return completeStageOrPersistFailure(resolvedStage)
         }
     }
 

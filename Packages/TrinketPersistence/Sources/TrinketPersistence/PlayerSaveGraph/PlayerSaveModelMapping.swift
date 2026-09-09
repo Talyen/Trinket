@@ -424,7 +424,6 @@ extension LabyrinthProgressModel {
                     payload.nodes.map { ($0.id, $0) },
                     uniquingKeysWith: { _, new in new },
                 ),
-                runHealthByCombatantID: payload.runHealthByCombatantID,
             )
         case .unreadable:
             PlayerLabyrinthState(
@@ -448,7 +447,6 @@ extension LabyrinthProgressModel {
         let payload = LabyrinthMapPayload(
             clusters: state.clusters,
             nodes: Array(state.nodes.values).sorted { $0.id < $1.id },
-            runHealthByCombatantID: state.runHealthByCombatantID,
         )
         do {
             mapPayload = try JSONEncoder().encode(payload)

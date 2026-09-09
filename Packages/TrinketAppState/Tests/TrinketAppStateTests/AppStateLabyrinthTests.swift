@@ -2,10 +2,8 @@ import BattleEngine
 import Foundation
 import Testing
 import TrinketContent
-import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistenceTestSupport
-import TrinketTestSupport
 @testable import TrinketAppState
 @testable import TrinketBattleFeature
 @testable import TrinketPersistence
@@ -230,11 +228,7 @@ struct AppStateLabyrinthTests {
     @Test func `recruit node uses concealed recruit event`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let event = try #require(GameContent.recruitEvents.first(where: { event in
-            guard let combatantID = event.unlockCombatantID else { return false }
-            return !state.playerSave.roster.unlockedHeroIDs.contains(combatantID)
-                && !state.playerSave.roster.unlockedCompanionIDs.contains(combatantID)
-        }))
+        let event = try #require(LabyrinthTestSupport.firstUnrecruitedEvent(in: state))
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: event.id, in: state))
 
         #expect(state.labyrinth.handleNodeAction(nodeID: nodeID) == nil)
@@ -289,11 +283,7 @@ struct AppStateLabyrinthTests {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         _ = state.labyrinth.enter()
-        let event = try #require(GameContent.recruitEvents.first(where: { event in
-            guard let combatantID = event.unlockCombatantID else { return false }
-            return !state.playerSave.roster.unlockedHeroIDs.contains(combatantID)
-                && !state.playerSave.roster.unlockedCompanionIDs.contains(combatantID)
-        }))
+        let event = try #require(LabyrinthTestSupport.firstUnrecruitedEvent(in: state))
         let mysteryNodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: event.id, in: state))
 
         #expect(state.labyrinth.handleNodeAction(nodeID: mysteryNodeID) == nil)
@@ -333,7 +323,7 @@ struct AppStateLabyrinthTests {
         #expect(battle.companion.startingHealth == nil)
     }
 
-    @Test func `completing labyrinth battle clears node without persisting health`() throws {
+    @Test func `completing labyrinth battle clears node`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -342,7 +332,6 @@ struct AppStateLabyrinthTests {
 
         #expect(state.completeActiveBattle(configuration, battleEarnedGold: 3))
         #expect(state.playerSave.labyrinth.nodes[combatNodeID]?.isCleared == true)
-        #expect(state.playerSave.labyrinth.runHealthByCombatantID.isEmpty)
     }
 
     @Test func `labyrinth mystery nodes carry exactly one economy modifier`() throws {

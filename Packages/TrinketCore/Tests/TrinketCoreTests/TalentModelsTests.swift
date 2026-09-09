@@ -69,6 +69,30 @@ struct TalentModelsTests {
         #expect(!tree.canUnlock(node: foreign, unlockedNodeIDs: [], availablePoints: 1))
     }
 
+    @Test func `row zero and gapped rows stay locked`() {
+        let tree = makeSampleTree()
+        let rowZero = TalentNode(
+            id: "row_zero",
+            name: "Row Zero",
+            keyword: .poison,
+            row: 0,
+            description: "Placeholder description for row zero.",
+        )
+        #expect(!tree.canUnlock(node: rowZero, unlockedNodeIDs: [], availablePoints: 1))
+        #expect(!tree.isRowComplete(0, unlockedNodeIDs: []))
+        #expect(!tree.isRowComplete(99, unlockedNodeIDs: []))
+
+        let gapped = TalentTree(
+            keyword: .poison,
+            nodes: [
+                TalentNode(id: "g1", name: "G1", keyword: .poison, row: 1, description: "G1."),
+                TalentNode(id: "g3", name: "G3", keyword: .poison, row: 3, description: "G3."),
+            ],
+        )
+        let rowThree = gapped.nodes(forRow: 3)[0]
+        #expect(!gapped.canUnlock(node: rowThree, unlockedNodeIDs: ["g1"], availablePoints: 1))
+    }
+
     @Test func `combatant config looks up nodes and trees`() {
         let tree1 = makeSampleTree(keyword: .poison)
         let tree2 = makeSampleTree(keyword: .bleed)

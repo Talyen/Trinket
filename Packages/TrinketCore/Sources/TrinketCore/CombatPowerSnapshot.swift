@@ -15,17 +15,3 @@ public struct CombatPowerSnapshot: Equatable, Sendable {
         self.rawDamagePercent = rawDamagePercent
     }
 }
-
-public enum CombatPowerRating {
-    public static func evaluate(
-        maxHealth: Int,
-        rawDamagePercent: Double,
-        level: Int,
-    ) -> CombatPowerSnapshot {
-        CombatPowerSnapshot(
-            level: level,
-            maxHealth: maxHealth,
-            rawDamagePercent: rawDamagePercent,
-        )
-    }
-}

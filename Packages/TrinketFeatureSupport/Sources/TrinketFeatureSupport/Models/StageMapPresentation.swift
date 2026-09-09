@@ -99,8 +99,6 @@ public extension Stage {
             resolvedBattleEnemyID(worldSeed: worldSeed).flatMap { GameContent.enemy(matching: $0)?.name } ?? "Battle"
         case .shop:
             GameContent.encounterArtTitle(for: self) ?? "Merchant"
-        case .rest:
-            GameContent.encounterArtTitle(for: self) ?? "Moonwell"
         case .mysteryEvent:
             mysteryEvent?.title ?? "Mystery"
         case .recruit:
@@ -134,8 +132,6 @@ public extension StageEncounter {
             TrinketDesign.Colors.encounterEvent
         case .shop:
             TrinketDesign.Colors.encounterShop
-        case .rest:
-            TrinketDesign.Colors.encounterRest
         }
     }
 }

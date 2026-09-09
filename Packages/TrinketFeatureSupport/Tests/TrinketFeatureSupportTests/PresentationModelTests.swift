@@ -67,7 +67,7 @@ struct PresentationModelTests {
         #expect(radius > 0)
 
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .shop) == "destination-merchant-shop")
-        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .rest) == nil)
+        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .mystery) == nil)
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .battle) == nil)
     }
 
@@ -85,7 +85,6 @@ struct PresentationModelTests {
 
         #expect(abs(StageEncounter.shop.artAspectRatio - (4.0 / 3.0)) < 0.0001)
         #expect(StageEncounter.battle(enemyID: "enemy").mapTint == StageEncounter.randomBattle.mapTint)
-        #expect(StageEncounter.rest.mapTint == LabyrinthMapPresentation.tint(for: .rest))
     }
 
     @Test func `feature contracts and contexts`() {

@@ -90,7 +90,6 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     case battle
     case boss
     case shop
-    case rest
     case mystery
     case recruit
     case event
@@ -98,7 +97,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     case entrance
 
     public var canonical: Self {
-        self == .event || self == .craft || self == .rest ? .mystery : self
+        self == .event || self == .craft ? .mystery : self
     }
 
     public init(from decoder: Decoder) throws {
@@ -134,7 +133,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .battle: "Battle"
         case .boss: "Boss"
         case .shop: "Merchant's Shop"
-        case .mystery, .event, .craft, .rest: "Mystery"
+        case .mystery, .event, .craft: "Mystery"
         case .recruit: "Recruit"
         case .entrance: "Labyrinth Entrance"
         }
@@ -145,7 +144,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .battle: StageTypeSymbol.battle
         case .boss: StageTypeSymbol.boss
         case .shop: StageTypeSymbol.shop
-        case .mystery, .event, .craft, .rest: StageTypeSymbol.mystery
+        case .mystery, .event, .craft: StageTypeSymbol.mystery
         case .recruit: GameContent.recruitEncounterSymbolName(forEventID: nil)
         case .entrance: StageTypeSymbol.entrance
         }
@@ -157,7 +156,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             "Fight"
         case .shop:
             "Visit"
-        case .mystery, .event, .craft, .rest:
+        case .mystery, .event, .craft:
             "Approach"
         case .recruit:
             "Recruit"
@@ -170,7 +169,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         switch canonical {
         case .battle, .boss:
             true
-        case .shop, .rest, .mystery, .event, .recruit, .craft, .entrance:
+        case .shop, .mystery, .event, .recruit, .craft, .entrance:
             false
         }
     }

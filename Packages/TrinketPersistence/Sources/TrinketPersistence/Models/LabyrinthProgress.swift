@@ -13,7 +13,6 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     public var hasEntered: Bool
     public var clusters: [LabyrinthCluster]
     public var nodes: [String: LabyrinthNode]
-    public var runHealthByCombatantID: [String: Int]
     public var isMapPayloadUnreadable: Bool
 
     public static let freshStart = Self()
@@ -25,7 +24,6 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         hasEntered: Bool = false,
         clusters: [LabyrinthCluster] = [],
         nodes: [String: LabyrinthNode] = [:],
-        runHealthByCombatantID: [String: Int] = [:],
         isMapPayloadUnreadable: Bool = false,
     ) {
         self.worldSeed = worldSeed
@@ -33,7 +31,6 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         self.hasEntered = hasEntered
         self.clusters = clusters
         self.nodes = nodes
-        self.runHealthByCombatantID = runHealthByCombatantID
         self.isMapPayloadUnreadable = isMapPayloadUnreadable
     }
 
@@ -132,7 +129,6 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         worldSeed = resolvedSeed
         clusters = generated.clusters
         nodes = generated.nodes
-        runHealthByCombatantID = [:]
         mapVersion = LabyrinthGenerator.currentMapVersion
         hasEntered = true
         isMapPayloadUnreadable = false

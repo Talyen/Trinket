@@ -57,8 +57,7 @@ extension AppState {
             resolvedOptions.ultimateCinematicShowPolicy = .never
         }
 
-        let launchCollection = launchCollectionPresentation(for: environment.launchScreen)
-        let launchPlay = launchPlayDestination(for: environment.launchScreen)
+        let launch = launchResolution(for: environment.launchScreen)
 
         return BootstrapDependencies(
             playerSave: resolvedPlayerSave,
@@ -66,8 +65,8 @@ extension AppState {
             musicPlayer: MusicPlayer(isDisabled: environment.disableAudio),
             sfxPlayer: SFXPlayer(isDisabled: environment.disableAudio),
             options: resolvedOptions,
-            pendingCollectionPresentation: launchCollection,
-            pendingPlayDestination: launchPlay,
+            pendingCollectionPresentation: launch.collection,
+            pendingPlayDestination: launch.play,
         )
     }
 
@@ -78,9 +77,7 @@ extension AppState {
             return
         }
         switch environment.launchScreen {
-        case .battle:
-            play.startLaunchBattle()
-        case .battleVictory:
+        case .battle, .battleVictory:
             play.startLaunchBattle()
         case .shop:
             play.startLaunchShop()
@@ -136,49 +133,37 @@ private extension AppState {
     static let launchMysteryStageID = "chapter-1-stage-2"
 
     static func selectedTab(environment: AppEnvironment) -> AppTab {
-        if let envTab = environment.launchTab {
-            return envTab
-        }
-        if let launchScreen = environment.launchScreen {
-            return tab(for: launchScreen)
-        }
-        return .play
+        environment.launchTab ?? launchResolution(for: environment.launchScreen).tab
     }
 
-    private static func tab(for launchScreen: LaunchScreen) -> AppTab {
-        switch launchScreen {
-        case .heroDetail, .companionDetail, .itemDetail:
-            .collection
-        case .battle, .battleVictory, .shop, .mystery, .labyrinth, .labyrinthMap:
-            .play
-        case .options:
-            .options
-        }
+    private struct LaunchResolution {
+        let tab: AppTab
+        let collection: LaunchPresentation?
+        let play: PlayLaunchDestination?
     }
 
-    private static func launchCollectionPresentation(
-        for launchScreen: LaunchScreen?,
-    ) -> LaunchPresentation? {
+    private static func launchResolution(for launchScreen: LaunchScreen?) -> LaunchResolution {
         switch launchScreen {
         case let .heroDetail(id):
-            .collectionCombatant(CombatantDetailContext(kind: .hero, combatantID: id))
+            LaunchResolution(
+                tab: .collection,
+                collection: .collectionCombatant(CombatantDetailContext(kind: .hero, combatantID: id)),
+                play: nil,
+            )
         case let .companionDetail(id):
-            .collectionCombatant(CombatantDetailContext(kind: .companion, combatantID: id))
+            LaunchResolution(
+                tab: .collection,
+                collection: .collectionCombatant(CombatantDetailContext(kind: .companion, combatantID: id)),
+                play: nil,
+            )
         case let .itemDetail(id):
-            .collectionItem(id)
-        case .battle, .battleVictory, .shop, .mystery, .options, .labyrinth, .labyrinthMap, .none:
-            nil
-        }
-    }
-
-    private static func launchPlayDestination(
-        for launchScreen: LaunchScreen?,
-    ) -> PlayLaunchDestination? {
-        switch launchScreen {
+            LaunchResolution(tab: .collection, collection: .collectionItem(id), play: nil)
+        case .options:
+            LaunchResolution(tab: .options, collection: nil, play: nil)
         case .labyrinth, .labyrinthMap:
-            .labyrinthMap
-        case .battle, .battleVictory, .shop, .mystery, .options, .heroDetail, .companionDetail, .itemDetail, .none:
-            nil
+            LaunchResolution(tab: .play, collection: nil, play: .labyrinthMap)
+        case .battle, .battleVictory, .shop, .mystery, .none:
+            LaunchResolution(tab: .play, collection: nil, play: nil)
         }
     }
 }

@@ -91,8 +91,8 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	en
 ```
 
 - `theme`: chapter theme enum case (`forest`, `dungeon`, `desert`, `tundra`).
-- `encounter`: `battle`, `random_battle`, `shop`, `rest`, `mystery`, or `recruit`.
-- `enemy_id`: required for `battle` (enemy catalog id). For `mystery` / `recruit`, optional event id — empty mystery picks a random non-recruit event at runtime; empty recruit picks any eligible unlock; `random-companion` picks an eligible companion only. Leave empty for `random_battle` / shop / rest.
+- `encounter`: `battle`, `random_battle`, `shop`, `mystery`, or `recruit`.
+- `enemy_id`: required for `battle` (enemy catalog id). For `mystery` / `recruit`, optional event id — empty mystery picks a random non-recruit event at runtime; empty recruit picks any eligible unlock; `random-companion` picks an eligible companion only. Leave empty for `random_battle` / shop.
 - Combat rewards (item / gold / materials) are resolved at runtime by `BattleLoot`, not authored here.
 - `encounter_art_id` / `encounter_art_title`: optional pair for non-battle, non-mystery stages; references `ArtCatalog.encounterArtByID`. Mystery recruit stages use combatant portrait art instead.
 

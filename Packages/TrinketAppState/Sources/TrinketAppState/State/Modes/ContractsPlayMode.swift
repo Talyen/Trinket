@@ -11,11 +11,13 @@ public final class ContractsPlayMode {
     public let playerSave: PlayerSaveStore
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
+    private let encounters: EncounterPlayMode
 
-    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleLaunch: PlayBattleLaunch) {
+    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleLaunch: PlayBattleLaunch, encounters: EncounterPlayMode) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
+        self.encounters = encounters
     }
 
     @discardableResult
@@ -49,16 +51,14 @@ public final class ContractsPlayMode {
     @discardableResult
     public func startBattle(offerID: String) -> StageMapMessage? {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
+        guard encounters.canBeginTransientEncounter else { return nil }
         guard let offer = playerSave.contracts.offers.first(where: { $0.id == offerID }),
               let encounter = resolvedEncounter(for: offer)
         else {
             return StageMapMessage(title: "Contract Unavailable", message: "Refresh the board and choose another contract.")
         }
         battleLaunch.keepPreparedRuns([])
-        guard battleLaunch.activateCombat(combatRequest(for: offer, encounter: encounter)) else {
-            return PlayBattleLaunch.activationFailureMessage
-        }
-        return nil
+        return battleLaunch.activateRequest(combatRequest(for: offer, encounter: encounter))
     }
 
     private func combatRequest(

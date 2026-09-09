@@ -84,13 +84,11 @@ public final class LabyrinthPlayMode {
             return StageMapMessage(title: "Path Closed", message: "Clear another path to reach this node.")
         }
 
-        let roster = playerSave.roster
         switch node.type.canonical {
         case .battle, .boss:
             return startBattle(nodeID: nodeID)
         case .shop:
-            return PlayShopEncounterRouting.handle(
-                encounters: encounters,
+            return encounters.beginShopOrAutoComplete(
                 origin: .labyrinth(nodeID: nodeID),
                 identifier: nodeID,
                 onAutoComplete: { completeNodeOrPersistFailure(nodeID: nodeID) },
@@ -98,19 +96,12 @@ public final class LabyrinthPlayMode {
         case .mystery, .event, .craft:
             return beginMysteryEncounter(nodeID: nodeID)
         case .recruit:
-            let resolution = GameContent.resolveRecruitEncounter(
-                configuredEventID: node.recruitEventID,
-                encounterID: node.id,
-                worldSeed: playerSave.worldSeed,
-                unlockedHeroIDs: roster.unlockedHeroIDs,
-                unlockedCompanionIDs: roster.unlockedCompanionIDs,
-                access: playerSave.contentAccess,
-            )
+            let resolution = resolveRecruitEncounter(for: node)
             return beginMysteryEncounter(
                 nodeID: nodeID,
                 forcedEventID: resolution.event.id,
             )
-        case .entrance, .rest:
+        case .entrance:
             return nil
         }
     }
@@ -138,38 +129,35 @@ public final class LabyrinthPlayMode {
         }
 
         let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
-        guard battle.lifecyclePhase != .active, canBeginTransientEncounter else {
-            return PlayBattleLaunch.activationFailureMessage
-        }
-        let activated = battleLaunch.activateCombat(request)
-        if activated {
+        return battleLaunch.activateRequest(request) {
             preparationTracker.invalidate()
-            return nil
         }
-        return PlayBattleLaunch.activationFailureMessage
     }
 
     public func previewMysteryEvent(for node: LabyrinthNode) -> MysteryEvent? {
         switch node.type.canonical {
-        case .mystery, .event:
+        case .mystery, .event, .craft:
             return encounters.previewMysteryEvent(origin: .labyrinth(nodeID: node.id))
         case .recruit:
-            let roster = playerSave.roster
-            let resolution = GameContent.resolveRecruitEncounter(
-                configuredEventID: node.recruitEventID,
-                encounterID: node.id,
-                worldSeed: playerSave.worldSeed,
-                unlockedHeroIDs: roster.unlockedHeroIDs,
-                unlockedCompanionIDs: roster.unlockedCompanionIDs,
-                access: playerSave.contentAccess,
-            )
-            if case let .mystery(event) = resolution {
+            if case let .mystery(event) = resolveRecruitEncounter(for: node) {
                 return event
             }
             return nil
         default:
             return nil
         }
+    }
+
+    private func resolveRecruitEncounter(for node: LabyrinthNode) -> RecruitEncounterResolution {
+        let roster = playerSave.roster
+        return GameContent.resolveRecruitEncounter(
+            configuredEventID: node.recruitEventID,
+            encounterID: node.id,
+            worldSeed: playerSave.worldSeed,
+            unlockedHeroIDs: roster.unlockedHeroIDs,
+            unlockedCompanionIDs: roster.unlockedCompanionIDs,
+            access: playerSave.contentAccess,
+        )
     }
 
     public func prepareReachableBattles() {

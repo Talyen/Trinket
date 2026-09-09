@@ -76,21 +76,12 @@ public final class OptionsStore {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
-        let musicVolumeValue = defaults.object(forKey: Self.musicVolumeKey) != nil
-            ? defaults.double(forKey: Self.musicVolumeKey)
-            : Self.defaultMusicVolume
-        let effectsVolumeValue = defaults.object(forKey: Self.effectsVolumeKey) != nil
-            ? defaults.double(forKey: Self.effectsVolumeKey)
-            : 0.85
-        let hapticsEnabledValue = defaults.object(forKey: Self.hapticsEnabledKey) != nil
-            ? defaults.bool(forKey: Self.hapticsEnabledKey)
-            : true
-        let rememberAutoValue = defaults.bool(forKey: Self.rememberAutoBattlePreferenceKey)
-        let autoBattleValue = rememberAutoValue && defaults.bool(forKey: Self.autoBattleEnabledKey)
+        let rememberAutoValue = Self.readBool(from: defaults, key: Self.rememberAutoBattlePreferenceKey, default: false)
+        let autoBattleValue = rememberAutoValue && Self.readBool(from: defaults, key: Self.autoBattleEnabledKey, default: false)
 
-        musicVolume = musicVolumeValue
-        effectsVolume = effectsVolumeValue
-        hapticsEnabled = hapticsEnabledValue
+        musicVolume = Self.readDouble(from: defaults, key: Self.musicVolumeKey, default: Self.defaultMusicVolume)
+        effectsVolume = Self.readDouble(from: defaults, key: Self.effectsVolumeKey, default: Self.defaultEffectsVolume)
+        hapticsEnabled = Self.readBool(from: defaults, key: Self.hapticsEnabledKey, default: Self.defaultHapticsEnabled)
         rememberAutoBattlePreference = rememberAutoValue
         autoBattleEnabled = autoBattleValue
         ultimateCinematicShowPolicy = Self.resolveShowPolicy(from: defaults)
@@ -120,6 +111,17 @@ public final class OptionsStore {
         else { return .oncePerBattle }
         return policy
     }
+
+    private static func readDouble(from defaults: UserDefaults, key: String, default defaultValue: Double) -> Double {
+        defaults.object(forKey: key) != nil ? defaults.double(forKey: key) : defaultValue
+    }
+
+    private static func readBool(from defaults: UserDefaults, key: String, default defaultValue: Bool) -> Bool {
+        defaults.object(forKey: key) != nil ? defaults.bool(forKey: key) : defaultValue
+    }
+
+    private static let defaultEffectsVolume = 0.85
+    private static let defaultHapticsEnabled = true
 
     private static var defaultMusicVolume: Double {
         #if targetEnvironment(simulator)

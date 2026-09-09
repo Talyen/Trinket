@@ -121,14 +121,12 @@ struct LabyrinthProgressTests {
         progress.ensureMap(seed: 55)
         let firstReachable = try #require(progress.reachableNodeIDs().first)
         progress.markCleared(nodeID: firstReachable)
-        progress.runHealthByCombatantID = ["knight": 11, "wolf": 6]
         first.labyrinth = progress
 
         let second = try context.makeReloadedStore()
         #expect(second.labyrinth.hasMap)
         #expect(second.labyrinth.nodes[firstReachable]?.isCleared == true)
         #expect(second.labyrinth.worldSeed == 55)
-        #expect(second.labyrinth.runHealthByCombatantID == ["knight": 11, "wolf": 6])
     }
 
     @Test func `completion grants gold and clears node`() throws {
@@ -170,10 +168,10 @@ struct LabyrinthProgressTests {
             )
         } else {
             save.labyrinth.ensureMap(seed: 23)
-            let restID = "labyrinth-audit-rest"
+            let restID = "labyrinth-audit-mystery"
             save.labyrinth.nodes[restID] = LabyrinthNode(
                 id: restID,
-                type: .rest,
+                type: .mystery,
                 enemyID: nil,
                 depth: 2,
                 clusterID: "audit",
@@ -456,10 +454,10 @@ extension LabyrinthProgressTests {
         #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
     }
 
-    @Test func `rest node completes with mystery gold stipend`() {
+    @Test func `mystery node completes with mystery gold stipend`() {
         let node = LabyrinthNode(
-            id: "depth-five-rest",
-            type: .rest,
+            id: "depth-five-mystery",
+            type: .mystery,
             depth: 5,
             clusterID: "depth-five",
             gridPosition: LabyrinthGridPosition(row: 0, column: 1),
@@ -489,7 +487,7 @@ extension LabyrinthProgressTests {
         #expect(save.roster.gold == goldBefore + 7)
     }
 
-    @Test func `completion clears node without setting run health`() throws {
+    @Test func `completion clears node`() throws {
         var save = PlayerSave.fresh
         save.labyrinth.ensureMap(seed: 17)
         let combatID = try #require(
@@ -504,50 +502,31 @@ extension LabyrinthProgressTests {
             save: &save,
         )
         #expect(save.labyrinth.nodes[combatID]?.isCleared == true)
-        #expect(save.labyrinth.runHealthByCombatantID.isEmpty)
     }
 
-    @Test func `ensure map resets run health`() {
-        var progress = PlayerLabyrinthState.freshStart
-        progress.runHealthByCombatantID = ["knight": 3]
-
-        progress.ensureMap(seed: 55)
-
-        #expect(progress.hasMap)
-        #expect(progress.runHealthByCombatantID.isEmpty)
-    }
-
-    @Test func `map payload round trips run health and legacy blobs decode empty`() throws {
+    @Test func `map payload round trips nodes`() throws {
         let model = LabyrinthProgressModel()
         model.worldSeed = 9
         model.hasEntered = true
         let node = LabyrinthNode(
             id: "health-node",
-            type: .rest,
+            type: .mystery,
             depth: 1,
             clusterID: "cluster",
             isRevealed: true,
         )
         model.mapPayload = try JSONEncoder().encode(
-            LabyrinthMapPayload(clusters: [], nodes: [node], runHealthByCombatantID: ["knight": 12]),
+            LabyrinthMapPayload(clusters: [], nodes: [node]),
         )
-        #expect(model.toPlayerLabyrinthState().runHealthByCombatantID == ["knight": 12])
-
-        let blob = try #require(model.mapPayload)
-        var legacyObject = try #require(JSONSerialization.jsonObject(with: blob) as? [String: Any], "Unexpected payload shape")
-        legacyObject.removeValue(forKey: "runHealthByCombatantID")
-        let legacyBlob = try JSONSerialization.data(withJSONObject: legacyObject)
-        let legacyPayload = try JSONDecoder().decode(LabyrinthMapPayload.self, from: legacyBlob)
-        #expect(legacyPayload.runHealthByCombatantID.isEmpty)
+        #expect(model.toPlayerLabyrinthState().nodes["health-node"]?.type == .mystery)
 
         model.update(from: PlayerLabyrinthState(
             worldSeed: 9,
             hasEntered: true,
             clusters: [],
             nodes: [node.id: node],
-            runHealthByCombatantID: ["wolf": 4],
         ))
         let reloaded = model.toPlayerLabyrinthState()
-        #expect(reloaded.runHealthByCombatantID == ["wolf": 4])
+        #expect(reloaded.nodes["health-node"]?.type == .mystery)
     }
 }

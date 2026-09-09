@@ -29,7 +29,6 @@ public enum TrinketDesign {
         public static let encounterBattle = DesignAssetColors.named("EncounterBattle")
         public static let encounterEvent = DesignAssetColors.named("EncounterEvent")
         public static let encounterShop = DesignAssetColors.named("EncounterShop")
-        public static let encounterRest = DesignAssetColors.named("EncounterRest")
 
         public static let chapterForest = DesignAssetColors.named("ChapterForest")
         public static let chapterDungeon = DesignAssetColors.named("ChapterDungeon")

@@ -1,28 +1,31 @@
 import Foundation
 
 public enum EnemyPowerCurve {
+    public static let midLevel = 20
+    public static let lateLevel = 40
+
     private static let normalHPAnchors: [(level: Int, value: Double)] = [
         (1, 6.40),
-        (20, 16.00),
-        (40, 58.00),
+        (midLevel, 16.00),
+        (lateLevel, 58.00),
     ]
 
     private static let bossHPAnchors: [(level: Int, value: Double)] = [
         (1, 7.50),
-        (20, 28.00),
-        (40, 85.00),
+        (midLevel, 28.00),
+        (lateLevel, 85.00),
     ]
 
     private static let normalDamageAnchors: [(level: Int, value: Double)] = [
         (1, 0.50),
-        (20, 1.20),
-        (40, 2.50),
+        (midLevel, 1.20),
+        (lateLevel, 2.50),
     ]
 
     private static let bossDamageAnchors: [(level: Int, value: Double)] = [
         (1, 0.60),
-        (20, 0.95),
-        (40, 2.30),
+        (midLevel, 0.95),
+        (lateLevel, 2.30),
     ]
 
     public static func health(level: Int, isBoss: Bool) -> Double {
@@ -44,8 +47,10 @@ public enum EnemyPowerCurve {
         }
         guard let last = anchors.last else { return first.value }
         if level > last.level {
-            let previous = anchors[anchors.count - 2]
-            let progress = Double(level - last.level) / Double(last.level - previous.level)
+            guard let previous = anchors.dropLast().last else { return last.value }
+            let span = last.level - previous.level
+            guard span > 0 else { return last.value }
+            let progress = Double(level - last.level) / Double(span)
             let growth = logarithmicTail ? log1p(progress) : progress
             return last.value + (last.value - previous.value) * growth
         }

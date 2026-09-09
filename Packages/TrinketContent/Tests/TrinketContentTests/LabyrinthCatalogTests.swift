@@ -204,7 +204,7 @@ struct LabyrinthCatalogTests {
                         true
                     case .battle, .boss:
                         node.enemyID != nil
-                    case .rest, .event, .recruit, .craft, .entrance:
+                    case .event, .recruit, .craft, .entrance:
                         false
                     }
                     #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0))

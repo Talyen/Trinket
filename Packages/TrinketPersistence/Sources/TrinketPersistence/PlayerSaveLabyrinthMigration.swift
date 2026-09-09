@@ -101,7 +101,6 @@ extension PlayerSaveSanitizer {
             hasEntered: legacy.hasEntered,
             clusters: generated.clusters,
             nodes: nodes,
-            runHealthByCombatantID: legacy.runHealthByCombatantID,
         )
     }
 

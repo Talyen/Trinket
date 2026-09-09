@@ -18,16 +18,19 @@ public final class SpiresPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
+    private let encounters: EncounterPlayMode
     private var preparationTracker = PlayBattlePreparationTracker<PreparationInputs>()
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
+        encounters: EncounterPlayMode,
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
+        self.encounters = encounters
     }
 
     public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
@@ -72,6 +75,8 @@ public final class SpiresPlayMode {
         if let restriction = playerSave.accessRestriction(for: .spire(spireID: floor.spireID, floor: floor.floor)) {
             return restriction
         }
+        guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
+        guard encounters.canBeginTransientEncounter else { return nil }
         guard let spire = GameContent.spire(id: floor.spireID) else {
             return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
         }
@@ -110,13 +115,9 @@ public final class SpiresPlayMode {
         }
 
         let request = combatRequest(for: floor, encounter: encounter)
-        guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
-        let activated = battleLaunch.activateCombat(request)
-        if activated {
+        return battleLaunch.activateRequest(request) {
             preparationTracker.invalidate()
-            return nil
         }
-        return PlayBattleLaunch.activationFailureMessage
     }
 
     public func prepareBattle(for floor: SpireFloor) {
@@ -140,15 +141,11 @@ public final class SpiresPlayMode {
 
         let inputs = preparationInputs(for: floor)
         let runKey = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor).runKey
-        guard preparationTracker.shouldPrepare(
-            for: inputs,
-            hasPreparedRun: battle.hasPreparedRun(runKey),
-        ) else { return }
-        let request = combatRequest(for: floor, encounter: encounter)
-        let prepared = battleLaunch.prepareCombat(request)
-        if prepared {
-            preparationTracker.notePrepared(inputs)
-        }
+        battleLaunch.prepareIfNeeded(
+            tracker: &preparationTracker,
+            inputs: inputs,
+            runKey: runKey,
+        ) { combatRequest(for: floor, encounter: encounter) }
     }
 
     private func preparationInputs(for floor: SpireFloor) -> PreparationInputs {

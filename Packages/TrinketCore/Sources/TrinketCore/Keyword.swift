@@ -102,26 +102,38 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         return unique.sorted { $0.0.count > $1.0.count }
     }()
 
-    public static let styledRegexes: [(regex: NSRegularExpression, keyword: Self)] =
-        styledTerms.compactMap { term, keyword in
-            let pattern = "\\b\(NSRegularExpression.escapedPattern(for: term))\\b"
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
-            return (regex, keyword)
+    public static let highlightPattern: String = {
+        let alternatives = styledTerms.map { NSRegularExpression.escapedPattern(for: $0.term) }
+        return "\\b(?:\(alternatives.joined(separator: "|")))\\b"
+    }()
+
+    public static let termLookup: [String: Self] = {
+        var lookup: [String: Self] = [:]
+        for (term, keyword) in styledTerms {
+            lookup[term.lowercased()] = keyword
         }
+        return lookup
+    }()
+
+    public static let highlightRegex: NSRegularExpression? = try? NSRegularExpression(
+        pattern: highlightPattern,
+        options: [.caseInsensitive],
+    )
 
     public static func referenced(in text: String) -> [Self] {
-        var keywordFirstIndices: [Self: Int] = [:]
+        guard let regex = highlightRegex else { return [] }
         let nsText = text as NSString
         let fullRange = NSRange(location: 0, length: nsText.length)
-        for (regex, keyword) in styledRegexes {
-            guard let match = regex.firstMatch(in: text, options: [], range: fullRange) else { continue }
-            let location = match.range.location
+        var keywordFirstIndices: [Self: Int] = [:]
+        for match in regex.matches(in: text, options: [], range: fullRange) {
+            let matched = nsText.substring(with: match.range).lowercased()
+            guard let keyword = termLookup[matched] else { continue }
             if let existing = keywordFirstIndices[keyword] {
-                if location < existing {
-                    keywordFirstIndices[keyword] = location
+                if match.range.location < existing {
+                    keywordFirstIndices[keyword] = match.range.location
                 }
             } else {
-                keywordFirstIndices[keyword] = location
+                keywordFirstIndices[keyword] = match.range.location
             }
         }
         return keywordFirstIndices
@@ -164,136 +176,5 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .deathsDoor:
             "Death's Door survives a fatal blow at 1 Health and is immune to fatal blows while it lasts"
         }
-    }
-}
-
-public enum EnemyFaction: String, CaseIterable, Identifiable, Hashable, Sendable {
-    case mortal
-    case beast
-    case elemental
-    case construct
-    case undead
-    case corrupted
-
-    public var id: String {
-        rawValue
-    }
-}
-
-public enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable, Sendable {
-    case basic
-    case astral
-    case unique
-
-    public var id: String {
-        rawValue
-    }
-
-    public var label: String {
-        switch self {
-        case .basic: "Basic"
-        case .astral: "Astral"
-        case .unique: "Unique"
-        }
-    }
-}
-
-public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable, Codable {
-    case basic = "Basic"
-    case skill = "Skill"
-    case ultimate = "Ultimate"
-
-    public var id: String {
-        rawValue
-    }
-
-    public var cadenceTurns: Int {
-        switch self {
-        case .basic:
-            1
-        case .skill:
-            3
-        case .ultimate:
-            6
-        }
-    }
-}
-
-public extension AbilityTier {
-    var symbolName: String {
-        switch self {
-        case .basic:
-            "circle.fill"
-        case .skill:
-            "sparkles"
-        case .ultimate:
-            "star.fill"
-        }
-    }
-}
-
-public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
-    case weapon = "Weapon"
-    case secondaryWeapon = "Secondary Weapon"
-    case armor = "Armor"
-    case accessory = "Accessory"
-    case secondaryAccessory = "Secondary Accessory"
-    case trinket = "Trinket"
-    case secondaryTrinket = "Secondary Trinket"
-
-    public var id: String {
-        rawValue
-    }
-
-    public var baseItemSlot: Self {
-        switch self {
-        case .secondaryWeapon:
-            .weapon
-        case .secondaryAccessory:
-            .accessory
-        case .secondaryTrinket:
-            .trinket
-        default:
-            self
-        }
-    }
-
-    public var displayName: String {
-        switch self {
-        case .secondaryWeapon:
-            Self.weapon.rawValue
-        case .secondaryAccessory:
-            Self.accessory.rawValue
-        case .secondaryTrinket:
-            Self.trinket.rawValue
-        default:
-            rawValue
-        }
-    }
-
-    public var accessibilityIdentifier: String {
-        "\(rawValue) item slot"
-    }
-
-    public var symbolName: String {
-        switch self {
-        case .weapon, .secondaryWeapon:
-            "wand.and.sparkles"
-        case .armor:
-            "shield.fill"
-        case .accessory, .secondaryAccessory, .trinket, .secondaryTrinket:
-            "diamond.fill"
-        }
-    }
-
-    public func accepts(_ baseTypeSlot: Self) -> Bool {
-        baseTypeSlot == baseItemSlot
-    }
-}
-
-public extension Collection {
-    subscript(safe index: Index) -> Element? {
-        guard indices.contains(index) else { return nil }
-        return self[index]
     }
 }

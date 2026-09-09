@@ -34,23 +34,9 @@ struct KeywordSpan: Sendable {
     let keyword: Keyword
 }
 
-private let keywordHighlightRegex: NSRegularExpression? = {
-    let alternatives = Keyword.styledTerms
-        .map { NSRegularExpression.escapedPattern(for: $0.term) }
-        .joined(separator: "|")
-    return try? NSRegularExpression(
-        pattern: "\\b(?:\(alternatives))\\b",
-        options: [.caseInsensitive],
-    )
-}()
+private let keywordHighlightRegex: NSRegularExpression? = Keyword.highlightRegex
 
-private let keywordHighlightLookup: [String: Keyword] = {
-    var lookup: [String: Keyword] = [:]
-    for (term, keyword) in Keyword.styledTerms {
-        lookup[term.lowercased()] = keyword
-    }
-    return lookup
-}()
+private let keywordHighlightLookup: [String: Keyword] = Keyword.termLookup
 
 public struct KeywordDescriptionText: View {
     public let text: String

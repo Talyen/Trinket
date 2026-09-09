@@ -188,11 +188,11 @@ struct StageRewardTests {
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let heroXPBefore = save.roster.progression(for: hero).currentXP
         let restStage = Stage(
-            id: "test-rest",
+            id: "test-shop",
             chapterID: "chapter-1",
             chapterNumber: 1,
             stageNumber: 99,
-            encounter: .rest,
+            encounter: .shop,
             rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: [ResourceAmount(.wood, 2)]),
         )
 
