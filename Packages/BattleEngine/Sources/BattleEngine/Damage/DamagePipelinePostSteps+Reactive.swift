@@ -174,6 +174,20 @@ package extension DamagePipeline {
 
         applyThornsRetaliation(amount: wards.thornsStacks, attacker: attacker, to: &state, in: &context)
 
+        if context.modifiers(for: state.combatant.id).triggers.onHitGainBlock > 0 {
+            state.damageEvents.append(contentsOf: context.applyBlock(
+                context.modifiers(for: state.combatant.id).triggers.onHitGainBlock,
+                to: state.combatant,
+                source: state.combatant,
+                abilityName: CombatTriggerEngine.triggerAbilityName(
+                    "onHitGainBlock",
+                    for: state.combatant,
+                    fallback: "Plated Hide",
+                    in: context,
+                ),
+            ))
+        }
+
         for (keyword, amount) in wards.onHitDamage.sorted(by: { $0.key.rawValue < $1.key.rawValue }) where amount > 0 {
             ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
                 if case let .onHitDamage(existingKeyword, _) = $0 {

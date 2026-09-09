@@ -17,7 +17,6 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var criticalGoldFlat: Int = 0
     public var criticalActionGoldFlat: Int = 0
     public var startBattleBonusGold: Int = 0
-    public var onGainGoldDrawCardOncePerTurn: Bool = false
     public var onGainGoldHealParty: Int = 0
     public var goldEveryNTurnsInterval: Int = 0
     public var goldEveryNTurnsAmount: Int = 0
@@ -36,6 +35,8 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var lastWager: Bool = false
     public var sleightOfCoin: Bool = false
     public var luckyBreak: Bool = false
+    public var stealGoldBonusVsPoisoned: Int = 0
+    public var gainGoldDrawThreshold: Int = 0
 
     public init(
         carrionClaim: Bool = false,
@@ -51,7 +52,6 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         criticalGoldFlat: Int = 0,
         criticalActionGoldFlat: Int = 0,
         startBattleBonusGold: Int = 0,
-        onGainGoldDrawCardOncePerTurn: Bool = false,
         onGainGoldHealParty: Int = 0,
         goldEveryNTurnsInterval: Int = 0,
         goldEveryNTurnsAmount: Int = 0,
@@ -69,7 +69,9 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         luckyCharm: Bool = false,
         lastWager: Bool = false,
         sleightOfCoin: Bool = false,
-        luckyBreak: Bool = false
+        luckyBreak: Bool = false,
+        stealGoldBonusVsPoisoned: Int = 0,
+        gainGoldDrawThreshold: Int = 0
     ) {
         self.carrionClaim = carrionClaim
         self.lightFingered = lightFingered
@@ -84,7 +86,6 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.criticalGoldFlat = criticalGoldFlat
         self.criticalActionGoldFlat = criticalActionGoldFlat
         self.startBattleBonusGold = startBattleBonusGold
-        self.onGainGoldDrawCardOncePerTurn = onGainGoldDrawCardOncePerTurn
         self.onGainGoldHealParty = onGainGoldHealParty
         self.goldEveryNTurnsInterval = goldEveryNTurnsInterval
         self.goldEveryNTurnsAmount = goldEveryNTurnsAmount
@@ -103,10 +104,12 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.lastWager = lastWager
         self.sleightOfCoin = sleightOfCoin
         self.luckyBreak = luckyBreak
+        self.stealGoldBonusVsPoisoned = stealGoldBonusVsPoisoned
+        self.gainGoldDrawThreshold = gainGoldDrawThreshold
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldDrawCardOncePerTurn", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak"]
+    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -124,7 +127,6 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.criticalGoldFlat != other.criticalGoldFlat { names.append("criticalGoldFlat") }
         if self.criticalActionGoldFlat != other.criticalActionGoldFlat { names.append("criticalActionGoldFlat") }
         if self.startBattleBonusGold != other.startBattleBonusGold { names.append("startBattleBonusGold") }
-        if self.onGainGoldDrawCardOncePerTurn != other.onGainGoldDrawCardOncePerTurn { names.append("onGainGoldDrawCardOncePerTurn") }
         if self.onGainGoldHealParty != other.onGainGoldHealParty { names.append("onGainGoldHealParty") }
         if self.goldEveryNTurnsInterval != other.goldEveryNTurnsInterval { names.append("goldEveryNTurnsInterval") }
         if self.goldEveryNTurnsAmount != other.goldEveryNTurnsAmount { names.append("goldEveryNTurnsAmount") }
@@ -143,6 +145,8 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.lastWager != other.lastWager { names.append("lastWager") }
         if self.sleightOfCoin != other.sleightOfCoin { names.append("sleightOfCoin") }
         if self.luckyBreak != other.luckyBreak { names.append("luckyBreak") }
+        if self.stealGoldBonusVsPoisoned != other.stealGoldBonusVsPoisoned { names.append("stealGoldBonusVsPoisoned") }
+        if self.gainGoldDrawThreshold != other.gainGoldDrawThreshold { names.append("gainGoldDrawThreshold") }
         return names
     }
 }
@@ -162,7 +166,6 @@ extension GoldTriggers {
         criticalGoldFlat += other.criticalGoldFlat
         criticalActionGoldFlat += other.criticalActionGoldFlat
         startBattleBonusGold += other.startBattleBonusGold
-        onGainGoldDrawCardOncePerTurn = onGainGoldDrawCardOncePerTurn || other.onGainGoldDrawCardOncePerTurn
         onGainGoldHealParty += other.onGainGoldHealParty
         goldEveryNTurnsInterval = max(goldEveryNTurnsInterval, other.goldEveryNTurnsInterval)
         goldEveryNTurnsAmount += other.goldEveryNTurnsAmount
@@ -181,6 +184,8 @@ extension GoldTriggers {
         lastWager = lastWager || other.lastWager
         sleightOfCoin = sleightOfCoin || other.sleightOfCoin
         luckyBreak = luckyBreak || other.luckyBreak
+        stealGoldBonusVsPoisoned += other.stealGoldBonusVsPoisoned
+        gainGoldDrawThreshold = max(gainGoldDrawThreshold, other.gainGoldDrawThreshold)
     }
 }
 
@@ -201,7 +206,6 @@ extension GoldTriggers {
             criticalGoldFlat: values.decode(Int.self, "criticalGoldFlat", default: 0),
             criticalActionGoldFlat: values.decode(Int.self, "criticalActionGoldFlat", default: 0),
             startBattleBonusGold: values.decode(Int.self, "startBattleBonusGold", default: 0),
-            onGainGoldDrawCardOncePerTurn: values.decode(Bool.self, "onGainGoldDrawCardOncePerTurn", default: false),
             onGainGoldHealParty: values.decode(Int.self, "onGainGoldHealParty", default: 0),
             goldEveryNTurnsInterval: values.decode(Int.self, "goldEveryNTurnsInterval", default: 0),
             goldEveryNTurnsAmount: values.decode(Int.self, "goldEveryNTurnsAmount", default: 0),
@@ -219,7 +223,9 @@ extension GoldTriggers {
             luckyCharm: values.decode(Bool.self, "luckyCharm", default: false),
             lastWager: values.decode(Bool.self, "lastWager", default: false),
             sleightOfCoin: values.decode(Bool.self, "sleightOfCoin", default: false),
-            luckyBreak: values.decode(Bool.self, "luckyBreak", default: false)
+            luckyBreak: values.decode(Bool.self, "luckyBreak", default: false),
+            stealGoldBonusVsPoisoned: values.decode(Int.self, "stealGoldBonusVsPoisoned", default: 0),
+            gainGoldDrawThreshold: values.decode(Int.self, "gainGoldDrawThreshold", default: 0)
         )
     }
 
@@ -237,7 +243,6 @@ extension GoldTriggers {
         try container.encodeNonDefault(criticalGoldFlat, "criticalGoldFlat", default: 0)
         try container.encodeNonDefault(criticalActionGoldFlat, "criticalActionGoldFlat", default: 0)
         try container.encodeNonDefault(startBattleBonusGold, "startBattleBonusGold", default: 0)
-        try container.encodeNonDefault(onGainGoldDrawCardOncePerTurn, "onGainGoldDrawCardOncePerTurn", default: false)
         try container.encodeNonDefault(onGainGoldHealParty, "onGainGoldHealParty", default: 0)
         try container.encodeNonDefault(goldEveryNTurnsInterval, "goldEveryNTurnsInterval", default: 0)
         try container.encodeNonDefault(goldEveryNTurnsAmount, "goldEveryNTurnsAmount", default: 0)
@@ -256,5 +261,7 @@ extension GoldTriggers {
         try container.encodeNonDefault(lastWager, "lastWager", default: false)
         try container.encodeNonDefault(sleightOfCoin, "sleightOfCoin", default: false)
         try container.encodeNonDefault(luckyBreak, "luckyBreak", default: false)
+        try container.encodeNonDefault(stealGoldBonusVsPoisoned, "stealGoldBonusVsPoisoned", default: 0)
+        try container.encodeNonDefault(gainGoldDrawThreshold, "gainGoldDrawThreshold", default: 0)
     }
 }

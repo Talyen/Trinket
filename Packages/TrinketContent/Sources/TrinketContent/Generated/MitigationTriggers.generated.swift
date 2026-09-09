@@ -25,6 +25,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     public var toughnessOnHitCap: Int = 0
     public var blockedControlBurnResistance: Double = 0
     public var afflictionResistance: Double = 0
+    public var burningEnemyDamageReductionFlat: Int = 0
 
     public init(
         passiveMitigationFlat: Int = 0,
@@ -47,7 +48,8 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         toughnessOnHit: Int = 0,
         toughnessOnHitCap: Int = 0,
         blockedControlBurnResistance: Double = 0,
-        afflictionResistance: Double = 0
+        afflictionResistance: Double = 0,
+        burningEnemyDamageReductionFlat: Int = 0
     ) {
         self.passiveMitigationFlat = passiveMitigationFlat
         self.thornsPercent = thornsPercent
@@ -70,10 +72,11 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.toughnessOnHitCap = toughnessOnHitCap
         self.blockedControlBurnResistance = blockedControlBurnResistance
         self.afflictionResistance = afflictionResistance
+        self.burningEnemyDamageReductionFlat = burningEnemyDamageReductionFlat
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["passiveMitigationFlat", "thornsPercent", "bleedResistance", "absorbHeroDamageFlat", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance"]
+    public static let fieldNames: [String] = ["passiveMitigationFlat", "thornsPercent", "bleedResistance", "absorbHeroDamageFlat", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -99,6 +102,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         if self.toughnessOnHitCap != other.toughnessOnHitCap { names.append("toughnessOnHitCap") }
         if self.blockedControlBurnResistance != other.blockedControlBurnResistance { names.append("blockedControlBurnResistance") }
         if self.afflictionResistance != other.afflictionResistance { names.append("afflictionResistance") }
+        if self.burningEnemyDamageReductionFlat != other.burningEnemyDamageReductionFlat { names.append("burningEnemyDamageReductionFlat") }
         return names
     }
 }
@@ -126,6 +130,7 @@ extension MitigationTriggers {
         toughnessOnHitCap = max(toughnessOnHitCap, other.toughnessOnHitCap)
         blockedControlBurnResistance += other.blockedControlBurnResistance
         afflictionResistance += other.afflictionResistance
+        burningEnemyDamageReductionFlat += other.burningEnemyDamageReductionFlat
     }
 }
 
@@ -153,7 +158,8 @@ extension MitigationTriggers {
             toughnessOnHit: values.decode(Int.self, "toughnessOnHit", default: 0),
             toughnessOnHitCap: values.decode(Int.self, "toughnessOnHitCap", default: 0),
             blockedControlBurnResistance: values.decode(Double.self, "blockedControlBurnResistance", default: 0),
-            afflictionResistance: values.decode(Double.self, "afflictionResistance", default: 0)
+            afflictionResistance: values.decode(Double.self, "afflictionResistance", default: 0),
+            burningEnemyDamageReductionFlat: values.decode(Int.self, "burningEnemyDamageReductionFlat", default: 0)
         )
     }
 
@@ -179,5 +185,6 @@ extension MitigationTriggers {
         try container.encodeNonDefault(toughnessOnHitCap, "toughnessOnHitCap", default: 0)
         try container.encodeNonDefault(blockedControlBurnResistance, "blockedControlBurnResistance", default: 0)
         try container.encodeNonDefault(afflictionResistance, "afflictionResistance", default: 0)
+        try container.encodeNonDefault(burningEnemyDamageReductionFlat, "burningEnemyDamageReductionFlat", default: 0)
     }
 }

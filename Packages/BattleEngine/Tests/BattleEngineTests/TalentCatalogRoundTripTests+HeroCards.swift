@@ -76,27 +76,32 @@ extension TalentCatalogRoundTripTests {
         ("alchemist_poison_t1_2", BattleParticipant.hero, EffectKind.burn),
         ("druid_poison_t2_1", .companion, .burn),
     ])
-    func `poison cards remove one point once per turn`(talent: String, owner: BattleParticipant, kind: EffectKind) throws {
+    func `poison cards remove one point on every card`(talent: String, owner: BattleParticipant, kind: EffectKind) throws {
         var battle = heroTalentBattle(talent)
         let effect: Effect = kind == .burn ? .burn(2) : .thorns(2)
         seedHeroTalentEffect(effect, on: owner, in: &battle)
         try playHeroTalentCard(.poisonDagger, in: &battle)
         #expect(talentPoints(kind, on: owner, in: battle) == 1)
         try playHeroTalentCard(.poisonDagger, in: &battle)
-        #expect(talentPoints(kind, on: owner, in: battle) == 1)
+        #expect(talentPoints(kind, on: owner, in: battle) == 0)
         battle.turnCount += 1
         try playHeroTalentCard(.poisonDagger, in: &battle)
         #expect(talentPoints(kind, on: owner, in: battle) == 0)
     }
 
-    @Test func `card repeats do not double per card rewards`() throws {
-        var profile = CombatantTalentCatalog.profile(for: ["alchemist_poison_t1_1"])
-        profile.triggers.merge(CombatTraitTriggers(mana: ManaTriggers(firstSkillCardPlaysTwicePerBattle: true)))
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
-        let events = try playHeroTalentCard(.poisonDagger, in: &battle)
+    @Test func `empowered skills play twice`() throws {
+        var battle = heroTalentBattle("wizard_mana_t3_2")
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 10 }
+        let events = try playHeroTalentCard(.fireball, in: &battle)
         #expect(events.count { $0.kind == .abilityDamage } == 2)
-        #expect(talentPoints(.thorns, on: .hero, in: battle) == 1)
+    }
+
+    @Test func `protective bloom deals holy damage on heal`() throws {
+        var battle = heroTalentBattle("pixie_health_t2_2")
+        let enemyHealth = battle.maxHealth(of: battle.enemy)
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = $0.maxHealth - 3 }
+        _ = try playHeroTalentCard(heroTalentHealingCard, in: &battle)
+        #expect(battle.health(of: battle.enemy) == enemyHealth - 2)
     }
 
     @Test func `auto played cards preserve hero sequence and do not consume outer preparation`() throws {
@@ -141,14 +146,14 @@ extension TalentCatalogRoundTripTests {
         var coating = heroTalentBattle("alchemist_poison_t1_1")
         try playHeroTalentCard(.bloodthorn, in: &coating)
         try playHeroTalentCard(.poisonDagger, in: &coating)
-        #expect(talentPoints(.thorns, on: .hero, in: coating) == 1)
+        #expect(talentPoints(.thorns, on: .hero, in: coating) == 2)
         var bark = heroTalentBattle("druid_poison_t1_2")
         try playHeroTalentCard(.poisonDagger, in: &bark)
         #expect(talentPoints(.shield, on: .hero, in: bark) == 0)
         seedHeroTalentEffect(.thorns(1), on: .hero, in: &bark)
         try playHeroTalentCard(.poisonDagger, in: &bark)
         try playHeroTalentCard(.poisonDagger, in: &bark)
-        #expect(talentPoints(.shield, on: .hero, in: bark) == 1)
+        #expect(talentPoints(.shield, on: .hero, in: bark) == 2)
     }
 
     @Test func `resolved random burn does not count as poison`() throws {
@@ -211,14 +216,14 @@ extension TalentCatalogRoundTripTests {
         #expect(nextHit.amount == (nextHit.isCritical ? 4 : 2))
     }
 
-    @Test func `cleanse cards reward empty cleanse and remove thorns once`() throws {
+    @Test func `cleanse cards reward empty cleanse and remove thorns`() throws {
         var battle = heroTalentBattle("alchemist_cleanse_t1_1", "alchemist_cleanse_t1_2")
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
         seedHeroTalentEffect(.thorns(2), on: .enemy, in: &battle)
         try playHeroTalentCard(.cleanse, in: &battle)
         try playHeroTalentCard(.cleanse, in: &battle)
-        #expect(battle.roster.hero.currentMana == 1)
-        #expect(talentPoints(.thorns, on: .enemy, in: battle) == 1)
+        #expect(battle.roster.hero.currentMana == 2)
+        #expect(talentPoints(.thorns, on: .enemy, in: battle) == 0)
     }
 
     @Test func `healing cards remove burn and basic healing removes block`() throws {
@@ -230,8 +235,8 @@ extension TalentCatalogRoundTripTests {
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
         try playHeroTalentCard(.apple, in: &battle)
         try playHeroTalentCard(.apple, in: &battle)
-        #expect(talentPoints(.burn, on: .hero, in: battle) == 1)
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 1)
+        #expect(talentPoints(.burn, on: .hero, in: battle) == 0)
+        #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
     }
 
     @Test func `companion card healing has distinct prescription and pruning rewards`() throws {
@@ -243,17 +248,17 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.poison, on: .hero, in: battle) == 2)
         try playHeroTalentCard(.apple, owner: .companion, in: &battle)
         try playHeroTalentCard(.apple, owner: .companion, in: &battle)
-        #expect(talentPoints(.poison, on: .hero, in: battle) == 1)
-        #expect(talentPoints(.thorns, on: .enemy, in: battle) == 1)
+        #expect(talentPoints(.poison, on: .hero, in: battle) == 0)
+        #expect(talentPoints(.thorns, on: .enemy, in: battle) == 0)
     }
 
-    @Test func `lucky charm retains its cadence alongside critical gold`() throws {
+    @Test func `lucky charm removes poison on gold cards`() throws {
         var battle = heroTalentBattle("wildcard_gold_t2_2", "wildcard_gold_t3_2")
         seedHeroTalentEffect(.poison(2), on: .hero, in: &battle)
         seedHeroTalentEffect(.thorns(2), on: .enemy, in: &battle)
         try playHeroTalentCard(heroTalentGoldCard, in: &battle)
         try playHeroTalentCard(heroTalentGoldCard, in: &battle)
-        #expect(talentPoints(.poison, on: .hero, in: battle) == 1)
+        #expect(talentPoints(.poison, on: .hero, in: battle) == 0)
         #expect(talentPoints(.thorns, on: .enemy, in: battle) == 2)
     }
 
@@ -335,8 +340,8 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
     }
 
-    @Test func `a cleansing attack cannot consume its own perfect purity even when replayed`() throws {
-        var battle = heroTalentBattle("alchemist_cleanse_t4_1", "wizard_mana_t3_2")
+    @Test func `a cleansing attack cannot consume its own perfect purity`() throws {
+        var battle = heroTalentBattle("alchemist_cleanse_t4_1")
         seedHeroTalentEffect(.poison(2), on: .hero, in: &battle, source: .enemy)
         let cleansingHit = Ability(
             id: "cleansing-hit", name: "Cleansing Hit", tier: .skill,
@@ -344,7 +349,7 @@ extension TalentCatalogRoundTripTests {
             targetedEffects: [TargetedEffect(.cleanse(nil), target: .actor)],
         )
         let repeated = try playHeroTalentCard(cleansingHit, in: &battle)
-        #expect(repeated.count { $0.kind == .abilityDamage && $0.keyword == .physical } == 2)
+        #expect(repeated.count { $0.kind == .abilityDamage && $0.keyword == .physical } == 1)
         #expect(!repeated.contains { $0.kind == .abilityDamage && $0.keyword == .poison })
         let next = try playHeroTalentCard(.stab, in: &battle)
         #expect(next.count { $0.kind == .abilityDamage && $0.keyword == .poison } == 1)

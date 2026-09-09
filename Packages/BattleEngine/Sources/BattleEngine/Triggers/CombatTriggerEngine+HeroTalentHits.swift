@@ -9,20 +9,18 @@ extension CombatTriggerEngine {
         let history = context.heroTalents.history[sourceID, default: HeroTalentHistory()]
         var bonus = 0
         if keyword == .poison {
-            if triggers.reactiveSediment, context.heroTalents.cards.last?.previousDamageKeywords.contains(.burn) == true,
-               context.claimHeroTalent("reactiveSediment", actorID: sourceID) {
+            if triggers.reactiveSediment, context.heroTalents.cards.last?.previousDamageKeywords.contains(.burn) == true {
                 bonus += 1
             }
             if triggers.entanglingGrowth, context.roster.companion.isAlive,
-               context.heroTalents.history[context.roster.companion.id]?.playedStun == true,
-               context.claimHeroTalent("entanglingGrowth", actorID: sourceID) {
+               context.heroTalents.history[context.roster.companion.id]?.playedStun == true {
                 bonus += 1
             }
         }
         if keyword == .physical {
             if history.preparedPhysical, context.claimHeroCardBonus("improvisedAssault", actorID: sourceID) {
                 context.heroTalents.history[sourceID, default: HeroTalentHistory()].preparedPhysical = false
-                bonus += 1
+                bonus += 2
             }
         }
         return context.paced(bonus, sourceActorID: sourceID)
@@ -34,8 +32,7 @@ extension CombatTriggerEngine {
         var ignored = 0
         if keyword == .poison, context.modifiers(for: sourceID).triggers.rootPassage,
            context.roster.companion.isAlive,
-           context.hasTalentStatus(.thorns, on: context.roster.companion.combatant),
-           context.claimHeroTalent("rootPassage", actorID: sourceID) {
+           context.hasTalentStatus(.thorns, on: context.roster.companion.combatant) {
             ignored += 1
         }
         return ignored
@@ -56,27 +53,26 @@ extension CombatTriggerEngine {
         let triggers = context.modifiers(for: sourceID).triggers
         let companion = context.roster.companion.combatant
         var events: [ActionEvent] = []
-        if critical, triggers.smokeTrick, context.claimHeroTalent("smokeTrick", actorID: sourceID) {
+        if critical, triggers.smokeTrick {
             context.removeTalentPoint(.burn, from: actor)
         }
-        if fullyBlocked, triggers.missedOpportunity, context.claimHeroTalent("missedOpportunity", actorID: sourceID) {
+        if fullyBlocked, triggers.missedOpportunity {
             events.append(contentsOf: heroTalentBlock(to: actor, source: actor, name: "Missed Opportunity", in: &context))
         }
         guard keyword == .physical else { return events }
-        if critical, triggers.cleanCut, context.claimHeroTalent("cleanCut", actorID: sourceID) {
+        if critical, triggers.cleanCut {
             context.removeTalentPoint(.poison, from: actor)
         }
-        if blockBroken, triggers.crackedGuard, context.claimHeroTalent("crackedGuard", actorID: sourceID) {
+        if blockBroken, triggers.crackedGuard {
             events.append(contentsOf: heroTalentHeal(to: companion, source: actor, name: "Cracked Guard", in: &context))
         }
-        if targetWasFrozen, triggers.coldRead, context.claimHeroTalent("coldRead", actorID: sourceID) {
+        if targetWasFrozen, triggers.coldRead {
             events.append(contentsOf: heroTalentHeal(to: actor, source: actor, name: "Cold Read", in: &context))
         }
-        if fullyBlocked, triggers.feignedMiss, context.claimHeroTalent("feignedMiss", actorID: sourceID) {
+        if fullyBlocked, triggers.feignedMiss {
             events.append(contentsOf: heroTalentDamage(.stun, source: actor, in: &context))
         }
-        if triggers.prismaticEdge, context.claimHeroTalent("prismaticEdge", actorID: sourceID),
-           BattleChance.succeeds(probability: 0.25, using: &context.rng) {
+        if triggers.prismaticEdge, BattleChance.succeeds(probability: 0.25, using: &context.rng) {
             let keyword: Keyword = Bool.random(using: &context.rng) ? .burn : .freeze
             events.append(contentsOf: heroTalentDamage(keyword, source: actor, in: &context))
         }
@@ -96,8 +92,7 @@ extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if keyword == .poison, target.role == .enemy, let sourceID,
            let source = context.roster.combatant(for: sourceID), source.isAlive,
-           context.modifiers(for: sourceID).triggers.barbedSpores,
-           context.claimHeroTalent("barbedSpores", actorID: sourceID) {
+           context.modifiers(for: sourceID).triggers.barbedSpores {
             events.append(contentsOf: heroTalentThorns(
                 to: context.roster.companion.combatant,
                 source: source.combatant,
@@ -113,7 +108,7 @@ extension CombatTriggerEngine {
         context.heroTalents.history[actor.id, default: HeroTalentHistory()].dodgeGrowth = 0
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
-        if triggers.passingLuck, context.claimHeroTalent("passingLuck", actorID: actor.id) {
+        if triggers.passingLuck {
             events.append(contentsOf: heroTalentHeal(
                 to: context.roster.companion.combatant,
                 source: actor,
@@ -124,8 +119,7 @@ extension CombatTriggerEngine {
         if triggers.blindSpot {
             context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparations.insert(.ignorePhysicalBlock)
         }
-        if actor.role == .companion, context.roster.hero.isAlive, context.heroModifiers.triggers.scatteredCaltrops,
-           context.claimHeroTalent("scatteredCaltrops", actorID: context.roster.hero.id) {
+        if actor.role == .companion, context.roster.hero.isAlive, context.heroModifiers.triggers.scatteredCaltrops {
             events.append(contentsOf: heroTalentThorns(
                 to: context.roster.hero.combatant,
                 source: context.roster.hero.combatant,

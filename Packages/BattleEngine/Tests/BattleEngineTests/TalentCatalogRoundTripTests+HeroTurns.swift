@@ -14,16 +14,16 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.companion.currentHealth == 2)
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
         _ = EffectTurnEngine.advanceAll(context: &battle)
-        #expect(battle.roster.hero.currentMana == 1)
+        #expect(battle.roster.hero.currentMana == 2)
         battle.turnCount += 1
         seedHeroTalentEffect(.poison(1), on: .hero, in: &battle)
         battle.removeTalentPoint(.poison, from: battle.hero)
         _ = EffectTurnEngine.advanceAll(context: &battle)
-        #expect(battle.roster.hero.currentMana == 1)
-        #expect(battle.roster.companion.currentHealth == 2)
+        #expect(battle.roster.hero.currentMana == 2)
+        #expect(battle.roster.companion.currentHealth == 3)
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle, source: .companion)
         _ = EffectTurnEngine.advanceAll(context: &battle)
-        #expect(battle.roster.hero.currentMana == 1)
+        #expect(battle.roster.hero.currentMana == 2)
     }
 
     @Test func `sealed vial consumes all self poison without cleanse or expiry rewards`() throws {
@@ -86,7 +86,7 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.companion.currentHealth == 2)
     }
 
-    @Test func `barbed spores respects its own cadence and companion defeat`() {
+    @Test func `barbed spores rewards poison damage and respects companion defeat`() {
         var battle = heroTalentBattle("druid_poison_t1_1")
         for _ in 0 ..< 2 {
             _ = battle.resolveDamage(DamageRequest(
@@ -94,7 +94,7 @@ extension TalentCatalogRoundTripTests {
                 sourceActorID: battle.hero.id, options: .doTTick,
             ))
         }
-        #expect(talentPoints(.thorns, on: .companion, in: battle) == 1)
+        #expect(talentPoints(.thorns, on: .companion, in: battle) == 2)
         battle.turnCount += 1
         battle.roster.companion.currentHealth = 0
         _ = battle.resolveDamage(DamageRequest(

@@ -267,6 +267,7 @@ package extension DamagePipeline {
         let enemyIsStunned = context.roster.hasControlStatus(for: enemy, keyword: .stun)
         let enemyIsPoisoned = context.roster.hasAffliction(.poison, on: enemy)
         let enemyIsBleeding = context.roster.hasAffliction(.bleed, on: enemy)
+        let enemyIsBurning = context.roster.hasAffliction(.burn, on: enemy)
         let enemyBleedStacks = context.roster.activeEffects(for: enemy).count(where: { $0.effect.isBleed })
         var reductionFlat = 0
         var reductionMultiplier = 1.0
@@ -277,6 +278,9 @@ package extension DamagePipeline {
             }
             if enemyIsBleeding {
                 reductionFlat += t.bleedingEnemyDamageReductionFlat
+            }
+            if enemyIsBurning {
+                reductionFlat += t.burningEnemyDamageReductionFlat
             }
             if enemyIsStunned {
                 reductionMultiplier *= t.stunnedEnemyNextTurnDamageMultiplier

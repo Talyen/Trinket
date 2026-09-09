@@ -7,9 +7,13 @@ enum AbilityCatalogBasic {
         targetedEffects: [TargetedEffect(.instantHeal(.health, 3))],
     )
 
-    static let bash = AbilityBuilder.directHit(
+    static let bash = Ability(
         id: "bash", name: "Bash", tier: .basic,
-        amount: 2, keyword: .stun,
+        description: "Deal 2 Stun damage. If this Stuns the enemy, deal 2 Physical damage.",
+        damageComponents: [
+            DamageComponent(2, keyword: .stun),
+            DamageComponent(2, keyword: .physical, condition: .enemyStunned),
+        ],
     )
 
     static let blackjack = Ability(
@@ -112,7 +116,7 @@ enum AbilityCatalogBasic {
 
     static let sniffOut = Ability(
         id: "sniff-out", name: "Sniff Out", tier: .basic,
-        targetedEffects: [TargetedEffect(.marked(3, 6))],
+        targetedEffects: [TargetedEffect(.marked(3, 3))],
     )
 
     static let stab = Ability(

@@ -21,7 +21,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var basicAttackFreezeBuildup: Int = 0
     public var criticalApplyPoison: Int = 0
     public var criticalApplyBurn: Int = 0
-    public var criticalApplyStunBuildup: Int = 0
     public var holyAttackApplyBurnAndStunBuildup: Int = 0
     public var onAttackStealGold: Int = 0
     public var basicAttackStealGold: Int = 0
@@ -58,6 +57,10 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var coldRead: Bool = false
     public var feignedMiss: Bool = false
     public var paidInFull: Bool = false
+    public var physicalVsStunnedStunBuildup: Int = 0
+    public var firstPhysicalBleedStunPerTurn: Bool = false
+    public var attackStunBuildupBelowHealthThreshold: Double = 0
+    public var attackStunBuildupBelowHealthBonus: Int = 0
 
     public init(
         firstCriticalHitRepeatsPerTurn: Bool = false,
@@ -77,7 +80,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         basicAttackFreezeBuildup: Int = 0,
         criticalApplyPoison: Int = 0,
         criticalApplyBurn: Int = 0,
-        criticalApplyStunBuildup: Int = 0,
         holyAttackApplyBurnAndStunBuildup: Int = 0,
         onAttackStealGold: Int = 0,
         basicAttackStealGold: Int = 0,
@@ -113,7 +115,11 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         crackedGuard: Bool = false,
         coldRead: Bool = false,
         feignedMiss: Bool = false,
-        paidInFull: Bool = false
+        paidInFull: Bool = false,
+        physicalVsStunnedStunBuildup: Int = 0,
+        firstPhysicalBleedStunPerTurn: Bool = false,
+        attackStunBuildupBelowHealthThreshold: Double = 0,
+        attackStunBuildupBelowHealthBonus: Int = 0
     ) {
         self.firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn
         self.returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn
@@ -132,7 +138,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.basicAttackFreezeBuildup = basicAttackFreezeBuildup
         self.criticalApplyPoison = criticalApplyPoison
         self.criticalApplyBurn = criticalApplyBurn
-        self.criticalApplyStunBuildup = criticalApplyStunBuildup
         self.holyAttackApplyBurnAndStunBuildup = holyAttackApplyBurnAndStunBuildup
         self.onAttackStealGold = onAttackStealGold
         self.basicAttackStealGold = basicAttackStealGold
@@ -169,10 +174,14 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.coldRead = coldRead
         self.feignedMiss = feignedMiss
         self.paidInFull = paidInFull
+        self.physicalVsStunnedStunBuildup = physicalVsStunnedStunBuildup
+        self.firstPhysicalBleedStunPerTurn = firstPhysicalBleedStunPerTurn
+        self.attackStunBuildupBelowHealthThreshold = attackStunBuildupBelowHealthThreshold
+        self.attackStunBuildupBelowHealthBonus = attackStunBuildupBelowHealthBonus
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "criticalApplyStunBuildup", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "prismaticEdge", "improvisedAssault", "cleanCut", "crackedGuard", "coldRead", "feignedMiss", "paidInFull"]
+    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "prismaticEdge", "improvisedAssault", "cleanCut", "crackedGuard", "coldRead", "feignedMiss", "paidInFull", "physicalVsStunnedStunBuildup", "firstPhysicalBleedStunPerTurn", "attackStunBuildupBelowHealthThreshold", "attackStunBuildupBelowHealthBonus"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -194,7 +203,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.basicAttackFreezeBuildup != other.basicAttackFreezeBuildup { names.append("basicAttackFreezeBuildup") }
         if self.criticalApplyPoison != other.criticalApplyPoison { names.append("criticalApplyPoison") }
         if self.criticalApplyBurn != other.criticalApplyBurn { names.append("criticalApplyBurn") }
-        if self.criticalApplyStunBuildup != other.criticalApplyStunBuildup { names.append("criticalApplyStunBuildup") }
         if self.holyAttackApplyBurnAndStunBuildup != other.holyAttackApplyBurnAndStunBuildup { names.append("holyAttackApplyBurnAndStunBuildup") }
         if self.onAttackStealGold != other.onAttackStealGold { names.append("onAttackStealGold") }
         if self.basicAttackStealGold != other.basicAttackStealGold { names.append("basicAttackStealGold") }
@@ -231,6 +239,10 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.coldRead != other.coldRead { names.append("coldRead") }
         if self.feignedMiss != other.feignedMiss { names.append("feignedMiss") }
         if self.paidInFull != other.paidInFull { names.append("paidInFull") }
+        if self.physicalVsStunnedStunBuildup != other.physicalVsStunnedStunBuildup { names.append("physicalVsStunnedStunBuildup") }
+        if self.firstPhysicalBleedStunPerTurn != other.firstPhysicalBleedStunPerTurn { names.append("firstPhysicalBleedStunPerTurn") }
+        if self.attackStunBuildupBelowHealthThreshold != other.attackStunBuildupBelowHealthThreshold { names.append("attackStunBuildupBelowHealthThreshold") }
+        if self.attackStunBuildupBelowHealthBonus != other.attackStunBuildupBelowHealthBonus { names.append("attackStunBuildupBelowHealthBonus") }
         return names
     }
 }
@@ -254,7 +266,6 @@ extension AttackTriggers {
         basicAttackFreezeBuildup += other.basicAttackFreezeBuildup
         criticalApplyPoison += other.criticalApplyPoison
         criticalApplyBurn += other.criticalApplyBurn
-        criticalApplyStunBuildup += other.criticalApplyStunBuildup
         holyAttackApplyBurnAndStunBuildup += other.holyAttackApplyBurnAndStunBuildup
         onAttackStealGold += other.onAttackStealGold
         basicAttackStealGold += other.basicAttackStealGold
@@ -291,6 +302,10 @@ extension AttackTriggers {
         coldRead = coldRead || other.coldRead
         feignedMiss = feignedMiss || other.feignedMiss
         paidInFull = paidInFull || other.paidInFull
+        physicalVsStunnedStunBuildup += other.physicalVsStunnedStunBuildup
+        firstPhysicalBleedStunPerTurn = firstPhysicalBleedStunPerTurn || other.firstPhysicalBleedStunPerTurn
+        attackStunBuildupBelowHealthThreshold = max(attackStunBuildupBelowHealthThreshold, other.attackStunBuildupBelowHealthThreshold)
+        attackStunBuildupBelowHealthBonus += other.attackStunBuildupBelowHealthBonus
     }
 }
 
@@ -315,7 +330,6 @@ extension AttackTriggers {
             basicAttackFreezeBuildup: values.decode(Int.self, "basicAttackFreezeBuildup", default: 0),
             criticalApplyPoison: values.decode(Int.self, "criticalApplyPoison", default: 0),
             criticalApplyBurn: values.decode(Int.self, "criticalApplyBurn", default: 0),
-            criticalApplyStunBuildup: values.decode(Int.self, "criticalApplyStunBuildup", default: 0),
             holyAttackApplyBurnAndStunBuildup: values.decode(Int.self, "holyAttackApplyBurnAndStunBuildup", default: 0),
             onAttackStealGold: values.decode(Int.self, "onAttackStealGold", default: 0),
             basicAttackStealGold: values.decode(Int.self, "basicAttackStealGold", default: 0),
@@ -351,7 +365,11 @@ extension AttackTriggers {
             crackedGuard: values.decode(Bool.self, "crackedGuard", default: false),
             coldRead: values.decode(Bool.self, "coldRead", default: false),
             feignedMiss: values.decode(Bool.self, "feignedMiss", default: false),
-            paidInFull: values.decode(Bool.self, "paidInFull", default: false)
+            paidInFull: values.decode(Bool.self, "paidInFull", default: false),
+            physicalVsStunnedStunBuildup: values.decode(Int.self, "physicalVsStunnedStunBuildup", default: 0),
+            firstPhysicalBleedStunPerTurn: values.decode(Bool.self, "firstPhysicalBleedStunPerTurn", default: false),
+            attackStunBuildupBelowHealthThreshold: values.decode(Double.self, "attackStunBuildupBelowHealthThreshold", default: 0),
+            attackStunBuildupBelowHealthBonus: values.decode(Int.self, "attackStunBuildupBelowHealthBonus", default: 0)
         )
     }
 
@@ -373,7 +391,6 @@ extension AttackTriggers {
         try container.encodeNonDefault(basicAttackFreezeBuildup, "basicAttackFreezeBuildup", default: 0)
         try container.encodeNonDefault(criticalApplyPoison, "criticalApplyPoison", default: 0)
         try container.encodeNonDefault(criticalApplyBurn, "criticalApplyBurn", default: 0)
-        try container.encodeNonDefault(criticalApplyStunBuildup, "criticalApplyStunBuildup", default: 0)
         try container.encodeNonDefault(holyAttackApplyBurnAndStunBuildup, "holyAttackApplyBurnAndStunBuildup", default: 0)
         try container.encodeNonDefault(onAttackStealGold, "onAttackStealGold", default: 0)
         try container.encodeNonDefault(basicAttackStealGold, "basicAttackStealGold", default: 0)
@@ -410,5 +427,9 @@ extension AttackTriggers {
         try container.encodeNonDefault(coldRead, "coldRead", default: false)
         try container.encodeNonDefault(feignedMiss, "feignedMiss", default: false)
         try container.encodeNonDefault(paidInFull, "paidInFull", default: false)
+        try container.encodeNonDefault(physicalVsStunnedStunBuildup, "physicalVsStunnedStunBuildup", default: 0)
+        try container.encodeNonDefault(firstPhysicalBleedStunPerTurn, "firstPhysicalBleedStunPerTurn", default: false)
+        try container.encodeNonDefault(attackStunBuildupBelowHealthThreshold, "attackStunBuildupBelowHealthThreshold", default: 0)
+        try container.encodeNonDefault(attackStunBuildupBelowHealthBonus, "attackStunBuildupBelowHealthBonus", default: 0)
     }
 }

@@ -161,6 +161,10 @@ package enum ControlMeterEngine {
             let chance = context.modifiers(for: sourceActorID).triggers.stunExtendChancePercent
                 + Double(context.modifiers(for: sourceActorID).triggers.enemyStunExtraActionSkips) * 0.20
             applyExtendControlChance(chance, to: combatant, in: &context)
+            if context.modifiers(for: sourceActorID).triggers.stunExtendVsBurning,
+               context.roster.hasAffliction(.burn, on: combatant) {
+                applyExtendControlChance(1, to: combatant, in: &context)
+            }
         }
 
         let actorName: String = if let sourceActorID, let source = context.roster.combatant(for: sourceActorID) {
@@ -217,6 +221,24 @@ package enum ControlMeterEngine {
                     abilityName: "Rimeheart",
                 ))
             }
+        }
+        if keyword == .stun,
+           combatant.role == .enemy,
+           let sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID),
+           context.modifiers(for: sourceActorID).triggers.onStunEnemyGainBlock > 0,
+           context.roster.health(for: combatant) > 0 {
+            events.append(contentsOf: context.applyBlock(
+                context.modifiers(for: sourceActorID).triggers.onStunEnemyGainBlock,
+                to: source.combatant,
+                source: source.combatant,
+                abilityName: CombatTriggerEngine.triggerAbilityName(
+                    "onStunEnemyGainBlock",
+                    for: source.combatant,
+                    fallback: "Stalwart Oath",
+                    in: context,
+                ),
+            ))
         }
         if keyword == .stun,
            combatant.role == .enemy,

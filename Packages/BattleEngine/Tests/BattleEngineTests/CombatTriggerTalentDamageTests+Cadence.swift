@@ -50,36 +50,24 @@ extension CombatTriggerTalentDamageTests {
         #expect(battle.health(of: battle.hero) == (options.isHealthCost ? 5 : 7))
     }
 
-    @Test func `bloodrush draws only once per owner per turn including ticks`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(dot: DotTriggers(bloodrush: true)))
+    @Test func `bloodrush draws on bleed ticks`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: .init(triggers: CombatTraitTriggers(dot: DotTriggers(bleedTickDrawChancePercent: 1.0))),
+            dealOpeningHand: false,
         )
-        for turn in 0 ... 1 {
-            battle.turnCount = turn
-            battle.hand = BattleHand()
-            battle.heroDeck.putOnBottom(.slash)
-            battle.heroDeck.putOnBottom(.slash)
-            battle.companionDeck.putOnBottom(.slash)
-            battle.companionDeck.putOnBottom(.slash)
-            for actor in [battle.hero, battle.companion] {
-                for expectedDraw in [1, 0] {
-                    var hit = DamageResolutionState(
-                        amount: 2, combatant: battle.enemy, sourceActorID: actor.id,
-                        damageKeyword: .bleed, options: .doTTick,
-                    )
-                    hit.buildupDamage = 2
-                    DamagePipeline.applyTalentMirroredReactions(to: &hit, in: &battle)
-                    #expect(hit.damageEvents.count(where: { $0.effectKind == .cardsDrawn }) == expectedDraw)
-                }
-            }
-            #expect(battle.hand.totalCount == 2)
-        }
+        battle.companionDeck.putOnBottom(.slash)
+        let active = ActiveEffect(
+            id: 1, effect: .bleed(4), remainingTurns: 1, sourceActorID: battle.roster.companion.id,
+        )
+        let outcome = BleedHandler().advanceTurn(
+            active, on: battle.roster.enemy.combatant, in: &battle,
+        )
+        #expect(outcome.events.contains(where: { $0.effectKind == .cardsDrawn }))
     }
 
-    @Test func `bone armor counts health loss once per turn but not absorbed damage`() {
+    @Test func `bone armor grants block on every health loss except absorbed damage`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(onSelfHealthLossGainBlock: 2))),
+            heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(onSelfHealthLossGainBlock: 1))),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -93,7 +81,7 @@ extension CombatTriggerTalentDamageTests {
         #expect(absorbed.healthLost == 0)
         for turn in 0 ... 1 {
             battle.turnCount = turn
-            for expectedBlock in [2, 0] {
+            for expectedBlock in [1, 1] {
                 let outcome = battle.resolveDamage(DamageRequest(
                     amount: 1, target: battle.hero, keyword: .bleed, sourceActorID: battle.hero.id,
                     options: .healthCost,

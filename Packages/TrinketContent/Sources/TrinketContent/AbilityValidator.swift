@@ -13,6 +13,7 @@ enum AbilityValidator {
 
     static let descriptionOverrideIDs: Set<String> = [
         "astral-arrow",
+        "bash",
         "blessed-aegis",
         "bounty-shot",
         "cold-snap",
@@ -26,6 +27,7 @@ enum AbilityValidator {
         "kindling",
         "luck-potion",
         "panacea-potion",
+        "poison-dagger",
         "pounce",
         "predators-focus",
         "sap-arrow",
@@ -162,6 +164,8 @@ enum AbilityValidator {
         case "blood-offering":
             total == 4
         case "smite":
+            total == 4
+        case "bash":
             total == 4
         case "ice-shot":
             total == 4

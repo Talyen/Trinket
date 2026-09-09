@@ -63,6 +63,7 @@ public enum BattleTurnEngine {
         let previousOrdinaryActor = context.uniques.ordinaryActionActorID
         context.uniques.ordinaryActionActorID = context.uniques.pendingOrdinaryActorID == actor.id ? actor.id : nil
         context.uniques.pendingOrdinaryActorID = nil
+        context.roster.mutateRuntime(for: actor) { $0.empoweredThisAction = false }
         defer { context.uniques.ordinaryActionActorID = previousOrdinaryActor }
         guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else {
             if actor.role == .enemy {

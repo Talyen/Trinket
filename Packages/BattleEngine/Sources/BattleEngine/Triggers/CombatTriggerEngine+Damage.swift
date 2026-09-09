@@ -138,6 +138,10 @@ package extension CombatTriggerEngine {
         if status.isBleeding {
             bonus += triggers.damageVsBleedingBonus
         }
+        if damageKeyword == .physical,
+           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target)) > 0 {
+            bonus += triggers.physicalDamageVsBlockedBonus
+        }
         if status.isBurning, triggers.damagePerBurnPotencyPercent > 0 {
             bonus += CombatRounding.scaled(
                 totalPotency(of: .burn, on: target, in: context),
@@ -216,6 +220,9 @@ package extension CombatTriggerEngine {
             if status.isBurning {
                 multiplier *= triggers.damageVsBurningMultiplier
             }
+        }
+        if status.isBurning, source.id == context.roster.companion.id {
+            multiplier *= triggers.companionDamageVsBurningMultiplier
         }
         if status.isFrozen {
             multiplier *= triggers.damageVsFrozenMultiplier
@@ -411,16 +418,6 @@ package extension CombatTriggerEngine {
                 sourceActorID: source.id,
                 dealImmediateDamage: false,
                 suppressAffixReactions: true,
-            ))
-        }
-        if profile.triggers.criticalApplyStunBuildup > 0, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                profile.triggers.criticalApplyStunBuildup,
-                keyword: .stun,
-                to: enemy,
-                sourceActorID: source.id,
-                applyFightPacing: false,
-                in: &context,
             ))
         }
         let shouldDetonateBleed = profile.triggers.criticalOnBleedingDetonateBleed

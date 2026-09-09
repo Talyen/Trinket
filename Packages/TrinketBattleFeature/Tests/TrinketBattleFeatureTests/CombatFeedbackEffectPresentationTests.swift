@@ -89,6 +89,9 @@ struct CombatFeedbackEffectPresentationTests {
         #expect(marked.leadingStyle == nil)
         #expect(marked.trailingStyle == .negativeStatus)
         #expect(marked.text == nil)
+
+        let thorns = CombatFeedbackEffectPresentation.chipPresentation(for: .thorns, keyword: .thorns)
+        #expect(thorns.trailingStyle == .keyword(.thorns))
     }
 
     @Test func `hit reaction recipe computed properties and fallbacks`() {

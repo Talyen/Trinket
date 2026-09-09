@@ -38,6 +38,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var stunPurgeDealHolyPerEffect: Int = 0
     public var lightningRod: Bool = false
     public var avalancheGuard: Bool = false
+    public var stunExtendVsBurning: Bool = false
+    public var dodgeDealFreezeFlat: Int = 0
 
     public init(
         stunDamageAddsEnemyBlock: Bool = false,
@@ -73,7 +75,9 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         turnFreezeDamageAllEnemiesInterval: Int = 2,
         stunPurgeDealHolyPerEffect: Int = 0,
         lightningRod: Bool = false,
-        avalancheGuard: Bool = false
+        avalancheGuard: Bool = false,
+        stunExtendVsBurning: Bool = false,
+        dodgeDealFreezeFlat: Int = 0
     ) {
         self.stunDamageAddsEnemyBlock = stunDamageAddsEnemyBlock
         self.stunRetainedBuildupPercent = stunRetainedBuildupPercent
@@ -109,10 +113,12 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.stunPurgeDealHolyPerEffect = stunPurgeDealHolyPerEffect
         self.lightningRod = lightningRod
         self.avalancheGuard = avalancheGuard
+        self.stunExtendVsBurning = stunExtendVsBurning
+        self.dodgeDealFreezeFlat = dodgeDealFreezeFlat
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "flashFreeze", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard"]
+    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "flashFreeze", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard", "stunExtendVsBurning", "dodgeDealFreezeFlat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -151,6 +157,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         if self.stunPurgeDealHolyPerEffect != other.stunPurgeDealHolyPerEffect { names.append("stunPurgeDealHolyPerEffect") }
         if self.lightningRod != other.lightningRod { names.append("lightningRod") }
         if self.avalancheGuard != other.avalancheGuard { names.append("avalancheGuard") }
+        if self.stunExtendVsBurning != other.stunExtendVsBurning { names.append("stunExtendVsBurning") }
+        if self.dodgeDealFreezeFlat != other.dodgeDealFreezeFlat { names.append("dodgeDealFreezeFlat") }
         return names
     }
 }
@@ -191,6 +199,8 @@ extension ControlTriggers {
         stunPurgeDealHolyPerEffect += other.stunPurgeDealHolyPerEffect
         lightningRod = lightningRod || other.lightningRod
         avalancheGuard = avalancheGuard || other.avalancheGuard
+        stunExtendVsBurning = stunExtendVsBurning || other.stunExtendVsBurning
+        dodgeDealFreezeFlat += other.dodgeDealFreezeFlat
     }
 }
 
@@ -231,7 +241,9 @@ extension ControlTriggers {
             turnFreezeDamageAllEnemiesInterval: values.decode(Int.self, "turnFreezeDamageAllEnemiesInterval", default: 2),
             stunPurgeDealHolyPerEffect: values.decode(Int.self, "stunPurgeDealHolyPerEffect", default: 0),
             lightningRod: values.decode(Bool.self, "lightningRod", default: false),
-            avalancheGuard: values.decode(Bool.self, "avalancheGuard", default: false)
+            avalancheGuard: values.decode(Bool.self, "avalancheGuard", default: false),
+            stunExtendVsBurning: values.decode(Bool.self, "stunExtendVsBurning", default: false),
+            dodgeDealFreezeFlat: values.decode(Int.self, "dodgeDealFreezeFlat", default: 0)
         )
     }
 
@@ -270,5 +282,7 @@ extension ControlTriggers {
         try container.encodeNonDefault(stunPurgeDealHolyPerEffect, "stunPurgeDealHolyPerEffect", default: 0)
         try container.encodeNonDefault(lightningRod, "lightningRod", default: false)
         try container.encodeNonDefault(avalancheGuard, "avalancheGuard", default: false)
+        try container.encodeNonDefault(stunExtendVsBurning, "stunExtendVsBurning", default: false)
+        try container.encodeNonDefault(dodgeDealFreezeFlat, "dodgeDealFreezeFlat", default: 0)
     }
 }

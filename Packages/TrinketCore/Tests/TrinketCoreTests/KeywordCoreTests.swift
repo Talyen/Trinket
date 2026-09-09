@@ -23,6 +23,7 @@ struct KeywordCoreTests {
         (.holy, .damageType),
         (.freeze, .damageType),
         (.stun, .damageType),
+        (.thorns, .damageType),
         (.block, .mitigation),
         (.dodge, .mitigation),
         (.purge, .mitigation),
@@ -68,6 +69,7 @@ struct KeywordCoreTests {
     @Test func `referenced keywords resolve inflections to their keyword`() {
         #expect(Keyword.referenced(in: "Blocking then Blocked") == [.block])
         #expect(Keyword.referenced(in: "Heals for Health") == [.health])
+        #expect(Keyword.referenced(in: "Gain 5 Block and 5 Thorns.") == [.block, .thorns])
     }
 
     @Test func `bleed rules text matches turn count`() {

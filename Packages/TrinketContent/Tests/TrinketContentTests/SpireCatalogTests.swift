@@ -20,6 +20,8 @@ struct SpireCatalogTests {
         for spire in GameContent.spires {
             for floor in GameContent.spireFloors(for: spire.id) {
                 try #expect(GameContent.enemy(matching: floor.enemyID) != nil, "Missing enemy \(floor.enemyID)")
+                let isBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
+                try #expect(isBoss == floor.floor.isMultiple(of: 10), "Floor \(floor.floor) boss mismatch")
             }
             let finalFloor = try #require(GameContent.spireFloor(spireID: spire.id, floor: spire.floorCount))
             try #expect(GameContent.enemy(matching: finalFloor.enemyID)?.isBoss == true)

@@ -383,6 +383,24 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "burnDoubleVsFrozenChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "companionDamageVsBurningMultiplier",
+        "type": "Double",
+        "default": "1",
+        "merge": "mul"
+      },
+      {
+        "name": "physicalDamageVsBlockedBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       }
     ]
   },
@@ -488,12 +506,6 @@
       },
       {
         "name": "criticalApplyBurn",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
-      },
-      {
-        "name": "criticalApplyStunBuildup",
         "type": "Int",
         "default": "0",
         "merge": "add"
@@ -713,6 +725,30 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "physicalVsStunnedStunBuildup",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "firstPhysicalBleedStunPerTurn",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "attackStunBuildupBelowHealthThreshold",
+        "type": "Double",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "attackStunBuildupBelowHealthBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       }
     ]
   },
@@ -1037,6 +1073,36 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "retainedBlockGainThornsPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onStunEnemyGainBlock",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "blockRetainsHalf",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "blockWhileGoldThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
+      },
+      {
+        "name": "blockWhileGoldAmount",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       }
     ]
   },
@@ -1167,6 +1233,12 @@
       {
         "name": "afflictionResistance",
         "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "burningEnemyDamageReductionFlat",
+        "type": "Int",
         "default": "0",
         "merge": "add"
       }
@@ -1477,12 +1549,6 @@
         "merge": "or"
       },
       {
-        "name": "bloodrush",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
-      },
-      {
         "name": "steamExplosion",
         "type": "Bool",
         "default": "false",
@@ -1571,6 +1637,12 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "bleedTickDrawChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
       }
     ]
   },
@@ -1781,6 +1853,18 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "stunExtendVsBurning",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "dodgeDealFreezeFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       }
     ]
   },
@@ -2045,6 +2129,18 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "onDodgeNextAttackGuaranteedCritical",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "dodgeFirstAttackEachCombat",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
       }
     ]
   },
@@ -2147,12 +2243,6 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
-      },
-      {
-        "name": "firstSkillCardPlaysTwicePerBattle",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
       },
       {
         "name": "onReachZeroManaRestoreMana",
@@ -2369,6 +2459,30 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "onEmpowerBurnRestoreMana",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "empowerFreezeDamageBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "empoweredSkillEchoes",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "spendLastManaStunDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       }
     ]
   },
@@ -2453,12 +2567,6 @@
         "type": "Int",
         "default": "0",
         "merge": "add"
-      },
-      {
-        "name": "onGainGoldDrawCardOncePerTurn",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
       },
       {
         "name": "onGainGoldHealParty",
@@ -2567,6 +2675,18 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "stealGoldBonusVsPoisoned",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "gainGoldDrawThreshold",
+        "type": "Int",
+        "default": "0",
+        "merge": "max"
       }
     ]
   },
@@ -2899,12 +3019,6 @@
         "merge": "or"
       },
       {
-        "name": "reclaimedReagents",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
-      },
-      {
         "name": "sharedPrescription",
         "type": "Bool",
         "default": "false",
@@ -2963,6 +3077,30 @@
         "type": "Bool",
         "default": "false",
         "merge": "or"
+      },
+      {
+        "name": "onAttackBleedingEnemyHeal",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "overhealFirstBlockPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "leechBonusHealVsStunned",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHealDealHoly",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       }
     ]
   },
@@ -3223,12 +3361,6 @@
         "merge": "or"
       },
       {
-        "name": "negateFirstEnemyAttackChance",
-        "type": "Double",
-        "default": "0",
-        "merge": "max"
-      },
-      {
         "name": "attackDelayEnemyTurnChancePercent",
         "type": "Double",
         "default": "0",
@@ -3320,6 +3452,12 @@
       },
       {
         "name": "onHitAttackerHoly",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "onHitGainBlock",
         "type": "Int",
         "default": "0",
         "merge": "add"

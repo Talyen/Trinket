@@ -152,8 +152,7 @@ package extension DamagePipeline {
                 }
             }
         }
-        if defenderTriggers.onSelfHealthLossGainBlock > 0,
-           context.claimTurnGuard(.boneArmor, actorID: defender.id) {
+        if defenderTriggers.onSelfHealthLossGainBlock > 0 {
             events.append(contentsOf: context.applyBlock(
                 defenderTriggers.onSelfHealthLossGainBlock,
                 to: defender,

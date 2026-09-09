@@ -5,7 +5,6 @@ import TrinketCore
 /// The `enemyTurn` trigger family of `CombatTraitTriggers`.
 public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
     public var negateFirstEnemyAttack: Bool = false
-    public var negateFirstEnemyAttackChance: Double = 0
     public var attackDelayEnemyTurnChancePercent: Double = 0
     public var bleedingEnemyActionSkipChancePercent: Double = 0
     public var extraCardDrawWhileEnemyBleeding: Bool = false
@@ -17,7 +16,6 @@ public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
 
     public init(
         negateFirstEnemyAttack: Bool = false,
-        negateFirstEnemyAttackChance: Double = 0,
         attackDelayEnemyTurnChancePercent: Double = 0,
         bleedingEnemyActionSkipChancePercent: Double = 0,
         extraCardDrawWhileEnemyBleeding: Bool = false,
@@ -28,7 +26,6 @@ public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
         burnReducesEnemyHealingAndLeechPercent: Double = 0
     ) {
         self.negateFirstEnemyAttack = negateFirstEnemyAttack
-        self.negateFirstEnemyAttackChance = negateFirstEnemyAttackChance
         self.attackDelayEnemyTurnChancePercent = attackDelayEnemyTurnChancePercent
         self.bleedingEnemyActionSkipChancePercent = bleedingEnemyActionSkipChancePercent
         self.extraCardDrawWhileEnemyBleeding = extraCardDrawWhileEnemyBleeding
@@ -40,13 +37,12 @@ public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["negateFirstEnemyAttack", "negateFirstEnemyAttackChance", "attackDelayEnemyTurnChancePercent", "bleedingEnemyActionSkipChancePercent", "extraCardDrawWhileEnemyBleeding", "extraCardDrawBelowEnemyHealthPercent", "ultimateAppliesBurnPotency", "onHeroHolyAbilityCompanionHolyDamage", "onHolyDamageRestoreMana", "burnReducesEnemyHealingAndLeechPercent"]
+    public static let fieldNames: [String] = ["negateFirstEnemyAttack", "attackDelayEnemyTurnChancePercent", "bleedingEnemyActionSkipChancePercent", "extraCardDrawWhileEnemyBleeding", "extraCardDrawBelowEnemyHealthPercent", "ultimateAppliesBurnPotency", "onHeroHolyAbilityCompanionHolyDamage", "onHolyDamageRestoreMana", "burnReducesEnemyHealingAndLeechPercent"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
         if self.negateFirstEnemyAttack != other.negateFirstEnemyAttack { names.append("negateFirstEnemyAttack") }
-        if self.negateFirstEnemyAttackChance != other.negateFirstEnemyAttackChance { names.append("negateFirstEnemyAttackChance") }
         if self.attackDelayEnemyTurnChancePercent != other.attackDelayEnemyTurnChancePercent { names.append("attackDelayEnemyTurnChancePercent") }
         if self.bleedingEnemyActionSkipChancePercent != other.bleedingEnemyActionSkipChancePercent { names.append("bleedingEnemyActionSkipChancePercent") }
         if self.extraCardDrawWhileEnemyBleeding != other.extraCardDrawWhileEnemyBleeding { names.append("extraCardDrawWhileEnemyBleeding") }
@@ -62,7 +58,6 @@ public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
 extension EnemyTurnTriggers {
     mutating func merge(_ other: Self) {
         negateFirstEnemyAttack = negateFirstEnemyAttack || other.negateFirstEnemyAttack
-        negateFirstEnemyAttackChance = max(negateFirstEnemyAttackChance, other.negateFirstEnemyAttackChance)
         attackDelayEnemyTurnChancePercent += other.attackDelayEnemyTurnChancePercent
         bleedingEnemyActionSkipChancePercent += other.bleedingEnemyActionSkipChancePercent
         extraCardDrawWhileEnemyBleeding = extraCardDrawWhileEnemyBleeding || other.extraCardDrawWhileEnemyBleeding
@@ -79,7 +74,6 @@ extension EnemyTurnTriggers {
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
             negateFirstEnemyAttack: values.decode(Bool.self, "negateFirstEnemyAttack", default: false),
-            negateFirstEnemyAttackChance: values.decode(Double.self, "negateFirstEnemyAttackChance", default: 0),
             attackDelayEnemyTurnChancePercent: values.decode(Double.self, "attackDelayEnemyTurnChancePercent", default: 0),
             bleedingEnemyActionSkipChancePercent: values.decode(Double.self, "bleedingEnemyActionSkipChancePercent", default: 0),
             extraCardDrawWhileEnemyBleeding: values.decode(Bool.self, "extraCardDrawWhileEnemyBleeding", default: false),
@@ -93,7 +87,6 @@ extension EnemyTurnTriggers {
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
         try container.encodeNonDefault(negateFirstEnemyAttack, "negateFirstEnemyAttack", default: false)
-        try container.encodeNonDefault(negateFirstEnemyAttackChance, "negateFirstEnemyAttackChance", default: 0)
         try container.encodeNonDefault(attackDelayEnemyTurnChancePercent, "attackDelayEnemyTurnChancePercent", default: 0)
         try container.encodeNonDefault(bleedingEnemyActionSkipChancePercent, "bleedingEnemyActionSkipChancePercent", default: 0)
         try container.encodeNonDefault(extraCardDrawWhileEnemyBleeding, "extraCardDrawWhileEnemyBleeding", default: false)

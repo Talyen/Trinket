@@ -92,7 +92,7 @@ enum AbilityCatalogUltimate {
 
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
-        description: "Randomly restore 7 Health, restore 7 Mana, or gain 7 Block. Restore the lowest ally who needs it. Skip unneeded restoration.",
+        description: "Randomly restore 7 Health or Mana to the ally who needs it most, or gain 7 Block.",
         outcomeBranches: [
             AbilityOutcomeBranch(effects: [.resourceGain(.mana, 7)], restorationResource: .mana),
             AbilityOutcomeBranch(effects: [.instantHeal(.health, 7)], restorationResource: .health),
@@ -140,7 +140,7 @@ enum AbilityCatalogUltimate {
 
     static let shadowstep = Ability(
         id: "shadowstep", name: "Shadowstep", tier: .ultimate,
-        description: "Draw a Card. Dodge the next attack. Your next attack is a guaranteed Critical Hit.",
+        description: "Draw 1 card. Dodge the next attack. Your next attack is a guaranteed Critical Hit.",
         targetedEffects: [
             TargetedEffect(.drawCards(1), target: .actor),
             TargetedEffect(.evadeNextHit, target: .actor),

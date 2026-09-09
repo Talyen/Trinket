@@ -9,9 +9,9 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: combatant.id)
         guard profile.triggers.blockPerTurn > 0,
               context.roster.health(for: combatant) > 0
-        else { return [] }
+        else { return turnGoldBlock(for: combatant, triggers: profile.triggers, in: &context) }
 
-        return context.applyBlock(
+        var events = context.applyBlock(
             profile.triggers.blockPerTurn,
             to: combatant,
             source: combatant,
@@ -19,6 +19,30 @@ package extension CombatTriggerEngine {
                 "blockPerTurn",
                 for: combatant,
                 fallback: traitName(for: combatant, in: context),
+                in: context,
+            ),
+        )
+        events.append(contentsOf: turnGoldBlock(for: combatant, triggers: profile.triggers, in: &context))
+        return events
+    }
+
+    private static func turnGoldBlock(
+        for combatant: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.blockWhileGoldAmount > 0, triggers.blockWhileGoldThreshold > 0,
+              context.gold >= triggers.blockWhileGoldThreshold,
+              context.roster.health(for: combatant) > 0
+        else { return [] }
+        return context.applyBlock(
+            triggers.blockWhileGoldAmount,
+            to: combatant,
+            source: combatant,
+            abilityName: triggerAbilityName(
+                "blockWhileGoldAmount",
+                for: combatant,
+                fallback: "Golden Guard",
                 in: context,
             ),
         )
@@ -140,11 +164,11 @@ package extension CombatTriggerEngine {
         cap: Int,
         in context: inout BattleState,
     ) {
-        guard perRound > 0, cap > 0 else { return }
+        guard perRound > 0 else { return }
         context.roster.mutateRuntime(for: actor) { runtime in
             let current: Int = runtime.keywordDamageRamp[keyword, default: 0]
             var ramp: [Keyword: Int] = runtime.keywordDamageRamp
-            ramp[keyword] = min(current + perRound, cap)
+            ramp[keyword] = cap > 0 ? min(current + perRound, cap) : current + perRound
             runtime.keywordDamageRamp = ramp
         }
     }
@@ -414,6 +438,9 @@ package extension CombatTriggerEngine {
                 to: actor,
                 abilityName: triggerAbilityName("startBattleBonusGold", for: actor, fallback: "Deep Pockets", in: context),
             ))
+        }
+        if triggers.dodgeFirstAttackEachCombat {
+            context.prependEffect(.evadeNextHit, to: actor, remainingTurns: 0)
         }
         return events
     }

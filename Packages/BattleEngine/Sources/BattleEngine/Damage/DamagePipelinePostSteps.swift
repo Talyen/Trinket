@@ -170,6 +170,15 @@ package extension DamagePipeline {
         let target = state.combatant
         let targetAlive = context.roster.health(for: target) > 0
 
+        applyBelowHealthStunBuildup(
+            to: &state,
+            source: source,
+            sourceActorID: sourceActorID,
+            triggers: triggers,
+            target: target,
+            targetAlive: targetAlive,
+            in: &context,
+        )
         applyRangedAndPhysicalAfflictions(
             to: &state,
             source: source,
@@ -241,15 +250,15 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
-        if triggers.physicalAttackFlatStunBuildup > 0, keyword == .physical, targetAlive {
-            state.damageEvents.append(contentsOf: appendMeterCharge(
-                triggers.physicalAttackFlatStunBuildup,
-                keyword: .stun,
-                to: target,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ))
-        }
+        applyPhysicalStunAfflictions(
+            to: &state,
+            sourceActorID: sourceActorID,
+            triggers: triggers,
+            keyword: keyword,
+            target: target,
+            targetAlive: targetAlive,
+            in: &context,
+        )
         if triggers.onPhysicalDamageGainBlock > 0, keyword == .physical {
             state.damageEvents.append(contentsOf: context.applyBlock(
                 triggers.onPhysicalDamageGainBlock,
@@ -335,13 +344,21 @@ package extension DamagePipeline {
         let targetIsFrozen = context.roster.hasControlStatus(for: target, keyword: .freeze)
         let targetIsStunned = context.roster.hasControlStatus(for: target, keyword: .stun)
         let targetIsPoisoned = context.roster.hasAffliction(.poison, on: target)
+        let targetIsBleeding = context.roster.hasAffliction(.bleed, on: target)
         if triggers.onAttackStealGold > 0 {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
-                triggers.onAttackStealGold,
+                triggers.onAttackStealGold + (targetIsPoisoned ? triggers.stealGoldBonusVsPoisoned : 0),
                 to: source,
                 abilityName: "Pickpocket",
                 isTheft: true,
                 isDirectCardGain: state.options.isOriginalCardDamage,
+            ))
+        }
+        if triggers.onAttackBleedingEnemyHeal > 0, targetIsBleeding, targetAlive {
+            state.damageEvents.append(contentsOf: applyBleedingPreyHeal(
+                triggers: triggers,
+                source: source,
+                in: &context,
             ))
         }
         if triggers.onAttackFrozenEnemyGainMana > 0, targetIsFrozen {

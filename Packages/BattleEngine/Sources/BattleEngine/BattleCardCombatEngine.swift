@@ -133,10 +133,10 @@ public enum BattleCardCombatEngine {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return [] }
 
-        DefensePoolEngine.decayBlock(on: enemy, in: &context)
+        var leadingEvents = DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
         let bleed = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &context)
-        var leadingEvents = bleed.events
+        leadingEvents.append(contentsOf: bleed.events)
         if bleed.cancelled {
             return leadingEvents
         }
@@ -249,7 +249,7 @@ public enum BattleCardCombatEngine {
         context.turnCount += 1
         events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant] {
-            DefensePoolEngine.decayBlock(on: combatant, in: &context)
+            events.append(contentsOf: DefensePoolEngine.decayBlock(on: combatant, in: &context))
         }
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {

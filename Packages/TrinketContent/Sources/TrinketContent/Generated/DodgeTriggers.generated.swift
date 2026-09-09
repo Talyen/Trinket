@@ -47,6 +47,8 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var smokeTrick: Bool = false
     public var improvingOdds: Bool = false
     public var blindSpot: Bool = false
+    public var onDodgeNextAttackGuaranteedCritical: Bool = false
+    public var dodgeFirstAttackEachCombat: Bool = false
 
     public init(
         wintersWake: Bool = false,
@@ -91,7 +93,9 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         scatteredCaltrops: Bool = false,
         smokeTrick: Bool = false,
         improvingOdds: Bool = false,
-        blindSpot: Bool = false
+        blindSpot: Bool = false,
+        onDodgeNextAttackGuaranteedCritical: Bool = false,
+        dodgeFirstAttackEachCombat: Bool = false
     ) {
         self.wintersWake = wintersWake
         self.killingGrace = killingGrace
@@ -136,10 +140,12 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.smokeTrick = smokeTrick
         self.improvingOdds = improvingOdds
         self.blindSpot = blindSpot
+        self.onDodgeNextAttackGuaranteedCritical = onDodgeNextAttackGuaranteedCritical
+        self.dodgeFirstAttackEachCombat = dodgeFirstAttackEachCombat
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "falseOpening", "missedOpportunity", "passingLuck", "scatteredCaltrops", "smokeTrick", "improvingOdds", "blindSpot"]
+    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "falseOpening", "missedOpportunity", "passingLuck", "scatteredCaltrops", "smokeTrick", "improvingOdds", "blindSpot", "onDodgeNextAttackGuaranteedCritical", "dodgeFirstAttackEachCombat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -187,6 +193,8 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         if self.smokeTrick != other.smokeTrick { names.append("smokeTrick") }
         if self.improvingOdds != other.improvingOdds { names.append("improvingOdds") }
         if self.blindSpot != other.blindSpot { names.append("blindSpot") }
+        if self.onDodgeNextAttackGuaranteedCritical != other.onDodgeNextAttackGuaranteedCritical { names.append("onDodgeNextAttackGuaranteedCritical") }
+        if self.dodgeFirstAttackEachCombat != other.dodgeFirstAttackEachCombat { names.append("dodgeFirstAttackEachCombat") }
         return names
     }
 }
@@ -236,6 +244,8 @@ extension DodgeTriggers {
         smokeTrick = smokeTrick || other.smokeTrick
         improvingOdds = improvingOdds || other.improvingOdds
         blindSpot = blindSpot || other.blindSpot
+        onDodgeNextAttackGuaranteedCritical = onDodgeNextAttackGuaranteedCritical || other.onDodgeNextAttackGuaranteedCritical
+        dodgeFirstAttackEachCombat = dodgeFirstAttackEachCombat || other.dodgeFirstAttackEachCombat
     }
 }
 
@@ -285,7 +295,9 @@ extension DodgeTriggers {
             scatteredCaltrops: values.decode(Bool.self, "scatteredCaltrops", default: false),
             smokeTrick: values.decode(Bool.self, "smokeTrick", default: false),
             improvingOdds: values.decode(Bool.self, "improvingOdds", default: false),
-            blindSpot: values.decode(Bool.self, "blindSpot", default: false)
+            blindSpot: values.decode(Bool.self, "blindSpot", default: false),
+            onDodgeNextAttackGuaranteedCritical: values.decode(Bool.self, "onDodgeNextAttackGuaranteedCritical", default: false),
+            dodgeFirstAttackEachCombat: values.decode(Bool.self, "dodgeFirstAttackEachCombat", default: false)
         )
     }
 
@@ -333,5 +345,7 @@ extension DodgeTriggers {
         try container.encodeNonDefault(smokeTrick, "smokeTrick", default: false)
         try container.encodeNonDefault(improvingOdds, "improvingOdds", default: false)
         try container.encodeNonDefault(blindSpot, "blindSpot", default: false)
+        try container.encodeNonDefault(onDodgeNextAttackGuaranteedCritical, "onDodgeNextAttackGuaranteedCritical", default: false)
+        try container.encodeNonDefault(dodgeFirstAttackEachCombat, "dodgeFirstAttackEachCombat", default: false)
     }
 }

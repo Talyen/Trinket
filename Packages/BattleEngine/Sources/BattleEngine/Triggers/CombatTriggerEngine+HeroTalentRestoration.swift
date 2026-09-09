@@ -13,12 +13,10 @@ extension CombatTriggerEngine {
               !frozenTargetCannotBlockOrHeal(target, in: context) else { return 0 }
         let triggers = context.modifiers(for: source.id).triggers
         var bonus = 0
-        if triggers.fortifyingTonic, context.hasTalentStatus(.poison, on: target),
-           context.claimHeroTalent("fortifyingTonic", actorID: source.id) {
+        if triggers.fortifyingTonic, context.hasTalentStatus(.poison, on: target) {
             bonus += 1
         }
-        if triggers.springSap, context.hasTalentStatus(.thorns, on: target),
-           context.claimHeroTalent("springSap", actorID: source.id) {
+        if triggers.springSap, context.hasTalentStatus(.thorns, on: target) {
             bonus += 1
         }
         if context.heroTalents.history[source.id]?.preparedHeal == true,
@@ -55,20 +53,25 @@ extension CombatTriggerEngine {
                 events.append(contentsOf: HealingEngine.resolveHeal(transfer, in: &context).events)
             }
         }
-        if overflow > 0, triggers.reclaimedReagents,
-           context.claimHeroTalent("reclaimedReagents", actorID: source.id, battle: true) {
-            events.append(contentsOf: heroTalentMana(to: target, source: source, name: "Reclaimed Reagents", in: &context))
-        }
         guard restored > 0 else { return events }
         context.mutateHeroCard { $0.restoredHealth = true }
-        if triggers.cleansingDew, context.claimHeroTalent("cleansingDew", actorID: source.id) {
+        if triggers.cleansingDew {
             context.removeTalentPoint(.poison, from: target)
         }
-        if triggers.sharedRoots, target.role == .companion, context.claimHeroTalent("sharedRoots", actorID: source.id) {
+        if triggers.sharedRoots, target.role == .companion {
             context.removeTalentPoint(.burn, from: source)
         }
-        if triggers.verdantShelter, context.claimHeroTalent("verdantShelter", actorID: source.id) {
+        if triggers.verdantShelter {
             events.append(contentsOf: heroTalentThorns(to: target, source: source, name: "Verdant Shelter", in: &context))
+        }
+        if triggers.onHealDealHoly > 0, context.roster.enemy.isAlive {
+            events.append(contentsOf: context.resolveDamage(DamageRequest(
+                amount: triggers.onHealDealHoly,
+                target: context.roster.enemy.combatant,
+                keyword: .holy,
+                sourceActorID: source.id,
+                options: .flatReaction,
+            )).events)
         }
         return events
     }
@@ -77,16 +80,14 @@ extension CombatTriggerEngine {
         guard context.hasHeroCard(for: source.id), let runtime = context.roster.runtime(for: target),
               runtime.isAlive, runtime.currentMana < runtime.maxMana,
               context.modifiers(for: source.id).triggers.deepRoots,
-              context.hasTalentStatus(.thorns, on: source),
-              context.claimHeroTalent("deepRoots", actorID: source.id) else { return 0 }
+              context.hasTalentStatus(.thorns, on: source) else { return 0 }
         return 1
     }
 
     static func afterHeroCardMana(source: Combatant, restored: Int, in context: inout BattleState) {
         guard restored > 0, context.hasHeroCard(for: source.id) else { return }
         context.mutateHeroCard { $0.restoredMana = true }
-        if context.modifiers(for: source.id).triggers.measuredDose,
-           context.claimHeroTalent("measuredDose", actorID: source.id) {
+        if context.modifiers(for: source.id).triggers.measuredDose {
             context.mutateHeroCard { $0.preparedHeal = true }
         }
     }
@@ -137,10 +138,10 @@ extension CombatTriggerEngine {
            context.claimHeroTalent("clearMind:" + target.id, actorID: source.id, battle: true) {
             context.appendEffect(.maximumManaBonus(1), to: target, sourceID: source.id, remainingTurns: 0)
         }
-        if removed.contains(.burn), triggers.heatRecovery, context.claimHeroTalent("heatRecovery", actorID: source.id) {
+        if removed.contains(.burn), triggers.heatRecovery {
             events.append(contentsOf: heroTalentMana(to: target, source: source, name: "Heat Recovery", in: &context))
         }
-        if removed.contains(.poison), triggers.antitoxinCoating, context.claimHeroTalent("antitoxinCoating", actorID: source.id) {
+        if removed.contains(.poison), triggers.antitoxinCoating {
             events.append(contentsOf: heroTalentThorns(to: target, source: source, name: "Antitoxin Coating", in: &context))
         }
         if !removed.isEmpty {

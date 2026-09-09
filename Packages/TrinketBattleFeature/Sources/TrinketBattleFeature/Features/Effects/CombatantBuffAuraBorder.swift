@@ -50,7 +50,7 @@ private extension CombatantBuffAuraKind {
         case .predatorsFocus: .physical
         case .glacialWard, .blizzard: .freeze
         case .moltenBulwark: .burn
-        case .thorns: .poison
+        case .thorns: .thorns
         case .avatar: .gold
         case .marked: .deathsDoor
         case .earthquake: .stun

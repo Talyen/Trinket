@@ -11,6 +11,7 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
     public var onHitAttackerBleedPotency: Int = 0
     public var onHitAttackerBleedTurns: Int = 0
     public var onHitAttackerHoly: Int = 0
+    public var onHitGainBlock: Int = 0
 
     public init(
         resonantShell: Bool = false,
@@ -19,7 +20,8 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
         onHitAttackerPoison: Int = 0,
         onHitAttackerBleedPotency: Int = 0,
         onHitAttackerBleedTurns: Int = 0,
-        onHitAttackerHoly: Int = 0
+        onHitAttackerHoly: Int = 0,
+        onHitGainBlock: Int = 0
     ) {
         self.resonantShell = resonantShell
         self.onHitAttackerBurn = onHitAttackerBurn
@@ -28,10 +30,11 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
         self.onHitAttackerBleedPotency = onHitAttackerBleedPotency
         self.onHitAttackerBleedTurns = onHitAttackerBleedTurns
         self.onHitAttackerHoly = onHitAttackerHoly
+        self.onHitGainBlock = onHitGainBlock
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["resonantShell", "onHitAttackerBurn", "onHitAttackerFreezeBuildup", "onHitAttackerPoison", "onHitAttackerBleedPotency", "onHitAttackerBleedTurns", "onHitAttackerHoly"]
+    public static let fieldNames: [String] = ["resonantShell", "onHitAttackerBurn", "onHitAttackerFreezeBuildup", "onHitAttackerPoison", "onHitAttackerBleedPotency", "onHitAttackerBleedTurns", "onHitAttackerHoly", "onHitGainBlock"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -43,6 +46,7 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
         if self.onHitAttackerBleedPotency != other.onHitAttackerBleedPotency { names.append("onHitAttackerBleedPotency") }
         if self.onHitAttackerBleedTurns != other.onHitAttackerBleedTurns { names.append("onHitAttackerBleedTurns") }
         if self.onHitAttackerHoly != other.onHitAttackerHoly { names.append("onHitAttackerHoly") }
+        if self.onHitGainBlock != other.onHitGainBlock { names.append("onHitGainBlock") }
         return names
     }
 }
@@ -56,6 +60,7 @@ extension OnHitTriggers {
         onHitAttackerBleedPotency += other.onHitAttackerBleedPotency
         onHitAttackerBleedTurns = max(onHitAttackerBleedTurns, other.onHitAttackerBleedTurns)
         onHitAttackerHoly += other.onHitAttackerHoly
+        onHitGainBlock += other.onHitGainBlock
     }
 }
 
@@ -69,7 +74,8 @@ extension OnHitTriggers {
             onHitAttackerPoison: values.decode(Int.self, "onHitAttackerPoison", default: 0),
             onHitAttackerBleedPotency: values.decode(Int.self, "onHitAttackerBleedPotency", default: 0),
             onHitAttackerBleedTurns: values.decode(Int.self, "onHitAttackerBleedTurns", default: 0),
-            onHitAttackerHoly: values.decode(Int.self, "onHitAttackerHoly", default: 0)
+            onHitAttackerHoly: values.decode(Int.self, "onHitAttackerHoly", default: 0),
+            onHitGainBlock: values.decode(Int.self, "onHitGainBlock", default: 0)
         )
     }
 
@@ -81,5 +87,6 @@ extension OnHitTriggers {
         try container.encodeNonDefault(onHitAttackerBleedPotency, "onHitAttackerBleedPotency", default: 0)
         try container.encodeNonDefault(onHitAttackerBleedTurns, "onHitAttackerBleedTurns", default: 0)
         try container.encodeNonDefault(onHitAttackerHoly, "onHitAttackerHoly", default: 0)
+        try container.encodeNonDefault(onHitGainBlock, "onHitGainBlock", default: 0)
     }
 }

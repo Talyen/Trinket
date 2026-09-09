@@ -279,4 +279,70 @@ struct LabyrinthCatalogTests {
         }
         #expect(foundRecruit)
     }
+
+    @Test func `generated floors separate same type neighbors when possible`() {
+        for seed in 0 ..< 32 {
+            let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
+            assertMinimalSeparation(clusters: generated.clusters, nodes: generated.nodes)
+            let recruited = LabyrinthGenerator.makeInitialMap(
+                seed: UInt64(seed),
+                eligibleRecruitEventIDs: ["recruit-test-event"],
+            )
+            assertMinimalSeparation(clusters: recruited.clusters, nodes: recruited.nodes)
+        }
+        for seed in [3, 17, 99] as [UInt64] {
+            let expanded = LabyrinthGenerator.makeMap(
+                seed: seed,
+                floorCount: 3,
+                eligibleRecruitEventIDs: ["recruit-test-event"],
+            )
+            assertMinimalSeparation(clusters: expanded.clusters, nodes: expanded.nodes)
+        }
+    }
+
+    private func assertMinimalSeparation(
+        clusters: [LabyrinthCluster],
+        nodes: [String: LabyrinthNode],
+    ) {
+        for cluster in clusters where cluster.depthBand > 0 {
+            let floor = cluster.nodeIDs.compactMap { nodes[$0] }
+            #expect(adjacencyConflicts(in: floor) == minimalAdjacencyConflicts(for: floor))
+        }
+    }
+
+    private func adjacencyConflicts(in nodes: [LabyrinthNode]) -> Int {
+        var conflicts = 0
+        for i in nodes.indices {
+            for j in nodes.indices where j > i && nodes[i].isAdjacent(to: nodes[j]) {
+                if nodes[i].type.canonical == nodes[j].type.canonical {
+                    conflicts += 1
+                }
+            }
+        }
+        return conflicts
+    }
+
+    private func minimalAdjacencyConflicts(for nodes: [LabyrinthNode]) -> Int {
+        guard nodes.count > 2 else { return 0 }
+        let entry = nodes[0]
+        let boss = nodes[nodes.count - 1]
+        var middle = Array(nodes[1 ..< nodes.count - 1])
+        var seen: Set<[LabyrinthNodeType]> = []
+        var best = Int.max
+        func visit(index: Int) {
+            if index == middle.count {
+                if seen.insert(middle.map(\.type.canonical)).inserted {
+                    best = min(best, adjacencyConflicts(in: [entry] + middle + [boss]))
+                }
+                return
+            }
+            for i in index ..< middle.count {
+                middle.swapAt(index, i)
+                visit(index: index + 1)
+                middle.swapAt(index, i)
+            }
+        }
+        visit(index: 0)
+        return best
+    }
 }

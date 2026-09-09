@@ -51,7 +51,7 @@ extension CombatTriggerEngine {
             context.heroTalents.history[sourceID, default: HeroTalentHistory()].preparations.insert(.doublePoison)
         }
         var events: [ActionEvent] = []
-        if triggers.spentReagents, context.claimHeroTalent("spentReagents", actorID: sourceID) {
+        if triggers.spentReagents {
             events.append(contentsOf: heroTalentMana(
                 to: source.combatant,
                 source: source.combatant,
@@ -59,7 +59,7 @@ extension CombatTriggerEngine {
                 in: &context,
             ))
         }
-        if triggers.returningBloom, context.claimHeroTalent("returningBloom", actorID: sourceID) {
+        if triggers.returningBloom {
             events.append(contentsOf: heroTalentHeal(
                 to: context.roster.companion.combatant,
                 source: source.combatant,
@@ -79,7 +79,7 @@ extension CombatTriggerEngine {
         guard context.allowsHeroTalentReaction, context.roster.health(for: actor) > 0 else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
-        if empowered, triggers.barkweave, context.claimHeroTalent("barkweave", actorID: actor.id) {
+        if empowered, triggers.barkweave {
             context.removeTalentPoint(.thorns, from: context.roster.enemy.combatant)
         }
         guard amount > 0 else { return events }
@@ -93,7 +93,7 @@ extension CombatTriggerEngine {
         if context.roster.hero.isAlive, context.roster.companion.isAlive,
            context.heroTalents.history[hero.id]?.spentMana == true,
            context.heroTalents.history[context.roster.companion.id]?.spentMana == true,
-           context.heroModifiers.triggers.groveAccord, context.claimHeroTalent("groveAccord", actorID: hero.id) {
+           context.heroModifiers.triggers.groveAccord {
             for target in [hero, context.roster.companion.combatant] {
                 events.append(contentsOf: heroTalentThorns(to: target, source: hero, name: "Grove Accord", in: &context))
             }

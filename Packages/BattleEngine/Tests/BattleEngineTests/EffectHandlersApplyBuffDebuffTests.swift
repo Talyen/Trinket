@@ -73,7 +73,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             return false
         })
         try #expect(outcome.events.contains {
-            $0.effectKind == .thornsApplied && $0.amount == 5
+            $0.effectKind == .thornsApplied && $0.amount == 5 && $0.keyword == .thorns
         })
     }
 

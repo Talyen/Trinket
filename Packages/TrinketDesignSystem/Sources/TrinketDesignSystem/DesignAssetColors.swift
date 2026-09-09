@@ -30,6 +30,7 @@ enum DesignAssetColors {
         "KeywordPoison",
         "KeywordPurge",
         "KeywordStun",
+        "KeywordThorns",
         "PlaceholderAbility",
         "PlaceholderCompanion",
         "PlaceholderEnemy",

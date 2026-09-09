@@ -22,6 +22,9 @@ package extension CombatTriggerEngine {
             if triggers.onDodgeNextPartyHitGuaranteedCritical {
                 runtime.pendingGuaranteedCriticalAfterDodge = true
             }
+            if triggers.onDodgeNextAttackGuaranteedCritical {
+                runtime.pendingGuaranteedCriticalAfterDodge = true
+            }
             if triggers.nextAttackBleedAfterDodge > 0 {
                 runtime.pendingBleedAfterDodge = triggers.nextAttackBleedAfterDodge
             }
@@ -109,6 +112,7 @@ package extension CombatTriggerEngine {
 
         events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
         events.append(contentsOf: applyWhiplashStun(for: combatant, profile: profile, in: &context))
+        events.append(contentsOf: applyRimewindFreeze(for: combatant, profile: profile, in: &context))
 
         if triggers.dodgeApplyPoison > 0, context.roster.enemy.isAlive {
             events.append(contentsOf: context.applyDecayingDoT(
@@ -273,6 +277,40 @@ package extension CombatTriggerEngine {
                 target: enemy,
                 amount: outcome.healthLost,
                 keyword: .stun,
+            ))
+        }
+        return events
+    }
+
+    private static func applyRimewindFreeze(
+        for combatant: Combatant,
+        profile: CombatModifierProfile,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard profile.triggers.dodgeDealFreezeFlat > 0, context.roster.enemy.isAlive else { return [] }
+        let enemy = context.roster.enemy.combatant
+        let amount = profile.triggers.dodgeDealFreezeFlat
+        let name = triggerAbilityName("dodgeDealFreezeFlat", for: combatant, fallback: "Rimewind", in: context)
+        let outcome = context.resolveDamage(
+            DamageRequest(
+                amount: amount,
+                target: enemy,
+                keyword: .freeze,
+                sourceActorID: combatant.id,
+                options: .dodgeTriggeredControlReaction,
+            ),
+        )
+        var events = outcome.events.map { event in
+            event.keyword == .freeze ? event.with(abilityName: name) : event
+        }
+        if outcome.healthLost > 0, !events.contains(where: { $0.abilityName == name }) {
+            events.append(context.nextEvent(
+                kind: .effect,
+                actorName: combatant.name,
+                abilityName: name,
+                target: enemy,
+                amount: outcome.healthLost,
+                keyword: .freeze,
             ))
         }
         return events

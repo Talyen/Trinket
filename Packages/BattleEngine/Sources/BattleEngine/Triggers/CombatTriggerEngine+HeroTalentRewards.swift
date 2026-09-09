@@ -23,7 +23,7 @@ extension CombatTriggerEngine {
             abilityName: name,
             target: target,
             amount: amount,
-            keyword: .physical,
+            keyword: .thorns,
         )]
     }
 

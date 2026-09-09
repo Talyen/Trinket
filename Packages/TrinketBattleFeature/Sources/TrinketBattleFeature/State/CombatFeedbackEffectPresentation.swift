@@ -75,7 +75,7 @@ enum CombatFeedbackEffectPresentation {
         .evadeNextHit: .dualBeneficial(trailing: .dodge),
         .manaShield: .dualBeneficial(trailing: .mana),
         .criticalUp: .dualBeneficial(trailing: .physical),
-        .thorns: .dualBeneficial(trailing: .physical),
+        .thorns: .dualBeneficial(trailing: .thorns),
         .ward: .dualBeneficialEventKeyword,
         .blockDown: .dualNegative(trailing: .block),
         .marked: .iconOnlyNegative,

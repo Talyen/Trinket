@@ -31,6 +31,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
                BattleChance.succeeds(probability: sourceTriggers?.burnDamageDoubleChancePercent ?? 0, using: &context.rng) {
                 tickPotency *= 2
             }
+            tickPotency = doubledFrozenBurnPotency(tickPotency, sourceTriggers: sourceTriggers, target: target, in: &context)
             let tickCount = (keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true) ? 2 : 1
             var events: [ActionEvent] = []
             for _ in 0 ..< tickCount {
@@ -115,6 +116,19 @@ struct DecayingDoTHandler: BattleEffectHandler {
         }
     }
 
+    private func doubledFrozenBurnPotency(
+        _ potency: Int,
+        sourceTriggers: CombatTraitTriggers?,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> Int {
+        guard let doubleVsFrozen = sourceTriggers?.burnDoubleVsFrozenChancePercent,
+              doubleVsFrozen > 0, context.roster.hasControlStatus(for: target, keyword: .freeze),
+              BattleChance.succeeds(probability: doubleVsFrozen, using: &context.rng)
+        else { return potency }
+        return potency * 2
+    }
+
     private func poisonPotencyAfterTurn(
         _ active: ActiveEffect,
         sourceTriggers: CombatTraitTriggers?,
@@ -171,6 +185,12 @@ struct BleedHandler: BattleEffectHandler {
                 in: &context,
             ))
         }
+        events.append(contentsOf: drawCardOnBleedTick(
+            active: active,
+            sourceTriggers: sourceTriggers,
+            target: target,
+            in: &context,
+        ))
 
         if let sourceTriggers, sourceTriggers.bleedStripsBlockPerTurn > 0,
            let reduced = DefensePoolEngine.reduce(
@@ -225,6 +245,36 @@ struct BleedHandler: BattleEffectHandler {
         )
         let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
         return EffectApplyOutcome(events: events, didApply: didApply)
+    }
+
+    private func drawCardOnBleedTick(
+        active: ActiveEffect,
+        sourceTriggers: CombatTraitTriggers?,
+        target _: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard let attackerID = active.sourceActorID,
+              let drawChance = sourceTriggers?.bleedTickDrawChancePercent, drawChance > 0,
+              BattleChance.succeeds(probability: drawChance, using: &context.rng),
+              let source = context.roster.combatant(for: attackerID),
+              let owner = context.roster.participant(for: source.combatant), owner.isPartyMember
+        else { return [] }
+        let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
+        guard drawn > 0 else { return [] }
+        return [context.nextEvent(
+            kind: .effect,
+            effectKind: .cardsDrawn,
+            actorName: source.combatant.name,
+            abilityName: CombatTriggerEngine.triggerAbilityName(
+                "bleedTickDrawChancePercent",
+                for: source.combatant,
+                fallback: "Bloodrush",
+                in: context,
+            ),
+            target: source.combatant,
+            amount: drawn,
+            keyword: .physical,
+        )]
     }
 
     private func shouldPreserveBleed(on target: Combatant, in context: BattleState) -> Bool {

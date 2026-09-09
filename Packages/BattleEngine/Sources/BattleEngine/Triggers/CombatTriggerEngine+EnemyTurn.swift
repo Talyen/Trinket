@@ -60,38 +60,22 @@ package extension CombatTriggerEngine {
         let companion = context.roster.companion
         guard companion.isAlive else { return nil }
         let companionTriggers = context.companionModifiers.triggers
-        if companionTriggers.negateFirstEnemyAttack || companionTriggers.negateFirstEnemyAttackChance > 0,
-           !companion.hasNegatedFirstEnemyAttack {
+        if companionTriggers.negateFirstEnemyAttack, !companion.hasNegatedFirstEnemyAttack {
             context.roster.mutateRuntime(for: companion.combatant) { $0.hasNegatedFirstEnemyAttack = true }
-            let negated = companionTriggers.negateFirstEnemyAttack
-                || BattleChance.succeeds(
-                    probability: companionTriggers.negateFirstEnemyAttackChance,
-                    using: &context.rng,
-                )
-            if negated {
-                let abilityName = companionTriggers.negateFirstEnemyAttack
-                    ? triggerAbilityName(
-                        "negateFirstEnemyAttack",
-                        for: companion.combatant,
-                        fallback: "Warning Bark",
-                        in: context,
-                    )
-                    : triggerAbilityName(
-                        "negateFirstEnemyAttackChance",
-                        for: companion.combatant,
-                        fallback: "Shadow Shift",
-                        in: context,
-                    )
-                return ([context.nextEvent(
-                    kind: .effect,
-                    effectKind: .dodgeApplied,
-                    actorName: companion.name,
-                    abilityName: abilityName,
-                    target: context.roster.enemy.combatant,
-                    amount: 0,
-                    keyword: .dodge,
-                )], true)
-            }
+            return ([context.nextEvent(
+                kind: .effect,
+                effectKind: .dodgeApplied,
+                actorName: companion.name,
+                abilityName: triggerAbilityName(
+                    "negateFirstEnemyAttack",
+                    for: companion.combatant,
+                    fallback: "Warning Bark",
+                    in: context,
+                ),
+                target: context.roster.enemy.combatant,
+                amount: 0,
+                keyword: .dodge,
+            )], true)
         }
         return nil
     }

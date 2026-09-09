@@ -128,21 +128,33 @@ package enum DefensePoolEngine {
         }
     }
 
+    @discardableResult
     package static func decayBlock(
         on target: Combatant,
         in context: inout BattleState,
-    ) {
+    ) -> [ActionEvent] {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
-        guard current > 0 else { return }
-        if context.modifiers(for: target.id).triggers.retainAllBlockBetweenTurns {
-            return
+        guard current > 0 else { return [] }
+        let triggers = context.modifiers(for: target.id).triggers
+        if triggers.retainAllBlockBetweenTurns {
+            return []
         }
-        if context.modifiers(for: target.id).triggers.blockRetainsThreeQuarters {
-            let retained = min(30, (current * 3) / 4)
-            set(retained, on: target, in: &context)
-            return
+        let retained: Int = if triggers.blockRetainsThreeQuarters {
+            min(30, (current * 3) / 4)
+        } else if triggers.blockRetainsHalf {
+            min(30, current / 2)
+        } else {
+            current / 2
         }
-        set(current / 2, on: target, in: &context)
+        set(retained, on: target, in: &context)
+        guard retained > 0, triggers.retainedBlockGainThornsPercent > 0 else { return [] }
+        return CombatTriggerEngine.applyBlockThorns(
+            amount: retained,
+            triggers: triggers,
+            actor: target,
+            abilityKey: "retainedBlockGainThornsPercent",
+            in: &context,
+        )
     }
 
     package static func halveBlock(

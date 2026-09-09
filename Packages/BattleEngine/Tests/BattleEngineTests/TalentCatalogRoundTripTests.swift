@@ -341,11 +341,6 @@ struct TalentCatalogRoundTripTests {
         let talentID: String
         let abilityName: String
 
-        static let protectiveBloom = Self(
-            combatantID: "pixie",
-            talentID: "pixie_health_t2_2",
-            abilityName: "Protective Bloom",
-        )
         static let wardedRoost = Self(
             combatantID: "library_owl",
             talentID: "library_owl_health_t1_2",
@@ -353,7 +348,7 @@ struct TalentCatalogRoundTripTests {
         )
     }
 
-    @Test(arguments: [Self.HealGrantBlockCase.protectiveBloom, .wardedRoost])
+    @Test(arguments: [Self.HealGrantBlockCase.wardedRoost])
     private func `heal grant block logs authored ability name`(_ testCase: HealGrantBlockCase) throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: testCase.combatantID, talents: testCase.talentID)
         #expect(build.modifiers.triggerAbilityName("onHealGrantBlock", fallback: "") == testCase.abilityName)

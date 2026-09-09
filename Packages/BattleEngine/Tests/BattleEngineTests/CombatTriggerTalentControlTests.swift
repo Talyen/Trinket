@@ -97,7 +97,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
     }
 
-    @Test func `paralysis respects seed and once per turn guard`() {
+    @Test func `paralysis respects seed without once per turn guard`() {
         var hitBattle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(),
             companion: CombatantFixtures.passiveCompanion(),
@@ -117,7 +117,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(
             hitBattle.talentTurnGuardByActorID[
                 TalentActionGuardKey(kind: .poisonStun, actorID: hitBattle.roster.companion.id),
-            ] == hitBattle.turnCount,
+            ] == nil,
         )
 
         var missBattle = BattleStateTestFactory.makeBattle(

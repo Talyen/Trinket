@@ -13,9 +13,9 @@ public struct TalentActionGuardKey: Hashable, Sendable {
         case criticalActionGold
         case poisonStun
         case cleanSlate
-        case bloodrush
-        case boneArmor
         case stolenThunder
+        case pulverize
+        case overhealFirstBlock
     }
 
     public var kind: Kind
@@ -117,10 +117,10 @@ public struct BattleState {
     public var isResolvingDoTDetonation: Bool
     public var talentActionGuardByActorID: [TalentActionGuardKey: Int]
     public var talentTurnGuardByActorID: [TalentActionGuardKey: Int]
-    public var skillEchoOwnersThisBattle: Set<String>
     public var talentReactionDepth: Int
     public var dotRecursionDepth: Int
     public var isResolvingAutoPlayCard: Bool
+    public var isEchoingSkill: Bool
     public var drawAndPlayDepth: Int = 0
     public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
     public let enemyFaction: EnemyFaction
@@ -167,10 +167,10 @@ public struct BattleState {
         isResolvingDoTDetonation: Bool = false,
         talentActionGuardByActorID: [TalentActionGuardKey: Int] = [:],
         talentTurnGuardByActorID: [TalentActionGuardKey: Int] = [:],
-        skillEchoOwnersThisBattle: Set<String> = [],
         talentReactionDepth: Int = 0,
         dotRecursionDepth: Int = 0,
         isResolvingAutoPlayCard: Bool = false,
+        isEchoingSkill: Bool = false,
         drawAndPlayDepth: Int = 0,
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
@@ -209,10 +209,10 @@ public struct BattleState {
         self.isResolvingDoTDetonation = isResolvingDoTDetonation
         self.talentActionGuardByActorID = talentActionGuardByActorID
         self.talentTurnGuardByActorID = talentTurnGuardByActorID
-        self.skillEchoOwnersThisBattle = skillEchoOwnersThisBattle
         self.talentReactionDepth = talentReactionDepth
         self.dotRecursionDepth = dotRecursionDepth
         self.isResolvingAutoPlayCard = isResolvingAutoPlayCard
+        self.isEchoingSkill = isEchoingSkill
         self.drawAndPlayDepth = drawAndPlayDepth
         self.pendingTurnDrawState = pendingTurnDrawState
 

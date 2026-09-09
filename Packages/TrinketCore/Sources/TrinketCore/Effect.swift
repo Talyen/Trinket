@@ -106,7 +106,7 @@ public enum Effect: Hashable, Sendable {
 
     public static let bleedDoTTurnCount = 1
     public static let abilityLeechPercent = 0.50
-    public static let standardMarkedDuration = 6
+    public static let standardMarkedDuration = 3
     public static let standardMarkedBonus = 2
 
     public static func decayingDoT(keyword: Keyword, potency: Int) -> Self {
@@ -132,7 +132,7 @@ public enum Effect: Hashable, Sendable {
         case .purge(nil), .purgeRandom: .purge
         case let .halveShield(k): k
         case .deathsDoor: .deathsDoor
-        case .thorns: .physical
+        case .thorns: .thorns
         case .marked: .physical
         case .criticalChanceBonus: .physical
         case .restoreManaOnHit: .mana

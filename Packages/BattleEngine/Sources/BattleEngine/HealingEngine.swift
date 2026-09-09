@@ -277,13 +277,27 @@ package enum HealingEngine {
                 source: request.target,
                 abilityName: "Barrier Blessing",
             ))
+        } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealFirstBlockPerTurn > 0,
+                  context.claimTurnGuard(
+                      .overhealFirstBlock,
+                      actorID: request.sourceActorID ?? request.target.id,
+                  ) {
+            events.append(contentsOf: context.applyBlock(
+                conversion.overhealFirstBlockPerTurn,
+                to: request.target,
+                source: request.target,
+                abilityName: "Aether Shield",
+            ))
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealShieldCap > 0 {
             let shield = min(overflowRemaining, conversion.overhealShieldCap)
             events.append(contentsOf: context.applyBlock(
                 shield,
                 to: request.target,
                 source: request.target,
-                abilityName: "Aether Shield",
+                abilityName: context.modifiers(for: request.target.id).triggerAbilityName(
+                    "overhealShieldCap",
+                    fallback: "Reclaimed Reagents",
+                ),
             ))
         }
         return events
@@ -335,14 +349,16 @@ package enum HealingEngine {
             if let source,
                source.overhealConvertsToBlock
                || source.overhealConvertsToMaxHealth
-               || source.overhealShieldCap > 0 {
+               || source.overhealShieldCap > 0
+               || source.overhealFirstBlockPerTurn > 0 {
                 return source
             }
             return target
         }
         if target.overhealConvertsToBlock
             || target.overhealConvertsToMaxHealth
-            || target.overhealShieldCap > 0 {
+            || target.overhealShieldCap > 0
+            || target.overhealFirstBlockPerTurn > 0 {
             return target
         }
         if let source {

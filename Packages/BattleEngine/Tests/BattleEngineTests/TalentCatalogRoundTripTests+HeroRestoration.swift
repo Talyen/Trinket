@@ -21,11 +21,11 @@ extension TalentCatalogRoundTripTests {
         ("alchemist_health_t1_1", Effect.poison(2)),
         ("druid_health_t1_1", .thorns(2)),
     ])
-    func `healing bonuses add one to only the first eligible direct heal`(talent: String, condition: Effect) throws {
+    func `healing bonuses add one to every eligible direct heal`(talent: String, condition: Effect) throws {
         var battle = heroTalentBattle(talent)
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 1 }
         seedHeroTalentEffect(condition, on: .hero, in: &battle)
-        for expectedBonus in [1, 0] {
+        for expectedBonus in [1, 1] {
             let before = battle.roster.hero.currentHealth
             let events = try playHeroTalentCard(heroTalentHealingCard, in: &battle)
             let heal = try #require(events.first { $0.effectKind == .instantHeal && $0.abilityName == heroTalentHealingCard.name })
@@ -60,17 +60,17 @@ extension TalentCatalogRoundTripTests {
         #expect(heal.amount == (heal.isCritical ? 2 : 1))
     }
 
-    @Test func `first overheal restores mana even when no health was missing`() throws {
+    @Test func `overheal converts to block up to four`() throws {
         var battle = heroTalentBattle("alchemist_health_t2_2")
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
-        try playHeroTalentCard(heroTalentHealingCard, in: &battle)
-        #expect(battle.roster.hero.currentMana == 1)
-        battle.turnCount += 1
-        try playHeroTalentCard(heroTalentHealingCard, in: &battle)
-        #expect(battle.roster.hero.currentMana == 1)
+        let bigHeal = Ability(
+            id: "test-big-heal", name: "Big Heal", tier: .skill,
+            targetedEffects: [TargetedEffect(.instantHeal(.health, 10), target: .actor)],
+        )
+        try playHeroTalentCard(bigHeal, in: &battle)
+        #expect(talentPoints(.shield, on: .hero, in: battle) == 4)
     }
 
-    @Test func `dew roots and shelter apply to the healed companion once`() throws {
+    @Test func `dew roots and shelter repeat on every heal`() throws {
         var battle = heroTalentBattle("druid_health_t3_1", "druid_health_t3_2", "druid_health_t4_1")
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 1 }
         seedHeroTalentEffect(.poison(2), on: .companion, in: &battle)
@@ -83,9 +83,9 @@ extension TalentCatalogRoundTripTests {
         )
         try playHeroTalentCard(heal, in: &battle)
         try playHeroTalentCard(heal, in: &battle)
-        #expect(talentPoints(.poison, on: .companion, in: battle) == 1)
-        #expect(talentPoints(.burn, on: .hero, in: battle) == 1)
-        #expect(talentPoints(.thorns, on: .companion, in: battle) == 1)
+        #expect(talentPoints(.poison, on: .companion, in: battle) == 0)
+        #expect(talentPoints(.burn, on: .hero, in: battle) == 0)
+        #expect(talentPoints(.thorns, on: .companion, in: battle) == 2)
     }
 
     @Test(arguments: [0, 10])

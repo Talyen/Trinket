@@ -127,7 +127,6 @@ package extension CombatTriggerEngine {
         else { return [] }
         let chance = sourceTriggers.poisonStunChancePercent > 0 ? sourceTriggers.poisonStunChancePercent : 1
         guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return [] }
-        guard context.claimTurnGuard(.poisonStun, actorID: sourceActorID) else { return [] }
         return ControlMeterEngine.applyMeterCharge(
             ControlMeterEngine.threshold(for: target, in: context),
             keyword: .stun,

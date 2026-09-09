@@ -13,7 +13,7 @@ struct ThornsHandler: BattleEffectHandler {
             return sum
         }
         guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Thorns: Deals \(total) Physical damage to the next attacker.")
+        return EffectSummary(keyword: keyword, text: "Thorns: Deals \(total) Thorns damage to the next attacker.")
     }
 
     func apply(
@@ -40,7 +40,7 @@ struct ThornsHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .thorns },
-            event: (.thornsApplied, total, .physical),
+            event: (.thornsApplied, total, .thorns),
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

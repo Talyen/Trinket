@@ -1,6 +1,6 @@
 id	name	tier	summary
 apple	Apple	basic	Restore 3 Health.
-bash	Bash	basic	Deal 2 Stun damage.
+bash	Bash	basic	Deal 2 Stun damage. If this Stuns the enemy, deal 2 Physical damage.
 blackjack	Blackjack	basic	Deal 2 Stun damage and steal 2 Gold if the enemy is Stunned.
 block	Block	basic	Gain 3 Block.
 caustic-jab	Caustic Jab	basic	Deal 1 Poison damage and halve the enemy's Block.
@@ -33,7 +33,7 @@ glacial-ward	Glacial Ward	skill	Gain 2 Block. Deal 2 Freeze damage next time you
 heal	Heal	skill	Restore 6 Health.
 mana-potion	Mana Potion	skill	Restore 3 Mana.
 mana-shield	Mana Shield	skill	Convert all Mana into Block.
-poison-dagger	Poison Dagger	skill	Deal 2 Poison damage.
+poison-dagger	Poison Dagger	skill	Deal 2 Poison damage. If the target is Poisoned, deal 2 Physical damage.
 pounce	Pounce	skill	Deal 3 Stun damage. Doubled if played on the first turn.
 predators-focus	Predator's Focus	skill	Mark the enemy. Your next attack is a guaranteed Critical Hit.
 sap-arrow	Sap Arrow	skill	Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.
@@ -55,12 +55,12 @@ earthquake	Earthquake	ultimate	Deal 4 Stun damage each turn for 2 turns.
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health. Deal 4 Burn damage and draw 1 card.
 golden-plate	Golden Plate	ultimate	Gain 3 Block, Gold, and Thorns. Your Hero and Companion each dodge the next attack.
 hemorrhage	Hemorrhage	ultimate	Deal 4 Bleed damage and the next time they attack, they take 4 Bleed damage.
-luck-potion	Luck Potion	ultimate	Randomly restore 7 Health, restore 7 Mana, or gain 7 Block. Restore the lowest ally who needs it. Skip unneeded restoration.
+luck-potion	Luck Potion	ultimate	Randomly restore 7 Health or Mana to the ally who needs it most, or gain 7 Block.
 meteor	Meteor	ultimate	Deal 6 Burn damage and convert all your Mana into bonus Burn damage.
 molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage, gain 4 Block, and deal 3 Burn damage next time you're hit.
 pack-tactics	Pack Tactics	ultimate	Draw and play 2 cards.
 panacea-potion	Panacea Potion	ultimate	Cleanse all debuffs from an ally. Restore 3 Health plus 2 per debuff cleansed.
 phoenix-feather	Phoenix Feather	ultimate	Deal 3 Burn damage and revive an Ally to 1 Health.
-shadowstep	Shadowstep	ultimate	Draw a Card. Dodge the next attack. Your next attack is a guaranteed Critical Hit.
+shadowstep	Shadowstep	ultimate	Draw 1 card. Dodge the next attack. Your next attack is a guaranteed Critical Hit.
 sunburst	Sunburst	ultimate	Deal 6 Holy damage and Restore 6 Health.
 thorn-mail	Thorn Mail	ultimate	Gain 5 Block and 5 Thorns.

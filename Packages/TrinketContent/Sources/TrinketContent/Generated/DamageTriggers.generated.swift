@@ -67,6 +67,9 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var butchersLedger: Bool = false
     public var frostfire: Bool = false
     public var elementalParadox: Bool = false
+    public var burnDoubleVsFrozenChancePercent: Double = 0
+    public var companionDamageVsBurningMultiplier: Double = 1
+    public var physicalDamageVsBlockedBonus: Int = 0
 
     public init(
         ghostfrost: Bool = false,
@@ -131,7 +134,10 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         firebrand: Bool = false,
         butchersLedger: Bool = false,
         frostfire: Bool = false,
-        elementalParadox: Bool = false
+        elementalParadox: Bool = false,
+        burnDoubleVsFrozenChancePercent: Double = 0,
+        companionDamageVsBurningMultiplier: Double = 1,
+        physicalDamageVsBlockedBonus: Int = 0
     ) {
         self.ghostfrost = ghostfrost
         self.stolenThunder = stolenThunder
@@ -196,10 +202,13 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         self.butchersLedger = butchersLedger
         self.frostfire = frostfire
         self.elementalParadox = elementalParadox
+        self.burnDoubleVsFrozenChancePercent = burnDoubleVsFrozenChancePercent
+        self.companionDamageVsBurningMultiplier = companionDamageVsBurningMultiplier
+        self.physicalDamageVsBlockedBonus = physicalDamageVsBlockedBonus
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "gildedClaws", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox"]
+    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "gildedClaws", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox", "burnDoubleVsFrozenChancePercent", "companionDamageVsBurningMultiplier", "physicalDamageVsBlockedBonus"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -267,6 +276,9 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         if self.butchersLedger != other.butchersLedger { names.append("butchersLedger") }
         if self.frostfire != other.frostfire { names.append("frostfire") }
         if self.elementalParadox != other.elementalParadox { names.append("elementalParadox") }
+        if self.burnDoubleVsFrozenChancePercent != other.burnDoubleVsFrozenChancePercent { names.append("burnDoubleVsFrozenChancePercent") }
+        if self.companionDamageVsBurningMultiplier != other.companionDamageVsBurningMultiplier { names.append("companionDamageVsBurningMultiplier") }
+        if self.physicalDamageVsBlockedBonus != other.physicalDamageVsBlockedBonus { names.append("physicalDamageVsBlockedBonus") }
         return names
     }
 }
@@ -336,6 +348,9 @@ extension DamageTriggers {
         butchersLedger = butchersLedger || other.butchersLedger
         frostfire = frostfire || other.frostfire
         elementalParadox = elementalParadox || other.elementalParadox
+        burnDoubleVsFrozenChancePercent += other.burnDoubleVsFrozenChancePercent
+        companionDamageVsBurningMultiplier *= other.companionDamageVsBurningMultiplier
+        physicalDamageVsBlockedBonus += other.physicalDamageVsBlockedBonus
     }
 }
 
@@ -405,7 +420,10 @@ extension DamageTriggers {
             firebrand: values.decode(Bool.self, "firebrand", default: false),
             butchersLedger: values.decode(Bool.self, "butchersLedger", default: false),
             frostfire: values.decode(Bool.self, "frostfire", default: false),
-            elementalParadox: values.decode(Bool.self, "elementalParadox", default: false)
+            elementalParadox: values.decode(Bool.self, "elementalParadox", default: false),
+            burnDoubleVsFrozenChancePercent: values.decode(Double.self, "burnDoubleVsFrozenChancePercent", default: 0),
+            companionDamageVsBurningMultiplier: values.decode(Double.self, "companionDamageVsBurningMultiplier", default: 1),
+            physicalDamageVsBlockedBonus: values.decode(Int.self, "physicalDamageVsBlockedBonus", default: 0)
         )
     }
 
@@ -473,5 +491,8 @@ extension DamageTriggers {
         try container.encodeNonDefault(butchersLedger, "butchersLedger", default: false)
         try container.encodeNonDefault(frostfire, "frostfire", default: false)
         try container.encodeNonDefault(elementalParadox, "elementalParadox", default: false)
+        try container.encodeNonDefault(burnDoubleVsFrozenChancePercent, "burnDoubleVsFrozenChancePercent", default: 0)
+        try container.encodeNonDefault(companionDamageVsBurningMultiplier, "companionDamageVsBurningMultiplier", default: 1)
+        try container.encodeNonDefault(physicalDamageVsBlockedBonus, "physicalDamageVsBlockedBonus", default: 0)
     }
 }

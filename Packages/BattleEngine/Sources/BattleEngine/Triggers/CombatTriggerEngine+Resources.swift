@@ -136,10 +136,10 @@ package extension CombatTriggerEngine {
                 abilityName: "Light-Fingered", in: &context,
             ))
         }
-        if triggers.onGainGoldDrawCardOncePerTurn,
+        if triggers.gainGoldDrawThreshold > 0,
+           granted >= triggers.gainGoldDrawThreshold,
            let owner = context.roster.participant(for: combatant),
-           owner.isPartyMember,
-           context.turnCadence.goldDrawOwners.insert(owner).inserted {
+           owner.isPartyMember {
             let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
             if drawn > 0 {
                 events.append(context.nextEvent(
@@ -147,7 +147,7 @@ package extension CombatTriggerEngine {
                     effectKind: .cardsDrawn,
                     actorName: combatant.name,
                     abilityName: triggerAbilityName(
-                        "onGainGoldDrawCardOncePerTurn",
+                        "gainGoldDrawThreshold",
                         for: combatant,
                         fallback: "Golden Opportunity",
                         in: context,

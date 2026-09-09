@@ -171,7 +171,7 @@ struct PlaySessionPresentationModifier: ViewModifier {
         content
             .modifier(PlayBattleOverlaySheetsModifier(battle: battle))
             .modifier(PlayEncounterCoversModifier())
-            .fullScreenCover(
+            .sheet(
                 isPresented: Binding(
                     get: { play.currentPostBattleTalentCombatantID != nil },
                     set: { isPresented in
@@ -180,9 +180,12 @@ struct PlaySessionPresentationModifier: ViewModifier {
                         }
                     },
                 ),
-            ) {
-                PostBattleTalentChoiceView()
-            }
+                content: {
+                    PostBattleTalentChoiceView()
+                        .trinketDetailSheet()
+                        .interactiveDismissDisabled()
+                },
+            )
             .trinketMessageAlert($stageMessage)
     }
 }

@@ -189,6 +189,18 @@ package extension CombatTriggerEngine {
             )).events)
         }
 
+        if triggers.spendLastManaStunDamage > 0,
+           (context.roster.runtime(for: actor)?.currentMana ?? 1) == 0,
+           context.roster.enemy.isAlive {
+            events.append(contentsOf: context.resolveDamage(DamageRequest(
+                amount: triggers.spendLastManaStunDamage,
+                target: context.roster.enemy.combatant,
+                keyword: .stun,
+                sourceActorID: actor.id,
+                options: .flatReaction,
+            )).events)
+        }
+
         if triggers.spendManaThresholdAutoPlayCard > 0, !context.isResolvingAutoPlayCard {
             if context.claimActionGuard(.arcaneBurst, actorID: actor.id) {
                 context.roster.mutateRuntime(for: actor) { $0.manaSpentThisCardPlay = 0 }

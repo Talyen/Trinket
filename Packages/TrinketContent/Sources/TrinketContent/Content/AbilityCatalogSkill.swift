@@ -117,7 +117,11 @@ enum AbilityCatalogSkill {
 
     static let poisonDagger = Ability(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
-        damageComponents: [DamageComponent(2, keyword: .poison)],
+        description: "Deal 2 Poison damage. If the target is Poisoned, deal 2 Physical damage.",
+        damageComponents: [
+            DamageComponent(2, keyword: .poison),
+            DamageComponent(2, keyword: .physical, condition: .enemyPoisoned),
+        ],
     )
 
     static let pounce = Ability(

@@ -17,6 +17,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
     case cleanse = "Cleanse"
     case mana = "Mana"
     case deathsDoor = "Death's Door"
+    case thorns = "Thorns"
 
     public var id: String {
         rawValue
@@ -31,7 +32,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
 
     public var category: Category {
         switch self {
-        case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun: .damageType
+        case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .thorns: .damageType
         case .block, .dodge, .purge: .mitigation
         case .health, .leech, .deathsDoor, .cleanse: .restoration
         case .gold, .mana: .resource
@@ -44,7 +45,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
 
     public var allowsCriticalHits: Bool {
         switch self {
-        case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .health, .leech:
+        case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .health, .leech, .thorns:
             true
         case .block, .dodge, .purge, .cleanse, .gold, .mana, .deathsDoor:
             false
@@ -76,7 +77,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .poison: ["Poisons", "Poisoned", "Poisoning"]
         case .leech: ["Leeches", "Leeched", "Leeching"]
         case .health: ["Heals", "Healing", "Healed"]
-        case .physical, .gold, .holy, .mana, .deathsDoor: []
+        case .physical, .gold, .holy, .mana, .deathsDoor, .thorns: []
         }
     }
 
@@ -175,6 +176,8 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
             "Mana regenerates +1 each round. Spend 3 Mana to add +1 Burn or Freeze on a card"
         case .deathsDoor:
             "Death's Door survives a fatal blow at 1 Health and is immune to fatal blows while it lasts"
+        case .thorns:
+            "Thorns deals damage back to attackers when hit"
         }
     }
 }

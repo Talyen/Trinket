@@ -92,6 +92,10 @@ public extension Keyword {
             color: DesignAssetColors.named("KeywordDeathsDoor"),
             symbolName: "hourglass.bottomhalf.filled",
         )
+        public static let thorns = Self(
+            color: DesignAssetColors.named("KeywordThorns"),
+            symbolName: "leaf.fill",
+        )
         public static let beneficialStatus = Self(
             color: TrinketDesign.Colors.success,
             symbolName: "arrowshape.up.fill",
@@ -120,6 +124,7 @@ public extension Keyword {
         case .cleanse: .cleanse
         case .mana: .mana
         case .deathsDoor: .deathsDoor
+        case .thorns: .thorns
         }
     }
 }

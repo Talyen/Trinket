@@ -64,11 +64,11 @@ struct RogueRevisionTests {
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
     }
 
-    @Test func `scent of blood rewards bleeding and low health separately`() throws {
+    @Test func `scent of blood rewards low health`() throws {
         let profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t3_2"])
-        try #expect(profile.triggers.damageVsBleedingBonus == 1)
+        try #expect(profile.triggers.damageVsBleedingBonus == 0)
         try #expect(profile.triggers.damageBelowHealthPercentThreshold == 0.5)
-        try #expect(profile.triggers.damageBelowHealthPercentBonus == 1)
+        try #expect(profile.triggers.damageBelowHealthPercentBonus == 2)
 
         func dealt(targetMaxHealth: Int, targetHealth: Int?, targetEffects: [ActiveEffect]) -> Int {
             var battle = BattleStateTestFactory.makeMinimalBattle(
@@ -90,8 +90,8 @@ struct RogueRevisionTests {
             targetMaxHealth: 50,
             targetHealth: nil,
             targetEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0)],
-        ) == 5)
-        #expect(dealt(targetMaxHealth: 50, targetHealth: 20, targetEffects: []) == 5)
+        ) == 4)
+        #expect(dealt(targetMaxHealth: 50, targetHealth: 20, targetEffects: []) == 6)
         #expect(dealt(
             targetMaxHealth: 50,
             targetHealth: 20,

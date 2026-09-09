@@ -77,8 +77,8 @@ enum SpireCatalog {
             let pool = enemyPools[spire.keyword] ?? ["goblin", "skeleton", "slime"]
             var floors: [SpireFloor] = []
             for floorIndex in 1 ... spire.floorCount {
-                let isFinalFloor = floorIndex == spire.floorCount
-                let enemyID: String = if isFinalFloor {
+                let isBossFloor = floorIndex.isMultiple(of: 10) || floorIndex == spire.floorCount
+                let enemyID: String = if isBossFloor {
                     pool.last ?? "goblin"
                 } else {
                     pool[(floorIndex - 1) % max(pool.count - 1, 1)]

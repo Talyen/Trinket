@@ -54,7 +54,6 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var backdraft: Bool = false
     public var ashenArsenal: Bool = false
     public var arterialCascade: Bool = false
-    public var bloodrush: Bool = false
     public var steamExplosion: Bool = false
     public var reactiveCoating: Bool = false
     public var safeHandling: Bool = false
@@ -70,6 +69,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var rootPassage: Bool = false
     public var entanglingGrowth: Bool = false
     public var thornShedding: Bool = false
+    public var bleedTickDrawChancePercent: Double = 0
 
     public init(
         redline: Bool = false,
@@ -122,7 +122,6 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         backdraft: Bool = false,
         ashenArsenal: Bool = false,
         arterialCascade: Bool = false,
-        bloodrush: Bool = false,
         steamExplosion: Bool = false,
         reactiveCoating: Bool = false,
         safeHandling: Bool = false,
@@ -137,7 +136,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         returningBloom: Bool = false,
         rootPassage: Bool = false,
         entanglingGrowth: Bool = false,
-        thornShedding: Bool = false
+        thornShedding: Bool = false,
+        bleedTickDrawChancePercent: Double = 0
     ) {
         self.redline = redline
         self.bleedHalvesAfterExpiration = bleedHalvesAfterExpiration
@@ -189,7 +189,6 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.backdraft = backdraft
         self.ashenArsenal = ashenArsenal
         self.arterialCascade = arterialCascade
-        self.bloodrush = bloodrush
         self.steamExplosion = steamExplosion
         self.reactiveCoating = reactiveCoating
         self.safeHandling = safeHandling
@@ -205,10 +204,11 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.rootPassage = rootPassage
         self.entanglingGrowth = entanglingGrowth
         self.thornShedding = thornShedding
+        self.bleedTickDrawChancePercent = bleedTickDrawChancePercent
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "bloodrush", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding"]
+    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding", "bleedTickDrawChancePercent"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -263,7 +263,6 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.backdraft != other.backdraft { names.append("backdraft") }
         if self.ashenArsenal != other.ashenArsenal { names.append("ashenArsenal") }
         if self.arterialCascade != other.arterialCascade { names.append("arterialCascade") }
-        if self.bloodrush != other.bloodrush { names.append("bloodrush") }
         if self.steamExplosion != other.steamExplosion { names.append("steamExplosion") }
         if self.reactiveCoating != other.reactiveCoating { names.append("reactiveCoating") }
         if self.safeHandling != other.safeHandling { names.append("safeHandling") }
@@ -279,6 +278,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.rootPassage != other.rootPassage { names.append("rootPassage") }
         if self.entanglingGrowth != other.entanglingGrowth { names.append("entanglingGrowth") }
         if self.thornShedding != other.thornShedding { names.append("thornShedding") }
+        if self.bleedTickDrawChancePercent != other.bleedTickDrawChancePercent { names.append("bleedTickDrawChancePercent") }
         return names
     }
 }
@@ -335,7 +335,6 @@ extension DotTriggers {
         backdraft = backdraft || other.backdraft
         ashenArsenal = ashenArsenal || other.ashenArsenal
         arterialCascade = arterialCascade || other.arterialCascade
-        bloodrush = bloodrush || other.bloodrush
         steamExplosion = steamExplosion || other.steamExplosion
         reactiveCoating = reactiveCoating || other.reactiveCoating
         safeHandling = safeHandling || other.safeHandling
@@ -351,6 +350,7 @@ extension DotTriggers {
         rootPassage = rootPassage || other.rootPassage
         entanglingGrowth = entanglingGrowth || other.entanglingGrowth
         thornShedding = thornShedding || other.thornShedding
+        bleedTickDrawChancePercent += other.bleedTickDrawChancePercent
     }
 }
 
@@ -408,7 +408,6 @@ extension DotTriggers {
             backdraft: values.decode(Bool.self, "backdraft", default: false),
             ashenArsenal: values.decode(Bool.self, "ashenArsenal", default: false),
             arterialCascade: values.decode(Bool.self, "arterialCascade", default: false),
-            bloodrush: values.decode(Bool.self, "bloodrush", default: false),
             steamExplosion: values.decode(Bool.self, "steamExplosion", default: false),
             reactiveCoating: values.decode(Bool.self, "reactiveCoating", default: false),
             safeHandling: values.decode(Bool.self, "safeHandling", default: false),
@@ -423,7 +422,8 @@ extension DotTriggers {
             returningBloom: values.decode(Bool.self, "returningBloom", default: false),
             rootPassage: values.decode(Bool.self, "rootPassage", default: false),
             entanglingGrowth: values.decode(Bool.self, "entanglingGrowth", default: false),
-            thornShedding: values.decode(Bool.self, "thornShedding", default: false)
+            thornShedding: values.decode(Bool.self, "thornShedding", default: false),
+            bleedTickDrawChancePercent: values.decode(Double.self, "bleedTickDrawChancePercent", default: 0)
         )
     }
 
@@ -478,7 +478,6 @@ extension DotTriggers {
         try container.encodeNonDefault(backdraft, "backdraft", default: false)
         try container.encodeNonDefault(ashenArsenal, "ashenArsenal", default: false)
         try container.encodeNonDefault(arterialCascade, "arterialCascade", default: false)
-        try container.encodeNonDefault(bloodrush, "bloodrush", default: false)
         try container.encodeNonDefault(steamExplosion, "steamExplosion", default: false)
         try container.encodeNonDefault(reactiveCoating, "reactiveCoating", default: false)
         try container.encodeNonDefault(safeHandling, "safeHandling", default: false)
@@ -494,5 +493,6 @@ extension DotTriggers {
         try container.encodeNonDefault(rootPassage, "rootPassage", default: false)
         try container.encodeNonDefault(entanglingGrowth, "entanglingGrowth", default: false)
         try container.encodeNonDefault(thornShedding, "thornShedding", default: false)
+        try container.encodeNonDefault(bleedTickDrawChancePercent, "bleedTickDrawChancePercent", default: 0)
     }
 }

@@ -270,6 +270,26 @@ struct DoTMechanicsTests {
         #expect(companion.keywordDamageRamp[.burn, default: 0] == 0)
     }
 
+    @Test func `damage ramp grows uncapped without a cap`() throws {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(dot: DotTriggers(
+                    burnDamageRampPerRound: 1,
+                    burnDamageRampCap: 0,
+                )),
+            ),
+            dealOpeningHand: false,
+        )
+        for expected in [1, 2, 3, 4, 5] {
+            _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+            let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
+            #expect(runtime.keywordDamageRamp[.burn] == expected)
+        }
+    }
+
     @Test func `damage ramp applies to matching keyword only`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),

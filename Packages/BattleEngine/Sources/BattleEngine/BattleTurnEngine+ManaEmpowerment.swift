@@ -31,6 +31,7 @@ public extension BattleTurnEngine {
             }
         }
         if purchases > 0 {
+            context.roster.mutateRuntime(for: actor) { $0.empoweredThisAction = true }
             events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context))
         }
         if totalManaSpent > 0, let empoweredKeyword {
@@ -38,6 +39,18 @@ public extension BattleTurnEngine {
                 afterEmpowering: empoweredKeyword,
                 by: actor,
                 in: &context,
+            ))
+        }
+        if totalManaSpent > 0, empoweredKeyword == .burn, triggers.onEmpowerBurnRestoreMana > 0 {
+            events.append(contentsOf: context.restoreManaEmitting(
+                triggers.onEmpowerBurnRestoreMana,
+                to: actor,
+                abilityName: CombatTriggerEngine.triggerAbilityName(
+                    "onEmpowerBurnRestoreMana",
+                    for: actor,
+                    fallback: "Pyromancer's Spark",
+                    in: context,
+                ),
             ))
         }
         return events
@@ -50,15 +63,16 @@ private extension BattleTurnEngine {
             amount: manaEmpowermentBonus + triggers.empowermentDamageBonus,
             includingBothElements: triggers.prismaticScales,
         )
-        guard triggers.flashFreeze else { return ability }
+        guard triggers.flashFreeze || triggers.empowerFreezeDamageBonus > 0 else { return ability }
+        let freezeBonus = (triggers.flashFreeze ? 2 : 0) + triggers.empowerFreezeDamageBonus
         return replacingTalentDamage(
             in: ability,
             components: ability.damageComponents.map {
-                $0.keyword == .freeze ? $0.withManaEmpowerment(2) : $0
+                $0.keyword == .freeze ? $0.withManaEmpowerment(freezeBonus) : $0
             },
             effects: ability.targetedEffects.map {
                 guard $0.effect.keyword == .freeze else { return $0 }
-                return TargetedEffect($0.effect.withManaEmpowerment(2), target: $0.target, condition: $0.condition)
+                return TargetedEffect($0.effect.withManaEmpowerment(freezeBonus), target: $0.target, condition: $0.condition)
             },
         )
     }

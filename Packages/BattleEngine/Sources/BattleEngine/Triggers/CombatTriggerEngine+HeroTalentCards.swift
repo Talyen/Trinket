@@ -33,8 +33,7 @@ extension CombatTriggerEngine {
             default: break
             }
         }
-        if keywords.contains(.poison), context.modifiers(for: actor.id).triggers.dissolvingFumes,
-           context.claimHeroTalent("dissolvingFumes", actorID: actor.id) {
+        if keywords.contains(.poison), context.modifiers(for: actor.id).triggers.dissolvingFumes {
             context.removeTalentPoint(.thorns, from: context.roster.enemy.combatant)
         }
         context.heroTalents.history[actor.id, default: HeroTalentHistory()].lastPlaySerial = context.heroTalents.cards.last?
@@ -89,17 +88,16 @@ extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         let companion = context.roster.companion.combatant
         var events: [ActionEvent] = []
-        if triggers.reactiveCoating, context.claimHeroTalent("reactiveCoating", actorID: actor.id) {
+        if triggers.reactiveCoating {
             events.append(contentsOf: heroTalentThorns(to: actor, source: actor, name: "Reactive Coating", in: &context))
         }
-        if triggers.safeHandling, context.claimHeroTalent("safeHandling", actorID: actor.id) {
+        if triggers.safeHandling {
             context.removeTalentPoint(.burn, from: actor)
         }
-        if triggers.livingBark, context.hasTalentStatus(.thorns, on: actor),
-           context.claimHeroTalent("livingBark", actorID: actor.id) {
+        if triggers.livingBark, context.hasTalentStatus(.thorns, on: actor) {
             events.append(contentsOf: heroTalentBlock(to: actor, source: actor, name: "Living Bark", in: &context))
         }
-        if triggers.coolMoss, context.claimHeroTalent("coolMoss", actorID: actor.id) {
+        if triggers.coolMoss {
             context.removeTalentPoint(.burn, from: companion)
         }
         return events
@@ -111,40 +109,36 @@ extension CombatTriggerEngine {
         let companion = context.roster.companion.combatant
         var events: [ActionEvent] = []
         if card.cleanses {
-            if triggers.clearSolution, card.removedDebuffs == 0,
-               context.claimHeroTalent("clearSolution", actorID: actor.id) {
+            if triggers.clearSolution, card.removedDebuffs == 0 {
                 events.append(contentsOf: heroTalentMana(to: actor, source: actor, name: "Clear Solution", in: &context))
             }
-            if triggers.freshBatch, context.claimHeroTalent("freshBatch", actorID: actor.id) {
+            if triggers.freshBatch {
                 context.removeTalentPoint(.thorns, from: enemy)
             }
         }
         if card.restoredHealth {
-            if triggers.coolingSalve, context.claimHeroTalent("coolingSalve", actorID: actor.id) {
+            if triggers.coolingSalve {
                 context.removeTalentPoint(.burn, from: actor)
             }
-            if card.tier == .basic, triggers.restorativeFumes,
-               context.claimHeroTalent("restorativeFumes", actorID: actor.id) {
+            if card.tier == .basic, triggers.restorativeFumes {
                 context.removeTalentPoint(.shield, from: enemy)
             }
             if actor.role == .companion, context.roster.hero.isAlive {
                 let hero = context.roster.hero.combatant
                 let heroTriggers = context.heroModifiers.triggers
-                if heroTriggers.sharedPrescription, context.claimHeroTalent("sharedPrescription", actorID: hero.id) {
+                if heroTriggers.sharedPrescription {
                     context.removeTalentPoint(.poison, from: hero)
                 }
-                if heroTriggers.pruningTouch, context.claimHeroTalent("pruningTouch", actorID: hero.id) {
+                if heroTriggers.pruningTouch {
                     context.removeTalentPoint(.thorns, from: enemy)
                 }
             }
         }
         if card.restoredMana {
-            if triggers.firstBloom,
-               card.previousDamageKeywords.contains(.poison),
-               context.claimHeroTalent("firstBloom", actorID: actor.id) {
+            if triggers.firstBloom, card.previousDamageKeywords.contains(.poison) {
                 events.append(contentsOf: heroTalentMana(to: companion, source: actor, name: "First Bloom", in: &context))
             }
-            if triggers.livingConduit, context.claimHeroTalent("livingConduit", actorID: actor.id) {
+            if triggers.livingConduit {
                 events.append(contentsOf: heroTalentThorns(to: companion, source: actor, name: "Living Conduit", in: &context))
             }
         }
@@ -155,31 +149,30 @@ extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
         if card.isRandom, card.damageKeywords.isEmpty {
-            if triggers.consolationPrize, context.claimHeroTalent("consolationPrize", actorID: actor.id) {
+            if triggers.consolationPrize {
                 events.append(contentsOf: heroTalentGold(to: actor, name: "Consolation Prize", in: &context))
             }
-            if triggers.falseOpening, context.claimHeroTalent("falseOpening", actorID: actor.id) {
+            if triggers.falseOpening {
                 context.heroTalents.history[actor.id, default: HeroTalentHistory()].falseOpening = true
             }
         }
         if card.isRandom, !card.damageKeywords.isEmpty {
-            if triggers.houseCredit, context.claimHeroTalent("houseCredit", actorID: actor.id) {
+            if triggers.houseCredit {
                 context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparedGold = true
             }
-            if triggers.improvisedAssault, !card.damageKeywords.contains(.physical),
-               context.claimHeroTalent("improvisedAssault", actorID: actor.id) {
+            if triggers.improvisedAssault, !card.damageKeywords.contains(.physical) {
                 context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparedPhysical = true
             }
         }
         if card.grantedGold {
-            if triggers.luckyCharm, context.claimHeroTalent("luckyCharm", actorID: actor.id) {
+            if triggers.luckyCharm {
                 context.removeTalentPoint(.poison, from: actor)
             }
             if triggers.paidInFull {
                 context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparations.insert(.stealGold)
             }
         }
-        if card.tier == .skill, triggers.luckyBreak, context.claimHeroTalent("luckyBreak", actorID: actor.id) {
+        if card.tier == .skill, triggers.luckyBreak {
             let runtime = context.roster.runtime(for: actor)
             let canHeal = (runtime?.currentHealth ?? 0) < (runtime?.maxHealth ?? 0)
                 && !frozenTargetCannotBlockOrHeal(actor, in: context)

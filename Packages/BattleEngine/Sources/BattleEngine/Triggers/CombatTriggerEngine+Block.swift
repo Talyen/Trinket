@@ -20,13 +20,17 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    private static func applyBlockThorns(
+    static func applyBlockThorns(
         amount: Int,
         triggers: CombatTraitTriggers,
         actor: Combatant,
+        abilityKey: String = "blockGainThornsPercent",
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let gained = CombatRounding.scaled(amount, multiplier: triggers.blockGainThornsPercent)
+        let percent = abilityKey == "blockGainThornsPercent"
+            ? triggers.blockGainThornsPercent
+            : triggers.retainedBlockGainThornsPercent
+        let gained = CombatRounding.scaled(amount, multiplier: percent)
         guard gained > 0 else { return [] }
         var effects = context.roster.activeEffects(for: actor)
         let existing = effects.reduce(0) { total, active in
@@ -54,14 +58,14 @@ package extension CombatTriggerEngine {
             effectKind: .thornsApplied,
             actorName: actor.name,
             abilityName: triggerAbilityName(
-                "blockGainThornsPercent",
+                abilityKey,
                 for: actor,
                 fallback: "Thorns",
                 in: context,
             ),
             target: actor,
             amount: total,
-            keyword: .physical,
+            keyword: .thorns,
         )]
     }
 

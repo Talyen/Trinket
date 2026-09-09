@@ -65,14 +65,16 @@ package extension CombatTriggerEngine {
         abilityTarget: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard ability.tier == .skill else { return [] }
+        guard ability.tier == .skill, !context.isEchoingSkill else { return [] }
         let skillCount = context.turnCadence.skillCardsPlayed[owner, default: 0] + 1
         context.turnCadence.skillCardsPlayed[owner] = skillCount
-        guard skillCount == 1,
-              context.modifiers(for: actor.id).triggers.firstSkillCardPlaysTwicePerBattle,
-              !context.skillEchoOwnersThisBattle.contains(actor.id)
+        let empowered = context.roster.runtime(for: actor)?.empoweredThisAction == true
+        context.roster.mutateRuntime(for: actor) { $0.empoweredThisAction = false }
+        guard empowered,
+              context.modifiers(for: actor.id).triggers.empoweredSkillEchoes
         else { return [] }
-        context.skillEchoOwnersThisBattle.insert(actor.id)
+        context.isEchoingSkill = true
+        defer { context.isEchoingSkill = false }
         return BattleTurnEngine.performAction(
             ability: ability,
             actor: actor,

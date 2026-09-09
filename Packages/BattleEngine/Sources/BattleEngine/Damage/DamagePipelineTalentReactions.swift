@@ -90,7 +90,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         if triggers.sunwall, keyword == .holy {
-            state.damageEvents.append(contentsOf: grantTalentPartyBlock(
+            state.damageEvents.append(contentsOf: grantTalentCompanionBlock(
                 state.buildupDamage,
                 source: source.combatant,
                 in: &context,
@@ -143,14 +143,6 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         if triggers.ashenArsenal, keyword == .burn {
-            state.damageEvents.append(contentsOf: drawTalentCard(
-                .physical,
-                for: source.combatant,
-                in: &context,
-            ))
-        }
-        if triggers.bloodrush, keyword == .bleed,
-           context.claimTurnGuard(.bloodrush, actorID: source.id) {
             state.damageEvents.append(contentsOf: drawTalentCard(
                 .physical,
                 for: source.combatant,
@@ -240,6 +232,15 @@ package extension DamagePipeline {
             guard member.isAlive else { return [] }
             return context.applyBlock(amount, to: member.combatant, source: source, abilityName: "Sunwall")
         }
+    }
+
+    private static func grantTalentCompanionBlock(
+        _ amount: Int,
+        source: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard amount > 0, context.roster.companion.isAlive else { return [] }
+        return context.applyBlock(amount, to: context.roster.companion.combatant, source: source, abilityName: "Sunwall")
     }
 
     private static func drawTalentCard(

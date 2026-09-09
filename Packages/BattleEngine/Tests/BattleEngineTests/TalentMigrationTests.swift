@@ -237,7 +237,7 @@ struct TalentMigrationTests {
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
 
-    @Test func `sunwall grants party block on holy damage`() {
+    @Test func `sunwall grants companion block on holy damage`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(sunwall: true)))
         _ = battle.withEngineContext { ctx in
             ctx.resolveDamage(DamageRequest(
@@ -248,7 +248,7 @@ struct TalentMigrationTests {
                 options: DamageOptions(isAttackHit: true),
             ))
         }
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) > 0)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) > 0)
     }
 
@@ -728,5 +728,426 @@ extension TalentMigrationTests {
             }
         }
         #expect(buffRemains)
+    }
+
+    @Test func `stalwart oath grants 6 block on stun`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(onStunEnemyGainBlock: 6)))
+        battle.appliesFightPacing = false
+        _ = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 20,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.stun,
+                sourceActorID: ctx.roster.hero.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
+    }
+
+    @Test func `gilded carapace grants 2 block on stun`() {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(onStunEnemyGainBlock: 2)))
+        battle.appliesFightPacing = false
+        _ = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 20,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.stun,
+                sourceActorID: ctx.roster.companion.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
+    }
+
+    @Test func `skullcracker adds stun only against stunned enemies`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(attack: AttackTriggers(physicalVsStunnedStunBuildup: 2)))
+        battle.appliesFightPacing = false
+        _ = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 1,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.physical,
+                sourceActorID: ctx.roster.hero.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .controlMeter })
+        _ = battle.withEngineContext { ctx in
+            _ = ControlMeterEngine.applyMeterCharge(
+                20, keyword: .stun, to: ctx.roster.enemy.combatant,
+                sourceActorID: ctx.roster.hero.id, applyFightPacing: false, in: &ctx,
+            )
+            ctx.resolveDamage(DamageRequest(
+                amount: 1,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.physical,
+                sourceActorID: ctx.roster.hero.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
+    }
+
+    @Test func `slip away dodges the first attack each combat`() {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeFirstAttackEachCombat: true)))
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        #expect(battle.roster.activeEffects(for: battle.companion).contains {
+            if case .evadeNextHit = $0.effect {
+                return true
+            }
+            return false
+        })
+    }
+
+    @Test func `bloodprice heals on attacks against bleeding enemies`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(onAttackBleedingEnemyHeal: 2)))
+        battle.appliesFightPacing = false
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
+                for: ctx.roster.enemy.combatant,
+            )
+            ctx.roster.mutateRuntime(for: ctx.roster.hero.combatant) {
+                $0.currentHealth = $0.maxHealth - 5
+            }
+        }
+        let missing = battle.maxHealth(of: battle.hero) - battle.health(of: battle.hero)
+        _ = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 2,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.physical,
+                sourceActorID: ctx.roster.hero.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(battle.maxHealth(of: battle.hero) - battle.health(of: battle.hero) == missing - 2)
+    }
+
+    @Test func `golden guard grants block while carrying enough gold`() {
+        var battle = makeBattle(
+            heroTriggers: CombatTraitTriggers(block: BlockTriggers(blockWhileGoldThreshold: 10, blockWhileGoldAmount: 2)),
+            initialGold: 10,
+        )
+        let events = CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 2)
+        #expect(events.contains(where: { $0.abilityName == "Golden Guard" }))
+
+        var poor = makeBattle(
+            heroTriggers: CombatTraitTriggers(block: BlockTriggers(blockWhileGoldThreshold: 10, blockWhileGoldAmount: 2)),
+        )
+        _ = CombatTriggerEngine.turnBlock(for: poor.hero, in: &poor)
+        #expect(BattleTestFixtures.shieldPoints(for: poor.hero, in: poor) == 0)
+    }
+
+    @Test func `pulverize applies bleed and stun once per turn`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(attack: AttackTriggers(firstPhysicalBleedStunPerTurn: true)))
+        battle.appliesFightPacing = false
+        for _ in 0 ..< 2 {
+            _ = battle.withEngineContext { ctx in
+                ctx.resolveDamage(DamageRequest(
+                    amount: 1,
+                    target: ctx.roster.enemy.combatant,
+                    keyword: Keyword.physical,
+                    sourceActorID: ctx.roster.hero.id,
+                    options: DamageOptions(isAttackHit: true),
+                ))
+            }
+        }
+        let bleeds = battle.activeEffects(of: battle.enemy).filter(\.effect.isBleed)
+        #expect(bleeds.count == 1)
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .controlMeter(.stun, 1, 20) })
+    }
+
+    @Test func `flashover doubles burn ticks against frozen enemies`() {
+        for frozen in [false, true] {
+            var battle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(burnDoubleVsFrozenChancePercent: 1.0)))
+            battle.appliesFightPacing = false
+            _ = battle.withEngineContext { ctx in
+                if frozen {
+                    _ = ControlMeterEngine.applyMeterCharge(
+                        20, keyword: .freeze, to: ctx.roster.enemy.combatant,
+                        sourceActorID: ctx.roster.hero.id, applyFightPacing: false, in: &ctx,
+                    )
+                }
+            }
+            let before = battle.health(of: battle.enemy)
+            let active = ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0, sourceActorID: battle.hero.id)
+            _ = DecayingDoTHandler(keyword: .burn, kind: .burn).advanceTurn(active, on: battle.enemy, in: &battle)
+            #expect(before - battle.health(of: battle.enemy) == (frozen ? 4 : 2))
+        }
+    }
+
+    @Test func `aether shield grants block on first overheal each turn`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(overhealFirstBlockPerTurn: 3)))
+        for expected in [3, 3] {
+            _ = battle.withEngineContext { ctx in
+                _ = HealingEngine.resolveHeal(
+                    HealRequest(amount: 5, target: ctx.roster.hero.combatant, sourceActorID: ctx.roster.hero.id, logAs: .silent),
+                    in: &ctx,
+                )
+            }
+            #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == expected)
+        }
+        battle.turnCount += 1
+        _ = battle.withEngineContext { ctx in
+            _ = HealingEngine.resolveHeal(
+                HealRequest(amount: 5, target: ctx.roster.hero.combatant, sourceActorID: ctx.roster.hero.id, logAs: .silent),
+                in: &ctx,
+            )
+        }
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
+    }
+
+    @Test func `reclaimed reagents converts overheal to block up to four`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(overhealShieldCap: 4)))
+        battle.appliesFightPacing = false
+        _ = battle.withEngineContext { ctx in
+            _ = HealingEngine.resolveHeal(
+                HealRequest(amount: 10, target: ctx.roster.hero.combatant, sourceActorID: ctx.roster.hero.id, logAs: .silent),
+                in: &ctx,
+            )
+        }
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 4)
+    }
+
+    @Test func `rimewind deals freeze damage on dodge`() {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(control: ControlTriggers(dodgeDealFreezeFlat: 2)))
+        battle.appliesFightPacing = false
+        let before = battle.health(of: battle.enemy)
+        _ = CombatTriggerEngine.afterDodge(
+            by: battle.roster.companion.combatant, attackerID: battle.roster.enemy.id, in: &battle,
+        )
+        #expect(before - battle.health(of: battle.enemy) == 2)
+    }
+
+    @Test func `vanish guarantees critical after dodge`() {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeNextAttackGuaranteedCritical: true)))
+        _ = CombatTriggerEngine.afterDodge(
+            by: battle.roster.companion.combatant, attackerID: battle.roster.enemy.id, in: &battle,
+        )
+        #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.pendingGuaranteedCriticalAfterDodge == true)
+    }
+
+    @Test func `pyromancer restores mana on burn empowerment`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(onEmpowerBurnRestoreMana: 1)))
+        var ability = Ability.meteor
+        _ = battle.withEngineContext { ctx in
+            _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+                for: &ability, actor: ctx.roster.hero.combatant, context: &ctx,
+            )
+        }
+        #expect(battle.roster.runtime(for: battle.roster.hero.combatant)?.currentMana == 3)
+    }
+
+    @Test func `frost guard adds freeze damage to empowerment`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(empowerFreezeDamageBonus: 1)))
+        var ability = Ability.frostbolt
+        _ = battle.withEngineContext { ctx in
+            _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+                for: &ability, actor: ctx.roster.hero.combatant, context: &ctx,
+            )
+        }
+        #expect(ability.damageComponents.first(where: { $0.keyword == .freeze })?.amount == 5)
+    }
+
+    @Test func `dark recovery deals stun when spending last mana`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(spendLastManaStunDamage: 3)))
+        battle.appliesFightPacing = false
+        battle.withEngineContext { ctx in
+            ctx.roster.mutateRuntime(for: ctx.roster.hero.combatant) { $0.currentMana = 0 }
+        }
+        let before = battle.health(of: battle.enemy)
+        _ = battle.withEngineContext { ctx in
+            _ = CombatTriggerEngine.afterSpendMana(by: ctx.roster.hero.combatant, amountSpent: 1, in: &ctx)
+        }
+        #expect(before - battle.health(of: battle.enemy) == 3)
+    }
+
+    @Test func `golden opportunity draws on large gold gains`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(gold: GoldTriggers(gainGoldDrawThreshold: 5)))
+        battle.heroDeck.putOnBottom(.slash)
+        let events = battle.withEngineContext { ctx in
+            ctx.grantGoldEvent(5, to: ctx.roster.hero.combatant, abilityName: "test")
+        }
+        #expect(events.contains(where: { $0.effectKind == .cardsDrawn }))
+    }
+
+    @Test func `searing bind extends stun against burning enemies`() {
+        for burning in [false, true] {
+            var battle = makeBattle(heroTriggers: CombatTraitTriggers(control: ControlTriggers(stunExtendVsBurning: true)))
+            battle.appliesFightPacing = false
+            _ = battle.withEngineContext { ctx in
+                if burning {
+                    ctx.roster.setActiveEffects(
+                        [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
+                        for: ctx.roster.enemy.combatant,
+                    )
+                }
+                _ = ControlMeterEngine.applyMeterCharge(
+                    20, keyword: .stun, to: ctx.roster.enemy.combatant,
+                    sourceActorID: ctx.roster.hero.id, applyFightPacing: false, in: &ctx,
+                )
+            }
+            #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
+            #expect(battle.additionalControlSkipsByCombatantID[battle.roster.enemy.id, default: 0] == (burning ? 1 : 0))
+        }
+    }
+
+    @Test func `intense heat only boosts phoenix damage against burning enemies`() {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(damage: DamageTriggers(companionDamageVsBurningMultiplier: 1.25)))
+        battle.appliesFightPacing = false
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
+                for: ctx.roster.enemy.combatant,
+            )
+        }
+        let before = battle.health(of: battle.enemy)
+        _ = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 4,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.burn,
+                sourceActorID: ctx.roster.companion.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(before - battle.health(of: battle.enemy) == 5)
+    }
+
+    @Test func `scorched earth weakens burning attackers`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(mitigation: MitigationTriggers(burningEnemyDamageReductionFlat: 1)))
+        battle.appliesFightPacing = false
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
+                for: ctx.roster.enemy.combatant,
+            )
+        }
+        let outcome = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 5,
+                target: ctx.roster.hero.combatant,
+                keyword: Keyword.physical,
+                sourceActorID: ctx.roster.enemy.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(outcome.healthLost == 4)
+    }
+
+    @Test func `pickpocket steals extra gold from poisoned enemies`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(
+            attack: AttackTriggers(onAttackStealGold: 1),
+            gold: GoldTriggers(stealGoldBonusVsPoisoned: 1),
+        ))
+        battle.appliesFightPacing = false
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 0)],
+                for: ctx.roster.enemy.combatant,
+            )
+        }
+        _ = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 2,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.physical,
+                sourceActorID: ctx.roster.hero.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(battle.gold == 2)
+    }
+
+    @Test func `bone crushing bites harder through block`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(physicalDamageVsBlockedBonus: 2)))
+        battle.appliesFightPacing = false
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
+                for: ctx.roster.enemy.combatant,
+            )
+        }
+        let outcome = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 4,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.physical,
+                sourceActorID: ctx.roster.hero.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(outcome.healthLost == 1)
+    }
+
+    @Test func `plated hide grants block when hit`() {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(onHit: OnHitTriggers(onHitGainBlock: 2)))
+        battle.appliesFightPacing = false
+        _ = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 3,
+                target: ctx.roster.companion.combatant,
+                keyword: Keyword.physical,
+                sourceActorID: ctx.roster.enemy.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
+    }
+
+    @Test func `spiked shell grows thorns from retained block`() {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(retainedBlockGainThornsPercent: 0.5)))
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
+                for: ctx.roster.companion.combatant,
+            )
+            _ = DefensePoolEngine.decayBlock(on: ctx.roster.companion.combatant, in: &ctx)
+        }
+        let thorns = battle.activeEffects(of: battle.companion).reduce(0) { sum, active in
+            guard case let .thorns(stacks) = active.effect else { return sum }
+            return sum + stacks
+        }
+        #expect(thorns == 2)
+    }
+
+    @Test func `enduring shell retains half block`() {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(blockRetainsHalf: true)))
+        battle.withEngineContext { ctx in
+            ctx.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 0)],
+                for: ctx.roster.companion.combatant,
+            )
+            _ = DefensePoolEngine.decayBlock(on: ctx.roster.companion.combatant, in: &ctx)
+        }
+        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 25)
+    }
+
+    @Test func `seismic roar stuns while below half health`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(
+            attack: AttackTriggers(attackStunBuildupBelowHealthThreshold: 0.5, attackStunBuildupBelowHealthBonus: 2),
+        ))
+        battle.appliesFightPacing = false
+        battle.withEngineContext { ctx in
+            ctx.roster.mutateRuntime(for: ctx.roster.hero.combatant) {
+                $0.currentHealth = $0.maxHealth / 2 - 1
+            }
+            _ = ControlMeterEngine.applyMeterCharge(
+                18, keyword: .stun, to: ctx.roster.enemy.combatant,
+                sourceActorID: ctx.roster.hero.id, applyFightPacing: false, in: &ctx,
+            )
+            ctx.resolveDamage(DamageRequest(
+                amount: 1,
+                target: ctx.roster.enemy.combatant,
+                keyword: Keyword.physical,
+                sourceActorID: ctx.roster.hero.id,
+                options: DamageOptions(isAttackHit: true),
+            ))
+        }
+        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
     }
 }

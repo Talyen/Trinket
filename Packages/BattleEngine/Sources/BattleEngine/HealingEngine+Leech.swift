@@ -58,6 +58,10 @@ package extension HealingEngine {
            Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target)) < 0.5 {
             restored += profile.triggers.leechBonusHealVsLowHealthEnemies
         }
+        if let target, profile.triggers.leechBonusHealVsStunned > 0,
+           context.roster.hasControlStatus(for: target, keyword: .stun) {
+            restored += profile.triggers.leechBonusHealVsStunned
+        }
         if let target, profile.triggers.leechHealingVsAfflictedMultiplier > 1 {
             let afflicted = context.roster.activeEffects(for: target).contains {
                 $0.effect.keyword == .poison || $0.effect.keyword == .bleed

@@ -57,6 +57,11 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var storedImpact: Bool = false
     public var iceboundExchange: Bool = false
     public var glacialReprieve: Bool = false
+    public var retainedBlockGainThornsPercent: Double = 0
+    public var onStunEnemyGainBlock: Int = 0
+    public var blockRetainsHalf: Bool = false
+    public var blockWhileGoldThreshold: Int = 0
+    public var blockWhileGoldAmount: Int = 0
 
     public init(
         sealedSarcophagus: Bool = false,
@@ -111,7 +116,12 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         unbrokenVow: Bool = false,
         storedImpact: Bool = false,
         iceboundExchange: Bool = false,
-        glacialReprieve: Bool = false
+        glacialReprieve: Bool = false,
+        retainedBlockGainThornsPercent: Double = 0,
+        onStunEnemyGainBlock: Int = 0,
+        blockRetainsHalf: Bool = false,
+        blockWhileGoldThreshold: Int = 0,
+        blockWhileGoldAmount: Int = 0
     ) {
         self.sealedSarcophagus = sealedSarcophagus
         self.retainAllBlockBetweenTurns = retainAllBlockBetweenTurns
@@ -166,10 +176,15 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.storedImpact = storedImpact
         self.iceboundExchange = iceboundExchange
         self.glacialReprieve = glacialReprieve
+        self.retainedBlockGainThornsPercent = retainedBlockGainThornsPercent
+        self.onStunEnemyGainBlock = onStunEnemyGainBlock
+        self.blockRetainsHalf = blockRetainsHalf
+        self.blockWhileGoldThreshold = blockWhileGoldThreshold
+        self.blockWhileGoldAmount = blockWhileGoldAmount
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["sealedSarcophagus", "retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "blockGainedMaxHealthEvery", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "companionFatalDamageRedirectBlock", "onEnemyFrozenGainBlock", "onCompanionTakeDamageGrantHeroBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "sunwall", "unbrokenVow", "storedImpact", "iceboundExchange", "glacialReprieve"]
+    public static let fieldNames: [String] = ["sealedSarcophagus", "retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "blockGainedMaxHealthEvery", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "companionFatalDamageRedirectBlock", "onEnemyFrozenGainBlock", "onCompanionTakeDamageGrantHeroBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "sunwall", "unbrokenVow", "storedImpact", "iceboundExchange", "glacialReprieve", "retainedBlockGainThornsPercent", "onStunEnemyGainBlock", "blockRetainsHalf", "blockWhileGoldThreshold", "blockWhileGoldAmount"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -227,6 +242,11 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         if self.storedImpact != other.storedImpact { names.append("storedImpact") }
         if self.iceboundExchange != other.iceboundExchange { names.append("iceboundExchange") }
         if self.glacialReprieve != other.glacialReprieve { names.append("glacialReprieve") }
+        if self.retainedBlockGainThornsPercent != other.retainedBlockGainThornsPercent { names.append("retainedBlockGainThornsPercent") }
+        if self.onStunEnemyGainBlock != other.onStunEnemyGainBlock { names.append("onStunEnemyGainBlock") }
+        if self.blockRetainsHalf != other.blockRetainsHalf { names.append("blockRetainsHalf") }
+        if self.blockWhileGoldThreshold != other.blockWhileGoldThreshold { names.append("blockWhileGoldThreshold") }
+        if self.blockWhileGoldAmount != other.blockWhileGoldAmount { names.append("blockWhileGoldAmount") }
         return names
     }
 }
@@ -286,6 +306,11 @@ extension BlockTriggers {
         storedImpact = storedImpact || other.storedImpact
         iceboundExchange = iceboundExchange || other.iceboundExchange
         glacialReprieve = glacialReprieve || other.glacialReprieve
+        retainedBlockGainThornsPercent += other.retainedBlockGainThornsPercent
+        onStunEnemyGainBlock += other.onStunEnemyGainBlock
+        blockRetainsHalf = blockRetainsHalf || other.blockRetainsHalf
+        blockWhileGoldThreshold = max(blockWhileGoldThreshold, other.blockWhileGoldThreshold)
+        blockWhileGoldAmount += other.blockWhileGoldAmount
     }
 }
 
@@ -345,7 +370,12 @@ extension BlockTriggers {
             unbrokenVow: values.decode(Bool.self, "unbrokenVow", default: false),
             storedImpact: values.decode(Bool.self, "storedImpact", default: false),
             iceboundExchange: values.decode(Bool.self, "iceboundExchange", default: false),
-            glacialReprieve: values.decode(Bool.self, "glacialReprieve", default: false)
+            glacialReprieve: values.decode(Bool.self, "glacialReprieve", default: false),
+            retainedBlockGainThornsPercent: values.decode(Double.self, "retainedBlockGainThornsPercent", default: 0),
+            onStunEnemyGainBlock: values.decode(Int.self, "onStunEnemyGainBlock", default: 0),
+            blockRetainsHalf: values.decode(Bool.self, "blockRetainsHalf", default: false),
+            blockWhileGoldThreshold: values.decode(Int.self, "blockWhileGoldThreshold", default: 0),
+            blockWhileGoldAmount: values.decode(Int.self, "blockWhileGoldAmount", default: 0)
         )
     }
 
@@ -403,5 +433,10 @@ extension BlockTriggers {
         try container.encodeNonDefault(storedImpact, "storedImpact", default: false)
         try container.encodeNonDefault(iceboundExchange, "iceboundExchange", default: false)
         try container.encodeNonDefault(glacialReprieve, "glacialReprieve", default: false)
+        try container.encodeNonDefault(retainedBlockGainThornsPercent, "retainedBlockGainThornsPercent", default: 0)
+        try container.encodeNonDefault(onStunEnemyGainBlock, "onStunEnemyGainBlock", default: 0)
+        try container.encodeNonDefault(blockRetainsHalf, "blockRetainsHalf", default: false)
+        try container.encodeNonDefault(blockWhileGoldThreshold, "blockWhileGoldThreshold", default: 0)
+        try container.encodeNonDefault(blockWhileGoldAmount, "blockWhileGoldAmount", default: 0)
     }
 }
