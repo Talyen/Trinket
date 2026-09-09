@@ -42,7 +42,7 @@ struct PlayBattleRoute {
     let complete: @MainActor (
         BattleRunConfiguration,
         BattlePresentationContext?,
-        Int,
+        BattleRewardAward,
         [ResourceAmount]?,
         BattleLootResult?,
     ) -> Bool
@@ -60,6 +60,12 @@ struct PlayBattleRoute {
 @MainActor
 struct PlayBattleRunRegistration {
     let route: PlayBattleRoute
-    let presentation: BattlePresentationContext
-    let universalModifiers: [AffixModifier]
+    let launch: BattleLaunchAssembly
+    var presentation: BattlePresentationContext {
+        launch.presentation
+    }
+
+    var universalModifiers: [AffixModifier] {
+        launch.universalModifiers
+    }
 }

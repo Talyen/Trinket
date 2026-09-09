@@ -4,6 +4,14 @@ import Testing
 
 @MainActor
 struct RewardRevealSequenceStateTests {
+    @Test func `a gold loss remains visible in the reward sequence`() async {
+        let state = makeState()
+        let count = RewardRevealLootSection.walletRewardCount(gold: -5, materials: [])
+        state.start(itemCount: 0, walletCount: count)
+        #expect(await waitUntil { state.isSequenceComplete })
+        #expect(state.visibleWalletRewardCount == 1)
+    }
+
     @Test func `start completes wallet and item reveal`() async {
         let state = makeState()
         state.start(itemCount: 1, walletCount: 2)

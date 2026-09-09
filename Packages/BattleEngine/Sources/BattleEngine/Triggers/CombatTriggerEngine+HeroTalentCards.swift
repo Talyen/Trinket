@@ -5,32 +5,26 @@ extension CombatTriggerEngine {
     static func captureHeroOutcome(original: Ability, resolved: Ability, actor: Combatant, in context: inout BattleState) {
         guard context.hasHeroCard(for: actor.id), context.heroTalents.cards.last?.capturedOutcome == false else { return }
         var keywords: Set<Keyword> = []
-        for component in resolved.damageComponents where component.target != .actor {
-            var amount = component.amount
-            if let condition = component.condition {
-                if BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
-                    amount += component.bonusAmount
-                } else if component.bonusAmount == 0 {
-                    continue
-                }
-            }
-            if amount > 0 {
-                keywords.insert(component.keyword)
-            }
-        }
         var cleanses = false
-        for targeted in resolved.targetedEffects {
-            if let condition = targeted.condition,
-               !BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
-                continue
-            }
-            switch targeted.effect.kind {
-            case .burn, .poison, .bleed, .controlMeter:
-                if (targeted.effect.potency ?? 0) > 0 {
-                    keywords.insert(targeted.effect.keyword)
+        let action = context.resolution.actionContext ?? BattleActionContext(actor: actor, in: context)
+        for operation in resolved.operations {
+            let eligible = operation.condition.map { BattleConditionEvaluator.isMet($0, action: action, in: context) } ?? true
+            switch operation {
+            case let .damage(component):
+                guard component.target != .actor else { continue }
+                guard eligible || component.bonusAmount > 0 else { continue }
+                if component.amount + (eligible ? component.bonusAmount : 0) > 0 {
+                    keywords.insert(component.keyword)
                 }
-            case .cleanse, .cleanseRandom, .cleanseHealPerDebuff, .panacea: cleanses = true
-            default: break
+            case let .effect(targeted):
+                guard eligible else { continue }
+                if let keyword = operation.damageKeyword {
+                    keywords.insert(keyword)
+                }
+                switch targeted.effect {
+                case .cleanse, .cleanseRandom, .cleanseHealPerDebuff, .panacea: cleanses = true
+                default: break
+                }
             }
         }
         if keywords.contains(.poison), context.modifiers(for: actor.id).triggers.dissolvingFumes {

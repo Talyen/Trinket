@@ -17,7 +17,7 @@ struct CombatTriggerTalentDamageTests {
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = health }
         let hit = DamageResolutionState(
             amount: 1, combatant: battle.companion, sourceActorID: battle.enemy.id,
-            damageKeyword: .physical, options: .init(),
+            damageKeyword: .physical, options: .attack(),
         )
         #expect(DamagePipeline.dodgeChance(for: hit, in: battle) == (health > 10 ? 0.25 : 0.10))
     }
@@ -129,7 +129,7 @@ struct CombatTriggerTalentDamageTests {
                 target: undead.roster.enemy.combatant,
                 keyword: .holy,
                 sourceActorID: undead.roster.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
             ),
         )
         var mortal = BattleStateTestFactory.makeBattle(
@@ -146,7 +146,7 @@ struct CombatTriggerTalentDamageTests {
                 target: mortal.roster.enemy.combatant,
                 keyword: .holy,
                 sourceActorID: mortal.roster.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
             ),
         )
         #expect(vsUndead.healthLost == 8)
@@ -185,19 +185,14 @@ struct CombatTriggerTalentDamageTests {
             heroModifiers: harvest,
             dealOpeningHand: false,
         )
-        battle.talentReactionDepth = 2
+
         _ = battle.resolveDamage(
             DamageRequest(
                 amount: 3,
                 target: battle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: battle.roster.hero.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isAttackHit: true,
-                ),
+                options: DamageOperation.attack(origin: .counterattack, scaling: .flat, accuracy: .unavoidable),
             ),
         )
         #expect(DefensePoolEngine.blockPoints(
@@ -226,7 +221,7 @@ struct CombatTriggerTalentDamageTests {
             target: battle.roster.enemy.combatant,
             keyword: .physical,
             sourceActorID: battle.roster.companion.id,
-            options: DamageOptions(applyStatBonus: false, applyItemBonus: true, applyDodge: false, isAttackHit: true),
+            options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable),
         ))
         #expect(outcome.healthLost == 9)
     }
@@ -247,13 +242,7 @@ struct CombatTriggerTalentDamageTests {
             target: battle.roster.enemy.combatant,
             keyword: .holy,
             sourceActorID: battle.roster.hero.id,
-            options: DamageOptions(
-                applyStatBonus: false,
-                applyItemBonus: false,
-                applyDodge: false,
-                isRetaliation: true,
-                isAttackHit: false,
-            ),
+            options: DamageOperation.reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable),
         ))
         #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction ?? 0 == 0)
     }
@@ -283,7 +272,7 @@ struct CombatTriggerTalentDamageTests {
             target: stacked.roster.enemy.combatant,
             keyword: .physical,
             sourceActorID: stacked.roster.hero.id,
-            options: DamageOptions(applyStatBonus: false, applyDodge: false),
+            options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
         ))
         #expect(stackedHit.healthLost == 30)
         #expect(stackedHit.events.contains { $0.abilityName == "Damnation" && $0.kind == .ability })
@@ -307,7 +296,7 @@ struct CombatTriggerTalentDamageTests {
             target: companionAura.roster.enemy.combatant,
             keyword: .physical,
             sourceActorID: companionAura.roster.hero.id,
-            options: DamageOptions(applyStatBonus: false, applyDodge: false),
+            options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
         ))
         #expect(auraHit.healthLost == 25)
         #expect(auraHit.events.contains { $0.abilityName == "Intense Heat" && $0.kind == .ability })
@@ -334,7 +323,7 @@ struct CombatTriggerTalentDamageTests {
                 target: battle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: battle.roster.companion.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: true, applyDodge: false),
+                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
             ),
         )
         #expect(outcome.healthLost == 7)
@@ -356,7 +345,7 @@ struct CombatTriggerTalentDamageTests {
                 target: battle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: battle.roster.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: true, applyDodge: false),
+                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
             ),
         )
         #expect(outcome.healthLost == 7)
@@ -364,6 +353,35 @@ struct CombatTriggerTalentDamageTests {
 }
 
 extension CombatTriggerTalentDamageTests {
+    @Test(arguments: [(false, true, 8), (true, true, 5), (false, false, 5), (true, false, 5)])
+    func `enrage boosts only party attacks`(enemySource: Bool, attackHit: Bool, expectedDamage: Int) {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                damage: DamageTriggers(
+                    partyAllStatsBonusBelowHealthThreshold: 0.5,
+                    partyAllStatsBonusBelowHealthAmount: 3,
+                ),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 9 }
+        let sourceID = enemySource ? battle.enemy.id : battle.hero.id
+        let target = enemySource ? battle.hero : battle.enemy
+        let request = attackHit ? DamageRequest(
+            amount: 5,
+            target: target,
+            keyword: .physical,
+            sourceActorID: sourceID,
+            options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ) : DamageRequest.doTTick(amount: 5, target: target, keyword: .burn, sourceActorID: sourceID)
+        let outcome = battle.resolveDamage(request)
+        #expect(outcome.healthLost == expectedDamage)
+    }
+
     @Test func `unbroken vow allows ally with block to ignore enemy block and dodge`() {
         var battle = BattleTestFixtures.makePipelineContext(
             companionModifiers: .init(triggers: CombatTraitTriggers(

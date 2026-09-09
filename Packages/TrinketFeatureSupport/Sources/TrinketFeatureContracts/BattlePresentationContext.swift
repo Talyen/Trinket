@@ -17,6 +17,17 @@ public struct BattlePresentationContext: Sendable {
     public let materialRewards: [ResourceAmount]
     public let labyrinthModifiers: [LabyrinthModifierDefinition]
 
+    public var rewardPlan: BattleRewardPlan {
+        BattleRewardPlan(
+            stageGold: stageRewardsAlreadyClaimed ? 0 : stageReward?.gold ?? 0,
+            goldFindPercent: goldFindPercent,
+            heroExperience: stageRewardsAlreadyClaimed ? 0 : heroExperienceAward,
+            companionExperience: stageRewardsAlreadyClaimed ? 0 : companionExperienceAward,
+            materials: stageRewardsAlreadyClaimed ? [] : materialRewards,
+            items: stageRewardsAlreadyClaimed ? [] : rewardItems,
+        )
+    }
+
     public init(
         inventoryItems: [InventoryItem],
         stageReward: StageReward?,

@@ -202,12 +202,12 @@ package extension CombatTriggerEngine {
                     amount: amount,
                     target: actor,
                     sourceActorID: actor.id,
-                    logAs: .instantHeal(
+                    origin: .periodic, logAs: .instantHeal(
                         actorName: actor.name,
                         abilityName: "Lingering Blessing",
                         keyword: .health,
                     ),
-                    isHoTTick: true,
+
                 ),
                 in: &context,
             ).events)
@@ -379,14 +379,13 @@ package extension CombatTriggerEngine {
            context.turnCount > 0,
            context.turnCount.isMultiple(of: triggers.everyNTurnsStunBuildupInterval),
            context.roster.enemy.isAlive {
-            events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                triggers.everyNTurnsStunBuildupAmount,
+            events.append(contentsOf: context.resolveDamage(DamageRequest(
+                amount: triggers.everyNTurnsStunBuildupAmount,
+                target: context.roster.enemy.combatant,
                 keyword: .stun,
-                to: context.roster.enemy.combatant,
                 sourceActorID: actor.id,
-                applyFightPacing: false,
-                in: &context,
-            ))
+                options: .reaction(),
+            )).events)
             if triggers.everyNTurnsTeamBlockAmount > 0 {
                 for memberOwner in [BattleParticipant.hero, .companion] {
                     let member = context.roster[memberOwner]

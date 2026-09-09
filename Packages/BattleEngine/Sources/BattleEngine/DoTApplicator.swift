@@ -8,16 +8,16 @@ package enum DoTApplicator {
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
-        dealImmediateDamage: Bool,
-        suppressAffixReactions: Bool = false,
+        application: DoTApplication,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        let resolvedPotency = goldenTouchPotency(potency, sourceActorID: sourceActorID, in: &context)
+        let resolvedPotency = application.adjustsPotency
+            ? goldenTouchPotency(potency, sourceActorID: sourceActorID, in: &context) : potency
 
         var collected: [ActionEvent] = []
-        if dealImmediateDamage {
+        if application.dealsImmediateDamage {
             collected.append(contentsOf: DoTDamage.resolveTurnDamage(
                 basePotency: resolvedPotency,
                 keyword: keyword,
@@ -45,7 +45,7 @@ package enum DoTApplicator {
             )
         }
         context.roster.setActiveEffects(currentEffects, for: effectTarget)
-        if !suppressAffixReactions {
+        if application.triggersApplicationReactions {
             collected.append(contentsOf: CombatTriggerEngine.afterDecayingDoTApplied(
                 keyword: keyword,
                 to: effectTarget,
@@ -60,17 +60,17 @@ package enum DoTApplicator {
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
-        dealImmediateDamage: Bool,
-        suppressAffixReactions: Bool = false,
+        application: DoTApplication,
         durationTurns: Int? = nil,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        let resolvedPotency = goldenTouchPotency(potency, sourceActorID: sourceActorID, in: &context)
+        let resolvedPotency = application.adjustsPotency
+            ? goldenTouchPotency(potency, sourceActorID: sourceActorID, in: &context) : potency
 
         var collected: [ActionEvent] = []
-        if dealImmediateDamage {
+        if application.dealsImmediateDamage {
             collected.append(contentsOf: DoTDamage.resolveTurnDamage(
                 basePotency: resolvedPotency,
                 keyword: .bleed,
@@ -82,7 +82,7 @@ package enum DoTApplicator {
 
         guard !context.interceptDebuff(.bleed(resolvedPotency), on: effectTarget) else { return collected }
         let alreadyBleeding = context.roster.activeEffects(for: effectTarget).contains(where: \.effect.isBleed)
-        if alreadyBleeding {
+        if alreadyBleeding, application != .reflection {
             let sourceTriggers = context.modifiers(for: sourceActorID).triggers
             if sourceTriggers.bleedApplicationTicksExisting {
                 let bleeds = context.roster.activeEffects(for: effectTarget).filter {
@@ -116,7 +116,7 @@ package enum DoTApplicator {
             sourceID: sourceActorID,
             remainingTurns: durationTurns ?? (Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus),
         )
-        if !suppressAffixReactions {
+        if application.triggersApplicationReactions {
             collected.append(contentsOf: CombatTriggerEngine.afterBleedApplied(
                 to: effectTarget,
                 sourceActorID: sourceActorID,

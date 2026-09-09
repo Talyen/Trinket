@@ -3,18 +3,12 @@ import TrinketCore
 
 extension BattleState {
     var allowsHeroTalentReaction: Bool {
-        heroTalents.reactionDepth == 0
+        resolution.depth(.heroReaction) == 0
     }
 
     mutating func claimHeroTalent(_ name: String, actorID: String, battle: Bool = false) -> Bool {
         guard allowsHeroTalentReaction else { return false }
-        let key = actorID + ":" + name
-        if battle {
-            return heroTalents.battleClaims.insert(key).inserted
-        }
-        guard heroTalents.turnClaims[key] != turnCount else { return false }
-        heroTalents.turnClaims[key] = turnCount
-        return true
+        return resolution.claim(.heroTalent(name), actorID: actorID, cadence: battle ? .battle : .turn(turnCount))
     }
 
     mutating func mutateHeroCard(_ body: (inout HeroTalentCardFacts) -> Void) {
@@ -23,14 +17,12 @@ extension BattleState {
     }
 
     func hasHeroCard(for actorID: String) -> Bool {
-        allowsHeroTalentReaction && heroTalents.cards.last?.actorID == actorID
+        allowsHeroTalentReaction && resolution.attackOrigin != .counterattack && heroTalents.cards.last?.actorID == actorID
     }
 
     mutating func claimHeroCardBonus(_ name: String, actorID: String) -> Bool {
-        guard hasHeroCard(for: actorID), let card = heroTalents.cards.last,
-              !card.appliedBonuses.contains(name) else { return false }
-        mutateHeroCard { $0.appliedBonuses.insert(name) }
-        return true
+        guard hasHeroCard(for: actorID), let card = heroTalents.cards.last else { return false }
+        return resolution.claim(.heroCard(name), actorID: actorID, cadence: .card(card.playSerial))
     }
 
     func hasTalentStatus(_ kind: EffectKind, on target: Combatant) -> Bool {

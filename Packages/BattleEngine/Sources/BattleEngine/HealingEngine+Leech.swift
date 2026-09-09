@@ -84,7 +84,7 @@ package extension HealingEngine {
                     amount: restored,
                     target: context.roster.companion.combatant,
                     sourceActorID: sourceActorID,
-                    logAs: .leech,
+                    origin: .leech, logAs: .silent,
                 ),
                 in: &context,
             )
@@ -110,7 +110,7 @@ package extension HealingEngine {
                     amount: restored,
                     target: actorCombatant,
                     sourceActorID: sourceActorID,
-                    logAs: .leech,
+                    origin: .leech, logAs: .silent,
                 ),
                 in: &context,
             )
@@ -185,5 +185,59 @@ package extension HealingEngine {
                 in: context,
             ),
         )
+    }
+
+    static func applyLeechOverhealing(
+        overflow: Int,
+        request: HealRequest,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        if request.origin == .leech, sourceTriggers?.leechOverhealTransfersToCompanion == true,
+           request.sourceActorID == context.hero.id, request.target.id == context.hero.id,
+           context.roster.companion.isAlive {
+            var transfer = HealRequest(
+                amount: overflow, target: context.companion, sourceActorID: request.sourceActorID,
+                origin: .leech, logAs: .silent,
+            )
+            transfer.amountBasis = .resolved
+            let outcome = resolveHeal(transfer, in: &context)
+            events.append(contentsOf: outcome.events)
+            if outcome.healthRestored > 0 {
+                events.append(context.nextEvent(
+                    kind: .effect, effectKind: .leechHeal, actorName: context.hero.name,
+                    abilityName: "Blood Link", target: context.companion,
+                    amount: outcome.healthRestored, keyword: .leech,
+                ))
+            }
+        }
+        if request.origin == .leech, sourceTriggers?.marrowmend == true,
+           request.sourceActorID == request.target.id {
+            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: request.target))
+            if block < 6 {
+                events.append(contentsOf: context.applyBlock(
+                    min(overflow, 6 - block), to: request.target, source: request.target,
+                    abilityName: "Marrowmend", applyOutgoingAdjustment: false,
+                ))
+            }
+        }
+        if request.origin == .leech,
+           let sourceActorID = request.sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID) {
+            let bonus = context.modifiers(for: sourceActorID).triggers.leechOverhealDamageBonus
+            if bonus > 0 {
+                context.roster.mutateRuntime(for: source.combatant) { runtime in
+                    let current = runtime.talentLeechOverhealDamageBonus
+                    let allowed = max(0, 4 - current)
+                    let toAdd = min(bonus, allowed)
+                    if toAdd > 0 {
+                        runtime.talentLeechOverhealDamageBonus += toAdd
+                        runtime.permanentDamageBonus += toAdd
+                    }
+                }
+            }
+        }
+        return events
     }
 }

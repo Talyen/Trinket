@@ -8,7 +8,10 @@ import TrinketPersistence
 struct BattleLaunchAssembly {
     let configuration: BattleRunConfiguration
     let presentation: BattlePresentationContext
-    let universalModifiers: [AffixModifier]
+    let inputs: BattlePreparationInputs
+    var universalModifiers: [AffixModifier] {
+        inputs.launch.universalModifiers
+    }
 }
 
 struct PlayBattlePartySnapshot: Equatable {
@@ -16,6 +19,13 @@ struct PlayBattlePartySnapshot: Equatable {
     let inventory: PlayerInventoryState
     let homestead: PlayerHomesteadState
     let worldSeed: UInt64
+
+    init(roster: PlayerRosterState, inventory: PlayerInventoryState, homestead: PlayerHomesteadState, worldSeed: UInt64) {
+        self.roster = roster
+        self.inventory = inventory
+        self.homestead = homestead
+        self.worldSeed = worldSeed
+    }
 
     @MainActor
     init(playerSave: PlayerSaveStore) {
@@ -26,7 +36,17 @@ struct PlayBattlePartySnapshot: Equatable {
     }
 }
 
-struct BattleLaunchInput {
+struct BattlePreparationInputs: Equatable {
+    let runKey: BattleRunKey?
+    let launch: BattleLaunchInput
+    let party: PlayBattlePartySnapshot
+    let rngSeed: UInt64
+    let defeatPrimaryAction: BattleDefeatPrimaryAction
+    let hasProgressionRewards: Bool
+    let musicStageID: String?
+}
+
+struct BattleLaunchInput: Equatable {
     let origin: PlayBattleOrigin?
     let hero: Combatant
     let companion: Combatant
@@ -74,11 +94,24 @@ extension PlayBattleLaunch {
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
         homesteadState: PlayerHomesteadState = .freshStart,
+        worldSeed: UInt64 = 0,
         defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
         hasProgressionRewards: Bool = false,
         musicStageID: String? = nil,
     ) -> BattleLaunchAssembly {
-        let homesteadEffects = homesteadState.effects
+        assembleLaunch(BattlePreparationInputs(
+            runKey: runKey, launch: input,
+            party: PlayBattlePartySnapshot(roster: rosterState, inventory: inventoryState, homestead: homesteadState, worldSeed: worldSeed),
+            rngSeed: rngSeed, defeatPrimaryAction: defeatPrimaryAction,
+            hasProgressionRewards: hasProgressionRewards, musicStageID: musicStageID,
+        ))
+    }
+
+    static func assembleLaunch(_ inputs: BattlePreparationInputs) -> BattleLaunchAssembly {
+        let input = inputs.launch
+        let rosterState = inputs.party.roster
+        let inventoryState = inputs.party.inventory
+        let homesteadEffects = inputs.party.homestead.effects
         let members = makePartyMembers(
             input: input,
             homesteadEffects: homesteadEffects,
@@ -87,14 +120,13 @@ extension PlayBattleLaunch {
         )
         let heroMember = members.hero
         let companionMember = members.companion
-        let resolvedStageReward = input.stageReward ?? .empty
         let enemyLevel = input.enemyEncounterLevel ?? heroMember.progression.level
         let enemyBuild = resolvedEnemyBuild(enemy: input.enemy, level: enemyLevel)
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(input.universalModifiers)
         let configuration = BattleRunConfiguration(
-            runKey: runKey,
-            rngSeed: rngSeed,
+            runKey: inputs.runKey,
+            rngSeed: inputs.rngSeed,
             hero: heroMember,
             companion: companionMember,
             enemy: enemyBuild.combatant,
@@ -113,9 +145,9 @@ extension PlayBattleLaunch {
             experienceBonusPercent: input.experienceBonusPercent,
             goldFindPercent: homesteadEffects.goldFindPercent,
             stageRewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
-            defeatPrimaryAction: defeatPrimaryAction,
-            hasProgressionRewards: hasProgressionRewards,
-            musicStageID: musicStageID,
+            defeatPrimaryAction: inputs.defeatPrimaryAction,
+            hasProgressionRewards: inputs.hasProgressionRewards,
+            musicStageID: inputs.musicStageID,
             heroExperienceAward: VictoryRewardApplier.battleExperienceAward(
                 playerLevel: heroMember.progression.level,
                 enemyLevel: enemyLevel,
@@ -128,13 +160,13 @@ extension PlayBattleLaunch {
                 highestLevel: rosterState.highestCompanionLevel,
                 experienceEarnedPercent: input.experienceBonusPercent,
             ),
-            materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: resolvedStageReward),
+            materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: input.stageReward ?? .empty),
             labyrinthModifiers: input.labyrinthModifiers,
         )
         return BattleLaunchAssembly(
             configuration: configuration,
             presentation: presentation,
-            universalModifiers: input.universalModifiers,
+            inputs: inputs,
         )
     }
 

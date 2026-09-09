@@ -4,6 +4,21 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test func `wing buffet delays an uncontrolled enemy exactly once`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyAbilities: [.slash],
+            companionModifiers: CombatantTalentCatalog.profile(for: ["frost_whelp_dodge_t2_2"]),
+            dealOpeningHand: false,
+        )
+        _ = CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle)
+        #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id] == 1)
+        let delayed = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
+        #expect(!delayed.contains { $0.kind == .ability && $0.actorID == battle.enemy.id })
+        #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id, default: 0] == 0)
+        let resumed = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
+        #expect(resumed.contains { $0.kind == .ability && $0.actorID == battle.enemy.id })
+    }
+
     @Test func `natural poison expiry pays the last source and explicit removal does not`() {
         var battle = heroTalentBattle("alchemist_poison_t2_2", "druid_poison_t2_2")
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
@@ -76,7 +91,7 @@ extension TalentCatalogRoundTripTests {
             target: battle.hero,
             keyword: .physical,
             sourceActorID: battle.enemy.id,
-            options: .flatReaction,
+            options: .reaction(),
         ))
         _ = battle.healEmitting(amount: 1, target: battle.hero, source: battle.hero, abilityName: "Recovery")
         _ = CombatTriggerEngine.afterHeroTalentEnemyTurn(in: &battle)
@@ -91,7 +106,7 @@ extension TalentCatalogRoundTripTests {
         for _ in 0 ..< 2 {
             _ = battle.resolveDamage(DamageRequest(
                 amount: 1, target: battle.enemy, keyword: .poison,
-                sourceActorID: battle.hero.id, options: .doTTick,
+                sourceActorID: battle.hero.id, options: .periodic,
             ))
         }
         #expect(talentPoints(.thorns, on: .companion, in: battle) == 2)
@@ -99,7 +114,7 @@ extension TalentCatalogRoundTripTests {
         battle.roster.companion.currentHealth = 0
         _ = battle.resolveDamage(DamageRequest(
             amount: 1, target: battle.enemy, keyword: .poison,
-            sourceActorID: battle.hero.id, options: .doTTick,
+            sourceActorID: battle.hero.id, options: .periodic,
         ))
         #expect(talentPoints(.thorns, on: .hero, in: battle) == 0)
     }

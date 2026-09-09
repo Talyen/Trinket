@@ -72,7 +72,8 @@ extension CombatTriggerEngine {
         if fullyBlocked, triggers.feignedMiss {
             events.append(contentsOf: heroTalentDamage(.stun, source: actor, in: &context))
         }
-        if triggers.prismaticEdge, BattleChance.succeeds(probability: 0.25, using: &context.rng) {
+        if triggers.prismaticEdge, context.claimHeroCardBonus("prismaticEdge", actorID: sourceID),
+           BattleChance.succeeds(probability: 0.25, using: &context.rng) {
             let keyword: Keyword = Bool.random(using: &context.rng) ? .burn : .freeze
             events.append(contentsOf: heroTalentDamage(keyword, source: actor, in: &context))
         }

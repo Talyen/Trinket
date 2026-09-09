@@ -4,8 +4,6 @@ import TrinketFeatureSupport
 
 enum LabyrinthNodeArtworkMetrics {
     static let hexFocalZoom: CGFloat = 1.18
-    static let combatSourceAspect: CGFloat = 3.0 / 4.0
-    static let encounterSourceAspect: CGFloat = 4.0 / 3.0
 }
 
 struct LabyrinthHexMetrics {
@@ -60,29 +58,26 @@ struct LabyrinthFocalImage: View {
     let thumbnailName: String?
     let focalPoint: ArtFocalPoint
     var displaySize: Image.PreparedArtworkDisplaySize = .compact
-    var sourceAspect: CGFloat = LabyrinthNodeArtworkMetrics.combatSourceAspect
     var zoom: CGFloat = LabyrinthNodeArtworkMetrics.hexFocalZoom
 
     var body: some View {
         GeometryReader { geometry in
             let container = geometry.size
-            let baseScale = max(container.width / sourceAspect, container.height)
-            let scale = baseScale * zoom
-            let renderedWidth = sourceAspect * scale
-            let renderedHeight = scale
-            let overflowX = max(renderedWidth - container.width, 0)
-            let overflowY = max(renderedHeight - container.height, 0)
-            let offsetX = (0.5 - focalPoint.x) * overflowX
-            let offsetY = (0.5 - focalPoint.y) * overflowY
             let resolvedName = displaySize == .compact ? (thumbnailName ?? imageName) : imageName
             Image.preparedAsset(named: resolvedName)
                 .resizable()
                 .interpolation(displaySize == .compact ? .low : .medium)
                 .scaledToFill()
+                .visualEffect { content, imageGeometry in
+                    content
+                        .scaleEffect(zoom)
+                        .offset(
+                            x: (0.5 - focalPoint.x) * max(imageGeometry.size.width * zoom - container.width, 0),
+                            y: (0.5 - focalPoint.y) * max(imageGeometry.size.height * zoom - container.height, 0),
+                        )
+                }
                 .frame(width: container.width, height: container.height)
                 .decorativePreparedArtwork()
-                .scaleEffect(zoom)
-                .offset(x: offsetX, y: offsetY)
         }
         .clipped()
     }

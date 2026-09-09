@@ -27,7 +27,8 @@ public enum ContractsCompletion {
         companion: Combatant,
         encounterLevel: Int,
         loot: BattleLootResult,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         save: inout PlayerSave,
     ) -> Bool {
         guard save.contracts.replace(offerID: offerID) else { return false }
@@ -36,7 +37,8 @@ public enum ContractsCompletion {
             companion: companion,
             encounterLevel: encounterLevel,
             stageGold: loot.gold,
-            battleEarnedGold: battleEarnedGold,
+            battleGold: battleGold,
+            award: award,
             materialRewards: loot.materials,
             item: loot.item,
             save: &save,

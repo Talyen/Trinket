@@ -383,7 +383,7 @@ struct BattleCardCombatTests {
         try #expect(battle.heroDeck.abilities.last?.id == Ability.packTactics.id)
         try #expect(events.contains { $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name })
         try #expect(events.count(where: { $0.kind == .ability && $0.abilityID == Ability.packTactics.id }) == 1)
-        try #expect(battle.drawAndPlayDepth == 0)
+        try #expect(battle.resolution.depth(.draw) == 0)
     }
 }
 
@@ -407,5 +407,43 @@ extension BattleCardCombatTests {
 
         #expect(resumedEvents.contains { $0.kind == .ability && $0.abilityID == Ability.rendingSlash.id })
         #expect(context.roster.enemy.actionCount == 4)
+    }
+
+    @Test(arguments: [false, true])
+    func `turn start lethal damage ends the battle`(opening: Bool) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.everyNTurnsStunBuildupInterval = 1
+        profile.triggers.everyNTurnsStunBuildupAmount = 100
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1),
+            heroModifiers: profile,
+        )
+        battle.turnCount = 1
+        _ = opening
+            ? BattleCardCombatEngine.finalizeOpeningHand(context: &battle)
+            : BattleCardCombatEngine.finalizeTurnStart(context: &battle)
+        #expect(battle.isBattleOver)
+        #expect(battle.phase == .ended)
+    }
+
+    @Test(arguments: [false, true])
+    func `turn start cleanse restores the cleansed owners card play`(opening: Bool) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.autoCleanseTeamPerTurn = 1
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroEffects: [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
+            companionModifiers: profile,
+        )
+        _ = opening
+            ? BattleCardCombatEngine.finalizeOpeningHand(context: &battle)
+            : BattleCardCombatEngine.finalizeTurnStart(context: &battle)
+        let card = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
+        #expect(!battle.roster.hasPendingActionSkip(for: battle.hero))
+        #expect(BattleCardCombatEngine.isCardPlayable(card, in: battle))
     }
 }

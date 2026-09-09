@@ -24,7 +24,7 @@ struct BattleClaimedVictoryTests {
 
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
         session.installClaimedVictoryHandler(ownerID: UUID()) { configuration, earnedGold in
-            claimedVictories.append((configuration.id, earnedGold))
+            claimedVictories.append((configuration.id, earnedGold.net))
         }
         session.handleOutcomeIfNeeded(at: .now)
 

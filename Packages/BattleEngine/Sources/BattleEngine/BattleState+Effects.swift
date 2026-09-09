@@ -96,15 +96,17 @@ package extension BattleState {
         return true
     }
 
+    @discardableResult
     mutating func insertEffect(
         _ effect: Effect,
         to target: Combatant,
         sourceID: String? = nil,
         remainingTurns: Int,
         at index: Int? = nil,
-    ) {
+        replacing matches: (Effect) -> Bool = { _ in false },
+    ) -> Bool {
         guard !CombatTriggerEngine.preventsPurgedEffect(effect, on: target, in: self),
-              !interceptDebuff(effect, on: target) else { return }
+              !interceptDebuff(effect, on: target) else { return false }
         let effectID = consumeNextEffectID()
         let activeEffect = ActiveEffect(
             id: effectID,
@@ -113,12 +115,14 @@ package extension BattleState {
             sourceActorID: sourceID,
         )
         roster.mutateRuntime(for: target) { runtime in
+            runtime.activeEffects.removeAll { matches($0.effect) }
             if let index {
                 runtime.activeEffects.insert(activeEffect, at: index)
             } else {
                 runtime.activeEffects.append(activeEffect)
             }
         }
+        return true
     }
 
     mutating func appendEffect(

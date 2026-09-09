@@ -120,7 +120,7 @@ package enum HealingEngine {
         }
 
         switch request.logAs {
-        case .silent, .leech:
+        case .silent:
             break
         case let .instantHeal(actorName, abilityName, keyword):
             events.append(
@@ -142,6 +142,15 @@ package enum HealingEngine {
                 to: request.target,
                 in: &context,
             ))
+            if let sourceTriggers, sourceTriggers.onHealDealHoly > 0,
+               let sourceID = request.sourceActorID,
+               let source = context.roster.combatant(for: sourceID), source.isAlive,
+               source.role != .enemy, request.target.role != .enemy, context.roster.enemy.isAlive {
+                events.append(contentsOf: context.resolveDamage(DamageRequest(
+                    amount: sourceTriggers.onHealDealHoly, target: context.enemy,
+                    keyword: .holy, sourceActorID: sourceID, options: .reaction(),
+                )).events)
+            }
         }
 
         return CombatOutcome(healthDelta: restored, events: events, flags: flags)
@@ -153,7 +162,7 @@ package enum HealingEngine {
         flags: inout Set<CombatFlag>,
         in context: inout BattleState,
     ) -> Int {
-        if request.usesResolvedHealing {
+        if request.amountBasis == .resolved {
             return max(0, request.amount)
         }
         let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
@@ -162,7 +171,7 @@ package enum HealingEngine {
             amount,
             multiplier: CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context),
         )
-        if request.logAs != .leech, let sourceActorID = request.sourceActorID, !request.skipFightPacing {
+        if request.origin != .leech, let sourceActorID = request.sourceActorID, !request.skipFightPacing {
             amount = context.paced(amount, sourceActorID: sourceActorID)
         }
 
@@ -193,9 +202,13 @@ package enum HealingEngine {
                 guard let source = context.roster.combatant(for: echo.sourceActorID) else { continue }
                 var request = HealRequest(
                     amount: echo.amount, target: target, sourceActorID: source.id,
-                    logAs: .instantHeal(actorName: source.name, abilityName: "Living Archive", keyword: .health),
+                    origin: .restoration(.health), logAs: .instantHeal(
+                        actorName: source.name,
+                        abilityName: "Living Archive",
+                        keyword: .health,
+                    ),
                 )
-                request.usesResolvedHealing = true
+                request.amountBasis = .resolved
                 events.append(contentsOf: resolveHeal(request, in: &context).events)
             }
         }
@@ -212,15 +225,7 @@ package enum HealingEngine {
               context.roster.combatant(for: sourceActorID) != nil
         else { return nil }
 
-        let critKeyword: Keyword
-        switch request.logAs {
-        case let .instantHeal(_, _, keyword):
-            critKeyword = keyword
-        case .leech:
-            critKeyword = .leech
-        case .silent:
-            return nil
-        }
+        guard let critKeyword = request.origin.criticalKeyword else { return nil }
         guard critKeyword.allowsCriticalHits else { return nil }
 
         guard CriticalChanceEngine.rollSucceeds(
@@ -299,42 +304,6 @@ package enum HealingEngine {
                     fallback: "Reclaimed Reagents",
                 ),
             ))
-        }
-        return events
-    }
-
-    private static func applyLeechOverhealing(
-        overflow: Int,
-        request: HealRequest,
-        sourceTriggers: CombatTraitTriggers?,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        var events: [ActionEvent] = []
-        if request.logAs == .leech, sourceTriggers?.marrowmend == true,
-           request.sourceActorID == request.target.id {
-            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: request.target))
-            if block < 6 {
-                events.append(contentsOf: context.applyBlock(
-                    min(overflow, 6 - block), to: request.target, source: request.target,
-                    abilityName: "Marrowmend", applyOutgoingAdjustment: false,
-                ))
-            }
-        }
-        if request.logAs == .leech,
-           let sourceActorID = request.sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID) {
-            let bonus = context.modifiers(for: sourceActorID).triggers.leechOverhealDamageBonus
-            if bonus > 0 {
-                context.roster.mutateRuntime(for: source.combatant) { runtime in
-                    let current = runtime.talentLeechOverhealDamageBonus
-                    let allowed = max(0, 4 - current)
-                    let toAdd = min(bonus, allowed)
-                    if toAdd > 0 {
-                        runtime.talentLeechOverhealDamageBonus += toAdd
-                        runtime.permanentDamageBonus += toAdd
-                    }
-                }
-            }
         }
         return events
     }

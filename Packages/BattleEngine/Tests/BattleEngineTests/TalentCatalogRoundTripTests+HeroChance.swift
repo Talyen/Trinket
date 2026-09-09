@@ -25,7 +25,7 @@ extension TalentCatalogRoundTripTests {
             combatant: battle.hero,
             sourceActorID: battle.enemy.id,
             damageKeyword: .physical,
-            options: .directAbilityHit,
+            options: .attack(),
         )
         #expect(abs(DamagePipeline.dodgeChance(for: hit, in: battle) - 0.15) < 0.0001)
         battle.turnCount += 1
@@ -55,6 +55,28 @@ extension TalentCatalogRoundTripTests {
         #expect(original.count == 2)
         #expect(original[0].amount == (original[0].isCritical ? 2 : 1) + 2)
         #expect(original[1].amount == (original[1].isCritical ? 2 : 1))
+    }
+
+    @Test func `prismatic edge gets one chance across all hits of a card`() throws {
+        let attack = Ability(
+            id: "prismatic-pair",
+            name: "Physical Pair",
+            tier: .basic,
+            damageComponents: [DamageComponent(1), DamageComponent(1)],
+            criticalChanceBonus: -1,
+        )
+        for seed in UInt64(1) ... 16 {
+            var battle = heroTalentBattle("wildcard_physical_t1_1", seed: seed)
+            var expectedRNG = battle.rng
+            let succeeds = BattleChance.succeeds(probability: 0.25, using: &expectedRNG)
+            if succeeds {
+                _ = Bool.random(using: &expectedRNG)
+            }
+            let before = battle.roster.enemy.currentHealth
+            try playHeroTalentCard(attack, in: &battle)
+            #expect(before - battle.roster.enemy.currentHealth == 2 + (succeeds ? 1 : 0))
+            #expect(battle.rng.next() == expectedRNG.next())
+        }
     }
 
     @Test func `prismatic edge rolls once and damages only the new point`() throws {
@@ -206,7 +228,7 @@ extension TalentCatalogRoundTripTests {
             let previous = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth ?? 0
             let outcome = battle.resolveDamage(DamageRequest(
                 amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .normal),
             ))
             let growth = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth ?? 0
             #expect(growth == (outcome.flags.contains(.dodged) ? 0 : previous + 5))
@@ -218,7 +240,7 @@ extension TalentCatalogRoundTripTests {
         let before = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth
         _ = battle.resolveDamage(DamageRequest(
             amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: DamageOptions(applyDodge: false, isAttackHit: true),
+            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable),
         ))
         #expect(battle.heroTalents.history[battle.hero.id]?.dodgeGrowth == before)
     }

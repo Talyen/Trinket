@@ -37,7 +37,7 @@ package struct DamageResolutionState {
         return source
     }
 
-    public let options: DamageOptions
+    public let options: DamageOperation
 
     public var remaining: Int = 0
 
@@ -48,14 +48,17 @@ package struct DamageResolutionState {
     public var statBonus: Int = 0
     public var itemBonus: Int = 0
 
-    public var activeEffects: [ActiveEffect] = []
-
     public var healthLost: Int = 0
 
     public var damageEvents: [ActionEvent] = []
 
     var heroCardBlockIgnore = 0
     var heroCardBlockBroken = false
+    var additionalHolyDamage = 0
+    var pendingAttackBonus = 0
+    var pendingHolyBonus = 0
+    var didLeech = false
+    var didTriggerControl = false
     var uniqueOutgoingDamage = 0
     var uniqueEnemyBlock = 0
     public var blockedAmount: Int = 0
@@ -73,7 +76,7 @@ package struct DamageResolutionState {
         combatant: Combatant,
         sourceActorID: String?,
         damageKeyword: Keyword?,
-        options: DamageOptions,
+        options: DamageOperation,
     ) {
         self.amount = amount
         self.combatant = combatant

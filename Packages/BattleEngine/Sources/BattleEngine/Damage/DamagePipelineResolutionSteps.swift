@@ -180,7 +180,7 @@ package extension DamagePipeline {
                 state.remaining += block
             }
         }
-        guard keyword == .physical else { return }
+        guard keyword == .physical, state.options.isAttackHit, !state.options.isRetaliation else { return }
         let partyTriggers = CombatTriggerEngine.livingPartyTriggers(in: context)
         if triggers.batteringRam {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
@@ -233,27 +233,25 @@ package extension DamagePipeline {
 
     private static func applyOneShotEmpowers(
         to state: inout DamageResolutionState,
-        in context: inout BattleState,
+        in _: inout BattleState,
     ) {
-        guard state.options.isAttackHit,
-              let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              let runtime = context.roster.runtime(for: source.combatant)
-        else { return }
-        if runtime.pendingNextHitBonus > 0 {
-            state.remaining += runtime.pendingNextHitBonus
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingNextHitBonus = 0 }
+        state.remaining += state.pendingAttackBonus
+        if state.damageKeyword == .holy {
+            state.remaining += state.pendingHolyBonus
+        } else {
+            state.additionalHolyDamage += state.pendingHolyBonus
         }
-        if runtime.pendingAttackBonusOnFullHealth > 0 {
-            state.remaining += runtime.pendingAttackBonusOnFullHealth
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingAttackBonusOnFullHealth = 0 }
-        }
-        if runtime.pendingNextAttackHolyBonus > 0 {
-            state.remaining += runtime.pendingNextAttackHolyBonus
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingNextAttackHolyBonus = 0 }
-        }
-        if runtime.permanentDamageBonus > 0 {
-            state.remaining += runtime.permanentDamageBonus
+    }
+
+    static func reserveAttackEmpowers(to state: inout DamageResolutionState, in context: inout BattleState) {
+        guard state.options.isAttackHit, let sourceID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceID) else { return }
+        context.roster.mutateRuntime(for: source.combatant) { runtime in
+            state.pendingAttackBonus = runtime.pendingNextHitBonus + runtime.pendingAttackBonusOnFullHealth + runtime.permanentDamageBonus
+            state.pendingHolyBonus = runtime.pendingNextAttackHolyBonus
+            runtime.pendingNextHitBonus = 0
+            runtime.pendingAttackBonusOnFullHealth = 0
+            runtime.pendingNextAttackHolyBonus = 0
         }
     }
 
@@ -306,22 +304,20 @@ package extension DamagePipeline {
         state.remaining = max(0, CombatRounding.scaled(state.remaining, multiplier: reductionMultiplier) - reductionFlat)
     }
 
-    private static func shouldIgnorePercentageReduction(state: DamageResolutionState, context: BattleState) -> Bool {
-        guard let sourceActorID = state.sourceActorID else { return false }
+    private static func percentageReductionMultiplier(state: DamageResolutionState, context: BattleState) -> Double {
+        guard let sourceActorID = state.sourceActorID else { return 1 }
         let sourceProfile = context.modifiers(for: sourceActorID)
-        if state.damageKeyword == .leech, sourceProfile.triggers.leechIgnoresMitigation {
-            return true
+        if state.options.abilityHasLeech, sourceProfile.triggers.leechIgnoresMitigation {
+            return 0
         }
         if state.damageKeyword == .burn, sourceProfile.triggers.burnIgnoresBlockAndMitigation {
-            return true
+            return 0
         }
         if state.damageKeyword == .bleed, sourceProfile.triggers.bleedsIgnoreMitigation {
-            return true
+            return 0
         }
-        if sourceProfile.triggers.ignoreEnemyMitigationPercent > 0, state.combatant.role == .enemy {
-            return true
-        }
-        return false
+        guard state.combatant.role == .enemy else { return 1 }
+        return 1 - min(1, max(0, sourceProfile.triggers.ignoreEnemyMitigationPercent))
     }
 
     static func applyFightPacing(
@@ -345,7 +341,7 @@ package extension DamagePipeline {
             bonus += profile.damageDealtBonus(for: sharedKeyword)
         }
         if sourceActorID == context.roster.companion.id {
-            bonus += context.heroModifiers.companionDamageDealtBonus
+            bonus += context.heroModifiers.companionDamageDealtBonus + profile.companionDamageDealtBonus
             if keyword == .bleed || sharedKeyword == .bleed {
                 bonus += context.heroModifiers.companionBleedDamageDealtBonus
             }
@@ -361,10 +357,10 @@ package extension DamagePipeline {
 
     static func applyMarkedBonus(
         to state: inout DamageResolutionState,
-        in _: inout BattleState,
+        in context: inout BattleState,
     ) {
         guard state.options.isAttackHit, state.sourceActorID != nil else { return }
-        for active in state.activeEffects {
+        for active in context.roster.activeEffects(for: state.combatant) {
             if case let .marked(bonus, _) = active.effect {
                 state.remaining += bonus
                 state.dealt += bonus
@@ -392,8 +388,8 @@ package extension DamagePipeline {
             state.remaining = max(0, state.remaining - flatReduction)
         }
         let reduction = min(1, profile.damageTakenReduction(for: damageKeyword) + profile.incomingDamageReductionPercent)
-        let ignores = shouldIgnorePercentageReduction(state: state, context: context)
-        let effectiveReduction = ignores ? 0 : reduction
+        let reductionMultiplier = percentageReductionMultiplier(state: state, context: context)
+        let effectiveReduction = reduction * reductionMultiplier
         if effectiveReduction > 0 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - effectiveReduction)
         }
@@ -413,8 +409,8 @@ package extension DamagePipeline {
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0 {
             talentResistance = max(talentResistance, defenderTriggers.blockedControlBurnResistance)
         }
-        if talentResistance > 0, !ignores {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - min(1, talentResistance))
+        if talentResistance > 0 {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - min(1, talentResistance) * reductionMultiplier)
         }
         state.buildupDamage = state.remaining
     }

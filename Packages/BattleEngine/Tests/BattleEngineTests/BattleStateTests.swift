@@ -102,7 +102,25 @@ struct BattleStateTests {
             initialGold: 5,
         )
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &initialGoldBattle)
-        try #expect(initialGoldBattle.earnedGold == initialGoldBattle.gold - 5)
+        try #expect(initialGoldBattle.goldFlow.net == initialGoldBattle.gold - 5)
+    }
+
+    @Test func `haggler gold bonus stops on defeat and returns on revival`() throws {
+        let retriever = try BattleTestFixtures.catalogBuild(
+            combatantID: "golden_retriever", talents: "golden_retriever_gold_t2_1",
+        )
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero),
+            companion: retriever.combatant,
+            enemy: defaultEnemy,
+            companionModifiers: retriever.modifiers,
+        )
+        for (health, expectedGold) in [(1, 12), (0, 10), (1, 12)] {
+            battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = health }
+            let before = battle.gold
+            _ = battle.grantGoldEvent(10, to: battle.hero, abilityName: "Gold")
+            #expect(battle.gold - before == expectedGold)
+        }
     }
 
     @Test func `card combat defeat when party obliterated`() throws {

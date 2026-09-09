@@ -93,7 +93,8 @@ extension CombatTriggerEngine {
         if context.roster.hero.isAlive, context.roster.companion.isAlive,
            context.heroTalents.history[hero.id]?.spentMana == true,
            context.heroTalents.history[context.roster.companion.id]?.spentMana == true,
-           context.heroModifiers.triggers.groveAccord {
+           context.heroModifiers.triggers.groveAccord,
+           context.claimHeroTalent("groveAccord", actorID: hero.id) {
             for target in [hero, context.roster.companion.combatant] {
                 events.append(contentsOf: heroTalentThorns(to: target, source: hero, name: "Grove Accord", in: &context))
             }

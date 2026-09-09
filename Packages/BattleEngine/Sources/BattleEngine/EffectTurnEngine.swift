@@ -13,16 +13,16 @@ package enum EffectTurnEngine {
         var events: [ActionEvent] = []
 
         for participant in BattleParticipant.effectTurnOrder {
+            guard !context.isBattleOver else { break }
             let combatant = context.roster[participant].combatant
             guard context.roster[participant].isAlive else { continue }
 
-            let result = advanceEffects(
+            events.append(contentsOf: advanceEffects(
                 context.roster.activeEffects(for: combatant),
                 target: combatant,
                 context: &context,
-            )
-            context.roster.setActiveEffects(result.updated, for: combatant)
-            events.append(contentsOf: result.events)
+            ))
+            guard !context.isBattleOver else { break }
             events.append(contentsOf: CombatTriggerEngine.turnBlock(for: combatant, in: &context))
             events.append(contentsOf: EnemyTraitEngine.turnFreeze(for: combatant, context: &context))
             events.append(contentsOf: EnemyTraitEngine.turnRandomDamageAllEnemies(for: combatant, context: &context))
@@ -43,10 +43,10 @@ package enum EffectTurnEngine {
         _ effects: [ActiveEffect],
         target: Combatant,
         context: inout BattleState,
-    ) -> (events: [ActionEvent], updated: [ActiveEffect]) {
+    ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for scheduledEffect in effects {
-            guard context.roster.health(for: target) > 0 else { break }
+            guard !context.isBattleOver, context.roster.health(for: target) > 0 else { break }
             guard let activeEffect = context.roster.activeEffects(for: target).first(where: { $0.id == scheduledEffect.id })
             else { continue }
             guard let handler = EffectHandlers.all[activeEffect.effect.kind] else {
@@ -56,23 +56,9 @@ package enum EffectTurnEngine {
                 continue
             }
             let outcome = handler.advanceTurn(activeEffect, on: target, in: &context)
-            events.append(contentsOf: outcome.events)
-            var currentEffects = context.roster.activeEffects(for: target)
-            guard let index = currentEffects.firstIndex(where: { $0.id == activeEffect.id }) else { continue }
-            if outcome.removeAfter {
-                currentEffects.remove(at: index)
-            } else if let updated = outcome.updatedStack {
-                currentEffects[index].remainingTurns = updated.remainingTurns
-                if currentEffects[index].sourceActorID == activeEffect.sourceActorID {
-                    currentEffects[index].sourceActorID = updated.sourceActorID
-                }
-                if currentEffects[index].effect == activeEffect.effect {
-                    currentEffects[index].effect = updated.effect
-                }
-            }
-            context.roster.setActiveEffects(currentEffects, for: target)
+            events.append(contentsOf: outcome)
         }
-        return (events, context.roster.activeEffects(for: target))
+        return events
     }
 
     private static func accelerateDebuffExpiration(_ effects: [ActiveEffect]) -> [ActiveEffect] {

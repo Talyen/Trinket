@@ -386,7 +386,6 @@ struct LabyrinthNodeArtwork: View {
             thumbnailName: art.thumbnailImageName,
             focalPoint: art.focalPoint,
             displaySize: .compact,
-            sourceAspect: LabyrinthNodeArtworkMetrics.combatSourceAspect,
             zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
         )
     }
@@ -397,7 +396,6 @@ struct LabyrinthNodeArtwork: View {
             thumbnailName: thumbnailName,
             focalPoint: focalPoint,
             displaySize: .compact,
-            sourceAspect: LabyrinthNodeArtworkMetrics.encounterSourceAspect,
             zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
         )
     }

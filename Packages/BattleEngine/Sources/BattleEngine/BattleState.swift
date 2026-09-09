@@ -2,29 +2,19 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct TalentActionGuardKey: Hashable, Sendable {
-    public enum Kind: Hashable, Sendable {
-        case spendOvercharge
-        case darkRecovery
-        case arcaneBurst
-        case surpriseStrike
-        case seismicRoar
-        case endlessLegion
-        case criticalActionGold
-        case poisonStun
-        case cleanSlate
-        case stolenThunder
-        case pulverize
-        case overhealFirstBlock
-    }
-
-    public var kind: Kind
-    public var actorID: String
-
-    public init(kind: Kind, actorID: String) {
-        self.kind = kind
-        self.actorID = actorID
-    }
+package enum TalentClaim: Hashable, Sendable {
+    case spendOvercharge
+    case darkRecovery
+    case arcaneBurst
+    case surpriseStrike
+    case seismicRoar
+    case endlessLegion
+    case criticalActionGold
+    case poisonStun
+    case cleanSlate
+    case stolenThunder
+    case pulverize
+    case overhealFirstBlock
 }
 
 public struct TurnDrawState: Hashable, Sendable {
@@ -70,7 +60,12 @@ public struct BattleState {
     public var nextEffectID: Int
     public var nextEventID: Int
     public var events: [ActionEvent]
-    public var gold: Int
+    public var gold: Int {
+        get { initialGold + goldFlow.net }
+        set { goldFlow.record(delta: newValue - gold) }
+    }
+
+    public private(set) var goldFlow: BattleGoldFlow
     public let initialGold: Int
     private final class ModifierProfiles: Sendable {
         let hero: CombatModifierProfile
@@ -113,19 +108,13 @@ public struct BattleState {
     public var turnCadence: BattleTurnCadence
 
     public var additionalControlSkipsByCombatantID: [String: Int]
-    public var isResolvingTalentReaction: Bool
-    public var isResolvingDoTDetonation: Bool
-    public var talentActionGuardByActorID: [TalentActionGuardKey: Int]
-    public var talentTurnGuardByActorID: [TalentActionGuardKey: Int]
-    public var talentReactionDepth: Int
-    public var dotRecursionDepth: Int
     public var isResolvingAutoPlayCard: Bool
     public var isEchoingSkill: Bool
-    public var drawAndPlayDepth: Int = 0
     public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
     public let enemyFaction: EnemyFaction
     public var storedBlockedDamageByActorID: [String: Int] = [:]
     public var primedRepeatKeywords: Set<Keyword> = []
+    var resolution = CombatResolution()
     var heroTalents = HeroTalentState()
     var uniques = UniqueBattleState()
     var pendingTurnDrawState: TurnDrawState?
@@ -163,15 +152,8 @@ public struct BattleState {
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
         turnCadence: BattleTurnCadence = BattleTurnCadence(),
         additionalControlSkipsByCombatantID: [String: Int] = [:],
-        isResolvingTalentReaction: Bool = false,
-        isResolvingDoTDetonation: Bool = false,
-        talentActionGuardByActorID: [TalentActionGuardKey: Int] = [:],
-        talentTurnGuardByActorID: [TalentActionGuardKey: Int] = [:],
-        talentReactionDepth: Int = 0,
-        dotRecursionDepth: Int = 0,
         isResolvingAutoPlayCard: Bool = false,
         isEchoingSkill: Bool = false,
-        drawAndPlayDepth: Int = 0,
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
@@ -189,7 +171,7 @@ public struct BattleState {
         self.nextEffectID = nextEffectID
         self.nextEventID = nextEventID
         self.events = events
-        self.gold = gold
+        goldFlow = BattleGoldFlow(gained: max(0, gold - initialGold), spent: max(0, initialGold - gold))
         self.initialGold = initialGold
         modifierProfiles = ModifierProfiles(hero: heroModifiers, companion: companionModifiers, enemy: enemyModifiers)
         self.actionCount = actionCount
@@ -205,15 +187,8 @@ public struct BattleState {
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
         self.turnCadence = turnCadence
         self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
-        self.isResolvingTalentReaction = isResolvingTalentReaction
-        self.isResolvingDoTDetonation = isResolvingDoTDetonation
-        self.talentActionGuardByActorID = talentActionGuardByActorID
-        self.talentTurnGuardByActorID = talentTurnGuardByActorID
-        self.talentReactionDepth = talentReactionDepth
-        self.dotRecursionDepth = dotRecursionDepth
         self.isResolvingAutoPlayCard = isResolvingAutoPlayCard
         self.isEchoingSkill = isEchoingSkill
-        self.drawAndPlayDepth = drawAndPlayDepth
         self.pendingTurnDrawState = pendingTurnDrawState
 
         self.enemyFaction = enemyFaction
@@ -323,22 +298,28 @@ public struct BattleState {
     }
 
     @discardableResult
-    public mutating func endTurn(rebuildLog: Bool = true) -> [ActionEvent] {
+    public mutating func endTurn(
+        rebuildLog: Bool = true,
+        recording: ((BattleTransitionCheckpoint, Self, [ActionEvent]) -> Void)? = nil,
+    ) -> [ActionEvent] {
         guard !isBattleOver else { return [] }
-        let events = BattleCardCombatEngine.endTurn(context: &self)
+        let events = BattleCardCombatEngine.endTurn(context: &self, recording: recording)
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
 
     @discardableResult
-    public mutating func drawOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
-        let events = BattleCardCombatEngine.drawOpeningHand(context: &self)
+    public mutating func drawOpeningHand(
+        rebuildLog: Bool = true,
+        recording: ((BattleTransitionCheckpoint, Self, [ActionEvent]) -> Void)? = nil,
+    ) -> [ActionEvent] {
+        let events = BattleCardCombatEngine.drawOpeningHand(context: &self, recording: recording)
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
 
     @discardableResult
-    public mutating func drawNextOpeningHandCard(rebuildLog: Bool = true) -> Bool {
+    package mutating func drawNextOpeningHandCard(rebuildLog: Bool = true) -> Bool {
         let drew = BattleCardCombatEngine.drawNextOpeningHandCard(context: &self)
         if drew {
             finishMutation(rebuildLog: rebuildLog)
@@ -347,21 +328,21 @@ public struct BattleState {
     }
 
     @discardableResult
-    public mutating func finalizeOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
+    package mutating func finalizeOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
         let events = BattleCardCombatEngine.finalizeOpeningHand(context: &self)
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
 
     @discardableResult
-    public mutating func endTurnWithoutDraw(rebuildLog: Bool = true) -> [ActionEvent] {
+    package mutating func endTurnWithoutDraw(rebuildLog: Bool = true) -> [ActionEvent] {
         let events = BattleCardCombatEngine.endTurnWithoutDraw(context: &self)
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
 
     @discardableResult
-    public mutating func drawNextTurnStartCard(rebuildLog: Bool = true) -> Bool {
+    package mutating func drawNextTurnStartCard(rebuildLog: Bool = true) -> Bool {
         let drew = BattleCardCombatEngine.drawNextTurnStartCard(context: &self)
         if drew {
             finishMutation(rebuildLog: rebuildLog)
@@ -370,14 +351,14 @@ public struct BattleState {
     }
 
     @discardableResult
-    public mutating func finalizeTurnStart(rebuildLog: Bool = true) -> [ActionEvent] {
+    package mutating func finalizeTurnStart(rebuildLog: Bool = true) -> [ActionEvent] {
         let events = BattleCardCombatEngine.finalizeTurnStart(context: &self)
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
 
     @discardableResult
-    public mutating func promoteNextTurnBufferCard(rebuildLog: Bool = true) -> BattleCard? {
+    package mutating func promoteNextTurnBufferCard(rebuildLog: Bool = true) -> BattleCard? {
         let card = BattleCardCombatEngine.promoteNextFromBuffer(context: &self)
         if card != nil {
             finishMutation(rebuildLog: rebuildLog)
@@ -404,31 +385,7 @@ public struct BattleState {
     }
 
     package mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {
-        guard request.amount > 0 else { return .empty }
-
-        talentReactionDepth += 1
-        defer { talentReactionDepth -= 1 }
-        if talentReactionDepth > ReactionScope.maxTalentReactionDepth {
-            ReactionScope.capHit(site: "talentReactionDepth", depth: talentReactionDepth)
-            return .empty
-        }
-        var resolved = request
-        if talentReactionDepth > 1 {
-            resolved.options.isRetaliation = true
-        }
-
-        var state = DamageResolutionState(
-            amount: resolved.amount,
-            combatant: resolved.target,
-            sourceActorID: resolved.sourceActorID,
-            damageKeyword: resolved.keyword,
-            options: resolved.options,
-        )
-        state.activeEffects = roster.activeEffects(for: request.target)
-
-        DamagePipeline.run(state: &state, in: &self)
-
-        return CombatOutcome.fromDamage(state: state)
+        CombatResolver.damage(request, in: &self)
     }
 
     package mutating func resolveHeal(_ request: HealRequest) -> CombatOutcome {
@@ -470,16 +427,14 @@ public struct BattleState {
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
-        dealImmediateDamage: Bool,
-        suppressAffixReactions: Bool = false,
+        application: DoTApplication,
     ) -> [ActionEvent] {
         DoTApplicator.applyDecayingDoT(
             keyword: keyword,
             potency: potency,
             to: effectTarget,
             sourceActorID: sourceActorID,
-            dealImmediateDamage: dealImmediateDamage,
-            suppressAffixReactions: suppressAffixReactions,
+            application: application,
             in: &self,
         )
     }

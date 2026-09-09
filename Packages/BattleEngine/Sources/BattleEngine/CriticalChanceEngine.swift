@@ -65,7 +65,7 @@ package enum CriticalChanceEngine {
         if companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold > 0,
            companionMaxHealth > 0,
            Double(context.roster.companion.currentHealth) / Double(companionMaxHealth)
-           >= companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold {
+           > companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold {
             bonus += companionTriggers.partyCritChanceWhileCompanionAboveHealthBonus
         }
         if actorRole == .hero, companionTriggers.heroCritChanceWhileCompanionAlive > 0 {

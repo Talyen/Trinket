@@ -196,7 +196,6 @@ package enum ControlMeterEngine {
             in: &context,
         ))
         if keyword == .freeze,
-           combatant.role == .enemy,
            let sourceActorID,
            let source = context.roster.combatant(for: sourceActorID),
            context.modifiers(for: sourceActorID).triggers.onEnemyFrozenGainBlock > 0 {
@@ -250,8 +249,7 @@ package enum ControlMeterEngine {
                 potency: context.modifiers(for: sourceActorID).triggers.onStunEnemyApplyBurn,
                 to: combatant,
                 sourceActorID: sourceActorID,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
+                application: .attached,
             ))
         }
         return events

@@ -29,17 +29,17 @@ package extension CombatTriggerEngine {
 
         guard let target, target.role == .enemy, context.roster.health(for: target) > 0 else { return events }
         if triggers.onLeechApplyPoison > 0 {
-            events.append(contentsOf: context.applyDecayingDoT(
+            events.append(contentsOf: applyDoT(
                 keyword: .poison,
                 potency: triggers.onLeechApplyPoison,
                 to: target,
                 sourceActorID: actor.id,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
+                in: &context,
             ))
         }
         if triggers.onLeechApplyBleed > 0 {
-            events.append(contentsOf: DamagePipeline.appendBleed(
+            events.append(contentsOf: applyDoT(
+                keyword: .bleed,
                 potency: triggers.onLeechApplyBleed,
                 to: target,
                 sourceActorID: actor.id,

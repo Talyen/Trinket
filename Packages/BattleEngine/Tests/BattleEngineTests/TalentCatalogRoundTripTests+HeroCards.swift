@@ -5,6 +5,40 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test func `grove accord rewards the pair once per turn`() throws {
+        var battle = heroTalentBattle("druid_mana_t4_1")
+        for _ in 0 ..< 2 {
+            for owner in [BattleParticipant.hero, .companion, .hero, .companion] {
+                try playHeroTalentCard(.kindling, owner: owner, in: &battle)
+            }
+            let expected = battle.turnCount + 1
+            #expect(talentPoints(.thorns, on: .hero, in: battle) == expected)
+            #expect(talentPoints(.thorns, on: .companion, in: battle) == expected)
+            battle.turnCount += 1
+            _ = CombatTriggerEngine.startHeroTalentTurn(in: &battle)
+            battle.roster.hero.currentMana = 10
+            battle.roster.companion.currentMana = 10
+        }
+    }
+
+    @Test func `earthquake enables entangling growth for the rest of the turn`() throws {
+        var battle = heroTalentBattle("druid_poison_t3_2")
+        try playHeroTalentCard(.earthquake, owner: .companion, in: &battle)
+        let poison = Ability(
+            id: "growth-poison",
+            name: "Poison",
+            tier: .basic,
+            damageComponents: [DamageComponent(1, keyword: .poison)],
+            criticalChanceBonus: -1,
+        )
+        let events = try playHeroTalentCard(poison, in: &battle)
+        #expect(events.first { $0.kind == .abilityDamage }?.amount == 2)
+        battle.turnCount += 1
+        _ = CombatTriggerEngine.startHeroTalentTurn(in: &battle)
+        let next = try playHeroTalentCard(poison, in: &battle)
+        #expect(next.first { $0.kind == .abilityDamage }?.amount == 1)
+    }
+
     func heroTalentBattle(
         _ talents: String...,
         companionMana: Int = 10,

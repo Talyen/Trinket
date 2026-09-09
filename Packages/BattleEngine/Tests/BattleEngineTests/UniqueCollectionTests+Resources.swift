@@ -100,7 +100,7 @@ extension UniqueCollectionTests {
         #expect(events.count(where: { $0.abilityName == "Everkeen" }) == 1)
         #expect(events.count(where: { $0.abilityName == "The Final Spark" }) == 1)
         #expect(context.roster.hero.currentMana == 0)
-        #expect(context.uniques.reactionDepth == 0)
+        #expect(context.resolution.depth(.uniqueReaction) == 0)
     }
 
     @Test func `crucible stores actual gains but not starting gold or other owners gold`() throws {
@@ -117,7 +117,7 @@ extension UniqueCollectionTests {
             target: context.roster.enemy.combatant,
             keyword: .holy,
             sourceActorID: context.roster.hero.id,
-            options: .flatReaction,
+            options: .reaction(),
         ))
         #expect(context.uniques.owners[.hero]?.goldDamage == 5)
         try play(attack(.holy), in: &context)
@@ -136,5 +136,24 @@ extension UniqueCollectionTests {
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1973)
         #expect(context.uniques.owners[.hero]?.goldDamage == 2)
+    }
+
+    @Test func `winter credit empowers freeze for a wearer without mana capacity`() throws {
+        var context = try battle(["winters_credit"])
+        let knight = try #require(GameContent.hero(matching: "knight"))
+        let wearer = Combatant(
+            id: context.roster.hero.id,
+            name: knight.name,
+            role: .hero,
+            maxHealth: knight.maxHealth,
+            abilities: [attack(.freeze)],
+        )
+        context.roster.hero = CombatantRuntime(combatant: wearer)
+        #expect(context.roster.hero.maxMana == 0)
+        block(9, owner: .hero, in: &context)
+        var ability = attack(.freeze)
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &ability, actor: wearer, context: &context)
+        #expect(blockAmount(.hero, in: context) == 0)
+        #expect(ability.damageComponents.first?.amount == 11)
     }
 }

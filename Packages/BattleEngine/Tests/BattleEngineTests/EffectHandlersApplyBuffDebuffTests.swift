@@ -5,6 +5,29 @@ import TrinketCore
 import TrinketTestSupport
 
 struct EffectHandlersApplyBuffDebuffTests {
+    @Test(arguments: [Effect.purge(nil), .purgeRandom])
+    func `purging maximum mana clamps remaining mana`(_ purge: Effect) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroMaxMana: 8)
+        _ = EffectHandlersTestSupport.dispatch(
+            .maximumManaBonus(1),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle,
+        )
+        #expect(battle.mana(of: battle.hero) == 9)
+
+        let outcome = EffectHandlersTestSupport.dispatch(
+            purge,
+            source: battle.enemy,
+            target: battle.hero,
+            battle: &battle,
+        )
+
+        #expect(outcome.didApply)
+        #expect(battle.maxMana(of: battle.hero) == 8)
+        #expect(battle.mana(of: battle.hero) == 8)
+    }
+
     @Test(arguments: [true, false])
     func `halve shield handler applies only when block present`(seedBlock: Bool) throws {
         var battle = BattleStateTestFactory.makeBattle()

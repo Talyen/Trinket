@@ -55,16 +55,17 @@ package enum EnemyTraitEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        for targetRuntime in [context.roster.hero, context.roster.companion] where targetRuntime.isAlive {
+        let action = BattleActionContext(actor: source, in: context)
+        for target in action.opponents(in: context) {
+            guard !context.isBattleOver, action.canContinue(in: context) else { break }
+            guard context.health(of: target) > 0 else { continue }
             let outcome = context.resolveDamage(
                 DamageRequest(
                     amount: amount,
-                    target: targetRuntime.combatant,
+                    target: target,
                     keyword: keyword,
                     sourceActorID: source.id,
-                    options: keyword == .stun || keyword == .freeze
-                        ? .flatControlReaction
-                        : .flatReaction,
+                    options: .reaction(),
                 ),
             )
             events.append(contentsOf: outcome.events)
@@ -87,8 +88,7 @@ package enum EnemyTraitEngine {
             potency: profile.triggers.onHitAttackerBurn,
             to: attacker,
             sourceActorID: defender.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
             in: &context,
         )
     }
@@ -111,7 +111,7 @@ package enum EnemyTraitEngine {
                 target: attacker,
                 keyword: .physical,
                 sourceActorID: defender.id,
-                options: .flatReaction,
+                options: .reaction(),
             ),
         )
         let events = outcome.events.map { event in

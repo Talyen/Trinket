@@ -21,70 +21,14 @@ package extension CombatTriggerEngine {
         guard count > 0, context.roster.health(for: target) > 0 else { return [] }
         var events: [ActionEvent] = []
         for _ in 0 ..< count {
-            var effects = context.roster.activeEffects(for: target)
-            guard let removedKeyword = EffectRemoval.removeRandomDebuff(
-                from: &effects,
-                using: &context.rng,
-            ) else {
-                events.append(contentsOf: cleanseOtherPartyMember(source: source, target: target, in: &context))
+            let outcome = CleanseOperation.resolve(
+                .random, source: source, target: target, abilityName: abilityName, in: &context,
+            )
+            events.append(contentsOf: outcome.events)
+            if outcome.removed.isEmpty {
                 break
             }
-            context.roster.setActiveEffects(effects, for: target)
-            events.append(contentsOf: afterHeroCleanse(source: source, target: target, removed: [removedKeyword], in: &context))
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .cleanseApplied,
-                actorName: source.name,
-                abilityName: abilityName,
-                target: target,
-                amount: 0,
-                keyword: removedKeyword,
-            ))
-            events.append(contentsOf: healAfterCleanse(
-                source: source,
-                target: target,
-                in: &context,
-            ).events)
-            events.append(contentsOf: healWearerAfterCleanse(
-                source: source,
-                in: &context,
-            ).events)
-            events.append(contentsOf: drawAfterCleanse(
-                source: source,
-                in: &context,
-            ))
-            events.append(contentsOf: afterCleansePerformed(
-                source: source,
-                target: target,
-                removedKeyword: removedKeyword,
-                removedCount: 1,
-                in: &context,
-            ))
         }
-        return events
-    }
-
-    static func afterCleansePerformed(
-        source: Combatant,
-        target: Combatant,
-        removedKeyword: Keyword,
-        removedCount: Int,
-        allowMassCleanse: Bool = true,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        var events = afterCleanseAction(
-            source: source,
-            target: target,
-            removedCount: removedCount,
-            allowMassCleanse: allowMassCleanse,
-            in: &context,
-        )
-        events.append(contentsOf: afterCleanseKeywordReaction(
-            source: source,
-            removedKeyword: removedKeyword,
-            removedCount: removedCount,
-            in: &context,
-        ))
         return events
     }
 
@@ -134,13 +78,6 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
         events.append(contentsOf: toxicBacklashDamage(
-            triggers: triggers,
-            source: source,
-            removedKeyword: removedKeyword,
-            removedCount: removedCount,
-            in: &context,
-        ))
-        events.append(contentsOf: reflectiveWardReflect(
             triggers: triggers,
             source: source,
             removedKeyword: removedKeyword,
@@ -214,42 +151,24 @@ package extension CombatTriggerEngine {
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: source.id,
-                options: .flatReaction,
+                options: .reaction(),
             ),
         ).events
     }
 
-    private static func reflectiveWardReflect(
-        triggers: CombatTraitTriggers,
+    static func reflectCleansedEffects(
+        _ removed: [ActiveEffect],
         source: Combatant,
-        removedKeyword: Keyword,
-        removedCount: Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard triggers.cleanseReflectDebuffToEnemy, context.roster.enemy.isAlive,
-              context.roster.health(for: context.roster.enemy.combatant) > 0,
-              removedKeyword == .burn || removedKeyword == .poison || removedKeyword == .bleed,
-              removedCount > 0
-        else { return [] }
-        let potency = max(1, removedCount)
-        if removedKeyword == .bleed {
-            return DoTApplicator.applyBleed(
-                potency: potency,
-                to: context.roster.enemy.combatant,
-                sourceActorID: source.id,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
-                in: &context,
-            )
+        guard context.modifiers(for: source.id).triggers.cleanseReflectDebuffToEnemy,
+              source.role != .enemy, context.roster.enemy.isAlive else { return [] }
+        let enemy = context.roster.enemy.combatant
+        var events: [ActionEvent] = []
+        for active in removed where active.sourceActorID == enemy.id {
+            events.append(contentsOf: ActiveEffectMutation.reflect(active, to: enemy, source: source, in: &context))
         }
-        return context.applyDecayingDoT(
-            keyword: removedKeyword,
-            potency: potency,
-            to: context.roster.enemy.combatant,
-            sourceActorID: source.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
-        )
+        return events
     }
 
     private static func cleansePartyReactions(
@@ -275,59 +194,21 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         guard triggers.cleanseAffectsBothHeroAndCompanion else { return [] }
-        let other = target.role == .hero
-            ? context.roster.companion.combatant
-            : context.roster.hero.combatant
-        guard other.id != target.id, context.roster.health(for: other) > 0 else { return [] }
-        var effects = context.roster.activeEffects(for: other)
-        let removedDebuffs = EffectRemoval.removeDebuffs(from: &effects, keyword: nil)
-        guard !removedDebuffs.isEmpty else { return [] }
-        context.roster.setActiveEffects(effects, for: other)
-        if triggers.cleanseDodgeChanceBonus > 0 {
-            let duration = max(1, triggers.cleanseDodgeChanceBonusTurns)
-            context.roster.mutateRuntime(for: other) {
-                $0.bonusDodgeUntilNextTurn += triggers.cleanseDodgeChanceBonus
-                $0.bonusDodgeExpiresAtTurn = max($0.bonusDodgeExpiresAtTurn, context.turnCount + duration)
-            }
-        }
+        let action = BattleActionContext(actor: source, in: context)
+        guard let other = action.allies(in: context).first(where: {
+            $0.id != target.id && context.health(of: $0) > 0
+        }) else { return [] }
+        guard context.roster.activeEffects(for: other).contains(where: \.effect.isRemovableDebuff) else { return [] }
         let abilityName = triggerAbilityName(
             "cleanseAffectsBothHeroAndCompanion",
             for: source,
             fallback: "Mass Cleanse",
             in: context,
         )
-        var countsByKeyword: [Keyword: Int] = [:]
-        for debuff in removedDebuffs {
-            countsByKeyword[debuff.keyword, default: 0] += 1
-        }
-        var events = afterHeroCleanse(source: source, target: other, removed: removedDebuffs.map(\.keyword), in: &context)
-        for (keyword, _) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .cleanseApplied,
-                actorName: source.name,
-                abilityName: abilityName,
-                target: other,
-                amount: 0,
-                keyword: keyword,
-            ))
-        }
-        events.append(contentsOf: afterCleanseAction(
-            source: source,
-            target: other,
-            removedCount: removedDebuffs.count,
-            allowMassCleanse: false,
-            in: &context,
-        ))
-        for (keyword, count) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
-            events.append(contentsOf: afterCleanseKeywordReaction(
-                source: source,
-                removedKeyword: keyword,
-                removedCount: count,
-                in: &context,
-            ))
-        }
-        return events
+        return CleanseOperation.resolve(
+            .all(nil), source: source, target: other, abilityName: abilityName,
+            propagation: .secondary, in: &context,
+        ).events
     }
 
     static func healAfterCleanse(

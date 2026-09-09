@@ -8,14 +8,6 @@ public struct EffectApplyOutcome {
     public var didApply: Bool = true
 }
 
-public struct EffectTurnOutcome {
-    public var events: [ActionEvent] = []
-
-    public var updatedStack: ActiveEffect?
-
-    public var removeAfter: Bool = false
-}
-
 public protocol BattleEffectHandler: Sendable {
     var kind: EffectKind { get }
     func apply(
@@ -29,7 +21,7 @@ public protocol BattleEffectHandler: Sendable {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> EffectTurnOutcome
+    ) -> [ActionEvent]
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary?
 }
 
@@ -38,15 +30,14 @@ public extension BattleEffectHandler {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> EffectTurnOutcome {
-        _ = target; _ = context
-        guard active.effect.advancesEachTurn else { return EffectTurnOutcome() }
+    ) -> [ActionEvent] {
+        guard active.effect.advancesEachTurn else { return [] }
         var updated = active
         updated.remainingTurns -= 1
-        return EffectTurnOutcome(
-            updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0,
+        ActiveEffectMutation.finishTurn(
+            active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
         )
+        return []
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {

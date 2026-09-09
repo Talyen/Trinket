@@ -8,6 +8,15 @@ Load for `BattleEngine` (`BattleRuntime`), `BattleSession` lifecycle/commands, p
 
 `PlaySession` stays in the environment for shell concerns such as pending destination and victory routing via `PlayBattleCompletion`. Active battle route metadata is `PlayBattleRunRegistration` in the `BattleRunKey` registry. Prepared activation requires the current hero, companion, and enemy IDs to match the baked run. A mismatch fails closed: Play must not fall through to a fresh `activate`, which would re-roll RNG and wipe sibling labyrinth prepares. `activatePreparedBattle` consumes only the matched key; other prepared runs remain until `keepPreparedRuns`, a fresh `activate`/`restart`, or `endBattle`. Unprepared starts still use `activate`.
 
+`BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
+its configuration and reward presentation. These include the launch request,
+party/save inputs, world seed, combat seed, run key, and presentation policy.
+Prepared activation compares that complete value with current inputs and requires
+the registered configuration ID as well as matching party/enemy identities.
+Changed inputs refresh only that run, retaining its combat seed and sibling
+preparations. Unchanged inputs reuse the original configuration and simulation;
+missing registration or changed identities fail closed until explicitly prepared.
+
 Play screens read save slices from `PlayerSaveStore` directly. Mode types own map/node/floor selection and mode-unique completion writes; they must not re-absorb the shared victory persist→dismiss sequence. `AppState` prepares audio and requests launch state. The battle overlay installs presentation context and presents launch-victory chrome once on the retained session. Visual prewarm, first-layout, and keep-alive behavior are owned by [ui-performance.md](ui-performance.md).
 
 Keep `PlaySession` focused on shell navigation and launch/completion orchestration. Do not add presentation-only methods to `BattleRuntime`.
@@ -17,6 +26,20 @@ Keep `PlaySession` focused on shell navigation and launch/completion orchestrati
 `BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns cinematics and outcome timing. Views observe the narrow lane they render. App-level options and audio enter through `BattleRuntimeDependencies`; BattleFeature never imports `TrinketAppState`.
 
 Victory chrome uses launch-baked awards; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
+
+Opening draws and turn transitions execute synchronously in BattleEngine. Their
+recording callback emits checkpoints that BattleFeature projects into immutable
+`BattleTransitionFrame` values; the callback never advances rules. Animated and
+immediate presentation consume the same resolved transition. `BattleCommandState`
+owns readiness and suspension, and all manual/automatic commands use the same gate.
+Suspension pauses playback; replacing/ending a run invalidates its generation.
+Do not expose incremental draw mutation to BattleFeature or derive readiness from
+whether an animation task happens to exist.
+
+`BattlePresentationContext.rewardPlan` resolves a shared `BattleRewardAward` from
+`BattleGoldFlow`; completion passes that award to the persistence applier. Gold
+gains and spending remain separate through this boundary, including negative net
+wallet changes. Reward math lives in the shared value contract, not the view.
 
 For app-level SwiftUI screens outside BattleFeature, load `swiftui-features.md` only when the path is visual.
 

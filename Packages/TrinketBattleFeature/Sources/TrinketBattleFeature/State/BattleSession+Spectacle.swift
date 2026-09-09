@@ -51,11 +51,12 @@ extension BattleSession {
     }
 
     func handleOutcomeIfNeeded(at date: Date) {
-        guard let configuration = activeBattle,
+        guard transitionPlayback == nil, let configuration = activeBattle,
               let context = presentationContext
         else { return }
         switch outcome {
         case .victory:
+            commandState.transition(to: .outcome)
             clearCardCues()
             if context.stageRewardsAlreadyClaimed {
                 publishPartyCelebrateReactions(at: date)
@@ -66,6 +67,7 @@ extension BattleSession {
             spectacle.outcomePresentation = .pendingVictory(summary)
             scheduleVictoryPresentation(after: date)
         case .defeat:
+            commandState.transition(to: .outcome)
             clearCardCues()
             scheduleDefeatPresentation(after: date)
         case .none:
@@ -165,7 +167,7 @@ extension BattleSession {
         else { return }
 
         cancelPendingAutoEnd()
-        cancelOpeningHandDeal()
+        cancelTransitionPresentation()
         spectacle.outcomeTask.invalidate()
         clearSpectacle()
         guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
@@ -335,8 +337,7 @@ extension BattleSession {
 
     private func cancelPendingBattleTasks() {
         cancelPendingAutoEnd()
-        cancelOpeningHandDeal()
-        cancelPendingTurnDraw()
+        cancelTransitionPresentation()
     }
 
     private func resetEphemeralOverlays() {

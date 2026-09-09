@@ -49,12 +49,12 @@ struct ContractBoardTests {
         var expected = before
         VictoryRewardApplier.grantVictoryRewards(
             hero: hero, companion: companion, encounterLevel: level, stageGold: loot.gold,
-            battleEarnedGold: 5, materialRewards: loot.materials, item: loot.item, save: &expected,
+            battleGold: .init(gained: 5), materialRewards: loot.materials, item: loot.item, save: &expected,
         )
 
         #expect(ContractsCompletion.complete(
             offerID: offer.id, hero: hero, companion: companion, encounterLevel: level,
-            loot: loot, battleEarnedGold: 5, save: &save,
+            loot: loot, battleGold: .init(gained: 5), save: &save,
         ))
         #expect(save.roster == expected.roster)
         #expect(save.inventory == expected.inventory)
@@ -72,7 +72,7 @@ struct ContractBoardTests {
         let claimed = save
         #expect(!ContractsCompletion.complete(
             offerID: offer.id, hero: hero, companion: companion, encounterLevel: level,
-            loot: loot, battleEarnedGold: 5, save: &save,
+            loot: loot, battleGold: .init(gained: 5), save: &save,
         ))
         #expect(save == claimed)
     }

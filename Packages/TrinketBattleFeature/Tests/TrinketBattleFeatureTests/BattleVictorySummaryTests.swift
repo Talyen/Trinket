@@ -223,7 +223,7 @@ struct BattleVictorySummaryTests {
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
-        let earnedGold = try #require(session.earnedGold)
+        let earnedGold = try #require(session.goldFlow?.net)
 
         let expectedTotal = HomesteadEffects(
             heroModifiers: [],
@@ -232,9 +232,9 @@ struct BattleVictorySummaryTests {
             goldFindPercent: context.goldFindPercent,
         ).adjustedGold(100 + earnedGold)
         #expect(context.goldFindPercent > 0)
-        #expect(summary.rawBattleEarnedGold == earnedGold)
+        #expect(summary.goldFlow.net == earnedGold)
         #expect(summary.totalGold == expectedTotal)
-        #expect(summary.battleGold >= summary.rawBattleEarnedGold)
+        #expect(summary.battleGold >= summary.goldFlow.net)
         #expect(
             HomesteadEffects(
                 heroModifiers: [],

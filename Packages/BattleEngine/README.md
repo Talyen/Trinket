@@ -14,11 +14,19 @@ Combat trigger cadence files live in `Sources/BattleEngine/Triggers/`; damage
 resolution files live in `Sources/BattleEngine/Damage/`. Effect handlers remain
 in `Sources/BattleEngine/EffectHandlers/`. These folders belong to the same target.
 
+Enemy abilities resolve offensive effect targets and opponent conditions against
+the selected party member. Conditions keep that target throughout the action,
+including after earlier hits change the party's Health ordering. Shared keyword
+reactions also run for enemy traits, with healing and Block awarded to the source's
+side; party-wide talent bonuses remain restricted to the party.
+
 ## Key types
 
 | Type | Target | Role |
 |------|--------|------|
 | `BattleState` | BattleEngine | Mutable simulation state; `playCard` / `endTurn` drive combat |
+| `DamageOperation` / `HealingOrigin` | BattleEngine | Explicit operation meaning, independent of logging or recursion depth |
+| `BattleActionContext` / `CombatResolution` | BattleEngine | Actor-relative targets, nested action identity, and cadence ownership |
 | `BattleCard` / `BattleHand` / `CombatDeck` | BattleEngine | Player ability cards drawn from Hero/Companion loadout decks; overflow waits in hand buffer |
 | `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect pass |
 | `BattleEffectHandler` | BattleEngine | Protocol for effect application and turn-advance logic |
@@ -41,6 +49,11 @@ consume them. Full item and interaction rules live in
 [Unique equipment](../../Docs/Product/UniqueItems.md).
 
 Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../TrinketBattleFeature/README.md).
+
+Turn and opening-hand drivers can record immutable presentation checkpoints while
+finishing all engine work synchronously. Incremental draw helpers are package-only.
+Operation and mutation contracts live in [battle-engine context](../../Docs/AgentContext/battle-engine.md);
+playback and command readiness live in [battle-runtime context](../../Docs/AgentContext/battle-runtime.md).
 
 `BattleState.assessCard(_:)` provides read-only availability, certain effect
 recipients, and resource-use quotes for the battle interaction cues. It shares

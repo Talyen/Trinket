@@ -57,7 +57,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(guaranteedCritical: true, isAttackHit: true, isBasicAttackHit: true),
+                options: DamageOperation.attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
             ))
         }
         var noPoisonBattle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(pressurePoint: true)))
@@ -67,7 +67,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(guaranteedCritical: true, isAttackHit: true, isBasicAttackHit: true),
+                options: DamageOperation.attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
             ))
         }
         #expect(crit.healthLost > noPoison.healthLost)
@@ -87,7 +87,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.poison,
                 sourceActorID: ctx.roster.hero.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         var plain = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(toxicComa: true)))
@@ -97,7 +97,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.poison,
                 sourceActorID: ctx.roster.hero.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         #expect(withStun.healthLost > without.healthLost)
@@ -114,7 +114,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.bleed,
                 sourceActorID: ctx.roster.hero.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         var plain = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(septicemia: true)))
@@ -124,7 +124,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.bleed,
                 sourceActorID: ctx.roster.hero.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         #expect(withPoison.healthLost > without.healthLost)
@@ -141,7 +141,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.freeze,
                 sourceActorID: ctx.roster.hero.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         var plain = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(elementalParadox: true)))
@@ -151,7 +151,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.freeze,
                 sourceActorID: ctx.roster.hero.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         #expect(withBurn.healthLost > without.healthLost)
@@ -171,7 +171,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(outcome.healthLost > 10)
@@ -198,7 +198,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.hero.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.enemy.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         let heroID = battle.hero.id
@@ -210,7 +210,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(second.healthLost > 10)
@@ -231,7 +231,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.hero.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.enemy.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
@@ -245,7 +245,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.holy,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
@@ -260,7 +260,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.keyword == Keyword.poison })
@@ -277,7 +277,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.freeze,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(!battle.activeEffects(of: battle.enemy).contains {
@@ -291,34 +291,34 @@ struct TalentMigrationTests {
 
     @Test func `cryostasis preserves bleed on frozen`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(dot: DotTriggers(cryostasis: true)))
-        let cryoOutcome = battle.withEngineContext { ctx -> EffectTurnOutcome in
+        let cryoOutcome = battle.withEngineContext { ctx in
             ctx.roster.setActiveEffects([
                 ActiveEffect(id: 1, effect: .controlMeter(Keyword.freeze, 100, 10), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
             ], for: ctx.roster.enemy.combatant)
-            return BleedHandler().advanceTurn(
+            return EffectHandlersTestSupport.dispatchTick(
                 ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-                on: ctx.roster.enemy.combatant,
-                in: &ctx,
+                target: ctx.roster.enemy.combatant,
+                battle: &ctx,
             )
         }
-        #expect(cryoOutcome.updatedStack?.remainingTurns == 1)
-        #expect(cryoOutcome.removeAfter == false)
+        #expect(cryoOutcome.currentEffect?.remainingTurns == 1)
+        #expect(cryoOutcome.currentEffect != nil)
 
         var noCryoBattle = makeBattle()
-        let plainOutcome = noCryoBattle.withEngineContext { ctx -> EffectTurnOutcome in
+        let plainOutcome = noCryoBattle.withEngineContext { ctx in
             ctx.roster.setActiveEffects([
                 ActiveEffect(id: 1, effect: .controlMeter(Keyword.freeze, 100, 10), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
             ], for: ctx.roster.enemy.combatant)
-            return BleedHandler().advanceTurn(
+            return EffectHandlersTestSupport.dispatchTick(
                 ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-                on: ctx.roster.enemy.combatant,
-                in: &ctx,
+                target: ctx.roster.enemy.combatant,
+                battle: &ctx,
             )
         }
-        #expect(plainOutcome.updatedStack?.remainingTurns == 0)
-        #expect(plainOutcome.removeAfter == true)
+        #expect((plainOutcome.currentEffect?.remainingTurns ?? 0) == 0)
+        #expect(plainOutcome.currentEffect == nil)
     }
 
     @Test func `closedCircuit spends mana deals stun`() {
@@ -341,7 +341,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.stun,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(battle.mana(of: battle.hero) > 0)
@@ -439,28 +439,51 @@ struct TalentMigrationTests {
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
 
-    @Test func `phantomCounter dodge draws physical card`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(dodge: DodgeTriggers(phantomCounter: true)))
-        BattleStateTestFactory.drawOpeningHand(on: &battle)
-        let handBefore = battle.hand.cards.count
-        let events = battle.withEngineContext { ctx -> [ActionEvent] in
-            CombatTriggerEngine.afterDodge(by: ctx.roster.hero.combatant, attackerID: ctx.roster.enemy.id, in: &ctx)
-        }
-        let drewPhantom = events.contains(where: { $0.effectKind == .cardsDrawn })
-        if drewPhantom {
-            #expect(battle.hand.cards.count == handBefore + 1)
-        } else {
-            #expect(battle.hand.cards.count == handBefore)
-        }
+    @Test func `phantom counter plays a drawn card without consuming ordinary card rewards`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(
+            attack: AttackTriggers(thirdCardReturnsToHand: true),
+            dodge: DodgeTriggers(phantomCounter: true),
+        ))
+        battle.heroDeck = CombatDeck(abilities: [.slash])
+        battle.uniques.owners[.hero, default: .init()].cardsPlayed = 2
+        let healthBefore = battle.roster.enemy.currentHealth
+        let events = CombatTriggerEngine.afterDodge(
+            by: battle.hero, attackerID: battle.enemy.id, in: &battle,
+        )
+        #expect(battle.roster.enemy.currentHealth < healthBefore)
+        #expect(battle.hand.isEmpty)
+        #expect(battle.heroDeck.abilities.map(\.id) == [Ability.slash.id])
+        #expect(battle.uniques.owners[.hero]?.cardsPlayed == 2)
+        #expect(!events.contains { $0.abilityName == "The Returning Gale" })
+        #expect(battle.resolution.depth(.draw) == 0)
+    }
 
-        var noTalentBattle = makeBattle()
-        BattleStateTestFactory.drawOpeningHand(on: &noTalentBattle)
-        let noHandBefore = noTalentBattle.hand.cards.count
-        let noEvents = noTalentBattle.withEngineContext { ctx -> [ActionEvent] in
-            CombatTriggerEngine.afterDodge(by: ctx.roster.hero.combatant, attackerID: ctx.roster.enemy.id, in: &ctx)
+    @Test func `snapping jaws resolves fangs bleed and leech`() {
+        var battle = makeBattle(
+            heroTriggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeCounterBasicAttack: true)),
+            heroAbilities: [.fangs],
+        )
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
+        let events = CombatTriggerEngine.afterDodge(
+            by: battle.hero, attackerID: battle.enemy.id, in: &battle,
+        )
+        #expect(battle.roster.hero.currentHealth > 5)
+        #expect(battle.roster.hasAffliction(.bleed, on: battle.enemy))
+        #expect(events.contains { $0.abilityName == Ability.fangs.name && $0.keyword == .bleed })
+        #expect(battle.heroDeck.abilities.map(\.id) == [Ability.fangs.id])
+    }
+
+    @Test func `dazing swipe only delays after damaging cards`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(
+            enemyTurn: EnemyTurnTriggers(attackDelayEnemyTurnChancePercent: 1),
+        ))
+        for ability in [Ability.block, .slash] {
+            _ = CombatTriggerEngine.afterCardPlayed(
+                ability: ability, by: battle.hero, abilityTarget: battle.enemy, in: &battle,
+            )
+            #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id, default: 0]
+                == (ability.id == Ability.slash.id ? 1 : 0))
         }
-        #expect(!noEvents.contains(where: { $0.effectKind == .cardsDrawn }))
-        #expect(noTalentBattle.hand.cards.count == noHandBefore)
     }
 
     @Test func `batteringRam and storedImpact stack on same hit`() {
@@ -481,7 +504,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(outcome.healthLost == 20)
@@ -543,7 +566,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.companion.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.enemy.id,
-                options: .flatReaction,
+                options: .reaction(),
             ))
         }
         let companionID = battle.companion.id
@@ -555,7 +578,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(outcome.healthLost > 10)
@@ -607,7 +630,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true, isBasicAttackHit: true),
+                options: DamageOperation.attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         var critBattle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(pressurePoint: true)))
@@ -620,7 +643,7 @@ struct TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(guaranteedCritical: true, isAttackHit: true, isBasicAttackHit: true),
+                options: DamageOperation.attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
             ))
         }
         #expect(crit.healthLost > nonCrit.healthLost)
@@ -649,19 +672,19 @@ struct TalentMigrationTests {
 extension TalentMigrationTests {
     @Test func `cryostasis does not preserve bleed on frozen ally`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(dot: DotTriggers(cryostasis: true)))
-        let outcome = battle.withEngineContext { ctx -> EffectTurnOutcome in
+        let outcome = battle.withEngineContext { ctx in
             ctx.roster.setActiveEffects([
                 ActiveEffect(id: 1, effect: .controlMeter(Keyword.freeze, 100, 10), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
             ], for: ctx.roster.hero.combatant)
-            return BleedHandler().advanceTurn(
+            return EffectHandlersTestSupport.dispatchTick(
                 ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-                on: ctx.roster.hero.combatant,
-                in: &ctx,
+                target: ctx.roster.hero.combatant,
+                battle: &ctx,
             )
         }
-        #expect(outcome.updatedStack?.remainingTurns == 0)
-        #expect(outcome.removeAfter == true)
+        #expect((outcome.currentEffect?.remainingTurns ?? 0) == 0)
+        #expect(outcome.currentEffect == nil)
     }
 
     @Test func `crownfall does not damage when enemy purges ally buff`() {
@@ -739,7 +762,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.stun,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
@@ -755,7 +778,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.stun,
                 sourceActorID: ctx.roster.companion.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
@@ -770,7 +793,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .controlMeter })
@@ -784,7 +807,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
@@ -820,7 +843,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(battle.maxHealth(of: battle.hero) - battle.health(of: battle.hero) == missing - 2)
@@ -852,7 +875,7 @@ extension TalentMigrationTests {
                     target: ctx.roster.enemy.combatant,
                     keyword: Keyword.physical,
                     sourceActorID: ctx.roster.hero.id,
-                    options: DamageOptions(isAttackHit: true),
+                    options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
                 ))
             }
         }
@@ -874,8 +897,8 @@ extension TalentMigrationTests {
                 }
             }
             let before = battle.health(of: battle.enemy)
-            let active = ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0, sourceActorID: battle.hero.id)
-            _ = DecayingDoTHandler(keyword: .burn, kind: .burn).advanceTurn(active, on: battle.enemy, in: &battle)
+            let active = ActiveEffect(id: battle.nextEffectID, effect: .burn(4), remainingTurns: 0, sourceActorID: battle.hero.id)
+            _ = EffectHandlersTestSupport.dispatchTick(active, target: battle.enemy, battle: &battle)
             #expect(before - battle.health(of: battle.enemy) == (frozen ? 4 : 2))
         }
     }
@@ -1012,7 +1035,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.burn,
                 sourceActorID: ctx.roster.companion.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(before - battle.health(of: battle.enemy) == 5)
@@ -1033,7 +1056,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.hero.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.enemy.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(outcome.healthLost == 4)
@@ -1057,7 +1080,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(battle.gold == 2)
@@ -1078,7 +1101,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(outcome.healthLost == 1)
@@ -1093,7 +1116,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.companion.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.enemy.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
@@ -1145,7 +1168,7 @@ extension TalentMigrationTests {
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOptions(isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
             ))
         }
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))

@@ -12,7 +12,7 @@ extension TalentCatalogRoundTripTests {
         var battle = capstoneBattle(companion: [talent])
         battle.roster.companion.currentHealth = 1
         var alreadyLeeches = battle
-        var options = DamageOptions.doTTick
+        var options = DamageOperation.periodic
         options.abilityHasLeech = true
         let normal = battle.resolveDamage(.doTTick(
             amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.companion.id,
@@ -27,7 +27,7 @@ extension TalentCatalogRoundTripTests {
         let health = battle.roster.companion.currentHealth
         _ = battle.resolveDamage(DamageRequest(
             amount: 8, target: battle.enemy, keyword: .holy,
-            sourceActorID: battle.companion.id, options: .flatReaction,
+            sourceActorID: battle.companion.id, options: .reaction(),
         ))
         #expect(battle.roster.companion.currentHealth == health)
     }
@@ -37,7 +37,7 @@ extension TalentCatalogRoundTripTests {
         battle.roster.companion.currentHealth = 1
         let hit = DamageRequest(
             amount: 8, target: battle.enemy, keyword: .physical,
-            sourceActorID: battle.companion.id, options: .flatReaction,
+            sourceActorID: battle.companion.id, options: .reaction(),
         )
         _ = battle.resolveDamage(hit)
         #expect(battle.roster.companion.currentHealth == 1)
@@ -47,7 +47,7 @@ extension TalentCatalogRoundTripTests {
         let health = battle.roster.companion.currentHealth
         _ = battle.resolveDamage(DamageRequest(
             amount: 8, target: battle.enemy, keyword: .holy,
-            sourceActorID: battle.companion.id, options: .flatReaction,
+            sourceActorID: battle.companion.id, options: .reaction(),
         ))
         #expect(battle.roster.companion.currentHealth == health)
     }
@@ -60,7 +60,7 @@ extension TalentCatalogRoundTripTests {
         battle.roster.companion.currentHealth = 1
         let events = DoTApplicator.applyDecayingDoT(
             keyword: .burn, potency: 4, to: battle.companion, sourceActorID: battle.enemy.id,
-            dealImmediateDamage: true, in: &battle,
+            application: .ability, in: &battle,
         )
         #expect(battle.roster.companion.currentHealth == 5)
         #expect(talentPoints(.shield, on: .companion, in: battle) == 5)
@@ -81,9 +81,7 @@ extension TalentCatalogRoundTripTests {
         var battle = capstoneBattle(companion: ["frost_whelp_dodge_t4_1"])
         seedHeroTalentEffect(.evadeNextHit, on: .companion, in: &battle)
         seedHeroTalentEffect(.shield(.block, 20), on: .companion, in: &battle)
-        var options = DamageOptions.directAbilityHit
-        options.applyItemBonus = false
-        options.applyStatBonus = false
+        var options = DamageOperation.attack(scaling: .flat)
         let result = battle.resolveDamage(DamageRequest(
             amount: 8, target: battle.companion, keyword: .physical,
             sourceActorID: battle.enemy.id, options: options,
@@ -99,7 +97,7 @@ extension TalentCatalogRoundTripTests {
             return false
         })
         seedHeroTalentEffect(.evadeNextHit, on: .companion, in: &battle)
-        options.causedByDodge = true
+        options = .reaction(cause: .dodge, scaling: .flat, accuracy: .normal)
         _ = battle.resolveDamage(DamageRequest(
             amount: 8, target: battle.companion, keyword: .physical,
             sourceActorID: battle.enemy.id, options: options,
@@ -138,7 +136,7 @@ extension TalentCatalogRoundTripTests {
         seedHeroTalentEffect(.shield(.block, 10), on: .enemy, in: &battle)
         let result = battle.resolveDamage(DamageRequest(
             amount: 4, target: battle.enemy, keyword: .freeze,
-            sourceActorID: battle.companion.id, options: .flatControlReaction,
+            sourceActorID: battle.companion.id, options: .reaction(),
         ))
         #expect(result.healthLost == 4)
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 10)
@@ -155,8 +153,7 @@ extension TalentCatalogRoundTripTests {
         var battle = capstoneBattle(companion: keyword == .stun ? ["shield_scarab_stun_t4_1"] : [])
         seedHeroTalentEffect(ward, on: .companion, in: &battle)
         seedHeroTalentEffect(.controlMeter(keyword, 38, 40), on: .enemy, in: &battle)
-        var options = DamageOptions.directAbilityHit
-        options.applyDodge = false
+        let options = DamageOperation.attack(accuracy: .unavoidable)
         let result = battle.resolveDamage(DamageRequest(
             amount: 2, target: battle.companion, keyword: .physical,
             sourceActorID: battle.enemy.id, options: options,
@@ -176,9 +173,9 @@ extension TalentCatalogRoundTripTests {
     @Test func `stolen thunder spends block once per attack and leaves other damage unchanged`() {
         var battle = capstoneBattle(companion: ["fox_stun_t4_1"])
         seedHeroTalentEffect(.shield(.block, 4), on: .companion, in: &battle)
-        var options = DamageOptions.flatControlReaction
-        options.isAttackHit = true
-        options.abilityCriticalChanceBonus = -1
+        let options = DamageOperation.attack(
+            origin: .counterattack, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+        )
         let hit = DamageRequest(
             amount: 2, target: battle.enemy, keyword: .stun,
             sourceActorID: battle.companion.id, options: options,
@@ -199,7 +196,7 @@ extension TalentCatalogRoundTripTests {
         seedHeroTalentEffect(.shield(.block, block), on: .enemy, in: &battle)
         let outcome = battle.resolveDamage(DamageRequest(
             amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: DamageOptions(applyDodge: false, guaranteedCritical: true, isAttackHit: true),
+            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, guaranteedCritical: true),
         ))
         #expect(outcome.isCritical)
         #expect(battle.gold == 3)
@@ -235,7 +232,7 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.burn, on: .enemy, in: battle) == 5)
         let request = DamageRequest(
             amount: 2, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
-            options: DamageOptions(applyDodge: false, guaranteedCritical: true, isAttackHit: true),
+            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, guaranteedCritical: true),
         )
         let hit = battle.resolveDamage(request)
         #expect(hit.isCritical)
@@ -278,6 +275,32 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.gold == gold + 2)
         _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
         #expect(DefensePoolEngine.add(7, to: battle.enemy, in: &battle) == 7)
+    }
+
+    @Test func `interdict prevents purged avatar from dealing damage or granting block`() throws {
+        var battle = capstoneBattle(companion: ["library_owl_holy_t4_1"])
+        let avatar = try #require(Ability.avatarOfJustice.effects.first { $0.kind == .avatar })
+        seedHeroTalentEffect(avatar, on: .enemy, in: &battle, source: .enemy)
+        let purge = Ability(id: "purge-avatar", name: "Purge", tier: .skill, targetedEffects: [TargetedEffect(.purge(nil), target: .enemy)])
+        try playHeroTalentCard(purge, owner: .companion, in: &battle)
+        let heroHealth = battle.roster.hero.currentHealth
+        let companionHealth = battle.roster.companion.currentHealth
+        let blocked = EffectHandlersTestSupport.dispatch(
+            avatar, ability: .avatarOfJustice, source: battle.enemy, target: battle.enemy, battle: &battle,
+        )
+        #expect(!blocked.didApply)
+        #expect(blocked.events.isEmpty)
+        #expect(battle.roster.hero.currentHealth == heroHealth)
+        #expect(battle.roster.companion.currentHealth == companionHealth)
+        #expect(battle.activeEffects(of: battle.enemy).isEmpty)
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let applied = EffectHandlersTestSupport.dispatch(
+            avatar, ability: .avatarOfJustice, source: battle.enemy, target: battle.enemy, battle: &battle,
+        )
+        #expect(applied.didApply)
+        #expect(applied.events.contains { $0.effectKind == .avatarApplied })
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .avatar })
+        #expect(battle.roster.hero.currentHealth < heroHealth || battle.roster.companion.currentHealth < companionHealth)
     }
 
     @Test func `redline follows detonation while rend flesh still extends undetonated bleed`() throws {
@@ -380,7 +403,7 @@ extension TalentCatalogRoundTripTests {
         let health = battle.roster.enemy.currentHealth
         _ = DoTApplicator.applyBleed(
             potency: 1, to: battle.enemy, sourceActorID: battle.hero.id,
-            dealImmediateDamage: false, in: &battle,
+            application: .afterHit, in: &battle,
         )
         #expect(health - battle.roster.enemy.currentHealth == 10)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
@@ -388,7 +411,7 @@ extension TalentCatalogRoundTripTests {
         #expect(durations == [10, 4, Effect.bleedDoTTurnCount])
         _ = DoTApplicator.applyBleed(
             potency: 1, to: battle.enemy, sourceActorID: battle.hero.id,
-            dealImmediateDamage: false, in: &battle,
+            application: .afterHit, in: &battle,
         )
         #expect(health - battle.roster.enemy.currentHealth == 17)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 0)
@@ -402,7 +425,7 @@ extension TalentCatalogRoundTripTests {
         battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
         _ = battle.resolveDamage(DamageRequest(
             amount: 2, target: battle.enemy, keyword: .physical,
-            sourceActorID: battle.hero.id, options: .flatReaction,
+            sourceActorID: battle.hero.id, options: .reaction(),
         ))
         #expect(battle.gold == 0)
         if detonates {
@@ -410,7 +433,7 @@ extension TalentCatalogRoundTripTests {
         } else {
             _ = battle.resolveDamage(DamageRequest(
                 amount: 4, target: battle.enemy, keyword: .physical,
-                sourceActorID: battle.hero.id, options: .flatReaction,
+                sourceActorID: battle.hero.id, options: .reaction(),
             ))
         }
         #expect(battle.roster.enemy.currentHealth == 0)
@@ -429,7 +452,7 @@ extension TalentCatalogRoundTripTests {
         }
         _ = battle.resolveDamage(DamageRequest(
             amount: 200, target: battle.enemy, keyword: .physical,
-            sourceActorID: companionKill ? battle.companion.id : battle.hero.id, options: .flatReaction,
+            sourceActorID: companionKill ? battle.companion.id : battle.hero.id, options: .reaction(),
         ))
         #expect(battle.gold == 0)
     }

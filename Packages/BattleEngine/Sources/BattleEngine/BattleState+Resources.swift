@@ -17,13 +17,13 @@ package extension BattleState {
         let baseGold = goldGranted(for: amount, sourceActorID: combatant.id)
         let critical = baseGold > 0 && isDirectCardGain && CombatTriggerEngine.heroCardGoldCritical(source: combatant, in: &self)
         let granted = baseGold * (critical ? 2 : 1)
-        let previousEarned = max(0, gold - initialGold)
+        let previousEarned = goldFlow.gained
         gold += granted
         if isTheft, granted > 0, modifiers(for: combatant.id).triggers.gildedClaws {
             heroTalents.history[combatant.id, default: HeroTalentHistory()].stolenGoldDamage += granted
         }
         UniqueCombatEngine.gainedGold(granted, by: combatant, in: &self)
-        let currentEarned = max(0, gold - initialGold)
+        let currentEarned = goldFlow.gained
         var events = [nextEvent(
             kind: .effect,
             effectKind: .resourceGain,
@@ -34,6 +34,9 @@ package extension BattleState {
             keyword: .gold,
             isCritical: critical,
         )]
+        if isTheft, granted > 0 {
+            events.append(contentsOf: CombatTriggerEngine.afterGoldTheft(by: combatant, in: &self))
+        }
         events.append(contentsOf: CombatTriggerEngine.goldGainTriggerEvents(
             granted: granted,
             previousEarned: previousEarned,
@@ -49,8 +52,9 @@ package extension BattleState {
         var percent = max(0, profile.goldGainedPercent)
         let isPartySource = sourceActorID == roster.hero.id || sourceActorID == roster.companion.id
         if isPartySource {
-            percent += max(0, heroModifiers.triggers.partyGoldGainedPercent)
-            percent += max(0, companionModifiers.triggers.partyGoldGainedPercent)
+            for profile in CombatTriggerEngine.livingAllyModifiers(in: self) {
+                percent += max(0, profile.triggers.partyGoldGainedPercent)
+            }
         }
         var scaled = CombatRounding.scaled(amount, multiplier: 1 + percent)
         if isPartySource,
@@ -110,7 +114,7 @@ package extension BattleState {
             amount: amount,
             target: target,
             sourceActorID: source.id,
-            logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword),
+            origin: .restoration(keyword), logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword),
         )
         request.isDirectCardHeal = isDirectCardHeal
         return HealingEngine.resolveHeal(request, in: &self).events

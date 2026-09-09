@@ -3,18 +3,26 @@ import TrinketContent
 import TrinketCore
 
 public struct CombatOutcome: Equatable {
+    public enum DamageImpact: Equatable {
+        case dodged
+        case landed(blocked: Int, healthLost: Int)
+    }
+
     public var healthDelta: Int
     public var events: [ActionEvent]
+    public var damageImpact: DamageImpact?
     var flags: Set<CombatFlag>
 
     public init(
         healthDelta: Int = 0,
         events: [ActionEvent] = [],
         flags: Set<CombatFlag> = [],
+        damageImpact: DamageImpact? = nil,
     ) {
         self.healthDelta = healthDelta
         self.events = events
         self.flags = flags
+        self.damageImpact = damageImpact
     }
 
     public static var empty: Self {
@@ -55,22 +63,21 @@ extension CombatOutcome {
         if state.isDodged {
             flags.insert(.dodged)
         }
-        for event in state.damageEvents {
-            switch event.effectKind {
-            case .shieldAbsorbed:
-                flags.insert(.shieldAbsorbed)
-            case .leechHeal:
-                flags.insert(.leeched)
-            case .controlTriggered:
-                flags.insert(.controlTriggered)
-            default:
-                break
-            }
+        if state.blockedAmount > 0 {
+            flags.insert(.shieldAbsorbed)
+        }
+        if state.didLeech {
+            flags.insert(.leeched)
+        }
+        if state.didTriggerControl {
+            flags.insert(.controlTriggered)
         }
         return CombatOutcome(
             healthDelta: -state.healthLost,
             events: state.damageEvents,
             flags: flags,
+            damageImpact: state.options.isHealthCost ? nil
+                : state.isDodged ? .dodged : .landed(blocked: state.blockedAmount, healthLost: state.healthLost),
         )
     }
 }

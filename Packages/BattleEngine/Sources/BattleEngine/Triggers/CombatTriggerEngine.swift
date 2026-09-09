@@ -48,7 +48,6 @@ package enum CombatTriggerEngine {
     }
 
     static func incomingHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
-        guard target.role == .enemy else { return 1 }
         var multiplier = burnAuraHealMultiplier(for: target, in: context)
         let affliction = context.roster.activeEffects(for: target).compactMap { active -> Double? in
             guard case let .healingReductionPercent(percent, _) = active.effect else { return nil }
@@ -59,6 +58,7 @@ package enum CombatTriggerEngine {
     }
 
     private static func burnAuraHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
+        guard target.role == .enemy else { return 1 }
         let isBurning = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn }
         guard isBurning else { return 1 }
         var reduction = 0.0
@@ -108,12 +108,12 @@ package enum CombatTriggerEngine {
         context: inout BattleState,
         perform: (inout BattleState) -> [ActionEvent],
     ) -> [ActionEvent] {
-        guard context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth else {
-            ReactionScope.capHit(site: site, depth: context.dotRecursionDepth)
+        guard context.resolution.depth(.dot) < ReactionScope.maxDotRecursionDepth else {
+            ReactionScope.capHit(site: site, depth: context.resolution.depth(.dot))
             return []
         }
-        context.dotRecursionDepth += 1
-        defer { context.dotRecursionDepth -= 1 }
+        context.resolution.enter(.dot)
+        defer { context.resolution.leave(.dot) }
         return perform(&context)
     }
 }

@@ -14,10 +14,6 @@ public extension BattleState {
         roster.enemy.combatant
     }
 
-    var earnedGold: Int {
-        gold - initialGold
-    }
-
     var isEnemyDefeated: Bool {
         roster.isEnemyDefeated
     }

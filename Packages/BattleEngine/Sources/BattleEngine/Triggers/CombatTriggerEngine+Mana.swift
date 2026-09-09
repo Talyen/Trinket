@@ -86,13 +86,12 @@ package extension CombatTriggerEngine {
 
         if triggers.onSpendManaBurnBurningEnemies > 0, context.roster.enemy.isAlive,
            context.roster.activeEffects(for: context.roster.enemy.combatant).contains(where: { $0.effect.keyword == .burn }) {
-            events.append(contentsOf: context.applyDecayingDoT(
+            events.append(contentsOf: applyDoT(
                 keyword: .burn,
                 potency: triggers.onSpendManaBurnBurningEnemies,
                 to: context.roster.enemy.combatant,
                 sourceActorID: actor.id,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
+                in: &context,
             ))
         }
 
@@ -104,8 +103,7 @@ package extension CombatTriggerEngine {
                     potency: 1,
                     to: context.roster.enemy.combatant,
                     sourceActorID: actor.id,
-                    dealImmediateDamage: false,
-                    suppressAffixReactions: true,
+                    application: .attached,
                     in: &context,
                 ))
             } else {
@@ -114,8 +112,7 @@ package extension CombatTriggerEngine {
                     potency: 1,
                     to: context.roster.enemy.combatant,
                     sourceActorID: actor.id,
-                    dealImmediateDamage: false,
-                    suppressAffixReactions: true,
+                    application: .attached,
                 ))
             }
         }
@@ -152,7 +149,7 @@ package extension CombatTriggerEngine {
                         target: context.roster.enemy.combatant,
                         keyword: keyword,
                         sourceActorID: actor.id,
-                        options: .flatReaction,
+                        options: .reaction(),
                     ),
                 ).events)
             }
@@ -185,7 +182,7 @@ package extension CombatTriggerEngine {
                 target: context.roster.enemy.combatant,
                 keyword: .stun,
                 sourceActorID: actor.id,
-                options: .flatReaction,
+                options: .reaction(),
             )).events)
         }
 
@@ -197,7 +194,7 @@ package extension CombatTriggerEngine {
                 target: context.roster.enemy.combatant,
                 keyword: .stun,
                 sourceActorID: actor.id,
-                options: .flatReaction,
+                options: .reaction(),
             )).events)
         }
 
@@ -238,7 +235,7 @@ package extension CombatTriggerEngine {
                     potency: randomDoT,
                     to: enemy,
                     sourceActorID: actor.id,
-                    dealImmediateDamage: true,
+                    application: .ability,
                 ))
             } else {
                 events.append(contentsOf: ControlMeterEngine.applyMeterCharge(

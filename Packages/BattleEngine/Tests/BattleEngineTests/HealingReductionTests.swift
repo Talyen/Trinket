@@ -5,6 +5,52 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct HealingReductionTests {
+    @Test func `healing logging cannot change leech rules or randomness`() {
+        var silent = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 40),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroHealth: 10,
+            heroModifiers: .init(triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: 0.5))),
+        )
+        var visible = silent
+        let silentResult = silent.resolveHeal(HealRequest(
+            amount: 5, target: silent.hero, sourceActorID: silent.hero.id, origin: .leech,
+        ))
+        let visibleResult = visible.resolveHeal(HealRequest(
+            amount: 5, target: visible.hero, sourceActorID: visible.hero.id, origin: .leech,
+            logAs: .instantHeal(actorName: visible.hero.name, abilityName: "Leech", keyword: .health),
+        ))
+        #expect(silentResult.healthRestored == visibleResult.healthRestored)
+        #expect(silentResult.isCritical == visibleResult.isCritical)
+        for owner in [BattleParticipant.hero, .companion, .enemy] {
+            #expect(silent.roster[owner] == visible.roster[owner])
+        }
+        #expect(silent.rng.next() == visible.rng.next())
+    }
+
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `enemy serrated edge reduces only the afflicted ally healing`(recipient: BattleParticipant) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 40),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
+            enemy: CombatantFixtures.passiveEnemy(abilities: [.serratedEdge]),
+        )
+        battle.appliesFightPacing = false
+        let target = battle.roster[recipient].combatant
+        _ = BattleTurnEngine.performAction(
+            ability: .serratedEdge, actor: battle.enemy, abilityTarget: target, context: &battle,
+        )
+
+        for ally in [battle.hero, battle.companion] {
+            battle.roster.mutateRuntime(for: ally) { $0.currentHealth = 10 }
+            let outcome = battle.resolveHeal(HealRequest(
+                amount: 8, target: ally, sourceActorID: ally.id, logAs: .silent,
+            ))
+            #expect(outcome.healthRestored == (ally.id == target.id ? 6 : 8))
+        }
+    }
+
     @Test func `serrated edge reduces enemy healing`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.serratedEdge]),

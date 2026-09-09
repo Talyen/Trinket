@@ -74,44 +74,69 @@ struct EffectHandlersTurnTests {
         #expect(BattleTestFixtures.shieldPoints(for: battle.enemy, in: battle) == 0)
     }
 
+    @Test(arguments: [Keyword.freeze, .stun])
+    func `recurring control damage builds control on application and subsequent turns`(keyword: Keyword) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 200, dealOpeningHand: false)
+        battle.withEngineContext { $0.appliesFightPacing = false }
+        let effect = Effect.recurringDamage(keyword, 2, 2)
+        _ = EffectHandlersTestSupport.dispatch(
+            effect, source: battle.hero, target: battle.enemy, battle: &battle,
+        )
+        for expectedAmount in [2, 4] {
+            #expect(battle.health(of: battle.enemy) == 200 - expectedAmount)
+            #expect(battle.activeEffects(of: battle.enemy).contains {
+                if case let .controlMeter(appliedKeyword, amount, _) = $0.effect {
+                    return appliedKeyword == keyword && amount == expectedAmount
+                }
+                return false
+            })
+            if expectedAmount == 2 {
+                _ = EffectHandlersTestSupport.dispatchTick(
+                    ActiveEffect(id: 10, effect: effect, remainingTurns: 2, sourceActorID: battle.hero.id),
+                    target: battle.enemy, battle: &battle,
+                )
+            }
+        }
+    }
+
     @Test func `decaying do T ticks use semantic decay rules`() throws {
         for (potency, expectedPotency, removes) in [(4, 2, false), (2, 1, false), (1, 0, true)] {
             var battle = BattleStateTestFactory.makeBattle()
             let burn = ActiveEffect(id: 1, effect: .burn(potency), remainingTurns: 0, sourceActorID: "hero")
             let outcome = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
             try #expect(outcome.events.count == (removes ? 0 : 1))
-            try #expect(outcome.updatedStack?.effect.potency == expectedPotency)
-            try #expect(outcome.removeAfter == removes)
+            try #expect((outcome.currentEffect?.effect.potency ?? 0) == expectedPotency)
+            try #expect((outcome.currentEffect == nil) == removes)
         }
 
         var poisonBattle = BattleStateTestFactory.makeBattle()
         let poison = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: "hero")
         let poisonOutcome = EffectHandlersTestSupport.dispatchTick(poison, target: poisonBattle.enemy, battle: &poisonBattle)
         try #expect(poisonOutcome.events.count == 1)
-        try #expect(poisonOutcome.updatedStack?.effect.potency == 6)
-        try #expect(!(poisonOutcome.removeAfter))
+        try #expect(poisonOutcome.currentEffect?.effect.potency == 6)
+        try #expect(poisonOutcome.currentEffect != nil)
 
         for (remainingTurns, expectedTicks, removes) in [(3, 2, false), (1, 0, true)] {
             var battle = BattleStateTestFactory.makeBattle()
             let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: remainingTurns, sourceActorID: "hero")
             let outcome = EffectHandlersTestSupport.dispatchTick(bleed, target: battle.enemy, battle: &battle)
             try #expect(outcome.events.count == 1)
-            try #expect(outcome.updatedStack?.remainingTurns == expectedTicks)
-            try #expect(outcome.removeAfter == removes)
+            try #expect((outcome.currentEffect?.remainingTurns ?? 0) == expectedTicks)
+            try #expect((outcome.currentEffect == nil) == removes)
         }
 
         var expiredBattle = BattleStateTestFactory.makeBattle()
         let expired = ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: 0, sourceActorID: "hero")
         let expiredOutcome = EffectHandlersTestSupport.dispatchTick(expired, target: expiredBattle.enemy, battle: &expiredBattle)
         try #expect(expiredOutcome.events.isEmpty)
-        try #expect(expiredOutcome.updatedStack == nil)
+        try #expect(expiredOutcome.currentEffect == expired)
     }
 
     @Test func `burn decay slow talent slows burn applied by its owner`() throws {
         var battle = BattleStateTestFactory.makeBattle()
         let burn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "hero")
         let baseline = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
-        try #expect(baseline.updatedStack?.effect.potency == 5)
+        try #expect(baseline.currentEffect?.effect.potency == 5)
 
         var slowedBattle = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
@@ -126,7 +151,7 @@ struct EffectHandlersTurnTests {
             target: slowedBattle.roster.enemy.combatant,
             battle: &slowedBattle,
         )
-        try #expect(slowed.updatedStack?.effect.potency == 7)
+        try #expect(slowed.currentEffect?.effect.potency == 7)
     }
 
     @Test(arguments: [
@@ -137,7 +162,6 @@ struct EffectHandlersTurnTests {
         let stack = ActiveEffect(id: 1, effect: effect, remainingTurns: 0, sourceActorID: "hero")
         let outcome = EffectHandlersTestSupport.dispatchTick(stack, target: battle.enemy, battle: &battle)
         try #expect(outcome.events.isEmpty)
-        try #expect(outcome.updatedStack == nil)
-        try #expect(!(outcome.removeAfter))
+        try #expect(outcome.currentEffect == stack)
     }
 }

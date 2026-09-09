@@ -31,5 +31,6 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 | Elegant simplification round 4 | 2026-09-01 | Cancelled after its confirmed residual work moved to `SimplificationFollowup` |
 | Labyrinth cleared-node refresh | 2026-08-29 | Replaced success-green cleared nodes with quieter visited-parchment styling |
 | BattleEngine simplification | 2026-09-03 | Centralized combat policy, removed duplicated card-engine paths, and moved residual work to `SimplificationFollowup` |
+| Combat semantic architecture | 2026-09-09 | Implemented typed operations, actor-relative targets, action/effect ownership, atomic turn playback, and authoritative preparation/rewards; final handoff, Battle smoke, and six Battle performance scenarios passed; full-app performance retained a Collection sampling failure and observational frame-budget misses |
 
 For full detail, use `git log --all -- Docs/Plans/Archived/<former-name>.md`.

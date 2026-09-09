@@ -153,15 +153,15 @@ package extension DamagePipeline {
         if actor.role == .enemy {
             return
         }
-        if resolveGuaranteedCrit(to: &state, actor: actor, in: &context) {
-            return
-        }
         var abilityBonus = state.options.abilityCriticalChanceBonus
         if actor.role != .enemy, state.options.isAttackHit, state.options.isBasicAttackHit,
            let pendingBonus = context.roster.runtime(for: actor.combatant)?.pendingBasicCritBonus,
            pendingBonus > 0 {
             abilityBonus += pendingBonus
             context.roster.mutateRuntime(for: actor.combatant) { $0.pendingBasicCritBonus = 0 }
+        }
+        if resolveGuaranteedCrit(to: &state, actor: actor, in: &context) {
+            return
         }
         guard CriticalChanceEngine.rollSucceeds(
             keyword: damageKeyword,
@@ -185,31 +185,30 @@ package extension DamagePipeline {
         guard let sourceActorID = state.sourceActorID else {
             return false
         }
-        if actor.role != .enemy, state.options.guaranteedCritical {
-            applyCritical(to: &state)
-            return true
-        }
+        var guaranteed = state.options.guaranteedCritical
         if actor.role != .enemy,
            state.options.guaranteedCriticalIfEnemyBuffed,
            context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
-            applyCritical(to: &state)
-            return true
+            guaranteed = true
         }
         if state.options.isAttackHit,
            actor.role != .enemy,
            context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
            context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
-            applyCritical(to: &state)
-            return true
+            guaranteed = true
         }
-        if actor.role != .enemy,
-           state.options.isAttackHit,
-           context.roster.runtime(for: actor.combatant)?.pendingGuaranteedCriticalAfterDodge == true {
-            context.roster.mutateRuntime(for: actor.combatant) {
-                $0.pendingGuaranteedCriticalAfterDodge = false
+        if actor.role != .enemy, state.options.isAttackHit {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                guard member.isAlive, member.pendingGuaranteedCriticalAfterDodge,
+                      member.id == sourceActorID
+                        || context.modifiers(for: member.id).triggers.onDodgeNextPartyHitGuaranteedCritical
+                else { continue }
+                context.roster.mutateRuntime(for: member.combatant) {
+                    $0.pendingGuaranteedCriticalAfterDodge = false
+                }
+                guaranteed = true
             }
-            applyCritical(to: &state)
-            return true
         }
         if actor.role != .enemy,
            state.options.isAttackHit, state.options.isBasicAttackHit,
@@ -217,23 +216,23 @@ package extension DamagePipeline {
             context.roster.mutateRuntime(for: actor.combatant) {
                 $0.pendingBasicGuaranteedCrit = false
             }
-            applyCritical(to: &state)
-            return true
+            guaranteed = true
         }
         if actor.role != .enemy,
            context.roster.isDeathsDoorActive(for: actor.combatant),
            context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
-            applyCritical(to: &state)
-            return true
+            guaranteed = true
         }
         if actor.role != .enemy,
            context.modifiers(for: sourceActorID).triggers.warChest,
            state.damageKeyword == .physical,
            context.gold >= 50 {
-            applyCritical(to: &state)
-            return true
+            guaranteed = true
         }
-        return false
+        if guaranteed {
+            applyCritical(to: &state)
+        }
+        return guaranteed
     }
 
     private static func applyCritical(to state: inout DamageResolutionState) {

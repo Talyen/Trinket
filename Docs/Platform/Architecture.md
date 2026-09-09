@@ -41,6 +41,7 @@ Scripts/                    generate, build, test, CI helpers
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | Effects, keywords, stats, progression | [TrinketCore](../../Packages/TrinketCore/README.md) | Domain primitives; no UI or app dependencies |
+| Battle Gold flow and reward values | TrinketCore / TrinketContent | Core tracks gross gains/spending; Content shares resolved award values between presentation and persistence |
 | Catalogs and authored content | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest/codegen boundary and runtime catalog |
 | Combat rules and card combat | [BattleEngine](../../Packages/BattleEngine/README.md) | Simulation owner |
 | Player save, stores, and sync wiring | [TrinketPersistence](../../Packages/TrinketPersistence/README.md) | Canonical save graph and write policy |

@@ -15,35 +15,12 @@ struct PanaceaHandler: BattleEffectHandler {
         guard case let .panacea(baseHeal, healPerDebuff) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let cleanseTarget = BattleConditionEvaluator.mostDebuffedAlly(in: context)
-        var cleanseEffects = context.roster.activeEffects(for: cleanseTarget)
-        let removedDebuffs = EffectRemoval.removeDebuffs(from: &cleanseEffects, keyword: nil)
-        guard !removedDebuffs.isEmpty else {
-            let healTarget = BattleConditionEvaluator.lowestHealthAlly(in: context)
-            let cleanseEvents = CombatTriggerEngine.afterHeroCleanse(source: source, target: cleanseTarget, removed: [], in: &context)
-            return EffectApplyOutcome(
-                events: cleanseEvents + context.healEmitting(
-                    amount: baseHeal,
-                    target: healTarget,
-                    source: source,
-                    abilityName: ability.name,
-                    isDirectCardHeal: context.hasHeroCard(for: source.id),
-                ),
-                didApply: true,
-            )
-        }
-        context.roster.setActiveEffects(cleanseEffects, for: cleanseTarget)
-        let healAmount = baseHeal + healPerDebuff * removedDebuffs.count
-        let healTarget = BattleConditionEvaluator.lowestHealthAlly(in: context)
-        let events = CleanseEventBuilder.events(
-            removed: removedDebuffs,
-            abilityName: ability.name,
-            source: source,
-            target: cleanseTarget,
-            healAmount: healAmount,
-            healTarget: healTarget,
-            in: &context,
-        )
-        return EffectApplyOutcome(events: events, didApply: true)
+        let action = BattleActionContext(actor: source, in: context)
+        let cleanseTarget = BattleActionContext.mostDebuffed(in: action.allies(in: context), state: context)
+        return CleanseOperation.resolve(
+            .all(nil), source: source, target: cleanseTarget, abilityName: ability.name,
+            baseHeal: baseHeal, healPerDebuff: healPerDebuff,
+            healTarget: action.target(.lowestHealthAlly, in: context), in: &context,
+        ).application
     }
 }

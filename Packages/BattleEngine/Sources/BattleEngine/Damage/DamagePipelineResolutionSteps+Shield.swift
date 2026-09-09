@@ -18,11 +18,11 @@ package extension DamagePipeline {
             && context.heroTalents.cards.last?.actorID == state.sourceActorID
             && context.heroTalents.cards.last?.preparations.contains(.ignorePhysicalBlock) == true
         if blindSpot || UniqueCombatEngine.ignoresBlock(for: state, in: context) {
-            state.activeEffects = effects
             return
         }
 
         applyIntercede(to: &state, in: &context)
+        effects = context.roster.activeEffects(for: state.combatant)
 
         guard let index = effects.firstIndex(where: {
             if case .shield = $0.effect {
@@ -34,7 +34,6 @@ package extension DamagePipeline {
             state.remaining > 0,
             !state.options.isHealthCost
         else {
-            state.activeEffects = effects
             return
         }
 
@@ -53,7 +52,6 @@ package extension DamagePipeline {
             context: context,
         ) - state.heroCardBlockIgnore)
         guard effectiveBuffer > 0, state.remaining > 0 else {
-            state.activeEffects = effects
             return
         }
 
@@ -77,7 +75,7 @@ package extension DamagePipeline {
         }
         state.heroCardBlockBroken = blockBroken
         context.roster.setActiveEffects(effects, for: state.combatant)
-        state.activeEffects = effects
+
         state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(
             absorbed: absorption.absorbed,
             blockBroken: blockBroken,
@@ -114,7 +112,6 @@ package extension DamagePipeline {
                 attackerID: state.sourceActorID,
                 in: &context,
             ))
-            state.activeEffects = context.roster.activeEffects(for: state.combatant)
         }
     }
 
@@ -179,6 +176,12 @@ package extension DamagePipeline {
             in: &context,
         )
         context.roster.setActiveEffects(reduced.effects, for: context.roster.hero.combatant)
+        state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
+            absorbed: heroAbsorbed,
+            defender: context.roster.hero.combatant,
+            attackerID: state.sourceActorID,
+            in: &context,
+        ))
         if reduced.broken {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
                 on: context.roster.hero.combatant,
@@ -289,7 +292,7 @@ package extension DamagePipeline {
             keyword: keyword,
             target: target,
             sourceActorID: source.id,
-            controlMeter: keyword == .stun || keyword == .freeze,
+
             in: &context,
         ).events
     }
@@ -366,7 +369,6 @@ package extension DamagePipeline {
                 sourceActorID: attackerID,
                 in: &context,
             ).events)
-            state.activeEffects = context.roster.activeEffects(for: state.combatant)
         }
         return events
     }

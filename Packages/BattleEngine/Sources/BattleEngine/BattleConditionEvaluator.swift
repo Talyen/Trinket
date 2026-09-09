@@ -8,36 +8,54 @@ public enum BattleConditionEvaluator {
         actor: Combatant,
         in context: BattleState,
     ) -> Bool {
+        if let current = context.resolution.actionContext, current.actor.id == actor.id {
+            return isMet(condition, action: current, in: context)
+        }
+        return isMet(condition, action: BattleActionContext(actor: actor, in: context), in: context)
+    }
+
+    static func isMet(
+        _ condition: DamageCondition,
+        actor: Combatant,
+        abilityTarget: Combatant,
+        in context: BattleState,
+    ) -> Bool {
+        isMet(condition, action: BattleActionContext(actor: actor, selectedTarget: abilityTarget), in: context)
+    }
+
+    public static func isMet(
+        _ condition: DamageCondition,
+        action: BattleActionContext,
+        in context: BattleState,
+    ) -> Bool {
+        let enemy = action.selectedTarget
         switch condition {
         case .enemyBleeding:
-            return hasDebuffKeyword(.bleed, on: context.enemy, in: context)
+            return hasDebuffKeyword(.bleed, on: enemy, in: context)
         case .enemyBurning:
-            return hasDebuffKeyword(.burn, on: context.enemy, in: context)
+            return hasDebuffKeyword(.burn, on: enemy, in: context)
         case .enemyNotBurning:
-            return !hasDebuffKeyword(.burn, on: context.enemy, in: context)
+            return !hasDebuffKeyword(.burn, on: enemy, in: context)
         case .enemyPoisoned:
-            return hasDebuffKeyword(.poison, on: context.enemy, in: context)
+            return hasDebuffKeyword(.poison, on: enemy, in: context)
         case .enemyFrozen:
-            return hasPendingControl(.freeze, on: context.enemy, in: context)
+            return hasPendingControl(.freeze, on: enemy, in: context)
         case .enemyStunned:
-            return hasPendingControl(.stun, on: context.enemy, in: context)
+            return hasPendingControl(.stun, on: enemy, in: context)
         case .enemyStunnedOrFrozen:
-            return hasPendingControl(.stun, on: context.enemy, in: context)
-                || hasPendingControl(.freeze, on: context.enemy, in: context)
+            return hasPendingControl(.stun, on: enemy, in: context)
+                || hasPendingControl(.freeze, on: enemy, in: context)
         case .enemyMarked:
-            return hasMarked(on: context.enemy, in: context)
+            return hasMarked(on: enemy, in: context)
         case .enemyLowerHealthThanActor:
-            return context.roster.health(for: context.enemy) < context.roster.health(for: actor)
+            return context.roster.health(for: enemy) < context.roster.health(for: action.actor)
         case .allyBelowHalfHealth:
-            let heroHealth = context.roster.health(for: context.hero)
-            let companionHealth = context.roster.health(for: context.companion)
-            let heroMaxHealth = context.roster.maxHealth(for: context.hero)
-            let companionMaxHealth = context.roster.maxHealth(for: context.companion)
-            let heroMax = heroMaxHealth > 0 ? heroMaxHealth : context.hero.maxHealth
-            let companionMax = companionMaxHealth > 0 ? companionMaxHealth : context.companion.maxHealth
-            return (heroHealth > 0 && heroHealth * 2 < heroMax) || (companionHealth > 0 && companionHealth * 2 < companionMax)
+            return action.allies(in: context).contains {
+                let health = context.health(of: $0)
+                return health > 0 && health * 2 < context.maxHealth(of: $0)
+            }
         case .enemyHasBuff:
-            return context.roster.activeEffects(for: context.enemy).contains(where: \.effect.isRemovableBuff)
+            return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
         case .firstTurn:
             return context.turnCount == 0
         }
@@ -56,20 +74,7 @@ public enum BattleConditionEvaluator {
         companion: Combatant,
         context: BattleState,
     ) -> Combatant {
-        let heroHealth = context.roster.health(for: hero)
-        let companionHealth = context.roster.health(for: companion)
-        let heroAlive = heroHealth > 0
-        let companionAlive = companionHealth > 0
-        switch (heroAlive, companionAlive) {
-        case (true, true):
-            return heroHealth <= companionHealth ? hero : companion
-        case (true, false):
-            return hero
-        case (false, true):
-            return companion
-        case (false, false):
-            return hero
-        }
+        BattleActionContext.lowestHealth(in: [hero, companion], state: context)
     }
 
     public static func mostDebuffedAlly(in context: BattleState) -> Combatant {
@@ -85,17 +90,7 @@ public enum BattleConditionEvaluator {
         companion: Combatant,
         context: BattleState,
     ) -> Combatant {
-        guard context.roster.health(for: hero) > 0,
-              context.roster.health(for: companion) > 0
-        else {
-            return lowestHealthAlly(hero: hero, companion: companion, context: context)
-        }
-        let heroDebuffs = context.roster.activeEffects(for: hero).count(where: \.effect.isRemovableDebuff)
-        let companionDebuffs = context.roster.activeEffects(for: companion).count(where: \.effect.isRemovableDebuff)
-        if heroDebuffs != companionDebuffs {
-            return heroDebuffs > companionDebuffs ? hero : companion
-        }
-        return lowestHealthAlly(hero: hero, companion: companion, context: context)
+        BattleActionContext.mostDebuffed(in: [hero, companion], state: context)
     }
 
     private static func hasDebuffKeyword(

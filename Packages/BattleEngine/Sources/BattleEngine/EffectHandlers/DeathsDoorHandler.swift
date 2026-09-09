@@ -28,9 +28,12 @@ struct DeathsDoorHandler: BattleEffectHandler {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> EffectTurnOutcome {
+    ) -> [ActionEvent] {
         var updated = active
         updated.remainingTurns -= 1
+        ActiveEffectMutation.finishTurn(
+            active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
+        )
         if updated.remainingTurns <= 0 {
             context.roster.mutateRuntime(for: target) {
                 $0.deathsDoorExpiredAtTurn = context.turnCount
@@ -46,8 +49,8 @@ struct DeathsDoorHandler: BattleEffectHandler {
             )
             var events = [event]
             events.append(contentsOf: DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context))
-            return EffectTurnOutcome(events: events, removeAfter: true)
+            return events
         }
-        return EffectTurnOutcome(updatedStack: updated)
+        return []
     }
 }

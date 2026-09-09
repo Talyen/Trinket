@@ -30,8 +30,7 @@ struct FaeWardTests {
             potency: 3,
             to: battle.roster.hero.combatant,
             sourceActorID: battle.roster.enemy.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
             in: &battle,
         )
         #expect(burnPotency(on: battle.roster.hero.combatant, in: battle) == nil)
@@ -44,8 +43,7 @@ struct FaeWardTests {
             potency: 4,
             to: battle.roster.hero.combatant,
             sourceActorID: battle.roster.enemy.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
             in: &battle,
         )
         let poisons = battle.roster.activeEffects(for: battle.roster.hero.combatant)
@@ -59,8 +57,7 @@ struct FaeWardTests {
             potency: 3,
             to: battle.roster.hero.combatant,
             sourceActorID: battle.roster.enemy.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
             in: &battle,
         )
         let bleeds = battle.roster.activeEffects(for: battle.roster.hero.combatant)
@@ -109,8 +106,7 @@ struct FaeWardTests {
             potency: 3,
             to: battle.roster.hero.combatant,
             sourceActorID: battle.roster.enemy.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
             in: &battle,
         )
         _ = DoTApplicator.applyDecayingDoT(
@@ -118,8 +114,7 @@ struct FaeWardTests {
             potency: 2,
             to: battle.roster.hero.combatant,
             sourceActorID: battle.roster.enemy.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
             in: &battle,
         )
         let effects = battle.roster.activeEffects(for: battle.roster.hero.combatant)
@@ -134,8 +129,7 @@ struct FaeWardTests {
             potency: 3,
             to: battle.roster.hero.combatant,
             sourceActorID: battle.roster.enemy.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
             in: &battle,
         )
         #expect(burnPotency(on: battle.roster.hero.combatant, in: battle) == 3)
@@ -163,7 +157,7 @@ struct FaeWardTests {
 
         let events = DoTApplicator.applyBleed(
             potency: 2, to: target, sourceActorID: battle.roster.enemy.id,
-            dealImmediateDamage: false, in: &battle,
+            application: .afterHit, in: &battle,
         )
 
         #expect(battle.roster.health(for: target) == healthBefore)

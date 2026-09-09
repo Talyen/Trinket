@@ -5,6 +5,34 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct DoTMechanicsTests {
+    @Test(arguments: [Keyword.burn, .poison], [false, true])
+    func `flashover only doubles burn against frozen enemies`(keyword: Keyword, frozen: Bool) throws {
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                damage: DamageTriggers(burnDoubleVsFrozenChancePercent: 1),
+            )),
+        )
+        battle.appliesFightPacing = false
+        let enemy = battle.roster.enemy.combatant
+        if frozen {
+            let threshold = ControlMeterEngine.threshold(for: enemy, in: battle)
+            _ = ControlMeterEngine.applyMeterCharge(
+                threshold, keyword: .freeze, to: enemy,
+                sourceActorID: battle.roster.hero.id, applyFightPacing: false, in: &battle,
+            )
+        }
+        #expect(battle.roster.hasControlStatus(for: enemy, keyword: .freeze) == frozen)
+        let effect: Effect = keyword == .burn ? .burn(4) : .poison(4)
+        let active = ActiveEffect(id: 100, effect: effect, remainingTurns: 0, sourceActorID: battle.roster.hero.id)
+        let handler = try #require(EffectHandlers.all[effect.kind])
+        let healthBefore = battle.health(of: enemy)
+
+        _ = handler.advanceTurn(active, on: enemy, in: &battle)
+
+        let expectedDamage = keyword == .burn ? (frozen ? 4 : 2) : 3
+        #expect(healthBefore - battle.health(of: enemy) == expectedDamage)
+    }
+
     private func isolatedBattle(
         heroAbilities: [Ability] = [],
         enemyEffects: [ActiveEffect] = [],
@@ -175,21 +203,55 @@ struct DoTMechanicsTests {
             heroMaxMana: 5,
             heroMana: 0,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                damage: DamageTriggers(criticalChanceBonus: -1),
                 dot: DotTriggers(poisonDamageLeechPercent: 0.5),
                 mana: ManaTriggers(leechRestoreManaFlat: 2),
             )),
             dealOpeningHand: false,
         )
+        battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = health }
-        let events = CombatTriggerEngine.afterDoTTick(
-            keyword: .poison, healthLost: 4, target: battle.roster.enemy.combatant,
-            sourceActorID: hero.id, in: &battle,
-        )
+        let events = battle.resolveDamage(DamageRequest(
+            amount: 4, target: battle.roster.enemy.combatant, keyword: .poison,
+            sourceActorID: hero.id, options: .reaction(),
+        )).events
 
         #expect(battle.roster.hero.currentMana == (health == 10 ? 2 : 0))
         #expect(battle.roster.hero.currentHealth == (health == 10 ? 12 : health))
         #expect(events.contains { $0.effectKind == .resourceGain } == (health == 10))
+    }
+
+    @Test func `toxiphage heals once for poison attacks applications and ticks`() throws {
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                damage: DamageTriggers(criticalChanceBonus: -1),
+                dot: DotTriggers(poisonDamageLeechPercent: 0.5),
+            )),
+        )
+        battle.appliesFightPacing = false
+        let hero = battle.roster.hero.combatant
+        let enemy = battle.roster.enemy.combatant
+        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 20 }
+
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 8, target: enemy, keyword: .poison, sourceActorID: hero.id,
+            options: .attack(),
+        ))
+        #expect(battle.health(of: hero) == 24)
+
+        _ = battle.applyDecayingDoT(
+            keyword: .poison, potency: 8, to: enemy,
+            sourceActorID: hero.id, application: .ability,
+        )
+        #expect(battle.health(of: hero) == 28)
+
+        let poison = battle.activeEffects(of: enemy).first { $0.keyword == .poison }
+        let active = try #require(poison)
+        let handler = try #require(EffectHandlers.all[.poison])
+        _ = handler.advanceTurn(active, on: enemy, in: &battle)
+        #expect(battle.health(of: hero) == 31)
+        #expect(battle.health(of: enemy) == enemy.maxHealth - 22)
     }
 
     @Test(arguments: [false, true], [false, true])
@@ -233,7 +295,7 @@ struct DoTMechanicsTests {
         let events: [ActionEvent]
         if isTick {
             let handler = try #require(EffectHandlers.all[.bleed])
-            events = handler.advanceTurn(bleed, on: battle.enemy, in: &battle).events
+            events = handler.advanceTurn(bleed, on: battle.enemy, in: &battle)
         } else {
             events = BattleTurnEngine.performAction(
                 ability: .rendingSlash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,

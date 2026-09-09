@@ -117,7 +117,7 @@ public struct BattleHand: Hashable, Sendable {
     }
 
     public mutating func append(_ card: BattleCard) {
-        if isFull {
+        if isFull || !buffer.isEmpty {
             buffer.append(card)
         } else {
             cards.append(card)

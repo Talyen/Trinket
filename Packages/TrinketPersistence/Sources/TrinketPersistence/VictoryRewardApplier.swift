@@ -78,22 +78,23 @@ public enum VictoryRewardApplier {
 
     public static func resolvedGoldReward(
         stageGold: Int,
-        battleEarnedGold: Int,
+        battleGold: BattleGoldFlow,
         goldFoundPercent: Int,
     ) -> Int {
-        let earned = max(0, stageGold) + battleEarnedGold
-        let scaled = CombatRounding.scaled(earned, byPercent: goldFoundPercent)
-        return max(0, scaled)
+        BattleRewardPlan(
+            stageGold: stageGold, goldFindPercent: goldFoundPercent,
+            heroExperience: 0, companionExperience: 0, materials: [], items: [],
+        ).resolve(battleGold: battleGold).goldDelta
     }
 
     public static func resolvedGoldReward(
         stageGold: Int,
-        battleEarnedGold: Int,
+        battleGold: BattleGoldFlow,
         homestead: PlayerHomesteadState,
     ) -> Int {
         resolvedGoldReward(
             stageGold: stageGold,
-            battleEarnedGold: battleEarnedGold,
+            battleGold: battleGold,
             goldFoundPercent: homestead.effects.goldFindPercent,
         )
     }
@@ -116,25 +117,6 @@ public enum VictoryRewardApplier {
             raw,
             requiredXP: CombatantProgression.requiredXP(forLevel: playerLevel),
         )
-    }
-
-    public static func grantBattleExperience(
-        enemyLevel: Int,
-        to combatant: Combatant,
-        roster: inout PlayerRosterState,
-        experienceEarnedPercent: Int = 0,
-    ) {
-        let playerLevel = roster.progression(for: combatant).level
-        let highestLevel = combatant.role == .hero
-            ? roster.highestHeroLevel
-            : roster.highestCompanionLevel
-        let award = battleExperienceAward(
-            playerLevel: playerLevel,
-            enemyLevel: enemyLevel,
-            highestLevel: highestLevel,
-            experienceEarnedPercent: experienceEarnedPercent,
-        )
-        roster.grantExperience(award, to: combatant)
     }
 
     public static func resolveLoot(
@@ -182,38 +164,42 @@ public enum VictoryRewardApplier {
         companion: Combatant,
         encounterLevel: Int,
         stageGold: Int,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         grantsCombatExperience: Bool = true,
         experienceEarnedPercent: Int = 0,
         materialRewards: [ResourceAmount],
         item: InventoryItem?,
         save: inout PlayerSave,
     ) {
+        let resolved = award ?? BattleRewardPlan(
+            stageGold: stageGold,
+            goldFindPercent: save.homestead.effects.goldFindPercent,
+            heroExperience: grantsCombatExperience ? battleExperienceAward(
+                playerLevel: save.roster.progression(for: hero).level, enemyLevel: encounterLevel,
+                highestLevel: save.roster.highestHeroLevel, experienceEarnedPercent: experienceEarnedPercent,
+            ) : 0,
+            companionExperience: grantsCombatExperience ? battleExperienceAward(
+                playerLevel: save.roster.progression(for: companion).level, enemyLevel: encounterLevel,
+                highestLevel: save.roster.highestCompanionLevel, experienceEarnedPercent: experienceEarnedPercent,
+            ) : 0,
+            materials: materialRewards, items: item.map { [$0] } ?? [],
+        ).resolve(battleGold: battleGold)
+        apply(resolved, hero: hero, companion: companion, save: &save)
+    }
+
+    public static func apply(
+        _ award: BattleRewardAward,
+        hero: Combatant,
+        companion: Combatant,
+        save: inout PlayerSave,
+    ) {
         let now = Date()
-        save.applyGoldDelta(
-            resolvedGoldReward(
-                stageGold: stageGold,
-                battleEarnedGold: battleEarnedGold,
-                homestead: save.homestead,
-            ),
-            at: now,
-        )
-        if grantsCombatExperience {
-            grantBattleExperience(
-                enemyLevel: encounterLevel,
-                to: hero,
-                roster: &save.roster,
-                experienceEarnedPercent: experienceEarnedPercent,
-            )
-            grantBattleExperience(
-                enemyLevel: encounterLevel,
-                to: companion,
-                roster: &save.roster,
-                experienceEarnedPercent: experienceEarnedPercent,
-            )
-        }
-        save.grantMaterials(materialRewards, at: now)
-        if let item {
+        save.applyGoldDelta(award.goldDelta, at: now)
+        save.roster.grantExperience(award.heroExperience, to: hero)
+        save.roster.grantExperience(award.companionExperience, to: companion)
+        save.grantMaterials(award.materials, at: now)
+        for item in award.items {
             save.inventory.appendUniqueItem(item)
         }
     }

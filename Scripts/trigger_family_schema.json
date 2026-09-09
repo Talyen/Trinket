@@ -2611,10 +2611,10 @@
         "merge": "add"
       },
       {
-        "name": "goldAbsorbsDamage",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
+        "name": "firstGoldTheftHeal",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       },
       {
         "name": "goldDoubledWhileFullHealth",

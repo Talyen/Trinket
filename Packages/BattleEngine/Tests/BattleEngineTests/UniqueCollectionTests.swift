@@ -68,7 +68,7 @@ struct UniqueCollectionTests {
             target: context.roster[target].combatant,
             keyword: .physical,
             sourceActorID: context.roster.enemy.id,
-            options: DamageOptions(applyDodge: false, isAttackHit: true),
+            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable),
         ))
     }
 }

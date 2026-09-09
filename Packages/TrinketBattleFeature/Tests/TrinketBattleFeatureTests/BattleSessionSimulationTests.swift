@@ -10,6 +10,44 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionSimulationTests {
+    @Test func `turn draw resumes after scene suspension`() async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession(autoEndTurnDelay: 60)
+        defer { session.endBattle() }
+        let card = try #require(session.hand.first)
+        #expect(session.playCard(cardID: card.id) == .committed)
+        session.openingHandDrawStagger = .milliseconds(10)
+        session.endTurn()
+        session.setSuspendedForScenePhase(true)
+        let handAtPause = session.hand
+        for _ in 0 ..< 10 {
+            await Task.yield()
+        }
+        #expect(session.hand == handAtPause)
+        #expect(session.transitionTask.hasPendingTask)
+
+        session.setSuspendedForScenePhase(false)
+        #expect(try await BattleSessionTestSupport.waitUntil { !session.transitionTask.hasPendingTask })
+        #expect(session.canEndTurn)
+        #expect(session.hand.count > handAtPause.count)
+    }
+
+    @Test func `turn draw rejects commands until start of turn finishes`() async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession(autoEndTurnDelay: 60)
+        defer { session.endBattle() }
+        let card = try #require(session.hand.first)
+        session.openingHandDrawStagger = .milliseconds(10)
+        session.endTurn()
+        let turn = session.engineState?.turnCount
+
+        #expect(!session.canEndTurn)
+        #expect(session.playCard(cardID: card.id) == .rejected)
+        session.endTurn()
+        #expect(session.engineState?.turnCount == turn)
+
+        #expect(try await BattleSessionTestSupport.waitUntil { !session.transitionTask.hasPendingTask })
+        #expect(session.canEndTurn)
+    }
+
     @Test func `defeat presentation locks retreat without victory chrome`() {
         let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: CombatantFixtures.passiveHero(maxHealth: 1),
@@ -80,7 +118,7 @@ struct BattleSessionSimulationTests {
 
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
 
-        #expect(earnedGold == session.earnedGold ?? 0)
+        #expect(earnedGold == session.goldFlow?.net ?? 0)
         #expect(!session.spectacle.outcomePresentation.isVictoryPresented)
         #expect(session.spectacle.outcomePresentation.victorySummaryIfAvailable == nil)
         let heroID = try #require(session.heroID)
@@ -100,7 +138,7 @@ struct BattleSessionSimulationTests {
         let summary = BattleVictorySummary(
             stageGold: 1,
             battleGold: 2,
-            rawBattleEarnedGold: 2,
+            goldFlow: .init(gained: 2),
             experience: 3,
             companionExperience: 4,
             heroName: "Hero",
@@ -449,5 +487,37 @@ extension BattleSessionSimulationTests {
         session.feedback.uninstallHitReactionBridge(ownerID: enemyOwner)
         session.feedback.uninstallAttackReactionBridge(ownerID: heroOwner)
         session.feedback.uninstallAttackReactionBridge(ownerID: enemyOwner)
+    }
+}
+
+extension BattleSessionSimulationTests {
+    @Test func `animated turn playback has the same completed engine state as immediate presentation`() async throws {
+        let enemy = CombatantFixtures.passiveEnemy(maxHealth: 200)
+        let immediate = BattleSessionTestSupport.makeConfiguredSession(enemy: enemy, autoEndTurnDelay: 60)
+        let animated = BattleSessionTestSupport.makeConfiguredSession(enemy: enemy, autoEndTurnDelay: 60)
+        defer {
+            immediate.endBattle()
+            animated.endBattle()
+        }
+        let card = try #require(immediate.hand.first)
+        #expect(immediate.playCard(cardID: card.id) == .committed)
+        #expect(animated.playCard(cardID: card.id) == .committed)
+        animated.openingHandDrawStagger = .milliseconds(1)
+        immediate.endTurn()
+        animated.endTurn()
+        animated.setSuspendedForScenePhase(true)
+        var directState = try #require(immediate.engineState)
+        var animatedState = try #require(animated.engineState)
+        #expect(animatedState.hand == directState.hand)
+        for owner in [BattleParticipant.hero, .companion, .enemy] {
+            #expect(animatedState.roster[owner] == directState.roster[owner])
+        }
+        #expect(animatedState.events == directState.events)
+        #expect(animatedState.rng.next() == directState.rng.next())
+        #expect(!animated.canEndTurn)
+        animated.setSuspendedForScenePhase(false)
+        #expect(try await BattleSessionTestSupport.waitUntil { !animated.transitionTask.hasPendingTask })
+        #expect(animated.hand == immediate.hand)
+        #expect(animated.canEndTurn)
     }
 }

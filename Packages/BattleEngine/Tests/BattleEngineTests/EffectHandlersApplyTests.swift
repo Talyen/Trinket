@@ -1,10 +1,26 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
 import TrinketTestSupport
+@testable import BattleEngine
 
 struct EffectHandlersApplyTests {
+    @Test(arguments: [false, true])
+    func `companion auto play draws its own card even after hero defeat`(heroDefeated: Bool) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
+        battle.heroDeck = CombatDeck(abilities: [.block])
+        battle.companionDeck = CombatDeck(abilities: [.smite])
+        if heroDefeated {
+            battle.withEngineContext { $0.roster.hero.currentHealth = 0 }
+        }
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .drawAndPlayCards(1), source: battle.companion, target: battle.companion, battle: &battle,
+        )
+        #expect(outcome.didApply)
+        #expect(outcome.events.contains { $0.kind == .ability && $0.actorID == battle.companion.id && $0.abilityID == Ability.smite.id })
+        #expect(!outcome.events.contains { $0.kind == .ability && $0.actorID == battle.hero.id })
+    }
+
     @Test func `registry covers every effect kind`() throws {
         try #expect(Set(EffectHandlers.all.keys) == Set(EffectKind.allCases))
         for kind in EffectKind.allCases {
@@ -115,16 +131,9 @@ struct EffectHandlersApplyTests {
         battle.heroDeck = CombatDeck(abilities: [.slash])
         battle.companionDeck = CombatDeck(abilities: [.smite])
 
-        let packTactics = Ability(
-            id: "pack-tactics",
-            name: "Pack Tactics",
-            tier: .ultimate,
-            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
-        )
-
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawAndPlayCards(2),
-            ability: packTactics,
+            ability: .packTactics,
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
@@ -271,7 +280,7 @@ struct EffectHandlersApplyTests {
         )
 
         try #expect(outcome.didApply)
-        try #expect(battle.drawAndPlayDepth == 0)
+        try #expect(battle.resolution.depth(.draw) == 0)
     }
 
     @Test func `draw and play depth cap does not leave unplayed drawn cards`() throws {
@@ -293,7 +302,9 @@ struct EffectHandlersApplyTests {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
         }
         battle.heroDeck = CombatDeck(abilities: [packTactics, packTactics])
-        battle.drawAndPlayDepth = BattleState.maxDrawAndPlayDepth
+        for _ in 0 ..< (BattleState.maxDrawAndPlayDepth) {
+            battle.resolution.enter(.draw)
+        }
         let idsBefore = Set(battle.hand.cards.map(\.id)).union(battle.hand.buffer.map(\.id))
         let heroDeckCount = battle.heroDeck.count
 
@@ -309,7 +320,7 @@ struct EffectHandlersApplyTests {
         try #expect(!outcome.didApply)
         try #expect(idsAfter == idsBefore)
         try #expect(battle.heroDeck.count == heroDeckCount)
-        try #expect(battle.drawAndPlayDepth == BattleState.maxDrawAndPlayDepth)
+        try #expect(battle.resolution.depth(.draw) == BattleState.maxDrawAndPlayDepth)
     }
 
     @Test func `draw cards handler overflow goes to buffer`() throws {
@@ -353,9 +364,14 @@ struct EffectHandlersApplyTests {
         try #expect(!(outcome.didApply))
         try #expect(outcome.events.isEmpty)
     }
+}
 
-    @Test func `resource gain handler adds gold`() throws {
-        var battle = BattleStateTestFactory.makeBattle(initialGold: 10)
+extension EffectHandlersApplyTests {
+    @Test func `resource gain and spending preserve gross gold flows`() throws {
+        var battle = BattleStateTestFactory.makeBattle(
+            initialGold: 10,
+            heroModifiers: .init(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
+        )
         let resourceEffect: Effect = .resourceGain(.gold, 3)
         let outcome = EffectHandlersTestSupport.dispatch(
             resourceEffect,
@@ -366,5 +382,13 @@ struct EffectHandlersApplyTests {
         try #expect(outcome.didApply)
         try #expect(battle.gold == 13)
         try #expect(outcome.events.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
+        let lossSeed = try #require((UInt64(0) ..< 16).first { seed in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return !BattleChance.succeeds(probability: 0.5, using: &rng)
+        })
+        battle.rng = SeededRandomNumberGenerator(seed: lossSeed)
+        _ = CombatTriggerEngine.afterVictory(in: &battle)
+        #expect(battle.gold == 10)
+        #expect(battle.goldFlow == BattleGoldFlow(gained: 3, spent: 3))
     }
 }

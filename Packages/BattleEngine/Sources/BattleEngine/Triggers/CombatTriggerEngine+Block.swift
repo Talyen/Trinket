@@ -142,7 +142,7 @@ package extension CombatTriggerEngine {
                     target: attacker.combatant,
                     keyword: keyword,
                     sourceActorID: target.id,
-                    options: .flatControlReaction,
+                    options: .reaction(),
                 ),
             )
             events.append(contentsOf: outcome.events)

@@ -3,15 +3,16 @@ import TrinketCore
 
 package enum UniqueCombatEngine {
     static func isOrdinaryAction(actorID: String, in context: BattleState) -> Bool {
-        context.uniques.ordinaryActionActorID == actorID
+        context.resolution.actionContext?.actor.id == actorID
+            && context.resolution.attackOrigin == .ordinaryCard
             && !context.isResolvingAutoPlayCard
-            && context.drawAndPlayDepth == 0
-            && context.uniques.reactionDepth == 0
+            && context.resolution.depth(.draw) == 0
+            && context.resolution.depth(.uniqueReaction) == 0
     }
 
     static func prepareCard(_ card: BattleCard, in context: inout BattleState) -> UniqueBattleState.CardPlay? {
-        guard !context.isResolvingAutoPlayCard, context.drawAndPlayDepth == 0,
-              context.uniques.reactionDepth == 0 else { return nil }
+        guard !context.isResolvingAutoPlayCard, context.resolution.depth(.draw) == 0,
+              context.resolution.depth(.uniqueReaction) == 0 else { return nil }
         let actor = context.roster[card.owner].combatant
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.uniques.owners[card.owner, default: .init()]
@@ -45,7 +46,7 @@ package enum UniqueCombatEngine {
 
     static func prepareResolvedAttack(_ ability: Ability, actor: Combatant, in context: inout BattleState) {
         guard isOrdinaryAction(actorID: actor.id, in: context), var play = context.uniques.card,
-              ability.damageComponents.contains(where: { $0.target != .actor }) else { return }
+              ability.dealsCombatDamage else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.uniques.owners[play.owner, default: .init()]
         let partner: BattleParticipant = play.owner == .hero ? .companion : .hero

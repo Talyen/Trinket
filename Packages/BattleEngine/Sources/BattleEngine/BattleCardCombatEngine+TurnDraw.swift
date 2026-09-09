@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public extension BattleCardCombatEngine {
+package extension BattleCardCombatEngine {
     @discardableResult
     static func endTurnWithoutDraw(
         context: inout BattleState,
@@ -90,7 +90,7 @@ public extension BattleCardCombatEngine {
             UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)
             context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
         }
-        context.phase = .playerTurn
+        events.append(contentsOf: finishPlayerTurnStart(context: &context))
         return events
     }
 

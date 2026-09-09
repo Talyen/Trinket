@@ -11,8 +11,8 @@ enum EffectRemoval {
     static func removeRandomDebuff(
         from effects: inout [ActiveEffect],
         using rng: inout SeededRandomNumberGenerator,
-    ) -> Keyword? {
-        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableDebuff }?.keyword
+    ) -> ActiveEffect? {
+        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableDebuff }
     }
 
     @discardableResult
@@ -94,65 +94,23 @@ enum TimedBuffSummary {
     }
 }
 
-enum CleanseEventBuilder {
-    static func events(
-        removed: [ActiveEffect],
-        abilityName: String,
-        source: Combatant,
-        target: Combatant,
-        healAmount: Int? = nil,
-        healTarget: Combatant? = nil,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        var countsByKeyword: [Keyword: Int] = [:]
-        for item in removed {
-            countsByKeyword[item.keyword, default: 0] += 1
-        }
-        var events = CombatTriggerEngine.afterHeroCleanse(
-            source: source, target: target, removed: removed.map(\.keyword), in: &context,
-        )
-        for (keyword, _) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .cleanseApplied,
-                actorName: source.name,
-                abilityName: abilityName,
-                target: target,
-                amount: 0,
-                keyword: keyword,
-            ))
-        }
-        if let healAmount, let healTarget, healAmount > 0 {
-            events.append(contentsOf: context.healEmitting(
-                amount: healAmount,
-                target: healTarget,
-                source: source,
-                abilityName: abilityName,
-                isDirectCardHeal: context.hasHeroCard(for: source.id),
-            ))
-        }
-        events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(source: source, target: target, in: &context).events)
-        events.append(contentsOf: CombatTriggerEngine.healWearerAfterCleanse(source: source, in: &context).events)
-        events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(source: source, in: &context))
-        events.append(contentsOf: CombatTriggerEngine.afterCleanseAction(
-            source: source,
-            target: target,
-            removedCount: removed.count,
-            in: &context,
-        ))
-        for (keyword, count) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
-            events.append(contentsOf: CombatTriggerEngine.afterCleanseKeywordReaction(
-                source: source,
-                removedKeyword: keyword,
-                removedCount: count,
-                in: &context,
-            ))
-        }
-        return events
-    }
-}
-
 enum ActiveEffectMutation {
+    static func finishTurn(
+        _ active: ActiveEffect,
+        replacement: ActiveEffect?,
+        on target: Combatant,
+        in context: inout BattleState,
+    ) {
+        context.roster.mutateRuntime(for: target) { runtime in
+            guard let index = runtime.activeEffects.firstIndex(where: { $0.id == active.id }) else { return }
+            if let replacement {
+                runtime.activeEffects[index] = replacement
+            } else {
+                runtime.activeEffects.remove(at: index)
+            }
+        }
+    }
+
     static func removeMatching(
         from target: Combatant,
         in context: inout BattleState,
@@ -171,10 +129,13 @@ enum ActiveEffectMutation {
         in context: inout BattleState,
         replacing matches: (Effect) -> Bool,
         event: (kind: ActionEvent.EffectOutcome, amount: Int, keyword: Keyword),
-    ) -> ActionEvent {
-        removeMatching(from: target, in: &context, where: matches)
-        context.appendEffect(effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns)
-        return context.nextEvent(
+    ) -> EffectApplyOutcome {
+        guard context.insertEffect(
+            effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns, replacing: matches,
+        ) else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let appliedEvent = context.nextEvent(
             kind: .effect,
             effectKind: event.kind,
             actorName: source.name,
@@ -183,5 +144,32 @@ enum ActiveEffectMutation {
             amount: event.amount,
             keyword: event.keyword,
         )
+        return EffectApplyOutcome(events: [appliedEvent], didApply: true)
+    }
+
+    static func reflect(
+        _ active: ActiveEffect,
+        to target: Combatant,
+        source: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        switch active.effect {
+        case let .burn(potency), let .poison(potency):
+            return context.applyDecayingDoT(
+                keyword: active.keyword, potency: potency, to: target, sourceActorID: source.id, application: .reflection,
+            )
+        case let .bleed(potency):
+            return DoTApplicator.applyBleed(
+                potency: potency, to: target, sourceActorID: source.id, application: .reflection,
+                durationTurns: active.remainingTurns, in: &context,
+            )
+        case let .controlMeter(keyword, amount, _):
+            return ControlMeterEngine.applyMeterCharge(
+                amount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false, in: &context,
+            )
+        default:
+            context.appendEffect(active.effect, to: target, sourceID: source.id, remainingTurns: active.remainingTurns)
+            return []
+        }
     }
 }

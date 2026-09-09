@@ -32,24 +32,7 @@ extension BattleTurnEngine {
             }
         }
         context.heroTalents.actions.append(action)
-        return replacingTalentDamage(in: ability, components: components, effects: effects)
-    }
-
-    static func replacingTalentDamage(
-        in ability: Ability,
-        components: [DamageComponent],
-        effects: [TargetedEffect],
-    ) -> Ability {
-        Ability(
-            id: ability.id, name: ability.name, tier: ability.tier,
-            description: ability.descriptionOverride,
-            damageComponents: components, targetedEffects: effects,
-            outcomeBranches: ability.outcomeBranches,
-            criticalChanceBonus: ability.criticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
-            hasLeech: ability.hasLeech, repeatsManaEmpowerment: ability.repeatsManaEmpowerment,
-            stealsGold: ability.stealsGold,
-        )
+        return ability.replacingOperations(components.map(AbilityOperation.damage) + effects.map(AbilityOperation.effect))
     }
 
     private static func captureTalentPreparations(for actor: Combatant, in context: inout BattleState) {

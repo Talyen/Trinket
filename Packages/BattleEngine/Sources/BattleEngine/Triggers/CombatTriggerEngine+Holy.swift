@@ -40,7 +40,9 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.holyDamageHealLowestAllyFlat > 0 {
-            let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
+            let lowest = BattleTargetResolver.effectTarget(
+                .lowestHealthAlly, actor: source, abilityTarget: enemy, in: context,
+            )
             let blessingName = triggerAbilityName(
                 "holyDamageHealLowestAllyFlat",
                 for: source,
@@ -129,7 +131,7 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .poison,
                     sourceActorID: source.id,
-                    options: .flatReaction,
+                    options: .reaction(),
                 ),
             ).events)
         }

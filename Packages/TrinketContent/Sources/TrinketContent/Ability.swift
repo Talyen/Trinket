@@ -235,97 +235,25 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var hasManaEmpowerableBurnOrFreezeDamage: Bool {
-        damageComponents.contains(where: \.isManaEmpowerableBurnOrFreezeDamage)
-            || targetedEffects.contains(where: \.effect.isManaEmpowerableBurnOrFreezeDamage)
+        operations.contains(where: \.isManaEmpowerable)
     }
 
     public var hasManaEmpowerableBurnDamage: Bool {
-        damageComponents.contains { $0.keyword == .burn && $0.isManaEmpowerableBurnOrFreezeDamage }
-            || targetedEffects.contains {
-                $0.effect.keyword == .burn && $0.effect.isManaEmpowerableBurnOrFreezeDamage
-            }
+        operations.contains { $0.keyword == .burn && $0.isManaEmpowerable }
     }
 
     public func empoweredByMana(amount: Int = 1, includingBothElements: Bool = false) -> Self {
-        guard amount > 0, hasManaEmpowerableBurnOrFreezeDamage else { return self }
-        return Self(
-            id: id,
-            name: name,
-            tier: tier,
-            description: descriptionOverride,
-            damageComponents: damageComponents.map { $0.withManaEmpowerment(amount) }
-                + (includingBothElements ? oppositeEmpowermentComponents(amount: amount) : []),
-            targetedEffects: targetedEffects.map { targeted in
-                TargetedEffect(
-                    targeted.effect.withManaEmpowerment(amount),
-                    target: targeted.target,
-                    condition: targeted.condition,
-                )
-            },
-            outcomeBranches: nil,
-            criticalChanceBonus: criticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
-            hasLeech: hasLeech,
-            repeatsManaEmpowerment: repeatsManaEmpowerment,
-            stealsGold: stealsGold,
-        )
+        guard amount > 0, let first = operations.first(where: \.isManaEmpowerable) else { return self }
+        var empowered = operations.map { $0.empowered(by: amount) }
+        if includingBothElements {
+            for keyword in [Keyword.burn, .freeze] where !operations.contains(where: { $0.keyword == keyword && $0.isManaEmpowerable }) {
+                empowered.append(.damage(DamageComponent(amount, keyword: keyword, target: first.target, condition: first.condition)))
+            }
+        }
+        return replacingOperations(empowered)
     }
 
-    private func oppositeEmpowermentComponents(amount: Int) -> [DamageComponent] {
-        let component = damageComponents.first(where: \.isManaEmpowerableBurnOrFreezeDamage)
-        let targeted = targetedEffects.first(where: \.effect.isManaEmpowerableBurnOrFreezeDamage)
-        guard component != nil || targeted != nil else { return [] }
-        return [Keyword.burn, .freeze].compactMap { keyword in
-            let alreadyPresent = damageComponents.contains { $0.keyword == keyword && $0.isManaEmpowerableBurnOrFreezeDamage }
-                || targetedEffects.contains { $0.effect.keyword == keyword && $0.effect.isManaEmpowerableBurnOrFreezeDamage }
-            guard !alreadyPresent else { return nil }
-            return DamageComponent(
-                amount, keyword: keyword, target: component?.target ?? targeted?.target ?? .abilityTarget,
-                condition: component?.condition ?? targeted?.condition,
-            )
-        }
-    }
-}
-
-private extension DamageComponent {
-    var isOffensiveCombatDamage: Bool {
-        amount > 0
-            && (target == .abilityTarget || target == .enemy)
-            && keyword.category == .damageType
-    }
-}
-
-private extension TargetedEffect {
-    var dealsCombatDamage: Bool {
-        switch target {
-        case .actor, .hero, .companion, .lowestHealthAlly, .defeatedAlly:
-            return false
-        case .abilityTarget, .enemy:
-            break
-        }
-        switch effect {
-        case .burn, .poison, .bleed, .recurringDamage, .avatar, .multiplyDoT:
-            return true
-        default:
-            return false
-        }
-    }
-}
-
-public extension Ability {
-    var dealsCombatDamage: Bool {
-        if damageComponents.contains(where: \.isOffensiveCombatDamage) {
-            return true
-        }
-        if targetedEffects.contains(where: \.dealsCombatDamage) {
-            return true
-        }
-        guard let branches = outcomeBranches else {
-            return false
-        }
-        return branches.contains { branch in
-            branch.damageComponents.contains(where: \.isOffensiveCombatDamage)
-                || branch.targetedEffects.contains(where: \.dealsCombatDamage)
-        }
+    public var dealsCombatDamage: Bool {
+        possibleOperations.contains { $0.damageKeyword != nil }
     }
 }

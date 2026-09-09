@@ -4,6 +4,23 @@ import TrinketCore
 @testable import BattleEngine
 
 extension UniqueCollectionTests {
+    @Test(arguments: ["everkeen", "huntsmasters_call"])
+    func `critical hit rewards trigger when block absorbs the whole hit`(item: String) throws {
+        var context = try battle([item])
+        block(20, owner: .enemy, in: &context)
+        let events = try play(attack(), critical: true, in: &context)
+        #expect(blockAmount(.enemy, in: context) == 0)
+        #expect(context.roster.enemy.currentHealth < 2000)
+        if item == "everkeen" {
+            #expect(events.contains { $0.abilityName == "Everkeen" && $0.amount == 20 })
+        } else {
+            #expect(events.contains { $0.kind == .ability && $0.abilityID == context.companion.abilityLoadout.basic?.id })
+        }
+        let next = try play(attack(), critical: true, in: &context)
+        #expect(!next.contains { $0.abilityName == "Everkeen" })
+        #expect(!next.contains { $0.kind == .ability && $0.actorID == context.companion.id })
+    }
+
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `kingbreaker adds and bypasses block without spending it`(owner: BattleParticipant) throws {
         var context = try battle(["kingbreaker"], owner: owner)
@@ -98,8 +115,11 @@ extension UniqueCollectionTests {
             target: context.roster.enemy.combatant,
             keyword: .physical,
             sourceActorID: actor.id,
-            options: .flatReaction,
+            options: .reaction(),
         ))
+        #expect(context.uniques.owners[.hero]?.viperReady == true)
+        block(10, owner: .enemy, in: &context)
+        try play(attack(.holy), in: &context)
         #expect(context.uniques.owners[.hero]?.viperReady == true)
         let before = context.roster.enemy.currentHealth
         try play(attack(.holy), in: &context)

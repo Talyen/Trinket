@@ -21,7 +21,7 @@ struct InstantHealHandler: BattleEffectHandler {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var request = HealRequest(
             amount: amount, target: target, sourceActorID: source.id,
-            logAs: .instantHeal(actorName: source.name, abilityName: ability.name, keyword: keyword),
+            origin: .restoration(keyword), logAs: .instantHeal(actorName: source.name, abilityName: ability.name, keyword: keyword),
         )
         request.isDirectCardHeal = context.hasHeroCard(for: source.id)
         let outcome = HealingEngine.resolveHeal(request, in: &context)
@@ -127,11 +127,14 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         guard case let .drawAndPlayCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        guard context.drawAndPlayDepth < BattleState.maxDrawAndPlayDepth else {
+        guard context.resolution.depth(.draw) < BattleState.maxDrawAndPlayDepth else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
 
-        let drawnCards = collectDrawnCards(targetCount: count, in: &context)
+        guard let firstOwner = context.roster.participant(for: target), firstOwner.isPartyMember else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let drawnCards = collectDrawnCards(targetCount: count, firstOwner: firstOwner, in: &context)
         guard !drawnCards.isEmpty else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -151,11 +154,12 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: events, didApply: true)
     }
 
-    private func collectDrawnCards(targetCount: Int, in context: inout BattleState) -> [BattleCard] {
+    private func collectDrawnCards(targetCount: Int, firstOwner: BattleParticipant, in context: inout BattleState) -> [BattleCard] {
         var drawnCards: [BattleCard] = []
+        let otherOwner: BattleParticipant = firstOwner == .hero ? .companion : .hero
 
         for index in 0 ..< targetCount {
-            let owner: BattleParticipant = index.isMultiple(of: 2) ? .hero : .companion
+            let owner = index.isMultiple(of: 2) ? firstOwner : otherOwner
             guard canDrawAndPlay(owner, in: context),
                   let card = BattleCardCombatEngine.drawOne(for: owner, context: &context)
             else { continue }
@@ -176,9 +180,9 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         _ drawnCards: [BattleCard],
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        context.drawAndPlayDepth += 1
-        defer { context.drawAndPlayDepth -= 1 }
-        guard context.drawAndPlayDepth <= BattleState.maxDrawAndPlayDepth else { return [] }
+        context.resolution.enter(.draw)
+        defer { context.resolution.leave(.draw) }
+        guard context.resolution.depth(.draw) <= BattleState.maxDrawAndPlayDepth else { return [] }
 
         var events: [ActionEvent] = []
         for card in drawnCards {

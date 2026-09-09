@@ -1776,9 +1776,9 @@ public extension CombatantTalentCatalog {
             "lizard_scout_gold_t2_2": CombatantTalentEffect(
                 name: "Scavenger's Cache",
                 symbolName: "bag.fill",
-                description: "Spend Gold to prevent damage (1 Gold per 1 damage, up to 5 Gold per hit).",
+                description: "The first time you steal Gold each turn, restore 2 Health.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(gold: GoldTriggers(goldAbsorbsDamage: true))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(firstGoldTheftHeal: 2))
             ),
             "lizard_scout_gold_t3_1": CombatantTalentEffect(
                 name: "Flawless Bounty",

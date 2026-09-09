@@ -7,14 +7,12 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        context.roster.setActiveEffects(state.activeEffects, for: state.combatant)
         let cap = context.modifiers(for: state.combatant.id).triggers.maxDamagePerHitCap
         if cap > 0, state.options.isAttackHit, !state.options.isRetaliation,
            let sourceActorID = state.sourceActorID,
            context.roster.combatant(for: sourceActorID)?.role == .enemy {
             state.remaining = min(state.remaining, cap)
         }
-        absorbDamageWithGold(to: &state, in: &context)
         if applySacrificialGuard(to: &state, in: &context) {
             return
         }
@@ -54,29 +52,6 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
-    }
-
-    private static func absorbDamageWithGold(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState,
-    ) {
-        guard !state.options.isHealthCost,
-              state.remaining > 0,
-              context.gold > 0,
-              context.modifiers(for: state.combatant.id).triggers.goldAbsorbsDamage
-        else { return }
-        let maxAbsorbPerHit = 5
-        let absorbed = min(state.remaining, context.gold, maxAbsorbPerHit)
-        context.gold -= absorbed
-        appendAbsorption(
-            absorbed,
-            abilityName: "Scavenger's Cache",
-            keyword: .gold,
-            actorName: state.combatant.name,
-            target: state.combatant,
-            to: &state,
-            in: &context,
-        )
     }
 
     @discardableResult

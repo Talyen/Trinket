@@ -23,16 +23,24 @@ extension BattleState {
                 target: target,
                 keyword: keyword,
                 sourceActorID: sourceActorID,
-                options: DamageOptions(
-                    applyStatBonus: applyStatBonus,
-                    applyItemBonus: applyItemBonus,
-                    applyDodge: applyDodge,
+                options: isRetaliation ? DamageOperation.reaction(
+                    cause: .talent,
+                    scaling: applyStatBonus ? .statsAndItems : (applyItemBonus ? .items : .flat),
+                    accuracy: applyDodge ? .normal : .unavoidable,
+                ) : (!isRetaliation ? DamageOperation.attack(
+                    tier: .skill,
+                    scaling: applyStatBonus ? .statsAndItems : (applyItemBonus ? .items : .flat),
+                    accuracy: applyDodge ? .normal : .unavoidable,
                     abilityCriticalChanceBonus: abilityCriticalChanceBonus,
                     guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
-                    isRetaliation: isRetaliation,
-                    isAttackHit: !isRetaliation,
                     abilityHasLeech: abilityHasLeech,
-                ),
+                ) : DamageOperation.effect(
+                    scaling: applyStatBonus ? .statsAndItems : (applyItemBonus ? .items : .flat),
+                    accuracy: applyDodge ? .normal : .unavoidable,
+                    abilityCriticalChanceBonus: abilityCriticalChanceBonus,
+                    guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
+                    abilityHasLeech: abilityHasLeech,
+                )),
             ),
         )
         return (outcome.healthLost, outcome.events)

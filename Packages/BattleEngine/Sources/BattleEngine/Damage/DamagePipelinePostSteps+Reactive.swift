@@ -90,8 +90,7 @@ package extension DamagePipeline {
                 potency: defenderTriggers.onHitAttackerPoison,
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
+                application: .attached,
             ))
         }
         if defenderTriggers.onHitAttackerBleedPotency > 0, context.roster.health(for: attacker.combatant) > 0 {
@@ -104,15 +103,6 @@ package extension DamagePipeline {
                     : nil,
                 in: &context,
             ))
-        }
-        if defenderTriggers.onHitAttackerHoly > 0, context.roster.health(for: attacker.combatant) > 0 {
-            state.damageEvents.append(contentsOf: resolveRetaliation(
-                amount: defenderTriggers.onHitAttackerHoly,
-                keyword: .holy,
-                target: attacker.combatant,
-                sourceActorID: state.combatant.id,
-                in: &context,
-            ).events)
         }
     }
 
@@ -171,6 +161,17 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         let wards = onHitWardTotals(from: context.roster.activeEffects(for: state.combatant))
+
+        let holyDamage = context.modifiers(for: state.combatant.id).triggers.onHitAttackerHoly
+        if holyDamage > 0, context.roster.health(for: attacker.combatant) > 0 {
+            state.damageEvents.append(contentsOf: resolveRetaliation(
+                amount: holyDamage,
+                keyword: .holy,
+                target: attacker.combatant,
+                sourceActorID: state.combatant.id,
+                in: &context,
+            ).events)
+        }
 
         applyThornsRetaliation(amount: wards.thornsStacks, attacker: attacker, to: &state, in: &context)
 
@@ -254,7 +255,7 @@ package extension DamagePipeline {
         if keyword == .poison {
             state.damageEvents.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison, potency: amount, to: attacker.combatant,
-                sourceActorID: state.combatant.id, dealImmediateDamage: false, suppressAffixReactions: true,
+                sourceActorID: state.combatant.id, application: .attached,
             ))
         }
     }
@@ -273,7 +274,7 @@ package extension DamagePipeline {
             keyword: keyword,
             target: attacker.combatant,
             sourceActorID: state.combatant.id,
-            controlMeter: keyword == .stun || keyword == .freeze,
+
             in: &context,
         )
         var retaliationEvents = outcome.events

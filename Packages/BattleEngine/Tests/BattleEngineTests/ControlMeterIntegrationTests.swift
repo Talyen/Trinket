@@ -205,7 +205,7 @@ struct ControlMeterIntegrationTests {
             target: hero,
             keyword: .stun,
             sourceActorID: enemy.id,
-            options: .flatReaction,
+            options: .reaction(),
         ))
         try #expect(battle.health(of: hero) == 20)
         try #expect(!battle.roster.hasControlStatus(for: hero, keyword: .stun))

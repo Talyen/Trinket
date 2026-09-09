@@ -31,7 +31,19 @@ enum BattleAbilityRules {
         guard let branches = ability.outcomeBranches else { return ability }
         let eligible = eligibleOutcomes(branches, actor: actor, in: context)
         guard let selected = eligible.randomElement(using: &context.rng) else { return ability }
-        return ability.resolving(branch: selected, using: &context.rng)
+        let effects = selected.targetedEffects.compactMap { targeted -> TargetedEffect? in
+            if let condition = targeted.condition,
+               !BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
+                return nil
+            }
+            return TargetedEffect(targeted.effect, target: targeted.target)
+        }
+        let branch = AbilityOutcomeBranch(
+            damageComponents: selected.damageComponents,
+            targetedEffects: effects,
+            randomizeDamageKeywords: selected.randomizeDamageKeywords,
+        )
+        return ability.resolving(branch: branch, using: &context.rng)
     }
 
     static func eligibleOutcomes(

@@ -12,7 +12,7 @@ public extension BattleTurnEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
-        let empoweredKeyword = ability.damageComponents.first(where: \.isManaEmpowerableBurnOrFreezeDamage)?.keyword
+        let empoweredKeyword = ability.operations.first(where: \.isManaEmpowerable)?.keyword
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
         var purchases = 0
@@ -65,16 +65,16 @@ private extension BattleTurnEngine {
         )
         guard triggers.flashFreeze || triggers.empowerFreezeDamageBonus > 0 else { return ability }
         let freezeBonus = (triggers.flashFreeze ? 2 : 0) + triggers.empowerFreezeDamageBonus
-        return replacingTalentDamage(
-            in: ability,
-            components: ability.damageComponents.map {
-                $0.keyword == .freeze ? $0.withManaEmpowerment(freezeBonus) : $0
-            },
-            effects: ability.targetedEffects.map {
-                guard $0.effect.keyword == .freeze else { return $0 }
-                return TargetedEffect($0.effect.withManaEmpowerment(freezeBonus), target: $0.target, condition: $0.condition)
-            },
-        )
+        var operations = ability.operations.map {
+            $0.keyword == .freeze ? $0.empowered(by: freezeBonus) : $0
+        }
+        if !operations.contains(where: { $0.keyword == .freeze }), triggers.empowerFreezeDamageBonus > 0,
+           let first = ability.operations.first(where: \.isManaEmpowerable) {
+            operations.append(.damage(DamageComponent(
+                freezeBonus, keyword: .freeze, target: first.target, condition: first.condition,
+            )))
+        }
+        return ability.replacingOperations(operations)
     }
 
     struct ManaContribution {

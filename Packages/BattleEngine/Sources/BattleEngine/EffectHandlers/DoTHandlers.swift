@@ -6,8 +6,8 @@ struct DecayingDoTHandler: BattleEffectHandler {
     let keyword: Keyword
     let kind: EffectKind
 
-    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
-        guard matches(active.effect) else { return EffectTurnOutcome() }
+    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> [ActionEvent] {
+        guard matches(active.effect) else { return [] }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
         let slowPercent = sourceTriggers?.burnDecaySlowPercent ?? 0
         let nextPotency: Int
@@ -25,6 +25,9 @@ struct DecayingDoTHandler: BattleEffectHandler {
         } else {
             nextPotency = active.effect.potencyAfterTurn()
         }
+        var updated = active
+        updated.effect = Effect.decayingDoT(keyword: keyword, potency: nextPotency)
+        ActiveEffectMutation.finishTurn(active, replacement: nextPotency > 0 ? updated : nil, on: target, in: &context)
         if nextPotency > 0 {
             var tickPotency = nextPotency
             if keyword == .burn, sourceTriggers?.burnDamageDoubleChancePercent ?? 0 > 0,
@@ -58,16 +61,11 @@ struct DecayingDoTHandler: BattleEffectHandler {
                 sourceActorID: active.sourceActorID,
                 in: &context,
             ))
-            var updated = active
-            updated.effect = Effect.decayingDoT(keyword: keyword, potency: nextPotency)
-            return EffectTurnOutcome(events: events, updatedStack: updated)
+            return events
         }
 
-        var updated = active
-        updated.effect = Effect.decayingDoT(keyword: keyword, potency: 0)
-        let events = keyword == .poison
+        return keyword == .poison
             ? CombatTriggerEngine.afterHeroTalentPoisonExpiry(sourceID: active.sourceActorID, target: target, in: &context) : []
-        return EffectTurnOutcome(events: events, updatedStack: updated, removeAfter: true)
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -104,7 +102,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
             potency: potency,
             to: target,
             sourceActorID: source.id,
-            dealImmediateDamage: true,
+            application: .ability,
         )
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -122,7 +120,8 @@ struct DecayingDoTHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> Int {
-        guard let doubleVsFrozen = sourceTriggers?.burnDoubleVsFrozenChancePercent,
+        guard keyword == .burn,
+              let doubleVsFrozen = sourceTriggers?.burnDoubleVsFrozenChancePercent,
               doubleVsFrozen > 0, context.roster.hasControlStatus(for: target, keyword: .freeze),
               BattleChance.succeeds(probability: doubleVsFrozen, using: &context.rng)
         else { return potency }
@@ -158,9 +157,9 @@ struct DecayingDoTHandler: BattleEffectHandler {
 struct BleedHandler: BattleEffectHandler {
     let kind: EffectKind = .bleed
 
-    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
+    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
-            return EffectTurnOutcome()
+            return []
         }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
         var tickPotency = potency
@@ -200,19 +199,21 @@ struct BleedHandler: BattleEffectHandler {
             context.roster.setActiveEffects(reduced.effects, for: target)
         }
 
-        var updated = active
+        guard var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) else {
+            return events
+        }
         if !shouldPreserveBleed(on: target, in: context) {
             updated.remainingTurns -= 1
-            if updated.remainingTurns == 0, sourceTriggers?.bleedHalvesAfterExpiration == true, potency > 1 {
-                updated.effect = .bleed(potency / 2)
+            let remainingPotency = updated.effect.potency ?? 0
+            if updated.remainingTurns == 0, sourceTriggers?.bleedHalvesAfterExpiration == true, remainingPotency > 1 {
+                updated.effect = .bleed(remainingPotency / 2)
                 updated.remainingTurns = 1
             }
         }
-        return EffectTurnOutcome(
-            events: events,
-            updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0,
+        ActiveEffectMutation.finishTurn(
+            active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
         )
+        return events
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -240,7 +241,7 @@ struct BleedHandler: BattleEffectHandler {
             potency: potency,
             to: target,
             sourceActorID: source.id,
-            dealImmediateDamage: true,
+            application: .ability,
             in: &context,
         )
         let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore

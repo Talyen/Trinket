@@ -234,7 +234,8 @@ public final class LabyrinthPlayMode {
         nodeID: String,
         hero: Combatant? = nil,
         companion: Combatant? = nil,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -248,7 +249,8 @@ public final class LabyrinthPlayMode {
                 nodeID: nodeID,
                 hero: resolvedHero,
                 companion: resolvedCompanion,
-                battleEarnedGold: battleEarnedGold,
+                battleGold: battleGold,
+                award: award,
                 materialRewards: materialRewards,
                 rewardItem: rewardItem,
                 loot: loot,
@@ -327,13 +329,14 @@ extension LabyrinthPlayMode {
 
     func battleRoute(nodeID: String) -> PlayBattleRoute {
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
-        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards, loot in
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
             guard let self else { return false }
             return completeNode(
                 nodeID: nodeID,
                 hero: configuration.hero.combatant,
                 companion: configuration.companion.combatant,
-                battleEarnedGold: battleEarnedGold,
+                battleGold: award.goldFlow,
+                award: award,
                 materialRewards: materialRewards,
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,

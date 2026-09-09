@@ -33,7 +33,7 @@ struct ThornsHandler: BattleEffectHandler {
             return sum
         }
         let total = existing + amount
-        let event = ActiveEffectMutation.replaceAndEmit(
+        return ActiveEffectMutation.replaceAndEmit(
             .thorns(total),
             to: target,
             source: source,
@@ -42,7 +42,6 @@ struct ThornsHandler: BattleEffectHandler {
             replacing: { $0.kind == .thorns },
             event: (.thornsApplied, total, .thorns),
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 
@@ -71,7 +70,7 @@ struct OnHitDamageHandler: BattleEffectHandler {
         guard case let .onHitDamage(keyword, amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let event = ActiveEffectMutation.replaceAndEmit(
+        return ActiveEffectMutation.replaceAndEmit(
             .onHitDamage(keyword, amount),
             to: target,
             source: source,
@@ -85,7 +84,6 @@ struct OnHitDamageHandler: BattleEffectHandler {
             },
             event: (.wardApplied, amount, keyword),
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 
@@ -131,7 +129,7 @@ struct MarkedHandler: BattleEffectHandler {
         guard case let .marked(bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let event = ActiveEffectMutation.replaceAndEmit(
+        return ActiveEffectMutation.replaceAndEmit(
             .marked(bonus, durationTurns),
             to: target,
             source: source,
@@ -140,7 +138,6 @@ struct MarkedHandler: BattleEffectHandler {
             replacing: { $0.kind == .marked },
             event: (.markedApplied, bonus, .physical),
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 
@@ -177,7 +174,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         guard case let .criticalChanceBonus(percent, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let event = ActiveEffectMutation.replaceAndEmit(
+        return ActiveEffectMutation.replaceAndEmit(
             .criticalChanceBonus(percent, durationTurns),
             to: target,
             source: source,
@@ -186,7 +183,6 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             replacing: { $0.kind == .criticalChanceBonus },
             event: (.criticalChanceApplied, Int(percent * 100), .physical),
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 
@@ -266,7 +262,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         guard case let .damageKeywordOverride(keyword, bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let event = ActiveEffectMutation.replaceAndEmit(
+        return ActiveEffectMutation.replaceAndEmit(
             .damageKeywordOverride(keyword, bonus, durationTurns),
             to: target,
             source: source,
@@ -275,7 +271,6 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
             replacing: { $0.kind == .damageKeywordOverride },
             event: (.damageKeywordOverrideApplied, bonus, keyword),
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 
@@ -303,7 +298,7 @@ struct HemorrhageHandler: BattleEffectHandler {
         guard case let .hemorrhage(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let event = ActiveEffectMutation.replaceAndEmit(
+        return ActiveEffectMutation.replaceAndEmit(
             .hemorrhage(amount),
             to: target,
             source: source,
@@ -312,7 +307,6 @@ struct HemorrhageHandler: BattleEffectHandler {
             replacing: { $0.kind == .hemorrhage },
             event: (.hemorrhageApplied, amount, .bleed),
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 
@@ -347,7 +341,7 @@ struct NextBurnBonusHandler: BattleEffectHandler {
             return sum
         }
         let total = existing + amount
-        let event = ActiveEffectMutation.replaceAndEmit(
+        return ActiveEffectMutation.replaceAndEmit(
             .nextBurnBonus(total),
             to: target,
             source: source,
@@ -356,6 +350,5 @@ struct NextBurnBonusHandler: BattleEffectHandler {
             replacing: { $0.kind == .nextBurnBonus },
             event: (.nextBurnBonusApplied, total, .burn),
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }

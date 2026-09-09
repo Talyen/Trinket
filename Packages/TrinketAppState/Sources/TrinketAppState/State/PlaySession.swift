@@ -135,7 +135,7 @@ public final class PlaySession {
     @discardableResult
     public func completeActiveBattle(
         _ configuration: BattleRunConfiguration,
-        battleEarnedGold: Int,
+        battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
     ) -> Bool {
         let combatants = [configuration.hero.combatant, configuration.companion.combatant]
@@ -146,7 +146,7 @@ public final class PlaySession {
         )
         let persisted = battleCompletion.completeActiveBattle(
             configuration,
-            battleEarnedGold: battleEarnedGold,
+            battleGold: battleGold,
             materialRewards: materialRewards,
             route: route(for: configuration.runKey),
             presentation: battlePresentation(for: configuration.runKey),

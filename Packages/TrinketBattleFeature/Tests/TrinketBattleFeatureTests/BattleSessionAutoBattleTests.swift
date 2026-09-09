@@ -9,6 +9,42 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionAutoBattleTests {
+    @Test func `auto battle waits for manual interaction started during cast`() async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        var isInteracting = false
+        var castChecks = 0
+        var playedDuringInteraction = false
+        var didPlay = false
+        session.isAutoBattleEnabled = true
+        let driver = Task { @MainActor in
+            await session.driveAutoBattle(
+                isCardCastActive: {
+                    castChecks += 1
+                    if castChecks == 1 {
+                        isInteracting = true
+                        return true
+                    }
+                    return false
+                },
+                isManualInteractionActive: { isInteracting },
+                playCard: { _ in
+                    playedDuringInteraction = isInteracting
+                    didPlay = true
+                    session.isAutoBattleEnabled = false
+                    return true
+                },
+            )
+        }
+        defer { driver.cancel() }
+        #expect(try await BattleSessionTestSupport.waitUntil { castChecks >= 2 || didPlay })
+        #expect(!didPlay)
+        isInteracting = false
+        #expect(try await BattleSessionTestSupport.waitUntil { didPlay })
+        await driver.value
+        #expect(!playedDuringInteraction)
+    }
+
     @Test func `auto battle plays cards in greedy order until disabled`() async throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
         let expectedCardIDs = try BattleSessionTestSupport.greedyPlaySequence(from: session)

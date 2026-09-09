@@ -10,6 +10,13 @@ Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roste
 
 Campaign reward and completion **domain write policies** also live here (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`, `MysteryEventPinApplier`): app sessions decide when to apply them; Persistence owns the save mutation. Save-store test harnesses live in this package's `TrinketPersistenceTestSupport` target — see the package `AGENTS.md`.
 
+Prepared battle completion applies the launch-backed `BattleRewardAward` through
+`VictoryRewardApplier`; it does not recompute experience or reward bonuses from a
+later save snapshot. `BattleRewardPlan`/`BattleRewardAward` are shared Content
+values, while Core's `BattleGoldFlow` retains gross gains and spending. Gold-find
+bonuses scale gains only. Non-prepared completion resolves the same plan once
+before applying it. Mode completion still owns eligibility and one-time claims.
+
 Options are deliberately separate: `OptionsStore` uses app-storage-compatible `UserDefaults`, not player-save/CloudKit state. Packages must not import app or SwiftUI feature code.
 
 Failed writes restore the pre-mutation value snapshot into the affected graph slices

@@ -75,9 +75,15 @@ struct BattleSessionPreparationTests {
         )
 
         #expect(session.prepareBattleRun(configuration))
+        #expect(!session.activatePreparedBattle(
+            runKey: runKey, configurationID: UUID(), heroID: party.hero.id,
+            companionID: party.companion.id, enemyID: party.enemy.id,
+        ))
+        #expect(session.hasPreparedRun(runKey))
         #expect(
             session.activatePreparedBattle(
                 runKey: runKey,
+                configurationID: configuration.id,
                 heroID: party.hero.id,
                 companionID: party.companion.id,
                 enemyID: party.enemy.id,
@@ -152,6 +158,7 @@ struct BattleSessionPreparationTests {
         #expect(
             session.activatePreparedBattle(
                 runKey: runKey,
+                configurationID: configuration.id,
                 heroID: party.hero.id,
                 companionID: party.companion.id,
                 enemyID: party.enemy.id,
@@ -178,6 +185,7 @@ struct BattleSessionPreparationTests {
         #expect(
             session.activatePreparedBattle(
                 runKey: runKey,
+                configurationID: configuration.id,
                 heroID: party.hero.id,
                 companionID: party.companion.id,
                 enemyID: party.enemy.id,
@@ -186,7 +194,7 @@ struct BattleSessionPreparationTests {
 
         #expect(session.hand.isEmpty)
         #expect(session.isDealingOpeningHand)
-        #expect(session.openingHandDeal.hasPendingTask)
+        #expect(session.transitionTask.hasPendingTask)
         let dealtDuringFade = try await BattleSessionTestSupport.waitUntil(
             timeout: .milliseconds(100),
         ) {
@@ -217,6 +225,7 @@ struct BattleSessionPreparationTests {
         #expect(
             session.activatePreparedBattle(
                 runKey: runKey,
+                configurationID: configuration.id,
                 heroID: party.hero.id,
                 companionID: party.companion.id,
                 enemyID: party.enemy.id,

@@ -136,17 +136,18 @@ package enum DefensePoolEngine {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return [] }
         let triggers = context.modifiers(for: target.id).triggers
-        if triggers.retainAllBlockBetweenTurns {
-            return []
-        }
-        let retained: Int = if triggers.blockRetainsThreeQuarters {
+        let retained: Int = if triggers.retainAllBlockBetweenTurns {
+            current
+        } else if triggers.blockRetainsThreeQuarters {
             min(30, (current * 3) / 4)
         } else if triggers.blockRetainsHalf {
             min(30, current / 2)
         } else {
             current / 2
         }
-        set(retained, on: target, in: &context)
+        if retained != current {
+            set(retained, on: target, in: &context)
+        }
         guard retained > 0, triggers.retainedBlockGainThornsPercent > 0 else { return [] }
         return CombatTriggerEngine.applyBlockThorns(
             amount: retained,

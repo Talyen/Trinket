@@ -6,6 +6,29 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct StageRewardTests {
+    @Test @MainActor func `resolved award preserves gross gains spending and experience across reload`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let plan = BattleRewardPlan(
+            stageGold: 10, goldFindPercent: 50, heroExperience: 4, companionExperience: 5, materials: [], items: [],
+        )
+        let award = plan.resolve(battleGold: .init(gained: 10, spent: 20))
+        #expect(award.goldDelta == 10)
+        let beforeHero = store.roster.progression(for: store.roster.activeHero)
+        let beforeCompanion = store.roster.progression(for: store.roster.activeCompanion)
+        try #require(store.persistBatch(logging: "Apply resolved award") { save in
+            save.roster.gold = 100
+            save.homestead.nodeTiers[.wishingWell] = 3
+            save.homestead.lastProductionAt = Date()
+            save.homestead.pendingProduction = [:]
+            VictoryRewardApplier.apply(award, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save)
+        })
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.gold == 110)
+        #expect(reloaded.roster.progression(for: reloaded.roster.activeHero) == beforeHero.addingExperience(4))
+        #expect(reloaded.roster.progression(for: reloaded.roster.activeCompanion) == beforeCompanion.addingExperience(5))
+    }
+
     private var chapter: Chapter {
         GameContent.chapters[0]
     }
@@ -32,7 +55,7 @@ struct StageRewardTests {
             firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: battleEarnedGold,
+            battleGold: .init(gained: battleEarnedGold),
             loot: loot,
             in: GameContent.chapters,
             save: &save,
@@ -90,7 +113,7 @@ struct StageRewardTests {
             for: firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 0,
+            battleGold: .init(gained: 0),
             loot: loot,
             save: &save,
         )
@@ -144,7 +167,7 @@ struct StageRewardTests {
             firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 4,
+            battleGold: .init(gained: 4),
             loot: loot,
             in: GameContent.chapters,
             save: &save,
@@ -155,7 +178,7 @@ struct StageRewardTests {
             firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 2,
+            battleGold: .init(gained: 2),
             loot: loot,
             in: GameContent.chapters,
             save: &save,
@@ -280,7 +303,7 @@ struct StageRewardTests {
             for: firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 0,
+            battleGold: .init(gained: 0),
             save: &save,
         )
         let goldAfterClaim = save.roster.gold
@@ -291,7 +314,7 @@ struct StageRewardTests {
             for: firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 9,
+            battleGold: .init(gained: 9),
             save: &save,
         )
 
@@ -301,21 +324,41 @@ struct StageRewardTests {
         try #expect(save.journey.hasClaimedRewards(for: firstStage))
     }
 
-    @Test func `resolved gold reward does not go negative`() {
+    @Test func `resolved gold reward preserves battle spending`() {
+        #expect(VictoryRewardApplier.resolvedGoldReward(
+            stageGold: 10, battleGold: .init(spent: 20), goldFoundPercent: 50,
+        ) == -5)
         #expect(
             VictoryRewardApplier.resolvedGoldReward(
                 stageGold: 0,
-                battleEarnedGold: -3,
+                battleGold: .init(spent: 3),
                 goldFoundPercent: 0,
-            ) == 0,
+            ) == -3,
         )
         #expect(
             VictoryRewardApplier.resolvedGoldReward(
                 stageGold: 10,
-                battleEarnedGold: -3,
+                battleGold: .init(spent: 3),
                 goldFoundPercent: 0,
             ) == 7,
         )
+    }
+
+    @Test @MainActor func `victory persists gold spent beyond the loot reward`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        try #require(store.persistBatch(logging: "Seed battle wallet") { save in
+            save.roster.gold = 100
+        })
+        try #require(store.persistBatch(logging: "Complete battle with gold spending") { save in
+            VictoryRewardApplier.grantVictoryRewards(
+                hero: save.roster.activeHero, companion: save.roster.activeCompanion,
+                encounterLevel: 1, stageGold: 5, battleGold: .init(spent: 20),
+                materialRewards: [], item: nil, save: &save,
+            )
+        })
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.gold == 85)
     }
 
     @Test func `claim rewards uses precomputed material rewards`() throws {
@@ -369,7 +412,7 @@ extension StageRewardTests {
 
         let expected = VictoryRewardApplier.resolvedGoldReward(
             stageGold: loot.gold,
-            battleEarnedGold: 0,
+            battleGold: .init(gained: 0),
             homestead: save.homestead,
         )
         try #expect(save.roster.gold == expected)
@@ -379,7 +422,7 @@ extension StageRewardTests {
         #expect(
             VictoryRewardApplier.resolvedGoldReward(
                 stageGold: 10,
-                battleEarnedGold: 0,
+                battleGold: .init(gained: 0),
                 goldFoundPercent: -50,
             ) < 10,
         )
@@ -435,7 +478,7 @@ extension StageRewardTests {
             for: firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 7,
+            battleGold: .init(gained: 7),
             materialRewards: materialRewards,
             rewardItem: loot.item,
             loot: loot,
@@ -453,7 +496,7 @@ extension StageRewardTests {
             nodeID: node.id,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 7,
+            battleGold: .init(gained: 7),
             materialRewards: materialRewards,
             rewardItem: loot.item,
             loot: loot,
@@ -467,7 +510,7 @@ extension StageRewardTests {
             floor: floor,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 7,
+            battleGold: .init(gained: 7),
             materialRewards: materialRewards,
             rewardItem: loot.item,
             loot: loot,

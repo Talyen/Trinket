@@ -24,7 +24,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var criticalVsStunnedEnemyGold: Int = 0
     public var critOnDefeatGold: Int = 0
     public var partyGoldGainedPercent: Double = 0
-    public var goldAbsorbsDamage: Bool = false
+    public var firstGoldTheftHeal: Int = 0
     public var goldDoubledWhileFullHealth: Bool = false
     public var onGainGoldDoubleStatusEffectsNextCard: Bool = false
     public var bountyBlade: Bool = false
@@ -59,7 +59,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         criticalVsStunnedEnemyGold: Int = 0,
         critOnDefeatGold: Int = 0,
         partyGoldGainedPercent: Double = 0,
-        goldAbsorbsDamage: Bool = false,
+        firstGoldTheftHeal: Int = 0,
         goldDoubledWhileFullHealth: Bool = false,
         onGainGoldDoubleStatusEffectsNextCard: Bool = false,
         bountyBlade: Bool = false,
@@ -93,7 +93,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.criticalVsStunnedEnemyGold = criticalVsStunnedEnemyGold
         self.critOnDefeatGold = critOnDefeatGold
         self.partyGoldGainedPercent = partyGoldGainedPercent
-        self.goldAbsorbsDamage = goldAbsorbsDamage
+        self.firstGoldTheftHeal = firstGoldTheftHeal
         self.goldDoubledWhileFullHealth = goldDoubledWhileFullHealth
         self.onGainGoldDoubleStatusEffectsNextCard = onGainGoldDoubleStatusEffectsNextCard
         self.bountyBlade = bountyBlade
@@ -109,7 +109,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "goldAbsorbsDamage", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold"]
+    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -134,7 +134,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.criticalVsStunnedEnemyGold != other.criticalVsStunnedEnemyGold { names.append("criticalVsStunnedEnemyGold") }
         if self.critOnDefeatGold != other.critOnDefeatGold { names.append("critOnDefeatGold") }
         if self.partyGoldGainedPercent != other.partyGoldGainedPercent { names.append("partyGoldGainedPercent") }
-        if self.goldAbsorbsDamage != other.goldAbsorbsDamage { names.append("goldAbsorbsDamage") }
+        if self.firstGoldTheftHeal != other.firstGoldTheftHeal { names.append("firstGoldTheftHeal") }
         if self.goldDoubledWhileFullHealth != other.goldDoubledWhileFullHealth { names.append("goldDoubledWhileFullHealth") }
         if self.onGainGoldDoubleStatusEffectsNextCard != other.onGainGoldDoubleStatusEffectsNextCard { names.append("onGainGoldDoubleStatusEffectsNextCard") }
         if self.bountyBlade != other.bountyBlade { names.append("bountyBlade") }
@@ -173,7 +173,7 @@ extension GoldTriggers {
         criticalVsStunnedEnemyGold += other.criticalVsStunnedEnemyGold
         critOnDefeatGold += other.critOnDefeatGold
         partyGoldGainedPercent += other.partyGoldGainedPercent
-        goldAbsorbsDamage = goldAbsorbsDamage || other.goldAbsorbsDamage
+        firstGoldTheftHeal += other.firstGoldTheftHeal
         goldDoubledWhileFullHealth = goldDoubledWhileFullHealth || other.goldDoubledWhileFullHealth
         onGainGoldDoubleStatusEffectsNextCard = onGainGoldDoubleStatusEffectsNextCard || other.onGainGoldDoubleStatusEffectsNextCard
         bountyBlade = bountyBlade || other.bountyBlade
@@ -213,7 +213,7 @@ extension GoldTriggers {
             criticalVsStunnedEnemyGold: values.decode(Int.self, "criticalVsStunnedEnemyGold", default: 0),
             critOnDefeatGold: values.decode(Int.self, "critOnDefeatGold", default: 0),
             partyGoldGainedPercent: values.decode(Double.self, "partyGoldGainedPercent", default: 0),
-            goldAbsorbsDamage: values.decode(Bool.self, "goldAbsorbsDamage", default: false),
+            firstGoldTheftHeal: values.decode(Int.self, "firstGoldTheftHeal", default: 0),
             goldDoubledWhileFullHealth: values.decode(Bool.self, "goldDoubledWhileFullHealth", default: false),
             onGainGoldDoubleStatusEffectsNextCard: values.decode(Bool.self, "onGainGoldDoubleStatusEffectsNextCard", default: false),
             bountyBlade: values.decode(Bool.self, "bountyBlade", default: false),
@@ -250,7 +250,7 @@ extension GoldTriggers {
         try container.encodeNonDefault(criticalVsStunnedEnemyGold, "criticalVsStunnedEnemyGold", default: 0)
         try container.encodeNonDefault(critOnDefeatGold, "critOnDefeatGold", default: 0)
         try container.encodeNonDefault(partyGoldGainedPercent, "partyGoldGainedPercent", default: 0)
-        try container.encodeNonDefault(goldAbsorbsDamage, "goldAbsorbsDamage", default: false)
+        try container.encodeNonDefault(firstGoldTheftHeal, "firstGoldTheftHeal", default: 0)
         try container.encodeNonDefault(goldDoubledWhileFullHealth, "goldDoubledWhileFullHealth", default: false)
         try container.encodeNonDefault(onGainGoldDoubleStatusEffectsNextCard, "onGainGoldDoubleStatusEffectsNextCard", default: false)
         try container.encodeNonDefault(bountyBlade, "bountyBlade", default: false)

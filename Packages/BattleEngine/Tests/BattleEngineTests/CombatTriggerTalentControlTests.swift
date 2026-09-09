@@ -114,11 +114,8 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(hitBattle.roster.hasControlStatus(for: hitEnemy, keyword: .stun))
         let secondActive = ActiveEffect(id: 2, effect: .poison(8), remainingTurns: 0, sourceActorID: hitBattle.roster.companion.id)
         _ = DecayingDoTHandler(keyword: .poison, kind: .poison).advanceTurn(secondActive, on: hitEnemy, in: &hitBattle)
-        #expect(
-            hitBattle.talentTurnGuardByActorID[
-                TalentActionGuardKey(kind: .poisonStun, actorID: hitBattle.roster.companion.id),
-            ] == nil,
-        )
+        let canClaim = hitBattle.claimTurnGuard(.poisonStun, actorID: hitBattle.roster.companion.id)
+        #expect(canClaim)
 
         var missBattle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(),
@@ -192,7 +189,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         for amount in [6, 2, 4] {
             _ = battle.resolveDamage(DamageRequest(
                 amount: amount, target: battle.enemy, keyword: .holy, sourceActorID: battle.hero.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false, isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
             ))
             #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction == 3)
         }
@@ -352,12 +349,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                 target: battle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: battle.roster.hero.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: true,
-                    applyDodge: false,
-                    isAttackHit: true,
-                ),
+                options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable),
             ),
         )
         let poisons = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
@@ -365,7 +357,6 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         #expect(poisons.contains { $0.sourceActorID == battle.roster.companion.id })
     }
 
-    // swiftlint:disable:next function_body_length - one scenario verifies the complete paralysis cadence
     @Test func `harvest essence ignores do T and retaliation`() {
         let harvest = CombatModifierProfile(triggers: CombatTraitTriggers(
             block: BlockTriggers(onAnyHealthLossGainBlock: 1),
@@ -382,7 +373,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             potency: 3,
             to: dotBattle.roster.enemy.combatant,
             sourceActorID: dotBattle.roster.hero.id,
-            dealImmediateDamage: true,
+            application: .ability,
         )
         #expect(DefensePoolEngine.blockPoints(
             in: dotBattle.roster.activeEffects(for: dotBattle.roster.hero.combatant),
@@ -401,12 +392,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                 target: hitBattle.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: hitBattle.roster.hero.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isAttackHit: true,
-                ),
+                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
             ),
         )
         #expect(DefensePoolEngine.blockPoints(
@@ -426,13 +412,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                 target: retaliation.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: retaliation.roster.hero.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: true,
-                    isAttackHit: true,
-                ),
+                options: DamageOperation.reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable),
             ),
         )
         #expect(DefensePoolEngine.blockPoints(

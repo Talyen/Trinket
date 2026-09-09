@@ -4,6 +4,47 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test(arguments: [38, 40])
+    func `scavengers cache heals on first theft each turn without spending gold`(startingHealth: Int) throws {
+        var battle = capstoneBattle(companion: [
+            "lizard_scout_gold_t2_1", "lizard_scout_gold_t2_2",
+            "lizard_scout_gold_t3_1", "lizard_scout_gold_t4_1",
+        ])
+        battle.roster.companion.currentHealth = startingHealth
+        _ = battle.grantGoldEvent(5, to: battle.companion, abilityName: "Reward")
+        _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Hero theft", isTheft: true)
+        #expect(battle.roster.companion.currentHealth == startingHealth)
+
+        let goldBefore = battle.gold
+        let first = try playHeroTalentCard(heroTalentPhysicalCard, owner: .companion, in: &battle)
+        #expect(battle.roster.companion.currentHealth == 40)
+        #expect(battle.gold - goldBefore == (startingHealth == 40 ? 2 : 1))
+        #expect(first.contains { $0.effectKind == .instantHeal && $0.targetID == battle.companion.id })
+
+        let goldAfterTheft = battle.gold
+        let hit = battle.resolveDamage(DamageRequest(
+            amount: 3, target: battle.companion, keyword: .physical,
+            sourceActorID: battle.enemy.id, options: DamageOperation.effect(scaling: .statsAndItems, accuracy: .unavoidable),
+        ))
+        #expect(hit.healthLost == 3)
+        #expect(battle.gold == goldAfterTheft)
+        try playHeroTalentCard(heroTalentPhysicalCard, owner: .companion, in: &battle)
+        _ = battle.resolveDamage(.doTTick(
+            amount: 1, target: battle.enemy, keyword: .poison, sourceActorID: battle.companion.id,
+        ))
+        #expect(battle.roster.companion.currentHealth == 37)
+
+        _ = battle.endTurn()
+        _ = battle.resolveDamage(.doTTick(
+            amount: 1, target: battle.enemy, keyword: .poison, sourceActorID: battle.companion.id,
+        ))
+        #expect(battle.roster.companion.currentHealth == 39)
+        _ = battle.resolveDamage(.doTTick(
+            amount: 1, target: battle.enemy, keyword: .bleed, sourceActorID: battle.companion.id,
+        ))
+        #expect(battle.roster.companion.currentHealth == 39)
+    }
+
     @Test(arguments: [Effect.cleanse(nil), .cleanseRandom, .cleanseHealPerDebuff(2)])
     func `mass cleanse reaches the other ally when the first has no debuffs`(effect: Effect) throws {
         var battle = heroTalentBattle("library_owl_cleanse_t2_2")
@@ -181,7 +222,7 @@ extension TalentCatalogRoundTripTests {
             let target = battle.roster[owner].combatant
             let events = battle.resolveDamage(DamageRequest(
                 amount: 1, target: target, keyword: .physical, sourceActorID: battle.enemy.id,
-                options: DamageOptions(applyDodge: false, isAttackHit: true),
+                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable),
             )).events
             let keyword: Keyword = owner == .companion ? .poison : .physical
             #expect(events.contains { $0.effectKind == .thornsTriggered && $0.keyword == keyword && $0.amount == 7 })
@@ -197,7 +238,7 @@ extension TalentCatalogRoundTripTests {
         battle.roster.hero.currentMana = 0
         var unblocked = battle
         seedHeroTalentEffect(.shield(.block, block), on: .enemy, in: &battle)
-        var options = DamageOptions.doTTick
+        var options = DamageOperation.periodic
         options.abilityHasLeech = true
         let request = DamageRequest(
             amount: 8, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id, options: options,

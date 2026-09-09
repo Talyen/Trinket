@@ -24,13 +24,20 @@ public enum BattleCardCombatEngine {
     }
 
     @discardableResult
-    public static func drawOpeningHand(context: inout BattleState) -> [ActionEvent] {
-        while drawNextOpeningHandCard(context: &context) {}
-        return finalizeOpeningHand(context: &context)
+    public static func drawOpeningHand(
+        context: inout BattleState,
+        recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
+    ) -> [ActionEvent] {
+        while drawNextOpeningHandCard(context: &context) {
+            recording?(.cardDrawn, context, [])
+        }
+        let events = finalizeOpeningHand(context: &context)
+        recording?(.ready, context, events)
+        return events
     }
 
     @discardableResult
-    public static func drawNextOpeningHandCard(context: inout BattleState) -> Bool {
+    package static func drawNextOpeningHandCard(context: inout BattleState) -> Bool {
         guard context.hand.count < BattleHand.maxSize else { return false }
 
         while !context.openingHandDealPlan.isEmpty {
@@ -52,14 +59,24 @@ public enum BattleCardCombatEngine {
     }
 
     @discardableResult
-    public static func finalizeOpeningHand(context: inout BattleState) -> [ActionEvent] {
+    package static func finalizeOpeningHand(context: inout BattleState) -> [ActionEvent] {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        return CombatTriggerEngine.atPlayerTurnStart(in: &context)
+        var events = CombatTriggerEngine.atPlayerTurnStart(in: &context)
+        events.append(contentsOf: finishPlayerTurnStart(context: &context))
+        return events
+    }
+
+    static func finishPlayerTurnStart(context: inout BattleState) -> [ActionEvent] {
+        context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
+        let events = context.appendDefeatMilestonesIfNeeded()
+        context.phase = context.isBattleOver ? .ended : .playerTurn
+        return events
     }
 
     @discardableResult
     public static func endTurn(
         context: inout BattleState,
+        recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
     ) -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
             assertionFailure("BattleCardCombatEngine.endTurn called outside playerTurn or after battle ended")
@@ -67,13 +84,24 @@ public enum BattleCardCombatEngine {
         }
 
         var events = endTurnWithoutDraw(context: &context)
+        recording?(.turnActions, context, events)
         if context.phase == .ended {
+            recording?(.ready, context, [])
             return events
         }
 
-        while drawNextTurnStartCard(context: &context) {}
-        promoteFromBuffer(context: &context)
-        events.append(contentsOf: finalizeTurnStart(context: &context))
+        while drawNextTurnStartCard(context: &context) {
+            recording?(.cardDrawn, context, [])
+            while promoteNextFromBuffer(context: &context) != nil {
+                recording?(.bufferPromoted, context, [])
+            }
+        }
+        while promoteNextFromBuffer(context: &context) != nil {
+            recording?(.bufferPromoted, context, [])
+        }
+        let finalEvents = finalizeTurnStart(context: &context)
+        events.append(contentsOf: finalEvents)
+        recording?(.ready, context, finalEvents)
         return events
     }
 

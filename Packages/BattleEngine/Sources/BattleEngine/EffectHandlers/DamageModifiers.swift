@@ -58,18 +58,18 @@ struct ControlMeterHandler: BattleEffectHandler {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> EffectTurnOutcome {
-        _ = target
-        guard active.remainingTurns > 0 else { return EffectTurnOutcome() }
+    ) -> [ActionEvent] {
+        guard active.remainingTurns > 0 else { return [] }
         var updated = active
         updated.remainingTurns -= 1
         if updated.remainingTurns == 0, let restored = UniqueCombatEngine.recoveredStun(updated, in: &context) {
-            return EffectTurnOutcome(updatedStack: restored)
+            ActiveEffectMutation.finishTurn(active, replacement: restored, on: target, in: &context)
+            return []
         }
-        return EffectTurnOutcome(
-            updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0,
+        ActiveEffectMutation.finishTurn(
+            active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
         )
+        return []
     }
 
     func apply(

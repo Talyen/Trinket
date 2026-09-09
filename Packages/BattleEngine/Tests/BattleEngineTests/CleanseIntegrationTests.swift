@@ -1,10 +1,66 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
 import TrinketTestSupport
+@testable import BattleEngine
 
 struct CleanseIntegrationTests {
+    @Test(arguments: [Effect.cleanse(nil), .cleanseRandom], [
+        ActiveEffect(id: 90, effect: .poison(7), remainingTurns: 0),
+        ActiveEffect(id: 90, effect: .bleed(5), remainingTurns: 1),
+        ActiveEffect(id: 90, effect: .damageReductionFlat(3, 3), remainingTurns: 2),
+    ])
+    func `reflective ward preserves removed effect`(cleanse: Effect, debuff: ActiveEffect) throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_cleanse_t3_1")
+        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
+        var applied = debuff
+        applied.sourceActorID = battle.enemy.id
+        battle.roster.hero.activeEffects = [applied]
+        battle.roster.companion.pendingDoubleStatusNextCard = true
+        let handler = try #require(EffectHandlers.all[cleanse.kind])
+        let enemyHealth = battle.roster.enemy.currentHealth
+
+        _ = handler.apply(
+            cleanse, ability: .panaceaPotion, source: battle.companion, target: battle.hero, in: &battle,
+        )
+
+        #expect(battle.roster.hero.activeEffects.isEmpty)
+        #expect(battle.roster.companion.pendingDoubleStatusNextCard)
+        let reflected = try #require(battle.roster.enemy.activeEffects.first { $0.effect.kind == debuff.effect.kind })
+        #expect(reflected.effect == debuff.effect)
+        #expect(reflected.remainingTurns == debuff.remainingTurns)
+        #expect(reflected.sourceActorID == battle.companion.id)
+        #expect(battle.roster.enemy.currentHealth == enemyHealth)
+    }
+
+    @Test(arguments: [false, true])
+    func `mass cleanse heals the other cleansed ally`(primaryHasDebuff: Bool) throws {
+        let owl = try BattleTestFixtures.catalogBuild(
+            combatantID: "library_owl", talents: "library_owl_cleanse_t2_2", "library_owl_cleanse_t1_2",
+        )
+        let cleanse = Ability(id: "mass-cleanse", name: "Cleanse", tier: .basic, targetedEffects: [
+            TargetedEffect(.cleanse(nil), target: .companion),
+        ])
+        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
+        battle.withEngineContext { context in
+            context.appliesFightPacing = false
+            context.roster.hero.currentHealth = 1
+            context.roster.hero.activeEffects = [
+                ActiveEffect(id: 90, effect: .poison(4), remainingTurns: 0, sourceActorID: context.enemy.id),
+            ]
+            if primaryHasDebuff {
+                context.roster.companion.activeEffects = [
+                    ActiveEffect(id: 91, effect: .burn(4), remainingTurns: 0, sourceActorID: context.enemy.id),
+                ]
+            }
+        }
+        battle.hand = BattleHand()
+        _ = BattleCardCombatEngine.deal(cleanse, owner: .companion, context: &battle)
+        _ = try BattleTestFixtures.playCardNamed("Cleanse", owner: .companion, on: &battle)
+        try #expect(!battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff))
+        #expect(battle.health(of: battle.hero) == 3)
+    }
+
     @Test func `panacea cleanses most debuffed and heals lowest as one action`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",

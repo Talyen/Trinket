@@ -158,7 +158,7 @@ struct AppStateLabyrinthTests {
         let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
         _ = state.labyrinth.startBattle(nodeID: combatNodeID)
         let configuration = try #require(state.battle.activeBattle)
-        state.completeActiveBattle(configuration, battleEarnedGold: 3)
+        state.completeActiveBattle(configuration, battleGold: .init(gained: 3))
         #expect(state.playerSave.labyrinth.nodes[combatNodeID]?.isCleared == true)
         #expect(state.battle.activeBattle == nil)
     }
@@ -330,7 +330,7 @@ struct AppStateLabyrinthTests {
         _ = state.labyrinth.startBattle(nodeID: combatNodeID)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleEarnedGold: 3))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 3)))
         #expect(state.playerSave.labyrinth.nodes[combatNodeID]?.isCleared == true)
     }
 

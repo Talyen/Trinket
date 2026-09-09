@@ -179,44 +179,23 @@ package extension DamagePipeline {
                 potency: amount,
                 to: target,
                 sourceActorID: source.id,
-                dealImmediateDamage: true,
-                suppressAffixReactions: true,
+                application: .reaction,
             )
         case .bleed:
             return DoTApplicator.applyBleed(
                 potency: amount,
                 to: target,
                 sourceActorID: source.id,
-                dealImmediateDamage: true,
-                suppressAffixReactions: true,
+                application: .reaction,
                 in: &context,
             )
-        case .stun, .freeze:
-            return context.resolveDamage(DamageRequest(
-                amount: amount,
-                target: target,
-                keyword: keyword,
-                sourceActorID: source.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: false,
-                    applyControlMeter: true,
-                ),
-            )).events
         default:
             return context.resolveDamage(DamageRequest(
                 amount: amount,
                 target: target,
                 keyword: keyword,
                 sourceActorID: source.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: false,
-                    applyDodge: false,
-                    isRetaliation: false,
-                ),
+                options: .reaction(),
             )).events
         }
     }
@@ -230,7 +209,10 @@ package extension DamagePipeline {
         return [BattleParticipant.hero, .companion].flatMap { owner -> [ActionEvent] in
             let member = context.roster[owner]
             guard member.isAlive else { return [] }
-            return context.applyBlock(amount, to: member.combatant, source: source, abilityName: "Sunwall")
+            return context.applyBlock(
+                amount, to: member.combatant, source: source,
+                abilityName: "Icebound Exchange", applyOutgoingAdjustment: false,
+            )
         }
     }
 

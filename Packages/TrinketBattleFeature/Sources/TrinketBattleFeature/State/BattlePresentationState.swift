@@ -23,7 +23,7 @@ struct BattlePresentationSnapshot: Equatable {
     let playableCardIDs: Set<Int>
     let isBattleOver: Bool
 
-    init(configurationID: UUID, state: borrowing BattleState) {
+    init(configurationID: UUID, state: borrowing BattleState, acceptsCommands: Bool = true) {
         self.configurationID = configurationID
         let heroEffects = state.activeEffects(of: state.hero)
         let companionEffects = state.activeEffects(of: state.companion)
@@ -43,7 +43,7 @@ struct BattlePresentationSnapshot: Equatable {
             in: state,
         )
         hand = state.hand.cards
-        playableCardIDs = Set(hand.filter { state.isCardPlayable($0) }.map(\.id))
+        playableCardIDs = acceptsCommands ? Set(hand.filter { state.isCardPlayable($0) }.map(\.id)) : []
         isBattleOver = state.isBattleOver
     }
 

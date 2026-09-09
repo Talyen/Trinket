@@ -90,7 +90,7 @@ struct ContractsPlayModeTests {
         let pendingItem = try #require(presentation.pendingRewardItem)
         let before = play.playerSave.currentSave
 
-        #expect(play.completeActiveBattle(configuration, battleEarnedGold: 0))
+        #expect(play.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
         #expect(play.battle.activeBattle == nil)
         #expect(play.consumePendingDestination() == .contracts)
         #expect(play.playerSave.contracts.offer(for: .hard)?.id != hard.id)
@@ -102,7 +102,7 @@ struct ContractsPlayModeTests {
         #expect(play.playerSave.roster.progression(for: before.roster.activeCompanion)
             == before.roster.progression(for: before.roster.activeCompanion).addingExperience(presentation.companionExperienceAward))
         let claimed = play.playerSave.currentSave
-        #expect(!play.completeActiveBattle(configuration, battleEarnedGold: 0))
+        #expect(!play.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
         #expect(play.playerSave.currentSave == claimed)
     }
 

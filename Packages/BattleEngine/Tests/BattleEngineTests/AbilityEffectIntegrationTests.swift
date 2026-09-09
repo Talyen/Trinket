@@ -5,6 +5,58 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct AbilityEffectIntegrationTests {
+    @Test(arguments: [Keyword.burn, .poison, .bleed])
+    func `dodging an enemy attack prevents its damage over time`(keyword: Keyword) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        battle.appendEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        let before = battle.roster.hero.currentHealth
+        let attack = Ability(
+            id: "dodged-dot",
+            name: "Afflicting Strike",
+            tier: .basic,
+            damageComponents: [DamageComponent(3, keyword: keyword)],
+        )
+        let events = BattleTurnEngine.performAction(
+            ability: attack, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
+        )
+        #expect(events.contains { $0.effectKind == .dodgeApplied })
+        #expect(battle.roster.hero.currentHealth == before)
+        #expect(!battle.roster.hero.activeEffects.contains { $0.keyword == keyword })
+        _ = EffectTurnEngine.advanceAll(context: &battle)
+        #expect(battle.roster.hero.currentHealth == before)
+    }
+
+    @Test(arguments: [true, false])
+    func `a defeated attacker stops before remaining damage and support effects`(hemorrhage: Bool) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 1
+        battle.roster.hero.hasConsumedDeathsDoor = true
+        battle.roster.hero.deathsDoorExpiredAtTurn = -1
+        if hemorrhage {
+            battle.appendEffect(.hemorrhage(4), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        } else {
+            battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        }
+        let attack = Ability(
+            id: "interrupted",
+            name: "Interrupted Attack",
+            tier: .basic,
+            damageComponents: [DamageComponent(1), DamageComponent(10)],
+            targetedEffects: [TargetedEffect(.resourceGain(.gold, 7), target: .actor)],
+            criticalChanceBonus: -1,
+        )
+        let before = battle.roster.enemy.currentHealth
+        let events = BattleTurnEngine.performAction(
+            ability: attack, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+        #expect(battle.roster.hero.currentHealth == 0)
+        #expect(battle.roster.enemy.currentHealth == before - (hemorrhage ? 0 : 1))
+        #expect(battle.gold == 0)
+        #expect(events.count(where: { $0.kind == .abilityDamage }) == (hemorrhage ? 0 : 1))
+    }
+
     private func combustionBattle() -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.combustion]),

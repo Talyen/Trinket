@@ -4,6 +4,23 @@ import TrinketContent
 import TrinketCore
 
 struct ManaEmpowermentTests {
+    @Test func `recurring freeze empowerment draws the opposite element`() {
+        var battle = makeBattle(
+            heroAbilities: [], heroMaxMana: 3, heroMana: 3,
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                mana: ManaTriggers(empoweredElementDrawOpposite: true),
+            )),
+        )
+        battle.heroDeck = CombatDeck(abilities: [.kindling])
+        var ability = Ability.rayOfFrost
+        let events = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.hero, context: &battle,
+        )
+        #expect(battle.mana(of: battle.hero) == 0)
+        #expect(events.contains { $0.effectKind == .cardsDrawn })
+        #expect(battle.hand.cards.contains { $0.ability.id == Ability.kindling.id })
+    }
+
     @Test func `dragon spark discounts only first empowerment and preserves its effect`() {
         var battle = makeBattle(
             heroAbilities: [], heroMaxMana: 4, heroMana: 4,

@@ -92,14 +92,14 @@ package extension BattleState {
         potency: Int,
         to target: Combatant,
         sourceActorID: String,
-        dealImmediateDamage: Bool = true,
+        application: DoTApplication = .reaction,
     ) -> [ActionEvent] {
         CombatTriggerEngine.applyDoT(
             keyword: keyword,
             potency: potency,
             to: target,
             sourceActorID: sourceActorID,
-            dealImmediateDamage: dealImmediateDamage,
+            application: application,
             in: &self,
         )
     }

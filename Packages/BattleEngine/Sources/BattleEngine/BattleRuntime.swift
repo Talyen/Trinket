@@ -19,6 +19,7 @@ public protocol BattleRuntime: AnyObject {
     func hasPreparedRun(_ runKey: BattleRunKey) -> Bool
     func activatePreparedBattle(
         runKey: BattleRunKey,
+        configurationID: UUID,
         heroID: String,
         companionID: String,
         enemyID: String?,

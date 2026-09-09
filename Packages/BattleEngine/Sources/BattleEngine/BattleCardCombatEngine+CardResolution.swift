@@ -39,18 +39,19 @@ extension BattleCardCombatEngine {
         let actor = ownerRuntime.combatant
         let previousUniqueCard = context.uniques.card
         context.uniques.card = UniqueCombatEngine.prepareCard(card, in: &context)
-        context.uniques.pendingOrdinaryActorID = context.uniques.card == nil ? nil : actor.id
         defer { context.uniques.card = previousUniqueCard }
         var facts = HeroTalentCardFacts(actorID: actor.id, tier: card.ability.tier)
         facts.playSerial = context.heroTalents.nextPlaySerial
         facts.previousDamageKeywords = context.heroTalents.history[actor.id]?.lastDamageKeywords ?? []
         context.heroTalents.nextPlaySerial += 1
+        defer { context.resolution.endCard(facts.playSerial) }
         context.heroTalents.cards.append(facts)
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
         var events = BattleTurnEngine.performAction(
             ability: card.ability,
             actor: actor,
             abilityTarget: abilityTarget,
+            origin: context.uniques.card == nil ? .card : .ordinaryCard,
             context: &context,
         )
         events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(

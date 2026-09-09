@@ -5,6 +5,27 @@ import TrinketCore
 import TrinketTestSupport
 
 struct EffectTurnEngineTests {
+    @Test func `lethal enemy burn ends turn before party damage`() {
+        let burn = ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)
+        var battle = makeContext(heroHP: 1, enemyHP: 1, enemyEffects: [burn])
+        battle.roster.companion.currentHealth = 1
+        for participant in [BattleParticipant.hero, .companion] {
+            let combatant = battle.roster[participant].combatant
+            battle.roster.mutateRuntime(for: combatant) { $0.hasConsumedDeathsDoor = true }
+            battle.roster.setActiveEffects([burn], for: combatant)
+        }
+
+        _ = EffectTurnEngine.advanceAll(context: &battle)
+
+        #expect(battle.roster.enemy.currentHealth == 0)
+        #expect(battle.roster.hero.currentHealth == 1)
+        #expect(battle.roster.companion.currentHealth == 1)
+        #expect(BattleSimulationOutcome.resolve(
+            isPartyDefeated: battle.isPartyDefeated,
+            isEnemyDefeated: battle.isEnemyDefeated,
+        ) == .victory)
+    }
+
     private func makeContext(
         heroHP: Int = 50,
         enemyHP: Int = 50,
@@ -35,12 +56,11 @@ struct EffectTurnEngineTests {
         var context = makeContext(enemyHP: 50, enemyEffects: [shield, burn])
         let enemy = context.roster.enemy.combatant
 
-        let result = EffectTurnEngine.advanceEffects(
+        _ = EffectTurnEngine.advanceEffects(
             context.roster.activeEffects(for: enemy),
             target: enemy,
             context: &context,
         )
-        context.roster.setActiveEffects(result.updated, for: enemy)
 
         let shields = context.roster.activeEffects(for: enemy).compactMap { activeEffect -> Int? in
             guard case let .shield(_, buffer) = activeEffect.effect else { return nil }
@@ -56,12 +76,11 @@ struct EffectTurnEngineTests {
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects([burn], for: hero)
 
-        let result = EffectTurnEngine.advanceEffects(
+        _ = EffectTurnEngine.advanceEffects(
             context.roster.activeEffects(for: hero),
             target: hero,
             context: &context,
         )
-        context.roster.setActiveEffects(result.updated, for: hero)
 
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.isDeathsDoorActive(for: hero))

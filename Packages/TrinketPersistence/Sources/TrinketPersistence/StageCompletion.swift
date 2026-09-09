@@ -57,7 +57,8 @@ public enum StageCompletion {
         _ stage: Stage,
         hero: Combatant,
         companion: Combatant,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -69,7 +70,8 @@ public enum StageCompletion {
             for: stage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: battleEarnedGold,
+            battleGold: battleGold,
+            award: award,
             materialRewards: materialRewards,
             rewardItem: rewardItem,
             loot: loot,
@@ -86,7 +88,8 @@ public enum StageCompletion {
         labyrinthNodeID: String?,
         hero: Combatant,
         companion: Combatant,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -99,7 +102,8 @@ public enum StageCompletion {
                 nodeID: labyrinthNodeID,
                 hero: hero,
                 companion: companion,
-                battleEarnedGold: battleEarnedGold,
+                battleGold: battleGold,
+                award: award,
                 materialRewards: materialRewards,
                 rewardItem: rewardItem,
                 loot: loot,
@@ -112,7 +116,8 @@ public enum StageCompletion {
             stage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: battleEarnedGold,
+            battleGold: battleGold,
+            award: award,
             materialRewards: materialRewards,
             rewardItem: rewardItem,
             loot: loot,
@@ -126,7 +131,8 @@ public enum StageCompletion {
         for stage: Stage,
         hero: Combatant,
         companion: Combatant,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -166,7 +172,8 @@ public enum StageCompletion {
             companion: companion,
             encounterLevel: encounterLevel,
             stageGold: stageGold,
-            battleEarnedGold: battleEarnedGold,
+            battleGold: battleGold,
+            award: award,
             grantsCombatExperience: stage.encounter.isCombat,
             materialRewards: VictoryRewardApplier.grantedMaterials(
                 override: materialRewards,
@@ -176,7 +183,7 @@ public enum StageCompletion {
             item: item,
             save: &save,
         )
-        if item == nil {
+        if award == nil, item == nil {
             grantAuthoredItems(for: stage, worldSeed: save.worldSeed, inventory: &save.inventory)
         }
 

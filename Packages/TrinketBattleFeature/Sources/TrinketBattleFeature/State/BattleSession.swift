@@ -81,7 +81,7 @@ public final class BattleSession: BattleRuntime {
     @ObservationIgnored
     private var claimedVictoryHandlerOwnerID: UUID?
     @ObservationIgnored
-    private var claimedVictoryHandler: ((BattleRunConfiguration, Int) -> Void)?
+    private var claimedVictoryHandler: ((BattleRunConfiguration, BattleGoldFlow) -> Void)?
     @ObservationIgnored
     var deliveredClaimedVictoryConfigurationID: UUID?
     public var openingHandDrawStagger: Duration
@@ -92,20 +92,25 @@ public final class BattleSession: BattleRuntime {
     @ObservationIgnored
     var autoEnd = CancellableGeneration()
     @ObservationIgnored
-    var openingHandDeal = CancellableGeneration()
+    var transitionTask = CancellableGeneration()
     @ObservationIgnored
-    var turnDraw = CancellableGeneration()
+    var transitionPlayback: BattleTransitionPlayback?
+    var commandState = BattleCommandState()
     @ObservationIgnored
     var preparedArtworkNames: Set<String> = []
 
-    public internal(set) var isDealingOpeningHand = false
+    public var isDealingOpeningHand: Bool {
+        commandState.phase == .opening
+    }
 
     var hasPendingAutoEnd: Bool {
         autoEnd.hasPendingTask
     }
 
-    @ObservationIgnored
-    public internal(set) var isSuspendedForScenePhase = false
+    public var isSuspendedForScenePhase: Bool {
+        commandState.isSuspended
+    }
+
     public internal(set) var preparedBattlePresentationRevision = 0
 
     @ObservationIgnored
@@ -157,10 +162,15 @@ public final class BattleSession: BattleRuntime {
         presentation.hand
     }
 
-    var canEndTurn: Bool {
-        engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
-            && hasActiveSimulation
+    var canAcceptBattleCommands: Bool {
+        commandState.acceptsCommands && activeBattle != nil
+            && engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
             && spectacle.outcomePresentation == .battle
+            && !isShowingBattleLog && overlayCombatantDetail == nil && overlayAbilityDetail == nil
+    }
+
+    var canEndTurn: Bool {
+        canAcceptBattleCommands
     }
 
     var hasActiveSimulation: Bool {
@@ -168,7 +178,7 @@ public final class BattleSession: BattleRuntime {
     }
 
     var canRetreat: Bool {
-        activeBattle != nil && !presentation.isBattleOver && spectacle.outcomePresentation == .battle
+        canAcceptBattleCommands
     }
 
     var hapticsEnabled: Bool {
@@ -199,7 +209,7 @@ public final class BattleSession: BattleRuntime {
         return BattleVictorySummary.make(
             configuration: configuration,
             presentation: presentation,
-            earnedGold: input.earnedGold,
+            battleGold: input.goldFlow,
             heroName: input.heroName,
             companionName: input.companionName,
         )
@@ -239,7 +249,7 @@ public final class BattleSession: BattleRuntime {
 
     public func installClaimedVictoryHandler(
         ownerID: UUID,
-        _ handler: @escaping (BattleRunConfiguration, Int) -> Void,
+        _ handler: @escaping (BattleRunConfiguration, BattleGoldFlow) -> Void,
     ) {
         claimedVictoryHandlerOwnerID = ownerID
         claimedVictoryHandler = handler
@@ -253,7 +263,8 @@ public final class BattleSession: BattleRuntime {
     }
 
     func deliverClaimedVictoryIfNeeded() {
-        guard let configuration = activeBattle,
+        guard commandState.phase == .outcome,
+              let configuration = activeBattle,
               presentationContext?.stageRewardsAlreadyClaimed == true,
               outcome == .victory,
               deliveredClaimedVictoryConfigurationID != configuration.id,
@@ -261,7 +272,7 @@ public final class BattleSession: BattleRuntime {
         else { return }
 
         deliveredClaimedVictoryConfigurationID = configuration.id
-        claimedVictoryHandler(configuration, earnedGold ?? 0)
+        claimedVictoryHandler(configuration, engineState?.goldFlow ?? .init())
     }
 
     public func presentBattleLog() {
@@ -334,6 +345,6 @@ public final class BattleSession: BattleRuntime {
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {
-        engineState?.isCardPlayable(card) ?? false
+        canAcceptBattleCommands && presentation.playableCardIDs.contains(card.id)
     }
 }

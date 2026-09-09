@@ -37,7 +37,7 @@ struct ManaEmpowermentBudget {
             ? triggers.healingEmpowermentCostReduction : triggers.empowermentCostReduction
         baseCost = max(0, BattleTurnEngine.manaEmpowermentCost - max(0, reduction))
         let maxMana = (runtime?.maxMana ?? 0) + (patron?.maxMana ?? 0)
-        hasCapacity = maxMana > 0
+        hasCapacity = maxMana > 0 || blockRate > 0
         let repeats = ability.repeatsManaEmpowerment
             || (ability.hasManaEmpowerableBurnDamage && triggers.repeatManaEmpowerment)
         let discountPurchase = !hasEmpowered && firstDiscount > 0 ? 1 : 0

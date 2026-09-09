@@ -102,7 +102,7 @@ enum BattleSessionTestSupport {
             }
             break
         }
-        return session.outcome == .victory ? session.earnedGold : nil
+        return session.outcome == .victory ? session.goldFlow?.net : nil
     }
 
     @discardableResult
@@ -153,7 +153,7 @@ enum BattleSessionTestSupport {
             cardID: card.id,
             at: date,
         )
-        return session.outcome == .victory ? session.earnedGold : nil
+        return session.outcome == .victory ? session.goldFlow?.net : nil
     }
 
     static func makePassiveSession(

@@ -2,6 +2,17 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    static func afterGoldTheft(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+        let amount = context.modifiers(for: actor.id).triggers.firstGoldTheftHeal
+        guard amount > 0, context.roster.health(for: actor) > 0,
+              context.claimHeroTalent("scavengersCache", actorID: actor.id)
+        else { return [] }
+        return context.healEmitting(
+            amount: amount, target: actor, source: actor,
+            abilityName: triggerAbilityName("firstGoldTheftHeal", for: actor, fallback: "Scavenger's Cache", in: context),
+        )
+    }
+
     static func afterEnemyDefeated(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
 
@@ -161,7 +172,7 @@ package extension CombatTriggerEngine {
         if triggers.onGainGoldHealParty > 0 {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
-                guard member.isAlive, member.id != combatant.id else { continue }
+                guard member.isAlive else { continue }
                 events.append(contentsOf: context.healEmitting(
                     amount: triggers.onGainGoldHealParty,
                     target: member.combatant,

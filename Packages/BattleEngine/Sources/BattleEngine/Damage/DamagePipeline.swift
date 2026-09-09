@@ -22,9 +22,13 @@ package enum DamagePipeline {
             applyTakenFlatAdjustments(to: &state, in: &context)
             var request = HealRequest(
                 amount: state.remaining, target: state.combatant, sourceActorID: state.combatant.id,
-                logAs: .instantHeal(actorName: state.combatant.name, abilityName: "Undying Ember", keyword: .health),
+                origin: .restoration(.health), logAs: .instantHeal(
+                    actorName: state.combatant.name,
+                    abilityName: "Undying Ember",
+                    keyword: .health,
+                ),
             )
-            request.usesResolvedHealing = true
+            request.amountBasis = .resolved
             state.damageEvents.append(contentsOf: HealingEngine.resolveHeal(request, in: &context).events)
             state.remaining = 0
             state.buildupDamage = 0
@@ -53,25 +57,32 @@ package enum DamagePipeline {
             ))
         }
 
+        applyDoTDamageReactions(to: &state, in: &context)
+        applyLeech(to: &state, in: &context)
+        applyTalentDamageApplications(to: &state, in: &context)
+        applyTalentMirroredReactions(to: &state, in: &context)
+
+        applyControlMeter(to: &state, in: &context)
+        if !state.options.isRetaliation {
+            applyReactiveOnHit(to: &state, in: &context)
+            applyKeywordReactions(to: &state, in: &context)
+            applyCriticalReaction(to: &state, in: &context)
+        }
+        state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))
+    }
+
+    private static func applyDoTDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
         if state.damageKeyword == .bleed {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBleedDamage(
                 healthLost: state.healthLost, target: state.combatant,
                 sourceActorID: state.sourceActorID, in: &context,
             ))
+        } else if state.damageKeyword == .poison {
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterPoisonDamage(
+                healthLost: state.healthLost, target: state.combatant,
+                sourceActorID: state.sourceActorID, in: &context,
+            ))
         }
-        applyLeech(to: &state, in: &context)
-        applyTalentDamageApplications(to: &state, in: &context)
-        applyTalentMirroredReactions(to: &state, in: &context)
-
-        if !state.options.isRetaliation {
-            applyControlMeter(to: &state, in: &context)
-            applyReactiveOnHit(to: &state, in: &context)
-            applyKeywordReactions(to: &state, in: &context)
-            applyCriticalReaction(to: &state, in: &context)
-        } else if state.options.applyControlMeter {
-            applyControlMeter(to: &state, in: &context)
-        }
-        state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))
     }
 
     static func applyWinterWake(to state: inout DamageResolutionState, in context: inout BattleState) {
@@ -86,8 +97,7 @@ package enum DamagePipeline {
         applyTakenFlatAdjustments(to: &avoided, in: &preview)
         let amount = CombatRounding.scaled(avoided.remaining, multiplier: 0.5)
         guard amount > 0 else { return }
-        var options = DamageOptions.dodgeTriggeredControlReaction
-        options.usesResolvedOutgoingDamage = true
+        let options = DamageOperation.reaction(cause: .dodge, scaling: .resolved, accuracy: .normal)
         let outcome = context.resolveDamage(DamageRequest(
             amount: amount, target: attacker.combatant, keyword: .freeze,
             sourceActorID: state.combatant.id, options: options,
@@ -110,6 +120,7 @@ package enum DamagePipeline {
             state.dealt = state.amount
             state.isCritical = state.options.guaranteedCritical
         } else {
+            reserveAttackEmpowers(to: &state, in: &context)
             UniqueCombatEngine.captureEnemyBlock(for: &state, in: context)
             applyCriticalGate(to: &state, in: &context)
             applyCriticalBlockSteal(to: &state, in: &context)
@@ -145,7 +156,7 @@ package enum DamagePipeline {
         keyword: Keyword,
         target: Combatant,
         sourceActorID: String?,
-        controlMeter: Bool = false,
+
         in context: inout BattleState,
     ) -> CombatOutcome {
         context.resolveDamage(DamageRequest(
@@ -153,7 +164,7 @@ package enum DamagePipeline {
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
-            options: controlMeter ? .flatControlReaction : .flatReaction,
+            options: .reaction(),
         ))
     }
 
@@ -168,8 +179,7 @@ package enum DamagePipeline {
             potency: potency,
             to: target,
             sourceActorID: sourceActorID,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
             durationTurns: durationTurns,
             in: &context,
         )

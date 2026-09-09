@@ -21,7 +21,7 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .physical,
                     sourceActorID: source.id,
-                    options: .flatReaction,
+                    options: .reaction(),
                 ),
             ).events
             guard context.roster.enemy.isAlive else { return (events, true) }
@@ -81,6 +81,20 @@ package extension CombatTriggerEngine {
     }
 
     static func enemyActAvoidance(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
+        let enemy = context.enemy
+        let delays = context.additionalControlSkipsByCombatantID[enemy.id, default: 0]
+        if delays > 0 {
+            context.additionalControlSkipsByCombatantID[enemy.id] = delays - 1
+            return ([context.nextEvent(
+                kind: .effect,
+                effectKind: .controlActionSkipped,
+                actorName: enemy.name,
+                abilityName: "Delay",
+                target: enemy,
+                amount: 0,
+                keyword: .stun,
+            )], true)
+        }
         if let companionNegation = companionNegateEnemyAttack(in: &context) {
             return companionNegation
         }
@@ -190,23 +204,20 @@ package extension CombatTriggerEngine {
                     potency: potency,
                     to: enemy,
                     sourceActorID: member.id,
-                    dealImmediateDamage: false,
-                    suppressAffixReactions: true,
+                    application: .attached,
                 ))
                 events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .burn,
                     potency: potency,
                     to: enemy,
                     sourceActorID: member.id,
-                    dealImmediateDamage: false,
-                    suppressAffixReactions: true,
+                    application: .attached,
                 ))
                 events.append(contentsOf: DoTApplicator.applyBleed(
                     potency: potency,
                     to: enemy,
                     sourceActorID: member.id,
-                    dealImmediateDamage: false,
-                    suppressAffixReactions: true,
+                    application: .attached,
                     in: &context,
                 ))
             }

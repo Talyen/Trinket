@@ -36,7 +36,7 @@ package extension CombatTriggerEngine {
         let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
         context.turnCadence.cardsPlayed[owner] = count
 
-        if triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
+        if ability?.dealsCombatDamage == true, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
            BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {
             context.additionalControlSkipsByCombatantID[context.roster.enemy.id, default: 0] += 1
         }
@@ -79,6 +79,7 @@ package extension CombatTriggerEngine {
             ability: ability,
             actor: actor,
             abilityTarget: abilityTarget,
+            origin: .card,
             context: &context,
         )
     }
@@ -99,11 +100,7 @@ package extension CombatTriggerEngine {
                 target: context.roster.enemy.combatant,
                 keyword: .holy,
                 sourceActorID: context.roster.companion.id,
-                options: DamageOptions(
-                    applyStatBonus: false,
-                    applyItemBonus: true,
-                    applyDodge: false,
-                ),
+                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
             ),
         ).events
     }
@@ -123,8 +120,7 @@ package extension CombatTriggerEngine {
             potency: triggers.ultimateAppliesBurnPotency,
             to: context.roster.enemy.combatant,
             sourceActorID: actor.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
         )
     }
 
@@ -157,7 +153,7 @@ package extension CombatTriggerEngine {
         abilityTarget _: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard context.talentReactionDepth < ReactionScope.maxTalentReactionDepth,
+        guard context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
               !context.isResolvingAutoPlayCard else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         if ability.keywords.contains(.burn) {
@@ -177,21 +173,33 @@ package extension CombatTriggerEngine {
         abilityTarget: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard context.talentReactionDepth < ReactionScope.maxTalentReactionDepth,
+        guard context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
               !context.isResolvingAutoPlayCard
         else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         if ability.keywords.contains(.physical), triggers.furnaceRhythm,
            context.primedRepeatKeywords.remove(.physical) != nil {
-            context.talentReactionDepth += 1
-            defer { context.talentReactionDepth -= 1 }
-            return BattleTurnEngine.performAction(ability: ability, actor: actor, abilityTarget: abilityTarget, context: &context)
+            context.resolution.enter(.damage)
+            defer { context.resolution.leave(.damage) }
+            return BattleTurnEngine.performAction(
+                ability: ability,
+                actor: actor,
+                abilityTarget: abilityTarget,
+                origin: .cardRepeat,
+                context: &context,
+            )
         }
         if ability.keywords.contains(.freeze), triggers.temperCycle,
            context.primedRepeatKeywords.remove(.freeze) != nil {
-            context.talentReactionDepth += 1
-            defer { context.talentReactionDepth -= 1 }
-            return BattleTurnEngine.performAction(ability: ability, actor: actor, abilityTarget: abilityTarget, context: &context)
+            context.resolution.enter(.damage)
+            defer { context.resolution.leave(.damage) }
+            return BattleTurnEngine.performAction(
+                ability: ability,
+                actor: actor,
+                abilityTarget: abilityTarget,
+                origin: .cardRepeat,
+                context: &context,
+            )
         }
         return []
     }
@@ -228,13 +236,13 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let percent = context.modifiers(for: actor.id).triggers.healthRestoredPoisonPercent
-        guard amount > 0, percent > 0, context.roster.enemy.isAlive, !context.isResolvingTalentReaction else {
+        guard amount > 0, percent > 0, context.roster.enemy.isAlive, context.resolution.depth(.talentReaction) == 0 else {
             return []
         }
         let damage = CombatRounding.scaled(amount, multiplier: percent)
         guard damage > 0 else { return [] }
-        context.isResolvingTalentReaction = true
-        defer { context.isResolvingTalentReaction = false }
+        context.resolution.enter(.talentReaction)
+        defer { context.resolution.leave(.talentReaction) }
         return DamagePipeline.resolveRetaliation(
             amount: damage,
             keyword: .poison,

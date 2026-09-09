@@ -179,11 +179,11 @@ struct AppStatePlayFlowTests {
         let initialGold = state.playerSave.roster.gold
         let expectedGold = VictoryRewardApplier.resolvedGoldReward(
             stageGold: presentation.stageReward?.gold ?? 0,
-            battleEarnedGold: 5,
+            battleGold: .init(gained: 5),
             homestead: state.playerSave.homestead,
         )
 
-        state.completeActiveBattle(configuration, battleEarnedGold: 5)
+        state.completeActiveBattle(configuration, battleGold: .init(gained: 5))
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-2")
@@ -191,7 +191,7 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.roster.gold > initialGold + 4)
 
         let goldAfterFirstContinue = state.playerSave.roster.gold
-        state.completeActiveBattle(configuration, battleEarnedGold: 5)
+        state.completeActiveBattle(configuration, battleGold: .init(gained: 5))
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-2")
@@ -212,7 +212,7 @@ struct AppStatePlayFlowTests {
         let journeyBefore = state.playerSave.journey
         let initialGold = state.playerSave.roster.gold
 
-        state.completeActiveBattle(configuration, battleEarnedGold: 10)
+        state.completeActiveBattle(configuration, battleGold: .init(gained: 10))
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.playerSave.journey == journeyBefore)
@@ -235,7 +235,7 @@ struct AppStatePlayFlowTests {
         )
         _ = state.battle.activate(configuration)
 
-        state.completeActiveBattle(configuration, battleEarnedGold: 10)
+        state.completeActiveBattle(configuration, battleGold: .init(gained: 10))
 
         #expect(state.playerSave.roster.gold == PlayerRosterState.maxGoldBalance - 1)
         #expect(state.playerSave.homestead.pendingProduction[.gold] == 1)
@@ -254,7 +254,7 @@ struct AppStatePlayFlowTests {
         _ = state.battle.activate(configuration)
         let initialGold = state.playerSave.roster.gold
 
-        let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 10)
+        let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 10))
 
         #expect(!didPersist)
         #expect(state.battle.activeBattle != nil)
@@ -273,7 +273,7 @@ struct AppStatePlayFlowTests {
             let configuration = try #require(state.battle.activeBattle)
 
             playerSave.forcesNextSaveFailure = true
-            let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 0)
+            let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 0))
 
             #expect(!didPersist)
             #expect(state.battle.activeBattle != nil)
@@ -291,7 +291,7 @@ struct AppStatePlayFlowTests {
             _ = state.battle.activate(configuration)
             let goldBefore = state.playerSave.roster.gold
 
-            let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
+            let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 5))
 
             #expect(!didPersist)
             #expect(state.battle.activeBattle != nil)
@@ -308,7 +308,7 @@ struct AppStatePlayFlowTests {
             )
             _ = state.battle.activate(configuration)
 
-            let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
+            let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 5))
 
             #expect(!didPersist)
             #expect(state.battle.activeBattle != nil)
@@ -381,7 +381,7 @@ struct AppStatePlayFlowTests {
         #expect(state.spires.startBattle(for: floor) == nil)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleEarnedGold: 1))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 1)))
         #expect(state.consumePendingDestination() == .spireClimb(.ironVein))
     }
 
@@ -399,14 +399,14 @@ struct AppStatePlayFlowTests {
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let expectedTotal = VictoryRewardApplier.resolvedGoldReward(
             stageGold: presentation.stageReward?.gold ?? 0,
-            battleEarnedGold: rawBattleEarnedGold,
+            battleGold: .init(gained: rawBattleEarnedGold),
             homestead: state.playerSave.homestead,
         )
         let initialGold = state.playerSave.roster.gold
 
         #expect(state.completeActiveBattle(
             configuration,
-            battleEarnedGold: rawBattleEarnedGold,
+            battleGold: .init(gained: rawBattleEarnedGold),
         ))
         #expect(state.playerSave.roster.gold == initialGold + expectedTotal)
     }
@@ -460,6 +460,7 @@ private class RejectingBattleRuntime: BattleRuntime {
 
     func activatePreparedBattle(
         runKey _: BattleRunKey,
+        configurationID _: UUID,
         heroID _: String,
         companionID _: String,
         enemyID _: String?,
@@ -503,6 +504,7 @@ private final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
 
     override func activatePreparedBattle(
         runKey _: BattleRunKey,
+        configurationID _: UUID,
         heroID _: String,
         companionID _: String,
         enemyID _: String?,

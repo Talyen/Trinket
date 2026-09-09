@@ -57,7 +57,7 @@ struct FlagEffectHandler: BattleEffectHandler {
         guard effect == flag else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let event = ActiveEffectMutation.replaceAndEmit(
+        return ActiveEffectMutation.replaceAndEmit(
             flag,
             to: target,
             source: source,
@@ -66,6 +66,5 @@ struct FlagEffectHandler: BattleEffectHandler {
             replacing: { $0 == flag },
             event: (appliedEffectKind, amount, keyword),
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }

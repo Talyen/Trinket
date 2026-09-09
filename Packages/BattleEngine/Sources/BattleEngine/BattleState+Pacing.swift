@@ -19,43 +19,16 @@ package extension BattleState {
         return CombatRounding.scaled(amount, multiplier: multiplier)
     }
 
-    mutating func claimActionGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
-        claimGuard(kind, actorID: actorID, scope: .action)
+    mutating func claimActionGuard(_ kind: TalentClaim, actorID: String) -> Bool {
+        let cadence = resolution.actionID.map(CombatResolution.Cadence.action) ?? .standaloneAction(actionCount)
+        return resolution.claim(.talent(kind), actorID: actorID, cadence: cadence)
     }
 
-    mutating func claimBattleGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
-        claimGuard(kind, actorID: actorID, scope: .battle)
+    mutating func claimBattleGuard(_ kind: TalentClaim, actorID: String) -> Bool {
+        resolution.claim(.talent(kind), actorID: actorID, cadence: .battle)
     }
 
-    mutating func claimTurnGuard(_ kind: TalentActionGuardKey.Kind, actorID: String) -> Bool {
-        claimGuard(kind, actorID: actorID, scope: .turn)
-    }
-
-    private enum GuardScope {
-        case action
-        case battle
-        case turn
-    }
-
-    private mutating func claimGuard(
-        _ kind: TalentActionGuardKey.Kind,
-        actorID: String,
-        scope: GuardScope,
-    ) -> Bool {
-        let key = TalentActionGuardKey(kind: kind, actorID: actorID)
-        switch scope {
-        case .action:
-            guard talentActionGuardByActorID[key] != actionCount else { return false }
-            talentActionGuardByActorID[key] = actionCount
-            return true
-        case .battle:
-            guard talentActionGuardByActorID[key] == nil else { return false }
-            talentActionGuardByActorID[key] = 1
-            return true
-        case .turn:
-            guard talentTurnGuardByActorID[key] != turnCount else { return false }
-            talentTurnGuardByActorID[key] = turnCount
-            return true
-        }
+    mutating func claimTurnGuard(_ kind: TalentClaim, actorID: String) -> Bool {
+        resolution.claim(.talent(kind), actorID: actorID, cadence: .turn(turnCount))
     }
 }

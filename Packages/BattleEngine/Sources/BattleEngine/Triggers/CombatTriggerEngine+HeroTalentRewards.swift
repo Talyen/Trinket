@@ -6,8 +6,8 @@ extension CombatTriggerEngine {
         to target: Combatant, source: Combatant, amount: Int = 1, name: String, in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return [] }
-        context.heroTalents.reactionDepth += 1
-        defer { context.heroTalents.reactionDepth -= 1 }
+        context.resolution.enter(.heroReaction)
+        defer { context.resolution.leave(.heroReaction) }
         let total = context.roster.activeEffects(for: target).reduce(amount) { sum, active in
             if case let .thorns(amount) = active.effect {
                 return sum + amount
@@ -29,8 +29,8 @@ extension CombatTriggerEngine {
 
     static func heroTalentHeal(to target: Combatant, source: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {
         guard context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return [] }
-        context.heroTalents.reactionDepth += 1
-        defer { context.heroTalents.reactionDepth -= 1 }
+        context.resolution.enter(.heroReaction)
+        defer { context.resolution.leave(.heroReaction) }
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 1, target: target, sourceActorID: source.id, logAs: .silent), in: &context,
         )
@@ -43,36 +43,36 @@ extension CombatTriggerEngine {
 
     static func heroTalentMana(to target: Combatant, source: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {
         guard context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return [] }
-        context.heroTalents.reactionDepth += 1
-        defer { context.heroTalents.reactionDepth -= 1 }
+        context.resolution.enter(.heroReaction)
+        defer { context.resolution.leave(.heroReaction) }
         return context.restoreManaEmitting(1, to: target, abilityName: name)
     }
 
     static func heroTalentGold(to source: Combatant, amount: Int = 1, name: String, in context: inout BattleState) -> [ActionEvent] {
         guard context.roster.health(for: source) > 0 else { return [] }
-        context.heroTalents.reactionDepth += 1
-        defer { context.heroTalents.reactionDepth -= 1 }
+        context.resolution.enter(.heroReaction)
+        defer { context.resolution.leave(.heroReaction) }
         return context.grantGoldEvent(amount, to: source, abilityName: name)
     }
 
     static func heroTalentBlock(to target: Combatant, source: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {
         guard context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return [] }
-        context.heroTalents.reactionDepth += 1
-        defer { context.heroTalents.reactionDepth -= 1 }
+        context.resolution.enter(.heroReaction)
+        defer { context.resolution.leave(.heroReaction) }
         return context.applyBlock(1, to: target, source: source, abilityName: name)
     }
 
     static func heroTalentDamage(_ keyword: Keyword, source: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard context.roster.enemy.isAlive, context.roster.health(for: source) > 0 else { return [] }
-        context.heroTalents.reactionDepth += 1
-        defer { context.heroTalents.reactionDepth -= 1 }
+        context.resolution.enter(.heroReaction)
+        defer { context.resolution.leave(.heroReaction) }
         let target = context.roster.enemy.combatant
         var events = context.resolveDamage(DamageRequest(
             amount: 1,
             target: target,
             keyword: keyword,
             sourceActorID: source.id,
-            options: keyword == .freeze || keyword == .stun ? .flatControlReaction : .flatReaction,
+            options: .reaction(),
         )).events
         if keyword == .burn || keyword == .poison {
             events.append(contentsOf: context.applyDecayingDoT(
@@ -80,7 +80,7 @@ extension CombatTriggerEngine {
                 potency: 1,
                 to: target,
                 sourceActorID: source.id,
-                dealImmediateDamage: false,
+                application: .afterHit,
             ))
         }
         return events

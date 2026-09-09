@@ -53,7 +53,7 @@ public final class SpiresPlayMode {
 
     func battleRoute(spireID: SpireID, floor: Int) -> PlayBattleRoute {
         let origin = PlayBattleOrigin.spire(spireID: spireID, floor: floor)
-        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards, loot in
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
             guard let self,
                   let resolvedFloor = GameContent.spireFloor(spireID: spireID, floor: floor)
             else { return false }
@@ -61,7 +61,8 @@ public final class SpiresPlayMode {
                 resolvedFloor,
                 hero: configuration.hero.combatant,
                 companion: configuration.companion.combatant,
-                battleEarnedGold: battleEarnedGold,
+                battleGold: award.goldFlow,
+                award: award,
                 materialRewards: materialRewards,
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,
@@ -176,7 +177,8 @@ public final class SpiresPlayMode {
         _ floor: SpireFloor,
         hero: Combatant,
         companion: Combatant,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -187,7 +189,8 @@ public final class SpiresPlayMode {
                 floor: floor,
                 hero: hero,
                 companion: companion,
-                battleEarnedGold: battleEarnedGold,
+                battleGold: battleGold,
+                award: award,
                 materialRewards: materialRewards,
                 rewardItem: rewardItem,
                 loot: loot,

@@ -7,13 +7,11 @@ extension UniqueCombatEngine {
               let play = context.uniques.card, play.repeatDamage
         else { return [] }
         context.uniques.card?.repeatDamage = false
-        context.uniques.reactionDepth += 1
-        defer { context.uniques.reactionDepth -= 1 }
+        context.resolution.enter(.uniqueReaction)
+        defer { context.resolution.leave(.uniqueReaction) }
         var events: [ActionEvent] = []
         for var request in play.damageRequests where !context.isBattleOver && context.roster.health(for: actor) > 0 {
-            request.options.isOriginalCardDamage = false
-            request.options.isOrdinaryUniqueCardDamage = false
-            request.options.applyControlMeter = true
+            request.options = request.options.repeated()
             events.append(contentsOf: repeatHit(request, actor: actor, name: "The Final Spark", in: &context))
             if let keyword = request.keyword {
                 events.append(contentsOf: BattleTurnEngine.applyDoTStackFromDamage(
@@ -29,18 +27,18 @@ extension UniqueCombatEngine {
     }
 
     static func afterDamage(_ damage: DamageResolutionState, in context: inout BattleState) -> [ActionEvent] {
-        guard context.uniques.reactionDepth == 0 else { return [] }
+        guard context.resolution.depth(.uniqueReaction) == 0 else { return [] }
         var events = answerBlockedAttack(damage, in: &context)
         guard damage.options.isOrdinaryUniqueCardDamage,
-              damage.healthLost > 0,
+              damage.amount > 0,
               damage.combatant.role == .enemy,
               let source = damage.partySource(in: context), source.isAlive,
               let owner = context.roster.participant(for: source.combatant)
         else { return events }
         let triggers = context.modifiers(for: source.id).triggers
-        context.uniques.reactionDepth += 1
-        defer { context.uniques.reactionDepth -= 1 }
-        if context.uniques.owners[owner]?.viperReady == true {
+        context.resolution.enter(.uniqueReaction)
+        defer { context.resolution.leave(.uniqueReaction) }
+        if damage.healthLost > 0, context.uniques.owners[owner]?.viperReady == true {
             context.uniques.owners[owner]?.viperReady = false
             let potency = CombatRounding.scaled(damage.healthLost, multiplier: triggers.dodgeNextHitPoisonAndBleedPercent)
             for keyword in [Keyword.poison, .bleed] where !context.isBattleOver {
@@ -56,12 +54,7 @@ extension UniqueCombatEngine {
         guard damage.isCritical else { return events }
         if triggers.firstCriticalHitRepeatsPerTurn, context.uniques.owners[owner]?.repeatedCritical != true {
             context.uniques.owners[owner, default: .init()].repeatedCritical = true
-            var options = damage.options
-            options.isOriginalCardDamage = false
-            options.isOrdinaryUniqueCardDamage = false
-            options.usesResolvedOutgoingDamage = true
-            options.guaranteedCritical = true
-            options.applyControlMeter = true
+            let options = damage.options.repeated(origin: .criticalRepeat, scaling: .resolved, guaranteedCritical: true)
             events.append(contentsOf: repeatHit(
                 DamageRequest(
                     amount: damage.uniqueOutgoingDamage,
@@ -93,8 +86,8 @@ extension UniqueCombatEngine {
               context.uniques.owners[owner]?.answeredBlock != true
         else { return [] }
         context.uniques.owners[owner, default: .init()].answeredBlock = true
-        context.uniques.reactionDepth += 1
-        defer { context.uniques.reactionDepth -= 1 }
+        context.resolution.enter(.uniqueReaction)
+        defer { context.resolution.leave(.uniqueReaction) }
         return useBasic(owner: owner, in: &context)
     }
 
@@ -113,6 +106,7 @@ extension UniqueCombatEngine {
             ability: ability,
             actor: actor,
             abilityTarget: BattleTargetResolver.abilityTarget(for: actor, in: context),
+            origin: .counterattack,
             context: &context,
         )
     }
@@ -143,7 +137,7 @@ extension UniqueCombatEngine {
         attackerID: String?,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard context.uniques.reactionDepth == 0,
+        guard context.resolution.depth(.uniqueReaction) == 0,
               let owner = context.roster.participant(for: actor), owner.isPartyMember,
               context.roster[owner].isAlive
         else { return [] }
@@ -181,15 +175,15 @@ extension UniqueCombatEngine {
             keyword: .block,
         ))
         guard let attackerID, let attacker = context.roster.combatant(for: attackerID), attacker.isAlive else { return events }
-        context.uniques.reactionDepth += 1
-        defer { context.uniques.reactionDepth -= 1 }
+        context.resolution.enter(.uniqueReaction)
+        defer { context.resolution.leave(.uniqueReaction) }
         events.append(contentsOf: repeatHit(
             DamageRequest(
                 amount: spent,
                 target: attacker.combatant,
                 keyword: .physical,
                 sourceActorID: actor.id,
-                options: DamageOptions(isRetaliation: true, causedByDodge: true),
+                options: DamageOperation.reaction(cause: .dodge, scaling: .statsAndItems, accuracy: .normal),
             ),
             actor: actor,
             name: "Laughing Guard",

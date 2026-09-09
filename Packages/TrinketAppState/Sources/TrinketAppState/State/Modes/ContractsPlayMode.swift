@@ -78,7 +78,7 @@ public final class ContractsPlayMode {
     }
 
     private func battleRoute(offerID: String) -> PlayBattleRoute {
-        PlayBattleRoute(origin: .contract(offerID: offerID)) { [weak self] configuration, _, earnedGold, _, loot in
+        PlayBattleRoute(origin: .contract(offerID: offerID)) { [weak self] configuration, _, award, _, loot in
             guard let self, let loot, let level = configuration.enemyEncounterLevel else { return false }
             var completed = false
             let persisted = playerSave.persistBatch(logging: "Failed to complete contract") { save in
@@ -88,7 +88,8 @@ public final class ContractsPlayMode {
                     companion: configuration.companion.combatant,
                     encounterLevel: level,
                     loot: loot,
-                    battleEarnedGold: earnedGold,
+                    battleGold: award.goldFlow,
+                    award: award,
                     save: &save,
                 )
             }

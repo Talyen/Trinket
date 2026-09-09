@@ -1,10 +1,6 @@
 import BattleEngine
 import Foundation
 import os
-import SwiftUI
-import TrinketContent
-import TrinketDesignSystem
-import TrinketFeatureSupport
 
 extension BattleSession {
     private static let commandLogger = Logger(
@@ -21,10 +17,7 @@ extension BattleSession {
         guard !requiresLift || cardCues.hasLift(for: cardID) else { return .rejected }
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
-        guard spectacle.outcomePresentation == .battle,
-              hasActiveSimulation,
-              !isBattleOver,
-              !isSuspendedForScenePhase
+        guard canAcceptBattleCommands
         else {
             clearCardCues()
             feedback.noteItemsChanged()
@@ -96,220 +89,7 @@ extension BattleSession {
             )
         }
 
-        if openingHandDrawStagger <= .zero {
-            performAtomicTurnTransition(at: date)
-            return
-        }
-        performSequentialTurnTransition(at: date)
-    }
-
-    private func commitEngineEvents(_ events: [ActionEvent], at date: Date) {
-        presentResolvedEvents(events, at: date)
-        handleOutcomeIfNeeded(at: date)
-        if isBattleOver || outcome != nil {
-            installSimulationPresentation()
-        }
-        scheduleAutoEndIfNeeded()
-    }
-
-    private func performAtomicTurnTransition(at date: Date) {
-        let events = endEngineTurn()
-        if hasActiveSimulation {
-            installSimulationPresentation()
-            if phase == .playerTurn {
-                dependencies.playSFX([SFXID.abilityDraw])
-            }
-        }
-        commitEngineEvents(events, at: date)
-    }
-
-    private func performSequentialTurnTransition(at date: Date) {
-        let generation = turnDraw.claim()
-
-        let preEvents = endTurnWithoutDraw()
-        if hasActiveSimulation {
-            installSimulationPresentation()
-        }
-        presentResolvedEvents(preEvents, at: date)
-        handleOutcomeIfNeeded(at: date)
-        if isBattleOver || outcome != nil {
-            installSimulationPresentation()
-            scheduleAutoEndIfNeeded()
-            return
-        }
-
-        turnDraw.task = Task { @MainActor [weak self] in
-            guard let self else {
-                return
-            }
-            defer {
-                turnDraw.finish(generation: generation)
-            }
-            await runSequentialTurnDraw(generation: generation)
-        }
-    }
-
-    private func runSequentialTurnDraw(generation: Int) async {
-        while true {
-            guard !Task.isCancelled,
-                  turnDraw.isCurrent(generation),
-                  hasActiveSimulation,
-                  activeBattle != nil
-            else {
-                return
-            }
-            let drew = withAnimation(BattleMotion.deal) {
-                let ok = drawNextTurnStartCard()
-                if ok {
-                    installSimulationPresentation()
-                    dependencies.playSFX([SFXID.abilityDraw])
-                }
-                return ok
-            }
-            if !drew {
-                break
-            }
-            let stagger = openingHandDrawStagger
-            if stagger > .zero {
-                try? await Task.sleep(for: stagger)
-            }
-            await drainTurnBufferPromotions(generation: generation, stagger: stagger)
-        }
-
-        guard !Task.isCancelled,
-              turnDraw.isCurrent(generation),
-              hasActiveSimulation
-        else {
-            return
-        }
-
-        await drainTurnBufferPromotions(generation: generation, stagger: openingHandDrawStagger)
-
-        guard !Task.isCancelled,
-              turnDraw.isCurrent(generation),
-              hasActiveSimulation
-        else {
-            return
-        }
-
-        let postEvents = finalizeTurnStart()
-        withAnimation(BattleMotion.deal) {
-            installSimulationPresentation()
-        }
-        commitEngineEvents(postEvents, at: .now)
-    }
-
-    private func drainTurnBufferPromotions(generation: Int, stagger: Duration) async {
-        while true {
-            guard !Task.isCancelled,
-                  turnDraw.isCurrent(generation),
-                  hasActiveSimulation
-            else {
-                return
-            }
-            let promoted = withAnimation(BattleMotion.deal) {
-                if promoteNextTurnBufferCard() != nil {
-                    installSimulationPresentation()
-                    dependencies.playSFX([SFXID.abilityDraw])
-                    return true
-                }
-                return false
-            }
-            if !promoted {
-                break
-            }
-            if stagger > .zero {
-                try? await Task.sleep(for: stagger)
-            }
-        }
-    }
-
-    func cancelPendingTurnDraw() {
-        turnDraw.invalidate()
-    }
-
-    func beginOpeningHandDeal(
-        for configurationID: UUID,
-        startDelay: Duration = .zero,
-    ) {
-        guard hasActiveSimulation,
-              engineHand.isEmpty,
-              activeBattle?.id == configurationID
-        else { return }
-
-        if openingHandDrawStagger <= .zero {
-            let events = drawOpeningHand()
-            installSimulationPresentation()
-            dependencies.playSFX([SFXID.abilityDraw])
-            commitEngineEvents(events, at: .now)
-            return
-        }
-
-        let generation = openingHandDeal.claim()
-        isDealingOpeningHand = true
-        openingHandDeal.task = Task { @MainActor [weak self] in
-            guard let self else { return }
-            defer {
-                if openingHandDeal.isCurrent(generation) {
-                    isDealingOpeningHand = false
-                    openingHandDeal.task = nil
-                }
-            }
-
-            guard await waitForOpeningHandDealStart(
-                configurationID: configurationID,
-                startDelay: startDelay,
-            ) else { return }
-
-            dependencies.playSFX([SFXID.abilityDraw])
-
-            while true {
-                guard !Task.isCancelled,
-                      activeBattle?.id == configurationID,
-                      hasActiveSimulation
-                else { return }
-
-                let drew = withAnimation(BattleMotion.deal) {
-                    let didDraw = drawNextOpeningHandCard()
-                    if didDraw {
-                        installSimulationPresentation()
-                    }
-                    return didDraw
-                }
-                guard drew else { break }
-
-                let stagger = openingHandDrawStagger
-                if stagger > .zero {
-                    try? await Task.sleep(for: stagger)
-                }
-            }
-
-            guard !Task.isCancelled,
-                  activeBattle?.id == configurationID,
-                  hasActiveSimulation
-            else { return }
-
-            let events = finalizeOpeningHand()
-            installSimulationPresentation()
-            commitEngineEvents(events, at: .now)
-        }
-    }
-
-    private func waitForOpeningHandDealStart(
-        configurationID: UUID,
-        startDelay: Duration,
-    ) async -> Bool {
-        if startDelay > .zero {
-            try? await Task.sleep(for: startDelay)
-            guard !Task.isCancelled, activeBattle?.id == configurationID else { return false }
-        }
-        await CombatFeedbackDisplayLinkGate.waitForNextDisplayLink()
-        return !Task.isCancelled && activeBattle?.id == configurationID
-    }
-
-    func cancelOpeningHandDeal() {
-        openingHandDeal.invalidate()
-        isDealingOpeningHand = false
+        beginTurnPresentation(at: date)
     }
 
     func cancelPendingAutoEnd() {
@@ -375,7 +155,7 @@ extension BattleSession {
             guard !Task.isCancelled, isAutoBattleEnabled, hasRunnableAutoBattle else {
                 return
             }
-            if isAutoBattlePresentationBlocked {
+            if isAutoBattlePresentationBlocked || isManualInteractionActive() {
                 continue
             }
 
@@ -404,11 +184,7 @@ extension BattleSession {
     }
 
     private var isAutoBattlePresentationBlocked: Bool {
-        isSuspendedForScenePhase
-            || !canEndTurn
-            || isShowingBattleLog
-            || overlayCombatantDetail != nil
-            || overlayAbilityDetail != nil
+        !canAcceptBattleCommands
     }
 
     private func waitWhileAutoBattleBlocked(
@@ -419,7 +195,7 @@ extension BattleSession {
         }
     }
 
-    private func waitForAutoBattleRetry() async {
+    func waitForAutoBattleRetry() async {
         if autoBattleRetryDelay > .zero {
             try? await Task.sleep(for: autoBattleRetryDelay)
         } else {

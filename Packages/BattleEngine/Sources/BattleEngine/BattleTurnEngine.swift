@@ -57,14 +57,15 @@ public enum BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
+        origin: DamageOperation.AttackOrigin = .ability,
         context: inout BattleState,
     ) -> [ActionEvent] {
+        let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
+        guard !context.isBattleOver, action.canContinue(in: context) else { return [] }
+        context.resolution.beginAction(action, origin: origin)
+        defer { context.resolution.endAction() }
         var events: [ActionEvent] = []
-        let previousOrdinaryActor = context.uniques.ordinaryActionActorID
-        context.uniques.ordinaryActionActorID = context.uniques.pendingOrdinaryActorID == actor.id ? actor.id : nil
-        context.uniques.pendingOrdinaryActorID = nil
         context.roster.mutateRuntime(for: actor) { $0.empoweredThisAction = false }
-        defer { context.uniques.ordinaryActionActorID = previousOrdinaryActor }
         guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else {
             if actor.role == .enemy {
                 recordAction(for: actor, context: &context)
@@ -160,7 +161,7 @@ extension BattleTurnEngine {
         }
     }
 
-    // swiftlint:disable:next function_body_length - end-turn mutations must remain in deterministic order
+    // swiftlint:disable:next function_body_length - attack components resolve in deterministic order
     private static func applyDamageComponents(
         ability: Ability,
         actor: Combatant,
@@ -172,7 +173,9 @@ extension BattleTurnEngine {
         var logDamageKeyword: Keyword?
         let keywordOverride = activeDamageKeywordOverride(for: actor, in: context)
 
-        for component in ability.damageComponents {
+        let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
+        for case let .damage(component) in ability.operations {
+            guard action.canContinue(in: context) else { break }
             let damageTarget = BattleTargetResolver.effectTarget(
                 component.target,
                 actor: actor,
@@ -185,6 +188,7 @@ extension BattleTurnEngine {
                 if BattleConditionEvaluator.isMet(
                     condition,
                     actor: actor,
+                    abilityTarget: abilityTarget,
                     in: context,
                 ) {
                     amount += component.bonusAmount
@@ -225,19 +229,23 @@ extension BattleTurnEngine {
                 amount *= 2
             }
 
-            var options = isSelfHealthCost
+            let consumedKinds = Set([
+                shouldConsumeNextHolyStrike ? EffectKind.nextHolyStrike : nil,
+                shouldConsumeNextStrikeDouble ? EffectKind.nextStrikeDouble : nil,
+                shouldConsumeNextStrikeCritical ? EffectKind.nextStrikeCritical : nil,
+                nextBurnBonus > 0 ? EffectKind.nextBurnBonus : nil,
+            ].compactMap(\.self))
+            ActiveEffectMutation.removeMatching(from: actor, in: &context) { consumedKinds.contains($0.kind) }
+            let options: DamageOperation = isSelfHealthCost
                 ? .healthCost
-                : DamageOptions(
+                : .attack(
+                    tier: ability.tier,
+                    origin: context.resolution.attackOrigin,
                     abilityCriticalChanceBonus: ability.criticalChanceBonus,
                     guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
                     guaranteedCritical: shouldConsumeNextStrikeCritical,
-                    applyControlMeter: context.uniques.reactionDepth > 0,
-                    qualifiesForAmbush: true,
-                    isAttackHit: true,
-                    isBasicAttackHit: ability.tier == .basic,
                     abilityHasLeech: ability.hasLeech,
                 )
-            options.isOriginalCardDamage = !isSelfHealthCost && context.hasHeroCard(for: actor.id)
             let request = UniqueCombatEngine.prepareDamage(DamageRequest(
                 amount: amount,
                 target: damageTarget,
@@ -270,36 +278,16 @@ extension BattleTurnEngine {
                 isCritical: componentEvent.isCritical,
             ))
 
-            if shouldConsumeNextHolyStrike {
-                removeActiveEffect(for: actor, in: &context) { $0 == .nextHolyStrike }
-                events.append(contentsOf: context.applyDecayingDoT(
-                    keyword: .burn,
-                    potency: holyStrikeBurnPotency,
-                    to: damageTarget,
-                    sourceActorID: actor.id,
-                    dealImmediateDamage: true,
-                ))
-            } else if shouldConsumeNextStrikeDouble {
-                removeActiveEffect(for: actor, in: &context) { $0 == .nextStrikeDouble }
-            }
-            if shouldConsumeNextStrikeCritical {
-                removeActiveEffect(for: actor, in: &context) { $0 == .nextStrikeCritical }
-            }
-            if nextBurnBonus > 0 {
-                removeActiveEffect(for: actor, in: &context) {
-                    if case .nextBurnBonus = $0 {
-                        return true
-                    }
-                    return false
+            if case .landed = damageOutcome.damageImpact {
+                if shouldConsumeNextHolyStrike {
+                    events.append(contentsOf: context.applyDecayingDoT(
+                        keyword: .burn, potency: holyStrikeBurnPotency, to: damageTarget,
+                        sourceActorID: actor.id, application: .ability,
+                    ))
                 }
-            }
-            if amount > 0, !isSelfHealthCost {
                 events.append(contentsOf: applyDoTStackFromDamage(
-                    keyword: damageKeyword,
-                    potency: amount,
-                    to: damageTarget,
-                    sourceActorID: actor.id,
-                    context: &context,
+                    keyword: damageKeyword, potency: amount, to: damageTarget,
+                    sourceActorID: actor.id, context: &context,
                 ))
             }
         }
@@ -325,14 +313,14 @@ extension BattleTurnEngine {
                 potency: potency,
                 to: target,
                 sourceActorID: sourceActorID,
-                dealImmediateDamage: false,
+                application: .afterHit,
             )
         case .bleed:
             DoTApplicator.applyBleed(
                 potency: potency,
                 to: target,
                 sourceActorID: sourceActorID,
-                dealImmediateDamage: false,
+                application: .afterHit,
                 in: &context,
             )
         default:
@@ -407,7 +395,7 @@ extension BattleTurnEngine {
                 target: actor,
                 keyword: .bleed,
                 sourceActorID: casterID,
-                options: .flatReaction,
+                options: .reaction(),
             ),
         )
         var hemorrhageEvents = hemorrhageOutcome.events
@@ -435,7 +423,7 @@ extension BattleTurnEngine {
             potency: hemorrhageDamage,
             to: actor,
             sourceActorID: casterID,
-            dealImmediateDamage: false,
+            application: .afterHit,
             in: &context,
         ))
         return hemorrhageEvents
@@ -449,11 +437,14 @@ extension BattleTurnEngine {
         events: inout [ActionEvent],
     ) -> [String] {
         var appliedEffectLogs: [String] = []
-        for targetedEffect in ability.targetedEffects {
+        let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
+        for case let .effect(targetedEffect) in ability.operations {
+            guard action.canContinue(in: context) else { break }
             if let condition = targetedEffect.condition,
                !BattleConditionEvaluator.isMet(
                    condition,
                    actor: actor,
+                   abilityTarget: abilityTarget,
                    in: context,
                ) {
                 continue

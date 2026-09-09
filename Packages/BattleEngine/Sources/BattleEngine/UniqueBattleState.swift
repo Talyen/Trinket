@@ -45,8 +45,5 @@ package struct UniqueBattleState {
 
     var owners: [BattleParticipant: OwnerState] = [:]
     var card: CardPlay?
-    var pendingOrdinaryActorID: String?
-    var ordinaryActionActorID: String?
-    var reactionDepth = 0
     var retainedStunByEffectID: [Int: Int] = [:]
 }

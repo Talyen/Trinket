@@ -21,6 +21,7 @@ package extension DamagePipeline {
             in: &context,
         )
         state.damageEvents.append(contentsOf: leechOutcome.events)
+        state.didLeech = leechOutcome.healthRestored > 0
     }
 
     static func applyKeywordReactions(
@@ -29,7 +30,8 @@ package extension DamagePipeline {
     ) {
         guard state.healthLost > 0,
               let keyword = state.damageKeyword,
-              let source = state.partySource(in: context)
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID)
         else { return }
 
         switch keyword {
@@ -67,6 +69,9 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
+        if let sourceID = state.sourceActorID, let source = context.roster.combatant(for: sourceID) {
+            applyAdditionalHolyDamage(state.additionalHolyDamage, to: &state, source: source.combatant, in: &context)
+        }
         guard let sourceRuntime = state.partySource(in: context),
               let keyword = state.damageKeyword
         else { return }
@@ -223,8 +228,7 @@ package extension DamagePipeline {
                 potency: triggers.attacksApplyPoison,
                 to: target,
                 sourceActorID: sourceActorID,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
+                application: .attached,
             ))
         }
         if triggers.physicalAttackApplyBleed > 0, keyword == .physical, targetAlive {
@@ -283,8 +287,7 @@ package extension DamagePipeline {
             potency: triggers.holyAttackApplyBurnAndStunBuildup,
             to: target,
             sourceActorID: sourceActorID,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
         ))
         state.damageEvents.append(contentsOf: appendMeterCharge(
             triggers.holyAttackApplyBurnAndStunBuildup,
@@ -304,6 +307,11 @@ package extension DamagePipeline {
     ) {
         guard state.options.isBasicAttackHit, context.roster.health(for: state.combatant) > 0 else { return }
         let target = state.combatant
+        if state.damageKeyword != .holy {
+            let holyBonus = CombatTriggerEngine.livingAllyModifiers(in: context)
+                .reduce(0) { $0 + $1.triggers.partyBasicAttackHolyBonus }
+            applyAdditionalHolyDamage(holyBonus, to: &state, source: source, in: &context)
+        }
         if triggers.basicAttackApplyBleed > 0 {
             state.damageEvents.append(contentsOf: appendBleed(
                 potency: triggers.basicAttackApplyBleed,
@@ -313,13 +321,14 @@ package extension DamagePipeline {
             ))
         }
         if triggers.basicAttackFreezeBuildup > 0 {
-            state.damageEvents.append(contentsOf: appendMeterCharge(
-                triggers.basicAttackFreezeBuildup,
+            state.damageEvents.append(contentsOf: resolveRetaliation(
+                amount: triggers.basicAttackFreezeBuildup,
                 keyword: .freeze,
-                to: target,
+                target: target,
                 sourceActorID: sourceActorID,
+
                 in: &context,
-            ))
+            ).events)
         }
         if triggers.basicAttackStealGold > 0 {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
@@ -509,9 +518,9 @@ package extension DamagePipeline {
         guard state.buildupDamage > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
-              !state.options.isRetaliation || state.options.applyControlMeter,
               context.roster.health(for: state.combatant) > 0
         else { return }
+        let wasControlled = context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
         state.damageEvents.append(contentsOf: appendMeterCharge(
             state.buildupDamage,
             keyword: damageKeyword,
@@ -519,5 +528,6 @@ package extension DamagePipeline {
             sourceActorID: state.sourceActorID,
             in: &context,
         ))
+        state.didTriggerControl = !wasControlled && context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
     }
 }

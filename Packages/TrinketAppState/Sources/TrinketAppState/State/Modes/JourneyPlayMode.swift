@@ -42,7 +42,8 @@ public final class JourneyPlayMode {
         _ stage: Stage,
         hero: Combatant,
         companion: Combatant,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -52,7 +53,8 @@ public final class JourneyPlayMode {
             [stage],
             hero: hero,
             companion: companion,
-            battleEarnedGold: battleEarnedGold,
+            battleGold: battleGold,
+            award: award,
             materialRewards: materialRewards,
             rewardItem: rewardItem,
             loot: loot,
@@ -184,7 +186,8 @@ public final class JourneyPlayMode {
         _ stages: [Stage],
         hero: Combatant,
         companion: Combatant,
-        battleEarnedGold: Int = 0,
+        battleGold: BattleGoldFlow = .init(),
+        award: BattleRewardAward? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         resetJourney: Bool = false,
@@ -203,7 +206,8 @@ public final class JourneyPlayMode {
                     stage,
                     hero: hero,
                     companion: companion,
-                    battleEarnedGold: isLast ? battleEarnedGold : 0,
+                    battleGold: isLast ? battleGold : .init(),
+                    award: isLast ? award : nil,
                     materialRewards: isLast ? materialRewards : nil,
                     rewardItem: isLast ? rewardItem : nil,
                     loot: isLast ? loot : nil,
@@ -287,13 +291,14 @@ extension JourneyPlayMode {
 
     func battleRoute(stageID: String) -> PlayBattleRoute {
         let origin = PlayBattleOrigin.journey(stageID: stageID)
-        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards, loot in
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
             guard let self, let stage = GameContent.stage(id: stageID) else { return false }
             return completeStage(
                 stage,
                 hero: configuration.hero.combatant,
                 companion: configuration.companion.combatant,
-                battleEarnedGold: battleEarnedGold,
+                battleGold: award.goldFlow,
+                award: award,
                 materialRewards: materialRewards,
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,

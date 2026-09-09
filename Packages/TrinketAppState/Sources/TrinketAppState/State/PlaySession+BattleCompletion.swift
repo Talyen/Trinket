@@ -12,14 +12,14 @@ struct PlayBattleCompletion {
     @discardableResult
     func completeActiveBattle(
         _ configuration: BattleRunConfiguration,
-        battleEarnedGold: Int,
+        battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
         route: PlayBattleRoute?,
         presentation: BattlePresentationContext?,
         onPersisted: () -> Void,
         queueReturnToOrigin: (PlayBattleOrigin?) -> Void,
     ) -> Bool {
-        guard battle.lifecyclePhase == .active else { return false }
+        guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id else { return false }
 
         guard PlayBattleRoute.matches(
             route,
@@ -39,10 +39,16 @@ struct PlayBattleCompletion {
             from: presentation,
             materialRewards: materialRewards,
         )
-        let persisted = if let route {
-            route.complete(configuration, presentation, battleEarnedGold, materialRewards, loot)
+        let persisted = if let route, let presentation {
+            route.complete(
+                configuration,
+                presentation,
+                presentation.rewardPlan.resolve(battleGold: battleGold, materials: materialRewards),
+                materialRewards,
+                loot,
+            )
         } else {
-            battleEarnedGold != 0 ? grantBattleEarnedGold(battleEarnedGold) : true
+            battleGold.net != 0 ? grantBattleEarnedGold(battleGold.net) : true
         }
         if persisted {
             onPersisted()

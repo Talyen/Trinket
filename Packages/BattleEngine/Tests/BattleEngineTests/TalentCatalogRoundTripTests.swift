@@ -6,16 +6,12 @@ import TrinketTestSupport
 
 struct TalentCatalogRoundTripTests {
     @Test func `catalog build matches every authored talent`() throws {
-        var nodes = 0
+        try #expect(CombatantTalentCatalog.validNodeIDsByCombatantID.values.contains { !$0.isEmpty })
         for (combatantID, talentIDs) in CombatantTalentCatalog.validNodeIDsByCombatantID {
             for talentID in talentIDs.sorted() {
-                nodes += 1
                 try assertCatalogBuildMatchesAuthoredTalent(combatantID: combatantID, talentID: talentID)
             }
         }
-        let expected = CombatantTalentCatalog.validNodeIDsByCombatantID.values.reduce(0) { $0 + $1.count }
-        try #expect(nodes == expected)
-        try #expect(nodes > 0)
     }
 
     private func assertCatalogBuildMatchesAuthoredTalent(combatantID: String, talentID: String) throws {
@@ -42,27 +38,37 @@ struct TalentCatalogRoundTripTests {
         #expect(profile.triggers.blockRetainsThreeQuarters)
     }
 
-    @Test func `intercede absorbs companion damage with hero block`() throws {
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `intercede returns absorbed damage through seismic reversal`(target: BattleParticipant) throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "knight", talents: "knight_block_t2_1")
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
+        let bear = try BattleTestFixtures.catalogBuild(combatantID: "bear", talents: "bear_stun_t4_1")
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: build.combatant,
-            companion: companion,
+            companion: bear.combatant,
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
             heroModifiers: build.modifiers,
+            companionModifiers: bear.modifiers,
         )
+        battle.appliesFightPacing = false
         _ = battle.applyBlock(10, to: build.combatant, source: build.combatant, abilityName: "Test")
         let outcome = battle.resolveDamage(
             DamageRequest(
                 amount: 4,
-                target: companion,
+                target: battle.roster[target].combatant,
                 keyword: .physical,
                 sourceActorID: "enemy",
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
         #expect(outcome.healthLost == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: build.combatant)) == 6)
+        #expect(battle.roster.enemy.currentHealth == 36)
+        #expect(battle.roster.activeEffects(for: battle.enemy).contains {
+            if case .controlMeter(.stun, 4, _) = $0.effect {
+                return true
+            }
+            return false
+        })
     }
 
     @Test func `intercede triggers cascading only when hero block breaks`() {
@@ -77,7 +83,7 @@ struct TalentCatalogRoundTripTests {
         for amount in [1, 3] {
             _ = battle.resolveDamage(DamageRequest(
                 amount: amount, target: battle.companion, keyword: .physical,
-                sourceActorID: battle.enemy.id, options: .flatReaction,
+                sourceActorID: battle.enemy.id, options: .reaction(),
             ))
             #expect(talentPoints(.shield, on: .hero, in: battle) == 2)
         }
@@ -172,7 +178,7 @@ struct TalentCatalogRoundTripTests {
                 target: hero,
                 keyword: .physical,
                 sourceActorID: "enemy",
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
         #expect(battle.roster.health(for: hero) == 3)
@@ -184,7 +190,7 @@ struct TalentCatalogRoundTripTests {
                 target: hero,
                 keyword: .physical,
                 sourceActorID: "enemy",
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
         #expect(battle.roster.health(for: hero) == 1)
@@ -200,57 +206,10 @@ struct TalentCatalogRoundTripTests {
                 target: hero,
                 keyword: .physical,
                 sourceActorID: "enemy",
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
         #expect(battle.roster.health(for: hero) == 0)
-    }
-
-    @Test func `phoenix afterglow heals party on deaths door`() throws {
-        let build = try BattleTestFixtures.catalogBuild(combatantID: "phoenix", talents: "phoenix_health_t2_1")
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: build.combatant,
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
-            companionModifiers: build.modifiers,
-        )
-        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
-        battle.roster.mutateRuntime(for: build.combatant) { $0.currentHealth = 10 }
-        _ = battle.resolveDamage(
-            DamageRequest(
-                amount: 40,
-                target: build.combatant,
-                keyword: .physical,
-                sourceActorID: "enemy",
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
-            ),
-        )
-        let companionHeal = max(1, CombatRounding.scaled(battle.roster.maxHealth(for: build.combatant), multiplier: 0.15))
-        let heroHeal = max(1, CombatRounding.scaled(battle.roster.maxHealth(for: hero), multiplier: 0.15))
-        #expect(battle.roster.health(for: build.combatant) == 1 + companionHeal)
-        #expect(battle.roster.health(for: hero) == 10 + heroHeal)
-    }
-
-    @Test func `phoenix vigor buffs damage after surviving deaths door`() throws {
-        let build = try BattleTestFixtures.catalogBuild(combatantID: "phoenix", talents: "phoenix_deathsdoor_t2_2")
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20),
-            companion: build.combatant,
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
-            companionModifiers: build.modifiers,
-        )
-        battle.roster.mutateRuntime(for: build.combatant) { $0.currentHealth = 5 }
-        _ = battle.resolveDamage(
-            DamageRequest(
-                amount: 40,
-                target: build.combatant,
-                keyword: .physical,
-                sourceActorID: "enemy",
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
-            ),
-        )
-        #expect(battle.roster.runtime(for: build.combatant)?.talentDamagePercentBonus == 0.5)
     }
 
     @Test func `rebirth revives before deaths door then deaths door on second lethal`() throws {
@@ -271,7 +230,7 @@ struct TalentCatalogRoundTripTests {
                 target: build.combatant,
                 keyword: .physical,
                 sourceActorID: enemy.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
         try #expect(context.roster.health(for: build.combatant) == 10)
@@ -284,7 +243,7 @@ struct TalentCatalogRoundTripTests {
                 target: build.combatant,
                 keyword: .physical,
                 sourceActorID: enemy.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
         try #expect(context.roster.health(for: build.combatant) == 1)
@@ -313,7 +272,7 @@ struct TalentCatalogRoundTripTests {
                 target: build.combatant,
                 keyword: .physical,
                 sourceActorID: enemy.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
         try #expect(context.roster.health(for: build.combatant) == 1)
@@ -329,7 +288,7 @@ struct TalentCatalogRoundTripTests {
                 target: build.combatant,
                 keyword: .physical,
                 sourceActorID: enemy.id,
-                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false),
+                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
         try #expect(context.roster.health(for: build.combatant) == 1)

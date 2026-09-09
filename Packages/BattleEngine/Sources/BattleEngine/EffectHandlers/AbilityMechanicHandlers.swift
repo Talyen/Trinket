@@ -193,11 +193,11 @@ struct DetonateDoTHandler: BattleEffectHandler {
         guard case let .detonateDoT(keyword, factor) = effect, factor > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        guard !context.isResolvingDoTDetonation else {
+        guard context.resolution.depth(.detonation) == 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        context.isResolvingDoTDetonation = true
-        defer { context.isResolvingDoTDetonation = false }
+        context.resolution.enter(.detonation)
+        defer { context.resolution.leave(.detonation) }
         var effects = context.roster.activeEffects(for: target)
         let matching = effects.filter {
             $0.effect.keyword == keyword && ($0.effect.isDecayingDoT || $0.effect.isBleed)
@@ -248,14 +248,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         guard case let .recurringDamage(keyword, potency, turns) = effect, potency > 0, turns > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        var events = DoTDamage.resolveTurnDamage(
-            basePotency: potency,
-            keyword: keyword,
-            target: target,
-            sourceActorID: source.id,
-            in: &context,
-        ).events
-        events.append(ActiveEffectMutation.replaceAndEmit(
+        let application = ActiveEffectMutation.replaceAndEmit(
             .recurringDamage(keyword, potency, turns),
             to: target,
             source: source,
@@ -268,19 +261,27 @@ struct RecurringDamageHandler: BattleEffectHandler {
                 return false
             },
             event: (.recurringDamageApplied, potency, keyword),
-        ))
-        return EffectApplyOutcome(events: events, didApply: true)
+        )
+        guard application.didApply else { return application }
+        let events = DoTDamage.resolveTurnDamage(
+            basePotency: potency,
+            keyword: keyword,
+            target: target,
+            sourceActorID: source.id,
+            in: &context,
+        ).events
+        return EffectApplyOutcome(events: application.events + events, didApply: true)
     }
 
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> EffectTurnOutcome {
+    ) -> [ActionEvent] {
         guard case let .recurringDamage(keyword, potency, _) = active.effect,
               active.remainingTurns > 0
         else {
-            return EffectTurnOutcome()
+            return []
         }
         let sourceID = active.sourceActorID ?? target.id
         let events = DoTDamage.resolveTurnDamage(
@@ -290,13 +291,13 @@ struct RecurringDamageHandler: BattleEffectHandler {
             sourceActorID: sourceID,
             in: &context,
         ).events
-        var updated = active
-        updated.remainingTurns -= 1
-        return EffectTurnOutcome(
-            events: events,
-            updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0,
-        )
+        if var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) {
+            updated.remainingTurns -= 1
+            ActiveEffectMutation.finishTurn(
+                active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
+            )
+        }
+        return events
     }
 }
 
@@ -325,13 +326,7 @@ struct AvatarHandler: BattleEffectHandler {
         else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        var events = pulse(
-            holyDamage: holyDamage,
-            blockPerTurn: blockPerTurn,
-            from: target,
-            in: &context,
-        )
-        events.append(ActiveEffectMutation.replaceAndEmit(
+        let application = ActiveEffectMutation.replaceAndEmit(
             .avatar(holyDamage: holyDamage, blockPerTurn: blockPerTurn, turns: turns),
             to: target,
             source: source,
@@ -339,19 +334,26 @@ struct AvatarHandler: BattleEffectHandler {
             in: &context,
             replacing: { $0.kind == .avatar },
             event: (.avatarApplied, holyDamage, .holy),
-        ))
-        return EffectApplyOutcome(events: events, didApply: true)
+        )
+        guard application.didApply else { return application }
+        let events = pulse(
+            holyDamage: holyDamage,
+            blockPerTurn: blockPerTurn,
+            from: target,
+            in: &context,
+        )
+        return EffectApplyOutcome(events: application.events + events, didApply: true)
     }
 
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> EffectTurnOutcome {
+    ) -> [ActionEvent] {
         guard case let .avatar(holyDamage, blockPerTurn, _) = active.effect,
               active.remainingTurns > 0
         else {
-            return EffectTurnOutcome()
+            return []
         }
         let events = pulse(
             holyDamage: holyDamage,
@@ -359,13 +361,13 @@ struct AvatarHandler: BattleEffectHandler {
             from: target,
             in: &context,
         )
-        var updated = active
-        updated.remainingTurns -= 1
-        return EffectTurnOutcome(
-            events: events,
-            updatedStack: updated,
-            removeAfter: updated.remainingTurns <= 0,
-        )
+        if var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) {
+            updated.remainingTurns -= 1
+            ActiveEffectMutation.finishTurn(
+                active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
+            )
+        }
+        return events
     }
 
     private func pulse(

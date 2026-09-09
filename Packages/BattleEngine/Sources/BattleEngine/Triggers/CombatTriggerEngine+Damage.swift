@@ -23,8 +23,7 @@ package extension CombatTriggerEngine {
                     potency: profile.triggers.onBleedApplyPoison,
                     to: target,
                     sourceActorID: sourceActorID,
-                    dealImmediateDamage: true,
-                    suppressAffixReactions: true,
+                    application: .reaction,
                 ))
             }
 
@@ -75,8 +74,7 @@ package extension CombatTriggerEngine {
                 potency: potency,
                 to: target,
                 sourceActorID: sourceActorID,
-                dealImmediateDamage: true,
-                suppressAffixReactions: true,
+                application: .reaction,
             ))
             return events
         }
@@ -113,14 +111,12 @@ package extension CombatTriggerEngine {
         if damageKeyword == .freeze, status.isBurning {
             bonus += triggers.freezeDamageWhileBurningBonus
         }
-        if source.role != .enemy {
-            let partyTriggers = context.partyTriggers
-            if status.isFrozen {
-                bonus += partyTriggers.damageWhileTargetFrozenBonus
-            }
-            if status.isStunned {
-                bonus += partyTriggers.damageWhileTargetStunnedBonus
-            }
+        let controlTriggers = source.role == .enemy ? triggers : context.partyTriggers
+        if status.isFrozen {
+            bonus += controlTriggers.damageWhileTargetFrozenBonus
+        }
+        if status.isStunned {
+            bonus += controlTriggers.damageWhileTargetStunnedBonus
         }
 
         if triggers.damageBelowHealthPercentBonus > 0,
@@ -401,23 +397,21 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.criticalApplyPoison > 0, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: context.applyDecayingDoT(
+            events.append(contentsOf: applyDoT(
                 keyword: .poison,
                 potency: profile.triggers.criticalApplyPoison,
                 to: enemy,
                 sourceActorID: source.id,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
+                in: &context,
             ))
         }
         if profile.triggers.criticalApplyBurn > 0, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: context.applyDecayingDoT(
+            events.append(contentsOf: applyDoT(
                 keyword: .burn,
                 potency: profile.triggers.criticalApplyBurn,
                 to: enemy,
                 sourceActorID: source.id,
-                dealImmediateDamage: false,
-                suppressAffixReactions: true,
+                in: &context,
             ))
         }
         let shouldDetonateBleed = profile.triggers.criticalOnBleedingDetonateBleed
@@ -474,8 +468,7 @@ package extension CombatTriggerEngine {
             potency: companionTriggers.onHeroAttackPoisonedEnemyApplyPoison,
             to: target,
             sourceActorID: context.roster.companion.id,
-            dealImmediateDamage: false,
-            suppressAffixReactions: true,
+            application: .attached,
         )
     }
 }

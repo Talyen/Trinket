@@ -120,7 +120,7 @@ package extension CombatTriggerEngine {
                 potency: triggers.dodgeApplyPoison,
                 to: context.roster.enemy.combatant,
                 sourceActorID: combatant.id,
-                dealImmediateDamage: true,
+                application: .ability,
             ))
         }
 
@@ -141,23 +141,12 @@ package extension CombatTriggerEngine {
                         target: target,
                         keyword: .physical,
                         sourceActorID: combatant.id,
-                        options: .flatReaction,
+                        options: .reaction(),
                     ),
                 ).events)
             }
             if triggers.onDodgeCounterBasicAttack {
-                let basicAmount = combatant.abilityLoadout.basic?.damageComponents.first?.amount ?? 0
-                if basicAmount > 0 {
-                    events.append(contentsOf: context.resolveDamage(
-                        DamageRequest(
-                            amount: basicAmount,
-                            target: target,
-                            keyword: .physical,
-                            sourceActorID: combatant.id,
-                            options: .flatReaction,
-                        ),
-                    ).events)
-                }
+                events.append(contentsOf: counterWithBasicAttack(by: combatant, in: &context))
             }
             if triggers.onDodgeApplyPoisonOrBleed > 0 {
                 if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
@@ -166,16 +155,14 @@ package extension CombatTriggerEngine {
                         potency: triggers.onDodgeApplyPoisonOrBleed,
                         to: target,
                         sourceActorID: combatant.id,
-                        dealImmediateDamage: false,
-                        suppressAffixReactions: true,
+                        application: .attached,
                     ))
                 } else {
                     events.append(contentsOf: DoTApplicator.applyBleed(
                         potency: triggers.onDodgeApplyPoisonOrBleed,
                         to: target,
                         sourceActorID: combatant.id,
-                        dealImmediateDamage: false,
-                        suppressAffixReactions: true,
+                        application: .attached,
                         in: &context,
                     ))
                 }
@@ -193,22 +180,47 @@ package extension CombatTriggerEngine {
         }
 
         if triggers.phantomCounter,
-           context.talentReactionDepth < ReactionScope.maxTalentReactionDepth,
-           context.dotRecursionDepth < ReactionScope.maxDotRecursionDepth,
-           context.drawAndPlayDepth < BattleState.maxDrawAndPlayDepth,
+           context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
+           context.resolution.depth(.dot) < ReactionScope.maxDotRecursionDepth,
+           context.resolution.depth(.draw) < BattleState.maxDrawAndPlayDepth,
            !context.isResolvingAutoPlayCard,
            let owner = context.roster.participant(for: combatant),
            let card = BattleCardCombatEngine.drawFirstCard(matching: .physical, for: owner, context: &context) {
-            context.talentReactionDepth += 1
-            context.dotRecursionDepth += 1
+            context.resolution.enter(.damage)
+            context.resolution.enter(.dot)
+            context.resolution.enter(.draw)
             defer {
-                context.talentReactionDepth -= 1
-                context.dotRecursionDepth -= 1
+                context.resolution.leave(.damage)
+                context.resolution.leave(.dot)
+                context.resolution.leave(.draw)
             }
             events.append(contentsOf: (try? BattleCardCombatEngine.playDrawnCard(card, context: &context)) ?? [])
         }
 
         return events
+    }
+
+    private static func counterWithBasicAttack(
+        by actor: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard !context.isBattleOver, context.roster.health(for: actor) > 0,
+              let owner = context.roster.participant(for: actor),
+              !context.ownersSkippingThisPlayerTurn.contains(owner),
+              !context.roster.hasPendingActionSkip(for: actor),
+              let ability = actor.abilityLoadout.basic,
+              BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
+        else { return [] }
+        let wasAutoPlay = context.isResolvingAutoPlayCard
+        context.isResolvingAutoPlayCard = true
+        defer { context.isResolvingAutoPlayCard = wasAutoPlay }
+        return BattleTurnEngine.performAction(
+            ability: ability,
+            actor: actor,
+            abilityTarget: BattleTargetResolver.abilityTarget(for: actor, in: context),
+            origin: .counterattack,
+            context: &context,
+        )
     }
 
     private static func drawPlayCascade(
@@ -263,7 +275,7 @@ package extension CombatTriggerEngine {
                 target: enemy,
                 keyword: .stun,
                 sourceActorID: combatant.id,
-                options: .dodgeTriggeredControlReaction,
+                options: .reaction(cause: .dodge, accuracy: .normal),
             ),
         )
         var events = outcome.events.map { event in
@@ -297,7 +309,7 @@ package extension CombatTriggerEngine {
                 target: enemy,
                 keyword: .freeze,
                 sourceActorID: combatant.id,
-                options: .dodgeTriggeredControlReaction,
+                options: .reaction(cause: .dodge, accuracy: .normal),
             ),
         )
         var events = outcome.events.map { event in

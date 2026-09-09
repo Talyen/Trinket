@@ -14,6 +14,84 @@ struct BattleSessionAppIntegrationTests {
         context = try AppTestContext()
     }
 
+    @Test func `prepared battle uses current party build`() throws {
+        let state = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let hero = state.playerSave.roster.activeHero
+        state.journey.prepareBattle(for: stage)
+        let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+        let prepared = try #require(state.battleRegistration(for: runKey)?.launch.configuration)
+        let item = try #require(GameContent.sampleInventoryItems.first { $0.baseType.defaultEquipmentSlot == .weapon })
+        try state.playerSave.performBatchMutation { save in
+            save.inventory.appendUniqueItem(item)
+            var loadout = save.roster.equipmentLoadout(for: hero)
+            loadout.equip(item, inventory: save.inventory.items)
+            save.roster.setEquipmentLoadout(loadout, for: hero)
+            save.roster.progressions[hero.id] = .at(level: 5)
+        }
+
+        #expect(state.journey.startBattle(for: stage) == nil)
+        let active = try #require(state.battle.activeBattle)
+        #expect(active.id != prepared.id)
+        #expect(active.rngSeed == prepared.rngSeed)
+        #expect(active.hero.progression == state.playerSave.roster.progression(for: hero))
+        #expect(active.hero.equipmentLoadout == state.playerSave.roster.equipmentLoadout(for: hero))
+    }
+
+    @Test(arguments: [false, true])
+    func `prepared launch validates encounter inputs and preserves sibling runs`(changedEncounter: Bool) throws {
+        let state = try context.makePlaySession()
+        let stages = GameContent.chapters[0].stages.filter(\.encounter.isCombat)
+        let first = try #require(stages.first)
+        let second = try #require(stages.dropFirst().first)
+        state.journey.prepareBattle(for: first)
+        state.journey.prepareBattle(for: second)
+        let runKey = PlayBattleOrigin.journey(stageID: first.id).runKey
+        let sibling = PlayBattleOrigin.journey(stageID: second.id).runKey
+        let registration = try #require(state.battleRegistration(for: runKey))
+        let original = registration.launch.inputs.launch
+        let input = BattleLaunchInput(
+            origin: original.origin, hero: original.hero, companion: original.companion, enemy: original.enemy,
+            enemyEncounterLevel: (original.enemyEncounterLevel ?? 1) + (changedEncounter ? 1 : 0),
+            stageReward: original.stageReward, experienceBonusPercent: original.experienceBonusPercent,
+            pendingRewardItem: original.pendingRewardItem, stageRewardsAlreadyClaimed: original.stageRewardsAlreadyClaimed,
+            universalModifiers: original.universalModifiers, labyrinthModifiers: original.labyrinthModifiers,
+        )
+        #expect(state.battleLaunch.activateBattle(input, route: registration.route))
+        let active = try #require(state.battle.activeBattle)
+        #expect((active.id != registration.launch.configuration.id) == changedEncounter)
+        #expect(active.enemyEncounterLevel == input.enemyEncounterLevel)
+        #expect(active.rngSeed == registration.launch.configuration.rngSeed)
+        #expect(state.battle.hasPreparedRun(sibling))
+        let stale = PlayBattleLaunch.assembleLaunch(registration.launch.inputs).configuration
+        #expect(!state.completeActiveBattle(stale, battleGold: .init(gained: 5)))
+        #expect(state.battle.activeBattle?.id == active.id)
+    }
+
+    @Test func `scholars toll victory shows the granted experience`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        #expect(state.labyrinth.enter() == nil)
+        let nodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let node = try #require(state.playerSave.labyrinth.node(id: nodeID))
+        LabyrinthTestSupport.store(
+            LabyrinthTestSupport.remade(
+                node, type: .battle, recruitEventID: nil, enemyID: node.enemyID,
+                modifierIDs: [LabyrinthModifierID("scholarsToll")],
+            ),
+            in: state,
+        )
+        #expect(state.labyrinth.startBattle(nodeID: nodeID) == nil)
+        let active = try #require(state.battle.activeBattle)
+        let presentation = try #require(state.battlePresentation(for: active.runKey))
+        let heroBefore = state.playerSave.roster.progression(for: state.playerSave.roster.activeHero)
+        #expect(presentation.experienceBonusPercent == 25)
+        #expect(state.completeActiveBattle(active, battleGold: .init(gained: 0)))
+        #expect(
+            state.playerSave.roster.progression(for: state.playerSave.roster.activeHero)
+                == heroBefore.addingExperience(presentation.heroExperienceAward),
+        )
+    }
+
     @Test func `start battle ignores request when battle already active`() throws {
         let appState = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -210,7 +288,7 @@ struct BattleSessionAppIntegrationTests {
             playerSave.forcesNextSaveFailure = true
             let didPersist = state.completeActiveBattle(
                 configuration,
-                battleEarnedGold: max(earnedGold, 5),
+                battleGold: .init(gained: max(earnedGold.gained, 5), spent: earnedGold.spent),
             )
             if !didPersist {
                 battle.presentVictoryChromeForPersistRetry()

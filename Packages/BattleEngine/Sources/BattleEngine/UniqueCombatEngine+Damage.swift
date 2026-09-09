@@ -6,7 +6,6 @@ extension UniqueCombatEngine {
         guard !request.options.isHealthCost, let sourceID = request.sourceActorID,
               isOrdinaryAction(actorID: sourceID, in: context) else { return request }
         var prepared = request
-        prepared.options.isOrdinaryUniqueCardDamage = true
         if context.uniques.card?.guaranteedCritical == true {
             prepared.options.guaranteedCritical = true
         }

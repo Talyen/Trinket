@@ -28,7 +28,6 @@ struct HeroTalentCardFacts {
     var restoredMana = false
     var grantedGold = false
     var capturedOutcome = false
-    var appliedBonuses: Set<String> = []
     var preparedHeal = false
     var preparations: Set<TalentPreparation> = []
     var capturedPreparations = false
@@ -58,9 +57,6 @@ struct HeroTalentState {
     var cards: [HeroTalentCardFacts] = []
     var actions: [TalentActionFacts] = []
     var history: [String: HeroTalentHistory] = [:]
-    var turnClaims: [String: Int] = [:]
-    var battleClaims: Set<String> = []
-    var reactionDepth = 0
     var enemyTurnActive = false
     var healthLostDuringEnemyTurn: Set<String> = []
 }

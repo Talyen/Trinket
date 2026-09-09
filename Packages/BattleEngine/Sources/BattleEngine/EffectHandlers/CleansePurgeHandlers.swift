@@ -23,9 +23,9 @@ struct CleansePurgeHandler: BattleEffectHandler {
         var currentEffects = context.roster.activeEffects(for: target)
         switch mode {
         case .cleanse:
-            return applyCleanse(effect, ability: ability, source: source, target: target, currentEffects: &currentEffects, in: &context)
+            return applyCleanse(effect, ability: ability, source: source, target: target, in: &context)
         case .cleanseRandom:
-            return applyCleanseRandom(ability: ability, source: source, target: target, currentEffects: &currentEffects, in: &context)
+            return applyCleanseRandom(ability: ability, source: source, target: target, in: &context)
         case .purge:
             return applyPurge(effect, ability: ability, source: source, target: target, currentEffects: &currentEffects, in: &context)
         case .purgeRandom:
@@ -38,7 +38,6 @@ struct CleansePurgeHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         let targetKeyword: Keyword?
@@ -53,62 +52,19 @@ struct CleansePurgeHandler: BattleEffectHandler {
         default:
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let removed = EffectRemoval.removeDebuffs(from: &currentEffects, keyword: targetKeyword)
-        guard !removed.isEmpty else {
-            var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
-            let partyEvents = CombatTriggerEngine.cleanseOtherPartyMember(source: source, target: target, in: &context)
-            events.append(contentsOf: partyEvents)
-            return EffectApplyOutcome(events: events, didApply: !partyEvents.isEmpty)
-        }
-        context.roster.setActiveEffects(currentEffects, for: target)
-        let healAmount = healPerDebuff > 0 ? healPerDebuff * removed.count : nil
-        let events = CleanseEventBuilder.events(
-            removed: removed,
-            abilityName: ability.name,
-            source: source,
-            target: target,
-            healAmount: healAmount,
-            healTarget: target,
-            in: &context,
-        )
-        return EffectApplyOutcome(events: events, didApply: true)
+        return CleanseOperation.resolve(
+            .all(targetKeyword), source: source, target: target, abilityName: ability.name,
+            healPerDebuff: healPerDebuff, in: &context,
+        ).application
     }
 
     private func applyCleanseRandom(
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard let keyword = EffectRemoval.removeRandomDebuff(from: &currentEffects, using: &context.rng) else {
-            var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
-            let partyEvents = CombatTriggerEngine.cleanseOtherPartyMember(source: source, target: target, in: &context)
-            events.append(contentsOf: partyEvents)
-            return EffectApplyOutcome(events: events, didApply: !partyEvents.isEmpty)
-        }
-        context.roster.setActiveEffects(currentEffects, for: target)
-        var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [keyword], in: &context)
-        events.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .cleanseApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: keyword,
-        ))
-        events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(source: source, target: target, in: &context).events)
-        events.append(contentsOf: CombatTriggerEngine.healWearerAfterCleanse(source: source, in: &context).events)
-        events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(source: source, in: &context))
-        events.append(contentsOf: CombatTriggerEngine.afterCleansePerformed(
-            source: source,
-            target: target,
-            removedKeyword: keyword,
-            removedCount: 1,
-            in: &context,
-        ))
-        return EffectApplyOutcome(events: events, didApply: true)
+        CleanseOperation.resolve(.random, source: source, target: target, abilityName: ability.name, in: &context).application
     }
 
     private func applyPurge(

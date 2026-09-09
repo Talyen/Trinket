@@ -11,7 +11,9 @@ package extension CombatTriggerEngine {
         in context: BattleState,
     ) -> Int {
         var bonus = 0
-        bonus += enrageAuraBonus(in: context)
+        if source.role != .enemy, state.options.isAttackHit {
+            bonus += enrageAuraBonus(in: context)
+        }
         let living = livingAllyModifiers(in: context)
         if source.role == .companion {
             if targetIsPoisoned {

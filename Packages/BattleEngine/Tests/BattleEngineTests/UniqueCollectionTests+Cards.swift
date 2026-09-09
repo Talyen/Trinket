@@ -206,4 +206,18 @@ extension UniqueCollectionTests {
         #expect(context.hand.cards.contains { $0.ability.id == "random" } == dealsDamage)
         #expect((context.uniques.owners[.hero]?.lastAttack?.id == "random") == dealsDamage)
     }
+
+    @Test(arguments: ["red_harvest", "the_returning_flight"])
+    func `damage effect cards qualify for attack card recovery`(itemID: String) throws {
+        var context = try battle([itemID])
+        context.appendEffect(.bleed(1), to: context.roster.enemy.combatant, sourceID: context.roster.hero.id, remainingTurns: 2)
+        let card = Ability.blizzard
+        try play(card, in: &context)
+        if itemID == "the_returning_flight" {
+            #expect(context.hand.isEmpty)
+            _ = UniqueCombatEngine.startTurn(in: &context)
+        }
+        #expect(context.hand.cards.map(\.ability.id) == [card.id])
+        #expect(context.heroDeck.isEmpty)
+    }
 }

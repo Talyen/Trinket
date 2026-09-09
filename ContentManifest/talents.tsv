@@ -140,7 +140,7 @@ lizard_scout_bleed_t3_2	Armor Shred	shield.slash.fill	Bleed strips 2 Block from 
 lizard_scout_gold_t1_1	Trophy Scales	circle.circle.fill	Gain 5 bonus Gold from every battle.		victoryGoldFlat:5
 lizard_scout_gold_t1_2	Hoard Armor	banknote.fill	At the end of your turn, gain 1 Block for every 5 Gold carried (max 5).		blockPerGoldCollectedEvery:5
 lizard_scout_gold_t2_1	Pickpocket	hand.point.up.fill	Attacks steal 1 Gold, or 2 Gold from Poisoned enemies.		onAttackStealGold:1|stealGoldBonusVsPoisoned:1
-lizard_scout_gold_t2_2	Scavenger's Cache	bag.fill	Spend Gold to prevent damage (1 Gold per 1 damage, up to 5 Gold per hit).		goldAbsorbsDamage:true
+lizard_scout_gold_t2_2	Scavenger's Cache	bag.fill	The first time you steal Gold each turn, restore 2 Health.		firstGoldTheftHeal:2
 lizard_scout_gold_t3_1	Flawless Bounty	star.circle.fill	While Lizard Scout is at full Health, Gold you gain in combat is doubled.		goldDoubledWhileFullHealth:true
 lizard_scout_gold_t3_2	Gilded Claws	dollarsign.circle.fill	Stealing Gold increases your next attack’s damage by the amount stolen.		gildedClaws:true
 panther_bleed_t1_1	Razor Claws	pawprint.fill	Bleed damage dealt increases by 1 each round.		bleed_damage_ramp_per_round:1

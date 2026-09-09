@@ -8,29 +8,35 @@ struct ReactionScopeTests {
     @Test func `talent reaction depth caps at 10 and restores`() {
         var state = BattleTestFixtures.makePipelineContext()
         let target = state.roster.enemy.combatant
-        state.talentReactionDepth = ReactionScope.maxTalentReactionDepth
+        for _ in 0 ..< (ReactionScope.maxTalentReactionDepth) {
+            state.resolution.enter(.damage)
+        }
         let request = DamageRequest(
             amount: 10,
             target: target,
             keyword: .physical,
             sourceActorID: state.roster.hero.combatant.id,
-            options: DamageOptions(),
+            options: DamageOperation.effect(scaling: .statsAndItems, accuracy: .normal),
         )
         let outcome = state.resolveDamage(request)
         #expect(outcome.events.isEmpty)
-        #expect(state.talentReactionDepth == ReactionScope.maxTalentReactionDepth)
+        #expect(state.resolution.depth(.damage) == ReactionScope.maxTalentReactionDepth)
     }
 
     @Test func `dot recursion depth caps at 10`() {
         var state = BattleTestFixtures.makePipelineContext()
         let target = state.roster.enemy.combatant
-        state.dotRecursionDepth = ReactionScope.maxDotRecursionDepth
+        for _ in 0 ..< (ReactionScope.maxDotRecursionDepth) {
+            state.resolution.enter(.dot)
+        }
         let events = CombatTriggerEngine.afterBleedApplied(to: target, sourceActorID: state.roster.hero.combatant.id, in: &state)
         #expect(events.isEmpty)
-        #expect(state.dotRecursionDepth == ReactionScope.maxDotRecursionDepth)
+        #expect(state.resolution.depth(.dot) == ReactionScope.maxDotRecursionDepth)
 
         var state2 = BattleTestFixtures.makePipelineContext()
-        state2.dotRecursionDepth = ReactionScope.maxDotRecursionDepth
+        for _ in 0 ..< (ReactionScope.maxDotRecursionDepth) {
+            state2.resolution.enter(.dot)
+        }
         let events2 = CombatTriggerEngine.afterDecayingDoTApplied(
             keyword: .burn,
             to: target,
@@ -38,13 +44,15 @@ struct ReactionScopeTests {
             in: &state2,
         )
         #expect(events2.isEmpty)
-        #expect(state2.dotRecursionDepth == ReactionScope.maxDotRecursionDepth)
+        #expect(state2.resolution.depth(.dot) == ReactionScope.maxDotRecursionDepth)
     }
 
     @Test func `dot recursion allows ten and truncates eleventh`() {
         var state = BattleTestFixtures.makePipelineContext()
         let target = state.roster.enemy.combatant
-        state.dotRecursionDepth = ReactionScope.maxDotRecursionDepth - 1
+        for _ in 0 ..< (ReactionScope.maxDotRecursionDepth - 1) {
+            state.resolution.enter(.dot)
+        }
         let allowed = CombatTriggerEngine.afterDecayingDoTApplied(
             keyword: .poison,
             to: target,
@@ -52,7 +60,7 @@ struct ReactionScopeTests {
             in: &state,
         )
         #expect(allowed.isEmpty)
-        #expect(state.dotRecursionDepth == ReactionScope.maxDotRecursionDepth - 1)
+        #expect(state.resolution.depth(.dot) == ReactionScope.maxDotRecursionDepth - 1)
     }
 
     @Test func `buildup damage invariant holds for blocked hit`() {
@@ -69,7 +77,7 @@ struct ReactionScopeTests {
             target: target,
             keyword: .physical,
             sourceActorID: state.roster.enemy.combatant.id,
-            options: DamageOptions(),
+            options: DamageOperation.effect(scaling: .statsAndItems, accuracy: .normal),
         )
         let outcome = state.resolveDamage(request)
         #expect(outcome.healthLost == 0)

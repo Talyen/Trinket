@@ -94,7 +94,7 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
         _ = battle.resolveDamage(DamageRequest(
             amount: 2, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .flatReaction,
+            sourceActorID: battle.enemy.id, options: .reaction(),
         ))
         #expect(talentPoints(.shield, on: .companion, in: battle) == 3)
         DefensePoolEngine.decayBlock(on: battle.companion, in: &battle)
@@ -111,6 +111,40 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
         #expect(talentPoints(.shield, on: .companion, in: battle) == 5)
         #expect(battle.gold == 6)
+    }
+
+    @Test(arguments: ["wizard_mana_t4_1", "warlock_mana_t1_1"])
+    func `mana stun talents build control with their damage`(talent: String) {
+        var battle = capstoneBattle(hero: [talent])
+        battle.roster.hero.currentMana = 0
+        _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: 3, in: &battle)
+        #expect(battle.roster.enemy.currentHealth == 197)
+        #expect(battle.roster.enemy.activeEffects.contains {
+            if case let .controlMeter(.stun, amount, _) = $0.effect {
+                return amount == 3
+            }
+            return false
+        })
+    }
+
+    @Test func `chaos rift freeze damage builds control`() {
+        var battle = capstoneBattle(hero: ["warlock_mana_t3_1"])
+        var freezeDamage = 0
+        for _ in 0 ..< 8 {
+            var expectedRNG = battle.rng
+            if [Keyword.freeze, .burn, .poison, .holy].shuffled(using: &expectedRNG).prefix(2).contains(.freeze) {
+                freezeDamage += 1
+            }
+            _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: 2, in: &battle)
+        }
+        #expect(freezeDamage > 0)
+        #expect(battle.roster.enemy.currentHealth == 184)
+        #expect(battle.roster.enemy.activeEffects.contains {
+            if case let .controlMeter(.freeze, amount, _) = $0.effect {
+                return amount == freezeDamage
+            }
+            return false
+        })
     }
 
     @Test(arguments: [1, 2, 3, 5])

@@ -62,7 +62,7 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .physical,
                     sourceActorID: actor.id,
-                    options: .flatReaction,
+                    options: .reaction(),
                 ),
             ).events)
         }
@@ -128,7 +128,7 @@ package extension CombatTriggerEngine {
                     target: enemy,
                     keyword: .holy,
                     sourceActorID: actor.id,
-                    options: .flatReaction,
+                    options: .reaction(),
                 ),
             ).events)
         }
@@ -249,7 +249,7 @@ package extension CombatTriggerEngine {
             target: target,
             keyword: .holy,
             sourceActorID: source.id,
-            options: .flatReaction,
+            options: .reaction(),
         )).events
     }
 

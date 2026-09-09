@@ -18,7 +18,7 @@ extension BattleSession {
     }
 
     struct VictoryInput {
-        let earnedGold: Int
+        let goldFlow: BattleGoldFlow
         let heroName: String
         let companionName: String
     }
@@ -35,8 +35,8 @@ extension BattleSession {
         engineState?.isBattleOver ?? false
     }
 
-    var earnedGold: Int? {
-        engineState?.earnedGold
+    var goldFlow: BattleGoldFlow? {
+        engineState?.goldFlow
     }
 
     var heroID: String? {
@@ -74,13 +74,16 @@ extension BattleSession {
     var victoryInput: VictoryInput? {
         guard let engineState else { return nil }
         return VictoryInput(
-            earnedGold: engineState.earnedGold,
+            goldFlow: engineState.goldFlow,
             heroName: engineState.hero.name,
             companionName: engineState.companion.name,
         )
     }
 
     func presentationSnapshot() -> BattlePresentationSnapshot? {
+        if let snapshot = transitionPlayback?.currentSnapshot {
+            return snapshot
+        }
         if let activeBattle {
             return engineState?.battlePresentationSnapshot(
                 configurationID: activeBattle.id,
@@ -130,21 +133,6 @@ extension BattleSession {
     }
 
     @discardableResult
-    func drawOpeningHand() -> [ActionEvent] {
-        mutateEngine { $0.drawOpeningHand(rebuildLog: false) } ?? []
-    }
-
-    @discardableResult
-    func drawNextOpeningHandCard() -> Bool {
-        mutateEngine { $0.drawNextOpeningHandCard(rebuildLog: false) } ?? false
-    }
-
-    @discardableResult
-    func finalizeOpeningHand() -> [ActionEvent] {
-        mutateEngine { $0.finalizeOpeningHand() } ?? []
-    }
-
-    @discardableResult
     func playEngineCard(cardID: Int) throws -> [ActionEvent] {
         guard var engineState else { throw BattlePlayError.battleOver }
         let events = try engineState.playCard(cardID: cardID, rebuildLog: false)
@@ -152,32 +140,22 @@ extension BattleSession {
         return events
     }
 
-    @discardableResult
-    func endEngineTurn() -> [ActionEvent] {
-        mutateEngine { $0.endTurn(rebuildLog: false) } ?? []
-    }
-
-    @discardableResult
-    func endTurnWithoutDraw() -> [ActionEvent] {
-        mutateEngine { $0.endTurnWithoutDraw(rebuildLog: false) } ?? []
-    }
-
-    @discardableResult
-    func drawNextTurnStartCard() -> Bool {
-        mutateEngine { $0.drawNextTurnStartCard(rebuildLog: false) } ?? false
-    }
-
-    @discardableResult
-    func finalizeTurnStart() -> [ActionEvent] {
-        mutateEngine { $0.finalizeTurnStart() } ?? []
-    }
-
-    @discardableResult
-    func promoteNextTurnBufferCard() -> BattleCard? {
-        guard var engineState else { return nil }
-        let card = engineState.promoteNextTurnBufferCard(rebuildLog: false)
-        self.engineState = engineState
-        return card
+    func resolveTransition(_ kind: BattleTransitionPlayback.Kind) -> BattleTransitionPlayback? {
+        guard var state = engineState, let configurationID = activeBattle?.id else { return nil }
+        var frames: [BattleTransitionFrame] = []
+        let record: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { checkpoint, state, events in
+            frames.append(BattleTransitionFrame(
+                checkpoint: checkpoint,
+                snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state, acceptsCommands: checkpoint == .ready),
+                events: events,
+            ))
+        }
+        switch kind {
+        case .opening: _ = state.drawOpeningHand(rebuildLog: false, recording: record)
+        case .turn: _ = state.endTurn(rebuildLog: false, recording: record)
+        }
+        engineState = state
+        return BattleTransitionPlayback(configurationID: configurationID, frames: frames)
     }
 
     func syncEngineLog() {
@@ -234,12 +212,14 @@ extension BattleSession {
 
     public func activatePreparedBattle(
         runKey: BattleRunKey,
+        configurationID: UUID,
         heroID: String,
         companionID: String,
         enemyID: String?,
     ) -> Bool {
         guard activeBattle == nil,
               let preparedBattleRun = preparedBattleRunsByKey[runKey],
+              preparedBattleRun.configuration.id == configurationID,
               preparedBattleRun.configuration.hero.combatant.id == heroID,
               preparedBattleRun.configuration.companion.combatant.id == companionID,
               preparedBattleRun.configuration.enemy?.id == enemyID
@@ -288,11 +268,10 @@ extension BattleSession {
 
     public func setSuspendedForScenePhase(_ suspended: Bool) {
         guard isSuspendedForScenePhase != suspended else { return }
-        isSuspendedForScenePhase = suspended
+        commandState.suspend(suspended)
         if suspended {
             clearCardCues()
             cancelPendingAutoEnd()
-            cancelPendingTurnDraw()
         } else {
             scheduleAutoEndIfNeeded()
         }

@@ -67,7 +67,7 @@ package extension CombatTriggerEngine {
                         target: target,
                         keyword: .holy,
                         sourceActorID: sourceActorID,
-                        options: .flatReaction,
+                        options: .reaction(),
                     ),
                 ).events)
             }
@@ -91,21 +91,28 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        if keyword == .poison,
-           sourceTriggers.poisonDamageLeechPercent > 0,
-           healthLost > 0,
-           let caster = context.roster.combatant(for: sourceActorID) {
-            let leech = CombatRounding.scaled(healthLost, multiplier: sourceTriggers.poisonDamageLeechPercent)
-            if leech > 0 {
-                let outcome = HealingEngine.resolveHeal(
-                    HealRequest(amount: leech, target: caster.combatant, sourceActorID: sourceActorID, logAs: .leech),
-                    in: &context,
-                )
-                events.append(contentsOf: outcome.events)
-                if outcome.healthRestored > 0 {
-                    events.append(contentsOf: afterLeech(by: caster.combatant, target: target, in: &context))
-                }
-            }
+        return events
+    }
+
+    static func afterPoisonDamage(
+        healthLost: Int,
+        target: Combatant,
+        sourceActorID: String?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard healthLost > 0, let sourceActorID,
+              let caster = context.roster.combatant(for: sourceActorID) else { return [] }
+        let leechPercent = context.modifiers(for: sourceActorID).triggers.poisonDamageLeechPercent
+        guard leechPercent > 0 else { return [] }
+        let leech = CombatRounding.scaled(healthLost, multiplier: leechPercent)
+        guard leech > 0 else { return [] }
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(amount: leech, target: caster.combatant, sourceActorID: sourceActorID, origin: .leech, logAs: .silent),
+            in: &context,
+        )
+        var events = outcome.events
+        if outcome.healthRestored > 0 {
+            events.append(contentsOf: afterLeech(by: caster.combatant, target: target, in: &context))
         }
         return events
     }
@@ -179,9 +186,9 @@ package extension CombatTriggerEngine {
         includePoison: Bool = true,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard !context.isResolvingDoTDetonation else { return [] }
-        context.isResolvingDoTDetonation = true
-        defer { context.isResolvingDoTDetonation = false }
+        guard context.resolution.depth(.detonation) == 0 else { return [] }
+        context.resolution.enter(.detonation)
+        defer { context.resolution.leave(.detonation) }
 
         let currentEffects = context.roster.activeEffects(for: target)
         let bleeds = currentEffects.filter { $0.effect.isBleed && $0.remainingTurns > 0 }
@@ -267,7 +274,7 @@ package extension CombatTriggerEngine {
         potency: Int,
         to target: Combatant,
         sourceActorID: String,
-        dealImmediateDamage: Bool = true,
+        application: DoTApplication = .reaction,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         switch keyword {
@@ -276,8 +283,7 @@ package extension CombatTriggerEngine {
                 potency: potency,
                 to: target,
                 sourceActorID: sourceActorID,
-                dealImmediateDamage: dealImmediateDamage,
-                suppressAffixReactions: true,
+                application: application,
                 in: &context,
             )
         default:
@@ -286,8 +292,7 @@ package extension CombatTriggerEngine {
                 potency: potency,
                 to: target,
                 sourceActorID: sourceActorID,
-                dealImmediateDamage: dealImmediateDamage,
-                suppressAffixReactions: true,
+                application: application,
             )
         }
     }

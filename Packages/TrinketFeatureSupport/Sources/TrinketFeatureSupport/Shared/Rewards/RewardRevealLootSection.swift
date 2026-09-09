@@ -17,7 +17,7 @@ public struct RewardRevealLootSection: View {
     @Binding var focusedItemID: String?
 
     public static func walletRewardCount(gold: Int, materials: [ResourceAmount]) -> Int {
-        (gold > 0 ? 1 : 0) + materials.count { $0.quantity > 0 }
+        (gold != 0 ? 1 : 0) + materials.count { $0.quantity > 0 }
     }
 
     public init(
@@ -87,15 +87,15 @@ public struct RewardRevealLootSection: View {
         let rewardCount = Self.walletRewardCount(gold: gold, materials: materials)
 
         if rewardCount > 0 {
-            let goldOffset = gold > 0 ? 1 : 0
+            let goldOffset = gold != 0 ? 1 : 0
             TrinketWalletGrid(
                 columnCount: min(4, max(1, rewardCount)),
             ) {
-                if gold > 0 {
+                if gold != 0 {
                     TrinketWalletResourcePill(
                         title: "Gold",
                         amount: gold,
-                        showsIncreasePrefix: showsIncreasePrefix,
+                        showsIncreasePrefix: showsIncreasePrefix && gold > 0,
                     ) {
                         HomesteadResourceArtwork(resource: .gold)
                     }

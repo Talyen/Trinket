@@ -3,7 +3,7 @@ import TrinketCore
 
 public enum BattleTargetResolver {
     public static func abilityTarget(for actor: Combatant, in context: BattleState) -> Combatant {
-        actor.role == .enemy ? context.talentAdjustedEnemyTarget : context.enemy
+        BattleActionContext(actor: actor, in: context).selectedTarget
     }
 
     public static func effectTarget(
@@ -12,30 +12,6 @@ public enum BattleTargetResolver {
         abilityTarget: Combatant,
         in context: BattleState,
     ) -> Combatant {
-        switch target {
-        case .abilityTarget:
-            return abilityTarget
-        case .actor:
-            return actor
-        case .enemy:
-            return context.enemy
-        case .hero:
-            return context.hero
-        case .companion:
-            return context.companion
-        case .lowestHealthAlly:
-            if actor.role == .enemy {
-                return context.enemy
-            }
-            return BattleConditionEvaluator.lowestHealthAlly(in: context)
-        case .defeatedAlly:
-            if context.roster.health(for: context.companion) <= 0 {
-                return context.companion
-            }
-            if context.roster.health(for: context.hero) <= 0 {
-                return context.hero
-            }
-            return context.hero
-        }
+        BattleActionContext(actor: actor, selectedTarget: abilityTarget).target(target, in: context)
     }
 }

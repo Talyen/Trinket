@@ -90,19 +90,26 @@ struct PlayBattleLaunch {
             runKey: input.origin?.runKey,
             missingLog: "Missing route for battle activation",
         ) else { return false }
-        if let origin = input.origin {
-            if battle.activatePreparedBattle(
-                runKey: origin.runKey,
-                heroID: input.hero.id,
-                companionID: input.companion.id,
-                enemyID: input.enemy?.id,
-            ) {
-                shellSession.selectedTab = .play
-                return true
+        if let origin = input.origin, battle.hasPreparedRun(origin.runKey) {
+            guard let registration = runRegistry.registration(for: origin.runKey), let route,
+                  registration.launch.configuration.hero.combatant.id == input.hero.id,
+                  registration.launch.configuration.companion.combatant.id == input.companion.id,
+                  registration.launch.configuration.enemy?.id == input.enemy?.id else { return false }
+            let currentInputs = preparationInputs(input, rngSeed: registration.launch.inputs.rngSeed)
+            let launch: BattleLaunchAssembly
+            if currentInputs == registration.launch.inputs {
+                launch = registration.launch
+            } else {
+                launch = Self.assembleLaunch(currentInputs)
+                guard battle.prepareBattleRun(launch.configuration) else { return false }
+                registerRunIfNeeded(launch, route: route)
             }
-            if battle.hasPreparedRun(origin.runKey) {
-                return false
-            }
+            guard battle.activatePreparedBattle(
+                runKey: origin.runKey, configurationID: launch.configuration.id,
+                heroID: input.hero.id, companionID: input.companion.id, enemyID: input.enemy?.id,
+            ) else { return false }
+            shellSession.selectedTab = .play
+            return true
         }
         let launch = makeBattleLaunch(input)
         let activated = battle.activate(launch.configuration)
@@ -129,6 +136,7 @@ struct PlayBattleLaunch {
             enemy: request.encounter.combatant,
             enemyEncounterLevel: request.encounter.level,
             stageReward: request.loot?.asStageReward ?? .empty,
+            experienceBonusPercent: LabyrinthModifierEffects.combining(request.labyrinthModifiers).experienceEarnedPercent,
             pendingRewardItem: request.loot?.item,
             stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
             universalModifiers: request.universalModifiers,
@@ -140,16 +148,14 @@ struct PlayBattleLaunch {
         let rngSeed = battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
             : BattlePerformanceFixture.seed
-        return Self.assembleLaunch(
-            input: input,
-            runKey: input.origin?.runKey,
-            rngSeed: rngSeed,
-            rosterState: playerSave.roster,
-            inventoryState: playerSave.inventory,
-            homesteadState: playerSave.homestead,
+        return Self.assembleLaunch(preparationInputs(input, rngSeed: rngSeed))
+    }
+
+    private func preparationInputs(_ input: BattleLaunchInput, rngSeed: UInt64) -> BattlePreparationInputs {
+        BattlePreparationInputs(
+            runKey: input.origin?.runKey, launch: input, party: PlayBattlePartySnapshot(playerSave: playerSave), rngSeed: rngSeed,
             defeatPrimaryAction: input.origin?.defeatPrimaryAction ?? .restart,
-            hasProgressionRewards: input.origin != nil,
-            musicStageID: input.origin?.musicStageID,
+            hasProgressionRewards: input.origin != nil, musicStageID: input.origin?.musicStageID,
         )
     }
 
@@ -161,8 +167,7 @@ struct PlayBattleLaunch {
         runRegistry.register(
             PlayBattleRunRegistration(
                 route: route,
-                presentation: launch.presentation,
-                universalModifiers: launch.universalModifiers,
+                launch: launch,
             ),
         )
     }

@@ -108,7 +108,11 @@ public struct CombatantRuntime: Hashable {
 
     public var currentMana: Int
 
-    public var activeEffects: [ActiveEffect]
+    public var activeEffects: [ActiveEffect] {
+        didSet {
+            currentMana = min(currentMana, maxMana)
+        }
+    }
 
     public var actionCount: Int
 

@@ -47,9 +47,13 @@ extension CombatTriggerEngine {
             if other.isAlive, amount > 0 {
                 var transfer = HealRequest(
                     amount: amount, target: other.combatant, sourceActorID: source.id,
-                    logAs: .instantHeal(actorName: source.name, abilityName: "Masterwork Mixture", keyword: .health),
+                    origin: .restoration(.health), logAs: .instantHeal(
+                        actorName: source.name,
+                        abilityName: "Masterwork Mixture",
+                        keyword: .health,
+                    ),
                 )
-                transfer.usesResolvedHealing = true
+                transfer.amountBasis = .resolved
                 events.append(contentsOf: HealingEngine.resolveHeal(transfer, in: &context).events)
             }
         }
@@ -63,15 +67,6 @@ extension CombatTriggerEngine {
         }
         if triggers.verdantShelter {
             events.append(contentsOf: heroTalentThorns(to: target, source: source, name: "Verdant Shelter", in: &context))
-        }
-        if triggers.onHealDealHoly > 0, context.roster.enemy.isAlive {
-            events.append(contentsOf: context.resolveDamage(DamageRequest(
-                amount: triggers.onHealDealHoly,
-                target: context.roster.enemy.combatant,
-                keyword: .holy,
-                sourceActorID: source.id,
-                options: .flatReaction,
-            )).events)
         }
         return events
     }

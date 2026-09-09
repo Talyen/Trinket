@@ -181,6 +181,43 @@ struct DeathsDoorEngineTests {
         try #expect(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
 
+    @Test func `phoenix survival benefits wait for deaths door expiry`() throws {
+        let phoenix = try BattleTestFixtures.catalogBuild(
+            combatantID: "phoenix",
+            talents: "phoenix_health_t2_1", "phoenix_deathsdoor_t2_2",
+        )
+        var battle = BattleStateTestFactory.makeBattle(
+            companion: phoenix.combatant,
+            enemy: CombatantFixtures.passiveEnemy(),
+            companionModifiers: phoenix.modifiers,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 1
+        battle.roster.companion.currentHealth = 1
+        let companion = battle.roster.companion.combatant
+
+        let (_, entryEvents) = battle.applyTestDamage(
+            1, to: companion, applyStatBonus: false, applyItemBonus: false, applyDodge: false,
+        )
+
+        #expect(battle.roster.hero.currentHealth == 1)
+        #expect(battle.roster.companion.currentHealth == 1)
+        #expect(battle.roster.companion.talentDamagePercentBonus == 0)
+        #expect(!entryEvents.contains { $0.abilityName == "Afterglow" })
+
+        var expiryEvents: [ActionEvent] = []
+        for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
+            expiryEvents.append(contentsOf: battle.endTurn())
+        }
+
+        #expect(!battle.roster.isDeathsDoorActive(for: companion))
+        #expect(battle.roster.hero.currentHealth == 1 + CombatRounding.scaled(battle.roster.hero.maxHealth, multiplier: 0.15))
+        #expect(battle.roster.companion.currentHealth == 1 + CombatRounding.scaled(battle.roster.companion.maxHealth, multiplier: 0.15))
+        #expect(battle.roster.companion.talentDamagePercentBonus == 0.5)
+        #expect(battle.roster.companion.talentDamagePercentUntilTurn == battle.turnCount + 3)
+        #expect(expiryEvents.contains { $0.abilityName == "Afterglow" })
+    }
+
     private func makeLegionContext(heroHealth: Int) -> BattleState {
         BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
@@ -215,7 +252,9 @@ struct DeathsDoorEngineTests {
 
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `guardian archive protects either party member`(owner: BattleParticipant) throws {
-        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_health_t3_1")
+        let owl = try BattleTestFixtures.catalogBuild(
+            combatantID: "library_owl", talents: "library_owl_health_t3_1", "library_owl_cleanse_t4_1",
+        )
         var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
         battle.appliesFightPacing = false
         let target = battle.roster[owner].combatant
@@ -225,6 +264,8 @@ struct DeathsDoorEngineTests {
         _ = battle.applyTestDamage(1, to: target, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         #expect(battle.roster.health(for: target) == min(11, battle.roster.maxHealth(for: target)))
+        #expect(!battle.roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff })
+        battle.appendEffect(.poison(8), to: target, sourceID: battle.roster.enemy.id, remainingTurns: 0)
         #expect(!battle.roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff })
     }
 }

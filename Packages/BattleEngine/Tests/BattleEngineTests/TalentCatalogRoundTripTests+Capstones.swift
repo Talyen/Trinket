@@ -4,6 +4,26 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test func `icebound exchange transfers absorbed block without gain bonuses`() {
+        var profile = CombatantTalentCatalog.profile(for: ["golden_retriever_block_t4_1"])
+        profile.blockGainedBonus = 4
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: profile, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        DefensePoolEngine.set(5, on: battle.enemy, in: &battle)
+
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: 3, target: battle.enemy, keyword: .freeze,
+            sourceActorID: battle.companion.id, options: .reaction(),
+        ))
+
+        #expect(talentPoints(.shield, on: .enemy, in: battle) == 2)
+        #expect(talentPoints(.shield, on: .hero, in: battle) == 3)
+        #expect(talentPoints(.shield, on: .companion, in: battle) == 3)
+        #expect(outcome.events.count { $0.abilityName == "Icebound Exchange" && $0.amount == 3 } == 2)
+    }
+
     func capstoneBattle(hero: [String] = [], companion: [String] = []) -> BattleState {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 40, companionMaxHealth: 40, enemyMaxHealth: 200,
@@ -98,7 +118,7 @@ extension TalentCatalogRoundTripTests {
 
     @Test func `marrowmend emits block for leech overhealing without exceeding six`() {
         var battle = capstoneBattle(companion: ["risen_skeleton_leech_t4_1"])
-        var options = DamageOptions.flatReaction
+        var options = DamageOperation.reaction()
         options.abilityHasLeech = true
         let request = DamageRequest(
             amount: 12, target: battle.enemy, keyword: .physical,
@@ -125,7 +145,7 @@ extension TalentCatalogRoundTripTests {
         battle.roster.hero.currentHealth = 1
         let healed = HealingEngine.resolveHeal(HealRequest(
             amount: 4, target: battle.hero, sourceActorID: battle.companion.id,
-            logAs: .instantHeal(actorName: battle.companion.name, abilityName: "Care", keyword: .health),
+            origin: .restoration(.health), logAs: .instantHeal(actorName: battle.companion.name, abilityName: "Care", keyword: .health),
         ), in: &battle)
         #expect(healed.healthRestored == (expectedCritical ? 8 : 4))
         #expect(healed.flags.contains(.critical) == expectedCritical)
@@ -148,7 +168,7 @@ extension TalentCatalogRoundTripTests {
         let health = battle.roster.hero.currentHealth
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .poison, potency: 3, to: battle.hero, sourceActorID: battle.enemy.id,
-            dealImmediateDamage: true, in: &battle,
+            application: .ability, in: &battle,
         )
         #expect(battle.roster.hero.currentHealth == health - 3)
         #expect(talentPoints(.poison, on: .hero, in: battle) == 0)

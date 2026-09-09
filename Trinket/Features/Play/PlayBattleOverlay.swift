@@ -132,7 +132,7 @@ struct PlayBattleOverlay: View {
             guard let play, let battle else { return }
             let didPersist = play.completeActiveBattle(
                 configuration,
-                battleEarnedGold: earnedGold,
+                battleGold: earnedGold,
             )
             if !didPersist {
                 battle.presentVictoryChromeForPersistRetry()
@@ -147,7 +147,7 @@ struct PlayBattleOverlay: View {
     ) -> Bool {
         let didPersist = play.completeActiveBattle(
             configuration,
-            battleEarnedGold: summary.rawBattleEarnedGold,
+            battleGold: summary.goldFlow,
             materialRewards: summary.materialRewards,
         )
         if !didPersist {
