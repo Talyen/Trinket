@@ -27,7 +27,7 @@ struct AppStateTests {
         #expect(state.playerSave.starterSelection == .complete)
     }
 
-    @Test func `starter selection completes with chosen party and queues campaign`() throws {
+    @Test func `starter selection completes with chosen party and leaves Play at its root`() throws {
         let state = try context.makeAppState(environment: context.makeOnboardingEnvironment())
 
         #expect(state.confirmStarterHero("wizard"))
@@ -39,7 +39,7 @@ struct AppStateTests {
         #expect(state.playerSave.roster.unlockedHeroIDs == ["wizard"])
         #expect(state.playerSave.roster.unlockedCompanionIDs == ["frost_whelp"])
         #expect(state.selectedTab == .play)
-        #expect(state.play.consumePendingDestination() == .campaign)
+        #expect(state.play.consumePendingDestination() == nil)
     }
 
     @Test func `play session uses the composition runtime instance`() throws {

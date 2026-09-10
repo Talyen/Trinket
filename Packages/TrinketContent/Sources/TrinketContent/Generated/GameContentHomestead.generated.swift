@@ -278,7 +278,7 @@ enum GameContentHomesteadGenerated {
         ))
         list.append(HomesteadNodeDefinition(
             id: .blacksmithForge,
-            title: "Blacksmith's Forge",
+            title: "Blacksmith",
             summary: "A working forge for hardware, weapons, and stronger construction.",
             symbolName: "hammer.fill",
             category: .crafting,
@@ -482,7 +482,7 @@ enum GameContentHomesteadGenerated {
         ))
         list.append(HomesteadNodeDefinition(
             id: .runesmithWorkshop,
-            title: "Runesmith's Workshop",
+            title: "Runesmith",
             summary: "A careful workshop where metalwork and crystal study meet.",
             symbolName: "wand.and.sparkles",
             category: .crafting,
@@ -648,7 +648,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.herbs, 4), ResourceAmount(.crystal, 6)],
                     bonus: HomesteadBonus(
                         title: "Astral finds",
-                        description: "Find 5% more Astral items"
+                        description: "Increase Astral item roll weight by 5%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 5)
                 ),
@@ -658,7 +658,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.herbs, 8), ResourceAmount(.crystal, 12)],
                     bonus: HomesteadBonus(
                         title: "Astral finds",
-                        description: "Find 10% more Astral items"
+                        description: "Increase Astral item roll weight by 10%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 10)
                 ),
@@ -668,7 +668,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.herbs, 16), ResourceAmount(.crystal, 24)],
                     bonus: HomesteadBonus(
                         title: "Astral finds",
-                        description: "Find 15% more Astral items"
+                        description: "Increase Astral item roll weight by 15%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 15)
                 ),
@@ -678,7 +678,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.herbs, 32), ResourceAmount(.crystal, 48)],
                     bonus: HomesteadBonus(
                         title: "Astral finds",
-                        description: "Find 20% more Astral items"
+                        description: "Increase Astral item roll weight by 20%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(astralChanceBonusPercent: 20)
                 )

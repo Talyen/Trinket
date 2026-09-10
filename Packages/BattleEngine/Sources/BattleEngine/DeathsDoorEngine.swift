@@ -112,12 +112,12 @@ package enum DeathsDoorEngine {
         let triggers = context.modifiers(for: combatant.id).triggers
         let reviveHealth = triggers.onceDeathReviveHealth
         let reviveBlock = triggers.onceDeathReviveBlock
-        guard reviveHealth > 0 || reviveBlock > 0 else { return nil }
+        guard reviveHealth > 0 else { return nil }
 
-        let healthToRestore = max(1, reviveHealth)
+        let healthToRestore = CombatGain.amount(reviveHealth, current: 0, cap: runtime.maxHealth)
         context.roster.mutateRuntime(for: combatant) { runtime in
             runtime.hasTriggeredDeathRevive = true
-            runtime.currentHealth = min(healthToRestore, runtime.maxHealth)
+            runtime.currentHealth = healthToRestore
         }
 
         let abilityName = reviveHealth >= 10 ? "Rebirth" : "Deathrattle"
@@ -128,7 +128,7 @@ package enum DeathsDoorEngine {
                 actorName: combatant.name,
                 abilityName: abilityName,
                 target: combatant,
-                amount: min(healthToRestore, context.roster.maxHealth(for: combatant)),
+                amount: healthToRestore,
                 keyword: .health,
             ),
         ]

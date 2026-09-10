@@ -100,17 +100,10 @@ package extension CombatTriggerEngine {
                         abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context),
                     ))
                 } else {
-                    let loss = min(3, max(0, context.gold))
-                    guard loss > 0 else { continue }
-                    context.gold -= loss
-                    events.append(context.nextEvent(
-                        kind: .effect,
-                        effectKind: .resourceGain,
-                        actorName: actor.name,
+                    events.append(contentsOf: context.grantGoldEvent(
+                        3,
+                        to: actor,
                         abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context),
-                        target: actor,
-                        amount: -loss,
-                        keyword: .gold,
                     ))
                 }
             }

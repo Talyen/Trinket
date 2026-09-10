@@ -129,4 +129,13 @@ struct ItemAffixCatalogTests {
         let gilded = try #require(byID["gilded"])
         try #expect(gilded.basic.modifiers == [.goldGainedPercent(0.10)])
     }
+
+    @Test func `fickle fortune describes two positive victory gold outcomes`() throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "wishing_well_coin"))
+        let expected = "On victory, gain 7 Gold or gain 3 Gold."
+        #expect(definition.basic.description == expected)
+        #expect(definition.astral.description == expected)
+        #expect(definition.basic.triggers.victoryGoldCoin)
+        #expect(definition.astral.triggers.victoryGoldCoin)
+    }
 }

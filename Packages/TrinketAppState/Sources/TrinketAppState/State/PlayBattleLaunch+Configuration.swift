@@ -134,7 +134,25 @@ extension PlayBattleLaunch {
             enemyModifiers: enemyModifiers,
             enemyFaction: GameContent.enemy(matching: input.enemy?.id ?? "")?.faction ?? .mortal,
         )
-        let presentation = BattlePresentationContext(
+        return BattleLaunchAssembly(
+            configuration: configuration,
+            presentation: makeRewardPresentation(inputs: inputs, configuration: configuration),
+            inputs: inputs,
+        )
+    }
+
+    private static func makeRewardPresentation(
+        inputs: BattlePreparationInputs,
+        configuration: BattleRunConfiguration,
+    ) -> BattlePresentationContext {
+        let input = inputs.launch
+        let rosterState = inputs.party.roster
+        let inventoryState = inputs.party.inventory
+        let homesteadEffects = inputs.party.homestead.effects
+        let heroMember = configuration.hero
+        let companionMember = configuration.companion
+        let enemyLevel = configuration.enemyEncounterLevel ?? heroMember.progression.level
+        return BattlePresentationContext(
             inventoryItems: inventoryState.items,
             stageReward: input.stageReward,
             rewardItems: resolvedRewardItems(
@@ -162,11 +180,16 @@ extension PlayBattleLaunch {
             ),
             materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: input.stageReward ?? .empty),
             labyrinthModifiers: input.labyrinthModifiers,
-        )
-        return BattleLaunchAssembly(
-            configuration: configuration,
-            presentation: presentation,
-            inputs: inputs,
+            goldOverflowExperience: RewardExperiencePolicy.encounterAward(
+                encounterLevel: enemyLevel, roster: rosterState, percent: input.experienceBonusPercent,
+            ),
+            rewardInputs: RewardSettlementInputs(
+                gold: rosterState.gold,
+                reservedGold: PlayerRosterState.reservedGold(from: inputs.party.homestead.pendingProduction),
+                goldLimit: PlayerRosterState.maxGoldBalance,
+                heroProgression: heroMember.progression, companionProgression: companionMember.progression,
+                productionDate: inputs.party.homestead.lastProductionAt,
+            ),
         )
     }
 

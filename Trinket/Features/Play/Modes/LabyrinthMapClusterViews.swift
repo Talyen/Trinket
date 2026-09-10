@@ -69,6 +69,7 @@ struct LabyrinthFloorMap: View {
             }
             .buttonStyle(.plain)
             .trinketQuietTapButtonStyle()
+            .accessibilityLabel("Dismiss selection")
 
             ForEach(displayNodes) { presentation in
                 LabyrinthMapNodeSeal(
@@ -82,8 +83,6 @@ struct LabyrinthFloorMap: View {
                     onActivate: {
                         if presentation.visualState == .reachable {
                             onSelectNode(presentation.id)
-                        } else {
-                            onDismissSelection()
                         }
                     },
                 )
@@ -191,6 +190,7 @@ private struct LabyrinthMapNodeSeal: View {
             )
         }
         .buttonStyle(LabyrinthNodeButtonStyle(isSelected: isSelected))
+        .disabled(visualState != .reachable)
         .animation(TrinketMotion.Interaction.selection, value: visualState)
         .onChange(of: visualState) { oldState, newState in
             if oldState != .reachable, newState == .reachable {
@@ -228,6 +228,7 @@ private struct LabyrinthMapNodeSeal: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(nodeAccessibilityLabel)
+        .accessibilityHint(visualState == .reachable ? "Shows node details" : "Not reachable")
         .accessibilityIdentifier(labyrinthAccessibilityIdentifier)
     }
 

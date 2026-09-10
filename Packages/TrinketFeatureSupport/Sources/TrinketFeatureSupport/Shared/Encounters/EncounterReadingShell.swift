@@ -26,11 +26,11 @@ public struct EncounterReadingShell<Artwork: View, Copy: View, Content: View>: V
         ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Layout.contentMargin) {
                 artwork()
-                    .opacity(artVisible ? 1 : 0)
+                    .trinketPresentationVisibility(artVisible)
                     .scaleEffect(artVisible ? 1 : 0.94)
 
                 copy()
-                    .opacity(copyVisible ? 1 : 0)
+                    .trinketPresentationVisibility(copyVisible)
                     .offset(y: copyVisible ? 0 : 8)
 
                 content()
@@ -46,19 +46,23 @@ public enum EncounterReadingEntrance {
         artAppeared: Binding<Bool>,
         copyAppeared: Binding<Bool>,
         trailingAppeared: Binding<Bool>? = nil,
-    ) {
+    ) async {
         withAnimation(TrinketMotion.Content.entrance) {
             artAppeared.wrappedValue = true
         }
-        withAnimation(TrinketMotion.Content.entrance.delay(TrinketMotion.Content.entranceStagger)) {
-            copyAppeared.wrappedValue = true
-        }
-        if let trailingAppeared {
-            withAnimation(
-                TrinketMotion.Content.entrance.delay(TrinketMotion.Content.secondEntranceDelay),
-            ) {
-                trailingAppeared.wrappedValue = true
+        do {
+            try await Task.sleep(for: .seconds(TrinketMotion.Content.entranceStagger))
+            withAnimation(TrinketMotion.Content.entrance) {
+                copyAppeared.wrappedValue = true
             }
+            if let trailingAppeared {
+                try await Task.sleep(for: .seconds(TrinketMotion.Content.secondEntranceDelay - TrinketMotion.Content.entranceStagger))
+                withAnimation(TrinketMotion.Content.entrance) {
+                    trailingAppeared.wrappedValue = true
+                }
+            }
+        } catch {
+            return
         }
     }
 }

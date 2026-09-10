@@ -70,7 +70,7 @@ struct BattleCombatantPane: View {
         }
         .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .allowsHitTesting(!isDefeated)
+        .trinketPresentationVisibility(!isDefeated, opacity: 1)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.battleCard(name: combatant.name))
     }
 

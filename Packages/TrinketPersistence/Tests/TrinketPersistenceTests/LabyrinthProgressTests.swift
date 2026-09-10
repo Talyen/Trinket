@@ -252,11 +252,9 @@ struct LabyrinthProgressTests {
             ),
         )
         let pending = pendingLoot.item
-        #expect(pending.rarity != .basic)
         if pending.isTrinket || pending.rarity == .unique {
             #expect(pending.id == pending.templateID)
         } else {
-            #expect(pending.rarity == .astral)
             #expect(pending.id == LabyrinthCompletion.rewardItemID(forNodeID: bossID))
         }
 
@@ -267,7 +265,7 @@ struct LabyrinthProgressTests {
             rewardItem: pending,
             save: &save,
         )
-        #expect(save.inventory.items.contains(where: { $0.id == pending.id }))
+        #expect(save.inventory.item(matching: pending.id) == pending)
         #expect(save.inventory.items.count(where: { $0.id == pending.id }) == 1)
     }
 

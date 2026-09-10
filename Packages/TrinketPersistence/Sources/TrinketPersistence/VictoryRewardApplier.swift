@@ -3,6 +3,7 @@ import TrinketContent
 import TrinketCore
 
 public struct LootRequest: Equatable, Sendable {
+    public var rewardLevel: Int
     public var seedSalt: String
     public var itemID: String
     public var keywordBias: Set<Keyword>
@@ -10,12 +11,14 @@ public struct LootRequest: Equatable, Sendable {
     public var materialsFoundPercent: Int
 
     public init(
+        rewardLevel: Int,
         seedSalt: String,
         itemID: String,
         keywordBias: Set<Keyword> = [],
         goldFoundPercent: Int = 0,
         materialsFoundPercent: Int = 0,
     ) {
+        self.rewardLevel = rewardLevel
         self.seedSalt = seedSalt
         self.itemID = itemID
         self.keywordBias = keywordBias
@@ -44,8 +47,12 @@ public struct RewardOwnership: Equatable, Sendable {
 }
 
 public extension LootRequest {
-    static func journey(stage: Stage) -> LootRequest {
-        LootRequest(seedSalt: "battle-loot-journey-\(stage.id)", itemID: "\(stage.id)-loot")
+    static func journey(stage: Stage, chapters: [Chapter] = GameContent.chapters) -> LootRequest {
+        LootRequest(
+            rewardLevel: StageCompletion.resolvedEncounterLevel(for: stage, in: chapters),
+            seedSalt: "battle-loot-journey-\(stage.id)",
+            itemID: "\(stage.id)-loot",
+        )
     }
 
     static func spire(floor: SpireFloor) -> LootRequest {
@@ -54,6 +61,7 @@ public extension LootRequest {
             keywordBias.insert(spire.keyword)
         }
         return LootRequest(
+            rewardLevel: EncounterLevelResolver.spireEnemyLevel(for: floor),
             seedSalt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)",
             itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
             keywordBias: keywordBias,
@@ -62,6 +70,7 @@ public extension LootRequest {
 
     static func labyrinth(node: LabyrinthNode, effects: LabyrinthModifierEffects) -> LootRequest {
         LootRequest(
+            rewardLevel: EncounterLevelResolver.labyrinthEnemyLevel(for: node),
             seedSalt: "battle-loot-labyrinth-\(node.id)",
             itemID: LabyrinthCompletion.rewardItemID(forNodeID: node.id),
             goldFoundPercent: effects.goldFoundPercent,
@@ -132,6 +141,7 @@ public enum VictoryRewardApplier {
         )
         return BattleLoot.resolve(
             encounterLevel: encounterLevel,
+            rewardLevel: request.rewardLevel,
             enemyIsBoss: enemyIsBoss,
             itemID: request.itemID,
             keywordBias: request.keywordBias,
@@ -165,7 +175,7 @@ public enum VictoryRewardApplier {
         encounterLevel: Int,
         stageGold: Int,
         battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardAward? = nil,
+        award: BattleRewardSettlement? = nil,
         grantsCombatExperience: Bool = true,
         experienceEarnedPercent: Int = 0,
         materialRewards: [ResourceAmount],
@@ -175,6 +185,9 @@ public enum VictoryRewardApplier {
         let resolved = award ?? BattleRewardPlan(
             stageGold: stageGold,
             goldFindPercent: save.homestead.effects.goldFindPercent,
+            goldOverflowExperience: RewardExperiencePolicy.encounterAward(
+                encounterLevel: encounterLevel, roster: save.roster, percent: experienceEarnedPercent,
+            ),
             heroExperience: grantsCombatExperience ? battleExperienceAward(
                 playerLevel: save.roster.progression(for: hero).level, enemyLevel: encounterLevel,
                 highestLevel: save.roster.highestHeroLevel, experienceEarnedPercent: experienceEarnedPercent,
@@ -184,17 +197,21 @@ public enum VictoryRewardApplier {
                 highestLevel: save.roster.highestCompanionLevel, experienceEarnedPercent: experienceEarnedPercent,
             ) : 0,
             materials: materialRewards, items: item.map { [$0] } ?? [],
-        ).resolve(battleGold: battleGold)
+        ).settle(
+            battleGold: battleGold,
+            inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
+        )
         apply(resolved, hero: hero, companion: companion, save: &save)
     }
 
     public static func apply(
-        _ award: BattleRewardAward,
+        _ settlement: BattleRewardSettlement,
         hero: Combatant,
         companion: Combatant,
         save: inout PlayerSave,
     ) {
-        let now = Date()
+        let award = settlement.award
+        let now = settlement.inputs.productionDate
         save.applyGoldDelta(award.goldDelta, at: now)
         save.roster.grantExperience(award.heroExperience, to: hero)
         save.roster.grantExperience(award.companionExperience, to: companion)

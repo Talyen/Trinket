@@ -43,6 +43,17 @@ enum BattlePartySlot: String {
         }
     }
 
+    enum Eligibility {
+        case available
+        case locked
+        case unattuned
+    }
+
+    static func eligibility(_ combatant: Combatant, for spire: SpireDefinition?, access: ContentAccessPolicy) -> Eligibility {
+        guard access.allowsCombatant(combatant.id) else { return .locked }
+        return isEligible(combatant, for: spire) ? .available : .unattuned
+    }
+
     static func isEligible(_ combatant: Combatant, for spire: SpireDefinition?) -> Bool {
         guard let spire else { return true }
         return SpireAttunement.matches(combatant, spire: spire)
@@ -137,7 +148,9 @@ struct StageBattlePartyPickerSheet: View {
 
     private func partyOption(_ combatant: Combatant, for slot: BattlePartySlot) -> some View {
         let selected = combatant.id == slot.selectedID(in: playerSave.roster)
-        let eligible = BattlePartySlot.isEligible(combatant, for: spire)
+        let eligibility = BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess)
+        let eligible = eligibility == .available
+        let locked = eligibility == .locked
 
         return Button {
             guard !selected, eligible else { return }
@@ -145,6 +158,7 @@ struct StageBattlePartyPickerSheet: View {
         } label: {
             CombatantCard(
                 combatant: combatant,
+                isLocked: locked,
                 showsName: false,
                 isSelected: selected,
             )
@@ -161,7 +175,7 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
-        guard playerSave.contentAccess.allowsCombatant(combatant.id) else { return }
+        guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
         let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
             slot.select(combatant, in: &$0)
         }
@@ -175,7 +189,6 @@ struct StageBattlePartyPickerSheet: View {
 
     private func orderedCombatants(for slot: BattlePartySlot) -> [Combatant] {
         slot.orderedCombatants(in: playerSave.roster, spire: spire)
-            .filter { playerSave.contentAccess.allowsCombatant($0.id) }
     }
 
     private var partyPickerAccessibilityID: String {
@@ -201,7 +214,9 @@ private struct BattlePartySlotGridView: View {
         OptionPickerGrid(
             items: orderedCombatants,
             isSelected: { $0.id == slot.selectedID(in: playerSave.roster) },
-            isEligible: { BattlePartySlot.isEligible($0, for: spire) },
+            isEligible: {
+                BattlePartySlot.eligibility($0, for: spire, access: playerSave.contentAccess) == .available
+            },
             onSelect: select,
             accessibilityIdentifier: { combatant in
                 AccessibilityID.Play.battlePartyOption(
@@ -213,6 +228,7 @@ private struct BattlePartySlotGridView: View {
             card: { combatant, isSelected in
                 CombatantCard(
                     combatant: combatant,
+                    isLocked: BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .locked,
                     isSelected: isSelected,
                 )
             },
@@ -234,11 +250,10 @@ private struct BattlePartySlotGridView: View {
 
     private var orderedCombatants: [Combatant] {
         slot.orderedCombatants(in: playerSave.roster, spire: spire)
-            .filter { playerSave.contentAccess.allowsCombatant($0.id) }
     }
 
     private func select(_ combatant: Combatant) {
-        guard playerSave.contentAccess.allowsCombatant(combatant.id) else { return }
+        guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
         guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
         let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
             slot.select(combatant, in: &$0)

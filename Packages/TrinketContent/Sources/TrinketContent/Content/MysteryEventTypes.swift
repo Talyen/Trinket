@@ -85,17 +85,3 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
         self.choices = choices
     }
 }
-
-public enum MysteryItemRarity {
-    public static func roll(
-        astralChanceBonusPercent: Int = 0,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemDropTier {
-        ItemRarityRoll.roll(
-            bossContent: false,
-            astralChanceBonusPercent: astralChanceBonusPercent,
-            allowsUnique: true,
-            using: &randomNumberGenerator,
-        )
-    }
-}

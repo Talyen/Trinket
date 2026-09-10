@@ -50,6 +50,13 @@ Stop recording with SIGINT to the recording process. Use the managed shutdown
 helper for recovery; it owns graceful guest-service teardown. A full pool means
 another run owns the capacity, not permission to take its device.
 
+Native accessibility inspection requires an active connection to the simulator.
+If a healthy app screenshot has an empty native accessibility tree, open Apple's
+Accessibility Inspector and select the leased simulator (not a human device).
+Selecting all processes on that simulator keeps inspection available across app
+relaunches. Verify a known app control before diagnosing missing accessibility
+content; an inactive inspection connection can otherwise resemble a UI regression.
+
 ## Optional mirror (isolated → human)
 
 Handoff is headless by default. `handoff.sh --isolate --mirror` opts into

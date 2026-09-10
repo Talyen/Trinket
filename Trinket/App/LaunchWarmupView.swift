@@ -3,8 +3,12 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct LaunchWarmupView: View {
-    @State private var cache = PreparedArtworkCache.shared
+    @State private var loadingInterval: ClosedRange<Date>?
     @State private var currentTermIndex = 0
+
+    let onMinimumLoadingTimeComplete: () -> Void
+
+    private static let minimumLoadingDuration: TimeInterval = 2
 
     private static let loadingTerms: [String] = [
         "Preparing your adventure…",
@@ -30,10 +34,20 @@ struct LaunchWarmupView: View {
                 .trinketTypography(.screenDisplay)
                 .foregroundStyle(TrinketDesign.Colors.accent)
 
-            ProgressView(value: cache.progress)
-                .progressViewStyle(.linear)
-                .tint(TrinketDesign.Colors.accent)
-                .frame(maxWidth: 240)
+            Group {
+                if let loadingInterval {
+                    ProgressView(timerInterval: loadingInterval, countsDown: false) {
+                        EmptyView()
+                    } currentValueLabel: {
+                        EmptyView()
+                    }
+                } else {
+                    ProgressView(value: 0)
+                }
+            }
+            .progressViewStyle(.linear)
+            .tint(TrinketDesign.Colors.accent)
+            .frame(maxWidth: 240)
 
             Text(Self.loadingTerms[currentTermIndex])
                 .trinketTypography(.secondaryBody)
@@ -46,6 +60,13 @@ struct LaunchWarmupView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Screen.launchWarmup)
+        .task {
+            let start = Date.now
+            loadingInterval = start ... start.addingTimeInterval(Self.minimumLoadingDuration)
+            try? await Task.sleep(for: .seconds(Self.minimumLoadingDuration))
+            guard !Task.isCancelled else { return }
+            onMinimumLoadingTimeComplete()
+        }
         .task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(750))

@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 17
+    public static let currentSchemaVersion = 18
 
     public enum Schema {
         public static let renamedItemSlots = 14

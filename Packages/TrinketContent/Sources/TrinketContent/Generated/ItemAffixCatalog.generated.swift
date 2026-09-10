@@ -876,8 +876,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.gold],
             weight: 1,
-            basic: ItemAffixPower(description: "On victory, gain 7 Gold or lose 3 Gold.", modifiers: [], triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
-            astral: ItemAffixPower(description: "On victory, gain 7 Gold or lose 3 Gold.", modifiers: [], triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true)))
+            basic: ItemAffixPower(description: "On victory, gain 7 Gold or gain 3 Gold.", modifiers: [], triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
+            astral: ItemAffixPower(description: "On victory, gain 7 Gold or gain 3 Gold.", modifiers: [], triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true)))
         ),
         ItemAffixCatalog.affix(
             id: "whiplash",

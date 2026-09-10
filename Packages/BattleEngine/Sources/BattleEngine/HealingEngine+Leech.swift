@@ -137,7 +137,8 @@ package extension HealingEngine {
               percent > 0,
               context.roster.companion.isAlive
         else { return [] }
-        let share = max(1, CombatRounding.scaled(restored, multiplier: percent))
+        let share = CombatRounding.scaled(restored, multiplier: percent)
+        guard share > 0 else { return [] }
         return context.healEmitting(
             amount: share,
             target: context.roster.companion.combatant,
@@ -151,26 +152,28 @@ package extension HealingEngine {
         )
     }
 
-    static func applyLeechOverhealing(
-        overflow: Int,
+    internal static func applyLeechOverhealing(
+        allocation: inout HealingAllocation,
         request: HealRequest,
         sourceTriggers: CombatTraitTriggers?,
-        transferred: inout Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
+        let transferAmount = CombatGain.amount(
+            allocation.remaining, current: context.roster.companion.currentHealth, cap: context.roster.companion.maxHealth,
+        )
         if request.origin == .leech, sourceTriggers?.leechOverhealTransfersToCompanion == true,
            request.sourceActorID == context.hero.id, request.target.id == context.hero.id,
-           context.roster.companion.isAlive {
+           context.roster.companion.isAlive, transferAmount > 0 {
             var transfer = HealRequest(
-                amount: overflow, target: context.companion, sourceActorID: request.sourceActorID,
+                amount: transferAmount, target: context.companion, sourceActorID: request.sourceActorID,
                 origin: .leech, logAs: .silent,
             )
             transfer.amountBasis = .resolved
             let outcome = resolveHeal(transfer, in: &context)
             events.append(contentsOf: outcome.events)
             if outcome.healthRestored > 0 {
-                transferred += outcome.healthRestored
+                allocation.allocate(outcome.healthRestored, to: .transfer)
                 events.append(context.nextEvent(
                     kind: .effect, effectKind: .leechHeal, actorName: context.hero.name,
                     abilityName: "Blood Link", target: context.companion,
@@ -181,9 +184,10 @@ package extension HealingEngine {
         if request.origin == .leech, sourceTriggers?.marrowmend == true,
            request.sourceActorID == request.target.id {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: request.target))
-            if block < 6 {
+            let converted = allocation.allocate(max(0, 6 - block), to: .block)
+            if converted > 0 {
                 events.append(contentsOf: context.applyBlock(
-                    min(overflow, 6 - block), to: request.target, source: request.target,
+                    converted, to: request.target, source: request.target,
                     abilityName: "Marrowmend", applyOutgoingAdjustment: false,
                 ))
             }

@@ -18,7 +18,7 @@ public struct BattleLogSheet: View {
                     }
                 }
             }
-            .accessibilityIdentifier(AccessibilityID.Battle.combatLog)
+            .accessibilityIdentifier(AccessibilityID.Battle.combatLogSheet)
             .navigationTitle("Combat Log")
             .navigationBarTitleDisplayMode(.inline)
         }

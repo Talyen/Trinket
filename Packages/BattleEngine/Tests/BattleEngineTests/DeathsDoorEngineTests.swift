@@ -151,6 +151,22 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: companion))
     }
 
+    @Test func `block only revive does not trigger without health`() throws {
+        var context = makeContext(
+            heroHP: 5,
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                revival: RevivalTriggers(onceDeathReviveBlock: 10),
+            )),
+        )
+        let hero = context.roster.hero.combatant
+        _ = context.applyTestDamage(10, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+
+        try #expect(context.roster.health(for: hero) == 1)
+        try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
+        try #expect(context.roster.isDeathsDoorActive(for: hero))
+        try #expect(context.roster.runtime(for: hero)?.hasTriggeredDeathRevive == false)
+    }
+
     @Test func `effect inserted at front of active effects`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant

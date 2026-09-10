@@ -203,7 +203,7 @@ struct HomesteadNodeDetailView: View {
     private func buildOrUpgrade(_ expectedTier: Int) {
         guard !purchaseCommitted, let nextTier = status.nextTier, nextTier.tier == expectedTier else { return }
         let presentation = HomesteadPurchasePresentation(previousTier: status.currentStage, targetTier: nextTier)
-        build.perform(definition, saveStore: playerSave) { _ in
+        build.perform(definition, targetTier: expectedTier, saveStore: playerSave) { _ in
             purchasePresentation = presentation
             purchaseCommitted = true
             pendingCelebration = true

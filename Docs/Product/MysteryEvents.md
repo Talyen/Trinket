@@ -26,9 +26,10 @@ materials and Gold, and learning or practice for XP. The authored catalog is
 
 - Resolve offers before display. Basic/Astral gear uses the choice's fixed base;
   Trinkets and Uniques may only come from that choice's explicit thematic pool.
-- Base probabilities per offer are 80% Basic, 8% Astral, 7% Trinket, and 5% Unique.
-  Existing Astral bonuses apply. An unavailable special tier becomes Astral gear
-  of the specified base, never an unrelated special item or an empty item reward.
+- Offers use the shared [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
+  at Journey chapter-base level or Labyrinth depth. Moonlit Sanctum scales Astral
+  weight relatively. Remove unavailable special categories before normalizing the
+  remaining weights; never substitute an unrelated special item or promote gear.
 - Keep the existing Manabound guarantee for the Mana Berries harvest, Crystal
   Geode gem collection, and Crystal Garden shard collection.
 - Materials use the existing encounter-level quantity and applicable bonuses.

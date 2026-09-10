@@ -23,6 +23,7 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 | `KeywordPlasmaBackground.swift` | Keyword-tinted plasma shader (Reduce Motion aware with a static fallback, single-source rendering) |
 | `TrinketRarityLabel.swift` | Rarity badge with shine (Reduce Motion aware) |
 | `TextBalance.swift` | Widow prevention for titles (`Text(balanced:)`) |
+| `PresentationVisibility.swift` | Retained/reveal opacity, touch, and accessibility exposure under one semantic visibility input |
 | `TextFitting.swift` | Native shrinking/wrapping text composition (`.trinketFittedText()`) |
 | `DesignSystemPreview.swift` | Debug-only gallery (`#if DEBUG`, never ships) |
 

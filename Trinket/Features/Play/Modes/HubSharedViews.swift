@@ -113,6 +113,7 @@ struct HubArtworkNavigationLink<Destination: Hashable>: View {
             )
         }
         .trinketArtworkCardButtonStyle()
+        .disabled(isLocked)
         .accessibilityIdentifier(accessibilityIdentifier)
     }
 }

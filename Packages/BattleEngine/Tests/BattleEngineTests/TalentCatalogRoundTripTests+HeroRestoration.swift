@@ -111,6 +111,19 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.shield, on: .hero, in: battle) == 4)
     }
 
+    @Test func `transferred overheal does not also convert to block`() throws {
+        var battle = heroTalentBattle("alchemist_health_t4_1", "pixie_health_t3_2")
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = $0.maxHealth - 2 }
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 1 }
+        let bigHeal = Ability(
+            id: "test-shared-overheal", name: "Shared Overheal", tier: .skill,
+            targetedEffects: [TargetedEffect(.instantHeal(.health, 10), target: .actor)],
+        )
+        try playHeroTalentCard(bigHeal, in: &battle)
+        #expect(battle.roster.companion.currentHealth > 1)
+        #expect(talentPoints(.shield, on: .hero, in: battle) == 0)
+    }
+
     @Test func `dew roots and shelter repeat on every heal`() throws {
         var battle = heroTalentBattle("druid_health_t3_1", "druid_health_t3_2", "druid_health_t4_1")
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 1 }

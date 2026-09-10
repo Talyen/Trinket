@@ -25,6 +25,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &randomNumberGenerator,
         )
@@ -68,6 +69,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &baselineSave,
             using: &baselineRNG,
         )
@@ -79,6 +81,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &rng,
             goldFoundPercent: 25,
@@ -112,6 +115,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-2",
             choiceID: "study",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &randomNumberGenerator,
         )
@@ -154,13 +158,16 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &randomNumberGenerator,
         )
 
-        try #expect(result.grantedGold == 3)
+        try #expect(result.grantedGold == 0)
+        try #expect(result.heroGrantedExperience > 0)
+        try #expect(result.companionGrantedExperience > 0)
         try #expect(result.grantedMaterials == [ResourceAmount(.herbs, 4)])
-        try #expect(save.roster.gold == PlayerRosterState.maxGoldBalance - 1)
+        try #expect(save.roster.gold == 995)
         try #expect(save.homestead.resources[.herbs] == 1001)
     }
 
@@ -182,6 +189,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &randomNumberGenerator,
         )
@@ -201,6 +209,7 @@ struct MysteryEffectApplierTests {
             choice: event.choices[0],
             encounterID: "spring",
             encounterLevel: 6,
+            rewardLevel: 6,
             save: save,
             using: &rng,
         )
@@ -211,29 +220,33 @@ struct MysteryEffectApplierTests {
         #expect(MysteryEffectApplier.apply(offer, save: &save).isEmpty)
     }
 
-    @Test func `special rolls stay inside the choice pool and fall back when owned`() throws {
+    @Test func `special rewards stay inside the choice pool and exclude owned items`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
         let choice = event.choices[0]
-        for tier in [ItemDropTier.trinket, .unique] {
-            let matchingSeed = (UInt64(1) ... 1000).first { seed in
-                var rng = SeededRandomNumberGenerator(seed: seed)
-                return MysteryItemRarity.roll(using: &rng) == tier
-            }
-            let seed = try #require(matchingSeed)
-            var save = SaveTestSupport.makeSave()
-            var rng = SeededRandomNumberGenerator(seed: seed)
+        var seen: Set<String> = []
+        var save = SaveTestSupport.makeSave()
+        var rng = SeededRandomNumberGenerator(seed: 42)
+        for _ in 0 ..< 100 {
             let offer = MysteryEffectApplier.resolveOffer(
-                choice: choice, encounterID: "spring", encounterLevel: 6, save: save, using: &rng,
+                choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, save: save, using: &rng,
             )
-            let expectedID = tier == .trinket ? "icy_heart" : "rimeheart_locket"
-            #expect(offer.item.templateID == expectedID)
-            save.inventory.appendUniqueItem(offer.item)
-            rng = SeededRandomNumberGenerator(seed: seed)
-            let fallback = MysteryEffectApplier.resolveOffer(
-                choice: choice, encounterID: "spring-again", encounterLevel: 6, save: save, using: &rng,
+            if offer.item.isTrinket || offer.item.rarity == .unique {
+                #expect(["icy_heart", "rimeheart_locket"].contains(offer.item.templateID))
+                seen.insert(offer.item.templateID)
+            } else {
+                #expect(offer.item.baseType.id == "sapphire_amulet")
+            }
+        }
+        #expect(seen == ["icy_heart", "rimeheart_locket"])
+        for id in seen {
+            try save.inventory.appendUniqueItem(#require(GameContent.itemTemplate(matching: id) ?? GameContent.unique(matching: id)))
+        }
+        for _ in 0 ..< 20 {
+            let offer = MysteryEffectApplier.resolveOffer(
+                choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, save: save, using: &rng,
             )
-            #expect(fallback.item.baseType.id == "sapphire_amulet")
-            #expect(fallback.item.rarity == .astral)
+            #expect(!offer.item.isTrinket && offer.item.rarity != .unique)
+            #expect(offer.item.baseType.id == "sapphire_amulet")
         }
     }
 
@@ -248,6 +261,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-2",
             choiceID: harvest.id,
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &randomNumberGenerator,
         )
@@ -267,11 +281,12 @@ struct MysteryEffectApplierTests {
         let companion = save.roster.activeCompanion
         save.roster.progressions[hero.id] = .at(level: 1)
         save.roster.progressions[companion.id] = .at(level: 30)
-        let award = MysteryEffectApplier.experienceAward(encounterLevel: 50, roster: save.roster, percent: 25)
+        let award = RewardExperiencePolicy.encounterAward(encounterLevel: 50, roster: save.roster, percent: 25)
         #expect(award == 30)
         var rng = SeededRandomNumberGenerator(seed: 1)
         let result = MysteryEffectApplier.apply(
             [.gainExperience], stageID: "high-level", choiceID: "study", encounterLevel: 50,
+            rewardLevel: 50,
             save: &save, using: &rng, experienceEarnedPercent: 25,
         )
         #expect(result.heroGrantedExperience == 30)
@@ -287,6 +302,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-8",
             choiceID: "welcome",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &randomNumberGenerator,
         )
@@ -298,6 +314,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-8",
             choiceID: "welcome",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &randomNumberGenerator,
         )
@@ -308,6 +325,7 @@ struct MysteryEffectApplierTests {
             stageID: "chapter-1-stage-2",
             choiceID: "welcome",
             encounterLevel: 1,
+            rewardLevel: 1,
             save: &save,
             using: &randomNumberGenerator,
         )

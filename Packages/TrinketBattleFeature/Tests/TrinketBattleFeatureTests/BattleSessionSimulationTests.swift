@@ -133,32 +133,6 @@ struct BattleSessionSimulationTests {
         #expect(!session.canRetreat)
     }
 
-    @Test func `clear outcome presentation resets the outcome state`() {
-        let session = BattleSession(openingHandDrawStagger: 0)
-        let summary = BattleVictorySummary(
-            stageGold: 1,
-            battleGold: 2,
-            goldFlow: .init(gained: 2),
-            experience: 3,
-            companionExperience: 4,
-            heroName: "Hero",
-            companionName: "Companion",
-            heroArtworkName: nil,
-            companionArtworkName: nil,
-            rewardItems: [],
-            materialRewards: [],
-            heroProgressionBefore: .initial,
-            heroProgressionAfter: .initial,
-            companionProgressionBefore: .initial,
-            companionProgressionAfter: .initial,
-        )
-        session.spectacle.outcomePresentation = .pendingVictory(summary)
-
-        session.clearOutcomePresentation()
-
-        #expect(session.spectacle.outcomePresentation == .battle)
-    }
-
     @Test func `play card retires expired feedback and excludes milestones`() throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))

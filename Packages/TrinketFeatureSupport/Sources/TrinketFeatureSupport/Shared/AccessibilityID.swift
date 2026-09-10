@@ -351,6 +351,7 @@ public enum AccessibilityID {
         public static let autoBattleToggle = "Auto Battle Toggle"
         public static let hand = "Battle Hand"
         public static let combatLog = "Combat Log"
+        public static let combatLogSheet = "Combat Log Sheet"
         #if DEBUG
         public static let skipCombat = "Skip Combat"
         #endif

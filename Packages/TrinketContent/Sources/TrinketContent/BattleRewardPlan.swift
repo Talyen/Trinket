@@ -3,6 +3,7 @@ import TrinketCore
 public struct BattleRewardPlan: Equatable, Sendable {
     public let stageGold: Int
     public let goldFindPercent: Int
+    public let goldOverflowExperience: Int
     public let heroExperience: Int
     public let companionExperience: Int
     public let materials: [ResourceAmount]
@@ -11,6 +12,7 @@ public struct BattleRewardPlan: Equatable, Sendable {
     public init(
         stageGold: Int,
         goldFindPercent: Int,
+        goldOverflowExperience: Int = 0,
         heroExperience: Int,
         companionExperience: Int,
         materials: [ResourceAmount],
@@ -18,6 +20,7 @@ public struct BattleRewardPlan: Equatable, Sendable {
     ) {
         self.stageGold = max(0, stageGold)
         self.goldFindPercent = goldFindPercent
+        self.goldOverflowExperience = goldOverflowExperience
         self.heroExperience = heroExperience
         self.companionExperience = companionExperience
         self.materials = materials
@@ -48,21 +51,7 @@ public struct BattleRewardAward: Equatable, Sendable {
         stageGold + battleGold
     }
 
-    fileprivate init(
-        stageGold: Int,
-        battleGold: Int,
-        goldFlow: BattleGoldFlow,
-        heroExperience: Int,
-        companionExperience: Int,
-        materials: [ResourceAmount],
-        items: [InventoryItem],
-    ) {
-        self.stageGold = stageGold
-        self.battleGold = battleGold
-        self.goldFlow = goldFlow
-        self.heroExperience = heroExperience
-        self.companionExperience = companionExperience
-        self.materials = materials
-        self.items = items
+    public var goldGained: Int {
+        goldDelta + goldFlow.spent
     }
 }

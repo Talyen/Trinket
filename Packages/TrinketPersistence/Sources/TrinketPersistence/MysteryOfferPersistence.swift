@@ -21,6 +21,11 @@ public enum MysteryOfferPersistence {
         } else {
             [MysteryOffer]()
         }
+        let location: EncounterIdentity.Location = labyrinthNodeID.map { .labyrinth(nodeID: $0) }
+            ?? .journey(stageID: stage.id)
+        guard let rewardLevel = EncounterIdentity(location: location, save: save).rewardLevel(in: save) else {
+            throw MysteryOfferError.unavailableEncounter
+        }
         let level = MysteryEffectApplier.resolvedEncounterLevel(stage: stage, labyrinthNodeID: labyrinthNodeID, save: save)
         let bonuses = labyrinthNodeID.map { save.labyrinth.effects(for: $0) } ?? .zero
         save.homestead.settleProduction(at: Date(), roster: save.roster)
@@ -33,6 +38,7 @@ public enum MysteryOfferPersistence {
                     choice: choice,
                     encounterID: stage.id,
                     encounterLevel: level,
+                    rewardLevel: rewardLevel,
                     save: save,
                     bonuses: bonuses,
                     using: &randomNumberGenerator,
@@ -118,22 +124,19 @@ public enum MysteryOfferPersistence {
         experiencePercent: Int,
         save: PlayerSave,
     ) -> MysteryRewardBonus {
-        switch bonus {
-        case let .gold(amount):
-            let reserved = PlayerRosterState.reservedGold(from: save.homestead.pendingProduction)
-            let capacity = PlayerRosterState.availableGoldCapacity(gold: save.roster.gold, reservedGold: reserved)
-            if capacity == 0 {
-                return .experience(MysteryEffectApplier.experienceAward(
-                    encounterLevel: level,
-                    roster: save.roster,
-                    percent: experiencePercent,
-                ))
-            }
-            return .gold(min(amount, capacity))
-        case let .experience(amount):
-            return .experience(MysteryEffectApplier.sharedExperience(amount, roster: save.roster))
-        case .material:
-            return bonus
-        }
+        RewardSettlementPolicy.settle(
+            bonus,
+            inputs: RewardSettlementInputs(
+                save: save,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                at: save.homestead.lastProductionAt,
+            ),
+            replacementExperience: RewardExperiencePolicy.encounterAward(
+                encounterLevel: level,
+                roster: save.roster,
+                percent: experiencePercent,
+            ),
+        )
     }
 }

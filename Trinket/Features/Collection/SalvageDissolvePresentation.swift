@@ -27,8 +27,6 @@ struct SalvageItemButton: View {
             )
         }
         .trinketQuietTapButtonStyle()
-        .disabled(isLocked)
-        .allowsHitTesting(!isLocked)
         .accessibilityLabel(isLocked ? "\(item.displayName), locked" : item.displayName)
         .accessibilityIdentifier(AccessibilityID.Collection.itemCard(itemID: item.id))
     }

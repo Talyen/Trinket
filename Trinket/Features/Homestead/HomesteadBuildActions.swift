@@ -13,10 +13,11 @@ struct HomesteadBuildControl {
     @MainActor
     mutating func perform(
         _ definition: HomesteadNodeDefinition,
+        targetTier: Int,
         saveStore: PlayerSaveStore,
         onSuccess: (HomesteadNodeID) -> Void = { _ in },
     ) {
-        switch saveStore.buildOrUpgradeNode(definition) {
+        switch saveStore.buildOrUpgradeNode(definition, targetTier: targetTier) {
         case .success:
             upgradeEventCount += 1
             onSuccess(definition.id)

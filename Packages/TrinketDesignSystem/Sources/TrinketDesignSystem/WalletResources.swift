@@ -90,10 +90,6 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
                     .allowsTightening(true)
                     .contentTransition(.numericText())
             }
-            .walletIncreaseBump(
-                trigger: keepsArtworkStationary ? increaseAnimationTrigger : 0,
-                delay: increaseAnimationDelay,
-            )
         }
         .frame(minHeight: TrinketDesign.Layout.walletResourceRowMinHeight, alignment: .leading)
         .animation(TrinketMotion.Interaction.walletIncrease, value: amount)

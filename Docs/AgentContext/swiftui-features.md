@@ -28,3 +28,15 @@ custom control is ambiguous. Accessibility uses basic explicit semantics by poli
 [Decisions](../Product/Decisions.md)): keep what SwiftUI provides for free and do not
 add Reduce Motion, Dynamic Type re-layout, or contrast accommodation branches. Use `TrinketUITests/README.md` only for
 launch args, screen helpers, and speed rules.
+
+Use `trinketPresentationVisibility` for retained and reveal content: semantic
+visibility owns opacity, hit testing, and accessibility exposure together, without
+unmounting prewarmed surfaces. Supply an explicit opacity only when a separate
+visual transition must remain visible without interaction (for example, a defeated
+combatant). Visible unavailable controls remain discoverable and disabled.
+Entrance sequencing advances visibility when each reveal starts; an animation's
+delay must not expose invisible controls early. Keep inspection availability
+separate from primary actions through `InspectableTapButton` and the existing
+encounter presentation contract. Cache readiness controls artwork presentation,
+not gameplay eligibility. Party shelves and grids share their selection eligibility
+rule, and card tap, drag, and accessibility activation share one play-intent gate.

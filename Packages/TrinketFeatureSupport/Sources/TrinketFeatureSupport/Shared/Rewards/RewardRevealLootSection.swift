@@ -50,9 +50,8 @@ public struct RewardRevealLootSection: View {
         VStack(spacing: spacing) {
             if !items.isEmpty {
                 rewardItemPager
-                    .opacity(areItemsVisible ? 1 : 0)
+                    .trinketPresentationVisibility(areItemsVisible)
                     .scaleEffect(areItemsVisible ? 1 : 0.98)
-                    .allowsHitTesting(areItemsVisible)
             }
 
             rewardWallet
@@ -110,15 +109,15 @@ public struct RewardRevealLootSection: View {
                     ) {
                         HomesteadResourceArtwork(resource: reward.resource)
                     }
-                    .opacity(revealIndex == 0 || visibleWalletRewardCount > revealIndex ? 1 : 0)
+                    .trinketPresentationVisibility(revealIndex == 0 || visibleWalletRewardCount > revealIndex)
                 }
             }
-            .opacity(visibleWalletRewardCount > 0 ? 1 : 0)
+            .trinketPresentationVisibility(visibleWalletRewardCount > 0)
         } else if items.isEmpty, let emptyMessage {
             Text(balanced: emptyMessage)
                 .trinketTypography(.secondaryBody)
                 .foregroundStyle(.secondary)
-                .opacity(areItemsVisible ? 1 : 0)
+                .trinketPresentationVisibility(areItemsVisible)
         }
     }
 }

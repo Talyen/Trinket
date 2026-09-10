@@ -39,8 +39,8 @@ struct ContractsBoardView: View {
                         offers: playerSave.contracts.offers,
                     ),
                     rowSpacing: TrinketDesign.Spacing.large,
-                    isPrimaryActionDisabled: { offer in
-                        isBattleActive || !isArtworkReady(for: offer)
+                    isPrimaryActionDisabled: { _ in
+                        isBattleActive
                     },
                     onArtworkTap: inspect,
                     onPrimaryAction: { offer in
@@ -110,7 +110,7 @@ struct ContractsBoardView: View {
     }
 
     private func inspect(_ offer: ContractOffer) {
-        guard isArtworkReady(for: offer), let enemy = GameContent.enemy(matching: offer.enemyID) else { return }
+        guard let enemy = GameContent.enemy(matching: offer.enemyID) else { return }
         presentPlayCombatantDetail(CombatantCardDetail(
             combatant: enemy.combatant,
         ))

@@ -12,12 +12,35 @@ Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roste
 
 Campaign reward and completion **domain write policies** also live here (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`, `MysteryEventPinApplier`): app sessions decide when to apply them; Persistence owns the save mutation. Save-store test harnesses live in this package's `TrinketPersistenceTestSupport` target — see the package `AGENTS.md`.
 
-Prepared battle completion applies the launch-backed `BattleRewardAward` through
-`VictoryRewardApplier`; it does not recompute experience or reward bonuses from a
-later save snapshot. `BattleRewardPlan`/`BattleRewardAward` are shared Content
-values, while Core's `BattleGoldFlow` retains gross gains and spending. Gold-find
-bonuses scale gains only. Non-prepared completion resolves the same plan once
-before applying it. Mode completion still owns eligibility and one-time claims.
+Battle launch captures reward quantities, recipients, bonuses, and Gold-overflow
+XP in `BattleRewardPlan`. `RewardSettlementInputs` projects wallet reservations
+and recipient progression at a recorded production date. Content's pure settlement
+produces `BattleRewardSettlement`; the same value drives the reveal and completion.
+A positive net Gold award that cannot fit replaces all Gold gains with XP while
+retaining any generic battle-spending field for compatibility. Current combat
+content does not produce battle spending. Mystery bonuses use the same capacity
+policy. Completion revalidates the recorded
+snapshot and rejects stale settlements before any mode completion; the UI refreshes
+its reveal before another claim. Application uses the recorded production date so
+passive accrual cannot silently shrink a displayed award. Unprepared rewards use
+the same settlement path. Modes retain their existing one-time claim ownership.
+
+`persistTransaction` returns a committed domain value, a domain rejection, or a
+storage failure. Domain operations mutate a candidate save; rejection discards it
+without publishing or writing. Storage failures use the existing compensation
+machinery. Observable sessions apply outcomes and navigation only after commit.
+`MysteryEncounterResolution` owns choice effects and progress together, including
+required item/unlock validation; a secondary reward cannot turn an unavailable
+headline reward into a successful choice. Deliberate leave is an explicit outcome.
+
+`EncounterIdentity` scopes Journey stages and Labyrinth nodes to their world seed
+and save generation. Shop offers are pinned on first opening; stock and purchased
+offer IDs live in the Journey stage payload or Labyrinth node payload. Stock
+survives inventory removal and reload; singleton ownership is a separate check.
+`ShopPurchaseApplier` accepts an offer ID and reads saved stock, including its price.
+Views and commands share its availability query. Never infer claims from inventory
+ID prefixes or session flags. Homestead build commands require the displayed target
+tier and validate that tier inside the transaction.
 
 Options are deliberately separate: `OptionsStore` uses app-storage-compatible `UserDefaults`, not player-save/CloudKit state. Packages must not import app or SwiftUI feature code.
 

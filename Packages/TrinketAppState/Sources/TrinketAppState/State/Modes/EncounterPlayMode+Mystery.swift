@@ -38,6 +38,7 @@ public extension EncounterPlayMode {
 
         let opened = MysteryEncounterSession.open(
             origin: origin,
+            encounter: origin.identity(in: playerSave.currentSave),
             forcedEventID: forcedEventID,
             worldSeed: playerSave.worldSeed,
             pickContext: pickContext,
@@ -60,13 +61,7 @@ public extension EncounterPlayMode {
         }
 
         if !opened.session.event.isRecruit, !opened.session.isCorruptionAltar {
-            var offers: [MysteryOffer]?
-            let didPersist = playerSave.persistBatch(logging: "Failed to save mystery offers") { save in
-                var randomNumberGenerator = SystemRandomNumberGenerator()
-                offers = try? opened.session.prepareOffers(save: &save, using: &randomNumberGenerator)
-            }
-            guard didPersist, let offers else { return Self.mysteryPinFailureMessage }
-            opened.session.installOffers(offers)
+            guard prepareMysteryOffers(opened.session) else { return Self.mysteryPinFailureMessage }
         }
         activeMysteryEncounter = opened.session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
@@ -82,6 +77,26 @@ public extension EncounterPlayMode {
             }
         }
         return nil
+    }
+
+    private func prepareMysteryOffers(_ session: MysteryEncounterSession) -> Bool {
+        let prepared = playerSave.persistTransaction(logging: "Failed to save mystery offers") { save -> Result<
+            [MysteryOffer],
+            MysteryChoiceFailure,
+        > in
+            var rng = SystemRandomNumberGenerator()
+            do {
+                return try .success(MysteryOfferPersistence.prepare(
+                    event: session.event, stage: session.stage,
+                    labyrinthNodeID: session.labyrinthNodeID, save: &save, using: &rng,
+                ))
+            } catch {
+                return .failure(.unavailable)
+            }
+        }
+        guard case let .committed(offers) = prepared else { return false }
+        session.installOffers(offers)
+        return true
     }
 
     private func mysteryEventPickContext(
@@ -127,11 +142,11 @@ public extension EncounterPlayMode {
         }
 
         return persistMysteryResolution(mysterySession, logging: "Failed to apply mystery effects") { save, rng in
-            mysterySession.resolveChoice(
+            MysteryEncounterResolution.resolve(
                 choiceID: choiceID,
+                request: mysterySession.resolutionRequest,
                 save: &save,
                 using: &rng,
-                completeProgress: Self.completeMysteryProgress,
             )
         }
     }
@@ -139,17 +154,18 @@ public extension EncounterPlayMode {
     @discardableResult
     func corruptActiveMysteryItem(itemID: String) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
-        guard mysterySession.showsCorruptItemChoice else {
+        guard mysterySession.showsCorruptItemChoice, !mysterySession.isResolvingChoice,
+              mysterySession.corruptibleItems.contains(where: { $0.id == itemID }) else {
             mysterySession.markChoiceUnavailable()
             return false
         }
 
         return persistMysteryResolution(mysterySession, logging: "Failed to corrupt mystery item") { save, rng in
-            mysterySession.corruptSelectedItem(
+            MysteryEncounterResolution.corrupt(
                 itemID: itemID,
+                request: mysterySession.resolutionRequest,
                 save: &save,
                 using: &rng,
-                completeProgress: Self.completeMysteryProgress,
             )
         }
     }
@@ -157,18 +173,22 @@ public extension EncounterPlayMode {
     private func persistMysteryResolution(
         _ mysterySession: MysteryEncounterSession,
         logging: String,
-        mutate: (inout PlayerSave, inout SystemRandomNumberGenerator) -> MysteryChoiceOutcome,
+        mutate: (inout PlayerSave, inout SystemRandomNumberGenerator) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure>,
     ) -> Bool {
-        var outcome = MysteryChoiceOutcome.failed
-        guard playerSave.persistBatch(logging: logging, { save in
-            var randomNumberGenerator = SystemRandomNumberGenerator()
-            outcome = mutate(&save, &randomNumberGenerator)
-        }) else {
+        mysterySession.markChoiceStarted()
+        switch playerSave.persistTransaction(logging: logging, { save in
+            var rng = SystemRandomNumberGenerator()
+            return mutate(&save, &rng)
+        }) {
+        case let .committed(outcome):
+            return applyMysteryOutcome(outcome, session: mysterySession)
+        case .rejected:
+            mysterySession.markChoiceUnavailable()
+            return false
+        case .persistFailed:
             mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
         }
-
-        return applyMysteryOutcome(outcome, session: mysterySession)
     }
 
     func cancelActiveMysteryCorruptSelection() {
@@ -220,9 +240,6 @@ public extension EncounterPlayMode {
         session mysterySession: MysteryEncounterSession,
     ) -> Bool {
         switch outcome {
-        case .failed:
-            mysterySession.markChoiceUnavailable()
-            return false
         case .dismiss:
             activeMysteryEncounter = nil
             return true
@@ -283,20 +300,6 @@ public extension EncounterPlayMode {
             didPinEvent = pin(&save)
         }
         return didPersist && didPinEvent ? nil : Self.mysteryPinFailureMessage
-    }
-
-    private static func completeMysteryProgress(
-        _ session: MysteryEncounterSession,
-        save: inout PlayerSave,
-    ) {
-        StageCompletion.completeEncounter(
-            stage: session.stage,
-            labyrinthNodeID: session.labyrinthNodeID,
-            hero: save.roster.activeHero,
-            companion: save.roster.activeCompanion,
-            in: GameContent.chapters,
-            save: &save,
-        )
     }
 
     private static let mysteryPinFailureMessage = StageMapMessage(

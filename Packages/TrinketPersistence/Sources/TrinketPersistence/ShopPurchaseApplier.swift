@@ -1,70 +1,74 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
-public enum ShopPurchaseResult: Equatable, Sendable {
-    case success(InventoryItem)
+public enum ShopPurchaseFailure: Error, Equatable, Sendable {
     case insufficientGold
+    case soldOut
     case alreadyOwned
     case invalidOffer
 
-    public var failureMessage: String? {
+    public var message: String {
         switch self {
-        case .success:
-            nil
-        case .insufficientGold:
-            "Not enough Gold."
-        case .alreadyOwned:
-            "That item is already sold."
-        case .invalidOffer:
-            "That offer is unavailable."
+        case .insufficientGold: "Not enough Gold."
+        case .soldOut: "That item is already sold."
+        case .alreadyOwned: "You already own that item."
+        case .invalidOffer: "That offer is unavailable."
         }
     }
 }
 
+public enum ShopOfferAvailability: Equatable, Sendable {
+    case available
+    case unavailable(ShopPurchaseFailure)
+
+    public var canPurchase: Bool {
+        self == .available
+    }
+}
+
 public enum ShopPurchaseApplier {
-    public static func inventoryInstanceID(
-        stageID: String,
+    public static func availability(
         offerID: String,
-        visitToken: String,
-    ) -> String {
-        "\(stageID)-shop-\(offerID)-\(visitToken)"
+        encounter: EncounterIdentity,
+        save: PlayerSave,
+    ) -> ShopOfferAvailability {
+        guard encounter.isPlayable(in: save) else { return .unavailable(.invalidOffer) }
+        do {
+            guard let stock = try ShopStockPersistence.stock(encounter: encounter, save: save) else { return .unavailable(.invalidOffer) }
+            return availability(offerID: offerID, stock: stock, save: save)
+        } catch {
+            return .unavailable(.invalidOffer)
+        }
     }
 
     public static func purchase(
-        offer: ShopOffer,
-        visitToken: String,
-        stageID: String,
+        offerID: String,
+        encounter: EncounterIdentity,
         save: inout PlayerSave,
-    ) -> ShopPurchaseResult {
-        let instanceID = inventoryInstanceID(
-            stageID: stageID,
-            offerID: offer.id,
-            visitToken: visitToken,
-        )
-        let isSingletonItem = offer.item.isTrinket || offer.item.rarity == .unique
-        let itemID = isSingletonItem ? offer.item.id : instanceID
-        guard offer.price >= 0 else {
-            return .invalidOffer
+    ) -> Result<InventoryItem, ShopPurchaseFailure> {
+        guard encounter.isPlayable(in: save) else { return .failure(.invalidOffer) }
+        do {
+            guard var stock = try ShopStockPersistence.stock(encounter: encounter, save: save) else { return .failure(.invalidOffer) }
+            if case let .unavailable(reason) = availability(offerID: offerID, stock: stock, save: save) {
+                return .failure(reason)
+            }
+            guard let offer = stock.offers.first(where: { $0.id == offerID }) else { return .failure(.invalidOffer) }
+            stock.purchasedOfferIDs.insert(offerID)
+            let payload = try ShopStockPersistence.encode(stock, encounter: encounter)
+            save.applyGoldDelta(-offer.price)
+            save.inventory.appendUniqueItem(offer.item)
+            ShopStockPersistence.setPayload(payload, encounter: encounter, save: &save)
+            return .success(offer.item)
+        } catch {
+            return .failure(.invalidOffer)
         }
-        let purchased = InventoryItem(
-            id: itemID,
-            templateID: offer.item.templateID,
-            baseType: offer.item.baseType,
-            rarity: offer.item.rarity,
-            displayName: offer.item.displayName,
-            affixes: offer.item.affixes,
-            isCorrupted: offer.item.isCorrupted,
-            affixPowers: offer.item.affixPowers,
-        )
-        guard !InventoryDuplicatePolicy.containsDuplicate(of: purchased, in: save.inventory.items) else {
-            return .alreadyOwned
-        }
-        guard save.roster.gold >= offer.price else {
-            return .insufficientGold
-        }
-        save.applyGoldDelta(-offer.price)
-        save.inventory.appendUniqueItem(purchased)
-        return .success(purchased)
+    }
+
+    private static func availability(offerID: String, stock: ShopStock, save: PlayerSave) -> ShopOfferAvailability {
+        guard let offer = stock.offers.first(where: { $0.id == offerID }), offer.price >= 0 else { return .unavailable(.invalidOffer) }
+        guard !stock.purchasedOfferIDs.contains(offerID) else { return .unavailable(.soldOut) }
+        guard !InventoryDuplicatePolicy.containsDuplicate(of: offer.item, in: save.inventory.items)
+        else { return .unavailable(.alreadyOwned) }
+        return save.roster.gold >= offer.price ? .available : .unavailable(.insufficientGold)
     }
 }

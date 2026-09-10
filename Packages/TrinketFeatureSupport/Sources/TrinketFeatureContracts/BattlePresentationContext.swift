@@ -8,6 +8,8 @@ public struct BattlePresentationContext: Sendable {
     public let pendingRewardItem: InventoryItem?
     public let experienceBonusPercent: Int
     public let goldFindPercent: Int
+    public let goldOverflowExperience: Int
+    public let rewardInputs: RewardSettlementInputs?
     public let stageRewardsAlreadyClaimed: Bool
     public let defeatPrimaryAction: BattleDefeatPrimaryAction
     public let hasProgressionRewards: Bool
@@ -21,6 +23,7 @@ public struct BattlePresentationContext: Sendable {
         BattleRewardPlan(
             stageGold: stageRewardsAlreadyClaimed ? 0 : stageReward?.gold ?? 0,
             goldFindPercent: goldFindPercent,
+            goldOverflowExperience: goldOverflowExperience,
             heroExperience: stageRewardsAlreadyClaimed ? 0 : heroExperienceAward,
             companionExperience: stageRewardsAlreadyClaimed ? 0 : companionExperienceAward,
             materials: stageRewardsAlreadyClaimed ? [] : materialRewards,
@@ -43,6 +46,8 @@ public struct BattlePresentationContext: Sendable {
         companionExperienceAward: Int,
         materialRewards: [ResourceAmount],
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        goldOverflowExperience: Int = 0,
+        rewardInputs: RewardSettlementInputs? = nil,
     ) {
         self.inventoryItems = inventoryItems
         self.stageReward = stageReward
@@ -50,6 +55,8 @@ public struct BattlePresentationContext: Sendable {
         self.pendingRewardItem = pendingRewardItem
         self.experienceBonusPercent = experienceBonusPercent
         self.goldFindPercent = goldFindPercent
+        self.goldOverflowExperience = goldOverflowExperience
+        self.rewardInputs = rewardInputs
         self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
         self.defeatPrimaryAction = defeatPrimaryAction
         self.hasProgressionRewards = hasProgressionRewards

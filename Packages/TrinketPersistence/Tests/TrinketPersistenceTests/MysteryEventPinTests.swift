@@ -108,10 +108,14 @@ struct MysteryEventPinTests {
 
     @Test func `newly owned special rewards refresh without changing the other offer`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-4-stage-4"))
         let matchingSeed = (UInt64(1) ... 1000).first { seed in
             var rng = SeededRandomNumberGenerator(seed: seed)
-            return MysteryItemRarity.roll(using: &rng) == .unique
+            let offer = MysteryEffectApplier.resolveOffer(
+                choice: event.choices[0], encounterID: stage.id, encounterLevel: 16, rewardLevel: 16,
+                save: SaveTestSupport.makeSave(), using: &rng,
+            )
+            return offer.item.rarity == .unique
         }
         var rng = try SeededRandomNumberGenerator(seed: #require(matchingSeed))
         var save = SaveTestSupport.makeSave()
@@ -125,7 +129,7 @@ struct MysteryEventPinTests {
         #expect(!save.journey.completedStageIDs.contains(stage.id))
     }
 
-    @Test func `full gold wallets receive XP and partial wallets quote only receivable gold`() throws {
+    @Test func `gold wallets near cap receive XP instead of truncated gold`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         for gold in [990, 999] {
@@ -136,15 +140,11 @@ struct MysteryEventPinTests {
             let offer = offers[0]
             let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save)
             #expect(result.grantedItems == [offer.item])
-            if gold == 990 {
-                #expect(offer.bonus == .gold(9))
-                #expect(result.grantedGold == 9)
-            } else {
-                guard case .experience = offer.bonus else { Issue.record("Expected XP for a full Gold wallet"); continue }
-                #expect(offer.bonus.amount > 0)
-                #expect(result.heroGrantedExperience == offer.bonus.amount)
-                #expect(result.companionGrantedExperience == offer.bonus.amount)
-            }
+            guard case .experience = offer.bonus else { Issue.record("Expected XP for a near-cap Gold wallet"); continue }
+            #expect(offer.bonus.amount > 0)
+            #expect(result.grantedGold == 0)
+            #expect(result.heroGrantedExperience == offer.bonus.amount)
+            #expect(result.companionGrantedExperience == offer.bonus.amount)
         }
     }
 

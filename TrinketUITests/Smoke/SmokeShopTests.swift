@@ -30,6 +30,11 @@ final class SmokeShopTests: TrinketUITestCase {
         tapWhenReady(shop.detailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton, timeout: 5)
 
+        tapWhenReady(firstOfferCard)
+        assertExists(shop.detailBuy)
+        XCTAssertFalse(shop.detailBuy.isEnabled, "Sold stock remains inspectable but cannot be purchased again")
+        dismissSheet()
+
         scrollUntilVisible(shop.leaveButton, swipingUp: true, requireHittable: true)
         shop.leaveButton.tap()
         play.openCampaign(number: 2)

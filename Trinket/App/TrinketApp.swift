@@ -135,13 +135,10 @@ private struct PreparedAppRoot: View {
                 }
             }
             if !isPreparationComplete {
-                LaunchWarmupView()
-                    .allowsHitTesting(true)
-                    .task {
-                        try? await Task.sleep(for: .seconds(2))
-                        guard !Task.isCancelled else { return }
-                        isMinimumLoadingTimeComplete = true
-                    }
+                LaunchWarmupView {
+                    isMinimumLoadingTimeComplete = true
+                }
+                .allowsHitTesting(true)
                 if !areCastEffectsPrepared {
                     CardCastEffectsPrewarmView {
                         areCastEffectsPrepared = true

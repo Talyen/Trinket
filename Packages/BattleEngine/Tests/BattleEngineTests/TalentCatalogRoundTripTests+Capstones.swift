@@ -57,6 +57,19 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.hero.currentHealth == 1 + expected)
     }
 
+    @Test func `living archive echoes restored health rather than attempted overheal`() throws {
+        var battle = capstoneBattle(companion: ["library_owl_health_t4_1"])
+        battle.roster.hero.currentHealth = 38
+        let card = Ability(
+            id: "archive-overheal", name: "Archive Overheal", tier: .skill,
+            targetedEffects: [TargetedEffect(.instantHeal(.health, 10), target: .hero)],
+        )
+        try playHeroTalentCard(card, owner: .companion, in: &battle)
+        #expect(battle.roster.hero.currentHealth == 40)
+        let echo = battle.roster.runtime(for: battle.hero)?.healingEchoes.first
+        #expect(echo?.amount == CombatRounding.scaled(2, multiplier: 0.5))
+    }
+
     @Test func `copied battles keep queued healing and cleanse protection independent`() throws {
         var original = capstoneBattle(companion: ["library_owl_health_t4_1", "library_owl_cleanse_t4_1"])
         original.roster.companion.currentHealth = 1

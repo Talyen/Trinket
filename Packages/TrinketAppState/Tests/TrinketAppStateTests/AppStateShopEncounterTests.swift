@@ -40,20 +40,16 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id))
         let goldAfterFirst = state.playerSave.roster.gold
         let itemsAfterFirst = state.playerSave.inventory.items.count
-        let firstVisitToken = firstSession.visitToken
 
         state.encounters.activeShopEncounter = nil
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
 
         let secondSession = try #require(state.encounters.activeShopEncounter)
-        #expect(secondSession.visitToken != firstVisitToken)
         #expect(secondSession.offers.first?.id == offer.id)
 
-        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id))
-        #expect(state.playerSave.roster.gold == goldAfterFirst - offer.price)
-        #expect(state.playerSave.inventory.items.count == itemsAfterFirst + 1)
-        let ownedIDs = Set(state.playerSave.inventory.items.map(\.id))
-        #expect(ownedIDs.count == itemsAfterFirst + 1)
+        #expect(!state.encounters.purchaseActiveShopOffer(offerID: offer.id))
+        #expect(state.playerSave.roster.gold == goldAfterFirst)
+        #expect(state.playerSave.inventory.items.count == itemsAfterFirst)
     }
 
     @Test func `finish shop encounter completes stage without free item reward`() throws {

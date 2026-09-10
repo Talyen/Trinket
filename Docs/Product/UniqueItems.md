@@ -21,7 +21,9 @@ older affix payloads.
 
 Every Unique also appears in an explicit thematic
 [Mystery reward pool](MysteryEvents.md). Those placements retain each offer's
-ordinary gear fallback and existing rarity probabilities.
+fixed ordinary gear base and use the shared
+[progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards).
+Owned or ineligible Uniques leave the available pool before category selection.
 
 The original eight Trinket signatures remain unchanged. The following additions
 adapt Alchemy's item names and base pairings to Trinket's combat rules. Their

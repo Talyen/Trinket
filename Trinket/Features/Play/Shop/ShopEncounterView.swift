@@ -61,7 +61,7 @@ struct ShopEncounterView: View {
                 },
                 content: {
                     offerGrid
-                        .opacity(offersAppeared ? 1 : 0)
+                        .trinketPresentationVisibility(offersAppeared)
                         .offset(y: offersAppeared ? 0 : 10)
 
                     Button {
@@ -97,8 +97,8 @@ struct ShopEncounterView: View {
                     item: offer.item,
                     purchasePrice: offer.price,
                     canAfford: playerSave.roster.gold >= offer.price,
-                    isPurchaseDisabled: session.isPurchasing || session.isSoldOut(offer.id),
-                    purchaseButtonTitleOverride: session.isSoldOut(offer.id) ? "Sold Out" : nil,
+                    isPurchaseDisabled: session.isPurchasing || !availability(offer).canPurchase,
+                    purchaseButtonTitleOverride: isSoldOut(offer) ? "Sold Out" : nil,
                     onPurchase: {
                         attemptPurchase(offerID: offer.id, dismissDetail: true)
                     },
@@ -106,8 +106,8 @@ struct ShopEncounterView: View {
             }
             .trinketDetailSheet()
         }
-        .onAppear {
-            EncounterReadingEntrance.present(
+        .task {
+            await EncounterReadingEntrance.present(
                 artAppeared: $artAppeared,
                 copyAppeared: $contentAppeared,
                 trailingAppeared: $offersAppeared,
@@ -152,9 +152,9 @@ struct ShopEncounterView: View {
     private var offerGrid: some View {
         LazyVGrid(columns: columns, spacing: TrinketDesign.Spacing.large) {
             ForEach(session.offers) { offer in
-                let soldOut = session.isSoldOut(offer.id)
+                let soldOut = isSoldOut(offer)
                 let canAfford = playerSave.roster.gold >= offer.price
-                let canBuy = canAfford && !soldOut
+                let canBuy = availability(offer).canPurchase
                 VStack(spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
                     EncounterItemTile(
                         item: offer.item,
@@ -200,6 +200,17 @@ struct ShopEncounterView: View {
         .trinketGlassChip(.emphasis)
         .contentTransition(.opacity)
         .animation(TrinketMotion.Interaction.stateChange, value: soldOut)
+    }
+
+    private func availability(_ offer: ShopOffer) -> ShopOfferAvailability {
+        ShopPurchaseApplier.availability(offerID: offer.id, encounter: session.encounter, save: playerSave.currentSave)
+    }
+
+    private func isSoldOut(_ offer: ShopOffer) -> Bool {
+        switch availability(offer) {
+        case .unavailable(.soldOut), .unavailable(.alreadyOwned): true
+        case .available, .unavailable(.insufficientGold), .unavailable(.invalidOffer): false
+        }
     }
 
     private func attemptPurchase(offerID: String, dismissDetail: Bool) {

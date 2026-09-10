@@ -219,7 +219,7 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.roster.gold == initialGold + 10)
     }
 
-    @Test func `complete active battle without stage respects pending gold reservation`() throws {
+    @Test func `complete active battle without stage converts gold blocked by reserved production`() throws {
         let state = try context.makePlaySession()
         var save = state.playerSave.currentSave
         save.roster.gold = PlayerRosterState.maxGoldBalance - 4
@@ -237,7 +237,7 @@ struct AppStatePlayFlowTests {
 
         state.completeActiveBattle(configuration, battleGold: .init(gained: 10))
 
-        #expect(state.playerSave.roster.gold == PlayerRosterState.maxGoldBalance - 1)
+        #expect(state.playerSave.roster.gold == PlayerRosterState.maxGoldBalance - 4)
         #expect(state.playerSave.homestead.pendingProduction[.gold] == 1)
     }
 

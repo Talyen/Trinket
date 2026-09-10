@@ -9,6 +9,7 @@ public enum ContractsCompletion {
     ) -> BattleLootResult {
         VictoryRewardApplier.resolveLoot(
             LootRequest(
+                rewardLevel: encounterLevel,
                 seedSalt: "battle-loot-contract-\(offer.id)",
                 itemID: rewardItemID(offerID: offer.id),
             ),
@@ -28,7 +29,7 @@ public enum ContractsCompletion {
         encounterLevel: Int,
         loot: BattleLootResult,
         battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardAward? = nil,
+        award: BattleRewardSettlement? = nil,
         save: inout PlayerSave,
     ) -> Bool {
         guard save.contracts.replace(offerID: offerID) else { return false }

@@ -139,7 +139,9 @@ struct BattleAbilityCardView: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(card.ability.name)
-            .accessibilityHint("Double tap to play this card")
+            .accessibilityHint(isPlayable ? "Double tap to play this card" : "Not playable")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { requestPlay(.tap) }
             .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
     }
 
@@ -264,23 +266,18 @@ struct BattleAbilityCardView: View {
             minimumDistance: BattleHandLayout.dragMinimumDistance,
         )
         if isTap {
-            if isPlayable {
-                beginTapPlay()
-            } else {
-                reportPlayDeniedIfNeeded()
-                returnDrag()
-            }
+            requestPlay(.tap)
             return
         }
 
         let shouldPlay = BattleHandLayout.shouldPlay(
             translation: value.translation,
             predictedEndTranslation: value.predictedEndTranslation,
-            isPlayable: isPlayable,
+            isPlayable: true,
             threshold: playDragThreshold,
         )
         if shouldPlay {
-            beginPlay()
+            requestPlay(.drag)
             return
         }
         returnDrag()
@@ -370,6 +367,24 @@ struct BattleAbilityCardView: View {
         cancelTapLift()
     }
 
+    private enum PlayIntent {
+        case tap
+        case drag
+    }
+
+    private func requestPlay(_ intent: PlayIntent) {
+        guard isPlayable else {
+            reportPlayDeniedIfNeeded()
+            returnDrag()
+            return
+        }
+        guard tapLiftTask == nil else { return }
+        switch intent {
+        case .tap: beginTapPlay()
+        case .drag: beginPlay()
+        }
+    }
+
     private func beginPlay() {
         let center = BattleHandLayout.releaseCenter(
             restingCenter: restingCenter,
@@ -389,6 +404,11 @@ struct BattleAbilityCardView: View {
     }
 
     private func publishPlay(_ request: CardActivationRequest) {
+        guard isPlayable else {
+            reportPlayDeniedIfNeeded()
+            returnDrag()
+            return
+        }
         cancelInspection()
         let hadWindUp = didAnnounceWindUp
         didAnnounceWindUp = false

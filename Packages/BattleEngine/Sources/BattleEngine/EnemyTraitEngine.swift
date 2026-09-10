@@ -104,7 +104,8 @@ package enum EnemyTraitEngine {
               let attacker = context.roster.combatant(for: attackerID)?.combatant
         else { return [] }
 
-        let thornsAmount = max(1, CombatRounding.scaled(damageTaken, multiplier: profile.triggers.thornsPercent))
+        let thornsAmount = CombatRounding.scaled(damageTaken, multiplier: profile.triggers.thornsPercent)
+        guard thornsAmount > 0 else { return [] }
         let outcome = context.resolveDamage(
             DamageRequest(
                 amount: thornsAmount,

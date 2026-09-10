@@ -1,4 +1,5 @@
 import BattleEngine
+import Foundation
 import Observation
 import TrinketContent
 import TrinketCore
@@ -137,6 +138,7 @@ public final class PlaySession {
         _ configuration: BattleRunConfiguration,
         battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
+        settlement: BattleRewardSettlement? = nil,
     ) -> Bool {
         let combatants = [configuration.hero.combatant, configuration.companion.combatant]
         let progressionsBefore = Dictionary(
@@ -148,6 +150,7 @@ public final class PlaySession {
             configuration,
             battleGold: battleGold,
             materialRewards: materialRewards,
+            settlement: settlement,
             route: route(for: configuration.runKey),
             presentation: battlePresentation(for: configuration.runKey),
             onPersisted: { [weak self] in
@@ -164,6 +167,20 @@ public final class PlaySession {
             battleRunRegistry.remove(runKey)
         }
         return persisted
+    }
+
+    public func settleBattleRewards(
+        _ configuration: BattleRunConfiguration,
+        battleGold: BattleGoldFlow,
+        materialRewards: [ResourceAmount]? = nil,
+        at date: Date = Date(),
+    ) -> BattleRewardSettlement? {
+        guard battle.activeBattle?.id == configuration.id,
+              configuration.runKey == nil || route(for: configuration.runKey) != nil else { return nil }
+        return battleCompletion.settleRewards(
+            configuration, battleGold: battleGold, materialRewards: materialRewards,
+            presentation: battlePresentation(for: configuration.runKey), at: date,
+        )
     }
 
     public func choosePostBattleTalent(nodeID: String, treeID: String) -> TalentUnlockResult {

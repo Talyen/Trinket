@@ -17,7 +17,7 @@ struct PlayerHomesteadStoreTests {
         roster.gold = 4
         firstStore.roster = roster
 
-        let result = firstStore.buildOrUpgradeNode(definition)
+        let result = firstStore.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .success)
         try #expect(firstStore.homestead.tier(for: .wheatField) == 1)
         try #expect(firstStore.homestead.resources[.wood] == 15)
@@ -34,7 +34,7 @@ struct PlayerHomesteadStoreTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         store.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:])
 
-        let result = store.buildOrUpgradeNode(definition)
+        let result = store.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .insufficientResources)
         try #expect(store.homestead.tier(for: .wheatField) == 0)
     }
@@ -49,9 +49,23 @@ struct PlayerHomesteadStoreTests {
             nodeTiers: [.wheatField: maxTier],
         )
 
-        let result = store.buildOrUpgradeNode(definition)
+        let result = store.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .notAvailable)
         try #expect(store.homestead.tier(for: .wheatField) == maxTier)
+    }
+
+    @Test @MainActor func `repeated displayed tier cannot buy the following upgrade`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+        store.homestead = PlayerHomesteadState(resources: [.wood: 99, .herbs: 99], nodeTiers: [:])
+        #expect(store.buildOrUpgradeNode(definition, targetTier: 1) == .success)
+        let after = store.currentSave
+        #expect(store.buildOrUpgradeNode(definition, targetTier: 1) == .notAvailable)
+        #expect(store.currentSave == after)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.homestead.tier(for: .wheatField) == 1)
+        #expect(reloaded.homestead.resources == after.homestead.resources)
     }
 
     @Test @MainActor func `collect production persists pending materials and timestamp`() throws {
@@ -93,7 +107,7 @@ struct PlayerHomesteadStoreTests {
             lastProductionAt: start,
         )
 
-        let result = store.buildOrUpgradeNode(definition, at: upgradeDate)
+        let result = store.buildOrUpgradeNode(definition, targetTier: 2, at: upgradeDate)
         try #expect(result == .success)
         try #expect(store.homestead.tier(for: .wheatField) == 2)
         try #expect(store.homestead.pendingProduction[.food] == 1)

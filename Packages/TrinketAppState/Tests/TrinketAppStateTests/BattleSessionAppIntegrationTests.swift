@@ -14,6 +14,35 @@ struct BattleSessionAppIntegrationTests {
         context = try AppTestContext()
     }
 
+    @Test func `stale victory settlement must refresh before claiming`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        #expect(state.journey.startBattle(for: stage) == nil)
+        let configuration = try #require(state.battle.activeBattle)
+        let battle = try #require(state.battle as? BattleSession)
+        battle.installRewardSettlementHandler(ownerID: UUID()) { configuration, flow in
+            state.settleBattleRewards(configuration, battleGold: flow)
+        }
+        try battle.installPresentationContext(#require(state.battlePresentation(for: configuration.runKey)))
+        battle.presentLaunchVictory()
+        let summary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
+        let original = summary.settlement
+        try state.playerSave.performBatchMutation { save in save.roster.gold = 999 }
+        #expect(!state.completeActiveBattle(configuration, battleGold: .init(), settlement: original))
+        #expect(!state.playerSave.journey.hasClaimedRewards(for: stage))
+        battle.presentLaunchVictory()
+        let refreshedSummary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
+        let refreshed = refreshedSummary.settlement
+        #expect(refreshed.award.goldGained == 0)
+        #expect(refreshed.replacementExperience > 0)
+        #expect(refreshedSummary.totalGold == 0)
+        #expect(refreshedSummary.experience == refreshed.award.heroExperience)
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(), settlement: refreshed))
+        #expect(state.playerSave.roster.gold == 999)
+        #expect(state.playerSave.roster.progression(for: configuration.hero.combatant) == refreshed.heroProgressionAfter)
+        #expect(state.playerSave.roster.progression(for: configuration.companion.combatant) == refreshed.companionProgressionAfter)
+    }
+
     @Test func `prepared battle uses current party build`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)

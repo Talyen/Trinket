@@ -5,6 +5,10 @@ final class SmokeBattleTests: TrinketUITestCase {
     func testBattleLaunchScreenStartsStageOneOne() {
         launchApp(arguments: TestLaunchArg.allForBattle())
         battle.assertActive(timeout: 8)
+        assertExists(battle.actionsMenu)
+        XCTAssertTrue(battle.actionsMenu.isHittable, "Battle controls must remain exposed above the retained map")
+        assertDoesNotExist(AccessibilityID.Play.campaignModeCard)
+        assertDoesNotExist(AccessibilityID.Play.exploreModeCard)
     }
 
     func testContractsBoardLaunchesBattleAndReturnsAfterRetreat() {

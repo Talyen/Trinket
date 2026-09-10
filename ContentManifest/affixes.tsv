@@ -91,5 +91,5 @@ sundering_charm	Shatterguard	trinket	physical,block	1	Physical and Stun damage r
 tattered_pages	Forbidden Knowledge	trinket	mana	1	Draw an additional card every other turn.	Draw an additional card every other turn.			draw_every_other_turn:1	draw_every_other_turn:1
 thunderstone	Stormbreak	trinket	physical,stun	1	Deal double damage to Stunned enemies.	Deal double damage to Stunned enemies.			stunned_damage_multiplier:2.00	stunned_damage_multiplier:2.00
 vanguards_crest	Martial Guard	trinket	physical,block	1	Gain Block equal to half your Physical damage.	Gain Block equal to half your Physical damage.			physical_damage_block_percent:0.50	physical_damage_block_percent:0.50
-wishing_well_coin	Fickle Fortune	trinket	gold	1	On victory, gain 7 Gold or lose 3 Gold.	On victory, gain 7 Gold or lose 3 Gold.			victory_gold_coin:true	victory_gold_coin:true
+wishing_well_coin	Fickle Fortune	trinket	gold	1	On victory, gain 7 Gold or gain 3 Gold.	On victory, gain 7 Gold or gain 3 Gold.			victory_gold_coin:true	victory_gold_coin:true
 whiplash	Whiplash	weapon	dodge,stun	8	Deal 3 Stun damage when you Dodge.	Deal 5 Stun damage when you Dodge.			on_dodge_deal_stun:3	on_dodge_deal_stun:5

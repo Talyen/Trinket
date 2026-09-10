@@ -25,7 +25,7 @@ Keep `PlaySession` focused on shell navigation and launch/completion orchestrati
 
 `BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns cinematics and outcome timing. Views observe the narrow lane they render. App-level options and audio enter through `BattleRuntimeDependencies`; BattleFeature never imports `TrinketAppState`.
 
-Victory chrome uses launch-baked awards; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
+Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 
 Opening draws and turn transitions execute synchronously in BattleEngine. Their
 recording callback emits checkpoints that BattleFeature projects into immutable
@@ -36,10 +36,16 @@ Suspension pauses playback; replacing/ending a run invalidates its generation.
 Do not expose incremental draw mutation to BattleFeature or derive readiness from
 whether an animation task happens to exist.
 
-`BattlePresentationContext.rewardPlan` resolves a shared `BattleRewardAward` from
-`BattleGoldFlow`; completion passes that award to the persistence applier. Gold
-gains and spending remain separate through this boundary, including negative net
-wallet changes. Reward math lives in the shared value contract, not the view.
+The app overlay installs a reward-settlement capability on `BattleSession` before
+presenting outcomes. AppState settles `BattlePresentationContext.rewardPlan` against
+final `BattleGoldFlow` and a save snapshot. `BattleVictorySummary` projects the
+resulting `BattleRewardSettlement`; Continue passes that exact value back for
+validation and persistence. A stale snapshot refreshes the reveal without claiming
+or dismissing it. Standalone previews use the same pure settlement operation with
+presentation inputs. Keep this capability out of `BattleRuntime`; BattleFeature
+must not import Persistence or AppState. Capacity, reservations, and transaction
+rules live in [persistence context](persistence.md). Current combat content only
+grants Gold; it must not debit the battle wallet.
 
 For app-level SwiftUI screens outside BattleFeature, load `swiftui-features.md` only when the path is visual.
 

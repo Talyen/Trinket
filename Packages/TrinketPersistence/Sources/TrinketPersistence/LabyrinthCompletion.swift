@@ -53,7 +53,7 @@ public enum LabyrinthCompletion {
         hero: Combatant,
         companion: Combatant,
         battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardAward? = nil,
+        award: BattleRewardSettlement? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,

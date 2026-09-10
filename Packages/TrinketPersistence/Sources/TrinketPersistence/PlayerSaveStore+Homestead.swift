@@ -20,36 +20,26 @@ public enum HomesteadCollectionResult: Equatable, Sendable {
 public extension PlayerSaveStore {
     func buildOrUpgradeNode(
         _ definition: HomesteadNodeDefinition,
+        targetTier: Int,
         at date: Date = Date(),
     ) -> HomesteadBuildResult {
-        guard homestead.isUnlocked(definition),
-              homestead.nextTier(for: definition) != nil
-        else {
-            return .notAvailable
-        }
-
-        var buildResult: HomesteadBuildResult = .notAvailable
-        guard persistBatch(logging: "Failed to build or upgrade homestead node", { save in
+        let result = persistTransaction(logging: "Failed to build or upgrade homestead node") { save -> Result<
+            Void,
+            HomesteadBuildFailure,
+        > in
+            guard let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier,
+                  save.homestead.isUnlocked(definition) else { return .failure(.notAvailable) }
             save.homestead.settleProduction(at: date, roster: save.roster)
-            guard let tier = save.homestead.nextTier(for: definition),
-                  save.homestead.isUnlocked(definition)
-            else {
-                buildResult = .notAvailable
-                return
-            }
-            guard save.homestead.canAfford(tier, roster: save.roster) else {
-                buildResult = .insufficientResources
-                return
-            }
-            guard save.homestead.buildOrUpgrade(definition, roster: &save.roster) else {
-                buildResult = .notAvailable
-                return
-            }
-            buildResult = .success
-        }) else {
-            return .persistFailed
+            guard save.homestead.canAfford(tier, roster: save.roster) else { return .failure(.insufficientResources) }
+            guard save.homestead.buildOrUpgrade(definition, roster: &save.roster) else { return .failure(.notAvailable) }
+            return .success(())
         }
-        return buildResult
+        switch result {
+        case .committed: return .success
+        case .rejected(.notAvailable): return .notAvailable
+        case .rejected(.insufficientResources): return .insufficientResources
+        case .persistFailed: return .persistFailed
+        }
     }
 
     func collectProduction(at date: Date = Date()) -> HomesteadCollectionResult {
@@ -61,4 +51,9 @@ public extension PlayerSaveStore {
         }
         return collected.isEmpty ? .noProduction : .success(collected)
     }
+}
+
+private enum HomesteadBuildFailure: Error {
+    case notAvailable
+    case insufficientResources
 }

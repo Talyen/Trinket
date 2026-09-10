@@ -33,7 +33,7 @@ public final class PlayerSaveRoot {
 }
 
 enum PlayerSaveSchema: VersionedSchema {
-    static let versionIdentifier = Schema.Version(1, 0, 0)
+    static let versionIdentifier = Schema.Version(2, 0, 0)
 
     static let models: [any PersistentModel.Type] = [
         PlayerSaveRoot.self,

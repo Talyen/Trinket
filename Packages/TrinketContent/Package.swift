@@ -9,6 +9,7 @@ let package = Package(
         .macOS(.v15),
     ],
     products: [
+        .executable(name: "LootBalanceReport", targets: ["LootBalanceReport"]),
         .library(
             name: "TrinketContent",
             targets: ["TrinketContent"],
@@ -22,6 +23,7 @@ let package = Package(
         .package(path: "../TrinketCore"),
     ],
     targets: [
+        .executableTarget(name: "LootBalanceReport", dependencies: ["TrinketContent"]),
         .target(
             name: "TrinketContent",
             dependencies: ["TrinketCore"],

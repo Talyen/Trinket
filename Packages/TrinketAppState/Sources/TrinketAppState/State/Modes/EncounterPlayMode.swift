@@ -42,24 +42,19 @@ public final class EncounterPlayMode {
         guard playerSave.encounterAccessRestriction(for: origin) == nil,
               canBeginTransientEncounter else { return .unavailable }
 
-        let nodeEffects = origin.labyrinthNodeID.map {
-            playerSave.labyrinth.effects(for: $0)
-        } ?? .zero
-        switch ShopEncounterSession.open(
-            origin: origin,
-            worldSeed: playerSave.worldSeed,
-            ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
-            allAstral: nodeEffects.astralShopOffers,
-            priceDiscountPercent: nodeEffects.shopDiscountPercent,
-        ) {
-        case let .opened(shopSession):
-            activeShopEncounter = shopSession
-            return .opened(shopSession)
-        case .autoCompleted:
-            return .autoCompleted
-        case .unavailable:
-            return .unavailable
+        let encounter = origin.identity(in: playerSave.currentSave)
+        switch playerSave.persistTransaction(logging: "Failed to prepare shop stock", { save in
+            ShopStockPersistence.prepare(encounter: encounter, save: &save)
+        }) {
+        case let .committed(stock):
+            guard !stock.offers.isEmpty else { return .autoCompleted }
+            let session = ShopEncounterSession(origin: origin, encounter: encounter, offers: stock.offers)
+            activeShopEncounter = session
+            return .opened(session)
+        case .rejected:
+            return .failed(StageMapMessage(title: "Shop Unavailable", message: "The shop could not be opened. Your progress is preserved."))
+        case .persistFailed:
+            return .failed(StageMapMessage(title: "Couldn't Save Shop", message: "The shop was not saved. Try opening it again."))
         }
     }
 
@@ -67,37 +62,20 @@ public final class EncounterPlayMode {
     public func purchaseActiveShopOffer(offerID: String) -> Bool {
         guard let shopSession = activeShopEncounter else { return false }
         guard !shopSession.isPurchasing else { return false }
-        guard let offer = shopSession.offers.first(where: { $0.id == offerID }) else { return false }
-        guard !shopSession.isSoldOut(offerID) else {
-            shopSession.markPurchaseFailed(message: "That item is already sold.")
-            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
-            return false
-        }
-
         shopSession.markPurchaseStarted()
-        var purchaseResult: ShopPurchaseResult?
-        guard playerSave.persistBatch(logging: "Failed to purchase shop offer", { save in
-            purchaseResult = ShopPurchaseApplier.purchase(
-                offer: offer,
-                visitToken: shopSession.visitToken,
-                stageID: shopSession.stage.id,
-                save: &save,
-            )
-        }) else {
-            shopSession.markPurchaseFailed(message: "Purchase failed. Try again.")
-            return false
-        }
-
-        switch purchaseResult {
-        case .success:
-            shopSession.markPurchaseFinished(offerID: offerID)
+        switch playerSave.persistTransaction(logging: "Failed to purchase shop offer", { save in
+            ShopPurchaseApplier.purchase(offerID: offerID, encounter: shopSession.encounter, save: &save)
+        }) {
+        case .committed:
+            shopSession.markPurchaseFinished()
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
             return true
-        case .insufficientGold, .alreadyOwned, .invalidOffer, .none:
-            shopSession.markPurchaseFailed(
-                message: purchaseResult?.failureMessage ?? "Purchase failed.",
-            )
+        case let .rejected(reason):
+            shopSession.markPurchaseFailed(message: reason.message)
             sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+            return false
+        case .persistFailed:
+            shopSession.markPurchaseFailed(message: "Purchase failed. Try again.")
             return false
         }
     }
@@ -116,6 +94,8 @@ public final class EncounterPlayMode {
             return emptyShopClosedMessage(identifier: identifier)
         case .opened, .unavailable:
             return nil
+        case let .failed(message):
+            return message
         }
     }
 

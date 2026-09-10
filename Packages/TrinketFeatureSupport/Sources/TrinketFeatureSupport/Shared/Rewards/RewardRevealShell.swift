@@ -77,9 +77,8 @@ public struct RewardRevealShell<Content: View>: View {
                             .foregroundStyle(TrinketDesign.Colors.accent)
                             .textCase(.uppercase)
                             .trinketFittedText()
-                            .opacity(eyebrowOpacity)
+                            .trinketPresentationVisibility(eyebrowOpacity >= 1, opacity: eyebrowOpacity)
                             .offset(y: (1 - eyebrowOpacity) * TrinketDesign.Spacing.small)
-                            .accessibilityHidden(eyebrowOpacity < 1)
                             .accessibilityIdentifier(eyebrowAccessibilityIdentifier ?? eyebrow)
                     }
 
@@ -89,9 +88,8 @@ public struct RewardRevealShell<Content: View>: View {
                             .foregroundStyle(titleColor)
                             .multilineTextAlignment(.center)
                             .trinketFittedText()
-                            .opacity(titleOpacity)
+                            .trinketPresentationVisibility(titleOpacity >= 1, opacity: titleOpacity)
                             .offset(y: (1 - titleOpacity) * TrinketDesign.Spacing.small)
-                            .accessibilityHidden(titleOpacity < 1)
                             .accessibilityIdentifier(titleAccessibilityIdentifier)
                     }
 
@@ -101,9 +99,8 @@ public struct RewardRevealShell<Content: View>: View {
                             .foregroundStyle(subtitleColor)
                             .multilineTextAlignment(.center)
                             .trinketFittedText()
-                            .opacity(subtitleOpacity)
+                            .trinketPresentationVisibility(subtitleOpacity >= 1, opacity: subtitleOpacity)
                             .offset(y: (1 - subtitleOpacity) * TrinketDesign.Spacing.small)
-                            .accessibilityHidden(subtitleOpacity < 1)
                             .accessibilityIdentifier(subtitleAccessibilityIdentifier ?? subtitle)
                     }
                 }
@@ -155,10 +152,8 @@ public struct RewardRevealShell<Content: View>: View {
             .trinketPrimaryActionButton()
             .trinketCenteredPrimaryAction()
             .disabled(isPrimaryActionDisabled)
-            .opacity(primaryActionOpacity)
+            .trinketPresentationVisibility(primaryActionOpacity >= 1, opacity: primaryActionOpacity)
             .offset(y: (1 - primaryActionOpacity) * TrinketDesign.Spacing.small)
-            .accessibilityHidden(primaryActionOpacity < 1)
-            .allowsHitTesting(primaryActionOpacity >= 1 && !isPrimaryActionDisabled)
             .accessibilityIdentifier(primaryActionAccessibilityIdentifier)
         }
     }

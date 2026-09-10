@@ -20,8 +20,10 @@ struct PlayBrowsingStack: View {
     var body: some View {
         NavigationStack(path: browsingPath) {
             PlayModeHubView()
+                .trinketPresentationVisibility(!isBattleActive, opacity: 1)
                 .navigationDestination(for: PlayLaunchDestination.self) { destination in
                     destinationView(for: destination)
+                        .trinketPresentationVisibility(!isBattleActive, opacity: 1)
                 }
         }
         .trinketSensoryFeedback(.selection, trigger: modeSelectionTrigger, enabled: options.hapticsEnabled)

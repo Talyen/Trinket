@@ -23,7 +23,7 @@ public enum StageCompletion {
         let level = encounterLevel ?? resolvedEncounterLevel(for: stage, in: chapters)
         let isBoss = enemyIsBoss ?? VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
         return VictoryRewardApplier.resolveLoot(
-            .journey(stage: stage),
+            .journey(stage: stage, chapters: chapters),
             encounterLevel: level,
             enemyIsBoss: isBoss,
             worldSeed: worldSeed,
@@ -58,7 +58,7 @@ public enum StageCompletion {
         hero: Combatant,
         companion: Combatant,
         battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardAward? = nil,
+        award: BattleRewardSettlement? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -89,7 +89,7 @@ public enum StageCompletion {
         hero: Combatant,
         companion: Combatant,
         battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardAward? = nil,
+        award: BattleRewardSettlement? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -132,7 +132,7 @@ public enum StageCompletion {
         hero: Combatant,
         companion: Combatant,
         battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardAward? = nil,
+        award: BattleRewardSettlement? = nil,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         loot: BattleLootResult? = nil,
@@ -184,39 +184,15 @@ public enum StageCompletion {
             save: &save,
         )
         if award == nil, item == nil {
-            grantAuthoredItems(for: stage, worldSeed: save.worldSeed, inventory: &save.inventory)
+            grantAuthoredItems(for: stage, inventory: &save.inventory)
         }
 
         save.journey.markRewardsClaimed(for: stage)
     }
 
-    private static func grantAuthoredItems(
-        for stage: Stage,
-        worldSeed: UInt64,
-        inventory: inout PlayerInventoryState,
-    ) {
-        var reservedTrinketIDs = Set<String>()
+    private static func grantAuthoredItems(for stage: Stage, inventory: inout PlayerInventoryState) {
         for templateID in stage.rewards.itemTemplateIDs {
             guard let template = GameContent.itemTemplate(matching: templateID) else { continue }
-            if template.rarity == .astral {
-                var randomNumberGenerator = SeededRandomNumberGenerator(
-                    seed: GameContent.encounterSeed(
-                        worldSeed,
-                        salt: "authored-stage-item-\(stage.id)-\(templateID)",
-                    ),
-                )
-                let eligibleTrinkets = GameContent.trinketItems.filter {
-                    !inventory.ownedTrinketIDs.contains($0.templateID)
-                        && !reservedTrinketIDs.contains($0.templateID)
-                }
-                if !eligibleTrinkets.isEmpty,
-                   Bool.random(using: &randomNumberGenerator),
-                   let trinket = eligibleTrinkets.randomElement(using: &randomNumberGenerator) {
-                    inventory.appendUniqueItem(trinket)
-                    reservedTrinketIDs.insert(trinket.templateID)
-                    continue
-                }
-            }
             inventory.addRewardItem(from: template, for: stage)
         }
     }

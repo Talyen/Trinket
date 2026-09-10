@@ -59,7 +59,8 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         InspectableTapButton(
             action: action,
             longPress: inspectAction(for: slot, locked: locked, filled: inspectFilled),
-            isDisabled: locked,
+            isActionEnabled: !locked,
+            isInspectionEnabled: !locked,
             label: { card(slot) },
         )
         .trinketQuietTapButtonStyle()

@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
@@ -14,6 +15,7 @@ struct PlayBattleCompletion {
         _ configuration: BattleRunConfiguration,
         battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
+        settlement: BattleRewardSettlement? = nil,
         route: PlayBattleRoute?,
         presentation: BattlePresentationContext?,
         onPersisted: () -> Void,
@@ -34,6 +36,11 @@ struct PlayBattleCompletion {
             return false
         }
 
+        let resolved = settleRewards(
+            configuration, battleGold: battleGold, materialRewards: materialRewards, presentation: presentation,
+            at: settlement?.inputs.productionDate ?? Date(),
+        )
+        guard settlement == nil || settlement == resolved else { return false }
         let origin = route?.origin
         let loot = Self.preparedLoot(
             from: presentation,
@@ -43,12 +50,19 @@ struct PlayBattleCompletion {
             route.complete(
                 configuration,
                 presentation,
-                presentation.rewardPlan.resolve(battleGold: battleGold, materials: materialRewards),
+                settlement ?? resolved,
                 materialRewards,
                 loot,
             )
         } else {
-            battleGold.net != 0 ? grantBattleEarnedGold(battleGold.net) : true
+            playerSave.persistBatch(logging: "Failed to persist battle rewards") { save in
+                VictoryRewardApplier.apply(
+                    resolved,
+                    hero: configuration.hero.combatant,
+                    companion: configuration.companion.combatant,
+                    save: &save,
+                )
+            }
         }
         if persisted {
             onPersisted()
@@ -70,10 +84,27 @@ struct PlayBattleCompletion {
         )
     }
 
-    @discardableResult
-    func grantBattleEarnedGold(_ amount: Int) -> Bool {
-        playerSave.persistBatch(logging: "Failed to persist battle gold") { save in
-            save.applyGoldDelta(amount)
-        }
+    func settleRewards(
+        _ configuration: BattleRunConfiguration,
+        battleGold: BattleGoldFlow,
+        materialRewards: [ResourceAmount]? = nil,
+        presentation: BattlePresentationContext?,
+        at date: Date = Date(),
+    ) -> BattleRewardSettlement {
+        let plan = presentation?.rewardPlan ?? BattleRewardPlan(
+            stageGold: 0, goldFindPercent: 0,
+            goldOverflowExperience: RewardExperiencePolicy.encounterAward(
+                encounterLevel: configuration.enemyEncounterLevel ?? configuration.hero.progression.level,
+                roster: playerSave.roster,
+            ),
+            heroExperience: 0, companionExperience: 0, materials: [], items: [],
+        )
+        return plan.settle(
+            battleGold: battleGold,
+            inputs: RewardSettlementInputs(
+                save: playerSave.currentSave, hero: configuration.hero.combatant, companion: configuration.companion.combatant, at: date,
+            ),
+            materials: materialRewards,
+        )
     }
 }

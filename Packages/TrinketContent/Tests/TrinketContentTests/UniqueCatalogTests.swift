@@ -175,7 +175,8 @@ struct UniqueCatalogTests {
             var rng = SeededRandomNumberGenerator(seed: 1772)
             let reward = ItemRewardGenerator.generate(
                 id: "reward",
-                tier: .unique,
+                rewardLevel: 1,
+                allowedTiers: [.unique],
                 ownedTrinketIDs: [],
                 ownedUniqueIDs: allIDs.subtracting([item.id]),
                 using: &rng,

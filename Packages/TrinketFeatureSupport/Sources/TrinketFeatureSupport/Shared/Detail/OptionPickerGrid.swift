@@ -65,7 +65,8 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                             onSelect(item)
                         },
                         longPress: inspectAction(for: item, eligible: eligible),
-                        isDisabled: !eligible,
+                        isActionEnabled: eligible,
+                        isInspectionEnabled: eligible,
                         label: {
                             card(item, selected)
                                 .opacity(eligible ? 1.0 : 0.4)

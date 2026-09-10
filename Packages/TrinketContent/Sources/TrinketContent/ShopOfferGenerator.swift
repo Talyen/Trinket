@@ -22,6 +22,7 @@ public enum ShopOfferGenerator {
 
     public static func generateOffers(
         stageID: String,
+        rewardLevel: Int,
         count: Int = offerCount,
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
         itemGenerator: ItemGenerator = ItemGenerator(),
@@ -38,30 +39,13 @@ public enum ShopOfferGenerator {
         var reservedTrinketIDs = Set<String>()
         var offers: [ShopOffer] = []
         for index in 0 ..< count {
-            let tier: ItemDropTier = if isStarterShop {
-                .basic
-            } else if allAstral {
-                .astral
-            } else {
-                ItemRarityRoll.roll(
-                    bossContent: false,
-                    astralChanceBonusPercent: astralChanceBonusPercent,
-                    allowsUnique: false,
-                    using: &randomNumberGenerator,
-                )
-            }
-            let priceRarity: Rarity = tier == .basic ? .basic : .astral
             let basePrice = Int.random(in: basePriceRange, using: &randomNumberGenerator)
-            var price = priceRarity == .astral ? basePrice * astralPriceMultiplier : basePrice
-            if isStarterShop {
-                price = max(1, (price * starterShopPriceDiscountPercent) / 100)
-            } else if priceDiscountPercent > 0 {
-                price = max(1, (price * (100 - min(priceDiscountPercent, 100))) / 100)
-            }
             let offerID = "\(stageID)-offer-\(index)"
             let item = ItemRewardGenerator.generate(
                 id: offerID,
-                tier: tier,
+                rewardLevel: rewardLevel,
+                astralChanceBonusPercent: astralChanceBonusPercent,
+                allowedTiers: allAstral ? [.astral] : [.basic, .astral, .trinket],
                 ownedTrinketIDs: ownedTrinketIDs,
                 ownedUniqueIDs: [],
                 reservedTrinketIDs: reservedTrinketIDs,
@@ -69,6 +53,12 @@ public enum ShopOfferGenerator {
                 itemGenerator: itemGenerator,
                 using: &randomNumberGenerator,
             )
+            var price = item.rarity == .astral ? basePrice * astralPriceMultiplier : basePrice
+            if isStarterShop {
+                price = max(1, (price * starterShopPriceDiscountPercent) / 100)
+            } else if priceDiscountPercent > 0 {
+                price = max(1, (price * (100 - min(priceDiscountPercent, 100))) / 100)
+            }
             if item.isTrinket {
                 reservedTrinketIDs.insert(item.templateID)
             }

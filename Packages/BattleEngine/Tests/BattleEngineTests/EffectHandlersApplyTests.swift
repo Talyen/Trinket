@@ -367,28 +367,34 @@ struct EffectHandlersApplyTests {
 }
 
 extension EffectHandlersApplyTests {
-    @Test func `resource gain and spending preserve gross gold flows`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            initialGold: 10,
-            heroModifiers: .init(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
-        )
-        let resourceEffect: Effect = .resourceGain(.gold, 3)
-        let outcome = EffectHandlersTestSupport.dispatch(
-            resourceEffect,
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle,
-        )
-        try #expect(outcome.didApply)
-        try #expect(battle.gold == 13)
-        try #expect(outcome.events.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
-        let lossSeed = try #require((UInt64(0) ..< 16).first { seed in
+    @Test func `victory coin grants gold without spending`() throws {
+        let successSeed = try #require((UInt64(0) ..< 16).first { seed in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return BattleChance.succeeds(probability: 0.5, using: &rng)
+        })
+        let fallbackSeed = try #require((UInt64(0) ..< 16).first { seed in
             var rng = SeededRandomNumberGenerator(seed: seed)
             return !BattleChance.succeeds(probability: 0.5, using: &rng)
         })
-        battle.rng = SeededRandomNumberGenerator(seed: lossSeed)
-        _ = CombatTriggerEngine.afterVictory(in: &battle)
-        #expect(battle.gold == 10)
-        #expect(battle.goldFlow == BattleGoldFlow(gained: 3, spent: 3))
+
+        var successBattle = BattleStateTestFactory.makeBattle(
+            initialGold: 10,
+            heroModifiers: .init(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
+        )
+        successBattle.rng = SeededRandomNumberGenerator(seed: successSeed)
+        let successEvents = CombatTriggerEngine.afterVictory(in: &successBattle)
+        #expect(successBattle.gold == 17)
+        #expect(successBattle.goldFlow == BattleGoldFlow(gained: 7))
+        #expect(successEvents.contains { $0.effectKind == .resourceGain && $0.amount == 7 })
+
+        var fallbackBattle = BattleStateTestFactory.makeBattle(
+            initialGold: 10,
+            heroModifiers: .init(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
+        )
+        fallbackBattle.rng = SeededRandomNumberGenerator(seed: fallbackSeed)
+        let fallbackEvents = CombatTriggerEngine.afterVictory(in: &fallbackBattle)
+        #expect(fallbackBattle.gold == 13)
+        #expect(fallbackBattle.goldFlow == BattleGoldFlow(gained: 3))
+        #expect(fallbackEvents.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
     }
 }

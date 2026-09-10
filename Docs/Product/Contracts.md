@@ -18,7 +18,9 @@ Let P be the active Hero and Companion's average level, rounded down:
 | Standard | Ordinary enemy | P |
 | Hard | Boss | P + 3 |
 
-Use the existing enemy curves, ordinary/boss loot tables, catch-up XP,
+Use the existing enemy curves, shared
+[progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
+at the resolved encounter level, catch-up XP,
 level-difference XP reductions, reward ownership, and applicable Homestead
 effects. There are no Contracts-specific stat or reward multipliers. Difficulty
 labels describe level and enemy category, not a guaranteed matchup outcome.

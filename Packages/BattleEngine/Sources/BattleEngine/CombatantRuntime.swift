@@ -225,9 +225,7 @@ public struct CombatantRuntime: Hashable {
     }
 
     public mutating func heal(_ amount: Int) -> Int {
-        let cachedMaxHealth = maxHealth
-        let space = max(0, cachedMaxHealth - currentHealth)
-        let actual = min(amount, space)
+        let actual = CombatGain.amount(amount, current: currentHealth, cap: maxHealth)
         currentHealth += actual
         return actual
     }

@@ -58,13 +58,12 @@ struct PlayBattleOverlay: View {
                     .accessibilityHidden(true)
             }
         }
-        .opacity(isActive ? 1 : 0)
+        .trinketPresentationVisibility(isActive)
         .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
-        .allowsHitTesting(isActive && configuration.flatMap { battlePresentationContext(for: $0) } != nil)
-        .accessibilityHidden(!isActive)
         .onAppear(perform: installClaimedVictoryHandler)
         .onDisappear {
             battle.uninstallClaimedVictoryHandler(ownerID: claimedVictoryHandlerOwnerID)
+            battle.uninstallRewardSettlementHandler(ownerID: claimedVictoryHandlerOwnerID)
         }
         .onChange(of: configuration?.id, initial: true) { _, _ in
             syncPresentationContext()
@@ -102,6 +101,9 @@ struct PlayBattleOverlay: View {
         let launchVictoryWasPresented = switch battle.spectacle.outcomePresentation {
         case .victory: true
         case .battle, .pendingVictory, .defeat: false
+        }
+        battle.installRewardSettlementHandler(ownerID: claimedVictoryHandlerOwnerID) { [weak play] configuration, gold in
+            play?.settleBattleRewards(configuration, battleGold: gold)
         }
         battle.installPresentationContext(presentationContext)
         guard battle.activeBattle != nil else { return }
@@ -145,12 +147,22 @@ struct PlayBattleOverlay: View {
         configuration: BattleRunConfiguration,
         summary: BattleVictorySummary,
     ) -> Bool {
+        guard let current = play.settleBattleRewards(
+            configuration, battleGold: summary.goldFlow, materialRewards: summary.materialRewards,
+            at: summary.settlement.inputs.productionDate,
+        ) else { return false }
+        if current != summary.settlement {
+            battle.presentLaunchVictory()
+            return false
+        }
         let didPersist = play.completeActiveBattle(
             configuration,
             battleGold: summary.goldFlow,
             materialRewards: summary.materialRewards,
+            settlement: summary.settlement,
         )
         if !didPersist {
+            battle.presentLaunchVictory()
             stageMessage = Self.persistenceFailureMessage
         }
         return didPersist

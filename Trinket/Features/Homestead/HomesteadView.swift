@@ -129,7 +129,7 @@ struct HomesteadView: View {
                             color: HomesteadResource.gold.tint.opacity(playerSave.isCloudSyncEnabled ? 0 : 0.22),
                             radius: TrinketDesign.Spacing.medium,
                         )
-                        .opacity(depositEvent?.gathered == true ? 0 : 1)
+                        .trinketPresentationVisibility(depositEvent?.gathered != true)
                     }
                     .frame(maxWidth: .infinity)
                     .transition(.opacity)

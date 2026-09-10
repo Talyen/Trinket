@@ -132,7 +132,6 @@ public final class AppState {
             return false
         }
         shellSession.selectedTab = .play
-        play.queueDestination(.campaign)
         return true
     }
 

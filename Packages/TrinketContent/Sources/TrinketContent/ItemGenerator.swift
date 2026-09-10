@@ -130,7 +130,10 @@ public enum ItemRewardGenerator {
 
     public static func generate(
         id: String,
-        tier: ItemDropTier,
+        rewardLevel: Int,
+        bossContent: Bool = false,
+        astralChanceBonusPercent: Int = 0,
+        allowedTiers: Set<ItemDropTier> = Set(ItemDropTier.allCases),
         ownedTrinketIDs: Set<String>,
         ownedUniqueIDs: Set<String>,
         reservedTrinketIDs: Set<String> = [],
@@ -150,75 +153,43 @@ public enum ItemRewardGenerator {
             baseTypes: baseTypes,
             itemGenerator: itemGenerator,
         )
-        switch tier {
-        case .unique:
-            var uniques = GameContent.uniqueItems.filter {
-                !ownedUniqueIDs.contains($0.templateID)
-            }
-            if let eligibleUniqueIDs {
-                uniques = uniques.filter { eligibleUniqueIDs.contains($0.templateID) }
-            }
-            if !keywordBias.isEmpty {
-                uniques = uniques.filter { !$0.keywords.isDisjoint(with: keywordBias) }
-            }
-            if let unique = uniques.randomElement(using: &randomNumberGenerator) {
-                return unique
-            }
-            if eligibleUniqueIDs != nil {
-                return generated(id: id, rarity: .astral, context: context, using: &randomNumberGenerator)
-            }
-            return trinketOrGenerated(
-                id: id,
-                rarity: .astral,
-                ownedTrinketIDs: ownedTrinketIDs,
-                reservedTrinketIDs: reservedTrinketIDs,
-                eligibleTrinketIDs: eligibleTrinketIDs,
-                context: context,
-                using: &randomNumberGenerator,
-            )
-        case .trinket:
-            return trinketOrGenerated(
-                id: id,
-                rarity: .astral,
-                ownedTrinketIDs: ownedTrinketIDs,
-                reservedTrinketIDs: reservedTrinketIDs,
-                eligibleTrinketIDs: eligibleTrinketIDs,
-                context: context,
-                using: &randomNumberGenerator,
-            )
-        case .astral, .basic:
-            return generated(
-                id: id,
-                rarity: tier == .astral ? .astral : .basic,
-                context: context,
-                using: &randomNumberGenerator,
-            )
-        }
-    }
-
-    private static func trinketOrGenerated(
-        id: String,
-        rarity: Rarity,
-        ownedTrinketIDs: Set<String>,
-        reservedTrinketIDs: Set<String>,
-        eligibleTrinketIDs: Set<String>?,
-        context: RewardContext,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> InventoryItem {
-        var trinkets = GameContent.trinketItems.filter {
+        let trinkets = GameContent.trinketItems.filter {
             !ownedTrinketIDs.contains($0.templateID)
                 && !reservedTrinketIDs.contains($0.templateID)
+                && (eligibleTrinketIDs?.contains($0.templateID) ?? true)
+                && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
         }
-        if let eligibleTrinketIDs {
-            trinkets = trinkets.filter { eligibleTrinketIDs.contains($0.templateID) }
+        let uniques = GameContent.uniqueItems.filter {
+            !ownedUniqueIDs.contains($0.templateID)
+                && (eligibleUniqueIDs?.contains($0.templateID) ?? true)
+                && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
         }
-        if !context.keywordBias.isEmpty {
-            trinkets = trinkets.filter { !$0.keywords.isDisjoint(with: context.keywordBias) }
+        var available = allowedTiers
+        if trinkets.isEmpty {
+            available.remove(.trinket)
         }
-        if !trinkets.isEmpty, let trinket = trinkets.randomElement(using: &randomNumberGenerator) {
-            return trinket
+        if uniques.isEmpty {
+            available.remove(.unique)
         }
-        return generated(id: id, rarity: rarity, context: context, using: &randomNumberGenerator)
+        if fallbackBaseType == nil, !baseTypes.contains(where: { $0.slot != .trinket }) {
+            available.subtract([.basic, .astral])
+        }
+        let probabilities = ItemLootPolicy.probabilities(
+            level: rewardLevel,
+            bossContent: bossContent,
+            astralChanceBonusPercent: astralChanceBonusPercent,
+            availableTiers: available,
+        )
+        switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {
+        case .unique:
+            return uniques[Int.random(in: uniques.indices, using: &randomNumberGenerator)]
+        case .trinket:
+            return trinkets[Int.random(in: trinkets.indices, using: &randomNumberGenerator)]
+        case .astral:
+            return generated(id: id, rarity: .astral, context: context, using: &randomNumberGenerator)
+        case .basic:
+            return generated(id: id, rarity: .basic, context: context, using: &randomNumberGenerator)
+        }
     }
 
     private static func generated(

@@ -448,4 +448,16 @@ extension CombatTriggerTalentDamageTests {
         let heroBlock = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.hero.combatant))
         #expect(heroBlock == 4)
     }
+
+    @Test func `damage cap applies to periodic hits`() {
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                block: BlockTriggers(maxDamagePerHitCap: 12),
+            )),
+        )
+        let outcome = battle.resolveDamage(
+            DamageRequest.doTTick(amount: 20, target: battle.roster.hero.combatant, keyword: .burn, sourceActorID: "target"),
+        )
+        #expect(outcome.healthLost == 12)
+    }
 }

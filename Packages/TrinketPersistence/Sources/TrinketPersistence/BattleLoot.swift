@@ -32,6 +32,7 @@ enum BattleLoot {
 
     static func resolve(
         encounterLevel: Int,
+        rewardLevel: Int,
         enemyIsBoss: Bool,
         itemID: String,
         keywordBias: Set<Keyword> = [],
@@ -58,14 +59,11 @@ enum BattleLoot {
             ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: materialsFoundPercent))
         }
 
-        let tier = ItemRarityRoll.roll(
-            bossContent: enemyIsBoss,
-            astralChanceBonusPercent: astralChanceBonusPercent,
-            using: &randomNumberGenerator,
-        )
         let item = ItemRewardGenerator.generate(
             id: itemID,
-            tier: tier,
+            rewardLevel: rewardLevel,
+            bossContent: enemyIsBoss,
+            astralChanceBonusPercent: astralChanceBonusPercent,
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,
             keywordBias: keywordBias,

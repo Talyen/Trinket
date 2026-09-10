@@ -65,8 +65,15 @@ progress across cards and turns separately from cadence claims. Periodic rewards
 use `playerTurnNumber` and `isPlayerTurn(every:startingAt:)`; stored `turnCount`
 remains zero-based.
 
-`HealingResult` separates direct restoration, transferred overflow, and Leech
-success before projecting to `CombatOutcome`. Lingering Blessing stores its amount,
+`HealingResult` carries `HealingAllocation`: resolved healing, direct restoration,
+transferred overflow, maximum-Health and Block allocations, and unspent overflow.
+Each consuming consequence allocates from the remainder. Transfers offer at most
+the recipient's missing Health so nested healing cannot convert overflow already
+owned by the parent. Echoes and Leech success read actual restoration. Independent
+observers such as Wishspring read original overflow without consuming it.
+`CombatGain` owns bounded applied gains; proportional effects use `CombatRounding`
+without an implicit minimum-one grant. `DamageDefensePolicy` applies damage caps
+to ordinary damage operations, exempting Health costs. Lingering Blessing stores its amount,
 source, and remaining duration together. `BattleRoster.hasAffliction` distinguishes
 active debuffs from keyword-associated buffs for conditions and damage rules.
 Boolean party-aura checks use `hasLivingPartyTrigger` rather than merging every

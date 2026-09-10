@@ -77,7 +77,7 @@ struct MysteryUnlockContent: View {
                         .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
                         .scaleEffect(ceremony.artScale)
                         .frame(maxWidth: 430)
-                        .allowsHitTesting(ceremony.allowsDetail)
+                        .trinketPresentationVisibility(ceremony.allowsDetail, opacity: 1)
                         .overlay(alignment: .bottomTrailing) {
                             recruitSealBadge
                         }

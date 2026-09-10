@@ -79,6 +79,10 @@ public final class BattleSession: BattleRuntime {
     let presentation = BattlePresentationState()
 
     @ObservationIgnored
+    private var rewardSettlementHandlerOwnerID: UUID?
+    @ObservationIgnored
+    private var rewardSettlementHandler: ((BattleRunConfiguration, BattleGoldFlow) -> BattleRewardSettlement?)?
+    @ObservationIgnored
     private var claimedVictoryHandlerOwnerID: UUID?
     @ObservationIgnored
     private var claimedVictoryHandler: ((BattleRunConfiguration, BattleGoldFlow) -> Void)?
@@ -206,10 +210,21 @@ public final class BattleSession: BattleRuntime {
         presentation: BattlePresentationContext,
     ) -> BattleVictorySummary? {
         guard let input = victoryInput else { return nil }
+        let settlement: BattleRewardSettlement
+        if let rewardSettlementHandler {
+            guard let resolved = rewardSettlementHandler(configuration, input.goldFlow) else { return nil }
+            settlement = resolved
+        } else {
+            let inputs = presentation.rewardInputs ?? RewardSettlementInputs(
+                gold: 0, reservedGold: 0, goldLimit: Int.max,
+                heroProgression: configuration.hero.progression, companionProgression: configuration.companion.progression,
+                productionDate: .distantPast,
+            )
+            settlement = presentation.rewardPlan.settle(battleGold: input.goldFlow, inputs: inputs)
+        }
         return BattleVictorySummary.make(
             configuration: configuration,
-            presentation: presentation,
-            battleGold: input.goldFlow,
+            settlement: settlement,
             heroName: input.heroName,
             companionName: input.companionName,
         )
@@ -246,6 +261,20 @@ public final class BattleSession: BattleRuntime {
     }
 
     #endif
+
+    public func installRewardSettlementHandler(
+        ownerID: UUID,
+        _ handler: @escaping (BattleRunConfiguration, BattleGoldFlow) -> BattleRewardSettlement?,
+    ) {
+        rewardSettlementHandlerOwnerID = ownerID
+        rewardSettlementHandler = handler
+    }
+
+    public func uninstallRewardSettlementHandler(ownerID: UUID) {
+        guard rewardSettlementHandlerOwnerID == ownerID else { return }
+        rewardSettlementHandlerOwnerID = nil
+        rewardSettlementHandler = nil
+    }
 
     public func installClaimedVictoryHandler(
         ownerID: UUID,

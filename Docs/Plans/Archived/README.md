@@ -7,6 +7,7 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| Prevent recurring defects | 2026-09-10 | Unified combat healing allocation and defense caps, reward settlement and reveal, durable encounter stock and atomic commands, and shared visibility/action semantics; retired replaced session and inventory-prefix paths. |
 | Test fixture correctness and simplification | 2026-09-10 | Removed permissive control-skip assertion support, required the correct combatant in six existing expectations, removed a duplicate check, and clarified direct item construction; wrong-target mutation rejected by the enemy-turn test. |
 | Battle artwork pin lifecycle | 2026-09-10 | Balanced overlapping artwork acquisitions, invalidated obsolete preparation, and preserved active/sibling pins through activation; replaced name-only checks with deterministic lifecycle coverage. 109 package tests, app build, scoped handoff, and Battle smoke passed. All six Battle performance captures completed with advisory pacing misses; Collection report capture timed out in both the full matrix and isolated recheck. |
 | Battle feedback scheduling | 2026-09-10 | Repaired repeatable deadlines and renderer cleanup, removed unused event tracking, and consolidated expiry coverage; 106 package tests, scoped handoff, Battle smoke/flow passed. Six Battle performance scenarios completed with advisory pacing misses; full capture missed Collection, whose isolated recheck passed. |

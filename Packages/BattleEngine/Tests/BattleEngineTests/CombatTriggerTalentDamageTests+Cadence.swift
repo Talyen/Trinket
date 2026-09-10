@@ -114,6 +114,24 @@ extension CombatTriggerTalentDamageTests {
         }
     }
 
+    @Test func `dense bones clamps a stacked step to its cap`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxHealth: 100,
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                mitigation: MitigationTriggers(toughnessOnHit: 3, toughnessOnHitCap: 4),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        for _ in 0 ..< 2 {
+            _ = battle.resolveDamage(DamageRequest(
+                amount: 6, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
+            ))
+        }
+        #expect(battle.roster.runtime(for: battle.companion)?.flatDamageReductionBonus == 4)
+    }
+
     @Test(arguments: [DamageOperation.healthCost, .periodic, .reaction()])
     func `soul sharing heals from enemy damage but not skeleton health costs`(options: DamageOperation) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(

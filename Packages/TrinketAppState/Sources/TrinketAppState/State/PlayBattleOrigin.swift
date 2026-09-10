@@ -42,7 +42,7 @@ struct PlayBattleRoute {
     let complete: @MainActor (
         BattleRunConfiguration,
         BattlePresentationContext?,
-        BattleRewardAward,
+        BattleRewardSettlement,
         [ResourceAmount]?,
         BattleLootResult?,
     ) -> Bool

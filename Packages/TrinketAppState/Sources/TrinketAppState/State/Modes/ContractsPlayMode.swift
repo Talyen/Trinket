@@ -88,7 +88,7 @@ public final class ContractsPlayMode {
                     companion: configuration.companion.combatant,
                     encounterLevel: level,
                     loot: loot,
-                    battleGold: award.goldFlow,
+                    battleGold: award.award.goldFlow,
                     award: award,
                     save: &save,
                 )

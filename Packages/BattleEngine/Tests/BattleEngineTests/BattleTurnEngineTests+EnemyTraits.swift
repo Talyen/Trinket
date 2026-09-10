@@ -142,6 +142,24 @@ extension BattleTurnEngineTests {
         #expect(outcome.healthLost == 3)
     }
 
+    @Test func `trait thorns skips zero-rounded reflection`() {
+        var battle = BattleStateTestFactory.makeBattle(
+            enemyModifiers: .init(triggers: CombatTraitTriggers(
+                mitigation: MitigationTriggers(thornsPercent: 0.1),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        let heroHealthBefore = battle.roster.hero.currentHealth
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+        #expect(outcome.healthLost == 1)
+        #expect(!outcome.events.contains { $0.effectKind == .thornsTriggered })
+        #expect(battle.roster.hero.currentHealth == heroHealthBefore)
+    }
+
     private func enemyTraitContext(_ enemyID: String, heroModifiers: CombatModifierProfile = .zero) throws -> BattleState {
         let definition = try #require(GameContent.enemy(matching: enemyID))
         let build = CombatBuildResolver.build(enemy: definition)

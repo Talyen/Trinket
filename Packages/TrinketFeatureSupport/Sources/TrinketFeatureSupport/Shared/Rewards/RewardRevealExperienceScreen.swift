@@ -148,9 +148,9 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                         .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
                     }
                 },
-                primaryActionTitle: revealSequence.isSequenceComplete ? primaryActionTitle : nil,
+                primaryActionTitle: primaryActionTitle,
                 primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-                isPrimaryActionDisabled: isCompleting,
+                isPrimaryActionDisabled: isCompleting || !revealSequence.isSequenceComplete,
                 onPrimaryAction: complete,
                 contentTopPadding: contentTopPadding,
                 contentStackSpacing: contentStackSpacing,

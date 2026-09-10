@@ -85,7 +85,8 @@ struct ItemGeneratorTests {
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: UInt64(seed))
             return ItemRewardGenerator.generate(
                 id: "reward-\(seed)",
-                tier: .trinket,
+                rewardLevel: 1,
+                allowedTiers: [.trinket],
                 ownedTrinketIDs: [],
                 ownedUniqueIDs: [],
                 using: &randomNumberGenerator,
@@ -95,12 +96,13 @@ struct ItemGeneratorTests {
         try #expect(rewards.allSatisfy { $0.isTrinket && GameContent.trinketItems.contains($0) })
     }
 
-    @Test func `unique tier yields catalog uniques and degrades to trinkets when owned`() throws {
+    @Test func `unique pool excludes owned items before rolling`() throws {
         let uniques = (1 ... 12).map { seed in
             var randomNumberGenerator = SeededRandomNumberGenerator(seed: UInt64(seed))
             return ItemRewardGenerator.generate(
                 id: "unique-\(seed)",
-                tier: .unique,
+                rewardLevel: 1,
+                allowedTiers: [.unique],
                 ownedTrinketIDs: [],
                 ownedUniqueIDs: [],
                 using: &randomNumberGenerator,
@@ -112,12 +114,13 @@ struct ItemGeneratorTests {
         var degradedGenerator = SeededRandomNumberGenerator(seed: 7)
         let degraded = ItemRewardGenerator.generate(
             id: "degraded",
-            tier: .unique,
+            rewardLevel: 1,
+            allowedTiers: [.basic, .unique],
             ownedTrinketIDs: [],
             ownedUniqueIDs: allOwned,
             using: &degradedGenerator,
         )
-        try #expect(degraded.isTrinket)
+        try #expect(degraded.rarity == .basic)
     }
 
     @Test func `astral rewards exclude owned and keyword ineligible trinkets`() throws {
@@ -129,7 +132,8 @@ struct ItemGeneratorTests {
             var biasedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let biasedReward = ItemRewardGenerator.generate(
                 id: "poison-\(seed)",
-                tier: .trinket,
+                rewardLevel: 1,
+                allowedTiers: [.trinket],
                 ownedTrinketIDs: [],
                 ownedUniqueIDs: [],
                 keywordBias: [.poison],
@@ -142,7 +146,8 @@ struct ItemGeneratorTests {
             var exhaustedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let exhaustedReward = ItemRewardGenerator.generate(
                 id: "exhausted-\(seed)",
-                tier: .trinket,
+                rewardLevel: 1,
+                allowedTiers: [.basic, .trinket],
                 ownedTrinketIDs: poisonTrinketIDs,
                 ownedUniqueIDs: [],
                 keywordBias: [.poison],
@@ -240,32 +245,13 @@ struct ItemGeneratorTests {
         }
     }
 
-    @Test func `mystery item rarity rolls basic eighty percent`() throws {
-        var basicCount = 0
-        for seed in UInt64(1) ... 24 {
-            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
-            if MysteryItemRarity.roll(using: &randomNumberGenerator) == .basic {
-                basicCount += 1
-            }
-        }
-        try #expect((14 ... 22).contains(basicCount))
-    }
-
-    @Test func `mystery item rarity includes all four tiers`() {
-        var tiers: Set<ItemDropTier> = []
-        for seed in UInt64(1) ... 200 {
-            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
-            tiers.insert(MysteryItemRarity.roll(using: &randomNumberGenerator))
-        }
-        #expect(tiers == Set(ItemDropTier.allCases))
-    }
-
-    @Test func `explicit unique eligibility cannot spill into other special pools`() throws {
+    @Test func `explicit pools exclude unavailable categories without promoting gear`() throws {
         let base = try #require(GameContent.itemBaseType(matching: "flail"))
         var rng = SeededRandomNumberGenerator(seed: 1)
         let eligible = ItemRewardGenerator.generate(
             id: "ward-offer",
-            tier: .unique,
+            rewardLevel: 1,
+            allowedTiers: [.unique],
             ownedTrinketIDs: [],
             ownedUniqueIDs: [],
             eligibleTrinketIDs: ["bone_charm"],
@@ -276,7 +262,8 @@ struct ItemGeneratorTests {
         #expect(eligible.templateID == "wardbreaker")
         let fallback = ItemRewardGenerator.generate(
             id: "ward-fallback",
-            tier: .unique,
+            rewardLevel: 1,
+            allowedTiers: [.basic, .unique],
             ownedTrinketIDs: [],
             ownedUniqueIDs: ["wardbreaker"],
             eligibleTrinketIDs: ["bone_charm"],
@@ -285,7 +272,7 @@ struct ItemGeneratorTests {
             using: &rng,
         )
         #expect(fallback.baseType.id == "flail")
-        #expect(fallback.rarity == .astral)
+        #expect(fallback.rarity == .basic)
     }
 
     private func generatedAffixCounts(

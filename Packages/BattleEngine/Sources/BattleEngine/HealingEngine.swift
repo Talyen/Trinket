@@ -19,16 +19,19 @@ package enum HealingEngine {
         let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
         var flags: Set<CombatFlag> = []
         let amount = resolvedAmount(request, sourceTriggers: sourceTriggers, flags: &flags, in: &context)
-        if request.isDirectCardHeal, sourceTriggers?.livingArchive == true,
-           let sourceActorID = request.sourceActorID, amount > 0 {
-            let echo = HealingEcho(amount: CombatRounding.scaled(amount, multiplier: 0.5), sourceActorID: sourceActorID)
-            context.roster.mutateRuntime(for: request.target) { $0.healingEchoes.append(echo) }
-        }
 
         let preHealth = context.roster.health(for: request.target)
         let maxHealth = context.roster.maxHealth(for: request.target)
         var restored = 0
         context.roster.mutateRuntime(for: request.target) { restored = $0.heal(amount) }
+        if request.isDirectCardHeal, sourceTriggers?.livingArchive == true,
+           let sourceActorID = request.sourceActorID, restored > 0 {
+            let echoAmount = CombatRounding.scaled(restored, multiplier: 0.5)
+            if echoAmount > 0 {
+                let echo = HealingEcho(amount: echoAmount, sourceActorID: sourceActorID)
+                context.roster.mutateRuntime(for: request.target) { $0.healingEchoes.append(echo) }
+            }
+        }
 
         var events: [ActionEvent] = []
         let targetTriggers = context.modifiers(for: request.target.id).triggers
@@ -41,7 +44,8 @@ package enum HealingEngine {
             }
         }
 
-        let overflow = max(0, amount - max(0, maxHealth - preHealth))
+        var allocation = HealingAllocation(resolvedAmount: amount, directRestoration: restored)
+        let overflow = allocation.overflow
         if restored > 0, preHealth * 2 < maxHealth, request.target.role != .enemy,
            sourceTriggers?.shelterSeed == true, let sourceID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceID), source.isAlive {
@@ -50,7 +54,7 @@ package enum HealingEngine {
             ))
         }
         let cardTransfer = transferCardOverheal(overflow, request: request, in: &context)
-        var overflowTransferred = cardTransfer.healthRestored
+        allocation.allocate(cardTransfer.healthRestored, to: .transfer)
         events.append(contentsOf: cardTransfer.events)
         events.append(contentsOf: CombatTriggerEngine.afterHeroCardHeal(
             request: request, restored: restored, in: &context,
@@ -71,11 +75,10 @@ package enum HealingEngine {
             ))
         }
         events.append(contentsOf: applyOverhealConversion(
-            overflow: overflow,
+            allocation: &allocation,
             request: request,
             sourceTriggers: sourceTriggers,
             targetTriggers: targetTriggers,
-            overflowTransferred: &overflowTransferred,
             in: &context,
         ))
 
@@ -162,29 +165,9 @@ package enum HealingEngine {
         }
 
         return HealingResult(
-            directRestoration: restored, overflowTransferred: overflowTransferred,
+            allocation: allocation,
             isLeech: request.origin == .leech, isCritical: flags.contains(.critical), events: events,
         )
-    }
-
-    private static func transferCardOverheal(
-        _ overflow: Int, request: HealRequest, in context: inout BattleState,
-    ) -> CombatOutcome {
-        guard overflow > 0, request.isDirectCardHeal, let sourceID = request.sourceActorID,
-              let source = context.roster.combatant(for: sourceID), source.isAlive,
-              context.hasHeroCard(for: sourceID), request.target.role != .enemy,
-              context.modifiers(for: sourceID).triggers.masterworkMixture else { return .empty }
-        let other = request.target.role == .hero ? context.roster.companion : context.roster.hero
-        let amount = min(overflow, max(0, other.maxHealth - other.currentHealth))
-        guard other.isAlive, amount > 0 else { return .empty }
-        var transfer = HealRequest(
-            amount: amount, target: other.combatant, sourceActorID: sourceID,
-            origin: .restoration(.health), logAs: .instantHeal(
-                actorName: source.name, abilityName: "Masterwork Mixture", keyword: .health,
-            ),
-        )
-        transfer.amountBasis = .resolved
-        return resolveHeal(transfer, in: &context)
     }
 
     private static func resolvedAmount(
@@ -270,103 +253,5 @@ package enum HealingEngine {
 
         amount *= 2
         return .critical
-    }
-
-    private static func applyOverhealConversion(
-        overflow: Int,
-        request: HealRequest,
-        sourceTriggers: CombatTraitTriggers?,
-        targetTriggers: CombatTraitTriggers,
-        overflowTransferred: inout Int,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard overflow > 0 else { return [] }
-        var events = applyLeechOverhealing(
-            overflow: overflow, request: request, sourceTriggers: sourceTriggers, transferred: &overflowTransferred, in: &context,
-        )
-        if sourceTriggers?.wishspring == true {
-            events.append(contentsOf: context.restoreManaEmitting(
-                CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,
-                abilityName: "Wishspring",
-                actorName: request.sourceActorID.flatMap { context.roster.combatant(for: $0)?.name },
-            ))
-        }
-        let conversion = overhealConversionTriggers(source: sourceTriggers, target: targetTriggers, request: request)
-        var overflowRemaining = overflow
-        if conversion.overhealConvertsToMaxHealth {
-            let perEvent = conversion.overhealConvertsToMaxHealthPerEvent
-            var gain = perEvent > 0 ? min(overflow, perEvent) : overflow
-            let cap = conversion.overhealConvertsToMaxHealthCap
-            if cap > 0 {
-                let already = context.roster.runtime(for: request.target)?.talentMaxHealthBonus ?? 0
-                gain = min(gain, max(0, cap - already))
-            }
-            if gain > 0 {
-                context.roster.mutateRuntime(for: request.target) { runtime in
-                    runtime.talentMaxHealthBonus += gain
-                    runtime.currentHealth = min(runtime.maxHealth, runtime.currentHealth + gain)
-                }
-            }
-            overflowRemaining = overflow - gain
-        }
-        if conversion.overhealConvertsToBlock, overflowRemaining > 0 {
-            events.append(contentsOf: context.applyBlock(
-                overflowRemaining,
-                to: request.target,
-                source: request.target,
-                abilityName: "Barrier Blessing",
-            ))
-        } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealFirstBlockPerTurn > 0,
-                  context.claimTurnGuard(
-                      .overhealFirstBlock,
-                      actorID: request.sourceActorID ?? request.target.id,
-                  ) {
-            events.append(contentsOf: context.applyBlock(
-                conversion.overhealFirstBlockPerTurn,
-                to: request.target,
-                source: request.target,
-                abilityName: "Aether Shield",
-            ))
-        } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealShieldCap > 0 {
-            let shield = min(overflowRemaining, conversion.overhealShieldCap)
-            events.append(contentsOf: context.applyBlock(
-                shield,
-                to: request.target,
-                source: request.target,
-                abilityName: context.modifiers(for: request.target.id).triggerAbilityName(
-                    "overhealShieldCap",
-                    fallback: "Reclaimed Reagents",
-                ),
-            ))
-        }
-        return events
-    }
-
-    private static func overhealConversionTriggers(
-        source: CombatTraitTriggers?,
-        target: CombatTraitTriggers,
-        request: HealRequest,
-    ) -> CombatTraitTriggers {
-        let isSelfHeal = request.sourceActorID == request.target.id
-        if isSelfHeal {
-            if let source,
-               source.overhealConvertsToBlock
-               || source.overhealConvertsToMaxHealth
-               || source.overhealShieldCap > 0
-               || source.overhealFirstBlockPerTurn > 0 {
-                return source
-            }
-            return target
-        }
-        if target.overhealConvertsToBlock
-            || target.overhealConvertsToMaxHealth
-            || target.overhealShieldCap > 0
-            || target.overhealFirstBlockPerTurn > 0 {
-            return target
-        }
-        if let source {
-            return source
-        }
-        return target
     }
 }

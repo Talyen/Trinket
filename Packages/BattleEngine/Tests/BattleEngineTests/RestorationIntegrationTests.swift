@@ -124,4 +124,57 @@ struct RestorationIntegrationTests {
         try #expect(events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
         try #expect(battle.health(of: battle.enemy) >= 16)
     }
+
+    @Test func `hero leech share skips zero-rounded shares instead of fabricating healing`() {
+        var battle = BattleStateTestFactory.makeBattle(
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                healing: HealingTriggers(companionLeechSharePercent: 0.1),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.roster.companion.currentHealth -= 5
+        let healthBefore = battle.roster.companion.currentHealth
+        let events = battle.withEngineContext {
+            HealingEngine.shareHeroLeechWithCompanion(restored: 1, in: &$0)
+        }
+        #expect(events.isEmpty)
+        #expect(battle.roster.companion.currentHealth == healthBefore)
+    }
+
+    @Test(arguments: [0, 1, 9, 10])
+    func `overheal transfer consumes only recipient space before converting the remainder`(companionHealth: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxHealth: 10, heroMaxMana: 10,
+            heroModifiers: .init(triggers: CombatTraitTriggers(healing: HealingTriggers(
+                wishspring: true, overhealConvertsToBlock: true, leechOverhealTransfersToCompanion: true,
+            ))),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.companion.currentHealth = companionHealth
+        battle.roster.hero.currentMana = 0
+        var request = HealRequest(amount: 10, target: battle.hero, sourceActorID: battle.hero.id, origin: .leech, logAs: .silent)
+        request.amountBasis = .resolved
+        let result = HealingEngine.resolveHealing(request, in: &battle)
+        let transferred = companionHealth > 0 ? 10 - companionHealth : 0
+        #expect(result.allocation.transferred == transferred)
+        #expect(result.allocation.block == 10 - transferred)
+        #expect(result.allocation.remaining == 0)
+        #expect(battle.roster.companion.currentHealth == (companionHealth > 0 ? 10 : 0))
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == 0)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 10 - transferred)
+        #expect(battle.roster.hero.currentMana == min(5, battle.roster.hero.maxMana))
+    }
+
+    @Test(arguments: [DamageOperation.healthCost, .periodic, .reaction(), .redirected])
+    func `damage cap policy follows operation semantics`(operation: DamageOperation) {
+        #expect(DamageDefensePolicy.cappedDamage(20, operation: operation, cap: 12) == (operation.isHealthCost ? 20 : 12))
+        #expect(DamageDefensePolicy.cappedDamage(8, operation: operation, cap: 12) == 8)
+    }
+
+    @Test func `bounded gains cannot reduce an already capped value`() {
+        #expect(CombatGain.amount(3, current: 3, cap: 4) == 1)
+        #expect(CombatGain.amount(3, current: 5, cap: 4) == 0)
+        #expect(CombatGain.amount(30, current: 0, cap: 10) == 10)
+    }
 }

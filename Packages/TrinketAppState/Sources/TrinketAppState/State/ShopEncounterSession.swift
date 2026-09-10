@@ -2,11 +2,13 @@ import Foundation
 import Observation
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 
 enum ShopEncounterOpenResult {
     case opened(ShopEncounterSession)
     case autoCompleted
     case unavailable
+    case failed(StageMapMessage)
 }
 
 @MainActor
@@ -18,67 +20,28 @@ public final class ShopEncounterSession: Identifiable {
 
     public let stage: Stage
     public let origin: PlayEncounterOrigin
+    public let encounter: EncounterIdentity
     public var labyrinthNodeID: String? {
         origin.labyrinthNodeID
     }
 
     public let greeting: String
     public let offers: [ShopOffer]
-    public let visitToken: String
-    public private(set) var purchasedOfferIDs: Set<String> = []
-    public private(set) var purchaseCount = 0
     public private(set) var lastPurchaseError: String?
     public private(set) var persistFailureMessage: String?
     public private(set) var isPurchasing = false
 
     public init(
         origin: PlayEncounterOrigin,
+        encounter: EncounterIdentity,
         offers: [ShopOffer],
-        visitToken: String = UUID().uuidString,
         greeting: String = "Welcome, traveler. Take a look at what I've got.",
     ) {
         self.origin = origin
+        self.encounter = encounter
         stage = origin.resolvedStage(labyrinthEncounter: .shop)
         self.offers = offers
-        self.visitToken = visitToken
         self.greeting = greeting
-    }
-
-    static func open(
-        origin: PlayEncounterOrigin,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String>,
-        astralChanceBonusPercent: Int,
-        allAstral: Bool = false,
-        priceDiscountPercent: Int = 0,
-    ) -> ShopEncounterOpenResult {
-        if case let .journey(stage) = origin {
-            guard case .shop = stage.encounter else { return .unavailable }
-        }
-        let resolvedStage = origin.resolvedStage(labyrinthEncounter: .shop)
-
-        var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: ShopOfferGenerator.seed(worldSeed: worldSeed, forStageID: resolvedStage.id),
-        )
-        let offers = ShopOfferGenerator.generateOffers(
-            stageID: resolvedStage.id,
-            ownedTrinketIDs: ownedTrinketIDs,
-            astralChanceBonusPercent: astralChanceBonusPercent,
-            allAstral: allAstral,
-            priceDiscountPercent: priceDiscountPercent,
-            using: &randomNumberGenerator,
-        )
-        guard !offers.isEmpty else {
-            return .autoCompleted
-        }
-        return .opened(ShopEncounterSession(
-            origin: origin,
-            offers: offers,
-        ))
-    }
-
-    public func isSoldOut(_ offerID: String) -> Bool {
-        purchasedOfferIDs.contains(offerID)
     }
 
     func markPurchaseStarted() {
@@ -86,10 +49,8 @@ public final class ShopEncounterSession: Identifiable {
         lastPurchaseError = nil
     }
 
-    func markPurchaseFinished(offerID: String) {
+    func markPurchaseFinished() {
         isPurchasing = false
-        purchasedOfferIDs.insert(offerID)
-        purchaseCount += 1
         lastPurchaseError = nil
     }
 

@@ -73,7 +73,7 @@ struct MysteryOfferChoices: View {
         .buttonStyle(.plain)
         .accessibilityLabel("Inspect \(offer.item.displayName)")
         .accessibilityIdentifier(AccessibilityID.Mystery.offerArtwork(choiceID: offer.choiceID))
-        .disabled(isDisabled || !pinnedArtwork.contains(offer.item.artReference?.imageName ?? ""))
+        .disabled(isDisabled)
     }
 
     private func bonus(_ reward: MysteryRewardBonus) -> some View {

@@ -8,11 +8,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         let cap = context.modifiers(for: state.combatant.id).triggers.maxDamagePerHitCap
-        if cap > 0, state.options.isAttackHit, !state.options.isRetaliation,
-           let sourceActorID = state.sourceActorID,
-           context.roster.combatant(for: sourceActorID)?.role == .enemy {
-            state.remaining = min(state.remaining, cap)
-        }
+        state.remaining = DamageDefensePolicy.cappedDamage(state.remaining, operation: state.options, cap: cap)
         if applySacrificialGuard(to: &state, in: &context) {
             return
         }
@@ -107,9 +103,10 @@ package extension DamagePipeline {
         }
         if defenderTriggers.toughnessOnHit > 0, isAttackHit, !isRetaliation {
             context.roster.mutateRuntime(for: defender) { runtime in
-                if runtime.flatDamageReductionBonus < defenderTriggers.toughnessOnHitCap {
-                    runtime.flatDamageReductionBonus += defenderTriggers.toughnessOnHit
-                }
+                runtime.flatDamageReductionBonus += CombatGain.amount(
+                    defenderTriggers.toughnessOnHit,
+                    current: runtime.flatDamageReductionBonus, cap: defenderTriggers.toughnessOnHitCap,
+                )
             }
         }
         if defender.role == .enemy, isAttackHit, !isRetaliation {

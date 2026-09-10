@@ -12,21 +12,6 @@ enum MysteryEncounterPhase: Equatable {
     case reward
 }
 
-enum MysteryChoiceOutcome: Equatable {
-    case reveal(unlockedCombatantID: String)
-    case selectCorruptItem
-    case corruptionReveal(ItemCorruptionDetail)
-    case reward(MysteryEffectResult)
-    case refreshedOffers([MysteryOffer])
-    case dismiss
-    case failed
-}
-
-typealias MysteryProgressCompletion = (
-    MysteryEncounterSession,
-    inout PlayerSave,
-) -> Void
-
 @MainActor
 @Observable
 public final class MysteryEncounterSession: Identifiable {
@@ -36,6 +21,7 @@ public final class MysteryEncounterSession: Identifiable {
 
     public let stage: Stage
     public let origin: PlayEncounterOrigin
+    public let encounter: EncounterIdentity
     public var labyrinthNodeID: String? {
         origin.labyrinthNodeID
     }
@@ -84,10 +70,12 @@ public final class MysteryEncounterSession: Identifiable {
 
     public init(
         origin: PlayEncounterOrigin,
+        encounter: EncounterIdentity,
         event: MysteryEvent,
         combatant: Combatant?,
     ) {
         self.origin = origin
+        self.encounter = encounter
         stage = origin.resolvedStage(
             labyrinthEncounter: event.isRecruit
                 ? .recruit(eventID: event.id)
@@ -127,6 +115,7 @@ public final class MysteryEncounterSession: Identifiable {
 
     static func open(
         origin: PlayEncounterOrigin,
+        encounter: EncounterIdentity,
         forcedEventID: String?,
         worldSeed: UInt64,
         pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
@@ -143,23 +132,15 @@ public final class MysteryEncounterSession: Identifiable {
         )
         let session = MysteryEncounterSession(
             origin: origin,
+            encounter: encounter,
             event: event,
             combatant: GameContent.combatant(forMysteryEvent: event),
         )
         return (session, event.id)
     }
 
-    func prepareOffers(
-        save: inout PlayerSave,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) throws -> [MysteryOffer] {
-        try MysteryOfferPersistence.prepare(
-            event: event,
-            stage: stage,
-            labyrinthNodeID: labyrinthNodeID,
-            save: &save,
-            using: &randomNumberGenerator,
-        )
+    var resolutionRequest: MysteryEncounterRequest {
+        MysteryEncounterRequest(encounter: encounter, stage: stage, event: event, displayedOffers: offers)
     }
 
     func installOffers(_ offers: [MysteryOffer]) {
@@ -224,121 +205,6 @@ extension MysteryEncounterSession {
         persistFailureMessage = nil
     }
 
-    private func noteMysteryCadence(save: inout PlayerSave) {
-        if isCorruptionAltar {
-            ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
-        } else {
-            ItemCorruptionApplier.noteMysteryCompleted(save: &save)
-        }
-    }
-
-    func resolveChoice(
-        choiceID: String?,
-        save: inout PlayerSave,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-        completeProgress: MysteryProgressCompletion,
-    ) -> MysteryChoiceOutcome {
-        guard canResolveChoice else { return .failed }
-        markChoiceStarted()
-
-        let choice: MysteryChoice? = if let choiceID {
-            event.choices.first { $0.id == choiceID }
-        } else {
-            event.choices.first
-        }
-        guard let choice else {
-            markResolvedWithoutReveal()
-            return .failed
-        }
-
-        if choice.effects.contains(.corruptItem) {
-            let targets = ItemCorruption.eligibleTargets(in: save.inventory)
-            guard !targets.isEmpty else {
-                markResolvedWithoutReveal()
-                return .failed
-            }
-            return .selectCorruptItem
-        }
-
-        if choice.effects.contains(.leave) {
-            noteMysteryCadence(save: &save)
-            completeProgress(self, &save)
-            return .dismiss
-        }
-
-        if choice.itemPool != nil {
-            return resolveOrdinaryChoice(choice, save: &save, using: &randomNumberGenerator)
-        }
-        let rewardBonuses = labyrinthNodeID.map { save.labyrinth.effects(for: $0) } ?? .zero
-        let applyResult = MysteryEffectApplier.apply(
-            choice.effects,
-            stageID: stage.id,
-            choiceID: choice.id,
-            encounterLevel: MysteryEffectApplier.resolvedEncounterLevel(
-                stage: stage,
-                labyrinthNodeID: labyrinthNodeID,
-                save: save,
-            ),
-            save: &save,
-            using: &randomNumberGenerator,
-            goldFoundPercent: rewardBonuses.goldFoundPercent,
-            experienceEarnedPercent: rewardBonuses.experienceEarnedPercent,
-            materialsFoundPercent: rewardBonuses.materialsFoundPercent,
-        )
-
-        if !applyResult.unlockedCombatantIDs.isEmpty {
-            completeProgress(self, &save)
-            noteMysteryCadence(save: &save)
-            return .reveal(unlockedCombatantID: applyResult.unlockedCombatantIDs[0])
-        }
-
-        noteMysteryCadence(save: &save)
-        completeProgress(self, &save)
-        if !applyResult.isEmpty {
-            return .reward(applyResult)
-        }
-        return .dismiss
-    }
-
-    private func resolveOrdinaryChoice(
-        _ choice: MysteryChoice,
-        save: inout PlayerSave,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> MysteryChoiceOutcome {
-        guard let prepared = try? prepareOffers(save: &save, using: &randomNumberGenerator) else {
-            return .failed
-        }
-        guard prepared == offers else { return .refreshedOffers(prepared) }
-        guard let offer = offers.first(where: { $0.choiceID == choice.id }) else { return .failed }
-        let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: labyrinthNodeID, save: &save)
-        return result.grantedItems.count == 1 ? .reward(result) : .failed
-    }
-
-    func corruptSelectedItem(
-        itemID: String,
-        save: inout PlayerSave,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-        completeProgress: MysteryProgressCompletion,
-    ) -> MysteryChoiceOutcome {
-        guard phase == .selectingCorruptItem else { return .failed }
-        guard !isResolvingChoice else { return .failed }
-        guard corruptibleItems.contains(where: { $0.id == itemID }) else { return .failed }
-
-        markChoiceStarted()
-        let apply = ItemCorruptionApplier.corrupt(
-            itemID: itemID,
-            save: &save,
-            using: &randomNumberGenerator,
-        )
-        guard case let .success(result) = apply else {
-            markResolvedWithoutReveal()
-            return .failed
-        }
-        noteMysteryCadence(save: &save)
-        completeProgress(self, &save)
-        return .corruptionReveal(result)
-    }
-
     func applyOutcome(_ outcome: MysteryChoiceOutcome, inventory: PlayerInventoryState? = nil) {
         switch outcome {
         case let .reveal(unlockedCombatantID):
@@ -354,7 +220,7 @@ extension MysteryEncounterSession {
             installOffers(offers)
             returnToReading()
             markPersistFailed("Your rewards changed. Review the offers and choose again.")
-        case .dismiss, .failed:
+        case .dismiss:
             markResolvedWithoutReveal()
         }
     }

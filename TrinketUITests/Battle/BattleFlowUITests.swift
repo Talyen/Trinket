@@ -27,6 +27,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         XCTAssertTrue(dragCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let dragCountBefore = cards.count
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        assertCancelledDrag(from: origin, cards: cards)
         origin.press(
             forDuration: 0.05,
             thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)),
@@ -72,6 +73,13 @@ final class BattleFlowUITests: TrinketUITestCase {
             "Tab bar should return after retreat",
         )
         play.assertCampaignLoaded(number: 1)
+    }
+
+    private func assertCancelledDrag(from origin: XCUICoordinate, cards: XCUIElementQuery) {
+        let countBefore = cards.count
+        origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 35, dy: 35)))
+        XCTAssertEqual(cards.count, countBefore, "A drag below the play threshold must leave the hand unchanged")
+        assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
     }
 
     private func waitForCardCount(_ cards: XCUIElementQuery, droppingFrom initial: Int) -> Bool {

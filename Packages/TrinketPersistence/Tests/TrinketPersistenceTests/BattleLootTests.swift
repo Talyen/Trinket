@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BattleLootTests {
@@ -16,6 +17,7 @@ struct BattleLootTests {
         var rng = SeededRandomNumberGenerator(seed: 42)
         let package = BattleLoot.resolve(
             encounterLevel: 1,
+            rewardLevel: 1,
             enemyIsBoss: false,
             itemID: "test-loot",
             ownedTrinketIDs: [],
@@ -36,95 +38,21 @@ struct BattleLootTests {
         }
     }
 
-    @Test func `boss grants special tier and doubles currency`() {
+    @Test func `boss doubles currency independently of item rarity`() {
         var rng = SeededRandomNumberGenerator(seed: 99)
         let package = BattleLoot.resolve(
             encounterLevel: 1,
+            rewardLevel: 1,
             enemyIsBoss: true,
             itemID: "boss-loot",
             ownedTrinketIDs: [],
             ownedUniqueIDs: [],
             using: &rng,
         )
-        switch package.item.rarity {
-        case .unique, .astral:
-            break
-        case .basic:
-            Issue.record("Boss loot must never be Basic")
-        }
         #expect((6 ... 8).contains(package.gold))
         for material in package.materials {
             #expect((6 ... 8).contains(material.quantity))
         }
-    }
-
-    private static let ladderDraws: UInt64 = 100
-
-    @Test func `normal drop ladder matches authored bands`() {
-        var uniqueCount = 0
-        var trinketCount = 0
-        var astralCount = 0
-        var basicCount = 0
-        for seed in UInt64(0) ..< Self.ladderDraws {
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            switch ItemRarityRoll.roll(bossContent: false, using: &rng) {
-            case .unique: uniqueCount += 1
-            case .trinket: trinketCount += 1
-            case .astral: astralCount += 1
-            case .basic: basicCount += 1
-            }
-        }
-        #expect((1 ... 12).contains(uniqueCount))
-        #expect((2 ... 15).contains(trinketCount))
-        #expect((2 ... 16).contains(astralCount))
-        #expect(basicCount >= 65)
-    }
-
-    @Test func `boss drop ladder matches authored bands`() {
-        var uniqueCount = 0
-        var trinketCount = 0
-        var astralCount = 0
-        for seed in UInt64(0) ..< Self.ladderDraws {
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            switch ItemRarityRoll.roll(bossContent: true, using: &rng) {
-            case .unique: uniqueCount += 1
-            case .trinket: trinketCount += 1
-            case .astral: astralCount += 1
-            case .basic: Issue.record("Boss ladder never yields Basic")
-            }
-        }
-        #expect((18 ... 43).contains(uniqueCount))
-        #expect((18 ... 43).contains(trinketCount))
-        #expect((27 ... 54).contains(astralCount))
-    }
-
-    @Test func `disallowing uniques folds their band into astral`() {
-        var uniqueAllowed = 0
-        var trinketAllowed = 0
-        var astralAllowed = 0
-        var trinketFolded = 0
-        var astralFolded = 0
-        for seed in UInt64(0) ..< Self.ladderDraws {
-            var allowedRng = SeededRandomNumberGenerator(seed: seed)
-            switch ItemRarityRoll.roll(bossContent: false, using: &allowedRng) {
-            case .unique: uniqueAllowed += 1
-            case .trinket: trinketAllowed += 1
-            case .astral: astralAllowed += 1
-            case .basic: break
-            }
-
-            var foldedRng = SeededRandomNumberGenerator(seed: seed)
-            switch ItemRarityRoll.roll(bossContent: false, allowsUnique: false, using: &foldedRng) {
-            case .unique:
-                Issue.record("allowsUnique: false must never yield Unique")
-            case .trinket: trinketFolded += 1
-            case .astral: astralFolded += 1
-            case .basic: break
-            }
-        }
-        #expect(trinketFolded == trinketAllowed)
-        #expect(astralFolded == astralAllowed + uniqueAllowed)
-        #expect(uniqueAllowed > 0)
     }
 
     @Test func `journey loot is seed stable`() throws {
@@ -155,43 +83,98 @@ struct BattleLootTests {
         #expect(first != otherWorld)
     }
 
-    @Test func `boss journey loot is never basic`() throws {
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
-        let package = VictoryRewardApplier.resolveLoot(
-            .journey(stage: stage),
-            encounterLevel: 5,
-            enemyIsBoss: true,
-            worldSeed: 8,
-            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
-        )
-        switch package.item.rarity {
-        case .unique, .astral:
-            break
-        case .basic:
-            Issue.record("Boss loot must never be Basic")
+    @Test func `reward level changes items without changing currency`() {
+        var earlyPremium = 0
+        var latePremium = 0
+        for seed in UInt64(1) ... 100 {
+            var earlyRNG = SeededRandomNumberGenerator(seed: seed)
+            var lateRNG = SeededRandomNumberGenerator(seed: seed)
+            let early = BattleLoot.resolve(
+                encounterLevel: 5, rewardLevel: 1, enemyIsBoss: false, itemID: "loot",
+                ownedUniqueIDs: [], using: &earlyRNG,
+            )
+            let late = BattleLoot.resolve(
+                encounterLevel: 5, rewardLevel: 20, enemyIsBoss: false, itemID: "loot",
+                ownedUniqueIDs: [], using: &lateRNG,
+            )
+            #expect(early.gold == late.gold)
+            #expect(early.materials == late.materials)
+            if early.item.rarity != .basic {
+                earlyPremium += 1
+            }
+            if late.item.rarity != .basic {
+                latePremium += 1
+            }
+        }
+        #expect(latePremium > earlyPremium)
+    }
+
+    @Test func `reward levels follow content progression across modes`() throws {
+        let battle = try #require(GameContent.stage(id: "chapter-4-stage-10"))
+        #expect(LootRequest.journey(stage: battle).rewardLevel == 20)
+        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 6))
+        #expect(LootRequest.spire(floor: floor).rewardLevel == 12)
+        let node = LabyrinthNode(id: "deep", type: .mystery, depth: 17, clusterID: "cluster")
+        #expect(LootRequest.labyrinth(node: node, effects: .zero).rewardLevel == 17)
+        var save = SaveTestSupport.makeSave()
+        save.labyrinth.nodes[node.id] = node
+        for stageID in ["chapter-4-stage-4", "chapter-4-stage-8"] {
+            let encounter = EncounterIdentity(location: .journey(stageID: stageID), save: save)
+            #expect(encounter.rewardLevel(in: save) == 16)
+        }
+        let encounter = EncounterIdentity(location: .labyrinth(nodeID: node.id), save: save)
+        #expect(encounter.rewardLevel(in: save) == 17)
+    }
+
+    @Test func `battle requests carry authored item level and sanctum through settlement preparation`() throws {
+        let stage = try #require(GameContent.stage(id: "chapter-4-stage-10"))
+        let request = LootRequest.journey(stage: stage)
+        for seed in UInt64(1) ... 16 {
+            let actual = StageCompletion.resolveLoot(
+                for: stage, encounterLevel: 3, enemyIsBoss: true, worldSeed: seed, astralChanceBonusPercent: 20,
+            )
+            var rng = SeededRandomNumberGenerator(seed: GameContent.encounterSeed(seed, salt: request.seedSalt))
+            let expected = BattleLoot.resolve(
+                encounterLevel: 3, rewardLevel: 20, enemyIsBoss: true, itemID: request.itemID,
+                ownedUniqueIDs: [], astralChanceBonusPercent: 20, using: &rng,
+            )
+            #expect(actual == expected)
         }
     }
 
-    @Test func `homestead astral chance applies to journey and spire battle loot`() throws {
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
-        let journeyLoot = VictoryRewardApplier.resolveLoot(
-            .journey(stage: stage),
-            encounterLevel: 1,
-            enemyIsBoss: false,
-            worldSeed: 8,
-            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
-            astralChanceBonusPercent: 100,
+    @Test func `contracts use the resolved encounter level for item rewards`() throws {
+        var save = SaveTestSupport.makeSave()
+        save.contracts.ensureBoard()
+        let offer = try #require(save.contracts.offer(for: .standard))
+        let actual = ContractsCompletion.resolveLoot(for: offer, encounterLevel: 20, save: save)
+        var rng = SeededRandomNumberGenerator(
+            seed: GameContent.encounterSeed(save.worldSeed, salt: "battle-loot-contract-\(offer.id)"),
         )
-        #expect(journeyLoot.item.rarity == .astral)
+        let expected = BattleLoot.resolve(
+            encounterLevel: 20, rewardLevel: 20, enemyIsBoss: false,
+            itemID: "contract-\(offer.id)-loot",
+            ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+            using: &rng,
+        )
+        #expect(actual == expected)
+    }
 
-        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        let spireLoot = SpireCompletion.resolveLoot(
-            for: floor,
-            worldSeed: 8,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
-            astralChanceBonusPercent: 100,
+    @Test func `authored astral rewards remain the requested template`() throws {
+        let template = try #require(GameContent.itemTemplate(matching: "longsword-astral"))
+        let stage = Stage(
+            id: "authored-loot", chapterID: "chapter-1", chapterNumber: 1, stageNumber: 1,
+            encounter: .mysteryEvent(eventID: ""),
+            rewards: StageReward(gold: 0, itemTemplateIDs: [template.templateID]),
         )
-        #expect(spireLoot.item.rarity == .astral)
+        for seed in UInt64(1) ... 8 {
+            var save = SaveTestSupport.makeSave(worldSeed: seed)
+            let before = save.inventory.items.count
+            StageCompletion.claimRewardsIfNeeded(
+                for: stage, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save,
+            )
+            #expect(save.inventory.items.count == before + 1)
+            #expect(save.inventory.items.last?.templateID == template.templateID)
+            #expect(save.inventory.items.last?.isTrinket == false)
+        }
     }
 }

@@ -82,15 +82,6 @@ public enum MysteryEffectApplier {
         4 + (max(1, level) * 14) / 49
     }
 
-    public static func experienceAward(
-        encounterLevel: Int,
-        roster: PlayerRosterState,
-        percent: Int = 0,
-    ) -> Int {
-        let base = ExperienceScaling.baseBattleAward(forPlayerLevel: max(1, encounterLevel))
-        return sharedExperience(CombatRounding.scaled(base, byPercent: percent), roster: roster)
-    }
-
     public static func resolvedEncounterLevel(
         stage: Stage,
         labyrinthNodeID: String?,
@@ -112,6 +103,7 @@ public enum MysteryEffectApplier {
         choice: MysteryChoice,
         encounterID: String,
         encounterLevel: Int,
+        rewardLevel: Int,
         save: PlayerSave,
         bonuses: LabyrinthModifierEffects = .zero,
         using randomNumberGenerator: inout some RandomNumberGenerator,
@@ -138,7 +130,7 @@ public enum MysteryEffectApplier {
             choiceID: choice.id,
             item: generateItem(
                 pool: pool,
-                id: "\(encounterID)-\(choice.id)",
+                rewardLevel: rewardLevel, id: "\(encounterID)-\(choice.id)",
                 save: save,
                 using: &randomNumberGenerator,
             ),
@@ -154,23 +146,27 @@ public enum MysteryEffectApplier {
         return result
     }
 
-    public static func apply(
+    static func apply(
         _ effects: [MysteryEffect],
         stageID: String,
         choiceID: String,
         encounterLevel: Int,
+        rewardLevel: Int,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
         goldFoundPercent: Int = 0,
         experienceEarnedPercent: Int = 0,
         materialsFoundPercent: Int = 0,
     ) -> MysteryEffectResult {
+        let grantDate = Date()
+        save.homestead.settleProduction(at: grantDate, roster: save.roster)
         var result = MysteryEffectResult()
         for effect in effects {
             switch effect {
             case let .gainItem(pool):
                 let item = generateItem(
                     pool: pool,
+                    rewardLevel: rewardLevel,
                     id: "\(stageID)-\(choiceID)-\(result.grantedItems.count)",
                     save: save,
                     using: &randomNumberGenerator,
@@ -189,7 +185,7 @@ public enum MysteryEffectApplier {
                     experiencePercent: experienceEarnedPercent,
                     materialsPercent: materialsFoundPercent,
                 ) {
-                    apply(bonus, save: &save, result: &result)
+                    apply(bonus, save: &save, result: &result, at: grantDate)
                 }
             case .corruptItem, .leave:
                 break
@@ -208,29 +204,19 @@ public enum MysteryEffectApplier {
         return !inventory.items.contains { $0.id == item.id }
     }
 
-    static func sharedExperience(_ amount: Int, roster: PlayerRosterState) -> Int {
-        min(
-            ExperienceScaling.cappedAward(amount, for: roster.progression(for: roster.activeHero)),
-            ExperienceScaling.cappedAward(amount, for: roster.progression(for: roster.activeCompanion)),
-        )
-    }
-
     private static func generateItem(
         pool: MysteryItemPool,
-        id: String,
+        rewardLevel: Int, id: String,
         save: PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         guard let base = GameContent.itemBaseType(matching: pool.baseTypeID), base.slot != .trinket else {
             preconditionFailure("Mystery item pools require a known gear base")
         }
-        let tier = MysteryItemRarity.roll(
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-            using: &randomNumberGenerator,
-        )
         return ItemRewardGenerator.generate(
             id: id,
-            tier: tier,
+            rewardLevel: rewardLevel,
+            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
             ownedTrinketIDs: save.inventory.ownedTrinketIDs,
             ownedUniqueIDs: save.inventory.ownedUniqueIDs,
             eligibleTrinketIDs: pool.trinketIDs,
@@ -249,15 +235,35 @@ public enum MysteryEffectApplier {
         experiencePercent: Int,
         materialsPercent: Int,
     ) -> MysteryRewardBonus? {
-        switch effect {
+        let bonus: MysteryRewardBonus? = switch effect {
         case let .gainGold(amount):
             .gold(CombatRounding.scaled(amount, byPercent: goldPercent + save.homestead.effects.goldFindPercent))
         case let .gainMaterial(resource):
             .material(resource, CombatRounding.scaled(materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent))
         case .gainExperience:
-            .experience(experienceAward(encounterLevel: encounterLevel, roster: save.roster, percent: experiencePercent))
+            .experience(RewardExperiencePolicy.encounterAward(
+                encounterLevel: encounterLevel,
+                roster: save.roster,
+                percent: experiencePercent,
+            ))
         default:
             nil
+        }
+        return bonus.map {
+            RewardSettlementPolicy.settle(
+                $0,
+                inputs: RewardSettlementInputs(
+                    save: save,
+                    hero: save.roster.activeHero,
+                    companion: save.roster.activeCompanion,
+                    at: save.homestead.lastProductionAt,
+                ),
+                replacementExperience: RewardExperiencePolicy.encounterAward(
+                    encounterLevel: encounterLevel,
+                    roster: save.roster,
+                    percent: experiencePercent,
+                ),
+            )
         }
     }
 
@@ -281,7 +287,7 @@ public enum MysteryEffectApplier {
         case let .experience(amount):
             let hero = save.roster.activeHero
             let companion = save.roster.activeCompanion
-            let award = sharedExperience(amount, roster: save.roster)
+            let award = RewardExperiencePolicy.sharedAward(amount, roster: save.roster)
             result.heroProgressionBefore = save.roster.progression(for: hero)
             result.companionProgressionBefore = save.roster.progression(for: companion)
             result.heroGrantedExperience += save.roster.grantExperience(award, to: hero)

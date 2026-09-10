@@ -3,27 +3,36 @@ import SwiftUI
 public struct InspectableTapButton<Label: View>: View {
     let action: () -> Void
     var longPress: (() -> Void)?
-    var isDisabled = false
+    let isActionEnabled: Bool
+    let isInspectionEnabled: Bool
     @ViewBuilder var label: () -> Label
 
     public init(
         action: @escaping () -> Void,
         longPress: (() -> Void)? = nil,
-        isDisabled: Bool = false,
+        isActionEnabled: Bool = true,
+        isInspectionEnabled: Bool = true,
         @ViewBuilder label: @escaping () -> Label,
     ) {
         self.action = action
         self.longPress = longPress
-        self.isDisabled = isDisabled
+        self.isActionEnabled = isActionEnabled
+        self.isInspectionEnabled = isInspectionEnabled
         self.label = label
     }
 
     public var body: some View {
-        Button(action: action) {
+        Button {
+            if isActionEnabled {
+                action()
+            } else if isInspectionEnabled {
+                longPress?()
+            }
+        } label: {
             label()
         }
-        .disabled(isDisabled)
-        .modifier(InspectLongPressModifier(longPress: isDisabled ? nil : longPress))
+        .disabled(!isActionEnabled && (!isInspectionEnabled || longPress == nil))
+        .modifier(InspectLongPressModifier(longPress: isInspectionEnabled ? longPress : nil))
     }
 }
 

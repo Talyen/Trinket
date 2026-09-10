@@ -2,6 +2,10 @@ import TrinketContent
 import TrinketCore
 
 enum DamageDefensePolicy {
+    static func cappedDamage(_ amount: Int, operation: DamageOperation, cap: Int) -> Int {
+        cap > 0 && !operation.isHealthCost ? min(amount, cap) : amount
+    }
+
     static func mitigationMultiplier(state: DamageResolutionState, context: BattleState) -> Double {
         guard let sourceActorID = state.sourceActorID else { return 1 }
         let sourceProfile = context.modifiers(for: sourceActorID)
