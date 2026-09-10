@@ -46,6 +46,7 @@ enum PreparedArtworkMemoryBudget {
 @Observable
 public final class PreparedArtworkCache {
     public static let shared = PreparedArtworkCache()
+    private static let maximumDecodeConcurrency = 2
 
     public private(set) var completedCount = 0
     public private(set) var totalCount = 1
@@ -60,8 +61,7 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var decodedCostsByName: [String: Int] = [:]
     @ObservationIgnored private var launchWarmupNames: [String] = []
-    @ObservationIgnored private var inFlightNames: Set<String> = []
-    @ObservationIgnored private var decodeWaitersByName: [String: [CheckedContinuation<Void, Never>]] = [:]
+    @ObservationIgnored private var decodeTasksByName: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
     @ObservationIgnored private let decodeHandler: @Sendable (String) async -> PreparedArtwork
     @ObservationIgnored private let logger = Logger(
@@ -120,7 +120,7 @@ public final class PreparedArtworkCache {
     public func prepare(names: [String]) async {
         let unique = Array(Set(names)).sorted()
         guard !unique.isEmpty else { return }
-        await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
+        await decode(unique, countsTowardLaunch: false)
     }
 
     public func prepareAndPin(names: [String]) async {
@@ -129,7 +129,7 @@ public final class PreparedArtworkCache {
         for name in unique {
             pinCountsByName[name, default: 0] += 1
         }
-        await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
+        await decode(unique, countsTowardLaunch: false)
         for name in unique {
             pinResidentImage(named: name)
         }
@@ -196,7 +196,7 @@ public final class PreparedArtworkCache {
 
         let task = Task(priority: .userInitiated) { @MainActor [weak self] in
             guard let self else { return }
-            await decode(plan.priorityNames, maximumConcurrency: 2, countsTowardLaunch: true)
+            await decode(plan.priorityNames, countsTowardLaunch: true)
             for name in plan.priorityNames {
                 pinResidentImage(named: name)
             }
@@ -212,7 +212,7 @@ public final class PreparedArtworkCache {
 
         deferredWarmupTask = Task(priority: .utility) { @MainActor [weak self] in
             guard let self else { return }
-            await decode(plan.deferredNames, maximumConcurrency: 2, countsTowardLaunch: true)
+            await decode(plan.deferredNames, countsTowardLaunch: true)
             guard !Task.isCancelled else { return }
             isDeferredWarmupComplete = true
             completedCount = totalCount
@@ -232,9 +232,9 @@ public final class PreparedArtworkCache {
 
     private func decode(
         _ imageNames: [String],
-        maximumConcurrency: Int,
         countsTowardLaunch: Bool,
     ) async {
+        guard !Task.isCancelled else { return }
         let namesToDecode = imageNames.filter { name in
             pinnedImages[name] == nil
                 && images.object(forKey: name as NSString) == nil
@@ -246,7 +246,7 @@ public final class PreparedArtworkCache {
         await withTaskGroup(of: Void.self) { group in
             var iterator = namesToDecode.makeIterator()
 
-            for _ in 0 ..< maximumConcurrency {
+            for _ in 0 ..< Self.maximumDecodeConcurrency {
                 guard let name = iterator.next() else { break }
                 group.addTask {
                     await self.prepareArtwork(named: name)
@@ -277,42 +277,38 @@ public final class PreparedArtworkCache {
         else {
             return
         }
-        if inFlightNames.contains(name) {
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                decodeWaitersByName[name, default: []].append(continuation)
-            }
+        if let task = decodeTasksByName[name] {
+            await task.value
             return
         }
+        guard !Task.isCancelled else { return }
 
-        inFlightNames.insert(name)
-        let prepared = await decodeHandler(name)
-        let wasCancelled = Task.isCancelled
-        if prepared.name != name {
-            assertionFailure("Artwork decode returned mismatched name for \(name)")
-        }
-        if let image = prepared.image, !wasCancelled {
-            let decodedCost = Self.decodedCost(of: image)
-            let isPinned = pinCountsByName[name] != nil
-            images.setObject(
-                image,
-                forKey: name as NSString,
-                cost: decodedCost,
-            )
-            decodedCostsByName[name] = decodedCost
-            if isPinned {
-                pinnedImages[name] = image
+        let task = Task {
+            defer { decodeTasksByName.removeValue(forKey: name) }
+            let prepared = await decodeHandler(name)
+            if prepared.name != name {
+                assertionFailure("Artwork decode returned mismatched name for \(name)")
             }
-        } else {
-            assert(
-                pinnedImages[name] == nil,
-                "Failed decode must not have a pinned bitmap for \(name)",
-            )
+            if let image = prepared.image {
+                let decodedCost = Self.decodedCost(of: image)
+                images.setObject(
+                    image,
+                    forKey: name as NSString,
+                    cost: decodedCost,
+                )
+                decodedCostsByName[name] = decodedCost
+                if pinCountsByName[name] != nil {
+                    pinnedImages[name] = image
+                }
+            } else {
+                assert(
+                    pinnedImages[name] == nil,
+                    "Failed decode must not have a pinned bitmap for \(name)",
+                )
+            }
         }
-        inFlightNames.remove(name)
-        let waiters = decodeWaitersByName.removeValue(forKey: name) ?? []
-        for waiter in waiters {
-            waiter.resume()
-        }
+        decodeTasksByName[name] = task
+        await task.value
     }
 
     func snapshot() -> PreparedArtworkCacheSnapshot {

@@ -6,7 +6,6 @@ public enum ArtworkViewportPrewarm {
     public static let partyPickerEstimatedColumns = 3
     public static let backwardPrefetchRows = 1
     public static let viewportDebounceInterval: Duration = .milliseconds(50)
-    static let maximumConcurrency = 2
 
     @MainActor
     public static func prewarm<Item: Identifiable>(

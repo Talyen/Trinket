@@ -44,17 +44,14 @@ struct PreparedArtworkCacheTests {
     }
 
     @Test func `viewport prepare overtakes queued deferred artwork`() async {
-        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
-            UIColor.red.setFill()
-            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
-        }
+        let image = makeImage()
         let deferredGate = DeferredDecodeGate()
-        let blockedStarts = DecodeStartCount()
+        let blockedStarts = DecodeCallCounter()
         let cache = PreparedArtworkCache.makeForTesting(
             catalogNames: ["blocked-a", "blocked-b", "viewport"],
         ) { name in
             if name.hasPrefix("blocked-") {
-                await blockedStarts.markStarted()
+                await blockedStarts.markCalled()
                 await deferredGate.waitUntilOpen()
             }
             return PreparedArtwork(name: name, image: image)
@@ -88,10 +85,7 @@ struct PreparedArtworkCacheTests {
     }
 
     @Test func `snapshots include artwork prepared after launch`() async {
-        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
-            UIColor.red.setFill()
-            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
-        }
+        let image = makeImage()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
             PreparedArtwork(name: name, image: image)
         }
@@ -106,10 +100,7 @@ struct PreparedArtworkCacheTests {
     }
 
     @Test func `launch warmup snapshot reports resident and pinned decoded images`() async {
-        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
-            UIColor.red.setFill()
-            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
-        }
+        let image = makeImage()
         let preparedByName = [
             "priority": PreparedArtwork(name: "priority", image: image),
             "deferred": PreparedArtwork(name: "deferred", image: image),
@@ -133,10 +124,7 @@ struct PreparedArtworkCacheTests {
     }
 
     @Test func `prepare and pin retries artwork that is not resident`() async {
-        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
-            UIColor.red.setFill()
-            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
-        }
+        let image = makeImage()
         let source = RetryingDecodeSource(image: image)
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
             await source.decode(name: name)
@@ -160,10 +148,7 @@ struct PreparedArtworkCacheTests {
     }
 
     @Test func `overlapping pins remain resident until every owner releases`() async {
-        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
-            UIColor.red.setFill()
-            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
-        }
+        let image = makeImage()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
             PreparedArtwork(name: name, image: image)
         }
@@ -184,20 +169,17 @@ struct PreparedArtworkCacheTests {
     }
 
     @Test func `releasing pins during decode does not leak A pin`() async {
-        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
-            UIColor.red.setFill()
-            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
-        }
+        let image = makeImage()
         let gate = DeferredDecodeGate()
-        let started = DecodeStartSignal()
+        let started = DecodeCallCounter()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
-            await started.markStarted()
+            await started.markCalled()
             await gate.waitUntilOpen()
             return PreparedArtwork(name: name, image: image)
         }
 
         let prepareTask = Task { await cache.prepareAndPin(names: ["art"]) }
-        await started.waitUntilStarted()
+        await started.wait(until: 1)
         cache.releasePins(names: ["art"])
         await gate.open()
         await prepareTask.value
@@ -207,10 +189,7 @@ struct PreparedArtworkCacheTests {
     }
 
     @Test func `priority pins materialize when artwork is already cached`() async {
-        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
-            UIColor.red.setFill()
-            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
-        }
+        let image = makeImage()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["priority"]) { name in
             PreparedArtwork(name: name, image: image)
         }
@@ -245,23 +224,90 @@ struct PreparedArtworkCacheTests {
         #expect(cache.snapshot().pinnedCount == 0)
     }
 
-    @Test func `concurrent waiters share A single decode`() async {
+    @Test(arguments: [false, true])
+    func `shared decode survives consumer cancellation`(cancelInitiator: Bool) async {
+        let image = makeImage()
         let gate = DeferredDecodeGate()
         let counter = DecodeCallCounter()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
             await counter.markCalled()
             await gate.waitUntilOpen()
+            return PreparedArtwork(name: name, image: image)
+        }
+
+        let viewport = Task { await cache.prepare(names: ["art"]) }
+        await counter.wait(until: 1)
+        let pin = Task { await cache.prepareAndPin(names: ["art"]) }
+        let deadline = ContinuousClock.now + .seconds(2)
+        while cache.pinDemandCount(for: "art") == 0, ContinuousClock.now < deadline {
+            await Task.yield()
+        }
+        #expect(cache.pinDemandCount(for: "art") == 1)
+
+        if cancelInitiator {
+            viewport.cancel()
+        } else {
+            pin.cancel()
+        }
+        await gate.open()
+        await viewport.value
+        await pin.value
+
+        #expect(await counter.count == 1)
+        #expect(cache.image(named: "art") != nil)
+        #expect(cache.snapshot().pinnedCount == 1)
+        #expect(cache.pinDemandCount(for: "art") == 1)
+        cache.releasePins(names: ["art"])
+        #expect(cache.snapshot().pinnedCount == 0)
+        #expect(cache.pinDemandCount(for: "art") == 0)
+    }
+
+    @Test func `canceled batch finishes started images without decoding queued images`() async {
+        let image = makeImage()
+        let gate = DeferredDecodeGate()
+        let counter = DecodeCallCounter()
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
+            await counter.markCalled()
+            await gate.waitUntilOpen()
+            return PreparedArtwork(name: name, image: image)
+        }
+
+        let batch = Task { await cache.prepare(names: ["a", "b", "c", "d"]) }
+        await counter.wait(until: 2)
+        batch.cancel()
+        await gate.open()
+        await batch.value
+
+        #expect(await counter.count == 2)
+        #expect(cache.image(named: "a") != nil)
+        #expect(cache.image(named: "b") != nil)
+        #expect(cache.image(named: "c") == nil)
+        #expect(cache.image(named: "d") == nil)
+    }
+
+    @Test func `already canceled batch does not decode or leave pin demand`() async {
+        let counter = DecodeCallCounter()
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
+            await counter.markCalled()
             return PreparedArtwork(name: name, image: nil)
         }
 
-        async let first: Void = cache.prepare(names: ["art"])
-        async let second: Void = cache.prepare(names: ["art"])
-        await counter.wait(until: 1)
-        await gate.open()
-        await first
-        await second
+        let batch = Task {
+            await cache.prepareAndPin(names: ["art"])
+        }
+        batch.cancel()
+        await batch.value
 
-        #expect(await counter.count == 1)
+        let attemptedDecodes = await counter.count
+        #expect(attemptedDecodes == 0)
+        #expect(cache.pinDemandCount(for: "art") == 0)
+    }
+
+    private func makeImage() -> UIImage {
+        UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
+            UIColor.red.setFill()
+            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+        }
     }
 }
 
@@ -302,57 +348,11 @@ private actor DeferredDecodeGate {
     }
 }
 
-private actor DecodeStartSignal {
-    private var hasStarted = false
-    private var waiters: [CheckedContinuation<Void, Never>] = []
-
-    func markStarted() {
-        hasStarted = true
-        let pending = waiters
-        waiters.removeAll()
-        for waiter in pending {
-            waiter.resume()
-        }
-    }
-
-    func waitUntilStarted() async {
-        if hasStarted {
-            return
-        }
-        await withCheckedContinuation { continuation in
-            waiters.append(continuation)
-        }
-    }
-}
-
 private actor DecodeCallCounter {
     private(set) var count = 0
     private var waiters: [(Int, CheckedContinuation<Void, Never>)] = []
 
     func markCalled() {
-        count += 1
-        let ready = waiters.filter { count >= $0.0 }
-        waiters.removeAll { count >= $0.0 }
-        for waiter in ready {
-            waiter.1.resume()
-        }
-    }
-
-    func wait(until target: Int) async {
-        if count >= target {
-            return
-        }
-        await withCheckedContinuation { continuation in
-            waiters.append((target, continuation))
-        }
-    }
-}
-
-private actor DecodeStartCount {
-    private var count = 0
-    private var waiters: [(Int, CheckedContinuation<Void, Never>)] = []
-
-    func markStarted() {
         count += 1
         let ready = waiters.filter { count >= $0.0 }
         waiters.removeAll { count >= $0.0 }
