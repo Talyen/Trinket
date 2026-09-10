@@ -5,26 +5,21 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct PlayerSaveStoreCleanupTests {
-    @Test @MainActor func `clean store files deletes sqlite sidecars`() throws {
+    @Test(arguments: ["PlayerSave.sqlite", "default.store", "save"])
+    func `clean store files removes only the store and its sidecars`(filename: String) throws {
         let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
-        do {
-            _ = try PlayerSaveStore(
-                storeURL: storeURL,
-                disableCloudSync: true,
-                persistSaveImmediately: true,
-            )
+        let storeURL = context.directoryURL.appendingPathComponent(filename)
+        let storeFiles = [filename, "\(filename)-wal", "\(filename)-shm", "\(filename)-journal"]
+        let unrelatedFiles = ["\(filename).wal", "\(filename).shm", "\(filename).journal", "other.store"]
+        for name in storeFiles + unrelatedFiles {
+            try Data([0x1]).write(to: context.directoryURL.appendingPathComponent(name))
         }
-        let walURL = storeURL.deletingPathExtension().appendingPathExtension("sqlite-wal")
-        let shmURL = storeURL.deletingPathExtension().appendingPathExtension("sqlite-shm")
-        try Data([0x1]).write(to: walURL)
-        try Data([0x1]).write(to: shmURL)
 
         PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL)
+        PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL)
 
-        try #expect(!FileManager.default.fileExists(atPath: storeURL.path))
-        try #expect(!FileManager.default.fileExists(atPath: walURL.path))
-        try #expect(!FileManager.default.fileExists(atPath: shmURL.path))
+        let remainingFiles = try FileManager.default.contentsOfDirectory(atPath: context.directoryURL.path)
+        #expect(Set(remainingFiles) == Set(unrelatedFiles))
     }
 
     @Test @MainActor func `reset state true wipes prior progress`() throws {

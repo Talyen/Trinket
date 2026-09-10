@@ -68,17 +68,9 @@ enum ModelContainerBootstrap {
     }
 
     static func deleteStoreFiles(at url: URL, logger: Logger, logLabel: String) {
-        let base = url.deletingPathExtension()
-        let ext = url.pathExtension
-        let shmExtension = ext.isEmpty ? "shm" : "\(ext)-shm"
-        let walExtension = ext.isEmpty ? "wal" : "\(ext)-wal"
-        let journalExtension = ext.isEmpty ? "journal" : "\(ext)-journal"
-        let candidates = [
-            url,
-            base.appendingPathExtension(shmExtension),
-            base.appendingPathExtension(walExtension),
-            base.appendingPathExtension(journalExtension),
-        ]
+        let candidates = ["", "-shm", "-wal", "-journal"].map { suffix in
+            url.deletingLastPathComponent().appendingPathComponent(url.lastPathComponent + suffix)
+        }
         for candidate in candidates {
             guard FileManager.default.fileExists(atPath: candidate.path) else { continue }
             do {
