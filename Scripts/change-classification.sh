@@ -82,22 +82,16 @@ trinket_package_has_tests() {
   return 1
 }
 
-trinket_package_is_compile_only() {
-  local package="$1"
-  local candidate
-  for candidate in "${TRINKET_COMPILE_ONLY_PACKAGES[@]}"; do
-    [[ "$candidate" == "$package" ]] && return 0
-  done
-  return 1
-}
-
 # Route touched package diffs to package tests or app compile proof.
 trinket_route_package_verification() {
   local package="$1"
-  if trinket_package_has_tests "$package"; then
+  if [[ "$package" == TrinketTestSupport ]]; then
+    local consumer
+    for consumer in BattleEngine TrinketAppState TrinketBattleFeature TrinketFeatureSupport; do
+      trinket_add_package "$consumer"
+    done
+  elif trinket_package_has_tests "$package"; then
     trinket_add_package "$package"
-  elif trinket_package_is_compile_only "$package"; then
-    TRINKET_NEEDS_APP_BUILD=true
   else
     TRINKET_NEEDS_APP_BUILD=true
   fi
@@ -150,9 +144,6 @@ trinket_classify_package_swift_path() {
   TRINKET_AUTHORED_PATHS+=("$path")
 
   case "$package" in
-    TrinketTestSupport)
-      TRINKET_NEEDS_APP_BUILD=true
-      ;;
     TrinketDesignSystem)
       if [[ "$path" == Packages/TrinketDesignSystem/Sources/* ]]; then
         trinket_add_skill .agents/skills/apple-design/SKILL.md

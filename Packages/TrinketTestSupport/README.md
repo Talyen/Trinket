@@ -12,6 +12,8 @@ put product rules or save-store harnesses here — those live in
 - `BattlePartyFixtures`: `quickWinParty` with `hero` / `companion` / `enemy` overrides plus `heroAbilities` and `enemyMaxHealth`. The party alone does not seed — pair it with a seeded `BattleState` or session helper.
 - `ItemFixtures`: Direct inventory-item construction via `makeBareItem` plus `baseType` lookups. The helper does not run item generation: affixes default to empty and stored powers to `nil`; callers can supply `affixes` and `affixPowers` explicitly. Omitted stored powers exercise catalog fallback when affixes are supplied. For items produced by the generator, use `SaveTestSupport.makeGeneratedItem`. Default IDs are `"<base>-test"`. `TrinketContentTests` carries a mirrored copy because `TrinketContentTests` cannot depend on this package without a cycle — keep signatures in sync.
 
-Validate fixture changes in consuming packages’ tests before handoff
-(`BattleEngine`, `TrinketAppState`, `TrinketBattleFeature`, `TrinketFeatureSupport`).
+Path-scoped `./Scripts/handoff.sh --isolate --paths <files...>` automatically
+validates fixture source and package-manifest changes in all consuming packages’
+tests (`BattleEngine`, `TrinketAppState`, `TrinketBattleFeature`, `TrinketFeatureSupport`).
+Fixture-only source changes do not require an app build or UI smoke.
 This package has no test target. Shared conventions: `Docs/Platform/Testing.md`.

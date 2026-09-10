@@ -918,23 +918,45 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         plan = "\n".join(result.stdout.splitlines())
         self.assertIn("test-package.sh BattleEngine", plan)
 
-    def test_test_support_routes_to_app_build_not_test_package(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Packages/TrinketTestSupport/Sources/TrinketTestSupport/CombatantFixtures.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/build.sh", plan)
-        self.assertNotIn("test-package.sh TrinketTestSupport", plan)
+    def test_shared_fixture_verification_routes(self) -> None:
+        root = "Packages/TrinketTestSupport"
+        fixtures = [
+            f"{root}/Sources/TrinketTestSupport/{name}.swift"
+            for name in ("CombatantFixtures", "BattlePartyFixtures", "ItemFixtures")
+        ]
+        consumers = {"BattleEngine", "TrinketAppState", "TrinketBattleFeature", "TrinketFeatureSupport"}
+        cases = [
+            *[(name, [path], consumers, False, False) for name, path in zip(
+                ("combatant", "party", "item"), fixtures
+            )],
+            ("manifest", [f"{root}/Package.swift"], consumers, False, True),
+            ("deleted", [f"{root}/Sources/TrinketTestSupport/DeletedFixture.swift"], consumers, False, False),
+            ("deduplicated", fixtures + ["Packages/BattleEngine/Tests/BattleEngineTests/BattleStateTests.swift"], consumers, False, False),
+            ("mixed-app", [fixtures[0], "Trinket/App/TrinketApp.swift"], consumers, True, False),
+            ("docs", [f"{root}/README.md"], set(), False, False),
+        ]
+        for name, paths, expected_packages, app_build, generation in cases:
+            with self.subTest(case=name):
+                result = subprocess.run(
+                    [str(ROOT / "Scripts/handoff.sh"), "--isolate", "--dry-run", "--smoke", "--paths", *paths],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                plan = result.stdout
+                package_commands = re.findall(r"^\s*\./Scripts/test-package\.sh (.+)$", plan, re.MULTILINE)
+                packages = [package for command in package_commands for package in command.split()]
+                self.assertEqual(set(packages), expected_packages)
+                self.assertEqual(len(packages), len(expected_packages))
+                self.assertEqual("./Scripts/build.sh" in plan, app_build and shutil.which("xcodebuild") is not None)
+                self.assertEqual("./Scripts/generate.sh" in plan, generation)
+                self.assertEqual("./Scripts/assert-generated-output.sh --idempotent" in plan, generation)
+                self.assertNotIn("./Scripts/test.sh smoke", plan)
+                if name == "docs":
+                    self.assertIn("./Scripts/check-docs.py", plan)
+                    self.assertNotIn("./Scripts/test.sh style", plan)
 
     def test_idempotence_checks_outputs_even_with_a_fresh_stamp(self) -> None:
         for initial, generator, expected in (
