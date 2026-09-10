@@ -113,6 +113,7 @@ Read these focused guides:
 | `./Scripts/build-freshness.sh` | Generated-input freshness and `--no-build` stamp helpers sourced by build/test commands |
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |
 | `./Scripts/release.sh [--dry-run]` | Preview or execute a release |
+| `./Scripts/install-device.sh [--device …]` | Build, install, and launch Trinket on a connected physical iOS device; auto-selects the first paired device |
 
 ### Advanced / internal (owned by another command, not everyday entry points)
 
