@@ -2,12 +2,32 @@ import TrinketContent
 import TrinketCore
 
 public struct BattleActionContext: Equatable, Sendable {
-    public let actor: Combatant
-    public let selectedTarget: Combatant
+    private final class Participants: Equatable, Sendable {
+        let actor: Combatant
+        let selectedTarget: Combatant
+
+        init(actor: Combatant, selectedTarget: Combatant) {
+            self.actor = actor
+            self.selectedTarget = selectedTarget
+        }
+
+        static func == (lhs: Participants, rhs: Participants) -> Bool {
+            lhs === rhs || (lhs.actor == rhs.actor && lhs.selectedTarget == rhs.selectedTarget)
+        }
+    }
+
+    private let participants: Participants
+
+    public var actor: Combatant {
+        participants.actor
+    }
+
+    public var selectedTarget: Combatant {
+        participants.selectedTarget
+    }
 
     public init(actor: Combatant, selectedTarget: Combatant) {
-        self.actor = actor
-        self.selectedTarget = selectedTarget
+        participants = Participants(actor: actor, selectedTarget: selectedTarget)
     }
 
     public init(actor: Combatant, in state: BattleState) {

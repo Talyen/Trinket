@@ -7,6 +7,7 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| Combat reaction contracts | 2026-09-10 | Implemented shared selected-outcome and payment facts, explicit reaction checkpoints and automatic ancestry, cohesive healing state, and consistent defense/affliction rules; preserved serialized contracts and removed nested-reaction stack pressure. |
 | Generated project consistency | 2026-09-08 | Selected uncached pinned XcodeGen generation (82 ms median versus 60 ms cached); added staged-project validation through an index snapshot, explicit forced idempotence, tool/output freshness routing, and commit/push regression fixtures. Hosted CI confirmation follows a requested push. |
 | Monetization | 2026-09-08 | Implemented the permanent Full Game offer, free-content boundaries, earned recruitment, free-first roster ordering, all-ability Spire matching, StoreKit development purchases, and support/privacy page sources. Developer enrollment, live store setup, public support contact, and website publication remain release prerequisites. |
 | Battle card cues | 2026-09-08 | Reworked The Patient Edge around partner-first attacks with saved-power compatibility; added artwork-first recipient cues, resource-use previews, and denial feedback for taps, drags, and Auto Battle; covered interrupted, rapid, and pre-render Auto Battle input, isolated inherited smoke settings, and separated cold launch readiness from screen assertions. |

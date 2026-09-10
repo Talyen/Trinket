@@ -8,13 +8,6 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         case shieldFromMana
         case shieldFromHalfMana
         case shieldFromGold
-
-        var spendsMana: Bool {
-            switch self {
-            case .convertManaToBlock: true
-            case .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: false
-            }
-        }
     }
 
     let mode: Mode
@@ -32,15 +25,14 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         }
 
         let block: Int
-        var spentAmount = 0
+        var payment: ManaPayment?
         switch mode {
         case .convertManaToBlock:
             let mana = context.mana(of: target)
             guard mana > 0 else {
                 return EffectApplyOutcome(events: [], didApply: false)
             }
-            _ = context.spendMana(mana, for: target)
-            spentAmount = mana
+            payment = context.payMana(mana, for: target)
             block = mana
         case .shieldFromMana:
             let mana = context.mana(of: target)
@@ -72,12 +64,8 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
             abilityName: ability.name,
         )
         var events: [ActionEvent] = []
-        if mode.spendsMana {
-            events = CombatTriggerEngine.afterSpendMana(
-                by: target,
-                amountSpent: spentAmount,
-                in: &context,
-            )
+        if let payment {
+            events = CombatTriggerEngine.afterSpendMana(payment, in: &context)
         }
         events.append(contentsOf: applied)
         return EffectApplyOutcome(events: events, didApply: !applied.isEmpty)
@@ -211,17 +199,45 @@ struct DetonateDoTHandler: BattleEffectHandler {
         context.roster.setActiveEffects(effects, for: target)
         var events: [ActionEvent] = []
         for active in matching {
-            let potency = (active.effect.potency ?? 0) * factor
-            guard potency > 0 else { continue }
-            events.append(contentsOf: DoTDamage.resolveTurnDamage(
-                basePotency: potency,
-                keyword: keyword,
-                target: target,
-                sourceActorID: source.id,
-                in: &context,
-            ).events)
+            events.append(contentsOf: detonate(active, factor: factor, source: source, target: target, in: &context))
         }
         return EffectApplyOutcome(events: events, didApply: true)
+    }
+
+    private func detonate(
+        _ active: ActiveEffect,
+        factor: Int,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        if active.effect.isBleed {
+            var amplified = active
+            amplified.effect = .bleed((active.effect.potency ?? 0) * factor)
+            return CombatTriggerEngine.detonateBleedStacks(
+                [amplified], on: target, sourceActorID: source.id, in: &context,
+            )
+        }
+        let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
+        let slowBurn = sourceTriggers?.burnDecaySlowPercent ?? 0
+        let tickCount = active.keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true ? 2 : 1
+        var remaining = active.effect
+        var events: [ActionEvent] = []
+        while context.roster.health(for: target) > 0 {
+            let next = remaining.potencyAfterTurn(burnDecaySlowPercent: slowBurn)
+            guard next > 0 else { break }
+            remaining = .decayingDoT(keyword: active.keyword, potency: next)
+            for _ in 0 ..< tickCount where context.roster.health(for: target) > 0 {
+                events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                    basePotency: next * factor,
+                    keyword: active.keyword,
+                    target: target,
+                    sourceActorID: source.id,
+                    in: &context,
+                ).events)
+            }
+        }
+        return events
     }
 }
 
@@ -263,6 +279,14 @@ struct RecurringDamageHandler: BattleEffectHandler {
             event: (.recurringDamageApplied, potency, keyword),
         )
         guard application.didApply else { return application }
+        if UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context) {
+            context.uniques.card?.damageRequests.append(.doTTick(
+                amount: potency,
+                target: target,
+                keyword: keyword,
+                sourceActorID: source.id,
+            ))
+        }
         let events = DoTDamage.resolveTurnDamage(
             basePotency: potency,
             keyword: keyword,

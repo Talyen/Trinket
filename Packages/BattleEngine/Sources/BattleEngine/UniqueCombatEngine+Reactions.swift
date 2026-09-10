@@ -13,7 +13,7 @@ extension UniqueCombatEngine {
         for var request in play.damageRequests where !context.isBattleOver && context.roster.health(for: actor) > 0 {
             request.options = request.options.repeated()
             events.append(contentsOf: repeatHit(request, actor: actor, name: "The Final Spark", in: &context))
-            if let keyword = request.keyword {
+            if request.options.isAttackHit, let keyword = request.keyword {
                 events.append(contentsOf: BattleTurnEngine.applyDoTStackFromDamage(
                     keyword: keyword,
                     potency: request.amount,
@@ -99,9 +99,6 @@ extension UniqueCombatEngine {
               let ability = actor.abilityLoadout.basic,
               BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
         else { return [] }
-        let wasAutoPlay = context.isResolvingAutoPlayCard
-        context.isResolvingAutoPlayCard = true
-        defer { context.isResolvingAutoPlayCard = wasAutoPlay }
         return BattleTurnEngine.performAction(
             ability: ability,
             actor: actor,
@@ -233,13 +230,12 @@ extension UniqueCombatEngine {
     }
 
     static func afterEmpowermentSpend(
-        _ spent: Int,
-        previousMana: Int,
-        actor: Combatant,
+        _ payment: ManaPayment,
         in context: inout BattleState,
     ) {
+        guard let actor = context.roster.combatant(for: payment.payerID)?.combatant else { return }
         let triggers = context.modifiers(for: actor.id).triggers
-        if spent > 0, spent == previousMana,
+        if payment.spentLastMana,
            triggers.lastManaEmpowermentRepeatsDamage,
            isOrdinaryAction(actorID: actor.id, in: context),
            let owner = context.roster.participant(for: actor),

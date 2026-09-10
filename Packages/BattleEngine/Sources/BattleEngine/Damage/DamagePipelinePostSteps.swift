@@ -21,7 +21,7 @@ package extension DamagePipeline {
             in: &context,
         )
         state.damageEvents.append(contentsOf: leechOutcome.events)
-        state.didLeech = leechOutcome.healthRestored > 0
+        state.didLeech = leechOutcome.flags.contains(.leeched)
     }
 
     static func applyKeywordReactions(

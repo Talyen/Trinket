@@ -88,7 +88,7 @@ struct FaeWardTests {
             )),
             enemyModifiers: Self.faeWard,
         )
-        let events = CombatTriggerEngine.afterEnemyStunned(in: &battle)
+        let events = CombatTriggerEngine.afterEnemyStunned(sourceActorID: battle.roster.hero.id, in: &battle)
         #expect(!events.contains(where: { $0.effectKind == .markedApplied }))
         let marks = battle.roster.activeEffects(for: battle.roster.enemy.combatant).contains {
             if case .marked = $0.effect {

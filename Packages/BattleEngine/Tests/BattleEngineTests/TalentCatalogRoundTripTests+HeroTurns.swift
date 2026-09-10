@@ -4,6 +4,48 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test func `three turn talents pay on the third and sixth player turns`() {
+        var battle = capstoneBattle(companion: ["golden_retriever_gold_t1_2", "shield_scarab_stun_t3_1"])
+        for turn in 0 ..< 6 {
+            battle.turnCount = turn
+            let goldBefore = battle.gold
+            let healthBefore = battle.roster.enemy.currentHealth
+            let blockBefore = talentPoints(.shield, on: .hero, in: battle)
+            _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+            let due = (turn + 1).isMultiple(of: 3)
+            #expect(battle.gold - goldBefore == (due ? 2 : 0))
+            #expect(healthBefore - battle.roster.enemy.currentHealth == (due ? 3 : 0))
+            for owner in [BattleParticipant.hero, .companion] {
+                #expect(talentPoints(.shield, on: owner, in: battle) - blockBefore == (due ? 5 : 0))
+            }
+            if due {
+                let stun = battle.roster.enemy.activeEffects.first { $0.keyword == .stun }
+                #expect(stun?.effect.controlMeterValues?.amount == 3 * ((turn + 1) / 3))
+            }
+        }
+    }
+
+    @Test func `freezing gale deals damage through block and builds freeze`() {
+        var battle = capstoneBattle(companion: ["frost_whelp_freeze_t3_2"])
+        battle.turnCount = 2
+        DefensePoolEngine.set(1, on: battle.enemy, in: &battle)
+        let before = battle.roster.enemy.currentHealth
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        #expect(battle.roster.enemy.currentHealth == before - 1)
+        #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
+        #expect(battle.activeEffects(of: battle.enemy).contains {
+            $0.effect.controlMeterValues?.amount == 1 && $0.keyword == .freeze
+        })
+    }
+
+    @Test(arguments: [19, 20, 21])
+    func `safe perch requires more than half health`(health: Int) {
+        var battle = capstoneBattle(companion: ["library_owl_health_t1_1"])
+        battle.roster.companion.currentHealth = health
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        #expect(battle.roster.companion.currentHealth == health + (health > 20 ? 2 : 0))
+    }
+
     @Test func `wing buffet delays an uncontrolled enemy exactly once`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [.slash],

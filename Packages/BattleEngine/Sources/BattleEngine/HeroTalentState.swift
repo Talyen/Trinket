@@ -20,14 +20,10 @@ struct HeroTalentCardFacts {
     var tier: AbilityTier
     var playSerial = 0
     var previousDamageKeywords: Set<Keyword> = []
-    var isRandom = false
-    var damageKeywords: Set<Keyword> = []
-    var cleanses = false
     var removedDebuffs = 0
     var restoredHealth = false
     var restoredMana = false
     var grantedGold = false
-    var capturedOutcome = false
     var preparedHeal = false
     var preparations: Set<TalentPreparation> = []
     var capturedPreparations = false
@@ -53,7 +49,6 @@ struct HeroTalentHistory {
 }
 
 struct HeroTalentState {
-    var nextPlaySerial = 0
     var cards: [HeroTalentCardFacts] = []
     var actions: [TalentActionFacts] = []
     var history: [String: HeroTalentHistory] = [:]

@@ -43,7 +43,7 @@ package enum CriticalChanceEngine {
             chance += DamagePipeline.dodgeChance(for: actor.combatant, attackerID: context.roster.enemy.id, in: context)
         }
         if countsBleedingDefender,
-           context.roster.activeEffects(for: defender).contains(where: { $0.effect.keyword == .bleed }) {
+           context.roster.hasAffliction(.bleed, on: defender) {
             chance += context.modifiers(for: actorID).triggers.critChancePerBleedingEnemy
         }
         for active in context.roster.activeEffects(for: actor.combatant) {

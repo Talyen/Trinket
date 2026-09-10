@@ -27,16 +27,17 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    static func afterEnemyStunned(in context: inout BattleState) -> [ActionEvent] {
+    static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
-            events.append(contentsOf: afterEnemyStunnedReactions(for: owner, in: &context))
+            events.append(contentsOf: afterEnemyStunnedReactions(for: owner, sourceActorID: sourceActorID, in: &context))
         }
         return events
     }
 
     private static func afterEnemyStunnedReactions(
         for owner: BattleParticipant,
+        sourceActorID: String?,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let runtime = context.roster[owner]
@@ -78,7 +79,7 @@ package extension CombatTriggerEngine {
         }
 
         if context.roster.health(for: enemy) > 0 {
-            if triggers.stunPurgeDealHolyPerEffect > 0 {
+            if triggers.stunPurgeDealHolyPerEffect > 0, actor.id == sourceActorID {
                 events.append(contentsOf: wardbreakerStunPurge(
                     perEffectHolyDamage: triggers.stunPurgeDealHolyPerEffect,
                     actor: actor,
@@ -242,7 +243,7 @@ package extension CombatTriggerEngine {
         guard removedCount > 0,
               source.role != .enemy,
               target.role == .enemy,
-              livingPartyTriggers(in: context).crownfall
+              hasLivingPartyTrigger(\.crownfall, in: context)
         else { return [] }
         return context.resolveDamage(DamageRequest(
             amount: removedCount * 3,

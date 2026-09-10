@@ -4,6 +4,65 @@ import TrinketCore
 @testable import BattleEngine
 
 extension UniqueCollectionTests {
+    @Test(arguments: [Keyword.burn, .bleed], [false, true])
+    func `bloodfire followups deal one damage and stop at the chain limit`(keyword: Keyword, chained: Bool) throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.burnProcsBleedChancePercent = keyword == .burn || chained ? 1 : 0
+        profile.triggers.bleedProcsBurnChancePercent = keyword == .bleed || chained ? 1 : 0
+        var context = try battle([], extra: profile)
+        let enemy = context.roster.enemy.combatant
+        let before = context.roster.enemy.currentHealth
+        let effect: Effect = keyword == .burn ? .burn(20) : .bleed(10)
+        context.appendEffect(effect, to: enemy, sourceID: context.roster.hero.id, remainingTurns: 2)
+        let active = try #require(context.roster.enemy.activeEffects.first)
+        let handler = try #require(EffectHandlers.all[effect.kind])
+
+        let events = handler.advanceTurn(active, on: enemy, in: &context)
+
+        let followups = chained ? DoTMirrorCascade.maxChainDepth : 1
+        #expect(before - context.roster.enemy.currentHealth == 10 + followups)
+        #expect(events.filter { $0.kind == .status }.map(\.amount) == Array(repeating: 1, count: followups) + [10])
+        #expect(context.resolution.depth(.dotMirror) == 0)
+    }
+
+    @Test(arguments: [Keyword.burn, .bleed], [false, true])
+    func `bloodfire reacts to direct damage and standalone ticks`(keyword: Keyword, periodic: Bool) throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.burnProcsBleedChancePercent = keyword == .burn ? 1 : 0
+        profile.triggers.bleedProcsBurnChancePercent = keyword == .bleed ? 1 : 0
+        var context = try battle([], extra: profile)
+        let before = context.roster.enemy.currentHealth
+        let options: DamageOperation = periodic ? .periodic : .attack(
+            accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+        )
+
+        let outcome = context.resolveDamage(DamageRequest(
+            amount: 10, target: context.roster.enemy.combatant, keyword: keyword,
+            sourceActorID: context.roster.hero.id, options: options,
+        ))
+
+        #expect(outcome.healthLost == 10)
+        #expect(before - context.roster.enemy.currentHealth == 11)
+        #expect(outcome.events.filter { $0.kind == .status }.map(\.amount) == [1])
+    }
+
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `wardbreaker only purges when its wearer causes the stun`(source: BattleParticipant) throws {
+        var context = try battle(["wardbreaker"])
+        let enemy = context.roster.enemy.combatant
+        context.appendEffect(.thorns(3), to: enemy, sourceID: enemy.id, remainingTurns: 0)
+        let threshold = ControlMeterEngine.threshold(for: enemy, in: context)
+
+        _ = ControlMeterEngine.applyMeterCharge(
+            threshold, keyword: .stun, to: enemy, sourceActorID: context.roster[source].id,
+            applyFightPacing: false, in: &context,
+        )
+
+        #expect(context.roster.hasControlStatus(for: enemy, keyword: .stun))
+        #expect(context.roster.enemy.activeEffects.contains { $0.effect == .thorns(3) } == (source == .companion))
+        #expect(context.roster.enemy.currentHealth == (source == .hero ? 1998 : 2000))
+    }
+
     @Test(arguments: ["everkeen", "huntsmasters_call"])
     func `critical hit rewards trigger when block absorbs the whole hit`(item: String) throws {
         var context = try battle([item])
@@ -90,9 +149,11 @@ extension UniqueCollectionTests {
     }
 
     @Test func `bloodember keeps burn and bleed leech with bloodfire`() throws {
+        var extra = CombatModifierProfile(damageDealtBonus: [.burn: 2, .bleed: 3])
+        extra.triggers.criticalChanceBonus = -1
         var context = try battle(
             ["bloodember_pendant", "bloodfire_signet"],
-            extra: CombatModifierProfile(damageDealtBonus: [.burn: 2, .bleed: 3]),
+            extra: extra,
         )
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 100 }
         for keyword in [Keyword.burn, .bleed] {
@@ -102,7 +163,10 @@ extension UniqueCollectionTests {
                 sourceActorID: context.roster.hero.id, in: &context,
             )
             #expect(outcome.healthLost == 15)
-            #expect(context.roster.hero.currentHealth - before == 8)
+            let expectedHealing = outcome.events.filter { $0.kind == .status }.reduce(0) {
+                $0 + CombatRounding.scaled($1.amount, multiplier: 0.5)
+            }
+            #expect(context.roster.hero.currentHealth - before == expectedHealing)
         }
     }
 
@@ -143,9 +207,7 @@ extension UniqueCollectionTests {
         context.heroDeck = CombatDeck(abilities: [attack(id: "other"), poison])
         _ = UniqueCombatEngine.afterUniqueDodge(by: context.roster.hero.combatant, attackerID: context.roster.enemy.id, in: &context)
         #expect(context.hand.cards.map(\.ability.id) == ["venom"])
-        context.isResolvingAutoPlayCard = true
-        try play(poison, in: &context)
-        context.isResolvingAutoPlayCard = false
+        _ = try context.withAutomaticPlay { context in try play(poison, in: &context) }
         #expect(context.uniques.owners[.hero]?.wildheartReady == true)
         let before = context.roster.enemy.currentHealth
         let card = try #require(context.hand.cards.first { $0.ability.id == "venom" })

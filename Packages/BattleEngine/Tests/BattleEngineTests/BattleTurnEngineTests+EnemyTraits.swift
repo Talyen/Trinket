@@ -5,6 +5,36 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 extension BattleTurnEngineTests {
+    @Test(arguments: [false, true])
+    func `ice wraith reduces damage from frozen party members`(frozen: Bool) throws {
+        var context = try enemyTraitContext("ice_wraith")
+        let actor = context.hero
+        if frozen {
+            context.appendEffect(.controlMeter(.freeze, 10, 10), to: actor, sourceID: context.enemy.id, remainingTurns: 1)
+        }
+
+        let outcome = context.resolveDamage(DamageRequest(
+            amount: 5, target: context.enemy, keyword: .poison, sourceActorID: actor.id,
+            options: .periodic,
+        ))
+
+        #expect(outcome.healthLost == (frozen ? 4 : 5))
+    }
+
+    @Test(arguments: [Keyword.burn, .physical])
+    func `pyromancer bypasses flat and percentage defenses only with burn`(keyword: Keyword) throws {
+        var defenses = CombatModifierProfile(damageTakenReduction: [.burn: 0.5, .physical: 0.5], damageTakenFlat: [.burn: 2, .physical: 2])
+        defenses.triggers.passiveMitigationFlat = 2
+        var context = try enemyTraitContext("pyromancer", heroModifiers: defenses)
+
+        let outcome = context.resolveDamage(DamageRequest(
+            amount: 10, target: context.hero, keyword: keyword, sourceActorID: context.enemy.id,
+            options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+
+        #expect(outcome.healthLost == (keyword == .burn ? 10 : 2))
+    }
+
     @Test(arguments: [Ability.sunder, .smite])
     func `enemy offensive effects affect the selected party member`(ability: Ability) throws {
         var context = try enemyTraitContext("skeleton")
@@ -112,7 +142,7 @@ extension BattleTurnEngineTests {
         #expect(outcome.healthLost == 3)
     }
 
-    private func enemyTraitContext(_ enemyID: String) throws -> BattleState {
+    private func enemyTraitContext(_ enemyID: String, heroModifiers: CombatModifierProfile = .zero) throws -> BattleState {
         let definition = try #require(GameContent.enemy(matching: enemyID))
         let build = CombatBuildResolver.build(enemy: definition)
         var context = BattleStateTestFactory.makeMinimalBattle(
@@ -121,6 +151,7 @@ extension BattleTurnEngineTests {
             enemy: build.combatant,
             heroHealth: 40,
             companionHealth: 30,
+            heroModifiers: heroModifiers,
             enemyModifiers: build.modifiers,
         )
         context.appliesFightPacing = false

@@ -5,6 +5,23 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct BattleMechanicsTests {
+    @Test(arguments: [DamageOperation.periodic, .reaction()])
+    func `repeating nonattack damage preserves attack resources and rewards`(operation: DamageOperation) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.onAttackStealGold = 2
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
+        battle.appliesFightPacing = false
+        battle.roster.hero.pendingNextAttackHolyBonus = 3
+        let result = battle.resolveDamage(DamageRequest(
+            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: operation.repeated(),
+        ))
+        #expect(result.healthLost == 4)
+        #expect(battle.roster.enemy.currentHealth == 46)
+        #expect(battle.roster.hero.pendingNextAttackHolyBonus == 3)
+        #expect(battle.gold == 0)
+    }
+
     @Test(arguments: [(80, 0.10), (81, 0.20)])
     func `pack bloodlust requires health above eighty percent`(health: Int, expectedChance: Double) {
         let battle = BattleStateTestFactory.makeMinimalBattle(

@@ -31,13 +31,13 @@ public enum BattleConditionEvaluator {
         let enemy = action.selectedTarget
         switch condition {
         case .enemyBleeding:
-            return hasDebuffKeyword(.bleed, on: enemy, in: context)
+            return context.roster.hasAffliction(.bleed, on: enemy)
         case .enemyBurning:
-            return hasDebuffKeyword(.burn, on: enemy, in: context)
+            return context.roster.hasAffliction(.burn, on: enemy)
         case .enemyNotBurning:
-            return !hasDebuffKeyword(.burn, on: enemy, in: context)
+            return !context.roster.hasAffliction(.burn, on: enemy)
         case .enemyPoisoned:
-            return hasDebuffKeyword(.poison, on: enemy, in: context)
+            return context.roster.hasAffliction(.poison, on: enemy)
         case .enemyFrozen:
             return hasPendingControl(.freeze, on: enemy, in: context)
         case .enemyStunned:
@@ -91,24 +91,6 @@ public enum BattleConditionEvaluator {
         context: BattleState,
     ) -> Combatant {
         BattleActionContext.mostDebuffed(in: [hero, companion], state: context)
-    }
-
-    private static func hasDebuffKeyword(
-        _ keyword: Keyword,
-        on combatant: Combatant,
-        in context: BattleState,
-    ) -> Bool {
-        context.roster.activeEffects(for: combatant).contains { active in
-            guard active.effect.keyword == keyword else { return false }
-            switch active.effect {
-            case let .bleed(potency):
-                return potency > 0 && active.remainingTurns > 0
-            case let .burn(potency), let .poison(potency):
-                return potency > 0
-            default:
-                return true
-            }
-        }
     }
 
     private static func hasPendingControl(

@@ -163,12 +163,6 @@ public enum BattleCardCombatEngine {
 
         var leadingEvents = DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
-        let bleed = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &context)
-        leadingEvents.append(contentsOf: bleed.events)
-        if bleed.cancelled {
-            return leadingEvents
-        }
-
         if context.roster.hasPendingActionSkip(for: enemy) {
             return leadingEvents + BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
         }
@@ -180,24 +174,28 @@ public enum BattleCardCombatEngine {
             CombatTriggerEngine.afterEnemyFreezeRecover(in: &context)
         }
 
-        let avoidance = CombatTriggerEngine.enemyActAvoidance(in: &context)
+        let turnNumber = context.roster.enemy.actionCount + 1
+        guard let ability = BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: turnNumber) else {
+            return leadingEvents
+        }
+        let bleed = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &context)
+        leadingEvents.append(contentsOf: bleed.events)
+        if bleed.cancelled {
+            return leadingEvents
+        }
+
+        let avoidance = CombatTriggerEngine.consumeEnemyActionDelay(in: &context)
         leadingEvents.append(contentsOf: avoidance.events)
         if avoidance.cancelled {
             return leadingEvents
         }
 
         let abilityTarget = BattleTargetResolver.abilityTarget(for: enemy, in: context)
-        let turnNumber = context.roster.enemy.actionCount + 1
-        guard let ability = BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: turnNumber) else {
-            return leadingEvents
+        let action = BattleTurnEngine.performEnemyAction(ability: ability, abilityTarget: abilityTarget, context: &context)
+        var events = action.events
+        if action.performed {
+            events.append(contentsOf: CombatTriggerEngine.afterEnemyAbility(in: &context))
         }
-        var events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: enemy,
-            abilityTarget: abilityTarget,
-            context: &context,
-        )
-        events.append(contentsOf: CombatTriggerEngine.afterEnemyAbility(in: &context))
         if context.roster.runtime(for: enemy)?.goldenTouchActiveThisCard == true {
             context.roster.mutateRuntime(for: enemy) { $0.goldenTouchActiveThisCard = false }
         }

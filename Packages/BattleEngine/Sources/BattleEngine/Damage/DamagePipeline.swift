@@ -49,6 +49,12 @@ package enum DamagePipeline {
         applyMarkedConsume(to: &state, in: &context)
         applyDeathsDoor(to: &state, in: &context)
 
+        CombatCheckpoint.committedDamage.perform(in: &context) { context in
+            applyCommittedDamageReactions(to: &state, in: &context)
+        }
+    }
+
+    private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
         if state.options.isOriginalCardDamage, state.amount > 0, state.combatant.role == .enemy {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
@@ -72,6 +78,13 @@ package enum DamagePipeline {
     }
 
     private static func applyDoTDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
+        if let keyword = state.damageKeyword, keyword == .burn || keyword == .bleed,
+           let sourceActorID = state.sourceActorID {
+            state.damageEvents.append(contentsOf: DoTMirrorCascade.resolve(
+                keyword: keyword, initialHealthLost: state.healthLost, target: state.combatant,
+                sourceActorID: sourceActorID, in: &context,
+            ))
+        }
         if state.damageKeyword == .bleed {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBleedDamage(
                 healthLost: state.healthLost, target: state.combatant,

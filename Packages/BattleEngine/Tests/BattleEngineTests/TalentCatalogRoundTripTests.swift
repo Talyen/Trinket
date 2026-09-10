@@ -71,6 +71,30 @@ struct TalentCatalogRoundTripTests {
         })
     }
 
+    @Test(arguments: [(Keyword.burn, 0.0, 8, 10, 4), (.physical, 0.5, 1, 5, 2), (.physical, 0.0, 0, 2, 4)])
+    func `block bypass applies to intercede and the recipients block`(
+        keyword: Keyword, physicalIgnore: Double, healthLost: Int, heroBlock: Int, companionBlock: Int,
+    ) {
+        var heroProfile = CombatModifierProfile.zero
+        heroProfile.triggers.blockAbsorbsCompanionDamage = true
+        var enemyProfile = CombatModifierProfile.zero
+        enemyProfile.triggers.burnIgnoresBlockAndMitigation = true
+        enemyProfile.triggers.physicalBlockIgnorePercent = physicalIgnore
+        var battle = BattleStateTestFactory.makeBattle(
+            heroModifiers: heroProfile, enemyModifiers: enemyProfile, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        DefensePoolEngine.set(10, on: battle.hero, in: &battle)
+        DefensePoolEngine.set(4, on: battle.companion, in: &battle)
+        let result = battle.resolveDamage(DamageRequest(
+            amount: 8, target: battle.companion, keyword: keyword, sourceActorID: battle.enemy.id,
+            options: .effect(scaling: .flat),
+        ))
+        #expect(result.healthLost == healthLost)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == heroBlock)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == companionBlock)
+    }
+
     @Test func `intercede triggers cascading only when hero block breaks`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(

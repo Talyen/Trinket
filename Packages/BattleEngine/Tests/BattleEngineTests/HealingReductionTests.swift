@@ -5,6 +5,29 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct HealingReductionTests {
+    @Test(arguments: [0, 1])
+    func `blood link applies hero healing reduction before transferring excess`(missingHealth: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroMaxHealth: 40, companionMaxHealth: 40,
+            heroMaxMana: 3,
+            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_leech_t2_1", "warlock_leech_t2_2"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentMana = 0
+        battle.roster.hero.currentHealth -= missingHealth
+        battle.roster.companion.currentHealth = 1
+        battle.appendEffect(.healingReductionPercent(0.5, 3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 3)
+        let outcome = HealingEngine.leechFromDamage(
+            16, sourceActorID: battle.hero.id, target: battle.enemy,
+            abilityHasLeech: true, damageKeyword: .physical, in: &battle,
+        )
+        #expect(outcome.flags.contains(.leeched))
+        #expect(battle.roster.hero.currentMana == 1)
+        #expect(battle.roster.hero.currentHealth == 40)
+        #expect(battle.roster.companion.currentHealth == 1 + 4 - missingHealth)
+    }
+
     @Test func `healing logging cannot change leech rules or randomness`() {
         var silent = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),

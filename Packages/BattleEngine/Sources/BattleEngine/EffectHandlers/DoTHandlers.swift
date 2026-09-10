@@ -175,15 +175,6 @@ struct BleedHandler: BattleEffectHandler {
             in: &context,
         )
         var events = tickOutcome.events
-        if let attackerID = active.sourceActorID {
-            events.append(contentsOf: DoTMirrorCascade.resolve(
-                keyword: .bleed,
-                initialHealthLost: tickOutcome.healthLost,
-                target: target,
-                sourceActorID: attackerID,
-                in: &context,
-            ))
-        }
         events.append(contentsOf: drawCardOnBleedTick(
             active: active,
             sourceTriggers: sourceTriggers,
@@ -281,7 +272,7 @@ struct BleedHandler: BattleEffectHandler {
     private func shouldPreserveBleed(on target: Combatant, in context: BattleState) -> Bool {
         target.role == .enemy
             && context.roster.hasControlStatus(for: target, keyword: .freeze)
-            && CombatTriggerEngine.livingPartyTriggers(in: context).cryostasis
+            && CombatTriggerEngine.hasLivingPartyTrigger(\.cryostasis, in: context)
     }
 }
 
@@ -295,6 +286,9 @@ enum DoTMirrorCascade {
         sourceActorID: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        guard initialHealthLost > 0, context.resolution.depth(.dotMirror) == 0 else { return [] }
+        context.resolution.enter(.dotMirror)
+        defer { context.resolution.leave(.dotMirror) }
         var events: [ActionEvent] = []
         var currentKeyword = keyword
         var currentAmount = initialHealthLost
@@ -309,7 +303,7 @@ enum DoTMirrorCascade {
             guard chance > 0, BattleChance.succeeds(probability: chance, using: &context.rng) else { break }
             let mirrored: Keyword = currentKeyword == .burn ? .bleed : .burn
             let outcome = DoTDamage.resolveTurnDamage(
-                basePotency: currentAmount,
+                basePotency: 1,
                 keyword: mirrored,
                 target: target,
                 sourceActorID: sourceActorID,

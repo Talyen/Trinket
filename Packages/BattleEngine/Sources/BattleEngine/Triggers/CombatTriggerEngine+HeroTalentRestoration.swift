@@ -30,7 +30,6 @@ extension CombatTriggerEngine {
     static func afterHeroCardHeal(
         request: HealRequest,
         restored: Int,
-        overflow: Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard request.isDirectCardHeal, let sourceID = request.sourceActorID,
@@ -41,22 +40,6 @@ extension CombatTriggerEngine {
               target.role != .enemy else { return [] }
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
-        if overflow > 0, triggers.masterworkMixture {
-            let other = target.role == .hero ? context.roster.companion : context.roster.hero
-            let amount = min(overflow, max(0, other.maxHealth - other.currentHealth))
-            if other.isAlive, amount > 0 {
-                var transfer = HealRequest(
-                    amount: amount, target: other.combatant, sourceActorID: source.id,
-                    origin: .restoration(.health), logAs: .instantHeal(
-                        actorName: source.name,
-                        abilityName: "Masterwork Mixture",
-                        keyword: .health,
-                    ),
-                )
-                transfer.amountBasis = .resolved
-                events.append(contentsOf: HealingEngine.resolveHeal(transfer, in: &context).events)
-            }
-        }
         guard restored > 0 else { return events }
         context.mutateHeroCard { $0.restoredHealth = true }
         if triggers.cleansingDew {

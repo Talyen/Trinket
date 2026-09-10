@@ -5,28 +5,11 @@ package extension CombatTriggerEngine {
     static func beforeEnemyActBleedReactions(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return ([], false) }
-        let enemyIsBleeding = context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .bleed }
+        let enemyIsBleeding = context.roster.hasAffliction(.bleed, on: enemy)
         guard enemyIsBleeding else { return ([], false) }
 
         var events: [ActionEvent] = []
         let living = livingAllies(in: context)
-        let pin = living.reduce(0) { $0 + $1.profile.triggers.bleedingEnemyAttackDealDamage }
-        if pin > 0 {
-            let source = living.first {
-                $0.profile.triggers.bleedingEnemyAttackDealDamage > 0
-            }?.combatant ?? context.roster.hero.combatant
-            events = context.resolveDamage(
-                DamageRequest(
-                    amount: pin,
-                    target: enemy,
-                    keyword: .physical,
-                    sourceActorID: source.id,
-                    options: .reaction(),
-                ),
-            ).events
-            guard context.roster.enemy.isAlive else { return (events, true) }
-        }
-
         let skipChance = living.reduce(0) {
             $0 + $1.profile.triggers.bleedingEnemyActionSkipChancePercent
         }
@@ -52,6 +35,40 @@ package extension CombatTriggerEngine {
             return (events, true)
         }
         return (events, false)
+    }
+
+    static func beforeEnemyAttackBleedReactions(in context: inout BattleState) -> [ActionEvent] {
+        let enemy = context.enemy
+        guard context.roster.enemy.isAlive, context.roster.hasAffliction(.bleed, on: enemy) else { return [] }
+        let living = livingAllies(in: context)
+        let damage = living.reduce(0) { $0 + $1.profile.triggers.bleedingEnemyAttackDealDamage }
+        guard damage > 0, let source = living.first(where: {
+            $0.profile.triggers.bleedingEnemyAttackDealDamage > 0
+        })?.combatant else { return [] }
+        return context.resolveDamage(DamageRequest(
+            amount: damage, target: enemy, keyword: .physical, sourceActorID: source.id, options: .reaction(),
+        )).events
+    }
+
+    internal static func beforeEnemyAttack(
+        _ facts: ResolvedActionFacts, in context: inout BattleState,
+    ) -> (events: [ActionEvent], cancelled: Bool) {
+        guard !facts.damageKeywords.isEmpty else { return ([], false) }
+        let actor = facts.action.actor
+        let checkpoint = CombatCheckpoint.attackEligibility(actor.id)
+        guard checkpoint.allowsContinuation(in: context) else { return ([], true) }
+        let avoidance = enemyAttackAvoidance(in: &context)
+        guard !avoidance.cancelled else { return avoidance }
+        var events = avoidance.events
+        events.append(contentsOf: checkpoint.resolve([
+            { beforeEnemyAttackBleedReactions(in: &$0) },
+        ], in: &context))
+        guard context.roster.health(for: actor) > 0 else { return (events, true) }
+        if context.roster.hasPendingActionSkip(for: actor) {
+            events.append(contentsOf: BattleTurnEngine.consumeActionSkip(for: actor, context: &context))
+            return (events, true)
+        }
+        return (events, context.isBattleOver)
     }
 
     private static func companionNegateEnemyAttack(
@@ -80,7 +97,7 @@ package extension CombatTriggerEngine {
         return nil
     }
 
-    static func enemyActAvoidance(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
+    static func consumeEnemyActionDelay(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
         let enemy = context.enemy
         let delays = context.additionalControlSkipsByCombatantID[enemy.id, default: 0]
         if delays > 0 {
@@ -95,6 +112,10 @@ package extension CombatTriggerEngine {
                 keyword: .stun,
             )], true)
         }
+        return ([], false)
+    }
+
+    static func enemyAttackAvoidance(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
         if let companionNegation = companionNegateEnemyAttack(in: &context) {
             return companionNegation
         }

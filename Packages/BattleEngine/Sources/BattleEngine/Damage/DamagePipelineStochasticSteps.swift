@@ -117,9 +117,7 @@ package extension DamagePipeline {
         }
         if let attackerID,
            let attacker = context.roster.combatant(for: attackerID),
-           context.roster.activeEffects(for: attacker.combatant).contains(where: {
-               $0.effect.keyword == .bleed
-           }) {
+           context.roster.hasAffliction(.bleed, on: attacker.combatant) {
             chance += profile.triggers.dodgeChanceVsBleedingEnemiesBonus
         }
         if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,

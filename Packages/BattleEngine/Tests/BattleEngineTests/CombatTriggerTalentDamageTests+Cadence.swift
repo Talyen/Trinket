@@ -39,25 +39,6 @@ extension CombatTriggerTalentDamageTests {
         #expect(battle.roster.enemy.currentHealth == before - 2)
     }
 
-    @Test func `quaking carapace deals damage and grants party block on its interval`() {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 200,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["shield_scarab_stun_t3_1"]),
-            dealOpeningHand: false,
-        )
-        battle.appliesFightPacing = false
-        battle.turnCount = 2
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
-        #expect(battle.roster.enemy.currentHealth == 200)
-        battle.turnCount = 3
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
-        #expect(battle.roster.enemy.currentHealth == 197)
-        #expect(battle.roster.enemy.activeEffects.first { $0.keyword == .stun }?.effect.controlMeterValues?.amount == 3)
-        for owner in [BattleParticipant.hero, .companion] {
-            #expect(DefensePoolEngine.blockPoints(in: battle.roster[owner].activeEffects) == 5)
-        }
-    }
-
     @Test func `dense bones gains reduction only from attack hits up to four`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 100,

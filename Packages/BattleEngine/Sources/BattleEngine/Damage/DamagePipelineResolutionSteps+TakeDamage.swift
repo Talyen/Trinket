@@ -68,13 +68,13 @@ package extension DamagePipeline {
         else { return false }
         let redirected = state.remaining
         let companion = context.roster.companion.combatant
-        state.damageEvents.append(contentsOf: resolveRetaliation(
+        state.damageEvents.append(contentsOf: context.resolveDamage(DamageRequest(
             amount: redirected,
-            keyword: state.damageKeyword ?? .physical,
             target: companion,
+            keyword: state.damageKeyword ?? .physical,
             sourceActorID: state.sourceActorID,
-            in: &context,
-        ).events)
+            options: .redirected,
+        )).events)
         if context.roster.companion.isAlive, !context.roster.isDeathsDoorActive(for: companion) {
             state.damageEvents.append(contentsOf: context.applyBlock(
                 context.companionModifiers.triggers.companionFatalDamageRedirectBlock,

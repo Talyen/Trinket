@@ -117,6 +117,28 @@ struct AbilityEffectIntegrationTests {
         #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect == .hemorrhage(4) })
     }
 
+    @Test(arguments: [(0.0, false, 7), (0.2, false, 9), (0.35, false, 11), (0.0, true, 14)])
+    func `burn detonation deals all remaining ticks before consuming the status`(
+        slow: Double, doubleTicks: Bool, expectedDamage: Int,
+    ) {
+        var triggers = CombatTraitTriggers()
+        triggers.burnDecaySlowPercent = slow
+        triggers.burnTicksTwicePerTurn = doubleTicks
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.appendEffect(.burn(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
+        let before = battle.roster.enemy.currentHealth
+
+        _ = EffectHandlersTestSupport.dispatch(
+            .detonateDoT(.burn, 1), source: battle.hero, target: battle.enemy, battle: &battle,
+        )
+
+        #expect(before - battle.roster.enemy.currentHealth == expectedDamage)
+        #expect(!battle.roster.enemy.activeEffects.contains { $0.effect.kind == .burn })
+    }
+
     @Test func `combustion consumes burn for bonus damage`() {
         var context = combustionBattle()
         let before = context.roster.health(for: context.enemy)

@@ -187,7 +187,7 @@ package enum ControlMeterEngine {
             ),
         ]
         if keyword == .stun, combatant.id == context.roster.enemy.id {
-            events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(in: &context))
+            events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(sourceActorID: sourceActorID, in: &context))
         }
         events.append(contentsOf: applyTalentControlBonus(
             keyword: keyword,
@@ -280,9 +280,8 @@ package enum ControlMeterEngine {
         guard combatant.role == .enemy, let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
         else { return [] }
-        let partyTriggers = CombatTriggerEngine.livingPartyTriggers(in: context)
         var events: [ActionEvent] = []
-        if keyword == .stun, partyTriggers.lightningRod {
+        if keyword == .stun, CombatTriggerEngine.hasLivingPartyTrigger(\.lightningRod, in: context) {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
                 let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: member.combatant))
@@ -295,7 +294,7 @@ package enum ControlMeterEngine {
                 ))
             }
         }
-        if keyword == .freeze, partyTriggers.avalancheGuard {
+        if keyword == .freeze, CombatTriggerEngine.hasLivingPartyTrigger(\.avalancheGuard, in: context) {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
                 let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: member.combatant))

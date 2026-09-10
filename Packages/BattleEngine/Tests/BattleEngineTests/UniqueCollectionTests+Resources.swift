@@ -80,6 +80,36 @@ extension UniqueCollectionTests {
         #expect(third.count(where: { $0.abilityName == "The Final Spark" }) == 1)
     }
 
+    @Test(arguments: [Ability.blizzard, .rayOfFrost])
+    func `final spark repeats only initial recurring damage without attack rewards`(ability: Ability) throws {
+        var extra = CombatModifierProfile.zero
+        extra.triggers.onAttackStealGold = 5
+        var ordinary = try battle([], extra: extra)
+        var spark = try battle(["the_final_spark", "everkeen"], extra: extra)
+        ordinary.roster.mutateRuntime(for: ordinary.roster.hero.combatant) { $0.currentMana = 3 }
+        spark.roster.mutateRuntime(for: spark.roster.hero.combatant) { $0.currentMana = 3 }
+        try play(ability, critical: true, in: &ordinary)
+        let events = try play(ability, critical: true, in: &spark)
+        let initialDamage = 2000 - ordinary.roster.enemy.currentHealth
+        #expect(initialDamage > 0)
+        #expect(2000 - spark.roster.enemy.currentHealth == initialDamage * 2)
+        #expect(events.count(where: { $0.abilityName == "The Final Spark" }) == 1)
+        #expect(!events.contains { $0.isCritical })
+        #expect(spark.gold == ordinary.gold)
+        #expect(spark.roster.hero.currentMana == 0)
+        let recurring = spark.roster.enemy.activeEffects.filter { $0.effect.kind == .recurringDamage }
+        let original = ordinary.roster.enemy.activeEffects.filter { $0.effect.kind == .recurringDamage }
+        #expect(recurring.map(\.effect) == original.map(\.effect))
+        #expect(recurring.map(\.remainingTurns) == original.map(\.remainingTurns))
+        #expect(events.count(where: { $0.effectKind == .recurringDamageApplied }) == 1)
+        for _ in 0 ..< 3 {
+            _ = EffectTurnEngine.advanceAll(context: &ordinary)
+            let ticks = EffectTurnEngine.advanceAll(context: &spark)
+            #expect(ordinary.roster.enemy.currentHealth - spark.roster.enemy.currentHealth == initialDamage)
+            #expect(!ticks.contains { $0.abilityName == "The Final Spark" })
+        }
+    }
+
     @Test func `free empowerment cannot trigger mana spend rewards or final spark`() throws {
         var extra = CombatModifierProfile.zero
         extra.triggers.empowermentCostReduction = 3

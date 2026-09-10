@@ -76,6 +76,8 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         Self(kind: .reaction(cause), scaling: scaling, accuracy: accuracy)
     }
 
+    static let redirected = Self(kind: .reaction(.talent), scaling: .resolved, accuracy: .unavoidable)
+
     public static let periodic = Self(kind: .periodic, scaling: .statsAndItems, accuracy: .unavoidable)
     public static let healthCost = Self(kind: .healthCost, scaling: .flat, accuracy: .unavoidable)
 
@@ -147,11 +149,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         scaling: Scaling? = nil,
         guaranteedCritical: Bool? = nil,
     ) -> Self {
-        let tier: AbilityTier = if case let .attack(tier, _) = kind {
-            tier
-        } else {
-            .skill
-        }
+        guard case let .attack(tier, _) = kind else { return self }
         return .attack(
             tier: tier, origin: origin, scaling: scaling ?? self.scaling, accuracy: accuracy,
             abilityCriticalChanceBonus: abilityCriticalChanceBonus,

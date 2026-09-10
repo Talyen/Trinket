@@ -5,6 +5,20 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct BattleConditionEvaluatorTests {
+    @Test(arguments: [Effect.nextBurnBonus(1), .onHitDamage(.burn, 3)])
+    func `burn buffs do not satisfy burning conditions`(buff: Effect) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
+        BattleStateTestFactory.seedActiveEffects([
+            ActiveEffect(id: 1, effect: buff, remainingTurns: 0),
+        ], for: battle.enemy, on: &battle)
+        #expect(!BattleConditionEvaluator.isMet(.enemyBurning, actor: battle.hero, in: battle))
+        #expect(BattleConditionEvaluator.isMet(.enemyNotBurning, actor: battle.hero, in: battle))
+        #expect(!battle.roster.hasAffliction(.burn, on: battle.enemy))
+        #expect(!DamageTargetStatus(for: battle.enemy, in: battle).isBurning)
+        battle.appendEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        #expect(BattleConditionEvaluator.isMet(.enemyBurning, actor: battle.hero, in: battle))
+    }
+
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `most debuffed ally skips defeated member`(defeated: BattleParticipant) throws {
         var battle = BattleStateTestFactory.makeBattle()

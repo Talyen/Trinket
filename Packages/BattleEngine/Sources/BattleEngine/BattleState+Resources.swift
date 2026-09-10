@@ -120,11 +120,13 @@ package extension BattleState {
         return HealingEngine.resolveHeal(request, in: &self).events
     }
 
-    @discardableResult
-    mutating func spendMana(_ amount: Int, for combatant: Combatant) -> Int {
-        guard var runtime = roster.runtime(for: combatant) else { return 0 }
-        let actual = runtime.spendMana(amount)
+    internal mutating func payMana(_ amount: Int, for combatant: Combatant) -> ManaPayment {
+        guard var runtime = roster.runtime(for: combatant) else {
+            return ManaPayment(payer: combatant, balanceBefore: 0, balanceAfter: 0)
+        }
+        let before = runtime.currentMana
+        _ = runtime.spendMana(amount)
         roster.update(runtime)
-        return actual
+        return ManaPayment(payer: combatant, balanceBefore: before, balanceAfter: runtime.currentMana)
     }
 }

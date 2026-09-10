@@ -13,11 +13,35 @@ Do not fold those cadences into the pipeline or merge affix scalar fields on `Co
 
 `DamageOperation` supplies named attack, effect, periodic, reaction, and Health-cost
 operations. Damage type owns Stun/Freeze buildup; callers do not opt into it with
-a flag. Counterattacks and repeated hits carry explicit origins. Resolution depth
-limits recursion, never changes the meaning of a request. `HealingOrigin` owns
-healing rules and Critical Hit eligibility independently of logging.
+a flag. Counterattacks and repeated hits carry explicit origins; repeating periodic
+or reaction damage preserves its operation kind. Redirected damage enters the
+recipient's defenses with outgoing scaling already resolved. `DamageDefensePolicy`
+owns mitigation and Block bypass, including Intercede, while preserving each
+checkpoint's order and rounding. Partial bypass scales each defense before
+subtracting it and clamping damage. Burn detonation preserves the original
+source's decay rate and ticks per turn. Resolution depth limits recursion, never changes
+the meaning of a request. `HealingOrigin` owns healing rules and Critical Hit
+eligibility independently of logging.
 
-`CombatResolution` owns nested action identity and cadence claims. Keep ordered
+`CombatResolution` owns nested action/card identity, selected outcomes, automatic-play
+ancestry, and cadence claims. `ResolvedActionFacts` is an immutable shared record:
+card reactions, talents, and Uniques read its selected outcome and qualifying
+keywords, while talent execution results track what actually happened separately.
+Capture facts at preparation; evaluate later operation conditions at their existing
+execution checkpoints. Do not classify a played card from `possibleOperations` or
+reconstruct its outcome from another talent's bookkeeping. Keep these immutable
+records shared so nested actions do not copy their full payload onto the stack.
+`BattleActionContext` likewise shares immutable participants while preserving value
+equality; payment receipts and checkpoint eligibility retain actor IDs.
+
+`CombatCheckpoint` checks eligibility before each ordered reaction. Prepared-action
+and card-completion work requires a living actor; winning cards can finish support
+rewards. Enemy action delays precede preparation, while attack-only interception
+uses the selected outcome and rechecks control after reactions. Recovery rewards
+require the final skipped action to finish. Committed damage consequences retain
+their own source/target rules, including periodic damage from defeated sources.
+Use `withAutomaticPlay` for automatic chains; counterattack ancestry follows its
+action frame. Do not toggle a separate automatic-play flag. Keep ordered
 damage checkpoints in `DamagePipeline`; commit mutations before their dependent
 reactions. Reserve next-hit resources before nested reactions and never write a
 cached effects array back after a reaction. `CleanseOperation` owns removal and
@@ -33,6 +57,20 @@ execution; `possibleOperations` includes unresolved outcomes. `BattleActionConte
 binds the selected target for an action and resolves allies/opponents relative to
 its actor. A defeated actor cannot continue; a winning card may still resolve its
 remaining support rewards. New actions cannot start after battle ends.
+
+`payMana` returns a `ManaPayment` with actual before/after balances. Capture every
+contribution to an empowerment purchase before payment reactions; last-Mana rules
+read receipts even after refunds or nested actions. Arcane Burst keeps excess
+progress across cards and turns separately from cadence claims. Periodic rewards
+use `playerTurnNumber` and `isPlayerTurn(every:startingAt:)`; stored `turnCount`
+remains zero-based.
+
+`HealingResult` separates direct restoration, transferred overflow, and Leech
+success before projecting to `CombatOutcome`. Lingering Blessing stores its amount,
+source, and remaining duration together. `BattleRoster.hasAffliction` distinguishes
+active debuffs from keyword-associated buffs for conditions and damage rules.
+Boolean party-aura checks use `hasLivingPartyTrigger` rather than merging every
+trigger group on nested reaction paths.
 
 For a new effect kind, maintain registry parity. Existing handler and turn-processing
 coverage may suffice; add or extend `EffectHandlersApplyTests` only for a consequential

@@ -160,10 +160,12 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
 
         for index in 0 ..< targetCount {
             let owner = index.isMultiple(of: 2) ? firstOwner : otherOwner
-            guard canDrawAndPlay(owner, in: context),
-                  let card = BattleCardCombatEngine.drawOne(for: owner, context: &context)
-            else { continue }
-            drawnCards.append(card)
+            let fallback: BattleParticipant = owner == .hero ? .companion : .hero
+            for candidate in [owner, fallback] where canDrawAndPlay(candidate, in: context) {
+                guard let card = BattleCardCombatEngine.drawOne(for: candidate, context: &context) else { continue }
+                drawnCards.append(card)
+                break
+            }
         }
 
         return drawnCards

@@ -2,31 +2,10 @@ import TrinketContent
 import TrinketCore
 
 extension CombatTriggerEngine {
-    static func captureHeroOutcome(original: Ability, resolved: Ability, actor: Combatant, in context: inout BattleState) {
-        guard context.hasHeroCard(for: actor.id), context.heroTalents.cards.last?.capturedOutcome == false else { return }
-        var keywords: Set<Keyword> = []
-        var cleanses = false
-        let action = context.resolution.actionContext ?? BattleActionContext(actor: actor, in: context)
-        for operation in resolved.operations {
-            let eligible = operation.condition.map { BattleConditionEvaluator.isMet($0, action: action, in: context) } ?? true
-            switch operation {
-            case let .damage(component):
-                guard component.target != .actor else { continue }
-                guard eligible || component.bonusAmount > 0 else { continue }
-                if component.amount + (eligible ? component.bonusAmount : 0) > 0 {
-                    keywords.insert(component.keyword)
-                }
-            case let .effect(targeted):
-                guard eligible else { continue }
-                if let keyword = operation.damageKeyword {
-                    keywords.insert(keyword)
-                }
-                switch targeted.effect {
-                case .cleanse, .cleanseRandom, .cleanseHealPerDebuff, .panacea: cleanses = true
-                default: break
-                }
-            }
-        }
+    static func captureHeroOutcome(_ facts: ResolvedActionFacts, in context: inout BattleState) {
+        let actor = facts.action.actor
+        guard context.hasHeroCard(for: actor.id) else { return }
+        let keywords = facts.damageKeywords
         if keywords.contains(.poison), context.modifiers(for: actor.id).triggers.dissolvingFumes {
             context.removeTalentPoint(.thorns, from: context.roster.enemy.combatant)
         }
@@ -37,12 +16,6 @@ extension CombatTriggerEngine {
         if keywords.contains(.stun) {
             context.heroTalents.history[actor.id, default: HeroTalentHistory()].playedStun = true
         }
-        context.mutateHeroCard {
-            $0.capturedOutcome = true
-            $0.isRandom = original.outcomeBranches != nil
-            $0.damageKeywords = keywords
-            $0.cleanses = cleanses
-        }
     }
 
     static func finishHeroCard(actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
@@ -52,18 +25,21 @@ extension CombatTriggerEngine {
                 2, to: actor, abilityName: "Paid in Full", isTheft: true, isDirectCardGain: true,
             ))
         }
-        guard let card = context.heroTalents.cards.popLast() else { return events }
-        guard context.roster.health(for: actor) > 0 else { return [] }
-        events.append(contentsOf: heroPoisonCard(card, actor: actor, in: &context))
-        events.append(contentsOf: heroRestorationCard(card, actor: actor, in: &context))
-        events.append(contentsOf: heroFortuneCard(card, actor: actor, in: &context))
+        guard let card = context.heroTalents.cards.popLast(),
+              let outcome = context.resolution.cardOutcome(for: actor.id) else { return events }
+        events.append(contentsOf: CombatCheckpoint.cardCompletion(actor.id).resolve([
+            { heroPoisonCard(outcome, actor: actor, in: &$0) },
+            { heroRestorationCard(card, outcome: outcome, actor: actor, in: &$0) },
+            { heroFortuneCard(card, outcome: outcome, actor: actor, in: &$0) },
+        ], in: &context))
+        guard context.roster.health(for: actor) > 0 else { return events }
         var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
         if history.lastPlaySerial == card.playSerial {
-            history.lastDamageKeywords = card.damageKeywords
+            history.lastDamageKeywords = outcome.damageKeywords
             history.lastGrantedGold = card.grantedGold
         }
         history.tiers.insert(card.tier)
-        history.playedStun = history.playedStun || card.damageKeywords.contains(.stun)
+        history.playedStun = history.playedStun || outcome.damageKeywords.contains(.stun)
         history.preparedHeal = history.preparedHeal || card.preparedHeal
         context.heroTalents.history[actor.id] = history
         let triggers = context.modifiers(for: actor.id).triggers
@@ -77,8 +53,8 @@ extension CombatTriggerEngine {
         return events
     }
 
-    private static func heroPoisonCard(_ card: HeroTalentCardFacts, actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
-        guard card.damageKeywords.contains(.poison) else { return [] }
+    private static func heroPoisonCard(_ outcome: ResolvedActionFacts, actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+        guard outcome.damageKeywords.contains(.poison) else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         let companion = context.roster.companion.combatant
         var events: [ActionEvent] = []
@@ -97,12 +73,17 @@ extension CombatTriggerEngine {
         return events
     }
 
-    private static func heroRestorationCard(_ card: HeroTalentCardFacts, actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    private static func heroRestorationCard(
+        _ card: HeroTalentCardFacts,
+        outcome: ResolvedActionFacts,
+        actor: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
         let enemy = context.roster.enemy.combatant
         let companion = context.roster.companion.combatant
         var events: [ActionEvent] = []
-        if card.cleanses {
+        if outcome.cleanses {
             if triggers.clearSolution, card.removedDebuffs == 0 {
                 events.append(contentsOf: heroTalentMana(to: actor, source: actor, name: "Clear Solution", in: &context))
             }
@@ -139,10 +120,15 @@ extension CombatTriggerEngine {
         return events
     }
 
-    private static func heroFortuneCard(_ card: HeroTalentCardFacts, actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    private static func heroFortuneCard(
+        _ card: HeroTalentCardFacts,
+        outcome: ResolvedActionFacts,
+        actor: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
-        if card.isRandom, card.damageKeywords.isEmpty {
+        if outcome.isRandom, outcome.damageKeywords.isEmpty {
             if triggers.consolationPrize {
                 events.append(contentsOf: heroTalentGold(to: actor, name: "Consolation Prize", in: &context))
             }
@@ -150,11 +136,11 @@ extension CombatTriggerEngine {
                 context.heroTalents.history[actor.id, default: HeroTalentHistory()].falseOpening = true
             }
         }
-        if card.isRandom, !card.damageKeywords.isEmpty {
+        if outcome.isRandom, !outcome.damageKeywords.isEmpty {
             if triggers.houseCredit {
                 context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparedGold = true
             }
-            if triggers.improvisedAssault, !card.damageKeywords.contains(.physical) {
+            if triggers.improvisedAssault, !outcome.damageKeywords.contains(.physical) {
                 context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparedPhysical = true
             }
         }

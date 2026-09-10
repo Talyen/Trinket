@@ -390,3 +390,31 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 2)
     }
 }
+
+extension TalentCatalogRoundTripTests {
+    @Test func `elemental card talents use the random outcome`() throws {
+        var freezeOutcomes = 0
+        for seed in UInt64(1) ... 12 {
+            var battle = heroTalentBattle("wizard_freeze_t3_2", seed: seed)
+            battle.roster.hero.currentMana = 0
+            try playHeroTalentCard(.rayOfFrost, in: &battle)
+            try playHeroTalentCard(.rayOfFrost, in: &battle)
+            let events = try playHeroTalentCard(.astralArrow, in: &battle)
+            let hit = try #require(events.first { $0.kind == .abilityDamage })
+            let isFreeze = hit.keyword == .freeze
+            freezeOutcomes += isFreeze ? 1 : 0
+            #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .freeze) == isFreeze)
+        }
+        #expect(freezeOutcomes > 0 && freezeOutcomes < 12)
+    }
+
+    @Test func `defeated card owner cannot trigger inferno barrage`() throws {
+        var battle = heroTalentBattle("ranger_burn_t3_2")
+        battle.roster.hero.currentHealth = 1
+        battle.roster.hero.hasConsumedDeathsDoor = true
+        seedHeroTalentEffect(.thorns(100), on: .enemy, in: &battle, source: .enemy)
+        try playHeroTalentCard(.bloodthorn, in: &battle)
+        #expect(!battle.roster.hero.isAlive)
+        #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
+    }
+}

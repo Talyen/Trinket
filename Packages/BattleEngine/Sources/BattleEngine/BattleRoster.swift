@@ -135,7 +135,17 @@ public struct BattleRoster {
     }
 
     func hasAffliction(_ keyword: Keyword, on combatant: Combatant) -> Bool {
-        activeEffects(for: combatant).contains { $0.effect.keyword == keyword }
+        activeEffects(for: combatant).contains { active in
+            guard active.effect.keyword == keyword else { return false }
+            switch active.effect {
+            case let .bleed(potency):
+                return potency > 0 && active.remainingTurns > 0
+            case let .burn(potency), let .poison(potency):
+                return potency > 0
+            default:
+                return active.effect.isRemovableDebuff
+            }
+        }
     }
 
     public func hasControlStatus(for combatant: Combatant) -> Bool {

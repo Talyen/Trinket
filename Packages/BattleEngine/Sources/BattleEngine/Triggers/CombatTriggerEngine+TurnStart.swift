@@ -109,7 +109,7 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
         events.append(contentsOf: startOfTurnRegen(runtime: runtime, actor: actor, triggers: triggers, in: &context))
-        if context.turnCount.isMultiple(of: 2), triggers.drawEveryOtherTurn > 0 {
+        if context.isPlayerTurn(every: 2, startingAt: 1), triggers.drawEveryOtherTurn > 0 {
             events.append(contentsOf: drawCards(
                 triggers.drawEveryOtherTurn,
                 for: owner,
@@ -119,7 +119,7 @@ package extension CombatTriggerEngine {
             ))
         }
         let companionCards = triggers.companionCardsPerTurn
-            + (context.turnCount.isMultiple(of: 2) ? triggers.companionCardsEveryOtherTurn : 0)
+            + (context.isPlayerTurn(every: 2, startingAt: 1) ? triggers.companionCardsEveryOtherTurn : 0)
         if companionCards > 0 {
             events.append(contentsOf: drawCards(
                 companionCards,
@@ -195,15 +195,16 @@ package extension CombatTriggerEngine {
                 abilityName: triggerAbilityName("healthPerTurn", for: actor, fallback: "Grove's Favor", in: context),
             ))
         }
-        if runtime.healOverTimeTurnsRemaining > 0, runtime.healOverTimeAmount > 0 {
-            let amount = runtime.healOverTimeAmount
+        if let blessing = runtime.lingeringBlessing,
+           let source = context.roster.combatant(for: blessing.sourceActorID) {
+            let amount = blessing.amount
             events.append(contentsOf: HealingEngine.resolveHeal(
                 HealRequest(
                     amount: amount,
                     target: actor,
-                    sourceActorID: actor.id,
+                    sourceActorID: source.id,
                     origin: .periodic, logAs: .instantHeal(
-                        actorName: actor.name,
+                        actorName: source.name,
                         abilityName: "Lingering Blessing",
                         keyword: .health,
                     ),
@@ -212,10 +213,9 @@ package extension CombatTriggerEngine {
                 in: &context,
             ).events)
             context.roster.mutateRuntime(for: actor) {
-                $0.healOverTimeTurnsRemaining -= 1
-                if $0.healOverTimeTurnsRemaining <= 0 {
-                    $0.healOverTimeAmount = 0
-                }
+                guard var current = $0.lingeringBlessing else { return }
+                current.turnsRemaining -= 1
+                $0.lingeringBlessing = current.turnsRemaining > 0 ? current : nil
             }
         }
         return events
@@ -230,7 +230,7 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if triggers.goldEveryNTurnsInterval > 0,
            context.turnCount > 0,
-           context.turnCount.isMultiple(of: triggers.goldEveryNTurnsInterval) {
+           context.isPlayerTurn(every: triggers.goldEveryNTurnsInterval) {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.goldEveryNTurnsAmount,
                 to: actor,
@@ -248,7 +248,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.healthRegenAboveHalfHealth > 0,
            context.roster.maxHealth(for: actor) > 0,
-           context.roster.health(for: actor) * 2 >= context.roster.maxHealth(for: actor) {
+           context.roster.health(for: actor) * 2 > context.roster.maxHealth(for: actor) {
             events.append(contentsOf: context.healEmitting(
                 amount: triggers.healthRegenAboveHalfHealth,
                 target: actor,
@@ -292,7 +292,7 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        if triggers.bonusManaOnTurns.contains(context.turnCount + 1) {
+        if triggers.bonusManaOnTurns.contains(context.playerTurnNumber) {
             events.append(contentsOf: context.restoreManaEmitting(
                 1,
                 to: actor,
@@ -310,7 +310,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.extraCardDrawWhileEnemyBleeding, context.roster.enemy.isAlive,
-           context.roster.activeEffects(for: context.roster.enemy.combatant).contains(where: { $0.effect.keyword == .bleed }) {
+           context.roster.hasAffliction(.bleed, on: context.enemy) {
             let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
             if drawn > 0 {
                 events.append(context.nextEvent(
@@ -364,20 +364,19 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if triggers.everyNTurnsFreezeAllEnemiesInterval > 0,
            context.turnCount > 0,
-           context.turnCount.isMultiple(of: triggers.everyNTurnsFreezeAllEnemiesInterval),
+           context.isPlayerTurn(every: triggers.everyNTurnsFreezeAllEnemiesInterval),
            context.roster.enemy.isAlive {
-            events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                triggers.everyNTurnsFreezeAllEnemiesAmount,
+            events.append(contentsOf: context.resolveDamage(DamageRequest(
+                amount: triggers.everyNTurnsFreezeAllEnemiesAmount,
+                target: context.roster.enemy.combatant,
                 keyword: .freeze,
-                to: context.roster.enemy.combatant,
                 sourceActorID: actor.id,
-                applyFightPacing: false,
-                in: &context,
-            ))
+                options: .reaction(),
+            )).events)
         }
         if triggers.everyNTurnsStunBuildupInterval > 0,
            context.turnCount > 0,
-           context.turnCount.isMultiple(of: triggers.everyNTurnsStunBuildupInterval),
+           context.isPlayerTurn(every: triggers.everyNTurnsStunBuildupInterval),
            context.roster.enemy.isAlive {
             events.append(contentsOf: context.resolveDamage(DamageRequest(
                 amount: triggers.everyNTurnsStunBuildupAmount,

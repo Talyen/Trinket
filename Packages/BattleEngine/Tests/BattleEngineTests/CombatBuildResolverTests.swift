@@ -24,6 +24,28 @@ struct CombatBuildResolverTests {
         #expect(outcome.healthLost == CombatRounding.scaled(100, multiplier: 1 - 0.8 * (1 - ignored)))
     }
 
+    @Test(arguments: [(4, 0.0, 0), (4, 0.5, 0), (14, 0.5, 9), (4, 1.0, 4)])
+    func `shredding scales flat defenses before clamping damage`(damage: Int, ignored: Double, expected: Int) {
+        var attacker = CombatModifierProfile.zero
+        attacker.triggers.ignoreEnemyMitigationPercent = ignored
+        var passive = CombatModifierProfile.zero
+        passive.triggers.passiveMitigationFlat = 10
+        for defender in [CombatModifierProfile(damageTakenFlat: [.physical: 10]), passive] {
+            var battle = BattleStateTestFactory.makeMinimalBattle(
+                hero: CombatantFixtures.passiveHero(),
+                companion: CombatantFixtures.passiveCompanion(),
+                enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
+                heroModifiers: attacker, enemyModifiers: defender,
+            )
+            battle.appliesFightPacing = false
+            let outcome = battle.resolveDamage(DamageRequest(
+                amount: damage, target: battle.enemy, keyword: .physical,
+                sourceActorID: battle.hero.id, options: .reaction(),
+            ))
+            #expect(outcome.healthLost == expected)
+        }
+    }
+
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `beastbond strengthens companion from either wearer`(owner: BattleParticipant) throws {
         let affix = try #require(GameContent.itemAffixDefinition(matching: "beastbond"))

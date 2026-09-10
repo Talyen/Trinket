@@ -5,7 +5,6 @@ import TrinketCore
 package enum TalentClaim: Hashable, Sendable {
     case spendOvercharge
     case darkRecovery
-    case arcaneBurst
     case surpriseStrike
     case seismicRoar
     case endlessLegion
@@ -108,7 +107,6 @@ public struct BattleState {
     public var turnCadence: BattleTurnCadence
 
     public var additionalControlSkipsByCombatantID: [String: Int]
-    public var isResolvingAutoPlayCard: Bool
     public var isEchoingSkill: Bool
     public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
     public let enemyFaction: EnemyFaction
@@ -152,7 +150,6 @@ public struct BattleState {
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
         turnCadence: BattleTurnCadence = BattleTurnCadence(),
         additionalControlSkipsByCombatantID: [String: Int] = [:],
-        isResolvingAutoPlayCard: Bool = false,
         isEchoingSkill: Bool = false,
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
@@ -187,7 +184,6 @@ public struct BattleState {
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
         self.turnCadence = turnCadence
         self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
-        self.isResolvingAutoPlayCard = isResolvingAutoPlayCard
         self.isEchoingSkill = isEchoingSkill
         self.pendingTurnDrawState = pendingTurnDrawState
 

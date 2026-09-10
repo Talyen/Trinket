@@ -18,21 +18,23 @@ public extension BattleTurnEngine {
         var purchases = 0
         var totalManaSpent = 0
         let purchaseLimit = ManaEmpowermentBudget(ability: ability, actor: actor, in: context).purchaseLimit
-        while purchases < purchaseLimit {
+        while purchases < purchaseLimit, context.roster.health(for: actor) > 0 {
             guard let payment = payEmpowerment(ability: ability, actor: actor, in: &context) else { break }
             context.roster.mutateRuntime(for: actor) { $0.hasEmpoweredWithMana = true }
             purchases += 1
-            totalManaSpent += payment.reduce(0) { $0 + $1.amount }
+            totalManaSpent += payment.reduce(0) { $0 + $1.amountSpent }
             ability = empoweredAbility(ability, triggers: triggers)
-            for contribution in payment where contribution.amount > 0 {
+            events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context))
+            for contribution in payment where contribution.amountSpent > 0 {
+                guard CombatCheckpoint.preparedAction(actor.id).allowsContinuation(in: context) else { break }
                 events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
-                    by: contribution.actor, amountSpent: contribution.amount, in: &context,
+                    contribution, in: &context,
                 ))
             }
         }
+        guard context.roster.health(for: actor) > 0 else { return events }
         if purchases > 0 {
             context.roster.mutateRuntime(for: actor) { $0.empoweredThisAction = true }
-            events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context))
         }
         if totalManaSpent > 0, let empoweredKeyword {
             events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(
@@ -77,16 +79,11 @@ private extension BattleTurnEngine {
         return ability.replacingOperations(operations)
     }
 
-    struct ManaContribution {
-        let actor: Combatant
-        let amount: Int
-    }
-
     static func payEmpowerment(
         ability: Ability,
         actor: Combatant,
         in context: inout BattleState,
-    ) -> [ManaContribution]? {
+    ) -> [ManaPayment]? {
         guard let runtime = context.roster.runtime(for: actor) else { return nil }
         var budget = ManaEmpowermentBudget(ability: ability, actor: actor, in: context)
         guard let quote = budget.nextPayment() else { return nil }
@@ -96,13 +93,12 @@ private extension BattleTurnEngine {
         if blockCost > 0 {
             DefensePoolEngine.set(block - blockCost, on: actor, in: &context)
         }
-        let spent = context.spendMana(quote.ownMana, for: actor)
-        UniqueCombatEngine.afterEmpowermentSpend(spent, previousMana: runtime.currentMana, actor: actor, in: &context)
-        var payment = [ManaContribution(actor: actor, amount: spent)]
+        let spent = context.payMana(quote.ownMana, for: actor)
+        var payment = [spent]
         if let partner = budget.partner, quote.partnerMana > 0 {
-            let shared = context.spendMana(quote.partnerMana, for: partner)
-            payment.append(ManaContribution(actor: partner, amount: shared))
+            payment.append(context.payMana(quote.partnerMana, for: partner))
         }
+        UniqueCombatEngine.afterEmpowermentSpend(spent, in: &context)
         return payment
     }
 }

@@ -2,41 +2,31 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    static func afterCardPlayed(
-        ability: Ability? = nil,
-        by actor: Combatant,
-        abilityTarget: Combatant? = nil,
+    internal static func afterCardPlayed(
+        _ facts: ResolvedActionFacts,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return [] }
+        let actor = facts.action.actor
+        let ability = facts.originalAbility
+        let abilityTarget = facts.action.selectedTarget
+        guard let owner = context.roster.participant(for: actor), owner.isPartyMember,
+              context.roster[owner].isAlive else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        var events: [ActionEvent] = []
-
-        if let ability, let abilityTarget {
-            events.append(contentsOf: spellEchoIfNeeded(
-                ability: ability,
-                actor: actor,
-                owner: owner,
-                abilityTarget: abilityTarget,
-                in: &context,
-            ))
-            events.append(contentsOf: scholarlySmiteIfNeeded(ability: ability, actor: actor, in: &context))
-            events.append(contentsOf: infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &context))
-            events.append(contentsOf: blizzardIfNeeded(
-                ability: ability,
-                actor: actor,
-                owner: owner,
-                triggers: triggers,
-                in: &context,
-            ))
-            events.append(contentsOf: talentPrimeIfNeeded(ability: ability, actor: actor, abilityTarget: abilityTarget, in: &context))
-            events.append(contentsOf: talentRepeatIfNeeded(ability: ability, actor: actor, abilityTarget: abilityTarget, in: &context))
-        }
+        let keywords = facts.damageKeywords
+        var events = CombatCheckpoint.cardCompletion(actor.id).resolve([
+            { spellEchoIfNeeded(ability: ability, actor: actor, owner: owner, abilityTarget: abilityTarget, in: &$0) },
+            { scholarlySmiteIfNeeded(keywords: keywords, actor: actor, in: &$0) },
+            { infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &$0) },
+            { blizzardIfNeeded(keywords: keywords, actor: actor, owner: owner, triggers: triggers, in: &$0) },
+            { talentPrimeIfNeeded(keywords: keywords, actor: actor, in: &$0) },
+            { talentRepeatIfNeeded(ability: ability, keywords: keywords, actor: actor, abilityTarget: abilityTarget, in: &$0) },
+        ], in: &context)
 
         let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
         context.turnCadence.cardsPlayed[owner] = count
 
-        if ability?.dealsCombatDamage == true, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
+        guard context.roster[owner].isAlive else { return events }
+        if !keywords.isEmpty, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
            BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {
             context.additionalControlSkipsByCombatantID[context.roster.enemy.id, default: 0] += 1
         }
@@ -85,11 +75,11 @@ package extension CombatTriggerEngine {
     }
 
     private static func scholarlySmiteIfNeeded(
-        ability: Ability,
+        keywords: Set<Keyword>,
         actor: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard actor.role == .hero, ability.keywords.contains(.holy),
+        guard actor.role == .hero, keywords.contains(.holy),
               let companionTriggers = companionReactingToHeroTriggers(in: context),
               companionTriggers.onHeroHolyAbilityCompanionHolyDamage > 0,
               context.roster.enemy.isAlive
@@ -125,13 +115,13 @@ package extension CombatTriggerEngine {
     }
 
     private static func blizzardIfNeeded(
-        ability: Ability,
+        keywords: Set<Keyword>,
         actor: Combatant,
         owner: BattleParticipant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard ability.keywords.contains(.freeze) else { return [] }
+        guard keywords.contains(.freeze) else { return [] }
         let freezeCount = context.turnCadence.freezeCardsPlayed[owner, default: 0] + 1
         context.turnCadence.freezeCardsPlayed[owner] = freezeCount
         let threshold = triggers.freezeCardsPlayedThisTurnFreezeAll
@@ -148,15 +138,14 @@ package extension CombatTriggerEngine {
     }
 
     private static func talentPrimeIfNeeded(
-        ability: Ability,
+        keywords: Set<Keyword>,
         actor: Combatant,
-        abilityTarget _: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
-              !context.isResolvingAutoPlayCard else { return [] }
+              !context.resolution.isAutomaticPlay else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        if ability.keywords.contains(.burn) {
+        if keywords.contains(.burn) {
             if triggers.furnaceRhythm {
                 context.primedRepeatKeywords.insert(.physical)
             }
@@ -169,15 +158,16 @@ package extension CombatTriggerEngine {
 
     private static func talentRepeatIfNeeded(
         ability: Ability,
+        keywords: Set<Keyword>,
         actor: Combatant,
         abilityTarget: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
-              !context.isResolvingAutoPlayCard
+              !context.resolution.isAutomaticPlay
         else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        if ability.keywords.contains(.physical), triggers.furnaceRhythm,
+        if keywords.contains(.physical), triggers.furnaceRhythm,
            context.primedRepeatKeywords.remove(.physical) != nil {
             context.resolution.enter(.damage)
             defer { context.resolution.leave(.damage) }
@@ -189,7 +179,7 @@ package extension CombatTriggerEngine {
                 context: &context,
             )
         }
-        if ability.keywords.contains(.freeze), triggers.temperCycle,
+        if keywords.contains(.freeze), triggers.temperCycle,
            context.primedRepeatKeywords.remove(.freeze) != nil {
             context.resolution.enter(.damage)
             defer { context.resolution.leave(.damage) }

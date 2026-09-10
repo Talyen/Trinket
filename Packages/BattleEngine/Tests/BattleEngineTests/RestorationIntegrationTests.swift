@@ -1,10 +1,36 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
 import TrinketTestSupport
+@testable import BattleEngine
 
 struct RestorationIntegrationTests {
+    @Test func `lingering blessing keeps pixies healing bonuses and protective bloom`() throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroMaxHealth: 50, companionMaxHealth: 50,
+            heroModifiers: CombatModifierProfile(healthRestoredBonus: 7),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t2_1", "pixie_health_t2_2"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 1
+        let card = BattleCardCombatEngine.deal(.heal, owner: .companion, context: &battle)
+        try battle.playCard(cardID: card.id)
+
+        for _ in 0 ..< 3 {
+            let health = battle.health(of: battle.hero)
+            let enemyHealth = battle.health(of: battle.enemy)
+            let events = battle.endTurn()
+            let tick = try #require(events.first { $0.abilityName == "Lingering Blessing" })
+            #expect(battle.health(of: battle.hero) - health == (tick.isCritical ? 2 : 1))
+            #expect(enemyHealth - battle.health(of: battle.enemy) == 2)
+        }
+        let health = battle.health(of: battle.hero)
+        let events = battle.endTurn()
+        #expect(battle.health(of: battle.hero) == health)
+        #expect(!events.contains { $0.abilityName == "Lingering Blessing" })
+    }
+
     @Test func `instant heal restores health`() throws {
         let heal = Ability(
             id: "heal",

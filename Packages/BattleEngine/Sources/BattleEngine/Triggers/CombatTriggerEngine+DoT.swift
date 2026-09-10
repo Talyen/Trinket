@@ -53,13 +53,6 @@ package extension CombatTriggerEngine {
         let sourceTriggers = context.modifiers(for: sourceActorID).triggers
         var events: [ActionEvent] = []
         if keyword == .burn {
-            events.append(contentsOf: DoTMirrorCascade.resolve(
-                keyword: .burn,
-                initialHealthLost: healthLost,
-                target: target,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ))
             if sourceTriggers.onBurnTickHolyDamage > 0 {
                 events.append(contentsOf: context.resolveDamage(
                     DamageRequest(

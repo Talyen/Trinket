@@ -30,6 +30,15 @@ struct TalentMigrationTests {
         )
     }
 
+    private func cardReactions(_ ability: Ability, in context: inout BattleState) -> [ActionEvent] {
+        let resolved = BattleAbilityRules.resolveOutcome(ability, actor: context.hero, in: &context)
+        let facts = ResolvedActionFacts(
+            original: ability, resolved: resolved, action: BattleActionContext(actor: context.hero, in: context),
+            origin: .card, in: context,
+        )
+        return CombatTriggerEngine.afterCardPlayed(facts, in: &context)
+    }
+
     @Test func `warChest guarantees physical critical at 50 gold`() {
         var battle = makeBattle(
             heroTriggers: CombatTraitTriggers(damage: DamageTriggers(warChest: true)),
@@ -325,7 +334,14 @@ struct TalentMigrationTests {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(closedCircuit: true)))
         let enemyHealthBefore = battle.health(of: battle.enemy)
         _ = battle.withEngineContext { ctx in
-            CombatTriggerEngine.afterSpendMana(by: ctx.roster.hero.combatant, amountSpent: 3, in: &ctx)
+            CombatTriggerEngine.afterSpendMana(
+                ManaPayment(
+                    payer: ctx.roster.hero.combatant,
+                    balanceBefore: ctx.mana(of: ctx.roster.hero.combatant) + 3,
+                    balanceAfter: ctx.mana(of: ctx.roster.hero.combatant),
+                ),
+                in: &ctx,
+            )
         }
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
@@ -357,10 +373,8 @@ struct TalentMigrationTests {
         )
         let burnAbility = Ability(id: "x", name: "X", tier: .basic, directDamage: 1, damageKeyword: Keyword.burn)
         _ = battle.withEngineContext { ctx in
-            CombatTriggerEngine.afterCardPlayed(
-                ability: burnAbility,
-                by: ctx.roster.hero.combatant,
-                abilityTarget: ctx.roster.enemy.combatant,
+            cardReactions(
+                burnAbility,
                 in: &ctx,
             )
         }
@@ -368,10 +382,8 @@ struct TalentMigrationTests {
         let physical = Ability(id: "phys", name: "Phys", tier: .basic, directDamage: 5, damageKeyword: Keyword.physical)
         let healthBefore = battle.health(of: battle.enemy)
         _ = battle.withEngineContext { ctx in
-            CombatTriggerEngine.afterCardPlayed(
-                ability: physical,
-                by: ctx.roster.hero.combatant,
-                abilityTarget: ctx.roster.enemy.combatant,
+            cardReactions(
+                physical,
                 in: &ctx,
             )
         }
@@ -478,8 +490,9 @@ struct TalentMigrationTests {
             enemyTurn: EnemyTurnTriggers(attackDelayEnemyTurnChancePercent: 1),
         ))
         for ability in [Ability.block, .slash] {
-            _ = CombatTriggerEngine.afterCardPlayed(
-                ability: ability, by: battle.hero, abilityTarget: battle.enemy, in: &battle,
+            _ = cardReactions(
+                ability,
+                in: &battle,
             )
             #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id, default: 0]
                 == (ability.id == Ability.slash.id ? 1 : 0))
@@ -591,10 +604,8 @@ struct TalentMigrationTests {
             heroAbilities: [.slash],
         )
         _ = battle.withEngineContext { ctx in
-            CombatTriggerEngine.afterCardPlayed(
-                ability: Ability(id: "burn-x", name: "Burn X", tier: .basic, directDamage: 1, damageKeyword: Keyword.burn),
-                by: ctx.roster.hero.combatant,
-                abilityTarget: ctx.roster.enemy.combatant,
+            cardReactions(
+                Ability(id: "burn-x", name: "Burn X", tier: .basic, directDamage: 1, damageKeyword: Keyword.burn),
                 in: &ctx,
             )
         }
@@ -984,7 +995,14 @@ extension TalentMigrationTests {
         }
         let before = battle.health(of: battle.enemy)
         _ = battle.withEngineContext { ctx in
-            _ = CombatTriggerEngine.afterSpendMana(by: ctx.roster.hero.combatant, amountSpent: 1, in: &ctx)
+            _ = CombatTriggerEngine.afterSpendMana(
+                ManaPayment(
+                    payer: ctx.roster.hero.combatant,
+                    balanceBefore: ctx.mana(of: ctx.roster.hero.combatant) + 1,
+                    balanceAfter: ctx.mana(of: ctx.roster.hero.combatant),
+                ),
+                in: &ctx,
+            )
         }
         #expect(before - battle.health(of: battle.enemy) == 3)
     }

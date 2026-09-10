@@ -14,14 +14,10 @@ package extension DamagePipeline {
         )
         var effects = context.roster.activeEffects(for: state.combatant)
 
-        let blindSpot = state.options.isOriginalCardDamage && state.damageKeyword == .physical
-            && context.heroTalents.cards.last?.actorID == state.sourceActorID
-            && context.heroTalents.cards.last?.preparations.contains(.ignorePhysicalBlock) == true
-        if blindSpot || UniqueCombatEngine.ignoresBlock(for: state, in: context) {
-            return
-        }
+        let blockMultiplier = DamageDefensePolicy.blockMultiplier(state: state, in: context)
+        guard blockMultiplier > 0 else { return }
 
-        applyIntercede(to: &state, in: &context)
+        applyIntercede(to: &state, blockMultiplier: blockMultiplier, in: &context)
         effects = context.roster.activeEffects(for: state.combatant)
 
         guard let index = effects.firstIndex(where: {
@@ -42,15 +38,7 @@ package extension DamagePipeline {
         let targetIsStunned = state.targetStatus.isStunned
         let targetIsFrozen = state.targetStatus.isFrozen
 
-        let effectiveBuffer = max(0, effectiveBlockBuffer(
-            buffer: buffer,
-            sourceTriggers: sourceTriggers,
-            targetIsStunned: targetIsStunned,
-            targetIsFrozen: targetIsFrozen,
-            damageKeyword: state.damageKeyword,
-            sourceActorID: state.sourceActorID,
-            context: context,
-        ) - state.heroCardBlockIgnore)
+        let effectiveBuffer = max(0, CombatRounding.scaled(buffer, multiplier: blockMultiplier) - state.heroCardBlockIgnore)
         guard effectiveBuffer > 0, state.remaining > 0 else {
             return
         }
@@ -153,6 +141,7 @@ package extension DamagePipeline {
 
     private static func applyIntercede(
         to state: inout DamageResolutionState,
+        blockMultiplier: Double,
         in context: inout BattleState,
     ) {
         guard state.combatant.role == .companion,
@@ -161,7 +150,8 @@ package extension DamagePipeline {
               context.heroModifiers.triggers.blockAbsorbsCompanionDamage
         else { return }
         let heroEffects = context.roster.activeEffects(for: context.roster.hero.combatant)
-        guard let reduced = DefensePoolEngine.reduce(state.remaining, in: heroEffects)
+        let available = CombatRounding.scaled(DefensePoolEngine.blockPoints(in: heroEffects), multiplier: blockMultiplier)
+        guard let reduced = DefensePoolEngine.reduce(min(state.remaining, available), in: heroEffects)
         else { return }
         let heroAbsorbed = reduced.absorbed
         state.blockedAmount += heroAbsorbed
@@ -189,39 +179,6 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
-    }
-
-    private static func effectiveBlockBuffer(
-        buffer: Int,
-        sourceTriggers: CombatTraitTriggers?,
-        targetIsStunned: Bool,
-        targetIsFrozen: Bool,
-        damageKeyword: Keyword?,
-        sourceActorID: String?,
-        context: BattleState,
-    ) -> Int {
-        var effectiveBuffer = buffer
-        if let sourceTriggers {
-            if damageKeyword == .physical, sourceTriggers.physicalBlockIgnorePercent > 0 {
-                effectiveBuffer = CombatRounding.scaled(
-                    buffer,
-                    multiplier: 1 - min(1, sourceTriggers.physicalBlockIgnorePercent),
-                )
-            }
-            if damageKeyword == .physical, sourceTriggers.physicalIgnoresBlockVsStunnedOrFrozen,
-               targetIsStunned || targetIsFrozen {
-                effectiveBuffer = 0
-            }
-            if DefensePoolEngine.shouldIgnoreBlock(
-                keyword: damageKeyword,
-                sourceTriggers: sourceTriggers,
-                sourceActorID: sourceActorID,
-                in: context,
-            ) {
-                effectiveBuffer = 0
-            }
-        }
-        return effectiveBuffer
     }
 
     private static func handleTalentBlockedDamage(
@@ -264,7 +221,7 @@ package extension DamagePipeline {
         in context: BattleState,
     ) -> Bool {
         context.modifiers(for: defender.id).triggers[keyPath: keyPath]
-            || CombatTriggerEngine.livingPartyTriggers(in: context)[keyPath: keyPath]
+            || CombatTriggerEngine.hasLivingPartyTrigger(keyPath, in: context)
     }
 
     private static func defenderTriggersContainStoredImpact(in context: BattleState, defender: Combatant) -> Bool {

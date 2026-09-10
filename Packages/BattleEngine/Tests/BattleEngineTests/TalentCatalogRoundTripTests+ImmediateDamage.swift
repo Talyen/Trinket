@@ -27,7 +27,14 @@ extension TalentCatalogRoundTripTests {
             battle.appendEffect(.burn(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
         let before = battle.roster.enemy.currentHealth
-        _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: 2, in: &battle)
+        _ = CombatTriggerEngine.afterSpendMana(
+            ManaPayment(
+                payer: battle.hero,
+                balanceBefore: battle.mana(of: battle.hero) + 2,
+                balanceAfter: battle.mana(of: battle.hero),
+            ),
+            in: &battle,
+        )
         #expect(battle.roster.enemy.currentHealth == before - (burning ? 1 : 0))
         #expect(battle.roster.enemy.activeEffects.first?.effect.potency == (burning ? 4 : nil))
     }

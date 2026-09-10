@@ -35,9 +35,9 @@ extension UniqueCollectionTests {
         let second = try play(attack(id: "second"), owner: owner, in: &context)
         #expect(second.contains { $0.abilityName == "Wrenflight" && $0.effectKind == .cardsDrawn })
         #expect(context.uniques.owners[owner]?.wrenflightDodge == 0.1)
-        context.isResolvingAutoPlayCard = true
-        try play(attack(id: "automatic"), owner: owner, in: &context)
-        context.isResolvingAutoPlayCard = false
+        _ = try context.withAutomaticPlay { context in
+            try play(attack(id: "automatic"), owner: owner, in: &context)
+        }
         let third = try play(attack(.holy, id: "third"), owner: owner, in: &context)
         #expect(third.contains { $0.abilityName == "The Returning Gale" })
         #expect(context.hand.cards.contains { $0.ability.id == "third" })
@@ -131,10 +131,10 @@ extension UniqueCollectionTests {
 
     @Test func `patient edge ignores automatic partner actions and wearer attacks`() throws {
         var context = try battle(["the_patient_edge"])
-        context.isResolvingAutoPlayCard = true
-        try play(attack(), owner: .companion, in: &context)
-        try play(attack(), in: &context)
-        context.isResolvingAutoPlayCard = false
+        _ = try context.withAutomaticPlay { context in
+            try play(attack(), owner: .companion, in: &context)
+            return try play(attack(), in: &context)
+        }
         #expect(context.uniques.owners[.hero]?.hasAttacked != true)
         let before = context.roster.enemy.currentHealth
         try play(attack(), in: &context)
@@ -177,6 +177,27 @@ extension UniqueCollectionTests {
         #expect(context.heroDeck.abilities.map(\.id) == ["mixed"])
         let next = try play(mixed, in: &context)
         #expect(!next.contains { $0.abilityName == "Threefold Grace" })
+    }
+
+    @Test(arguments: [UInt64(1772), 1773], [false, true])
+    func `cinderbloom spends only resolved element allowances`(seed: UInt64, automatic: Bool) throws {
+        var context = try battle(["threefold_grace", "wildhearts_favor"])
+        context.rng = SeededRandomNumberGenerator(seed: seed)
+        context.uniques.owners[.hero, default: .init()].wildheartReady = true
+        context.heroDeck = CombatDeck(abilities: [attack(id: "drawn")])
+        let events: [ActionEvent] = if automatic {
+            try context.withAutomaticPlay { context in try play(.cinderbloom, in: &context) }
+        } else {
+            try play(.cinderbloom, in: &context)
+        }
+        let hit = try #require(events.first { $0.kind == .abilityDamage && $0.abilityID == "cinderbloom" })
+        let draws = events.count { $0.abilityName == "Threefold Grace" && $0.effectKind == .cardsDrawn }
+        #expect(draws == (!automatic && hit.keyword == .burn ? 1 : 0))
+        #expect(context.uniques.owners[.hero]?.usedElements == (!automatic && hit.keyword == .burn ? [.burn] : []))
+        #expect(context.uniques.owners[.hero]?.wildheartReady == (automatic || hit.keyword != .poison))
+        if !automatic {
+            #expect(hit.isCritical == (hit.keyword == .poison))
+        }
     }
 
     @Test func `draw and play does not spend unique card allowances`() throws {

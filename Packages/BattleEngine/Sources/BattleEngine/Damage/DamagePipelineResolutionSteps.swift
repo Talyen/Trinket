@@ -26,7 +26,7 @@ package extension DamagePipeline {
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)
         applyOneShotEmpowers(to: &state, in: &context)
-        applyEnemyOutgoingReductions(to: &state, in: &context)
+        applyOutgoingReductions(to: &state, in: &context)
         state.dealt = state.remaining
     }
 
@@ -181,7 +181,6 @@ package extension DamagePipeline {
             }
         }
         guard keyword == .physical, state.options.isAttackHit, !state.options.isRetaliation else { return }
-        let partyTriggers = CombatTriggerEngine.livingPartyTriggers(in: context)
         if triggers.batteringRam {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
             if block > 0, let reduced = DefensePoolEngine.reduce(block, in: context.roster.activeEffects(for: source.combatant)) {
@@ -190,7 +189,7 @@ package extension DamagePipeline {
             }
         }
         var stored = 0
-        if partyTriggers.storedImpact {
+        if CombatTriggerEngine.hasLivingPartyTrigger(\.storedImpact, in: context) {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
                 if let val = context.storedBlockedDamageByActorID.removeValue(forKey: member.id) {
@@ -255,43 +254,44 @@ package extension DamagePipeline {
         }
     }
 
-    private static func applyEnemyOutgoingReductions(
+    private static func applyOutgoingReductions(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard state.sourceActorID == context.roster.enemy.id else { return }
-        let enemy = context.roster.enemy.combatant
-        let enemyIsFrozen = context.roster.hasControlStatus(for: enemy, keyword: .freeze)
-        let enemyIsStunned = context.roster.hasControlStatus(for: enemy, keyword: .stun)
-        let enemyIsPoisoned = context.roster.hasAffliction(.poison, on: enemy)
-        let enemyIsBleeding = context.roster.hasAffliction(.bleed, on: enemy)
-        let enemyIsBurning = context.roster.hasAffliction(.burn, on: enemy)
-        let enemyBleedStacks = context.roster.activeEffects(for: enemy).count(where: { $0.effect.isBleed })
+        guard let sourceID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceID)?.combatant else { return }
+        let sourceIsFrozen = context.roster.hasControlStatus(for: source, keyword: .freeze)
+        let sourceIsStunned = context.roster.hasControlStatus(for: source, keyword: .stun)
+        let sourceIsPoisoned = context.roster.hasAffliction(.poison, on: source)
+        let sourceIsBleeding = context.roster.hasAffliction(.bleed, on: source)
+        let sourceIsBurning = context.roster.hasAffliction(.burn, on: source)
+        let sourceBleedStacks = context.roster.activeEffects(for: source).count(where: { $0.effect.isBleed })
         var reductionFlat = 0
         var reductionMultiplier = 1.0
-        for profile in CombatTriggerEngine.livingAllyModifiers(in: context) {
-            let t = profile.triggers
-            if enemyIsFrozen {
+        for opponent in BattleActionContext(actor: source, in: context).opponents(in: context)
+            where context.roster.health(for: opponent) > 0 {
+            let t = context.modifiers(for: opponent.id).triggers
+            if sourceIsFrozen {
                 reductionFlat += t.frozenEnemyDamageReductionFlat
             }
-            if enemyIsBleeding {
+            if sourceIsBleeding {
                 reductionFlat += t.bleedingEnemyDamageReductionFlat
             }
-            if enemyIsBurning {
+            if sourceIsBurning {
                 reductionFlat += t.burningEnemyDamageReductionFlat
             }
-            if enemyIsStunned {
+            if sourceIsStunned {
                 reductionMultiplier *= t.stunnedEnemyNextTurnDamageMultiplier
             }
-            if enemyIsPoisoned {
+            if sourceIsPoisoned {
                 reductionMultiplier *= (1 - min(1, t.poisonedEnemyAccuracyPenaltyPercent))
             }
-            if enemyIsBleeding, t.enemyBleedStacksDamageReductionStacks > 0,
-               enemyBleedStacks >= t.enemyBleedStacksDamageReductionStacks {
+            if sourceIsBleeding, t.enemyBleedStacksDamageReductionStacks > 0,
+               sourceBleedStacks >= t.enemyBleedStacksDamageReductionStacks {
                 reductionMultiplier *= (1 - min(1, t.enemyBleedStacksDamageReductionPercent))
             }
         }
-        for active in context.roster.activeEffects(for: enemy) {
+        for active in context.roster.activeEffects(for: source) {
             switch active.effect {
             case let .damageReductionPercent(percent, _):
                 reductionMultiplier *= (1 - min(1, percent))
@@ -302,22 +302,6 @@ package extension DamagePipeline {
             }
         }
         state.remaining = max(0, CombatRounding.scaled(state.remaining, multiplier: reductionMultiplier) - reductionFlat)
-    }
-
-    private static func percentageReductionMultiplier(state: DamageResolutionState, context: BattleState) -> Double {
-        guard let sourceActorID = state.sourceActorID else { return 1 }
-        let sourceProfile = context.modifiers(for: sourceActorID)
-        if state.options.abilityHasLeech, sourceProfile.triggers.leechIgnoresMitigation {
-            return 0
-        }
-        if state.damageKeyword == .burn, sourceProfile.triggers.burnIgnoresBlockAndMitigation {
-            return 0
-        }
-        if state.damageKeyword == .bleed, sourceProfile.triggers.bleedsIgnoreMitigation {
-            return 0
-        }
-        guard state.combatant.role == .enemy else { return 1 }
-        return 1 - min(1, max(0, sourceProfile.triggers.ignoreEnemyMitigationPercent))
     }
 
     static func applyFightPacing(
@@ -383,12 +367,12 @@ package extension DamagePipeline {
             return
         }
         let profile = context.modifiers(for: state.combatant.id)
-        let flatReduction = profile.damageTakenFlat(for: damageKeyword)
+        let reductionMultiplier = DamageDefensePolicy.mitigationMultiplier(state: state, context: context)
+        let flatReduction = CombatRounding.scaled(profile.damageTakenFlat(for: damageKeyword), multiplier: reductionMultiplier)
         if flatReduction > 0 {
             state.remaining = max(0, state.remaining - flatReduction)
         }
         let reduction = min(1, profile.damageTakenReduction(for: damageKeyword) + profile.incomingDamageReductionPercent)
-        let reductionMultiplier = percentageReductionMultiplier(state: state, context: context)
         let effectiveReduction = reduction * reductionMultiplier
         if effectiveReduction > 0 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - effectiveReduction)
@@ -446,15 +430,19 @@ package extension DamagePipeline {
 
         let profile = context.modifiers(for: state.combatant.id)
         let defenderTriggers = profile.triggers
+        let multiplier = DamageDefensePolicy.mitigationMultiplier(state: state, context: context)
+        func effectiveReduction(_ amount: Int) -> Int {
+            CombatRounding.scaled(amount, multiplier: multiplier)
+        }
         var remaining = state.remaining
         if defenderTriggers.passiveMitigationFlat > 0 {
-            remaining = max(0, remaining - defenderTriggers.passiveMitigationFlat)
+            remaining = max(0, remaining - effectiveReduction(defenderTriggers.passiveMitigationFlat))
         }
 
         if state.damageKeyword != .physical,
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0,
            defenderTriggers.spellDamageTakenReductionWhileBlocked > 0 {
-            remaining = max(0, remaining - defenderTriggers.spellDamageTakenReductionWhileBlocked)
+            remaining = max(0, remaining - effectiveReduction(defenderTriggers.spellDamageTakenReductionWhileBlocked))
         }
 
         if state.combatant.role == .hero,
@@ -462,24 +450,24 @@ package extension DamagePipeline {
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: context.roster.companion.combatant)) > 0 {
             let protection = min(1, max(0, context.companionModifiers.triggers.companionBlockProtectsHeroPercent))
             if protection > 0 {
-                remaining = CombatRounding.scaled(remaining, multiplier: 1 - protection)
+                remaining = CombatRounding.scaled(remaining, multiplier: 1 - protection * multiplier)
             }
         }
         if state.combatant.role == .hero,
            context.roster.companion.isAlive,
            context.companionModifiers.triggers.absorbHeroDamageFlat > 0 {
-            remaining = max(0, remaining - context.companionModifiers.triggers.absorbHeroDamageFlat)
+            remaining = max(0, remaining - effectiveReduction(context.companionModifiers.triggers.absorbHeroDamageFlat))
         }
         if defenderTriggers.damageReductionPerUnspentManaEvery > 0,
            let runtime = context.roster.runtime(for: state.combatant),
            runtime.maxMana > 0,
            runtime.currentMana > 0 {
-            remaining = max(0, remaining - runtime.currentMana / defenderTriggers.damageReductionPerUnspentManaEvery)
+            remaining = max(0, remaining - effectiveReduction(runtime.currentMana / defenderTriggers.damageReductionPerUnspentManaEvery))
         }
 
         let flatReductionBonus = context.roster.runtime(for: state.combatant)?.flatDamageReductionBonus ?? 0
         if flatReductionBonus > 0 {
-            remaining = max(0, remaining - flatReductionBonus)
+            remaining = max(0, remaining - effectiveReduction(flatReductionBonus))
         }
 
         state.remaining = remaining

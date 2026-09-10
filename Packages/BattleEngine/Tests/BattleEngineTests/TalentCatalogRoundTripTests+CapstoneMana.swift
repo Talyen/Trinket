@@ -117,7 +117,14 @@ extension TalentCatalogRoundTripTests {
     func `mana stun talents build control with their damage`(talent: String) {
         var battle = capstoneBattle(hero: [talent])
         battle.roster.hero.currentMana = 0
-        _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: 3, in: &battle)
+        _ = CombatTriggerEngine.afterSpendMana(
+            ManaPayment(
+                payer: battle.hero,
+                balanceBefore: battle.mana(of: battle.hero) + 3,
+                balanceAfter: battle.mana(of: battle.hero),
+            ),
+            in: &battle,
+        )
         #expect(battle.roster.enemy.currentHealth == 197)
         #expect(battle.roster.enemy.activeEffects.contains {
             if case let .controlMeter(.stun, amount, _) = $0.effect {
@@ -135,7 +142,14 @@ extension TalentCatalogRoundTripTests {
             if [Keyword.freeze, .burn, .poison, .holy].shuffled(using: &expectedRNG).prefix(2).contains(.freeze) {
                 freezeDamage += 1
             }
-            _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: 2, in: &battle)
+            _ = CombatTriggerEngine.afterSpendMana(
+                ManaPayment(
+                    payer: battle.hero,
+                    balanceBefore: battle.mana(of: battle.hero) + 2,
+                    balanceAfter: battle.mana(of: battle.hero),
+                ),
+                in: &battle,
+            )
         }
         #expect(freezeDamage > 0)
         #expect(battle.roster.enemy.currentHealth == 184)
@@ -152,8 +166,22 @@ extension TalentCatalogRoundTripTests {
         var battle = capstoneBattle(hero: ["warlock_mana_t3_1"], companion: ["mana_moth_mana_t2_1"])
         battle.roster.companion.currentHealth = 20
         for payment in 1 ... 2 {
-            _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: amount, in: &battle)
-            _ = CombatTriggerEngine.afterSpendMana(by: battle.companion, amountSpent: amount, in: &battle)
+            _ = CombatTriggerEngine.afterSpendMana(
+                ManaPayment(
+                    payer: battle.hero,
+                    balanceBefore: battle.mana(of: battle.hero) + amount,
+                    balanceAfter: battle.mana(of: battle.hero),
+                ),
+                in: &battle,
+            )
+            _ = CombatTriggerEngine.afterSpendMana(
+                ManaPayment(
+                    payer: battle.companion,
+                    balanceBefore: battle.mana(of: battle.companion) + amount,
+                    balanceAfter: battle.mana(of: battle.companion),
+                ),
+                in: &battle,
+            )
             #expect(battle.roster.enemy.currentHealth == 200 - amount * payment)
             #expect(talentPoints(.shield, on: .companion, in: battle) == amount * payment)
             #expect(battle.roster.companion.currentHealth == 20)
@@ -166,7 +194,14 @@ extension TalentCatalogRoundTripTests {
         seedHeroTalentEffect(.decayingDoT(keyword: keyword, potency: 6), on: .hero, in: &battle, source: .enemy)
         seedHeroTalentEffect(.bleed(2), on: .hero, in: &battle, source: .enemy)
         for (amount, remaining) in [(1, 5), (3, 2), (5, 0)] {
-            _ = CombatTriggerEngine.afterSpendMana(by: battle.hero, amountSpent: amount, in: &battle)
+            _ = CombatTriggerEngine.afterSpendMana(
+                ManaPayment(
+                    payer: battle.hero,
+                    balanceBefore: battle.mana(of: battle.hero) + amount,
+                    balanceAfter: battle.mana(of: battle.hero),
+                ),
+                in: &battle,
+            )
             let potency = battle.activeEffects(of: battle.hero).filter { $0.keyword == keyword }
                 .reduce(0) { $0 + ($1.effect.potency ?? 0) }
             #expect(potency == remaining)

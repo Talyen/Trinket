@@ -183,7 +183,7 @@ package extension CombatTriggerEngine {
            context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
            context.resolution.depth(.dot) < ReactionScope.maxDotRecursionDepth,
            context.resolution.depth(.draw) < BattleState.maxDrawAndPlayDepth,
-           !context.isResolvingAutoPlayCard,
+           !context.resolution.isAutomaticPlay,
            let owner = context.roster.participant(for: combatant),
            let card = BattleCardCombatEngine.drawFirstCard(matching: .physical, for: owner, context: &context) {
             context.resolution.enter(.damage)
@@ -211,9 +211,6 @@ package extension CombatTriggerEngine {
               let ability = actor.abilityLoadout.basic,
               BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
         else { return [] }
-        let wasAutoPlay = context.isResolvingAutoPlayCard
-        context.isResolvingAutoPlayCard = true
-        defer { context.isResolvingAutoPlayCard = wasAutoPlay }
         return BattleTurnEngine.performAction(
             ability: ability,
             actor: actor,

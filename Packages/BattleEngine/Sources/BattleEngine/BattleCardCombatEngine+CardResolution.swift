@@ -41,9 +41,8 @@ extension BattleCardCombatEngine {
         context.uniques.card = UniqueCombatEngine.prepareCard(card, in: &context)
         defer { context.uniques.card = previousUniqueCard }
         var facts = HeroTalentCardFacts(actorID: actor.id, tier: card.ability.tier)
-        facts.playSerial = context.heroTalents.nextPlaySerial
+        facts.playSerial = context.resolution.beginCard(actorID: actor.id)
         facts.previousDamageKeywords = context.heroTalents.history[actor.id]?.lastDamageKeywords ?? []
-        context.heroTalents.nextPlaySerial += 1
         defer { context.resolution.endCard(facts.playSerial) }
         context.heroTalents.cards.append(facts)
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
@@ -54,12 +53,9 @@ extension BattleCardCombatEngine {
             origin: context.uniques.card == nil ? .card : .ordinaryCard,
             context: &context,
         )
-        events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(
-            ability: card.ability,
-            by: actor,
-            abilityTarget: abilityTarget,
-            in: &context,
-        ))
+        if let outcome = context.resolution.cardOutcome(for: actor.id) {
+            events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(outcome, in: &context))
+        }
         events.append(contentsOf: CombatTriggerEngine.finishHeroCard(actor: actor, in: &context))
         events.append(contentsOf: UniqueCombatEngine.finishCardDraws(in: &context))
         if context.roster.runtime(for: actor)?.goldenTouchActiveThisCard == true {

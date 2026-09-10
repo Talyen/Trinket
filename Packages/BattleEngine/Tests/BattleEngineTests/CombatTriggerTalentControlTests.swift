@@ -202,7 +202,7 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
                 hero: CombatantFixtures.passiveHero(maxHealth: 50),
                 companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
                 enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-                activeEnemyEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0)],
+                activeEnemyEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
                 heroModifiers: .init(triggers: CombatTraitTriggers(
                     mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 5),
                 )),
@@ -215,11 +215,11 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         }
 
         var livingPin = bleedBattle(heroAlive: true)
-        _ = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &livingPin)
+        _ = CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &livingPin)
         #expect(livingPin.roster.health(for: livingPin.roster.enemy.combatant) == 35)
 
         var deadPin = bleedBattle(heroAlive: false)
-        _ = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &deadPin)
+        _ = CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &deadPin)
         #expect(deadPin.roster.health(for: deadPin.roster.enemy.combatant) == 40)
 
         func poisonBattle(heroAlive: Bool) -> BattleState {
@@ -240,10 +240,10 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
         }
 
         var livingMiss = poisonBattle(heroAlive: true)
-        #expect(CombatTriggerEngine.enemyActAvoidance(in: &livingMiss).cancelled)
+        #expect(CombatTriggerEngine.enemyAttackAvoidance(in: &livingMiss).cancelled)
 
         var deadMiss = poisonBattle(heroAlive: false)
-        #expect(!CombatTriggerEngine.enemyActAvoidance(in: &deadMiss).cancelled)
+        #expect(!CombatTriggerEngine.enemyAttackAvoidance(in: &deadMiss).cancelled)
     }
 
     @Test func `frozen cannot block aura requires living owner`() {
@@ -305,8 +305,11 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.afterSpendMana(
-            by: companionSpend.roster.companion.combatant,
-            amountSpent: 2,
+            ManaPayment(
+                payer: companionSpend.roster.companion.combatant,
+                balanceBefore: companionSpend.mana(of: companionSpend.roster.companion.combatant) + 2,
+                balanceAfter: companionSpend.mana(of: companionSpend.roster.companion.combatant),
+            ),
             in: &companionSpend,
         )
         #expect(!enemyIsAfflicted(companionSpend))
@@ -321,8 +324,11 @@ struct CombatTriggerTalentControlTests { // swiftlint:disable:this type_body_len
             dealOpeningHand: false,
         )
         _ = CombatTriggerEngine.afterSpendMana(
-            by: heroSpend.roster.hero.combatant,
-            amountSpent: 2,
+            ManaPayment(
+                payer: heroSpend.roster.hero.combatant,
+                balanceBefore: heroSpend.mana(of: heroSpend.roster.hero.combatant) + 2,
+                balanceAfter: heroSpend.mana(of: heroSpend.roster.hero.combatant),
+            ),
             in: &heroSpend,
         )
         #expect(enemyIsAfflicted(heroSpend))

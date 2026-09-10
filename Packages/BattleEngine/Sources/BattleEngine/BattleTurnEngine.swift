@@ -14,6 +14,7 @@ public enum BattleTurnEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         var keyword: Keyword?
+        var recovered = false
 
         context.roster.mutateRuntime(for: actor) { runtime in
             guard let index = runtime.activeEffects.firstIndex(where: \.isAwaitingActionSkip) else { return }
@@ -25,6 +26,7 @@ public enum BattleTurnEngine {
                 effect.remainingTurns = 0
             } else {
                 effect.remainingTurns = BattleTiming.controlStatusLingerTurns
+                recovered = true
             }
             runtime.activeEffects[index] = effect
         }
@@ -45,8 +47,10 @@ public enum BattleTurnEngine {
         )
         var events = [event]
 
-        if actor.role == .enemy, keyword == .stun {
-            events.append(contentsOf: CombatTriggerEngine.afterEnemyStunRecover(in: &context))
+        if actor.role == .enemy, keyword == .stun, recovered {
+            events.append(contentsOf: CombatCheckpoint.controlRecovery(actor.id, .stun).resolve([
+                { CombatTriggerEngine.afterEnemyStunRecover(in: &$0) },
+            ], in: &context))
         }
 
         recordAction(for: actor, context: &context)
@@ -60,8 +64,37 @@ public enum BattleTurnEngine {
         origin: DamageOperation.AttackOrigin = .ability,
         context: inout BattleState,
     ) -> [ActionEvent] {
+        resolveAction(ability: ability, actor: actor, abilityTarget: abilityTarget, origin: origin, entry: .ordinary, context: &context)
+            .events
+    }
+
+    static func performEnemyAction(
+        ability: Ability, abilityTarget: Combatant, context: inout BattleState,
+    ) -> (events: [ActionEvent], performed: Bool) {
+        resolveAction(
+            ability: ability,
+            actor: context.enemy,
+            abilityTarget: abilityTarget,
+            origin: .ability,
+            entry: .enemyTurn,
+            context: &context,
+        )
+    }
+
+    private enum ActionEntry {
+        case ordinary, enemyTurn
+    }
+
+    private static func resolveAction(
+        ability: Ability,
+        actor: Combatant,
+        abilityTarget: Combatant,
+        origin: DamageOperation.AttackOrigin,
+        entry: ActionEntry,
+        context: inout BattleState,
+    ) -> (events: [ActionEvent], performed: Bool) {
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
-        guard !context.isBattleOver, action.canContinue(in: context) else { return [] }
+        guard !context.isBattleOver, action.canContinue(in: context) else { return ([], false) }
         context.resolution.beginAction(action, origin: origin)
         defer { context.resolution.endAction() }
         var events: [ActionEvent] = []
@@ -70,20 +103,40 @@ public enum BattleTurnEngine {
             if actor.role == .enemy {
                 recordAction(for: actor, context: &context)
             }
-            return []
+            return ([], actor.role == .enemy)
         }
-        var resolvedAbility = BattleAbilityRules.resolveOutcome(ability, actor: actor, in: &context)
-        UniqueCombatEngine.prepareResolvedAttack(resolvedAbility, actor: actor, in: &context)
-        CombatTriggerEngine.captureHeroOutcome(original: ability, resolved: resolvedAbility, actor: actor, in: &context)
-        resolvedAbility = prepareTalentAction(ability: resolvedAbility, actor: actor, in: &context)
+        let resolvedAbility = BattleAbilityRules.resolveOutcome(ability, actor: actor, in: &context)
+        let facts = ResolvedActionFacts(original: ability, resolved: resolvedAbility, action: action, origin: origin, in: context)
+        if entry == .enemyTurn {
+            let interception = CombatTriggerEngine.beforeEnemyAttack(facts, in: &context)
+            events.append(contentsOf: interception.events)
+            guard !interception.cancelled else { return (events, false) }
+        }
+        let capturedCard = context.resolution.prepareAction(facts)
+        let checkpoint = CombatCheckpoint.preparedAction(actor.id)
+        checkpoint.perform(in: &context) { UniqueCombatEngine.prepareResolvedAttack(facts, in: &$0) }
+        if capturedCard {
+            checkpoint.perform(in: &context) { CombatTriggerEngine.captureHeroOutcome(facts, in: &$0) }
+        }
+        events.append(contentsOf: executePreparedAction(facts, context: &context))
+        return (events, true)
+    }
+
+    private static func executePreparedAction(_ facts: ResolvedActionFacts, context: inout BattleState) -> [ActionEvent] {
+        let actor = facts.action.actor
+        let abilityTarget = facts.action.selectedTarget
+        var resolvedAbility = prepareTalentAction(ability: facts.ability, actor: actor, in: &context)
+        var events: [ActionEvent] = []
         defer { context.heroTalents.actions.removeLast() }
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &resolvedAbility,
             actor: actor,
             context: &context,
         ))
-        if resolvedAbility.dealsCombatDamage {
-            events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
+        CombatCheckpoint.preparedAction(actor.id).perform(in: &context) { context in
+            if resolvedAbility.dealsCombatDamage {
+                events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
+            }
         }
 
         let damageOutcome = applyDamageComponents(

@@ -29,7 +29,7 @@ struct CombatTriggerTalentDamageTests {
             )),
         )
         BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0)],
+            [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
             for: battle.roster.enemy.combatant,
             on: &battle,
         )

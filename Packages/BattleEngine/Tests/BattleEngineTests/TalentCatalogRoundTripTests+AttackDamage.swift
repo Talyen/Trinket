@@ -5,6 +5,24 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test func `sacrificial guard does not weaken the redirected hit twice`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t3_1"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 1
+        battle.appendEffect(.damageReductionFlat(2, 2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 6, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id, options: .reaction(),
+        ))
+
+        #expect(battle.roster.hero.currentHealth == 1)
+        #expect(battle.roster.companion.currentHealth == 16)
+        #expect(talentPoints(.shield, on: .companion, in: battle) == 10)
+    }
+
     @Test(arguments: [
         "knight_stun_t2_1", "bear_stun_t1_1", "bear_stun_t3_2",
         "bear_physical_t3_2", "mana_moth_freeze_t1_1",

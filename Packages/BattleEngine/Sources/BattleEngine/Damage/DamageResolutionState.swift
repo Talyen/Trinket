@@ -11,11 +11,11 @@ package struct DamageTargetStatus {
     init() {}
 
     init(for combatant: Combatant, in context: BattleState) {
+        isBurning = context.roster.hasAffliction(.burn, on: combatant)
+        isPoisoned = context.roster.hasAffliction(.poison, on: combatant)
+        isBleeding = context.roster.hasAffliction(.bleed, on: combatant)
         for active in context.roster.activeEffects(for: combatant) {
             switch active.effect.keyword {
-            case .burn: isBurning = true
-            case .poison: isPoisoned = true
-            case .bleed: isBleeding = true
             case .freeze where active.effect.isActionSkipPending: isFrozen = true
             case .stun where active.effect.isActionSkipPending: isStunned = true
             default: break

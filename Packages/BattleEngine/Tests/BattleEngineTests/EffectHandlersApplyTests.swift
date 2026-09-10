@@ -236,11 +236,11 @@ struct EffectHandlersApplyTests {
         )
 
         try #expect(outcome.didApply)
-        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 1 })
+        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
         try #expect(outcome.events.contains {
             $0.kind == .abilityDamage && $0.abilityName == Ability.smite.name
         })
-        try #expect(!(outcome.events.contains { $0.kind == .ability && $0.abilityName == Ability.bash.name }))
+        try #expect(outcome.events.contains { $0.kind == .ability && $0.abilityName == Ability.bash.name })
         try #expect(battle.heroDeck.count == heroDeckCount)
     }
 

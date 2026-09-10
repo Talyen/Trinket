@@ -26,7 +26,9 @@ side; party-wide talent bonuses remain restricted to the party.
 |------|--------|------|
 | `BattleState` | BattleEngine | Mutable simulation state; `playCard` / `endTurn` drive combat |
 | `DamageOperation` / `HealingOrigin` | BattleEngine | Explicit operation meaning, independent of logging or recursion depth |
-| `BattleActionContext` / `CombatResolution` | BattleEngine | Actor-relative targets, nested action identity, and cadence ownership |
+| `BattleActionContext` / `CombatResolution` | BattleEngine | Actor-relative targets, shared selected outcomes, nested action/card identity, and cadence ownership |
+| `CombatCheckpoint` / `ManaPayment` | BattleEngine | Reaction continuation rules and immutable payment facts |
+| `HealingResult` / `DamageDefensePolicy` | BattleEngine | Healing delivery facts and consistent defense bypass |
 | `BattleCard` / `BattleHand` / `CombatDeck` | BattleEngine | Player ability cards drawn from Hero/Companion loadout decks; overflow waits in hand buffer |
 | `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect pass |
 | `BattleEffectHandler` | BattleEngine | Protocol for effect application and turn-advance logic |
@@ -41,6 +43,9 @@ side; party-wide talent bonuses remain restricted to the party.
 ## Hand contract
 
 Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO buffer in `BattleHand` and promote after effects / end-turn draws. Played cards return to the bottom of that owner’s deck **after** the card’s effects and on-play triggers finish, so a draw during resolve cannot fetch the card still being played.
+
+Pack Tactics alternates between available partner decks and uses the other deck
+when a partner is defeated, unable to play, or has no card to draw.
 
 Unique card returns move the played ability to hand instead of also cycling it
 into the deck; turn-start recovery runs before normal draws. Ordinary card plays
@@ -79,6 +84,11 @@ reuse the ordinary damage, healing, control, and resource pipelines.
   lethal Bleed detonations, instead of rewarding each damage event.
   Turn effects read and commit live state, so later ticks use only the
   remaining potency after earlier decay and consumption.
+- Card-triggered elemental reactions use the selected random outcome. A defeated
+  card owner cannot continue firing on-play rewards or reactions.
+- Dark Recovery checks the last-Mana payment before refunds or recovery. Arcane
+  Burst carries Mana-spend progress across cards and turns, preserving excess
+  toward its next trigger; its automatic plays do not recursively trigger it.
 - Mana Cocoon, Arcane Cleansing, and Chaos Rift use each actual Mana payment.
   Arcane Cleansing removes potency from a randomly chosen present Burn or
   Poison effect, without firing Cleanse or natural-expiry reactions. Chaos

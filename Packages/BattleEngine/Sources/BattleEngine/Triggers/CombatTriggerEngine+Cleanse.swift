@@ -58,7 +58,7 @@ package extension CombatTriggerEngine {
                 in: &context,
             ))
         }
-        if source.role != .enemy, Self.livingPartyTriggers(in: context).purifyingWaters, removedCount > 0 {
+        if source.role != .enemy, Self.hasLivingPartyTrigger(\.purifyingWaters, in: context), removedCount > 0 {
             events.append(contentsOf: context.healEmitting(
                 amount: 4 * removedCount,
                 target: target,

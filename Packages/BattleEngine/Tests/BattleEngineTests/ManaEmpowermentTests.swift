@@ -1,9 +1,69 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+@testable import BattleEngine
 
 struct ManaEmpowermentTests {
+    @Test func `shared payment keeps the patrons last mana fact through an automatic refill`() {
+        var heroProfile = CombatModifierProfile.zero
+        heroProfile.triggers.spendManaThresholdAutoPlayCard = 1
+        var companionProfile = CombatModifierProfile.zero
+        companionProfile.triggers.dragonPatronage = true
+        companionProfile.triggers.spendLastManaStunDamage = 3
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroMaxMana: 1, heroMana: 1, companionMaxMana: 2, companionMana: 2,
+            heroModifiers: heroProfile, companionModifiers: companionProfile, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.heroDeck = CombatDeck(abilities: [Ability(
+            id: "refill-patron", name: "Refill Patron", tier: .basic,
+            targetedEffects: [TargetedEffect(.resourceGain(.mana, 2), target: .companion)],
+        )])
+        var ability = Ability.frostbolt
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &ability, actor: battle.hero, context: &battle)
+        #expect(battle.mana(of: battle.hero) == 0)
+        #expect(battle.mana(of: battle.companion) == 2)
+        #expect(battle.roster.enemy.currentHealth == 97)
+    }
+
+    @Test func `barkweave removes thorns for each falling star empowerment`() throws {
+        var profile = CombatantTalentCatalog.profile(for: ["druid_mana_t1_2"])
+        let meteorite = try #require(GameContent.trinketItems.first { $0.templateID == "meteorite" })
+        let power = try #require(meteorite.resolvedPower(at: 0))
+        power.triggers.apply(to: &profile)
+        var battle = makeBattle(
+            heroAbilities: [], heroMaxMana: 9, heroMana: 9,
+            heroModifiers: profile,
+        )
+        battle.appendEffect(.thorns(5), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        var ability = BattleAbilityRules.resolveOutcome(.cinderbloom, actor: battle.hero, in: &battle)
+        #expect(ability.damageComponents.first?.keyword == .burn)
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.hero, context: &battle,
+        )
+        #expect(battle.mana(of: battle.hero) == 0)
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .thorns(2) })
+    }
+
+    @Test func `empowerment stops when arcane burst kills its caster`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxMana: 12, companionMana: 12,
+            companionModifiers: CombatantTalentCatalog.profile(for: ["mana_moth_mana_t3_2"]),
+            dealOpeningHand: false,
+        )
+        battle.roster.companion.currentHealth = 1
+        battle.roster.companion.hasConsumedDeathsDoor = true
+        battle.companionDeck = CombatDeck(abilities: [.pixieDust])
+        battle.appendEffect(.thorns(10), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        var ability = Ability.meteor
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.companion, context: &battle,
+        )
+        #expect(battle.health(of: battle.companion) == 0)
+        #expect(battle.mana(of: battle.companion) == 3)
+        #expect(ability.directDamage == Ability.meteor.directDamage + 2)
+    }
+
     @Test func `recurring freeze empowerment draws the opposite element`() {
         var battle = makeBattle(
             heroAbilities: [], heroMaxMana: 3, heroMana: 3,

@@ -1,6 +1,6 @@
 struct CombatResolution {
     enum Scope: Hashable {
-        case damage, dot, draw, heroReaction, uniqueReaction, talentReaction, detonation
+        case damage, dot, dotMirror, draw, heroReaction, uniqueReaction, talentReaction, detonation
     }
 
     enum Claim: Hashable {
@@ -27,23 +27,89 @@ struct CombatResolution {
         let id: Int
         let context: BattleActionContext
         let origin: DamageOperation.AttackOrigin
+        var outcome: ResolvedActionFacts?
+    }
+
+    private struct Card {
+        let id: Int
+        let actorID: String
+        var outcome: ResolvedActionFacts?
+    }
+
+    private enum Frame {
+        case action(Action)
+        case automaticPlay
     }
 
     private var depths: [Scope: Int] = [:]
-    private var actions: [Action] = []
+    private var frames: [Frame] = []
     private var nextActionID = 0
+    private var cards: [Card] = []
+    private(set) var nextCardID = 0
     private var claims: Set<ClaimKey> = []
 
     var actionID: Int? {
-        actions.last?.id
+        currentAction?.id
     }
 
     var actionContext: BattleActionContext? {
-        actions.last?.context
+        currentAction?.context
     }
 
     var attackOrigin: DamageOperation.AttackOrigin {
-        actions.last?.origin ?? .ability
+        currentAction?.origin ?? .ability
+    }
+
+    private var currentAction: Action? {
+        for frame in frames.reversed() {
+            if case let .action(action) = frame {
+                return action
+            }
+        }
+        return nil
+    }
+
+    var actionOutcome: ResolvedActionFacts? {
+        currentAction?.outcome
+    }
+
+    var isAutomaticPlay: Bool {
+        frames.contains { frame in
+            switch frame {
+            case .automaticPlay: true
+            case let .action(action): action.origin == .counterattack
+            }
+        }
+    }
+
+    mutating func beginAutomaticPlay() {
+        frames.append(.automaticPlay)
+    }
+
+    mutating func endAutomaticPlay() {
+        guard case .automaticPlay = frames.removeLast() else { preconditionFailure() }
+    }
+
+    func cardOutcome(for actorID: String) -> ResolvedActionFacts? {
+        guard cards.last?.actorID == actorID else { return nil }
+        return cards.last?.outcome
+    }
+
+    mutating func beginCard(actorID: String) -> Int {
+        let id = nextCardID
+        nextCardID += 1
+        cards.append(Card(id: id, actorID: actorID))
+        return id
+    }
+
+    mutating func prepareAction(_ facts: ResolvedActionFacts) -> Bool {
+        guard case var .action(action) = frames.last else { preconditionFailure() }
+        action.outcome = facts
+        frames[frames.count - 1] = .action(action)
+        guard cards.last?.actorID == facts.action.actor.id, cards.last?.outcome == nil,
+              facts.origin == .card || facts.origin == .ordinaryCard else { return false }
+        cards[cards.count - 1].outcome = facts
+        return true
     }
 
     func depth(_ scope: Scope) -> Int {
@@ -60,16 +126,18 @@ struct CombatResolution {
     }
 
     mutating func beginAction(_ context: BattleActionContext, origin: DamageOperation.AttackOrigin) {
-        actions.append(Action(id: nextActionID, context: context, origin: origin))
+        frames.append(.action(Action(id: nextActionID, context: context, origin: origin)))
         nextActionID += 1
     }
 
     mutating func endAction() {
-        let action = actions.removeLast()
+        guard case let .action(action) = frames.removeLast() else { preconditionFailure() }
         claims = claims.filter { $0.cadence != .action(action.id) }
     }
 
     mutating func endCard(_ id: Int) {
+        precondition(cards.last?.id == id)
+        cards.removeLast()
         claims = claims.filter { $0.cadence != .card(id) }
     }
 

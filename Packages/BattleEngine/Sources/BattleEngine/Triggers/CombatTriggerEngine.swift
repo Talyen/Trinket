@@ -41,10 +41,15 @@ package enum CombatTriggerEngine {
         }
     }
 
+    static func hasLivingPartyTrigger(_ keyPath: KeyPath<CombatTraitTriggers, Bool>, in context: BattleState) -> Bool {
+        (context.roster.hero.isAlive && context.heroModifiers.triggers[keyPath: keyPath])
+            || (context.roster.companion.isAlive && context.companionModifiers.triggers[keyPath: keyPath])
+    }
+
     static func frozenTargetCannotBlockOrHeal(_ target: Combatant, in context: BattleState) -> Bool {
         guard target.role == .enemy else { return false }
         guard context.roster.hasControlStatus(for: target, keyword: .freeze) else { return false }
-        return context.partyTriggers.frozenEnemyCannotBlockOrHeal
+        return hasLivingPartyTrigger(\.frozenEnemyCannotBlockOrHeal, in: context)
     }
 
     static func incomingHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
@@ -59,7 +64,7 @@ package enum CombatTriggerEngine {
 
     private static func burnAuraHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
         guard target.role == .enemy else { return 1 }
-        let isBurning = context.roster.activeEffects(for: target).contains { $0.effect.keyword == .burn }
+        let isBurning = context.roster.hasAffliction(.burn, on: target)
         guard isBurning else { return 1 }
         var reduction = 0.0
         if context.roster.hero.isAlive {

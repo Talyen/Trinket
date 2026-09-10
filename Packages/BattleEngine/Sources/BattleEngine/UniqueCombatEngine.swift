@@ -5,13 +5,13 @@ package enum UniqueCombatEngine {
     static func isOrdinaryAction(actorID: String, in context: BattleState) -> Bool {
         context.resolution.actionContext?.actor.id == actorID
             && context.resolution.attackOrigin == .ordinaryCard
-            && !context.isResolvingAutoPlayCard
+            && !context.resolution.isAutomaticPlay
             && context.resolution.depth(.draw) == 0
             && context.resolution.depth(.uniqueReaction) == 0
     }
 
     static func prepareCard(_ card: BattleCard, in context: inout BattleState) -> UniqueBattleState.CardPlay? {
-        guard !context.isResolvingAutoPlayCard, context.resolution.depth(.draw) == 0,
+        guard !context.resolution.isAutomaticPlay, context.resolution.depth(.draw) == 0,
               context.resolution.depth(.uniqueReaction) == 0 else { return nil }
         let actor = context.roster[card.owner].combatant
         let triggers = context.modifiers(for: actor.id).triggers
@@ -29,26 +29,31 @@ package enum UniqueCombatEngine {
             owner.wrenflightDodge = triggers.secondCardDrawAndDodgePercent
             play.draws.append("Wrenflight")
         }
-        if triggers.firstElementCardsDraw {
-            for keyword in [Keyword.burn, .freeze, .holy]
-                where card.ability.keywords.contains(keyword) && owner.usedElements.insert(keyword).inserted {
-                play.draws.append("Threefold Grace")
-            }
-        }
-        if triggers.dodgeDrawPoisonAndReadyCritical,
-           owner.wildheartReady, card.ability.keywords.contains(.poison) {
-            play.guaranteedCritical = true
-            owner.wildheartReady = false
-        }
         context.uniques.owners[card.owner] = owner
         return play
     }
 
-    static func prepareResolvedAttack(_ ability: Ability, actor: Combatant, in context: inout BattleState) {
-        guard isOrdinaryAction(actorID: actor.id, in: context), var play = context.uniques.card,
-              ability.dealsCombatDamage else { return }
+    static func prepareResolvedAttack(_ facts: ResolvedActionFacts, in context: inout BattleState) {
+        let actor = facts.action.actor
+        guard isOrdinaryAction(actorID: actor.id, in: context), var play = context.uniques.card else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.uniques.owners[play.owner, default: .init()]
+        defer {
+            context.uniques.owners[play.owner] = owner
+            context.uniques.card = play
+        }
+        if triggers.firstElementCardsDraw {
+            for keyword in [Keyword.burn, .freeze, .holy]
+                where facts.damageKeywords.contains(keyword) && owner.usedElements.insert(keyword).inserted {
+                play.draws.append("Threefold Grace")
+            }
+        }
+        if triggers.dodgeDrawPoisonAndReadyCritical,
+           owner.wildheartReady, facts.damageKeywords.contains(.poison) {
+            play.guaranteedCritical = true
+            owner.wildheartReady = false
+        }
+        guard !facts.damageKeywords.isEmpty else { return }
         let partner: BattleParticipant = play.owner == .hero ? .companion : .hero
         if !owner.hasAttacked, context.uniques.owners[partner, default: .init()].cardsPlayed > 0 {
             play.attackBonus = triggers.partnerFirstAttackDamage
@@ -61,8 +66,6 @@ package enum UniqueCombatEngine {
             owner.returnedHarvest = true
             play.returnName = play.returnName ?? "Red Harvest"
         }
-        context.uniques.owners[play.owner] = owner
-        context.uniques.card = play
     }
 
     static func finishCardDraws(in context: inout BattleState) -> [ActionEvent] {

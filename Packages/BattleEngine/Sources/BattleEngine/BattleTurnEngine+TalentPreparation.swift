@@ -18,7 +18,8 @@ extension BattleTurnEngine {
             action.goldDamage = context.heroTalents.cards.last?.gildedDamage ?? 0
             context.mutateHeroCard { $0.gildedDamage = 0 }
             prepareCardDamage(components: &components, effects: &effects, actor: actor, in: &context)
-            if ability.keywords.contains(.freeze), context.modifiers(for: actor.id).triggers.steamExplosion {
+            if context.resolution.actionOutcome?.damageKeywords.contains(.freeze) == true,
+               context.modifiers(for: actor.id).triggers.steamExplosion {
                 let burn = DoTApplicator.consume(.burn, on: context.roster.enemy.combatant, in: &context)
                 if burn > 0 {
                     increaseCardDamage(burn, keyword: .freeze, components: &components)
@@ -37,22 +38,22 @@ extension BattleTurnEngine {
 
     private static func captureTalentPreparations(for actor: Combatant, in context: inout BattleState) {
         guard context.hasHeroCard(for: actor.id), let card = context.heroTalents.cards.last,
-              !card.capturedPreparations else { return }
+              !card.capturedPreparations, let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
         var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
         var eligible: Set<TalentPreparation> = []
-        if !card.damageKeywords.isEmpty {
+        if !outcome.damageKeywords.isEmpty {
             eligible.insert(.poisonDamage)
         }
-        if card.damageKeywords.contains(.physical) {
+        if outcome.damageKeywords.contains(.physical) {
             eligible.formUnion([.bleedDamage, .ignorePhysicalBlock, .stealGold])
         }
-        if card.damageKeywords.contains(.poison) {
+        if outcome.damageKeywords.contains(.poison) {
             eligible.insert(.doublePoison)
         }
         let preparations = history.preparations.intersection(eligible)
         history.preparations.subtract(preparations)
-        let goldDamage = card.damageKeywords.isEmpty ? 0 : history.stolenGoldDamage
-        if !card.damageKeywords.isEmpty {
+        let goldDamage = outcome.damageKeywords.isEmpty ? 0 : history.stolenGoldDamage
+        if !outcome.damageKeywords.isEmpty {
             history.stolenGoldDamage = 0
         }
         context.heroTalents.history[actor.id] = history
@@ -69,14 +70,15 @@ extension BattleTurnEngine {
         actor: Combatant,
         in context: inout BattleState,
     ) {
-        guard let card = context.heroTalents.cards.last else { return }
+        guard let card = context.heroTalents.cards.last,
+              let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
         if card.preparations.contains(.bleedDamage), context.claimHeroCardBonus("redline", actorID: actor.id) {
             increaseCardDamage(2, keyword: .bleed, components: &components)
         }
         if card.preparations.contains(.poisonDamage), context.claimHeroCardBonus("perfectPurity", actorID: actor.id) {
             increaseCardDamage(2, keyword: .poison, components: &components)
         }
-        if card.damageKeywords.contains(.poison), context.modifiers(for: actor.id).triggers.sealedVial,
+        if outcome.damageKeywords.contains(.poison), context.modifiers(for: actor.id).triggers.sealedVial,
            context.claimHeroCardBonus("sealedVial", actorID: actor.id) {
             let potency = context.roster.activeEffects(for: actor).reduce(0) { sum, active in
                 guard case let .poison(amount) = active.effect else { return sum }

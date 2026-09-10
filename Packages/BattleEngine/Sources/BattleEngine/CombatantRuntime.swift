@@ -7,6 +7,12 @@ struct HealingEcho: Hashable, Sendable {
     let sourceActorID: String
 }
 
+struct LingeringBlessing: Hashable, Sendable {
+    let amount: Int
+    let sourceActorID: String
+    var turnsRemaining: Int
+}
+
 @dynamicMemberLookup
 public struct CombatantRuntime: Hashable {
     public struct TalentState: Equatable, Hashable, Sendable {
@@ -23,8 +29,7 @@ public struct CombatantRuntime: Hashable {
         public var hasNegatedFirstEnemyAttack: Bool = false
         public var bonusDodgeUntilNextTurn: Double = 0.0
         public var bonusDodgeExpiresAtTurn: Int = 0
-        public var healOverTimeAmount: Int = 0
-        public var healOverTimeTurnsRemaining: Int = 0
+        var lingeringBlessing: LingeringBlessing?
         public var hasTakenAttackHitThisTurn: Bool = false
         public var faeWardBlockedThisTurn: Bool = false
         public var hasTriggeredBlockBreakThisTurn: Bool = false
@@ -45,7 +50,7 @@ public struct CombatantRuntime: Hashable {
         public var goldenTouchActiveThisCard: Bool = false
         public var hasEmpoweredWithMana: Bool = false
         public var empoweredThisAction: Bool = false
-        public var manaSpentThisCardPlay: Int = 0
+        var manaSpentTowardAutoPlay: Int = 0
         public var flatDamageReductionBonus: Int = 0
         public var flatDamageReductionCap: Int = 4
 

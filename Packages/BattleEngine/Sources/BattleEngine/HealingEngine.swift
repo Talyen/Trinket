@@ -3,11 +3,15 @@ import TrinketContent
 import TrinketCore
 
 package enum HealingEngine {
+    static func resolveHeal(_ request: HealRequest, in context: inout BattleState) -> CombatOutcome {
+        resolveHealing(request, in: &context).combatOutcome
+    }
+
     // swiftlint:disable:next function_body_length - healing resolution is one atomic pipeline
-    static func resolveHeal(
+    static func resolveHealing(
         _ request: HealRequest,
         in context: inout BattleState,
-    ) -> CombatOutcome {
+    ) -> HealingResult {
         guard context.roster.health(for: request.target) > 0 || request.revivesIfDead else { return .empty }
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(request.target, in: context) {
             return .empty
@@ -45,15 +49,18 @@ package enum HealingEngine {
                 to: request.target, source: source.combatant, amount: restored, name: "Shelter Seed", in: &context,
             ))
         }
+        let cardTransfer = transferCardOverheal(overflow, request: request, in: &context)
+        var overflowTransferred = cardTransfer.healthRestored
+        events.append(contentsOf: cardTransfer.events)
         events.append(contentsOf: CombatTriggerEngine.afterHeroCardHeal(
-            request: request, restored: restored, overflow: overflow, in: &context,
+            request: request, restored: restored, in: &context,
         ))
         if overflow > 0,
            let srcID = request.sourceActorID,
            let src = context.roster.combatant(for: srcID),
            src.role != .enemy,
            request.target.role != .enemy,
-           CombatTriggerEngine.livingPartyTriggers(in: context).cleanSlate,
+           CombatTriggerEngine.hasLivingPartyTrigger(\.cleanSlate, in: context),
            context.claimTurnGuard(.cleanSlate, actorID: srcID) {
             events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
                 source: src.combatant,
@@ -68,6 +75,7 @@ package enum HealingEngine {
             request: request,
             sourceTriggers: sourceTriggers,
             targetTriggers: targetTriggers,
+            overflowTransferred: &overflowTransferred,
             in: &context,
         ))
 
@@ -99,12 +107,12 @@ package enum HealingEngine {
         if restored > 0, let sourceTriggers,
            sourceTriggers.healOverTimeOnHealAmount > 0,
            sourceTriggers.healOverTimeOnHealTurns > 0,
-           !request.isHoTTick {
+           !request.isHoTTick, let sourceActorID = request.sourceActorID {
             context.roster.mutateRuntime(for: request.target) {
-                $0.healOverTimeAmount = sourceTriggers.healOverTimeOnHealAmount
-                $0.healOverTimeTurnsRemaining = max(
-                    $0.healOverTimeTurnsRemaining,
-                    sourceTriggers.healOverTimeOnHealTurns,
+                $0.lingeringBlessing = LingeringBlessing(
+                    amount: sourceTriggers.healOverTimeOnHealAmount,
+                    sourceActorID: sourceActorID,
+                    turnsRemaining: max($0.lingeringBlessing?.turnsRemaining ?? 0, sourceTriggers.healOverTimeOnHealTurns),
                 )
             }
         }
@@ -153,7 +161,30 @@ package enum HealingEngine {
             }
         }
 
-        return CombatOutcome(healthDelta: restored, events: events, flags: flags)
+        return HealingResult(
+            directRestoration: restored, overflowTransferred: overflowTransferred,
+            isLeech: request.origin == .leech, isCritical: flags.contains(.critical), events: events,
+        )
+    }
+
+    private static func transferCardOverheal(
+        _ overflow: Int, request: HealRequest, in context: inout BattleState,
+    ) -> CombatOutcome {
+        guard overflow > 0, request.isDirectCardHeal, let sourceID = request.sourceActorID,
+              let source = context.roster.combatant(for: sourceID), source.isAlive,
+              context.hasHeroCard(for: sourceID), request.target.role != .enemy,
+              context.modifiers(for: sourceID).triggers.masterworkMixture else { return .empty }
+        let other = request.target.role == .hero ? context.roster.companion : context.roster.hero
+        let amount = min(overflow, max(0, other.maxHealth - other.currentHealth))
+        guard other.isAlive, amount > 0 else { return .empty }
+        var transfer = HealRequest(
+            amount: amount, target: other.combatant, sourceActorID: sourceID,
+            origin: .restoration(.health), logAs: .instantHeal(
+                actorName: source.name, abilityName: "Masterwork Mixture", keyword: .health,
+            ),
+        )
+        transfer.amountBasis = .resolved
+        return resolveHeal(transfer, in: &context)
     }
 
     private static func resolvedAmount(
@@ -246,10 +277,13 @@ package enum HealingEngine {
         request: HealRequest,
         sourceTriggers: CombatTraitTriggers?,
         targetTriggers: CombatTraitTriggers,
+        overflowTransferred: inout Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard overflow > 0 else { return [] }
-        var events = applyLeechOverhealing(overflow: overflow, request: request, sourceTriggers: sourceTriggers, in: &context)
+        var events = applyLeechOverhealing(
+            overflow: overflow, request: request, sourceTriggers: sourceTriggers, transferred: &overflowTransferred, in: &context,
+        )
         if sourceTriggers?.wishspring == true {
             events.append(contentsOf: context.restoreManaEmitting(
                 CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,

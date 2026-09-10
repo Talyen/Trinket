@@ -447,3 +447,18 @@ extension BattleCardCombatTests {
         #expect(BattleCardCombatEngine.isCardPlayable(card, in: battle))
     }
 }
+
+extension BattleCardCombatTests {
+    @Test func `pack tactics draws both cards from survivor deck`() throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        battle.roster.companion.currentHealth = 0
+        battle.heroDeck = CombatDeck(abilities: [.block, .block])
+        battle.companionDeck = CombatDeck(abilities: [.slash])
+        let card = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &battle)
+        let events = try BattleCardCombatEngine.playDrawnCard(card, context: &battle)
+        #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == 2)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 6)
+        #expect(!events.contains { $0.kind == .ability && $0.actorID == battle.companion.id })
+    }
+}
