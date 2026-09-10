@@ -23,6 +23,11 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
     }
 
     func testOfferDismissalPurchaseAndGameplayReset() throws {
+        try XCTSkipIf(
+            ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 26
+                && ProcessInfo.processInfo.operatingSystemVersion.minorVersion == 5,
+            "StoreKit purchase UI automation is unavailable under iOS 26.5 xcodebuild tests.",
+        )
         launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
         let session = try XCTUnwrap(storeSession)
         session.askToBuyEnabled = true
