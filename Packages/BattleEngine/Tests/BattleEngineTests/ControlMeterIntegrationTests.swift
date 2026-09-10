@@ -13,7 +13,9 @@ struct ControlMeterIntegrationTests {
 
         try #expect(battle.health(of: hero) == hero.maxHealth, "keyword=\(keyword)")
         try #expect(
-            events.contains(effectKind: .controlActionSkipped, keyword: keyword),
+            events.contains {
+                $0.effectKind == .controlActionSkipped && $0.keyword == keyword && $0.targetID == battle.enemy.id
+            },
             "keyword=\(keyword)",
         )
     }
@@ -25,7 +27,9 @@ struct ControlMeterIntegrationTests {
         try #expect(!(battle.activeEffects(of: enemy)).isEmpty)
 
         let events = BattleTestFixtures.endTurn(on: &battle)
-        BattleTestFixtures.assertActionSkipConsumed(events: events, actorID: enemy.id, keyword: .stun)
+        #expect(events.contains {
+            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
+        })
         try #expect(!(events.contains { $0.kind == .ability && $0.actorID == enemy.id }))
         try #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
         try #expect(!(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
@@ -37,7 +41,9 @@ struct ControlMeterIntegrationTests {
         let hero = battle.hero
 
         let firstEnd = BattleTestFixtures.endTurn(on: &battle)
-        BattleTestFixtures.assertActionSkipConsumed(events: firstEnd, actorID: enemy.id, keyword: .stun)
+        #expect(firstEnd.contains {
+            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
+        })
         try #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
         try #expect(CombatantBorderAccent.keyword(from: battle.activeEffects(of: enemy)) == .stun)
         try #expect(battle.health(of: hero) == hero.maxHealth)
@@ -76,7 +82,9 @@ struct ControlMeterIntegrationTests {
         events.append(contentsOf: BattleTestFixtures.endTurn(on: &battle))
 
         try #expect(events.contains(effectKind: .controlTriggered, keyword: .stun))
-        try #expect(events.contains(effectKind: .controlActionSkipped, keyword: .stun))
+        #expect(events.contains {
+            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
+        })
         try #expect(battle.health(of: battle.hero) == hero.maxHealth)
     }
 
@@ -101,7 +109,9 @@ struct ControlMeterIntegrationTests {
         })
 
         let events = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(events.contains(effectKind: .controlActionSkipped, keyword: .stun))
+        #expect(events.contains {
+            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
+        })
         try #expect(battle.health(of: battle.hero) == hero.maxHealth)
     }
 
@@ -132,11 +142,12 @@ struct ControlMeterIntegrationTests {
         } catch BattlePlayError.ownerSkipping {}
 
         let events = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(events.contains(effectKind: .controlActionSkipped, keyword: .stun))
+        #expect(events.contains {
+            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == hero.id
+        })
         try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
         try #expect(!(battle.roster.hasControlStatus(for: battle.hero, keyword: .stun)))
         try #expect(!(battle.roster.hasPendingActionSkip(for: battle.hero, keyword: .stun)))
-        try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
     }
 
     @Test func `shatter and dazed apply during control status linger`() throws {

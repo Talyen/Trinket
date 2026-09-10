@@ -82,22 +82,6 @@ enum BattleTestFixtures {
         )
     }
 
-    static func assertActionSkipConsumed(
-        events: [ActionEvent],
-        actorID: String,
-        keyword: Keyword,
-    ) {
-        if !events.contains(where: {
-            $0.effectKind == .controlActionSkipped
-                && $0.keyword == keyword
-                && $0.targetID == actorID
-        }) {
-            if !events.contains(where: { $0.effectKind == .controlActionSkipped && $0.keyword == keyword }) {
-                Issue.record("Expected controlActionSkipped with keyword \(keyword) for \(actorID)")
-            }
-        }
-    }
-
     @discardableResult
     static func playFirstPlayableCard(
         owner: BattleParticipant,
