@@ -8,8 +8,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        let configuration = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Trinket", withExtension: "storekit"))
-        let session = try SKTestSession(contentsOf: configuration)
+        let session = try SKTestSession(configurationFileNamed: "Trinket")
         session.resetToDefaultState()
         session.disableDialogs = true
         session.askToBuyEnabled = false
