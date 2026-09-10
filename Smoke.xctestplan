@@ -7,6 +7,9 @@
     }
   ],
   "defaultOptions": {
+    "storeKitConfiguration": {
+      "identifier": "StoreKit/Trinket.storekit"
+    },
     "testExecutionOrdering": "alphabetical"
   },
   "testTargets": [

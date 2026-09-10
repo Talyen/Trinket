@@ -63,6 +63,8 @@ targets:
       - path: Trinket/AppIcon.icon
       - path: Trinket/PrivacyInfo.xcprivacy
         buildPhase: resources
+      - path: StoreKit/Trinket.storekit
+        buildPhase: resources
     entitlements:
       path: Trinket/Trinket.entitlements
     dependencies:

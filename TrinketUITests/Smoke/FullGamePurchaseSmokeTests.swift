@@ -10,6 +10,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         try super.setUpWithError()
         let configuration = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Trinket", withExtension: "storekit"))
         let session = try SKTestSession(contentsOf: configuration)
+        session.resetToDefaultState()
         session.disableDialogs = true
         session.askToBuyEnabled = false
         session.clearTransactions()
@@ -29,7 +30,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
         tapButton(AccessibilityID.FullGame.options)
         assertExists(AccessibilityID.FullGame.offer)
-        assertExists(AccessibilityID.FullGame.purchase, timeout: 20)
+        assertPurchaseProductLoaded()
         let preview = XCTAttachment(screenshot: app.screenshot())
         preview.name = "Full Game offer"
         preview.lifetime = .keepAlways
@@ -37,7 +38,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         tapButton(AccessibilityID.FullGame.close)
         XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
         tapButton(AccessibilityID.FullGame.options)
-        assertExists(AccessibilityID.FullGame.purchase, timeout: 20)
+        assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         assertExists(AccessibilityID.FullGame.status, timeout: 20)
         let pending = try XCTUnwrap(session.allTransactions().first)
@@ -54,7 +55,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         try session.refundTransaction(identifier: purchase.identifier)
         assertExists(AccessibilityID.FullGame.options, timeout: 20)
         tapButton(AccessibilityID.FullGame.options)
-        assertExists(AccessibilityID.FullGame.purchase, timeout: 20)
+        assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 20))
         assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
@@ -63,6 +64,28 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 20)
         let transactionCount = session.allTransactions().count
         XCTAssertEqual(transactionCount, 2)
+    }
+
+    private func assertPurchaseProductLoaded(
+        timeout: TimeInterval = 20,
+        file: StaticString = #file,
+        line: UInt = #line,
+    ) {
+        let purchase = button(AccessibilityID.FullGame.purchase)
+        let retry = button(AccessibilityID.FullGame.retry)
+        let deadline = Date().addingTimeInterval(timeout)
+
+        while Date() < deadline {
+            if waitForExistence(purchase, timeout: min(2, deadline.timeIntervalSinceNow)) {
+                return
+            }
+            guard waitForExistence(retry, timeout: min(1, max(0, deadline.timeIntervalSinceNow))) else {
+                continue
+            }
+            tapWhenReady(retry)
+        }
+
+        fail("Button '\(AccessibilityID.FullGame.purchase)' not found after retrying", file: file, line: line)
     }
 
     func testNestedCharacterOfferReturnsToDetails() {
