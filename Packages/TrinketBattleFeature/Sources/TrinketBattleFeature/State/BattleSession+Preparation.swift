@@ -1,59 +1,43 @@
-import BattleEngine
 import Foundation
-import SwiftUI
-import TrinketFeatureSupport
 
 public extension BattleSession {
     func prepareBattlePresentationAssets(displayScale: CGFloat) async {
         guard lifecyclePhase == .prepared || lifecyclePhase == .active else { return }
 
-        let phase = lifecyclePhase
-        let preparedRuns = phase == .prepared ? preparedBattleRuns : []
-        let activeConfiguration = phase == .active ? activeBattle : nil
+        let preparedRuns = preparedBattleRuns
+        let activeConfiguration = activeBattle
         guard !preparedRuns.isEmpty || activeConfiguration != nil else { return }
 
-        await BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
-        guard !Task.isCancelled else { return }
-
-        var configurations = preparedRuns.map(\.configuration)
-        if let activeConfiguration {
-            configurations.append(activeConfiguration)
+        await artworkPreparation.prepare(names: desiredPreparedArtworkNames, displayScale: displayScale) {
+            var configurations = preparedRuns.map(\.configuration)
+            if let activeConfiguration {
+                configurations.append(activeConfiguration)
+            }
+            for configuration in configurations {
+                prepareBattlePresentation(
+                    heroActorID: configuration.hero.combatant.id,
+                    heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
+                    companionActorID: configuration.companion.combatant.id,
+                    companionUltimateID: configuration.companion.combatant.abilityLoadout.ultimate?.id,
+                )
+            }
         }
-        for configuration in configurations {
-            prepareBattlePresentation(
-                heroActorID: configuration.hero.combatant.id,
-                heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
-                companionActorID: configuration.companion.combatant.id,
-                companionUltimateID: configuration.companion.combatant.abilityLoadout.ultimate?.id,
-            )
-        }
-
-        var artworkNames = preparedRuns.flatMap { run -> [String] in
-            guard run.configuration.runKey != nil else { return [] }
-            return openingHandArtworkNames(for: run)
-        }
-        if activeConfiguration != nil {
-            artworkNames.append(contentsOf: activeOpeningHandArtworkNames())
-        }
-        let uniqueNames = Set(artworkNames)
-        guard !Task.isCancelled else { return }
-        guard uniqueNames != preparedArtworkNames else { return }
-        await PreparedArtworkCache.shared.prepareAndPin(names: artworkNames)
-        guard !Task.isCancelled else {
-            PreparedArtworkCache.shared.releasePins(names: artworkNames)
-            return
-        }
-        let obsoleteNames = preparedArtworkNames.subtracting(uniqueNames)
-        if !obsoleteNames.isEmpty {
-            PreparedArtworkCache.shared.releasePins(names: Array(obsoleteNames))
-        }
-        preparedArtworkNames = uniqueNames
     }
 
     func releasePreparedArtworkPins() {
-        guard !preparedArtworkNames.isEmpty else { return }
-        PreparedArtworkCache.shared.releasePins(names: Array(preparedArtworkNames))
-        preparedArtworkNames.removeAll()
+        artworkPreparation.release()
+    }
+
+    internal func retainPreparedArtworkPins() {
+        artworkPreparation.retain(names: desiredPreparedArtworkNames)
+    }
+
+    private var desiredPreparedArtworkNames: Set<String> {
+        var names = Set(preparedBattleRuns.flatMap { openingHandArtworkNames(for: $0) })
+        if activeBattle != nil {
+            names.formUnion(activeOpeningHandArtworkNames())
+        }
+        return names
     }
 
     internal func installSimulationPresentation() {

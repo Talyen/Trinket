@@ -19,7 +19,9 @@ Trinket's private CloudKit save synchronization.
 
 ## Local development
 
-Run the **Trinket Development** Xcode scheme. Its [local StoreKit configuration](../../StoreKit/Trinket.storekit)
+Both **Trinket** and **Trinket Development** use the
+[local StoreKit configuration](../../StoreKit/Trinket.storekit) for Xcode Run,
+as configured in [project.yml](../../project.yml). The configuration
 starts without a purchase and exercises Apple's simulated purchase confirmation;
 no Apple Developer membership, App Store Connect product, or real money is needed.
 Simulated purchases persist across launches. Use **Debug → StoreKit → Manage
@@ -28,10 +30,11 @@ refund/revoke them to exercise access loss. Reset Game Progress intentionally
 does not clear ownership. The developer gameplay Unlock All action only seeds
 gameplay data and is not purchase authorization.
 
-The normal **Trinket** scheme has no local StoreKit configuration. Without App
-Store Connect setup, its purchase product is unavailable; free play still works.
-Release builds have no purchase overrides. TestFlight purchases are sandbox-only
-and do not become production purchases.
+Launching outside Xcode's configured StoreKit session, including through the
+simulator script, does not activate that local purchase configuration. Without
+App Store Connect setup, product loading there may be unavailable; free play
+still works. Distributed release builds have no purchase overrides. TestFlight
+purchases are sandbox-only and do not become production purchases.
 
 StoreKit integration tests run in `FullGamePurchaseSmokeTests` against the app.
 The standalone SPM test process cannot act as the app's StoreKit purchase host;

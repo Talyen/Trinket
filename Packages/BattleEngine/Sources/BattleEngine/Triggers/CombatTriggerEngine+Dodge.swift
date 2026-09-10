@@ -6,6 +6,7 @@ package extension CombatTriggerEngine {
     static func afterDodge(
         by combatant: Combatant,
         attackerID: String?,
+        allowsCounterattacks: Bool = true,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
@@ -106,13 +107,15 @@ package extension CombatTriggerEngine {
             }
         }
 
-        if triggers.onDodgeDrawAndPlayCardChainOnCrit {
+        if allowsCounterattacks, triggers.onDodgeDrawAndPlayCardChainOnCrit {
             events.append(contentsOf: drawPlayCascade(for: combatant, in: &context))
         }
 
         events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
-        events.append(contentsOf: applyWhiplashStun(for: combatant, profile: profile, in: &context))
-        events.append(contentsOf: applyRimewindFreeze(for: combatant, profile: profile, in: &context))
+        if allowsCounterattacks {
+            events.append(contentsOf: applyWhiplashStun(for: combatant, profile: profile, in: &context))
+            events.append(contentsOf: applyRimewindFreeze(for: combatant, profile: profile, in: &context))
+        }
 
         if triggers.dodgeApplyPoison > 0, context.roster.enemy.isAlive {
             events.append(contentsOf: context.applyDecayingDoT(
@@ -134,7 +137,7 @@ package extension CombatTriggerEngine {
             let target = attackerRuntime.combatant
             guard context.roster.health(for: target) > 0 else { return events }
 
-            if triggers.onDodgeCounterDamage > 0 {
+            if allowsCounterattacks, triggers.onDodgeCounterDamage > 0 {
                 events.append(contentsOf: context.resolveDamage(
                     DamageRequest(
                         amount: triggers.onDodgeCounterDamage,
@@ -145,7 +148,7 @@ package extension CombatTriggerEngine {
                     ),
                 ).events)
             }
-            if triggers.onDodgeCounterBasicAttack {
+            if allowsCounterattacks, triggers.onDodgeCounterBasicAttack {
                 events.append(contentsOf: counterWithBasicAttack(by: combatant, in: &context))
             }
             if triggers.onDodgeApplyPoisonOrBleed > 0 {
@@ -179,7 +182,7 @@ package extension CombatTriggerEngine {
             }
         }
 
-        if triggers.phantomCounter,
+        if allowsCounterattacks, triggers.phantomCounter,
            context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
            context.resolution.depth(.dot) < ReactionScope.maxDotRecursionDepth,
            context.resolution.depth(.draw) < BattleState.maxDrawAndPlayDepth,

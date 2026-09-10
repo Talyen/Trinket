@@ -67,8 +67,11 @@ generated files.
 
 Direct pushes to `main` justify repeating these inexpensive path-scoped
 safeguards at pre-push: style, generated-output completeness, and
-touched-package tests rerun unconditionally, even when handoff just verified
-the same tree. There is no skip or receipt reuse.
+touched-package tests rerun even when handoff just verified the same tree;
+there is no receipt reuse. The hook implements `SKIP_TRINKET_PREPUSH=1` as a
+manual bypass, but it does not satisfy the required verification or authorize
+skipping checks during routine agent work. Report blocked checks under
+[Verification.md](Verification.md#failures-and-reporting).
 
 Fastlane upload remains a separate future step: provide an App Store Connect API
 key, configure `deliver`, and extend the release workflow only when automated

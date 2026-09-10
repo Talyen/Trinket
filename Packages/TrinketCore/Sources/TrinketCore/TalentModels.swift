@@ -50,7 +50,7 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
 
     public func canUnlock(node: TalentNode, unlockedNodeIDs: Set<String>, availablePoints: Int) -> Bool {
         guard availablePoints > 0 else { return false }
-        guard nodes.contains(where: { $0.id == node.id }) else { return false }
+        guard let node = self.node(matching: node.id) else { return false }
         guard !unlockedNodeIDs.contains(node.id) else { return false }
         guard node.row > 1 else { return node.row == 1 }
         return isRowComplete(node.row - 1, unlockedNodeIDs: unlockedNodeIDs)
@@ -98,7 +98,6 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
     }
 
     public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {
-        guard nodeIDs.count > budget else { return nodeIDs }
         guard budget > 0 else { return [] }
         var kept: Set<String> = []
         let rows = Set(trees.flatMap(\.rows)).sorted()
@@ -107,7 +106,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
             for (tree, map) in zip(trees, maps) {
                 guard let rowNodes = map[row] else { continue }
                 for node in rowNodes {
-                    guard nodeIDs.contains(node.id), kept.count < budget else { continue }
+                    guard nodeIDs.contains(node.id) else { continue }
                     let remaining = budget - kept.count
                     guard tree.canUnlock(
                         node: node,
@@ -115,6 +114,9 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
                         availablePoints: remaining,
                     ) else { continue }
                     kept.insert(node.id)
+                    if kept.count == budget {
+                        return kept
+                    }
                 }
             }
         }

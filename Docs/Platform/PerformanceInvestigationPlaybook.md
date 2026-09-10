@@ -118,13 +118,16 @@ recorded measurement.
 | Budget | Value | Location |
 |---|---|---|
 | `NSCache.totalCostLimit` | `min(max(physicalMemory/24, 160 MiB), 260 MiB)` (6 GB→256, 8 GB→260) | `PreparedArtworkCache.configureImageBudget()` |
-| `residentArtworkByteCount` | 320 MiB | `PreparedArtworkMemoryBudget` — diagnostic target 240 MiB in [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) to validate before enforcing |
-| `steadyStateProcessByteCount` | 550 MiB | `PreparedArtworkMemoryBudget` — diagnostic target 400 MiB in [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) to validate before enforcing |
+| `residentArtworkByteCount` | 320 MiB | `PreparedArtworkMemoryBudget` — lower diagnostic target in [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) requires device validation before enforcement |
+| `steadyStateProcessByteCount` | 550 MiB | `PreparedArtworkMemoryBudget` — lower diagnostic target in [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) requires device validation before enforcement |
 
-`physicalMemory/24` already adapts; the 160 floor and 260 cap are the product
-decision. If a future agent needs to support a larger catalog, raise the cap
-toward 300–320 (still safe), not the floor. Any lowering must update this
-section and `AGENTS.md` Guardrails and pass `check-artwork-budget.sh`.
+`physicalMemory/24` already adapts; the floor and cap above are the product
+decision. A larger catalog alone does not establish a safe cache increase:
+measure the active working set and process footprint on representative devices.
+Any approved budget change must update this section, its implementation, and
+`check-artwork-budget.sh` together. Approval constraints remain in
+[AGENTS.md](../../AGENTS.md#product-constraints); do not duplicate numeric
+budgets there.
 
 ## Investigation loop
 

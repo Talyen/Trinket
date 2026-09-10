@@ -16,6 +16,17 @@ Battle simulation rules remain in `BattleEngine`. App options and audio enter th
 the closure-backed `BattleRuntimeDependencies`; this package must not import or
 depend on `TrinketAppState`. Cross-package contract: [battle-runtime.md](../../Docs/AgentContext/battle-runtime.md).
 
+## Prepared artwork
+
+BattleSession holds one balanced cache acquisition per prepared artwork name.
+Replacing or pruning encounters invalidates stale preparation and retains artwork
+still needed by the active battle or prepared siblings. Prepared activation keeps
+both committed pins and valid preparation in flight through the overlay handoff.
+Discarding the last run releases its pins; cancelled or superseded requests release
+their own temporary acquisitions. Shared cache and budget policy remain owned by
+[TrinketFeatureSupport](../TrinketFeatureSupport/README.md) and the
+[performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
+
 ## Card interaction cues
 
 Cards remain artwork-only. Taps use the existing 180 ms lift; dragging uses the

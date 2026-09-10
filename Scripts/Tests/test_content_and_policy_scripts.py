@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script
@@ -279,6 +280,16 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
         platform = (ROOT / "Scripts" / "check-api-bans.sh").read_text(encoding="utf-8")
         self.assertNotIn("banned_system_color_literal", swiftlint)
         self.assertNotIn("SYSTEM_COLORS", platform)
+
+    def test_ui_style_scans_directories_without_ripgrep(self) -> None:
+        checker = load_script("check_ui_style", "check-ui-style.py")
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "Nested" / "Style.swift"
+            fixture.parent.mkdir()
+            for source, expected in (("let color = Color.red\n", 1), ("let color = Color.primary\n", 0)):
+                with self.subTest(source=source), patch.object(checker.subprocess, "run", side_effect=FileNotFoundError), patch("builtins.print"):
+                    fixture.write_text(source)
+                    self.assertEqual(checker.main(["check-ui-style.py", directory]), expected)
 
     def test_comment_ban_rejects_inline_and_block_comments(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

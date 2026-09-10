@@ -4,6 +4,7 @@ import TrinketCore
 import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
+@Suite(.serialized)
 struct CombatFeedbackChipPresentationTests {
     @Test func `cleanse uses cleanse leading icon`() {
         let presentation = CombatFeedbackChipPresentation.resolve(
@@ -85,6 +86,37 @@ struct CombatFeedbackChipPresentationTests {
         CombatFeedbackChipBridge.publish(.remove([heroItem.id]))
         #expect(CombatFeedbackChipBridge.debugNextAvailabilityTargetID == "enemy")
         #expect(CombatFeedbackChipBridge.debugNextAvailabilityDate == enemyItem.availableAt)
+    }
+
+    @Test @MainActor func `queued chips appear across consecutive deadlines and reset`() async throws {
+        CombatFeedbackChipBridge.debugReset()
+        defer { CombatFeedbackChipBridge.debugReset() }
+        let view = CombatFeedbackRasterUIView()
+        CombatFeedbackChipBridge.register(
+            view,
+            combatantID: "hero",
+            layoutDirection: .leftToRight,
+            displayScale: 3.0,
+        )
+
+        for burst in 0 ..< 2 {
+            let now = Date.now
+            let firstID = burst * 10 + 1
+            let items = (0 ..< 3).map { index in
+                makeTestItem(
+                    id: firstID + index,
+                    targetID: "hero",
+                    amount: index + 1,
+                    availableAt: now.addingTimeInterval(Double(index) * 0.1),
+                )
+            }
+            CombatFeedbackChipBridge.publish(.insert(items))
+            #expect(try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(800)) {
+                view.debugLastAppliedChips.map(\.id) == items.map(\.id)
+            })
+            CombatFeedbackChipBridge.publish(.reset)
+            #expect(view.debugLastAppliedChips.isEmpty)
+        }
     }
 
     @Test @MainActor func `session trim memory footprint clears glyph atlas and dissolve textures`() {

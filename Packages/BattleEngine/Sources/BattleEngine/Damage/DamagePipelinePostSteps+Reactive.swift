@@ -14,8 +14,6 @@ package extension DamagePipeline {
             context.roster.mutateRuntime(for: state.combatant) { $0.hasTakenAttackHitThisTurn = true }
         }
 
-        applyNimbleFang(to: &state, attacker: attacker, sourceActorID: sourceActorID, in: &context)
-
         if state.healthLost > 0 {
             applyEnemyTraitReactions(
                 to: &state,
@@ -27,17 +25,30 @@ package extension DamagePipeline {
         }
 
         if state.options.isAttackHit {
+            let freeze = context.modifiers(for: state.combatant.id).triggers.onHitAttackerFreezeBuildup
+            if freeze > 0 {
+                appendRetaliationDamage(
+                    amount: freeze,
+                    keyword: .freeze,
+                    abilityName: CombatTriggerEngine.triggerAbilityName(
+                        "onHitAttackerFreezeBuildup", for: state.combatant, fallback: "Chilling Scales", in: context,
+                    ),
+                    attacker: attacker,
+                    to: &state,
+                    in: &context,
+                )
+            }
             applyOnHitWards(to: &state, attacker: attacker, in: &context)
         }
     }
 
-    private static func applyNimbleFang(
+    static func applyNimbleFang(
         to state: inout DamageResolutionState,
-        attacker: CombatantRuntime,
-        sourceActorID: String,
         in context: inout BattleState,
     ) {
         guard state.options.isAttackHit,
+              let sourceActorID = state.sourceActorID,
+              let attacker = context.roster.combatant(for: sourceActorID),
               let runtime = context.roster.runtime(for: attacker.combatant),
               runtime.pendingBleedAfterDodge > 0
         else { return }
@@ -75,15 +86,6 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
-        if defenderTriggers.onHitAttackerFreezeBuildup > 0, context.roster.health(for: attacker.combatant) > 0 {
-            state.damageEvents.append(contentsOf: appendMeterCharge(
-                defenderTriggers.onHitAttackerFreezeBuildup,
-                keyword: .freeze,
-                to: attacker.combatant,
-                sourceActorID: state.combatant.id,
-                in: &context,
-            ))
-        }
         if defenderTriggers.onHitAttackerPoison > 0, context.roster.health(for: attacker.combatant) > 0 {
             state.damageEvents.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison,

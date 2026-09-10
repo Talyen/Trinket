@@ -6,8 +6,10 @@ import TrinketFeatureSupport
 enum CombatFeedbackChipBridge {
     private static var hosts: [ObjectIdentifier: WeakHost] = [:]
     private static var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
-    private static var availabilityTimer: Timer?
-    private static let availabilityTimerTarget = AvailabilityTimerTarget()
+    private static let availabilityTimer = FeedbackDeadlineTimer {
+        availabilityTimerDidFire()
+    }
+
     private static var nextAvailabilityDate: Date?
     private static var nextAvailabilityTargetID: String?
 
@@ -118,26 +120,10 @@ enum CombatFeedbackChipBridge {
         }
         nextAvailabilityDate = earliest
         nextAvailabilityTargetID = earliestTargetID
-        scheduleAvailabilityTimer()
+        availabilityTimer.schedule(at: nextAvailabilityDate)
     }
 
-    private static func scheduleAvailabilityTimer() {
-        if availabilityTimer == nil {
-            let timer = Timer(
-                timeInterval: 86400,
-                target: availabilityTimerTarget,
-                selector: #selector(AvailabilityTimerTarget.fire),
-                userInfo: nil,
-                repeats: false,
-            )
-            timer.fireDate = .distantFuture
-            RunLoop.main.add(timer, forMode: .common)
-            availabilityTimer = timer
-        }
-        availabilityTimer?.fireDate = nextAvailabilityDate ?? .distantFuture
-    }
-
-    fileprivate static func availabilityTimerDidFire() {
+    private static func availabilityTimerDidFire() {
         let now = Date.now
         let targets = Set(itemsByTarget.compactMap { targetID, items in
             items.values.contains { $0.availableAt <= now && now < $0.expiresAt }
@@ -211,15 +197,7 @@ enum CombatFeedbackChipBridge {
         itemsByTarget.removeAll()
         nextAvailabilityDate = nil
         nextAvailabilityTargetID = nil
-        availabilityTimer?.invalidate()
-        availabilityTimer = nil
+        availabilityTimer.cancel()
     }
     #endif
-}
-
-@MainActor
-private final class AvailabilityTimerTarget: NSObject {
-    @objc func fire() {
-        CombatFeedbackChipBridge.availabilityTimerDidFire()
-    }
 }

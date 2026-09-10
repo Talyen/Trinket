@@ -13,7 +13,8 @@ the linked guides explain routing and operating policy.
 
 These are the routing and final verification steps. Between them, use the
 focused checks appropriate to the task; the command index below lists choices,
-not a checklist. Create an execution plan only when durable coordination or
+not a checklist. Pass individual files to `--paths`; directories are rejected
+because routing depends on file ownership. Create an execution plan only when durable coordination or
 resumption is useful; see [Plans](../Docs/Plans/README.md).
 
 Ordinary Swift work starts with focused iteration, not manual generation:
@@ -35,12 +36,19 @@ logs under `$RESULTS_DIR/script-tests.*` or `.DerivedData/ScriptTestResults/`;
 failures print the suite, exit status, bounded excerpt, and full log path.
 Successful script logs are removed. `handoff.sh` prints its final outcome after
 all selected checks and cheap slices finish; a failure identifies the stopped check.
+Syntax checks cover shell scripts and configuration, the Git shim, Python, and
+Node scripts without executing their entry points.
 
 Build/test wrapper help and option parsing do not reserve build/simulator slots;
 style-only checks also run without a slot. Package test/build commands require registered,
 unique package names and prepare generated inputs before compiling.
 `handoff.sh --dry-run --final` previews the final documentation gate without
 executing it.
+
+CI path filtering includes both names of renamed files and selects all gates
+when GitHub's comparison reaches its 300-file limit. Diagnostic artifact staging
+requires a destination outside the source `TestResults` tree and its ancestors.
+Worktree removal rejects invalid task names and preserves unregistered directories.
 
 Read these focused guides:
 

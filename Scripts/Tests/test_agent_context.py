@@ -60,6 +60,16 @@ class AgentContextTests(ScriptRegressionTestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("requires --paths", result.stderr)
 
+    def test_file_scoped_commands_reject_directories(self) -> None:
+        for script, flags in (("agent-context.sh", []), ("handoff.sh", ["--dry-run", "--isolate"])):
+            with self.subTest(script=script):
+                result = subprocess.run(
+                    [str(ROOT / "Scripts" / script), *flags, "--paths", "Scripts"],
+                    cwd=ROOT, capture_output=True, text=True,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("individual files", result.stderr)
+
     def test_agent_context_caps_accidental_working_tree_scope(self) -> None:
         with tempfile.TemporaryDirectory(
             dir=ROOT, prefix=".agent-context-cap-"

@@ -34,7 +34,8 @@ adopted fix, not the task's initial path list.
 `./Scripts/generate.sh` runs XcodeGen through the pinned wrapper with a fresh
 cache location on every invocation. `--force-xcodegen` remains an explicit name
 for that default; `--skip-xcodegen` still selects content/asset generation only.
-Handoff regenerates, then forces a second generation to check idempotence.
+When changed paths select generation, handoff regenerates, then forces a second
+generation to check idempotence.
 Changes to the spec, tool pins, or wrapper route project verification; ordinary
 code edits in synchronized source folders do not add project generation.
 
@@ -65,8 +66,9 @@ forced generation and comparison against committed output.
 
 ## Local simulator budget
 
-Full smoke and exhaustive UI are CI-owned post-push gates; watch them with
-`agent-watch-ci.sh` instead of pre-running them. Locally:
+Full smoke is a CI-owned post-push gate; exhaustive UI runs separately on the
+nightly/dispatch route and is advisory. Watch the applicable CI run with
+`agent-watch-ci.sh` instead of pre-running those suites. Locally:
 
 - Run the package/unit checks selected by the changed paths. Documentation-only work does not require unit tests unless its route selects them.
 - During UI iteration, run the routed targeted smoke class (`test.sh smoke <Class>`).

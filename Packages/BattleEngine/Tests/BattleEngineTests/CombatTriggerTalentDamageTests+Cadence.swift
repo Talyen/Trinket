@@ -4,6 +4,53 @@ import TrinketCore
 @testable import BattleEngine
 
 extension CombatTriggerTalentDamageTests {
+    @Test func `nimble fang is consumed by snapping jaws counterattack`() {
+        var profile = CombatantTalentCatalog.profile(for: ["wolf_dodge_t1_2", "wolf_dodge_t3_2"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionAbilities: [.fangs],
+            companionModifiers: profile,
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.appendEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+
+        let dodged = battle.resolveDamage(DamageRequest(
+            amount: 4, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+        ))
+
+        #expect(dodged.isDodged)
+        #expect(battle.roster.companion.pendingBleedAfterDodge == 0)
+        #expect(battle.activeEffects(of: battle.enemy).count { $0.effect == .bleed(2) } == 1)
+        _ = BattleTurnEngine.performAction(
+            ability: .fangs, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
+        )
+        #expect(battle.activeEffects(of: battle.enemy).count { $0.effect == .bleed(2) } == 1)
+    }
+
+    @Test(arguments: [0, 10])
+    func `chilling scales deals freeze damage when attacked even through block`(block: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatantTalentCatalog.profile(for: ["frost_whelp_freeze_t1_2"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        DefensePoolEngine.set(block, on: battle.companion, in: &battle)
+        let enemyHealth = battle.health(of: battle.enemy)
+
+        let hit = battle.resolveDamage(DamageRequest(
+            amount: 4, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ))
+
+        #expect(hit.healthLost == (block == 0 ? 4 : 0))
+        #expect(battle.health(of: battle.enemy) == enemyHealth - 2)
+        #expect(battle.activeEffects(of: battle.enemy).contains {
+            $0.effect == .controlMeter(.freeze, 2, ControlMeterEngine.threshold(for: battle.enemy, in: battle))
+        })
+        #expect(hit.events.contains { $0.abilityName == "Chilling Scales" && $0.keyword == .freeze && $0.amount == 2 })
+    }
+
     @Test func `golden recovery heals both living party members`() {
         var profile = CombatantTalentCatalog.profile(for: ["fox_gold_t3_2"])
         profile.triggers.criticalChanceBonus = -1

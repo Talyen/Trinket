@@ -28,6 +28,32 @@ def run_script(name: str, *args: str) -> subprocess.CompletedProcess:
 
 
 class ExecWrapperTests(unittest.TestCase):
+    def test_worktree_remove_preserves_unregistered_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            scripts = root / "Scripts"
+            scripts.mkdir()
+            shutil.copy2(ROOT / "Scripts/agent-worktree.mjs", scripts)
+            worktree = root / ".worktrees/task"
+            worktree.mkdir(parents=True)
+            evidence = worktree / "unfinished.txt"
+            evidence.write_text("work in progress")
+            fake_git = root / "git"
+            fake_git.write_text('#!/bin/sh\nprintf "worktree %s/task-other\\0\\0" "$FIXTURE_WORKTREES"\nexit "${FIXTURE_GIT_STATUS:-0}"\n')
+            fake_git.chmod(0o755)
+            for task, status in (("!!!", "0"), ("task", "0"), ("task", "1")):
+                with self.subTest(task=task, status=status):
+                    worktree.mkdir(parents=True, exist_ok=True)
+                    evidence.write_text("work in progress")
+                    result = subprocess.run(
+                        ["node", str(scripts / "agent-worktree.mjs"), "remove", "--task", task],
+                        env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}",
+                             "FIXTURE_WORKTREES": str(root / ".worktrees"), "FIXTURE_GIT_STATUS": status},
+                        capture_output=True, text=True,
+                    )
+                    self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                    self.assertEqual(evidence.read_text(), "work in progress")
+
     def test_preflight_and_style_do_not_reserve_a_run(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             scripts = Path(directory) / "Scripts"

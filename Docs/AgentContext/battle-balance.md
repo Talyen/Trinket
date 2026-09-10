@@ -20,8 +20,10 @@ three; Spires keep twice the floor number; Labyrinth uses party average plus
 three within five-depth bands with minimum levels 1/6/11/16/…. Adjusted levels
 never exceed authored level. Labyrinth keeps generating floors indefinitely.
 Previews, launch, reward fallbacks, and progression simulations use these same
-mode rules. Keep role-specific roster catch-up XP unchanged. Product direction:
-[Decisions.md](../Product/Decisions.md), PD-016 through PD-020.
+mode rules. Contracts uses party-average offsets through the same resolver;
+[Contracts.md](../Product/Contracts.md) owns its board and reward rules. Keep
+role-specific roster catch-up XP unchanged. Product direction:
+[Decisions.md](../Product/Decisions.md), PD-016 through PD-021.
 
 Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes via comeback and a progress-based clock. Passive turn-start mana drip is excluded. Percentage multipliers on combat integers round via `CombatRounding` (nearest integer, ties to even); integer division semantics remain truncating division.
 

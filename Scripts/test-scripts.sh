@@ -57,15 +57,20 @@ run_logged() {
 
 echo "=== Script syntax ==="
 while IFS= read -r script; do
-  run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script"
-done < <(rg --files Scripts -g '*.sh' | LC_ALL=C sort)
+  case "$script" in
+    *.py) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" python3 -c 'import pathlib, sys; compile(pathlib.Path(sys.argv[1]).read_bytes(), sys.argv[1], "exec")' "$script" ;;
+    *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
+    Scripts/bin/*) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" sh -n "$script" ;;
+    *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
+  esac
+done < <(rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g 'Scripts/bin/*' | LC_ALL=C sort)
 
 echo "=== Python script regressions ==="
 python_log="$TEST_LOG_DIR/python.log"
 if [[ "$FAST" == true ]]; then
   # Fast loop skips the slowest fixture-heavy module (media audio encodes);
   # full mode and CI still run it.
-  if PYTHONPATH=Scripts/Tests python3 -m unittest -b test_agent_context test_aggregate_performance test_check_unused_assets test_ci_path_filter test_ci_verification_scripts test_project_generation test_compare_performance test_content_and_policy_scripts test_failure_diagnostics test_release_notes_user test_test_timing test_verification_improvements test_exec_wrappers >"$python_log" 2>&1; then
+  if PYTHONPATH=Scripts/Tests python3 -m unittest -b test_agent_context test_aggregate_performance test_balance_report_retention test_check_unused_assets test_ci_path_filter test_ci_verification_scripts test_project_generation test_compare_performance test_content_and_policy_scripts test_failure_diagnostics test_release_notes_user test_test_timing test_verification_improvements test_exec_wrappers >"$python_log" 2>&1; then
     echo "Python script regressions passed (fast: media audio fixtures skipped)."
   else
     report_failure "Python script regressions" "$python_log" "$?"

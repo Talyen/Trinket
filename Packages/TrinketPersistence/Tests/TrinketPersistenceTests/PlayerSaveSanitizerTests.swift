@@ -504,13 +504,13 @@ struct PlayerSaveSanitizerTalentIDTests {
         let sanitized = PlayerSaveSanitizer.sanitizeUnlockedTalents(
             [
                 "rogue": ["rogue_dodge_t1_1", "rogue_gold_t1_2"],
-                "frost_whelp": ["frost_whelp_stun_t2_1"],
+                "frost_whelp": ["frost_whelp_stun_t1_1", "frost_whelp_stun_t1_2", "frost_whelp_stun_t2_1"],
                 "knight": ["knight_block_t1_1"],
             ],
             validCombatantIDs: ["rogue", "frost_whelp", "knight"],
             progressions: [
                 "rogue": .at(level: 4),
-                "frost_whelp": .at(level: 4),
+                "frost_whelp": .at(level: 6),
                 "knight": .at(level: 4),
             ],
         )
@@ -518,6 +518,15 @@ struct PlayerSaveSanitizerTalentIDTests {
         #expect(sanitized["rogue"]?.contains("rogue_gold_t1_2") == true)
         #expect(sanitized["frost_whelp"]?.contains("frost_whelp_dodge_t2_1") == true)
         #expect(sanitized["knight"] == ["knight_block_t1_1"])
+    }
+
+    @Test func `sanitize unlocked talents removes orphaned legacy talent after remapping`() {
+        let sanitized = PlayerSaveSanitizer.sanitizeUnlockedTalents(
+            ["frost_whelp": ["frost_whelp_stun_t2_1"]],
+            validCombatantIDs: ["frost_whelp"],
+            progressions: ["frost_whelp": .at(level: 4)],
+        )
+        #expect(sanitized["frost_whelp"] == nil)
     }
 
     @Test func `sanitize unlocked talents caps over budget unlocks to level points`() {

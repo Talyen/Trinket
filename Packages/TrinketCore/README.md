@@ -25,6 +25,11 @@ per seed with a fixed non-zero fallback state; equality includes draw progress.
 `EffectKind` flags (`isInstant`, `advancesEachTurn`, removable buff/debuff) are
 the source of truth for lifecycle, locked by `EffectModelTests`.
 
+Talent eligibility resolves each node's row from its owning tree. `cappedUnlocks`
+repairs selected IDs at every point budget, keeping only prerequisite-complete
+selections in row, tree, then node order. Removed selections leave their points
+available; valid selections within budget are unchanged.
+
 ```sh
 ./Scripts/test-package.sh TrinketCore
 ```

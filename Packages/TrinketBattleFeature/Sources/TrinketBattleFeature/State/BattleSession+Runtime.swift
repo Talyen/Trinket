@@ -181,11 +181,11 @@ extension BattleSession {
         if preparedBattleRunsByKey[runKey]?.configuration.id == configuration.id {
             return true
         }
-        releasePreparedArtworkPins()
         preparedBattleRunsByKey[runKey] = PreparedBattleRun(
             configuration: configuration,
             state: makeBattleState(from: configuration),
         )
+        retainPreparedArtworkPins()
         preparedBattlePresentationRevision += 1
         lifecyclePhase = .prepared
         installSimulationPresentation()
@@ -197,6 +197,7 @@ extension BattleSession {
         let before = preparedBattleRunsByKey.count
         preparedBattleRunsByKey = preparedBattleRunsByKey.filter { keys.contains($0.key) }
         if preparedBattleRunsByKey.count != before {
+            retainPreparedArtworkPins()
             preparedBattlePresentationRevision += 1
         }
         if preparedBattleRunsByKey.isEmpty {
@@ -305,9 +306,9 @@ extension BattleSession {
             guard activeBattle != nil else { return false }
         }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
-        releasePreparedArtworkPins()
         engineState = makeBattleState(from: configuration)
         installActiveBattle(configuration, presentation: presentation)
+        retainPreparedArtworkPins()
         return true
     }
 

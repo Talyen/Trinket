@@ -137,7 +137,7 @@ extension BattleSession {
                 reactedIDs.insert(companionID)
             }
             feedback.noteHitReactionsChanged(for: reactedIDs)
-            feedback.updatePruneDate(with: celebrateExpiry)
+            feedback.updatePruneDate()
         }
     }
 

@@ -54,6 +54,38 @@ struct BattleMechanicsTests {
         #expect(!battle.roster.companion.pendingGuaranteedCriticalAfterDodge)
     }
 
+    @Test func `evasive pack grants dodge rewards without phantom counter`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            companionModifiers: CombatantTalentCatalog.profile(for: [
+                "wolf_dodge_t1_1", "wolf_dodge_t2_2", "wolf_dodge_t3_1", "wolf_dodge_t4_1",
+            ]),
+        )
+        battle.companionDeck = CombatDeck(abilities: [.fangs])
+        let first = battle.resolveDamage(DamageRequest(
+            amount: 2, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+        #expect(first.healthLost == 2)
+        let second = battle.resolveDamage(DamageRequest(
+            amount: 2, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+        ))
+        #expect(second.isDodged)
+        #expect(second.healthLost == 0)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 2)
+        #expect(battle.roster.enemy.currentHealth == 100)
+        #expect(battle.companionDeck == CombatDeck(abilities: [.fangs]))
+        let hit = battle.resolveDamage(DamageRequest(
+            amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: .attack(abilityCriticalChanceBonus: -1),
+        ))
+        #expect(hit.isCritical)
+        #expect(hit.healthLost == 4)
+        #expect(!battle.roster.companion.pendingGuaranteedCriticalAfterDodge)
+    }
+
     @Test func `guaranteed basic hit consumes taste for blood`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(),

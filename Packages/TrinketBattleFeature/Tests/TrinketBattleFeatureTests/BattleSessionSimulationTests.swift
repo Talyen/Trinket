@@ -159,14 +159,24 @@ struct BattleSessionSimulationTests {
         #expect(session.spectacle.outcomePresentation == .battle)
     }
 
-    @Test func `play card appends feedback items when card plays`() throws {
+    @Test func `play card retires expired feedback and excludes milestones`() throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.playCard(cardID: card.id)
+        session.feedback.clear()
+        session.feedback.record([feedbackEvent(id: 9000, amount: 2)])
+        let expired = try #require(session.feedback.activeItems.first)
+        var removedIDs: Set<Int> = []
+        session.feedback.installBridge(ownerID: UUID()) { update in
+            if case let .remove(ids) = update {
+                removedIDs.formUnion(ids)
+            }
+        }
+        _ = session.playCard(cardID: card.id, at: expired.expiresAt.addingTimeInterval(0.01))
 
+        #expect(removedIDs == [expired.id])
         #expect(!(session.feedback.activeItems.isEmpty))
-        let recordedIDs = Set(session.feedback.eventRecordedAt.keys)
+        let recordedIDs = Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))
         let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
         #expect(recordedIDs.isDisjoint(with: milestoneIDs))
     }
@@ -223,7 +233,7 @@ struct BattleSessionSimulationTests {
         }
 
         #expect(session.engineState?.isPartyDefeated == true)
-        let recordedIDs = Set(session.feedback.eventRecordedAt.keys)
+        let recordedIDs = Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))
         let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
         #expect(recordedIDs.isDisjoint(with: milestoneIDs))
     }
@@ -253,38 +263,6 @@ struct BattleSessionSimulationTests {
         let resetState = try #require(session.engineState)
         #expect(resetState.health(of: resetState.enemy) == 100)
         #expect(resetState.health(of: resetState.hero) == party.hero.maxHealth)
-    }
-
-    @Test func `consolidated feedback remove and expire clears sources`() throws {
-        let session = BattleSession(openingHandDrawStagger: 0)
-        let now = Date(timeIntervalSince1970: 100)
-        session.feedback.record(
-            [
-                feedbackEvent(id: 1, amount: 1),
-                feedbackEvent(id: 2, amount: 2),
-            ],
-            at: now,
-        )
-
-        #expect(session.feedback.activeItems.count == 1)
-        #expect(session.feedback.activeItems[0].sourceEventIDs == [1, 2])
-        session.feedback.removeEvent(2)
-        #expect(session.feedback.activeItems.isEmpty)
-        #expect(session.feedback.eventRecordedAt.isEmpty)
-
-        session.feedback.record(
-            [
-                feedbackEvent(id: 3, amount: 1),
-                feedbackEvent(id: 4, amount: 2),
-            ],
-            at: now,
-        )
-        let item = try #require(session.feedback.activeItems.first)
-        session.feedback.pruneExpired(at: item.availableAt)
-        #expect(session.feedback.activeItems.contains { $0.id == item.id })
-        session.feedback.pruneExpired(at: item.expiresAt.addingTimeInterval(0.01))
-        #expect(session.feedback.activeItems.isEmpty)
-        #expect(session.feedback.eventRecordedAt.isEmpty)
     }
 
     @Test func `feedback bridge uninstall is owner scoped`() {
@@ -374,26 +352,6 @@ struct BattleSessionSimulationTests {
 
         #expect(session.logEntries.isEmpty)
         #expect(!(session.engineState?.events.isEmpty ?? true))
-    }
-
-    @Test func `trim memory footprint keeps prepared artwork pin names while prepared`() {
-        let session = BattleSession(openingHandDrawStagger: 0)
-        session.lifecyclePhase = .prepared
-        session.preparedArtworkNames = ["opening-hand-art"]
-
-        session.trimMemoryFootprint(releaseBattleLog: true)
-
-        #expect(session.preparedArtworkNames == ["opening-hand-art"])
-    }
-
-    @Test func `trim memory footprint releases prepared artwork pin names when idle`() {
-        let session = BattleSession(openingHandDrawStagger: 0)
-        session.lifecyclePhase = .idle
-        session.preparedArtworkNames = ["opening-hand-art"]
-
-        session.trimMemoryFootprint(releaseBattleLog: true)
-
-        #expect(session.preparedArtworkNames.isEmpty)
     }
 
     private func feedbackEvent(

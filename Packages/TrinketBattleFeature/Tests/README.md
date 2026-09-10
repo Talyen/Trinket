@@ -8,7 +8,9 @@ dissolve, or recipe unit tests — presentation chrome is not a unit-test owner.
 | Concern | Suite |
 |---------|-------|
 | Session lifecycle, auto-battle, prepare/restart | `BattleSession*` (`BattleSessionPreparationTests` owns Session `activatePreparedBattle`) |
-| Combat feedback scheduling / presenter | `CombatFeedbackPresenterTests` |
+| Feedback scheduling, absorption, and expiry | `BattleFeedbackLaneTests` |
+| Feedback classification / consolidation | `CombatFeedbackPresenterTests` |
+| Chip host delivery and availability | `CombatFeedbackChipPresentationTests` |
 | Victory summary / claimed victory | `BattleVictorySummaryTests`, `BattleClaimedVictoryTests` |
 
 Runtime-contract behavior is exercised here through `BattleSession` (see

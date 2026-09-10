@@ -11,7 +11,7 @@ use the canonical value and retirement rules for selective player journeys.
 | Area | Path | When |
 |------|------|------|
 | Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | Local and CI `test.sh smoke` (registry-defined classes); CI shards shell vs play |
-| Exhaustive | `Play/`, `Collection/`, `Battle/` | Main CI (sharded by feature, homestead detail separate); local only for targeted debugging |
+| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, sharded by feature; local execution follows [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 

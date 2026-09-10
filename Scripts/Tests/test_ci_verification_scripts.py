@@ -335,6 +335,27 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             self.assertEqual(staged.returncode, 0, staged.stderr)
             self.assertTrue((failed_stage / "raw" / "pass.log").exists())
 
+    def test_ci_diagnostics_rejects_overlapping_artifact_destinations(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            results = root / "run" / "TestResults"
+            results.mkdir(parents=True)
+            evidence = results / "raw" / "failure.log"
+            evidence.parent.mkdir()
+            evidence.write_text("failure evidence\n")
+            alias = root / "alias"
+            alias.symlink_to(results.parent, target_is_directory=True)
+            for destination in (results.parent, alias, results / "raw" / "artifact"):
+                with self.subTest(destination=destination):
+                    evidence.parent.mkdir(parents=True, exist_ok=True)
+                    evidence.write_text("failure evidence\n")
+                    result = subprocess.run(
+                        [str(ROOT / "Scripts/ci-diagnostics.sh"), "--stage-artifacts", str(results), str(destination)],
+                        cwd=ROOT, capture_output=True, text=True,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(evidence.read_text(), "failure evidence\n")
+
     def test_ci_diagnostics_selects_session_and_cleans_passed_history(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             results = Path(directory) / "TestResults"

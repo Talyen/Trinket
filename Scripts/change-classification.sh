@@ -186,6 +186,16 @@ trinket_collect_paths() {
   shift || true
   TRINKET_CHANGED_PATHS=()
 
+  local path
+  if [[ "$path_mode" == "explicit" ]]; then
+    for path in "$@"; do
+      if [[ -d "$path" ]]; then
+        echo "--paths requires individual files, not directories: $path" >&2
+        return 2
+      fi
+    done
+  fi
+
   while IFS= read -r path; do
     [[ -n "$path" ]] && TRINKET_CHANGED_PATHS+=("$path")
   done < <(

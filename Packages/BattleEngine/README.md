@@ -208,7 +208,9 @@ tiers without enough talent points are skipped rather than given illegal builds.
 1. Add the `EffectKind` case (in `TrinketCore`)
 2. Create a handler conforming to `BattleEffectHandler`
 3. Register it in `EffectHandlers.all`
-4. Add registry parity + apply tests
+4. Preserve registry parity and verify apply/expiry behavior through the existing
+   handler coverage; extend tests only for consequential gaps under
+   [Testing.md](../../Docs/Platform/Testing.md).
 
 See `Tests/README.md` for test ownership and conventions.
 

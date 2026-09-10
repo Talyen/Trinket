@@ -84,8 +84,8 @@ Confirm in source / CI config:
 
 ## Release Engineering (human)
 
-- [ ] TestFlight verified against Development CloudKit environment
-- [ ] Production CloudKit verified after schema promotion
+- [ ] Development CloudKit verified with development-signed builds
+- [ ] Production schema deployed before TestFlight sync testing, then verified with TestFlight builds; TestFlight and App Store distributions cannot use Development CloudKit ([Apple testing guidance](https://developer.apple.com/library/archive/documentation/DataManagement/Conceptual/CloudKitQuickStart/TestingYourApp/TestingYourApp.html))
 - [ ] Rollback plan: ship update with CloudKit disabled while preserving local SwiftData storage
 
 ---

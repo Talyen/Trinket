@@ -2,8 +2,11 @@
 from __future__ import annotations
 
 import importlib.util
+import io
+import json
 import sys
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -25,6 +28,24 @@ class CIPathFilterTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.filter = load_filter()
+
+    def test_compare_includes_rename_source_and_fails_closed_at_file_limit(self) -> None:
+        cases = [
+            ([{"filename": "Docs/archived.swift", "previous_filename": "Trinket/App.swift"}],
+             ["Docs/archived.swift", "Trinket/App.swift"]),
+            ([{"filename": f"Docs/{index}.md"} for index in range(299)],
+             [f"Docs/{index}.md" for index in range(299)]),
+            ([{"filename": f"Docs/{index}.md"} for index in range(300)], None),
+        ]
+        for files, expected in cases:
+            with self.subTest(count=len(files)), patch.object(self.filter.urllib.request, "urlopen") as request:
+                response = io.StringIO(json.dumps({"files": files}))
+                response.headers = {"Link": '<https://api.github.com/next>; rel="next"'}
+                next_page = io.StringIO('{"commits": []}')
+                next_page.headers = {}
+                request.side_effect = [response, next_page]
+                self.assertEqual(self.filter.compare_filenames("owner/repo", "before", "after", "token"), expected)
+                request.assert_called_once()
 
     def test_code_globs_match_app_and_build_scripts(self) -> None:
         match = self.filter.is_code_path

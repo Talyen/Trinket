@@ -39,13 +39,15 @@ def reset(root: Path) -> None:
 
 
 def stage(root: Path, artifact_dir: Path) -> None:
+    root = root.resolve()
+    destination = artifact_dir.resolve()
+    if destination == root or destination in root.parents or root in destination.parents:
+        raise SystemExit("artifact directory must not overlap TestResults")
     category_path = root / "ci-diagnostics.json"
     try:
         category = json.loads(category_path.read_text(encoding="utf-8")).get("category", "unknown")
     except (OSError, json.JSONDecodeError):
         category = "unknown"
-    if artifact_dir.resolve() in {root, Path("/")}:
-        raise SystemExit("artifact directory must be distinct from TestResults")
     shutil.rmtree(artifact_dir, ignore_errors=True)
     artifact_dir.mkdir(parents=True, exist_ok=True)
     names = {"ci-diagnostics.json", "timing-log.jsonl", "simulator.log"}

@@ -25,9 +25,26 @@ package extension DamagePipeline {
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)
+        applyBurnDamageMultipliers(to: &state, in: &context)
         applyOneShotEmpowers(to: &state, in: &context)
         applyOutgoingReductions(to: &state, in: &context)
         state.dealt = state.remaining
+    }
+
+    private static func applyBurnDamageMultipliers(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.damageKeyword == .burn, state.remaining > 0,
+              let sourceActorID = state.sourceActorID else { return }
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        if BattleChance.succeeds(probability: triggers.burnDamageDoubleChancePercent, using: &context.rng) {
+            state.remaining *= 2
+        }
+        if context.roster.hasControlStatus(for: state.combatant, keyword: .freeze),
+           BattleChance.succeeds(probability: triggers.burnDoubleVsFrozenChancePercent, using: &context.rng) {
+            state.remaining *= 2
+        }
     }
 
     private static func applyBaseAndScaledDamage(

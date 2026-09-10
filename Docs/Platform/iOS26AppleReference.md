@@ -26,9 +26,11 @@ Let system chrome adopt glass where it does not fight art-forward screens. Use g
 | Change handling | two-parameter `onChange` | single-parameter `onChange` |
 | Tabs | `Tab(...)` + `TabView(selection:)` | `.tabItem` + `.tag` on roots |
 
-## Later frameworks
+## Purchases and unused frameworks
 
-When adding IAP, use StoreKit 2. New 3D work would use RealityKit, not SceneKit. GameKit and Foundation Models are unused.
+Full Game uses StoreKit; [Purchases.md](Purchases.md) owns its development and
+release workflow. New 3D work would use RealityKit, not SceneKit. GameKit and
+Foundation Models are unused.
 
 ## App icon
 

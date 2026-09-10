@@ -135,7 +135,7 @@ id	name	max_health	is_boss	abilities	trait_id	faction
 - `is_boss`: `true` or `false`.
 - `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
-- Enemy damage scales via `EnemyPowerCurve` raw damage % curves (normal/boss at L1/20/40, smoothstep, clamped). Enemies have 0% Crit/Dodge and cannot gain guaranteed crit, evade, or trait crit/dodge effects.
+- Enemy damage scales via `EnemyPowerCurve` raw damage % curves. Interpolation and growth beyond the final anchor follow [battle-balance.md](../Docs/AgentContext/battle-balance.md); the final anchor is not an upper cap. Enemies have 0% Crit/Dodge and cannot gain guaranteed crit, evade, or trait crit/dodge effects.
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)
 
@@ -150,6 +150,7 @@ node_id	title	summary	symbol_name	category	prerequisites	tier	stage_name	cost	bo
 - `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
 - `stage_name`: concise, player-facing name for the node's construction stage; use no more than three words.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).
+- `production`: one `resource:quantity` daily rate (e.g. `food:1`), or empty for no passive production. Each tier supplies its complete rate, not an increment over the previous tier.
 - `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Combat tokens include `outgoing_damage_percent:0.02`, `incoming_damage_reduction_percent:0.02`, `dodge_chance_bonus:0.02` (all additive, rounded via `CombatRounding`). Homestead-only tokens: `astral_chance:N`, `gold_find:N`.
 - One row per tier; node metadata must match across tiers for the same `node_id`.
 

@@ -86,10 +86,6 @@ enum BattleMotion {
     static let chipPopFadeDuration: TimeInterval = 0.28
     static let maxContinuousChipLifetime: TimeInterval = 1.2
 
-    static var maxChipLifetime: TimeInterval {
-        chipDisplayDuration + 0.05
-    }
-
     static let cardCastParticleCount = 8
 
     static var scrim: Animation {

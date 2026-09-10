@@ -131,39 +131,33 @@ def write_output(code: bool, assets: bool, infra: bool) -> None:
 def compare_filenames(repo: str, before: str, sha: str, token: str) -> list[str] | None:
     encoded = urllib.parse.quote(f"{before}...{sha}")
     url = f"https://api.github.com/repos/{repo}/compare/{encoded}?per_page=100"
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "trinket-ci-path-filter",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            payload = json.load(response)
+    except urllib.error.HTTPError as error:
+        if error.code in {404, 422}:
+            return None
+        body = error.read().decode("utf-8", errors="replace")
+        raise SystemExit(f"compare API failed ({error.code}): {body}") from error
+    files = payload.get("files") or []
+    # Compare pagination only pages commits; files stop at 300 on page one.
+    if payload.get("truncated") or len(files) >= 300:
+        return None
     names: list[str] = []
-    truncated = False
-    while url:
-        request = urllib.request.Request(
-            url,
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {token}",
-                "X-GitHub-Api-Version": "2022-11-28",
-                "User-Agent": "trinket-ci-path-filter",
-            },
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=60) as response:
-                payload = json.load(response)
-                link = response.headers.get("Link", "")
-        except urllib.error.HTTPError as error:
-            if error.code in {404, 422}:
-                return None
-            body = error.read().decode("utf-8", errors="replace")
-            raise SystemExit(f"compare API failed ({error.code}): {body}") from error
-        truncated = truncated or bool(payload.get("truncated"))
-        for entry in payload.get("files") or []:
-            name = entry.get("filename")
+    for entry in files:
+        for key in ("filename", "previous_filename"):
+            name = entry.get(key)
             if name:
                 names.append(name)
-        url = ""
-        for part in link.split(","):
-            if 'rel="next"' in part:
-                url = part.split(";")[0].strip().strip("<>")
-                break
-    if truncated:
-        return None
     return names
 
 

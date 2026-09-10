@@ -77,10 +77,11 @@ package extension DamagePipeline {
             ))
         }
         state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentDodge(by: state.combatant, in: &context))
-        if !autoDodge, !state.options.causedByDodge {
+        if !state.options.causedByDodge {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
+                allowsCounterattacks: !autoDodge,
                 in: &context,
             ))
         }
@@ -139,6 +140,10 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
+        if state.options.isPeriodic {
+            state.isCritical = state.amount > 0 && state.options.guaranteedCritical
+            return
+        }
         guard !state.options.isRetaliation || state.options.isAttackHit,
               state.amount > 0,
               let sourceActorID = state.sourceActorID,

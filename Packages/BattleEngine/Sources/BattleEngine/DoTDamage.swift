@@ -8,16 +8,18 @@ package enum DoTDamage {
         keyword: Keyword,
         target: Combatant,
         sourceActorID: String?,
+        guaranteedCritical: Bool = false,
         in context: inout BattleState,
     ) -> CombatOutcome {
         guard basePotency > 0 else { return .empty }
 
-        let request = DamageRequest.doTTick(
+        var request = DamageRequest.doTTick(
             amount: basePotency,
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
         )
+        request.options.guaranteedCritical = guaranteedCritical
         let damageOutcome = context.resolveDamage(request)
         guard damageOutcome.healthLost > 0 else { return damageOutcome }
 
@@ -29,6 +31,7 @@ package enum DoTDamage {
             target: target,
             amount: damageOutcome.healthLost,
             keyword: keyword,
+            isCritical: damageOutcome.isCritical,
         )
         return CombatOutcome(
             healthDelta: damageOutcome.healthDelta,

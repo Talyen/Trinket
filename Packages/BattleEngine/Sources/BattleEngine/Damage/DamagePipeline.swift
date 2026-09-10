@@ -69,6 +69,7 @@ package enum DamagePipeline {
         applyTalentMirroredReactions(to: &state, in: &context)
 
         applyControlMeter(to: &state, in: &context)
+        applyNimbleFang(to: &state, in: &context)
         if !state.options.isRetaliation {
             applyReactiveOnHit(to: &state, in: &context)
             applyKeywordReactions(to: &state, in: &context)

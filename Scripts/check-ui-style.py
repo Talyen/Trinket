@@ -290,20 +290,7 @@ def fallback_list_swift_files(scan_paths: list[str]) -> list[Path]:
         if path.is_file() and path.suffix == ".swift":
             files.append(path)
         elif path.is_dir():
-            # Prefer git-aware listing when possible.
-            result = subprocess.run(
-                ["rg", "--files", "-g", "*.swift", str(path)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            if result.returncode in (0, 1) and result.stdout.strip():
-                for line in result.stdout.splitlines():
-                    p = Path(line)
-                    files.append(p if p.is_absolute() else ROOT / p)
-            else:
-                files.extend(sorted(path.rglob("*.swift")))
+            files.extend(sorted(path.rglob("*.swift")))
     return files
 
 

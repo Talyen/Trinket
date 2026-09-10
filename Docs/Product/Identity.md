@@ -81,7 +81,7 @@ Because progress is **local + optional iCloud container data**, not a developer-
 |------|--------|
 | No login splash | System launch screen → Play tab |
 | No save prompts | No “Sign in to save” / “Enable iCloud?” sheets |
-| Offline / no iCloud | Full game; progress stays on device |
+| Offline / no iCloud | Local play remains available; progress stays on device. Full Game access follows [Monetization.md](Monetization.md), independently of iCloud save sync. |
 | Options (after sync) | Optional quiet status only if useful later (e.g. “iCloud sync: On/Off”) — **not** a prompt |
 | Reset | Confirmation alert; destructive; after sync must clear synced progress |
 | Conflicts | Define and verify acceptable outcomes per save domain; passive Homestead production must use the dedicated pre-ship claim gate and authority |

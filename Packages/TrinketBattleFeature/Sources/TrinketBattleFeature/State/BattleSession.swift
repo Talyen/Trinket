@@ -97,7 +97,7 @@ public final class BattleSession: BattleRuntime {
     var transitionPlayback: BattleTransitionPlayback?
     var commandState = BattleCommandState()
     @ObservationIgnored
-    var preparedArtworkNames: Set<String> = []
+    var artworkPreparation = BattleArtworkPreparation()
 
     public var isDealingOpeningHand: Bool {
         commandState.phase == .opening

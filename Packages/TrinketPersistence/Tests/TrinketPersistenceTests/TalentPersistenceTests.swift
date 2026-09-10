@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 import TrinketContent
 import TrinketCore
@@ -7,30 +8,41 @@ import TrinketPersistenceTestSupport
 
 struct TalentPersistenceTests {
     @Test(arguments: ["wildcard", "druid"], [false, true])
-    @MainActor func `reordered trees preserve old partial and complete purchases across reload`(
+    @MainActor func `reordered trees repair incomplete purchases and preserve complete purchases across reload`(
         combatantID: String, complete: Bool,
     ) throws {
         let context = try PersistenceTestContext()
-        let store = try context.makeSaveStore()
         let partial: Set<String> = combatantID == "wildcard"
             ? ["wildcard_dodge_t1_1", "wildcard_dodge_t1_2", "wildcard_dodge_t2_1"]
             : ["druid_health_t1_1", "druid_health_t1_2", "druid_health_t2_1", "druid_mana_t1_1"]
         let purchased = complete ? CombatantTalentCatalog.validNodeIDs(for: combatantID) : partial
-        try store.performBatchMutation { save in
-            save.roster.progressions[combatantID] = .at(level: 100)
-            save.roster.unlockedTalents[combatantID] = purchased
-        }
+        let retained: Set<String> = complete ? purchased : [
+            combatantID == "wildcard" ? "wildcard_dodge_t1_2" : "druid_health_t1_2",
+        ]
+        var saved = PlayerSave.fresh
+        saved.roster.progressions[combatantID] = .at(level: 100)
+        saved.roster.progressions["knight"] = .at(level: 12)
+        saved.roster.unlockedTalents[combatantID] = purchased
+        try SaveTestSupport.writeRoot(saved, to: context.storeURL())
+
+        let repaired = try context.makeReloadedStore()
+        #expect(repaired.roster.unlockedTalents(for: combatantID) == retained)
+        let sideContext = try SaveTestSupport.makeSideContext(storeURL: context.storeURL())
+        let roots = try sideContext.fetch(FetchDescriptor<PlayerSaveRoot>())
+        let persistedRoot = try #require(roots.first)
+        #expect(persistedRoot.toPlayerSave().roster.unlockedTalents(for: combatantID) == retained)
         let reloaded = try context.makeReloadedStore()
-        #expect(reloaded.roster.unlockedTalents(for: combatantID) == purchased)
-        let progression = try #require(reloaded.roster.progressions[combatantID])
-        #expect(reloaded.roster.availableTalentPoints(for: combatantID) == progression.totalTalentPoints - purchased.count)
+        #expect(reloaded.roster.unlockedTalents(for: combatantID) == retained)
+        #expect(reloaded.roster.progressions[combatantID] == .at(level: 100))
+        #expect(reloaded.roster.progressions["knight"] == .at(level: 12))
+        #expect(reloaded.roster.availableTalentPoints(for: combatantID) == 50 - retained.count)
         if !complete {
             let keyword: Keyword = combatantID == "wildcard" ? .dodge : .health
             let tree = try #require(CombatantTalentCatalog.config(for: combatantID).tree(for: keyword))
             let introductory = try #require(tree.nodes(forRow: 1).first)
             #expect(reloaded.unlockTalent(nodeID: introductory.id, treeID: tree.id, for: combatantID) == .unlocked)
             let savedAgain = try context.makeReloadedStore()
-            #expect(savedAgain.roster.unlockedTalents(for: combatantID) == purchased.union([introductory.id]))
+            #expect(savedAgain.roster.unlockedTalents(for: combatantID) == retained.union([introductory.id]))
         }
     }
 

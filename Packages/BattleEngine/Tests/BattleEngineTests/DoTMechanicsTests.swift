@@ -9,7 +9,7 @@ struct DoTMechanicsTests {
     func `flashover only doubles burn against frozen enemies`(keyword: Keyword, frozen: Bool) throws {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(burnDoubleVsFrozenChancePercent: 1),
+                damage: DamageTriggers(criticalChanceBonus: -1, burnDoubleVsFrozenChancePercent: 1),
             )),
         )
         battle.appliesFightPacing = false
@@ -22,6 +22,11 @@ struct DoTMechanicsTests {
             )
         }
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .freeze) == frozen)
+        let initialHit = battle.resolveDamage(DamageRequest(
+            amount: 4, target: enemy, keyword: keyword,
+            sourceActorID: battle.roster.hero.id, options: .attack(),
+        ))
+        #expect(initialHit.healthLost == (keyword == .burn && frozen ? 8 : 4))
         let effect: Effect = keyword == .burn ? .burn(4) : .poison(4)
         let active = ActiveEffect(id: 100, effect: effect, remainingTurns: 0, sourceActorID: battle.roster.hero.id)
         let handler = try #require(EffectHandlers.all[effect.kind])
@@ -376,5 +381,67 @@ struct DoTMechanicsTests {
             keyword: .bleed,
             in: battle,
         ) == 0)
+    }
+}
+
+extension DoTMechanicsTests {
+    @Test func `burn doubling applies once to initial damage and each decayed tick`() throws {
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(
+                damageDealtBonus: [.burn: 2],
+                triggers: CombatTraitTriggers(
+                    damage: DamageTriggers(criticalChanceBonus: -1, burnDamageDoubleChancePercent: 1),
+                    dot: DotTriggers(burnTicksTwicePerTurn: true),
+                ),
+            ),
+        )
+        battle.appliesFightPacing = false
+        let enemy = battle.roster.enemy.combatant
+        let initial = battle.applyDecayingDoT(
+            keyword: .burn, potency: 8, to: enemy,
+            sourceActorID: battle.roster.hero.id, application: .ability,
+        )
+        #expect(statusAmounts(from: initial, keyword: .burn) == [20])
+        let burn = battle.activeEffects(of: enemy).first { $0.keyword == .burn }
+        let active = try #require(burn)
+        #expect(active.effect.potency == 8)
+        let handler = try #require(EffectHandlers.all[.burn])
+        let ticks = handler.advanceTurn(active, on: enemy, in: &battle)
+        #expect(statusAmounts(from: ticks, keyword: .burn) == [12, 12])
+        #expect(battle.activeEffects(of: enemy).first { $0.keyword == .burn }?.effect.potency == 4)
+    }
+
+    @Test(arguments: [false, true])
+    func `savage tear critically scales the whole bleed tick and reports critical damage`(specialCrit: Bool) throws {
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(
+                damageDealtBonus: [.bleed: 2],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(
+                    criticalChanceBonus: 1,
+                    bleedTickCritChancePercent: specialCrit ? 1 : 0,
+                )),
+            ),
+        )
+        battle.appliesFightPacing = false
+        let hero = battle.roster.hero.combatant
+        let enemy = battle.roster.enemy.combatant
+        battle.roster.mutateRuntime(for: hero) { $0.talentCritMultiplierBonus = 0.5 }
+        let initial = DoTDamage.resolveTurnDamage(
+            basePotency: 4, keyword: .bleed, target: enemy,
+            sourceActorID: hero.id, in: &battle,
+        )
+        #expect(initial.healthLost == 6)
+        #expect(!initial.isCritical)
+        let active = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 2, sourceActorID: hero.id)
+        battle.roster.setActiveEffects([active], for: enemy)
+        let handler = try #require(EffectHandlers.all[.bleed])
+
+        let events = handler.advanceTurn(active, on: enemy, in: &battle)
+
+        #expect(statusAmounts(from: events, keyword: .bleed) == [specialCrit ? 15 : 6])
+        let status = events.first { $0.kind == .status && $0.keyword == .bleed }
+        #expect(status?.isCritical == specialCrit)
+        #expect(battle.activeEffects(of: enemy).first?.effect.potency == 4)
+        #expect(battle.activeEffects(of: enemy).first?.remainingTurns == 1)
     }
 }

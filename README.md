@@ -1,10 +1,10 @@
 # Trinket
 
-Portrait-first **iOS 26+** native fantasy turn-based card combat (deckbuilder). Built with **Swift 6**, **SwiftUI**, and **SwiftData** using Apple's 2026 platform APIs. Requires **Xcode 26+**.
+Portrait-first **iOS 26+** native fantasy turn-based card combat (deckbuilder). Built with **Swift 6**, **SwiftUI**, and **SwiftData**. Requires **Xcode 26+**.
 
 ## Player loop
 
-Choose a Journey, Labyrinth, Spire, or encounter from Play; bring a Hero and
+Choose Campaign or Explore from Play; bring a Hero and
 Companion into three-card-hand combat; then carry rewards back into Collection
 loadouts and Homestead upgrades. Collection owns the party's equipment and
 talents, Homestead turns gathered resources into permanent progress, and Options
@@ -37,12 +37,10 @@ Enable git hooks (commit format and push discipline: [Release.md](Docs/Platform/
 git config core.hooksPath .githooks
 ```
 
-Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1 git push` when needed.
-
 ## First Run
 
 ```sh
-./Scripts/generate.sh    # validate manifests, codegen, cached XcodeGen — run before first build
+./Scripts/generate.sh    # validate manifests, generate content and the Xcode project
 ./Scripts/build.sh
 ./Scripts/run-simulator.sh
 ```
@@ -68,6 +66,6 @@ Map and source-of-truth table: [Docs/README.md](Docs/README.md).
 - Verification and testing: [Verification.md](Docs/Platform/Verification.md) and [Testing.md](Docs/Platform/Testing.md)
 - Content and media: [content](ContentManifest/README.md), [art](ArtManifest/README.md), [music](MusicManifest/README.md), [sound](SoundManifest/README.md), and [cinematics](CinematicManifest/README.md)
 - Design system: [TrinketDesignSystem](Packages/TrinketDesignSystem/README.md)
-- Game surfaces: [Overview.md](Docs/Product/Overview.md) — Journey, Labyrinth, Spire, Collection, Homestead
+- Game surfaces: [Overview.md](Docs/Product/Overview.md) — Campaign, Explore, Collection, Homestead
 - Release: [Release.md](Docs/Platform/Release.md)
 - Audits: [Audits](Docs/Audits/README.md)

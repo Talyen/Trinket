@@ -69,8 +69,22 @@ struct TalentModelsTests {
         #expect(!tree.canUnlock(node: foreign, unlockedNodeIDs: [], availablePoints: 1))
     }
 
-    @Test func `row zero and gapped rows stay locked`() {
+    @Test func `eligibility uses the owning trees row for a matching node ID`() {
         let tree = makeSampleTree()
+        let canonical = tree.nodes(forRow: 2)[0]
+        let supplied = TalentNode(
+            id: canonical.id,
+            name: canonical.name,
+            keyword: canonical.keyword,
+            row: 1,
+            description: canonical.description,
+        )
+        #expect(!tree.canUnlock(node: supplied, unlockedNodeIDs: [], availablePoints: 1))
+        let prerequisites = Set(tree.nodes(forRow: 1).map(\.id))
+        #expect(tree.canUnlock(node: supplied, unlockedNodeIDs: prerequisites, availablePoints: 1))
+    }
+
+    @Test func `row zero and gapped rows stay locked`() {
         let rowZero = TalentNode(
             id: "row_zero",
             name: "Row Zero",
@@ -78,6 +92,7 @@ struct TalentModelsTests {
             row: 0,
             description: "Placeholder description for row zero.",
         )
+        let tree = TalentTree(keyword: .poison, nodes: [rowZero])
         #expect(!tree.canUnlock(node: rowZero, unlockedNodeIDs: [], availablePoints: 1))
         #expect(!tree.isRowComplete(0, unlockedNodeIDs: []))
         #expect(!tree.isRowComplete(99, unlockedNodeIDs: []))
@@ -115,7 +130,22 @@ struct TalentModelsTests {
 
         #expect(config.cappedUnlocks(overBudget, budget: 0).isEmpty)
         #expect(config.cappedUnlocks(overBudget, budget: 1) == [poison.nodes[0].id])
+        #expect(config.cappedUnlocks(overBudget, budget: 3) == Set(poison.nodes.prefix(2).map(\.id) + [bleed.nodes[0].id]))
+        #expect(config.cappedUnlocks(overBudget, budget: overBudget.count) == overBudget)
         #expect(config.cappedUnlocks(Set([poison.nodes[0].id]), budget: 1) == [poison.nodes[0].id])
+    }
+
+    @Test(arguments: [1, 5, 8])
+    func `config removes incomplete prerequisite chains at every budget`(budget: Int) {
+        let tree = makeSampleTree()
+        let config = CombatantTalentConfig(combatantID: "rogue", trees: [tree])
+        let selected: Set<String> = [tree.nodes[0].id, tree.nodes[2].id, tree.nodes[3].id, tree.nodes[4].id, "unknown"]
+        let kept = config.cappedUnlocks(selected, budget: budget)
+
+        #expect(kept == [tree.nodes[0].id])
+        #expect(kept.isSubset(of: selected))
+        #expect(kept.count <= budget)
+        #expect(config.cappedUnlocks(kept, budget: budget) == kept)
     }
 
     @Test func `config keeps legal row four talent when capping excess unlocks`() {

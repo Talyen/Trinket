@@ -117,12 +117,20 @@ if (cmd === "remove") {
     process.exit(1);
   }
   const task = slugify(taskRaw);
+  if (!task) {
+    console.error("invalid --task slug");
+    process.exit(1);
+  }
   const worktreePath = path.join(WORKTREE_ROOT, task);
   const branch = `agent/${task}`;
   const force = hasFlag("--force");
 
-  const list = runGit(["worktree", "list", "--porcelain"]);
-  const isRegistered = (list.stdout ?? "").includes(worktreePath);
+  const list = runGit(["worktree", "list", "--porcelain", "-z"]);
+  if (list.status !== 0) {
+    console.error(list.stderr || "Unable to list worktrees; nothing removed.");
+    process.exit(list.status ?? 1);
+  }
+  const isRegistered = (list.stdout ?? "").split("\0").includes(`worktree ${worktreePath}`);
 
   if (isRegistered) {
     const args = ["worktree", "remove", worktreePath];
@@ -131,8 +139,8 @@ if (cmd === "remove") {
     const r = runGit(args, { stdio: "inherit" });
     if (r.status !== 0) process.exit(r.status ?? 1);
   } else if (fs.existsSync(worktreePath)) {
-    console.log(`worktree not registered, removing directory ${worktreePath}`);
-    fs.rmSync(worktreePath, { recursive: true, force: true });
+    console.error(`Refusing to remove unregistered directory: ${worktreePath}`);
+    process.exit(1);
   } else {
     console.log(`no worktree at ${worktreePath}`);
   }

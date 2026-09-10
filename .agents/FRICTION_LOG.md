@@ -19,6 +19,7 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 
 | Date | Area | Resolution (commit / owner link) |
 |------|------|------------------------------------|
+| 2026-09-09 | Documentation drift | Aligned [onboarding](../README.md) and [release guidance](../Docs/Platform/Release.md) with generation and hook behavior; corrected [purchase sessions](../Docs/Platform/Purchases.md), [TestFlight CloudKit testing](../Docs/Platform/CloudKitPreShipChecklist.md#release-engineering-human), [enemy scaling](../ContentManifest/README.md#enemies-contentmanifestenemiestsv), and [artwork-budget guidance](../Docs/Platform/PerformanceInvestigationPlaybook.md#artwork-budgets) against their owners. |
 | 2026-09-08 | UI launch lifecycle | [UI speed guidance](../TrinketUITests/README.md#speed) now states one launch per test: XCTest setup runs before each method, and explicit launches avoid replacing a setup-launched app when arguments differ. |
 | 2026-09-08 | Test portfolio value | [Testing policy](../Docs/Platform/Testing.md#consolidation-and-retirement) now permits justified retirement without replacement; aligned audit/local guidance and removed the [budget advisory](../Scripts/change-budget.sh) that treated absent test-file edits as a coverage signal. |
 | 2026-09-07 | Talent catalog coverage | The [test ownership index](../Packages/TrinketContent/Tests/README.md) described fixed six-node trees despite authored extra rows; it now records the completed minimum of seven nodes per tree. |
@@ -34,7 +35,6 @@ Add a row to `Open` when docs mislead, behavior surprises, or repeated friction 
 | 2026-09-05 | Skills and simulator guidance | Removed fixed-slot capture advice and default-mirror claims; [simulator operations](../Docs/Platform/SimulatorOperations.md) now distinguishes selection from a held lease and documents opt-in mirroring. Simplified skill triggers and [evaluation guidance](evals/README.md) without requiring a promotion log for every edit. |
 | 2026-09-05 | Generation verification | The documented freshness shortcut reported idempotence without comparing regenerated outputs. Removed it and its unused sidecar helpers; [the assertion](../Scripts/assert-generated-output.sh) now always regenerates, with regression fixtures for damaged and unstable outputs. |
 | 2026-09-04 | Agent guidance | Removed conflicting workflow absolutes and duplicate root policy; corrected the coverage decision to permit extending existing tests. See [agent guide](../AGENTS.md), [coverage decision](../Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior), and [verification policy](../Docs/Platform/Verification.md). |
-
 | 2026-09-06 | Audit guidance | [Shared audit policy](../Docs/Audits/README.md) now uses whole-concern scope and impact-based evidence; domain guides distinguish candidate syntax from defects and preserve canonical owners. Removed the cross-audit baseline that could imply unreviewed coverage. |
 
 ## Details

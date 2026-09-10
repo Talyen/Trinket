@@ -275,7 +275,7 @@ struct BattleSpectacleSessionTests {
             ),
         )
         let playAt = secondUltimateAt.addingTimeInterval(5)
-        session.feedback.pruneExpired(at: playAt, notifyPresentation: false)
+        session.feedback.pruneExpired(at: playAt)
         let feedbackBefore = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: secondUltimate.id,

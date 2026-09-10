@@ -97,6 +97,10 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         scaling == .resolved
     }
 
+    var isPeriodic: Bool {
+        kind == .periodic
+    }
+
     var isHealthCost: Bool {
         kind == .healthCost
     }

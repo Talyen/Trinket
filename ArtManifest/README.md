@@ -95,8 +95,9 @@ catalog's estimated RGBA footprint, grouped by art kind and variant, with:
 
 The default full-catalog ceiling is 1024 MiB. Override it while investigating with
 `ART_CATALOG_DECODED_MEMORY_BUDGET_MIB=<MiB>`. Pass `--enforce` to return a failure
-when the generated catalog exceeds the configured ceiling. This bounds centralized
-launch decode work; resident/process diagnostic thresholds and device verification:
+when the generated catalog exceeds the configured ceiling. This is a full-catalog
+sizing check, not a measurement of launch decoding or simultaneous residency;
+resident/process diagnostic thresholds and device verification:
 [MemoryAndEnergyInvestigation.md](../Docs/Platform/MemoryAndEnergyInvestigation.md).
 
 ## Adding Art

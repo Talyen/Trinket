@@ -16,7 +16,7 @@ extension BattleSession {
     ) -> BattleCardPlayResolution {
         guard !requiresLift || cardCues.hasLift(for: cardID) else { return .rejected }
         cancelPendingAutoEnd()
-        feedback.pruneExpired(at: date, notifyPresentation: false)
+        feedback.pruneExpired(at: date)
         guard canAcceptBattleCommands
         else {
             clearCardCues()
@@ -73,7 +73,7 @@ extension BattleSession {
     func endTurn(at date: Date = .now) {
         clearCardCues()
         cancelPendingAutoEnd()
-        feedback.pruneExpired(at: date, notifyPresentation: false)
+        feedback.pruneExpired(at: date)
         guard canEndTurn, hasActiveSimulation, !isSuspendedForScenePhase else {
             feedback.noteItemsChanged()
             return

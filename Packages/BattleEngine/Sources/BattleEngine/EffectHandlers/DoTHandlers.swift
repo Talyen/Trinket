@@ -29,17 +29,11 @@ struct DecayingDoTHandler: BattleEffectHandler {
         updated.effect = Effect.decayingDoT(keyword: keyword, potency: nextPotency)
         ActiveEffectMutation.finishTurn(active, replacement: nextPotency > 0 ? updated : nil, on: target, in: &context)
         if nextPotency > 0 {
-            var tickPotency = nextPotency
-            if keyword == .burn, sourceTriggers?.burnDamageDoubleChancePercent ?? 0 > 0,
-               BattleChance.succeeds(probability: sourceTriggers?.burnDamageDoubleChancePercent ?? 0, using: &context.rng) {
-                tickPotency *= 2
-            }
-            tickPotency = doubledFrozenBurnPotency(tickPotency, sourceTriggers: sourceTriggers, target: target, in: &context)
             let tickCount = (keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true) ? 2 : 1
             var events: [ActionEvent] = []
             for _ in 0 ..< tickCount {
                 let outcome = DoTDamage.resolveTurnDamage(
-                    basePotency: tickPotency,
+                    basePotency: nextPotency,
                     keyword: keyword,
                     target: target,
                     sourceActorID: active.sourceActorID,
@@ -114,20 +108,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
         }
     }
 
-    private func doubledFrozenBurnPotency(
-        _ potency: Int,
-        sourceTriggers: CombatTraitTriggers?,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> Int {
-        guard keyword == .burn,
-              let doubleVsFrozen = sourceTriggers?.burnDoubleVsFrozenChancePercent,
-              doubleVsFrozen > 0, context.roster.hasControlStatus(for: target, keyword: .freeze),
-              BattleChance.succeeds(probability: doubleVsFrozen, using: &context.rng)
-        else { return potency }
-        return potency * 2
-    }
-
     private func poisonPotencyAfterTurn(
         _ active: ActiveEffect,
         sourceTriggers: CombatTraitTriggers?,
@@ -162,16 +142,16 @@ struct BleedHandler: BattleEffectHandler {
             return []
         }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
-        var tickPotency = potency
-        if let sourceTriggers, sourceTriggers.bleedTickCritChancePercent > 0,
-           BattleChance.succeeds(probability: sourceTriggers.bleedTickCritChancePercent, using: &context.rng) {
-            tickPotency *= 2
-        }
+        let isCritical = BattleChance.succeeds(
+            probability: sourceTriggers?.bleedTickCritChancePercent ?? 0,
+            using: &context.rng,
+        )
         let tickOutcome = DoTDamage.resolveTurnDamage(
-            basePotency: tickPotency,
+            basePotency: potency,
             keyword: .bleed,
             target: target,
             sourceActorID: active.sourceActorID,
+            guaranteedCritical: isCritical,
             in: &context,
         )
         var events = tickOutcome.events
