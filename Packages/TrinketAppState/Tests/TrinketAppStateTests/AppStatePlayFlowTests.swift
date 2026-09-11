@@ -241,7 +241,7 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.homestead.pendingProduction[.gold] == 1)
     }
 
-    @Test func `unknown battle route fails closed without granting gold`() throws {
+    @Test func `unregistered battle cannot activate or grant rewards`() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configuration = PlayBattleLaunchTestSupport.make(
@@ -251,72 +251,15 @@ struct AppStatePlayFlowTests {
             companion: state.playerSave.roster.activeCompanion,
             enemy: enemy,
         )
-        _ = state.battle.activate(configuration)
+        #expect(!state.battle.activate(configuration))
         let initialGold = state.playerSave.roster.gold
 
-        let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 10))
+        let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 10)).didComplete
 
         #expect(!didPersist)
-        #expect(state.battle.activeBattle != nil)
+        #expect(state.battle.activeBattle == nil)
         #expect(state.playerSave.roster.gold == initialGold)
     }
-
-    #if DEBUG
-    @Test(arguments: ["persist", "missing-stage", "missing-spire"] as [String])
-    func `complete active battle keeps battle open on failure`(mode: String) throws {
-        switch mode {
-        case "persist":
-            let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
-            let state = try context.makePlaySession(playerSave: playerSave)
-            let stage = try #require(GameContent.chapters[0].stages.first)
-            _ = state.journey.startBattle(for: stage)
-            let configuration = try #require(state.battle.activeBattle)
-
-            playerSave.forcesNextSaveFailure = true
-            let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 0))
-
-            #expect(!didPersist)
-            #expect(state.battle.activeBattle != nil)
-            #expect(state.playerSave.journey.activeStageID == stage.id)
-        case "missing-stage":
-            let state = try context.makePlaySession()
-            let enemy = try #require(GameContent.enemies.first?.combatant)
-            let configuration = PlayBattleLaunchTestSupport.make(
-                origin: .journey(stageID: "missing-stage-bug-hunt-audit"),
-                rngSeed: 0,
-                hero: state.playerSave.roster.activeHero,
-                companion: state.playerSave.roster.activeCompanion,
-                enemy: enemy,
-            )
-            _ = state.battle.activate(configuration)
-            let goldBefore = state.playerSave.roster.gold
-
-            let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 5))
-
-            #expect(!didPersist)
-            #expect(state.battle.activeBattle != nil)
-            #expect(state.playerSave.roster.gold == goldBefore)
-        case "missing-spire":
-            let state = try context.makePlaySession()
-            let enemy = try #require(GameContent.enemies.first?.combatant)
-            let configuration = PlayBattleLaunchTestSupport.make(
-                origin: .spire(spireID: .ironVein, floor: 9999),
-                rngSeed: 0,
-                hero: state.playerSave.roster.activeHero,
-                companion: state.playerSave.roster.activeCompanion,
-                enemy: enemy,
-            )
-            _ = state.battle.activate(configuration)
-
-            let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 5))
-
-            #expect(!didPersist)
-            #expect(state.battle.activeBattle != nil)
-        default:
-            Issue.record("Unexpected failure mode \(mode)")
-        }
-    }
-    #endif
 
     @Test func `unlock all content clears active battle and preserves tab`() throws {
         let state = try context.makeAppState()
@@ -381,7 +324,7 @@ struct AppStatePlayFlowTests {
         #expect(state.spires.startBattle(for: floor) == nil)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 1)))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 1)).didComplete)
         #expect(state.consumePendingDestination() == .spireClimb(.ironVein))
     }
 
@@ -390,7 +333,7 @@ struct AppStatePlayFlowTests {
         var homestead = state.playerSave.homestead
         homestead.nodeTiers[.wishingWell] = 2
         homestead.lastProductionAt = Date()
-        state.playerSave.homestead = homestead
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.homestead = homestead })
 
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
@@ -407,7 +350,7 @@ struct AppStatePlayFlowTests {
         #expect(state.completeActiveBattle(
             configuration,
             battleGold: .init(gained: rawBattleEarnedGold),
-        ))
+        ).didComplete)
         #expect(state.playerSave.roster.gold == initialGold + expectedTotal)
     }
 
@@ -461,9 +404,6 @@ private class RejectingBattleRuntime: BattleRuntime {
     func activatePreparedBattle(
         runKey _: BattleRunKey,
         configurationID _: UUID,
-        heroID _: String,
-        companionID _: String,
-        enemyID _: String?,
     ) -> Bool {
         false
     }
@@ -505,9 +445,6 @@ private final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
     override func activatePreparedBattle(
         runKey _: BattleRunKey,
         configurationID _: UUID,
-        heroID _: String,
-        companionID _: String,
-        enemyID _: String?,
     ) -> Bool {
         guard !shouldRejectActivation, let preparedConfiguration else { return false }
         self.preparedConfiguration = nil

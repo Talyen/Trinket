@@ -4,11 +4,8 @@ import TrinketCore
 
 package extension DamagePipeline {
     static func applyPreparedAttackReduction(to state: inout DamageResolutionState, in context: inout BattleState) {
-        guard state.options.isAttackHit, !state.options.isRetaliation,
-              let action = context.heroTalents.actions.last, action.actorID == state.sourceActorID else { return }
-        let reduction = min(max(0, state.remaining), action.blindingReduction)
-        state.remaining -= reduction
-        context.heroTalents.actions[context.heroTalents.actions.count - 1].blindingReduction -= reduction
+        guard state.options.isAttackHit, !state.options.isRetaliation else { return }
+        state.remaining -= context.resolution.consumeAttackReduction(for: state.sourceActorID, damage: state.remaining)
     }
 
     static func applyDamageBonus(
@@ -16,11 +13,10 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         applyBaseAndScaledDamage(to: &state, in: &context)
-        if state.options.isAttackHit, state.amount > 0,
-           let action = context.heroTalents.actions.last, action.actorID == state.sourceActorID {
-            state.remaining += action.goldDamage
-            state.itemBonus += action.goldDamage
-            context.heroTalents.actions[context.heroTalents.actions.count - 1].goldDamage = 0
+        if state.options.isAttackHit, state.amount > 0 {
+            let bonus = context.resolution.consumeGoldDamage(for: state.sourceActorID)
+            state.remaining += bonus
+            state.itemBonus += bonus
         }
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
@@ -104,29 +100,29 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID),
               let runtime = context.roster.runtime(for: source.combatant)
         else { return }
-        if runtime.pendingDamageDoubleAfterDodge {
+        if runtime.talents.pending.doubleDamageAfterDodge {
             state.remaining *= 2
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingDamageDoubleAfterDodge = false }
+            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.doubleDamageAfterDodge = false }
         }
-        if runtime.pendingCardDamageBonus > 0 {
-            state.remaining += runtime.pendingCardDamageBonus
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingCardDamageBonus = 0 }
+        if runtime.talents.pending.cardDamageBonus > 0 {
+            state.remaining += runtime.talents.pending.cardDamageBonus
+            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.cardDamageBonus = 0 }
         }
-        if runtime.pendingCardDamagePercent > 0 {
+        if runtime.talents.pending.cardDamagePercent > 0 {
             state.remaining = CombatRounding.scaled(
                 state.remaining,
-                multiplier: 1 + runtime.pendingCardDamagePercent,
+                multiplier: 1 + runtime.talents.pending.cardDamagePercent,
             )
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingCardDamagePercent = 0 }
+            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.cardDamagePercent = 0 }
         }
-        if runtime.pendingDamageAfterDodge > 0 {
-            state.remaining += runtime.pendingDamageAfterDodge
-            context.roster.mutateRuntime(for: source.combatant) { $0.pendingDamageAfterDodge = 0 }
+        if runtime.talents.pending.damageAfterDodge > 0 {
+            state.remaining += runtime.talents.pending.damageAfterDodge
+            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.damageAfterDodge = 0 }
         }
-        if runtime.talentDamagePercentBonus > 0, context.turnCount < runtime.talentDamagePercentUntilTurn {
+        if runtime.talents.timed.damage.amount > 0, context.turnCount < runtime.talents.timed.damage.expiresAtTurn {
             state.remaining = CombatRounding.scaled(
                 state.remaining,
-                multiplier: 1 + runtime.talentDamagePercentBonus,
+                multiplier: 1 + runtime.talents.timed.damage.amount,
             )
         }
     }
@@ -263,11 +259,9 @@ package extension DamagePipeline {
         guard state.options.isAttackHit, let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID) else { return }
         context.roster.mutateRuntime(for: source.combatant) { runtime in
-            state.pendingAttackBonus = runtime.pendingNextHitBonus + runtime.pendingAttackBonusOnFullHealth + runtime.permanentDamageBonus
-            state.pendingHolyBonus = runtime.pendingNextAttackHolyBonus
-            runtime.pendingNextHitBonus = 0
-            runtime.pendingAttackBonusOnFullHealth = 0
-            runtime.pendingNextAttackHolyBonus = 0
+            let bonuses = runtime.talents.pending.reserveAttackBonuses()
+            state.pendingAttackBonus = bonuses.damage + runtime.talents.battle.damageBonus
+            state.pendingHolyBonus = bonuses.holy
         }
     }
 
@@ -348,9 +342,9 @@ package extension DamagePipeline {
             }
         }
         if let source = context.roster.combatant(for: sourceActorID) {
-            bonus += context.roster.runtime(for: source.combatant)?.keywordDamageRamp[keyword, default: 0] ?? 0
+            bonus += context.roster.runtime(for: source.combatant)?.talents.battle.keywordDamageRamp[keyword, default: 0] ?? 0
             if let sharedKeyword {
-                bonus += context.roster.runtime(for: source.combatant)?.keywordDamageRamp[sharedKeyword, default: 0] ?? 0
+                bonus += context.roster.runtime(for: source.combatant)?.talents.battle.keywordDamageRamp[sharedKeyword, default: 0] ?? 0
             }
         }
         return bonus
@@ -434,7 +428,7 @@ package extension DamagePipeline {
         var multiplier = 2.0
         if let sourceActorID,
            let source = context.roster.combatant(for: sourceActorID) {
-            multiplier += context.roster.runtime(for: source.combatant)?.talentCritMultiplierBonus ?? 0
+            multiplier += context.roster.runtime(for: source.combatant)?.talents.battle.criticalMultiplierBonus ?? 0
         }
         return multiplier
     }
@@ -482,7 +476,7 @@ package extension DamagePipeline {
             remaining = max(0, remaining - effectiveReduction(runtime.currentMana / defenderTriggers.damageReductionPerUnspentManaEvery))
         }
 
-        let flatReductionBonus = context.roster.runtime(for: state.combatant)?.flatDamageReductionBonus ?? 0
+        let flatReductionBonus = context.roster.runtime(for: state.combatant)?.talents.battle.flatDamageReductionBonus ?? 0
         if flatReductionBonus > 0 {
             remaining = max(0, remaining - effectiveReduction(flatReductionBonus))
         }

@@ -27,7 +27,7 @@ package extension DamagePipeline {
         }
         let profile = context.modifiers(for: state.combatant.id)
         let autoDodge = profile.triggers.autoDodgeAfterFirstHitPerTurn
-            && (context.roster.runtime(for: state.combatant)?.hasTakenAttackHitThisTurn ?? false)
+            && (context.roster.runtime(for: state.combatant)?.talents.turn.tookAttackHit ?? false)
         if DefensePoolEngine.shouldIgnoreDodge(
             keyword: state.damageKeyword,
             sourceActorID: state.sourceActorID,
@@ -110,8 +110,8 @@ package extension DamagePipeline {
         if let owner = context.roster.participant(for: combatant) {
             chance += context.uniques.owners[owner]?.wrenflightDodge ?? 0
         }
-        chance += context.roster.runtime(for: combatant)?.bonusDodgeUntilNextTurn ?? 0
-        if context.roster.runtime(for: combatant)?.subzeroMistActive == true { chance += 0.20 }
+        chance += context.roster.runtime(for: combatant)?.talents.timed.dodge.amount ?? 0
+        if context.roster.runtime(for: combatant)?.talents.turn.subzeroMistActive == true { chance += 0.20 }
         if context.roster.isDeathsDoorActive(for: combatant),
            profile.triggers.deathsDoorDodgeAndDebuffImmunity {
             chance += 0.5
@@ -158,10 +158,10 @@ package extension DamagePipeline {
         }
         var abilityBonus = state.options.abilityCriticalChanceBonus
         if actor.role != .enemy, state.options.isAttackHit, state.options.isBasicAttackHit,
-           let pendingBonus = context.roster.runtime(for: actor.combatant)?.pendingBasicCritBonus,
+           let pendingBonus = context.roster.runtime(for: actor.combatant)?.talents.pending.basicCriticalBonus,
            pendingBonus > 0 {
             abilityBonus += pendingBonus
-            context.roster.mutateRuntime(for: actor.combatant) { $0.pendingBasicCritBonus = 0 }
+            context.roster.mutateRuntime(for: actor.combatant) { $0.talents.pending.basicCriticalBonus = 0 }
         }
         if resolveGuaranteedCrit(to: &state, actor: actor, in: &context) {
             return
@@ -203,21 +203,21 @@ package extension DamagePipeline {
         if actor.role != .enemy, state.options.isAttackHit {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
-                guard member.isAlive, member.pendingGuaranteedCriticalAfterDodge,
+                guard member.isAlive, member.talents.pending.guaranteedCriticalAfterDodge,
                       member.id == sourceActorID
                         || context.modifiers(for: member.id).triggers.onDodgeNextPartyHitGuaranteedCritical
                 else { continue }
                 context.roster.mutateRuntime(for: member.combatant) {
-                    $0.pendingGuaranteedCriticalAfterDodge = false
+                    $0.talents.pending.guaranteedCriticalAfterDodge = false
                 }
                 guaranteed = true
             }
         }
         if actor.role != .enemy,
            state.options.isAttackHit, state.options.isBasicAttackHit,
-           context.roster.runtime(for: actor.combatant)?.pendingBasicGuaranteedCrit == true {
+           context.roster.runtime(for: actor.combatant)?.talents.pending.basicGuaranteedCritical == true {
             context.roster.mutateRuntime(for: actor.combatant) {
-                $0.pendingBasicGuaranteedCrit = false
+                $0.talents.pending.basicGuaranteedCritical = false
             }
             guaranteed = true
         }

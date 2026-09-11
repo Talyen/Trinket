@@ -7,7 +7,7 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | SwiftData graph / hub | `PlayerSaveStoreTests` | Root creation, reset, seed, relaunch, independent records, snapshot validation, deferred flush |
-| Schema migration | `PlayerSaveSchemaMigrationTests` | Lightweight migration when an entity is removed |
+| Save schema | `PlayerSaveStoreTests` | Current-schema reload and rejection of unsupported development saves without replacement |
 | Store cleanup / duplicate roots | `PlayerSaveStoreCleanupTests` | Sidecar wipe, `resetState`, newest-primary repair |
 | Graph identity | `PlayerSaveGraphIdentityTests` | Persistent IDs survive in-place updates |
 | Graph repair | `PlayerSaveGraphRepairTests` | Duplicate/orphan row repair on load |
@@ -15,7 +15,7 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Slice-scoped sanitize | `PlayerSaveSliceSanitizerTests` | Scoped vs full sanitize; persist-target expansion |
 | Sanitizer (in-memory) | `PlayerSaveSanitizerTests` | Inventory, roster, journey, homestead, talents, progressions |
 | World seed | `PlayerSaveWorldSeedTests` | Assign-once seed; labyrinth backfill |
-| Starter selection | `StarterSelectionTests` | Draft/complete reload; schema grandfathering |
+| Starter selection | `StarterSelectionTests` | Draft/complete reload and invalid-draft repair |
 | Homestead store API | `PlayerHomesteadStoreTests` | `buildOrUpgradeNode` / `collectProduction` through the hub |
 | Homestead math | `HomesteadStateTests` | Build costs, production settlement (no store I/O) |
 | Roster / inventory state | `PlayerRosterStateTests` | Loadouts, equipment, gold, equipped-item lookup |
@@ -34,10 +34,9 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Salvage | `ItemSalvageApplierTests` | Yields, unequip, trinket/unique ineligibility, one reload |
 | Corruption | `ItemCorruptionTests` | Affix rules, eligibility, one reload |
 | Spires progress | `SpiresProgressTests` | Floor unlock/clear; XP override |
-| Slice reload proofs | `SlicesReloadTests` | Spire clamp, ability loadouts, legacy companion armor |
+| Slice reload proofs | `SlicesReloadTests` | Spire clamp, ability loadouts, invalid companion equipment |
 | Labyrinth map / completion | `LabyrinthProgressTests` | Generation, clear, sanitize, completion, map+run-health reload |
 | Labyrinth encounter level | `StageRewardEncounterLevelTests` | Loot/XP at overridden levels (pure; durable proof via slice reloads) |
-| Labyrinth migration | `LabyrinthMigrationTests` | Map version ID migration |
-| Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Preserve the stored blob during load/sanitize; rebuild the map when the player enters |
+| Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Rebuild unreadable maps with the saved seed and retain the repaired map across reload |
 
 Harnesses: `Support/PersistenceTestContext.swift` (fresh temp dir per test) and `TrinketPersistenceTestSupport.SaveTestSupport` (`writeRoot`, `makeSave`, `makeSideContext`, `makeGeneratedItem`, store factory).

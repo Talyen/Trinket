@@ -63,56 +63,6 @@ struct LabyrinthProgressTests {
         }
     }
 
-    @Test func `sanitize migrates legacy floor layout gate and modifiers`() throws {
-        let generated = LabyrinthGenerator.makeMap(seed: 9, floorCount: 3)
-        var legacy = PlayerLabyrinthState(
-            worldSeed: 9,
-            mapVersion: 2,
-            hasEntered: true,
-            clusters: generated.clusters,
-            nodes: generated.nodes,
-        )
-        let thirdFloor = try #require(legacy.clusters.first { $0.depthBand == 3 })
-        let clearedID = try #require(thirdFloor.nodeIDs.first)
-        var cleared = try #require(legacy.nodes[clearedID])
-        cleared.isCleared = true
-        legacy.nodes[clearedID] = LabyrinthNode(
-            id: cleared.id,
-            type: cleared.type,
-            enemyID: cleared.enemyID,
-            depth: cleared.depth,
-            clusterID: cleared.clusterID,
-            gridPosition: LabyrinthGridPosition(row: 99, column: 99),
-            modifierIDs: [LabyrinthModifierID("bossMark"), LabyrinthModifierID("ironPressure")],
-            recruitEventID: cleared.recruitEventID,
-            outgoingIDs: cleared.outgoingIDs,
-            isCleared: true,
-            isRevealed: true,
-        )
-
-        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
-        let migrated = try #require(sanitized.nodes[clearedID])
-        #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
-        #expect(migrated.isCleared)
-        #expect(migrated.gridPosition != LabyrinthGridPosition(row: 99, column: 99))
-        #expect(migrated.modifierIDs.count <= 1)
-        #expect(migrated.modifierIDs.first?.rawValue != "bossMark")
-        for floor in 1 ... 2 {
-            let cluster = try #require(sanitized.clusters.first { $0.depthBand == floor })
-            let entryID = try #require(cluster.nodeIDs.first)
-            let bossID = try #require(cluster.nodeIDs.last)
-            #expect(sanitized.nodes[bossID]?.isCleared == true)
-            #expect(
-                hasClearedAdjacentPath(
-                    from: entryID,
-                    to: bossID,
-                    nodeIDs: cluster.nodeIDs,
-                    state: sanitized,
-                ),
-            )
-        }
-    }
-
     @Test @MainActor func `labyrinth persists through store`() throws {
         let context = try PersistenceTestContext()
 
@@ -121,7 +71,7 @@ struct LabyrinthProgressTests {
         progress.ensureMap(seed: 55)
         let firstReachable = try #require(progress.reachableNodeIDs().first)
         progress.markCleared(nodeID: firstReachable)
-        first.labyrinth = progress
+        try first.performBatchMutation { $0.labyrinth = progress }
 
         let second = try context.makeReloadedStore()
         #expect(second.labyrinth.hasMap)
@@ -317,30 +267,6 @@ struct LabyrinthProgressTests {
     }
 }
 
-private extension LabyrinthProgressTests {
-    func hasClearedAdjacentPath(
-        from sourceID: String,
-        to targetID: String,
-        nodeIDs: [String],
-        state: PlayerLabyrinthState,
-    ) -> Bool {
-        var reached = Set([sourceID])
-        var frontier = [sourceID]
-        while let nodeID = frontier.popLast() {
-            guard let source = state.nodes[nodeID] else { continue }
-            for candidateID in nodeIDs where !reached.contains(candidateID) {
-                guard let candidate = state.nodes[candidateID],
-                      candidate.isCleared,
-                      source.isAdjacent(to: candidate)
-                else { continue }
-                reached.insert(candidateID)
-                frontier.append(candidateID)
-            }
-        }
-        return reached.contains(targetID)
-    }
-}
-
 extension LabyrinthProgressTests {
     @Test func `cleared hex makes adjacent neighbors reachable`() {
         let center = LabyrinthNode(
@@ -422,33 +348,32 @@ extension LabyrinthProgressTests {
         #expect(!model.toPlayerLabyrinthState().isMapPayloadUnreadable)
     }
 
-    @Test func `sanitize preserves pinned mystery on map version bump`() throws {
+    @Test func `sanitize preserves current map progress and pinned mystery`() throws {
         let generated = LabyrinthGenerator.makeMap(seed: 9, floorCount: 3)
-        var legacy = PlayerLabyrinthState(
+        var original = PlayerLabyrinthState(
             worldSeed: 9,
-            mapVersion: 2,
             hasEntered: true,
             clusters: generated.clusters,
             nodes: generated.nodes,
         )
-        let currentFloor = try #require(legacy.clusters.map(\.depthBand).max())
+        let currentFloor = try #require(original.clusters.map(\.depthBand).max())
         let mysteryID = try #require(
-            legacy.nodes.values.first {
-                $0.type.canonical == .mystery && $0.depth == currentFloor
+            original.nodes.values.first {
+                $0.type == .mystery && $0.depth == currentFloor
             }?.id,
         )
-        var mystery = try #require(legacy.nodes[mysteryID])
+        var mystery = try #require(original.nodes[mysteryID])
         mystery.mysteryEventID = "hidden-cache"
         mystery.mysteryOffersPayload = Data("pending-offer-snapshot".utf8)
         mystery.isRevealed = true
-        legacy.nodes[mysteryID] = mystery
+        original.nodes[mysteryID] = mystery
 
-        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
-        let migrated = try #require(sanitized.nodes[mysteryID])
-        #expect(migrated.mysteryEventID == "hidden-cache")
-        #expect(migrated.mysteryOffersPayload == mystery.mysteryOffersPayload)
-        #expect(migrated.isRevealed)
-        #expect(!migrated.isCleared)
+        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(original)
+        let preserved = try #require(sanitized.nodes[mysteryID])
+        #expect(preserved.mysteryEventID == "hidden-cache")
+        #expect(preserved.mysteryOffersPayload == mystery.mysteryOffersPayload)
+        #expect(preserved.isRevealed)
+        #expect(!preserved.isCleared)
         #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
     }
 

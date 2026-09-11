@@ -59,21 +59,11 @@ struct CombatFeedbackMotionTests {
         #expect(fullProgress == 1.0)
     }
 
-    @Test func `chip pop scale and opacity phases`() {
+    @Test func `chip pop scale phases`() {
         #expect(BattleMotion.chipScale(elapsed: 0) == BattleMotion.chipPopStartScale)
         #expect(
             abs(BattleMotion.chipScale(elapsed: BattleMotion.chipPopPeakTime) - BattleMotion
                 .chipPopOvershootScale) < 0.001,
         )
-        #expect(BattleMotion.chipOpacity(elapsed: 0) == 1.0)
-        #expect(BattleMotion.chipOpacity(elapsed: BattleMotion.chipDisplayDuration) == 0.0)
-    }
-
-    @Test func `chip travel distance clamps to safe bounds`() {
-        let cardHeight: CGFloat = 200
-        let chipHeight: CGFloat = 30
-        let distance = BattleMotion.chipTravelDistance(cardHeight: cardHeight, chipHeight: chipHeight)
-        #expect(distance > 0)
-        #expect(distance <= (cardHeight / 2 - chipHeight / 2 - BattleMotion.chipTopClearance))
     }
 }

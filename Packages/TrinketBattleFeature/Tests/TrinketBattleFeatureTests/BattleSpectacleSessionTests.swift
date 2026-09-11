@@ -17,6 +17,7 @@ struct BattleSpectacleSessionTests {
             role: .hero,
             abilities: [.bloodthorn],
         )
+        var deliveryCount = 0
         let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
@@ -27,11 +28,11 @@ struct BattleSpectacleSessionTests {
                 abilities: [],
             ),
             stageRewardsAlreadyClaimed: alreadyClaimed,
+            completeVictory: { _, _, _ in
+                deliveryCount += 1
+                return .completed
+            },
         )
-        var deliveryCount = 0
-        session.installClaimedVictoryHandler(ownerID: UUID()) { _, _ in
-            deliveryCount += 1
-        }
         let now = Date()
         _ = BattleSessionTestSupport.playAbility(
             Ability.bloodthorn.id,

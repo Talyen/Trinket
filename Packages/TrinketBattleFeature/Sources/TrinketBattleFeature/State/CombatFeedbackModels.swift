@@ -26,6 +26,10 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     var expiresAt: Date
     let reactionKind: CombatantHitReactionKind
     var firstScheduledAt: Date
+    var lastUpdatedAt: Date?
+    var retiringAt: Date?
+    var isCritical: Bool
+    var criticalAt: Date?
 
     init(
         id: Int,
@@ -43,6 +47,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         expiresAt: Date,
         reactionKind: CombatantHitReactionKind,
         firstScheduledAt: Date? = nil,
+        isCritical: Bool = false,
     ) {
         self.id = id
         self.sourceEventIDs = sourceEventIDs
@@ -59,6 +64,8 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         self.expiresAt = expiresAt
         self.reactionKind = reactionKind
         self.firstScheduledAt = firstScheduledAt ?? availableAt
+        self.isCritical = isCritical
+        criticalAt = isCritical ? availableAt : nil
     }
 
     var text: String {

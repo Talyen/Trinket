@@ -192,8 +192,8 @@ public extension GameContent {
         recruitEncounterArtReference(for: recruitEncounterRole(forEventID: eventID))
     }
 
-    static func recruitEncounterSymbolName(forEventID eventID: String?) -> String {
-        recruitEncounterSymbolName(for: recruitEncounterRole(forEventID: eventID))
+    static func recruitEncounterIconID(forEventID eventID: String?) -> String {
+        recruitEncounterIconID(for: recruitEncounterRole(forEventID: eventID))
     }
 
     private static func recruitEncounterRole(forEventID eventID: String?) -> Combatant.Role {
@@ -210,12 +210,12 @@ public extension GameContent {
         return combatant.role
     }
 
-    static func recruitEncounterSymbolName(for role: Combatant.Role) -> String {
+    static func recruitEncounterIconID(for role: Combatant.Role) -> String {
         switch role {
         case .companion:
-            StageTypeSymbol.recruitCompanion
+            StageTypeIconID.recruitCompanion
         case .hero, .enemy:
-            StageTypeSymbol.recruitHero
+            StageTypeIconID.recruitHero
         }
     }
 }

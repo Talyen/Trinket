@@ -4,6 +4,20 @@ import UIKit
 @testable import TrinketDesignSystem
 
 struct DesignAssetCatalogTests {
+    @Test func `bundled lucide assets resolve`() throws {
+        struct Provenance: Decodable {
+            let icons: [String: String]
+        }
+
+        let url = try #require(Bundle.module.url(forResource: "LucideProvenance", withExtension: "json"))
+        let provenance = try JSONDecoder().decode(Provenance.self, from: Data(contentsOf: url))
+        #expect(!provenance.icons.isEmpty)
+        for name in provenance.icons.keys {
+            let image = try #require(UIImage(named: "lucide-\(name)", in: .module, compatibleWith: nil))
+            #expect(image.size.width > 0 && image.size.height > 0, "Empty Lucide asset: \(name)")
+        }
+    }
+
     @Test(arguments: DesignAssetColors.allCatalogAssetNames)
     func `catalog color resolves in dark and light modes`(assetName: String) throws {
         let darkTraits = UITraitCollection(userInterfaceStyle: .dark)

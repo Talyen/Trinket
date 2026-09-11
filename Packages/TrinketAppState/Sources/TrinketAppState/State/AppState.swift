@@ -37,6 +37,7 @@ public final class AppState {
         playerSave: PlayerSaveStore? = nil,
         userDefaults: UserDefaults? = nil,
         makeBattleRuntime: ((BattleRuntimeDependencies) -> any BattleRuntime)? = nil,
+        configureBattleRuntime: ((any BattleRuntime, PlaySession) -> Void)? = nil,
     ) throws {
         self.environment = environment
         let resolvedDefaults = userDefaults ?? .standard
@@ -67,6 +68,7 @@ public final class AppState {
             pendingDestination: dependencies.pendingPlayDestination,
             battlePerformanceScenario: environment.battlePerformanceScenario,
         )
+        configureBattleRuntime?(resolvedBattle, play)
         finishBootstrap(environment: environment)
     }
 

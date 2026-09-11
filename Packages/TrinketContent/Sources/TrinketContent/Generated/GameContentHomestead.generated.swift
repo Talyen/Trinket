@@ -10,7 +10,7 @@ enum GameContentHomesteadGenerated {
             id: .wheatField,
             title: "Wheat Field",
             summary: "A first field that turns quiet earth into dependable stores.",
-            symbolName: "leaf.fill",
+            iconID: "lucide:wheat",
             category: .farming,
             prerequisites: [],
             tiers: [
@@ -64,7 +64,7 @@ enum GameContentHomesteadGenerated {
             id: .herbGarden,
             title: "Herb Garden",
             summary: "A small medicinal garden for tonics, reagents, and green magic.",
-            symbolName: "leaf.fill",
+            iconID: "lucide:sprout",
             category: .farming,
             prerequisites: [],
             tiers: [
@@ -118,7 +118,7 @@ enum GameContentHomesteadGenerated {
             id: .chickenCoop,
             title: "Chicken Coop",
             summary: "A lively coop that keeps simple supplies moving between runs.",
-            symbolName: "bird.fill",
+            iconID: "lucide:bird",
             category: .farming,
             prerequisites: [HomesteadNodeRequirement(.wheatField)],
             tiers: [
@@ -172,7 +172,7 @@ enum GameContentHomesteadGenerated {
             id: .pasture,
             title: "Pasture",
             summary: "Open grazing land for larger stores and slower, stronger support.",
-            symbolName: "mountain.2.fill",
+            iconID: "lucide:fence",
             category: .farming,
             prerequisites: [HomesteadNodeRequirement(.wheatField)],
             tiers: [
@@ -226,7 +226,7 @@ enum GameContentHomesteadGenerated {
             id: .culinaryArts,
             title: "Culinary Arts",
             summary: "A warm kitchen that turns the harvest into lasting strength.",
-            symbolName: "frying.pan.fill",
+            iconID: "lucide:cooking-pot",
             category: .crafting,
             prerequisites: [HomesteadNodeRequirement(.wheatField), HomesteadNodeRequirement(.herbGarden)],
             tiers: [
@@ -280,7 +280,7 @@ enum GameContentHomesteadGenerated {
             id: .blacksmithForge,
             title: "Blacksmith",
             summary: "A working forge for hardware, weapons, and stronger construction.",
-            symbolName: "hammer.fill",
+            iconID: "lucide:anvil",
             category: .crafting,
             prerequisites: [HomesteadNodeRequirement(.pasture), HomesteadNodeRequirement(.culinaryArts)],
             tiers: [
@@ -330,7 +330,7 @@ enum GameContentHomesteadGenerated {
             id: .woolTailoring,
             title: "Wool Tailoring",
             summary: "A loom shop that weaves padded wraps against winter chill.",
-            symbolName: "scissors",
+            iconID: "lucide:scissors",
             category: .crafting,
             prerequisites: [HomesteadNodeRequirement(.blacksmithForge)],
             tiers: [
@@ -380,7 +380,7 @@ enum GameContentHomesteadGenerated {
             id: .alchemyLab,
             title: "Alchemy Lab",
             summary: "A precise workspace for reagents, tonics, and restorative experiments.",
-            symbolName: "testtube.2",
+            iconID: "lucide:flask-conical",
             category: .alchemy,
             prerequisites: [HomesteadNodeRequirement(.herbGarden, tier: 2)],
             tiers: [
@@ -430,7 +430,7 @@ enum GameContentHomesteadGenerated {
             id: .crystalGarden,
             title: "Crystal Garden",
             summary: "A luminous garden where rare formations grow around quiet magic.",
-            symbolName: "sparkles",
+            iconID: "lucide:gem",
             category: .alchemy,
             prerequisites: [HomesteadNodeRequirement(.alchemyLab)],
             tiers: [
@@ -484,7 +484,7 @@ enum GameContentHomesteadGenerated {
             id: .runesmithWorkshop,
             title: "Runesmith",
             summary: "A careful workshop where metalwork and crystal study meet.",
-            symbolName: "wand.and.sparkles",
+            iconID: "lucide:wand-sparkles",
             category: .crafting,
             prerequisites: [HomesteadNodeRequirement(.blacksmithForge, tier: 2), HomesteadNodeRequirement(.crystalGarden)],
             tiers: [
@@ -534,7 +534,7 @@ enum GameContentHomesteadGenerated {
             id: .hunterLodge,
             title: "Hunter's Lodge",
             summary: "A trail lodge for companion drills and field craft.",
-            symbolName: "scope",
+            iconID: "lucide:bow-arrow",
             category: .training,
             prerequisites: [HomesteadNodeRequirement(.blacksmithForge), HomesteadNodeRequirement(.pasture)],
             tiers: [
@@ -588,7 +588,7 @@ enum GameContentHomesteadGenerated {
             id: .agilityTraining,
             title: "Agility Training",
             summary: "A practice yard that sharpens companion footwork and reflexes.",
-            symbolName: "figure.run",
+            iconID: "lucide:footprints",
             category: .training,
             prerequisites: [HomesteadNodeRequirement(.hunterLodge)],
             tiers: [
@@ -638,7 +638,7 @@ enum GameContentHomesteadGenerated {
             id: .moonlitSanctum,
             title: "Moonlit Sanctum",
             summary: "A quiet sanctum for sensing rare finds and unnatural threats.",
-            symbolName: "sparkle.magnifyingglass",
+            iconID: "lucide:moon-star",
             category: .arcana,
             prerequisites: [HomesteadNodeRequirement(.crystalGarden)],
             tiers: [
@@ -688,7 +688,7 @@ enum GameContentHomesteadGenerated {
             id: .wishingWell,
             title: "Wishing Well",
             summary: "A quiet landmark for late goals, rare finds, and lucky returns.",
-            symbolName: "drop.circle.fill",
+            iconID: "lucide:droplets",
             category: .arcana,
             prerequisites: [HomesteadNodeRequirement(.runesmithWorkshop), HomesteadNodeRequirement(.moonlitSanctum), HomesteadNodeRequirement(.agilityTraining)],
             tiers: [

@@ -33,6 +33,7 @@ package extension BattleState {
             amount: granted,
             keyword: .gold,
             isCritical: critical,
+            origin: isDirectCardGain ? .direct : .automatic,
         )]
         if isTheft, granted > 0 {
             events.append(contentsOf: CombatTriggerEngine.afterGoldTheft(by: combatant, in: &self))

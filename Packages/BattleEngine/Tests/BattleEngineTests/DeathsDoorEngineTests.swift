@@ -218,7 +218,7 @@ struct DeathsDoorEngineTests {
 
         #expect(battle.roster.hero.currentHealth == 1)
         #expect(battle.roster.companion.currentHealth == 1)
-        #expect(battle.roster.companion.talentDamagePercentBonus == 0)
+        #expect(battle.roster.companion.talents.timed.damage.amount == 0)
         #expect(!entryEvents.contains { $0.abilityName == "Afterglow" })
 
         var expiryEvents: [ActionEvent] = []
@@ -229,8 +229,8 @@ struct DeathsDoorEngineTests {
         #expect(!battle.roster.isDeathsDoorActive(for: companion))
         #expect(battle.roster.hero.currentHealth == 1 + CombatRounding.scaled(battle.roster.hero.maxHealth, multiplier: 0.15))
         #expect(battle.roster.companion.currentHealth == 1 + CombatRounding.scaled(battle.roster.companion.maxHealth, multiplier: 0.15))
-        #expect(battle.roster.companion.talentDamagePercentBonus == 0.5)
-        #expect(battle.roster.companion.talentDamagePercentUntilTurn == battle.turnCount + 3)
+        #expect(battle.roster.companion.talents.timed.damage.amount == 0.5)
+        #expect(battle.roster.companion.talents.timed.damage.expiresAtTurn == battle.turnCount + 3)
         #expect(expiryEvents.contains { $0.abilityName == "Afterglow" })
     }
 

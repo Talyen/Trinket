@@ -29,7 +29,7 @@ struct PostBattleTalentChoiceTests {
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
 
         let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
@@ -54,7 +54,7 @@ struct PostBattleTalentChoiceTests {
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
 
         let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
@@ -78,7 +78,7 @@ struct PostBattleTalentChoiceTests {
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(state.playerSave.roster.progression(for: hero).level >= 4)
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 2)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
@@ -108,7 +108,7 @@ struct PostBattleTalentChoiceTests {
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 1)
         #expect(state.currentPostBattleTalentCombatantID == nil)
     }
@@ -130,7 +130,7 @@ struct PostBattleTalentChoiceTests {
         let configuration = try #require(state.battle.activeBattle)
         playerSave.forcesNextSaveFailure = true
 
-        #expect(!state.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
+        #expect(!state.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(state.currentPostBattleTalentCombatantID == nil)
     }
     #endif
@@ -149,7 +149,7 @@ struct PostBattleTalentChoiceTests {
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         #expect(state.isGameplayActive)
 

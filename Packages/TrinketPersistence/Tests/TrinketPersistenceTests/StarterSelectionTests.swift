@@ -32,14 +32,6 @@ struct StarterSelectionTests {
         ])
     }
 
-    @Test func `pre starter selection save is grandfathered past onboarding`() {
-        let root = PlayerSaveRoot(save: .fresh)
-        root.schemaVersion = 15
-        root.starterSelectionPhaseRawValue = StarterSelectionPhase.chooseHero.rawValue
-
-        #expect(root.toPlayerSave().starterSelection == .complete)
-    }
-
     @Test @MainActor func `invalid drafts normalize and completed selection cannot reopen`() throws {
         let context = try PersistenceTestContext()
         #expect(StarterSelectionState(phase: .chooseCompanion) == .fresh)

@@ -286,8 +286,8 @@ struct LabyrinthNodeArtwork: View {
     let resolvedMysteryEvent: MysteryEvent?
     var style: Style = .inspector
 
-    private var symbolName: String {
-        LabyrinthMapPresentation.symbolName(
+    private var icon: GameIcon {
+        LabyrinthMapPresentation.icon(
             for: type,
             recruitEventID: node.recruitEventID,
         )
@@ -319,7 +319,7 @@ struct LabyrinthNodeArtwork: View {
                 combatant: enemy.combatant,
                 variant: prefersThumbnail ? .card : .battle,
             )
-        } else if type.canonical == .recruit,
+        } else if type == .recruit,
                   let art = LabyrinthMapPresentation.recruitEncounterArtReference(
                       for: node,
                       worldSeed: playerSave.worldSeed,
@@ -349,7 +349,7 @@ struct LabyrinthNodeArtwork: View {
            let enemy = GameContent.enemy(matching: enemyID),
            let art = enemy.combatant.artReference {
             combatFocal(art)
-        } else if type.canonical == .recruit,
+        } else if type == .recruit,
                   let art = LabyrinthMapPresentation.recruitEncounterArtReference(
                       for: node,
                       worldSeed: playerSave.worldSeed,
@@ -404,7 +404,7 @@ struct LabyrinthNodeArtwork: View {
     private var fallbackSymbol: some View {
         ZStack {
             LabyrinthMapPresentation.tint(for: type).opacity(0.16)
-            Image(systemName: symbolName)
+            GameIconImage(icon)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
                 .symbolRenderingMode(.hierarchical)

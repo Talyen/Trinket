@@ -7,10 +7,6 @@ final class AppPerformanceUITests: TrinketUITestCase {
     }
 
     private static let samplerWarmup: TimeInterval = 0.85
-    private static let reportSettleTimeout: TimeInterval = 12
-    private static var minimumCapturedSamples: Int {
-        isQuick ? 60 : 90
-    }
 
     private static var isQuick: Bool {
         ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1"
@@ -21,6 +17,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         return max(1, Int(raw) ?? 1)
     }
 
+    @MainActor
     func test00ColdLaunchToPlay() {
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
@@ -28,6 +25,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         }
     }
 
+    @MainActor
     func test01TabRoundTrip() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
@@ -49,6 +47,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         }
     }
 
+    @MainActor
     func test02CollectionNavigation() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
@@ -68,6 +67,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         }
     }
 
+    @MainActor
     func test03HomesteadDetailTransition() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
@@ -92,6 +92,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         }
     }
 
+    @MainActor
     func test04CampaignStageSelectTransition() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
@@ -118,6 +119,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         }
     }
 
+    @MainActor
     func test05StageEnemyDetailTransition() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
@@ -138,6 +140,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         }
     }
 
+    @MainActor
     func test06StageSelectBattleStart() {
         for iteration in 1 ... repetitionCount {
             let arguments = TestLaunchArg.replacingBattleTickInterval(
@@ -170,6 +173,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         RunLoop.current.run(until: Date().addingTimeInterval(0.7))
     }
 
+    @MainActor
     private func runOnce(scenario: String, iteration: Int, action: () -> Void) {
         let reset = app.buttons[AccessibilityID.Debug.frameMetricsReset]
         XCTAssertTrue(reset.trinketWaitForExistence(timeout: Self.defaultTimeout))
@@ -184,32 +188,8 @@ final class AppPerformanceUITests: TrinketUITestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(remaining))
         }
 
-        let settled = NSPredicate { _, _ in
-            let live = self.app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
-            guard let payload = live.value as? String,
-                  let report = FramePacingReport.parseAccessibilityValue(payload)
-            else { return false }
-            return report.sampleCount >= Self.minimumCapturedSamples
-        }
-        XCTAssertEqual(
-            XCTWaiter().wait(
-                for: [XCTNSPredicateExpectation(predicate: settled, object: metrics)],
-                timeout: Self.reportSettleTimeout,
-            ),
-            .completed,
-            "No measured frame report was captured for \(scenario); last=\(metrics.value ?? "nil")",
-        )
-
-        let liveMetrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
-        guard let payload = liveMetrics.value as? String,
-              let report = FramePacingReport.parseAccessibilityValue(payload)
-        else {
-            XCTFail("No measured frame report was captured for \(scenario)")
-            return
-        }
-        XCTAssertGreaterThanOrEqual(report.sampleCount, Self.minimumCapturedSamples)
-        PerformanceReportRecorder.record(
-            report,
+        PerformanceReportRecorder.capture(
+            from: app,
             scenario: scenario,
             suite: "app",
             iteration: iteration,

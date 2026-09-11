@@ -9,13 +9,13 @@ struct PlayerHomesteadStoreTests {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        firstStore.homestead = PlayerHomesteadState(
+        #expect(firstStore.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 20, .herbs: 10],
             nodeTiers: [:],
-        )
+        ) })
         var roster = firstStore.roster
         roster.gold = 4
-        firstStore.roster = roster
+        #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
 
         let result = firstStore.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .success)
@@ -32,7 +32,7 @@ struct PlayerHomesteadStoreTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        store.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:])
+        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:]) })
 
         let result = store.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .insufficientResources)
@@ -44,10 +44,10 @@ struct PlayerHomesteadStoreTests {
         let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let maxTier = try #require(definition.tiers.map(\.tier).max())
-        store.homestead = PlayerHomesteadState(
+        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 99, .herbs: 99],
             nodeTiers: [.wheatField: maxTier],
-        )
+        ) })
 
         let result = store.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .notAvailable)
@@ -58,7 +58,10 @@ struct PlayerHomesteadStoreTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        store.homestead = PlayerHomesteadState(resources: [.wood: 99, .herbs: 99], nodeTiers: [:])
+        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
+            resources: [.wood: 99, .herbs: 99],
+            nodeTiers: [:],
+        ) })
         #expect(store.buildOrUpgradeNode(definition, targetTier: 1) == .success)
         let after = store.currentSave
         #expect(store.buildOrUpgradeNode(definition, targetTier: 1) == .notAvailable)
@@ -73,14 +76,14 @@ struct PlayerHomesteadStoreTests {
         let firstStore = try context.makeSaveStore()
         let start = Date(timeIntervalSince1970: 0)
         let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
-        firstStore.homestead = PlayerHomesteadState(
+        #expect(firstStore.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [.wheatField: 1, .wishingWell: 1],
             lastProductionAt: start,
-        )
+        ) })
         var roster = firstStore.roster
         roster.gold = 900
-        firstStore.roster = roster
+        #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
 
         let result = firstStore.collectProduction(at: collectionDate)
         try #expect(result == .success([
@@ -101,11 +104,11 @@ struct PlayerHomesteadStoreTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)
         let upgradeDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
-        store.homestead = PlayerHomesteadState(
+        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 20, .herbs: 20],
             nodeTiers: [.wheatField: 1],
             lastProductionAt: start,
-        )
+        ) })
 
         let result = store.buildOrUpgradeNode(definition, targetTier: 2, at: upgradeDate)
         try #expect(result == .success)

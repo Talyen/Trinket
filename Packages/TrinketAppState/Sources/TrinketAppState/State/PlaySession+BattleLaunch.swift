@@ -42,21 +42,26 @@ struct PlayBattleLaunch {
     func prepareCombat(_ request: PlayCombatRequest) -> Bool {
         guard playerSave.accessRestriction(for: request.origin) == nil else { return false }
         let launch = makeBattleLaunch(makeLaunchInput(for: request))
+        return prepareLaunch(launch, route: request.route)
+    }
+
+    private func prepareLaunch(_ launch: BattleLaunchAssembly, route: PlayBattleRoute) -> Bool {
         guard PlayBattleRoute.matches(
-            request.route,
+            route,
             runKey: launch.configuration.runKey,
             missingLog: "Missing route for prepared battle registration",
         ) else { return false }
         let prepared = battle.prepareBattleRun(launch.configuration)
         if prepared {
-            registerRunIfNeeded(launch, route: request.route)
-        } else if let runKey = launch.configuration.runKey {
+            registerRunIfNeeded(launch, route: route)
+        } else if let runKey = launch.configuration.runKey, !battle.hasPreparedRun(runKey), battle.activeBattle == nil {
             runRegistry.remove(runKey)
         }
         return prepared
     }
 
     func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
+        guard battle.lifecyclePhase != .active else { return }
         battle.keepPreparedRuns(keys)
         runRegistry.keep(keys)
     }
@@ -82,7 +87,8 @@ struct PlayBattleLaunch {
         _ input: BattleLaunchInput,
         route: PlayBattleRoute? = nil,
     ) -> Bool {
-        guard playerSave.accessRestriction(for: input.origin) == nil,
+        guard battle.lifecyclePhase != .active,
+              playerSave.accessRestriction(for: input.origin) == nil,
               playerSave.contentAccess.allowsCombatant(input.hero.id),
               playerSave.contentAccess.allowsCombatant(input.companion.id) else { return false }
         guard PlayBattleRoute.matches(
@@ -101,27 +107,25 @@ struct PlayBattleLaunch {
                 launch = registration.launch
             } else {
                 launch = Self.assembleLaunch(currentInputs)
-                guard battle.prepareBattleRun(launch.configuration) else { return false }
-                registerRunIfNeeded(launch, route: route)
+                guard prepareLaunch(launch, route: route) else { return false }
             }
             guard battle.activatePreparedBattle(
                 runKey: origin.runKey, configurationID: launch.configuration.id,
-                heroID: input.hero.id, companionID: input.companion.id, enemyID: input.enemy?.id,
             ) else { return false }
             shellSession.selectedTab = .play
             return true
         }
         let launch = makeBattleLaunch(input)
-        let activated = battle.activate(launch.configuration)
-        if activated {
-            registerRunIfNeeded(launch, route: route)
-            shellSession.selectedTab = .play
-        } else if let runKey = launch.configuration.runKey,
-                  !battle.hasPreparedRun(runKey),
-                  battle.activeBattle == nil {
-            runRegistry.remove(runKey)
+        if let runKey = launch.configuration.runKey, let route {
+            guard prepareLaunch(launch, route: route),
+                  battle.activatePreparedBattle(runKey: runKey, configurationID: launch.configuration.id)
+            else { return false }
+        } else {
+            guard battle.activate(launch.configuration) else { return false }
+            runRegistry.removeAll()
         }
-        return activated
+        shellSession.selectedTab = .play
+        return true
     }
 
     private func makeLaunchInput(for request: PlayCombatRequest) -> BattleLaunchInput {
@@ -177,7 +181,7 @@ struct PlayBattleLaunch {
         route: PlayBattleRoute?,
         presentation: BattlePresentationContext?,
         universalModifiers: [AffixModifier],
-    ) {
+    ) -> Bool {
         let roster = playerSave.roster
         let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
             ?? roster.activeHero
@@ -198,9 +202,17 @@ struct PlayBattleLaunch {
                 labyrinthModifiers: presentation?.labyrinthModifiers ?? [],
             ),
         )
-        guard battle.restart(launch.configuration) else { return }
-        shellSession.selectedTab = .play
+        let previous = runRegistry.registration(for: activeBattle.runKey)
         registerRunIfNeeded(launch, route: route)
+        guard battle.restart(launch.configuration) else {
+            if let previous {
+                runRegistry.register(previous)
+            }
+            return false
+        }
+        runRegistry.keep(Set([launch.configuration.runKey].compactMap(\.self)))
+        shellSession.selectedTab = .play
+        return true
     }
 }
 
@@ -228,12 +240,12 @@ public extension PlaySession {
             return nil
         }
         let universalModifiers = registration?.universalModifiers ?? []
-        battleLaunch.restartActiveBattle(
+        guard battleLaunch.restartActiveBattle(
             activeBattle,
             route: route,
             presentation: presentation,
             universalModifiers: universalModifiers,
-        )
+        ) else { return PlayBattleLaunch.activationFailureMessage }
         return nil
     }
 }

@@ -9,12 +9,14 @@ struct CombatFeedbackRasterSlot: View {
 
     let combatantID: String
     let cardHeight: CGFloat
+    var isPartyMember = false
     let displayScale: CGFloat
 
     var body: some View {
         CombatFeedbackRasterHost(
             combatantID: combatantID,
             cardHeight: cardHeight,
+            isPartyMember: isPartyMember,
             layoutDirection: layoutDirection,
             displayScale: displayScale,
         )
@@ -25,12 +27,14 @@ struct CombatFeedbackRasterSlot: View {
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
     let combatantID: String
     let cardHeight: CGFloat
+    var isPartyMember = false
     let layoutDirection: LayoutDirection
     let displayScale: CGFloat
 
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
         view.cardHeight = cardHeight
+        view.isPartyMember = isPartyMember
         CombatFeedbackChipBridge.register(
             view,
             combatantID: combatantID,
@@ -42,6 +46,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
 
     func updateUIView(_ uiView: CombatFeedbackRasterUIView, context _: Context) {
         uiView.cardHeight = cardHeight
+        uiView.isPartyMember = isPartyMember
         CombatFeedbackChipBridge.register(
             uiView,
             combatantID: combatantID,
@@ -72,13 +77,20 @@ final class CombatFeedbackRasterUIView: UIView {
         }
     }
 
-    static let preallocatedSlotCount = Int(ceil(
-        BattleMotion.chipDisplayDuration / BattleMotion.feedbackStreamStagger,
-    )) + 1
+    static let preallocatedSlotCount = 12
 
     private var layersByID: [Int: ChipLayer] = [:]
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
+    private struct Group {
+        let layers: [ChipLayer]
+        let offsets: [CGPoint]
+        let height: CGFloat
+        let fitScale: CGFloat
+    }
+
+    private var groups: [Group] = []
+    var isPartyMember = false
     var cardHeight: CGFloat = 0
     #if DEBUG
     var debugLastAppliedChips: [CombatFeedbackItem] = []
@@ -87,7 +99,7 @@ final class CombatFeedbackRasterUIView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         isUserInteractionEnabled = false
-        clipsToBounds = false
+        clipsToBounds = true
         for _ in 0 ..< Self.preallocatedSlotCount {
             let chipLayer = makeLayer()
             layer.addSublayer(chipLayer)
@@ -145,6 +157,7 @@ final class CombatFeedbackRasterUIView: UIView {
         }
 
         orderedLayers = layersByID.values.sorted(by: Self.chipLayerOrder)
+        layoutGroups()
 
         if layersByID.isEmpty {
             CombatFeedbackChipMotionClock.unregister(self)
@@ -157,6 +170,7 @@ final class CombatFeedbackRasterUIView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         guard !bounds.isEmpty else { return }
+        layoutGroups()
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
         withLayerActionsDisabled {
             for layer in layersByID.values {
@@ -166,51 +180,80 @@ final class CombatFeedbackRasterUIView: UIView {
                 }
             }
         }
+        tickMotion(at: .now)
+    }
+
+    private func layoutGroups() {
+        let grouped = Dictionary(grouping: orderedLayers, by: { $0.item.actionGroupID })
+        groups = grouped.values.sorted { $0[0].item.availableAt < $1[0].item.availableAt }.map { layers in
+            let layers = layers.sorted {
+                if $0.item.presentationIndex == $1.item.presentationIndex {
+                    return $0.item.id < $1.item.id
+                }
+                return $0.item.presentationIndex < $1.item.presentationIndex
+            }
+            let gap: CGFloat = 6
+            let width = layers.reduce(CGFloat.zero) { $0 + $1.layer.bounds.width + gap } - gap
+            let rowCount = width * BattleMotion.chipMaximumScale <= bounds.width - 16 ? 1 : min(2, layers.count)
+            let columns = (layers.count + rowCount - 1) / rowCount
+            var offsets: [CGPoint] = []
+            var height: CGFloat = 0
+            var widest: CGFloat = 0
+            for start in stride(from: 0, to: layers.count, by: columns) {
+                let row = layers[start ..< min(start + columns, layers.count)]
+                let rowWidth = row.reduce(CGFloat.zero) { $0 + $1.layer.bounds.width + gap } - gap
+                let rowHeight = row.map(\.layer.bounds.height).max() ?? 0
+                var x = -rowWidth / 2
+                for chip in row {
+                    offsets.append(CGPoint(x: x + chip.layer.bounds.width / 2, y: height + rowHeight / 2))
+                    x += chip.layer.bounds.width + gap
+                }
+                height += rowHeight + gap
+                widest = max(widest, rowWidth)
+            }
+            height = max(0, height - gap)
+            offsets = offsets.map { CGPoint(x: $0.x, y: $0.y - height / 2) }
+            let fit = min(
+                1,
+                max(0, bounds.width - 16) / max(1, widest * BattleMotion.chipMaximumScale),
+                max(0, bounds.height - 16) / max(1, height * BattleMotion.chipMaximumScale),
+            )
+            return Group(layers: layers, offsets: offsets, height: height, fitScale: fit)
+        }
     }
 
     fileprivate func tickMotion(at date: Date) {
-        let states = orderedLayers.map { chipLayer in
-            sampledState(
-                for: chipLayer.item,
-                chipHeight: chipLayer.layer.bounds.height,
-                at: date,
-            )
-        }
-        let verticalOffsets = Self.packedVerticalOffsets(
-            desired: states.map { CGFloat($0.verticalOffset) },
-            scaledHeights: zip(orderedLayers, states).map { chipLayer, state in
-                chipLayer.layer.bounds.height * CGFloat(state.scale)
-            },
-        )
-
+        guard !bounds.isEmpty else { return }
+        let current = groups.last(where: { $0.layers[0].item.retiringAt == nil })
+        let currentHeight = (current?.height ?? 0) * (current?.fitScale ?? 1) * BattleMotion.chipMaximumScale
+        let currentTravel = isPartyMember ? min(24, cardHeight * 0.12) : cardHeight * BattleMotion.chipTravelFraction
+        let currentProgress = current.map {
+            BattleMotion.chipMotionProgress(elapsed: max(0, date.timeIntervalSince($0.layers[0].item.firstScheduledAt)))
+        } ?? 0
+        let currentY = max(8 + currentHeight / 2, bounds.midY - currentTravel * currentProgress)
         withLayerActionsDisabled {
-            for (index, chipLayer) in orderedLayers.enumerated() {
-                let state = states[index]
-                let transform = CGAffineTransform.identity
-                    .translatedBy(x: 0, y: verticalOffsets[index])
-                    .scaledBy(x: state.scale, y: state.scale)
-                chipLayer.layer.transform = CATransform3DMakeAffineTransform(transform)
-                chipLayer.layer.opacity = Float(state.opacity)
+            for group in groups {
+                let representative = group.layers[0].item
+                let height = group.height * group.fitScale * BattleMotion.chipMaximumScale
+                let desiredY = representative.retiringAt == nil ? currentY : currentY - currentHeight / 2 - height / 2 - 6
+                let centerY = min(bounds.height - height / 2 - 8, max(height / 2 + 8, desiredY))
+                for (index, chip) in group.layers.enumerated() {
+                    let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
+                    let scale = group.fitScale * state.scale
+                    let offset = group.offsets[index]
+                    chip.layer.position = CGPoint(
+                        x: bounds.midX + offset.x * group.fitScale * BattleMotion.chipMaximumScale,
+                        y: centerY + offset.y * group.fitScale * BattleMotion.chipMaximumScale,
+                    )
+                    chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
+                    let overlapsCurrent = representative.retiringAt != nil
+                        && centerY + height / 2 > currentY - currentHeight / 2 - 6
+                    chip.layer.opacity = overlapsCurrent ? 0 : Float(state.opacity)
+                    let criticalElapsed = chip.item.criticalAt.map { max(0, date.timeIntervalSince($0)) } ?? 1
+                    chip.layer.shadowOpacity = Float(max(0, 1 - criticalElapsed / 0.3))
+                }
             }
         }
-    }
-
-    static func packedVerticalOffsets(
-        desired: [CGFloat],
-        scaledHeights: [CGFloat],
-        gap: CGFloat = CombatFeedbackLayout.streamGap,
-    ) -> [CGFloat] {
-        guard desired.count == scaledHeights.count, desired.count > 1 else {
-            return desired
-        }
-        var resolved = desired
-        for index in stride(from: desired.count - 2, through: 0, by: -1) {
-            let maximumOlderOffset = resolved[index + 1]
-                - (scaledHeights[index] + scaledHeights[index + 1]) / 2
-                - gap
-            resolved[index] = min(resolved[index], maximumOlderOffset)
-        }
-        return resolved
     }
 
     private static func chipLayerOrder(_ lhs: ChipLayer, _ rhs: ChipLayer) -> Bool {
@@ -220,38 +263,6 @@ final class CombatFeedbackRasterUIView: UIView {
             return lhsItem.id < rhsItem.id
         }
         return lhsItem.availableAt < rhsItem.availableAt
-    }
-
-    private func sampledState(
-        for item: CombatFeedbackItem,
-        chipHeight: CGFloat,
-        at date: Date,
-    ) -> CombatFeedbackAnimationState {
-        let travelDistance = BattleMotion.chipTravelDistance(
-            cardHeight: cardHeight,
-            chipHeight: chipHeight,
-        )
-        return CombatFeedbackMotionSampler.state(
-            for: item,
-            travelDistance: travelDistance,
-            at: date,
-        )
-    }
-
-    private func compositorPose(
-        for item: CombatFeedbackItem,
-        chipSize: CGSize,
-        at date: Date,
-    ) -> (transform: CATransform3D, opacity: Double) {
-        let state = sampledState(
-            for: item,
-            chipHeight: chipSize.height,
-            at: date,
-        )
-        let transform = CGAffineTransform.identity
-            .translatedBy(x: 0, y: state.verticalOffset)
-            .scaledBy(x: state.scale, y: state.scale)
-        return (CATransform3DMakeAffineTransform(transform), state.opacity)
     }
 
     private func insert(item: CombatFeedbackItem, raster: CombatFeedbackRaster) {
@@ -264,18 +275,16 @@ final class CombatFeedbackRasterUIView: UIView {
         }
         let rasterID = ObjectIdentifier(raster)
         let hasMeasuredBounds = !bounds.isEmpty
-        let pose = compositorPose(
-            for: item,
-            chipSize: raster.pointSize,
-            at: .now,
-        )
         withLayerActionsDisabled {
             chipLayer.contents = raster.image
+            chipLayer.shadowColor = TrinketDesign.Colors.accentEmphasized.resolve(in: EnvironmentValues()).cgColor
+            chipLayer.shadowRadius = 4
+            chipLayer.shadowOffset = .zero
             chipLayer.contentsScale = raster.displayScale
             chipLayer.bounds = CGRect(origin: .zero, size: raster.pointSize)
             chipLayer.removeAllAnimations()
-            chipLayer.transform = pose.transform
-            chipLayer.opacity = Float(pose.opacity)
+            chipLayer.transform = CATransform3DIdentity
+            chipLayer.opacity = 0
             if hasMeasuredBounds {
                 chipLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
                 chipLayer.isHidden = false

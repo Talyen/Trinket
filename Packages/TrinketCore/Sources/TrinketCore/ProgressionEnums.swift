@@ -51,16 +51,3 @@ public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable,
         }
     }
 }
-
-public extension AbilityTier {
-    var symbolName: String {
-        switch self {
-        case .basic:
-            "circle.fill"
-        case .skill:
-            "sparkles"
-        case .ultimate:
-            "star.fill"
-        }
-    }
-}

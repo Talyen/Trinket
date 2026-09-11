@@ -24,6 +24,7 @@ struct HalveShieldHandler: BattleEffectHandler {
             target: target,
             amount: 0,
             keyword: keyword,
+            origin: .direct,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

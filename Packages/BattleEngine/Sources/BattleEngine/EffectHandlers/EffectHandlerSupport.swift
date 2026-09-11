@@ -143,6 +143,7 @@ enum ActiveEffectMutation {
             target: target,
             amount: event.amount,
             keyword: event.keyword,
+            origin: .direct,
         )
         return EffectApplyOutcome(events: [appliedEvent], didApply: true)
     }

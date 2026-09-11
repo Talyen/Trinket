@@ -3,13 +3,13 @@ import os
 import TrinketContent
 import TrinketCore
 
-public enum BattleTurnEngine {
+package enum BattleTurnEngine {
     private static let logger = Logger(
         subsystem: "com.ryanmcintire.Trinket",
         category: "BattleTurnEngine",
     )
 
-    public static func consumeActionSkip(
+    package static func consumeActionSkip(
         for actor: Combatant,
         context: inout BattleState,
     ) -> [ActionEvent] {
@@ -57,7 +57,7 @@ public enum BattleTurnEngine {
         return events
     }
 
-    public static func performAction(
+    package static func performAction(
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
@@ -95,10 +95,12 @@ public enum BattleTurnEngine {
     ) -> (events: [ActionEvent], performed: Bool) {
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
         guard !context.isBattleOver, action.canContinue(in: context) else { return ([], false) }
+        let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
+        defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         context.resolution.beginAction(action, origin: origin)
         defer { context.resolution.endAction() }
         var events: [ActionEvent] = []
-        context.roster.mutateRuntime(for: actor) { $0.empoweredThisAction = false }
+        context.roster.mutateRuntime(for: actor) { $0.talents.beginAction() }
         guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else {
             if actor.role == .enemy {
                 recordAction(for: actor, context: &context)
@@ -127,7 +129,6 @@ public enum BattleTurnEngine {
         let abilityTarget = facts.action.selectedTarget
         var resolvedAbility = prepareTalentAction(ability: facts.ability, actor: actor, in: &context)
         var events: [ActionEvent] = []
-        defer { context.heroTalents.actions.removeLast() }
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &resolvedAbility,
             actor: actor,
@@ -177,14 +178,14 @@ public enum BattleTurnEngine {
         return events
     }
 
-    public static func selectedEnemyAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
+    package static func selectedEnemyAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
         let tier = preferredTier(for: turnNumber)
         return actor.abilityLoadout.ability(for: tier)
             ?? actor.abilityLoadout.basic
             ?? actor.abilities.first
     }
 
-    public static func preferredTier(for turnNumber: Int) -> AbilityTier {
+    package static func preferredTier(for turnNumber: Int) -> AbilityTier {
         if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) {
             return .ultimate
         }
@@ -321,6 +322,7 @@ extension BattleTurnEngine {
                 amount: dealt,
                 keyword: damageKeyword,
                 isCritical: damageOutcome.flags.contains(.critical),
+                origin: .direct,
             )
             events.append(componentEvent)
             resolvedComponents.append(ResolvedDamageComponent(

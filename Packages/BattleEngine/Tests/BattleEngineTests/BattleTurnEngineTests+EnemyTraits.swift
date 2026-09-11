@@ -110,7 +110,7 @@ extension BattleTurnEngineTests {
         ))
 
         #expect(healthBefore - context.roster.health(for: target) == 3)
-        #expect(context.roster.enemy.pendingNextAttackHolyBonus == 0)
+        #expect(context.roster.enemy.talents.pending.nextAttackHolyBonus == 0)
     }
 
     @Test func `yeti gains block for each party member frozen`() throws {

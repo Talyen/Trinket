@@ -31,7 +31,7 @@ struct ManaEmpowermentBudget {
         partnerMana = patron?.currentMana ?? 0
         block = runtime.map { DefensePoolEngine.blockPoints(in: $0.activeEffects) } ?? 0
         blockRate = ability.keywords.contains(.freeze) ? triggers.freezeEmpowermentBlockPerMana : 0
-        hasEmpowered = runtime?.hasEmpoweredWithMana ?? false
+        hasEmpowered = runtime?.talents.battle.hasEmpoweredWithMana ?? false
         firstDiscount = triggers.firstEmpowermentCostReduction
         let reduction = ability.keywords.contains(.health) && triggers.healingEmpowermentCostReduction > 0
             ? triggers.healingEmpowermentCostReduction : triggers.empowermentCostReduction

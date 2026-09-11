@@ -71,7 +71,7 @@ public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
     }
 
     public func applies(to type: LabyrinthNodeType) -> Bool {
-        nodeTypes.contains(type.canonical)
+        nodeTypes.contains(type)
     }
 
     public var relevantKeyword: Keyword? {
@@ -92,71 +92,37 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     case shop
     case mystery
     case recruit
-    case event
-    case craft
     case entrance
 
-    public var canonical: Self {
-        self == .event || self == .craft ? .mystery : self
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let rawValue = try container.decode(String.self)
-        if rawValue == "elite" {
-            self = .battle
-            return
-        }
-        if rawValue == "warden" {
-            self = .boss
-            return
-        }
-        if rawValue == "gate" {
-            self = .entrance
-            return
-        }
-        if rawValue == "rest" {
-            self = .mystery
-            return
-        }
-        guard let value = Self(rawValue: rawValue) else {
-            throw DecodingError.dataCorruptedError(
-                in: container,
-                debugDescription: "Unknown Labyrinth node type: \(rawValue)",
-            )
-        }
-        self = value
-    }
-
     public var title: String {
-        switch canonical {
+        switch self {
         case .battle: "Battle"
         case .boss: "Boss"
         case .shop: "Merchant's Shop"
-        case .mystery, .event, .craft: "Mystery"
+        case .mystery: "Mystery"
         case .recruit: "Recruit"
         case .entrance: "Labyrinth Entrance"
         }
     }
 
-    public var symbolName: String {
-        switch canonical {
-        case .battle: StageTypeSymbol.battle
-        case .boss: StageTypeSymbol.boss
-        case .shop: StageTypeSymbol.shop
-        case .mystery, .event, .craft: StageTypeSymbol.mystery
-        case .recruit: GameContent.recruitEncounterSymbolName(forEventID: nil)
-        case .entrance: StageTypeSymbol.entrance
+    public var iconID: String {
+        switch self {
+        case .battle: StageTypeIconID.battle
+        case .boss: StageTypeIconID.boss
+        case .shop: StageTypeIconID.shop
+        case .mystery: StageTypeIconID.mystery
+        case .recruit: GameContent.recruitEncounterIconID(forEventID: nil)
+        case .entrance: StageTypeIconID.entrance
         }
     }
 
     public var primaryActionTitle: String {
-        switch canonical {
+        switch self {
         case .battle, .boss:
             "Fight"
         case .shop:
             "Visit"
-        case .mystery, .event, .craft:
+        case .mystery:
             "Approach"
         case .recruit:
             "Recruit"
@@ -166,10 +132,10 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     }
 
     public var isCombat: Bool {
-        switch canonical {
+        switch self {
         case .battle, .boss:
             true
-        case .shop, .mystery, .event, .recruit, .craft, .entrance:
+        case .shop, .mystery, .recruit, .entrance:
             false
         }
     }

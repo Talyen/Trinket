@@ -7,7 +7,8 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleClaimedVictoryTests {
-    @Test func `claimed victory is delivered once when handler installs late`() {
+    @Test(arguments: [false, true])
+    func `claimed victory completes once without an overlay and failed completion presents retry`(fails: Bool) {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
@@ -18,19 +19,20 @@ struct BattleClaimedVictoryTests {
             enemy: party.enemy,
             stageRewardsAlreadyClaimed: true,
         )
-        _ = session.activate(configuration)
-        session.installPresentationContext(presentation)
         var claimedVictories: [(configurationID: UUID, earnedGold: Int)] = []
-
-        let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
-        session.installClaimedVictoryHandler(ownerID: UUID()) { configuration, earnedGold in
+        BattleSessionTestSupport.configureProgression(session, presentation: presentation) { configuration, earnedGold, _ in
             claimedVictories.append((configuration.id, earnedGold.net))
+            return fails ? .persistenceFailed : .completed
         }
+        _ = session.activate(configuration)
+        let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
         session.handleOutcomeIfNeeded(at: .now)
 
         #expect(claimedVictories.count == 1)
         #expect(claimedVictories.first?.configurationID == configuration.id)
         #expect(claimedVictories.first?.earnedGold == earnedGold)
+        #expect((session.completionError != nil) == fails)
+        #expect(session.spectacle.outcomePresentation.isVictoryPresented == fails)
     }
 
     @Test func `claimed victory delivery resets for restart`() {
@@ -44,13 +46,12 @@ struct BattleClaimedVictoryTests {
             enemy: party.enemy,
             stageRewardsAlreadyClaimed: true,
         )
-        _ = session.activate(first.configuration)
-        session.installPresentationContext(first.presentation)
         var deliveredConfigurationIDs: [UUID] = []
-        session.installClaimedVictoryHandler(ownerID: UUID()) { configuration, _ in
+        BattleSessionTestSupport.configureProgression(session, presentation: first.presentation) { configuration, _, _ in
             deliveredConfigurationIDs.append(configuration.id)
+            return .completed
         }
-
+        _ = session.activate(first.configuration)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let second = BattleRunConfigurationTestSupport.make(
@@ -60,8 +61,7 @@ struct BattleClaimedVictoryTests {
             enemy: party.enemy,
             stageRewardsAlreadyClaimed: true,
         )
-        _ = session.restart(second.configuration)
-        session.installPresentationContext(second.presentation)
+        _ = session.restart(second.configuration, presentation: second.presentation)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(deliveredConfigurationIDs == [first.configuration.id, second.configuration.id])

@@ -28,7 +28,7 @@ extension BattleTurnEngineTests {
                 supportOutcomes += 1
             }
             let events = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
-            #expect(battle.roster.companion.hasNegatedFirstEnemyAttack == attacks)
+            #expect(battle.roster.companion.talents.battle.negatedFirstEnemyAttack == attacks)
             #expect(events.contains { $0.effectKind == .shieldApplied && $0.targetID == battle.enemy.id } == !attacks)
             #expect(battle.rng == expected.rng)
         }
@@ -53,7 +53,7 @@ extension BattleTurnEngineTests {
         let events = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
 
         #expect(events.contains { $0.effectKind == .shieldApplied && $0.targetID == battle.enemy.id })
-        #expect(!battle.roster.companion.hasNegatedFirstEnemyAttack)
+        #expect(!battle.roster.companion.talents.battle.negatedFirstEnemyAttack)
         #expect(!battle.roster.hero.activeEffects.contains { $0.effect == .evadeNextHit })
     }
 

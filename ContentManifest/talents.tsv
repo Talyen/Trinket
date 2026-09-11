@@ -1,447 +1,447 @@
-id	name	symbol_name	description	modifiers	triggers
-knight_block_t1_1	Bastion Stance	shield.fill	Gain 2 Block at the start of each round.		blockPerTurn:2
-knight_block_t1_2	Spiked Barricade	shield.checkered	Whenever you gain Block, gain Thorns equal to half that amount.		blockGainThornsPercent:0.5
-knight_block_t2_1	Intercede	shield.lefthalf.filled	Your Block also absorbs damage dealt to your Companion.		blockAbsorbsCompanionDamage:true
-knight_block_t2_2	Shield Bash	shield.slash.fill	While you have Block, attacks deal 2 additional damage.		shieldDamageBonusWhileBlocked:2
-knight_block_t3_1	Shield Shatter	burst.fill	Breaking an enemy's Block deals 6 Physical damage to them.		onEnemyBlockBrokenDealPhysical:6
-knight_block_t3_2	Unbreakable	shield.pattern.checkered	Your Block retains 75% at the end of each round (up to 30 max). Damage that gets through Block is reduced by 15%.		blockRetainsThreeQuarters:true|postBlockOverflowDamageMultiplier:0.85
-knight_holy_t1_1	Oathbound	sun.max.fill	Gain 2 Block when you deal Stun or Holy damage.		holyDamageBlockFlat:2|stunDamageBlockFlat:2
-knight_holy_t1_2	Pure Radiance	sun.and.horizon.fill	Holy damage deals 50% bonus damage against enemy Block.		holyBlockBreakMultiplier:1.5
-knight_holy_t2_1	Holy Infusion	cross.fill	Your next attack after dealing Holy damage deals 3 additional Holy damage.		holyDamageNextAttackHolyBonus:3
-knight_holy_t2_2	Consecration	sparkles	Cleanse 1 negative effect from yourself when you deal Holy damage.		holyDamageCleanseCount:1
-knight_holy_t3_1	Smite the Wicked	rays	Holy attacks deal double damage to Stunned or Burning enemies.		holyDamageVsStunnedOrBurningMultiplier:2
-knight_holy_t3_2	Divine Blessing	heart.circle.fill	Dealing Holy damage restores 4 Health to the lowest Health ally.		holyDamageHealLowestAllyFlat:4
-knight_stun_t1_1	Heavy Flail	hammer.fill	Attacks against Stunned enemies deal 3 additional damage.		damageWhileTargetStunnedBonus:3
-knight_stun_t1_2	Concussive Blow	bolt.horizontal.fill	Stunned enemies deal half damage on their next turn.		stunnedEnemyNextTurnDamageMultiplier:0.5
-knight_stun_t2_1	Skullcracker	bolt.fill	Physical attacks against Stunned enemies deal 2 Stun damage.		physicalVsStunnedStunBuildup:2
-knight_stun_t2_2	Second Wind	arrow.clockwise	Draw 1 card when an enemy recovers from Stun.		onEnemyStunRecoverDrawCard:1
-knight_stun_t3_1	Searing Bind	lock.fill	Stun against Burning enemies lasts an additional turn.		stunExtendVsBurning:true
-knight_stun_t3_2	Crusader's Mark	target	Stunned enemies take 5 additional damage from Holy attacks.		holyDamageVsStunnedBonus:5
-rogue_poison_t1_1	Toxic Coating	drop.fill	Critical Hits deal 2 Poison damage.		criticalApplyPoison:2
-rogue_poison_t1_2	Lingering Toxin	allergens.fill	Poison on enemies fades 25% slower each round.		poisonDecaySlowPercent:0.25
-rogue_poison_t2_1	Noxious Reaction	flame.circle.fill	Bleed damage consumes equal Poison, dealing that much Poison damage.		bleedConsumesPoison:true
-rogue_poison_t2_2	Blinding Fumes	eye.slash.fill	Attacks from Poisoned enemies deal 20% less damage.		poisonedEnemyAccuracyPenaltyPercent:0.20
-rogue_poison_t3_1	Contagion	leaf.arrow.triangle.circlepath	Poison damage has a 25% chance to grow instead of fading.		poisonDecayIncreaseChance:0.25
-rogue_poison_t3_2	Deadly Dose	cross.vial.fill	Poisoned enemies take 25% additional damage from all sources.		damageVsPoisonedMultiplier:1.25
-rogue_bleed_t1_1	Serrated Blades	triangle.fill	Dealing Bleed damage immediately triggers existing Bleeds.		bleedApplicationTicksExisting:true
-rogue_bleed_t1_2	Deep Wounds	drop.triangle.fill	Bleed ignores the enemy's damage reduction.		bleedsIgnoreMitigation:true
-rogue_bleed_t2_1	Taste for Blood	mouth.fill	When Bleed deals damage, your next Basic attack has +35% Critical Hit chance.		onBleedDamageNextBasicCritBonus:0.35
-rogue_bleed_t2_2	Blood Money	banknote.fill	Defeating Bleeding enemies grants 5 bonus Gold.		defeatBleedingEnemyGold:5
-rogue_bleed_t3_1	Exsanguinate	drop.degreesign.fill	Critical Hits on Bleeding targets have a 20% chance to detonate and consume all remaining Bleed damage at once.		criticalOnBleedingDetonateBleedChance:0.20
-rogue_bleed_t3_2	Scent of Blood	scope	Deal 2 additional damage to enemies below half Health.		damage_below_health_percent:0.5:2
-rogue_gold_t1_1	Light Fingers	hand.point.up.fill	Gain 2 Gold when you Critically Hit.		criticalGoldFlat:2
-rogue_gold_t1_2	Coinmail	bag.fill	Whenever you gain Gold in combat, gain Block equal to half that amount.		gold_gain_block_percent:0.50
-rogue_gold_t2_1	Cutpurse Cut	dollarsign.circle.fill	Attacks steal 2 Gold from the target.		onAttackStealGold:2
-rogue_gold_t2_2	Gold Reserves	centsign.circle.fill	Deal 1 additional damage for every 15 Gold carried.		goldReservesDamageEvery:15
-rogue_gold_t3_1	Bounty Hunter	target	Defeating an enemy with a Critical Hit grants 10 bonus Gold.		critOnDefeatGold:10
-rogue_gold_t3_2	Golden Touch	sparkle	Gaining Gold doubles the next Poison, Bleed, or Burn damage you deal.		onGainGoldDoubleStatusEffectsNextCard:true
-wizard_freeze_t1_1	Persistent Frost	snowflake	Deal 2 additional Freeze damage to Frozen enemies.		frostDamageVsFrozenBonus:2
-wizard_freeze_t1_2	Numbing Cold	wind.snow	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
-wizard_freeze_t2_1	Thermal Shock	flame.and.bolt.fill	Burn damage against Frozen enemies deals 4 bonus Physical damage.		burnDamageVsFrozenBonusPhysical:4
-wizard_freeze_t2_2	Glacial Barrier	shield.lefthalf.filled	Gain 3 Block whenever an enemy becomes Frozen.		onEnemyFrozenGainBlock:3
-wizard_freeze_t3_1	Deep Freeze	lock.fill	Frozen enemies cannot gain Block or receive Health restoration.		frozenEnemyCannotBlockOrHeal:true
-wizard_freeze_t3_2	Blizzard	snowflake.circle.fill	Playing 3 Freeze cards in one turn Freezes the enemy.		freezeCardsPlayedThisTurnFreezeAll:3
-wizard_burn_t1_1	Ignition	flame.fill	Burn deals 25% more damage to enemies with no Block.		burnDamageVsNoBlockMultiplier:1.25
-wizard_burn_t1_2	Wildfire Spread	flame.circle.fill	Burn ticks have a 25% chance to increase in potency.		burnIncreaseChancePercent:0.25
-wizard_burn_t2_1	Searing Heat	sun.max.fill	Burn damage ignores all enemy Block and damage reduction.		burnIgnoresBlockAndMitigation:true
-wizard_burn_t2_2	Fuel the Flames	sparkle	Spending Mana deals 1 Burn damage to all Burning enemies.		onSpendManaBurnBurningEnemies:1
-wizard_burn_t3_1	Supernova	burst.fill	Burn damage has a 50% chance to deal double damage.		burnDamageDoubleChancePercent:0.50
-wizard_burn_t3_2	Pyromancer's Spark	sparkles	Restore 1 Mana whenever you spend Mana to empower a Burn card.		onEmpowerBurnRestoreMana:1
-wizard_mana_t1_1	Arcane Focus	moon.stars.fill	Deal 1 Burn or 1 Freeze damage when you spend Mana.		spendManaRandomDoTFlat:1
-wizard_mana_t1_2	Mana Shield	shield.fill	At the end of your turn, gain 1 Block for each unspent Mana.		unspentManaConvertsToBlock:true
-wizard_mana_t2_1	Overcharge	bolt.fill	When you spend 3 Mana to empower a card, your next card deals 35% more damage.		spendManaEmpowerNextCardThreshold:3|nextCardEmpowerPercent:0.35
-wizard_mana_t2_2	Arcane Cleansing	sparkles	Spending Mana removes equal Burn or Poison from you.		spendManaRemovesAfflictions:true
-wizard_mana_t3_1	Arcane Surge	wand.and.stars	Starting your turn at full Mana draws 2 cards.		startTurnFullManaDrawCards:2
-wizard_mana_t3_2	Spell Echo	arrow.triangle.2.circlepath	Skills you empower play twice.		empoweredSkillEchoes:true
-ranger_poison_t1_1	Venomous Arrows	drop.fill	Basic attacks deal 2 Poison damage.		attacksApplyPoison:2
-ranger_poison_t1_2	Paralytic Poison	allergens.fill	Poisoned enemies have a 15% chance to miss their attacks.		poisonedEnemyMissChancePercent:0.15
-ranger_poison_t2_1	Prey on the Weak	pawprint.fill	Companion attacks against Poisoned enemies deal 2 additional damage.		companionDamageVsPoisonedBonus:2
-ranger_poison_t2_2	Toxic Backlash	exclamationmark.triangle.fill	When Poison is Cleansed, the enemy takes 3 damage per Poison removed.		onCleansePoisonDealDamagePerStack:3
-ranger_poison_t3_1	Corrosive Venom	shield.slash.fill	Poison strips 2 Block before damaging Health.		poisonStripsBlockBeforeHealth:2
-ranger_poison_t3_2	Lethal Dose	cross.vial.fill	Poison damage is doubled against enemies below half Health.		poisonDamageBelowHealthThreshold:0.5|poisonDamageBelowHealthMultiplier:2
-ranger_burn_t1_1	Flaming Arrows	flame.fill	Critical Hits deal 2 Burn damage.		criticalApplyBurn:2
-ranger_burn_t1_2	Slow Burn	hourglass	Enemies lose 20% less Burn at the end of each round.		burnDecaySlowPercent:0.20
-ranger_burn_t2_1	Cauterize	flame.circle.fill	Dealing Burn damage has a 30% chance to detonate remaining Bleed damage.		on_burn_damage_detonate_bleed_chance_percent:0.30
-ranger_burn_t2_2	Smoke Screen	smoke.fill	Inflicting Burn grants +10% Dodge chance until your next turn.		onApplyBurnDodgeChanceUntilNextTurn:0.10
-ranger_burn_t3_1	Scorched Earth	flame.and.bolt.fill	Burning enemies deal 1 less damage.		burningEnemyDamageReductionFlat:1
-ranger_burn_t3_2	Inferno Barrage	burst.fill	Your Ultimate deals 8 Burn damage.		ultimateAppliesBurnPotency:8
-ranger_bleed_t1_1	Lead the Hunt	target	Increase Companion Bleed damage dealt by 3.	companion_bleed_damage_dealt:3	
-ranger_bleed_t1_2	Broadhead Arrows	triangle.fill	Attacks have a 50% chance to deal 1 Bleed damage.		directHitBleedChancePercent:0.5
-ranger_bleed_t2_1	Hamstring Shot	figure.fall	A Bleeding enemy has a 15% chance to skip its action each round.		bleedingEnemyActionSkipChancePercent:0.15
-ranger_bleed_t2_2	Bloodscent	scope	Increase Companion Bleed duration by 1.	bleed_duration:1	
-ranger_bleed_t3_1	Pinning Strike	arrow.down.to.line.compact	Bleeding enemies take 2 damage whenever they attack.		bleedingEnemyAttackDealDamage:2
-ranger_bleed_t3_2	Blood Tracker	eye.fill	Gain +15% Critical Hit chance against Bleeding enemies.		critChancePerBleedingEnemy:0.15
-warlock_burn_t1_1	Bloodfire	drop.fill	Whenever Burn damages an enemy, restore 2 Health.		burnDamageHealFlat:2
-warlock_burn_t1_2	Scorching Ash	flame.fill	Burn damage dealt increases by 1 each round.		burn_damage_ramp_per_round:1
-warlock_burn_t2_1	Withering Flame	heart.slash.fill	Burn reduces enemy Health restoration and Leech by half.		burnReducesEnemyHealingAndLeechPercent:0.5
-warlock_burn_t2_2	Soul Burn	moon.stars.fill	Restore 1 Mana whenever Burn deals 4 or more damage in a turn.		burnDamageManaRestoreThreshold:4|onBurnDamageRestoreManaFlat:1
-warlock_burn_t3_1	Damnation	exclamationmark.triangle.fill	Burning enemies take 25% additional damage from all sources.		damageVsBurningMultiplier:1.25
-warlock_burn_t3_2	Raging Inferno	flame.circle.fill	Burn ticks twice per turn on the enemy.		burnTicksTwicePerTurn:true
-warlock_leech_t1_1	Vampiric Touch	hand.raised.fill	Leech also heals from damage absorbed by enemy Block.		leechOnBlockDamage:true
-warlock_leech_t1_2	Armor Pierce	drop.triangle.fill	Leech ignores enemy damage reduction.		leechIgnoresMitigation:true
-warlock_leech_t2_1	Blood Link	arrow.triangle.swap	Excess Health restored from Leech is transferred to your Companion.		leechOverhealTransfersToCompanion:true
-warlock_leech_t2_2	Soul Drain	moon.fill	Leeching Health restores 1 Mana.		leechRestoreManaFlat:1
-warlock_leech_t3_1	Sanguine Overflow	cross.fill	Reaching full Health makes your next attack deal 6 additional damage.		nextAttackBonusOnFullHealth:6
-warlock_leech_t3_2	Soul Ward	shield.fill	Whenever an enemy loses Health to an attack, gain 1 Block.		onAnyHealthLossGainBlock:1
-warlock_mana_t1_1	Dark Recovery	arrow.counterclockwise	Whenever you spend your last Mana, deal 3 Stun damage to the enemy.		spendLastManaStunDamage:3
-warlock_mana_t1_2	Forbidden Lore	book.closed.fill	Start each battle with 1 additional Mana.		startBattleBonusMana:1
-warlock_mana_t2_1	Eldritch Shield	shield.lefthalf.filled	Spending Mana grants 2 Block.		spendManaBlockFlat:2
-warlock_mana_t2_2	Hexing Rune	sparkles	Spending Mana deals 1 Bleed, Burn, or Poison damage to a random enemy.		onHeroSpendManaApplyRandomAffliction:true
-warlock_mana_t3_1	Chaos Rift	burst.fill	Spending Mana deals equal damage across two random elements.		spendManaRandomElementDamage:true
-warlock_mana_t3_2	Life Tap	heart.circle.fill	Gaining Mana restores 2 Health.		onGainManaHealFlat:2
-bear_block_t1_1	Thick Hide	shield.fill	Take 2 less damage from all hits.		passiveMitigationFlat:2
-bear_block_t1_2	Hibernation	moon.zzz.fill	Restore 2 Health if you end your turn with Block.		endTurnWithBlockHealFlat:2
-bear_block_t2_1	Grizzly Guard	shield.lefthalf.filled	When Bear takes damage, grant 2 Block to the Hero.		onCompanionTakeDamageGrantHeroBlock:2
-bear_block_t2_2	Tough Pelt	drop.slash.fill	Bear takes 50% less Bleed damage.		bleedResistance:0.5
-bear_block_t3_1	Ironhide	shield.checkered	Bear cannot take more than 12 damage in a single hit.		maxDamagePerHitCap:12
-bear_block_t3_2	Vital Armor	heart.square.fill	Gain 1 Max Health for every 5 Block gained in combat (up to +10 Max Health).		blockGainedMaxHealthEvery:5
-bear_physical_t1_1	Shield Breaker	burst.fill	Physical attacks deal double damage to enemy Block.		physicalBlockBreakMultiplier:2
-bear_physical_t1_2	Primal Rage	waveform.path.ecg	Deal 1 additional damage for every 10 missing Health.		damagePerMissingHealthEvery:10
-bear_physical_t2_1	Cleaving Claws	pawprint.fill	Physical attacks deal 2 additional damage.	damage_dealt:physical:2	
-bear_physical_t2_2	Heavy Impact	shield.slash.fill	Physical attacks ignore half of enemy Block.		physicalBlockIgnorePercent:0.5
-bear_physical_t3_1	Enrage	flame.fill	While Bear is below half Health, party attacks deal 3 additional damage.		partyAllStatsBonusBelowHealthThreshold:0.5|partyAllStatsBonusBelowHealthAmount:3
-bear_physical_t3_2	Pulverize	mouth.fill	The first Physical attack each turn deals 1 Bleed and 1 Stun damage.		firstPhysicalBleedStunPerTurn:true
-bear_stun_t1_1	Ground Slam	hammer.fill	Physical attacks deal 1 Stun damage.		physicalAttackFlatStunBuildup:1
-bear_stun_t1_2	Dazing Swipe	bolt.horizontal.fill	Attacks have a 25% chance to delay the enemy's turn.		attackDelayEnemyTurnChancePercent:0.25
-bear_stun_t2_1	Shockwave	waveform	Stunning an enemy deals 3 Physical damage to them.		stunDealPhysicalFlat:3
-bear_stun_t2_2	Deep Stun	lock.fill	Stun has a 20% chance to last an additional turn.		stun_extend_chance_percent:0.20
-bear_stun_t3_1	Exposed Prey	target	Stunned enemies take 50% additional damage from Hero cards.		heroDamageVsStunnedMultiplier:1.5
-bear_stun_t3_2	Seismic Roar	speaker.wave.3.fill	While Bear is below half Health, its attacks deal 2 Stun damage.		attackStunBuildupBelowHealthThreshold:0.5|attackStunBuildupBelowHealthBonus:2
-frost_whelp_freeze_t1_1	Rimewind	snowflake	When you Dodge, deal 2 Freeze damage to the attacker.		dodgeDealFreezeFlat:2
-frost_whelp_freeze_t1_2	Chilling Scales	shield.fill	When attacked, deal 2 Freeze damage to the attacker.		onHitAttackerFreezeBuildup:2
-frost_whelp_freeze_t2_1	Glacial Grip	lock.fill	Attacking a Frozen enemy grants 3 Block.		onAttackFrozenEnemyGainBlock:3
-frost_whelp_freeze_t2_2	Frost Siphon	moon.stars.fill	Attacking a Frozen enemy grants 1 Mana.		onAttackFrozenEnemyGainMana:1
-frost_whelp_freeze_t3_1	Shatter Frost	burst.fill	Frozen enemies take 25% additional damage.		damageVsFrozenMultiplier:1.25
-frost_whelp_freeze_t3_2	Freezing Gale	wind.snow	Deal 2 Freeze damage to the enemy every 3 turns.		everyNTurnsFreezeAllEnemiesInterval:3|everyNTurnsFreezeAllEnemiesAmount:2
-frost_whelp_mana_t1_1	Dragon Spark	sparkle	Your first Mana empowerment costs 2 less Mana.		firstEmpowermentCostReduction:2
-frost_whelp_mana_t1_2	Arcane Breath	wind	Mana empowerment adds 3 extra damage.		empowermentDamageBonus:3
-frost_whelp_mana_t2_1	Mana Absorption	shield.lefthalf.filled	Gain 2 Block whenever the Hero spends Mana.		onHeroSpendManaGainBlock:2
-frost_whelp_mana_t2_2	Aetherial Armor	shield.checkered	Gain 1 damage reduction for every 2 unspent Mana.		damageReductionPerUnspentManaEvery:2
-frost_whelp_mana_t3_1	Mana Flow	arrow.triangle.2.circlepath	Spending Mana has a 25% chance to refund the Mana.		spendManaRefundChancePercent:0.25
-frost_whelp_mana_t3_2	Spell Channeling	wand.and.stars	When you spend Mana to empower the Whelp's cards, it costs 2 Mana instead of 3.		empowermentCostReduction:1
-frost_whelp_dodge_t1_1	High Altitude	cloud.fill	While above half Health, gain +15% Dodge chance.		dodgeChanceAboveHalfHealthBonus:0.15
-frost_whelp_dodge_t1_2	Tailwind	wind	Dodging an attack draws 1 card for the Hero.		onDodgeDrawCardForHero:1
-frost_whelp_dodge_t2_1	Flyby Strike	bolt.fill	After Dodging, your next attack deals double damage.		nextAttackDoubleAfterDodge:true
-frost_whelp_dodge_t2_2	Wing Buffet	hand.raised.fill	Dodging an attack delays the attacker's next turn.		onDodgeDelayAttackerTurn:true
-frost_whelp_dodge_t3_1	Aerial Cover	shield.fill	Dodging an attack grants the Hero 3 Block.		onDodgeGrantHeroBlock:3
-frost_whelp_dodge_t3_2	Tempest Wing	moon.stars.fill	Each Dodge restores 1 Mana to you and the Hero.		onDodgePartyMana:1
-lizard_scout_poison_t1_1	Cold Blood	figure.run	Deal 2 Poison damage when you Dodge.		dodgeApplyPoison:2
-lizard_scout_poison_t1_2	Venomous Skin	allergens.fill	Deal 2 Poison damage to attackers when you take damage.		onHitAttackerPoison:2
-lizard_scout_poison_t2_1	Spit Poison	drop.fill	When the Hero attacks a Poisoned enemy, deal 1 additional Poison damage.		onHeroAttackPoisonedEnemyApplyPoison:1
-lizard_scout_poison_t2_2	Toxiphage	heart.fill	Poison damage restores Health to Lizard Scout equal to half the damage dealt.		poisonDamageLeechPercent:0.5
-lizard_scout_poison_t3_1	Paralysis	bolt.fill	Dealing Poison damage to an enemy with 6 or more Poison has a 25% chance to Stun them.		poison_stun_chance_percent:0.25|poisonThresholdStunAmount:6
-lizard_scout_poison_t3_2	Venom Spores	leaf.fill	Poison fades 50% slower each round.		poisonDecaySlowPercent:0.50
-lizard_scout_bleed_t1_1	Barbed Tail	triangle.fill	Basic attacks deal 2 Bleed damage.		basicAttackApplyBleed:2
-lizard_scout_bleed_t1_2	Spiny Carapace	shield.checkered	Attackers take 1 Bleed damage for 2 turns when hitting you.		onHitAttackerBleedPotency:1|onHitAttackerBleedTurns:2
-lizard_scout_bleed_t2_1	Ferocious Bite	mouth.fill	Attacks deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
-lizard_scout_bleed_t2_2	Evasive Reflexes	figure.run	Gain +10% Dodge chance against Bleeding enemies.		dodgeChanceVsBleedingEnemiesBonus:0.10
-lizard_scout_bleed_t3_1	Frenzied Tail	arrow.clockwise	While any enemy is Bleeding, draw 1 extra card each turn.		extraCardDrawWhileEnemyBleeding:true
-lizard_scout_bleed_t3_2	Armor Shred	shield.slash.fill	Bleed strips 2 Block from the target each turn.		bleedStripsBlockPerTurn:2
-lizard_scout_gold_t1_1	Trophy Scales	circle.circle.fill	Gain 5 bonus Gold from every battle.		victoryGoldFlat:5
-lizard_scout_gold_t1_2	Hoard Armor	banknote.fill	At the end of your turn, gain 1 Block for every 5 Gold carried (max 5).		blockPerGoldCollectedEvery:5
-lizard_scout_gold_t2_1	Pickpocket	hand.point.up.fill	Attacks steal 1 Gold, or 2 Gold from Poisoned enemies.		onAttackStealGold:1|stealGoldBonusVsPoisoned:1
-lizard_scout_gold_t2_2	Scavenger's Cache	bag.fill	The first time you steal Gold each turn, restore 2 Health.		firstGoldTheftHeal:2
-lizard_scout_gold_t3_1	Flawless Bounty	star.circle.fill	While Lizard Scout is at full Health, Gold you gain in combat is doubled.		goldDoubledWhileFullHealth:true
-lizard_scout_gold_t3_2	Gilded Claws	dollarsign.circle.fill	Stealing Gold increases your next attack’s damage by the amount stolen.		gildedClaws:true
-panther_bleed_t1_1	Razor Claws	pawprint.fill	Bleed damage dealt increases by 1 each round.		bleed_damage_ramp_per_round:1
-panther_bleed_t1_2	Raking Swipes	triangle.fill	Attacks deal 2 Bleed damage.		attackApplyBleed:2
-panther_bleed_t2_1	Stalk the Wound	scope	Bleeding targets take 20% additional damage from Physical attacks.		physicalDamageVsBleedingMultiplier:1.2
-panther_bleed_t2_2	Rend Flesh	drop.triangle.fill	Critical Hits double the duration of active Bleed effects.		onCritDoubleBleedDuration:true
-panther_bleed_t3_1	Crippling Laceration	shield.slash.fill	Enemies with 3 or more Bleed deal 30% less damage.		enemyBleedStacksDamageReductionStacks:3|enemyBleedStacksDamageReductionPercent:0.30
-panther_bleed_t3_2	Bloodprice	bolt.fill	Attacking a Bleeding target restores 2 Health.		onAttackBleedingEnemyHeal:2
-panther_leech_t1_1	Blood Hunger	drop.fill	Gain +15% Leech against enemies below half Health.		leechPercentVsLowHealthEnemies:0.15
-panther_leech_t1_2	Shared Feast	arrow.triangle.swap	Health restored by Leech is shared equally with the Hero.		leechSharesToHeroPercent:0.5
-panther_leech_t2_1	Vitality Infusion	moon.stars.fill	Leeching Health restores 1 Mana to the Hero.		onCompanionLeechRestoreHeroMana:1
-panther_leech_t2_2	Sanguine Growth	heart.square.fill	Excess Health restored from Leech grants a +1 damage bonus for combat (up to +4).		leechOverhealDamageBonus:1
-panther_leech_t3_1	Frenzied Feeding	cross.fill	Leeching from Poisoned or Bleeding enemies doubles the Health restored.		leechHealingVsAfflictedMultiplier:2
-panther_leech_t3_2	Pack Bloodlust	target	While Panther is above 80% Health, party gains +10% Critical Hit chance.		partyCritChanceWhileCompanionAboveHealthThreshold:0.8|partyCritChanceWhileCompanionAboveHealthBonus:0.10
-panther_dodge_t1_1	Surprise Strike	bolt.badge.clock.fill	Gain +15% Critical Hit chance.		criticalChanceBonus:0.15
-panther_dodge_t1_2	Counter Pounce	pawprint.fill	Dodging an attack counters immediately for 3 damage.		onDodgeCounterDamage:3
-panther_dodge_t2_1	Survival Instinct	figure.run	Gain +25% Dodge chance while below 30% Health.		dodgeChanceBelowHealthPercentThreshold:0.3|dodgeChanceBelowHealthPercentBonus:0.25
-panther_dodge_t2_2	Stalker's Precision	scope	Each Dodge increases your Critical Hit damage by half, up to double.		critMultiplierPerDodge:0.5
-panther_dodge_t3_1	Shadow Camouflage	eye.slash.fill	Single-target enemy attacks prioritize the Hero over the Panther.		redirectSingleTargetAttacksToHero:true
-panther_dodge_t3_2	Vanish	sparkles	After Dodging, your next attack is a guaranteed Critical Hit.		onDodgeNextAttackGuaranteedCritical:true
-phoenix_burn_t1_1	Blazing Feathers	feather.fill	Attackers take 2 Burn damage when hitting Phoenix.		onHitAttackerBurn:2
-phoenix_burn_t1_2	Ignition Spark	sparkle	Burn has a 25% chance to increase instead of decrease.		burnIncreaseChancePercent:0.25
-phoenix_burn_t2_1	Flame Shield	shield.fill	Gain 2 Block whenever you deal Burn damage.		onBurnDamageGainBlock:2
-phoenix_burn_t2_2	Explosive Embers	burst.fill	Phoenix deals 4 additional damage to Burning enemies.		companionDamageVsBurningBonus:4
-phoenix_burn_t3_1	Molten Heat	flame.fill	Burn damage has a 25% chance to deal double damage.		burnDamageDoubleChancePercent:0.25
-phoenix_burn_t3_2	Intense Heat	flame.circle.fill	Burning enemies take 25% additional damage from Phoenix attacks.		companionDamageVsBurningMultiplier:1.25
-phoenix_health_t1_1	Restorative Ashes	heart.fill	Restore 2 Health each turn.		healthPerTurn:2
-phoenix_health_t1_2	Healing Flames	heart.circle.fill	Dealing Burn damage restores 2 Health to the lowest Health ally.		onBurnDamageHealLowestAllyFlat:2
-phoenix_health_t2_1	Afterglow	sun.max.fill	When Phoenix survives Death's Door, restore 15% of each ally's Max Health.		surviveDeathsDoorPartyHealPercent:0.15
-phoenix_health_t2_2	Radiant Health	star.fill	While Phoenix is at full Health, party attacks deal 2 additional damage.		partyDamageBonusWhileCompanionFullHealth:2
-phoenix_health_t3_1	Phoenix Gift	cross.fill	The first time each battle the Hero would take fatal damage, restore 15% of their Max Health.		onHeroFatalHealPercentMaxHealth:0.15
-phoenix_health_t3_2	Ashen Vitality	heart.square.fill	Health restored beyond full converts into Max Health this combat (up to +10).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:10
-phoenix_deathsdoor_t1_1	From the Ashes	flame.and.bolt.fill	Revives at 10 Health the first time it dies each battle. This happens before Death's Door.		onceDeathReviveHealth:10
-phoenix_deathsdoor_t1_2	Lingering Spirit	hourglass.bottomhalf.filled	Death's Door lasts 1 additional turn.		deathsDoorDurationBonusTurns:1
-phoenix_deathsdoor_t2_1	Blazing Rebirth	burst.fill	Rebirth deals 5 Burn damage to the enemy when triggered.		reviveDealBurnDamage:5
-phoenix_deathsdoor_t2_2	Phoenix Vigor	arrow.up.circle.fill	Surviving Death's Door grants +50% damage for 3 turns.		onSurviveDeathsDoorDamageBonusPercent:0.5
-phoenix_deathsdoor_t3_1	Fortified Rebirth	shield.fill	Revives grant 10 Block in addition to Health.		onceDeathReviveBlock:10
-phoenix_deathsdoor_t3_2	Ashen Ward	shield.lefthalf.filled	Gain +50% Dodge chance and immunity to negative effects while on Death's Door.		deathsDoorDodgeAndDebuffImmunity:true
-wolf_bleed_t1_1	Pack Ferocity	pawprint.fill	Increase Bleed duration by 1 and Bleed damage dealt by 1.	bleed_duration:1|damage_dealt:bleed:1	
-wolf_bleed_t1_2	Deep Bite	mouth.fill	Deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
-wolf_bleed_t2_1	Hamstring	figure.fall	Bleeding enemies deal 2 less damage.		bleedingEnemyDamageReductionFlat:2
-wolf_bleed_t2_2	Open Wounds	drop.fill	Dealing Bleed damage to a Bleeding target deals 2 damage.		onBleedAppliedToBleedingDealDamage:2
-wolf_bleed_t3_1	Carnivore	heart.fill	Restore 2 Health whenever Bleed deals damage.		onBleedDamageHealSelf:2
-wolf_bleed_t3_2	Savage Tear	burst.fill	Bleed ticks have a 20% chance to critically strike.		bleedTickCritChancePercent:0.20
-wolf_dodge_t1_1	Sidestep	figure.run	Gain 2 Block whenever you Dodge.		dodgeBlockFlat:2
-wolf_dodge_t1_2	Nimble Fang	drop.triangle.fill	After Dodging, your next attack deals 2 Bleed damage.		nextAttackBleedAfterDodge:2
-wolf_dodge_t2_1	Pack Coordination	arrow.triangle.swap	When Wolf Dodges, the Hero gains +10% Dodge chance until your next turn.		onCompanionDodgeGrantHeroDodgePercent:0.10
-wolf_dodge_t2_2	Flanking Position	target	Dodging makes your next party hit a guaranteed Critical Hit.		onDodgeNextPartyHitGuaranteedCritical:true
-wolf_dodge_t3_1	Evasive Pack	shield.fill	Wolf automatically Dodges attacks after the first hit each turn. These Dodges do not counterattack.		autoDodgeAfterFirstHitPerTurn:true
-wolf_dodge_t3_2	Snapping Jaws	bolt.fill	Dodging counters with an immediate basic attack.		onDodgeCounterBasicAttack:true
-wolf_physical_t1_1	Alpha Howl	speaker.wave.3.fill	Party deals 2 additional Physical damage for the first 3 turns.		partyPhysicalDamageBonusFirstTurns:2|partyPhysicalDamageBonusFirstTurnCount:3
-wolf_physical_t1_2	Predatory Focus	scope	Deal 3 additional damage to enemies with lower Health than Wolf.		damageVsLowerHealthEnemyBonus:3
-wolf_physical_t2_1	Bone-Crushing Bite	shield.slash.fill	Physical attacks against enemies with Block deal 2 additional damage.		physicalDamageVsBlockedBonus:2
-wolf_physical_t2_2	Alpha Might	flame.fill	While the enemy is below half Health, party Physical attacks deal 2 additional damage.		damageBelowHealthPercentThreshold:0.5|damageBelowHealthPercentKeyword:.physical|damageBelowHealthPercentBonus:2
-wolf_physical_t3_1	Feral Frenzy	arrow.clockwise	While the enemy is below 40% Health, Wolf draws 1 extra card each turn.		extraCardDrawBelowEnemyHealthPercent:0.40
-wolf_physical_t3_2	Rending Fangs	triangle.fill	Physical attacks deal 1 Bleed damage on hit.		physicalAttackApplyBleed:1
-golden_retriever_gold_t1_1	Bounty	circle.circle.fill	Gain 3 Gold when you defeat an enemy.		defeatEnemyGoldFlat:3
-golden_retriever_gold_t1_2	Dig for Treasure	sparkle	Gain 2 Gold every 3 turns.		goldEveryNTurnsInterval:3|goldEveryNTurnsAmount:2
-golden_retriever_gold_t2_1	Haggler	dollarsign.circle.fill	All Gold you gain in combat is increased by 15%.		partyGoldGainedPercent:0.15
-golden_retriever_gold_t2_2	Golden Guard	shield.fill	While carrying 10 or more Gold, gain 2 Block at the start of each round.		blockWhileGoldThreshold:10|blockWhileGoldAmount:2
-golden_retriever_gold_t3_1	Fetch!	pawprint.fill	Gain 2 Gold when an enemy plays an ability.		onEnemyAbilityGold:2
-golden_retriever_gold_t3_2	Treasure Hoard	bag.fill	While you have 50 or more Gold, the party gains +10% Critical Hit chance.		partyCritChanceWhileGoldAbove:50|partyCritChanceWhileGoldAboveBonus:0.10
-golden_retriever_block_t1_1	Guardian	shield.lefthalf.filled	Absorb 2 damage whenever the Hero is attacked.		absorbHeroDamageFlat:2
-golden_retriever_block_t1_2	Watchful Eye	eye.fill	Start each battle with 3 Block.		startBattleBlock:3
-golden_retriever_block_t2_1	Shield Bond	arrow.triangle.swap	Whenever Retriever gains Block, the Hero gains equal Block.		companionBlockSharesToHeroPercent:1
-golden_retriever_block_t2_2	Warning Bark	speaker.wave.2.fill	Negate the first enemy attack of each combat.		negateFirstEnemyAttack:true
-golden_retriever_block_t3_1	Sacrificial Guard	heart.slash.fill	When the Hero would die, Retriever takes that hit instead and gains 10 Block.		companionFatalDamageRedirectBlock:10
-golden_retriever_block_t3_2	Steadfast	shield.checkered	While holding Block, Stun and Freeze on Retriever are halved, and Burn damage taken is halved.		blockedControlBurnResistance:0.5
-golden_retriever_health_t1_1	Cheer Up	heart.fill	Restore 1 Health to the lowest Health ally at end of turn.		endOfTurnHealLowestAlly:1
-golden_retriever_health_t1_2	Playful Energy	sparkles	Playing 3 cards in a turn restores 2 Health to the party.		cardsPlayedHealPartyThreshold:3|cardsPlayedHealPartyAmount:2
-golden_retriever_health_t2_1	Campfire Comfort	flame.circle.fill	At the end of each turn, restore 2 Health to each party member.		partyRegenPerRound:2
-golden_retriever_health_t2_2	Man's Best Friend	heart.circle.fill	Hero gains +15% Critical Hit chance while Retriever is alive.		heroCritChanceWhileCompanionAlive:0.15
-golden_retriever_health_t3_1	Inspirational Vigor	waveform.path.ecg	While Retriever is below half Health, party attacks deal 2 additional damage.		partyAllStatsBonusBelowHealthThreshold:0.5|partyAllStatsBonusBelowHealthAmount:2
-golden_retriever_health_t3_2	Protective Lick	bandage.fill	When an ally takes damage, restore 1 Health to them.		onAllyDamageHeal:1
-library_owl_holy_t1_1	Revealed Flaw	eye.fill	Holy attacks make the next hit deal 2 additional damage.		holyDamageNextHitBonus:2
-library_owl_holy_t1_2	Scholarly Smite	book.closed.fill	When the Hero uses a Holy ability, Owl deals 2 Holy damage to the target.		onHeroHolyAbilityCompanionHolyDamage:2
-library_owl_holy_t2_1	Blinding Light	sun.max.fill	Your Holy hits reduce the enemy’s next attack damage by half the damage dealt.		blindingLight:true
-library_owl_holy_t2_2	Radiant Wisdom	moon.stars.fill	Restore 1 Mana whenever you deal Holy damage.		onHolyDamageRestoreMana:1
-library_owl_holy_t3_1	Bane of Evil	rays	Holy damage deals double damage to undead and corrupted enemies.		holyDamageVsUndeadOrCorruptedMultiplier:2
-library_owl_holy_t3_2	Purifying Light	shield.slash.fill	Holy attacks remove all positive buffs from the target.		holyDamagePurgeAll:true
-library_owl_cleanse_t1_1	Purifying Wisdom	scroll.fill	Draw 1 card when you Cleanse.		cleanseBonusDraw:1
-library_owl_cleanse_t1_2	Healing Hymn	bell.fill	Cleansing an ally also restores 2 Health to them.		cleanseBonusHeal:2
-library_owl_cleanse_t2_1	Spellbreak Shield	shield.fill	Cleansing a negative effect grants 2 Block per effect removed.		cleanseBlockPerStack:2
-library_owl_cleanse_t2_2	Mass Cleanse	sparkles	Cleanse also removes negative effects from the rest of the party.		cleanseAffectsBothHeroAndCompanion:true
-library_owl_cleanse_t3_1	Reflective Ward	arrow.counterclockwise	Cleansing a negative effect reflects it onto the enemy who applied it.		cleanseReflectDebuffToEnemy:true
-library_owl_cleanse_t3_2	Sanctified Scroll	text.book.closed.fill	Restoring Health has a 10% chance to Cleanse a negative effect.		onHealCleanseTargetChance:0.10
-library_owl_health_t1_1	Safe Perch	tree.fill	Restore 2 Health each turn while above half Health.		healthRegenAboveHalfHealth:2
-library_owl_health_t1_2	Warded Roost	shield.lefthalf.filled	Restoring Health to an ally also grants them 2 Block.		onHealGrantBlock:2
-library_owl_health_t2_1	Efficient Care	wand.and.stars	When you spend 3 Mana to empower a card that restores Health, it costs 2 Mana instead of 3.		healingEmpowermentCostReduction:1
-library_owl_health_t2_2	Aether Shield	shield.checkered	The first Health you restore beyond full each turn converts into 3 Block.		overhealFirstBlockPerTurn:3
-library_owl_health_t3_1	Guardian Archive	cross.fill	When a party member hits Death's Door, restore 10 Health to them and cleanse all negative effects.		onAllyDeathsDoorHealAndCleanse:10
-library_owl_health_t3_2	Font of Magic	drop.fill	Restoring Health to an ally restores 1 Mana to the caster.		onHealRestoreCasterMana:1
-risen_skeleton_physical_t1_1	Bone Shield	shield.fill	Gain 2 Block whenever you deal Physical damage.		onPhysicalDamageGainBlock:2
-risen_skeleton_physical_t1_2	Bone Burst	burst.fill	Attacks have a 25% chance to deal 3 extra damage and grant 2 Block.		attackBurstChancePercent:0.25|attackBurstDamage:3|attackBurstBlock:2
-risen_skeleton_physical_t2_1	Brittle Strike	shield.slash.fill	Physical attacks ignore all Block on Stunned or Frozen enemies.		physicalIgnoresBlockVsStunnedOrFrozen:true
-risen_skeleton_physical_t2_2	Dense Bones	shield.checkered	Take 1 less damage from each hit (up to 4).		toughnessOnHit:1|toughnessOnHitCap:4
-risen_skeleton_physical_t3_1	Cleaving Bones	triangle.fill	Physical attacks deal 1 additional Bleed damage to the enemy.		physicalAttackApplyBleed:1
-risen_skeleton_physical_t3_2	Bone Armor	shield.lefthalf.filled	Whenever you take Health damage, gain 1 Block.		onSelfHealthLossGainBlock:1
-risen_skeleton_leech_t1_1	Weaken Soul	waveform.path.ecg	Leech reduces the target's damage by 2 for 2 turns.		onLeechReduceEnemyStrength:2|onLeechReduceEnemyStrengthTurns:2
-risen_skeleton_leech_t1_2	Toxic Touch	allergens.fill	Leech damage deals 2 Poison damage to the target.		onLeechApplyPoison:2
-risen_skeleton_leech_t2_1	Grave Harvest	drop.fill	Leeching Health from an enemy below half Health restores 2 additional Health.		leechBonusHealVsLowHealthEnemies:2
-risen_skeleton_leech_t2_2	Soul Sharing	arrow.triangle.swap	Convert half of Skeleton's damage into Health restored to the Hero.		companionDamageLeechesToHeroPercent:0.5
-risen_skeleton_leech_t3_1	Affliction Siphon	cross.fill	Leeching Health from a Stunned enemy restores 3 additional Health.		leechBonusHealVsStunned:3
-risen_skeleton_leech_t3_2	Necrotic Bleed	drop.triangle.fill	Leeching Health deals 2 Bleed damage to the target.		onLeechApplyBleed:2
-risen_skeleton_deathsdoor_t1_1	Deathrattle	bell.fill	Revive at 1 Health with 10 Block the first time you die each battle.		onceDeathReviveHealth:1|onceDeathReviveBlock:10
-risen_skeleton_deathsdoor_t1_2	Tenacious Spirit	hourglass.bottomhalf.filled	Death's Door lasts 2 additional turns.		deathsDoorDurationBonusTurns:2
-risen_skeleton_deathsdoor_t2_1	Corpse Explosion	burst.fill	Deal 8 Physical damage to the enemy when you die.		onDeathDealPhysicalDamageAllEnemies:8
-risen_skeleton_deathsdoor_t2_2	Deathly Wrath	bolt.fill	Attacks are guaranteed Critical Hits while on Death's Door.		guaranteedCritWhileOnDeathsDoor:true
-risen_skeleton_deathsdoor_t3_1	Endless Legion	arrow.clockwise	If Death's Door ends while Skeleton is still alive, restore Health to 6 once per battle.		deathsDoorExpiredHealFlat:6
-risen_skeleton_deathsdoor_t3_2	Lichbone	shield.pattern.checkered	Take 50% less Bleed and Poison damage, and 50% less Stun.		afflictionResistance:0.5
-mana_moth_mana_t1_1	Arcane Reservoir	shield.fill	Whenever you gain Mana, gain 1 Block.		on_gain_mana_block:1
-mana_moth_mana_t1_2	Aetherial Surge	sparkles	Restore 1 bonus Mana on turn 1 and turn 4.		bonusManaOnTurns:[1, 4]
-mana_moth_mana_t2_1	Mana Cocoon	circle.circle.fill	Spending Mana grants equal Block.		spendManaGrantsEqualBlock:true
-mana_moth_mana_t2_2	Aetherial Flow	wind	When the Hero spends Mana, Moth's next attack deals 2 additional damage.		onHeroSpendManaCompanionNextAttackBonus:2
-mana_moth_mana_t3_1	Prismatic Spark	sparkle	Gain a 25% chance to double all Mana gained.		manaGainDoubleChancePercent:0.25
-mana_moth_mana_t3_2	Arcane Burst	wand.and.stars	Spending 5 Mana draws and automatically plays a random card.		spendManaThresholdAutoPlayCard:5
-mana_moth_freeze_t1_1	Chilling Flutter	snowflake	Basic attacks deal 2 Freeze damage.		basicAttackFreezeBuildup:2
-mana_moth_freeze_t1_2	Frost Guard	shield.lefthalf.filled	Mana empowerment adds 1 Freeze damage.		empowerFreezeDamageBonus:1
-mana_moth_freeze_t2_1	Blinding Frost	eye.slash.fill	Moth deals 25% additional damage to Frozen enemies.		damageVsFrozenMultiplier:1.25
-mana_moth_freeze_t2_2	Subzero Mist	wind.snow	When Freeze ends on the enemy, gain +20% Dodge chance until your next turn.		subzeroMist:true
-mana_moth_freeze_t3_1	Flash Freeze	lock.fill	Mana empowerment increases the empowered card’s Freeze damage by 2.		flashFreeze:true
-mana_moth_freeze_t3_2	Frost Nova	burst.fill	Deal 4 additional Freeze damage against Frozen enemies.		frostDamageVsFrozenBonus:4
-mana_moth_burn_t1_1	Ember Shield	flame.fill	Gain 2 Block whenever an ally deals Burn damage.		onAllyBurnDamageGainBlock:2
-mana_moth_burn_t1_2	Moth to Flame	moon.stars.fill	Restore 1 Mana whenever Burn deals damage (up to 2 per turn).		onBurnDamageRestoreManaPerTurnCap:2|onBurnDamageRestoreManaFlat:1
-mana_moth_burn_t2_1	Flashover	flame.circle.fill	Burn damage against Frozen enemies has a 50% chance to deal double damage.		burnDoubleVsFrozenChancePercent:0.5
-mana_moth_burn_t2_2	Combustion	burst.fill	Your attacks against Burning enemies deal bonus damage equal to half their current Burn.		damagePerBurnPotencyPercent:0.5
-mana_moth_burn_t3_1	Ember Persistence	hourglass	Enemies lose 35% less Burn at the end of each round.		burnDecaySlowPercent:0.35
-mana_moth_burn_t3_2	Cinder Halo	sun.max.fill	Burning enemies take 1 Holy damage each time Burn deals damage.		onBurnTickHolyDamage:1
-pixie_cleanse_t1_1	Fae Mending	sparkles	Restore 2 Health to yourself when you Cleanse.		cleanseSelfHeal:2
-pixie_cleanse_t1_2	Dispel Magic	wand.and.rays	Cleanse effects also Purge 1 positive buff from the enemy.		cleanseAlsoPurgesEnemyBuffs:1
-pixie_cleanse_t2_1	Fae Swiftness	figure.run	Cleansing an ally grants them +10% Dodge chance for 2 turns.		cleanseDodgeChanceBonus:0.10|cleanseDodgeChanceBonusTurns:2
-pixie_cleanse_t2_2	Cleansing Ward	shield.fill	Cleansing an ally also grants the party 2 Block.		cleansePartyBlock:2
-pixie_cleanse_t3_1	Fae Ward	shield.lefthalf.filled	Your Cleanse cards grant 1 Block per effect removed.		cleanseBlockPerStack:1
-pixie_cleanse_t3_2	Purifying Aura	sun.and.horizon.fill	Negative effects on all party members expire twice as fast.		partyDebuffDurationHalved:true
-pixie_health_t1_1	Sprite Touch	heart.fill	Restore 2 Health each turn for the first 3 turns of battle.		healthRegenFirstTurnsAmount:2|healthRegenFirstTurnsDuration:3
-pixie_health_t1_2	Emergency Mend	cross.fill	Health restored to allies below 30% Health is doubled.		healingBelowHealthPercentThreshold:0.30|healingBelowHealthPercentMultiplier:2
-pixie_health_t2_1	Lingering Blessing	leaf.fill	Restoring Health to an ally applies a 3-turn effect that restores 1 Health over time.		healOverTimeOnHealTurns:3|healOverTimeOnHealAmount:1
-pixie_health_t2_2	Protective Bloom	shield.lefthalf.filled	Restoring Health to an ally also deals 2 Holy damage to the enemy.		onHealDealHoly:2
-pixie_health_t3_1	Vital Infusion	heart.square.fill	Health restored beyond full increases the target's Max Health by +1 this combat (up to +5).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:5|overhealConvertsToMaxHealthPerEvent:1
-pixie_health_t3_2	Barrier Blessing	shield.fill	Excess Health restored is converted into Block for that ally.		overhealConvertsToBlock:true
-pixie_holy_t1_1	Dazzle	sparkle	Holy attacks reduce the target's damage by 2 on their next turn.		holyDamageReduceTargetDamage:2
-pixie_holy_t1_2	Piercing Starlight	rays	Holy damage ignores enemy Block and cannot be Dodged.		holyIgnoresBlockAndDodge:true
-pixie_holy_t2_1	Radiant Barrier	sun.max.fill	Dealing Holy damage grants 2 Block to the party.		onHolyDamagePartyBlock:2
-pixie_holy_t2_2	Stun Flare	flame.and.bolt.fill	Holy attacks deal 1 Burn and 1 Stun damage.		holyAttackApplyBurnAndStunBuildup:1
-pixie_holy_t3_1	Supernal Glow	sun.haze.fill	All party basic attacks deal 2 additional Holy damage.		partyBasicAttackHolyBonus:2
-pixie_holy_t3_2	Sunlight Spark	heart.circle.fill	Your next attack after dealing Holy damage deals 1 additional Holy damage.		holyDamageNextAttackHolyBonus:1
-shield_scarab_block_t1_1	Plated Hide	shield.fill	Gain 2 Block when you are hit.		onHitGainBlock:2
-shield_scarab_block_t1_2	Hardened Chitin	shield.checkered	Take 2 less damage from non-Physical hits while you have Block.		spellDamageTakenReductionWhileBlocked:2
-shield_scarab_block_t2_1	Enduring Shell	shield.pattern.checkered	Scarab's Block retains 50% at the end of each round (up to 30 max).		blockRetainsHalf:true
-shield_scarab_block_t2_2	Bulwark Fortress	shield.lefthalf.filled	While Scarab has Block, the Hero takes 50% less damage.		companionBlockProtectsHeroPercent:0.5
-shield_scarab_block_t3_1	Spiked Shell	triangle.fill	Whenever you retain Block at the end of each round, gain Thorns equal to half that amount.		retainedBlockGainThornsPercent:0.5
-shield_scarab_block_t3_2	Sun-Struck Shell	sun.max.fill	When your Block is hit, deal 2 Holy damage to the attacker.		onBlockHitDealHoly:2
-shield_scarab_stun_t1_1	Sunder Shield	shield.slash.fill	Stunned enemies lose all their active Block.		stunnedEnemyLoseAllBlock:true
-shield_scarab_stun_t1_2	Heavy Slam	hammer.fill	Deal 4 additional Physical damage to Stunned enemies.		damageWhileTargetStunnedBonus:4
-shield_scarab_stun_t2_1	Prolonged Daze	lock.fill	Stunning an enemy deals 2 Physical damage to them.		stunDealPhysicalFlat:2
-shield_scarab_stun_t2_2	Seismic Impact	bolt.horizontal.fill	Enemies require 25% less Stun to be Stunned.		enemyStunThresholdReductionPercent:0.25
-shield_scarab_stun_t3_1	Quaking Carapace	waveform	Deal 3 Stun damage to the enemy and grant 5 Block to the party every 3 turns.		everyNTurnsStunBuildupInterval:3|everyNTurnsStunBuildupAmount:3|everyNTurnsTeamBlockAmount:5
-shield_scarab_stun_t3_2	Solar Brand	flame.fill	Stunning an enemy also deals 2 Burn damage to them.		onStunEnemyApplyBurn:2
-shield_scarab_holy_t1_1	Gilded Carapace	circle.circle.fill	Gain 2 Block whenever an enemy becomes Stunned.		onStunEnemyGainBlock:2
-shield_scarab_holy_t1_2	Radiant Shell	sun.haze.fill	Enemies attacking Scarab take 2 Holy damage.		onHitAttackerHoly:2
-shield_scarab_holy_t2_1	Sun Glyph	sun.max.fill	Holy damage dealt by Scarab restores 2 Health to the Hero.		holyDamageHealHeroFlat:2
-shield_scarab_holy_t2_2	Solar Ward	rays	Party deals 2 additional Holy damage while Scarab is at full Health.		partyHolyDamageBonusWhileCompanionFullHealth:2
-shield_scarab_holy_t3_1	Dazzling Guard	eye.slash.fill	Blocking an attack reduces the attacker's accuracy by 25% for 2 turns.		onBlockReduceAttackerAccuracyPercent:25|onBlockReduceAttackerAccuracyTurns:2
-shield_scarab_holy_t3_2	Purifying Sun	burst.fill	Holy damage deals double damage to Poisoned or Bleeding targets.		holyDamageVsPoisonedOrBleedingMultiplier:2
-fox_gold_t1_1	Palmed Coin	circle.circle.fill	Gain 2 Gold when you Dodge.		dodgeGoldFlat:2
-fox_gold_t1_2	Snatch	hand.point.up.fill	Basic attacks steal 2 Gold from the enemy.		basicAttackStealGold:2
-fox_gold_t2_1	Golden Opportunity	arrow.clockwise	Gaining 5 or more Gold at once draws 1 card.		gainGoldDrawThreshold:5
-fox_gold_t2_2	Lucky Strike	dice.fill	Critical Hits grant 3 Gold.		criticalGoldFlat:3
-fox_gold_t3_1	Master Thief	shield.slash.fill	When you Critically Hit, steal the enemy's Block and gain it yourself.		critStealEnemyBlock:true
-fox_gold_t3_2	Golden Recovery	heart.fill	Gaining Gold restores 1 Health to the party.		onGainGoldHealParty:1
-fox_dodge_t1_1	Feint Strike	bolt.fill	Dodging an attack increases the party's next card damage by 2.		onDodgePartyNextCardDamageBonus:2
-fox_dodge_t1_2	Poisonous Dash	drop.fill	Dodging an attack deals 2 Poison or 2 Bleed damage to the attacker.		onDodgeApplyPoisonOrBleed:2
-fox_dodge_t2_1	Slip Away	wind	Dodge the first attack against you each combat.		dodgeFirstAttackEachCombat:true
-fox_dodge_t2_2	Misdirection	figure.run	After Dodging, the enemy is off-balance: your next attack deals double damage.		nextAttackDoubleAfterDodge:true
-fox_dodge_t3_1	Decoy Swap	theatermasks.fill	50% chance when the Hero is attacked for Fox to swap places and Dodge for them.		swapAndDodgeForHeroChance:0.5
-fox_dodge_t3_2	Stolen Breath	moon.stars.fill	Dodging an attack restores 2 Health to you.		dodgeHealFlat:2
-fox_stun_t1_1	Dazzling Tail	sparkles	Deal 2 Stun damage to attackers when you Dodge their attack.		onDodgeAttackerStunBuildup:2
-fox_stun_t1_2	Confusing Feint	theatermasks.fill	Attacks against Stunned enemies deal 1 additional damage.		damageWhileTargetStunnedBonus:1
-fox_stun_t2_1	Disorienting Strike	hammer.fill	Attacking a Stunned enemy grants 2 Gold and 2 Block.		onAttackStunnedEnemyGold:2|onAttackStunnedEnemyBlock:2
-fox_stun_t2_2	Chaos Manipulation	dice.fill	Fox deals 50% additional damage to Stunned enemies.		stunnedDamageMultiplier:1.50
-fox_stun_t3_1	Affliction Burst	allergens.fill	When an enemy recovers from Stun, they take 2 Bleed, 2 Poison, and 2 Burn damage.		onEnemyStunRecoverApplyAfflictions:2
-fox_stun_t3_2	Confounding Loot	dollarsign.circle.fill	Critical Hits against Stunned enemies steal 3 Gold.		criticalVsStunnedEnemyGold:3
-knight_stun_t4_1	Lightning Rod	bolt.fill	Stunning an enemy doubles the party's Block.		lightningRod:true
-bear_stun_t4_1	Seismic Reversal	bolt.horizontal.fill	Blocked damage is returned as Stun damage.		seismicReversal:true
-knight_holy_t4_1	Sunwall	sun.max.fill	Holy damage grants equal Block to your Companion.		sunwall:true
-pixie_holy_t4_1	Unbroken Vow	sun.max.fill	Block lets Holy damage ignore Block and Dodge.		unbrokenVow:true
-wolf_physical_t4_1	Stored Impact	shield.fill	Blocked damage empowers your next Physical attack.		storedImpact:true
-bear_physical_t4_1	Battering Ram	hammer.fill	Physical attacks consume Block for equal bonus damage.		batteringRam:true
-library_owl_holy_t4_1	Interdict	cross.fill	Effects you Purge cannot return until your next turn.		interdict:true
-shield_scarab_holy_t4_1	Crownfall	crown.fill	Purging deals 3 Holy damage per effect.		crownfall:true
-ranger_poison_t4_1	Toxic Transfusion	drop.fill	Physical damage deals half as much Poison damage.		toxicTransfusion:true
-risen_skeleton_physical_t4_1	Pressure Point	target	Critical Hits against Poisoned enemies deal double Physical damage.		pressurePoint:true
-rogue_gold_t4_1	Bounty Blade	dollarsign.circle.fill	Critical Hits grant 3 Gold and steal 3 Block.		bountyBlade:true
-golden_retriever_gold_t4_1	War Chest	bag.fill	50 Gold guarantees Physical Critical Hits.		warChest:true
-wizard_mana_t4_1	Closed Circuit	bolt.horizontal.fill	Spending Mana deals equal Stun damage.		closedCircuit:true
-warlock_mana_t4_1	Eye of the Storm	wind.snow	Stun damage restores equal Mana.		eyeOfTheStorm:true
-rogue_poison_t4_1	Nerve Agent	allergens.fill	Poison damage deals half as much Stun damage.		nerveAgent:true
-lizard_scout_poison_t4_1	Toxic Coma	bolt.fill	Stunned enemies take double Poison damage.		toxicComa:true
-ranger_bleed_t4_1	Shatterpoint	snowflake	Freeze damage detonates and consumes all Bleed.		shatterpoint:true
-rogue_bleed_t4_1	Cryostasis	snowflake	Bleed never expires on Frozen enemies.		cryostasis:true
-lizard_scout_poison_t4_2	Cross-Contamination	drop.fill	Your Bleed damage has a 20% chance to also deal Poison damage.		crossContamination:true
-wolf_bleed_t4_1	Septicemia	drop.triangle.fill	Poisoned enemies take double Bleed damage.		septicemia:true
-wolf_dodge_t4_1	Phantom Counter	figure.run	Dodging draws and plays 1 Physical card.		phantomCounter:true
-fox_dodge_t4_1	Perfect Tempo	bolt.fill	Physical Critical Hits make you Dodge the next attack.		perfectTempo:true
-pixie_cleanse_t4_1	Purifying Waters	drop.fill	Cleansing restores 4 Health per effect.		purifyingWaters:true
-phoenix_health_t4_1	Clean Slate	cross.fill	Health restored beyond full Cleanses one effect.		cleanSlate:true
-ranger_burn_t4_1	Firebrand	flame.fill	Physical damage deals half as much Burn damage.		firebrand:true
-wizard_burn_t4_1	Backdraft	flame.fill	Critical Hits consume Burn for equal damage matching their element.		backdraft:true
-warlock_burn_t4_1	Ashen Arsenal	flame.fill	Burn damage draws 1 Physical card.		ashenArsenal:true
-phoenix_burn_t4_1	Furnace Rhythm	flame.fill	Burn cards make the next Physical card play twice.		furnaceRhythm:true
-lizard_scout_bleed_t4_1	Butcher's Ledger	drop.triangle.fill	Physical damage deals half as much Bleed damage.		butchersLedger:true
-panther_bleed_t4_1	Arterial Cascade	drop.triangle.fill	Physical Critical Hits detonate and consume all Bleed.		arterialCascade:true
-wolf_bleed_t4_2	Bloodrush	drop.fill	Bleed ticks have a 20% chance to draw 1 Physical card.		bleedTickDrawChancePercent:0.2
-panther_bleed_t4_2	Redline	drop.triangle.fill	Detonating Bleed makes your next Physical card deal 2 additional Bleed damage.		redline:true
-knight_block_t4_1	Stalwart Oath	bolt.shield.fill	When you Stun an enemy, gain 6 Block.		onStunEnemyGainBlock:6
-bear_block_t4_1	Avalanche Guard	snowflake	Freezing an enemy doubles party Block.		avalancheGuard:true
-golden_retriever_block_t4_1	Icebound Exchange	snowflake	Freeze damage steals enemy Block for the party.		iceboundExchange:true
-wizard_freeze_t4_1	Glacial Reprieve	snowflake	Blocked damage is returned as Freeze damage.		glacialReprieve:true
-mana_moth_burn_t4_1	Steam Explosion	burst.fill	Your Freeze cards consume Burn for equal additional Freeze damage.		steamExplosion:true
-mana_moth_burn_t4_2	Frostfire	flame.fill	Burn damage deals half as much Freeze damage.		frostfire:true
-frost_whelp_freeze_t4_1	Elemental Paradox	snowflake	Burning enemies take double Freeze damage.		elementalParadox:true
-warlock_burn_t4_2	Temper Cycle	flame.fill	Burn cards make the next Freeze card play twice.		temperCycle:true
-alchemist_poison_t1_1	Reactive Coating	drop.fill	Your Poison cards grant 1 Thorns.		reactiveCoating:true
-alchemist_poison_t1_2	Safe Handling	drop.fill	Your Poison cards remove 1 Burn from you.		safeHandling:true
-alchemist_poison_t2_1	Reactive Sediment	drop.fill	A Poison card immediately following your Burn card deals 1 additional Poison damage.		reactiveSediment:true
-alchemist_poison_t2_2	Spent Reagents	drop.fill	Whenever your Poison expires naturally, restore 1 Mana.		spentReagents:true
-alchemist_poison_t3_1	Dissolving Fumes	drop.fill	Your Poison cards remove 1 Thorns from the enemy.		dissolvingFumes:true
-alchemist_poison_t3_2	Unstable Culture	drop.fill	Your Poison expiring naturally on the enemy doubles your next Poison card’s Poison damage.		unstableCulture:true
-alchemist_poison_t4_1	Sealed Vial	drop.fill	Your Poison cards consume your Poison to deal equal additional Poison damage.		sealedVial:true
-alchemist_cleanse_t1_1	Clear Solution	sparkles	A Cleanse card that removes no negative effects restores 1 Mana to you.		clearSolution:true
-alchemist_cleanse_t1_2	Fresh Batch	sparkles	Your Cleanse cards remove 1 Thorns from the enemy.		freshBatch:true
-alchemist_cleanse_t2_1	Heat Recovery	sparkles	Cleansing Burn restores 1 Mana to the cleansed ally.		heatRecovery:true
-alchemist_cleanse_t2_2	Antitoxin Coating	sparkles	Cleansing Poison grants the cleansed ally 1 Thorns.		antitoxinCoating:true
-alchemist_cleanse_t3_1	Clear Mind	sparkles	Your first Cleanse of each Mana-using ally grants them 1 Max Mana this battle.		clearMind:true
-alchemist_cleanse_t3_2	Clean Break	sparkles	Removing an ally’s last debuff draws a Poison card.		cleanBreak:true
-alchemist_cleanse_t4_1	Perfect Purity	sparkles	Cleansing an ally makes their next attack deal 2 additional Poison damage.		perfectPurity:true
-alchemist_health_t1_1	Fortifying Tonic	heart.fill	Restoring Health to a Poisoned ally restores 1 additional Health.		fortifyingTonic:true
-alchemist_health_t1_2	Measured Dose	heart.fill	Restoring Mana with a card adds 1 Health to your next card that restores Health.		measuredDose:true
-alchemist_health_t2_1	Cooling Salve	heart.fill	Your cards that restore Health remove 1 Burn from you.		coolingSalve:true
-alchemist_health_t2_2	Reclaimed Reagents	heart.fill	Health restored beyond full converts into Block, absorbing up to 4 damage.		overhealShieldCap:4
-alchemist_health_t3_1	Shared Prescription	heart.fill	Your Companion restoring Health with a card removes 1 Poison from you.		sharedPrescription:true
-alchemist_health_t3_2	Restorative Fumes	heart.fill	Your Basics that restore Health remove 1 Block from the enemy.		restorativeFumes:true
-alchemist_health_t4_1	Masterwork Mixture	heart.fill	Your healing cards transfer overhealing to the other ally.		masterworkMixture:true
-druid_health_t1_1	Spring Sap	heart.fill	Restoring Health to an ally with Thorns restores 1 additional Health.		springSap:true
-druid_health_t1_2	Pruning Touch	heart.fill	Your Companion’s cards that restore Health remove 1 Thorns from the enemy.		pruningTouch:true
-druid_health_t2_1	Quiet Grove	heart.fill	After an enemy turn in which you lost no Health, restore 1 Health to your Companion.		quietGrove:true
-druid_health_t2_2	Shelter Seed	heart.fill	Healing an ally below half Health grants them equal Thorns.		shelterSeed:true
-druid_health_t3_1	Cleansing Dew	heart.fill	Your cards that restore Health remove 1 Poison from that ally.		cleansingDew:true
-druid_health_t3_2	Shared Roots	heart.fill	Restoring Health to your Companion removes 1 Burn from you.		sharedRoots:true
-druid_health_t4_1	Verdant Shelter	heart.fill	Your cards that restore Health grant that ally 1 Thorns.		verdantShelter:true
-druid_poison_t1_1	Barbed Spores	drop.fill	Your Poison dealing damage grants your Companion 1 Thorns.		barbedSpores:true
-druid_poison_t1_2	Living Bark	drop.fill	Poison cards grant you 1 Block while you have Thorns.		livingBark:true
-druid_poison_t2_1	Cool Moss	drop.fill	Your Poison cards remove 1 Burn from your Companion.		coolMoss:true
-druid_poison_t2_2	Returning Bloom	drop.fill	Your Poison expiring naturally restores 1 Health to your Companion.		returningBloom:true
-druid_poison_t3_1	Root Passage	drop.fill	Your Poison cards ignore 1 Block while your Companion has Thorns.		rootPassage:true
-druid_poison_t3_2	Entangling Growth	drop.fill	Your Poison cards deal 1 additional Poison damage after your Companion plays a Stun card that turn.		entanglingGrowth:true
-druid_poison_t4_1	Thorn Shedding	drop.fill	Your Companion’s Thorns deal Poison damage instead of Physical damage.		thornShedding:true
-druid_mana_t1_1	First Bloom	flame.fill	A Mana-restoring card immediately following your Poison card restores 1 Mana to your Companion.		firstBloom:true
-druid_mana_t1_2	Barkweave	flame.fill	Your Mana empowerments remove 1 Thorns from the enemy.		barkweave:true
-druid_mana_t2_1	Grove Reserve	flame.fill	At turn end, grant your Companion 1 Block per 2 unspent Mana.		groveReserve:true
-druid_mana_t2_2	Living Conduit	flame.fill	Restoring Mana with a card grants your Companion 1 Thorns.		livingConduit:true
-druid_mana_t3_1	Shared Current	flame.fill	Your Companion spending Mana grants you equal Thorns.		sharedCurrent:true
-druid_mana_t3_2	Deep Roots	flame.fill	Your Mana-restoring cards restore 1 additional Mana while you have Thorns.		deepRoots:true
-druid_mana_t4_1	Grove Accord	flame.fill	Both allies spending Mana in the same turn grants each 1 Thorns.		groveAccord:true
-wildcard_gold_t1_1	Consolation Prize	suit.diamond.fill	Your non-damaging random card outcomes grant 1 Gold.		consolationPrize:true
-wildcard_gold_t1_2	House Credit	suit.diamond.fill	A random damage outcome adds 1 Gold to your next card that grants Gold.		houseCredit:true
-wildcard_gold_t2_1	Full House	suit.diamond.fill	Playing a set of Basic, Skill, and Ultimate cards grants 5 Gold and draws a card.		fullHouse:true
-wildcard_gold_t2_2	Lucky Charm	suit.diamond.fill	Your cards that grant Gold remove 1 Poison from you.		luckyCharm:true
-wildcard_gold_t3_1	Last Wager	suit.diamond.fill	Gain 1 Thorns at turn end if your last card granted Gold.		lastWager:true
-wildcard_gold_t3_2	Sleight of Coin	suit.diamond.fill	Your Gold cards can Critically Hit, doubling the Gold they grant.		sleightOfCoin:true
-wildcard_gold_t4_1	Lucky Break	suit.diamond.fill	Your Skills randomly grant 1 Gold, 1 Block, or 1 Health. Skip unneeded Health restoration.		luckyBreak:true
-wildcard_dodge_t1_1	False Opening	wind	A non-damaging random card outcome grants +5% Dodge chance until your next turn.		falseOpening:true
-wildcard_dodge_t1_2	Missed Opportunity	wind	When an enemy fully Blocks your attack, gain 1 Block.		missedOpportunity:true
-wildcard_dodge_t2_1	Passing Luck	wind	Dodging restores 1 Health to your Companion.		passingLuck:true
-wildcard_dodge_t2_2	Scattered Caltrops	wind	Your Companion Dodging grants you 1 Thorns.		scatteredCaltrops:true
-wildcard_dodge_t3_1	Smoke Trick	wind	Your Critical Hits remove 1 Burn from you.		smokeTrick:true
-wildcard_dodge_t3_2	Improving Odds	wind	Each undodged attack increases your Dodge chance by 5%. Dodging resets this bonus.		improvingOdds:true
-wildcard_dodge_t4_1	Blind Spot	wind	Dodging lets your next Physical card ignore enemy Block.		blindSpot:true
-wildcard_physical_t1_1	Prismatic Edge	burst.fill	Your Physical cards have a 25% chance to deal 1 Burn or Freeze damage.		prismaticEdge:true
-wildcard_physical_t1_2	Improvised Assault	burst.fill	Your next Physical card after a non-Physical random damage outcome deals 2 additional Physical damage.		improvisedAssault:true
-wildcard_physical_t2_1	Clean Cut	burst.fill	Your Physical Critical Hits remove 1 Poison from you.		cleanCut:true
-wildcard_physical_t2_2	Cracked Guard	burst.fill	Breaking enemy Block with a Physical card restores 1 Health to your Companion.		crackedGuard:true
-wildcard_physical_t3_1	Cold Read	burst.fill	A Physical card against a Frozen enemy restores 1 Health to you.		coldRead:true
-wildcard_physical_t3_2	Feigned Miss	burst.fill	An enemy fully Blocking your Physical hit takes 1 Stun damage.		feignedMiss:true
-wildcard_physical_t4_1	Paid in Full	burst.fill	Your Gold cards make your next Physical card steal 2 Gold.		paidInFull:true
-warlock_leech_t4_1	Emberdrinker	flame.fill	Your Burn damage Leeches Health.		burnDamageLeech:true
-frost_whelp_mana_t4_1	Dragon’s Patronage	sparkles	Your Mana can empower either ally’s Freeze cards.		dragonPatronage:true
-frost_whelp_dodge_t4_1	Winter’s Wake	wind.snow	Dodged attacks return half their damage as Freeze damage.		wintersWake:true
-lizard_scout_gold_t4_1	Carrion Claim	banknote.fill	Your Poison and Bleed damage steal 1 Gold.		carrionClaim:true
-panther_leech_t4_1	Blood Feast	drop.fill	Your Bleed damage Leeches Health.		bleedDamageLeech:true
-panther_dodge_t4_1	Killing Grace	pawprint.fill	Your Dodge chance also increases your Critical Hit chance.		killingGrace:true
-phoenix_deathsdoor_t4_1	Undying Ember	flame.fill	Burn heals you while you’re on Death’s Door.		undyingEmber:true
-golden_retriever_health_t4_1	Contagious Joy	heart.fill	Your healing uses the party’s highest Critical Hit chance.		contagiousJoy:true
-library_owl_cleanse_t4_1	Lesson Learned	book.closed.fill	Cleansed effects cannot return until your next turn.		lessonLearned:true
-library_owl_health_t4_1	Living Archive	books.vertical.fill	Your card healing echoes next turn at half strength.		livingArchive:true
-risen_skeleton_leech_t4_1	Marrowmend	shield.fill	Your excess Leech healing becomes Block, up to 6.		marrowmend:true
-risen_skeleton_deathsdoor_t4_1	Borrowed Life	heart.circle.fill	Your Physical damage Leeches Health while on Death’s Door.		borrowedLife:true
-mana_moth_mana_t4_1	Prismatic Scales	sparkles	Your Mana empowerment deals both Burn and Freeze damage.		prismaticScales:true
-mana_moth_freeze_t4_1	Ghostfrost	snowflake	Your Freeze damage ignores enemy Block.		ghostfrost:true
-pixie_health_t4_1	Wishspring	wand.and.stars	Your overhealing restores half as much Mana.		wishspring:true
-shield_scarab_block_t4_1	Sealed Sarcophagus	lock.shield.fill	Your Block cannot be stolen or Purged.		sealedSarcophagus:true
-shield_scarab_stun_t4_1	Resonant Shell	waveform	Your Thorns deal Stun damage instead of Physical damage.		resonantShell:true
-fox_gold_t4_1	Light-Fingered	hand.raised.fingers.spread.fill	Gaining Gold steals an equal amount of enemy Block.		lightFingered:true
-fox_stun_t4_1	Stolen Thunder	bolt.fill	Your Stun attacks spend Block for equal bonus damage.		stolenThunder:true
+id	name	icon_id	description	modifiers	triggers
+knight_block_t1_1	Bastion Stance	lucide:shield	Gain 2 Block at the start of each round.		blockPerTurn:2
+knight_block_t1_2	Spiked Barricade	sf:burst.fill	Whenever you gain Block, gain Thorns equal to half that amount.		blockGainThornsPercent:0.5
+knight_block_t2_1	Intercede	lucide:shield-half	Your Block also absorbs damage dealt to your Companion.		blockAbsorbsCompanionDamage:true
+knight_block_t2_2	Shield Bash	lucide:shield-minus	While you have Block, attacks deal 2 additional damage.		shieldDamageBonusWhileBlocked:2
+knight_block_t3_1	Shield Shatter	lucide:shield-off	Breaking an enemy's Block deals 6 Physical damage to them.		onEnemyBlockBrokenDealPhysical:6
+knight_block_t3_2	Unbreakable	lucide:shield-check	Your Block retains 75% at the end of each round (up to 30 max). Damage that gets through Block is reduced by 15%.		blockRetainsThreeQuarters:true|postBlockOverflowDamageMultiplier:0.85
+knight_holy_t1_1	Oathbound	lucide:badge-check	Gain 2 Block when you deal Stun or Holy damage.		holyDamageBlockFlat:2|stunDamageBlockFlat:2
+knight_holy_t1_2	Pure Radiance	lucide:sunrise	Holy damage deals 50% bonus damage against enemy Block.		holyBlockBreakMultiplier:1.5
+knight_holy_t2_1	Holy Infusion	lucide:cross	Your next attack after dealing Holy damage deals 3 additional Holy damage.		holyDamageNextAttackHolyBonus:3
+knight_holy_t2_2	Consecration	lucide:sparkles	Cleanse 1 negative effect from yourself when you deal Holy damage.		holyDamageCleanseCount:1
+knight_holy_t3_1	Smite the Wicked	lucide:sun	Holy attacks deal double damage to Stunned or Burning enemies.		holyDamageVsStunnedOrBurningMultiplier:2
+knight_holy_t3_2	Divine Blessing	lucide:heart-plus	Dealing Holy damage restores 4 Health to the lowest Health ally.		holyDamageHealLowestAllyFlat:4
+knight_stun_t1_1	Heavy Flail	lucide:hammer	Attacks against Stunned enemies deal 3 additional damage.		damageWhileTargetStunnedBonus:3
+knight_stun_t1_2	Concussive Blow	lucide:zap	Stunned enemies deal half damage on their next turn.		stunnedEnemyNextTurnDamageMultiplier:0.5
+knight_stun_t2_1	Skullcracker	lucide:skull	Physical attacks against Stunned enemies deal 2 Stun damage.		physicalVsStunnedStunBuildup:2
+knight_stun_t2_2	Second Wind	lucide:wind	Draw 1 card when an enemy recovers from Stun.		onEnemyStunRecoverDrawCard:1
+knight_stun_t3_1	Searing Bind	lucide:lock-keyhole	Stun against Burning enemies lasts an additional turn.		stunExtendVsBurning:true
+knight_stun_t3_2	Crusader's Mark	lucide:target	Stunned enemies take 5 additional damage from Holy attacks.		holyDamageVsStunnedBonus:5
+rogue_poison_t1_1	Toxic Coating	lucide:flask-conical	Critical Hits deal 2 Poison damage.		criticalApplyPoison:2
+rogue_poison_t1_2	Lingering Toxin	lucide:hourglass	Poison on enemies fades 25% slower each round.		poisonDecaySlowPercent:0.25
+rogue_poison_t2_1	Noxious Reaction	lucide:biohazard	Bleed damage consumes equal Poison, dealing that much Poison damage.		bleedConsumesPoison:true
+rogue_poison_t2_2	Blinding Fumes	lucide:eye-off	Attacks from Poisoned enemies deal 20% less damage.		poisonedEnemyAccuracyPenaltyPercent:0.20
+rogue_poison_t3_1	Contagion	lucide:refresh-cw	Poison damage has a 25% chance to grow instead of fading.		poisonDecayIncreaseChance:0.25
+rogue_poison_t3_2	Deadly Dose	lucide:flask-round	Poisoned enemies take 25% additional damage from all sources.		damageVsPoisonedMultiplier:1.25
+rogue_bleed_t1_1	Serrated Blades	lucide:swords	Dealing Bleed damage immediately triggers existing Bleeds.		bleedApplicationTicksExisting:true
+rogue_bleed_t1_2	Deep Wounds	lucide:droplet	Bleed ignores the enemy's damage reduction.		bleedsIgnoreMitigation:true
+rogue_bleed_t2_1	Taste for Blood	sf:mouth.fill	When Bleed deals damage, your next Basic attack has +35% Critical Hit chance.		onBleedDamageNextBasicCritBonus:0.35
+rogue_bleed_t2_2	Blood Money	lucide:hand-coins	Defeating Bleeding enemies grants 5 bonus Gold.		defeatBleedingEnemyGold:5
+rogue_bleed_t3_1	Exsanguinate	lucide:droplets	Critical Hits on Bleeding targets have a 20% chance to detonate and consume all remaining Bleed damage at once.		criticalOnBleedingDetonateBleedChance:0.20
+rogue_bleed_t3_2	Scent of Blood	lucide:scan-eye	Deal 2 additional damage to enemies below half Health.		damage_below_health_percent:0.5:2
+rogue_gold_t1_1	Light Fingers	lucide:hand-coins	Gain 2 Gold when you Critically Hit.		criticalGoldFlat:2
+rogue_gold_t1_2	Coinmail	lucide:shield	Whenever you gain Gold in combat, gain Block equal to half that amount.		gold_gain_block_percent:0.50
+rogue_gold_t2_1	Cutpurse Cut	lucide:sword	Attacks steal 2 Gold from the target.		onAttackStealGold:2
+rogue_gold_t2_2	Gold Reserves	lucide:coins	Deal 1 additional damage for every 15 Gold carried.		goldReservesDamageEvery:15
+rogue_gold_t3_1	Bounty Hunter	lucide:crosshair	Defeating an enemy with a Critical Hit grants 10 bonus Gold.		critOnDefeatGold:10
+rogue_gold_t3_2	Golden Touch	lucide:hand	Gaining Gold doubles the next Poison, Bleed, or Burn damage you deal.		onGainGoldDoubleStatusEffectsNextCard:true
+wizard_freeze_t1_1	Persistent Frost	lucide:snowflake	Deal 2 additional Freeze damage to Frozen enemies.		frostDamageVsFrozenBonus:2
+wizard_freeze_t1_2	Numbing Cold	lucide:cloud-snow	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
+wizard_freeze_t2_1	Thermal Shock	lucide:sun-snow	Burn damage against Frozen enemies deals 4 bonus Physical damage.		burnDamageVsFrozenBonusPhysical:4
+wizard_freeze_t2_2	Glacial Barrier	lucide:shield	Gain 3 Block whenever an enemy becomes Frozen.		onEnemyFrozenGainBlock:3
+wizard_freeze_t3_1	Deep Freeze	lucide:lock-keyhole	Frozen enemies cannot gain Block or receive Health restoration.		frozenEnemyCannotBlockOrHeal:true
+wizard_freeze_t3_2	Blizzard	lucide:cloud-snow	Playing 3 Freeze cards in one turn Freezes the enemy.		freezeCardsPlayedThisTurnFreezeAll:3
+wizard_burn_t1_1	Ignition	lucide:flame	Burn deals 25% more damage to enemies with no Block.		burnDamageVsNoBlockMultiplier:1.25
+wizard_burn_t1_2	Wildfire Spread	lucide:flame-kindling	Burn ticks have a 25% chance to increase in potency.		burnIncreaseChancePercent:0.25
+wizard_burn_t2_1	Searing Heat	lucide:sun	Burn damage ignores all enemy Block and damage reduction.		burnIgnoresBlockAndMitigation:true
+wizard_burn_t2_2	Fuel the Flames	lucide:fuel	Spending Mana deals 1 Burn damage to all Burning enemies.		onSpendManaBurnBurningEnemies:1
+wizard_burn_t3_1	Supernova	sf:burst.fill	Burn damage has a 50% chance to deal double damage.		burnDamageDoubleChancePercent:0.50
+wizard_burn_t3_2	Pyromancer's Spark	lucide:sparkles	Restore 1 Mana whenever you spend Mana to empower a Burn card.		onEmpowerBurnRestoreMana:1
+wizard_mana_t1_1	Arcane Focus	lucide:focus	Deal 1 Burn or 1 Freeze damage when you spend Mana.		spendManaRandomDoTFlat:1
+wizard_mana_t1_2	Mana Shield	lucide:shield	At the end of your turn, gain 1 Block for each unspent Mana.		unspentManaConvertsToBlock:true
+wizard_mana_t2_1	Overcharge	lucide:zap	When you spend 3 Mana to empower a card, your next card deals 35% more damage.		spendManaEmpowerNextCardThreshold:3|nextCardEmpowerPercent:0.35
+wizard_mana_t2_2	Arcane Cleansing	lucide:sparkles	Spending Mana removes equal Burn or Poison from you.		spendManaRemovesAfflictions:true
+wizard_mana_t3_1	Arcane Surge	lucide:wand-sparkles	Starting your turn at full Mana draws 2 cards.		startTurnFullManaDrawCards:2
+wizard_mana_t3_2	Spell Echo	lucide:repeat-2	Skills you empower play twice.		empoweredSkillEchoes:true
+ranger_poison_t1_1	Venomous Arrows	lucide:bow-arrow	Basic attacks deal 2 Poison damage.		attacksApplyPoison:2
+ranger_poison_t1_2	Paralytic Poison	lucide:snail	Poisoned enemies have a 15% chance to miss their attacks.		poisonedEnemyMissChancePercent:0.15
+ranger_poison_t2_1	Prey on the Weak	lucide:paw-print	Companion attacks against Poisoned enemies deal 2 additional damage.		companionDamageVsPoisonedBonus:2
+ranger_poison_t2_2	Toxic Backlash	lucide:biohazard	When Poison is Cleansed, the enemy takes 3 damage per Poison removed.		onCleansePoisonDealDamagePerStack:3
+ranger_poison_t3_1	Corrosive Venom	lucide:shield-off	Poison strips 2 Block before damaging Health.		poisonStripsBlockBeforeHealth:2
+ranger_poison_t3_2	Lethal Dose	lucide:flask-conical	Poison damage is doubled against enemies below half Health.		poisonDamageBelowHealthThreshold:0.5|poisonDamageBelowHealthMultiplier:2
+ranger_burn_t1_1	Flaming Arrows	lucide:bow-arrow	Critical Hits deal 2 Burn damage.		criticalApplyBurn:2
+ranger_burn_t1_2	Slow Burn	lucide:hourglass	Enemies lose 20% less Burn at the end of each round.		burnDecaySlowPercent:0.20
+ranger_burn_t2_1	Cauterize	lucide:bandage	Dealing Burn damage has a 30% chance to detonate remaining Bleed damage.		on_burn_damage_detonate_bleed_chance_percent:0.30
+ranger_burn_t2_2	Smoke Screen	lucide:cloud-fog	Inflicting Burn grants +10% Dodge chance until your next turn.		onApplyBurnDodgeChanceUntilNextTurn:0.10
+ranger_burn_t3_1	Scorched Earth	lucide:flame	Burning enemies deal 1 less damage.		burningEnemyDamageReductionFlat:1
+ranger_burn_t3_2	Inferno Barrage	lucide:flame-kindling	Your Ultimate deals 8 Burn damage.		ultimateAppliesBurnPotency:8
+ranger_bleed_t1_1	Lead the Hunt	lucide:crosshair	Increase Companion Bleed damage dealt by 3.	companion_bleed_damage_dealt:3	
+ranger_bleed_t1_2	Broadhead Arrows	lucide:bow-arrow	Attacks have a 50% chance to deal 1 Bleed damage.		directHitBleedChancePercent:0.5
+ranger_bleed_t2_1	Hamstring Shot	sf:figure.fall	A Bleeding enemy has a 15% chance to skip its action each round.		bleedingEnemyActionSkipChancePercent:0.15
+ranger_bleed_t2_2	Bloodscent	lucide:scan-eye	Increase Companion Bleed duration by 1.	bleed_duration:1	
+ranger_bleed_t3_1	Pinning Strike	lucide:pin	Bleeding enemies take 2 damage whenever they attack.		bleedingEnemyAttackDealDamage:2
+ranger_bleed_t3_2	Blood Tracker	lucide:eye	Gain +15% Critical Hit chance against Bleeding enemies.		critChancePerBleedingEnemy:0.15
+warlock_burn_t1_1	Bloodfire	lucide:droplet	Whenever Burn damages an enemy, restore 2 Health.		burnDamageHealFlat:2
+warlock_burn_t1_2	Scorching Ash	lucide:flame	Burn damage dealt increases by 1 each round.		burn_damage_ramp_per_round:1
+warlock_burn_t2_1	Withering Flame	lucide:heart-crack	Burn reduces enemy Health restoration and Leech by half.		burnReducesEnemyHealingAndLeechPercent:0.5
+warlock_burn_t2_2	Soul Burn	lucide:ghost	Restore 1 Mana whenever Burn deals 4 or more damage in a turn.		burnDamageManaRestoreThreshold:4|onBurnDamageRestoreManaFlat:1
+warlock_burn_t3_1	Damnation	lucide:skull	Burning enemies take 25% additional damage from all sources.		damageVsBurningMultiplier:1.25
+warlock_burn_t3_2	Raging Inferno	lucide:flame-kindling	Burn ticks twice per turn on the enemy.		burnTicksTwicePerTurn:true
+warlock_leech_t1_1	Vampiric Touch	lucide:hand	Leech also heals from damage absorbed by enemy Block.		leechOnBlockDamage:true
+warlock_leech_t1_2	Armor Pierce	lucide:shield-off	Leech ignores enemy damage reduction.		leechIgnoresMitigation:true
+warlock_leech_t2_1	Blood Link	lucide:link	Excess Health restored from Leech is transferred to your Companion.		leechOverhealTransfersToCompanion:true
+warlock_leech_t2_2	Soul Drain	lucide:moon-star	Leeching Health restores 1 Mana.		leechRestoreManaFlat:1
+warlock_leech_t3_1	Sanguine Overflow	lucide:heart-plus	Reaching full Health makes your next attack deal 6 additional damage.		nextAttackBonusOnFullHealth:6
+warlock_leech_t3_2	Soul Ward	lucide:shield	Whenever an enemy loses Health to an attack, gain 1 Block.		onAnyHealthLossGainBlock:1
+warlock_mana_t1_1	Dark Recovery	lucide:rotate-ccw	Whenever you spend your last Mana, deal 3 Stun damage to the enemy.		spendLastManaStunDamage:3
+warlock_mana_t1_2	Forbidden Lore	lucide:book-open	Start each battle with 1 additional Mana.		startBattleBonusMana:1
+warlock_mana_t2_1	Eldritch Shield	lucide:shield-half	Spending Mana grants 2 Block.		spendManaBlockFlat:2
+warlock_mana_t2_2	Hexing Rune	lucide:orbit	Spending Mana deals 1 Bleed, Burn, or Poison damage to a random enemy.		onHeroSpendManaApplyRandomAffliction:true
+warlock_mana_t3_1	Chaos Rift	sf:burst.fill	Spending Mana deals equal damage across two random elements.		spendManaRandomElementDamage:true
+warlock_mana_t3_2	Life Tap	lucide:heart-plus	Gaining Mana restores 2 Health.		onGainManaHealFlat:2
+bear_block_t1_1	Thick Hide	lucide:shield	Take 2 less damage from all hits.		passiveMitigationFlat:2
+bear_block_t1_2	Hibernation	lucide:moon	Restore 2 Health if you end your turn with Block.		endTurnWithBlockHealFlat:2
+bear_block_t2_1	Grizzly Guard	lucide:shield-half	When Bear takes damage, grant 2 Block to the Hero.		onCompanionTakeDamageGrantHeroBlock:2
+bear_block_t2_2	Tough Pelt	lucide:shield-check	Bear takes 50% less Bleed damage.		bleedResistance:0.5
+bear_block_t3_1	Ironhide	lucide:shield-ban	Bear cannot take more than 12 damage in a single hit.		maxDamagePerHitCap:12
+bear_block_t3_2	Vital Armor	lucide:heart-plus	Gain 1 Max Health for every 5 Block gained in combat (up to +10 Max Health).		blockGainedMaxHealthEvery:5
+bear_physical_t1_1	Shield Breaker	lucide:shield-off	Physical attacks deal double damage to enemy Block.		physicalBlockBreakMultiplier:2
+bear_physical_t1_2	Primal Rage	lucide:face-angry	Deal 1 additional damage for every 10 missing Health.		damagePerMissingHealthEvery:10
+bear_physical_t2_1	Cleaving Claws	lucide:paw-print	Physical attacks deal 2 additional damage.	damage_dealt:physical:2	
+bear_physical_t2_2	Heavy Impact	lucide:hammer	Physical attacks ignore half of enemy Block.		physicalBlockIgnorePercent:0.5
+bear_physical_t3_1	Enrage	lucide:flame	While Bear is below half Health, party attacks deal 3 additional damage.		partyAllStatsBonusBelowHealthThreshold:0.5|partyAllStatsBonusBelowHealthAmount:3
+bear_physical_t3_2	Pulverize	sf:mouth.fill	The first Physical attack each turn deals 1 Bleed and 1 Stun damage.		firstPhysicalBleedStunPerTurn:true
+bear_stun_t1_1	Ground Slam	lucide:hammer	Physical attacks deal 1 Stun damage.		physicalAttackFlatStunBuildup:1
+bear_stun_t1_2	Dazing Swipe	lucide:paw-print	Attacks have a 25% chance to delay the enemy's turn.		attackDelayEnemyTurnChancePercent:0.25
+bear_stun_t2_1	Shockwave	lucide:waves-horizontal	Stunning an enemy deals 3 Physical damage to them.		stunDealPhysicalFlat:3
+bear_stun_t2_2	Deep Stun	lucide:hourglass	Stun has a 20% chance to last an additional turn.		stun_extend_chance_percent:0.20
+bear_stun_t3_1	Exposed Prey	lucide:crosshair	Stunned enemies take 50% additional damage from Hero cards.		heroDamageVsStunnedMultiplier:1.5
+bear_stun_t3_2	Seismic Roar	lucide:audio-lines	While Bear is below half Health, its attacks deal 2 Stun damage.		attackStunBuildupBelowHealthThreshold:0.5|attackStunBuildupBelowHealthBonus:2
+frost_whelp_freeze_t1_1	Rimewind	lucide:wind	When you Dodge, deal 2 Freeze damage to the attacker.		dodgeDealFreezeFlat:2
+frost_whelp_freeze_t1_2	Chilling Scales	lucide:shield	When attacked, deal 2 Freeze damage to the attacker.		onHitAttackerFreezeBuildup:2
+frost_whelp_freeze_t2_1	Glacial Grip	lucide:hand	Attacking a Frozen enemy grants 3 Block.		onAttackFrozenEnemyGainBlock:3
+frost_whelp_freeze_t2_2	Frost Siphon	lucide:moon-star	Attacking a Frozen enemy grants 1 Mana.		onAttackFrozenEnemyGainMana:1
+frost_whelp_freeze_t3_1	Shatter Frost	sf:burst.fill	Frozen enemies take 25% additional damage.		damageVsFrozenMultiplier:1.25
+frost_whelp_freeze_t3_2	Freezing Gale	lucide:cloud-snow	Deal 2 Freeze damage to the enemy every 3 turns.		everyNTurnsFreezeAllEnemiesInterval:3|everyNTurnsFreezeAllEnemiesAmount:2
+frost_whelp_mana_t1_1	Dragon Spark	lucide:sparkles	Your first Mana empowerment costs 2 less Mana.		firstEmpowermentCostReduction:2
+frost_whelp_mana_t1_2	Arcane Breath	lucide:wind	Mana empowerment adds 3 extra damage.		empowermentDamageBonus:3
+frost_whelp_mana_t2_1	Mana Absorption	lucide:shield-plus	Gain 2 Block whenever the Hero spends Mana.		onHeroSpendManaGainBlock:2
+frost_whelp_mana_t2_2	Aetherial Armor	lucide:shield	Gain 1 damage reduction for every 2 unspent Mana.		damageReductionPerUnspentManaEvery:2
+frost_whelp_mana_t3_1	Mana Flow	lucide:repeat	Spending Mana has a 25% chance to refund the Mana.		spendManaRefundChancePercent:0.25
+frost_whelp_mana_t3_2	Spell Channeling	lucide:wand-sparkles	When you spend Mana to empower the Whelp's cards, it costs 2 Mana instead of 3.		empowermentCostReduction:1
+frost_whelp_dodge_t1_1	High Altitude	lucide:cloud	While above half Health, gain +15% Dodge chance.		dodgeChanceAboveHalfHealthBonus:0.15
+frost_whelp_dodge_t1_2	Tailwind	lucide:wind	Dodging an attack draws 1 card for the Hero.		onDodgeDrawCardForHero:1
+frost_whelp_dodge_t2_1	Flyby Strike	lucide:feather	After Dodging, your next attack deals double damage.		nextAttackDoubleAfterDodge:true
+frost_whelp_dodge_t2_2	Wing Buffet	lucide:feather	Dodging an attack delays the attacker's next turn.		onDodgeDelayAttackerTurn:true
+frost_whelp_dodge_t3_1	Aerial Cover	lucide:shield-half	Dodging an attack grants the Hero 3 Block.		onDodgeGrantHeroBlock:3
+frost_whelp_dodge_t3_2	Tempest Wing	lucide:wind	Each Dodge restores 1 Mana to you and the Hero.		onDodgePartyMana:1
+lizard_scout_poison_t1_1	Cold Blood	lucide:thermometer-snowflake	Deal 2 Poison damage when you Dodge.		dodgeApplyPoison:2
+lizard_scout_poison_t1_2	Venomous Skin	lucide:biohazard	Deal 2 Poison damage to attackers when you take damage.		onHitAttackerPoison:2
+lizard_scout_poison_t2_1	Spit Poison	lucide:flask-conical	When the Hero attacks a Poisoned enemy, deal 1 additional Poison damage.		onHeroAttackPoisonedEnemyApplyPoison:1
+lizard_scout_poison_t2_2	Toxiphage	lucide:heart-pulse	Poison damage restores Health to Lizard Scout equal to half the damage dealt.		poisonDamageLeechPercent:0.5
+lizard_scout_poison_t3_1	Paralysis	lucide:zap	Dealing Poison damage to an enemy with 6 or more Poison has a 25% chance to Stun them.		poison_stun_chance_percent:0.25|poisonThresholdStunAmount:6
+lizard_scout_poison_t3_2	Venom Spores	lucide:flower-2	Poison fades 50% slower each round.		poisonDecaySlowPercent:0.50
+lizard_scout_bleed_t1_1	Barbed Tail	sf:burst.fill	Basic attacks deal 2 Bleed damage.		basicAttackApplyBleed:2
+lizard_scout_bleed_t1_2	Spiny Carapace	sf:burst.fill	Attackers take 1 Bleed damage for 2 turns when hitting you.		onHitAttackerBleedPotency:1|onHitAttackerBleedTurns:2
+lizard_scout_bleed_t2_1	Ferocious Bite	sf:mouth.fill	Attacks deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
+lizard_scout_bleed_t2_2	Evasive Reflexes	lucide:wind	Gain +10% Dodge chance against Bleeding enemies.		dodgeChanceVsBleedingEnemiesBonus:0.10
+lizard_scout_bleed_t3_1	Frenzied Tail	lucide:repeat	While any enemy is Bleeding, draw 1 extra card each turn.		extraCardDrawWhileEnemyBleeding:true
+lizard_scout_bleed_t3_2	Armor Shred	lucide:shield-off	Bleed strips 2 Block from the target each turn.		bleedStripsBlockPerTurn:2
+lizard_scout_gold_t1_1	Trophy Scales	lucide:award	Gain 5 bonus Gold from every battle.		victoryGoldFlat:5
+lizard_scout_gold_t1_2	Hoard Armor	lucide:shield	At the end of your turn, gain 1 Block for every 5 Gold carried (max 5).		blockPerGoldCollectedEvery:5
+lizard_scout_gold_t2_1	Pickpocket	lucide:hand-coins	Attacks steal 1 Gold, or 2 Gold from Poisoned enemies.		onAttackStealGold:1|stealGoldBonusVsPoisoned:1
+lizard_scout_gold_t2_2	Scavenger's Cache	lucide:package	The first time you steal Gold each turn, restore 2 Health.		firstGoldTheftHeal:2
+lizard_scout_gold_t3_1	Flawless Bounty	lucide:trophy	While Lizard Scout is at full Health, Gold you gain in combat is doubled.		goldDoubledWhileFullHealth:true
+lizard_scout_gold_t3_2	Gilded Claws	lucide:paw-print	Stealing Gold increases your next attack’s damage by the amount stolen.		gildedClaws:true
+panther_bleed_t1_1	Razor Claws	lucide:paw-print	Bleed damage dealt increases by 1 each round.		bleed_damage_ramp_per_round:1
+panther_bleed_t1_2	Raking Swipes	lucide:swords	Attacks deal 2 Bleed damage.		attackApplyBleed:2
+panther_bleed_t2_1	Stalk the Wound	lucide:crosshair	Bleeding targets take 20% additional damage from Physical attacks.		physicalDamageVsBleedingMultiplier:1.2
+panther_bleed_t2_2	Rend Flesh	lucide:droplet	Critical Hits double the duration of active Bleed effects.		onCritDoubleBleedDuration:true
+panther_bleed_t3_1	Crippling Laceration	lucide:shield-minus	Enemies with 3 or more Bleed deal 30% less damage.		enemyBleedStacksDamageReductionStacks:3|enemyBleedStacksDamageReductionPercent:0.30
+panther_bleed_t3_2	Bloodprice	lucide:hand-heart	Attacking a Bleeding target restores 2 Health.		onAttackBleedingEnemyHeal:2
+panther_leech_t1_1	Blood Hunger	lucide:droplet	Gain +15% Leech against enemies below half Health.		leechPercentVsLowHealthEnemies:0.15
+panther_leech_t1_2	Shared Feast	lucide:heart-handshake	Health restored by Leech is shared equally with the Hero.		leechSharesToHeroPercent:0.5
+panther_leech_t2_1	Vitality Infusion	lucide:heart-plus	Leeching Health restores 1 Mana to the Hero.		onCompanionLeechRestoreHeroMana:1
+panther_leech_t2_2	Sanguine Growth	lucide:sprout	Excess Health restored from Leech grants a +1 damage bonus for combat (up to +4).		leechOverhealDamageBonus:1
+panther_leech_t3_1	Frenzied Feeding	sf:mouth.fill	Leeching from Poisoned or Bleeding enemies doubles the Health restored.		leechHealingVsAfflictedMultiplier:2
+panther_leech_t3_2	Pack Bloodlust	lucide:paw-print	While Panther is above 80% Health, party gains +10% Critical Hit chance.		partyCritChanceWhileCompanionAboveHealthThreshold:0.8|partyCritChanceWhileCompanionAboveHealthBonus:0.10
+panther_dodge_t1_1	Surprise Strike	lucide:sword	Gain +15% Critical Hit chance.		criticalChanceBonus:0.15
+panther_dodge_t1_2	Counter Pounce	lucide:paw-print	Dodging an attack counters immediately for 3 damage.		onDodgeCounterDamage:3
+panther_dodge_t2_1	Survival Instinct	lucide:wind	Gain +25% Dodge chance while below 30% Health.		dodgeChanceBelowHealthPercentThreshold:0.3|dodgeChanceBelowHealthPercentBonus:0.25
+panther_dodge_t2_2	Stalker's Precision	lucide:crosshair	Each Dodge increases your Critical Hit damage by half, up to double.		critMultiplierPerDodge:0.5
+panther_dodge_t3_1	Shadow Camouflage	lucide:eye-off	Single-target enemy attacks prioritize the Hero over the Panther.		redirectSingleTargetAttacksToHero:true
+panther_dodge_t3_2	Vanish	lucide:ghost	After Dodging, your next attack is a guaranteed Critical Hit.		onDodgeNextAttackGuaranteedCritical:true
+phoenix_burn_t1_1	Blazing Feathers	lucide:feather	Attackers take 2 Burn damage when hitting Phoenix.		onHitAttackerBurn:2
+phoenix_burn_t1_2	Ignition Spark	lucide:sparkles	Burn has a 25% chance to increase instead of decrease.		burnIncreaseChancePercent:0.25
+phoenix_burn_t2_1	Flame Shield	lucide:shield	Gain 2 Block whenever you deal Burn damage.		onBurnDamageGainBlock:2
+phoenix_burn_t2_2	Explosive Embers	sf:burst.fill	Phoenix deals 4 additional damage to Burning enemies.		companionDamageVsBurningBonus:4
+phoenix_burn_t3_1	Molten Heat	lucide:flame	Burn damage has a 25% chance to deal double damage.		burnDamageDoubleChancePercent:0.25
+phoenix_burn_t3_2	Intense Heat	lucide:thermometer-sun	Burning enemies take 25% additional damage from Phoenix attacks.		companionDamageVsBurningMultiplier:1.25
+phoenix_health_t1_1	Restorative Ashes	lucide:heart-pulse	Restore 2 Health each turn.		healthPerTurn:2
+phoenix_health_t1_2	Healing Flames	lucide:heart-plus	Dealing Burn damage restores 2 Health to the lowest Health ally.		onBurnDamageHealLowestAllyFlat:2
+phoenix_health_t2_1	Afterglow	lucide:sunset	When Phoenix survives Death's Door, restore 15% of each ally's Max Health.		surviveDeathsDoorPartyHealPercent:0.15
+phoenix_health_t2_2	Radiant Health	lucide:sun	While Phoenix is at full Health, party attacks deal 2 additional damage.		partyDamageBonusWhileCompanionFullHealth:2
+phoenix_health_t3_1	Phoenix Gift	lucide:gift	The first time each battle the Hero would take fatal damage, restore 15% of their Max Health.		onHeroFatalHealPercentMaxHealth:0.15
+phoenix_health_t3_2	Ashen Vitality	lucide:heart-plus	Health restored beyond full converts into Max Health this combat (up to +10).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:10
+phoenix_deathsdoor_t1_1	From the Ashes	lucide:rotate-ccw	Revives at 10 Health the first time it dies each battle. This happens before Death's Door.		onceDeathReviveHealth:10
+phoenix_deathsdoor_t1_2	Lingering Spirit	lucide:ghost	Death's Door lasts 1 additional turn.		deathsDoorDurationBonusTurns:1
+phoenix_deathsdoor_t2_1	Blazing Rebirth	lucide:flame	Rebirth deals 5 Burn damage to the enemy when triggered.		reviveDealBurnDamage:5
+phoenix_deathsdoor_t2_2	Phoenix Vigor	lucide:biceps-flexed	Surviving Death's Door grants +50% damage for 3 turns.		onSurviveDeathsDoorDamageBonusPercent:0.5
+phoenix_deathsdoor_t3_1	Fortified Rebirth	lucide:shield-plus	Revives grant 10 Block in addition to Health.		onceDeathReviveBlock:10
+phoenix_deathsdoor_t3_2	Ashen Ward	lucide:shield-check	Gain +50% Dodge chance and immunity to negative effects while on Death's Door.		deathsDoorDodgeAndDebuffImmunity:true
+wolf_bleed_t1_1	Pack Ferocity	lucide:paw-print	Increase Bleed duration by 1 and Bleed damage dealt by 1.	bleed_duration:1|damage_dealt:bleed:1	
+wolf_bleed_t1_2	Deep Bite	sf:mouth.fill	Deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
+wolf_bleed_t2_1	Hamstring	sf:figure.fall	Bleeding enemies deal 2 less damage.		bleedingEnemyDamageReductionFlat:2
+wolf_bleed_t2_2	Open Wounds	lucide:droplets	Dealing Bleed damage to a Bleeding target deals 2 damage.		onBleedAppliedToBleedingDealDamage:2
+wolf_bleed_t3_1	Carnivore	sf:mouth.fill	Restore 2 Health whenever Bleed deals damage.		onBleedDamageHealSelf:2
+wolf_bleed_t3_2	Savage Tear	lucide:swords	Bleed ticks have a 20% chance to critically strike.		bleedTickCritChancePercent:0.20
+wolf_dodge_t1_1	Sidestep	lucide:footprints	Gain 2 Block whenever you Dodge.		dodgeBlockFlat:2
+wolf_dodge_t1_2	Nimble Fang	sf:mouth.fill	After Dodging, your next attack deals 2 Bleed damage.		nextAttackBleedAfterDodge:2
+wolf_dodge_t2_1	Pack Coordination	lucide:users-round	When Wolf Dodges, the Hero gains +10% Dodge chance until your next turn.		onCompanionDodgeGrantHeroDodgePercent:0.10
+wolf_dodge_t2_2	Flanking Position	lucide:route	Dodging makes your next party hit a guaranteed Critical Hit.		onDodgeNextPartyHitGuaranteedCritical:true
+wolf_dodge_t3_1	Evasive Pack	lucide:wind	Wolf automatically Dodges attacks after the first hit each turn. These Dodges do not counterattack.		autoDodgeAfterFirstHitPerTurn:true
+wolf_dodge_t3_2	Snapping Jaws	sf:mouth.fill	Dodging counters with an immediate basic attack.		onDodgeCounterBasicAttack:true
+wolf_physical_t1_1	Alpha Howl	lucide:audio-lines	Party deals 2 additional Physical damage for the first 3 turns.		partyPhysicalDamageBonusFirstTurns:2|partyPhysicalDamageBonusFirstTurnCount:3
+wolf_physical_t1_2	Predatory Focus	lucide:focus	Deal 3 additional damage to enemies with lower Health than Wolf.		damageVsLowerHealthEnemyBonus:3
+wolf_physical_t2_1	Bone-Crushing Bite	lucide:bone	Physical attacks against enemies with Block deal 2 additional damage.		physicalDamageVsBlockedBonus:2
+wolf_physical_t2_2	Alpha Might	lucide:biceps-flexed	While the enemy is below half Health, party Physical attacks deal 2 additional damage.		damageBelowHealthPercentThreshold:0.5|damageBelowHealthPercentKeyword:.physical|damageBelowHealthPercentBonus:2
+wolf_physical_t3_1	Feral Frenzy	lucide:face-angry	While the enemy is below 40% Health, Wolf draws 1 extra card each turn.		extraCardDrawBelowEnemyHealthPercent:0.40
+wolf_physical_t3_2	Rending Fangs	sf:mouth.fill	Physical attacks deal 1 Bleed damage on hit.		physicalAttackApplyBleed:1
+golden_retriever_gold_t1_1	Bounty	lucide:coins	Gain 3 Gold when you defeat an enemy.		defeatEnemyGoldFlat:3
+golden_retriever_gold_t1_2	Dig for Treasure	lucide:shovel	Gain 2 Gold every 3 turns.		goldEveryNTurnsInterval:3|goldEveryNTurnsAmount:2
+golden_retriever_gold_t2_1	Haggler	lucide:handshake	All Gold you gain in combat is increased by 15%.		partyGoldGainedPercent:0.15
+golden_retriever_gold_t2_2	Golden Guard	lucide:shield	While carrying 10 or more Gold, gain 2 Block at the start of each round.		blockWhileGoldThreshold:10|blockWhileGoldAmount:2
+golden_retriever_gold_t3_1	Fetch!	lucide:bone	Gain 2 Gold when an enemy plays an ability.		onEnemyAbilityGold:2
+golden_retriever_gold_t3_2	Treasure Hoard	lucide:vault	While you have 50 or more Gold, the party gains +10% Critical Hit chance.		partyCritChanceWhileGoldAbove:50|partyCritChanceWhileGoldAboveBonus:0.10
+golden_retriever_block_t1_1	Guardian	lucide:shield	Absorb 2 damage whenever the Hero is attacked.		absorbHeroDamageFlat:2
+golden_retriever_block_t1_2	Watchful Eye	lucide:eye	Start each battle with 3 Block.		startBattleBlock:3
+golden_retriever_block_t2_1	Shield Bond	lucide:link	Whenever Retriever gains Block, the Hero gains equal Block.		companionBlockSharesToHeroPercent:1
+golden_retriever_block_t2_2	Warning Bark	lucide:audio-lines	Negate the first enemy attack of each combat.		negateFirstEnemyAttack:true
+golden_retriever_block_t3_1	Sacrificial Guard	lucide:heart-handshake	When the Hero would die, Retriever takes that hit instead and gains 10 Block.		companionFatalDamageRedirectBlock:10
+golden_retriever_block_t3_2	Steadfast	lucide:anchor	While holding Block, Stun and Freeze on Retriever are halved, and Burn damage taken is halved.		blockedControlBurnResistance:0.5
+golden_retriever_health_t1_1	Cheer Up	lucide:face-slightly-smiling	Restore 1 Health to the lowest Health ally at end of turn.		endOfTurnHealLowestAlly:1
+golden_retriever_health_t1_2	Playful Energy	lucide:zap	Playing 3 cards in a turn restores 2 Health to the party.		cardsPlayedHealPartyThreshold:3|cardsPlayedHealPartyAmount:2
+golden_retriever_health_t2_1	Campfire Comfort	lucide:flame-kindling	At the end of each turn, restore 2 Health to each party member.		partyRegenPerRound:2
+golden_retriever_health_t2_2	Man's Best Friend	lucide:dog	Hero gains +15% Critical Hit chance while Retriever is alive.		heroCritChanceWhileCompanionAlive:0.15
+golden_retriever_health_t3_1	Inspirational Vigor	lucide:biceps-flexed	While Retriever is below half Health, party attacks deal 2 additional damage.		partyAllStatsBonusBelowHealthThreshold:0.5|partyAllStatsBonusBelowHealthAmount:2
+golden_retriever_health_t3_2	Protective Lick	lucide:heart-plus	When an ally takes damage, restore 1 Health to them.		onAllyDamageHeal:1
+library_owl_holy_t1_1	Revealed Flaw	lucide:scan-eye	Holy attacks make the next hit deal 2 additional damage.		holyDamageNextHitBonus:2
+library_owl_holy_t1_2	Scholarly Smite	lucide:book-open	When the Hero uses a Holy ability, Owl deals 2 Holy damage to the target.		onHeroHolyAbilityCompanionHolyDamage:2
+library_owl_holy_t2_1	Blinding Light	lucide:eye-off	Your Holy hits reduce the enemy’s next attack damage by half the damage dealt.		blindingLight:true
+library_owl_holy_t2_2	Radiant Wisdom	lucide:book-open-text	Restore 1 Mana whenever you deal Holy damage.		onHolyDamageRestoreMana:1
+library_owl_holy_t3_1	Bane of Evil	lucide:skull	Holy damage deals double damage to undead and corrupted enemies.		holyDamageVsUndeadOrCorruptedMultiplier:2
+library_owl_holy_t3_2	Purifying Light	lucide:sun	Holy attacks remove all positive buffs from the target.		holyDamagePurgeAll:true
+library_owl_cleanse_t1_1	Purifying Wisdom	lucide:book-open	Draw 1 card when you Cleanse.		cleanseBonusDraw:1
+library_owl_cleanse_t1_2	Healing Hymn	lucide:music	Cleansing an ally also restores 2 Health to them.		cleanseBonusHeal:2
+library_owl_cleanse_t2_1	Spellbreak Shield	lucide:shield-x	Cleansing a negative effect grants 2 Block per effect removed.		cleanseBlockPerStack:2
+library_owl_cleanse_t2_2	Mass Cleanse	lucide:users-round	Cleanse also removes negative effects from the rest of the party.		cleanseAffectsBothHeroAndCompanion:true
+library_owl_cleanse_t3_1	Reflective Ward	lucide:undo-2	Cleansing a negative effect reflects it onto the enemy who applied it.		cleanseReflectDebuffToEnemy:true
+library_owl_cleanse_t3_2	Sanctified Scroll	lucide:scroll-text	Restoring Health has a 10% chance to Cleanse a negative effect.		onHealCleanseTargetChance:0.10
+library_owl_health_t1_1	Safe Perch	lucide:bird	Restore 2 Health each turn while above half Health.		healthRegenAboveHalfHealth:2
+library_owl_health_t1_2	Warded Roost	lucide:house	Restoring Health to an ally also grants them 2 Block.		onHealGrantBlock:2
+library_owl_health_t2_1	Efficient Care	lucide:heart-pulse	When you spend 3 Mana to empower a card that restores Health, it costs 2 Mana instead of 3.		healingEmpowermentCostReduction:1
+library_owl_health_t2_2	Aether Shield	lucide:shield-plus	The first Health you restore beyond full each turn converts into 3 Block.		overhealFirstBlockPerTurn:3
+library_owl_health_t3_1	Guardian Archive	lucide:library-big	When a party member hits Death's Door, restore 10 Health to them and cleanse all negative effects.		onAllyDeathsDoorHealAndCleanse:10
+library_owl_health_t3_2	Font of Magic	lucide:wand-sparkles	Restoring Health to an ally restores 1 Mana to the caster.		onHealRestoreCasterMana:1
+risen_skeleton_physical_t1_1	Bone Shield	lucide:shield	Gain 2 Block whenever you deal Physical damage.		onPhysicalDamageGainBlock:2
+risen_skeleton_physical_t1_2	Bone Burst	lucide:bone	Attacks have a 25% chance to deal 3 extra damage and grant 2 Block.		attackBurstChancePercent:0.25|attackBurstDamage:3|attackBurstBlock:2
+risen_skeleton_physical_t2_1	Brittle Strike	lucide:shield-off	Physical attacks ignore all Block on Stunned or Frozen enemies.		physicalIgnoresBlockVsStunnedOrFrozen:true
+risen_skeleton_physical_t2_2	Dense Bones	lucide:bone	Take 1 less damage from each hit (up to 4).		toughnessOnHit:1|toughnessOnHitCap:4
+risen_skeleton_physical_t3_1	Cleaving Bones	lucide:axe	Physical attacks deal 1 additional Bleed damage to the enemy.		physicalAttackApplyBleed:1
+risen_skeleton_physical_t3_2	Bone Armor	lucide:shield	Whenever you take Health damage, gain 1 Block.		onSelfHealthLossGainBlock:1
+risen_skeleton_leech_t1_1	Weaken Soul	lucide:ghost	Leech reduces the target's damage by 2 for 2 turns.		onLeechReduceEnemyStrength:2|onLeechReduceEnemyStrengthTurns:2
+risen_skeleton_leech_t1_2	Toxic Touch	lucide:hand	Leech damage deals 2 Poison damage to the target.		onLeechApplyPoison:2
+risen_skeleton_leech_t2_1	Grave Harvest	lucide:skull	Leeching Health from an enemy below half Health restores 2 additional Health.		leechBonusHealVsLowHealthEnemies:2
+risen_skeleton_leech_t2_2	Soul Sharing	lucide:heart-handshake	Convert half of Skeleton's damage into Health restored to the Hero.		companionDamageLeechesToHeroPercent:0.5
+risen_skeleton_leech_t3_1	Affliction Siphon	lucide:pipette	Leeching Health from a Stunned enemy restores 3 additional Health.		leechBonusHealVsStunned:3
+risen_skeleton_leech_t3_2	Necrotic Bleed	lucide:droplets	Leeching Health deals 2 Bleed damage to the target.		onLeechApplyBleed:2
+risen_skeleton_deathsdoor_t1_1	Deathrattle	lucide:skull	Revive at 1 Health with 10 Block the first time you die each battle.		onceDeathReviveHealth:1|onceDeathReviveBlock:10
+risen_skeleton_deathsdoor_t1_2	Tenacious Spirit	lucide:ghost	Death's Door lasts 2 additional turns.		deathsDoorDurationBonusTurns:2
+risen_skeleton_deathsdoor_t2_1	Corpse Explosion	sf:burst.fill	Deal 8 Physical damage to the enemy when you die.		onDeathDealPhysicalDamageAllEnemies:8
+risen_skeleton_deathsdoor_t2_2	Deathly Wrath	lucide:skull	Attacks are guaranteed Critical Hits while on Death's Door.		guaranteedCritWhileOnDeathsDoor:true
+risen_skeleton_deathsdoor_t3_1	Endless Legion	lucide:users-round	If Death's Door ends while Skeleton is still alive, restore Health to 6 once per battle.		deathsDoorExpiredHealFlat:6
+risen_skeleton_deathsdoor_t3_2	Lichbone	lucide:bone	Take 50% less Bleed and Poison damage, and 50% less Stun.		afflictionResistance:0.5
+mana_moth_mana_t1_1	Arcane Reservoir	lucide:container	Whenever you gain Mana, gain 1 Block.		on_gain_mana_block:1
+mana_moth_mana_t1_2	Aetherial Surge	lucide:waves-horizontal	Restore 1 bonus Mana on turn 1 and turn 4.		bonusManaOnTurns:[1, 4]
+mana_moth_mana_t2_1	Mana Cocoon	lucide:shell	Spending Mana grants equal Block.		spendManaGrantsEqualBlock:true
+mana_moth_mana_t2_2	Aetherial Flow	lucide:wind	When the Hero spends Mana, Moth's next attack deals 2 additional damage.		onHeroSpendManaCompanionNextAttackBonus:2
+mana_moth_mana_t3_1	Prismatic Spark	lucide:gem	Gain a 25% chance to double all Mana gained.		manaGainDoubleChancePercent:0.25
+mana_moth_mana_t3_2	Arcane Burst	sf:burst.fill	Spending 5 Mana draws and automatically plays a random card.		spendManaThresholdAutoPlayCard:5
+mana_moth_freeze_t1_1	Chilling Flutter	lucide:feather	Basic attacks deal 2 Freeze damage.		basicAttackFreezeBuildup:2
+mana_moth_freeze_t1_2	Frost Guard	lucide:shield	Mana empowerment adds 1 Freeze damage.		empowerFreezeDamageBonus:1
+mana_moth_freeze_t2_1	Blinding Frost	lucide:eye-off	Moth deals 25% additional damage to Frozen enemies.		damageVsFrozenMultiplier:1.25
+mana_moth_freeze_t2_2	Subzero Mist	lucide:cloud-fog	When Freeze ends on the enemy, gain +20% Dodge chance until your next turn.		subzeroMist:true
+mana_moth_freeze_t3_1	Flash Freeze	lucide:snowflake	Mana empowerment increases the empowered card’s Freeze damage by 2.		flashFreeze:true
+mana_moth_freeze_t3_2	Frost Nova	sf:burst.fill	Deal 4 additional Freeze damage against Frozen enemies.		frostDamageVsFrozenBonus:4
+mana_moth_burn_t1_1	Ember Shield	lucide:shield	Gain 2 Block whenever an ally deals Burn damage.		onAllyBurnDamageGainBlock:2
+mana_moth_burn_t1_2	Moth to Flame	lucide:flame	Restore 1 Mana whenever Burn deals damage (up to 2 per turn).		onBurnDamageRestoreManaPerTurnCap:2|onBurnDamageRestoreManaFlat:1
+mana_moth_burn_t2_1	Flashover	lucide:sun-snow	Burn damage against Frozen enemies has a 50% chance to deal double damage.		burnDoubleVsFrozenChancePercent:0.5
+mana_moth_burn_t2_2	Combustion	sf:burst.fill	Your attacks against Burning enemies deal bonus damage equal to half their current Burn.		damagePerBurnPotencyPercent:0.5
+mana_moth_burn_t3_1	Ember Persistence	lucide:hourglass	Enemies lose 35% less Burn at the end of each round.		burnDecaySlowPercent:0.35
+mana_moth_burn_t3_2	Cinder Halo	lucide:sun	Burning enemies take 1 Holy damage each time Burn deals damage.		onBurnTickHolyDamage:1
+pixie_cleanse_t1_1	Fae Mending	lucide:heart-plus	Restore 2 Health to yourself when you Cleanse.		cleanseSelfHeal:2
+pixie_cleanse_t1_2	Dispel Magic	lucide:wand-sparkles	Cleanse effects also Purge 1 positive buff from the enemy.		cleanseAlsoPurgesEnemyBuffs:1
+pixie_cleanse_t2_1	Fae Swiftness	lucide:wind	Cleansing an ally grants them +10% Dodge chance for 2 turns.		cleanseDodgeChanceBonus:0.10|cleanseDodgeChanceBonusTurns:2
+pixie_cleanse_t2_2	Cleansing Ward	lucide:shield-plus	Cleansing an ally also grants the party 2 Block.		cleansePartyBlock:2
+pixie_cleanse_t3_1	Fae Ward	lucide:shield-half	Your Cleanse cards grant 1 Block per effect removed.		cleanseBlockPerStack:1
+pixie_cleanse_t3_2	Purifying Aura	lucide:sun	Negative effects on all party members expire twice as fast.		partyDebuffDurationHalved:true
+pixie_health_t1_1	Sprite Touch	lucide:hand-heart	Restore 2 Health each turn for the first 3 turns of battle.		healthRegenFirstTurnsAmount:2|healthRegenFirstTurnsDuration:3
+pixie_health_t1_2	Emergency Mend	lucide:cross	Health restored to allies below 30% Health is doubled.		healingBelowHealthPercentThreshold:0.30|healingBelowHealthPercentMultiplier:2
+pixie_health_t2_1	Lingering Blessing	lucide:hourglass	Restoring Health to an ally applies a 3-turn effect that restores 1 Health over time.		healOverTimeOnHealTurns:3|healOverTimeOnHealAmount:1
+pixie_health_t2_2	Protective Bloom	lucide:flower-2	Restoring Health to an ally also deals 2 Holy damage to the enemy.		onHealDealHoly:2
+pixie_health_t3_1	Vital Infusion	lucide:heart-plus	Health restored beyond full increases the target's Max Health by +1 this combat (up to +5).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:5|overhealConvertsToMaxHealthPerEvent:1
+pixie_health_t3_2	Barrier Blessing	lucide:shield-plus	Excess Health restored is converted into Block for that ally.		overhealConvertsToBlock:true
+pixie_holy_t1_1	Dazzle	lucide:sparkles	Holy attacks reduce the target's damage by 2 on their next turn.		holyDamageReduceTargetDamage:2
+pixie_holy_t1_2	Piercing Starlight	lucide:star	Holy damage ignores enemy Block and cannot be Dodged.		holyIgnoresBlockAndDodge:true
+pixie_holy_t2_1	Radiant Barrier	lucide:shield	Dealing Holy damage grants 2 Block to the party.		onHolyDamagePartyBlock:2
+pixie_holy_t2_2	Stun Flare	lucide:zap	Holy attacks deal 1 Burn and 1 Stun damage.		holyAttackApplyBurnAndStunBuildup:1
+pixie_holy_t3_1	Supernal Glow	lucide:sun-dim	All party basic attacks deal 2 additional Holy damage.		partyBasicAttackHolyBonus:2
+pixie_holy_t3_2	Sunlight Spark	lucide:sun	Your next attack after dealing Holy damage deals 1 additional Holy damage.		holyDamageNextAttackHolyBonus:1
+shield_scarab_block_t1_1	Plated Hide	lucide:shield	Gain 2 Block when you are hit.		onHitGainBlock:2
+shield_scarab_block_t1_2	Hardened Chitin	lucide:shell	Take 2 less damage from non-Physical hits while you have Block.		spellDamageTakenReductionWhileBlocked:2
+shield_scarab_block_t2_1	Enduring Shell	lucide:shell	Scarab's Block retains 50% at the end of each round (up to 30 max).		blockRetainsHalf:true
+shield_scarab_block_t2_2	Bulwark Fortress	lucide:castle	While Scarab has Block, the Hero takes 50% less damage.		companionBlockProtectsHeroPercent:0.5
+shield_scarab_block_t3_1	Spiked Shell	sf:burst.fill	Whenever you retain Block at the end of each round, gain Thorns equal to half that amount.		retainedBlockGainThornsPercent:0.5
+shield_scarab_block_t3_2	Sun-Struck Shell	lucide:sun	When your Block is hit, deal 2 Holy damage to the attacker.		onBlockHitDealHoly:2
+shield_scarab_stun_t1_1	Sunder Shield	lucide:shield-off	Stunned enemies lose all their active Block.		stunnedEnemyLoseAllBlock:true
+shield_scarab_stun_t1_2	Heavy Slam	lucide:hammer	Deal 4 additional Physical damage to Stunned enemies.		damageWhileTargetStunnedBonus:4
+shield_scarab_stun_t2_1	Prolonged Daze	lucide:hourglass	Stunning an enemy deals 2 Physical damage to them.		stunDealPhysicalFlat:2
+shield_scarab_stun_t2_2	Seismic Impact	lucide:waves-horizontal	Enemies require 25% less Stun to be Stunned.		enemyStunThresholdReductionPercent:0.25
+shield_scarab_stun_t3_1	Quaking Carapace	lucide:shell	Deal 3 Stun damage to the enemy and grant 5 Block to the party every 3 turns.		everyNTurnsStunBuildupInterval:3|everyNTurnsStunBuildupAmount:3|everyNTurnsTeamBlockAmount:5
+shield_scarab_stun_t3_2	Solar Brand	lucide:flame	Stunning an enemy also deals 2 Burn damage to them.		onStunEnemyApplyBurn:2
+shield_scarab_holy_t1_1	Gilded Carapace	lucide:shell	Gain 2 Block whenever an enemy becomes Stunned.		onStunEnemyGainBlock:2
+shield_scarab_holy_t1_2	Radiant Shell	lucide:shell	Enemies attacking Scarab take 2 Holy damage.		onHitAttackerHoly:2
+shield_scarab_holy_t2_1	Sun Glyph	lucide:sun	Holy damage dealt by Scarab restores 2 Health to the Hero.		holyDamageHealHeroFlat:2
+shield_scarab_holy_t2_2	Solar Ward	lucide:shield	Party deals 2 additional Holy damage while Scarab is at full Health.		partyHolyDamageBonusWhileCompanionFullHealth:2
+shield_scarab_holy_t3_1	Dazzling Guard	lucide:eye-off	Blocking an attack reduces the attacker's accuracy by 25% for 2 turns.		onBlockReduceAttackerAccuracyPercent:25|onBlockReduceAttackerAccuracyTurns:2
+shield_scarab_holy_t3_2	Purifying Sun	lucide:sun	Holy damage deals double damage to Poisoned or Bleeding targets.		holyDamageVsPoisonedOrBleedingMultiplier:2
+fox_gold_t1_1	Palmed Coin	lucide:hand-coins	Gain 2 Gold when you Dodge.		dodgeGoldFlat:2
+fox_gold_t1_2	Snatch	lucide:hand	Basic attacks steal 2 Gold from the enemy.		basicAttackStealGold:2
+fox_gold_t2_1	Golden Opportunity	lucide:coins	Gaining 5 or more Gold at once draws 1 card.		gainGoldDrawThreshold:5
+fox_gold_t2_2	Lucky Strike	lucide:dice-5	Critical Hits grant 3 Gold.		criticalGoldFlat:3
+fox_gold_t3_1	Master Thief	lucide:eye-off	When you Critically Hit, steal the enemy's Block and gain it yourself.		critStealEnemyBlock:true
+fox_gold_t3_2	Golden Recovery	lucide:heart-plus	The first time you gain Gold each round, restore 3 Health to each living ally.		onGainGoldHealParty:3
+fox_dodge_t1_1	Feint Strike	lucide:swords	Dodging an attack increases the party's next card damage by 2.		onDodgePartyNextCardDamageBonus:2
+fox_dodge_t1_2	Poisonous Dash	lucide:flask-conical	Dodging an attack deals 2 Poison or 2 Bleed damage to the attacker.		onDodgeApplyPoisonOrBleed:2
+fox_dodge_t2_1	Slip Away	lucide:wind	Dodge the first attack against you each combat.		dodgeFirstAttackEachCombat:true
+fox_dodge_t2_2	Misdirection	lucide:signpost	After Dodging, the enemy is off-balance: your next attack deals double damage.		nextAttackDoubleAfterDodge:true
+fox_dodge_t3_1	Decoy Swap	sf:theatermasks.fill	50% chance when the Hero is attacked for Fox to swap places and Dodge for them.		swapAndDodgeForHeroChance:0.5
+fox_dodge_t3_2	Stolen Breath	lucide:wind	Dodging an attack restores 2 Health to you.		dodgeHealFlat:2
+fox_stun_t1_1	Dazzling Tail	lucide:sparkles	Deal 2 Stun damage to attackers when you Dodge their attack.		onDodgeAttackerStunBuildup:2
+fox_stun_t1_2	Confusing Feint	sf:theatermasks.fill	Attacks against Stunned enemies deal 1 additional damage.		damageWhileTargetStunnedBonus:1
+fox_stun_t2_1	Disorienting Strike	lucide:tornado	Attacking a Stunned enemy grants 2 Gold and 2 Block.		onAttackStunnedEnemyGold:2|onAttackStunnedEnemyBlock:2
+fox_stun_t2_2	Chaos Manipulation	lucide:dice-5	Fox deals 50% additional damage to Stunned enemies.		stunnedDamageMultiplier:1.50
+fox_stun_t3_1	Affliction Burst	lucide:biohazard	When an enemy recovers from Stun, they take 2 Bleed, 2 Poison, and 2 Burn damage.		onEnemyStunRecoverApplyAfflictions:2
+fox_stun_t3_2	Confounding Loot	lucide:hand-coins	Critical Hits against Stunned enemies steal 3 Gold.		criticalVsStunnedEnemyGold:3
+knight_stun_t4_1	Lightning Rod	lucide:zap	Stunning an enemy doubles the party's Block.		lightningRod:true
+bear_stun_t4_1	Seismic Reversal	lucide:undo-2	Blocked damage is returned as Stun damage.		seismicReversal:true
+knight_holy_t4_1	Sunwall	lucide:brick-wall-shield	Holy damage grants equal Block to your Companion.		sunwall:true
+pixie_holy_t4_1	Unbroken Vow	lucide:badge-check	Block lets Holy damage ignore Block and Dodge.		unbrokenVow:true
+wolf_physical_t4_1	Stored Impact	lucide:shield-plus	Blocked damage empowers your next Physical attack.		storedImpact:true
+bear_physical_t4_1	Battering Ram	lucide:hammer	Physical attacks consume Block for equal bonus damage.		batteringRam:true
+library_owl_holy_t4_1	Interdict	lucide:ban	Effects you Purge cannot return until your next turn.		interdict:true
+shield_scarab_holy_t4_1	Crownfall	lucide:crown	Purging deals 3 Holy damage per effect.		crownfall:true
+ranger_poison_t4_1	Toxic Transfusion	lucide:pipette	Physical damage deals half as much Poison damage.		toxicTransfusion:true
+risen_skeleton_physical_t4_1	Pressure Point	lucide:crosshair	Critical Hits against Poisoned enemies deal double Physical damage.		pressurePoint:true
+rogue_gold_t4_1	Bounty Blade	lucide:sword	Critical Hits grant 3 Gold and steal 3 Block.		bountyBlade:true
+golden_retriever_gold_t4_1	War Chest	lucide:vault	50 Gold guarantees Physical Critical Hits.		warChest:true
+wizard_mana_t4_1	Closed Circuit	lucide:circuit-board	Spending Mana deals equal Stun damage.		closedCircuit:true
+warlock_mana_t4_1	Eye of the Storm	lucide:tornado	Stun damage restores equal Mana.		eyeOfTheStorm:true
+rogue_poison_t4_1	Nerve Agent	lucide:biohazard	Poison damage deals half as much Stun damage.		nerveAgent:true
+lizard_scout_poison_t4_1	Toxic Coma	lucide:moon	Stunned enemies take double Poison damage.		toxicComa:true
+ranger_bleed_t4_1	Shatterpoint	sf:burst.fill	Freeze damage detonates and consumes all Bleed.		shatterpoint:true
+rogue_bleed_t4_1	Cryostasis	lucide:snowflake	Bleed never expires on Frozen enemies.		cryostasis:true
+lizard_scout_poison_t4_2	Cross-Contamination	lucide:merge	Your Bleed damage has a 20% chance to also deal Poison damage.		crossContamination:true
+wolf_bleed_t4_1	Septicemia	lucide:droplets	Poisoned enemies take double Bleed damage.		septicemia:true
+wolf_dodge_t4_1	Phantom Counter	lucide:ghost	Dodging draws and plays 1 Physical card.		phantomCounter:true
+fox_dodge_t4_1	Perfect Tempo	lucide:metronome	Physical Critical Hits make you Dodge the next attack.		perfectTempo:true
+pixie_cleanse_t4_1	Purifying Waters	lucide:droplets	Cleansing restores 4 Health per effect.		purifyingWaters:true
+phoenix_health_t4_1	Clean Slate	lucide:eraser	Health restored beyond full Cleanses one effect.		cleanSlate:true
+ranger_burn_t4_1	Firebrand	lucide:flame	Physical damage deals half as much Burn damage.		firebrand:true
+wizard_burn_t4_1	Backdraft	lucide:wind	Critical Hits consume Burn for equal damage matching their element.		backdraft:true
+warlock_burn_t4_1	Ashen Arsenal	lucide:swords	Burn damage draws 1 Physical card.		ashenArsenal:true
+phoenix_burn_t4_1	Furnace Rhythm	lucide:repeat-2	Burn cards make the next Physical card play twice.		furnaceRhythm:true
+lizard_scout_bleed_t4_1	Butcher's Ledger	lucide:notebook-pen	Physical damage deals half as much Bleed damage.		butchersLedger:true
+panther_bleed_t4_1	Arterial Cascade	lucide:droplets	Physical Critical Hits detonate and consume all Bleed.		arterialCascade:true
+wolf_bleed_t4_2	Bloodrush	lucide:activity	Bleed ticks have a 20% chance to draw 1 Physical card.		bleedTickDrawChancePercent:0.2
+panther_bleed_t4_2	Redline	lucide:gauge	Detonating Bleed makes your next Physical card deal 2 additional Bleed damage.		redline:true
+knight_block_t4_1	Stalwart Oath	lucide:shield-check	When you Stun an enemy, gain 6 Block.		onStunEnemyGainBlock:6
+bear_block_t4_1	Avalanche Guard	lucide:mountain-snow	Freezing an enemy doubles party Block.		avalancheGuard:true
+golden_retriever_block_t4_1	Icebound Exchange	lucide:arrow-left-right	Freeze damage steals enemy Block for the party.		iceboundExchange:true
+wizard_freeze_t4_1	Glacial Reprieve	lucide:snowflake	Blocked damage is returned as Freeze damage.		glacialReprieve:true
+mana_moth_burn_t4_1	Steam Explosion	sf:burst.fill	Your Freeze cards consume Burn for equal additional Freeze damage.		steamExplosion:true
+mana_moth_burn_t4_2	Frostfire	lucide:sun-snow	Burn damage deals half as much Freeze damage.		frostfire:true
+frost_whelp_freeze_t4_1	Elemental Paradox	lucide:sun-snow	Burning enemies take double Freeze damage.		elementalParadox:true
+warlock_burn_t4_2	Temper Cycle	lucide:repeat-2	Burn cards make the next Freeze card play twice.		temperCycle:true
+alchemist_poison_t1_1	Reactive Coating	sf:burst.fill	Your Poison cards grant 1 Thorns.		reactiveCoating:true
+alchemist_poison_t1_2	Safe Handling	lucide:hand	Your Poison cards remove 1 Burn from you.		safeHandling:true
+alchemist_poison_t2_1	Reactive Sediment	lucide:flask-conical	A Poison card immediately following your Burn card deals 1 additional Poison damage.		reactiveSediment:true
+alchemist_poison_t2_2	Spent Reagents	lucide:flask-round	Whenever your Poison expires naturally, restore 1 Mana.		spentReagents:true
+alchemist_poison_t3_1	Dissolving Fumes	lucide:cloud-fog	Your Poison cards remove 1 Thorns from the enemy.		dissolvingFumes:true
+alchemist_poison_t3_2	Unstable Culture	lucide:biohazard	Your Poison expiring naturally on the enemy doubles your next Poison card’s Poison damage.		unstableCulture:true
+alchemist_poison_t4_1	Sealed Vial	lucide:flask-conical	Your Poison cards consume your Poison to deal equal additional Poison damage.		sealedVial:true
+alchemist_cleanse_t1_1	Clear Solution	lucide:flask-conical	A Cleanse card that removes no negative effects restores 1 Mana to you.		clearSolution:true
+alchemist_cleanse_t1_2	Fresh Batch	lucide:flask-round	Your Cleanse cards remove 1 Thorns from the enemy.		freshBatch:true
+alchemist_cleanse_t2_1	Heat Recovery	lucide:thermometer-sun	Cleansing Burn restores 1 Mana to the cleansed ally.		heatRecovery:true
+alchemist_cleanse_t2_2	Antitoxin Coating	lucide:shield-plus	Cleansing Poison grants the cleansed ally 1 Thorns.		antitoxinCoating:true
+alchemist_cleanse_t3_1	Clear Mind	lucide:brain	Your first Cleanse of each Mana-using ally grants them 1 Max Mana this battle.		clearMind:true
+alchemist_cleanse_t3_2	Clean Break	lucide:unlink	Removing an ally’s last debuff draws a Poison card.		cleanBreak:true
+alchemist_cleanse_t4_1	Perfect Purity	lucide:sparkles	Cleansing an ally makes their next attack deal 2 additional Poison damage.		perfectPurity:true
+alchemist_health_t1_1	Fortifying Tonic	lucide:flask-conical	Restoring Health to a Poisoned ally restores 1 additional Health.		fortifyingTonic:true
+alchemist_health_t1_2	Measured Dose	lucide:pipette	Restoring Mana with a card adds 1 Health to your next card that restores Health.		measuredDose:true
+alchemist_health_t2_1	Cooling Salve	lucide:snowflake	Your cards that restore Health remove 1 Burn from you.		coolingSalve:true
+alchemist_health_t2_2	Reclaimed Reagents	lucide:recycle	Health restored beyond full converts into Block, absorbing up to 4 damage.		overhealShieldCap:4
+alchemist_health_t3_1	Shared Prescription	lucide:heart-handshake	Your Companion restoring Health with a card removes 1 Poison from you.		sharedPrescription:true
+alchemist_health_t3_2	Restorative Fumes	lucide:cloud-fog	Your Basics that restore Health remove 1 Block from the enemy.		restorativeFumes:true
+alchemist_health_t4_1	Masterwork Mixture	lucide:flask-round	Your healing cards transfer overhealing to the other ally.		masterworkMixture:true
+druid_health_t1_1	Spring Sap	lucide:sprout	Restoring Health to an ally with Thorns restores 1 additional Health.		springSap:true
+druid_health_t1_2	Pruning Touch	lucide:scissors	Your Companion’s cards that restore Health remove 1 Thorns from the enemy.		pruningTouch:true
+druid_health_t2_1	Quiet Grove	lucide:trees	After an enemy turn in which you lost no Health, restore 1 Health to your Companion.		quietGrove:true
+druid_health_t2_2	Shelter Seed	lucide:sprout	Healing an ally below half Health grants them equal Thorns.		shelterSeed:true
+druid_health_t3_1	Cleansing Dew	lucide:droplet	Your cards that restore Health remove 1 Poison from that ally.		cleansingDew:true
+druid_health_t3_2	Shared Roots	lucide:trees	Restoring Health to your Companion removes 1 Burn from you.		sharedRoots:true
+druid_health_t4_1	Verdant Shelter	lucide:shield-plus	Your cards that restore Health grant that ally 1 Thorns.		verdantShelter:true
+druid_poison_t1_1	Barbed Spores	sf:burst.fill	Your Poison dealing damage grants your Companion 1 Thorns.		barbedSpores:true
+druid_poison_t1_2	Living Bark	lucide:tree-deciduous	Poison cards grant you 1 Block while you have Thorns.		livingBark:true
+druid_poison_t2_1	Cool Moss	lucide:leaf	Your Poison cards remove 1 Burn from your Companion.		coolMoss:true
+druid_poison_t2_2	Returning Bloom	lucide:flower-2	Your Poison expiring naturally restores 1 Health to your Companion.		returningBloom:true
+druid_poison_t3_1	Root Passage	lucide:route	Your Poison cards ignore 1 Block while your Companion has Thorns.		rootPassage:true
+druid_poison_t3_2	Entangling Growth	lucide:sprout	Your Poison cards deal 1 additional Poison damage after your Companion plays a Stun card that turn.		entanglingGrowth:true
+druid_poison_t4_1	Thorn Shedding	lucide:leaf	Your Companion’s Thorns deal Poison damage instead of Physical damage.		thornShedding:true
+druid_mana_t1_1	First Bloom	lucide:flower-2	A Mana-restoring card immediately following your Poison card restores 1 Mana to your Companion.		firstBloom:true
+druid_mana_t1_2	Barkweave	lucide:leaf	Your Mana empowerments remove 1 Thorns from the enemy.		barkweave:true
+druid_mana_t2_1	Grove Reserve	lucide:trees	At turn end, grant your Companion 1 Block per 2 unspent Mana.		groveReserve:true
+druid_mana_t2_2	Living Conduit	lucide:sprout	Restoring Mana with a card grants your Companion 1 Thorns.		livingConduit:true
+druid_mana_t3_1	Shared Current	lucide:waves-horizontal	Your Companion spending Mana grants you equal Thorns.		sharedCurrent:true
+druid_mana_t3_2	Deep Roots	lucide:tree-deciduous	Your Mana-restoring cards restore 1 additional Mana while you have Thorns.		deepRoots:true
+druid_mana_t4_1	Grove Accord	lucide:trees	Both allies spending Mana in the same turn grants each 1 Thorns.		groveAccord:true
+wildcard_gold_t1_1	Consolation Prize	lucide:gift	Your non-damaging random card outcomes grant 1 Gold.		consolationPrize:true
+wildcard_gold_t1_2	House Credit	lucide:hand-coins	A random damage outcome adds 1 Gold to your next card that grants Gold.		houseCredit:true
+wildcard_gold_t2_1	Full House	lucide:house	Playing a set of Basic, Skill, and Ultimate cards grants 5 Gold and draws a card.		fullHouse:true
+wildcard_gold_t2_2	Lucky Charm	lucide:clover	Your cards that grant Gold remove 1 Poison from you.		luckyCharm:true
+wildcard_gold_t3_1	Last Wager	lucide:dice-5	Gain 1 Thorns at turn end if your last card granted Gold.		lastWager:true
+wildcard_gold_t3_2	Sleight of Coin	lucide:hand-coins	Your Gold cards can Critically Hit, doubling the Gold they grant.		sleightOfCoin:true
+wildcard_gold_t4_1	Lucky Break	lucide:clover	Your Skills randomly grant 1 Gold, 1 Block, or 1 Health. Skip unneeded Health restoration.		luckyBreak:true
+wildcard_dodge_t1_1	False Opening	lucide:swords	A non-damaging random card outcome grants +5% Dodge chance until your next turn.		falseOpening:true
+wildcard_dodge_t1_2	Missed Opportunity	lucide:shield-half	When an enemy fully Blocks your attack, gain 1 Block.		missedOpportunity:true
+wildcard_dodge_t2_1	Passing Luck	lucide:clover	Dodging restores 1 Health to your Companion.		passingLuck:true
+wildcard_dodge_t2_2	Scattered Caltrops	sf:burst.fill	Your Companion Dodging grants you 1 Thorns.		scatteredCaltrops:true
+wildcard_dodge_t3_1	Smoke Trick	lucide:cloud-fog	Your Critical Hits remove 1 Burn from you.		smokeTrick:true
+wildcard_dodge_t3_2	Improving Odds	lucide:chart-no-axes-column-increasing	Each undodged attack increases your Dodge chance by 5%. Dodging resets this bonus.		improvingOdds:true
+wildcard_dodge_t4_1	Blind Spot	lucide:eye-off	Dodging lets your next Physical card ignore enemy Block.		blindSpot:true
+wildcard_physical_t1_1	Prismatic Edge	lucide:sword	Your Physical cards have a 25% chance to deal 1 Burn or Freeze damage.		prismaticEdge:true
+wildcard_physical_t1_2	Improvised Assault	lucide:swords	Your next Physical card after a non-Physical random damage outcome deals 2 additional Physical damage.		improvisedAssault:true
+wildcard_physical_t2_1	Clean Cut	lucide:sword	Your Physical Critical Hits remove 1 Poison from you.		cleanCut:true
+wildcard_physical_t2_2	Cracked Guard	lucide:shield-off	Breaking enemy Block with a Physical card restores 1 Health to your Companion.		crackedGuard:true
+wildcard_physical_t3_1	Cold Read	lucide:scan-eye	A Physical card against a Frozen enemy restores 1 Health to you.		coldRead:true
+wildcard_physical_t3_2	Feigned Miss	sf:theatermasks.fill	An enemy fully Blocking your Physical hit takes 1 Stun damage.		feignedMiss:true
+wildcard_physical_t4_1	Paid in Full	lucide:coins	Your Gold cards make your next Physical card steal 2 Gold.		paidInFull:true
+warlock_leech_t4_1	Emberdrinker	lucide:flame	Your Burn damage Leeches Health.		burnDamageLeech:true
+frost_whelp_mana_t4_1	Dragon’s Patronage	lucide:handshake	Your Mana can empower either ally’s Freeze cards.		dragonPatronage:true
+frost_whelp_dodge_t4_1	Winter’s Wake	lucide:cloud-snow	Dodged attacks return half their damage as Freeze damage.		wintersWake:true
+lizard_scout_gold_t4_1	Carrion Claim	lucide:skull	Your Poison and Bleed damage steal 1 Gold.		carrionClaim:true
+panther_leech_t4_1	Blood Feast	sf:mouth.fill	Your Bleed damage Leeches Health.		bleedDamageLeech:true
+panther_dodge_t4_1	Killing Grace	lucide:paw-print	Your Dodge chance also increases your Critical Hit chance.		killingGrace:true
+phoenix_deathsdoor_t4_1	Undying Ember	lucide:flame	Burn heals you while you’re on Death’s Door.		undyingEmber:true
+golden_retriever_health_t4_1	Contagious Joy	lucide:face-slightly-smiling	Your healing uses the party’s highest Critical Hit chance.		contagiousJoy:true
+library_owl_cleanse_t4_1	Lesson Learned	lucide:book-check	Cleansed effects cannot return until your next turn.		lessonLearned:true
+library_owl_health_t4_1	Living Archive	lucide:library-big	Your card healing echoes next turn at half strength.		livingArchive:true
+risen_skeleton_leech_t4_1	Marrowmend	lucide:bone	Your excess Leech healing becomes Block, up to 6.		marrowmend:true
+risen_skeleton_deathsdoor_t4_1	Borrowed Life	lucide:hourglass	Your Physical damage Leeches Health while on Death’s Door.		borrowedLife:true
+mana_moth_mana_t4_1	Prismatic Scales	lucide:gem	Your Mana empowerment deals both Burn and Freeze damage.		prismaticScales:true
+mana_moth_freeze_t4_1	Ghostfrost	lucide:ghost	Your Freeze damage ignores enemy Block.		ghostfrost:true
+pixie_health_t4_1	Wishspring	lucide:wand-sparkles	Your overhealing restores half as much Mana.		wishspring:true
+shield_scarab_block_t4_1	Sealed Sarcophagus	sf:lock.shield.fill	Your Block cannot be stolen or Purged.		sealedSarcophagus:true
+shield_scarab_stun_t4_1	Resonant Shell	lucide:waves-horizontal	Your Thorns deal Stun damage instead of Physical damage.		resonantShell:true
+fox_gold_t4_1	Light-Fingered	lucide:hand-coins	Gaining Gold steals an equal amount of enemy Block.		lightFingered:true
+fox_stun_t4_1	Stolen Thunder	lucide:zap	Your Stun attacks spend Block for equal bonus damage.		stolenThunder:true

@@ -12,16 +12,16 @@ extension BattleState {
     }
 
     mutating func mutateHeroCard(_ body: (inout HeroTalentCardFacts) -> Void) {
-        guard allowsHeroTalentReaction, !heroTalents.cards.isEmpty else { return }
-        body(&heroTalents.cards[heroTalents.cards.count - 1])
+        guard allowsHeroTalentReaction else { return }
+        resolution.mutateCardTalents(body)
     }
 
     func hasHeroCard(for actorID: String) -> Bool {
-        allowsHeroTalentReaction && resolution.attackOrigin != .counterattack && heroTalents.cards.last?.actorID == actorID
+        allowsHeroTalentReaction && resolution.attackOrigin != .counterattack && resolution.cardTalents?.actorID == actorID
     }
 
     mutating func claimHeroCardBonus(_ name: String, actorID: String) -> Bool {
-        guard hasHeroCard(for: actorID), let card = heroTalents.cards.last else { return false }
+        guard hasHeroCard(for: actorID), let card = resolution.cardTalents else { return false }
         return resolution.claim(.heroCard(name), actorID: actorID, cadence: .card(card.playSerial))
     }
 

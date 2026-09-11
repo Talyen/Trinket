@@ -9,10 +9,9 @@ enum CombatFeedbackPresenter {
         switch feedbackClass {
         case .critical: 0
         case .deathsDoor: 1
-        case .directDamage: 2
-        case .heal: 3
-        case .block, .dodge, .control: 4
-        case .dot: 5
+        case .block, .dodge, .control: 2
+        case .directDamage, .dot: 3
+        case .heal: 4
         case .buff, .resource: 6
         }
     }
@@ -22,7 +21,7 @@ enum CombatFeedbackPresenter {
         case .abilityDamage:
             return .directDamage
         case .status:
-            return .dot
+            return .directDamage
         case .ability, .milestone:
             return .buff
         case .effect:
@@ -100,6 +99,7 @@ enum CombatFeedbackPresenter {
                     availableAt: availableAt,
                     expiresAt: expiresAt,
                     reactionKind: prepared.reactionKind,
+                    isCritical: prepared.isCritical,
                 )
             }
         }
@@ -132,12 +132,12 @@ enum CombatFeedbackPresenter {
         let visualRole: CombatFeedbackVisualRole
         let label: CombatFeedbackChipLabel
         let reactionKind: CombatantHitReactionKind
+        let isCritical: Bool
     }
 
     private struct AggregationKey: Hashable {
         enum Family: Hashable {
             case abilityDamage
-            case status
             case effect(ActionEvent.EffectOutcome)
         }
 
@@ -145,7 +145,6 @@ enum CombatFeedbackPresenter {
         let targetID: String
         let keyword: Keyword
         let family: Family
-        let isCritical: Bool
         let isNegative: Bool
     }
 
@@ -157,9 +156,6 @@ enum CombatFeedbackPresenter {
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
         events.filter { event in
             guard event.kind != .milestone else { return false }
-            if isNaturalManaRegeneration(event) {
-                return false
-            }
             if event.kind == .ability {
                 return false
             }
@@ -167,19 +163,22 @@ enum CombatFeedbackPresenter {
                 return false
             }
             if event.kind == .effect, let effectKind = event.effectKind {
+                if effectKind == .shieldAbsorbed {
+                    return event.isFullyBlocked
+                }
+                if effectKind == .recurringDamageApplied || effectKind == .dotAmplified {
+                    return false
+                }
+                let feedbackClass = classify(event)
+                if feedbackClass == .buff || feedbackClass == .resource, event.origin != .direct {
+                    return false
+                }
                 return CombatFeedbackEffectPresentation
                     .descriptor(for: effectKind)
                     .shouldDisplay(amount: event.amount)
             }
             return true
         }
-    }
-
-    private static func isNaturalManaRegeneration(_ event: ActionEvent) -> Bool {
-        event.kind == .effect
-            && event.effectKind == .resourceGain
-            && event.keyword == .mana
-            && event.abilityName == Keyword.mana.rawValue
     }
 
     private static func consolidate(_ sources: [PreparedSource]) -> [PreparedSource] {
@@ -193,7 +192,10 @@ enum CombatFeedbackPresenter {
             if let index = keyIndices[key] {
                 let existing = result[index]
                 result[index] = PreparedSource(
-                    event: existing.event.with(amount: existing.event.amount + source.event.amount),
+                    event: existing.event.with(
+                        amount: existing.event.amount + source.event.amount,
+                        isCritical: existing.event.isCritical || source.event.isCritical,
+                    ),
                     sourceEventIDs: existing.sourceEventIDs + source.sourceEventIDs,
                     originalOrder: min(existing.originalOrder, source.originalOrder),
                 )
@@ -211,30 +213,31 @@ enum CombatFeedbackPresenter {
         case .abilityDamage:
             family = .abilityDamage
         case .status:
-            family = .status
+            family = .abilityDamage
         case .effect:
             guard let effectKind = event.effectKind,
                   CombatFeedbackEffectPresentation.descriptor(for: effectKind).isAdditive
             else { return nil }
-            family = .effect(effectKind)
+            switch classify(event) {
+            case .directDamage: family = .abilityDamage
+            case .heal: family = .effect(.instantHeal)
+            default: family = .effect(effectKind)
+            }
         case .ability, .milestone:
             return nil
         }
         return AggregationKey(
-            actionID: event.actionID,
+            actionID: event.feedbackGroupID,
             targetID: event.targetID,
-            keyword: event.keyword,
+            keyword: classify(event) == .heal ? .health : event.keyword,
             family: family,
-            isCritical: event.isCritical,
             isNegative: event.amount < 0,
         )
     }
 
     private static func prepare(_ source: PreparedSource) -> PreparedEvent? {
         let event = source.event
-        let feedbackClass = event.isCritical
-            ? .critical
-            : classify(event)
+        let feedbackClass = classify(event)
         guard let label = CombatFeedbackChipLabel.from(event: event), !label.isZeroNumeric else {
             return nil
         }
@@ -242,13 +245,14 @@ enum CombatFeedbackPresenter {
             id: event.id,
             sourceEventIDs: source.sourceEventIDs,
             originalOrder: source.originalOrder,
-            actionID: event.actionID,
+            actionID: event.feedbackGroupID,
             targetID: event.targetID,
             feedbackClass: feedbackClass,
-            keyword: event.keyword,
+            keyword: feedbackClass == .heal ? .health : event.keyword,
             visualRole: visualRole(for: event),
             label: label,
-            reactionKind: reactionKind(for: feedbackClass),
+            reactionKind: event.kind == .status ? .none : reactionKind(for: feedbackClass),
+            isCritical: event.isCritical,
         )
     }
 

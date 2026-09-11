@@ -962,7 +962,7 @@ extension TalentMigrationTests {
         _ = CombatTriggerEngine.afterDodge(
             by: battle.roster.companion.combatant, attackerID: battle.roster.enemy.id, in: &battle,
         )
-        #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.pendingGuaranteedCriticalAfterDodge == true)
+        #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.talents.pending.guaranteedCriticalAfterDodge == true)
     }
 
     @Test func `pyromancer restores mana on burn empowerment`() {

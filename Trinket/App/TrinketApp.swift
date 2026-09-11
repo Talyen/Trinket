@@ -28,18 +28,16 @@ struct TrinketApp: App {
             )
         }
         func makeState(_ store: PlayerSaveStore?) throws -> AppState {
-            if let store {
-                try AppState(
-                    environment: environment,
-                    playerSave: store,
-                    makeBattleRuntime: makeBattleRuntime,
-                )
-            } else {
-                try AppState(
-                    environment: environment,
-                    makeBattleRuntime: makeBattleRuntime,
-                )
+            let state = try AppState(
+                environment: environment,
+                playerSave: store,
+                makeBattleRuntime: makeBattleRuntime,
+                configureBattleRuntime: Self.configureBattleProgression,
+            )
+            if environment.launchScreen == .battleVictory {
+                (state.play.battle as? BattleSession)?.presentLaunchVictory()
             }
+            return state
         }
 
         do {
@@ -65,6 +63,26 @@ struct TrinketApp: App {
                 )
             }
         }
+    }
+
+    private static func configureBattleProgression(_ runtime: any BattleRuntime, play: PlaySession) {
+        guard let battle = runtime as? BattleSession else {
+            preconditionFailure("AppState battle runtime must be BattleSession")
+        }
+        battle.configureProgression(
+            presentation: { [weak play] configuration in
+                play?.battlePresentation(for: configuration)
+            },
+            settleRewards: { [weak play] configuration, gold in
+                play?.settleBattleRewards(configuration, battleGold: gold)
+            },
+            completeVictory: { [weak play] configuration, gold, settlement in
+                play?.completeActiveBattle(
+                    configuration, battleGold: gold,
+                    materialRewards: settlement?.award.materials, settlement: settlement,
+                ) ?? .unavailable
+            },
+        )
     }
 
     var body: some Scene {

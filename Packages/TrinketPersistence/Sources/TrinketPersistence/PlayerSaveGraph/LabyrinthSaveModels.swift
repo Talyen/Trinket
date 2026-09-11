@@ -6,7 +6,7 @@ import TrinketContent
 public final class LabyrinthProgressModel {
     public var root: PlayerSaveRoot?
     public var worldSeed: UInt64 = 0
-    public var mapVersion: Int = 1
+    public var mapVersion: Int = LabyrinthGenerator.currentMapVersion
     public var hasEntered: Bool = false
     public var mapPayload: Data?
 

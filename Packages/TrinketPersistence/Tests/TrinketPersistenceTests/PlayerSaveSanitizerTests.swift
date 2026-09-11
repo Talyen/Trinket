@@ -204,78 +204,6 @@ struct PlayerSaveSanitizerTests {
         )
     }
 
-    @Test func `sanitize roster remaps renamed ultimate I ds`() throws {
-        let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
-        let owl = try #require(GameContent.companions.first { $0.id == "library_owl" })
-        let concussiveShot = Ability(
-            id: "concussive-shot",
-            name: "Concussive Shot",
-            tier: .ultimate,
-            description: "Legacy",
-        )
-        let crystalBulwark = Ability(
-            id: "crystal-bulwark",
-            name: "Crystal Bulwark",
-            tier: .ultimate,
-            description: "Legacy",
-        )
-        let roster = PlayerRosterState(
-            activeHeroID: PlayerRosterState.starterHeroID,
-            activeCompanionID: PlayerRosterState.starterCompanionID,
-            unlockedHeroIDs: [PlayerRosterState.starterHeroID, "ranger"],
-            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID, "library_owl"],
-            abilityLoadouts: [
-                "ranger": ranger.abilityLoadout.selecting(concussiveShot),
-                "library_owl": owl.abilityLoadout.selecting(crystalBulwark),
-            ],
-            progressions: [:],
-            equipmentLoadouts: [:],
-            gold: 0,
-        )
-
-        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
-
-        try #expect(sanitized.loadout(for: ranger).ultimate?.id == "astral-arrow")
-        try #expect(sanitized.loadout(for: owl).ultimate?.id == "panacea-potion")
-        try #expect(sanitized.loadout(for: ranger).ultimate?.id != "pack-tactics")
-    }
-
-    @Test func `sanitize roster remaps retired basic I ds`() throws {
-        let moth = try #require(GameContent.companions.first { $0.id == "mana_moth" })
-        let owl = try #require(GameContent.companions.first { $0.id == "library_owl" })
-        let manaCrystals = Ability(
-            id: "mana-crystals",
-            name: "Mana Crystals",
-            tier: .basic,
-            description: "Legacy",
-        )
-        let wiseFrost = Ability(
-            id: "wise-frost",
-            name: "Wise Frost",
-            tier: .basic,
-            description: "Legacy",
-        )
-        let roster = PlayerRosterState(
-            activeHeroID: PlayerRosterState.starterHeroID,
-            activeCompanionID: PlayerRosterState.starterCompanionID,
-            unlockedHeroIDs: [PlayerRosterState.starterHeroID],
-            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID, "mana_moth", "library_owl"],
-            abilityLoadouts: [
-                "mana_moth": moth.abilityLoadout.selecting(manaCrystals),
-                "library_owl": owl.abilityLoadout.selecting(wiseFrost),
-            ],
-            progressions: [:],
-            equipmentLoadouts: [:],
-            gold: 0,
-        )
-
-        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
-
-        try #expect(sanitized.loadout(for: moth).basic?.id == "pixie-dust")
-        try #expect(sanitized.loadout(for: owl).basic?.id == "apple")
-        try #expect(sanitized.loadout(for: moth).basic?.id != "mana-berries")
-    }
-
     @Test func `sanitize roster prunes missing equipment items`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
@@ -403,8 +331,8 @@ struct PlayerSaveSanitizerTests {
     }
 }
 
-struct PlayerSaveSanitizerAbilityCollisionTests {
-    @Test func `sanitize roster keeps live skill that shares legacy remap ID`() throws {
+struct PlayerSaveSanitizerAbilitySelectionTests {
+    @Test func `sanitize roster preserves current skill and ultimate selections`() throws {
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         let glacialWard = try #require(wizard.abilityChoices.skills.first { $0.id == "glacial-ward" })
         let blizzard = try #require(wizard.abilityChoices.ultimates.first { $0.id == "blizzard" })
@@ -500,29 +428,9 @@ struct PlayerSaveSanitizerProgressionTests {
 }
 
 struct PlayerSaveSanitizerTalentIDTests {
-    @Test func `sanitize unlocked talents remaps rogue dodge and whelp stun I ds`() {
+    @Test func `sanitize unlocked talents removes a node without its prerequisites`() {
         let sanitized = PlayerSaveSanitizer.sanitizeUnlockedTalents(
-            [
-                "rogue": ["rogue_dodge_t1_1", "rogue_gold_t1_2"],
-                "frost_whelp": ["frost_whelp_stun_t1_1", "frost_whelp_stun_t1_2", "frost_whelp_stun_t2_1"],
-                "knight": ["knight_block_t1_1"],
-            ],
-            validCombatantIDs: ["rogue", "frost_whelp", "knight"],
-            progressions: [
-                "rogue": .at(level: 4),
-                "frost_whelp": .at(level: 6),
-                "knight": .at(level: 4),
-            ],
-        )
-        #expect(sanitized["rogue"]?.contains("rogue_gold_t1_1") == true)
-        #expect(sanitized["rogue"]?.contains("rogue_gold_t1_2") == true)
-        #expect(sanitized["frost_whelp"]?.contains("frost_whelp_dodge_t2_1") == true)
-        #expect(sanitized["knight"] == ["knight_block_t1_1"])
-    }
-
-    @Test func `sanitize unlocked talents removes orphaned legacy talent after remapping`() {
-        let sanitized = PlayerSaveSanitizer.sanitizeUnlockedTalents(
-            ["frost_whelp": ["frost_whelp_stun_t2_1"]],
+            ["frost_whelp": ["frost_whelp_dodge_t2_1"]],
             validCombatantIDs: ["frost_whelp"],
             progressions: ["frost_whelp": .at(level: 4)],
         )
@@ -560,20 +468,5 @@ struct PlayerSaveSanitizerTalentIDTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
         #expect(sanitized.unlockedTalents["warlock"] == Set(tree.nodes.prefix(7).map(\.id)))
-    }
-
-    @Test func `migrates legacy lizard scout steal ultimate to skill`() throws {
-        let loadouts = RosterHydration.resolveAbilityLoadouts(from: [
-            "lizard_scout": RosterHydration.AbilityLoadoutIDs(
-                basicID: "stab",
-                skillID: "poison-dagger",
-                ultimateID: "steal",
-            ),
-        ])
-        let loadout = try #require(loadouts["lizard_scout"])
-
-        try #expect(loadout.basic?.id == "stab")
-        try #expect(loadout.skill?.id == "steal")
-        try #expect(loadout.ultimate?.id == "hemorrhage")
     }
 }

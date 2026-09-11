@@ -34,7 +34,7 @@ public enum TrinketMotion: Sendable {
     public enum Shine: Sendable {
         public static let loopPeriod: TimeInterval = 4.8
 
-        public static let textAnimation: Animation = .linear(duration: loopPeriod / 2).repeatForever(autoreverses: false)
+        static let textLoopPeriod: TimeInterval = 14.4
 
         @inlinable
         public static func phase(at elapsed: TimeInterval) -> Double {

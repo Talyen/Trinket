@@ -11,7 +11,6 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 | Homestead node catalog | `HomesteadCatalogTests` | Node IDs, tiers, unlock graph, tier effects |
 | Contracts | `ContractsTests` | Offer identity per enemy |
 | Content access policy | `ContentAccessPolicyTests` | Free/full chapter/labyrinth/spire gates |
-| Legacy ID remap | `LegacyIDRemapInvariantTests` | Talent/ability remap targets resolve |
 | Unique catalog | `UniqueCatalogTests` | Counts, slots, pinned powers, save decode |
 | Combatant talent trees | `CombatantTalentCatalogTests` | Three trees with at least seven nodes each, affinities, authored IDs, no placeholders |
 | Trigger family schema | `Scripts/content_codegen_triggers.py` + `Scripts/trigger_family_schema.json` | Generated `*Triggers` fields must match the schema; generation fails on drift |

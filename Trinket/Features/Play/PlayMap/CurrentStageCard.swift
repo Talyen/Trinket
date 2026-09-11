@@ -154,9 +154,13 @@ struct StageSelectActiveCard<
                 actionFeedbackTrigger &+= 1
             }
         } label: {
-            Label(presentation.primaryActionTitle, systemImage: presentation.symbolName)
-                .lineLimit(1)
-                .fixedSize(horizontal: true, vertical: false)
+            Label {
+                Text(presentation.primaryActionTitle)
+            } icon: {
+                GameIconImage(presentation.icon)
+            }
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
         }
         .trinketPrimaryActionButton(
             controlSize: .regular,
@@ -176,7 +180,7 @@ struct StageSelectActiveCard<
         Button {
             isPartyPickerPresented = true
         } label: {
-            Image(systemName: "person.2.fill")
+            GameIconImage(.lucide("users-round"))
                 .trinketTypography(.button)
                 .foregroundStyle(.primary)
                 // UIStyleCheck: allow - Compact party icon beside the primary CTA without chip chrome.
@@ -220,7 +224,7 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
             Text("·")
             Text(presentation.encounterTypeTitle)
                 .foregroundStyle(presentation.tint)
-            Image(systemName: presentation.symbolName)
+            GameIconImage(presentation.icon)
                 .foregroundStyle(presentation.tint)
                 .accessibilityHidden(true)
         }

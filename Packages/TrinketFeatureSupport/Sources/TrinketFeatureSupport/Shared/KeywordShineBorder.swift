@@ -75,17 +75,21 @@ private struct KeywordShineBorderStroke: View {
         ZStack {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .strokeBorder(TrinketDesign.Colors.panel, lineWidth: lineWidth)
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .strokeBorder(
-                    AngularGradient(
-                        gradient: Gradient(stops: stops),
-                        center: .center,
-                        angle: .degrees(angle),
-                    ),
-                    lineWidth: lineWidth,
-                )
+            GeometryReader { geometry in
+                let width = geometry.size.width
+                let height = geometry.size.height
+                let diameter = (width * width + height * height).squareRoot()
+                AngularGradient(gradient: Gradient(stops: stops), center: .center)
+                    .frame(width: diameter, height: diameter)
+                    .drawingGroup()
+                    .rotationEffect(.degrees(angle))
+                    .position(x: width / 2, y: height / 2)
+            }
+            .mask {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(TrinketDesign.Colors.Overlay.paper, lineWidth: lineWidth)
+            }
         }
-        .drawingGroup()
     }
 
     private func gradientStops(for colors: [Color]) -> [Gradient.Stop] {

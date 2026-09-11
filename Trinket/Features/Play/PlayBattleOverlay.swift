@@ -19,11 +19,9 @@ struct PlayBattleOverlay: View {
     @Environment(\.displayScale) private var displayScale
     @Environment(OptionsStore.self) private var options
     @Binding var stageMessage: StageMapMessage?
-    @State private var claimedVictoryHandlerOwnerID = UUID()
-    @State private var didPresentLaunchVictory = false
-    @State private var claimedVictoryErrorTrigger = 0
 
     var body: some View {
+        @Bindable var battle = battle
         let configuration = battle.overlayBattleConfiguration
         let isActive = battle.activeBattle != nil
         NavigationStack {
@@ -34,10 +32,7 @@ struct PlayBattleOverlay: View {
                         presentationContext: presentationContext,
                         battleSession: battle,
                         completeVictory: { summary in
-                            completeVictory(
-                                configuration: configuration,
-                                summary: summary,
-                            )
+                            battle.claimVictory(configurationID: configuration.id, summary: summary)
                         },
                         restartBattle: { [weak play] in
                             if let message = play?.restartActiveBattle() {
@@ -60,30 +55,15 @@ struct PlayBattleOverlay: View {
         }
         .trinketPresentationVisibility(isActive)
         .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
-        .onAppear(perform: installClaimedVictoryHandler)
-        .onDisappear {
-            battle.uninstallClaimedVictoryHandler(ownerID: claimedVictoryHandlerOwnerID)
-            battle.uninstallRewardSettlementHandler(ownerID: claimedVictoryHandlerOwnerID)
-        }
-        .onChange(of: configuration?.id, initial: true) { _, _ in
-            syncPresentationContext()
-        }
-        .onChange(of: battle.activeBattle?.id) { _, _ in
-            syncPresentationContext()
-        }
         .task(id: battlePresentationTaskKey) {
             await battle.prepareBattlePresentationAssets(displayScale: displayScale)
         }
         .trinketSensoryFeedback(
             .error,
-            trigger: claimedVictoryErrorTrigger,
+            trigger: battle.completionError?.id,
             enabled: options.hapticsEnabled,
         )
-        .onChange(of: stageMessage) { _, newValue in
-            if newValue?.message == Self.persistenceFailureMessage.message {
-                claimedVictoryErrorTrigger &+= 1
-            }
-        }
+        .trinketMessageAlert($battle.completionError)
     }
 
     private var battlePresentationTaskKey: BattlePresentationTaskKey {
@@ -94,84 +74,11 @@ struct PlayBattleOverlay: View {
         )
     }
 
-    private func syncPresentationContext() {
-        guard let configuration = battle.overlayBattleConfiguration,
-              let presentationContext = battlePresentationContext(for: configuration)
-        else { return }
-        let launchVictoryWasPresented = switch battle.spectacle.outcomePresentation {
-        case .victory: true
-        case .battle, .pendingVictory, .defeat: false
-        }
-        battle.installRewardSettlementHandler(ownerID: claimedVictoryHandlerOwnerID) { [weak play] configuration, gold in
-            play?.settleBattleRewards(configuration, battleGold: gold)
-        }
-        battle.installPresentationContext(presentationContext)
-        guard battle.activeBattle != nil else { return }
-        if launchVictoryWasPresented {
-            battle.presentLaunchVictory()
-            didPresentLaunchVictory = true
-            return
-        }
-        guard AppEnvironment.shared.launchScreen == .battleVictory,
-              !didPresentLaunchVictory
-        else { return }
-        battle.presentLaunchVictory()
-        didPresentLaunchVictory = true
-    }
-
     private func battlePresentationContext(
         for configuration: BattleRunConfiguration,
     ) -> BattlePresentationContext? {
-        guard let runKey = configuration.runKey else { return .empty }
-        return play.battlePresentation(for: runKey)
+        play.battlePresentation(for: configuration)
     }
-
-    private func installClaimedVictoryHandler() {
-        let failureMessage = $stageMessage
-        battle.installClaimedVictoryHandler(
-            ownerID: claimedVictoryHandlerOwnerID,
-        ) { [weak play, weak battle] configuration, earnedGold in
-            guard let play, let battle else { return }
-            let didPersist = play.completeActiveBattle(
-                configuration,
-                battleGold: earnedGold,
-            )
-            if !didPersist {
-                battle.presentVictoryChromeForPersistRetry()
-                failureMessage.wrappedValue = Self.persistenceFailureMessage
-            }
-        }
-    }
-
-    private func completeVictory(
-        configuration: BattleRunConfiguration,
-        summary: BattleVictorySummary,
-    ) -> Bool {
-        guard let current = play.settleBattleRewards(
-            configuration, battleGold: summary.goldFlow, materialRewards: summary.materialRewards,
-            at: summary.settlement.inputs.productionDate,
-        ) else { return false }
-        if current != summary.settlement {
-            battle.presentLaunchVictory()
-            return false
-        }
-        let didPersist = play.completeActiveBattle(
-            configuration,
-            battleGold: summary.goldFlow,
-            materialRewards: summary.materialRewards,
-            settlement: summary.settlement,
-        )
-        if !didPersist {
-            battle.presentLaunchVictory()
-            stageMessage = Self.persistenceFailureMessage
-        }
-        return didPersist
-    }
-
-    private static let persistenceFailureMessage = StageMapMessage(
-        title: "Couldn't Save Progress",
-        message: "Your victory was not saved. Stay on this screen and try Continue again.",
-    )
 }
 
 struct PlaySessionPresentationModifier: ViewModifier {

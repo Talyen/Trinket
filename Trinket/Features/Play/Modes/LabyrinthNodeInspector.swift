@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketAppState
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureContracts
@@ -99,7 +100,7 @@ struct LabyrinthNodeInspector: View {
                 ForEach(modifiers) { modifier in
                     VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                         HStack(spacing: TrinketDesign.Spacing.small) {
-                            Image(systemName: modifierSymbolName(for: modifier))
+                            GameIconImage(modifierIcon(for: modifier))
                                 .symbolRenderingMode(.hierarchical)
                                 .accessibilityHidden(true)
                             Text(balanced: modifier.title.uppercased())
@@ -134,22 +135,23 @@ struct LabyrinthNodeInspector: View {
         }
     }
 
-    private func modifierSymbolName(for modifier: LabyrinthModifierDefinition) -> String {
+    private func modifierIcon(for modifier: LabyrinthModifierDefinition) -> GameIcon {
         switch modifier.id.rawValue {
-        case "ironPressure": "burst.fill"
-        case "ashTithe": "flame.fill"
-        case "bloodMarket", "serpentBloom": "drop.fill"
-        case "rimeTax", "frostboundWard": "snowflake"
-        case "sunTithe": "sun.max.fill"
-        case "concussionToll": "bolt.fill"
-        case "bulwarkBargain", "wardedFlesh": "shield.fill"
-        case "vampiricLedger": "heart.fill"
-        case "bountyMark": "banknote.fill"
-        case "scholarsToll": "book.fill"
-        case "scavengersLuck": "shippingbox.fill"
-        case "shopDiscount": "percent"
-        case "appraisersEye": "eyeball"
-        default: "sparkles"
+        case "ironPressure": Keyword.physical.visualStyle.icon
+        case "ashTithe": Keyword.burn.visualStyle.icon
+        case "bloodMarket": Keyword.bleed.visualStyle.icon
+        case "serpentBloom": Keyword.poison.visualStyle.icon
+        case "rimeTax", "frostboundWard": Keyword.freeze.visualStyle.icon
+        case "sunTithe": Keyword.holy.visualStyle.icon
+        case "concussionToll": Keyword.stun.visualStyle.icon
+        case "bulwarkBargain", "wardedFlesh": Keyword.block.visualStyle.icon
+        case "vampiricLedger": Keyword.leech.visualStyle.icon
+        case "bountyMark": Keyword.gold.visualStyle.icon
+        case "scholarsToll": .lucide("book-open")
+        case "scavengersLuck": .lucide("package")
+        case "shopDiscount": .lucide("percent")
+        case "appraisersEye": .lucide("eye")
+        default: .lucide("sparkles")
         }
     }
 }

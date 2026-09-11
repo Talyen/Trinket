@@ -66,7 +66,7 @@ extension TalentCatalogRoundTripTests {
         )
         try playHeroTalentCard(card, owner: .companion, in: &battle)
         #expect(battle.roster.hero.currentHealth == 40)
-        let echo = battle.roster.runtime(for: battle.hero)?.healingEchoes.first
+        let echo = battle.roster.runtime(for: battle.hero)?.talents.pending.healingEchoes.first
         #expect(echo?.amount == CombatRounding.scaled(2, multiplier: 0.5))
     }
 

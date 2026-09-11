@@ -78,8 +78,6 @@ extension BattleSessionPreparationTests {
 
         #expect(session.activatePreparedBattle(
             runKey: firstKey, configurationID: first.id,
-            heroID: first.hero.combatant.id, companionID: first.companion.combatant.id,
-            enemyID: first.enemy?.id,
         ))
         #expect(pins.counts == before)
         barrier.resume()

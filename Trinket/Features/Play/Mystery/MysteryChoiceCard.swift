@@ -94,7 +94,7 @@ struct MysterySpecialChoiceCard: View {
             rewardSummary(
                 title: combatantName(id: combatantID),
                 value: "Unlock",
-                systemIcon: "person.crop.circle.badge.plus",
+                icon: .lucide("user-round-plus"),
                 tint: TrinketDesign.Colors.accent,
             )
 
@@ -102,7 +102,7 @@ struct MysterySpecialChoiceCard: View {
             rewardSummary(
                 title: "Corrupt Item",
                 value: "Risk",
-                systemIcon: "flame.fill",
+                icon: .lucide("skull"),
                 tint: TrinketDesign.Colors.destructive,
             )
 
@@ -113,7 +113,7 @@ struct MysterySpecialChoiceCard: View {
             rewardSummary(
                 title: "Walk Away",
                 value: "Safe",
-                systemIcon: "figure.walk",
+                icon: .lucide("footprints"),
                 tint: .secondary,
             )
         }
@@ -123,7 +123,7 @@ struct MysterySpecialChoiceCard: View {
         title: String,
         value: String? = nil,
         resource: HomesteadResource? = nil,
-        systemIcon: String? = nil,
+        icon: GameIcon? = nil,
         tint: Color,
     ) -> some View {
         HStack(spacing: TrinketDesign.Spacing.medium) {
@@ -133,9 +133,9 @@ struct MysterySpecialChoiceCard: View {
                         width: TrinketDesign.Layout.mysteryRewardArtworkSize,
                         height: TrinketDesign.Layout.mysteryRewardArtworkSize,
                     )
-            } else if let systemIcon {
-                Image(systemName: systemIcon)
-                    // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
+            } else if let icon {
+                GameIconImage(icon)
+                    // UIStyleCheck: allow - Game icon glyph sizing, not copy
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(tint)
                     .accessibilityHidden(true)

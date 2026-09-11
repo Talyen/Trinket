@@ -88,13 +88,10 @@ struct AppStateTests {
         let playerSave = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: false,
         )
         let state = try context.makeAppState(playerSave: playerSave)
         let goldBefore = state.playerSave.roster.gold
-        var updatedRoster = state.playerSave.roster
-        updatedRoster.grantGold(13)
-        state.playerSave.roster = updatedRoster
+        try state.playerSave.performBatchMutation({ $0.roster.grantGold(13) }, persistImmediately: false)
 
         state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
 

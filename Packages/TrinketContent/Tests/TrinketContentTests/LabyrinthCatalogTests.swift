@@ -70,7 +70,7 @@ struct LabyrinthCatalogTests {
             #expect(ids.allSatisfy { id in shopPool.contains(where: { $0.id == id }) })
         }
         for type in LabyrinthNodeType.allCases
-            where !type.isCombat && type.canonical != .shop && type.canonical != .mystery {
+            where !type.isCombat && type != .shop && type != .mystery {
             let ids = LabyrinthCatalog.modifierIDs(for: type, enemyID: nil, worldSeed: 1, nodeID: "n")
             #expect(ids.isEmpty)
         }
@@ -120,17 +120,6 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func `generator does not emit event nodes`() {
-        for seed in [1, 7, 42, 99, 1001] as [UInt64] {
-            let generated = LabyrinthGenerator.makeInitialMap(seed: seed)
-            #expect(generated.nodes.values.allSatisfy { $0.type != .event })
-        }
-    }
-
-    @Test func `event type canonicalizes to mystery`() {
-        #expect(LabyrinthNodeType.event.canonical == .mystery)
-    }
-
     @Test func `grid position adjacency matches six hex neighbors`() {
         let center = LabyrinthGridPosition(row: 1, column: 0)
         let neighbors = [
@@ -158,17 +147,6 @@ struct LabyrinthCatalogTests {
         #expect(positions.sorted(by: LabyrinthGridPosition.isOrderedBefore).map { "\($0.row):\($0.column)" } == [
             "0:0", "1:0", "1:1", "2:0",
         ])
-    }
-
-    @Test func `legacy elite node type decodes as battle`() throws {
-        let legacy = try JSONDecoder().decode(
-            LabyrinthNodeType.self,
-            from: Data(#""elite""#.utf8),
-        )
-        #expect(legacy == .battle)
-
-        let encoded = try JSONEncoder().encode(legacy)
-        #expect(String(data: encoded, encoding: .utf8) == #""battle""#)
     }
 
     @Test func `modifier catalog has unique I ds and non empty copy`() {
@@ -199,12 +177,12 @@ struct LabyrinthCatalogTests {
                 for node in nodes {
                     let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
                     #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
-                    let expectsModifier = switch node.type.canonical {
+                    let expectsModifier = switch node.type {
                     case .shop, .mystery:
                         true
                     case .battle, .boss:
                         node.enemyID != nil
-                    case .event, .recruit, .craft, .entrance:
+                    case .recruit, .entrance:
                         false
                     }
                     #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0))
@@ -314,7 +292,7 @@ struct LabyrinthCatalogTests {
         var conflicts = 0
         for i in nodes.indices {
             for j in nodes.indices where j > i && nodes[i].isAdjacent(to: nodes[j]) {
-                if nodes[i].type.canonical == nodes[j].type.canonical {
+                if nodes[i].type == nodes[j].type {
                     conflicts += 1
                 }
             }
@@ -331,7 +309,7 @@ struct LabyrinthCatalogTests {
         var best = Int.max
         func visit(index: Int) {
             if index == middle.count {
-                if seen.insert(middle.map(\.type.canonical)).inserted {
+                if seen.insert(middle.map(\.type)).inserted {
                     best = min(best, adjacencyConflicts(in: [entry] + middle + [boss]))
                 }
                 return

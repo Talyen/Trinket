@@ -5,9 +5,6 @@ public struct TrinketRarityLabel: View {
     private let rarity: Rarity
     private let labelOverride: String?
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var shinePhase = false
-
     public init(rarity: Rarity, labelOverride: String? = nil) {
         self.rarity = rarity
         self.labelOverride = labelOverride
@@ -31,15 +28,11 @@ public struct TrinketRarityLabel: View {
             [
                 TrinketDesign.Colors.arcane,
                 TrinketDesign.Colors.informational,
-                TrinketDesign.Colors.Overlay.paper,
-                TrinketDesign.Colors.arcane,
             ]
         case .unique:
             [
                 TrinketDesign.Colors.warning,
                 TrinketDesign.Colors.warning.opacity(0.55),
-                TrinketDesign.Colors.Overlay.paper,
-                TrinketDesign.Colors.warning,
             ]
         case .basic:
             []
@@ -52,28 +45,8 @@ public struct TrinketRarityLabel: View {
 
     private var premiumLabel: some View {
         Text(displayLabel)
-            .foregroundStyle(
-                LinearGradient(
-                    colors: premiumColors,
-                    startPoint: UnitPoint(x: shinePhase ? 1.35 : -0.35, y: 0.5),
-                    endPoint: UnitPoint(x: shinePhase ? 2.35 : 0.65, y: 0.5),
-                ),
-            )
+            .trinketShineText(colors: premiumColors)
             .shadow(color: premiumShadowColor.opacity(TrinketDesign.Opacity.glow), radius: 6)
-            .task {
-                guard !reduceMotion else { return }
-                await Task.yield()
-                guard !Task.isCancelled else { return }
-                withAnimation(TrinketMotion.Shine.textAnimation) { shinePhase = true }
-            }
-            .onChange(of: reduceMotion) { _, isReduced in
-                if isReduced {
-                    shinePhase = false
-                } else {
-                    withAnimation(TrinketMotion.Shine.textAnimation) { shinePhase = true }
-                }
-            }
-            .onDisappear { shinePhase = false }
     }
 
     private var displayLabel: String {

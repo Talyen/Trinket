@@ -17,6 +17,8 @@ package extension BattleState {
         appliedEffectSummaries: [String] = [],
         milestone: ActionEvent.Milestone? = nil,
         isCritical: Bool = false,
+        origin: ActionEvent.Origin = .automatic,
+        isFullyBlocked: Bool = false,
     ) -> ActionEvent {
         nextEventID += 1
         let event = ActionEvent(
@@ -36,6 +38,11 @@ package extension BattleState {
             appliedEffectSummaries: appliedEffectSummaries,
             milestone: milestone,
             isCritical: isCritical,
+            feedbackGroupID: resolution.feedbackGroupID ?? nextEventID,
+            origin: origin == .direct && !resolution.isAutomaticPlay
+                ? .direct
+                : (resolution.isAdvancingEffects ? .periodic : .automatic),
+            isFullyBlocked: isFullyBlocked,
         )
         if tracksEvents {
             events.append(event)

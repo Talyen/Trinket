@@ -5,22 +5,27 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
     public let name: String
     public let keyword: Keyword
     public let row: Int
-    public let symbolName: String?
+    public let iconID: String?
     public let description: String
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, keyword, row, description
+        case iconID = "symbolName"
+    }
 
     public init(
         id: String,
         name: String,
         keyword: Keyword,
         row: Int = 1,
-        symbolName: String? = nil,
+        iconID: String? = nil,
         description: String,
     ) {
         self.id = id
         self.name = name
         self.keyword = keyword
         self.row = row
-        self.symbolName = symbolName
+        self.iconID = iconID
         self.description = description
     }
 }
@@ -95,6 +100,22 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
             }
         }
         return nil
+    }
+
+    public func hasUnlockableNode(
+        unlockedNodeIDs: Set<String>,
+        availablePoints: Int,
+    ) -> Bool {
+        guard availablePoints > 0 else { return false }
+        return trees.contains { tree in
+            tree.nodes.contains { node in
+                tree.canUnlock(
+                    node: node,
+                    unlockedNodeIDs: unlockedNodeIDs,
+                    availablePoints: availablePoints,
+                )
+            }
+        }
     }
 
     public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {

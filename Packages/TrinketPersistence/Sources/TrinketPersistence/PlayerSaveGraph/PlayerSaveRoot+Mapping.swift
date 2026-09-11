@@ -69,10 +69,9 @@ struct PlayerSaveSlice: OptionSet {
 
     static func prepareCandidate(
         from snapshot: PlayerSave,
-        update: (inout PlayerSave) -> Void,
+        candidate proposed: PlayerSave,
     ) throws -> (candidate: PlayerSave, changedSlices: Self) {
-        var candidate = snapshot
-        update(&candidate)
+        var candidate = proposed
         let mutationSlices = changed(between: snapshot, and: candidate)
         guard !mutationSlices.isEmpty else { return (snapshot, []) }
         let sanitizeSlices = sanitizeTargets(for: mutationSlices)
@@ -106,7 +105,7 @@ public extension PlayerSaveRoot {
             worldSeed: worldSeed,
             starterSelection: mappedStarterSelection,
             journey: journey?.toJourneyProgressState() ?? .initial,
-            roster: roster?.toPlayerRosterState(schemaVersion: schemaVersion) ?? .freshStart,
+            roster: roster?.toPlayerRosterState() ?? .freshStart,
             inventory: inventoryState,
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
             spires: spires?.toPlayerSpiresState() ?? .freshStart,
@@ -241,7 +240,6 @@ extension PlayerSaveRoot {
 
 private extension PlayerSaveRoot {
     var mappedStarterSelection: StarterSelectionState {
-        guard schemaVersion >= PlayerSave.Schema.persistedStarterSelection else { return .complete }
         guard let phase = StarterSelectionPhase(rawValue: starterSelectionPhaseRawValue) else {
             return .fresh
         }

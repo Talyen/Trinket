@@ -86,7 +86,7 @@ struct MysteryOfferChoices: View {
                 HomesteadResourceArtwork(resource: resource)
                     .frame(width: TrinketDesign.Spacing.extraLarge, height: TrinketDesign.Spacing.extraLarge)
             case .experience:
-                Image(systemName: "sparkles")
+                GameIconImage(.lucide("star"))
                     .foregroundStyle(TrinketDesign.Colors.arcane)
                     .accessibilityHidden(true)
             }

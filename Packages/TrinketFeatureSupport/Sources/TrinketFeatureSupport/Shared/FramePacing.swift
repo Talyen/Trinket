@@ -3,6 +3,7 @@ import Foundation
 public struct FramePacingReport: Equatable, Sendable, Codable {
     public static let schemaVersion = 5
 
+    public var measurementDuration: TimeInterval?
     public var sampleCount: Int
     public var expectedFPS: Double
     public var averageFPS: Double
@@ -15,7 +16,21 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
     public var severeStallCount: Int
     public var missedDeadlineRatio: Double
 
+    public var sampledDuration: TimeInterval {
+        guard sampleCount > 0, averageFPS > 0, averageFPS.isFinite else { return 0 }
+        return Double(sampleCount) / averageFPS
+    }
+
+    public func coversMeasurement(seconds: TimeInterval) -> Bool {
+        guard sampleCount > 0, expectedFPS > 0, expectedFPS.isFinite,
+              seconds > 0, seconds.isFinite,
+              let measurementDuration, measurementDuration.isFinite
+        else { return false }
+        return measurementDuration >= seconds
+    }
+
     private enum CodingKeys: String, CodingKey {
+        case measurementDuration
         case sampleCount
         case expectedFPS
         case averageFPS
@@ -31,6 +46,7 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        measurementDuration = try container.decodeIfPresent(TimeInterval.self, forKey: .measurementDuration)
         sampleCount = try container.decodeIfPresent(Int.self, forKey: .sampleCount) ?? 0
         expectedFPS = try container.decodeIfPresent(Double.self, forKey: .expectedFPS) ?? 0
         averageFPS = try container.decodeIfPresent(Double.self, forKey: .averageFPS) ?? 0
@@ -46,6 +62,7 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(measurementDuration, forKey: .measurementDuration)
         try container.encode(sampleCount, forKey: .sampleCount)
         try container.encode(expectedFPS, forKey: .expectedFPS)
         try container.encode(averageFPS, forKey: .averageFPS)

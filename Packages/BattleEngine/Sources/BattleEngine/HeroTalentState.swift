@@ -49,8 +49,6 @@ struct HeroTalentHistory {
 }
 
 struct HeroTalentState {
-    var cards: [HeroTalentCardFacts] = []
-    var actions: [TalentActionFacts] = []
     var history: [String: HeroTalentHistory] = [:]
     var enemyTurnActive = false
     var healthLostDuringEnemyTurn: Set<String> = []

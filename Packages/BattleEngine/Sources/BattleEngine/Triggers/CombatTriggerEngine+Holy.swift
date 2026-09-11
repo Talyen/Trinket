@@ -74,12 +74,12 @@ package extension CombatTriggerEngine {
         }
         if profile.triggers.holyDamageNextHitBonus > 0 {
             context.roster.mutateRuntime(for: source) {
-                $0.pendingNextHitBonus += profile.triggers.holyDamageNextHitBonus
+                $0.talents.pending.nextHitBonus += profile.triggers.holyDamageNextHitBonus
             }
         }
         if profile.triggers.holyDamageNextAttackHolyBonus > 0 {
             context.roster.mutateRuntime(for: source) {
-                $0.pendingNextAttackHolyBonus += profile.triggers.holyDamageNextAttackHolyBonus
+                $0.talents.pending.nextAttackHolyBonus += profile.triggers.holyDamageNextAttackHolyBonus
             }
         }
         if profile.triggers.holyDamageReduceTargetDamage > 0, context.roster.health(for: enemy) > 0 {

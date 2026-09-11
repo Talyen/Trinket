@@ -43,7 +43,7 @@ struct EncounterArtwork: View {
             } else {
                 MapTilePlaceholder(
                     tint: stage.encounter.mapTint,
-                    symbolName: stage.encounter.symbolName,
+                    icon: GameIcon(id: stage.encounter.iconID),
                 )
             }
         }

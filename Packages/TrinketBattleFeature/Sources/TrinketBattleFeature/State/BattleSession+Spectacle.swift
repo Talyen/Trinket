@@ -301,6 +301,7 @@ extension BattleSession {
     ) {
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
+        completionError = nil
         installSimulationPresentation()
         clearSharedPresentation(releaseCinematicPlayers: false)
         let preferred = Self.preferredAutoBattleEnabled(from: dependencies)
@@ -319,6 +320,7 @@ extension BattleSession {
         clearCardCues()
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
+        completionError = nil
         presentation.clear()
         clearSharedPresentation(releaseCinematicPlayers: true)
         feedback.release()

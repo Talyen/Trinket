@@ -73,7 +73,7 @@ package extension CombatTriggerEngine {
                     if companionTriggers.onHeroSpendManaCompanionNextAttackBonus > 0,
                        context.roster.health(for: actor) > 0, context.roster.companion.isAlive {
                         context.roster.mutateRuntime(for: context.roster.companion.combatant) {
-                            $0.pendingCardDamageBonus += companionTriggers.onHeroSpendManaCompanionNextAttackBonus
+                            $0.talents.pending.cardDamageBonus += companionTriggers.onHeroSpendManaCompanionNextAttackBonus
                         }
                     }
                 }
@@ -150,7 +150,7 @@ package extension CombatTriggerEngine {
                 if overchargeMet, context.claimActionGuard(.spendOvercharge, actorID: actor.id) {
                     if triggers.nextCardEmpowerPercent > 0 {
                         context.roster.mutateRuntime(for: actor) {
-                            $0.pendingCardDamagePercent += triggers.nextCardEmpowerPercent
+                            $0.talents.pending.cardDamagePercent += triggers.nextCardEmpowerPercent
                         }
                     }
                 }
@@ -191,7 +191,7 @@ package extension CombatTriggerEngine {
                 if triggers.spendManaDamageBonusPerMana > 0,
                    amountSpent >= BattleTurnEngine.manaEmpowermentCost {
                     context.roster.mutateRuntime(for: actor) {
-                        $0.pendingCardDamageBonus += amountSpent * triggers.spendManaDamageBonusPerMana
+                        $0.talents.pending.cardDamageBonus += amountSpent * triggers.spendManaDamageBonusPerMana
                     }
                 }
                 return []
@@ -279,8 +279,8 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let threshold = context.modifiers(for: actor.id).triggers.spendManaThresholdAutoPlayCard
         guard threshold > 0, amountSpent > 0, !context.resolution.isAutomaticPlay else { return [] }
-        let totalSpent = (context.roster.runtime(for: actor)?.manaSpentTowardAutoPlay ?? 0) + amountSpent
-        context.roster.mutateRuntime(for: actor) { $0.manaSpentTowardAutoPlay = totalSpent % threshold }
+        let totalSpent = (context.roster.runtime(for: actor)?.talents.battle.manaSpentTowardAutoPlay ?? 0) + amountSpent
+        context.roster.mutateRuntime(for: actor) { $0.talents.battle.manaSpentTowardAutoPlay = totalSpent % threshold }
         guard totalSpent >= threshold else { return [] }
         return context.withAutomaticPlay { context in
             var events: [ActionEvent] = []

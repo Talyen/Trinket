@@ -29,18 +29,16 @@ struct PlayerSaveStoreCleanupTests {
             let store = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true,
             )
             var roster = store.roster
             roster.gold = 99
-            store.roster = roster
+            #expect(store.persistBatch(logging: "Test setup") { $0.roster = roster })
         }
 
         _ = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
             resetState: true,
-            persistSaveImmediately: true,
         )
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
@@ -55,11 +53,10 @@ struct PlayerSaveStoreCleanupTests {
             let firstStore = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true,
             )
             var roster = firstStore.roster
             roster.gold = 99
-            firstStore.roster = roster
+            #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
         }
 
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
@@ -81,11 +78,10 @@ struct PlayerSaveStoreCleanupTests {
             let firstStore = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true,
             )
             var roster = firstStore.roster
             roster.gold = 99
-            firstStore.roster = roster
+            #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
         }
 
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)

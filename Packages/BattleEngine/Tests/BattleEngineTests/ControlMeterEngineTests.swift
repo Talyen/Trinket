@@ -5,6 +5,28 @@ import TrinketCore
 import TrinketTestSupport
 
 struct ControlMeterEngineTests {
+    @Test func `stun buildup displays the threshold used by seismic impact`() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            targetMaxHealth: 100,
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                control: ControlTriggers(enemyStunThresholdReductionPercent: 0.25),
+            )),
+        )
+        let target = context.roster.enemy.combatant
+        _ = ControlMeterEngine.applyMeterCharge(
+            10, keyword: .stun, to: target, sourceActorID: context.roster.hero.id,
+            applyFightPacing: false, in: &context,
+        )
+        let meter = try #require(context.roster.activeEffects(for: target).first { $0.keyword == .stun })
+        #expect(meter.effect.controlMeterValues?.threshold == 15)
+        #expect(!context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        _ = ControlMeterEngine.applyMeterCharge(
+            5, keyword: .stun, to: target, sourceActorID: context.roster.hero.id,
+            applyFightPacing: false, in: &context,
+        )
+        #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+    }
+
     @Test func `reduced stun threshold triggers from another attackers buildup`() {
         var context = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 100,

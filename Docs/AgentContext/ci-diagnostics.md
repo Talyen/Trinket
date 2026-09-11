@@ -20,8 +20,11 @@ Every test or package invocation writes an atomically completed
 exit code, pass/fail status, result-bundle path, and optional diagnostics-report path.
 The manifest also records `completion_source` (`process-exit` or
 `watchdog-log-inference`), `test_execution_proven`, and `result_bundle_complete`.
-A passed suite can hang during Xcode result finalization, leaving an incomplete
-`.xcresult` even after a longer idle allowance. The watchdog bounds that wait and
+The shared watchdog allows 45 seconds of quiet after the terminal test marker
+before treating finalization as stalled; `TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`
+overrides that limit. Local tests use the same allowance as CI: healthy exports
+can take longer than 10 seconds after the suite passes. A passed suite can still
+hang during result finalization, leaving an incomplete `.xcresult`. The watchdog bounds that wait and
 can report log-proven test success; this does not prove the bundle finalized or
 that motion was correct. Earlier test failures and process crashes still override
 later passing summaries, and zero executed tests cannot establish a test pass.

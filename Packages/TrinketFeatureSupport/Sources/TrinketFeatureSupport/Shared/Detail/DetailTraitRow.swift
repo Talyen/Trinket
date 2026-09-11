@@ -39,7 +39,7 @@ public struct DetailTraitRow: View {
                                 .frame(width: 18, height: 18)
                                 .accessibilityHidden(true)
                         } else {
-                            Image(systemName: leadingIconKeyword.visualStyle.symbolName)
+                            GameIconImage(leadingIconKeyword.visualStyle.icon)
                                 // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(leadingIconKeyword.visualStyle.color)

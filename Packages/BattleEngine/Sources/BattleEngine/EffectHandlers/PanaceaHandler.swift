@@ -20,7 +20,7 @@ struct PanaceaHandler: BattleEffectHandler {
         return CleanseOperation.resolve(
             .all(nil), source: source, target: cleanseTarget, abilityName: ability.name,
             baseHeal: baseHeal, healPerDebuff: healPerDebuff,
-            healTarget: action.target(.lowestHealthAlly, in: context), in: &context,
+            healTarget: action.target(.lowestHealthAlly, in: context), origin: .direct, in: &context,
         ).application
     }
 }

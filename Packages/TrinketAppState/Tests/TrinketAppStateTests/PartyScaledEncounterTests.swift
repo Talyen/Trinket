@@ -20,7 +20,7 @@ struct PartyScaledEncounterTests {
         var roster = state.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: heroLevel)
         roster.progressions[roster.activeCompanionID] = .at(level: companionLevel)
-        state.playerSave.roster = roster
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
     }
 
     private func unlockSpireThroughPenultimateFloor(in state: PlaySession) throws -> SpireFloor {

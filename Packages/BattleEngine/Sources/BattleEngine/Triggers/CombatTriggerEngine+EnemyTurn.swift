@@ -77,8 +77,8 @@ package extension CombatTriggerEngine {
         let companion = context.roster.companion
         guard companion.isAlive else { return nil }
         let companionTriggers = context.companionModifiers.triggers
-        if companionTriggers.negateFirstEnemyAttack, !companion.hasNegatedFirstEnemyAttack {
-            context.roster.mutateRuntime(for: companion.combatant) { $0.hasNegatedFirstEnemyAttack = true }
+        if companionTriggers.negateFirstEnemyAttack, !companion.talents.battle.negatedFirstEnemyAttack {
+            context.roster.mutateRuntime(for: companion.combatant) { $0.talents.battle.negatedFirstEnemyAttack = true }
             return ([context.nextEvent(
                 kind: .effect,
                 effectKind: .dodgeApplied,
@@ -140,7 +140,7 @@ package extension CombatTriggerEngine {
         for owner in [BattleParticipant.hero, .companion] {
             let runtime = context.roster[owner]
             guard runtime.isAlive, context.modifiers(for: runtime.id).triggers.subzeroMist else { continue }
-            context.roster.mutateRuntime(for: runtime.combatant) { $0.subzeroMistActive = true }
+            context.roster.mutateRuntime(for: runtime.combatant) { $0.talents.turn.subzeroMistActive = true }
         }
     }
 

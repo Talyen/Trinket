@@ -61,8 +61,11 @@ enum PlayerSaveSanitizer {
     }
 
     static func validate(_ save: PlayerSave) throws {
-        guard save.schemaVersion > 0, save.schemaVersion <= PlayerSave.currentSchemaVersion else {
-            throw PlayerSavePersistenceError.invalidSave("Save schema version is out of range.")
+        guard save.schemaVersion == PlayerSave.currentSchemaVersion else {
+            throw PlayerSavePersistenceError.invalidSave("Unsupported save schema version.")
+        }
+        guard !save.labyrinth.hasMap || save.labyrinth.mapVersion == LabyrinthGenerator.currentMapVersion else {
+            throw PlayerSavePersistenceError.invalidSave("Unsupported Labyrinth map version.")
         }
         guard save.roster.gold >= 0 else {
             throw PlayerSavePersistenceError.invalidSave("Roster gold cannot be negative.")
@@ -285,8 +288,7 @@ enum PlayerSaveSanitizer {
         for (combatantID, nodeIDs) in talents {
             guard validCombatantIDs.contains(combatantID) else { continue }
             let validNodeIDs = CombatantTalentCatalog.validNodeIDs(for: combatantID)
-            let remapped = Set(nodeIDs.map { LegacyIDRemap.remappedTalentNodeID($0) })
-            var filtered = remapped.intersection(validNodeIDs)
+            var filtered = nodeIDs.intersection(validNodeIDs)
             let budget = progressions[combatantID]?.totalTalentPoints ?? 0
             if let config = CombatantTalentCatalog.configIfAvailable(for: combatantID) {
                 filtered = config.cappedUnlocks(filtered, budget: budget)

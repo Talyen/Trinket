@@ -144,14 +144,14 @@ public enum LabyrinthCatalog {
         worldSeed: UInt64,
         nodeID: String,
     ) -> [LabyrinthModifierID] {
-        let pool: [LabyrinthModifierDefinition] = switch type.canonical {
+        let pool: [LabyrinthModifierDefinition] = switch type {
         case .battle, .boss:
             enemyID.map { combatModifiers(for: $0, nodeType: type) } ?? []
         case .shop:
             modifiers.filter { $0.applies(to: .shop) }
         case .mystery:
             modifiers.filter { $0.applies(to: .mystery) }
-        case .event, .recruit, .craft, .entrance:
+        case .recruit, .entrance:
             []
         }
         guard !pool.isEmpty else { return [] }
@@ -182,7 +182,7 @@ public enum LabyrinthCatalog {
         worldSeed: UInt64,
         nodeID: String,
     ) -> [LabyrinthModifierID] {
-        let applicable: [LabyrinthModifierDefinition] = switch type.canonical {
+        let applicable: [LabyrinthModifierDefinition] = switch type {
         case .battle, .boss:
             if let enemyID {
                 combatModifiers(for: enemyID, nodeType: type)

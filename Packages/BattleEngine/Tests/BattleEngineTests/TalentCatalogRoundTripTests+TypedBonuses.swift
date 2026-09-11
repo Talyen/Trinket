@@ -29,7 +29,7 @@ extension TalentCatalogRoundTripTests {
                 ),
             ))
             #expect(battle.roster.enemy.currentHealth == 200 - bonus)
-            #expect(battle.roster.hero.pendingNextAttackHolyBonus == 0)
+            #expect(battle.roster.hero.talents.pending.nextAttackHolyBonus == 0)
         }
     }
 

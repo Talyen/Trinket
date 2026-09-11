@@ -58,7 +58,7 @@ package extension CombatTriggerEngine {
                 let dodgeBonus = context.modifiers(for: sourceActorID).triggers.onApplyBurnDodgeChanceUntilNextTurn
                 if dodgeBonus > 0 {
                     context.roster.mutateRuntime(for: source.combatant) {
-                        $0.bonusDodgeUntilNextTurn += dodgeBonus
+                        $0.talents.timed.dodge.amount += dodgeBonus
                     }
                 }
             }

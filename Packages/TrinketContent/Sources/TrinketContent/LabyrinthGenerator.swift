@@ -68,7 +68,7 @@ public enum LabyrinthGenerator {
                 .first(where: { $0.depthBand == floor })?
                 .nodeIDs
                 .compactMap({ generated.nodes[$0] })
-                .first(where: { $0.type.canonical == .boss })?
+                .first(where: { $0.type == .boss })?
                 .id,
                 var boss = generated.nodes[bossID]
             else { break }
@@ -92,7 +92,7 @@ public enum LabyrinthGenerator {
         seed: UInt64,
         eligibleRecruitEventIDs: [String] = [],
     ) {
-        guard var boss = nodes[bossNodeID], boss.type.canonical == .boss, boss.isCleared else { return }
+        guard var boss = nodes[bossNodeID], boss.type == .boss, boss.isCleared else { return }
         guard boss.outgoingIDs.isEmpty else { return }
 
         let nextFloor = boss.depth + 1
@@ -354,7 +354,7 @@ private extension LabyrinthGenerator {
         let pairs = adjacentIndexPairs(in: positions)
         func conflictCount(_ middle: [LabyrinthNodeType]) -> Int {
             let full = [entry] + middle + [boss]
-            return pairs.count { pair in full[pair.0].canonical == full[pair.1].canonical }
+            return pairs.count { pair in full[pair.0] == full[pair.1] }
         }
         var current = planned[1 ..< planned.count - 1].sorted { $0.rawValue < $1.rawValue }
         var best = current

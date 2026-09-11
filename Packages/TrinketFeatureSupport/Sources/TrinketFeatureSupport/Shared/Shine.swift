@@ -98,50 +98,8 @@ extension Shine {
     }
 }
 
-private struct ShineTextModifier: ViewModifier {
-    let shine: Shine
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func body(content: Content) -> some View {
-        let colors = shine.textColors
-        if colors.isEmpty {
-            content
-        } else {
-            let sweepStops = textShineStops(colors: colors)
-            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
-                let phase = reduceMotion
-                    ? 0
-                    : TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate)
-                content
-                    .foregroundStyle(
-                        LinearGradient(
-                            gradient: Gradient(stops: sweepStops),
-                            startPoint: UnitPoint(x: phase - 1, y: 0.5),
-                            endPoint: UnitPoint(x: phase + 1, y: 0.5),
-                        ),
-                    )
-            }
-        }
-    }
-}
-
-private func textShineLoopColors(colors: [Color]) -> [Color] {
-    var seen = Set<Color>()
-    let unique = colors.filter { seen.insert($0).inserted }
-    guard let first = unique.first else { return [] }
-    let band = unique + [TrinketDesign.Colors.Overlay.paper]
-    return band + band + [first]
-}
-
-private func textShineStops(colors: [Color]) -> [Gradient.Stop] {
-    let looped = textShineLoopColors(colors: colors)
-    guard looped.count > 1 else { return [] }
-    let last = Double(looped.count - 1)
-    return looped.enumerated().map { Gradient.Stop(color: $0.element, location: Double($0.offset) / last) }
-}
-
 public extension View {
     func shineText(_ shine: Shine) -> some View {
-        modifier(ShineTextModifier(shine: shine))
+        trinketShineText(colors: shine.textColors)
     }
 }

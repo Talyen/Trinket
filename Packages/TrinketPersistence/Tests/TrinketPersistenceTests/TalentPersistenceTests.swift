@@ -85,7 +85,7 @@ struct TalentPersistenceTests {
     }
 
     @Test @MainActor func `in-memory store rejects unavailable talent without mutation`() throws {
-        let store = try PlayerSaveStore(inMemoryOnly: true, persistSaveImmediately: true)
+        let store = try PlayerSaveStore(inMemoryOnly: true)
         let knightTree = try #require(CombatantTalentCatalog.allConfigs["knight"]?.trees.first)
         let knightNode = try #require(knightTree.nodes.first)
         let rogueTree = try #require(CombatantTalentCatalog.allConfigs["rogue"]?.trees.first)
@@ -109,7 +109,7 @@ struct TalentPersistenceTests {
 
     #if DEBUG
     @Test @MainActor func `in-memory failed talent save rolls back unlock`() throws {
-        let store = try PlayerSaveStore(inMemoryOnly: true, persistSaveImmediately: true)
+        let store = try PlayerSaveStore(inMemoryOnly: true)
         try store.performBatchMutation { save in
             save.roster.progressions["knight"] = .at(level: 2)
         }

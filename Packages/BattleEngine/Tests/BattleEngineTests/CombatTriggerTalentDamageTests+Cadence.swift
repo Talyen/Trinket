@@ -20,7 +20,7 @@ extension CombatTriggerTalentDamageTests {
         ))
 
         #expect(dodged.isDodged)
-        #expect(battle.roster.companion.pendingBleedAfterDodge == 0)
+        #expect(battle.roster.companion.talents.pending.bleedAfterDodge == 0)
         #expect(battle.activeEffects(of: battle.enemy).count { $0.effect == .bleed(2) } == 1)
         _ = BattleTurnEngine.performAction(
             ability: .fangs, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
@@ -51,23 +51,33 @@ extension CombatTriggerTalentDamageTests {
         #expect(hit.events.contains { $0.abilityName == "Chilling Scales" && $0.keyword == .freeze && $0.amount == 2 })
     }
 
-    @Test func `golden recovery heals both living party members`() {
+    @Test func `golden recovery claims the first positive gain each round before healing`() {
         var profile = CombatantTalentCatalog.profile(for: ["fox_gold_t3_2"])
         profile.triggers.criticalChanceBonus = -1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile,
-            dealOpeningHand: false,
-        )
+        profile.triggers.healthRestoredPoisonPercent = 1
+        profile.triggers.carrionClaim = true
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
         battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 1
         battle.roster.companion.currentHealth = 1
+        _ = battle.grantGoldEvent(0, to: battle.companion, abilityName: "Snatch")
         _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Snatch")
-        #expect(battle.roster.hero.currentHealth == 2)
-        #expect(battle.roster.companion.currentHealth == 2)
+        #expect(battle.roster.hero.currentHealth == 4)
+        #expect(battle.roster.companion.currentHealth == 4)
+        #expect(battle.gold == 3)
+        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Snatch")
+        #expect(battle.roster.companion.currentHealth == 4)
+        battle.turnCount += 1
         battle.roster.hero.currentHealth = 0
         _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Snatch")
         #expect(battle.roster.hero.currentHealth == 0)
-        #expect(battle.roster.companion.currentHealth == 3)
+        #expect(battle.roster.companion.currentHealth == 7)
+        battle.turnCount += 1
+        battle.roster.companion.currentHealth = battle.roster.companion.maxHealth
+        _ = battle.grantGoldEvent(1, to: battle.companion, abilityName: "Snatch")
+        battle.roster.companion.currentHealth = 1
+        _ = battle.grantGoldEvent(1, to: battle.companion, abilityName: "Snatch")
+        #expect(battle.roster.companion.currentHealth == 1)
     }
 
     @Test(arguments: [0, 10])
@@ -102,7 +112,7 @@ extension CombatTriggerTalentDamageTests {
                 options: options,
             ))
             #expect(outcome.healthLost == 2)
-            #expect(battle.roster.runtime(for: battle.companion)?.flatDamageReductionBonus == 0)
+            #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == 0)
         }
         for hit in 0 ..< 6 {
             let outcome = battle.resolveDamage(DamageRequest(
@@ -110,7 +120,7 @@ extension CombatTriggerTalentDamageTests {
                 options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
             ))
             #expect(outcome.healthLost == 6 - min(hit, 4))
-            #expect(battle.roster.runtime(for: battle.companion)?.flatDamageReductionBonus == min(hit + 1, 4))
+            #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == min(hit + 1, 4))
         }
     }
 
@@ -129,7 +139,7 @@ extension CombatTriggerTalentDamageTests {
                 options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
             ))
         }
-        #expect(battle.roster.runtime(for: battle.companion)?.flatDamageReductionBonus == 4)
+        #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == 4)
     }
 
     @Test(arguments: [DamageOperation.healthCost, .periodic, .reaction()])

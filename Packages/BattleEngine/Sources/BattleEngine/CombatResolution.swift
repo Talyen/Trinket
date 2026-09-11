@@ -1,4 +1,15 @@
+import TrinketCore
+
 struct CombatResolution {
+    var feedbackGroupID: Int?
+    var isAdvancingEffects = false
+
+    mutating func beginFeedbackGroup(eventID: Int) -> Int? {
+        let previous = feedbackGroupID
+        feedbackGroupID = previous ?? eventID
+        return previous
+    }
+
     enum Scope: Hashable {
         case damage, dot, dotMirror, draw, heroReaction, uniqueReaction, talentReaction, detonation
     }
@@ -28,12 +39,14 @@ struct CombatResolution {
         let context: BattleActionContext
         let origin: DamageOperation.AttackOrigin
         var outcome: ResolvedActionFacts?
+        var talents: TalentActionFacts?
     }
 
     private struct Card {
         let id: Int
         let actorID: String
         var outcome: ResolvedActionFacts?
+        var talents: HeroTalentCardFacts?
     }
 
     private enum Frame {
@@ -95,11 +108,70 @@ struct CombatResolution {
         return cards.last?.outcome
     }
 
-    mutating func beginCard(actorID: String) -> Int {
+    var cardTalents: HeroTalentCardFacts? {
+        cards.last(where: { $0.talents != nil })?.talents
+    }
+
+    mutating func beginCard(actorID: String, tier: AbilityTier, previousDamageKeywords: Set<Keyword>) -> Int {
         let id = nextCardID
         nextCardID += 1
-        cards.append(Card(id: id, actorID: actorID))
+        var talents = HeroTalentCardFacts(actorID: actorID, tier: tier)
+        talents.playSerial = id
+        talents.previousDamageKeywords = previousDamageKeywords
+        cards.append(Card(id: id, actorID: actorID, talents: talents))
         return id
+    }
+
+    mutating func mutateCardTalents(_ body: (inout HeroTalentCardFacts) -> Void) {
+        guard let index = cards.lastIndex(where: { $0.talents != nil }),
+              var talents = cards[index].talents else { return }
+        body(&talents)
+        cards[index].talents = talents
+    }
+
+    mutating func finishCardTalents() -> HeroTalentCardFacts? {
+        guard let index = cards.lastIndex(where: { $0.talents != nil }) else { return nil }
+        defer { cards[index].talents = nil }
+        return cards[index].talents
+    }
+
+    mutating func prepareActionTalents(_ talents: TalentActionFacts) {
+        guard case var .action(action) = frames.last else { preconditionFailure() }
+        precondition(action.talents == nil && action.context.actor.id == talents.actorID)
+        action.talents = talents
+        frames[frames.count - 1] = .action(action)
+    }
+
+    mutating func consumeAttackReduction(for actorID: String?, damage: Int) -> Int {
+        mutateActionTalents(for: actorID) { talents in
+            let reduction = min(max(0, damage), talents.blindingReduction)
+            talents.blindingReduction -= reduction
+            return reduction
+        } ?? 0
+    }
+
+    mutating func consumeGoldDamage(for actorID: String?) -> Int {
+        mutateActionTalents(for: actorID) { talents in
+            defer { talents.goldDamage = 0 }
+            return talents.goldDamage
+        } ?? 0
+    }
+
+    private mutating func mutateActionTalents<Value>(
+        for actorID: String?,
+        _ body: (inout TalentActionFacts) -> Value,
+    ) -> Value? {
+        guard let index = frames.lastIndex(where: { frame in
+            if case let .action(action) = frame {
+                return action.talents != nil
+            }
+            return false
+        }), case var .action(action) = frames[index],
+        var talents = action.talents, talents.actorID == actorID else { return nil }
+        let value = body(&talents)
+        action.talents = talents
+        frames[index] = .action(action)
+        return value
     }
 
     mutating func prepareAction(_ facts: ResolvedActionFacts) -> Bool {

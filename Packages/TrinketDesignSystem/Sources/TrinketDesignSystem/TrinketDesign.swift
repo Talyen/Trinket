@@ -126,12 +126,12 @@ public enum TrinketDesign {
 
     public struct CardPlaceholderStyle: Sendable {
         public let color: Color
-        public let symbolName: String
+        public let icon: GameIcon
 
-        public static let hero = Self(color: DesignAssetColors.named("PlaceholderHero"), symbolName: "person.fill")
-        public static let companion = Self(color: DesignAssetColors.named("PlaceholderCompanion"), symbolName: "pawprint.fill")
-        public static let enemy = Self(color: DesignAssetColors.named("PlaceholderEnemy"), symbolName: "skull.fill")
-        public static let item = Self(color: DesignAssetColors.named("PlaceholderItem"), symbolName: "shippingbox.fill")
-        public static let ability = Self(color: DesignAssetColors.named("PlaceholderAbility"), symbolName: "wand.and.stars")
+        public static let hero = Self(color: DesignAssetColors.named("PlaceholderHero"), icon: .lucide("user-round"))
+        public static let companion = Self(color: DesignAssetColors.named("PlaceholderCompanion"), icon: .lucide("paw-print"))
+        public static let enemy = Self(color: DesignAssetColors.named("PlaceholderEnemy"), icon: .lucide("skull"))
+        public static let item = Self(color: DesignAssetColors.named("PlaceholderItem"), icon: .lucide("package"))
+        public static let ability = Self(color: DesignAssetColors.named("PlaceholderAbility"), icon: .lucide("wand-sparkles"))
     }
 }

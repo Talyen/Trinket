@@ -139,7 +139,7 @@ struct HomesteadPresentationTests {
             id: original.id,
             title: original.title,
             summary: original.summary,
-            symbolName: original.symbolName,
+            iconID: original.iconID,
             category: original.category,
             prerequisites: [],
             tiers: tiers,

@@ -76,8 +76,6 @@ struct AppEnvironmentTests {
         #expect(env.skipStarterSelection)
         #expect(env.disableCloudSync)
         #expect(env.disableAudio)
-        #expect(env.persistSaveImmediately)
-        #expect(!Self.parse(arguments: ["-defer-persistence"]).persistSaveImmediately)
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
         #expect(env.mysteryRecruitEventID == "recruit-ranger")
         #expect(env.battleTickInterval == 60)
@@ -107,7 +105,6 @@ struct AppEnvironmentTests {
         #expect(env.mysteryRecruitEventID == nil)
         #expect(env.battleTickInterval == nil)
         #expect(env.startingGold == nil)
-        #expect(env.persistSaveImmediately)
         #expect(!env.enableFrameMetrics)
         #expect(env.battlePerformanceScenario == nil)
     }

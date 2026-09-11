@@ -76,14 +76,14 @@ struct CombatantTalentCatalogTests {
         }
     }
 
-    @Test func `all talent nodes have authored symbols`() {
+    @Test func `all talent nodes have authored icons`() {
         for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
             let config = CombatantTalentCatalog.config(for: combatantID)
             for tree in config.trees {
                 for node in tree.nodes {
-                    #expect(node.symbolName != nil && !(node.symbolName?.isEmpty ?? true), "missing symbol on node \(node.id)")
+                    #expect(node.iconID != nil && !(node.iconID?.isEmpty ?? true), "missing icon on node \(node.id)")
                     if let effect = CombatantTalentCatalog.effect(for: node.id) {
-                        #expect(!effect.symbolName.isEmpty, "missing symbol on effect \(node.id)")
+                        #expect(!effect.iconID.isEmpty, "missing icon on effect \(node.id)")
                     } else {
                         Issue.record("missing effect for \(node.id)")
                     }

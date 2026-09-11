@@ -5,20 +5,46 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct BattleMechanicsTests {
+    @Test func `advancing a copied battle expires talent bonuses without changing the original`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+        )
+        battle.roster.hero.talents.battle.damageBonus = 2
+        battle.roster.hero.talents.pending.nextAttackHolyBonus = 4
+        battle.roster.hero.talents.turn.cleansedKeywordProtection = [.burn]
+        battle.roster.hero.talents.timed.dodge = .init(amount: 0.3, expiresAtTurn: 2)
+        battle.roster.hero.talents.timed.damage = .init(amount: 0.5, expiresAtTurn: 1)
+        let original = battle.roster.hero
+        var preview = battle
+
+        _ = preview.endTurn()
+
+        #expect(preview.roster.hero.talents.turn.cleansedKeywordProtection.isEmpty)
+        #expect(preview.roster.hero.talents.timed.damage.amount == 0)
+        #expect(preview.roster.hero.talents.timed.dodge.amount == 0.3)
+        _ = preview.endTurn()
+        #expect(preview.roster.hero.talents.timed.dodge.amount == 0)
+        #expect(preview.roster.hero.talents.pending.nextAttackHolyBonus == 4)
+        #expect(preview.roster.hero.talents.battle.damageBonus == 2)
+        #expect(battle.roster.hero == original)
+    }
+
     @Test(arguments: [DamageOperation.periodic, .reaction()])
     func `repeating nonattack damage preserves attack resources and rewards`(operation: DamageOperation) {
         var profile = CombatModifierProfile.zero
         profile.triggers.onAttackStealGold = 2
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         battle.appliesFightPacing = false
-        battle.roster.hero.pendingNextAttackHolyBonus = 3
+        battle.roster.hero.talents.pending.nextAttackHolyBonus = 3
         let result = battle.resolveDamage(DamageRequest(
             amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
             options: operation.repeated(),
         ))
         #expect(result.healthLost == 4)
         #expect(battle.roster.enemy.currentHealth == 46)
-        #expect(battle.roster.hero.pendingNextAttackHolyBonus == 3)
+        #expect(battle.roster.hero.talents.pending.nextAttackHolyBonus == 3)
         #expect(battle.gold == 0)
     }
 
@@ -38,20 +64,39 @@ struct BattleMechanicsTests {
         }
     }
 
-    @Test func `flanking position empowers the next hero hit`() {
+    @Test(arguments: [false, true])
+    func `dodge critical summary matches who can consume the bonus`(partyWide: Bool) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(),
             companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: CombatantTalentCatalog.profile(for: ["wolf_dodge_t2_2"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: [partyWide ? "wolf_dodge_t2_2" : "panther_dodge_t3_2"]),
         )
         _ = CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle)
+        let summary = EffectSummary(
+            keyword: .physical,
+            text: partyWide
+                ? "Prepared Critical: Your next party hit is a guaranteed Critical Hit."
+                : "Prepared Critical: Your next attack is a guaranteed Critical Hit.",
+        )
+        #expect(battle.effectSummaries(of: battle.companion).contains(summary))
         let hit = battle.resolveDamage(DamageRequest(
             amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         ))
-        #expect(hit.isCritical)
-        #expect(hit.healthLost == 4)
-        #expect(!battle.roster.companion.pendingGuaranteedCriticalAfterDodge)
+        #expect(hit.isCritical == partyWide)
+        #expect(hit.healthLost == (partyWide ? 4 : 2))
+        if !partyWide {
+            #expect(battle.effectSummaries(of: battle.companion).contains(summary))
+            let companionHit = battle.resolveDamage(DamageRequest(
+                amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
+                options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+            ))
+            #expect(companionHit.isCritical)
+            #expect(companionHit.healthLost == 4)
+        }
+        #expect(!battle.roster.companion.talents.pending.guaranteedCriticalAfterDodge)
+        #expect(!battle.effectSummaries(of: battle.companion).contains(summary))
     }
 
     @Test func `evasive pack grants dodge rewards without phantom counter`() {
@@ -83,7 +128,7 @@ struct BattleMechanicsTests {
         ))
         #expect(hit.isCritical)
         #expect(hit.healthLost == 4)
-        #expect(!battle.roster.companion.pendingGuaranteedCriticalAfterDodge)
+        #expect(!battle.roster.companion.talents.pending.guaranteedCriticalAfterDodge)
     }
 
     @Test func `guaranteed basic hit consumes taste for blood`() {
@@ -96,13 +141,13 @@ struct BattleMechanicsTests {
         _ = CombatTriggerEngine.afterBleedDamage(
             healthLost: 1, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
         )
-        #expect(battle.roster.hero.pendingBasicCritBonus == 0.35)
+        #expect(battle.roster.hero.talents.pending.basicCriticalBonus == 0.35)
         let hit = battle.resolveDamage(DamageRequest(
             amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
             options: DamageOperation.attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
         ))
         #expect(hit.isCritical)
-        #expect(battle.roster.hero.pendingBasicCritBonus == 0)
+        #expect(battle.roster.hero.talents.pending.basicCriticalBonus == 0)
     }
 
     @Test func `block gained from reflected damage survives the incoming hit`() {

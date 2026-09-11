@@ -31,6 +31,7 @@ package extension BattleState {
         source: Combatant,
         abilityName: String,
         applyOutgoingAdjustment: Bool = true,
+        origin: ActionEvent.Origin = .automatic,
     ) -> [ActionEvent] {
         applyBlockGain(
             amount,
@@ -38,6 +39,7 @@ package extension BattleState {
             source: source,
             abilityName: abilityName,
             applyOutgoingAdjustment: applyOutgoingAdjustment,
+            origin: origin,
         ).events
     }
 
@@ -47,6 +49,7 @@ package extension BattleState {
         source: Combatant,
         abilityName: String,
         applyOutgoingAdjustment: Bool = true,
+        origin: ActionEvent.Origin = .automatic,
     ) -> BlockGain {
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self)
             || CombatTriggerEngine.preventsPurgedEffect(.shield(.block, amount), on: target, in: self) {
@@ -75,6 +78,7 @@ package extension BattleState {
             target: target,
             amount: applied,
             keyword: keyword,
+            origin: origin,
         )]
         events.append(contentsOf: CombatTriggerEngine.afterBlockGained(
             applied,
@@ -90,9 +94,9 @@ package extension BattleState {
         }
         guard effect.isRemovableDebuff,
               modifiers(for: target.id).triggers.blockFirstDebuffPerTurn,
-              roster.runtime(for: target)?.faeWardBlockedThisTurn != true
+              roster.runtime(for: target)?.talents.turn.blockedFaeWard != true
         else { return false }
-        roster.mutateRuntime(for: target) { $0.faeWardBlockedThisTurn = true }
+        roster.mutateRuntime(for: target) { $0.talents.turn.blockedFaeWard = true }
         return true
     }
 

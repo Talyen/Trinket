@@ -17,7 +17,7 @@ public struct HomesteadResourceArtwork: View {
                 .scaledToFit()
                 .decorativePreparedArtwork()
         } else {
-            Image(systemName: resource.symbolName)
+            GameIconImage(resource.icon)
                 .trinketTypography(.button)
                 .foregroundStyle(resource.tint)
                 .symbolRenderingMode(.hierarchical)

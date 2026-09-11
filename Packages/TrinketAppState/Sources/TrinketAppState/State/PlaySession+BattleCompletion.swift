@@ -20,33 +20,33 @@ struct PlayBattleCompletion {
         presentation: BattlePresentationContext?,
         onPersisted: () -> Void,
         queueReturnToOrigin: (PlayBattleOrigin?) -> Void,
-    ) -> Bool {
-        guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id else { return false }
+    ) -> BattleCompletionResult {
+        guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id else { return .unavailable }
 
         guard PlayBattleRoute.matches(
             route,
             runKey: configuration.runKey,
             missingLog: "Missing route for active battle completion",
         ) else {
-            return false
+            return .unavailable
         }
 
         guard route == nil || presentation != nil else {
             appStateLogger.error("Missing presentation metadata for active battle completion")
-            return false
+            return .unavailable
         }
 
         let resolved = settleRewards(
             configuration, battleGold: battleGold, materialRewards: materialRewards, presentation: presentation,
             at: settlement?.inputs.productionDate ?? Date(),
         )
-        guard settlement == nil || settlement == resolved else { return false }
+        guard settlement == nil || settlement == resolved else { return .staleSettlement(resolved) }
         let origin = route?.origin
         let loot = Self.preparedLoot(
             from: presentation,
             materialRewards: materialRewards,
         )
-        let persisted = if let route, let presentation {
+        let result: BattleCompletionResult = if let route, let presentation {
             route.complete(
                 configuration,
                 presentation,
@@ -62,14 +62,14 @@ struct PlayBattleCompletion {
                     companion: configuration.companion.combatant,
                     save: &save,
                 )
-            }
+            } ? .completed : .persistenceFailed
         }
-        if persisted {
+        if result.didComplete {
             onPersisted()
             queueReturnToOrigin(origin)
             battle.endBattle()
         }
-        return persisted
+        return result
     }
 
     static func preparedLoot(

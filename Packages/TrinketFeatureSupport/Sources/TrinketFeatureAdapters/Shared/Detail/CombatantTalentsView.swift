@@ -180,7 +180,7 @@ public struct CombatantTalentsView: View {
         let isUnlocked = unlockedTalents.contains(node.id)
         let isSelected = selectedNodeID == node.id
         let style = node.keyword.visualStyle
-        let symbolName = node.symbolName ?? style.symbolName
+        let icon = node.iconID.map(GameIcon.init(id:)) ?? style.icon
 
         return Button {
             guard selectedNodeID != node.id else { return }
@@ -189,7 +189,7 @@ public struct CombatantTalentsView: View {
         } label: {
             VStack(spacing: TrinketDesign.Spacing.small) {
                 if isUnlocked {
-                    Image(systemName: symbolName)
+                    GameIconImage(icon)
                         .trinketTypography(.screenTitle)
                         .foregroundStyle(style.color)
                         .accessibilityHidden(true)
@@ -199,7 +199,7 @@ public struct CombatantTalentsView: View {
                         .foregroundStyle(.tertiary)
                         .accessibilityHidden(true)
                 } else {
-                    Image(systemName: symbolName)
+                    GameIconImage(icon)
                         .trinketTypography(.screenTitle)
                         .foregroundStyle(style.color.opacity(0.75))
                         .accessibilityHidden(true)
@@ -257,10 +257,10 @@ public struct CombatantTalentsView: View {
                     availablePoints: availablePoints,
                 )
                 let style = selectedNode.keyword.visualStyle
-                let symbolName = selectedNode.symbolName ?? style.symbolName
+                let icon = selectedNode.iconID.map(GameIcon.init(id:)) ?? style.icon
 
                 HStack(spacing: TrinketDesign.Spacing.small) {
-                    Image(systemName: symbolName)
+                    GameIconImage(icon)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(style.color)
                         .accessibilityHidden(true)

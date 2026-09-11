@@ -1,9 +1,11 @@
-import BattleEngine
 import Foundation
 import Testing
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketTestSupport
+@testable import BattleEngine
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackPresenterTests {
@@ -33,8 +35,9 @@ struct CombatFeedbackPresenterTests {
             at: Date(timeIntervalSince1970: 100),
         )
         #expect(critical.count == 1)
-        #expect(critical[0].feedbackClass == .critical)
-        #expect(critical[0].reactionKind == .critical)
+        #expect(critical[0].feedbackClass == .directDamage)
+        #expect(critical[0].isCritical)
+        #expect(critical[0].reactionKind == .damage)
         #expect(critical[0].sourceEventIDs == [10])
 
         let abilityItems = CombatFeedbackPresenter.makeItems(
@@ -67,7 +70,7 @@ struct CombatFeedbackPresenterTests {
             at: .now,
         )
         #expect(distinctKinds.count == 2)
-        #expect(Set(distinctKinds.map(\.feedbackClass)) == [.directDamage, .dot])
+        #expect(Set(distinctKinds.map(\.feedbackClass)) == [.directDamage])
     }
 
     @Test func `afflicted aura name events do not produce chips`() {
@@ -115,36 +118,37 @@ struct CombatFeedbackPresenterTests {
         #expect(shields[0].text == "5")
     }
 
-    @Test func `keeps critical damage separate from noncritical damage and marked consume`() {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(
-                    id: 20,
-                    kind: .abilityDamage,
-                    amount: 12,
-                    keyword: .physical,
-                    isCritical: true,
-                ),
-                makeEvent(
-                    id: 21,
-                    kind: .effect,
-                    effectKind: .markedConsumed,
-                    amount: 3,
-                    keyword: .physical,
-                ),
-                makeEvent(id: 22, kind: .abilityDamage, amount: 4, keyword: .physical),
-            ],
-            at: Date(timeIntervalSince1970: 100),
+    @Test(arguments: [0, 4])
+    func `marked damage feedback matches actual health lost after block`(block: Int) throws {
+        let ability = Ability(
+            id: "feedback-marked", name: "Marked Hit", tier: .basic,
+            damageComponents: [DamageComponent(5, keyword: .physical)],
+            criticalChanceBonus: -1,
         )
-        let critical = items.first { $0.sourceEventIDs.contains(20) }
-        let ability = items.first { $0.sourceEventIDs.contains(22) }
-        let marked = items.first { $0.sourceEventIDs.contains(21) }
-        #expect(critical?.feedbackClass == .critical)
-        #expect(critical?.sourceEventIDs == [20])
-        #expect(ability?.feedbackClass == .directDamage)
-        #expect(ability?.sourceEventIDs == [22])
-        #expect(marked?.feedbackClass == .directDamage)
-        #expect(marked?.sourceEventIDs == [21])
+        let hero = CombatantFixtures.passiveHero()
+        let enemy = CombatantFixtures.passiveEnemy(maxHealth: 100)
+        var battle = BattleState(
+            hero: hero, companion: CombatantFixtures.passiveCompanion(), enemy: enemy,
+            rngSeed: CombatantFixtures.deterministicBattleSeed, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        DefensePoolEngine.set(block, on: enemy, in: &battle)
+        battle.appendEffect(.marked(3, 2), to: enemy, sourceID: hero.id, remainingTurns: 2)
+        let healthBefore = battle.health(of: enemy)
+        let events = BattleTurnEngine.performAction(ability: ability, actor: hero, abilityTarget: enemy, context: &battle)
+        let marked = try #require(events.first { $0.effectKind == .markedConsumed })
+        let damage = try #require(events.first { $0.kind == .abilityDamage })
+        let healthLost = healthBefore - battle.health(of: enemy)
+        #expect(marked.amount == 3)
+        #expect(healthLost == 8 - block)
+        #expect(damage.amount == healthLost)
+        #expect(battle.events.contains(marked))
+
+        let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
+        let item = try #require(items.first)
+        #expect(items.count == 1)
+        #expect(item.label == .amount(-healthLost))
+        #expect(item.sourceEventIDs == [damage.id])
     }
 
     @Test func `classifies heal and dodge`() {
@@ -248,7 +252,7 @@ struct CombatFeedbackPresenterTests {
             ],
             at: .now,
         )
-        #expect(directAndStatus.map(\.feedbackClass) == [.directDamage, .dot])
+        #expect(directAndStatus.map(\.feedbackClass) == [.directDamage, .directDamage])
     }
 
     @Test func `assigns priority and presentation roles deterministically`() {
@@ -278,7 +282,7 @@ struct CombatFeedbackPresenterTests {
             at: .now,
         )
         #expect(items.count == 7)
-        #expect(items[0].feedbackClass == .directDamage)
+        #expect(items[0].feedbackClass == .dodge)
         #expect(items[0].presentationIndex == 0)
         #expect(items.allSatisfy { $0.groupResultCount == 7 })
         #expect(items.map(\.presentationIndex) == Array(0 ..< 7))
@@ -314,6 +318,38 @@ struct CombatFeedbackPresenterTests {
 }
 
 extension CombatFeedbackPresenterTests {
+    @Test @MainActor func `holy proc chain presents damage and healing instead of repeated benefits`() {
+        let ability = Ability(
+            id: "feedback-holy", name: "Holy Chain", tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy)],
+            criticalChanceBonus: -1,
+        )
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 30, abilities: [ability])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 30, abilities: [])
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
+        var profile = CombatantTalentCatalog.profile(for: ["knight_holy_t1_1", "knight_block_t1_2", "knight_holy_t3_2"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleState(
+            hero: hero, companion: companion, enemy: enemy,
+            heroModifiers: profile, rngSeed: CombatantFixtures.deterministicBattleSeed,
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 1
+        let events = BattleTurnEngine.performAction(ability: ability, actor: hero, abilityTarget: enemy, context: &battle)
+        let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
+        #expect(events.count { $0.effectKind == .shieldApplied } == 3)
+        #expect(events.count { $0.effectKind == .thornsApplied } == 3)
+        #expect(events.count { $0.effectKind == .instantHeal } == 3)
+        #expect(items.count == 2)
+        #expect(items.first { $0.targetID == "enemy" }?.label == .amount(-6))
+        #expect(items.first { $0.targetID == "hero" }?.label == .amount(12))
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        lane.record(events)
+        #expect(Set(lane.hitReactionsByTargetID.keys) == ["hero", "enemy"])
+    }
+
     @Test func `keeps same kind results separate across action I ds`() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
@@ -449,33 +485,50 @@ extension CombatFeedbackPresenterTests {
         #expect(try #require(byID[8]).label == .word(.status(.blockDown)))
     }
 
-    @Test func `suppresses natural mana regeneration but keeps intentional mana gains`() throws {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(
-                    id: 1,
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    amount: 2,
-                    keyword: .mana,
-                    abilityName: Keyword.mana.rawValue,
-                ),
-                makeEvent(
-                    id: 2,
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    amount: 2,
-                    keyword: .mana,
-                    abilityName: "Mana Potion",
-                ),
-            ],
-            at: .now,
-        )
+    @Test func `only direct benefits float while automatic healing remains visible`() {
+        let events: [ActionEvent] = [
+            feedbackEvent(1, .resourceGain, .mana, origin: .automatic),
+            feedbackEvent(2, .resourceGain, .mana, origin: .direct),
+            feedbackEvent(3, .shieldApplied, .block, origin: .automatic),
+            feedbackEvent(4, .thornsApplied, .thorns, origin: .automatic),
+            feedbackEvent(5, .instantHeal, .health, origin: .automatic),
+            feedbackEvent(6, .leechHeal, .leech, origin: .periodic),
+            feedbackEvent(7, .dotAmplified, .poison, origin: .direct),
+            feedbackEvent(8, .recurringDamageApplied, .burn, origin: .direct),
+        ]
+        let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
+        #expect(items.count == 2)
+        #expect(items.first { $0.feedbackClass == .heal }?.label == .amount(4))
+        #expect(items.first { $0.feedbackClass == .resource }?.sourceEventIDs == [2])
+    }
 
-        try #expect(items.count == 1)
-        let intentionalGain = try #require(items.first)
-        #expect(intentionalGain.id == 2)
-        #expect(intentionalGain.label == .amount(2))
+    @Test func `only fully absorbed hits show block feedback`() {
+        let items = CombatFeedbackPresenter.makeItems(from: [
+            feedbackEvent(1, .shieldAbsorbed, .block, origin: .automatic),
+            feedbackEvent(2, .shieldAbsorbed, .block, origin: .automatic, fullyBlocked: true),
+        ], at: .now)
+        #expect(items.map(\.sourceEventIDs) == [[2]])
+    }
+
+    private func feedbackEvent(
+        _ id: Int, _ effect: ActionEvent.EffectOutcome, _ keyword: Keyword,
+        origin: ActionEvent.Origin, fullyBlocked: Bool = false,
+    ) -> ActionEvent {
+        ActionEvent(
+            id: id,
+            actionID: id,
+            kind: .effect,
+            effectKind: effect,
+            actorName: "Hero",
+            abilityName: "Same display name",
+            targetID: "hero",
+            targetName: "Hero",
+            amount: 2,
+            keyword: keyword,
+            feedbackGroupID: 1,
+            origin: origin,
+            isFullyBlocked: fullyBlocked,
+        )
     }
 
     @Test func `merges gold gains and suppresses gold loss chips`() throws {

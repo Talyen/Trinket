@@ -82,8 +82,8 @@ struct MysteryCorruptionRevealContent: View {
 
     private func changeRow(_ effect: CorruptionEffectSummary) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
-            Image(systemName: effect.symbolName)
-                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
+            GameIconImage(effect.icon)
+                // UIStyleCheck: allow - Game icon glyph sizing, not copy
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(effect.tintColor ?? TrinketDesign.Colors.accent)
                 .accessibilityHidden(true)
@@ -106,13 +106,13 @@ private extension CorruptionEffectSummary {
         }
     }
 
-    var symbolName: String {
+    var icon: GameIcon {
         switch self {
-        case .addedAffix: "plus.circle.fill"
-        case .replacedAffix: "arrow.triangle.swap"
-        case .bumpedUp: "arrow.up.circle.fill"
-        case .bumpedDown: "arrow.down.circle.fill"
-        case .upgradedRarity: "sparkles"
+        case .addedAffix: .lucide("circle-plus")
+        case .replacedAffix: .lucide("shuffle")
+        case .bumpedUp: .lucide("circle-arrow-up")
+        case .bumpedDown: .lucide("circle-arrow-down")
+        case .upgradedRarity: .lucide("sparkles")
         }
     }
 

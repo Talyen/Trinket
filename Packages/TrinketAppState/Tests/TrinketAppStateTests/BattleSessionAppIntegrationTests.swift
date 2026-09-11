@@ -20,27 +20,25 @@ struct BattleSessionAppIntegrationTests {
         #expect(state.journey.startBattle(for: stage) == nil)
         let configuration = try #require(state.battle.activeBattle)
         let battle = try #require(state.battle as? BattleSession)
-        battle.installRewardSettlementHandler(ownerID: UUID()) { configuration, flow in
-            state.settleBattleRewards(configuration, battleGold: flow)
-        }
-        try battle.installPresentationContext(#require(state.battlePresentation(for: configuration.runKey)))
         battle.presentLaunchVictory()
         let summary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
-        let original = summary.settlement
         try state.playerSave.performBatchMutation { save in save.roster.gold = 999 }
-        #expect(!state.completeActiveBattle(configuration, battleGold: .init(), settlement: original))
+        #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary))
         #expect(!state.playerSave.journey.hasClaimedRewards(for: stage))
-        battle.presentLaunchVictory()
+        #expect(battle.completionError == nil)
         let refreshedSummary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
         let refreshed = refreshedSummary.settlement
         #expect(refreshed.award.goldGained == 0)
         #expect(refreshed.replacementExperience > 0)
         #expect(refreshedSummary.totalGold == 0)
         #expect(refreshedSummary.experience == refreshed.award.heroExperience)
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(), settlement: refreshed))
+        #expect(battle.claimVictory(configurationID: configuration.id, summary: refreshedSummary))
         #expect(state.playerSave.roster.gold == 999)
         #expect(state.playerSave.roster.progression(for: configuration.hero.combatant) == refreshed.heroProgressionAfter)
         #expect(state.playerSave.roster.progression(for: configuration.companion.combatant) == refreshed.companionProgressionAfter)
+        let claimedSave = state.playerSave.currentSave
+        #expect(!battle.claimVictory(configurationID: configuration.id, summary: refreshedSummary))
+        #expect(state.playerSave.currentSave == claimedSave)
     }
 
     @Test func `prepared battle uses current party build`() throws {
@@ -93,7 +91,8 @@ struct BattleSessionAppIntegrationTests {
         #expect(active.rngSeed == registration.launch.configuration.rngSeed)
         #expect(state.battle.hasPreparedRun(sibling))
         let stale = PlayBattleLaunch.assembleLaunch(registration.launch.inputs).configuration
-        #expect(!state.completeActiveBattle(stale, battleGold: .init(gained: 5)))
+        #expect(!state.battle.restart(stale))
+        #expect(!state.completeActiveBattle(stale, battleGold: .init(gained: 5)).didComplete)
         #expect(state.battle.activeBattle?.id == active.id)
     }
 
@@ -114,7 +113,7 @@ struct BattleSessionAppIntegrationTests {
         let presentation = try #require(state.battlePresentation(for: active.runKey))
         let heroBefore = state.playerSave.roster.progression(for: state.playerSave.roster.activeHero)
         #expect(presentation.experienceBonusPercent == 25)
-        #expect(state.completeActiveBattle(active, battleGold: .init(gained: 0)))
+        #expect(state.completeActiveBattle(active, battleGold: .init(gained: 0)).didComplete)
         #expect(
             state.playerSave.roster.progression(for: state.playerSave.roster.activeHero)
                 == heroBefore.addingExperience(presentation.heroExperienceAward),
@@ -142,7 +141,7 @@ struct BattleSessionAppIntegrationTests {
 
         var updatedRoster = appState.playerSave.roster
         updatedRoster.grantExperience(3, to: appState.playerSave.roster.activeHero)
-        appState.playerSave.roster = updatedRoster
+        #expect(appState.playerSave.persistBatch(logging: "Test setup") { $0.roster = updatedRoster })
         appState.restartActiveBattle()
 
         #expect(appState.battle.activeBattle?.hero.progression.currentXP == 3)
@@ -232,7 +231,7 @@ struct BattleSessionAppIntegrationTests {
 
         var save = appState.playerSave.currentSave
         save.roster.unlock(otherHero)
-        appState.playerSave.roster = save.roster
+        #expect(appState.playerSave.persistBatch(logging: "Test setup") { $0.roster = save.roster })
 
         #expect(appState.labyrinth.startBattle(nodeID: combatNodeID) == nil)
         let original = try #require(appState.battle.activeBattle)
@@ -241,7 +240,7 @@ struct BattleSessionAppIntegrationTests {
 
         var updatedRoster = appState.playerSave.roster
         updatedRoster.setActiveHero(otherHero)
-        appState.playerSave.roster = updatedRoster
+        #expect(appState.playerSave.persistBatch(logging: "Test setup") { $0.roster = updatedRoster })
 
         appState.restartActiveBattle()
 
@@ -266,7 +265,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle == nil)
     }
 
-    @Test func `activating prepared battle keeps sibling prepared runs`() throws {
+    @Test func `prepared siblings survive activation and active pruning then clear together on exit`() throws {
         let appState = try context.makePlaySession()
         let combatStages = GameContent.chapters
             .flatMap(\.stages)
@@ -290,14 +289,23 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battlePresentation(for: secondRunKey) != nil)
         #expect(battle.hasPreparedRun(firstRunKey))
         #expect(!battle.hasPreparedRun(secondRunKey))
+        appState.battleLaunch.keepPreparedRuns([])
+        #expect(appState.battlePresentation(for: firstRunKey) != nil)
+        #expect(appState.battlePresentation(for: secondRunKey) != nil)
+        #expect(battle.hasPreparedRun(firstRunKey))
+
+        appState.endBattleReturningToOrigin()
+        #expect(appState.battlePresentation(for: firstRunKey) == nil)
+        #expect(appState.battlePresentation(for: secondRunKey) == nil)
+        #expect(!battle.hasPreparedRun(firstRunKey))
+        #expect(battle.lifecyclePhase == .idle)
     }
 
     #if DEBUG
-    @Test func `claimed victory persist failure presents victory chrome`() throws {
+    @Test func `victory persist failure preserves the award and retries through composition`() throws {
         let playerSave = try PlayerSaveStore(
             disableCloudSync: true,
             inMemoryOnly: true,
-            persistSaveImmediately: true,
         )
         let battle = BattleSession(
             autoEndTurnDelay: 0,
@@ -311,25 +319,20 @@ struct BattleSessionAppIntegrationTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
-        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
-        battle.installPresentationContext(presentation)
-        battle.installClaimedVictoryHandler(ownerID: UUID()) { configuration, earnedGold in
-            playerSave.forcesNextSaveFailure = true
-            let didPersist = state.completeActiveBattle(
-                configuration,
-                battleGold: .init(gained: max(earnedGold.gained, 5), spent: earnedGold.spent),
-            )
-            if !didPersist {
-                battle.presentVictoryChromeForPersistRetry()
-            }
-        }
-
         driveToVictory(battle)
-
         #expect(battle.outcome == .victory)
+        let summary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
+        let before = playerSave.currentSave
+        playerSave.forcesNextSaveFailure = true
+        #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary))
+        #expect(playerSave.currentSave == before)
+        #expect(battle.completionError != nil)
         #expect(battle.spectacle.outcomePresentation.isVictoryPresented)
-        #expect(battle.spectacle.outcomePresentation.victorySummaryIfAvailable != nil)
+        #expect(battle.spectacle.outcomePresentation.victorySummaryIfAvailable == summary)
         #expect(state.battle.activeBattle != nil)
+        #expect(battle.claimVictory(configurationID: configuration.id, summary: summary))
+        #expect(state.playerSave.journey.hasClaimedRewards(for: stage))
+        #expect(state.battle.activeBattle == nil)
     }
     #endif
 

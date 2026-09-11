@@ -71,7 +71,7 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
     public let id: HomesteadNodeID
     public let title: String
     public let summary: String
-    public let symbolName: String
+    public let iconID: String
     public let category: HomesteadNodeCategory
     public let prerequisites: [HomesteadNodeRequirement]
     public let tiers: [HomesteadNodeTier]
@@ -80,7 +80,7 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
         id: HomesteadNodeID,
         title: String,
         summary: String,
-        symbolName: String,
+        iconID: String,
         category: HomesteadNodeCategory,
         prerequisites: [HomesteadNodeRequirement],
         tiers: [HomesteadNodeTier],
@@ -88,7 +88,7 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
         self.id = id
         self.title = title
         self.summary = summary
-        self.symbolName = symbolName
+        self.iconID = iconID
         self.category = category
         self.prerequisites = prerequisites
         self.tiers = tiers

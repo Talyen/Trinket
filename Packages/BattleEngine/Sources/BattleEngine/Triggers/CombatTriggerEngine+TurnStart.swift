@@ -65,9 +65,7 @@ package extension CombatTriggerEngine {
         context.turnCadence.reset()
         for owner in BattleParticipant.allCases {
             context.roster.mutateRuntime(for: context.roster[owner].combatant) { runtime in
-                runtime.resetTalentTurnState(currentTurn: context.turnCount)
-                runtime.cleansedKeywordProtection.removeAll()
-                runtime.purgedEffectProtection.removeAll()
+                runtime.talents.beginTurn(context.turnCount)
             }
         }
     }
@@ -166,10 +164,10 @@ package extension CombatTriggerEngine {
     ) {
         guard perRound > 0 else { return }
         context.roster.mutateRuntime(for: actor) { runtime in
-            let current: Int = runtime.keywordDamageRamp[keyword, default: 0]
-            var ramp: [Keyword: Int] = runtime.keywordDamageRamp
+            let current: Int = runtime.talents.battle.keywordDamageRamp[keyword, default: 0]
+            var ramp: [Keyword: Int] = runtime.talents.battle.keywordDamageRamp
             ramp[keyword] = cap > 0 ? min(current + perRound, cap) : current + perRound
-            runtime.keywordDamageRamp = ramp
+            runtime.talents.battle.keywordDamageRamp = ramp
         }
     }
 
@@ -195,7 +193,7 @@ package extension CombatTriggerEngine {
                 abilityName: triggerAbilityName("healthPerTurn", for: actor, fallback: "Grove's Favor", in: context),
             ))
         }
-        if let blessing = runtime.lingeringBlessing,
+        if let blessing = runtime.talents.timed.lingeringBlessing,
            let source = context.roster.combatant(for: blessing.sourceActorID) {
             let amount = blessing.amount
             events.append(contentsOf: HealingEngine.resolveHeal(
@@ -213,9 +211,9 @@ package extension CombatTriggerEngine {
                 in: &context,
             ).events)
             context.roster.mutateRuntime(for: actor) {
-                guard var current = $0.lingeringBlessing else { return }
+                guard var current = $0.talents.timed.lingeringBlessing else { return }
                 current.turnsRemaining -= 1
-                $0.lingeringBlessing = current.turnsRemaining > 0 ? current : nil
+                $0.talents.timed.lingeringBlessing = current.turnsRemaining > 0 ? current : nil
             }
         }
         return events

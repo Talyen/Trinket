@@ -102,6 +102,23 @@ final class AppTestContext {
             playerSave: playerSave,
             userDefaults: userDefaults,
             makeBattleRuntime: { _ in battle },
+            configureBattleRuntime: { runtime, play in
+                guard let session = runtime as? BattleSession else { return }
+                session.configureProgression(
+                    presentation: { [weak play] configuration in
+                        play?.battlePresentation(for: configuration)
+                    },
+                    settleRewards: { [weak play] configuration, gold in
+                        play?.settleBattleRewards(configuration, battleGold: gold)
+                    },
+                    completeVictory: { [weak play] configuration, gold, settlement in
+                        play?.completeActiveBattle(
+                            configuration, battleGold: gold,
+                            materialRewards: settlement?.award.materials, settlement: settlement,
+                        ) ?? .unavailable
+                    },
+                )
+            },
         )
         state.playerSave.contentAccess = .fullGame
         lastBattle = battle as? BattleSession
@@ -116,7 +133,6 @@ final class AppTestContext {
         }
         let store = try SaveTestSupport.makeSaveStore(
             directoryURL: directoryURL,
-            persistImmediately: true,
             resetState: resetState,
             inMemoryOnly: !resetState,
         )

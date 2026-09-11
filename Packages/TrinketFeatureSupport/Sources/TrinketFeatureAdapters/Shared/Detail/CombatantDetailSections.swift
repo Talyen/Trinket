@@ -93,18 +93,22 @@ struct CombatantTalentsSection: View {
     var body: some View {
         if let config = CombatantTalentCatalog.configIfAvailable(for: combatantID) {
             let available = progression.availableTalentPoints(unlockedCount: unlockedTalents.count)
+            let hasUnlockableTalent = config.hasUnlockableNode(
+                unlockedNodeIDs: unlockedTalents,
+                availablePoints: available,
+            )
             DetailSection("Talents", sectionID: AccessibilityID.CombatantDetail.talentsSection) {
                 HStack(spacing: TrinketDesign.Spacing.small) {
                     ForEach(config.trees) { tree in
-                        let hasUnallocatedPoints = available > 0
                         let unlockedCount = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
+                        let isComplete = tree.nodes.allSatisfy { unlockedTalents.contains($0.id) }
                         Button {
                             onSelectTree(tree)
                         } label: {
                             TalentTreeCard(
                                 tree: tree,
-                                caption: "\(unlockedCount)/\(tree.nodes.count)",
-                                showsShine: hasUnallocatedPoints,
+                                caption: isComplete ? "Complete" : "\(unlockedCount)/\(tree.nodes.count)",
+                                showsShine: hasUnlockableTalent && !isComplete,
                                 accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue),
                             )
                         }

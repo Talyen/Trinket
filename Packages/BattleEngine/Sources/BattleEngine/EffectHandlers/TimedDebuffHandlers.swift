@@ -22,18 +22,30 @@ struct TimedDebuffHandler: BattleEffectHandler {
         }
         let durationSuffix = maxTicks > 0 ? ", \(BattleTiming.remainingDurationLabel(turns: maxTicks))" : ""
         switch active.effect {
-        case let .damageReductionPercent(percent, _):
-            let percentInt = Int((percent * 100).rounded())
+        case .damageReductionPercent:
+            let multiplier = stacks.reduce(1.0) { result, active in
+                guard case let .damageReductionPercent(percent, _) = active.effect else { return result }
+                return result * (1 - min(1, percent))
+            }
+            let percentInt = Int(((1 - multiplier) * 100).rounded())
             return EffectSummary(
                 keyword: keyword,
                 text: "Weakened: Outgoing damage reduced by \(percentInt)%\(durationSuffix).",
             )
-        case let .damageReductionFlat(amount, _):
+        case .damageReductionFlat:
+            let amount = stacks.reduce(0) { result, active in
+                guard case let .damageReductionFlat(amount, _) = active.effect else { return result }
+                return result + amount
+            }
             return EffectSummary(
                 keyword: keyword,
                 text: "Dazzled: Outgoing damage reduced by \(amount)\(durationSuffix).",
             )
-        case let .healingReductionPercent(percent, _):
+        case .healingReductionPercent:
+            let percent = stacks.reduce(0.0) { result, active in
+                guard case let .healingReductionPercent(percent, _) = active.effect else { return result }
+                return max(result, min(1, percent))
+            }
             let percentInt = Int((percent * 100).rounded())
             return EffectSummary(
                 keyword: keyword,

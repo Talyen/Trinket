@@ -4,7 +4,7 @@ import TrinketCore
 package extension CombatTriggerEngine {
     static func preventsDebuff(_ effect: Effect, on target: Combatant, in context: BattleState) -> Bool {
         guard effect.isRemovableDebuff else { return false }
-        if context.roster.runtime(for: target)?.cleansedKeywordProtection.contains(effect.keyword) == true {
+        if context.roster.runtime(for: target)?.talents.turn.cleansedKeywordProtection.contains(effect.keyword) == true {
             return true
         }
         return effect.keyword == .burn && context.modifiers(for: target.id).triggers.undyingEmber
@@ -180,8 +180,8 @@ package extension CombatTriggerEngine {
         if triggers.cleanseDodgeChanceBonus > 0 {
             let duration = max(1, triggers.cleanseDodgeChanceBonusTurns)
             context.roster.mutateRuntime(for: target) {
-                $0.bonusDodgeUntilNextTurn += triggers.cleanseDodgeChanceBonus
-                $0.bonusDodgeExpiresAtTurn = max($0.bonusDodgeExpiresAtTurn, context.turnCount + duration)
+                $0.talents.timed.dodge.amount += triggers.cleanseDodgeChanceBonus
+                $0.talents.timed.dodge.expiresAtTurn = max($0.talents.timed.dodge.expiresAtTurn, context.turnCount + duration)
             }
         }
         return cleanseOtherPartyMember(source: source, target: target, in: &context)

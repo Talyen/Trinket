@@ -228,6 +228,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
             target: target,
             amount: amount,
             keyword: .mana,
+            origin: .direct,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

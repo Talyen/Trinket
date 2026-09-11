@@ -22,14 +22,14 @@ enum PlayBattleLaunchTestSupport {
         roster.unlock(companion)
         roster.setActiveHero(hero)
         roster.setActiveCompanion(companion)
-        state.playerSave.roster = roster
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
     }
 
     static func setActiveCompanion(_ companion: Combatant, in state: PlaySession) {
         var roster = state.playerSave.roster
         _ = roster.unlock(companion)
         roster.setActiveCompanion(companion)
-        state.playerSave.roster = roster
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
     }
 
     static func make(

@@ -143,7 +143,7 @@ struct HomesteadView: View {
         Label {
             Text("Collect")
         } icon: {
-            Image(systemName: "gift.fill")
+            GameIconImage(.lucide("gift"))
                 .imageScale(.large)
         }
         .trinketTypography(.button)
@@ -236,13 +236,23 @@ struct HomesteadView: View {
         withTransaction(transaction) { depositEvent = nil }
     }
 
+    private func categoryIcon(_ category: HomesteadNodeCategory) -> GameIcon {
+        switch category {
+        case .farming: .lucide("wheat")
+        case .crafting: .lucide("anvil")
+        case .alchemy: .lucide("flask-conical")
+        case .training: .lucide("target")
+        case .arcana: .lucide("moon-star")
+        }
+    }
+
     private func categoryCard(_ category: HomesteadNodeCategory) -> some View {
         let progress = HomesteadCategoryProgress(category: category, homestead: homestead)
         return NavigationLink(value: HomesteadRoute.category(category)) {
             HubArtworkCard(
                 title: category.rawValue,
                 subtitle: progress.subtitle,
-                symbolName: "hammer.fill",
+                icon: categoryIcon(category),
                 artID: category.artID,
             )
         }

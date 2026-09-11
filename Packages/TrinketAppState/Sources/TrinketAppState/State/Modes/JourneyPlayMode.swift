@@ -292,7 +292,7 @@ extension JourneyPlayMode {
     func battleRoute(stageID: String) -> PlayBattleRoute {
         let origin = PlayBattleOrigin.journey(stageID: stageID)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
-            guard let self, let stage = GameContent.stage(id: stageID) else { return false }
+            guard let self, let stage = GameContent.stage(id: stageID) else { return .unavailable }
             return completeStage(
                 stage,
                 hero: configuration.hero.combatant,
@@ -303,7 +303,7 @@ extension JourneyPlayMode {
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,
                 enemyEncounterLevel: configuration.enemyEncounterLevel,
-            )
+            ) ? .completed : .persistenceFailed
         }
     }
 }

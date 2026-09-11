@@ -1,7 +1,6 @@
 import CoreGraphics
 import QuartzCore
 import SwiftUI
-import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
@@ -44,7 +43,7 @@ final class CombatFeedbackGlyphAtlas {
         let height: CGFloat
     }
 
-    private var symbols: [SymbolKey: Glyph] = [:]
+    private(set) var icons: [IconKey: Glyph] = [:]
     private var fragments: [FragmentKey: Glyph] = [:]
     private var preparedPresentationKeys: Set<PresentationKey> = []
     private var pendingPrewarm: PendingPrewarm?
@@ -63,9 +62,9 @@ final class CombatFeedbackGlyphAtlas {
         let task: Task<PresentationKey?, Never>
     }
 
-    struct SymbolKey: Hashable {
+    struct IconKey: Hashable {
         let face: Face
-        let symbolName: String
+        let icon: GameIcon
     }
 
     struct FragmentKey: Hashable {
@@ -75,12 +74,12 @@ final class CombatFeedbackGlyphAtlas {
 
     /// Concurrency-Safety: `@unchecked Sendable` — value payload for detached bake
     enum PreparedGlyph: @unchecked Sendable {
-        case symbol(SymbolKey, Glyph)
+        case icon(IconKey, Glyph)
         case fragment(FragmentKey, Glyph)
     }
 
     enum PrewarmRequest {
-        case symbol(SymbolKey, CombatFeedbackChipStyle)
+        case icon(IconKey, CombatFeedbackChipStyle)
         case fragment(FragmentKey, CombatFeedbackChipStyle)
     }
 
@@ -89,23 +88,23 @@ final class CombatFeedbackGlyphAtlas {
         pendingPrewarm?.task.cancel()
         pendingPrewarm = nil
         preparedPresentationKeys.removeAll(keepingCapacity: true)
-        symbols.removeAll(keepingCapacity: true)
+        icons.removeAll(keepingCapacity: true)
         fragments.removeAll(keepingCapacity: true)
     }
 
-    func symbol(
-        named symbolName: String,
+    func icon(
+        _ icon: GameIcon,
         face: Face,
         recipe: CombatFeedbackChipStyle,
     ) -> Glyph? {
-        let key = SymbolKey(face: face, symbolName: symbolName)
-        if let glyph = symbols[key] {
+        let key = IconKey(face: face, icon: icon)
+        if let glyph = icons[key] {
             return glyph
         }
-        guard let glyph = Self.bakeSymbol(named: symbolName, face: face, recipe: recipe) else {
+        guard let glyph = Self.bakeIcon(icon, face: face, recipe: recipe) else {
             return nil
         }
-        symbols[key] = glyph
+        icons[key] = glyph
         return glyph
     }
 
@@ -164,8 +163,8 @@ final class CombatFeedbackGlyphAtlas {
             guard !Task.isCancelled, prewarmGeneration == generation else { return nil }
             for glyph in prepared {
                 switch glyph {
-                case let .symbol(key, value):
-                    symbols[key] = value
+                case let .icon(key, value):
+                    icons[key] = value
                 case let .fragment(key, value):
                     fragments[key] = value
                 }
@@ -180,9 +179,9 @@ final class CombatFeedbackGlyphAtlas {
     private func prewarmRequests(
         displayScaleHundredths: Int,
     ) -> [PrewarmRequest] {
-        let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName)).union([
-            Keyword.VisualStyle.beneficialStatus.symbolName,
-            Keyword.VisualStyle.negativeStatus.symbolName,
+        let requiredIcons = Set(Keyword.allCases.map { CombatFeedbackChipPresentation.Style.keyword($0).feedbackIcon }).union([
+            CombatFeedbackChipPresentation.Style.beneficialStatus.feedbackIcon,
+            CombatFeedbackChipPresentation.Style.negativeStatus.feedbackIcon,
         ])
         let numericFragments = CombatFeedbackChipLabel.numericAtlasFragments
         var requests: [PrewarmRequest] = []
@@ -195,10 +194,10 @@ final class CombatFeedbackGlyphAtlas {
                     presentationRole: role,
                     displayScaleHundredths: displayScaleHundredths,
                 )
-                for symbolName in symbolNames {
-                    let key = SymbolKey(face: face, symbolName: symbolName)
-                    if symbols[key] == nil {
-                        requests.append(.symbol(key, recipe))
+                for icon in requiredIcons {
+                    let key = IconKey(face: face, icon: icon)
+                    if icons[key] == nil {
+                        requests.append(.icon(key, recipe))
                     }
                 }
                 for fragment in numericFragments {
@@ -228,9 +227,9 @@ final class CombatFeedbackGlyphAtlas {
         requests.compactMap { request in
             guard !Task.isCancelled else { return nil }
             switch request {
-            case let .symbol(key, recipe):
-                return bakeSymbol(named: key.symbolName, face: key.face, recipe: recipe)
-                    .map { .symbol(key, $0) }
+            case let .icon(key, recipe):
+                return bakeIcon(key.icon, face: key.face, recipe: recipe)
+                    .map { .icon(key, $0) }
             case let .fragment(key, recipe):
                 return bakeFragment(key.text, face: key.face, recipe: recipe)
                     .map { .fragment(key, $0) }
@@ -238,8 +237,8 @@ final class CombatFeedbackGlyphAtlas {
         }
     }
 
-    nonisolated static func bakeSymbol(
-        named symbolName: String,
+    nonisolated static func bakeIcon(
+        _ icon: GameIcon,
         face: Face,
         recipe: CombatFeedbackChipStyle,
     ) -> Glyph? {
@@ -247,40 +246,21 @@ final class CombatFeedbackGlyphAtlas {
             recipe: recipe,
             presentationRole: face.presentationRole,
         )
-        if symbolName == Keyword.gold.visualStyle.symbolName,
-           let goldImage = goldArtworkImage(targetHeight: font.lineHeight) {
-            return rasterize(image: goldImage, displayScaleHundredths: face.displayScaleHundredths)
+        if let resource = icon.imageResource {
+            let image = UIImage(resource: resource).withTintColor(.white, renderingMode: .alwaysOriginal)
+            return rasterize(
+                image: image,
+                displayScaleHundredths: face.displayScaleHundredths,
+                targetHeight: font.pointSize,
+            )
         }
-        let config = UIImage.SymbolConfiguration(font: font)
-        guard let image = UIImage(
-            systemName: symbolName,
-            withConfiguration: config,
-        )?.withTintColor(.white, renderingMode: .alwaysOriginal) else {
-            return nil
-        }
+        guard case let .system(name) = icon,
+              let image = UIImage(
+                  systemName: name,
+                  withConfiguration: UIImage.SymbolConfiguration(font: font),
+              )?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        else { return nil }
         return rasterize(image: image, displayScaleHundredths: face.displayScaleHundredths)
-    }
-
-    nonisolated private static func goldArtworkImage(targetHeight: CGFloat) -> UIImage? {
-        let imageName = ArtCatalog.resourceArtByID[HomesteadResource.gold.rawValue]?.imageName
-            ?? "resource_homestead_gold"
-        guard let base = UIImage(named: imageName, in: .main, compatibleWith: nil)
-            ?? UIImage(named: imageName)
-        else {
-            return nil
-        }
-        let height = max(1, targetHeight)
-        let scale = height / max(1, base.size.height)
-        let width = base.size.width * scale
-        let size = CGSize(width: ceil(width), height: ceil(height))
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1
-        format.opaque = false
-        let renderer = UIGraphicsImageRenderer(size: size, format: format)
-        let rendered = renderer.image { _ in
-            base.draw(in: CGRect(origin: .zero, size: size))
-        }
-        return rendered.withTintColor(.white, renderingMode: .alwaysOriginal)
     }
 
     nonisolated static func bakeFragment(
@@ -319,8 +299,10 @@ final class CombatFeedbackGlyphAtlas {
     nonisolated static func rasterize(
         image: UIImage,
         displayScaleHundredths: Int,
+        targetHeight: CGFloat? = nil,
     ) -> Glyph? {
-        let size = image.size
+        let imageScale = targetHeight.map { $0 / max(1, image.size.height) } ?? 1
+        let size = CGSize(width: image.size.width * imageScale, height: image.size.height * imageScale)
         guard size.width > 0, size.height > 0 else { return nil }
         let format = UIGraphicsImageRendererFormat()
         format.scale = CGFloat(displayScaleHundredths) / 100

@@ -59,6 +59,7 @@ struct ResourceGainHandler: BattleEffectHandler {
                 target: target,
                 amount: restored,
                 keyword: keyword,
+                origin: .direct,
             )
             var events = [event]
             if restored > 0 {
@@ -109,6 +110,7 @@ struct DrawCardsHandler: BattleEffectHandler {
             target: drawTarget,
             amount: drawn,
             keyword: .physical,
+            origin: .direct,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

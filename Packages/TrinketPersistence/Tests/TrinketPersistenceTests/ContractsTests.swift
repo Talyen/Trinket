@@ -94,11 +94,10 @@ struct ContractBoardTests {
 }
 
 struct ContractsPersistenceTests {
-    @Test @MainActor func `legacy missing board opens lazily and generated offers survive reload`() throws {
+    @Test @MainActor func `missing board opens lazily and generated offers survive reload`() throws {
         let context = try PersistenceTestContext()
-        var legacy = PlayerSave.testSeed
-        legacy.schemaVersion = 16
-        try SaveTestSupport.writeRoot(legacy, to: context.storeURL()) { modelContext in
+        let saved = PlayerSave.testSeed
+        try SaveTestSupport.writeRoot(saved, to: context.storeURL()) { modelContext in
             let roots = try modelContext.fetch(FetchDescriptor<PlayerSaveRoot>())
             let root = try #require(roots.first)
             root.contractsPayload = nil
@@ -106,8 +105,8 @@ struct ContractsPersistenceTests {
         let store = try context.makeSaveStore()
         #expect(!store.recoveredAfterStoreDeletion)
         #expect(store.contracts == .freshStart)
-        #expect(store.roster == legacy.roster)
-        #expect(store.inventory == legacy.inventory)
+        #expect(store.roster == saved.roster)
+        #expect(store.inventory == saved.inventory)
         #expect(store.persistBatch(logging: "Contracts test") { $0.contracts.ensureBoard() })
         let first = store.contracts
         let reloaded = try context.makeReloadedStore()

@@ -198,12 +198,12 @@ package extension HealingEngine {
             let bonus = context.modifiers(for: sourceActorID).triggers.leechOverhealDamageBonus
             if bonus > 0 {
                 context.roster.mutateRuntime(for: source.combatant) { runtime in
-                    let current = runtime.talentLeechOverhealDamageBonus
+                    let current = runtime.talents.battle.leechOverhealDamageBonus
                     let allowed = max(0, 4 - current)
                     let toAdd = min(bonus, allowed)
                     if toAdd > 0 {
-                        runtime.talentLeechOverhealDamageBonus += toAdd
-                        runtime.permanentDamageBonus += toAdd
+                        runtime.talents.battle.leechOverhealDamageBonus += toAdd
+                        runtime.talents.battle.damageBonus += toAdd
                     }
                 }
             }

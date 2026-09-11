@@ -131,7 +131,7 @@ extension CombatTriggerTalentDamageTests {
         let payment = battle.payMana(amount, for: battle.hero)
         let events = CombatTriggerEngine.afterSpendMana(payment, in: &battle)
         #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == amount / 5)
-        #expect(battle.roster.hero.manaSpentTowardAutoPlay == amount % 5)
+        #expect(battle.roster.hero.talents.battle.manaSpentTowardAutoPlay == amount % 5)
     }
 
     @Test func `automatic payment ancestry suppresses recursive arcane burst and then restores`() throws {
@@ -145,7 +145,7 @@ extension CombatTriggerTalentDamageTests {
         let events = try battle.playCard(cardID: card.id)
         #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.kindling.id } == 2)
         #expect(battle.mana(of: battle.hero) == 0)
-        #expect(battle.roster.hero.manaSpentTowardAutoPlay == 0)
+        #expect(battle.roster.hero.talents.battle.manaSpentTowardAutoPlay == 0)
         #expect(!battle.resolution.isAutomaticPlay)
         _ = battle.restoreManaEmitting(3, to: battle.hero, abilityName: "Refill")
         battle.heroDeck = CombatDeck(abilities: [.block])

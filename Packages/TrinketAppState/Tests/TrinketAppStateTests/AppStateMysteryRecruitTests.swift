@@ -82,7 +82,7 @@ struct AppStateMysteryRecruitTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         var roster = state.playerSave.roster
         roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "ranger"]
-        state.playerSave.roster = roster
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
 
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
@@ -196,7 +196,7 @@ struct AppStateMysteryRecruitTests {
         var roster = state.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: 20)
         roster.progressions[roster.activeCompanionID] = .at(level: 5)
-        state.playerSave.roster = roster
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let session = try attachPreparedMystery(event: event, to: state)
         let offer = try #require(session.offers.last)
@@ -224,7 +224,7 @@ struct AppStateMysteryRecruitTests {
         let inventoryBefore = state.playerSave.inventory
         var roster = state.playerSave.roster
         roster.gold = 999
-        state.playerSave.roster = roster
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
 
         #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
         #expect(session.phase == .reading)
@@ -245,7 +245,7 @@ struct AppStateMysteryRecruitTests {
 
     @Test func `corrupt choice with no eligible items fails with banner`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        state.playerSave.inventory = .freshStart
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.inventory = .freshStart })
         let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
         attachMysterySession(event: event, to: state)
 

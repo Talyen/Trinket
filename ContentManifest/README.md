@@ -37,11 +37,11 @@ Merge semantics when trigger sources stack (schema `merge` op per field): `add` 
 Tab-separated columns:
 
 ```text
-id	name	symbol_name	description	modifiers	triggers
+id	name	icon_id	description	modifiers	triggers
 ```
 
 - `id`: stable `{combatantID}_{keyword}_t{row}_{slot}` identity. The encoded position is historical; `CombatantTalentCatalog` owns explicit position overrides when nodes move. Preserve these IDs and existing purchases when reordering.
-- `symbol_name`: SF Symbol system name for the talent node icon.
+- `icon_id`: `lucide:name` for a bundled Lucide asset or `sf:name` for an SF Symbol. Choose against the talent's name and description, not its branch alone. [Game icon selections](../Docs/Product/GameIcons.md) explains the visual boundary. Generation rejects unqualified identifiers and missing Lucide assets.
 - `modifiers` / `triggers`: same pipe-separated DSL as affixes (`damage_dealt:physical:1`, `blockPerTurn:2`). CamelCase schema field names are accepted as trigger tokens.
 
 Every Hero and Companion tree has two nodes in each of its first three rows,
@@ -142,7 +142,7 @@ id	name	max_health	is_boss	abilities	trait_id	faction
 Tab-separated columns:
 
 ```text
-node_id	title	summary	symbol_name	category	prerequisites	tier	stage_name	cost	bonus_title	bonus_description	modifiers	production
+node_id	title	summary	icon_id	category	prerequisites	tier	stage_name	cost	bonus_title	bonus_description	modifiers	production
 ```
 
 - `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).

@@ -77,14 +77,14 @@ package extension CombatTriggerEngine {
     ) {
         guard triggers.blockGainedMaxHealthEvery > 0 else { return }
         context.roster.mutateRuntime(for: actor) { runtime in
-            let prevBlock = runtime.totalBlockGainedThisCombat
+            let prevBlock = runtime.talents.battle.totalBlockGained
             let newBlock = prevBlock + amount
-            runtime.totalBlockGainedThisCombat = newBlock
+            runtime.talents.battle.totalBlockGained = newBlock
             let prevBonus = prevBlock / triggers.blockGainedMaxHealthEvery
             let newBonus = min(10, newBlock / triggers.blockGainedMaxHealthEvery)
             let gainedHealth = newBonus - min(10, prevBonus)
             if gainedHealth > 0 {
-                runtime.talentMaxHealthBonus += gainedHealth
+                runtime.talents.battle.maximumHealthBonus += gainedHealth
                 runtime.currentHealth = min(runtime.maxHealth, runtime.currentHealth + gainedHealth)
             }
         }
@@ -130,9 +130,9 @@ package extension CombatTriggerEngine {
               let attacker = context.roster.combatant(for: attackerID),
               attacker.isAlive,
               let runtime = context.roster.runtime(for: target),
-              !runtime.hasTriggeredBlockBreakThisTurn
+              !runtime.talents.turn.triggeredBlockBreak
         else { return [] }
-        context.roster.mutateRuntime(for: target) { $0.hasTriggeredBlockBreakThisTurn = true }
+        context.roster.mutateRuntime(for: target) { $0.talents.turn.triggeredBlockBreak = true }
 
         var events: [ActionEvent] = []
         for keyword in [Keyword.holy, .stun] where context.roster.health(for: attacker.combatant) > 0 {

@@ -218,8 +218,7 @@ struct BattleVictorySummaryTests {
             goldFindPercent: 10,
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
-        session.installPresentationContext(context)
+        _ = session.activate(configuration, presentation: context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))

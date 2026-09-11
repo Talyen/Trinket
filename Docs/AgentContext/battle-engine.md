@@ -4,6 +4,17 @@ Load for `Packages/BattleEngine` rules, effects, decks/hands, damage, triggers, 
 
 Start with `BattleState`, the matching `EffectHandlers/` type, or the matching `CombatTriggerEngine+*.swift` cadence extension. `BattleState` is a facade: put shared mutation plumbing in `BattleState+*.swift`; place rule branches in handlers or engines. Do not put feature calls in the engine. BattleState shares its immutable modifier profiles through private storage so nested card resolution does not copy those large values into every state snapshot.
 
+Battle state, roster, and combatant storage are externally read-only. Commands and
+log lifecycle are the public mutation boundary; handler dispatch and turn/card engine
+drivers stay package-scoped. Consumers that inspect future RNG values must copy the
+generator rather than advance the live battle's generator.
+
+`CombatantRuntime.talents` groups battle, turn, pending, timed, card, and action
+state explicitly behind copy-on-write storage. Turn start clears only turn state
+and expired timed bonuses; pending effects survive until their consuming operation.
+Keep an amount and its expiry/source together. Card cleanup and the last-action
+empowerment receipt retain their existing execution checkpoints.
+
 On-hit and reaction work is split on purpose:
 
 - `DamagePipeline` applies talent on-hit applications during damage resolution, including first-hit bonuses and attacker-ward DoTs.
@@ -24,7 +35,9 @@ the meaning of a request. `HealingOrigin` owns healing rules and Critical Hit
 eligibility independently of logging.
 
 `CombatResolution` owns nested action/card identity, selected outcomes, automatic-play
-ancestry, and cadence claims. `ResolvedActionFacts` is an immutable shared record:
+ancestry, cadence claims, and associated mutable talent action/card bookkeeping.
+Do not maintain parallel talent stacks or edit frame arrays from handlers; use its
+preparation, consumption, and completion operations. `ResolvedActionFacts` is an immutable shared record:
 card reactions, talents, and Uniques read its selected outcome and qualifying
 keywords, while talent execution results track what actually happened separately.
 Capture facts at preparation; evaluate later operation conditions at their existing

@@ -2,8 +2,8 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public enum BattleCardCombatEngine {
-    public static func bootstrapDecks(context: inout BattleState) {
+package enum BattleCardCombatEngine {
+    package static func bootstrapDecks(context: inout BattleState) {
         context.heroDeck = CombatDeck.shuffled(
             from: context.hero.abilityLoadout,
             rng: &context.rng,
@@ -18,13 +18,13 @@ public enum BattleCardCombatEngine {
         context.ownersSkippingThisPlayerTurn = []
     }
 
-    public static func bootstrapDecksAndOpeningHand(context: inout BattleState) {
+    package static func bootstrapDecksAndOpeningHand(context: inout BattleState) {
         bootstrapDecks(context: &context)
         drawOpeningHand(context: &context)
     }
 
     @discardableResult
-    public static func drawOpeningHand(
+    package static func drawOpeningHand(
         context: inout BattleState,
         recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
     ) -> [ActionEvent] {
@@ -74,7 +74,7 @@ public enum BattleCardCombatEngine {
     }
 
     @discardableResult
-    public static func endTurn(
+    package static func endTurn(
         context: inout BattleState,
         recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
     ) -> [ActionEvent] {
@@ -122,7 +122,7 @@ public enum BattleCardCombatEngine {
         return events
     }
 
-    public static func isCardPlayable(_ card: BattleCard, in context: BattleState) -> Bool {
+    package static func isCardPlayable(_ card: BattleCard, in context: BattleState) -> Bool {
         playError(for: card, in: context) == nil
     }
 
@@ -139,7 +139,7 @@ public enum BattleCardCombatEngine {
     }
 
     @discardableResult
-    public static func drawCards(
+    package static func drawCards(
         count: Int,
         for owner: BattleParticipant,
         context: inout BattleState,
@@ -196,9 +196,7 @@ public enum BattleCardCombatEngine {
         if action.performed {
             events.append(contentsOf: CombatTriggerEngine.afterEnemyAbility(in: &context))
         }
-        if context.roster.runtime(for: enemy)?.goldenTouchActiveThisCard == true {
-            context.roster.mutateRuntime(for: enemy) { $0.goldenTouchActiveThisCard = false }
-        }
+        context.roster.mutateRuntime(for: enemy) { $0.talents.finishCard() }
         return leadingEvents + events
     }
 

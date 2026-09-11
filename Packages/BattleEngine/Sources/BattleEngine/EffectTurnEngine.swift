@@ -10,6 +10,8 @@ package enum EffectTurnEngine {
     )
 
     package static func advanceAll(context: inout BattleState) -> [ActionEvent] {
+        let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
+        defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         var events: [ActionEvent] = []
 
         for participant in BattleParticipant.effectTurnOrder {
@@ -44,6 +46,13 @@ package enum EffectTurnEngine {
         target: Combatant,
         context: inout BattleState,
     ) -> [ActionEvent] {
+        let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
+        let wasAdvancingEffects = context.resolution.isAdvancingEffects
+        context.resolution.isAdvancingEffects = true
+        defer {
+            context.resolution.feedbackGroupID = previousFeedbackGroup
+            context.resolution.isAdvancingEffects = wasAdvancingEffects
+        }
         var events: [ActionEvent] = []
         for scheduledEffect in effects {
             guard !context.isBattleOver, context.roster.health(for: target) > 0 else { break }

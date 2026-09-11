@@ -73,7 +73,7 @@ extension CombatTriggerEngine {
     static func heroCardGoldBonus(source: Combatant, amount: Int, in context: inout BattleState) -> Int {
         guard amount > 0, context.hasHeroCard(for: source.id) else { return 0 }
         context.mutateHeroCard { $0.grantedGold = true }
-        if context.heroTalents.history[source.id]?.lastPlaySerial == context.heroTalents.cards.last?.playSerial {
+        if context.heroTalents.history[source.id]?.lastPlaySerial == context.resolution.cardTalents?.playSerial {
             context.heroTalents.history[source.id, default: HeroTalentHistory()].lastGrantedGold = true
         }
         guard context.heroTalents.history[source.id]?.preparedGold == true,
@@ -84,7 +84,7 @@ extension CombatTriggerEngine {
 
     static func heroCardGoldCritical(source: Combatant, in context: inout BattleState) -> Bool {
         guard context.hasHeroCard(for: source.id), context.modifiers(for: source.id).triggers.sleightOfCoin else { return false }
-        if let critical = context.heroTalents.cards.last?.criticalGold {
+        if let critical = context.resolution.cardTalents?.criticalGold {
             return critical
         }
         let critical = CriticalChanceEngine.rollSucceeds(
@@ -103,7 +103,7 @@ extension CombatTriggerEngine {
         if source.role != .enemy, target.role != .enemy,
            context.roster.health(for: source) > 0,
            context.modifiers(for: source.id).triggers.lessonLearned {
-            context.roster.mutateRuntime(for: target) { $0.cleansedKeywordProtection.formUnion(removed) }
+            context.roster.mutateRuntime(for: target) { $0.talents.turn.cleansedKeywordProtection.formUnion(removed) }
         }
         guard context.allowsHeroTalentReaction, source.role != .enemy, target.role != .enemy,
               context.roster.health(for: source) > 0, context.roster.health(for: target) > 0 else { return [] }

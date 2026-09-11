@@ -24,8 +24,8 @@ enum DamageDefensePolicy {
 
     static func blockMultiplier(state: DamageResolutionState, in context: BattleState) -> Double {
         let blindSpot = state.options.isOriginalCardDamage && state.damageKeyword == .physical
-            && context.heroTalents.cards.last?.actorID == state.sourceActorID
-            && context.heroTalents.cards.last?.preparations.contains(.ignorePhysicalBlock) == true
+            && context.resolution.cardTalents?.actorID == state.sourceActorID
+            && context.resolution.cardTalents?.preparations.contains(.ignorePhysicalBlock) == true
         if blindSpot || UniqueCombatEngine.ignoresBlock(for: state, in: context) {
             return 0
         }

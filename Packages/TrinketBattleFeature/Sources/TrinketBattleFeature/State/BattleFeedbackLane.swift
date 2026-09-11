@@ -14,8 +14,6 @@ final class BattleFeedbackLane {
     @ObservationIgnored
     var attackReactionsByCombatantID: [String: CombatantAttackReaction] = [:]
     @ObservationIgnored
-    var nextVisualStartByTarget: [String: Date] = [:]
-    @ObservationIgnored
     var celebrateReactionExpiresAt: [String: Date] = [:]
     @ObservationIgnored
     var nextPruneAt: Date?
@@ -118,58 +116,62 @@ final class BattleFeedbackLane {
         at date: Date = .now,
         environment: BattleRuntimeDependencies = .silent,
     ) {
-        let prepared = CombatFeedbackPresenter.makeItems(from: events, at: date)
+        pruneExpired(at: date)
+        let knownIDs = Set(activeItems.flatMap(\.sourceEventIDs))
+        let prepared = CombatFeedbackPresenter.makeItems(from: events.filter { !knownIDs.contains($0.id) }, at: date)
         guard !prepared.isEmpty else { return }
-        var newScheduledItems: [CombatFeedbackItem] = []
-        var updatedItems: [CombatFeedbackItem] = []
 
         for item in prepared {
-            if let updated = tryAbsorb(item, at: date) {
-                updatedItems.append(updated)
-                continue
+            let existingGroup = activeItems.first {
+                $0.targetID == item.targetID && $0.actionGroupID == item.actionGroupID && $0.retiringAt == nil
             }
-
-            let scheduled = schedule(item, at: date)
-            newScheduledItems.append(scheduled)
+            if existingGroup == nil {
+                if let reaction = hitReactionsByTargetID[item.targetID], activeItems.contains(where: {
+                    $0.targetID == item.targetID && $0.retiringAt != nil && $0.sourceEventIDs.contains(reaction.id)
+                }) {
+                    hitReactionsByTargetID.removeValue(forKey: item.targetID)
+                    noteHitReactionsChanged(for: [item.targetID])
+                }
+                activeItems.removeAll { $0.targetID == item.targetID && $0.retiringAt != nil }
+                for index in activeItems.indices where activeItems[index].targetID == item.targetID {
+                    activeItems[index].retiringAt = date
+                    activeItems[index].expiresAt = min(
+                        activeItems[index].expiresAt,
+                        date.addingTimeInterval(BattleMotion.feedbackHandoffDuration),
+                    )
+                }
+            }
+            let start = existingGroup?.firstScheduledAt ?? date
+            let expiry = min(
+                date.addingTimeInterval(BattleMotion.chipDisplayDuration),
+                start.addingTimeInterval(BattleMotion.maxContinuousChipLifetime),
+            )
+            if let index = activeItems.firstIndex(where: { existing in
+                existing.targetID == item.targetID && existing.actionGroupID == item.actionGroupID
+                    && existing.retiringAt == nil && existing.keyword == item.keyword
+                    && existing.feedbackClass == item.feedbackClass && existing.visualRole == item.visualRole
+                    && existing.label.merging(with: item.label) != nil
+            }), let merged = activeItems[index].label.merging(with: item.label) {
+                activeItems[index].label = merged
+                activeItems[index].sourceEventIDs += item.sourceEventIDs
+                activeItems[index].lastUpdatedAt = date
+                activeItems[index].isCritical = activeItems[index].isCritical || item.isCritical
+                if item.isCritical {
+                    activeItems[index].criticalAt = date
+                }
+            } else {
+                var scheduled = item.scheduled(at: start)
+                scheduled.criticalAt = item.isCritical ? date : nil
+                activeItems.append(scheduled)
+            }
+            for index in activeItems.indices where activeItems[index].targetID == item.targetID
+                && activeItems[index].actionGroupID == item.actionGroupID && activeItems[index].retiringAt == nil {
+                activeItems[index].expiresAt = expiry
+            }
         }
-
-        if !newScheduledItems.isEmpty {
-            activeItems.append(contentsOf: newScheduledItems)
-        }
-
-        if !updatedItems.isEmpty {
-            publish(.update(updatedItems))
-        }
-        if !newScheduledItems.isEmpty {
-            publish(.insert(newScheduledItems))
-        }
+        noteItemsChanged()
         applyMultimodalPresentation(for: prepared, environment: environment)
         updatePruneDate()
-    }
-
-    private func tryAbsorb(_ item: CombatFeedbackItem, at date: Date) -> CombatFeedbackItem? {
-        guard let matchIndex = activeItems.lastIndex(where: { existing in
-            existing.targetID == item.targetID
-                && existing.keyword == item.keyword
-                && existing.feedbackClass == item.feedbackClass
-                && existing.reactionKind == item.reactionKind
-                && existing.visualRole == item.visualRole
-                && date >= existing.availableAt
-                && date < existing.expiresAt
-                && date.timeIntervalSince(existing.firstScheduledAt) < BattleMotion.maxContinuousChipLifetime
-                && existing.label.merging(with: item.label) != nil
-        }) else { return nil }
-
-        let existing = activeItems[matchIndex]
-        guard let mergedLabel = existing.label.merging(with: item.label) else { return nil }
-
-        var updated = existing
-        updated.sourceEventIDs += item.sourceEventIDs
-        updated.label = mergedLabel
-        updated.availableAt = date
-        updated.expiresAt = date.addingTimeInterval(BattleMotion.chipDisplayDuration)
-        activeItems[matchIndex] = updated
-        return updated
     }
 
     func prepareScheduler() {
@@ -221,7 +223,6 @@ final class BattleFeedbackLane {
             || !hitReactionsByTargetID.isEmpty
             || !attackReactionsByCombatantID.isEmpty
         nextPruneAt = nil
-        nextVisualStartByTarget.removeAll(keepingCapacity: true)
         celebrateReactionExpiresAt.removeAll(keepingCapacity: true)
         scheduler?.cancel()
         activeItems = []
@@ -235,17 +236,6 @@ final class BattleFeedbackLane {
     func release() {
         clear()
         scheduler = nil
-    }
-
-    private func schedule(
-        _ item: CombatFeedbackItem,
-        at date: Date,
-    ) -> CombatFeedbackItem {
-        let start = max(date, nextVisualStartByTarget[item.targetID] ?? .distantPast)
-        nextVisualStartByTarget[item.targetID] = start.addingTimeInterval(
-            BattleMotion.feedbackStreamStagger,
-        )
-        return item.scheduled(at: start)
     }
 
     func updatePruneDate() {
@@ -277,15 +267,12 @@ final class BattleFeedbackLane {
         environment.playSFX(CombatSFXMapper.uniqueClipIDs(for: due))
 
         var reactedTargetIDs: Set<String> = []
-        var reactedActionIDs = Set<Int>()
-        for item in due where item.presentationIndex == 0
-            && item.reactionKind != .none
-            && reactedActionIDs.insert(item.actionGroupID).inserted {
+        for item in due where item.reactionKind != .none
+            && reactedTargetIDs.insert(item.targetID).inserted {
             hitReactionsByTargetID[item.targetID] = CombatantHitReaction(
                 id: item.id,
-                kind: item.reactionKind,
+                kind: item.isCritical && item.reactionKind == .damage ? .critical : item.reactionKind,
             )
-            reactedTargetIDs.insert(item.targetID)
         }
         if !reactedTargetIDs.isEmpty {
             noteHitReactionsChanged(for: reactedTargetIDs)

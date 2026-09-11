@@ -227,11 +227,11 @@ package extension CombatTriggerEngine {
         _ removed: [ActiveEffect], source: Combatant, target: Combatant, in context: inout BattleState,
     ) {
         guard context.modifiers(for: source.id).triggers.interdict, context.roster.health(for: source) > 0 else { return }
-        context.roster.mutateRuntime(for: target) { $0.purgedEffectProtection.formUnion(removed.map(\.effect.kind)) }
+        context.roster.mutateRuntime(for: target) { $0.talents.turn.purgedEffectProtection.formUnion(removed.map(\.effect.kind)) }
     }
 
     static func preventsPurgedEffect(_ effect: Effect, on target: Combatant, in context: BattleState) -> Bool {
-        effect.isRemovableBuff && context.roster.runtime(for: target)?.purgedEffectProtection.contains(effect.kind) == true
+        effect.isRemovableBuff && context.roster.runtime(for: target)?.talents.turn.purgedEffectProtection.contains(effect.kind) == true
     }
 
     static func crownfallDamage(

@@ -10,7 +10,7 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
     public let mapLabel: String
     public let title: String
     public let encounterTypeTitle: String
-    public let symbolName: String
+    public let icon: GameIcon
     public let tint: Color
     public let primaryActionTitle: String
     public let showsPartyPicker: Bool
@@ -32,7 +32,7 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         mapLabel: String,
         title: String,
         encounterTypeTitle: String,
-        symbolName: String,
+        icon: GameIcon,
         tint: Color,
         primaryActionTitle: String,
         showsPartyPicker: Bool,
@@ -49,7 +49,7 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         self.mapLabel = mapLabel
         self.title = title
         self.encounterTypeTitle = encounterTypeTitle
-        self.symbolName = symbolName
+        self.icon = icon
         self.tint = tint
         self.primaryActionTitle = primaryActionTitle
         self.showsPartyPicker = showsPartyPicker

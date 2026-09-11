@@ -51,15 +51,15 @@ public struct BattleState {
         }
     }
 
-    public var appliesFightPacing: Bool
+    public package(set) var appliesFightPacing: Bool
 
-    public var roster: BattleRoster
-    public var rng: SeededRandomNumberGenerator
-    public var turnCount: Int
-    public var nextEffectID: Int
-    public var nextEventID: Int
-    public var events: [ActionEvent]
-    public var gold: Int {
+    public package(set) var roster: BattleRoster
+    public package(set) var rng: SeededRandomNumberGenerator
+    public package(set) var turnCount: Int
+    public package(set) var nextEffectID: Int
+    public package(set) var nextEventID: Int
+    public package(set) var events: [ActionEvent]
+    public package(set) var gold: Int {
         get { initialGold + goldFlow.net }
         set { goldFlow.record(delta: newValue - gold) }
     }
@@ -92,26 +92,26 @@ public struct BattleState {
         modifierProfiles.enemy
     }
 
-    public var actionCount: Int
-    public var hasLoggedDefeat: Bool
-    public var hasLoggedPartyDefeat: Bool
-    public var lastEnemyDefeatWasCritical: Bool
+    public package(set) var actionCount: Int
+    public package(set) var hasLoggedDefeat: Bool
+    public package(set) var hasLoggedPartyDefeat: Bool
+    public package(set) var lastEnemyDefeatWasCritical: Bool
 
-    public var phase: BattlePhase
-    public var hand: BattleHand
-    public var heroDeck: CombatDeck
-    public var companionDeck: CombatDeck
-    public var openingHandDealPlan: [OpeningHandDraw]
-    public var nextCardID: Int
-    public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
-    public var turnCadence: BattleTurnCadence
+    public package(set) var phase: BattlePhase
+    public package(set) var hand: BattleHand
+    public package(set) var heroDeck: CombatDeck
+    public package(set) var companionDeck: CombatDeck
+    public package(set) var openingHandDealPlan: [OpeningHandDraw]
+    public package(set) var nextCardID: Int
+    public package(set) var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
+    public package(set) var turnCadence: BattleTurnCadence
 
-    public var additionalControlSkipsByCombatantID: [String: Int]
-    public var isEchoingSkill: Bool
+    public package(set) var additionalControlSkipsByCombatantID: [String: Int]
+    public package(set) var isEchoingSkill: Bool
     public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
     public let enemyFaction: EnemyFaction
-    public var storedBlockedDamageByActorID: [String: Int] = [:]
-    public var primedRepeatKeywords: Set<Keyword> = []
+    public package(set) var storedBlockedDamageByActorID: [String: Int] = [:]
+    public package(set) var primedRepeatKeywords: Set<Keyword> = []
     var resolution = CombatResolution()
     var heroTalents = HeroTalentState()
     var uniques = UniqueBattleState()

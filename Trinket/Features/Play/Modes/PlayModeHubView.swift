@@ -18,7 +18,7 @@ struct PlayModeHubView: View {
                 destination: PlayLaunchDestination.campaign,
                 title: "Campaign",
                 subtitle: campaignSubtitle,
-                symbolName: "map.fill",
+                icon: .lucide("map"),
                 artID: "gameModeCampaign",
                 fallbackArtID: "chapter-1",
                 accessibilityIdentifier: AccessibilityID.Play.campaignModeCard,

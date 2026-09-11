@@ -5,6 +5,21 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct CleanseIntegrationTests {
+    @Test(arguments: [Keyword.stun, .freeze])
+    func `cleansing control lets an ally play newly drawn cards this turn`(keyword: Keyword) throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [.slash], dealOpeningHand: false)
+        battle.appendEffect(.controlMeter(keyword, 10, 10), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        _ = BattleCardCombatEngine.finalizeOpeningHand(context: &battle)
+        #expect(battle.ownersSkippingThisPlayerTurn.contains(.hero))
+
+        _ = EffectHandlersTestSupport.dispatch(
+            .cleanse(keyword), source: battle.companion, target: battle.hero, battle: &battle,
+        )
+        let card = try #require(BattleCardCombatEngine.drawOne(for: .hero, context: &battle))
+        #expect(BattleCardCombatEngine.isCardPlayable(card, in: battle))
+        _ = try battle.playCard(cardID: card.id)
+    }
+
     @Test(arguments: [Effect.cleanse(nil), .cleanseRandom], [
         ActiveEffect(id: 90, effect: .poison(7), remainingTurns: 0),
         ActiveEffect(id: 90, effect: .bleed(5), remainingTurns: 1),
@@ -16,7 +31,9 @@ struct CleanseIntegrationTests {
         var applied = debuff
         applied.sourceActorID = battle.enemy.id
         battle.roster.hero.activeEffects = [applied]
-        battle.roster.companion.pendingDoubleStatusNextCard = true
+        battle.roster.companion.talents.pending.doubleStatusNextCard = true
+        let isPrepared = battle.roster.companion.talents.pending.doubleStatusNextCard
+        try #require(isPrepared)
         let handler = try #require(EffectHandlers.all[cleanse.kind])
         let enemyHealth = battle.roster.enemy.currentHealth
 
@@ -25,7 +42,8 @@ struct CleanseIntegrationTests {
         )
 
         #expect(battle.roster.hero.activeEffects.isEmpty)
-        #expect(battle.roster.companion.pendingDoubleStatusNextCard)
+        let remainsPrepared = battle.roster.companion.talents.pending.doubleStatusNextCard
+        #expect(remainsPrepared)
         let reflected = try #require(battle.roster.enemy.activeEffects.first { $0.effect.kind == debuff.effect.kind })
         #expect(reflected.effect == debuff.effect)
         #expect(reflected.remainingTurns == debuff.remainingTurns)

@@ -34,9 +34,9 @@ enum CombatFeedbackChipComposer {
         )
 
         var leadingGlyph: CombatFeedbackGlyphAtlas.Glyph?
-        if let leadingStyle = presentation.leadingStyle?.visualStyle {
-            guard let glyph = atlas.symbol(
-                named: leadingStyle.symbolName,
+        if let leadingStyle = presentation.leadingStyle {
+            guard let glyph = atlas.icon(
+                leadingStyle.feedbackIcon,
                 face: face,
                 recipe: recipe,
             ) else {
@@ -46,8 +46,8 @@ enum CombatFeedbackChipComposer {
         }
 
         let trailingStyle = presentation.trailingStyle.visualStyle
-        guard let trailingGlyph = atlas.symbol(
-            named: trailingStyle.symbolName,
+        guard let trailingGlyph = atlas.icon(
+            presentation.trailingStyle.feedbackIcon,
             face: face,
             recipe: recipe,
         ) else {
@@ -130,16 +130,17 @@ enum CombatFeedbackChipComposer {
             let context = UIGraphicsGetCurrentContext()
             context?.setShadow(
                 offset: CGSize(width: 0, height: shadowOffsetY),
-                blur: 0,
+                blur: 1.5,
                 color: shadow.cgColor,
             )
+            context?.beginTransparencyLayer(auxiliaryInfo: nil)
 
             if let leading {
                 let origin = CGPoint(
                     x: origins.leadingX,
                     y: contentOrigin.y + (contentHeight - leading.0.height) / 2,
                 )
-                draw(glyph: leading.0, at: origin, tint: leading.1, displayScale: displayScale)
+                draw(glyph: leading.0, at: origin, tint: leading.1, outline: shadow, displayScale: displayScale)
             }
 
             var textX = origins.textX
@@ -148,7 +149,7 @@ enum CombatFeedbackChipComposer {
                     x: textX,
                     y: contentOrigin.y + (contentHeight - glyph.height) / 2,
                 )
-                draw(glyph: glyph, at: origin, tint: textTint, displayScale: displayScale)
+                draw(glyph: glyph, at: origin, tint: textTint, outline: shadow, displayScale: displayScale)
                 textX += glyph.width
             }
 
@@ -156,7 +157,8 @@ enum CombatFeedbackChipComposer {
                 x: origins.trailingX,
                 y: contentOrigin.y + (contentHeight - trailing.0.height) / 2,
             )
-            draw(glyph: trailing.0, at: trailingOrigin, tint: trailing.1, displayScale: displayScale)
+            draw(glyph: trailing.0, at: trailingOrigin, tint: trailing.1, outline: shadow, displayScale: displayScale)
+            context?.endTransparencyLayer()
             context?.setShadow(offset: .zero, blur: 0, color: nil)
         }
 
@@ -224,11 +226,17 @@ enum CombatFeedbackChipComposer {
         glyph: CombatFeedbackGlyphAtlas.Glyph,
         at origin: CGPoint,
         tint: UIColor,
+        outline: UIColor,
         displayScale: CGFloat,
     ) {
         let rect = CGRect(origin: origin, size: CGSize(width: glyph.width, height: glyph.height))
         let tinted = UIImage(cgImage: glyph.image, scale: displayScale, orientation: .up)
             .withTintColor(tint, renderingMode: .alwaysOriginal)
+        let silhouette = tinted.withTintColor(outline, renderingMode: .alwaysOriginal)
+        for step in 0 ..< 8 {
+            let angle = CGFloat(step) * .pi / 4
+            silhouette.draw(in: rect.offsetBy(dx: cos(angle) * 1.25, dy: sin(angle) * 1.25))
+        }
         tinted.draw(in: rect)
     }
 }

@@ -12,7 +12,7 @@ struct SlicesReloadTests {
         let spire = try #require(GameContent.spires.first)
         var spires = firstStore.spires
         spires.highestClearedFloorBySpireID[spire.id.rawValue] = 9999
-        firstStore.spires = spires
+        #expect(firstStore.persistBatch(logging: "Test setup") { $0.spires = spires })
 
         let reloaded = try context.makeReloadedStore()
 
@@ -32,7 +32,7 @@ struct SlicesReloadTests {
         loadout = loadout.selecting(thirdChoiceUltimate)
         var roster = firstStore.roster
         roster.abilityLoadouts["knight"] = loadout
-        firstStore.roster = roster
+        #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
 
         let reloaded = try context.makeReloadedStore()
 

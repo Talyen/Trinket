@@ -26,7 +26,7 @@ struct PlayerSaveSanitizeOnLoadTests {
         var journey = store.journey
         let stageID = try #require(GameContent.chapters.first?.stages.first?.id)
         journey.completedStageIDs.insert(stageID)
-        store.journey = journey
+        #expect(store.persistBatch(logging: "Test setup") { $0.journey = journey })
         try #expect(store.journey.completedStageIDs.contains(stageID))
         try #expect(store.lastPersistenceError == nil)
 

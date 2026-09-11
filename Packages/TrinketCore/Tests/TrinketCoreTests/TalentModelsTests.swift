@@ -1,7 +1,30 @@
+import Foundation
 import Testing
 @testable import TrinketCore
 
 struct TalentModelsTests {
+    @Test(arguments: ["leaf.fill", "lucide:sword", nil] as [String?])
+    func `talent icon preserves serialized symbol field`(iconID: String?) throws {
+        var payload: [String: Any] = [
+            "id": "legacy_talent",
+            "name": "Legacy Talent",
+            "keyword": "Thorns",
+            "row": 1,
+            "description": "Gain Thorns.",
+        ]
+        payload["symbolName"] = iconID
+        let data = try JSONSerialization.data(withJSONObject: payload)
+        let node = try JSONDecoder().decode(TalentNode.self, from: data)
+        #expect(node.iconID == iconID)
+        #expect(node.id == "legacy_talent")
+
+        let encoded = try JSONEncoder().encode(node)
+        let object = try JSONSerialization.jsonObject(with: encoded)
+        let result = try #require(object as? [String: Any])
+        #expect(result["symbolName"] as? String == iconID)
+        #expect(result["iconID"] == nil)
+    }
+
     private func makeSampleTree(keyword: Keyword = .poison) -> TalentTree {
         let nodes: [TalentNode] = (1 ... 4).flatMap { row -> [TalentNode] in
             (1 ... 2).map { index in
@@ -36,6 +59,8 @@ struct TalentModelsTests {
 
         #expect(CombatantProgression.at(level: 20).totalTalentPoints == 10)
         #expect(CombatantProgression.at(level: 40).totalTalentPoints == 20)
+        #expect(CombatantProgression.at(level: 42).totalTalentPoints == 21)
+        #expect(CombatantProgression.at(level: 44).totalTalentPoints == 22)
     }
 
     @Test func `tier 1 nodes can be unlocked with points`() {
@@ -120,6 +145,13 @@ struct TalentModelsTests {
         let targetNodeID = tree1.nodes[0].id
         #expect(config.node(matching: targetNodeID)?.name == tree1.nodes[0].name)
         #expect(config.node(matching: "non_existent") == nil)
+
+        #expect(config.hasUnlockableNode(unlockedNodeIDs: [], availablePoints: 1))
+        #expect(!config.hasUnlockableNode(unlockedNodeIDs: [], availablePoints: 0))
+        #expect(!config.hasUnlockableNode(
+            unlockedNodeIDs: Set(tree1.nodes.map(\.id) + tree2.nodes.map(\.id)),
+            availablePoints: 1,
+        ))
     }
 
     @Test func `config caps over budget unlocks to row legal prefix`() {

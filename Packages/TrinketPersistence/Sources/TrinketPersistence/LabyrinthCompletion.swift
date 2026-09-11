@@ -11,8 +11,8 @@ public enum LabyrinthCompletion {
     }
 
     public static func nonCombatGoldStipend(for node: LabyrinthNode) -> Int {
-        switch node.type.canonical {
-        case .shop, .mystery, .event, .craft, .recruit:
+        switch node.type {
+        case .shop, .mystery, .recruit:
             2 + node.depth
         case .battle, .boss, .entrance:
             0

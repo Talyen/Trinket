@@ -84,7 +84,7 @@ public final class LabyrinthPlayMode {
             return StageMapMessage(title: "Path Closed", message: "Clear another path to reach this node.")
         }
 
-        switch node.type.canonical {
+        switch node.type {
         case .battle, .boss:
             return startBattle(nodeID: nodeID)
         case .shop:
@@ -93,7 +93,7 @@ public final class LabyrinthPlayMode {
                 identifier: nodeID,
                 onAutoComplete: { completeNodeOrPersistFailure(nodeID: nodeID) },
             )
-        case .mystery, .event, .craft:
+        case .mystery:
             return beginMysteryEncounter(nodeID: nodeID)
         case .recruit:
             let resolution = resolveRecruitEncounter(for: node)
@@ -135,8 +135,8 @@ public final class LabyrinthPlayMode {
     }
 
     public func previewMysteryEvent(for node: LabyrinthNode) -> MysteryEvent? {
-        switch node.type.canonical {
-        case .mystery, .event, .craft:
+        switch node.type {
+        case .mystery:
             return encounters.previewMysteryEvent(origin: .labyrinth(nodeID: node.id))
         case .recruit:
             if case let .mystery(event) = resolveRecruitEncounter(for: node) {
@@ -330,7 +330,7 @@ extension LabyrinthPlayMode {
     func battleRoute(nodeID: String) -> PlayBattleRoute {
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
-            guard let self else { return false }
+            guard let self else { return .unavailable }
             return completeNode(
                 nodeID: nodeID,
                 hero: configuration.hero.combatant,
@@ -341,7 +341,7 @@ extension LabyrinthPlayMode {
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,
                 enemyEncounterLevel: configuration.enemyEncounterLevel,
-            )
+            ) ? .completed : .persistenceFailed
         }
     }
 }

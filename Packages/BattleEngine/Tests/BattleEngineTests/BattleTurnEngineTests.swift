@@ -532,15 +532,15 @@ struct BattleTurnEngineComponentTests {
         )
         for participant in BattleParticipant.allCases {
             context.roster.mutateRuntime(for: context.roster[participant].combatant) { runtime in
-                runtime.hasTakenAttackHitThisTurn = true
-                runtime.faeWardBlockedThisTurn = true
+                runtime.talents.turn.tookAttackHit = true
+                runtime.talents.turn.blockedFaeWard = true
             }
         }
         _ = CombatTriggerEngine.atPlayerTurnStart(in: &context)
         for participant in BattleParticipant.allCases {
             let runtime = try #require(context.roster.runtime(for: context.roster[participant].combatant))
-            #expect(!runtime.hasTakenAttackHitThisTurn)
-            #expect(!runtime.faeWardBlockedThisTurn)
+            #expect(!runtime.talents.turn.tookAttackHit)
+            #expect(!runtime.talents.turn.blockedFaeWard)
         }
     }
 

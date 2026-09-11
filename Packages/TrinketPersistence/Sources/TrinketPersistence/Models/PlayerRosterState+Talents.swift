@@ -29,6 +29,16 @@ public extension PlayerRosterState {
         availableTalentPoints(for: combatant.id)
     }
 
+    func hasUnlockableTalent(for combatantID: String) -> Bool {
+        guard let config = CombatantTalentCatalog.configIfAvailable(for: combatantID) else {
+            return false
+        }
+        return config.hasUnlockableNode(
+            unlockedNodeIDs: unlockedTalents(for: combatantID),
+            availablePoints: availableTalentPoints(for: combatantID),
+        )
+    }
+
     @discardableResult
     mutating func unlockTalent(
         node: TalentNode,

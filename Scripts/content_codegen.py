@@ -155,7 +155,7 @@ class HomesteadNodeRow:
     node_id: str
     title: str
     summary: str
-    symbol_name: str
+    icon_id: str
     category: str
     prerequisites: str
     tier: str
@@ -298,7 +298,7 @@ def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
             "node_id",
             "title",
             "summary",
-            "symbol_name",
+            "icon_id",
             "category",
             "prerequisites",
             "tier",
@@ -1226,7 +1226,7 @@ def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
             id: .{node_id},
             title: "{swift_escape(meta.title)}",
             summary: "{swift_escape(meta.summary)}",
-            symbolName: "{swift_escape(meta.symbol_name)}",
+            iconID: "{swift_escape(meta.icon_id)}",
             category: .{meta.category},
             prerequisites: {parse_homestead_prerequisites(meta.prerequisites)},
             tiers: [
@@ -1278,6 +1278,16 @@ def validate_homestead_prerequisites(
             )
 
 
+def _validate_game_icon(icon_id: str, row_id: str) -> None:
+    if not re.fullmatch(r"(?:lucide:[a-z0-9]+(?:-[a-z0-9]+)*|sf:[a-z0-9]+(?:\.[a-z0-9]+)*)", icon_id):
+        raise ValueError(f"Invalid icon_id '{icon_id}' for {row_id}; use lucide:name or sf:name")
+    if icon_id.startswith("lucide:"):
+        name = icon_id.removeprefix("lucide:")
+        asset = ROOT / "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Resources/GameIcons.xcassets" / f"lucide-{name}.imageset" / "Contents.json"
+        if not asset.is_file():
+            raise ValueError(f"Missing bundled Lucide icon '{name}' for {row_id}")
+
+
 def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
     nodes: dict[str, list[HomesteadNodeRow]] = {}
     seen_tiers: set[tuple[str, int]] = set()
@@ -1299,7 +1309,7 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
 
         _require_non_empty("title", row.title, row_id)
         _require_non_empty("summary", row.summary, row_id)
-        _require_non_empty("symbol_name", row.symbol_name, row_id)
+        _validate_game_icon(row.icon_id, row_id)
         _require_non_empty("stage_name", row.stage_name, row_id)
         if len(row.stage_name.split()) > 3:
             raise ValueError(f"stage_name for {row_id} must be three words or fewer")
@@ -1328,7 +1338,7 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
 
         titles = {row.title for row in node_rows}
         summaries = {row.summary for row in node_rows}
-        symbols = {row.symbol_name for row in node_rows}
+        symbols = {row.icon_id for row in node_rows}
         categories = {row.category for row in node_rows}
         prerequisite_sets = {row.prerequisites for row in node_rows}
         if (
@@ -1483,7 +1493,7 @@ def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
 class TalentRow:
     id: str
     name: str
-    symbol_name: str
+    icon_id: str
     description: str
     modifiers: str
     triggers: str
@@ -1493,7 +1503,7 @@ class TalentRow:
 def parse_talent_rows() -> list[TalentRow]:
     return _parse_tsv_rows(
         MANIFEST_DIR / "talents.tsv",
-        ["id", "name", "symbol_name", "description", "modifiers", "triggers"],
+        ["id", "name", "icon_id", "description", "modifiers", "triggers"],
         TalentRow,
         min_columns=4,
     )
@@ -1516,7 +1526,7 @@ def generate_talent_catalog(rows: list[TalentRow], combatant_ids: list[str]) -> 
         return (
             f'            "{swift_escape(row.id)}": CombatantTalentEffect(\n'
             f'                name: "{swift_escape(row.name)}",\n'
-            f'                symbolName: "{swift_escape(row.symbol_name)}",\n'
+            f'                iconID: "{swift_escape(row.icon_id)}",\n'
             f'                description: "{swift_escape(row.description)}",\n'
             f"                modifiers: {modifiers_swift(row.modifiers)},\n"
             f"                triggers: {triggers_swift(row.triggers)}\n"
@@ -1572,7 +1582,7 @@ def validate_talent_rows(rows: list[TalentRow], combatant_ids: list[str] | None 
         if sorted_cids is not None:
             combatant_id_for_talent(row.id, sorted_cids)
         _require_non_empty("talent name", row.name, row.id)
-        _require_non_empty("talent symbol_name", row.symbol_name, row.id)
+        _validate_game_icon(row.icon_id, row.id)
         _require_non_empty("talent description", row.description, row.id)
 
         for token in parse_modifier_tokens(row.modifiers):

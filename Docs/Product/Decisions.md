@@ -26,6 +26,7 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-020 | Superseded by PD-021. | Retained for decision history. |
 | PD-021 | Contracts provides unlimited single-battle jobs for any party from the start of Play. | Use three offers (Easy normal, Standard normal, Hard boss) at party-average −3/0/+3 levels, full regular rewards and catch-up XP, free refresh/retries, and no reward previews or separate statistics. [Contracts.md](Contracts.md) owns the full rules. |
 | PD-022 | Trinket is free to start with one permanent Full Game purchase. | [Monetization.md](Monetization.md) owns the free boundaries, purchase offer, earned progression, and future-content promise. |
+| PD-023 | Talents are a finite character kit; levels continue beyond talent completion. | Keep one talent point at even levels, stop talent prompts and affordances when no legal node remains, and preserve uncapped Health, Mana, and level-driven enemy progression. |
 
 These are product constraints, not a backlog. Sibling product docs:
 [README.md](README.md). For source ownership and tests, read the relevant `Docs/AgentContext/` card.

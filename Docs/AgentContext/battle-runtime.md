@@ -4,9 +4,9 @@ Load for `BattleEngine` (`BattleRuntime`), `BattleSession` lifecycle/commands, p
 
 ## Runtime and app launch
 
-`BattleSession` implements `BattleRuntime` and coordinates mutable `BattleState`, simulation, commands, and lifecycle. App orchestration receives it only through the runtime contract. The app composition root supplies `BattleRuntimeDependencies` as closure-only capabilities and builds one concrete session; `PlaySession.battle` receives that object through the contract.
+`BattleSession` implements `BattleRuntime` and coordinates mutable `BattleState`, simulation, commands, and lifecycle. App orchestration receives it only through the runtime contract. The app composition root supplies `BattleRuntimeDependencies`, builds one concrete session, and connects progression capabilities through the AppState initializer’s `configureBattleRuntime` hook before bootstrap can launch a battle. `PlaySession.battle` receives that object through the runtime contract.
 
-`PlaySession` stays in the environment for shell concerns such as pending destination and victory routing via `PlayBattleCompletion`. Active battle route metadata is `PlayBattleRunRegistration` in the `BattleRunKey` registry. Prepared activation requires the current hero, companion, and enemy IDs to match the baked run. A mismatch fails closed: Play must not fall through to a fresh `activate`, which would re-roll RNG and wipe sibling labyrinth prepares. `activatePreparedBattle` consumes only the matched key; other prepared runs remain until `keepPreparedRuns`, a fresh `activate`/`restart`, or `endBattle`. Unprepared starts still use `activate`.
+`PlaySession` stays in the environment for shell concerns such as pending destination and victory routing via `PlayBattleCompletion`. Active battle route metadata is `PlayBattleRunRegistration` in the `BattleRunKey` registry. Play validates the current hero, companion, and enemy IDs against the baked run before requesting activation. A mismatch fails closed: Play must not fall through to a fresh `activate`, which would re-roll RNG and wipe sibling labyrinth prepares. `activatePreparedBattle(runKey:configurationID:)` consumes only the matched prepared resource. Production launches prepare, register metadata, then activate; failed activation retains a coherent retryable preparation. Other prepared runs remain until pruning, restart, or end; ending clears their registrations along with their runtime resources. Standalone launches without a mode origin still use `activate`. Pruning while active must leave both runtime resources and registrations untouched.
 
 `BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
 its configuration and reward presentation. These include the launch request,
@@ -17,7 +17,7 @@ Changed inputs refresh only that run, retaining its combat seed and sibling
 preparations. Unchanged inputs reuse the original configuration and simulation;
 missing registration or changed identities fail closed until explicitly prepared.
 
-Play screens read save slices from `PlayerSaveStore` directly. Mode types own map/node/floor selection and mode-unique completion writes; they must not re-absorb the shared victory persist→dismiss sequence. `AppState` prepares audio and requests launch state. The battle overlay installs presentation context and presents launch-victory chrome once on the retained session. Visual prewarm, first-layout, and keep-alive behavior are owned by [ui-performance.md](ui-performance.md).
+Play screens read save slices from `PlayerSaveStore` directly. Mode types own map/node/floor selection and mode-unique completion writes; they must not re-absorb the shared victory persist→dismiss sequence. `AppState` prepares audio and requests launch state. BattleSession resolves registered presentation context before publishing activation. Restart installs the new registration before restarting the runtime and restores the previous registration if restart fails. The composition root owns the launch-victory preview; the overlay never installs progression callbacks or presentation context. Visual prewarm, first-layout, and keep-alive behavior are owned by [ui-performance.md](ui-performance.md).
 
 Keep `PlaySession` focused on shell navigation and launch/completion orchestration. Do not add presentation-only methods to `BattleRuntime`.
 
@@ -36,18 +36,20 @@ Suspension pauses playback; replacing/ending a run invalidates its generation.
 Do not expose incremental draw mutation to BattleFeature or derive readiness from
 whether an animation task happens to exist.
 
-The app overlay installs a reward-settlement capability on `BattleSession` before
-presenting outcomes. AppState settles `BattlePresentationContext.rewardPlan` against
-final `BattleGoldFlow` and a save snapshot. `BattleVictorySummary` projects the
-resulting `BattleRewardSettlement`; Continue passes that exact value back for
-validation and persistence. A stale snapshot refreshes the reveal without claiming
-or dismissing it. Standalone previews use the same pure settlement operation with
-presentation inputs. Keep this capability out of `BattleRuntime`; BattleFeature
-must not import Persistence or AppState. Capacity, reservations, and transaction
-rules live in [persistence context](persistence.md). Current combat content only
-grants Gold; it must not debit the battle wallet.
-
-For app-level SwiftUI screens outside BattleFeature, load `swiftui-features.md` only when the path is visual.
+The app composition root installs presentation lookup, reward settlement, and
+completion capabilities once through `BattleSession.configureProgression`. These
+closures weakly capture Play; they are independent of overlay appearance. AppState
+settles the launch reward plan against final `BattleGoldFlow` and a save snapshot.
+`BattleVictorySummary` projects that settlement, and Continue passes the exact value
+through `BattleSession.claimVictory(configurationID:summary:)` for validation and
+persistence. `BattleCompletionResult` distinguishes completion, stale settlement,
+unavailable runs, and storage failure. A stale settlement refreshes the reveal;
+storage failure keeps the award available for retry. Already-claimed victories use
+the same completion capability without waiting for an overlay. BattleFeature never
+imports Persistence or AppState; these capabilities stay outside `BattleRuntime`.
+Capacity, reservations, and transaction rules live in
+[persistence context](persistence.md). Current combat content only grants Gold;
+it must not debit the battle wallet.
 
 ## Play observation boundaries
 

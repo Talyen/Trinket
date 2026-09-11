@@ -72,12 +72,13 @@ enum BattleMotion {
     static let ultimateCinematicPlaybackSpeed = 1.2
 
     static let chipDisplayDuration: TimeInterval = 0.95
-    static let feedbackStreamStagger: TimeInterval = 0.126
+    static let feedbackHandoffDuration: TimeInterval = 0.15
     static let chipTravelFraction: CGFloat = 0.48
-    static let chipTopClearance: CGFloat = 4
     static let chipPopStartScale: CGFloat = 0.5
     static let chipPopOvershootScale: CGFloat = 2.0
     static let chipPopHoldScale: CGFloat = 1.8
+    static let chipUpdateOvershootScale: CGFloat = 1.08
+    static let chipMaximumScale = chipPopOvershootScale * chipUpdateOvershootScale
     static let chipPopEndScale: CGFloat = 1.0
     static let chipPopDuration: TimeInterval = 0.14
     static let chipPopHoldDuration: TimeInterval = 0.14
@@ -126,24 +127,6 @@ enum BattleMotion {
         return lerp(chipPopHoldScale, chipPopEndScale, shrinkProgress)
     }
 
-    static func chipOpacity(elapsed: TimeInterval) -> Double {
-        if elapsed <= chipFadeStartTime {
-            return 1
-        }
-        if elapsed >= chipDisplayDuration {
-            return 0
-        }
-        let fadeProgress = (elapsed - chipFadeStartTime)
-            / (chipDisplayDuration - chipFadeStartTime)
-        return lerp(1, 0, fadeProgress)
-    }
-
-    static func chipTravelDistance(cardHeight: CGFloat, chipHeight: CGFloat) -> CGFloat {
-        let proportionalTravel = cardHeight * chipTravelFraction
-        let topSafeTravel = cardHeight / 2 - chipHeight / 2 - chipTopClearance
-        return max(0, min(proportionalTravel, topSafeTravel))
-    }
-
     static var chipPopPeakTime: TimeInterval {
         chipPopDuration * 0.75
     }
@@ -154,10 +137,6 @@ enum BattleMotion {
 
     static var chipHoldEndTime: TimeInterval {
         chipPopEndTime + chipPopHoldDuration
-    }
-
-    static var chipFadeStartTime: TimeInterval {
-        max(chipHoldEndTime, chipDisplayDuration - chipPopFadeDuration)
     }
 
     static func lerp(_ start: CGFloat, _ end: CGFloat, _ progress: Double) -> CGFloat {

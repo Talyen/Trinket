@@ -3,7 +3,8 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct LaunchWarmupView: View {
-    @State private var loadingInterval: ClosedRange<Date>?
+    @State private var isVisible = false
+    @State private var loadingStartDate: Date?
     @State private var currentTermIndex = 0
 
     let onMinimumLoadingTimeComplete: () -> Void
@@ -35,8 +36,11 @@ struct LaunchWarmupView: View {
                 .foregroundStyle(TrinketDesign.Colors.accent)
 
             Group {
-                if let loadingInterval {
-                    ProgressView(timerInterval: loadingInterval, countsDown: false) {
+                if let loadingStartDate {
+                    ProgressView(
+                        timerInterval: loadingStartDate ... loadingStartDate.addingTimeInterval(Self.minimumLoadingDuration),
+                        countsDown: false,
+                    ) {
                         EmptyView()
                     } currentValueLabel: {
                         EmptyView()
@@ -60,14 +64,27 @@ struct LaunchWarmupView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Screen.launchWarmup)
-        .task {
-            let start = Date.now
-            loadingInterval = start ... start.addingTimeInterval(Self.minimumLoadingDuration)
+        .onAppear {
+            isVisible = true
+        }
+        .onDisappear {
+            isVisible = false
+            loadingStartDate = nil
+        }
+        .task(id: isVisible) {
+            guard isVisible else { return }
+            await Task.yield()
+            guard !Task.isCancelled, isVisible, loadingStartDate == nil else { return }
+            loadingStartDate = Date.now
+        }
+        .task(id: loadingStartDate) {
+            guard loadingStartDate != nil else { return }
             try? await Task.sleep(for: .seconds(Self.minimumLoadingDuration))
             guard !Task.isCancelled else { return }
             onMinimumLoadingTimeComplete()
         }
-        .task {
+        .task(id: loadingStartDate) {
+            guard loadingStartDate != nil else { return }
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(750))
                 guard !Task.isCancelled else { break }

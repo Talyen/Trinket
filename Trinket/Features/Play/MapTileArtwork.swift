@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct MapTileArtwork: View {
@@ -18,15 +19,15 @@ struct MapTileArtwork: View {
 
 struct MapTilePlaceholder: View {
     let tint: Color
-    let symbolName: String
+    let icon: GameIcon
 
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 42
 
     var body: some View {
         ZStack {
             tint.opacity(0.14)
-            Image(systemName: symbolName)
-                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
+            GameIconImage(icon)
+                // UIStyleCheck: allow - Game icon glyph sizing, not copy
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(tint)
                 .symbolRenderingMode(.hierarchical)

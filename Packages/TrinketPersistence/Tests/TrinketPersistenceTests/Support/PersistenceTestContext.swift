@@ -20,24 +20,19 @@ final class PersistenceTestContext {
 
     func makeSaveStore(
         inMemoryOnly: Bool = false,
-        persistImmediately: Bool = true,
         resetState: Bool = false,
     ) throws -> PlayerSaveStore {
         try SaveTestSupport.makeSaveStore(
             directoryURL: directoryURL,
-            persistImmediately: persistImmediately,
             resetState: resetState,
             inMemoryOnly: inMemoryOnly,
         )
     }
 
-    func makeReloadedStore(
-        persistImmediately: Bool = true,
-    ) throws -> PlayerSaveStore {
+    func makeReloadedStore() throws -> PlayerSaveStore {
         try PlayerSaveStore(
             storeURL: storeURL(),
             disableCloudSync: true,
-            persistSaveImmediately: persistImmediately,
         )
     }
 }

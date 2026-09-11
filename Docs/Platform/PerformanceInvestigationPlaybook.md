@@ -71,6 +71,18 @@ For fast iteration, set `TRINKET_PERFORMANCE_QUICK=1`. Omit quick mode for forma
 
 ## Signals
 
+The measurement probe publishes `idle`, then `measuring` after reset, and a
+completed `FramePacingReport` when the scheduled snapshot freezes sampling.
+Capture waits for that completed payload, not a minimum frame count: a slow
+scenario can legitimately deliver fewer callbacks during the fixed window.
+The recorder retains the report before checking coverage. Coverage uses monotonic
+reset-to-snapshot elapsed time (`measurementDuration`) against the full configured
+snapshot window. `sampledDuration` remains the sum of delivered callback intervals;
+first-callback latency, warmup, and a final gap before snapshot can make that sum
+shorter even when capture ran for the complete window. Missing timing, empty, or
+early captures fail explicitly; FPS and stall goals remain owned by the baseline
+and continue to report poor performance.
+
 The display-link report describes delivered callbacks:
 
 | Signal | Meaning |

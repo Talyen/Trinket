@@ -5,6 +5,20 @@ import TrinketCore
 import TrinketTestSupport
 
 struct EffectHandlersApplyBuffDebuffTests {
+    @Test(arguments: [
+        ([Effect.damageReductionPercent(0.25, 3), .damageReductionPercent(0.20, 3)], "40%"),
+        ([Effect.damageReductionFlat(2, 3), .damageReductionFlat(3, 3)], "by 5,"),
+        ([Effect.healingReductionPercent(0.20, 3), .healingReductionPercent(0.50, 3)], "50%"),
+    ])
+    func `debuff summaries reflect combined combat penalties`(effects: [Effect], expected: String) throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
+        for effect in effects {
+            _ = EffectHandlersTestSupport.dispatch(effect, source: battle.hero, target: battle.enemy, battle: &battle)
+        }
+        let summary = try #require(EffectSummaryBuilder.build(for: battle.activeEffects(of: battle.enemy)).first)
+        #expect(summary.text.contains(expected))
+    }
+
     @Test(arguments: [Effect.purge(nil), .purgeRandom])
     func `purging maximum mana clamps remaining mana`(_ purge: Effect) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroMaxMana: 8)

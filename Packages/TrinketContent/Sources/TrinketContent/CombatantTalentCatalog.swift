@@ -3,20 +3,20 @@ import TrinketCore
 
 public struct CombatantTalentEffect: Sendable {
     public let name: String
-    public let symbolName: String
+    public let iconID: String
     public let description: String
     public let modifiers: [AffixModifier]
     public let triggers: CombatTraitTriggers
 
     public init(
         name: String,
-        symbolName: String = "",
+        iconID: String = "",
         description: String,
         modifiers: [AffixModifier] = [],
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
     ) {
         self.name = name
-        self.symbolName = symbolName
+        self.iconID = iconID
         self.description = description
         self.modifiers = modifiers
         self.triggers = triggers
@@ -227,7 +227,7 @@ public enum CombatantTalentCatalog {
                         name: signature.name,
                         keyword: keyword,
                         row: position.row,
-                        symbolName: signature.symbolName.isEmpty ? nil : signature.symbolName,
+                        iconID: signature.iconID.isEmpty ? nil : signature.iconID,
                         description: signature.description,
                     ), position.slot,
                 ))

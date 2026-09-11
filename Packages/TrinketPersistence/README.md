@@ -4,6 +4,7 @@ Player save model and SwiftData stores. Graph and hub details: [persistence.md](
 
 ## Conventions
 
+- Observed save slices are read-only; mutations use explicit domain commands or batches.
 - Commands that can reject use `PlayerSaveStore.persistTransaction`; unconditional batches use `persistBatch` or `performBatchMutation`. Domain write policies stay in Persistence.
 - Mutations diff `PlayerSaveSlice` values and reconcile only changed slices, preserving retained child-row identities; failed writes use snapshot compensation as defined in the [persistence guide](../../Docs/AgentContext/persistence.md)
 - Cross-slice domain actions live in domain extensions on `PlayerSaveStore` (e.g. `PlayerSaveStore+Homestead.swift`)

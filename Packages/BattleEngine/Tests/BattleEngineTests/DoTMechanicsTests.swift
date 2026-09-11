@@ -283,7 +283,7 @@ struct DoTMechanicsTests {
             )
         }
         #expect(battle.roster.hero.currentHealth == (blocked ? 10 : 12))
-        #expect(battle.roster.hero.pendingBasicCritBonus == (blocked ? 0 : 0.35))
+        #expect(battle.roster.hero.talents.pending.basicCriticalBonus == (blocked ? 0 : 0.35))
     }
 
     @Test(arguments: [false, true])
@@ -331,10 +331,10 @@ struct DoTMechanicsTests {
         for expected in [1, 2, 3, 4, 4] {
             _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
             let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
-            #expect(runtime.keywordDamageRamp[.burn] == expected)
+            #expect(runtime.talents.battle.keywordDamageRamp[.burn] == expected)
         }
         let companion = try #require(battle.roster.runtime(for: battle.roster.companion.combatant))
-        #expect(companion.keywordDamageRamp[.burn, default: 0] == 0)
+        #expect(companion.talents.battle.keywordDamageRamp[.burn, default: 0] == 0)
     }
 
     @Test func `damage ramp grows uncapped without a cap`() throws {
@@ -353,7 +353,7 @@ struct DoTMechanicsTests {
         for expected in [1, 2, 3, 4, 5] {
             _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
             let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
-            #expect(runtime.keywordDamageRamp[.burn] == expected)
+            #expect(runtime.talents.battle.keywordDamageRamp[.burn] == expected)
         }
     }
 
@@ -425,7 +425,7 @@ extension DoTMechanicsTests {
         battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
         let enemy = battle.roster.enemy.combatant
-        battle.roster.mutateRuntime(for: hero) { $0.talentCritMultiplierBonus = 0.5 }
+        battle.roster.mutateRuntime(for: hero) { $0.talents.battle.criticalMultiplierBonus = 0.5 }
         let initial = DoTDamage.resolveTurnDamage(
             basePotency: 4, keyword: .bleed, target: enemy,
             sourceActorID: hero.id, in: &battle,

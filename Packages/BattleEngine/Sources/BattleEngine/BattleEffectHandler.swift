@@ -2,13 +2,13 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct EffectApplyOutcome {
-    public var events: [ActionEvent] = []
+package struct EffectApplyOutcome {
+    package var events: [ActionEvent] = []
 
-    public var didApply: Bool = true
+    package var didApply: Bool = true
 }
 
-public protocol BattleEffectHandler: Sendable {
+package protocol BattleEffectHandler: Sendable {
     var kind: EffectKind { get }
     func apply(
         _ effect: Effect,
@@ -25,7 +25,7 @@ public protocol BattleEffectHandler: Sendable {
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary?
 }
 
-public extension BattleEffectHandler {
+package extension BattleEffectHandler {
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,

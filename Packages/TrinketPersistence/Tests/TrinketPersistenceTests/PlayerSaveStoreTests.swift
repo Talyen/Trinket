@@ -7,6 +7,23 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct PlayerSaveStoreTests {
+    @Test @MainActor func `unsupported development schema is rejected without replacing its stored progress`() throws {
+        let context = try PersistenceTestContext()
+        var save = PlayerSave.testSeed
+        save.schemaVersion = PlayerSave.currentSchemaVersion - 1
+        save.roster.gold = 42
+        try SaveTestSupport.writeRoot(save, to: context.storeURL())
+
+        #expect(throws: PlayerSavePersistenceError.self) {
+            _ = try context.makeReloadedStore()
+        }
+
+        let sideContext = try SaveTestSupport.makeSideContext(storeURL: context.storeURL())
+        let root = try #require(sideContext.fetch(FetchDescriptor<PlayerSaveRoot>()).first)
+        #expect(root.schemaVersion == save.schemaVersion)
+        #expect(root.toPlayerSave().roster.gold == 42)
+    }
+
     @Test(arguments: ["alchemist", "druid", "wildcard"])
     @MainActor func `recruited hero and changed loadout survive reload`(heroID: String) throws {
         let context = try PersistenceTestContext()
@@ -35,7 +52,7 @@ struct PlayerSaveStoreTests {
     @Test @MainActor func `player save persists journey roster inventory and homestead`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
-        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
+        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         firstStore.grantGold(42)
         firstStore.grantExperience(5, to: GameContent.heroes[0])
         firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
@@ -61,37 +78,14 @@ struct PlayerSaveStoreTests {
         let firstStore = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true,
         )
         var homestead = firstStore.homestead
         homestead.resources[.wood] = 12345
-        firstStore.homestead = homestead
+        #expect(firstStore.persistBatch(logging: "Test setup") { $0.homestead = homestead })
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
         try #expect(reloaded.homestead.resources[.wood] == 12345)
-    }
-
-    @Test @MainActor func `versioned store adopts current unversioned schema`() throws {
-        let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
-        let legacySchema = Schema(PlayerSaveSchema.models)
-        try SaveTestSupport.writeRoot(.testSeed, to: storeURL, schema: legacySchema)
-
-        let versionedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-
-        try #expect(versionedStore.currentSave.schemaVersion == PlayerSave.currentSchemaVersion)
-        try #expect(versionedStore.roster == .testSeed)
-        try #expect(versionedStore.inventory == .testSeed)
-        try #expect(versionedStore.homestead == .testSeed)
-        try #expect(versionedStore.journey == .testSeed)
-        try #expect(versionedStore.spires == .testSeed)
-        try #expect(versionedStore.labyrinth.worldSeed == versionedStore.worldSeed)
-        try #expect(!versionedStore.isPersistenceDegraded)
-
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(reloaded.currentSave == versionedStore.currentSave)
-        try #expect(!reloaded.isPersistenceDegraded)
     }
 
     @Test @MainActor func `corrupt store recovers by deleting and recreating`() throws {
@@ -100,7 +94,7 @@ struct PlayerSaveStoreTests {
         let originalData = Data("not-a-sqlite-store".utf8)
         try originalData.write(to: storeURL)
 
-        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
         try #expect(!store.isPersistenceDegraded)
         try #expect(store.recoveredAfterStoreDeletion)
@@ -124,7 +118,6 @@ struct PlayerSaveStoreTests {
         let firstStore = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true,
         )
         let persisted = firstStore.mutateRoster {
             $0.gold = 17
@@ -139,10 +132,10 @@ struct PlayerSaveStoreTests {
     @Test @MainActor func `untouched labyrinth survives gold only mutation`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         var labyrinth = PlayerLabyrinthState.freshStart
         labyrinth.ensureMap(seed: 42)
-        store.labyrinth = labyrinth
+        #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
         let labyrinthBefore = store.labyrinth
         try #require(labyrinthBefore.hasMap)
 
@@ -157,7 +150,7 @@ struct PlayerSaveStoreTests {
     @Test @MainActor func `swift data graph stores independent records`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         store.grantGold(5)
         store.advanceJourneyToStage("chapter-1-stage-2")
         store.grantHomestead([ResourceAmount(.wood, 3)])
@@ -211,7 +204,6 @@ struct PlayerSaveStoreTests {
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true,
         )
         try store.unlockAllContent()
 
@@ -298,9 +290,8 @@ struct PlayerSaveStoreTests {
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: false,
         )
-        store.grantGold(19)
+        try store.performBatchMutation({ $0.roster.grantGold(19) }, persistImmediately: false)
         try #expect(store.roster.gold == 19)
 
         store.flushPendingPersistence()
@@ -383,7 +374,6 @@ extension PlayerSaveStoreTests {
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true,
         )
         store.grantGold(10)
         let snapshot = store.currentSave
@@ -407,7 +397,6 @@ extension PlayerSaveStoreTests {
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true,
         )
         try store.performBatchMutation { save in
             save.roster.gold = 10
@@ -443,7 +432,6 @@ extension PlayerSaveStoreTests {
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: false,
         )
         try store.performBatchMutation({ save in
             save.roster.gold = 10
@@ -534,7 +522,6 @@ extension PlayerSaveStoreTests {
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: false,
         )
         try store.performBatchMutation({ save in
             save.roster.gold = 10
@@ -561,33 +548,25 @@ extension PlayerSaveStoreTests {
 
 private extension PlayerSaveStore {
     func grantExperience(_ amount: Int, to combatant: Combatant) {
-        var updated = roster
-        updated.grantExperience(amount, to: combatant)
-        roster = updated
+        #expect(persistBatch(logging: "Test experience") { $0.roster.grantExperience(amount, to: combatant) })
     }
 
     func grantGold(_ amount: Int) {
-        var updated = roster
-        updated.grantGold(amount)
-        roster = updated
+        #expect(persistBatch(logging: "Test gold") { $0.roster.grantGold(amount) })
     }
 
     func appendInventoryItem(_ item: InventoryItem) {
-        var updated = inventory
-        updated.items.append(item)
-        inventory = updated
+        #expect(persistBatch(logging: "Test inventory") { $0.inventory.items.append(item) })
     }
 
     func advanceJourneyToStage(_ stageID: String) {
-        var updated = journey
-        updated.completedStageIDs.insert("chapter-1-stage-1")
-        updated.activeStageID = stageID
-        journey = updated
+        #expect(persistBatch(logging: "Test journey") {
+            $0.journey.completedStageIDs.insert("chapter-1-stage-1")
+            $0.journey.activeStageID = stageID
+        })
     }
 
     func grantHomestead(_ rewards: [ResourceAmount]) {
-        var updated = homestead
-        updated.grant(rewards)
-        homestead = updated
+        #expect(persistBatch(logging: "Test homestead") { $0.homestead.grant(rewards) })
     }
 }

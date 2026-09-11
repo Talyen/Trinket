@@ -28,6 +28,7 @@ enum CleanseOperation {
         healPerDebuff: Int = 0,
         healTarget: Combatant? = nil,
         propagation: Propagation = .primary,
+        origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
     ) -> Outcome {
         var effects = context.roster.activeEffects(for: target)
@@ -36,6 +37,10 @@ enum CleanseOperation {
         case .random: EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng).map { [$0] } ?? []
         }
         context.roster.setActiveEffects(effects, for: target)
+        if let owner = context.roster.participant(for: target), owner.isPartyMember,
+           !context.roster.hasPendingActionSkip(for: target) {
+            context.ownersSkippingThisPlayerTurn.remove(owner)
+        }
         let healAmount = baseHeal + healPerDebuff * removed.count
         guard !removed.isEmpty else {
             var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
@@ -55,15 +60,15 @@ enum CleanseOperation {
             if triggers.cleanseDodgeChanceBonus > 0 {
                 let duration = max(1, triggers.cleanseDodgeChanceBonusTurns)
                 context.roster.mutateRuntime(for: target) {
-                    $0.bonusDodgeUntilNextTurn += triggers.cleanseDodgeChanceBonus
-                    $0.bonusDodgeExpiresAtTurn = max($0.bonusDodgeExpiresAtTurn, context.turnCount + duration)
+                    $0.talents.timed.dodge.amount += triggers.cleanseDodgeChanceBonus
+                    $0.talents.timed.dodge.expiresAtTurn = max($0.talents.timed.dodge.expiresAtTurn, context.turnCount + duration)
                 }
             }
         }
         let events = reactions(
             removed: removed, abilityName: abilityName, source: source, target: target,
             healAmount: healAmount, healTarget: healTarget ?? target,
-            allowMassCleanse: propagation == .primary, in: &context,
+            allowMassCleanse: propagation == .primary, origin: origin, in: &context,
         )
         return Outcome(removed: removed, application: EffectApplyOutcome(events: events, didApply: true))
     }
@@ -76,6 +81,7 @@ enum CleanseOperation {
         healAmount: Int? = nil,
         healTarget: Combatant? = nil,
         allowMassCleanse: Bool = true,
+        origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         var countsByKeyword: [Keyword: Int] = [:]
@@ -94,6 +100,7 @@ enum CleanseOperation {
                 target: target,
                 amount: 0,
                 keyword: keyword,
+                origin: origin,
             ))
         }
         if let healAmount, let healTarget, healAmount > 0 {

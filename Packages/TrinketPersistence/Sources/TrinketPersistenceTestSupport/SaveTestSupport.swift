@@ -48,7 +48,6 @@ public enum SaveTestSupport {
     @MainActor
     public static func makeSaveStore(
         directoryURL: URL,
-        persistImmediately: Bool = true,
         resetState: Bool = false,
         inMemoryOnly: Bool = false,
     ) throws -> PlayerSaveStore {
@@ -57,7 +56,6 @@ public enum SaveTestSupport {
             disableCloudSync: true,
             resetState: resetState,
             inMemoryOnly: inMemoryOnly,
-            persistSaveImmediately: persistImmediately,
         )
     }
 

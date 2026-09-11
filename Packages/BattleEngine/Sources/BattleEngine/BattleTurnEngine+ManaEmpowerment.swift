@@ -1,7 +1,7 @@
 import TrinketContent
 import TrinketCore
 
-public extension BattleTurnEngine {
+package extension BattleTurnEngine {
     static let manaEmpowermentCost = 3
     static let manaEmpowermentBonus = 1
 
@@ -20,7 +20,7 @@ public extension BattleTurnEngine {
         let purchaseLimit = ManaEmpowermentBudget(ability: ability, actor: actor, in: context).purchaseLimit
         while purchases < purchaseLimit, context.roster.health(for: actor) > 0 {
             guard let payment = payEmpowerment(ability: ability, actor: actor, in: &context) else { break }
-            context.roster.mutateRuntime(for: actor) { $0.hasEmpoweredWithMana = true }
+            context.roster.mutateRuntime(for: actor) { $0.talents.battle.hasEmpoweredWithMana = true }
             purchases += 1
             totalManaSpent += payment.reduce(0) { $0 + $1.amountSpent }
             ability = empoweredAbility(ability, triggers: triggers)
@@ -34,7 +34,7 @@ public extension BattleTurnEngine {
         }
         guard context.roster.health(for: actor) > 0 else { return events }
         if purchases > 0 {
-            context.roster.mutateRuntime(for: actor) { $0.empoweredThisAction = true }
+            context.roster.mutateRuntime(for: actor) { $0.talents.action.empoweredByMana = true }
         }
         if totalManaSpent > 0, let empoweredKeyword {
             events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(

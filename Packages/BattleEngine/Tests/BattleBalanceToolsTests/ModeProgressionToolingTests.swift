@@ -153,6 +153,23 @@ struct ModeProgressionToolingTests {
         #expect(matchup.enemyFaction == enemy.faction)
     }
 
+    @Test func `player and enemy scaling continue beyond talent completion`() throws {
+        let wizard = try #require(GameContent.hero(matching: "wizard"))
+        let enemy = try #require(GameContent.enemy(matching: "slime"))
+
+        let playerAt45 = CombatantLevelScaler.scale(combatant: wizard, level: 45)
+        #expect(playerAt45.maxHealth == wizard.maxHealth + 44)
+        #expect(playerAt45.maxMana == wizard.maxMana + 22)
+
+        let enemyAt44 = CombatantLevelScaler.scale(enemy: enemy, level: 44)
+        let enemyAt45 = CombatantLevelScaler.scale(enemy: enemy, level: 45)
+        #expect(enemyAt45.maxHealth > enemyAt44.maxHealth)
+        #expect(
+            EnemyPowerCurve.rawDamagePercent(level: 45, isBoss: enemy.isBoss)
+                > EnemyPowerCurve.rawDamagePercent(level: 44, isBoss: enemy.isBoss),
+        )
+    }
+
     @Test(arguments: [(SimulationGameMode.campaign, 17), (.spire, 20), (.labyrinth, 16)])
     func `low party uses mode minimum`(mode: SimulationGameMode, expectedLevel: Int) throws {
         let controller = InterleavingPlayerController(

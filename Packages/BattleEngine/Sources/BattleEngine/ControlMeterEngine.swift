@@ -82,7 +82,7 @@ package enum ControlMeterEngine {
             ControlMeterUpdate(
                 keyword: keyword,
                 newAmount: newAmount,
-                threshold: threshold,
+                threshold: effectiveThreshold,
                 combatant: combatant,
                 sourceActorID: sourceActorID,
                 existingIndex: existingIndex,

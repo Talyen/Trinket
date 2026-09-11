@@ -5,11 +5,6 @@ import TrinketCore
 public struct PlayerSave: Equatable, Sendable {
     public static let currentSchemaVersion = 18
 
-    public enum Schema {
-        public static let renamedItemSlots = 14
-        public static let persistedStarterSelection = 16
-    }
-
     public static let corruptionAltarCooldownAfterEncounter = 6
     public static let testWorldSeed: UInt64 = 0x5445_5354
 

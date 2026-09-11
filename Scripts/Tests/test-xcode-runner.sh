@@ -49,6 +49,14 @@ fi
 exit 0
 FAKE_XCODE
 
+cat > "$TMP_DIR/fake-slow-finalization" <<'FAKE_FINALIZATION'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Test Suite 'Selected tests' passed."
+sleep 12
+echo "** TEST SUCCEEDED **"
+FAKE_FINALIZATION
+
 cat > "$TMP_DIR/fake-hang-success" <<'FAKE_HANG'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -98,7 +106,7 @@ set -euo pipefail
 printf '%s\n' "$*" > "${REPORT_CAPTURE:?}"
 exit 0
 FAKE_REPORTER
-chmod +x "$TMP_DIR/fake-xcodebuild" "$TMP_DIR/fake-reporter" \
+chmod +x "$TMP_DIR/fake-slow-finalization" "$TMP_DIR/fake-xcodebuild" "$TMP_DIR/fake-reporter" \
   "$TMP_DIR/fake-hang-success" "$TMP_DIR/fake-hang-selected-suite" \
   "$TMP_DIR/fake-hang-fail" "$TMP_DIR/fake-hang-silent" "$TMP_DIR/fake-hang-zero-tests"
 
@@ -172,6 +180,13 @@ FAKE_XCODE_STATE="$retry_state" FAKE_XCODE_MODE=retry \
     grep -F -- "\"status\":\"passed\"" "$manifest"
     grep -F -- "\"diagnostics_json\":\"\"" "$manifest"
   ' _ "$RUNNER" "$retry_results" "$TMP_DIR/fake-xcodebuild"
+
+env -u TRINKET_XCODE_IDLE_TIMEOUT_SECONDS GITHUB_ACTIONS=false bash -c '
+  set -euo pipefail
+  source "$1"
+  xcode_runner_execute_watched "$2" "" "$3"
+  [[ "$XCODE_RUNNER_COMPLETION_SOURCE" == "process-exit" ]]
+' _ "$RUNNER" "$TMP_DIR/finalization.log" "$TMP_DIR/fake-slow-finalization"
 
 idle_results="$TMP_DIR/idle-results"
 idle_terminal="$TMP_DIR/idle-terminal"

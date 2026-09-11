@@ -119,7 +119,7 @@ enum CombatFeedbackEffectPresentation {
         .deathsDoorTriggered: Descriptor(.deathsDoor, labelRule: .deathsDoorIcon),
         .deathsDoorExpired: Descriptor(.deathsDoor, labelRule: .deathsDoorIcon),
         .thornsTriggered: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
-        .markedConsumed: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
+        .markedConsumed: Descriptor(.directDamage, displayRule: .hidden),
         .leechApplied: Descriptor(.buff, labelRule: .plainKeyword, displayRule: .hidden),
         .shieldHalved: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .blockDown),
         .thornsApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .thorns),

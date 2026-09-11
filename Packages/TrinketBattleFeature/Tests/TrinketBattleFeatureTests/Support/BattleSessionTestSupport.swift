@@ -19,6 +19,7 @@ enum BattleSessionTestSupport {
         ultimateInFrameDurationOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
+        completeVictory: ((BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?) -> BattleCompletionResult)? = nil,
     ) -> BattleSession {
         let party = BattlePartyFixtures.quickWinParty(
             hero: hero,
@@ -45,9 +46,36 @@ enum BattleSessionTestSupport {
             enemy: resolvedEnemy,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
         )
-        _ = session.activate(configuration)
-        session.installPresentationContext(presentation)
+        if let completeVictory {
+            configureProgression(session, presentation: presentation, completeVictory: completeVictory)
+        }
+        _ = session.activate(configuration, presentation: presentation)
         return session
+    }
+
+    static func configureProgression(
+        _ session: BattleSession,
+        presentation: BattlePresentationContext,
+        completeVictory: @escaping (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?)
+            -> BattleCompletionResult = { _, _, _ in
+                .unavailable
+            },
+    ) {
+        session.configureProgression(
+            presentation: { _ in presentation },
+            settleRewards: { configuration, gold in
+                presentation.rewardPlan.settle(
+                    battleGold: gold,
+                    inputs: presentation.rewardInputs ?? RewardSettlementInputs(
+                        gold: 0, reservedGold: 0, goldLimit: Int.max,
+                        heroProgression: configuration.hero.progression,
+                        companionProgression: configuration.companion.progression,
+                        productionDate: .distantPast,
+                    ),
+                )
+            },
+            completeVictory: completeVictory,
+        )
     }
 
     static func presentationEnvironment(
@@ -196,8 +224,7 @@ enum BattleSessionTestSupport {
         presentation: BattlePresentationContext,
     ) -> BattleVictorySummary? {
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
-        session.installPresentationContext(presentation)
+        _ = session.activate(configuration, presentation: presentation)
         driveUntilOutcome(session)
         return session.makeVictorySummary(for: configuration, presentation: presentation)
     }

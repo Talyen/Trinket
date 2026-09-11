@@ -235,6 +235,7 @@ package enum DamagePipeline {
             target: target,
             amount: amount,
             keyword: keyword,
+            isFullyBlocked: state.remaining == 0 && amount > 0,
         ))
     }
 }

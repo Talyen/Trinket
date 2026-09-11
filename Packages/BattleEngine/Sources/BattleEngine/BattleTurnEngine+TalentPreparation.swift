@@ -15,7 +15,7 @@ extension BattleTurnEngine {
             action.blindingReduction = context.heroTalents.history[actor.id]?.blindingReduction ?? 0
             context.heroTalents.history[actor.id, default: HeroTalentHistory()].blindingReduction = 0
         } else if context.hasHeroCard(for: actor.id) {
-            action.goldDamage = context.heroTalents.cards.last?.gildedDamage ?? 0
+            action.goldDamage = context.resolution.cardTalents?.gildedDamage ?? 0
             context.mutateHeroCard { $0.gildedDamage = 0 }
             prepareCardDamage(components: &components, effects: &effects, actor: actor, in: &context)
             if context.resolution.actionOutcome?.damageKeywords.contains(.freeze) == true,
@@ -32,12 +32,12 @@ extension BattleTurnEngine {
                 increaseCardDamage(2, keyword: .poison, components: &components)
             }
         }
-        context.heroTalents.actions.append(action)
+        context.resolution.prepareActionTalents(action)
         return ability.replacingOperations(components.map(AbilityOperation.damage) + effects.map(AbilityOperation.effect))
     }
 
     private static func captureTalentPreparations(for actor: Combatant, in context: inout BattleState) {
-        guard context.hasHeroCard(for: actor.id), let card = context.heroTalents.cards.last,
+        guard context.hasHeroCard(for: actor.id), let card = context.resolution.cardTalents,
               !card.capturedPreparations, let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
         var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
         var eligible: Set<TalentPreparation> = []
@@ -70,7 +70,7 @@ extension BattleTurnEngine {
         actor: Combatant,
         in context: inout BattleState,
     ) {
-        guard let card = context.heroTalents.cards.last,
+        guard let card = context.resolution.cardTalents,
               let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
         if card.preparations.contains(.bleedDamage), context.claimHeroCardBonus("redline", actorID: actor.id) {
             increaseCardDamage(2, keyword: .bleed, components: &components)

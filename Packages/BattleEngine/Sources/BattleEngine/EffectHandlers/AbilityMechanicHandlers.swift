@@ -62,6 +62,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
             to: target,
             source: source,
             abilityName: ability.name,
+            origin: .direct,
         )
         var events: [ActionEvent] = []
         if let payment {
@@ -114,6 +115,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             target: target,
             amount: max(amount, restored),
             keyword: .mana,
+            origin: .direct,
         )
         var events = [event]
         if restored > 0 {

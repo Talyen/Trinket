@@ -33,7 +33,7 @@ struct HubGridScaffold<Content: View>: View {
 struct HubArtworkCard: View {
     let title: String
     let subtitle: String?
-    let symbolName: String?
+    let icon: GameIcon?
     let artID: String
     var fallbackArtID: String?
     var isLocked = false
@@ -57,8 +57,8 @@ struct HubArtworkCard: View {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 if let subtitle {
                     HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
-                        if let symbolName {
-                            Image(systemName: symbolName)
+                        if let icon {
+                            GameIconImage(icon)
                                 .trinketTypography(.eyebrow)
                                 .accessibilityHidden(true)
                         }
@@ -95,7 +95,7 @@ struct HubArtworkNavigationLink<Destination: Hashable>: View {
     let destination: Destination
     let title: String
     let subtitle: String?
-    var symbolName: String?
+    var icon: GameIcon?
     let artID: String
     var fallbackArtID: String?
     var isLocked = false
@@ -106,7 +106,7 @@ struct HubArtworkNavigationLink<Destination: Hashable>: View {
             HubArtworkCard(
                 title: title,
                 subtitle: subtitle,
-                symbolName: symbolName,
+                icon: icon,
                 artID: artID,
                 fallbackArtID: fallbackArtID,
                 isLocked: isLocked,

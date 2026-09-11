@@ -88,13 +88,13 @@ extension HealingEngine {
         var gain = perEvent > 0 ? min(allocation.remaining, perEvent) : allocation.remaining
         let cap = conversion.overhealConvertsToMaxHealthCap
         if cap > 0 {
-            let already = context.roster.runtime(for: target)?.talentMaxHealthBonus ?? 0
+            let already = context.roster.runtime(for: target)?.talents.battle.maximumHealthBonus ?? 0
             gain = CombatGain.amount(gain, current: already, cap: cap)
         }
         gain = allocation.allocate(gain, to: .maximumHealth)
         if gain > 0 {
             context.roster.mutateRuntime(for: target) { runtime in
-                runtime.talentMaxHealthBonus += gain
+                runtime.talents.battle.maximumHealthBonus += gain
                 runtime.currentHealth = min(runtime.maxHealth, runtime.currentHealth + gain)
             }
         }

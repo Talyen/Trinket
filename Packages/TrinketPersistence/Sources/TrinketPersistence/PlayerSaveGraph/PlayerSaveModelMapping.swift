@@ -215,9 +215,7 @@ extension RosterModel {
 }
 
 extension RosterModel {
-    func toPlayerRosterState(
-        schemaVersion: Int = PlayerSave.currentSchemaVersion,
-    ) -> PlayerRosterState {
+    func toPlayerRosterState() -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
         let heroIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.heroRole }.map(\.combatantID))
         let companionIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.companionRole }.map(\.combatantID))
@@ -235,16 +233,11 @@ extension RosterModel {
         )
         let equipmentValues = Dictionary(
             (equipmentLoadouts ?? []).map { loadoutModel in
-                let isHero = GameContent.combatant(matching: loadoutModel.combatantID)?.role == .hero
-                return (
+                (
                     loadoutModel.combatantID,
                     EquipmentLoadout(itemIDsBySlot: Dictionary(
                         (loadoutModel.slots ?? []).compactMap { slot in
-                            let resolvedSlot = RosterHydration.resolveEquipmentSlot(
-                                slot.slotID,
-                                schemaVersion: schemaVersion,
-                                isHero: isHero,
-                            )
+                            let resolvedSlot = ItemSlot(rawValue: slot.slotID)
                             return resolvedSlot.map { ($0, slot.itemID) }
                         },
                         uniquingKeysWith: { _, new in new },
@@ -467,6 +460,7 @@ extension LabyrinthProgressModel {
         guard let mapPayload else {
             return .missing
         }
+        guard mapVersion == LabyrinthGenerator.currentMapVersion else { return .unreadable }
         do {
             return try .decoded(JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload))
         } catch {

@@ -45,7 +45,7 @@ struct PlayBattleRoute {
         BattleRewardSettlement,
         [ResourceAmount]?,
         BattleLootResult?,
-    ) -> Bool
+    ) -> BattleCompletionResult
 
     static func matches(_ route: Self?, runKey: BattleRunKey?, missingLog: String) -> Bool {
         guard let runKey else { return route == nil }

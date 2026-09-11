@@ -69,7 +69,13 @@ public final class BattleSession: BattleRuntime {
 
     public internal(set) var activeBattle: BattleRunConfiguration?
     public internal(set) var presentationContext: BattlePresentationContext?
-    public internal(set) var lifecyclePhase: BattleLifecyclePhase = .idle
+    public var lifecyclePhase: BattleLifecyclePhase {
+        if activeBattle != nil {
+            return .active
+        }
+        _ = preparedBattlePresentationRevision
+        return preparedBattleRunsByKey.isEmpty ? .idle : .prepared
+    }
 
     @ObservationIgnored
     var engineState: BattleState?
@@ -79,13 +85,8 @@ public final class BattleSession: BattleRuntime {
     let presentation = BattlePresentationState()
 
     @ObservationIgnored
-    private var rewardSettlementHandlerOwnerID: UUID?
-    @ObservationIgnored
-    private var rewardSettlementHandler: ((BattleRunConfiguration, BattleGoldFlow) -> BattleRewardSettlement?)?
-    @ObservationIgnored
-    private var claimedVictoryHandlerOwnerID: UUID?
-    @ObservationIgnored
-    private var claimedVictoryHandler: ((BattleRunConfiguration, BattleGoldFlow) -> Void)?
+    var progression: BattleProgression?
+    public var completionError: StageMapMessage?
     @ObservationIgnored
     var deliveredClaimedVictoryConfigurationID: UUID?
     public var openingHandDrawStagger: Duration
@@ -211,8 +212,8 @@ public final class BattleSession: BattleRuntime {
     ) -> BattleVictorySummary? {
         guard let input = victoryInput else { return nil }
         let settlement: BattleRewardSettlement
-        if let rewardSettlementHandler {
-            guard let resolved = rewardSettlementHandler(configuration, input.goldFlow) else { return nil }
+        if let progression {
+            guard let resolved = progression.settleRewards(configuration, input.goldFlow) else { return nil }
             settlement = resolved
         } else {
             let inputs = presentation.rewardInputs ?? RewardSettlementInputs(
@@ -262,48 +263,6 @@ public final class BattleSession: BattleRuntime {
 
     #endif
 
-    public func installRewardSettlementHandler(
-        ownerID: UUID,
-        _ handler: @escaping (BattleRunConfiguration, BattleGoldFlow) -> BattleRewardSettlement?,
-    ) {
-        rewardSettlementHandlerOwnerID = ownerID
-        rewardSettlementHandler = handler
-    }
-
-    public func uninstallRewardSettlementHandler(ownerID: UUID) {
-        guard rewardSettlementHandlerOwnerID == ownerID else { return }
-        rewardSettlementHandlerOwnerID = nil
-        rewardSettlementHandler = nil
-    }
-
-    public func installClaimedVictoryHandler(
-        ownerID: UUID,
-        _ handler: @escaping (BattleRunConfiguration, BattleGoldFlow) -> Void,
-    ) {
-        claimedVictoryHandlerOwnerID = ownerID
-        claimedVictoryHandler = handler
-        deliverClaimedVictoryIfNeeded()
-    }
-
-    public func uninstallClaimedVictoryHandler(ownerID: UUID) {
-        guard claimedVictoryHandlerOwnerID == ownerID else { return }
-        claimedVictoryHandlerOwnerID = nil
-        claimedVictoryHandler = nil
-    }
-
-    func deliverClaimedVictoryIfNeeded() {
-        guard commandState.phase == .outcome,
-              let configuration = activeBattle,
-              presentationContext?.stageRewardsAlreadyClaimed == true,
-              outcome == .victory,
-              deliveredClaimedVictoryConfigurationID != configuration.id,
-              let claimedVictoryHandler
-        else { return }
-
-        deliveredClaimedVictoryConfigurationID = configuration.id
-        claimedVictoryHandler(configuration, engineState?.goldFlow ?? .init())
-    }
-
     public func presentBattleLog() {
         clearCardCues()
         syncEngineLog()
@@ -320,22 +279,21 @@ public final class BattleSession: BattleRuntime {
 
     func installActiveBattle(
         _ configuration: BattleRunConfiguration,
+        state: BattleState,
         presentation: BattlePresentationContext? = nil,
-    ) {
+    ) -> Bool {
+        let resolvedPresentation = presentation ?? progression?.presentation(configuration)
+        guard progression == nil || resolvedPresentation != nil else { return false }
         clearCardCues()
         let holdOpeningHandForOverlayFade = activeBattle == nil
+        engineState = state
         activeBattle = configuration
-        presentationContext = presentation
-        lifecyclePhase = .active
+        presentationContext = resolvedPresentation
         resetRun(
             from: configuration,
             holdOpeningHandForOverlayFade: holdOpeningHandForOverlayFade,
         )
-    }
-
-    public func installPresentationContext(_ context: BattlePresentationContext) {
-        presentationContext = context
-        deliverClaimedVictoryIfNeeded()
+        return true
     }
 
     func clearOutcomePresentation() {

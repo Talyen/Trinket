@@ -33,9 +33,8 @@ struct LabyrinthSaveRecoveryTests {
             let store = try PlayerSaveStore(
                 storeURL: storeURL,
                 disableCloudSync: true,
-                persistSaveImmediately: true,
             )
-            store.labyrinth = PlayerLabyrinthState(worldSeed: 55, hasEntered: true)
+            #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = PlayerLabyrinthState(worldSeed: 55, hasEntered: true) })
         }
 
         do {
@@ -50,7 +49,6 @@ struct LabyrinthSaveRecoveryTests {
         let loaded = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true,
         )
         #expect(!loaded.labyrinth.isMapPayloadUnreadable)
         #expect(loaded.labyrinth.hasMap)
@@ -58,31 +56,5 @@ struct LabyrinthSaveRecoveryTests {
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(!reloaded.labyrinth.isMapPayloadUnreadable)
         #expect(reloaded.labyrinth.hasMap)
-    }
-
-    @Test @MainActor func `labyrinth setter migrates legacy map with roster recruit eligibility`() throws {
-        let context = try PersistenceTestContext()
-        let store = try context.makeSaveStore()
-        let recruitIDs = store.roster.eligibleRecruitEventIDs
-        try #require(!recruitIDs.isEmpty)
-
-        let generated = LabyrinthGenerator.makeMap(
-            seed: 9,
-            floorCount: 1,
-            eligibleRecruitEventIDs: recruitIDs,
-        )
-        let legacy = PlayerLabyrinthState(
-            worldSeed: 9,
-            mapVersion: 2,
-            hasEntered: true,
-            clusters: generated.clusters,
-            nodes: generated.nodes,
-        )
-        try #require(legacy.nodes.values.contains { $0.type == .recruit || $0.recruitEventID != nil })
-
-        store.labyrinth = legacy
-
-        #expect(store.labyrinth.mapVersion == LabyrinthGenerator.currentMapVersion)
-        #expect(store.labyrinth.nodes.values.contains { $0.type == .recruit || $0.recruitEventID != nil })
     }
 }

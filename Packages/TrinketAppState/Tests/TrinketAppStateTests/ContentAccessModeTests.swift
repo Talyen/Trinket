@@ -36,7 +36,7 @@ struct ContentAccessModeTests {
             for _ in 1 ... 3 {
                 let floor = save.labyrinth.currentFloorNumber
                 if let boss = save.labyrinth.nodes.values.first(where: {
-                    $0.type.canonical == .boss && save.labyrinth.cluster(for: $0.id)?.depthBand == floor
+                    $0.type == .boss && save.labyrinth.cluster(for: $0.id)?.depthBand == floor
                 }) {
                     save.labyrinth.markCleared(nodeID: boss.id)
                 }

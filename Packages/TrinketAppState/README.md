@@ -18,7 +18,9 @@ reconciles leave that prepare in place (already-silent `update` does not cancel 
 mapping stays in `TrinketBattleFeature` via `BattleRuntimeDependencies`. Production
 code uses `BattleEngine` (`BattleRuntime`) and feature contracts for its battle
 boundary — never concrete BattleFeature. Persistence owns save-mutation semantics;
-AppState decides when.
+AppState decides when. The app composition root connects battle progression once
+before bootstrap through `configureBattleRuntime`; view appearance is not part of
+the reward or completion lifecycle.
 
 SFX engine setup, warmup, and playback run on a private audio actor. Commands from
 main-actor callers are chained in submission order, so play, stop, and resource release

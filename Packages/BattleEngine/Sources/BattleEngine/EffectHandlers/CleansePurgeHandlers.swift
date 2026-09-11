@@ -54,7 +54,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
         }
         return CleanseOperation.resolve(
             .all(targetKeyword), source: source, target: target, abilityName: ability.name,
-            healPerDebuff: healPerDebuff, in: &context,
+            healPerDebuff: healPerDebuff, origin: .direct, in: &context,
         ).application
     }
 
@@ -64,7 +64,8 @@ struct CleansePurgeHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        CleanseOperation.resolve(.random, source: source, target: target, abilityName: ability.name, in: &context).application
+        CleanseOperation.resolve(.random, source: source, target: target, abilityName: ability.name, origin: .direct, in: &context)
+            .application
     }
 
     private func applyPurge(
@@ -94,6 +95,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
             target: target,
             amount: 0,
             keyword: targetKeyword ?? .purge,
+            origin: .direct,
         )
         CombatTriggerEngine.protectPurgedEffects(removed, source: source, target: target, in: &context)
         var events = [event]
@@ -128,6 +130,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
             target: target,
             amount: 0,
             keyword: removed.keyword,
+            origin: .direct,
         )
         CombatTriggerEngine.protectPurgedEffects([removed], source: source, target: target, in: &context)
         var events = [event]

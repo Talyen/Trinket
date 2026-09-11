@@ -11,7 +11,7 @@ package extension DamagePipeline {
         guard let attacker = context.roster.combatant(for: sourceActorID) else { return }
 
         if state.options.isAttackHit {
-            context.roster.mutateRuntime(for: state.combatant) { $0.hasTakenAttackHitThisTurn = true }
+            context.roster.mutateRuntime(for: state.combatant) { $0.talents.turn.tookAttackHit = true }
         }
 
         if state.healthLost > 0 {
@@ -50,10 +50,10 @@ package extension DamagePipeline {
               let sourceActorID = state.sourceActorID,
               let attacker = context.roster.combatant(for: sourceActorID),
               let runtime = context.roster.runtime(for: attacker.combatant),
-              runtime.pendingBleedAfterDodge > 0
+              runtime.talents.pending.bleedAfterDodge > 0
         else { return }
-        let potency = runtime.pendingBleedAfterDodge
-        context.roster.mutateRuntime(for: attacker.combatant) { $0.pendingBleedAfterDodge = 0 }
+        let potency = runtime.talents.pending.bleedAfterDodge
+        context.roster.mutateRuntime(for: attacker.combatant) { $0.talents.pending.bleedAfterDodge = 0 }
         state.damageEvents.append(contentsOf: appendBleed(
             potency: potency,
             to: state.combatant,

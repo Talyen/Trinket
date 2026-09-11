@@ -187,7 +187,6 @@ extension BattleSession {
         )
         retainPreparedArtworkPins()
         preparedBattlePresentationRevision += 1
-        lifecyclePhase = .prepared
         installSimulationPresentation()
         return true
     }
@@ -200,9 +199,7 @@ extension BattleSession {
             retainPreparedArtworkPins()
             preparedBattlePresentationRevision += 1
         }
-        if preparedBattleRunsByKey.isEmpty {
-            lifecyclePhase = .idle
-        } else {
+        if !preparedBattleRunsByKey.isEmpty {
             installSimulationPresentation()
         }
     }
@@ -214,20 +211,13 @@ extension BattleSession {
     public func activatePreparedBattle(
         runKey: BattleRunKey,
         configurationID: UUID,
-        heroID: String,
-        companionID: String,
-        enemyID: String?,
     ) -> Bool {
         guard activeBattle == nil,
               let preparedBattleRun = preparedBattleRunsByKey[runKey],
-              preparedBattleRun.configuration.id == configurationID,
-              preparedBattleRun.configuration.hero.combatant.id == heroID,
-              preparedBattleRun.configuration.companion.combatant.id == companionID,
-              preparedBattleRun.configuration.enemy?.id == enemyID
+              preparedBattleRun.configuration.id == configurationID
         else { return false }
 
-        engineState = preparedBattleRun.state
-        installActiveBattle(preparedBattleRun.configuration, presentation: presentationContext)
+        guard installActiveBattle(preparedBattleRun.configuration, state: preparedBattleRun.state) else { return false }
         preparedBattleRunsByKey.removeValue(forKey: runKey)
         return true
     }
@@ -260,10 +250,12 @@ extension BattleSession {
 
     public func endBattle() {
         activeBattle = nil
+        if !preparedBattleRunsByKey.isEmpty {
+            preparedBattlePresentationRevision += 1
+        }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         releasePreparedArtworkPins()
         engineState = nil
-        lifecyclePhase = .idle
         clearRunState()
     }
 
@@ -305,9 +297,10 @@ extension BattleSession {
         case .restart:
             guard activeBattle != nil else { return false }
         }
+        guard installActiveBattle(
+            configuration, state: makeBattleState(from: configuration), presentation: presentation,
+        ) else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
-        engineState = makeBattleState(from: configuration)
-        installActiveBattle(configuration, presentation: presentation)
         retainPreparedArtworkPins()
         return true
     }

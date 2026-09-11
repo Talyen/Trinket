@@ -3,13 +3,13 @@ import TrinketCore
 
 public struct PlaceholderArtwork: View {
     private let color: Color
-    private let symbolName: String
+    private let icon: GameIcon
     @ScaledMetric private var iconSize: CGFloat
 
     public init(_ style: TrinketDesign.CardPlaceholderStyle) {
         self.init(
             color: style.color,
-            symbolName: style.symbolName,
+            icon: style.icon,
             iconPointSize: TrinketDesign.Layout.cardPlaceholderIconPointSize,
             relativeTo: .title,
         )
@@ -20,13 +20,13 @@ public struct PlaceholderArtwork: View {
         iconPointSize: CGFloat,
         relativeTo textStyle: Font.TextStyle,
     ) {
-        self.init(color: style.color, symbolName: style.symbolName, iconPointSize: iconPointSize, relativeTo: textStyle)
+        self.init(color: style.color, icon: style.icon, iconPointSize: iconPointSize, relativeTo: textStyle)
     }
 
     public init(_ style: Keyword.VisualStyle) {
         self.init(
             color: style.color,
-            symbolName: style.symbolName,
+            icon: style.icon,
             iconPointSize: TrinketDesign.Layout.cardPlaceholderIconPointSize,
             relativeTo: .title,
         )
@@ -37,17 +37,17 @@ public struct PlaceholderArtwork: View {
         iconPointSize: CGFloat,
         relativeTo textStyle: Font.TextStyle,
     ) {
-        self.init(color: style.color, symbolName: style.symbolName, iconPointSize: iconPointSize, relativeTo: textStyle)
+        self.init(color: style.color, icon: style.icon, iconPointSize: iconPointSize, relativeTo: textStyle)
     }
 
     private init(
         color: Color,
-        symbolName: String,
+        icon: GameIcon,
         iconPointSize: CGFloat,
         relativeTo textStyle: Font.TextStyle,
     ) {
         self.color = color
-        self.symbolName = symbolName
+        self.icon = icon
         _iconSize = ScaledMetric(wrappedValue: iconPointSize, relativeTo: textStyle)
     }
 
@@ -55,8 +55,8 @@ public struct PlaceholderArtwork: View {
         ZStack {
             color.opacity(TrinketDesign.Opacity.placeholderWash)
 
-            Image(systemName: symbolName)
-                // UIStyleCheck: allow - SF Symbol glyph sizing, not copy
+            GameIconImage(icon)
+                // UIStyleCheck: allow - Game icon glyph sizing, not copy
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(color)
                 .symbolRenderingMode(.hierarchical)

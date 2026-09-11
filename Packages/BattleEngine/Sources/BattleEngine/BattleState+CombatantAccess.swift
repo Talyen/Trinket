@@ -63,7 +63,7 @@ public extension BattleState {
     }
 
     func effectSummaries(of combatant: Combatant) -> [EffectSummary] {
-        EffectSummaryBuilder.build(for: activeEffects(of: combatant))
+        EffectSummaryBuilder.build(for: activeEffects(of: combatant)) + talentEffectSummaries(of: combatant)
     }
 
     func modifiers(for combatantID: String) -> CombatModifierProfile {

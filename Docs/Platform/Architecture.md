@@ -148,7 +148,10 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Keep `AppState` as com
 | `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion` | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; a parallel `AppState.battle` handle |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 
-`BattleState` public API is reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.
+`BattleState` public mutation API is card/turn/opening-hand commands and log lifecycle.
+State, roster, and combatant fields are externally read-only. Handler and engine
+mutation entry points are package-scoped; resolution owns action/card talent frames.
+Save slices are read-only projections updated through explicit Persistence commands.
 
 ## Deferred architecture seams
 

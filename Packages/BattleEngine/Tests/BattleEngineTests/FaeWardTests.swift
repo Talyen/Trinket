@@ -163,7 +163,7 @@ struct FaeWardTests {
         #expect(battle.roster.health(for: target) == healthBefore)
         #expect(battle.roster.activeEffects(for: target) == [existing])
         #expect(events.isEmpty)
-        #expect(battle.roster.hero.faeWardBlockedThisTurn)
+        #expect(battle.roster.hero.talents.turn.blockedFaeWard)
     }
 
     private func burnPotency(on combatant: Combatant, in battle: BattleState) -> Int? {

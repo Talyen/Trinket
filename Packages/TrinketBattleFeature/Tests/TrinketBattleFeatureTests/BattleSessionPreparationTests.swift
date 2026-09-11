@@ -76,17 +76,13 @@ struct BattleSessionPreparationTests {
 
         #expect(session.prepareBattleRun(configuration))
         #expect(!session.activatePreparedBattle(
-            runKey: runKey, configurationID: UUID(), heroID: party.hero.id,
-            companionID: party.companion.id, enemyID: party.enemy.id,
+            runKey: runKey, configurationID: UUID(),
         ))
         #expect(session.hasPreparedRun(runKey))
         #expect(
             session.activatePreparedBattle(
                 runKey: runKey,
                 configurationID: configuration.id,
-                heroID: party.hero.id,
-                companionID: party.companion.id,
-                enemyID: party.enemy.id,
             ),
         )
         #expect(session.activeBattle?.id == configuration.id)
@@ -159,9 +155,6 @@ struct BattleSessionPreparationTests {
             session.activatePreparedBattle(
                 runKey: runKey,
                 configurationID: configuration.id,
-                heroID: party.hero.id,
-                companionID: party.companion.id,
-                enemyID: party.enemy.id,
             ),
         )
         #expect(session.overlayBattleConfiguration?.id == overlayID)
@@ -186,9 +179,6 @@ struct BattleSessionPreparationTests {
             session.activatePreparedBattle(
                 runKey: runKey,
                 configurationID: configuration.id,
-                heroID: party.hero.id,
-                companionID: party.companion.id,
-                enemyID: party.enemy.id,
             ),
         )
 
@@ -206,7 +196,7 @@ struct BattleSessionPreparationTests {
         #expect(try await BattleSessionTestSupport.waitUntil { !session.isDealingOpeningHand })
     }
 
-    @Test func `activate prepared battle keeps overlay presentation context for skip combat`() {
+    @Test func `activate prepared battle resolves registered presentation before skip combat`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay-context")
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
@@ -220,15 +210,12 @@ struct BattleSessionPreparationTests {
         )
 
         #expect(session.prepareBattleRun(configuration))
-        session.installPresentationContext(presentation)
+        BattleSessionTestSupport.configureProgression(session, presentation: presentation)
 
         #expect(
             session.activatePreparedBattle(
                 runKey: runKey,
                 configurationID: configuration.id,
-                heroID: party.hero.id,
-                companionID: party.companion.id,
-                enemyID: party.enemy.id,
             ),
         )
         #expect(session.presentationContext != nil)

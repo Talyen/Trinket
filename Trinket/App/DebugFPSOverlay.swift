@@ -32,7 +32,7 @@ final class FramePacingMetricsProbe {
     static let shared = FramePacingMetricsProbe()
 
     private static var measurementSnapshotDelay: Duration {
-        BattlePerformanceTiming.snapshotDelay
+        FramePacingMeasurementTiming.snapshotDelay
     }
 
     private let monitor = FramePacingMonitor.measurementShared
@@ -55,7 +55,7 @@ final class FramePacingMetricsProbe {
         metrics.isAccessibilityElement = true
         metrics.accessibilityIdentifier = AccessibilityID.Debug.frameMetrics
         metrics.accessibilityLabel = "Frame Metrics"
-        metrics.accessibilityValue = FramePacingReport.empty.accessibilityValue
+        metrics.accessibilityValue = "idle"
         metrics.text = " "
         metrics.font = .systemFont(ofSize: 1)
         metrics.textColor = .clear
@@ -107,7 +107,7 @@ final class FramePacingMetricsProbe {
     }
 
     private func resetMeasurement() {
-        metricsLabel?.accessibilityValue = FramePacingReport.empty.accessibilityValue
+        metricsLabel?.accessibilityValue = "measuring"
         monitor.resetMeasurement()
         monitor.scheduleSnapshot(after: Self.measurementSnapshotDelay)
     }
@@ -163,7 +163,7 @@ final class FramePacingMonitor: NSObject {
 
     private static let maxRefreshRate: CFTimeInterval = 120
     private static var warmupSeconds: CFTimeInterval {
-        BattlePerformanceTiming.monitorWarmupSeconds
+        FramePacingMeasurementTiming.monitorWarmupSeconds
     }
 
     private let windowSeconds: CFTimeInterval
@@ -171,6 +171,7 @@ final class FramePacingMonitor: NSObject {
     private var displayLink: CADisplayLink?
     private var previousTimestamp: CFTimeInterval = 0
     private var startTimestamp: CFTimeInterval = 0
+    private var measurementStartedAt: CFTimeInterval?
     private var storage: [Sample?]
     private var nextWriteIndex = 0
     private var sampleCount = 0
@@ -198,6 +199,7 @@ final class FramePacingMonitor: NSObject {
     }
 
     func resetMeasurement() {
+        measurementStartedAt = CACurrentMediaTime()
         scheduledSnapshotTask?.cancel()
         scheduledSnapshotTask = nil
         displayLink?.isPaused = false
@@ -209,6 +211,7 @@ final class FramePacingMonitor: NSObject {
     }
 
     func snapshotMeasurement() {
+        let snapshotTimestamp = CACurrentMediaTime()
         displayLink?.isPaused = true
         let ordered: [Sample] = if sampleCount < capacity {
             storage.prefix(sampleCount).compactMap(\.self)
@@ -216,7 +219,7 @@ final class FramePacingMonitor: NSObject {
             (storage[nextWriteIndex...] + storage[..<nextWriteIndex]).compactMap(\.self)
         }
         let samples = Self.samples(inLast: windowSeconds, from: ordered)
-        let report = if samples.isEmpty {
+        var report = if samples.isEmpty {
             FramePacingReport.empty
         } else {
             FramePacingAnalyzer.report(
@@ -224,6 +227,7 @@ final class FramePacingMonitor: NSObject {
                 expectedFrameDurations: samples.map(\.expectedFrameDuration),
             )
         }
+        report.measurementDuration = measurementStartedAt.map { snapshotTimestamp - $0 }
         handler?(report)
     }
 

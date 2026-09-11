@@ -29,9 +29,9 @@ struct FullGameOfferView: View {
             }
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                benefit("All Chapters and Game Modes", symbol: "map")
-                benefit("Every Hero and Companion", symbol: "person.2")
-                benefit("All future content included", symbol: "sparkles")
+                benefit("All Chapters and Game Modes", icon: .lucide("map"))
+                benefit("Every Hero and Companion", icon: .lucide("users-round"))
+                benefit("All future content included", icon: .lucide("sparkles"))
             }
             .padding(TrinketDesign.Layout.contentMargin)
         }
@@ -53,14 +53,14 @@ struct FullGameOfferView: View {
         }
     }
 
-    private func benefit(_ title: String, symbol: String) -> some View {
+    private func benefit(_ title: String, icon: GameIcon) -> some View {
         Label {
             Text(title)
                 .trinketTypography(.cardTitle)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
-            Image(systemName: symbol)
+            GameIconImage(icon)
                 .trinketTypography(.sectionTitle)
                 .foregroundStyle(TrinketDesign.Colors.accent)
                 .frame(width: TrinketDesign.Spacing.extraLarge)

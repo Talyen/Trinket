@@ -113,8 +113,7 @@ struct BattleSessionSimulationTests {
             hasProgressionRewards: true,
             musicStageID: stage.id,
         )
-        _ = session.activate(configuration)
-        session.installPresentationContext(presentation)
+        _ = session.activate(configuration, presentation: presentation)
 
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
 
@@ -438,14 +437,16 @@ extension BattleSessionSimulationTests {
         immediate.endTurn()
         animated.endTurn()
         animated.setSuspendedForScenePhase(true)
-        var directState = try #require(immediate.engineState)
-        var animatedState = try #require(animated.engineState)
+        let directState = try #require(immediate.engineState)
+        let animatedState = try #require(animated.engineState)
         #expect(animatedState.hand == directState.hand)
         for owner in [BattleParticipant.hero, .companion, .enemy] {
             #expect(animatedState.roster[owner] == directState.roster[owner])
         }
         #expect(animatedState.events == directState.events)
-        #expect(animatedState.rng.next() == directState.rng.next())
+        var directRNG = directState.rng
+        var animatedRNG = animatedState.rng
+        #expect(animatedRNG.next() == directRNG.next())
         #expect(!animated.canEndTurn)
         animated.setSuspendedForScenePhase(false)
         #expect(try await BattleSessionTestSupport.waitUntil { !animated.transitionTask.hasPendingTask })

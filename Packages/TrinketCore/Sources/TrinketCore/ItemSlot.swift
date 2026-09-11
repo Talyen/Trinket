@@ -43,17 +43,6 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
         "\(rawValue) item slot"
     }
 
-    public var symbolName: String {
-        switch self {
-        case .weapon, .secondaryWeapon:
-            "wand.and.sparkles"
-        case .armor:
-            "shield.fill"
-        case .accessory, .secondaryAccessory, .trinket, .secondaryTrinket:
-            "diamond.fill"
-        }
-    }
-
     public func accepts(_ baseTypeSlot: Self) -> Bool {
         baseTypeSlot == baseItemSlot
     }

@@ -143,7 +143,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         nodes[nodeID] = node
         LabyrinthGenerator.revealReachable(from: nodeID, nodes: &nodes)
 
-        if node.type.canonical == .boss {
+        if node.type == .boss {
             LabyrinthGenerator.expandBeyondBoss(
                 bossNodeID: nodeID,
                 clusters: &clusters,

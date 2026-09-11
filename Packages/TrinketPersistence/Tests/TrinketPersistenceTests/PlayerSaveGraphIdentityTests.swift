@@ -17,7 +17,7 @@ struct PlayerSaveGraphIdentityTests {
         var homestead = store.homestead
         homestead.grant([ResourceAmount(.wood, 1)])
 
-        store.homestead = homestead
+        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = homestead })
 
         let after = try graphIdentity(in: inspectionContext)
         try #expect(after.inventoryItems == before.inventoryItems)
@@ -37,7 +37,7 @@ struct PlayerSaveGraphIdentityTests {
         inventory.items[0] = changedItem.renamed("\(changedItem.displayName) +1")
         inventory.items.removeLast()
 
-        store.inventory = inventory
+        #expect(store.persistBatch(logging: "Test setup") { $0.inventory = inventory })
 
         let after = try graphIdentity(in: inspectionContext)
         try #expect(after.inventoryItems[changedItem.id] == before.inventoryItems[changedItem.id])
@@ -67,9 +67,9 @@ struct PlayerSaveGraphIdentityTests {
         var loadout = roster.equipmentLoadout(for: knight)
         loadout.equip(item, inventory: [item])
         roster.setEquipmentLoadout(loadout, for: knight)
-        store.roster = roster
+        #expect(store.persistBatch(logging: "Test setup") { $0.roster = roster })
 
-        store.inventory = .freshStart
+        #expect(store.persistBatch(logging: "Test setup") { $0.inventory = .freshStart })
 
         let slots = try graphInspectionContext(at: storeURL).fetch(FetchDescriptor<EquipmentSlotModel>())
         try #expect(slots.allSatisfy { $0.itemID != item.id })
@@ -79,7 +79,6 @@ struct PlayerSaveGraphIdentityTests {
         try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true,
         )
     }
 

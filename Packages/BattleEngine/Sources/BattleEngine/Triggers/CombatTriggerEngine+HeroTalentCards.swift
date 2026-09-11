@@ -9,7 +9,7 @@ extension CombatTriggerEngine {
         if keywords.contains(.poison), context.modifiers(for: actor.id).triggers.dissolvingFumes {
             context.removeTalentPoint(.thorns, from: context.roster.enemy.combatant)
         }
-        context.heroTalents.history[actor.id, default: HeroTalentHistory()].lastPlaySerial = context.heroTalents.cards.last?
+        context.heroTalents.history[actor.id, default: HeroTalentHistory()].lastPlaySerial = context.resolution.cardTalents?
             .playSerial ?? -1
         context.heroTalents.history[actor.id, default: HeroTalentHistory()].lastDamageKeywords = keywords
         context.heroTalents.history[actor.id, default: HeroTalentHistory()].lastGrantedGold = false
@@ -20,12 +20,12 @@ extension CombatTriggerEngine {
 
     static func finishHeroCard(actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        if context.roster.health(for: actor) > 0, context.heroTalents.cards.last?.preparations.contains(.stealGold) == true {
+        if context.roster.health(for: actor) > 0, context.resolution.cardTalents?.preparations.contains(.stealGold) == true {
             events.append(contentsOf: context.grantGoldEvent(
                 2, to: actor, abilityName: "Paid in Full", isTheft: true, isDirectCardGain: true,
             ))
         }
-        guard let card = context.heroTalents.cards.popLast(),
+        guard let card = context.resolution.finishCardTalents(),
               let outcome = context.resolution.cardOutcome(for: actor.id) else { return events }
         events.append(contentsOf: CombatCheckpoint.cardCompletion(actor.id).resolve([
             { heroPoisonCard(outcome, actor: actor, in: &$0) },

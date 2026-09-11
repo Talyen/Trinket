@@ -96,13 +96,20 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
         row = self.codegen.TalentRow(
             id="unknown_hero_burn_t1_1",
             name="Flame",
-            symbol_name="flame.fill",
+            icon_id="lucide:flame",
             description="Burns target",
             modifiers="",
             triggers="",
         )
         with self.assertRaises(ValueError):
             self.codegen.validate_talent_rows([row], combatant_ids=["knight", "ranger"])
+
+    def test_game_icons_require_a_provider_and_bundled_lucide_asset(self) -> None:
+        for icon_id in ["flame.fill", "other:flame", "lucide:missing-trinket-icon", "lucide:../flame"]:
+            with self.subTest(icon_id=icon_id), self.assertRaises(ValueError):
+                self.codegen._validate_game_icon(icon_id, "sample")
+        self.codegen._validate_game_icon("lucide:sword", "sample")
+        self.codegen._validate_game_icon("sf:burst.fill", "sample")
 
     def test_parse_tsv_rows_pads_optional_columns_and_enforces_min_columns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

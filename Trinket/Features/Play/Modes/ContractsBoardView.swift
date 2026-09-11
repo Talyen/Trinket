@@ -89,7 +89,7 @@ struct ContractsBoardView: View {
         if isArtworkReady(for: offer), let art = GameContent.enemy(matching: offer.enemyID)?.combatant.artReference {
             MapTileArtwork(art: art)
         } else {
-            MapTilePlaceholder(tint: TrinketDesign.Colors.encounterBattle, symbolName: "person.crop.rectangle")
+            MapTilePlaceholder(tint: TrinketDesign.Colors.encounterBattle, icon: .lucide("scroll-text"))
         }
     }
 

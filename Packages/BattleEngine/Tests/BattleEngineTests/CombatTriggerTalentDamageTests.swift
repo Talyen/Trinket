@@ -171,7 +171,7 @@ struct CombatTriggerTalentDamageTests {
                 in: &battle,
             )
         }
-        #expect(battle.roster.runtime(for: companion)?.talentCritMultiplierBonus == 1.0)
+        #expect(battle.roster.runtime(for: companion)?.talents.battle.criticalMultiplierBonus == 1.0)
     }
 
     @Test func `nested damage beyond depth two is retaliation`() {

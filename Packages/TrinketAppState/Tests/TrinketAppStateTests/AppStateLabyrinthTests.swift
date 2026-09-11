@@ -32,11 +32,11 @@ struct AppStateLabyrinthTests {
 
     @Test func `unreadable map heals on write and enter succeeds`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        state.playerSave.labyrinth = PlayerLabyrinthState(
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
             hasEntered: true,
             isMapPayloadUnreadable: true,
-        )
+        ) })
 
         #expect(!state.playerSave.labyrinth.isMapPayloadUnreadable)
         #expect(state.playerSave.labyrinth.hasMap)
@@ -68,7 +68,7 @@ struct AppStateLabyrinthTests {
 
         var homestead = state.playerSave.homestead
         homestead.nodeTiers[.agilityTraining] = 1
-        state.playerSave.homestead = homestead
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.homestead = homestead })
         state.labyrinth.prepareReachableBattles()
 
         #expect(battle.preparedBattlePresentationRevision > preparedRevision)
@@ -240,7 +240,7 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
-        state.playerSave.roster = .testSeed
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = .testSeed })
 
         #expect(state.labyrinth.handleNodeAction(nodeID: nodeID) == nil)
         #expect(state.encounters.activeMysteryEncounter?.event.isRecruit == false)
@@ -250,7 +250,7 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
-        state.playerSave.roster = .testSeed
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = .testSeed })
 
         let recruitNode = try #require(state.playerSave.labyrinth.nodes[nodeID])
         let preview = try #require(state.labyrinth.previewMysteryEvent(for: recruitNode))
@@ -330,7 +330,7 @@ struct AppStateLabyrinthTests {
         _ = state.labyrinth.startBattle(nodeID: combatNodeID)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 3)))
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 3)).didComplete)
         #expect(state.playerSave.labyrinth.nodes[combatNodeID]?.isCleared == true)
     }
 
@@ -344,7 +344,7 @@ struct AppStateLabyrinthTests {
             LabyrinthModifierID("scavengersLuck"),
         ]
         let mysteryNodes = state.playerSave.labyrinth.nodes.values
-            .filter { $0.type.canonical == .mystery && !$0.isCleared }
+            .filter { $0.type == .mystery && !$0.isCleared }
         #expect(!mysteryNodes.isEmpty, "Expected at least one mystery node on the map")
         for node in mysteryNodes {
             let ids = node.modifierIDs
@@ -362,31 +362,11 @@ struct AppStateLabyrinthTests {
             LabyrinthModifierID("shopDiscount"),
             LabyrinthModifierID("appraisersEye"),
         ]
-        for node in state.playerSave.labyrinth.nodes.values where node.type.canonical == .shop {
+        for node in state.playerSave.labyrinth.nodes.values where node.type == .shop {
             let ids = node.modifierIDs
             #expect(ids.count == 1)
             #expect(shopIDs.contains(ids[0]))
         }
-    }
-
-    @Test func `legacy event node routes to mystery`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let reachableID = try #require(state.playerSave.labyrinth.reachableNodeIDs().first)
-        let node = try #require(state.playerSave.labyrinth.nodes[reachableID], "Missing reachable node")
-        LabyrinthTestSupport.store(
-            LabyrinthTestSupport.remade(
-                node,
-                type: .event,
-                recruitEventID: nil,
-                isCleared: false,
-                isRevealed: true,
-            ),
-            in: state,
-        )
-
-        #expect(state.labyrinth.handleNodeAction(nodeID: reachableID) == nil)
-        #expect(state.encounters.activeMysteryEncounter?.labyrinthNodeID == reachableID)
     }
 
     @Test func `missing labyrinth node pin fails closed`() throws {

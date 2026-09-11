@@ -142,32 +142,6 @@ struct PlayerRosterStateTests {
         #expect(roster.equippedCombatantID(for: "missing") == nil)
     }
 
-    @Test func `legacy trinket slots migrate to accessory slots and unequip removed slots`() throws {
-        let heroLoadout = EquipmentLoadoutModel(combatantID: "knight")
-        heroLoadout.slots = [
-            EquipmentSlotModel(slotID: "Trinket", itemID: "hero-primary"),
-            EquipmentSlotModel(slotID: "Secondary Trinket", itemID: "hero-secondary"),
-            EquipmentSlotModel(slotID: "Tertiary Trinket", itemID: "hero-tertiary"),
-        ]
-        let companionLoadout = EquipmentLoadoutModel(combatantID: "bear")
-        companionLoadout.slots = [
-            EquipmentSlotModel(slotID: "Trinket", itemID: "companion-primary"),
-            EquipmentSlotModel(slotID: "Secondary Trinket", itemID: "companion-secondary"),
-        ]
-        let model = RosterModel()
-        model.equipmentLoadouts = [heroLoadout, companionLoadout]
-
-        let roster = model.toPlayerRosterState(schemaVersion: 13)
-        let hero = try #require(roster.equipmentLoadouts["knight"])
-        let companion = try #require(roster.equipmentLoadouts["bear"])
-
-        try #expect(hero.itemID(for: .accessory) == "hero-primary")
-        try #expect(hero.itemID(for: .secondaryAccessory) == "hero-secondary")
-        try #expect(!hero.itemIDsBySlot.values.contains("hero-tertiary"))
-        try #expect(companion.itemID(for: .accessory) == "companion-primary")
-        try #expect(!companion.itemIDsBySlot.values.contains("companion-secondary"))
-    }
-
     @Test func `set equipment loadout enforces unique item ownership`() throws {
         var roster = PlayerRosterState.testSeed
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
@@ -314,6 +288,7 @@ struct PlayerRosterStateTests {
         let refusedRow2Early = roster.unlockTalent(node: row2, inTree: tree, for: knight.id)
         #expect(!refusedDuplicate)
         #expect(!refusedRow2Early)
+        #expect(!roster.hasUnlockableTalent(for: knight.id))
 
         roster.progressions[knight.id] = .at(level: 6)
         #expect(roster.availableTalentPoints(for: knight.id) == 2)
@@ -325,6 +300,20 @@ struct PlayerRosterStateTests {
         #expect(unlockedRow2)
         #expect(roster.unlockedTalents(for: knight.id) == Set([row1A.id, row1B.id, row2.id]))
         #expect(roster.availableTalentPoints(for: knight.id) == 0)
+        #expect(!roster.hasUnlockableTalent(for: knight.id))
+    }
+
+    @Test func `completed talent kit does not advertise spare points`() throws {
+        var roster = PlayerRosterState.freshStart
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let config = try #require(CombatantTalentCatalog.configIfAvailable(for: knight.id))
+        let allNodeIDs = Set(config.trees.flatMap { $0.nodes.map(\.id) })
+
+        roster.progressions[knight.id] = .at(level: 44)
+        roster.setUnlockedTalents(allNodeIDs, for: knight.id)
+
+        #expect(roster.availableTalentPoints(for: knight.id) == 1)
+        #expect(!roster.hasUnlockableTalent(for: knight.id))
     }
 
     @Test func `active party average level floors the midpoint`() throws {

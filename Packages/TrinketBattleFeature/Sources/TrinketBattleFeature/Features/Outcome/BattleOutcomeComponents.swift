@@ -3,7 +3,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct BattleOutcomeRewardRow: View {
-    let symbolName: String
+    let icon: GameIcon
     let tint: Color
     let text: String
 
@@ -12,7 +12,7 @@ struct BattleOutcomeRewardRow: View {
             Text(balanced: text)
                 .trinketTypography(.secondaryBody)
         } icon: {
-            Image(systemName: symbolName)
+            GameIconImage(icon)
                 .foregroundStyle(tint)
         }
     }

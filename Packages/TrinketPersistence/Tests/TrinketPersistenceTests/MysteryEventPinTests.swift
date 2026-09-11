@@ -65,7 +65,7 @@ struct MysteryEventPinTests {
             var labyrinth = store.labyrinth
             labyrinth.ensureMap(seed: store.worldSeed)
             nodeID = try #require(labyrinth.nodes.values.filter { $0.type == .mystery }.sorted { $0.id < $1.id }.first?.id)
-            store.labyrinth = labyrinth
+            #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
         }
         let stage = nodeID.map { GameContent.syntheticLabyrinthStage(nodeID: $0, encounter: .mysteryEvent(eventID: event.id)) }
             ?? journeyStage

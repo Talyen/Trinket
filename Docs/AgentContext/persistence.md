@@ -2,11 +2,20 @@
 
 Use for player progression, roster, inventory, homestead, SwiftData, or CloudKit work.
 
-`TrinketPersistence` owns the SwiftData model graph and write-through stores. `PlayerSaveRoot` owns the graph; `PlayerSaveStore` opens/configures persistence and provides write-through slice properties and domain extensions (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`, `PlayerSaveStore+ContentAccess.swift`, plus `salvageItem` in `ItemSalvage.swift` and `corruptItem` in `ItemCorruption.swift`). Prefer value types for rules/calculations.
+`TrinketPersistence` owns the SwiftData model graph and stores. `PlayerSaveRoot` owns the graph; `PlayerSaveStore` opens/configures persistence and provides read-only observed slices and explicit domain commands (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`, `PlayerSaveStore+ContentAccess.swift`, plus `salvageItem` in `ItemSalvage.swift` and `corruptItem` in `ItemCorruption.swift`). Prefer value types for rules/calculations. Views must use these commands or an explicit batch; assigning a save slice is not a persistence API.
 
 Reads use an in-memory observed projection; load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
 
-Roster sanitization remaps talent IDs before applying [Core talent repair](../../Packages/TrinketCore/README.md).
+Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).
+
+Trinket has no released player saves or production CloudKit schema. Historical
+development-save migrations and retired identifier aliases have been removed;
+the current value schema identifier is unchanged. Unsupported value schemas are
+rejected without rewriting their progress. Unsupported Labyrinth map payloads use
+the existing unreadable-map recovery path, without translating historical floor
+progress. Current-data validation, relationship repair, and corruption recovery
+remain required. Once saves ship, preserve or migrate them before changing their
+schema or serialized identifiers.
 
 Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roster/inventory/homestead are normalized child tables — intentional trade-off for spatial graph queries; don't normalize the labyrinth without measuring encode cost.
 
@@ -26,9 +35,14 @@ passive accrual cannot silently shrink a displayed award. Unprepared rewards use
 the same settlement path. Modes retain their existing one-time claim ownership.
 
 `persistTransaction` returns a committed domain value, a domain rejection, or a
-storage failure. Domain operations mutate a candidate save; rejection discards it
-without publishing or writing. Storage failures use the existing compensation
-machinery. Observable sessions apply outcomes and navigation only after commit.
+storage failure. It shares candidate validation, slice reconciliation, and commit
+with `persistBatch` and `performBatchMutation`. Domain operations mutate a candidate
+save; rejection discards it without publishing or writing. Immediate writes publish
+the observed candidate only after storage succeeds. Storage failures use the existing
+compensation machinery. Observable sessions apply outcomes and navigation only after commit.
+Deferred mutation is an explicit `performBatchMutation(..., persistImmediately: false)`
+operation, with a debounced save and a synchronous lifecycle flush; there is no
+store-wide deferred-setter setting or `-defer-persistence` launch argument.
 `MysteryEncounterResolution` owns choice effects and progress together, including
 required item/unlock validation; a secondary reward cannot turn an unavailable
 headline reward into a successful choice. Deliberate leave is an explicit outcome.

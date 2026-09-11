@@ -48,11 +48,11 @@ struct PlayerSaveSliceSanitizerTests {
             let node = try #require(save.labyrinth.nodes[nodeID])
             save.labyrinth.nodes[nodeID] = LabyrinthNode(
                 id: node.id,
-                type: .event,
+                type: .mystery,
                 enemyID: nil,
                 depth: node.depth,
                 clusterID: node.clusterID,
-                outgoingIDs: node.outgoingIDs,
+                outgoingIDs: node.outgoingIDs + ["missing-node"],
                 isCleared: node.isCleared,
                 isRevealed: true,
             )
@@ -69,7 +69,7 @@ struct PlayerSaveSliceSanitizerTests {
 
         #expect(full == scoped)
         if let labyrinthNodeID {
-            #expect(full.labyrinth.nodes[labyrinthNodeID]?.type == .mystery)
+            #expect(full.labyrinth.nodes[labyrinthNodeID]?.outgoingIDs.contains("missing-node") == false)
         }
     }
 
@@ -89,11 +89,11 @@ struct PlayerSaveSliceSanitizerTests {
         }
         save.labyrinth.nodes[nodeID] = LabyrinthNode(
             id: node.id,
-            type: .event,
+            type: .mystery,
             enemyID: nil,
             depth: node.depth,
             clusterID: node.clusterID,
-            outgoingIDs: node.outgoingIDs,
+            outgoingIDs: node.outgoingIDs + ["missing-node"],
             isCleared: node.isCleared,
             isRevealed: true,
         )
@@ -105,8 +105,8 @@ struct PlayerSaveSliceSanitizerTests {
             changedSlices: .sanitizeTargets(for: [.roster]),
         )
 
-        #expect(full.labyrinth.nodes[nodeID]?.type == .mystery)
-        #expect(rosterExpanded.labyrinth.nodes[nodeID]?.type == .event)
+        #expect(full.labyrinth.nodes[nodeID]?.outgoingIDs.contains("missing-node") == false)
+        #expect(rosterExpanded.labyrinth.nodes[nodeID]?.outgoingIDs.contains("missing-node") == true)
     }
 
     @Test func `homestead mutation does not pin labyrinth seed`() {
@@ -136,14 +136,13 @@ struct PlayerSaveSliceSanitizerTests {
         let store = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
-            persistSaveImmediately: true,
         )
         var snapshot = store.currentSave
         snapshot.labyrinth.worldSeed = 0
         let wood = (snapshot.homestead.resources[.wood] ?? 0) + 1
-        let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot) { save in
-            save.homestead.resources[.wood] = wood
-        }
+        var proposed = snapshot
+        proposed.homestead.resources[.wood] = wood
+        let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
         #expect(!changedSlices.contains(.labyrinth))
         #expect(candidate.labyrinth.worldSeed == 0)
 

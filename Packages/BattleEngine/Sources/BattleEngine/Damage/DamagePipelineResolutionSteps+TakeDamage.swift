@@ -103,9 +103,9 @@ package extension DamagePipeline {
         }
         if defenderTriggers.toughnessOnHit > 0, isAttackHit, !isRetaliation {
             context.roster.mutateRuntime(for: defender) { runtime in
-                runtime.flatDamageReductionBonus += CombatGain.amount(
+                runtime.talents.battle.flatDamageReductionBonus += CombatGain.amount(
                     defenderTriggers.toughnessOnHit,
-                    current: runtime.flatDamageReductionBonus, cap: defenderTriggers.toughnessOnHitCap,
+                    current: runtime.talents.battle.flatDamageReductionBonus, cap: defenderTriggers.toughnessOnHitCap,
                 )
             }
         }

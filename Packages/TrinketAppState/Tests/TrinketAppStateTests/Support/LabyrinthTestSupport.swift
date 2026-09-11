@@ -1,3 +1,4 @@
+import Testing
 import TrinketContent
 import TrinketPersistence
 @testable import TrinketAppState
@@ -37,7 +38,7 @@ enum LabyrinthTestSupport {
     static func store(_ node: LabyrinthNode, in state: PlaySession) -> String {
         var labyrinth = state.playerSave.labyrinth
         labyrinth.nodes[node.id] = node
-        state.playerSave.labyrinth = labyrinth
+        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
         return node.id
     }
 
@@ -74,19 +75,19 @@ enum LabyrinthTestSupport {
         of type: LabyrinthNodeType,
         in state: PlaySession,
     ) -> String? {
-        if let existing = firstReachableNodeID(where: { $0.type.canonical == type.canonical }, in: state) {
+        if let existing = firstReachableNodeID(where: { $0.type == type }, in: state) {
             return existing
         }
         let reachableIDs = state.playerSave.labyrinth.reachableNodeIDs()
         guard let targetID = reachableIDs.first(where: { id in
             guard let node = state.playerSave.labyrinth.node(id: id) else { return false }
-            return !node.isCleared && node.type.canonical != .boss && node.type.canonical != .entrance
+            return !node.isCleared && node.type != .boss && node.type != .entrance
         }) ?? reachableIDs.first else {
             return nil
         }
         guard let existingNode = state.playerSave.labyrinth.node(id: targetID) else { return nil }
         let enemyID = type.isCombat ? "goblin_scout" : nil
-        let modifierIDs: [LabyrinthModifierID] = switch type.canonical {
+        let modifierIDs: [LabyrinthModifierID] = switch type {
         case .shop: [LabyrinthModifierID("shopDiscount")]
         case .mystery: [LabyrinthModifierID("bountyMark")]
         default: []
@@ -115,7 +116,7 @@ enum LabyrinthTestSupport {
             }
             let candidate = reachableNodeIDs.first(where: { id in
                 guard let node = state.playerSave.labyrinth.node(id: id) else { return false }
-                return !node.isCleared && node.type.canonical != .boss
+                return !node.isCleared && node.type != .boss
             }) ?? reachableNodeIDs.first
             guard let next = candidate,
                   state.labyrinth.completeNode(nodeID: next)

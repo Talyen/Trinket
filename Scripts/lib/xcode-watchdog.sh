@@ -5,16 +5,7 @@ xcode_runner_wall_timeout_seconds() {
 }
 
 xcode_runner_idle_timeout_seconds() {
-  local raw="${TRINKET_XCODE_IDLE_TIMEOUT_SECONDS:-}"
-  if [[ -z "$raw" ]]; then
-    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-      printf '45'
-    else
-      printf '10'
-    fi
-    return
-  fi
-  printf '%s' "$raw"
+  printf '%s' "${TRINKET_XCODE_IDLE_TIMEOUT_SECONDS:-45}"
 }
 
 xcode_runner_watchdog_enabled() {

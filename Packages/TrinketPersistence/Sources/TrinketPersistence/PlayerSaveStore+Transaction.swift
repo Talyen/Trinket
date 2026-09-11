@@ -15,7 +15,7 @@ public extension PlayerSaveStore {
         case let .failure(error):
             return .rejected(error)
         case let .success(value):
-            guard persistBatch(logging: message, { $0 = candidate }) else { return .persistFailed }
+            guard persistCandidate(candidate, logging: message) else { return .persistFailed }
             return .committed(value)
         }
     }

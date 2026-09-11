@@ -15,22 +15,25 @@ package extension CombatTriggerEngine {
 
         context.roster.mutateRuntime(for: combatant) { runtime in
             if triggers.damageAfterDodgeBonus > 0 {
-                runtime.pendingDamageAfterDodge += triggers.damageAfterDodgeBonus
+                runtime.talents.pending.damageAfterDodge += triggers.damageAfterDodgeBonus
             }
             if triggers.nextAttackDoubleAfterDodge {
-                runtime.pendingDamageDoubleAfterDodge = true
+                runtime.talents.pending.doubleDamageAfterDodge = true
             }
             if triggers.onDodgeNextPartyHitGuaranteedCritical {
-                runtime.pendingGuaranteedCriticalAfterDodge = true
+                runtime.talents.pending.guaranteedCriticalAfterDodge = true
             }
             if triggers.onDodgeNextAttackGuaranteedCritical {
-                runtime.pendingGuaranteedCriticalAfterDodge = true
+                runtime.talents.pending.guaranteedCriticalAfterDodge = true
             }
             if triggers.nextAttackBleedAfterDodge > 0 {
-                runtime.pendingBleedAfterDodge = triggers.nextAttackBleedAfterDodge
+                runtime.talents.pending.bleedAfterDodge = triggers.nextAttackBleedAfterDodge
             }
             if triggers.critMultiplierPerDodge > 0 {
-                runtime.talentCritMultiplierBonus = min(1.0, runtime.talentCritMultiplierBonus + triggers.critMultiplierPerDodge)
+                runtime.talents.battle.criticalMultiplierBonus = min(
+                    1.0,
+                    runtime.talents.battle.criticalMultiplierBonus + triggers.critMultiplierPerDodge,
+                )
             }
         }
         if triggers.onDodgePartyNextCardDamageBonus > 0 {
@@ -38,7 +41,7 @@ package extension CombatTriggerEngine {
                 let member = context.roster[owner]
                 guard member.isAlive else { continue }
                 context.roster.mutateRuntime(for: member.combatant) {
-                    $0.pendingCardDamageBonus += triggers.onDodgePartyNextCardDamageBonus
+                    $0.talents.pending.cardDamageBonus += triggers.onDodgePartyNextCardDamageBonus
                 }
             }
         }
@@ -46,7 +49,7 @@ package extension CombatTriggerEngine {
            combatant.id == context.roster.companion.id,
            context.roster.hero.isAlive {
             context.roster.mutateRuntime(for: context.roster.hero.combatant) {
-                $0.bonusDodgeUntilNextTurn += triggers.onCompanionDodgeGrantHeroDodgePercent
+                $0.talents.timed.dodge.amount += triggers.onCompanionDodgeGrantHeroDodgePercent
             }
         }
 

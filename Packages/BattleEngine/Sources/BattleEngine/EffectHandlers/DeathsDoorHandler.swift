@@ -46,6 +46,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
                 target: target,
                 amount: 0,
                 keyword: .deathsDoor,
+                origin: .direct,
             )
             var events = [event]
             events.append(contentsOf: DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context))

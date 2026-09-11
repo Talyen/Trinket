@@ -20,9 +20,6 @@ public protocol BattleRuntime: AnyObject {
     func activatePreparedBattle(
         runKey: BattleRunKey,
         configurationID: UUID,
-        heroID: String,
-        companionID: String,
-        enemyID: String?,
     ) -> Bool
     @discardableResult
     func activate(_ configuration: BattleRunConfiguration) -> Bool

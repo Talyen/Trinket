@@ -33,7 +33,6 @@ extension AppState {
             disableCloudSync: environment.disableCloudSync,
             resetState: environment.resetState,
             inMemoryOnly: environment.resetState && environment.storeName == nil,
-            persistSaveImmediately: environment.persistSaveImmediately,
         )
         if environment.seedTestProgress {
             try resolvedPlayerSave.applyTestSeed()

@@ -56,7 +56,7 @@ public final class SpiresPlayMode {
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
             guard let self,
                   let resolvedFloor = GameContent.spireFloor(spireID: spireID, floor: floor)
-            else { return false }
+            else { return .unavailable }
             return completeFloor(
                 resolvedFloor,
                 hero: configuration.hero.combatant,
@@ -67,7 +67,7 @@ public final class SpiresPlayMode {
                 rewardItem: presentation?.pendingRewardItem,
                 loot: loot,
                 enemyEncounterLevel: configuration.enemyEncounterLevel,
-            )
+            ) ? .completed : .persistenceFailed
         }
     }
 

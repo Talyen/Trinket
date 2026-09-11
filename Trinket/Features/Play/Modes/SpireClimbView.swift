@@ -167,7 +167,7 @@ private struct SpireFloorArtwork: View {
                let art = combatant.artReference {
                 MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
             } else {
-                MapTilePlaceholder(tint: tint, symbolName: "flag.2.crossed")
+                MapTilePlaceholder(tint: tint, icon: .lucide("flag"))
             }
         }
         .frame(maxWidth: .infinity)

@@ -12,7 +12,6 @@ public struct AppEnvironment: Sendable {
     public let skipOnboardingCeremony: Bool
     public let disableCloudSync: Bool
     public let disableAudio: Bool
-    public let persistSaveImmediately: Bool
     public let completedStageIDs: [String]
     public let mysteryRecruitEventID: String?
     public let storeName: String?
@@ -30,7 +29,6 @@ public struct AppEnvironment: Sendable {
         skipOnboardingCeremony: Bool,
         disableCloudSync: Bool,
         disableAudio: Bool,
-        persistSaveImmediately: Bool,
         completedStageIDs: [String],
         mysteryRecruitEventID: String?,
         storeName: String?,
@@ -47,7 +45,6 @@ public struct AppEnvironment: Sendable {
         self.skipOnboardingCeremony = skipOnboardingCeremony
         self.disableCloudSync = disableCloudSync
         self.disableAudio = disableAudio
-        self.persistSaveImmediately = persistSaveImmediately
         self.completedStageIDs = completedStageIDs
         self.mysteryRecruitEventID = mysteryRecruitEventID
         self.storeName = storeName
@@ -89,7 +86,6 @@ public struct AppEnvironment: Sendable {
             skipOnboardingCeremony: arguments.contains("-skip-onboarding-ceremony"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
-            persistSaveImmediately: !arguments.contains("-defer-persistence"),
             completedStageIDs: completedStageIDs(from: arguments),
             mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),
             storeName: argumentValue(after: "-store-name", in: arguments),

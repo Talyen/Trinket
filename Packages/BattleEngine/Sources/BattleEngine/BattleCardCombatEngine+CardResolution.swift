@@ -3,7 +3,7 @@ import TrinketCore
 
 extension BattleCardCombatEngine {
     @discardableResult
-    public static func playCard(
+    package static func playCard(
         cardID: Int,
         context: inout BattleState,
     ) throws -> [ActionEvent] {
@@ -37,14 +37,16 @@ extension BattleCardCombatEngine {
         context: inout BattleState,
     ) -> [ActionEvent] {
         let actor = ownerRuntime.combatant
+        let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
+        defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         let previousUniqueCard = context.uniques.card
         context.uniques.card = UniqueCombatEngine.prepareCard(card, in: &context)
         defer { context.uniques.card = previousUniqueCard }
-        var facts = HeroTalentCardFacts(actorID: actor.id, tier: card.ability.tier)
-        facts.playSerial = context.resolution.beginCard(actorID: actor.id)
-        facts.previousDamageKeywords = context.heroTalents.history[actor.id]?.lastDamageKeywords ?? []
-        defer { context.resolution.endCard(facts.playSerial) }
-        context.heroTalents.cards.append(facts)
+        let playSerial = context.resolution.beginCard(
+            actorID: actor.id, tier: card.ability.tier,
+            previousDamageKeywords: context.heroTalents.history[actor.id]?.lastDamageKeywords ?? [],
+        )
+        defer { context.resolution.endCard(playSerial) }
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
         var events = BattleTurnEngine.performAction(
             ability: card.ability,
@@ -58,9 +60,7 @@ extension BattleCardCombatEngine {
         }
         events.append(contentsOf: CombatTriggerEngine.finishHeroCard(actor: actor, in: &context))
         events.append(contentsOf: UniqueCombatEngine.finishCardDraws(in: &context))
-        if context.roster.runtime(for: actor)?.goldenTouchActiveThisCard == true {
-            context.roster.mutateRuntime(for: actor) { $0.goldenTouchActiveThisCard = false }
-        }
+        context.roster.mutateRuntime(for: actor) { $0.talents.finishCard() }
         if let returned = UniqueCombatEngine.returnPlayedCard(card, in: &context) {
             events.append(returned)
         } else {

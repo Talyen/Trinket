@@ -154,13 +154,13 @@ package enum DoTApplicator {
         guard let source = context.roster.combatant(for: sourceActorID),
               let runtime = context.roster.runtime(for: source.combatant)
         else { return potency }
-        if runtime.goldenTouchActiveThisCard {
+        if runtime.talents.card.goldenTouchActive {
             return potency * 2
         }
-        guard runtime.pendingDoubleStatusNextCard else { return potency }
+        guard runtime.talents.pending.doubleStatusNextCard else { return potency }
         context.roster.mutateRuntime(for: source.combatant) {
-            $0.pendingDoubleStatusNextCard = false
-            $0.goldenTouchActiveThisCard = true
+            $0.talents.pending.doubleStatusNextCard = false
+            $0.talents.card.goldenTouchActive = true
         }
         return potency * 2
     }

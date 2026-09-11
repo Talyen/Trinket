@@ -9,7 +9,7 @@ extension CombatTriggerEngine {
         let history = context.heroTalents.history[sourceID, default: HeroTalentHistory()]
         var bonus = 0
         if keyword == .poison {
-            if triggers.reactiveSediment, context.heroTalents.cards.last?.previousDamageKeywords.contains(.burn) == true {
+            if triggers.reactiveSediment, context.resolution.cardTalents?.previousDamageKeywords.contains(.burn) == true {
                 bonus += 1
             }
             if triggers.entanglingGrowth, context.roster.companion.isAlive,

@@ -11,36 +11,44 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         return max(1, Int(raw) ?? 1)
     }
 
+    @MainActor
     func test01RealCardPlay() {
         run(scenario: "real-card-play")
     }
 
+    @MainActor
     func test02HandDragCancel() {
         run(scenario: "hand-drag-cancel")
     }
 
+    @MainActor
     func test03EngineAndHand() {
         run(scenario: "engine-hand")
     }
 
+    @MainActor
     func test04EngineAndFeedback() {
         run(scenario: "engine-feedback")
     }
 
+    @MainActor
     func test05TurnTransition() {
         run(scenario: "turn-transition")
     }
 
+    @MainActor
     func test06CombinedProductionWorstCase() {
         run(scenario: "combined-worst-case")
     }
 
+    @MainActor
     private func run(scenario: String) {
         for iteration in 1 ... repetitionCount {
             runOnce(scenario: scenario, iteration: iteration)
         }
     }
 
+    @MainActor
     private func runOnce(scenario: String, iteration: Int) {
         launchApp(arguments: TestLaunchArg.allForBattlePerformance(scenario))
         battle.assertActive(timeout: 8)
@@ -67,17 +75,8 @@ final class BattlePerformanceUITests: TrinketUITestCase {
             "Scenario did not complete: \(scenarioStatus)",
         )
         validate(gesture)
-        guard let payload = metrics.value as? String,
-              let report = FramePacingReport.parseAccessibilityValue(payload) else {
-            XCTFail("No measured frame report was captured for \(scenario)")
-            return
-        }
-        let minimumSamples = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1"
-            ? 60
-            : 90
-        XCTAssertGreaterThanOrEqual(report.sampleCount, minimumSamples)
-        PerformanceReportRecorder.record(
-            report,
+        PerformanceReportRecorder.capture(
+            from: app,
             scenario: scenario,
             suite: "battle",
             iteration: iteration,

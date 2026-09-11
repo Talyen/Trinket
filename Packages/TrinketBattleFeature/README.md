@@ -14,7 +14,9 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
 
 Battle simulation rules remain in `BattleEngine`. App options and audio enter through
 the closure-backed `BattleRuntimeDependencies`; this package must not import or
-depend on `TrinketAppState`. Cross-package contract: [battle-runtime.md](../../Docs/AgentContext/battle-runtime.md).
+depend on `TrinketAppState`. Progression capabilities are configured once by the app composition root; BattleSession
+owns reward retry presentation independently of overlay mounting.
+Cross-package contract: [battle-runtime.md](../../Docs/AgentContext/battle-runtime.md).
 
 ## Prepared artwork
 
@@ -55,6 +57,26 @@ state never claims a resource problem. Inspection, backgrounding, battle changes
 and cancellation clear previews; a late cancellation cannot erase a newer cue.
 
 ## UIKit feedback island
+
+Combat results share a compact two-row group per originating card/action and
+recipient. Matching damage types and actual healing update in place; critical
+contributions briefly accent their typed total. New actions retire the previous
+group over 150 ms without queuing. Groups last 950 ms with a hard 1.2-second
+limit; updates never restart their rise. Party groups rise at most 24 points or
+12% of portrait height, and complete animated bounds stay inside the portrait.
+
+Only direct card benefits, damage, healing, fully blocked hits, Dodge, control
+outcomes, and Death's Door float. Automatic resource/buff gains, partial Block
+absorption, and routine DoT application/amplification stay quiet. Active statuses
+and pending talent benefits remain inspectable in the combatant detail sheet;
+there are no portrait status counters or gain strips. Engine event origin and
+feedback-group identity drive this policy, never display names.
+
+Floating feedback uses filled SF Symbols where available, with keyword-colored
+icons and matching numbers outlined in dark ink. Other game surfaces retain their
+own icon choices. Keep the original 0.5× → 2× → 1.8× pop and settling rise;
+fit groups against the portrait's usable area, not half its height. If an outgoing
+group cannot fit separately during handoff, prioritize the incoming result.
 
 Combat floating chips use always-mounted UIKit hosts (`CombatFeedbackRasterHost`,
 `CombatFeedbackChipBridge`, glyph atlas / composers) so chip publishes skip SwiftUI

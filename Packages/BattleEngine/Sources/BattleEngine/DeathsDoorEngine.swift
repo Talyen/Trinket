@@ -257,8 +257,8 @@ package enum DeathsDoorEngine {
         let triggers = context.modifiers(for: combatant.id).triggers
         if triggers.onSurviveDeathsDoorDamageBonusPercent > 0 {
             context.roster.mutateRuntime(for: combatant) { runtime in
-                runtime.talentDamagePercentBonus += triggers.onSurviveDeathsDoorDamageBonusPercent
-                runtime.talentDamagePercentUntilTurn = context.turnCount + 3
+                runtime.talents.timed.damage.amount += triggers.onSurviveDeathsDoorDamageBonusPercent
+                runtime.talents.timed.damage.expiresAtTurn = context.turnCount + 3
             }
         }
         var events = afterglow(on: combatant, in: &context)

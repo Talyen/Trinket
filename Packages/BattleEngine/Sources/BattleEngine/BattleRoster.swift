@@ -18,9 +18,9 @@ public enum BattleParticipant: CaseIterable, Sendable {
 }
 
 public struct BattleRoster {
-    public var hero: CombatantRuntime
-    public var companion: CombatantRuntime
-    public var enemy: CombatantRuntime
+    public package(set) var hero: CombatantRuntime
+    public package(set) var companion: CombatantRuntime
+    public package(set) var enemy: CombatantRuntime
 
     public init(hero: CombatantRuntime, companion: CombatantRuntime, enemy: CombatantRuntime) {
         self.hero = hero
@@ -28,7 +28,7 @@ public struct BattleRoster {
         self.enemy = enemy
     }
 
-    public subscript(participant: BattleParticipant) -> CombatantRuntime {
+    public package(set) subscript(participant: BattleParticipant) -> CombatantRuntime {
         get {
             switch participant {
             case .hero: hero
@@ -70,7 +70,7 @@ public struct BattleRoster {
         return nil
     }
 
-    public mutating func update(_ runtime: CombatantRuntime) {
+    package mutating func update(_ runtime: CombatantRuntime) {
         guard let participant = participant(for: runtime.combatant) else { return }
         self[participant] = runtime
     }
@@ -79,7 +79,7 @@ public struct BattleRoster {
         runtime(for: combatant)?.activeEffects ?? []
     }
 
-    public mutating func setActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
+    package mutating func setActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
         mutateRuntime(for: combatant) { runtime in
             runtime.activeEffects = effects
         }
@@ -152,14 +152,14 @@ public struct BattleRoster {
         activeEffects(for: combatant).contains(where: \.effect.isActionSkipPending)
     }
 
-    public mutating func clearControlStatusLinger(for combatant: Combatant) {
+    package mutating func clearControlStatusLinger(for combatant: Combatant) {
         let updated = activeEffects(for: combatant).filter { activeEffect in
             !(activeEffect.effect.isActionSkipPending && !activeEffect.isAwaitingActionSkip)
         }
         setActiveEffects(updated, for: combatant)
     }
 
-    public mutating func mutateRuntime(for combatant: Combatant, _ body: (inout CombatantRuntime) -> Void) {
+    package mutating func mutateRuntime(for combatant: Combatant, _ body: (inout CombatantRuntime) -> Void) {
         guard let participant = participant(for: combatant) else { return }
         body(&self[participant])
     }

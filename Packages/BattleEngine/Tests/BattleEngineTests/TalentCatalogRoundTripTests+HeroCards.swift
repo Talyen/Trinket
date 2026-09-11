@@ -152,7 +152,7 @@ extension TalentCatalogRoundTripTests {
         let poison = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == .poison })
         #expect(poison.amount == (poison.isCritical ? 4 : 2) + 1)
         #expect(battle.heroTalents.history[battle.hero.id]?.lastDamageKeywords == [.poison])
-        #expect(battle.heroTalents.cards.isEmpty)
+        #expect(battle.resolution.cardTalents == nil)
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 1; $0.currentMana = 0 }
         let restoring = Ability(id: "test-mana-draw", name: "Mana and Draw", tier: .basic, targetedEffects: [
             TargetedEffect(.resourceGain(.mana, 1), target: .actor),

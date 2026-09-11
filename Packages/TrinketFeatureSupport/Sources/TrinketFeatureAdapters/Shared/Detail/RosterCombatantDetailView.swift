@@ -55,7 +55,7 @@ public struct RosterCombatantDetailView: View {
                 inventoryItems: Binding(
                     get: { playerSave.inventory.items },
                     set: { newItems in
-                        playerSave.inventory.items = newItems
+                        playerSave.persistBatch(logging: "Failed to save inventory edits") { $0.inventory.items = newItems }
                     },
                 ),
                 unlockedTalents: Binding(
@@ -113,9 +113,7 @@ public struct RosterCombatantDetailView: View {
 
     private func persistRoster(_ update: (inout PlayerRosterState) -> Void) {
         guard playerSave.contentAccess.allowsCombatant(combatantID) else { return }
-        var copy = playerSave.roster
-        update(&copy)
-        playerSave.roster = copy
+        playerSave.mutateRoster(update)
     }
 
     private func resolveCombatant() -> Combatant? {

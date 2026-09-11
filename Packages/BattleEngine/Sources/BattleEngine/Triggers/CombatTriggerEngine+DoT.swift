@@ -13,11 +13,11 @@ package extension CombatTriggerEngine {
               caster.id != target.id else { return [] }
         let triggers = context.modifiers(for: sourceActorID).triggers
         if triggers.onBleedDamageNextBasicGuaranteedCrit {
-            context.roster.mutateRuntime(for: caster.combatant) { $0.pendingBasicGuaranteedCrit = true }
+            context.roster.mutateRuntime(for: caster.combatant) { $0.talents.pending.basicGuaranteedCritical = true }
         }
         if triggers.onBleedDamageNextBasicCritBonus > 0 {
             context.roster.mutateRuntime(for: caster.combatant) {
-                $0.pendingBasicCritBonus = max($0.pendingBasicCritBonus, triggers.onBleedDamageNextBasicCritBonus)
+                $0.talents.pending.basicCriticalBonus = max($0.talents.pending.basicCriticalBonus, triggers.onBleedDamageNextBasicCritBonus)
             }
         }
         var events: [ActionEvent] = []

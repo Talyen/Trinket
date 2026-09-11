@@ -26,7 +26,7 @@ struct ContractsPlayModeTests {
         roster.setActiveCompanion(companion)
         roster.progressions[roster.activeHeroID] = .at(level: 40)
         roster.progressions[roster.activeCompanionID] = .at(level: 1)
-        play.playerSave.roster = roster
+        #expect(play.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
 
         #expect(play.contracts.startBattle(offerID: standard.id) == nil)
         let configuration = try #require(play.battle.activeBattle)
@@ -49,7 +49,7 @@ struct ContractsPlayModeTests {
         #expect(play.playerSave.contracts == board)
         roster.progressions[roster.activeHeroID] = .at(level: 10)
         roster.progressions[roster.activeCompanionID] = .at(level: 5)
-        play.playerSave.roster = roster
+        #expect(play.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
         #expect(play.contracts.startBattle(offerID: standard.id) == nil)
         #expect(play.battle.activeBattle?.enemyEncounterLevel == 7)
         #expect(play.battle.activeBattle?.id != configuration.id)
@@ -68,7 +68,7 @@ struct ContractsPlayModeTests {
         var roster = play.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: 2)
         roster.progressions[roster.activeCompanionID] = .at(level: 3)
-        play.playerSave.roster = roster
+        #expect(play.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
         #expect(play.contracts.startBattle(offerID: offer.id) == nil)
         let expectedLevel = switch difficulty {
         case .easy: 1
@@ -90,7 +90,7 @@ struct ContractsPlayModeTests {
         let pendingItem = try #require(presentation.pendingRewardItem)
         let before = play.playerSave.currentSave
 
-        #expect(play.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
+        #expect(play.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(play.battle.activeBattle == nil)
         #expect(play.consumePendingDestination() == .contracts)
         #expect(play.playerSave.contracts.offer(for: .hard)?.id != hard.id)
@@ -102,7 +102,7 @@ struct ContractsPlayModeTests {
         #expect(play.playerSave.roster.progression(for: before.roster.activeCompanion)
             == before.roster.progression(for: before.roster.activeCompanion).addingExperience(presentation.companionExperienceAward))
         let claimed = play.playerSave.currentSave
-        #expect(!play.completeActiveBattle(configuration, battleGold: .init(gained: 0)))
+        #expect(!play.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(play.playerSave.currentSave == claimed)
     }
 

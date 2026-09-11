@@ -400,8 +400,6 @@ enum CombatantHitRecoilDirection: String, CaseIterable, Equatable {
 }
 
 enum CombatFeedbackLayout {
-    static let streamGap: CGFloat = 4
-
     @inlinable
     static func unitNoise(seed: Int) -> CGFloat {
         let mixed = UInt64(bitPattern: Int64(seed)) &* 0x9E37_79B9_7F4A_7C15

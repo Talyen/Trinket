@@ -29,7 +29,7 @@ package enum HealingEngine {
             let echoAmount = CombatRounding.scaled(restored, multiplier: 0.5)
             if echoAmount > 0 {
                 let echo = HealingEcho(amount: echoAmount, sourceActorID: sourceActorID)
-                context.roster.mutateRuntime(for: request.target) { $0.healingEchoes.append(echo) }
+                context.roster.mutateRuntime(for: request.target) { $0.talents.pending.healingEchoes.append(echo) }
             }
         }
 
@@ -40,7 +40,7 @@ package enum HealingEngine {
            preHealth < maxHealth,
            context.roster.health(for: request.target) >= maxHealth {
             context.roster.mutateRuntime(for: request.target) {
-                $0.pendingAttackBonusOnFullHealth += targetTriggers.nextAttackBonusOnFullHealth
+                $0.talents.pending.attackBonusOnFullHealth += targetTriggers.nextAttackBonusOnFullHealth
             }
         }
 
@@ -112,10 +112,10 @@ package enum HealingEngine {
            sourceTriggers.healOverTimeOnHealTurns > 0,
            !request.isHoTTick, let sourceActorID = request.sourceActorID {
             context.roster.mutateRuntime(for: request.target) {
-                $0.lingeringBlessing = LingeringBlessing(
+                $0.talents.timed.lingeringBlessing = LingeringBlessing(
                     amount: sourceTriggers.healOverTimeOnHealAmount,
                     sourceActorID: sourceActorID,
-                    turnsRemaining: max($0.lingeringBlessing?.turnsRemaining ?? 0, sourceTriggers.healOverTimeOnHealTurns),
+                    turnsRemaining: max($0.talents.timed.lingeringBlessing?.turnsRemaining ?? 0, sourceTriggers.healOverTimeOnHealTurns),
                 )
             }
         }
@@ -144,6 +144,7 @@ package enum HealingEngine {
                     amount: restored,
                     keyword: keyword,
                     isCritical: flags.contains(.critical),
+                    origin: request.isDirectCardHeal ? .direct : .automatic,
                 ),
             )
         }
@@ -210,8 +211,8 @@ package enum HealingEngine {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
             let target = context.roster[owner].combatant
-            let echoes = context.roster[owner].healingEchoes
-            context.roster.mutateRuntime(for: target) { $0.healingEchoes.removeAll() }
+            let echoes = context.roster[owner].talents.pending.healingEchoes
+            context.roster.mutateRuntime(for: target) { $0.talents.pending.healingEchoes.removeAll() }
             for echo in echoes {
                 guard let source = context.roster.combatant(for: echo.sourceActorID) else { continue }
                 var request = HealRequest(

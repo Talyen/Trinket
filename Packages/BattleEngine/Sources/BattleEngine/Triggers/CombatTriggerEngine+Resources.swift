@@ -131,9 +131,10 @@ package extension CombatTriggerEngine {
         combatant: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        var events = healSelfAfterGoldGain(source: combatant, in: &context).events
-
         let triggers = context.modifiers(for: combatant.id).triggers
+        let restoresParty = granted > 0 && triggers.onGainGoldHealParty > 0
+            && context.resolution.claim(.heroTalent("goldenRecovery"), actorID: combatant.id, cadence: .turn(context.turnCount))
+        var events = healSelfAfterGoldGain(source: combatant, in: &context).events
         if triggers.lightFingered {
             events.append(contentsOf: DefensePoolEngine.steal(
                 granted, from: context.roster.enemy.combatant, to: combatant,
@@ -162,7 +163,7 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        if triggers.onGainGoldHealParty > 0 {
+        if restoresParty {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]
                 guard member.isAlive else { continue }
@@ -180,7 +181,7 @@ package extension CombatTriggerEngine {
             }
         }
         if triggers.onGainGoldDoubleStatusEffectsNextCard {
-            context.roster.mutateRuntime(for: combatant) { $0.pendingDoubleStatusNextCard = true }
+            context.roster.mutateRuntime(for: combatant) { $0.talents.pending.doubleStatusNextCard = true }
         }
         if granted > 0 {
             for owner in [BattleParticipant.hero, .companion] {

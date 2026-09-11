@@ -43,38 +43,31 @@ public final class PlayerSaveStore {
     #endif
 
     public var journey: JourneyProgressState {
-        get { observedSave.journey }
-        set { mutate { $0.journey = newValue } }
+        observedSave.journey
     }
 
     public var roster: PlayerRosterState {
-        get { observedSave.roster }
-        set { mutate { $0.roster = newValue } }
+        observedSave.roster
     }
 
     public var inventory: PlayerInventoryState {
-        get { observedSave.inventory }
-        set { mutate { $0.inventory = newValue } }
+        observedSave.inventory
     }
 
     public var homestead: PlayerHomesteadState {
-        get { observedSave.homestead }
-        set { mutate { $0.homestead = newValue } }
+        observedSave.homestead
     }
 
     public var spires: PlayerSpiresState {
-        get { observedSave.spires }
-        set { mutate { $0.spires = newValue } }
+        observedSave.spires
     }
 
     public var labyrinth: PlayerLabyrinthState {
-        get { observedSave.labyrinth }
-        set { mutate { $0.labyrinth = newValue } }
+        observedSave.labyrinth
     }
 
     public var contracts: PlayerContractsState {
-        get { observedSave.contracts }
-        set { mutate { $0.contracts = newValue } }
+        observedSave.contracts
     }
 
     public var corruptionAltarCooldownRemaining: Int {
@@ -93,21 +86,17 @@ public final class PlayerSaveStore {
         observedSave
     }
 
-    private let persistSaveImmediately: Bool
-
     public init(
         storeName: String? = nil,
         storeURL: URL? = nil,
         disableCloudSync: Bool = false,
         resetState: Bool = false,
         inMemoryOnly: Bool = false,
-        persistSaveImmediately: Bool = true,
     ) throws {
         let bootstrapInterval = Self.performanceSignposter.beginInterval("PlayerSaveBootstrap")
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveBootstrap", bootstrapInterval)
         }
-        self.persistSaveImmediately = persistSaveImmediately
         let requestedCloudSync = !disableCloudSync
             && !inMemoryOnly
             && storeName == nil
@@ -156,6 +145,9 @@ public final class PlayerSaveStore {
         let loadedRoot = try Self.loadOrCreateRoot(in: context, logger: logger)
         root = loadedRoot.root
         let rawSave = root.toPlayerSave()
+        guard rawSave.schemaVersion == PlayerSave.currentSchemaVersion else {
+            throw PlayerSavePersistenceError.invalidSave("Unsupported save schema version.")
+        }
         var sanitized = PlayerSaveSanitizer.sanitize(rawSave)
         sanitized.schemaVersion = PlayerSave.currentSchemaVersion
         installObservedSave(sanitized)
@@ -175,24 +167,19 @@ public final class PlayerSaveStore {
         _ update: (inout PlayerSave) -> Void,
         persistImmediately: Bool = true,
     ) throws {
+        var candidate = currentSave
+        update(&candidate)
+        try commitCandidate(candidate, persistImmediately: persistImmediately)
+    }
+
+    private func commitCandidate(_ proposed: PlayerSave, persistImmediately: Bool = true) throws {
         let mutationInterval = Self.performanceSignposter.beginInterval("PlayerSaveMutation")
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
         }
         let snapshot = currentSave
-        let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, update: update)
-        guard !changedSlices.isEmpty else { return }
-        root.apply(candidate, slices: changedSlices, context: context)
-        installObservedSave(candidate, slices: changedSlices)
-
-        if persistImmediately {
-            try persistAppliedSnapshot(snapshot, slices: changedSlices)
-        } else {
-            if pendingRollbackSnapshot == nil {
-                pendingRollbackSnapshot = snapshot
-            }
-            pendingRollbackSlices.formUnion(changedSlices)
-        }
+        let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
+        try applyCandidate(candidate, replacing: snapshot, slices: changedSlices, persistImmediately: persistImmediately)
     }
 
     @discardableResult
@@ -200,8 +187,14 @@ public final class PlayerSaveStore {
         logging message: String,
         _ mutation: (inout PlayerSave) -> Void,
     ) -> Bool {
+        var candidate = currentSave
+        mutation(&candidate)
+        return persistCandidate(candidate, logging: message)
+    }
+
+    func persistCandidate(_ candidate: PlayerSave, logging message: String) -> Bool {
         do {
-            try performBatchMutation(mutation)
+            try commitCandidate(candidate)
             return true
         } catch {
             lastPersistenceError = (error as? PlayerSavePersistenceError) ?? .writeFailed
@@ -228,9 +221,8 @@ public final class PlayerSaveStore {
     private func resetRoot(with save: PlayerSave) throws {
         let snapshot = currentSave
         let sanitized = PlayerSaveSanitizer.sanitize(save)
-        root.update(from: sanitized, context: context)
-        installObservedSave(sanitized)
-        try persistAppliedSnapshot(snapshot, slices: .all)
+        try PlayerSaveSanitizer.validate(sanitized)
+        try applyCandidate(sanitized, replacing: snapshot, slices: .all)
     }
 
     public func resetGameplayProgress() throws {
@@ -249,17 +241,6 @@ public final class PlayerSaveStore {
         var save = base
         save.sessionGeneration = currentSave.sessionGeneration &+ 1
         try resetRoot(with: save)
-    }
-
-    private func mutate(_ update: (inout PlayerSave) -> Void) {
-        do {
-            try performBatchMutation(update, persistImmediately: persistSaveImmediately)
-            if !persistSaveImmediately {
-                scheduleDeferredSave()
-            }
-        } catch {
-            lastPersistenceError = (error as? PlayerSavePersistenceError) ?? .writeFailed
-        }
     }
 
     private func saveGraph() throws {
@@ -283,15 +264,30 @@ public final class PlayerSaveStore {
         }
     }
 
-    private func persistAppliedSnapshot(_ snapshot: PlayerSave, slices: PlayerSaveSlice) throws {
-        do {
-            try saveGraph()
-            clearPendingDeferredPersistence()
-            lastPersistenceError = nil
-        } catch {
-            restoreSnapshot(snapshot, slices: slices)
-            throw PlayerSavePersistenceError.writeFailed
+    private func applyCandidate(
+        _ candidate: PlayerSave,
+        replacing snapshot: PlayerSave,
+        slices: PlayerSaveSlice,
+        persistImmediately: Bool = true,
+    ) throws {
+        guard !slices.isEmpty else { return }
+        root.apply(candidate, slices: slices, context: context)
+        if persistImmediately {
+            do {
+                try saveGraph()
+                clearPendingDeferredPersistence()
+            } catch {
+                root.apply(snapshot, slices: slices, context: context)
+                throw PlayerSavePersistenceError.writeFailed
+            }
+        } else {
+            if pendingRollbackSnapshot == nil {
+                pendingRollbackSnapshot = snapshot
+            }
+            pendingRollbackSlices.formUnion(slices)
+            scheduleDeferredSave()
         }
+        installObservedSave(candidate, slices: slices)
     }
 
     private func ensureRequiredGraph(rawSave: PlayerSave? = nil, sanitized: PlayerSave? = nil) {
@@ -308,13 +304,10 @@ public final class PlayerSaveStore {
             save.modifiedAt = Date()
         }
 
-        let observedSnapshot = observedSave
-        root.apply(save, slices: repairSlices, context: context)
-        installObservedSave(save, slices: repairSlices)
         do {
-            try saveGraph()
+            try applyCandidate(save, replacing: observedSave, slices: repairSlices)
         } catch {
-            restoreSnapshot(observedSnapshot, slices: repairSlices)
+            lastPersistenceError = .writeFailed
         }
     }
 }

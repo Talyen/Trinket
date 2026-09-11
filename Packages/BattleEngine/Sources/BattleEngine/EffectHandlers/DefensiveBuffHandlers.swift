@@ -26,6 +26,7 @@ struct BlockBuffHandler: BattleEffectHandler {
             to: target,
             source: source,
             abilityName: ability.name,
+            origin: .direct,
         )
         return EffectApplyOutcome(events: gain.applied > 0 ? gain.events : [], didApply: gain.applied > 0)
     }

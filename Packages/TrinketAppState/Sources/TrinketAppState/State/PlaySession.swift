@@ -29,11 +29,11 @@ public final class PlaySession {
     private var postBattleTalentCombatantIDs: [String] = []
 
     public var currentPostBattleTalentCombatantID: String? {
-        postBattleTalentCombatantIDs.first { playerSave.roster.availableTalentPoints(for: $0) > 0 }
+        postBattleTalentCombatantIDs.first { playerSave.roster.hasUnlockableTalent(for: $0) }
     }
 
     private func prunePostBattleTalentCombatantIDs() {
-        postBattleTalentCombatantIDs.removeAll { playerSave.roster.availableTalentPoints(for: $0) == 0 }
+        postBattleTalentCombatantIDs.removeAll { !playerSave.roster.hasUnlockableTalent(for: $0) }
     }
 
     public var isGameplayActive: Bool {
@@ -128,9 +128,7 @@ public final class PlaySession {
         queueReturnToBattleOrigin(from: origin)
         shellSession.selectedTab = .play
         battle.endBattle()
-        if let runKey {
-            battleRunRegistry.remove(runKey)
-        }
+        battleRunRegistry.removeAll()
     }
 
     @discardableResult
@@ -139,14 +137,14 @@ public final class PlaySession {
         battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
         settlement: BattleRewardSettlement? = nil,
-    ) -> Bool {
+    ) -> BattleCompletionResult {
         let combatants = [configuration.hero.combatant, configuration.companion.combatant]
         let progressionsBefore = Dictionary(
             uniqueKeysWithValues: combatants.map { combatant in
                 (combatant.id, playerSave.roster.progression(for: combatant))
             },
         )
-        let persisted = battleCompletion.completeActiveBattle(
+        let result = battleCompletion.completeActiveBattle(
             configuration,
             battleGold: battleGold,
             materialRewards: materialRewards,
@@ -163,10 +161,10 @@ public final class PlaySession {
                 self?.queueReturnToBattleOrigin(from: origin)
             },
         )
-        if persisted, let runKey = configuration.runKey {
-            battleRunRegistry.remove(runKey)
+        if result.didComplete {
+            battleRunRegistry.removeAll()
         }
-        return persisted
+        return result
     }
 
     public func settleBattleRewards(
@@ -194,7 +192,7 @@ public final class PlaySession {
             for: combatantID,
         )
         if result == .unlocked {
-            if playerSave.roster.availableTalentPoints(for: combatantID) == 0 {
+            if !playerSave.roster.hasUnlockableTalent(for: combatantID) {
                 postBattleTalentCombatantIDs.removeAll(where: { $0 == combatantID })
             }
         }
@@ -219,7 +217,14 @@ public final class PlaySession {
         battleRunRegistry.route(for: runKey)
     }
 
-    public func battlePresentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
+    public func battlePresentation(for configuration: BattleRunConfiguration) -> BattlePresentationContext? {
+        guard let runKey = configuration.runKey else { return .empty }
+        guard let registration = battleRunRegistry.registration(for: runKey),
+              registration.launch.configuration.id == configuration.id else { return nil }
+        return registration.presentation
+    }
+
+    func battlePresentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
         battleRunRegistry.presentation(for: runKey)
     }
 
@@ -240,7 +245,7 @@ public final class PlaySession {
             guard let before = progressionsBefore[combatant.id] else { return nil }
             let after = roster.progression(for: combatant)
             guard after.totalTalentPoints > before.totalTalentPoints,
-                  roster.availableTalentPoints(for: combatant.id) > 0
+                  roster.hasUnlockableTalent(for: combatant.id)
             else { return nil }
             return combatant.id
         }

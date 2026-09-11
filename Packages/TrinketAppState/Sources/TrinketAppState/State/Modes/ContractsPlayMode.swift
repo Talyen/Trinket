@@ -79,10 +79,9 @@ public final class ContractsPlayMode {
 
     private func battleRoute(offerID: String) -> PlayBattleRoute {
         PlayBattleRoute(origin: .contract(offerID: offerID)) { [weak self] configuration, _, award, _, loot in
-            guard let self, let loot, let level = configuration.enemyEncounterLevel else { return false }
-            var completed = false
-            let persisted = playerSave.persistBatch(logging: "Failed to complete contract") { save in
-                completed = ContractsCompletion.complete(
+            guard let self, let loot, let level = configuration.enemyEncounterLevel else { return .unavailable }
+            let result = playerSave.persistTransaction(logging: "Failed to complete contract") { save -> Result<Void, CompletionFailure> in
+                let completed = ContractsCompletion.complete(
                     offerID: offerID,
                     hero: configuration.hero.combatant,
                     companion: configuration.companion.combatant,
@@ -92,9 +91,18 @@ public final class ContractsPlayMode {
                     award: award,
                     save: &save,
                 )
+                return completed ? .success(()) : .failure(.unavailable)
             }
-            return persisted && completed
+            switch result {
+            case .committed: return .completed
+            case .rejected: return .unavailable
+            case .persistFailed: return .persistenceFailed
+            }
         }
+    }
+
+    private enum CompletionFailure: Error {
+        case unavailable
     }
 
     private var saveFailureMessage: StageMapMessage {

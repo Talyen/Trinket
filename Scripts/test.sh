@@ -12,12 +12,6 @@ source "$SCRIPT_DIR/build-freshness.sh"
 # shellcheck source=xcode-runner.sh
 source "$SCRIPT_DIR/xcode-runner.sh"
 
-# Local runs: fail fast on post-suite diagnostics hang (45s default is for CI).
-# Keep CI at 45s for full log flush; cut local to 10s so agents get feedback quickly.
-if [[ "${GITHUB_ACTIONS:-}" != "true" && -z "${TRINKET_XCODE_IDLE_TIMEOUT_SECONDS:-}" ]]; then
-  export TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=10
-fi
-
 # Parse arguments
 MODE="unit"
 NO_BUILD=false

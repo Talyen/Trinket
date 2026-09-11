@@ -1,4 +1,5 @@
 import TrinketCore
+import TrinketDesignSystem
 
 public extension HomesteadResource {
     var displayName: String {
@@ -14,16 +15,16 @@ public extension HomesteadResource {
         }
     }
 
-    var symbolName: String {
+    var icon: GameIcon {
         switch self {
-        case .wood: "tree.fill"
-        case .stone: "mountain.2.fill"
-        case .iron: "hammer.fill"
-        case .food: "carrot.fill"
-        case .herbs: "leaf.fill"
-        case .hide: "pawprint.fill"
-        case .crystal: "sparkles"
-        case .gold: "dollarsign.circle.fill"
+        case .wood: .lucide("trees")
+        case .stone: .lucide("mountain")
+        case .iron: .lucide("anvil")
+        case .food: .lucide("carrot")
+        case .herbs: .lucide("leaf")
+        case .hide: .lucide("paw-print")
+        case .crystal: .lucide("gem")
+        case .gold: Keyword.gold.visualStyle.icon
         }
     }
 

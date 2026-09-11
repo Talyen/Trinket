@@ -2,8 +2,8 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public enum EffectHandlers {
-    public static let all: [EffectKind: any BattleEffectHandler] = [
+package enum EffectHandlers {
+    package static let all: [EffectKind: any BattleEffectHandler] = [
         .burn: DecayingDoTHandler(keyword: .burn, kind: .burn),
         .poison: DecayingDoTHandler(keyword: .poison, kind: .poison),
         .bleed: BleedHandler(),
@@ -79,7 +79,7 @@ public enum EffectHandlers {
         .hemorrhage: HemorrhageHandler(),
     ]
 
-    public static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {
+    package static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {
         all[kind]
     }
 }
