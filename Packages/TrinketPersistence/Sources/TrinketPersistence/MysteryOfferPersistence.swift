@@ -96,11 +96,9 @@ public enum MysteryOfferPersistence {
     }
 
     private static func isPlayable(stage: Stage, labyrinthNodeID: String?, save: PlayerSave) -> Bool {
-        if let labyrinthNodeID {
-            guard let node = save.labyrinth.nodes[labyrinthNodeID] else { return false }
-            return !node.isCleared
-        }
-        return !save.journey.completedStageIDs.contains(stage.id)
+        let location: EncounterIdentity.Location = labyrinthNodeID.map { .labyrinth(nodeID: $0) }
+            ?? .journey(stageID: stage.id)
+        return EncounterIdentity(location: location, save: save).isPlayable(in: save)
     }
 
     private static func payload(stageID: String, labyrinthNodeID: String?, save: PlayerSave) -> Data? {

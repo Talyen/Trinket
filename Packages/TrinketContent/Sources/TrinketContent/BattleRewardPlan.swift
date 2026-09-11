@@ -36,6 +36,30 @@ public struct BattleRewardPlan: Equatable, Sendable {
             materials: materials ?? self.materials, items: items,
         )
     }
+
+    public func settle(
+        battleGold: BattleGoldFlow,
+        inputs: RewardSettlementInputs,
+        materials: [ResourceAmount]? = nil,
+    ) -> BattleRewardSettlement {
+        let resolved = resolve(battleGold: battleGold, materials: materials)
+        let replacesGold = RewardSettlementPolicy.replacesGold(
+            gains: resolved.goldGained, spending: battleGold.spent, capacity: inputs.goldCapacity,
+        )
+        let compensation = replacesGold ? goldOverflowExperience : 0
+        let award = BattleRewardAward(
+            stageGold: replacesGold ? 0 : resolved.stageGold,
+            battleGold: replacesGold ? -battleGold.spent : resolved.battleGold,
+            goldFlow: battleGold,
+            heroExperience: ExperienceScaling.cappedAward(resolved.heroExperience + compensation, for: inputs.heroProgression),
+            companionExperience: ExperienceScaling.cappedAward(
+                resolved.companionExperience + compensation,
+                for: inputs.companionProgression,
+            ),
+            materials: resolved.materials, items: resolved.items,
+        )
+        return BattleRewardSettlement(inputs: inputs, award: award, replacementExperience: compensation)
+    }
 }
 
 public struct BattleRewardAward: Equatable, Sendable {

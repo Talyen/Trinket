@@ -10,7 +10,7 @@ struct PlayerSaveGraphIdentityTests {
     @Test @MainActor func `unrelated slice write preserves inventory and roster row identity`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
-        let store = try makeStore(at: storeURL)
+        let store = try context.makeReloadedStore()
         try store.applyTestSeed()
         let inspectionContext = try graphInspectionContext(at: storeURL)
         let before = try graphIdentity(in: inspectionContext)
@@ -27,7 +27,7 @@ struct PlayerSaveGraphIdentityTests {
     @Test @MainActor func `inventory reconciliation preserves unchanged rows and ordering`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
-        let store = try makeStore(at: storeURL)
+        let store = try context.makeReloadedStore()
         try store.applyTestSeed()
         let inspectionContext = try graphInspectionContext(at: storeURL)
         let before = try graphIdentity(in: inspectionContext)
@@ -47,7 +47,7 @@ struct PlayerSaveGraphIdentityTests {
         }
         try #expect(after.rosterProgressions == before.rosterProgressions)
 
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let reloaded = try context.makeReloadedStore()
         try #expect(reloaded.inventory.items.map(\.id) == inventory.items.map(\.id))
         try #expect(reloaded.inventory.items.first?.displayName == "\(changedItem.displayName) +1")
     }
@@ -55,7 +55,7 @@ struct PlayerSaveGraphIdentityTests {
     @Test @MainActor func `inventory only mutation persists sanitized loadout removal`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
-        let store = try makeStore(at: storeURL)
+        let store = try context.makeReloadedStore()
         let item = try #require(GameContent.itemTemplate(matching: "shortsword-basic")).rewardInstance(
             for: "chapter-1-stage-1",
         )
@@ -73,13 +73,6 @@ struct PlayerSaveGraphIdentityTests {
 
         let slots = try graphInspectionContext(at: storeURL).fetch(FetchDescriptor<EquipmentSlotModel>())
         try #expect(slots.allSatisfy { $0.itemID != item.id })
-    }
-
-    @MainActor private func makeStore(at storeURL: URL) throws -> PlayerSaveStore {
-        try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-        )
     }
 
     private func graphInspectionContext(at storeURL: URL) throws -> ModelContext {

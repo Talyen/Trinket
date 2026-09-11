@@ -213,10 +213,13 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
     def test_prepare_art_skips_unchanged_catalog_contents_json(self) -> None:
         text = (ROOT / "Scripts" / "prepare-art-assets.sh").read_text(encoding="utf-8")
         self.assertIn("contents_json_temp", text)
-        self.assertIn('"$asset_catalog/Contents.json"', text)
-        self.assertRegex(
+        self.assertIn(
+            'trinket_asset_commit_generated "$contents_json_temp" "$asset_catalog/Contents.json"',
             text,
-            r"cmp -s \"\$contents_json_temp\" \"\$asset_catalog/Contents\.json\"",
+        )
+        self.assertIn(
+            'trinket_asset_commit_generated "$generated_temp" "$generated_swift"',
+            text,
         )
 
     def test_project_yml_keeps_assets_outside_swift_sync_roots(self) -> None:
@@ -249,6 +252,269 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
         plan = "\n".join(result.stdout.splitlines())
         self.assertIn("./Scripts/generate.sh --assets", plan)
         self.assertIn("./Scripts/test-scripts.sh", plan)
+
+    def make_art_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
+        root = Path(directory)
+        for relative in (
+            "Scripts/lib",
+            "ArtManifest",
+            "Raw Assets",
+            "Trinket/Assets.xcassets",
+            "Packages/TrinketContent/Sources/TrinketContent/Generated",
+            "Packages/TrinketContent/Sources/TrinketContent/Content",
+            "bin",
+        ):
+            (root / relative).mkdir(parents=True, exist_ok=True)
+        for relative in ("Scripts/prepare-art-assets.sh", "Scripts/lib/media-assets.sh"):
+            destination = root / relative
+            destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
+            destination.chmod(0o755)
+        (root / "Raw Assets/source.jpeg").write_bytes(b"source")
+        (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift").write_text(
+            'id: "knight"\n', encoding="utf-8"
+        )
+        (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift").write_text(
+            "", encoding="utf-8"
+        )
+        (root / "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift").write_text(
+            'id: "slash"\n', encoding="utf-8"
+        )
+        for name in ("AbilityCatalogSkill.swift", "AbilityCatalogUltimate.swift"):
+            (root / "Packages/TrinketContent/Sources/TrinketContent/Content" / name).write_text(
+                "", encoding="utf-8"
+            )
+        (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift").write_text(
+            'id: "longsword"\n', encoding="utf-8"
+        )
+        sips = root / "bin/sips"
+        sips.write_text(
+            "#!/usr/bin/env python3\n"
+            "import pathlib, sys\n"
+            "args = sys.argv[1:]\n"
+            "if '--out' in args:\n"
+            "    out = pathlib.Path(args[args.index('--out') + 1])\n"
+            "    out.write_bytes(b'encoded')\n"
+            "    with open(__import__('os').environ['ART_TEST_LOG'], 'a') as log:\n"
+            "        log.write(out.name + ':' + args[args.index('-Z') + 1] + '\\n')\n"
+            "elif '-g' in args:\n"
+            "    portrait = 'portrait' in args[-1]\n"
+            "    print('pixelWidth:', 1536 if portrait else 1600)\n"
+            "    print('pixelHeight:', 2752 if portrait else 1194)\n",
+            encoding="utf-8",
+        )
+        sips.chmod(0o755)
+        log = root / "conversions.log"
+        log.write_text("", encoding="utf-8")
+        environment = {
+            **os.environ,
+            "PATH": f"{root / 'bin'}:{os.environ['PATH']}",
+            "ART_TEST_LOG": str(log),
+        }
+        return root, environment, log
+
+    def run_art_fixture(
+        self, root: Path, environment: dict[str, str]
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["bash", "Scripts/prepare-art-assets.sh"],
+            cwd=root,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def test_art_kind_matrix_emits_expected_variants(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, log = self.make_art_fixture(directory)
+            (root / "ArtManifest/curated-assets.tsv").write_text(
+                "combatant\tknight\thero_knight_card\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "ability\tslash\tability_slash\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "item\tlongsword-basic\titem_longsword_basic\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "slot_background\tweapon\tslot_weapon\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "background\tfield\tbg_field\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "portrait_background\tfield_portrait\tbg_field_portrait\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "encounter\tshop\tdest_shop\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "resource\twood\tresource_wood\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "talent\tburn\ttalent_burn\tRaw Assets/source.jpeg\t0.5\t0.5\n",
+                encoding="utf-8",
+            )
+            first = self.run_art_fixture(root, environment)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            self.assertEqual(
+                sorted(log.read_text().splitlines()),
+                sorted([
+                    "hero_knight_card.heic:1320", "hero_knight_card_thumb.heic:480",
+                    "ability_slash.heic:960", "ability_slash_thumb.heic:480",
+                    "item_longsword_basic.heic:960", "item_longsword_basic_thumb.heic:480",
+                    "slot_weapon.heic:720",
+                    "bg_field.heic:1600", "bg_field_thumb.heic:480",
+                    "bg_field_portrait.heic:2752", "bg_field_portrait_thumb.heic:960",
+                    "dest_shop.heic:1320", "dest_shop_thumb.heic:480",
+                    "resource_wood.heic:256",
+                    "talent_burn.heic:960", "talent_burn_thumb.heic:480",
+                ]),
+            )
+            catalog = (
+                root
+                / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
+            ).read_text(encoding="utf-8")
+            for section in (
+                "combatantArtByID", "abilityArtByID", "itemArtByID", "slotBackgroundArtByID",
+                "backgroundArtByID", "portraitBackgroundArtByID", "encounterArtByID",
+                "resourceArtByID", "talentArtByID",
+            ):
+                self.assertIn(section, catalog)
+            self.assertIn("dict[.burn]", catalog)
+            self.assertIn("dict[.weapon]", catalog)
+            state = (
+                root
+                / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv"
+            ).read_text(encoding="utf-8")
+            self.assertTrue(state.splitlines()[1].startswith("# asset_name\tsource_sha256\tencode_profile"))
+            second = self.run_art_fixture(root, environment)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertEqual(len(log.read_text().splitlines()), 16)
+            self.assertEqual(
+                (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift").read_text(
+                    encoding="utf-8"
+                ),
+                catalog,
+            )
+
+    def test_art_rejects_unbacked_ids_and_prunes_orphans(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, _ = self.make_art_fixture(directory)
+            manifest = root / "ArtManifest/curated-assets.tsv"
+            manifest.write_text(
+                "combatant\tknight\thero_knight_card\tRaw Assets/source.jpeg\t0.5\t0.5\n"
+                "combatant\tbogus\tbogus_card\tRaw Assets/source.jpeg\t0.5\t0.5\n",
+                encoding="utf-8",
+            )
+            rejected = self.run_art_fixture(root, environment)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("Combatant art id 'bogus'", rejected.stderr)
+            manifest.write_text(
+                "combatant\tknight\thero_knight_card\tRaw Assets/source.jpeg\t0.5\t0.5\n",
+                encoding="utf-8",
+            )
+            ok = self.run_art_fixture(root, environment)
+            self.assertEqual(ok.returncode, 0, ok.stderr)
+            stray = root / "Trinket/Assets.xcassets/hero_stray.imageset"
+            stray.mkdir(parents=True)
+            (stray / "hero_stray.heic").write_bytes(b"stale")
+            pruned = self.run_art_fixture(root, environment)
+            self.assertEqual(pruned.returncode, 0, pruned.stderr)
+            self.assertIn("Pruning orphaned asset: hero_stray.imageset", pruned.stdout)
+            self.assertFalse(stray.exists())
+
+    def test_cinematic_fixture_converts_once_and_stays_stable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for relative in (
+                "Scripts/lib",
+                "CinematicManifest",
+                "ContentManifest",
+                "Raw Assets/Animations",
+                "Trinket/Media/Cinematics",
+                "Packages/TrinketContent/Sources/TrinketContent/Generated",
+                "Packages/TrinketContent/Sources/TrinketContent/Content",
+                "bin",
+            ):
+                (root / relative).mkdir(parents=True, exist_ok=True)
+            for relative in ("Scripts/prepare-cinematic-assets.sh", "Scripts/lib/media-assets.sh"):
+                destination = root / relative
+                destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
+                destination.chmod(0o755)
+            (root / "Raw Assets/Animations/slash.mp4").write_bytes(b"master")
+            (root / "CinematicManifest/cinematics.tsv").write_text(
+                "knight\tavatar-of-justice\tknight_avatar\tRaw Assets/Animations/slash.mp4\ttrue\n",
+                encoding="utf-8",
+            )
+            (root / "ContentManifest/combatants.tsv").write_text(
+                "id\tname\trole\tmax_health\tmax_mana\tbasics\tskills\tultimates\n"
+                "knight\tKnight\thero\t100\t0\tslash\tslash\tavatarOfJustice\n",
+                encoding="utf-8",
+            )
+            (root / "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.swift").write_text(
+                'id: "avatar-of-justice"\n', encoding="utf-8"
+            )
+            avconvert = root / "bin/avconvert"
+            avconvert.write_text(
+                "#!/usr/bin/env python3\n"
+                "import os, pathlib, re, sys\n"
+                "args = sys.argv[1:]\n"
+                "out = pathlib.Path(args[args.index('--output') + 1])\n"
+                "src = pathlib.Path(args[args.index('--source') + 1])\n"
+                "out.write_bytes(src.read_bytes() + b'hvc1')\n"
+                "name = out.name.lstrip('.')\n"
+                "name = re.sub(r'\\.tmp\\.\\d+', '', name)\n"
+                "with open(os.environ['AVCONVERT_LOG'], 'a') as log:\n"
+                "    log.write(name + '\\n')\n",
+                encoding="utf-8",
+            )
+            avconvert.chmod(0o755)
+            log = root / "conversions.log"
+            log.write_text("", encoding="utf-8")
+            environment = {
+                **os.environ,
+                "PATH": f"{root / 'bin'}:{os.environ['PATH']}",
+                "AVCONVERT_LOG": str(log),
+            }
+            command = ["bash", "Scripts/prepare-cinematic-assets.sh"]
+
+            first = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            self.assertEqual(log.read_text().splitlines(), ["knight_avatar.mp4"])
+            catalog = (
+                root
+                / "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
+            ).read_text(encoding="utf-8")
+            self.assertIn('"knight|avatar-of-justice"', catalog)
+
+            second = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertEqual(log.read_text().splitlines(), ["knight_avatar.mp4"])
+            self.assertEqual(
+                (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift").read_text(
+                    encoding="utf-8"
+                ),
+                catalog,
+            )
+
+    def test_app_icon_fixture_installs_once_and_stays_stable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for relative in (
+                "Scripts/lib",
+                "Raw Assets/App Icon/Trinket App Icon.icon",
+                "Trinket",
+                "Packages/TrinketContent/Sources/TrinketContent/Generated",
+            ):
+                (root / relative).mkdir(parents=True, exist_ok=True)
+            for relative in ("Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh"):
+                destination = root / relative
+                destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
+                destination.chmod(0o755)
+            (root / "Raw Assets/App Icon/Trinket App Icon.icon/icon.json").write_text(
+                "{}", encoding="utf-8"
+            )
+            (root / "Raw Assets/App Icon/Trinket App Icon.icon/contents.dat").write_bytes(b"icon")
+            command = ["bash", "Scripts/prepare-app-icon.sh"]
+
+            first = subprocess.run(command, cwd=root, capture_output=True, text=True)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            self.assertIn("Installed", first.stdout)
+            self.assertTrue((root / "Trinket/AppIcon.icon/icon.json").is_file())
+            state = (
+                root
+                / "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv"
+            ).read_text(encoding="utf-8")
+            self.assertTrue(state.splitlines()[1].startswith("# asset_name\tsource_sha256\tencode_profile"))
+
+            second = subprocess.run(command, cwd=root, capture_output=True, text=True)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertNotIn("Installed", second.stdout)
 
 if __name__ == "__main__":
     unittest.main()

@@ -104,4 +104,11 @@ struct ItemAffixMagnitudeRollTests {
         try #expect(ItemAffixMagnitudeRoll.integerRange(around: 2) == 1 ... 3)
         try #expect(bumped.isPerfectAffix(at: 0))
     }
+
+    @Test func `scaling multi-number descriptions scales bonuses but keeps thresholds`() throws {
+        let secondWind = try #require(GameContent.itemAffixDefinition(matching: "second_wind"))
+        let scaled = secondWind.basic.scaled(by: 2)
+        #expect(scaled.description == "Restore 16 Health the first time you fall below 25% Health.")
+        #expect(scaled.triggers.onceBelowHealthPercentHeal == 16)
+    }
 }

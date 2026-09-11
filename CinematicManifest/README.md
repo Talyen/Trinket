@@ -36,7 +36,8 @@ regenerates the Swift catalog.
 Default preset: `PresetHEVCHighestQuality` (override with `CINEMATIC_HEVC_PRESET`).
 `avconvert` never upscales; output resolution matches the source (or is smaller if a
 dimension-capped preset is chosen). Changing the preset invalidates generated hashes
-and re-encodes.
+and re-encodes. Set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state;
+orphaned encodes are pruned.
 
 Delivery is **SDR only**. Battle overlays do not need HDR. If a master is HDR
 (PQ / HLG / Dolby Vision, or Transfer Function tagged as such), export an SDR Rec.709

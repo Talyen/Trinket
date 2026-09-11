@@ -195,13 +195,7 @@ public enum MysteryEffectApplier {
     }
 
     static func isAvailable(_ item: InventoryItem, in inventory: PlayerInventoryState) -> Bool {
-        if item.isTrinket {
-            return !inventory.ownedTrinketIDs.contains(item.templateID)
-        }
-        if item.rarity == .unique {
-            return !inventory.ownedUniqueIDs.contains(item.templateID)
-        }
-        return !inventory.items.contains { $0.id == item.id }
+        !InventoryDuplicatePolicy.containsDuplicate(of: item, in: inventory.items)
     }
 
     private static func generateItem(

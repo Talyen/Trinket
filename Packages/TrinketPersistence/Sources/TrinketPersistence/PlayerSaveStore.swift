@@ -167,9 +167,7 @@ public final class PlayerSaveStore {
         _ update: (inout PlayerSave) -> Void,
         persistImmediately: Bool = true,
     ) throws {
-        var candidate = currentSave
-        update(&candidate)
-        try commitCandidate(candidate, persistImmediately: persistImmediately)
+        try commitCandidate(proposedSave(by: update), persistImmediately: persistImmediately)
     }
 
     private func commitCandidate(_ proposed: PlayerSave, persistImmediately: Bool = true) throws {
@@ -187,9 +185,13 @@ public final class PlayerSaveStore {
         logging message: String,
         _ mutation: (inout PlayerSave) -> Void,
     ) -> Bool {
+        persistCandidate(proposedSave(by: mutation), logging: message)
+    }
+
+    private func proposedSave(by mutation: (inout PlayerSave) -> Void) -> PlayerSave {
         var candidate = currentSave
         mutation(&candidate)
-        return persistCandidate(candidate, logging: message)
+        return candidate
     }
 
     func persistCandidate(_ candidate: PlayerSave, logging message: String) -> Bool {
@@ -277,7 +279,7 @@ public final class PlayerSaveStore {
                 try saveGraph()
                 clearPendingDeferredPersistence()
             } catch {
-                root.apply(snapshot, slices: slices, context: context)
+                compensate(snapshot: snapshot, slices: slices)
                 throw PlayerSavePersistenceError.writeFailed
             }
         } else {
@@ -307,8 +309,13 @@ public final class PlayerSaveStore {
         do {
             try applyCandidate(save, replacing: observedSave, slices: repairSlices)
         } catch {
+            logger.error("Failed to repair player save graph: \(String(describing: error), privacy: .public)")
             lastPersistenceError = .writeFailed
         }
+    }
+
+    private func compensate(snapshot: PlayerSave, slices: PlayerSaveSlice) {
+        restoreSnapshot(snapshot, slices: slices)
     }
 }
 

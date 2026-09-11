@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import functools
 import json
+import math
 import re
 from pathlib import Path
 
@@ -17,10 +18,7 @@ def _trigger_families() -> list:
     return payload["families"]
 
 
-def parse_trigger_tokens(raw: str) -> list[str]:
-    if not raw:
-        return []
-    return [part.strip() for part in raw.split("|") if part.strip()]
+from content_codegen_modifiers import VALID_KEYWORDS, parse_modifier_tokens as parse_trigger_tokens
 
 
 _TRIGGER_SIMPLE_MAP: dict[str, str] = {
@@ -119,6 +117,79 @@ def _apply_simple_trigger(token: str, values: dict[str, str]) -> bool:
     return False
 
 
+_BESPOKE_TRIGGER_SPECS: dict[str, tuple[str, dict[int, tuple[tuple[str, bool], ...]]]] = {
+    "damage_below_health_percent": (
+        "threshold[:keyword]:bonus",
+        {
+            2: (
+                ("damageBelowHealthPercentThreshold", False),
+                ("damageBelowHealthPercentBonus", False),
+            ),
+            3: (
+                ("damageBelowHealthPercentThreshold", False),
+                ("damageBelowHealthPercentKeyword", True),
+                ("damageBelowHealthPercentBonus", False),
+            ),
+        },
+    ),
+    "once_below_health_percent_heal": (
+        "threshold:amount",
+        {
+            2: (
+                ("onceBelowHealthPercentThreshold", False),
+                ("onceBelowHealthPercentHeal", False),
+            ),
+        },
+    ),
+    "dodge_chance_below_health_percent": (
+        "threshold:bonus",
+        {
+            2: (
+                ("dodgeChanceBelowHealthPercentThreshold", False),
+                ("dodgeChanceBelowHealthPercentBonus", False),
+            ),
+        },
+    ),
+    "turn_random_damage_all_enemies": (
+        "keyword:keyword:amount",
+        {
+            3: (
+                ("turnRandomDamageAllEnemiesKeywordA", True),
+                ("turnRandomDamageAllEnemiesKeywordB", True),
+                ("turnRandomDamageAllEnemiesAmount", False),
+            ),
+        },
+    ),
+    "cards_played_mana": (
+        "threshold:amount",
+        {
+            2: (
+                ("cardsPlayedManaThreshold", False),
+                ("cardsPlayedManaFlat", False),
+            ),
+        },
+    ),
+}
+
+
+def _apply_bespoke_trigger(token: str, values: dict[str, str]) -> bool:
+    for prefix, (usage, arities) in _BESPOKE_TRIGGER_SPECS.items():
+        if not token.startswith(prefix + ":"):
+            continue
+        args = token.split(":")[1:]
+        if len(args) not in arities:
+            raise ValueError(f"{prefix} expects {usage}, got {token!r}")
+        for (field, is_keyword), arg in zip(arities[len(args)], args):
+            if is_keyword:
+                if arg not in VALID_KEYWORDS:
+                    raise ValueError(f"Unknown keyword {arg!r} in trigger token {token!r}")
+                values[field] = f".{arg}"
+            else:
+                values[field] = arg
+        return True
+    return False
+
+
 @functools.cache
 def _trigger_schema_info() -> tuple[dict[str, str], list[str], dict[str, str]]:
     families = _trigger_families()
@@ -132,66 +203,102 @@ def _trigger_schema_info() -> tuple[dict[str, str], list[str], dict[str, str]]:
     return field_group, group_order, family_types
 
 
-def triggers_swift(raw: str) -> str:
+@functools.cache
+def _trigger_field_types() -> dict[str, str]:
+    return {
+        field["name"]: field["type"]
+        for family in _trigger_families()
+        for field in family["fields"]
+    }
+
+
+def _validate_trigger_value(field: str, raw_value: str, row_id: str) -> None:
+    field_type = _trigger_field_types().get(field)
+    if field_type is None:
+        raise ValueError(f"Unknown trigger field: {field}")
+    value = raw_value.strip()
+    if field_type == "Int":
+        try:
+            int(value)
+        except ValueError as error:
+            raise ValueError(
+                f"Trigger value for {field} for {row_id} must be an integer, got {raw_value!r}"
+            ) from error
+    elif field_type == "Double":
+        try:
+            parsed = float(value)
+        except ValueError as error:
+            raise ValueError(
+                f"Trigger value for {field} for {row_id} must be a number, got {raw_value!r}"
+            ) from error
+        if not math.isfinite(parsed):
+            raise ValueError(
+                f"Trigger value for {field} for {row_id} must be a finite number"
+            )
+    elif field_type == "Bool":
+        if value not in ("true", "false"):
+            raise ValueError(
+                f"Trigger value for {field} for {row_id} must be true or false, "
+                f"got {raw_value!r}; drop the token for false"
+            )
+    elif field_type == "Keyword?":
+        if not value.startswith(".") or value[1:] not in VALID_KEYWORDS:
+            raise ValueError(
+                f"Trigger value for {field} for {row_id} must be a known keyword, "
+                f"got {raw_value!r}"
+            )
+    elif field_type == "[Int]":
+        inner = value[1:-1] if value.startswith("[") and value.endswith("]") else None
+        if inner is None:
+            raise ValueError(
+                f"Trigger value for {field} for {row_id} must be an integer list like [1, 4], "
+                f"got {raw_value!r}"
+            )
+        for part in inner.split(","):
+            if not part.strip():
+                continue
+            try:
+                int(part.strip())
+            except ValueError as error:
+                raise ValueError(
+                    f"Trigger value for {field} for {row_id} must be an integer list, "
+                    f"got {raw_value!r}"
+                ) from error
+
+
+def triggers_swift(raw: str, row_id: str = "") -> str:
     field_group, group_order, family_types = _trigger_schema_info()
     known_fields = set(field_group)
+    label = row_id or "triggers"
+    seen_prefixes: dict[str, str] = {}
     values: dict[str, str] = {}
     for token in parse_trigger_tokens(raw):
+        prefix = token.split(":")[0] if ":" in token else token
+        if prefix in seen_prefixes:
+            raise ValueError(
+                f"Duplicate trigger {prefix!r} for {label}: "
+                f"{token!r} repeats {seen_prefixes[prefix]!r}; merge into one token"
+            )
+        seen_prefixes[prefix] = token
         if _apply_simple_trigger(token, values):
             continue
-        if token.startswith("damage_below_health_percent:"):
-            parts = token.split(":")
-            if len(parts) == 4:
-                _, threshold, keyword, bonus = parts
-                values["damageBelowHealthPercentThreshold"] = threshold
-                values["damageBelowHealthPercentKeyword"] = f".{keyword}"
-                values["damageBelowHealthPercentBonus"] = bonus
-            else:
-                _, threshold, bonus = parts
-                values["damageBelowHealthPercentThreshold"] = threshold
-                values["damageBelowHealthPercentBonus"] = bonus
+        if _apply_bespoke_trigger(token, values):
             continue
-        if token.startswith("once_below_health_percent_heal:"):
-            _, threshold, amount = token.split(":", 2)
-            values["onceBelowHealthPercentThreshold"] = threshold
-            values["onceBelowHealthPercentHeal"] = amount
-            continue
-        if token.startswith("dodge_chance_below_health_percent:"):
-            _, threshold, bonus = token.split(":", 2)
-            values["dodgeChanceBelowHealthPercentThreshold"] = threshold
-            values["dodgeChanceBelowHealthPercentBonus"] = bonus
-            continue
-        if token.startswith("turn_random_damage_all_enemies:"):
-            parts = token.split(":")
-            if len(parts) != 4:
-                raise ValueError(
-                    "turn_random_damage_all_enemies expects keyword:keyword:amount, "
-                    f"got {token!r}"
-                )
-            _, keyword_a, keyword_b, amount = parts
-            values["turnRandomDamageAllEnemiesKeywordA"] = f".{keyword_a}"
-            values["turnRandomDamageAllEnemiesKeywordB"] = f".{keyword_b}"
-            values["turnRandomDamageAllEnemiesAmount"] = amount
-            continue
-        if token.startswith("cards_played_mana:"):
-            _, threshold, amount = token.split(":", 2)
-            values["cardsPlayedManaThreshold"] = threshold
-            values["cardsPlayedManaFlat"] = amount
-            continue
-        else:
-            field, separator, value = token.partition(":")
-            if not separator:
-                raise ValueError(f"Unknown trigger token: {token}")
-            if "_" in field:
-                parts = field.split("_")
-                field = parts[0] + "".join(part.title() for part in parts[1:])
-            if field not in known_fields:
-                raise ValueError(f"Unknown trigger token: {token}")
-            if re.search(r",[A-Za-z_][A-Za-z0-9_]*:", value):
-                raise ValueError(
-                    f"Glued trigger token {token!r}; separate fields with |"
-                )
-            values[field] = value
+        field, separator, value = token.partition(":")
+        if not separator:
+            raise ValueError(f"Unknown trigger token: {token}")
+        if "_" in field:
+            parts = field.split("_")
+            field = parts[0] + "".join(part.title() for part in parts[1:])
+        if field not in known_fields:
+            raise ValueError(f"Unknown trigger token: {token}")
+        if re.search(r",[A-Za-z_][A-Za-z0-9_]*:", value):
+            raise ValueError(
+                f"Glued trigger token {token!r}; separate fields with |"
+            )
+        values[field] = value
+    for field, raw_value in values.items():
+        _validate_trigger_value(field, raw_value, label)
     grouped: dict[str, list[str]] = {g: [] for g in group_order}
     for label in values:
         try:

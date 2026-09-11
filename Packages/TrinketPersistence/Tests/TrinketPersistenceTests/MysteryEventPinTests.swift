@@ -60,13 +60,7 @@ struct MysteryEventPinTests {
         let event = try #require(GameContent.mysteryEvent(matching: "crystal-geode"))
         let journeyStage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         let store = try context.makeSaveStore(resetState: true)
-        var nodeID: String?
-        if inLabyrinth {
-            var labyrinth = store.labyrinth
-            labyrinth.ensureMap(seed: store.worldSeed)
-            nodeID = try #require(labyrinth.nodes.values.filter { $0.type == .mystery }.sorted { $0.id < $1.id }.first?.id)
-            #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
-        }
+        let nodeID = try reachableMysteryNodeID(in: store, enabled: inLabyrinth)
         let stage = nodeID.map { GameContent.syntheticLabyrinthStage(nodeID: $0, encounter: .mysteryEvent(eventID: event.id)) }
             ?? journeyStage
         var first: [MysteryOffer]?
@@ -104,6 +98,36 @@ struct MysteryEventPinTests {
             #expect(claimed.journey.completedStageIDs.contains(stage.id))
             #expect(claimed.journey.mysteryOfferPayloads[stage.id] == nil)
         }
+    }
+
+    @MainActor
+    private func reachableMysteryNodeID(in store: PlayerSaveStore, enabled: Bool) throws -> String? {
+        guard enabled else { return nil }
+        var labyrinth = store.labyrinth
+        labyrinth.ensureMap(seed: store.worldSeed)
+        let reachable = Set(labyrinth.reachableNodeIDs())
+        if let mysteryID = labyrinth.nodes.values.filter({ $0.type == .mystery && reachable.contains($0.id) })
+            .min(by: { $0.id < $1.id })?.id {
+            #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
+            return mysteryID
+        }
+        let reachableID = try #require(reachable.min())
+        let existing = try #require(labyrinth.nodes[reachableID])
+        labyrinth.nodes[reachableID] = LabyrinthNode(
+            id: existing.id,
+            type: .mystery,
+            enemyID: existing.enemyID,
+            depth: existing.depth,
+            clusterID: existing.clusterID,
+            gridPosition: existing.gridPosition,
+            modifierIDs: existing.modifierIDs,
+            recruitEventID: existing.recruitEventID,
+            outgoingIDs: existing.outgoingIDs,
+            isCleared: false,
+            isRevealed: true,
+        )
+        #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
+        return reachableID
     }
 
     @Test func `newly owned special rewards refresh without changing the other offer`() throws {

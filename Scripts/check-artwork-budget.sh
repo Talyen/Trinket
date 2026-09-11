@@ -7,6 +7,7 @@ violations=()
 # Enforce 6 GB typical budgets. Do not lower to re-target 4 GB without product approval.
 # See Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift
 # and Docs/Platform/PerformanceInvestigationPlaybook.md § Artwork Budgets.
+# Scope: runtime cache constants only, not manifest pipeline output sizes.
 
 file="Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift"
 

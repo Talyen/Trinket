@@ -17,7 +17,7 @@ public extension ItemRewardGenerator {
             ("Both exhausted", [.basic, .astral]),
             ("Guaranteed Astral", [.astral]),
         ]
-        for level in 1 ... 20 {
+        for level in 1 ... 40 {
             for boss in [false, true] {
                 for bonus in [0, 5, 10, 15, 20] {
                     for (name, tiers) in pools {

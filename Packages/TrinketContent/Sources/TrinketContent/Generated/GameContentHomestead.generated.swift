@@ -546,7 +546,7 @@ enum GameContentHomesteadGenerated {
                         title: "Companion damage & production",
                         description: "Increase Companion damage dealt by 1\nProduces 1 Hide per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(1)]),
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.companionDamageDealt(1)]),
                     production: ResourceAmount(.hide, 1)
                 ),
                 HomesteadNodeTier(
@@ -557,7 +557,7 @@ enum GameContentHomesteadGenerated {
                         title: "Companion damage & production",
                         description: "Increase Companion damage dealt by 2\nProduces 2 Hide per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(2)]),
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.companionDamageDealt(2)]),
                     production: ResourceAmount(.hide, 2)
                 ),
                 HomesteadNodeTier(
@@ -568,7 +568,7 @@ enum GameContentHomesteadGenerated {
                         title: "Companion damage & production",
                         description: "Increase Companion damage dealt by 3\nProduces 3 Hide per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(3)]),
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.companionDamageDealt(3)]),
                     production: ResourceAmount(.hide, 3)
                 ),
                 HomesteadNodeTier(
@@ -579,7 +579,7 @@ enum GameContentHomesteadGenerated {
                         title: "Companion damage & production",
                         description: "Increase Companion damage dealt by 4\nProduces 4 Hide per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.companionDamageDealt(4)]),
+                    combatBonus: HomesteadTierCombatBonus(companionModifiers: [.companionDamageDealt(4)]),
                     production: ResourceAmount(.hide, 4)
                 )
             ]

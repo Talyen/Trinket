@@ -31,11 +31,13 @@ Boss rows are validated against `GameContent.enemies` and must point at an enemy
 
 Entry point and verification routing: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md); `prepare-audio-assets.sh music` is the focused debugging entry point.
 
-The script validates manifest rows, converts source files with macOS `afconvert`, writes AAC `.m4a` files, and regenerates the Swift catalog. The default AAC bitrate is `96000`; override with:
+The script validates manifest rows, converts source files with macOS `afconvert`, writes AAC `.m4a` files, prunes orphans, and regenerates the Swift catalog. Source bytes and the complete encode profile both participate in cache invalidation. The default AAC bitrate is `96000`; override with:
 
 ```sh
 MUSIC_AAC_BITRATE=128000 ./Scripts/prepare-audio-assets.sh music
 ```
+
+Set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 ## Runtime Routing
 

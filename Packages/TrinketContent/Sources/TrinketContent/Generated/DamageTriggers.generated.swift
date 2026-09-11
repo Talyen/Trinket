@@ -306,8 +306,8 @@ extension DamageTriggers {
         stunnedDamageMultiplier *= other.stunnedDamageMultiplier
         criticalChanceBonus += other.criticalChanceBonus
         damageVsBleedingBonus += other.damageVsBleedingBonus
-        damageVsPoisonedMultiplier = 1 + (damageVsPoisonedMultiplier - 1) + (other.damageVsPoisonedMultiplier - 1)
-        damageVsBurningMultiplier = 1 + (damageVsBurningMultiplier - 1) + (other.damageVsBurningMultiplier - 1)
+        damageVsPoisonedMultiplier += other.damageVsPoisonedMultiplier - 1
+        damageVsBurningMultiplier += other.damageVsBurningMultiplier - 1
         damageVsFrozenMultiplier *= other.damageVsFrozenMultiplier
         holyDamageVsStunnedOrBurningMultiplier *= other.holyDamageVsStunnedOrBurningMultiplier
         holyDamageVsPoisonedOrBleedingMultiplier *= other.holyDamageVsPoisonedOrBleedingMultiplier

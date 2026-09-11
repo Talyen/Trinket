@@ -18,9 +18,9 @@ maintenance win. Keep gameplay balance and artwork budgets unchanged.
 - [ ] **1. Frozen mystery preview.** Make the preview ticket authoritative even
   when pinning fails, then add persistence/reload coverage for the same encounter
   level and reward preview.
-- [ ] **2. Codegen correctness.** Replace fragile `publicize`/brace counting with
-  schema-driven access emission, fix `swift_escape` round trips, and add focused
-  regression cases for quotes, backslashes, and braces.
+- [x] **2. Codegen correctness.** Replaced fragile `publicize`/brace counting with
+  direct access emission, documented `swift_escape` round trips, and added
+  focused regression cases for quotes, backslashes, and braces.
 - [ ] **3. Measured performance proposals.** Benchmark damage-resolution rescans
   and combat-feedback layering first. Implement a snapshot or feedback dedup only
   when measurement confirms a bounded win; otherwise record a non-finding.

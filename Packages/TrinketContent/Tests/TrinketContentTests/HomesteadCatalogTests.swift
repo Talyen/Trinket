@@ -37,11 +37,11 @@ struct HomesteadCatalogTests {
                 try #expect(tier1.heroModifiers.isEmpty)
                 try #expect(tier1.companionModifiers.isEmpty)
             case .hunterLodge:
-                try #expect(tier1.companionModifiers.isEmpty)
-                try #expect(tier4.companionModifiers.isEmpty)
-                try #expect(tier1.heroModifiers.count == 1)
-                try #expect(tier4.heroModifiers.count == 1)
-                try #expect(tier4.heroModifiers[0].numericValue > tier1.heroModifiers[0].numericValue)
+                try #expect(tier1.heroModifiers.isEmpty)
+                try #expect(tier4.heroModifiers.isEmpty)
+                try #expect(tier1.companionModifiers.count == 1)
+                try #expect(tier4.companionModifiers.count == 1)
+                try #expect(tier4.companionModifiers[0].numericValue > tier1.companionModifiers[0].numericValue)
             case .agilityTraining:
                 try #expect(tier1.heroModifiers.isEmpty)
                 try #expect(tier4.heroModifiers.isEmpty)
@@ -83,8 +83,8 @@ struct HomesteadCatalogTests {
         #expect(alchemy.companionModifiers == alchemy.heroModifiers)
 
         let lodge = HomesteadEffects.from(nodeTiers: [.hunterLodge: 4])
-        #expect(lodge.heroModifiers == [.companionDamageDealt(4)])
-        #expect(lodge.companionModifiers.isEmpty)
+        #expect(lodge.heroModifiers.isEmpty)
+        #expect(lodge.companionModifiers == [.companionDamageDealt(4)])
 
         let agility = HomesteadEffects.from(nodeTiers: [.agilityTraining: 2])
         #expect(agility.heroModifiers.isEmpty)

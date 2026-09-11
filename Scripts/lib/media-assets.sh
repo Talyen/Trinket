@@ -103,6 +103,18 @@ trinket_asset_require_afconvert() {
   fi
 }
 
+# Single content digest for a directory tree in stable path order.
+trinket_hash_dir_tree() {
+  local dir="$1"
+  (
+    cd "$dir"
+    # Exclude Finder noise; hash every authored file in stable path order.
+    find . -type f ! -name '.DS_Store' -print0 \
+      | LC_ALL=C sort -z \
+      | xargs -0 shasum -a 256
+  ) | shasum -a 256 | awk '{print $1}'
+}
+
 # Creates the per-run hash state file with its two header lines and records
 # its path in TRINKET_ASSET_STATE_TEMP. Callers own trap cleanup of that path.
 TRINKET_ASSET_STATE_TEMP=""

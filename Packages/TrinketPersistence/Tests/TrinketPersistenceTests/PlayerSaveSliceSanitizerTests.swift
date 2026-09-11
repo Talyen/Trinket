@@ -76,7 +76,7 @@ struct PlayerSaveSliceSanitizerTests {
     @Test func `inventory and roster sanitize targets do not expand to labyrinth`() {
         #expect(PlayerSaveSlice.sanitizeTargets(for: [.inventory]) == [.inventory, .roster])
         #expect(PlayerSaveSlice.sanitizeTargets(for: [.roster]) == [.roster])
-        #expect(PlayerSaveSlice.sanitizeTargets(for: [.labyrinth]) == [.labyrinth])
+        #expect(PlayerSaveSlice.sanitizeTargets(for: [.labyrinth]) == [.labyrinth, .roster])
     }
 
     @Test func `roster sanitize leaves labyrinth nodes for explicit labyrinth slice`() {

@@ -14,7 +14,7 @@ final class PersistenceTestContext {
         SaveTestSupport.removeTempDirectory(directoryURL)
     }
 
-    func storeURL() -> URL {
+    nonisolated func storeURL() -> URL {
         SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
     }
 
@@ -34,5 +34,10 @@ final class PersistenceTestContext {
             storeURL: storeURL(),
             disableCloudSync: true,
         )
+    }
+
+    func seedAndReload(_ save: PlayerSave) throws -> PlayerSaveStore {
+        try SaveTestSupport.writeRoot(save, to: storeURL())
+        return try makeReloadedStore()
     }
 }

@@ -59,6 +59,22 @@ struct LabyrinthCatalogTests {
         #expect(effects.shopDiscountPercent == 0)
     }
 
+    @Test func `resolved modifiers keep an applicable existing modifier`() throws {
+        let shopPool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .shop) }
+        let keep = try #require(shopPool.first).id
+        let kept = LabyrinthCatalog.resolvedModifierIDs(
+            for: .shop, enemyID: nil, existingModifierIDs: [keep], worldSeed: 7, nodeID: "n",
+        )
+        #expect(kept == [keep])
+        let fresh = LabyrinthCatalog.resolvedModifierIDs(
+            for: .shop, enemyID: nil, existingModifierIDs: [LabyrinthModifierID("bogus")],
+            worldSeed: 7, nodeID: "n",
+        )
+        #expect(
+            fresh == LabyrinthCatalog.modifierIDs(for: .shop, enemyID: nil, worldSeed: 7, nodeID: "n"),
+        )
+    }
+
     @Test func `shop nodes resolve one shop modifier`() {
         let shopPool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .shop) }
         #expect(!shopPool.isEmpty)

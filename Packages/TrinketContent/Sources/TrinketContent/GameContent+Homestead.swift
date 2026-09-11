@@ -4,7 +4,7 @@ import TrinketCore
 public extension GameContent {
     static let homesteadNodes: [HomesteadNodeDefinition] = GameContentHomesteadGenerated.homesteadNodes
 
-    static let homesteadNodesByID: [HomesteadNodeID: HomesteadNodeDefinition] = Dictionary(
+    private static let homesteadNodesByID: [HomesteadNodeID: HomesteadNodeDefinition] = Dictionary(
         uniqueKeysWithValues: homesteadNodes.map { ($0.id, $0) },
     )
 

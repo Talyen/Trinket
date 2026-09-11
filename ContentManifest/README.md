@@ -26,9 +26,10 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 - `slot`: `weapon`, `armor`, `accessory`, or `trinket`.
 - `keywords`: comma-separated keyword names (e.g. `physical,bleed`).
 - `*_modifiers`: pipe-separated DSL tokens (e.g. `maximum_health:6|damage_dealt:physical:1`). Empty when the affix is trigger-only.
-- `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `block_per_turn:2`). Empty for flat modifier affixes.
+- `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `block_per_turn:2`). Empty for flat modifier affixes. Trailing trigger columns may be omitted (no trailing tabs required); extra columns are rejected.
+- One value per field in a cell: repeating a modifier or trigger field is rejected, as are non-numeric amounts and unknown keywords. Trigger value types follow the schema field types.
 
-Trigger tokens resolve against `Scripts/trigger_family_schema.json` (14 families → `Generated/*Triggers.generated.swift`): explicit aliases and multi-part parsers live in `Scripts/content_codegen_triggers.py`, otherwise `snake_case` maps to the schema field (`dodge_chance_bonus` → `dodgeChanceBonus`). Separate fields with `|` — gluing two fields with `,` inside one token is rejected. When the same token exists as both a modifier and a trigger (e.g. `dodge_chance_bonus`), the column decides which one it becomes.
+Trigger tokens resolve against `Scripts/trigger_family_schema.json` (families → `Generated/*Triggers.generated.swift`): explicit aliases and multi-part parsers live in `Scripts/content_codegen_triggers.py`, otherwise `snake_case` maps to the schema field (`dodge_chance_bonus` → `dodgeChanceBonus`). `camelCase` schema field names are accepted everywhere, not only in talents. Separate fields with `|` — gluing two fields with `,` inside one token is rejected. When the same token exists as both a modifier and a trigger (e.g. `dodge_chance_bonus`), the column decides which one it becomes.
 
 Merge semantics when trigger sources stack (schema `merge` op per field): `add` sums, `or` takes either, `max` takes the larger, `mul` multiplies (identity 1), `add_excess` adds only the excess over 1 (identity 1, for a few damage multipliers), `coalesce` keeps the later value, `union` merges the sorted set (only `bonusManaOnTurns`).
 
@@ -42,7 +43,7 @@ id	name	icon_id	description	modifiers	triggers
 
 - `id`: stable `{combatantID}_{keyword}_t{row}_{slot}` identity. The encoded position is historical; `CombatantTalentCatalog` owns explicit position overrides when nodes move. Preserve these IDs and existing purchases when reordering.
 - `icon_id`: `lucide:name` for a bundled Lucide asset or `sf:name` for an SF Symbol. Choose against the talent's name and description, not its branch alone. [Game icon selections](../Docs/Product/GameIcons.md) explains the visual boundary. Generation rejects unqualified identifiers and missing Lucide assets.
-- `modifiers` / `triggers`: same pipe-separated DSL as affixes (`damage_dealt:physical:1`, `blockPerTurn:2`). CamelCase schema field names are accepted as trigger tokens.
+- `modifiers` / `triggers`: same pipe-separated DSL as affixes (`damage_dealt:physical:1`, `blockPerTurn:2`). CamelCase schema field names are accepted as trigger tokens. Trailing `modifiers` / `triggers` columns may be omitted when empty.
 
 Every Hero and Companion tree has two nodes in each of its first three rows,
 then a seventh talent at row 4, slot 1. Existing eighth talents remain supported.
@@ -92,9 +93,9 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	en
 
 - `theme`: chapter theme enum case (`forest`, `dungeon`, `desert`, `tundra`).
 - `encounter`: `battle`, `random_battle`, `shop`, `mystery`, or `recruit`.
-- `enemy_id`: required for `battle` (enemy catalog id). For `mystery` / `recruit`, optional event id — empty mystery picks a random non-recruit event at runtime; empty recruit picks any eligible unlock; `random-companion` picks an eligible companion only. Leave empty for `random_battle` / shop.
+- `enemy_id`: required for `battle` (enemy catalog id, validated). For `mystery` / `recruit`, optional event id — empty mystery picks a random non-recruit event at runtime; empty recruit picks any eligible unlock; `random-companion` picks an eligible companion only. Named event ids are validated against the authored pools. Leave empty for `random_battle` / shop.
 - Combat rewards (item / gold / materials) are resolved at runtime by `BattleLoot`, not authored here.
-- `encounter_art_id` / `encounter_art_title`: optional pair for non-battle, non-mystery stages; references `ArtCatalog.encounterArtByID`. Mystery recruit stages use combatant portrait art instead.
+- `encounter_art_id` / `encounter_art_title`: optional pair for `shop` stages only; the id must exist in `ArtManifest/curated-assets.tsv`. Mystery recruit stages use combatant portrait art instead.
 
 ### Item bases (`ContentManifest/item_bases.tsv`)
 

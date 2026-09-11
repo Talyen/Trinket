@@ -128,12 +128,8 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
   dest="$resources_dir/${asset_name}.mp4"
   source_hash="$(shasum -a 256 "$source_path" | awk '{print $1}')"
   trinket_asset_read_recorded_state recorded_hash recorded_profile "$asset_name"
-  needs_convert=false
-  if trinket_asset_needs_reencode "$recorded_hash" "$source_hash" "$recorded_profile" "$hevc_preset" "$dest"; then
-    needs_convert=true
-  fi
 
-  if $needs_convert; then
+  if trinket_asset_needs_reencode "$recorded_hash" "$source_hash" "$recorded_profile" "$hevc_preset" "$dest"; then
     tmp_dest="$resources_dir/.${asset_name}.tmp.$$.mp4"
     rm -f "$tmp_dest"
     if ! avconvert \
@@ -235,7 +231,7 @@ private extension UltimateCinematicReference {
 }
 SWIFT
 
-cmp -s "$generated_temp" "$generated_swift" 2>/dev/null || mv -f "$generated_temp" "$generated_swift"
+trinket_asset_commit_generated "$generated_temp" "$generated_swift"
 rm -f "$entries_temp" "$seen_ids_temp" "$seen_assets_temp" "$active_assets_temp"
 trinket_asset_sort_state "$state_temp" "$state_file"
 

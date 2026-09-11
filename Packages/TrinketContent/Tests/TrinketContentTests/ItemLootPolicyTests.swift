@@ -6,18 +6,32 @@ import TrinketCore
 struct ItemLootPolicyTests {
     @Test(arguments: [
         (1, [0.98, 0.015, 0.004, 0.001]),
-        (6, [0.90, 0.06, 0.03, 0.01]),
-        (11, [0.80, 0.11, 0.06, 0.03]),
-        (20, [0.70, 0.16, 0.09, 0.05]),
-        (3, [0.948, 0.033, 0.0144, 0.0046]),
+        (40, [0.60, 0.20, 0.12, 0.08]),
         (Int.min, [0.98, 0.015, 0.004, 0.001]),
-        (Int.max, [0.70, 0.16, 0.09, 0.05]),
+        (Int.max, [0.60, 0.20, 0.12, 0.08]),
     ])
-    func `curve interpolates and clamps`(level: Int, expected: [Double]) {
+    func `endpoints match authored weights and clamp`(level: Int, expected: [Double]) {
         let actual = probabilities(level: level)
         for (value, target) in zip(actual, expected) {
             #expect(abs(value - target) < 1e-12)
         }
+    }
+
+    @Test func `premium share climbs smoothly to level 40`() {
+        var previous = -Double.infinity
+        for level in 1 ... 40 {
+            let premium = 1 - probabilities(level: level)[0]
+            #expect(premium > previous)
+            previous = premium
+        }
+        let ten = 1 - probabilities(level: 10)[0]
+        let twenty = 1 - probabilities(level: 20)[0]
+        let thirty = 1 - probabilities(level: 30)[0]
+        let forty = 1 - probabilities(level: 40)[0]
+        #expect(ten < twenty)
+        #expect(twenty < thirty)
+        #expect(thirty < forty)
+        #expect(twenty < forty)
     }
 
     @Test(arguments: [false, true])
@@ -31,7 +45,7 @@ struct ItemLootPolicyTests {
     }
 
     @Test func `boss triples premium weights and retains basic rewards`() {
-        for level in 1 ... 20 {
+        for level in 1 ... 40 {
             let ordinary = probabilities(level: level)
             let boss = probabilities(level: level, boss: true)
             #expect(boss[0] > 0)
@@ -44,10 +58,10 @@ struct ItemLootPolicyTests {
     @Test func `unavailable tiers are removed without donating their weights`() {
         let available: Set<ItemDropTier> = [.basic, .astral]
         let actual = ItemLootPolicy.probabilities(
-            level: 20, bossContent: false, astralChanceBonusPercent: 20, availableTiers: available,
+            level: 40, bossContent: false, astralChanceBonusPercent: 20, availableTiers: available,
         )
         #expect(actual[2] == 0 && actual[3] == 0)
-        #expect(abs(actual[1] / actual[0] - 19.2 / 70) < 1e-12)
+        #expect(abs(actual[1] / actual[0] - 24 / 60) < 1e-12)
     }
 
     @Test func `opening random draws reach all four fractional bands`() {

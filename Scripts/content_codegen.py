@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import functools
+import csv
 import json
 import os
 import re
@@ -15,19 +16,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from content_codegen_modifiers import (
-    MEMBER,
-    NESTED_TYPE,
-    TOP_LEVEL,
     VALID_KEYWORDS,
+    modifier_field_key,
     modifier_token_to_swift,
     modifiers_swift,
     parse_modifier_tokens,
-    publicize,
-    swift_brace_delta,
+    reject_duplicate_modifier_tokens,
 )
 from content_codegen_triggers import (
     _trigger_families,
-    parse_trigger_tokens,
     triggers_swift,
 )
 
@@ -53,26 +50,26 @@ VALID_HOMESTEAD_RESOURCES = frozenset(
 VALID_HOMESTEAD_CATEGORIES = frozenset(
     {"farming", "crafting", "alchemy", "training", "arcana"}
 )
-VALID_HOMESTEAD_NODE_IDS = frozenset(
-    {
-        "wheatField",
-        "herbGarden",
-        "chickenCoop",
-        "pasture",
-        "culinaryArts",
-        "blacksmithForge",
-        "woolTailoring",
-        "alchemyLab",
-        "crystalGarden",
-        "runesmithWorkshop",
-        "hunterLodge",
-        "agilityTraining",
-        "moonlitSanctum",
-        "wishingWell",
-    }
+HOMESTEAD_NODE_ORDER = (
+    "wheatField",
+    "herbGarden",
+    "chickenCoop",
+    "pasture",
+    "culinaryArts",
+    "blacksmithForge",
+    "woolTailoring",
+    "alchemyLab",
+    "crystalGarden",
+    "runesmithWorkshop",
+    "hunterLodge",
+    "agilityTraining",
+    "moonlitSanctum",
+    "wishingWell",
 )
+VALID_HOMESTEAD_NODE_IDS = frozenset(HOMESTEAD_NODE_ORDER)
 SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-KEBAB_IDENTIFIER = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+_KEBAB_BODY = r"[a-z0-9]+(?:-[a-z0-9]+)*"
+KEBAB_IDENTIFIER = re.compile(rf"^{_KEBAB_BODY}$")
 SNAKE_IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 VALID_ROLES = frozenset({"hero", "companion"})
 VALID_GROWTH_ARCHETYPES = frozenset({"tank", "assassin", "mage", "support", "bruiser"})
@@ -170,10 +167,13 @@ class HomesteadNodeRow:
 @functools.cache
 def _read_tsv_cached(path: Path) -> tuple[tuple[str, ...], ...]:
     rows: list[tuple[str, ...]] = []
-    for line in path.read_text().splitlines():
-        if not line or line.startswith("#"):
-            continue
-        rows.append(tuple(line.split("\t")))
+    with path.open(newline="", encoding="utf-8") as handle:
+        for fields in csv.reader(handle, delimiter="\t"):
+            if not fields or (len(fields) == 1 and not fields[0]):
+                continue
+            if fields[0].startswith("#"):
+                continue
+            rows.append(tuple(fields))
     return tuple(rows)
 
 
@@ -191,9 +191,85 @@ def _parse_tsv_rows(path: Path, expected: list[str], row_type, min_columns: int 
     for idx, raw in enumerate(lines[1:], start=2):
         if len(raw) < min_cols:
             raise ValueError(f"{path}:{idx} missing required columns: expected at least {min_cols}, got {len(raw)}")
+        if len(raw) > len(expected):
+            raise ValueError(f"{path}:{idx} has {len(raw)} columns, expected {len(expected)}")
         padded = raw + [""] * (len(expected) - len(raw))
         rows.append(row_type(*padded[: len(expected)]))
     return rows
+
+
+# Trailing DSL columns may be omitted (no trailing tabs required); missing
+# trailing values parse as "". Affixes carry two trailing trigger columns,
+# talents carry trailing modifiers/triggers. All other manifests require
+# full-width rows.
+AFFIX_REQUIRED_COLUMNS = 9
+TALENT_REQUIRED_COLUMNS = 4
+
+
+def read_manifest_table(path: Path) -> tuple[list[str], list[list[str]]]:
+    """Shared #-header TSV reader for media manifests.
+
+    Skips blank lines and #-comments; the first content row is the header with
+    its leading # stripped. Ragged rows are rejected so truncated inputs fail
+    fast instead of silently dropping columns.
+    """
+    with path.open(newline="", encoding="utf-8") as handle:
+        raw_rows = list(csv.reader(handle, delimiter="\t"))
+    header: list[str] = []
+    rows: list[list[str]] = []
+    for line_number, row in enumerate(raw_rows, start=1):
+        if not row or (len(row) == 1 and not row[0].strip()):
+            continue
+        if not header:
+            if not row[0].lstrip().startswith("#"):
+                raise ValueError(f"{path}:{line_number} manifest header must start with #")
+            header = [row[0].lstrip("#").strip()] + [cell.strip() for cell in row[1:]]
+            continue
+        if row[0].lstrip().startswith("#"):
+            continue
+        if len(row) != len(header):
+            raise ValueError(
+                f"{path}:{line_number} has {len(row)} columns, expected {len(header)}"
+            )
+        rows.append([cell.strip() for cell in row])
+    if not header:
+        raise ValueError(f"{path} has no header row")
+    return header, rows
+
+
+ART_MANIFEST = ROOT / "ArtManifest" / "curated-assets.tsv"
+
+
+@functools.cache
+def collect_art_ids() -> set[str]:
+    header, rows = read_manifest_table(ART_MANIFEST)
+    if "id" not in header:
+        raise ValueError(f"{ART_MANIFEST} header must declare an id column")
+    id_index = header.index("id")
+    return {row[id_index] for row in rows}
+
+
+@functools.cache
+def _read_content_source(name: str) -> str:
+    return (CONTENT_DIR / name).read_text(encoding="utf-8")
+
+
+@functools.cache
+def collect_mystery_event_ids() -> set[str]:
+    ids: set[str] = set()
+    for name in ("MysteryEventPool+Wilds.swift", "MysteryEventPool+Relics.swift"):
+        ids.update(re.findall(r'makeEvent\(\s*id:\s*"([^"]+)"', _read_content_source(name)))
+    if not ids:
+        raise ValueError("mystery event id scrape found no ids; update collect_mystery_event_ids")
+    return ids
+
+
+@functools.cache
+def collect_recruit_event_ids() -> set[str]:
+    ids = set(re.findall(r'recruit\(\s*id:\s*"([^"]+)"', _read_content_source("RecruitEventPool.swift")))
+    if not ids:
+        raise ValueError("recruit event id scrape found no ids; update collect_recruit_event_ids")
+    return ids
 
 
 @functools.cache
@@ -214,7 +290,7 @@ def parse_affix_rows() -> list[AffixRow]:
             "astral_triggers",
         ],
         AffixRow,
-        min_columns=9,
+        min_columns=AFFIX_REQUIRED_COLUMNS,
     )
 
 
@@ -314,6 +390,12 @@ def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
 
 
 def swift_escape(value: str) -> str:
+    """Escape a manifest string for a Swift literal.
+
+    Manifests spell newlines as a literal backslash-n (see homestead bonus
+    descriptions); those become real newlines first so the final pass escapes
+    every backslash, quote, and newline exactly once.
+    """
     value = value.replace("\\n", "\n")
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
@@ -326,17 +408,60 @@ def parse_keywords(raw: str) -> str:
 
 
 def write_generated_file(path: Path, body: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    content = publicize(
+    content = (
         "// Generated by Scripts/content_codegen.py — do not edit.\n"
         "import Foundation\n"
         "import TrinketCore\n\n"
         f"{body}\n"
     )
+    write_if_changed(path, content)
+
+
+def write_if_changed(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     # Skip rewrite when content is unchanged so mtimes do not invalidate dependents.
     if path.exists() and path.read_text(encoding="utf-8") == content:
         return
     path.write_text(content, encoding="utf-8")
+
+
+def list_catalog_property(
+    prop: str, item_type: str, entries: list[str], chunk_size: int | None = None
+) -> str:
+    if chunk_size is None:
+        appends = "\n".join(f"        list.append({entry.strip()})" for entry in entries)
+        return (
+            f"    static let {prop}: [{item_type}] = {{\n"
+            f"        var list = [{item_type}]()\n"
+            f"        list.reserveCapacity({len(entries)})\n"
+            + appends
+            + "\n        return list\n"
+            "    }()\n"
+        )
+    chunks = [entries[index:index + chunk_size] for index in range(0, len(entries), chunk_size)]
+    chunk_appends = "\n".join(
+        f"        list.append(contentsOf: chunk{index}())" for index in range(len(chunks))
+    )
+    chunk_functions = "\n\n".join(
+        "    private static func chunk"
+        f"{index}() -> [{item_type}] {{\n"
+        "        [\n"
+        + ",\n".join(entry for entry in chunk)
+        + "\n        ]\n"
+        "    }"
+        for index, chunk in enumerate(chunks)
+    )
+    return (
+        f"    static let {prop}: [{item_type}] = {{\n"
+        f"        var list = [{item_type}]()\n"
+        f"        list.reserveCapacity({len(entries)})\n"
+        + chunk_appends
+        + "\n        return list\n"
+        "    }()\n"
+        "\n"
+        + chunk_functions
+        + "\n"
+    )
 
 
 def generate_affix_catalog(rows: list[AffixRow]) -> None:
@@ -354,44 +479,24 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
             "        )"
         )
 
-    capacity = len(entries)
-    chunk_size = 16
-    chunks = [entries[index:index + chunk_size] for index in range(0, capacity, chunk_size)]
-    chunk_appends = "\n".join(
-        f"        list.append(contentsOf: chunk{index}())"
-        for index in range(len(chunks))
-    )
-    chunk_functions = "\n\n".join(
-        "    private static func chunk"
-        f"{index}() -> [ItemAffixDefinition] {{\n"
-        "        [\n"
-        + ",\n".join(entry for entry in chunk)
-        + "\n        ]\n"
-        "    }"
-        for index, chunk in enumerate(chunks)
-    )
     body = (
         "enum ItemAffixCatalogGenerated {\n"
-        "    static let definitions: [ItemAffixDefinition] = {\n"
-        f"        var list = [ItemAffixDefinition]()\n"
-        f"        list.reserveCapacity({capacity})\n"
-        + chunk_appends
-        + "\n        return list\n"
-        "    }()\n"
-        "\n"
-        + chunk_functions
-        + "\n"
-        "}\n"
+        + list_catalog_property("definitions", "ItemAffixDefinition", entries, chunk_size=16)
+        + "}\n"
     )
     write_generated_file(GENERATED_DIR / "ItemAffixCatalog.generated.swift", body)
 
 
-def parse_hand_ability_symbols(path: Path) -> list[str]:
-    source = path.read_text()
-    return re.findall(
-        r"static let (\w+) = (?:Ability\(|AbilityBuilder\.(?:directHit|buffOnly|multiDamage)\()",
-        source,
-    )
+ABILITY_DECL_BUILDERS = r"(?:Ability\(|AbilityBuilder\.(?:directHit|buffOnly|multiDamage)\()"
+
+
+@functools.cache
+def _read_ability_source(tier: str) -> str:
+    return (CONTENT_DIR / f"AbilityCatalog{tier}.swift").read_text()
+
+
+def ability_symbols_in_source(source: str) -> list[str]:
+    return re.findall(rf"static let (\w+) = {ABILITY_DECL_BUILDERS}", source)
 
 
 def collect_ability_symbols() -> set[str]:
@@ -401,9 +506,8 @@ def collect_ability_symbols() -> set[str]:
 def collect_ability_tiers() -> dict[str, str]:
     tiers: dict[str, str] = {}
     for tier in ("Basic", "Skill", "Ultimate"):
-        hand_path = CONTENT_DIR / f"AbilityCatalog{tier}.swift"
         tier_name = tier.lower()
-        for symbol in parse_hand_ability_symbols(hand_path):
+        for symbol in ability_symbols_in_source(_read_ability_source(tier)):
             previous = tiers.setdefault(symbol, tier_name)
             if previous != tier_name:
                 raise ValueError(
@@ -433,10 +537,12 @@ def _validate_snake_id(label: str, value: str, row_id: str) -> None:
         )
 
 
-def _validate_positive_int(label: str, value: str, row_id: str) -> None:
+def _validate_positive_int(label: str, value: str, row_id: str, minimum: int = 0) -> None:
     if not value.isdigit():
         raise ValueError(f"{label} for {row_id} must be an integer")
-    if int(value) < 0:
+    if int(value) < minimum:
+        if minimum == 1:
+            raise ValueError(f"{label} for {row_id} must be positive")
         raise ValueError(f"{label} for {row_id} must be non-negative")
 
 
@@ -475,9 +581,8 @@ def validate_trait_rows(rows: list[TraitRow]) -> None:
         _require_non_empty("trait name", row.name, row.id)
         _require_non_empty("trait description", row.description, row.id)
 
-        for token in parse_modifier_tokens(row.modifiers):
-            modifier_token_to_swift(token)
-        triggers_swift(row.triggers)
+        modifiers_swift(row.modifiers, row.id)
+        triggers_swift(row.triggers, row.id)
 
 
 def validate_combatant_rows(
@@ -545,10 +650,8 @@ def validate_enemy_rows(
         if row.is_boss not in {"true", "false"}:
             raise ValueError(f"is_boss for {row.id} must be true or false")
 
-        if not row.max_health.isdigit():
-            raise ValueError(f"max_health for {row.id} must be an integer")
-        if int(row.max_health) < 1:
-            raise ValueError(f"max_health for {row.id} must be positive")
+        _validate_positive_int("max_health", row.max_health, row.id, minimum=1)
+
 
         _validate_ability_symbols(row.abilities, row.id, ability_symbols, expected_count=3)
         _require_non_empty("trait_id", row.trait_id, row.id)
@@ -604,20 +707,10 @@ def generate_traits_catalog(rows: list[TraitRow]) -> None:
             "        )"
         )
 
-    capacity = len(entries)
-    appends = "\n".join(
-        f"        list.append({entry.strip()})"
-        for entry in entries
-    )
     body = (
         "enum GameContentTraitsGenerated {\n"
-        "    static let definitions: [CombatantTraitDefinition] = {\n"
-        f"        var list = [CombatantTraitDefinition]()\n"
-        f"        list.reserveCapacity({capacity})\n"
-        + appends
-        + "\n        return list\n"
-        "    }()\n"
-        "}\n"
+        + list_catalog_property("definitions", "CombatantTraitDefinition", entries)
+        + "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentTraits.generated.swift", body)
 
@@ -625,47 +718,25 @@ def generate_traits_catalog(rows: list[TraitRow]) -> None:
 def generate_roster_catalog(rows: list[CombatantRow]) -> None:
     heroes = [row for row in rows if row.role == "hero"]
     companions = [row for row in rows if row.role == "companion"]
-    hero_appends = "\n".join(
-        f"        list.append({render_party_combatant(row).strip()})"
-        for row in heroes
-    )
-    companion_appends = "\n".join(
-        f"        list.append({render_party_combatant(row).strip()})"
-        for row in companions
-    )
     body = (
         "enum GameContentRosterGenerated {\n"
-        "    static let heroes: [Combatant] = {\n"
-        f"        var list = [Combatant]()\n"
-        f"        list.reserveCapacity({len(heroes)})\n"
-        + hero_appends
-        + "\n        return list\n"
-        "    }()\n\n"
-        "    static let companions: [Combatant] = {\n"
-        f"        var list = [Combatant]()\n"
-        f"        list.reserveCapacity({len(companions)})\n"
-        + companion_appends
-        + "\n        return list\n"
-        "    }()\n"
-        "}\n"
+        + list_catalog_property(
+            "heroes", "Combatant", [render_party_combatant(row) for row in heroes]
+        )
+        + "\n"
+        + list_catalog_property(
+            "companions", "Combatant", [render_party_combatant(row) for row in companions]
+        )
+        + "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentRoster.generated.swift", body)
 
 
 def generate_enemies_catalog(rows: list[EnemyRow]) -> None:
-    appends = "\n".join(
-        f"        list.append({render_enemy(row).strip()})"
-        for row in rows
-    )
     body = (
         "enum GameContentEnemiesGenerated {\n"
-        "    static let enemies: [Enemy] = {\n"
-        f"        var list = [Enemy]()\n"
-        f"        list.reserveCapacity({len(rows)})\n"
-        + appends
-        + "\n        return list\n"
-        "    }()\n"
-        "}\n"
+        + list_catalog_property("enemies", "Enemy", [render_enemy(row) for row in rows])
+        + "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentEnemies.generated.swift", body)
 
@@ -678,13 +749,6 @@ def _require_non_empty(label: str, value: str, row_id: str) -> None:
 def _validate_swift_symbol(label: str, value: str, row_id: str) -> None:
     if not SWIFT_IDENTIFIER.match(value):
         raise ValueError(f"{label} '{value}' for {row_id} must be a valid Swift identifier")
-
-
-def _validate_kebab_id(label: str, value: str, row_id: str) -> None:
-    if not KEBAB_IDENTIFIER.match(value):
-        raise ValueError(
-            f"{label} '{value}' for {row_id} must use lowercase letters, numbers, and hyphens"
-        )
 
 
 def _validate_affix_id(value: str, row_id: str) -> None:
@@ -730,10 +794,10 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
         _validate_weight(row.weight, row.id)
         _require_non_empty("basic_description", row.basic_description, row.id)
         _require_non_empty("astral_description", row.astral_description, row.id)
-        modifiers_swift(row.basic_modifiers)
-        modifiers_swift(row.astral_modifiers)
-        triggers_swift(row.basic_triggers)
-        triggers_swift(row.astral_triggers)
+        modifiers_swift(row.basic_modifiers, row.id)
+        modifiers_swift(row.astral_modifiers, row.id)
+        triggers_swift(row.basic_triggers, row.id)
+        triggers_swift(row.astral_triggers, row.id)
 
 
 def parse_item_templates(raw: str) -> str:
@@ -743,16 +807,33 @@ def parse_item_templates(raw: str) -> str:
     return "[" + ", ".join(f'"{swift_escape(part)}"' for part in parts) + "]"
 
 
-def parse_material_rewards(raw: str) -> str:
-    if not raw.strip():
-        return "[]"
-    amounts: list[str] = []
+def parse_material_tokens(raw: str) -> list[tuple[str, int]]:
+    tokens: list[tuple[str, int]] = []
     for token in raw.split("|"):
         token = token.strip()
         if not token:
             continue
+        if ":" not in token:
+            raise ValueError(f"Cost entry {token!r} must be resource:amount")
         resource, quantity = token.split(":", 1)
-        amounts.append(f"ResourceAmount(.{resource.strip()}, {quantity.strip()})")
+        resource = resource.strip()
+        if resource not in VALID_HOMESTEAD_RESOURCES:
+            raise ValueError(f"Unknown homestead resource '{resource}'")
+        try:
+            amount = int(quantity.strip())
+        except ValueError as error:
+            raise ValueError(f"Cost quantity {quantity.strip()!r} must be an integer") from error
+        tokens.append((resource, amount))
+    return tokens
+
+
+def parse_material_rewards(raw: str) -> str:
+    if not raw.strip():
+        return "[]"
+    amounts = [
+        f"ResourceAmount(.{resource}, {quantity})"
+        for resource, quantity in parse_material_tokens(raw)
+    ]
     return "[" + ", ".join(amounts) + "]"
 
 
@@ -787,7 +868,13 @@ def render_stage(row: StageRow) -> str:
                 )"""
 
 
-def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None) -> None:
+def validate_stage_rows(
+    rows: list[StageRow],
+    enemy_ids: set[str] | None = None,
+    mystery_event_ids: set[str] | None = None,
+    recruit_event_ids: set[str] | None = None,
+    art_ids: set[str] | None = None,
+) -> None:
     seen_stage_ids: set[str] = set()
     chapters: dict[str, list[StageRow]] = {}
 
@@ -805,6 +892,22 @@ def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None)
             raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
         if row.encounter == "battle" and enemy_ids is not None and row.enemy_id not in enemy_ids:
             raise ValueError(f"Stage {stage_id} references unknown enemy '{row.enemy_id}'")
+        if (
+            row.encounter == "mystery"
+            and row.enemy_id.strip()
+            and mystery_event_ids is not None
+            and row.enemy_id not in mystery_event_ids
+        ):
+            raise ValueError(f"Stage {stage_id} references unknown mystery event '{row.enemy_id}'")
+        if row.encounter == "recruit" and row.enemy_id.strip():
+            if (
+                row.enemy_id != RANDOM_COMPANION_RECRUIT_ID
+                and recruit_event_ids is not None
+                and row.enemy_id not in recruit_event_ids
+            ):
+                raise ValueError(
+                    f"Stage {stage_id} references unknown recruit event '{row.enemy_id}'"
+                )
         if row.encounter == "random_battle" and row.enemy_id.strip():
             raise ValueError(f"random_battle must leave enemy_id empty at {stage_id}")
         if row.encounter not in {"battle", "mystery", "recruit"} and row.enemy_id.strip():
@@ -823,13 +926,20 @@ def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None)
             raise ValueError(
                 f"encounter_art_id and encounter_art_title must both be set or empty for {stage_id}"
             )
+        if (
+            row.encounter_art_id.strip()
+            and art_ids is not None
+            and row.encounter_art_id not in art_ids
+        ):
+            raise ValueError(
+                f"Stage {stage_id} references unknown encounter art '{row.encounter_art_id}'"
+            )
 
         for field_name, value in (
             ("chapter_number", row.chapter_number),
             ("stage_number", row.stage_number),
         ):
-            if not value.isdigit():
-                raise ValueError(f"{field_name} for {stage_id} must be an integer")
+            _validate_positive_int(field_name, value, stage_id, minimum=1)
 
         chapters.setdefault(row.chapter_id, []).append(row)
         render_stage(row)
@@ -870,20 +980,10 @@ def generate_chapters_catalog(rows: list[StageRow]) -> None:
         )"""
         )
 
-    capacity = len(chapter_blocks)
-    appends = "\n".join(
-        f"        list.append({block.strip()})"
-        for block in chapter_blocks
-    )
     body = (
         "enum GameContentChaptersGenerated {\n"
-        "    static let chapters: [Chapter] = {\n"
-        f"        var list = [Chapter]()\n"
-        f"        list.reserveCapacity({capacity})\n"
-        + appends
-        + "\n        return list\n"
-        "    }()\n"
-        "}\n"
+        + list_catalog_property("chapters", "Chapter", chapter_blocks)
+        + "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentChapters.generated.swift", body)
 
@@ -904,12 +1004,14 @@ def generate_trigger_families() -> None:
     merge_lines = {
         "add": lambda n: f"        {n} += other.{n}",
         "mul": lambda n: f"        {n} *= other.{n}",
-        "add_excess": lambda n: f"        {n} = 1 + ({n} - 1) + (other.{n} - 1)",
+        "add_excess": lambda n: f"        {n} += other.{n} - 1",
         "or": lambda n: f"        {n} = {n} || other.{n}",
         "max": lambda n: f"        {n} = max({n}, other.{n})",
         "coalesce": lambda n: f"        {n} = other.{n} ?? {n}",
         "union": lambda n: (
-            f"        {n} = Array(Set({n}).union(other.{n})).sorted()"
+            f"        if !other.{n}.isEmpty {{\n"
+            f"            {n} = {n}.isEmpty ? other.{n}.sorted() : Array(Set({n}).union(other.{n})).sorted()\n"
+            "        }"
         ),
     }
     for family in families:
@@ -986,10 +1088,7 @@ extension {type_name} {{
 }}
 """
         out = GENERATED_DIR / f"{type_name}.generated.swift"
-        if out.exists() and out.read_text(encoding="utf-8") == text:
-            continue
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(text, encoding="utf-8")
+        write_if_changed(out, text)
 
 
 def generate_trigger_root() -> None:
@@ -1116,10 +1215,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
 }}
 """
     out = GENERATED_DIR / "CombatTraitTriggers.generated.swift"
-    if out.exists() and out.read_text(encoding="utf-8") == text:
-        return
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(text, encoding="utf-8")
+    write_if_changed(out, text)
 
 
 def generate_ability_index() -> None:
@@ -1140,12 +1236,25 @@ def parse_homestead_combat_tokens(
     companion: list[str] = []
     astral = 0
     gold = 0
+    seen: dict[tuple[str, str | None], str] = {}
     for token in parse_modifier_tokens(raw):
-        if token.startswith("astral_chance:"):
-            astral = int(token.split(":", 1)[1])
-            continue
-        if token.startswith("gold_find:"):
-            gold = int(token.split(":", 1)[1])
+        if token.startswith("astral_chance:") or token.startswith("gold_find:"):
+            name, _, amount = token.partition(":")
+            if name in seen:
+                raise ValueError(
+                    f"Duplicate homestead bonus {name!r}: {token!r} repeats {seen[name]!r}"
+                )
+            seen[name] = token
+            try:
+                number = int(amount.strip())
+            except ValueError as error:
+                raise ValueError(
+                    f"Homestead bonus {name!r} must be an integer, got {amount!r}"
+                ) from error
+            if name == "astral_chance":
+                astral = number
+            else:
+                gold = number
             continue
         scope = "both"
         body = token
@@ -1155,6 +1264,13 @@ def parse_homestead_combat_tokens(
         elif token.startswith("companion."):
             scope = "companion"
             body = token.removeprefix("companion.")
+        key = (scope, *modifier_field_key(body))
+        if key in seen:
+            raise ValueError(
+                f"Duplicate homestead bonus for {key[0]!r} scope: "
+                f"{token!r} repeats {seen[key]!r}; merge into one token"
+            )
+        seen[key] = token
         swift = modifier_token_to_swift(body)
         if scope in ("hero", "both"):
             hero.append(swift)
@@ -1179,21 +1295,35 @@ def render_homestead_combat_bonus(raw: str) -> str:
     return "HomesteadTierCombatBonus(" + ", ".join(parts) + ")"
 
 
-def parse_homestead_prerequisites(raw: str) -> str:
-    if not raw.strip():
-        return "[]"
-    requirements: list[str] = []
+def parse_homestead_prereq_tokens(raw: str) -> list[tuple[str, int | None]]:
+    requirements: list[tuple[str, int | None]] = []
     for token in raw.split("|"):
         token = token.strip()
         if not token:
             continue
         if ":" in token:
             node_id, tier = token.split(":", 1)
-            requirements.append(
-                f"HomesteadNodeRequirement(.{node_id.strip()}, tier: {tier.strip()})"
-            )
+            try:
+                tier_value: int | None = int(tier.strip())
+            except ValueError as error:
+                raise ValueError(
+                    f"Prerequisite tier {tier.strip()!r} must be an integer"
+                ) from error
+            requirements.append((node_id.strip(), tier_value))
         else:
-            requirements.append(f"HomesteadNodeRequirement(.{token})")
+            requirements.append((token, None))
+    return requirements
+
+
+def parse_homestead_prerequisites(raw: str) -> str:
+    if not raw.strip():
+        return "[]"
+    requirements = []
+    for node_id, tier in parse_homestead_prereq_tokens(raw):
+        if tier is None:
+            requirements.append(f"HomesteadNodeRequirement(.{node_id})")
+        else:
+            requirements.append(f"HomesteadNodeRequirement(.{node_id}, tier: {tier})")
     return "[" + ", ".join(requirements) + "]"
 
 
@@ -1212,11 +1342,30 @@ def render_homestead_tier(row: HomesteadNodeRow) -> str:
                 )"""
 
 
-def parse_homestead_production(raw: str) -> str | None:
+def parse_homestead_production_value(raw: str) -> tuple[str, int] | None:
     if not raw.strip():
         return None
+    if ":" not in raw:
+        raise ValueError(f"Production entry {raw.strip()!r} must be resource:quantity")
     resource, quantity = raw.split(":", 1)
-    return f"ResourceAmount(.{resource.strip()}, {quantity.strip()})"
+    resource = resource.strip()
+    if resource not in VALID_HOMESTEAD_RESOURCES:
+        raise ValueError(f"Unknown production resource '{resource}'")
+    try:
+        amount = int(quantity.strip())
+    except ValueError as error:
+        raise ValueError(f"Production quantity {quantity.strip()!r} must be an integer") from error
+    if amount <= 0:
+        raise ValueError("Production quantity must be positive")
+    return resource, amount
+
+
+def parse_homestead_production(raw: str) -> str | None:
+    parsed = parse_homestead_production_value(raw)
+    if parsed is None:
+        return None
+    resource, quantity = parsed
+    return f"ResourceAmount(.{resource}, {quantity})"
 
 
 def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
@@ -1238,15 +1387,10 @@ def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
 def validate_homestead_cost(raw: str, row_id: str) -> None:
     if not raw.strip():
         raise ValueError(f"cost is required for {row_id}")
-    for token in raw.split("|"):
-        token = token.strip()
-        if not token:
-            continue
-        resource, quantity = token.split(":", 1)
-        if resource.strip() not in VALID_HOMESTEAD_RESOURCES:
-            raise ValueError(f"Unknown homestead resource '{resource}' for {row_id}")
-        if not quantity.strip().isdigit():
-            raise ValueError(f"Cost quantity for {row_id} must be an integer")
+    try:
+        parse_material_tokens(raw)
+    except ValueError as error:
+        raise ValueError(f"{error} for {row_id}") from error
 
 
 def validate_homestead_prerequisites(
@@ -1254,32 +1398,25 @@ def validate_homestead_prerequisites(
 ) -> None:
     if not raw.strip():
         return
-    for token in raw.split("|"):
-        token = token.strip()
-        if not token:
-            continue
-        if ":" in token:
-            node_id, tier = token.split(":", 1)
-            node_id = node_id.strip()
-            if not tier.strip().isdigit():
-                raise ValueError(f"Prerequisite tier for {row_id} must be an integer")
-            tier_value = int(tier.strip())
-            if tier_value <= 0:
-                raise ValueError(f"Prerequisite tier for {row_id} must be positive")
-        else:
-            node_id = token
+    try:
+        requirements = parse_homestead_prereq_tokens(raw)
+    except ValueError as error:
+        raise ValueError(f"{error} for {row_id}") from error
+    for node_id, tier_value in requirements:
+        if tier_value is not None and tier_value <= 0:
+            raise ValueError(f"Prerequisite tier for {row_id} must be positive")
         if node_id not in VALID_HOMESTEAD_NODE_IDS:
             raise ValueError(f"Unknown homestead node '{node_id}' in prerequisites for {row_id}")
         if node_id not in node_tiers:
             raise ValueError(f"Prerequisite node '{node_id}' for {row_id} is not defined in manifest")
-        if ":" in token and tier_value not in node_tiers[node_id]:
+        if tier_value is not None and tier_value not in node_tiers[node_id]:
             raise ValueError(
                 f"Prerequisite tier {tier_value} for {row_id} is not defined on node '{node_id}'"
             )
 
 
 def _validate_game_icon(icon_id: str, row_id: str) -> None:
-    if not re.fullmatch(r"(?:lucide:[a-z0-9]+(?:-[a-z0-9]+)*|sf:[a-z0-9]+(?:\.[a-z0-9]+)*)", icon_id):
+    if not re.fullmatch(rf"(?:lucide:{_KEBAB_BODY}|sf:[a-z0-9]+(?:\.[a-z0-9]+)*)", icon_id):
         raise ValueError(f"Invalid icon_id '{icon_id}' for {row_id}; use lucide:name or sf:name")
     if icon_id.startswith("lucide:"):
         name = icon_id.removeprefix("lucide:")
@@ -1298,11 +1435,8 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
             raise ValueError(f"Unknown homestead node id '{row.node_id}'")
         if row.category not in VALID_HOMESTEAD_CATEGORIES:
             raise ValueError(f"Unknown homestead category '{row.category}' for {row_id}")
-        if not row.tier.isdigit():
-            raise ValueError(f"tier for {row_id} must be an integer")
+        _validate_positive_int("tier", row.tier, row_id, minimum=1)
         tier_value = int(row.tier)
-        if tier_value <= 0:
-            raise ValueError(f"tier for {row_id} must be positive")
         if (row.node_id, tier_value) in seen_tiers:
             raise ValueError(f"Duplicate homestead tier: {row_id}")
         seen_tiers.add((row.node_id, tier_value))
@@ -1319,11 +1453,14 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         parse_homestead_combat_tokens(row.modifiers)
         validate_homestead_cost(row.cost, row_id)
         if row.production.strip():
+            if ":" not in row.production:
+                raise ValueError(
+                    f"Production entry {row.production!r} for {row_id} must be resource:quantity"
+                )
             resource, quantity = row.production.split(":", 1)
             if resource.strip() not in VALID_HOMESTEAD_RESOURCES:
                 raise ValueError(f"Unknown production resource '{resource}' for {row_id}")
-            if not quantity.strip().isdigit() or int(quantity.strip()) <= 0:
-                raise ValueError(f"Production quantity for {row_id} must be positive")
+            _validate_positive_int("Production quantity", quantity.strip(), row_id, minimum=1)
         nodes.setdefault(row.node_id, []).append(row)
 
     node_tiers = {
@@ -1365,46 +1502,19 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
             raise ValueError(f"Homestead manifest has unknown nodes: {sorted(extra)}")
 
 
-HOMESTEAD_NODE_ORDER = [
-    "wheatField",
-    "herbGarden",
-    "chickenCoop",
-    "pasture",
-    "culinaryArts",
-    "blacksmithForge",
-    "woolTailoring",
-    "alchemyLab",
-    "crystalGarden",
-    "runesmithWorkshop",
-    "hunterLodge",
-    "agilityTraining",
-    "moonlitSanctum",
-    "wishingWell",
-]
-
-
 def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:
     nodes: dict[str, list[HomesteadNodeRow]] = {}
     for row in rows:
         nodes.setdefault(row.node_id, []).append(row)
 
-    if set(HOMESTEAD_NODE_ORDER) != VALID_HOMESTEAD_NODE_IDS:
-        raise ValueError("HOMESTEAD_NODE_ORDER must match VALID_HOMESTEAD_NODE_IDS")
-
-    node_count = len(HOMESTEAD_NODE_ORDER)
-    appends = "\n".join(
-        f"        list.append({render_homestead_node(node_id, nodes[node_id]).strip()})"
-        for node_id in HOMESTEAD_NODE_ORDER
-    )
     body = (
         "enum GameContentHomesteadGenerated {\n"
-        "    static let homesteadNodes: [HomesteadNodeDefinition] = {\n"
-        f"        var list = [HomesteadNodeDefinition]()\n"
-        f"        list.reserveCapacity({node_count})\n"
-        + appends
-        + "\n        return list\n"
-        "    }()\n"
-        "}\n"
+        + list_catalog_property(
+            "homesteadNodes",
+            "HomesteadNodeDefinition",
+            [render_homestead_node(node_id, nodes[node_id]) for node_id in HOMESTEAD_NODE_ORDER],
+        )
+        + "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentHomestead.generated.swift", body)
 
@@ -1422,10 +1532,7 @@ def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
             raise ValueError(f"Unknown weapon kind '{row.weapon_kind}' for {row.id}")
         if row.slot != "weapon" and row.weapon_kind:
             raise ValueError(f"Non-weapon item base {row.id} cannot declare a weapon kind")
-        for keyword in row.keywords.split(","):
-            keyword = keyword.strip()
-            if keyword and keyword not in VALID_KEYWORDS:
-                raise ValueError(f"Unknown keyword '{keyword}' for item base {row.id}")
+        _validate_keywords(row.keywords, f"item base {row.id}")
 
 
 def generate_item_bases_catalog(rows: list[ItemBaseRow]) -> None:
@@ -1445,20 +1552,10 @@ def generate_item_bases_catalog(rows: list[ItemBaseRow]) -> None:
             f"keywordAffinities: {parse_keywords(row.keywords)}"
             ")"
         )
-    capacity = len(entries)
-    appends = "\n".join(
-        f"        list.append({entry.strip()})"
-        for entry in entries
-    )
     body = (
         "enum GameContentItemBasesGenerated {\n"
-        "    static let itemBaseTypes: [ItemBaseType] = {\n"
-        f"        var list = [ItemBaseType]()\n"
-        f"        list.reserveCapacity({capacity})\n"
-        + appends
-        + "\n        return list\n"
-        "    }()\n"
-        "}\n"
+        + list_catalog_property("itemBaseTypes", "ItemBaseType", entries)
+        + "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentItemBases.generated.swift", body)
 
@@ -1505,7 +1602,7 @@ def parse_talent_rows() -> list[TalentRow]:
         MANIFEST_DIR / "talents.tsv",
         ["id", "name", "icon_id", "description", "modifiers", "triggers"],
         TalentRow,
-        min_columns=4,
+        min_columns=TALENT_REQUIRED_COLUMNS,
     )
 
 
@@ -1551,7 +1648,7 @@ def generate_talent_catalog(rows: list[TalentRow], combatant_ids: list[str]) -> 
 
     merge = ",\n            ".join(group_names)
     body = (
-        "extension CombatantTalentCatalog {\n"
+        "public extension CombatantTalentCatalog {\n"
         + "\n\n".join(group_lets)
         + "\n\n    static let signatureTalents: [String: CombatantTalentEffect] = {\n"
         "        var combined: [String: CombatantTalentEffect] = [:]\n"
@@ -1585,9 +1682,8 @@ def validate_talent_rows(rows: list[TalentRow], combatant_ids: list[str] | None 
         _validate_game_icon(row.icon_id, row.id)
         _require_non_empty("talent description", row.description, row.id)
 
-        for token in parse_modifier_tokens(row.modifiers):
-            modifier_token_to_swift(token)
-        triggers_swift(row.triggers)
+        modifiers_swift(row.modifiers, row.id)
+        triggers_swift(row.triggers, row.id)
 
 
 def validate_manifests() -> tuple[
@@ -1608,8 +1704,8 @@ def validate_manifests() -> tuple[
     homestead_rows = parse_homestead_node_rows()
     item_base_rows = parse_item_base_rows()
     talent_rows = parse_talent_rows()
-    ability_symbols = collect_ability_symbols()
     ability_tiers = collect_ability_tiers()
+    ability_symbols = set(ability_tiers)
     combatant_ids = [row.id for row in combatant_rows]
 
     validate_affix_rows(affix_rows)
@@ -1622,7 +1718,13 @@ def validate_manifests() -> tuple[
         set(combatant_ids),
         {row.id for row in trait_rows},
     )
-    validate_stage_rows(stage_rows, enemy_ids={row.id for row in enemy_rows})
+    validate_stage_rows(
+        stage_rows,
+        enemy_ids={row.id for row in enemy_rows},
+        mystery_event_ids=collect_mystery_event_ids(),
+        recruit_event_ids=collect_recruit_event_ids(),
+        art_ids=collect_art_ids(),
+    )
     validate_homestead_node_rows(homestead_rows)
     validate_item_base_rows(item_base_rows)
     return (
@@ -1641,13 +1743,12 @@ def validate_manifests() -> tuple[
 def generate_ability_shorthand() -> None:
     entries: list[tuple[str, str]] = []
     for tier in ("Basic", "Skill", "Ultimate"):
-        hand_path = CONTENT_DIR / f"AbilityCatalog{tier}.swift"
-        for symbol in parse_hand_ability_symbols(hand_path):
+        for symbol in ability_symbols_in_source(_read_ability_source(tier)):
             entries.append((symbol, f"AbilityCatalog{tier}.{symbol}"))
 
     entries.sort(key=lambda item: item[0])
     lines = [f"    static let {symbol} = {target}" for symbol, target in entries]
-    body = "extension Ability {\n" + "\n".join(lines) + "\n}\n"
+    body = "public extension Ability {\n" + "\n".join(lines) + "\n}\n"
     write_generated_file(GENERATED_DIR / "AbilityShorthand.generated.swift", body)
 
 
@@ -1659,9 +1760,9 @@ def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
         ("skill", "Skill"),
         ("ultimate", "Ultimate"),
     ):
-        source = (CONTENT_DIR / f"AbilityCatalog{tier_enum}.swift").read_text()
+        source = _read_ability_source(tier_enum)
         for match in re.finditer(
-            r'static let \w+ = (?:Ability\(|AbilityBuilder\.(?:directHit|buffOnly|multiDamage)\()\s*'
+            rf"static let \w+ = {ABILITY_DECL_BUILDERS}\s*"
             r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)',
             source,
         ):
@@ -1679,6 +1780,8 @@ def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
 def _ability_inventory_digest() -> str:
     import hashlib
 
+    # Every input that can change dump output: catalog data plus the
+    # Ability.summary implementation and the dump helper itself.
     inputs = [
         CONTENT_DIR / "AbilityCatalogBasic.swift",
         CONTENT_DIR / "AbilityCatalogSkill.swift",
@@ -1699,45 +1802,44 @@ def generate_ability_inventory() -> None:
     expected = parse_authored_ability_inventory_rows()
     expected_ids = {ability_id for ability_id, _, _ in expected}
 
-    force = (
-        os.environ.get("TRINKET_FORCE_ABILITY_DUMP") == "1"
-        or os.environ.get("FORCE_ASSET_REENCODE") == "1"
-    )
+    force = os.environ.get("TRINKET_FORCE_ABILITY_DUMP") == "1"
     current_digest = _ability_inventory_digest()
     if not force and out.is_file() and ABILITY_INVENTORY_STAMP.is_file():
         if ABILITY_INVENTORY_STAMP.read_text(encoding="utf-8").strip() == current_digest:
             return
 
-    completed = subprocess.run(
-        [
-            "swift",
-            "run",
-            "--package-path",
-            str(TRINKET_CONTENT_PACKAGE),
-            "AbilityInventoryDump",
-        ],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if completed.returncode != 0:
-        detail = (completed.stderr or completed.stdout or "").strip()
-        raise RuntimeError(
-            "AbilityInventoryDump failed"
-            + (f":\n{detail}" if detail else f" (exit {completed.returncode})")
-        )
+    import tempfile
 
-    tsv = completed.stdout
-    # SPM occasionally prints build banners on stdout; keep only the TSV block.
-    header = "id\tname\ttier\tsummary"
-    start = tsv.find(header)
-    if start < 0:
-        raise RuntimeError(
-            "AbilityInventoryDump stdout did not contain TSV header "
-            f"{header!r}. stdout={tsv!r} stderr={completed.stderr!r}"
+    with tempfile.TemporaryDirectory() as directory:
+        dump_path = Path(directory) / "AbilityInventory.tsv"
+        completed = subprocess.run(
+            [
+                "swift",
+                "run",
+                "--package-path",
+                str(TRINKET_CONTENT_PACKAGE),
+                "AbilityInventoryDump",
+                str(dump_path),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
         )
-    tsv = tsv[start:].lstrip("\n")
+        if completed.returncode != 0:
+            detail = (completed.stderr or completed.stdout or "").strip()
+            raise RuntimeError(
+                "AbilityInventoryDump failed"
+                + (f":\n{detail}" if detail else f" (exit {completed.returncode})")
+            )
+        if not dump_path.is_file():
+            raise RuntimeError(
+                "AbilityInventoryDump did not write its output file. "
+                f"stderr={completed.stderr!r}"
+            )
+        tsv = dump_path.read_text(encoding="utf-8")
+
+    header = "id\tname\ttier\tsummary"
     if not tsv.endswith("\n"):
         tsv += "\n"
 
@@ -1778,8 +1880,7 @@ def generate_ability_inventory() -> None:
 
     # Skip rewrite when unchanged so generate no-ops do not bump mtimes under
     # Packages/TrinketContent (Xcode watches the package tree).
-    if not (out.exists() and out.read_text(encoding="utf-8") == tsv):
-        out.write_text(tsv)
+    write_if_changed(out, tsv)
 
     ABILITY_INVENTORY_STAMP.parent.mkdir(parents=True, exist_ok=True)
     ABILITY_INVENTORY_STAMP.write_text(current_digest, encoding="utf-8")

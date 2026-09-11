@@ -20,4 +20,14 @@ public enum GameContent {
     public static func itemAffixDefinition(matching id: String) -> ItemAffixDefinition? {
         itemAffixDefinitionsByID[id]
     }
+
+    public static func stableSeed(for text: String) -> UInt64 {
+        text.utf8.reduce(14695981039346656037) { hash, byte in
+            (hash ^ UInt64(byte)) &* 1099511628211
+        }
+    }
+
+    public static func encounterSeed(_ worldSeed: UInt64, salt: String) -> UInt64 {
+        worldSeed &+ stableSeed(for: salt)
+    }
 }

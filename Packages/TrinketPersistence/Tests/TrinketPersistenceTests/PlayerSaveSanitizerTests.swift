@@ -469,4 +469,14 @@ struct PlayerSaveSanitizerTalentIDTests {
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
         #expect(sanitized.unlockedTalents["warlock"] == Set(tree.nodes.prefix(7).map(\.id)))
     }
+
+    @Test func `sanitize clamps negative corruption cooldown and validate rejects it`() throws {
+        var save = PlayerSave.fresh
+        save.corruptionAltarCooldownRemaining = -3
+        let sanitized = PlayerSaveSanitizer.sanitize(save, changedSlices: .root)
+        #expect(sanitized.corruptionAltarCooldownRemaining == 0)
+        #expect(throws: PlayerSavePersistenceError.self) {
+            try PlayerSaveSanitizer.validate(save)
+        }
+    }
 }

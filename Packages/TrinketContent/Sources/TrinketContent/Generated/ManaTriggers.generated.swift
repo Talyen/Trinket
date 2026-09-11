@@ -272,7 +272,9 @@ extension ManaTriggers {
         firstEmpowermentCostReduction += other.firstEmpowermentCostReduction
         empowermentCostReduction += other.empowermentCostReduction
         healingEmpowermentCostReduction += other.healingEmpowermentCostReduction
-        bonusManaOnTurns = Array(Set(bonusManaOnTurns).union(other.bonusManaOnTurns)).sorted()
+        if !other.bonusManaOnTurns.isEmpty {
+            bonusManaOnTurns = bonusManaOnTurns.isEmpty ? other.bonusManaOnTurns.sorted() : Array(Set(bonusManaOnTurns).union(other.bonusManaOnTurns)).sorted()
+        }
         spendManaGrantsEqualBlock = spendManaGrantsEqualBlock || other.spendManaGrantsEqualBlock
         manaGainDoubleChancePercent += other.manaGainDoubleChancePercent
         spendManaThresholdAutoPlayCard = max(spendManaThresholdAutoPlayCard, other.spendManaThresholdAutoPlayCard)

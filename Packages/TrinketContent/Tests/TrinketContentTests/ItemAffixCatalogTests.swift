@@ -20,6 +20,29 @@ struct ItemAffixCatalogTests {
         #expect(item.displayedAffixes.first?.description == definition.basic.description)
     }
 
+    @Test func `saved patient edge power uses partner damage without losing rolls`() throws {
+        let catalog = try #require(GameContent.unique(matching: "the_patient_edge"))
+        try #require(catalog.affixes.first?.id == "the_patient_edge")
+        let old = ItemAffixPower(
+            description: "Old held card text.", modifiers: [],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(heldCardNextAttackDamage: 3)),
+        )
+        let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
+        let item = InventoryItem(
+            id: catalog.id,
+            templateID: catalog.templateID,
+            baseType: catalog.baseType,
+            rarity: catalog.rarity,
+            displayName: catalog.displayName,
+            affixes: catalog.affixes,
+            affixPowers: decoded,
+        )
+        let power = try #require(item.resolvedPower(at: 0))
+        #expect(power.triggers.heldCardNextAttackDamage == 0)
+        #expect(power.triggers.partnerFirstAttackDamage == 3)
+        #expect(power.description.contains("+3 damage"))
+    }
+
     @Test func `combat reaction affix I ds resolve to catalog titles`() throws {
         let ids = [
             "absolving", "aetherward", "arcane_ward", "beacon", "blood_price",

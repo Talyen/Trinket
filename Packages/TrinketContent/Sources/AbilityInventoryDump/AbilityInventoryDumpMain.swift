@@ -30,7 +30,12 @@ enum AbilityInventoryDump {
             let tier = ability.tier.rawValue.lowercased()
             lines.append("\(ability.id)\t\(ability.name)\t\(tier)\t\(summary)")
         }
-        print(lines.joined(separator: "\n"))
+        let output = lines.joined(separator: "\n") + "\n"
+        if CommandLine.arguments.count > 1 {
+            try output.write(toFile: CommandLine.arguments[1], atomically: true, encoding: .utf8)
+        } else {
+            print(output, terminator: "")
+        }
     }
 
     private static func tierRank(_ tier: AbilityTier) -> Int {

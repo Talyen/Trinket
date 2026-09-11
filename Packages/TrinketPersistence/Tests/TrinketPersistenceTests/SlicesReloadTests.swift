@@ -42,7 +42,6 @@ struct SlicesReloadTests {
 
     @Test @MainActor func `companion armor from old save unequips on reload and item survives`() throws {
         let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let leatherBase = try #require(GameContent.itemBaseType(matching: "leather_armor"))
         let armor = InventoryItem(
@@ -56,9 +55,7 @@ struct SlicesReloadTests {
         oldSave.inventory.appendUniqueItem(armor)
         oldSave.roster.equipmentLoadouts[bear.id] = EquipmentLoadout(itemIDsBySlot: [.armor: armor.id])
 
-        try SaveTestSupport.writeRoot(oldSave, to: storeURL)
-
-        let reloaded = try context.makeReloadedStore()
+        let reloaded = try context.seedAndReload(oldSave)
 
         let companionLoadout = try #require(reloaded.roster.equipmentLoadouts[bear.id])
         try #expect(companionLoadout.itemID(for: .armor) == nil, "removed companion slot must not survive reload")
@@ -70,12 +67,10 @@ struct SlicesReloadTests {
 
     @Test @MainActor func `tower floor clear survives reload`() throws {
         let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
         let spire = try #require(GameContent.spire(id: .ironVein))
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        var save = SaveTestSupport.makeSave(worldSeed: PlayerSave.testWorldSeed)
-        try SaveTestSupport.writeRoot(save, to: storeURL)
-        let firstStore = try context.makeReloadedStore()
+        let save = SaveTestSupport.makeSave(worldSeed: PlayerSave.testWorldSeed)
+        let firstStore = try context.seedAndReload(save)
         var draft = firstStore.currentSave
         SpireCompletion.complete(
             floor: floor,
@@ -95,12 +90,10 @@ struct SlicesReloadTests {
 
     @Test @MainActor func `claimed journey XP survives reload`() throws {
         let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
         let chapter = try #require(GameContent.chapters.first)
         let stage = try #require(chapter.stages.first)
         let save = SaveTestSupport.makeSave(worldSeed: PlayerSave.testWorldSeed)
-        try SaveTestSupport.writeRoot(save, to: storeURL)
-        let firstStore = try context.makeReloadedStore()
+        let firstStore = try context.seedAndReload(save)
         var draft = firstStore.currentSave
         StageCompletion.complete(
             stage,

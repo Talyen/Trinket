@@ -64,6 +64,9 @@ struct PlayerSaveSlice: OptionSet {
         if targets.contains(.inventory) {
             targets.insert(.roster)
         }
+        if targets.contains(.labyrinth) {
+            targets.insert(.roster)
+        }
         return targets
     }
 

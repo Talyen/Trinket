@@ -6,14 +6,20 @@ Validates that:
    exists on disk in Trinket/Assets.xcassets or Trinket/Media.
 2. Every asset file in Trinket/Assets.xcassets and Trinket/Media is registered in a manifest
    (detects orphaned / dead assets consuming bundle space).
+
+Carve-outs: AccentColor/AppIcon entries and dotfiles are ignored, as are files
+with extensions outside each pipeline's output (`.heic`, `.m4a`, `.mp4`).
 """
 
 from __future__ import annotations
 
 import argparse
-import csv
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from content_codegen import read_manifest_table
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -42,23 +48,8 @@ KINDS_REQUIRING_THUMB = {
 def read_tsv_rows(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         return []
-    header: list[str] = []
-    result: list[dict[str, str]] = []
-    with open(path, "r", encoding="utf-8") as f:
-        reader = csv.reader(f, delimiter="\t")
-        for row in reader:
-            if not row:
-                continue
-            first = row[0].strip()
-            if not header and first.startswith("#"):
-                clean_first = first.lstrip("#").strip()
-                header = [clean_first] + [c.strip() for c in row[1:]]
-                continue
-            if first.startswith("#"):
-                continue
-            if header and len(row) >= len(header):
-                result.append({k: v.strip() for k, v in zip(header, row)})
-    return result
+    header, rows = read_manifest_table(path)
+    return [dict(zip(header, row)) for row in rows]
 
 
 def check_assets(verbose: bool = False) -> tuple[list[str], list[str]]:

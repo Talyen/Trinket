@@ -11,12 +11,17 @@ public enum ItemDropTier: String, CaseIterable, Sendable {
 
 enum ItemLootPolicy {
     static let bossPremiumMultiplier = 3.0
-    static let curve: [(level: Int, weights: [Double])] = [
-        (1, [98, 1.5, 0.4, 0.1]),
-        (6, [90, 6, 3, 1]),
-        (11, [80, 11, 6, 3]),
-        (20, [70, 16, 9, 5]),
-    ]
+    static let minimumLevel = 1
+    static let maximumLevel = 40
+    static let baseWeights: [Double] = [98, 1.5, 0.4, 0.1]
+    static let topWeights: [Double] = [60, 20, 12, 8]
+    static let curvature: Double = 25
+
+    static func progress(level: Int) -> Double {
+        let clamped = Double(min(max(level, minimumLevel), maximumLevel) - minimumLevel)
+        let span = Double(maximumLevel - minimumLevel)
+        return (clamped / (curvature + clamped)) / (span / (curvature + span))
+    }
 
     static func probabilities(
         level: Int,
@@ -24,14 +29,11 @@ enum ItemLootPolicy {
         astralChanceBonusPercent: Int,
         availableTiers: Set<ItemDropTier>,
     ) -> [Double] {
-        let level = min(max(level, curve[0].level), curve[curve.count - 1].level)
-        let upperIndex = curve.firstIndex { $0.level >= level } ?? (curve.count - 1)
-        let lower = curve[max(0, upperIndex - 1)]
-        let upper = curve[upperIndex]
-        let fraction = upper.level == lower.level ? 0 : Double(level - lower.level) / Double(upper.level - lower.level)
+        let clampedLevel = min(max(level, minimumLevel), maximumLevel)
+        let t = progress(level: clampedLevel)
         let weights = ItemDropTier.allCases.enumerated().map { index, tier in
             guard availableTiers.contains(tier) else { return 0.0 }
-            var weight = lower.weights[index] + (upper.weights[index] - lower.weights[index]) * fraction
+            var weight = baseWeights[index] + (topWeights[index] - baseWeights[index]) * t
             if bossContent, tier != .basic {
                 weight *= bossPremiumMultiplier
             }
