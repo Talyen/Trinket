@@ -25,6 +25,8 @@ public struct TurnDrawState: Hashable, Sendable {
 
 // swiftlint:disable:next type_body_length - BattleState is intentional battle facade
 public struct BattleState {
+    var cardPlayRecording: BattleCardPlayRecording?
+
     public let rngSeed: UInt64
 
     public let tracksLog: Bool
@@ -283,13 +285,17 @@ public struct BattleState {
     public mutating func playCard(
         cardID: Int,
         rebuildLog: Bool = true,
+        recording: ((BattleTransitionCheckpoint, Self, [ActionEvent]) -> Void)? = nil,
     ) throws -> [ActionEvent] {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
+        cardPlayRecording = recording.map(BattleCardPlayRecording.init)
+        defer { cardPlayRecording = nil }
         let events = try BattleCardCombatEngine.playCard(
             cardID: cardID,
             context: &self,
         )
         finishMutation(rebuildLog: rebuildLog)
+        recordCardPlay(.ready)
         return events
     }
 

@@ -35,7 +35,7 @@ struct ExploreHubView: View {
                 destination: PlayLaunchDestination.contracts,
                 title: "Contracts",
                 subtitle: nil,
-                artID: "gameModeExplore",
+                artID: "gameModeContracts",
                 accessibilityIdentifier: AccessibilityID.Play.contractsModeCard,
             )
         }

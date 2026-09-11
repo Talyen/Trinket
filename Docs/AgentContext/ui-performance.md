@@ -59,8 +59,8 @@ While the retained battle overlay is active, `PlayBrowsingStack` removes its roo
 and destination content from touch and accessibility exposure with the shared
 visibility modifier. Apply the modifier to the hosted screen content, not just the
 outer `NavigationStack`: native navigation hosting can retain accessible children
-beneath an otherwise hidden container. Keep opacity at one for the battle crossfade
-backdrop; do not unmount the stack or add battle observation to its destinations.
-The retained battle overlay root owns stable navigation geometry through its exit
-crossfade; removing a battle must not remove its navigation inset while its outgoing
-content is still visible.
+beneath an otherwise hidden container. Keep opacity at one for the immediate return
+from battle; do not unmount the stack or add battle observation to its destinations.
+The retained battle overlay root owns stable navigation geometry. Battle visibility
+switches immediately without fading its hand; keep the overlay mounted for prewarm
+and preserve its navigation inset until hidden.

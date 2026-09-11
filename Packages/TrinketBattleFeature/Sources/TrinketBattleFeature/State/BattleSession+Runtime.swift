@@ -133,11 +133,24 @@ extension BattleSession {
     }
 
     @discardableResult
-    func playEngineCard(cardID: Int) throws -> [ActionEvent] {
-        guard var engineState else { throw BattlePlayError.battleOver }
-        let events = try engineState.playCard(cardID: cardID, rebuildLog: false)
+    func playEngineCard(cardID: Int) throws -> (events: [ActionEvent], playback: BattleTransitionPlayback) {
+        guard var engineState, let configurationID = activeBattle?.id else { throw BattlePlayError.battleOver }
+        var frames: [BattleTransitionFrame] = []
+        let events = try engineState.playCard(cardID: cardID, rebuildLog: false) { checkpoint, state, events in
+            let assessment: BattleCardAssessment? = if case let .cardWillPlay(card) = checkpoint {
+                state.assessCard(card)
+            } else {
+                nil
+            }
+            frames.append(BattleTransitionFrame(
+                checkpoint: checkpoint,
+                snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state, acceptsCommands: checkpoint == .ready),
+                events: events,
+                assessment: assessment,
+            ))
+        }
         self.engineState = engineState
-        return events
+        return (events, BattleTransitionPlayback(configurationID: configurationID, frames: frames, initialCardID: cardID))
     }
 
     func resolveTransition(_ kind: BattleTransitionPlayback.Kind) -> BattleTransitionPlayback? {
@@ -262,10 +275,12 @@ extension BattleSession {
     public func setSuspendedForScenePhase(_ suspended: Bool) {
         guard isSuspendedForScenePhase != suspended else { return }
         commandState.suspend(suspended)
+        cardPlayback.isSuspended = suspended
         if suspended {
             clearCardCues()
             cancelPendingAutoEnd()
         } else {
+            restoreRecordedCardCue()
             scheduleAutoEndIfNeeded()
         }
     }

@@ -25,7 +25,7 @@ rogue_poison_t3_1	Contagion	lucide:refresh-cw	Poison damage has a 25% chance to 
 rogue_poison_t3_2	Deadly Dose	lucide:flask-round	Poisoned enemies take 25% additional damage from all sources.		damageVsPoisonedMultiplier:1.25
 rogue_bleed_t1_1	Serrated Blades	lucide:swords	Dealing Bleed damage immediately triggers existing Bleeds.		bleedApplicationTicksExisting:true
 rogue_bleed_t1_2	Deep Wounds	lucide:droplet	Bleed ignores the enemy's damage reduction.		bleedsIgnoreMitigation:true
-rogue_bleed_t2_1	Taste for Blood	sf:mouth.fill	When Bleed deals damage, your next Basic attack has +35% Critical Hit chance.		onBleedDamageNextBasicCritBonus:0.35
+rogue_bleed_t2_1	Taste for Blood	lucide:droplet	When Bleed deals damage, your next Basic attack has +35% Critical Hit chance.		onBleedDamageNextBasicCritBonus:0.35
 rogue_bleed_t2_2	Blood Money	lucide:hand-coins	Defeating Bleeding enemies grants 5 bonus Gold.		defeatBleedingEnemyGold:5
 rogue_bleed_t3_1	Exsanguinate	lucide:droplets	Critical Hits on Bleeding targets have a 20% chance to detonate and consume all remaining Bleed damage at once.		criticalOnBleedingDetonateBleedChance:0.20
 rogue_bleed_t3_2	Scent of Blood	lucide:scan-eye	Deal 2 additional damage to enemies below half Health.		damage_below_health_percent:0.5:2
@@ -39,7 +39,7 @@ wizard_freeze_t1_1	Persistent Frost	lucide:snowflake	Deal 2 additional Freeze da
 wizard_freeze_t1_2	Numbing Cold	lucide:cloud-snow	Freeze has a 20% chance to last an additional turn.		freeze_extend_chance_percent:0.20
 wizard_freeze_t2_1	Thermal Shock	lucide:sun-snow	Burn damage against Frozen enemies deals 4 bonus Physical damage.		burnDamageVsFrozenBonusPhysical:4
 wizard_freeze_t2_2	Glacial Barrier	lucide:shield	Gain 3 Block whenever an enemy becomes Frozen.		onEnemyFrozenGainBlock:3
-wizard_freeze_t3_1	Deep Freeze	lucide:lock-keyhole	Frozen enemies cannot gain Block or receive Health restoration.		frozenEnemyCannotBlockOrHeal:true
+wizard_freeze_t3_1	Deep Freeze	lucide:snowflake	Frozen enemies cannot gain Block or receive Health restoration.		frozenEnemyCannotBlockOrHeal:true
 wizard_freeze_t3_2	Blizzard	lucide:cloud-snow	Playing 3 Freeze cards in one turn Freezes the enemy.		freezeCardsPlayedThisTurnFreezeAll:3
 wizard_burn_t1_1	Ignition	lucide:flame	Burn deals 25% more damage to enemies with no Block.		burnDamageVsNoBlockMultiplier:1.25
 wizard_burn_t1_2	Wildfire Spread	lucide:flame-kindling	Burn ticks have a 25% chance to increase in potency.		burnIncreaseChancePercent:0.25
@@ -100,7 +100,7 @@ bear_physical_t1_2	Primal Rage	lucide:face-angry	Deal 1 additional damage for ev
 bear_physical_t2_1	Cleaving Claws	lucide:paw-print	Physical attacks deal 2 additional damage.	damage_dealt:physical:2	
 bear_physical_t2_2	Heavy Impact	lucide:hammer	Physical attacks ignore half of enemy Block.		physicalBlockIgnorePercent:0.5
 bear_physical_t3_1	Enrage	lucide:flame	While Bear is below half Health, party attacks deal 3 additional damage.		partyAllStatsBonusBelowHealthThreshold:0.5|partyAllStatsBonusBelowHealthAmount:3
-bear_physical_t3_2	Pulverize	sf:mouth.fill	The first Physical attack each turn deals 1 Bleed and 1 Stun damage.		firstPhysicalBleedStunPerTurn:true
+bear_physical_t3_2	Pulverize	lucide:hammer	The first Physical attack each turn deals 1 Bleed and 1 Stun damage.		firstPhysicalBleedStunPerTurn:true
 bear_stun_t1_1	Ground Slam	lucide:hammer	Physical attacks deal 1 Stun damage.		physicalAttackFlatStunBuildup:1
 bear_stun_t1_2	Dazing Swipe	lucide:paw-print	Attacks have a 25% chance to delay the enemy's turn.		attackDelayEnemyTurnChancePercent:0.25
 bear_stun_t2_1	Shockwave	lucide:waves-horizontal	Stunning an enemy deals 3 Physical damage to them.		stunDealPhysicalFlat:3
@@ -133,7 +133,7 @@ lizard_scout_poison_t3_1	Paralysis	lucide:zap	Dealing Poison damage to an enemy 
 lizard_scout_poison_t3_2	Venom Spores	lucide:flower-2	Poison fades 50% slower each round.		poisonDecaySlowPercent:0.50
 lizard_scout_bleed_t1_1	Barbed Tail	sf:burst.fill	Basic attacks deal 2 Bleed damage.		basicAttackApplyBleed:2
 lizard_scout_bleed_t1_2	Spiny Carapace	sf:burst.fill	Attackers take 1 Bleed damage for 2 turns when hitting you.		onHitAttackerBleedPotency:1|onHitAttackerBleedTurns:2
-lizard_scout_bleed_t2_1	Ferocious Bite	sf:mouth.fill	Attacks deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
+lizard_scout_bleed_t2_1	Ferocious Bite	lucide:bone	Attacks deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
 lizard_scout_bleed_t2_2	Evasive Reflexes	lucide:wind	Gain +10% Dodge chance against Bleeding enemies.		dodgeChanceVsBleedingEnemiesBonus:0.10
 lizard_scout_bleed_t3_1	Frenzied Tail	lucide:repeat	While any enemy is Bleeding, draw 1 extra card each turn.		extraCardDrawWhileEnemyBleeding:true
 lizard_scout_bleed_t3_2	Armor Shred	lucide:shield-off	Bleed strips 2 Block from the target each turn.		bleedStripsBlockPerTurn:2
@@ -153,7 +153,7 @@ panther_leech_t1_1	Blood Hunger	lucide:droplet	Gain +15% Leech against enemies b
 panther_leech_t1_2	Shared Feast	lucide:heart-handshake	Health restored by Leech is shared equally with the Hero.		leechSharesToHeroPercent:0.5
 panther_leech_t2_1	Vitality Infusion	lucide:heart-plus	Leeching Health restores 1 Mana to the Hero.		onCompanionLeechRestoreHeroMana:1
 panther_leech_t2_2	Sanguine Growth	lucide:sprout	Excess Health restored from Leech grants a +1 damage bonus for combat (up to +4).		leechOverhealDamageBonus:1
-panther_leech_t3_1	Frenzied Feeding	sf:mouth.fill	Leeching from Poisoned or Bleeding enemies doubles the Health restored.		leechHealingVsAfflictedMultiplier:2
+panther_leech_t3_1	Frenzied Feeding	lucide:bone	Leeching from Poisoned or Bleeding enemies doubles the Health restored.		leechHealingVsAfflictedMultiplier:2
 panther_leech_t3_2	Pack Bloodlust	lucide:paw-print	While Panther is above 80% Health, party gains +10% Critical Hit chance.		partyCritChanceWhileCompanionAboveHealthThreshold:0.8|partyCritChanceWhileCompanionAboveHealthBonus:0.10
 panther_dodge_t1_1	Surprise Strike	lucide:sword	Gain +15% Critical Hit chance.		criticalChanceBonus:0.15
 panther_dodge_t1_2	Counter Pounce	lucide:paw-print	Dodging an attack counters immediately for 3 damage.		onDodgeCounterDamage:3
@@ -180,23 +180,23 @@ phoenix_deathsdoor_t2_2	Phoenix Vigor	lucide:biceps-flexed	Surviving Death's Doo
 phoenix_deathsdoor_t3_1	Fortified Rebirth	lucide:shield-plus	Revives grant 10 Block in addition to Health.		onceDeathReviveBlock:10
 phoenix_deathsdoor_t3_2	Ashen Ward	lucide:shield-check	Gain +50% Dodge chance and immunity to negative effects while on Death's Door.		deathsDoorDodgeAndDebuffImmunity:true
 wolf_bleed_t1_1	Pack Ferocity	lucide:paw-print	Increase Bleed duration by 1 and Bleed damage dealt by 1.	bleed_duration:1|damage_dealt:bleed:1	
-wolf_bleed_t1_2	Deep Bite	sf:mouth.fill	Deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
+wolf_bleed_t1_2	Deep Bite	lucide:bone	Deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
 wolf_bleed_t2_1	Hamstring	sf:figure.fall	Bleeding enemies deal 2 less damage.		bleedingEnemyDamageReductionFlat:2
 wolf_bleed_t2_2	Open Wounds	lucide:droplets	Dealing Bleed damage to a Bleeding target deals 2 damage.		onBleedAppliedToBleedingDealDamage:2
-wolf_bleed_t3_1	Carnivore	sf:mouth.fill	Restore 2 Health whenever Bleed deals damage.		onBleedDamageHealSelf:2
+wolf_bleed_t3_1	Carnivore	lucide:bone	Restore 2 Health whenever Bleed deals damage.		onBleedDamageHealSelf:2
 wolf_bleed_t3_2	Savage Tear	lucide:swords	Bleed ticks have a 20% chance to critically strike.		bleedTickCritChancePercent:0.20
 wolf_dodge_t1_1	Sidestep	lucide:footprints	Gain 2 Block whenever you Dodge.		dodgeBlockFlat:2
-wolf_dodge_t1_2	Nimble Fang	sf:mouth.fill	After Dodging, your next attack deals 2 Bleed damage.		nextAttackBleedAfterDodge:2
+wolf_dodge_t1_2	Nimble Fang	lucide:bone	After Dodging, your next attack deals 2 Bleed damage.		nextAttackBleedAfterDodge:2
 wolf_dodge_t2_1	Pack Coordination	lucide:users-round	When Wolf Dodges, the Hero gains +10% Dodge chance until your next turn.		onCompanionDodgeGrantHeroDodgePercent:0.10
 wolf_dodge_t2_2	Flanking Position	lucide:route	Dodging makes your next party hit a guaranteed Critical Hit.		onDodgeNextPartyHitGuaranteedCritical:true
 wolf_dodge_t3_1	Evasive Pack	lucide:wind	Wolf automatically Dodges attacks after the first hit each turn. These Dodges do not counterattack.		autoDodgeAfterFirstHitPerTurn:true
-wolf_dodge_t3_2	Snapping Jaws	sf:mouth.fill	Dodging counters with an immediate basic attack.		onDodgeCounterBasicAttack:true
-wolf_physical_t1_1	Alpha Howl	lucide:audio-lines	Party deals 2 additional Physical damage for the first 3 turns.		partyPhysicalDamageBonusFirstTurns:2|partyPhysicalDamageBonusFirstTurnCount:3
+wolf_dodge_t3_2	Snapping Jaws	lucide:bone	Dodging counters with an immediate basic attack.		onDodgeCounterBasicAttack:true
+wolf_physical_t1_1	Alpha Howl	lucide:dog	Party deals 2 additional Physical damage for the first 3 turns.		partyPhysicalDamageBonusFirstTurns:2|partyPhysicalDamageBonusFirstTurnCount:3
 wolf_physical_t1_2	Predatory Focus	lucide:focus	Deal 3 additional damage to enemies with lower Health than Wolf.		damageVsLowerHealthEnemyBonus:3
 wolf_physical_t2_1	Bone-Crushing Bite	lucide:bone	Physical attacks against enemies with Block deal 2 additional damage.		physicalDamageVsBlockedBonus:2
 wolf_physical_t2_2	Alpha Might	lucide:biceps-flexed	While the enemy is below half Health, party Physical attacks deal 2 additional damage.		damageBelowHealthPercentThreshold:0.5|damageBelowHealthPercentKeyword:.physical|damageBelowHealthPercentBonus:2
 wolf_physical_t3_1	Feral Frenzy	lucide:face-angry	While the enemy is below 40% Health, Wolf draws 1 extra card each turn.		extraCardDrawBelowEnemyHealthPercent:0.40
-wolf_physical_t3_2	Rending Fangs	sf:mouth.fill	Physical attacks deal 1 Bleed damage on hit.		physicalAttackApplyBleed:1
+wolf_physical_t3_2	Rending Fangs	lucide:bone	Physical attacks deal 1 Bleed damage on hit.		physicalAttackApplyBleed:1
 golden_retriever_gold_t1_1	Bounty	lucide:coins	Gain 3 Gold when you defeat an enemy.		defeatEnemyGoldFlat:3
 golden_retriever_gold_t1_2	Dig for Treasure	lucide:shovel	Gain 2 Gold every 3 turns.		goldEveryNTurnsInterval:3|goldEveryNTurnsAmount:2
 golden_retriever_gold_t2_1	Haggler	lucide:handshake	All Gold you gain in combat is increased by 15%.		partyGoldGainedPercent:0.15
@@ -430,7 +430,7 @@ warlock_leech_t4_1	Emberdrinker	lucide:flame	Your Burn damage Leeches Health.		b
 frost_whelp_mana_t4_1	Dragon’s Patronage	lucide:handshake	Your Mana can empower either ally’s Freeze cards.		dragonPatronage:true
 frost_whelp_dodge_t4_1	Winter’s Wake	lucide:cloud-snow	Dodged attacks return half their damage as Freeze damage.		wintersWake:true
 lizard_scout_gold_t4_1	Carrion Claim	lucide:skull	Your Poison and Bleed damage steal 1 Gold.		carrionClaim:true
-panther_leech_t4_1	Blood Feast	sf:mouth.fill	Your Bleed damage Leeches Health.		bleedDamageLeech:true
+panther_leech_t4_1	Blood Feast	lucide:heart-pulse	Your Bleed damage Leeches Health.		bleedDamageLeech:true
 panther_dodge_t4_1	Killing Grace	lucide:paw-print	Your Dodge chance also increases your Critical Hit chance.		killingGrace:true
 phoenix_deathsdoor_t4_1	Undying Ember	lucide:flame	Burn heals you while you’re on Death’s Door.		undyingEmber:true
 golden_retriever_health_t4_1	Contagious Joy	lucide:face-slightly-smiling	Your healing uses the party’s highest Critical Hit chance.		contagiousJoy:true

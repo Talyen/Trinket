@@ -170,6 +170,7 @@ struct MysteryEncounterView: View {
                             .clipped()
                     }
                     .frame(width: geometry.size.width)
+                    .cardArtworkSurface()
 
                     VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraLarge) {
                         Text(session.narrative)
@@ -217,6 +218,7 @@ struct MysteryEncounterView: View {
             ) {
                 heroArtwork
             }
+            .cardArtworkSurface()
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Layout.contentMargin) {
                 narrativeCard

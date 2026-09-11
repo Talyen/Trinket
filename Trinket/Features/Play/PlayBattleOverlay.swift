@@ -60,7 +60,7 @@ struct PlayBattleOverlay: View {
             .toolbarVisibility(.visible, for: .navigationBar)
         }
         .trinketPresentationVisibility(isActive)
-        .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
+        .animation(nil, value: battle.activeBattle?.id)
         .task(id: battlePresentationTaskKey) {
             await battle.prepareBattlePresentationAssets(displayScale: displayScale)
         }

@@ -282,6 +282,7 @@ encounter	destination-campfire	encounter_destination_campfire	Raw Assets/Destina
 encounter	destination-corruption-altar	encounter_destination_corruption_altar	Raw Assets/Destinations/Corruption Altar.jpeg	0.50	0.50
 background	gameModeCampaign	bg_game_mode_campaign	Raw Assets/Game Modes/Campaign.jpeg	0.50	0.50
 background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Explore.jpeg	0.50	0.50
+background	gameModeContracts	bg_game_mode_contracts	Raw Assets/Game Modes/Contracts.jpeg	0.50	0.50
 background	gameModeLabyrinth	bg_game_mode_labyrinth	Raw Assets/Game Modes/Labyrinth.jpeg	0.50	0.50
 background	gameModeSpires	bg_game_mode_spires	Raw Assets/Game Modes/Spires.jpeg	0.50	0.50
 background	spire-ironVein	bg_spire_iron_vein	Raw Assets/Game Modes/Spires/Physical Spire.jpeg	0.50	0.50

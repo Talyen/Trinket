@@ -29,9 +29,9 @@ struct FullGameOfferView: View {
             }
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                benefit("All Chapters and Game Modes", icon: .lucide("map"))
-                benefit("Every Hero and Companion", icon: .lucide("users-round"))
-                benefit("All future content included", icon: .lucide("sparkles"))
+                benefit(Text("All \(Text("chapters & modes").fontWeight(.semibold))"), icon: .lucide("map"))
+                benefit(Text("Every \(Text("hero & companion").fontWeight(.semibold))"), icon: .lucide("users-round"))
+                benefit(Text("Includes \(Text("all future content").fontWeight(.semibold))"), icon: .lucide("sparkles"))
             }
             .padding(TrinketDesign.Layout.contentMargin)
         }
@@ -53,17 +53,18 @@ struct FullGameOfferView: View {
         }
     }
 
-    private func benefit(_ title: String, icon: GameIcon) -> some View {
+    private func benefit(_ title: Text, icon: GameIcon) -> some View {
         Label {
-            Text(title)
-                .trinketTypography(.cardTitle)
+            title
+                .trinketTypography(.rowTitle)
+                .fontWeight(.regular)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
             GameIconImage(icon)
-                .trinketTypography(.sectionTitle)
+                .trinketTypography(.screenTitle)
                 .foregroundStyle(TrinketDesign.Colors.accent)
-                .frame(width: TrinketDesign.Spacing.extraLarge)
+                .frame(width: TrinketDesign.Spacing.extraLarge + TrinketDesign.Spacing.medium)
                 .accessibilityHidden(true)
         }
     }
@@ -140,7 +141,7 @@ private struct FullGameProductStyle: ProductViewStyle {
                     if isPurchasing {
                         ProgressView()
                     }
-                    Text("Purchase \(product.displayPrice)")
+                    Text("Unlock Full Game · \(product.displayPrice)")
                         .trinketTypography(.button)
                 }
                 .frame(maxWidth: .infinity)

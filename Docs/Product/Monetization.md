@@ -31,22 +31,26 @@ attunement remain separate from purchase access.
 
 ## Offer
 
-[Approved visual reference](FullGameOffer.png). This is a design mockup, not a
-screenshot of the running app.
+[Original visual reference](FullGameOffer.png). This is a design mockup, not a
+screenshot of the running app; the presentation and copy below supersede it.
 
-Use the native art-led detail sheet: the **Keep Exploring** heading overlays the
+Use a native art-led full-screen modal: the **Keep Exploring** heading overlays the
 bottom-left of the triggering chapter, Spire, Labyrinth mode, hero, or companion
 artwork, with a **FULL GAME** eyebrow. Use the current mountain artwork for Options
 and when contextual artwork is unavailable. Prepare and pin the selected artwork
-before presenting the sheet, then release it on dismissal. Three icon rows:
+before presenting the offer, then release it on dismissal. Preserve the square
+hero framing so character artwork is not cropped by a shorter header. Three
+larger icon rows use gold icons, primary-color text, and selective semibold emphasis:
 
-- All Chapters and Game Modes
-- Every Hero and Companion
-- All future content included
+- All **chapters & modes**
+- Every **hero & companion**
+- Includes **all future content**
 
-The primary button is **Purchase {localized price}**. Below it, show **Restore
+Keep benefit rows on one line at standard text sizes, allowing natural wrapping
+for enlarged text. The anchored primary button is **Unlock Full Game · {localized price}**.
+Below it, show **Restore
 Purchases · Privacy** and a small muted **Family Sharing** label. Keep a visible
-close button and swipe dismissal. No fixed content counts or named chapter claims,
+close button that returns to the originating screen. No fixed content counts or named chapter claims,
 additional one-time/subscription reassurance line, or secondary free-play CTA.
 
 The offer opens from deliberate actions at premium campaign, Spire, Labyrinth,
@@ -56,6 +60,12 @@ without access opens the offer directly with that character’s artwork, without
 opening character details underneath. Accessible but unrecruited characters
 remain inspectable with editing disabled. Combatant details have no recruitment
 or purchase footer.
+
+Options keeps a compact **Full Game** section with **Unlock Full Game** opening
+the offer and **Restore Purchases** always available. Verified owners see
+**Full Game · Purchased**, or **Shared with your family**, instead of the offer
+action. General **Support** and **Privacy Policy** links belong in a separate
+**About** section after Full Game and before Game Data.
 
 After verified purchase or restoration, return to the requesting screen without
 automatically starting a battle, recruiting, or confirming a starter. Delayed

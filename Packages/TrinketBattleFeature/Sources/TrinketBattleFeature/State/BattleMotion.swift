@@ -18,9 +18,10 @@ enum BattleMotion {
     static let outcomePresentationMinimum: TimeInterval = 1.25
     static let outcomePresentationPadding: TimeInterval = 0.1
     static let cardDrawStagger: TimeInterval = 0.045
+    static let cardDealDuration: TimeInterval = 0.3
 
     static var deal: Animation {
-        .spring(response: 0.3, dampingFraction: 0.94)
+        .spring(response: cardDealDuration, dampingFraction: 0.94)
     }
 
     static let cardHeldScale = 1.035

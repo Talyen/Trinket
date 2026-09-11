@@ -79,31 +79,31 @@ struct MysteryOfferChoices: View {
     private func bonus(_ reward: MysteryRewardBonus) -> some View {
         HStack(spacing: TrinketDesign.Spacing.small) {
             switch reward {
-            case .gold:
+            case let .gold(amount):
                 HomesteadResourceArtwork(resource: .gold)
                     .frame(width: TrinketDesign.Spacing.extraLarge, height: TrinketDesign.Spacing.extraLarge)
-            case let .material(resource, _):
-                HomesteadResourceArtwork(resource: resource)
-                    .frame(width: TrinketDesign.Spacing.extraLarge, height: TrinketDesign.Spacing.extraLarge)
-            case .experience:
+                Text("+\(amount) Gold")
+                    .trinketTypography(.statValue)
+                    .fixedSize(horizontal: false, vertical: true)
+            case let .material(resource, amount):
+                TrinketWalletResourcePill(
+                    title: resource.displayName,
+                    amount: amount,
+                    showsIncreasePrefix: true,
+                ) {
+                    HomesteadResourceArtwork(resource: resource)
+                }
+            case let .experience(amount):
                 GameIconImage(.lucide("star"))
                     .foregroundStyle(TrinketDesign.Colors.arcane)
                     .accessibilityHidden(true)
+                Text("+\(amount) XP")
+                    .trinketTypography(.statValue)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text(bonusText(reward))
-                .trinketTypography(.statValue)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(TrinketDesign.Spacing.small)
         .trinketSurface(.secondary)
-    }
-
-    private func bonusText(_ reward: MysteryRewardBonus) -> String {
-        switch reward {
-        case let .gold(amount): "+\(amount) Gold"
-        case let .material(resource, amount): "+\(amount) \(resource.displayName)"
-        case let .experience(amount): "+\(amount) XP"
-        }
     }
 }

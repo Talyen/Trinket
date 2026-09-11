@@ -1105,6 +1105,12 @@ public enum ArtCatalog {
             sourceAspectRatio: 1.340033500838,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
+        dict["gameModeContracts"] = BackgroundArtReference(
+            imageName: "bg_game_mode_contracts",
+            thumbnailImageName: "bg_game_mode_contracts_thumb",
+            sourceAspectRatio: 1.340033500838,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
         dict["gameModeLabyrinth"] = BackgroundArtReference(
             imageName: "bg_game_mode_labyrinth",
             thumbnailImageName: "bg_game_mode_labyrinth_thumb",

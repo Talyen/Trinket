@@ -89,6 +89,7 @@ struct OptionsView: View {
             }
 
             purchaseSection
+            aboutSection
             gameDataSection
         }
         .scrollContentBackground(.hidden)
@@ -129,12 +130,12 @@ struct OptionsView: View {
         Section("Full Game") {
             if fullGame.ownership.access.hasFullGame {
                 Label(
-                    fullGame.ownership == .familyShared ? "Shared with your family" : "Full Game purchased",
+                    fullGame.ownership == .familyShared ? "Shared with your family" : "Full Game · Purchased",
                     systemImage: "checkmark.circle",
                 )
                 .trinketTypography(.body)
             } else {
-                Button("View Full Game") { requestOffer(.options) }
+                Button("Unlock Full Game") { requestOffer(.options) }
                     .trinketTypography(.body)
                     .accessibilityIdentifier(AccessibilityID.FullGame.options)
             }
@@ -150,9 +151,14 @@ struct OptionsView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier(AccessibilityID.FullGame.status)
             }
-            Link("Privacy", destination: TrinketPublicPages.privacy)
-                .trinketTypography(.body)
+        }
+    }
+
+    private var aboutSection: some View {
+        Section("About") {
             Link("Support", destination: TrinketPublicPages.support)
+                .trinketTypography(.body)
+            Link("Privacy Policy", destination: TrinketPublicPages.privacy)
                 .trinketTypography(.body)
         }
     }

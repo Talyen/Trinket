@@ -244,7 +244,8 @@ struct EffectHandlersApplyTests {
         try #expect(battle.heroDeck.count == heroDeckCount)
     }
 
-    @Test func `draw and play cards does not replay nested draw and play forever`() throws {
+    @Test(arguments: [false, true])
+    func `draw and play cards does not replay nested draw and play forever`(recordsPlayback: Bool) throws {
         let packTactics = Ability(
             id: "pack-tactics",
             name: "Pack Tactics",
@@ -271,15 +272,20 @@ struct EffectHandlersApplyTests {
         battle.heroDeck = CombatDeck(abilities: [packTactics, packTactics, packTactics])
         battle.companionDeck = CombatDeck(abilities: [packTactics, packTactics, packTactics])
 
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .drawAndPlayCards(2),
-            ability: packTactics,
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle,
-        )
+        var recordedPlays = 0
+        let recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = recordsPlayback
+            ? { checkpoint, _, _ in
+                if case .cardPlayed = checkpoint {
+                    recordedPlays += 1
+                }
+            }
+            : nil
+        let card = try #require(battle.hand.cards.first)
+        let events = try battle.playCard(cardID: card.id, recording: recording)
 
-        try #expect(outcome.didApply)
+        #expect(!events.isEmpty)
+        #expect(!recordsPlayback || recordedPlays > 2)
+        #expect(battle.cardPlayRecording == nil)
         try #expect(battle.resolution.depth(.draw) == 0)
     }
 

@@ -52,6 +52,10 @@ struct CancellableGeneration {
 public final class BattleSession: BattleRuntime {
     let feedback = BattleFeedbackLane()
     let cardCues = BattleCardCueState()
+    var cardPlayback: BattleCardPlaybackState {
+        presentation.cardPlayback
+    }
+
     public internal(set) var spectacle = BattleSpectacleState()
     @ObservationIgnored
     let dependencies: BattleRuntimeDependencies

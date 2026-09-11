@@ -30,10 +30,27 @@ final class BattleCastPresentationState {
         cancelStuckReset()
     }
 
+    func setSuspended(_ suspended: Bool, at date: Date = .now) {
+        guard var request else { return }
+        if suspended {
+            guard request.pausedAt == nil else { return }
+            request.pausedAt = date
+            cancelStuckReset()
+        } else {
+            guard let pausedAt = request.pausedAt else { return }
+            request.startedAt += date.timeIntervalSince(pausedAt)
+            request.pausedAt = nil
+        }
+        self.request = request
+        if !suspended {
+            scheduleStuckReset(for: request.id)
+        }
+    }
+
     private func scheduleStuckReset(for requestID: UUID) {
         cancelStuckReset()
         let delay = stuckResetDelayOverride
-            ?? BattleMotion.cardActivationDuration
+            ?? max(0, BattleMotion.cardActivationDuration - Date.now.timeIntervalSince(request?.startedAt ?? .now))
             + BattleMotion.cardActivationStuckSlack
         pendingStuckResetTask = Task { @MainActor [weak self] in
             if delay > 0 {
@@ -52,7 +69,8 @@ final class BattleCastPresentationState {
 
 struct CardActivationRequest: Equatable, Identifiable {
     let id: UUID
-    let startedAt: Date
+    var startedAt: Date
+    var pausedAt: Date?
     let artworkName: String?
     let center: CGPoint
     let size: CGSize
@@ -99,6 +117,7 @@ struct CardActivationRequest: Equatable, Identifiable {
         cardCount: Int,
         battleSize: CGSize,
         liftFraction: CGFloat = 0,
+        startedAt: Date = .now,
     ) -> Self {
         let metrics = BattleHandLayout.metrics(
             containerWidth: battleSize.width,
@@ -111,6 +130,7 @@ struct CardActivationRequest: Equatable, Identifiable {
             containerFrame: CGRect(origin: .zero, size: battleSize),
         )
         return Self(
+            startedAt: startedAt,
             artworkName: card.ability.artReference?.imageName,
             center: CGPoint(
                 x: restingCenter.x,
@@ -141,16 +161,16 @@ struct CardCastEffectsLayer: View {
     )
 
     var body: some View {
-        TimelineView(.animation(paused: request == nil)) { timeline in
+        TimelineView(.animation(paused: request == nil || request?.pausedAt != nil)) { timeline in
             let displayedRequest = request ?? Self.idleRequest
             let progress = request.map {
-                cardActivationProgress(elapsed: timeline.date.timeIntervalSince($0.startedAt))
+                cardActivationProgress(elapsed: ($0.pausedAt ?? timeline.date).timeIntervalSince($0.startedAt))
             } ?? 0
             cast(displayedRequest, progress: progress)
                 .opacity(request == nil ? 0 : 1)
         }
-        .task(id: request?.id) {
-            guard let request else { return }
+        .task(id: request) {
+            guard let request, request.pausedAt == nil else { return }
             let elapsed = Date.now.timeIntervalSince(request.startedAt)
             let remaining = max(0, BattleMotion.cardActivationDuration - elapsed)
             try? await Task.sleep(for: .seconds(remaining))
@@ -192,11 +212,36 @@ struct CardCastEffectsLayer: View {
 
 struct CardCastPresentationLane: View {
     let presentation: BattleCastPresentationState
+    let playback: BattleCardPlaybackState
+    let battleSize: CGSize
+    let hapticsEnabled: Bool
 
     var body: some View {
         CardCastEffectsLayer(request: presentation.request) { requestID in
             presentation.remove(id: requestID)
         }
+        .onChange(of: playback.cast) { _, cast in
+            guard let cast else {
+                presentation.reset()
+                return
+            }
+            presentation.append(.restingRequest(
+                for: cast.card,
+                index: cast.index,
+                cardCount: cast.cardCount,
+                battleSize: battleSize,
+                liftFraction: BattleMotion.tapLiftHeightFraction,
+                startedAt: cast.startedAt,
+            ))
+        }
+        .onChange(of: playback.isSuspended) { _, suspended in
+            presentation.setSuspended(suspended)
+        }
+        .trinketSensoryFeedback(
+            .impact(weight: .medium),
+            trigger: playback.cast?.id,
+            enabled: hapticsEnabled && playback.cast != nil,
+        )
     }
 }
 

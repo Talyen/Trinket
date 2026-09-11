@@ -5,7 +5,7 @@ extension MysteryEventPool {
     static let ancientAltar = makeEvent(
         id: "ancient-altar",
         title: "Ancient Altar",
-        narrative: "Merchants have left {A} and coins in an offering bowl. Beneath the altar, rusted iron chains bind {B}.",
+        narrative: "An offering bowl holds {A} while rusted chains bind {B} below.",
         artID: "mystery-ancient-altar",
         choices: [
             ("take-the-offering", "Collect Tribute", [
@@ -22,7 +22,7 @@ extension MysteryEventPool {
     static let hiddenCache = makeEvent(
         id: "hidden-cache",
         title: "Hidden Cache",
-        narrative: "A leather pack lies beneath exposed roots. {A} rests across a coinpurse; {B} is tucked into the pack’s torn hide lining.",
+        narrative: "A coinpurse rests beneath {A} as torn leather conceals {B}.",
         artID: "mystery-hidden-cache",
         choices: [
             ("take-coinpurse", "Take the Purse", [
@@ -39,7 +39,7 @@ extension MysteryEventPool {
     static let overgrownTemple = makeEvent(
         id: "overgrown-temple",
         title: "Overgrown Temple",
-        narrative: "Burial coins surround {A} in the vine-choked crypt. Nearby, fallen masonry pins {B} beside a broken sarcophagus.",
+        narrative: "Burial coins surround {A} while fallen masonry pins {B} beside the crypt.",
         artID: "mystery-overgrown-temple",
         choices: [
             ("search-the-crypt", "Search the Crypt", [
@@ -56,7 +56,7 @@ extension MysteryEventPool {
     static let abandonedStudy = makeEvent(
         id: "abandoned-study",
         title: "Abandoned Study",
-        narrative: "An unfinished spell surrounds {A} on the desk. Across the room, {B} glints through a splintered wooden cabinet.",
+        narrative: "An unfinished spell surrounds {A}, and a splintered cabinet hides {B}.",
         artID: "mystery-abandoned-study",
         choices: [
             ("search-scrolls", "Study the Spell", [
@@ -73,7 +73,7 @@ extension MysteryEventPool {
     static let mysteriousTome = makeEvent(
         id: "mysterious-tome",
         title: "Mysterious Tome",
-        narrative: "The floating tome’s loose leaves circle {A}, revealing fragments of a lost spell. Beside the pedestal, a crystal seal imprisons {B}.",
+        narrative: "Loose pages reveal {A} while a crystal seal imprisons {B}.",
         artID: "mystery-mysterious-tome",
         choices: [
             ("take-the-pages", "Study the Pages", [
@@ -90,7 +90,7 @@ extension MysteryEventPool {
     static let crystalGeode = makeEvent(
         id: "crystal-geode",
         title: "Crystal Geode",
-        narrative: "A split geode reveals {A} among its glittering crystals. {B} remains lodged in the thick stone shell.",
+        narrative: "Glittering crystals reveal {A} while thick stone grips {B}.",
         artID: "mystery-crystal-geode",
         choices: [
             ("collect-gems", "Collect Gems", [
@@ -107,7 +107,7 @@ extension MysteryEventPool {
     static let meteoriteCrash = makeEvent(
         id: "meteorite-crash",
         title: "Meteorite Crash",
-        narrative: "{A} glows inside the meteorite’s cracked iron shell. The impact has collapsed a stone shelter, burying {B} beneath its rubble.",
+        narrative: "The meteorite’s core cradles {A} as its impact buries {B} in stone.",
         artID: "mystery-meteorite-crash",
         choices: [
             ("take-a-fragment", "Open the Core", [
@@ -124,7 +124,7 @@ extension MysteryEventPool {
     static let forgottenHoard = makeEvent(
         id: "forgotten-hoard",
         title: "Forgotten Hoard",
-        narrative: "An enormous skeleton curls around its hoard. {A} lies among ribs and rusted iron; {B} guards a spill of gold coins.",
+        narrative: "An ancient skeleton guards {A} while gold coins spill around {B}.",
         artID: "mystery-forgotten-hoard",
         choices: [
             ("collect-the-bones", "Search the Bones", [
@@ -141,7 +141,7 @@ extension MysteryEventPool {
     static let necromancersOffer = makeEvent(
         id: "necromancers-offer",
         title: "The Necromancer's Offer",
-        narrative: "The necromancer offers {A} with a lesson in forbidden rites. Their other hand presents {B}, resting in a bowl of crystal salts.",
+        narrative: "A necromancer offers {A} beside forbidden lessons, while crystal salts cradle {B}.",
         artID: "mystery-the-necromancers-offer",
         choices: [
             ("accept-rite", "Learn the Rite", [
@@ -158,7 +158,7 @@ extension MysteryEventPool {
     static let huntersLodge = makeEvent(
         id: "hunters-lodge",
         title: "Hunter's Lodge",
-        narrative: "Inside the deserted lodge, {A} hangs beside spare leather straps. Outside, {B} rests in a chopping block surrounded by split logs.",
+        narrative: "A deserted lodge shelters {A}, and split logs surround {B} outside.",
         artID: "mystery-hunters-lodge",
         choices: [
             ("claim-the-bow", "Take the Weapon", [
@@ -175,7 +175,7 @@ extension MysteryEventPool {
     static let roadsideCenser = makeEvent(
         id: "roadside-censer",
         title: "Roadside Censer",
-        narrative: "A roadside shrine holds {A} beside bundles of incense herbs. Beneath its hanging censer, {B} rests among pilgrims’ coins.",
+        narrative: "Incense herbs surround {A} while a censer shelters {B} among pilgrims’ coins.",
         artID: "mystery-roadside-censer",
         choices: [
             ("gather-incense", "Gather Incense", [
@@ -192,7 +192,7 @@ extension MysteryEventPool {
     static let corruptionAltar = makeEvent(
         id: Self.corruptionAltarID,
         title: "Corruption Altar",
-        narrative: "A cracked stone altar bleeds violet light from its seams. Offer an item and the altar remakes it without mercy, for better or worse, then seals it as Corrupted forever. You may also walk away untouched.",
+        narrative: "A violet altar remakes gear forever, offering corruption or escape.",
         artID: "destination-corruption-altar",
         choices: [
             ("corrupt-item", "Corrupt an Item", [.corruptItem]),

@@ -18,12 +18,10 @@ private struct FullGameOfferHost: ViewModifier {
     func body(content: Content) -> some View {
         content
             .environment(\.requestFullGameOffer, present)
-            .sheet(item: $offer, onDismiss: releaseArtwork) { offer in
+            .fullScreenCover(item: $offer, onDismiss: releaseArtwork) { offer in
                 NavigationStack {
                     FullGameOfferView(artworkName: offer.artworkName)
                 }
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
             }
             .onDisappear {
                 preparation?.cancel()

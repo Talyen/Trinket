@@ -23,8 +23,8 @@ Keep `PlaySession` focused on shell navigation and launch/completion orchestrati
 
 Battle completion and retreat restore the origin's full browsing path without a
 navigation animation before ending the runtime. Do not defer this return to a
-view's lifecycle callback: the map is the exit crossfade's backdrop and must
-already show the intended destination.
+view's lifecycle callback: battle exits immediately, so the map must already
+show the intended destination.
 Pending destinations remain for initial launch routing. Both use
 `PlayLaunchDestination.navigationPath` for the complete browsing hierarchy.
 
@@ -35,9 +35,8 @@ Pending destinations remain for initial launch routing. Both use
 `BattleView` captures its combat projection and spectacle references when composed.
 Ending Battle cancels their work and gives the session fresh display objects instead
 of clearing the objects held by outgoing views. The runtime is empty immediately,
-while the retiring view keeps its last hand, combatants, and outcome through the
-exit crossfade. Retiring views must not look up replacement display objects from
-the session. The captured spectacle is supplied through the view environment,
+while the retiring view keeps its last hand, combatants, and outcome until hidden.
+Retiring views must not look up replacement display objects from the session. The captured spectacle is supplied through the view environment,
 including ultimate overlays. Each spectacle owns its cinematic players; they
 release when that presentation retires, so ending a run cannot empty a visible
 video layer or release a subsequent run's players.
@@ -55,6 +54,19 @@ Suspension pauses playback; replacing/ending a run invalidates its generation.
 Do not expose incremental draw mutation to BattleFeature or derive readiness from
 whether an animation task happens to exist.
 
+Card commands can record draw batches, pre-play and removal checkpoints, and
+resolved effect batches through the same boundary. Recording is scoped to the
+synchronous command; retained snapshots never retain its recorder. Recording
+uses an inout state boundary so recursive calls do not retain full
+pre-play state copies. Card announcements accompany their cast while effect
+batches retain resolution order. Pack Tactics
+keeps its collect-before-play rules while presentation reveals each drawn card
+immediately before its automatic play. Nested plays reuse the normal lift, cast,
+and feedback lanes. A buffered card with a full visible hand uses a temporary
+cast position over the hand without changing the hand or buffer. Card playback
+holds command readiness and outcome presentation until the final cast settles;
+scene suspension pauses playback and the cast clock.
+
 The app composition root installs presentation lookup, reward settlement, and
 completion capabilities once through `BattleSession.configureProgression`. These
 closures weakly capture Play; they are independent of overlay appearance. AppState
@@ -69,6 +81,12 @@ imports Persistence or AppState; these capabilities stay outside `BattleRuntime`
 Capacity, reservations, and transaction rules live in
 [persistence context](persistence.md). Current combat content only grants Gold;
 it must not debit the battle wallet.
+
+Hand cards remain fully opaque whenever visible, including opening and subsequent
+draws. Deal motion uses offset and scale without an opacity transition. Battle
+entry and exit switch visibility immediately, and the battlefield uses an identity
+transition for outcome changes. Fully hidden prewarmed surfaces remain mounted;
+played-card cast and dissolve effects retain their own presentation.
 
 ## Play observation boundaries
 

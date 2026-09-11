@@ -174,7 +174,7 @@ public struct BattleView: View {
                     castPresentation: castPresentation,
                     performanceScenario: debugPerformanceScenario,
                 )
-                .transition(.opacity)
+                .transition(.identity)
             }
         }
         .animation(TrinketMotion.Screen.crossfade, value: spectacle.outcomePresentation)
@@ -277,7 +277,7 @@ struct BattleFieldLane: View {
                 .offset(y: -BattleHandLayout.bottomRise)
                 .zIndex(1)
 
-                CardCastPresentationLane(presentation: castPresentation)
+                cardCastLane(in: geometry.size)
                     .zIndex(3)
 
                 BattleCastPrewarmLane(presentation: presentation)
@@ -310,6 +310,15 @@ struct BattleFieldLane: View {
             }
         }
         .ignoresSafeArea(.container, edges: .bottom)
+    }
+
+    private func cardCastLane(in size: CGSize) -> some View {
+        CardCastPresentationLane(
+            presentation: castPresentation,
+            playback: presentation.cardPlayback,
+            battleSize: size,
+            hapticsEnabled: battleSession.hapticsEnabled,
+        )
     }
 
     private func beginCardLift(for card: BattleCard) {
@@ -360,30 +369,46 @@ private struct BattleHandProjectionLane: View {
     var body: some View {
         let hand = presentation.hand
         let playableIDs = presentation.playableCardIDs
-        BattleHandView(
-            cards: hand,
-            isPlayable: { playableIDs.contains($0.id) },
-            onInspect: { card in
-                battleSession.presentAbilityDetail(card.ability)
-            },
-            onPlay: { card, request in
-                let didPlay = onPlay(card, request)
-                if didPlay {
-                    cardPlayFeedbackToken &+= 1
-                }
-                return didPlay
-            },
-            onPlayDenied: { card in
-                battleSession.denyCardCue(card)
-                battleSession.playPresentationSFX(SFXID.uiDeny)
-            },
-            hapticsEnabled: hapticsEnabled,
-            battleFrame: CGRect(origin: .zero, size: battleSize),
-            autoLiftCardID: interactionState.autoLiftCardID,
-            onCardInteractionChanged: onInteractionChanged,
-            onLift: onLift,
-            onLiftCancel: onLiftCancel,
-        )
+        ZStack(alignment: .bottom) {
+            BattleHandView(
+                cards: hand,
+                isPlayable: { playableIDs.contains($0.id) },
+                onInspect: { card in
+                    battleSession.presentAbilityDetail(card.ability)
+                },
+                onPlay: { card, request in
+                    let didPlay = onPlay(card, request)
+                    if didPlay {
+                        cardPlayFeedbackToken &+= 1
+                    }
+                    return didPlay
+                },
+                onPlayDenied: { card in
+                    battleSession.denyCardCue(card)
+                    battleSession.playPresentationSFX(SFXID.uiDeny)
+                },
+                hapticsEnabled: hapticsEnabled,
+                battleFrame: CGRect(origin: .zero, size: battleSize),
+                autoLiftCardID: presentation.cardPlayback.liftedCardID ?? interactionState.autoLiftCardID,
+                onCardInteractionChanged: onInteractionChanged,
+                onLift: onLift,
+                onLiftCancel: onLiftCancel,
+            )
+            if let card = presentation.stagedCard {
+                BattleHandView(
+                    cards: [card],
+                    isPlayable: { _ in false },
+                    onInspect: { _ in },
+                    onPlay: { _, _ in false },
+                    onPlayDenied: { _ in },
+                    hapticsEnabled: hapticsEnabled,
+                    battleFrame: CGRect(origin: .zero, size: battleSize),
+                    autoLiftCardID: presentation.cardPlayback.liftedCardID,
+                )
+                .accessibilityHidden(true)
+            }
+        }
+        .allowsHitTesting(battleSession.canAcceptBattleCommands)
         .trinketSensoryFeedback(
             .impact(weight: .medium),
             trigger: cardPlayFeedbackToken,

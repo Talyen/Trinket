@@ -117,7 +117,6 @@ struct BattleHandView: View {
                                     : BattleMotion.dealInsertOffset,
                                 y: BattleMotion.dealInsertOffset,
                             )
-                            .combined(with: .opacity)
                             .combined(with: .scale(scale: BattleMotion.dealInsertScale))
                             .animation(BattleMotion.deal),
                             removal: .identity,
@@ -128,6 +127,7 @@ struct BattleHandView: View {
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
         }
 
+        .transition(.identity)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Battle.hand)
     }

@@ -19,7 +19,9 @@ extension BattleSession {
         feedback.pruneExpired(at: date)
         guard canAcceptBattleCommands
         else {
-            clearCardCues()
+            if commandState.phase != .card {
+                clearCardCues()
+            }
             feedback.noteItemsChanged()
             return .rejected
         }
@@ -30,7 +32,7 @@ extension BattleSession {
                     cardCues.begin(cardID: cardID, assessment: assessment)
                 }
             }
-            let events = try measurePlayCardInterval(
+            let resolution = try measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardEngine,
             ) {
                 try playEngineCard(cardID: cardID)
@@ -41,6 +43,11 @@ extension BattleSession {
 
             cardCues.commit(cardID: cardID)
 
+            if resolution.playback.hasAutomaticDraws {
+                beginCardPresentation(resolution.playback, at: date)
+                return .committed
+            }
+
             measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardProjection,
             ) {
@@ -49,7 +56,7 @@ extension BattleSession {
             measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardFeedback,
             ) {
-                presentResolvedEvents(events, at: date)
+                presentResolvedEvents(resolution.events, at: date)
             }
             handleOutcomeIfNeeded(at: date)
             scheduleAutoEndIfNeeded()
@@ -71,13 +78,13 @@ extension BattleSession {
     }
 
     func endTurn(at date: Date = .now) {
-        clearCardCues()
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date)
         guard canEndTurn, hasActiveSimulation, !isSuspendedForScenePhase else {
             feedback.noteItemsChanged()
             return
         }
+        clearCardCues()
 
         let transitionInterval = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.turnTransition,

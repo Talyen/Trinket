@@ -362,7 +362,7 @@ public extension CombatantTalentCatalog {
             ),
             "rogue_bleed_t2_1": CombatantTalentEffect(
                 name: "Taste for Blood",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:droplet",
                 description: "When Bleed deals damage, your next Basic attack has +35% Critical Hit chance.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(onBleedDamageNextBasicCritBonus: 0.35))
@@ -484,7 +484,7 @@ public extension CombatantTalentCatalog {
             ),
             "wizard_freeze_t3_1": CombatantTalentEffect(
                 name: "Deep Freeze",
-                iconID: "lucide:lock-keyhole",
+                iconID: "lucide:snowflake",
                 description: "Frozen enemies cannot gain Block or receive Health restoration.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(control: ControlTriggers(frozenEnemyCannotBlockOrHeal: true))
@@ -1220,7 +1220,7 @@ public extension CombatantTalentCatalog {
             ),
             "wolf_bleed_t1_2": CombatantTalentEffect(
                 name: "Deep Bite",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:bone",
                 description: "Deal 2 additional damage to Bleeding enemies.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBleedingBonus: 2))
@@ -1241,7 +1241,7 @@ public extension CombatantTalentCatalog {
             ),
             "wolf_bleed_t3_1": CombatantTalentEffect(
                 name: "Carnivore",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:bone",
                 description: "Restore 2 Health whenever Bleed deals damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDamageHealSelf: 2))
@@ -1262,7 +1262,7 @@ public extension CombatantTalentCatalog {
             ),
             "wolf_dodge_t1_2": CombatantTalentEffect(
                 name: "Nimble Fang",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:bone",
                 description: "After Dodging, your next attack deals 2 Bleed damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(nextAttackBleedAfterDodge: 2))
@@ -1290,14 +1290,14 @@ public extension CombatantTalentCatalog {
             ),
             "wolf_dodge_t3_2": CombatantTalentEffect(
                 name: "Snapping Jaws",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:bone",
                 description: "Dodging counters with an immediate basic attack.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeCounterBasicAttack: true))
             ),
             "wolf_physical_t1_1": CombatantTalentEffect(
                 name: "Alpha Howl",
-                iconID: "lucide:audio-lines",
+                iconID: "lucide:dog",
                 description: "Party deals 2 additional Physical damage for the first 3 turns.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(partyPhysicalDamageBonusFirstTurns: 2, partyPhysicalDamageBonusFirstTurnCount: 3))
@@ -1332,7 +1332,7 @@ public extension CombatantTalentCatalog {
             ),
             "wolf_physical_t3_2": CombatantTalentEffect(
                 name: "Rending Fangs",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:bone",
                 description: "Physical attacks deal 1 Bleed damage on hit.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(physicalAttackApplyBleed: 1))
@@ -1447,7 +1447,7 @@ public extension CombatantTalentCatalog {
             ),
             "bear_physical_t3_2": CombatantTalentEffect(
                 name: "Pulverize",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:hammer",
                 description: "The first Physical attack each turn deals 1 Bleed and 1 Stun damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(firstPhysicalBleedStunPerTurn: true))
@@ -1726,7 +1726,7 @@ public extension CombatantTalentCatalog {
             ),
             "lizard_scout_bleed_t2_1": CombatantTalentEffect(
                 name: "Ferocious Bite",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:bone",
                 description: "Attacks deal 2 additional damage to Bleeding enemies.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBleedingBonus: 2))
@@ -1897,7 +1897,7 @@ public extension CombatantTalentCatalog {
             ),
             "panther_leech_t3_1": CombatantTalentEffect(
                 name: "Frenzied Feeding",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:bone",
                 description: "Leeching from Poisoned or Bleeding enemies doubles the Health restored.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechHealingVsAfflictedMultiplier: 2))
@@ -1967,7 +1967,7 @@ public extension CombatantTalentCatalog {
             ),
             "panther_leech_t4_1": CombatantTalentEffect(
                 name: "Blood Feast",
-                iconID: "sf:mouth.fill",
+                iconID: "lucide:heart-pulse",
                 description: "Your Bleed damage Leeches Health.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(bleedDamageLeech: true))

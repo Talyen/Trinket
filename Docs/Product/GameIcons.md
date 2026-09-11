@@ -42,10 +42,12 @@ Shared Roots uses `trees`, Skullcracker uses `skull`, and Bounty Blade uses `swo
 Heat/cold combinations use `sun-snow`. Druid branches use their named flora rather
 than repeating a generic damage icon.
 
-Retained SF talent selections are explicit `sf:` entries in the manifest:
-`mouth.fill` for bites/feeding, `burst.fill` for spikes and explosive impacts,
-`figure.fall` for hamstring effects, `theatermasks.fill` for feints/decoys,
-and `lock.shield.fill` for Sealed
+Talent icons may reuse a direct Lucide silhouette across multiple talents:
+`bone` for bites/fangs/feeding, `droplet` for blood, `heart-pulse` for Leech
+healing, `hammer` for crushing impacts, and `dog` for canine identity. Retained
+SF talent selections are explicit `sf:` entries in the manifest: `burst.fill` for
+spikes and explosive impacts, `figure.fall` for hamstring effects,
+`theatermasks.fill` for feints/decoys, and `lock.shield.fill` for Sealed
 Sarcophagus. These exceptions convey shapes or combinations absent from the
 selected Lucide set. Locked talent rows still show the native UI lock.
 

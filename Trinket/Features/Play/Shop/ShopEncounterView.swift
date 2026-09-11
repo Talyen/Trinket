@@ -133,8 +133,7 @@ struct ShopEncounterView: View {
     private var merchantArtwork: some View {
         EncounterArtwork(stage: session.stage, worldSeed: playerSave.worldSeed)
             .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
-            .clipShape(TrinketDesign.cardShape)
-            .trinketCardSurface()
+            .cardArtworkSurface()
             .frame(maxWidth: .infinity)
             .accessibilityIdentifier(AccessibilityID.Shop.encounterArt)
     }

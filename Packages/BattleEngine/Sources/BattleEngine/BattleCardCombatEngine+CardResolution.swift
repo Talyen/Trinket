@@ -19,24 +19,28 @@ extension BattleCardCombatEngine {
         if let error = playError(for: card, in: context) {
             throw error
         }
-        let ownerRuntime = context.roster[card.owner]
-        let removed: BattleCard? = if allowBufferedRemoval {
-            context.hand.removeFromAnyLocation(id: card.id)
-        } else {
-            context.hand.remove(id: card.id)
-        }
-        guard removed != nil else {
+        let actor = context.roster[card.owner].combatant
+        guard context.hand.card(id: card.id) != nil
+            || (allowBufferedRemoval && context.hand.buffer.contains(where: { $0.id == card.id })) else {
             throw BattlePlayError.cardNotInHand
         }
-        return resolvePlayedCard(card, ownerRuntime: ownerRuntime, context: &context)
+        context.recordCardPlay(.cardWillPlay(card))
+        if allowBufferedRemoval {
+            _ = context.hand.removeFromAnyLocation(id: card.id)
+        } else {
+            _ = context.hand.remove(id: card.id)
+        }
+        context.recordCardPlay(.cardPlayed(card))
+        let events = resolvePlayedCard(card, actor: actor, context: &context)
+        context.recordCardPlay(.cardActions(card))
+        return events
     }
 
     static func resolvePlayedCard(
         _ card: BattleCard,
-        ownerRuntime: CombatantRuntime,
+        actor: Combatant,
         context: inout BattleState,
     ) -> [ActionEvent] {
-        let actor = ownerRuntime.combatant
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         let previousUniqueCard = context.uniques.card
@@ -55,6 +59,16 @@ extension BattleCardCombatEngine {
             origin: context.uniques.card == nil ? .card : .ordinaryCard,
             context: &context,
         )
+        finishPlayedCard(card, actor: actor, events: &events, context: &context)
+        return events
+    }
+
+    private static func finishPlayedCard(
+        _ card: BattleCard,
+        actor: Combatant,
+        events: inout [ActionEvent],
+        context: inout BattleState,
+    ) {
         if let outcome = context.resolution.cardOutcome(for: actor.id) {
             events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(outcome, in: &context))
         }
@@ -72,6 +86,5 @@ extension BattleCardCombatEngine {
         if context.isBattleOver {
             context.phase = .ended
         }
-        return events
     }
 }

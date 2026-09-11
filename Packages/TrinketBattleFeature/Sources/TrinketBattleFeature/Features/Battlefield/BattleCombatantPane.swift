@@ -80,6 +80,7 @@ struct BattleCombatantPane: View {
         if isDefeated, recoilDirection == .up {
             BattleSliceArtwork {
                 artworkLayer
+                    .combatantCardChrome()
             }
         } else {
             CombatantStatusEffectPresentation(keyword: isDefeated ? nil : borderAccentKeyword) {
@@ -220,15 +221,24 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     }
 
     private func hitReactionArtwork(_ state: CardReactionAnimationState) -> some View {
-        artwork()
-            .combatantCardChrome()
-            .overlay {
-                cardBorder
-                    .opacity(borderVisible ? 1 : 0)
-            }
+        framedArtwork
             .scaleEffect(x: state.scaleX, y: state.scaleY)
             .rotationEffect(.degrees(state.rotation))
             .offset(x: state.offsetX, y: state.offsetY)
+    }
+
+    @ViewBuilder
+    private var framedArtwork: some View {
+        if !borderVisible, recoilDirection == .up {
+            artwork()
+        } else {
+            artwork()
+                .combatantCardChrome()
+                .overlay {
+                    cardBorder
+                        .opacity(borderVisible ? 1 : 0)
+                }
+        }
     }
 
     @ViewBuilder

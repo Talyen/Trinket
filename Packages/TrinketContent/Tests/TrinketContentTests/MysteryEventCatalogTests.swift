@@ -219,6 +219,20 @@ struct MysteryEventCatalogTests {
         #expect(placedUniques == uniqueIDs)
     }
 
+    @Test func `mystery narrative templates stay concise`() {
+        for event in GameContent.mysteryEvents {
+            let wordCount = event.narrative.split(whereSeparator: \.isWhitespace).count
+            #expect(
+                wordCount <= 12,
+                "Mystery event \(event.id) narrative has \(wordCount) words",
+            )
+            if event.id != GameContent.corruptionAltarEventID {
+                #expect(event.narrative.contains("{A}"))
+                #expect(event.narrative.contains("{B}"))
+            }
+        }
+    }
+
     @Test func `mystery effects never spend resources`() throws {
         for event in GameContent.mysteryEvents + GameContent.recruitEvents {
             for choice in event.choices {
@@ -251,8 +265,8 @@ struct MysteryEventCatalogTests {
             )
         }
         let text = geode.narrative(for: Array(offers.reversed()))
-        #expect(text.contains("reveals a Sapphire Ring"))
-        #expect(text.contains(". A Topaz Amulet remains"))
+        #expect(text.contains("reveal a Sapphire Ring"))
+        #expect(text.contains("while thick stone grips a Topaz Amulet"))
         let spring = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
         let locket = try #require(GameContent.unique(matching: "rimeheart_locket"))
         let rare = MysteryOffer(choiceID: spring.choices[0].id, item: locket, bonus: .experience(1))

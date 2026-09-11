@@ -19,7 +19,8 @@ struct BattlePresentationSnapshot: Equatable {
     let hero: BattleCombatantPresentation
     let companion: BattleCombatantPresentation
     let enemy: BattleCombatantPresentation
-    let hand: [BattleCard]
+    var hand: [BattleCard]
+    var stagedCard: BattleCard?
     let playableCardIDs: Set<Int>
     let isBattleOver: Bool
 
@@ -69,11 +70,13 @@ struct BattlePresentationSnapshot: Equatable {
 @MainActor
 @Observable
 final class BattlePresentationState {
+    let cardPlayback = BattleCardPlaybackState()
     private(set) var configurationID: UUID?
     private(set) var hero: BattleCombatantPresentation?
     private(set) var companion: BattleCombatantPresentation?
     private(set) var enemy: BattleCombatantPresentation?
     private(set) var hand: [BattleCard] = []
+    private(set) var stagedCard: BattleCard?
     private(set) var playableCardIDs: Set<Int> = []
     private(set) var isBattleOver = false
 
@@ -92,6 +95,9 @@ final class BattlePresentationState {
         }
         if hand != snapshot.hand {
             hand = snapshot.hand
+        }
+        if stagedCard != snapshot.stagedCard {
+            stagedCard = snapshot.stagedCard
         }
         if playableCardIDs != snapshot.playableCardIDs {
             playableCardIDs = snapshot.playableCardIDs

@@ -152,6 +152,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
                 keyword: .physical,
             ),
         ]
+        context.recordCardPlay(.cardsDrawn(drawnCards))
         events.append(contentsOf: autoPlayDrawnCards(drawnCards, in: &context))
         return EffectApplyOutcome(events: events, didApply: true)
     }

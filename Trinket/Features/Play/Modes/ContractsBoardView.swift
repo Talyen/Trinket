@@ -77,7 +77,7 @@ struct ContractsBoardView: View {
 
     @ViewBuilder
     private var heroArtwork: some View {
-        if let art = ArtCatalog.backgroundArtByID["gameModeExplore"], pinnedArtwork.contains(art.imageName) {
+        if let art = ArtCatalog.backgroundArtByID["gameModeContracts"], pinnedArtwork.contains(art.imageName) {
             FocalBackgroundArtwork(art: art)
         } else {
             TrinketDesign.Colors.canvas
@@ -97,7 +97,7 @@ struct ContractsBoardView: View {
         let enemies = playerSave.contracts.offers.compactMap {
             GameContent.enemy(matching: $0.enemyID)?.combatant.artReference?.imageName
         }
-        return Array(Set(enemies + [ArtCatalog.backgroundArtByID["gameModeExplore"]?.imageName].compactMap(\.self))).sorted()
+        return Array(Set(enemies + [ArtCatalog.backgroundArtByID["gameModeContracts"]?.imageName].compactMap(\.self))).sorted()
     }
 
     private func isArtworkReady(for offer: ContractOffer) -> Bool {

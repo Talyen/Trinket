@@ -449,6 +449,67 @@ extension BattleCardCombatTests {
 }
 
 extension BattleCardCombatTests {
+    @Test(arguments: [false, true])
+    func `recorded pack tactics preserves nested play and overflow rules`(nested: Bool) throws {
+        var recorded = BattleStateTestFactory.makeBattle(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
+            dealOpeningHand: false,
+        )
+        let initiating = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &recorded)
+        _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &recorded)
+        _ = BattleCardCombatEngine.deal(.block, owner: .companion, context: &recorded)
+        if nested {
+            _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &recorded)
+        }
+        recorded.heroDeck = CombatDeck(abilities: [nested ? .packTactics : .slash, .block])
+        recorded.companionDeck = CombatDeck(abilities: [.bash, .block])
+        var immediate = recorded
+        let startingEventID = recorded.nextEventID
+        var checkpoints: [BattleTransitionCheckpoint] = []
+        var capturedEvents: [ActionEvent] = []
+        var drawnIDs: Set<Int> = []
+        var playedIDs: [Int] = []
+        var sawBufferedDraw = false
+        let recordedEvents = try recorded.playCard(cardID: initiating.id) { checkpoint, state, events in
+            #expect(state.cardPlayRecording == nil)
+            checkpoints.append(checkpoint)
+            capturedEvents.append(contentsOf: events)
+            switch checkpoint {
+            case let .cardsDrawn(cards):
+                #expect(cards.count == 2)
+                drawnIDs.formUnion(cards.map(\.id))
+                sawBufferedDraw = sawBufferedDraw || cards.contains { card in
+                    state.hand.buffer.contains(where: { $0.id == card.id })
+                }
+            case let .cardWillPlay(card):
+                #expect(state.hand.cards.contains(card) || state.hand.buffer.contains(card))
+                #expect(card.id == initiating.id || drawnIDs.contains(card.id))
+            case let .cardPlayed(card):
+                #expect(!state.hand.cards.contains(card) && !state.hand.buffer.contains(card))
+                playedIDs.append(card.id)
+            default:
+                break
+            }
+        }
+        let immediateEvents = try immediate.playCard(cardID: initiating.id)
+        #expect(recordedEvents == immediateEvents)
+        #expect(capturedEvents == recorded.events.filter { $0.id > startingEventID })
+        #expect(Set(capturedEvents.map(\.id)).count == capturedEvents.count)
+        #expect(playedIDs.count == (nested ? 5 : 3))
+        #expect(Set(playedIDs).count == playedIDs.count)
+        #expect(checkpoints.last == .ready)
+        #expect(sawBufferedDraw)
+        #expect(recorded.cardPlayRecording == nil)
+        #expect(recorded.hand == immediate.hand)
+        #expect(recorded.heroDeck == immediate.heroDeck)
+        #expect(recorded.companionDeck == immediate.companionDeck)
+        #expect(recorded.phase == immediate.phase)
+        for owner in BattleParticipant.allCases {
+            #expect(recorded.roster[owner] == immediate.roster[owner])
+        }
+        #expect(recorded.rng.next() == immediate.rng.next())
+    }
+
     @Test func `pack tactics draws both cards from survivor deck`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         battle.appliesFightPacing = false
