@@ -18,6 +18,7 @@ struct BattleSessionCardCueTests {
             configuration: configuration,
             presentationContext: presentation,
             battleSession: session,
+            presentation: session.presentation,
             interactionState: BattleInteractionState(),
             castPresentation: BattleCastPresentationState(),
         )

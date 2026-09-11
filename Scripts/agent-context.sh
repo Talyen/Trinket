@@ -111,6 +111,30 @@ print_agent() {
     printf '  %s\n' "${TRINKET_KNOWLEDGE[@]}"
   fi
 
+  local search_root package path
+  local -a search_roots=()
+  for path in "${TRINKET_CHANGED_PATHS[@]}"; do
+    case "$path" in
+      Packages/*)
+        package="${path#Packages/}"; package="${package%%/*}"
+        search_root="Packages/$package" ;;
+      Scripts/*) search_root="Scripts" ;;
+      Trinket/*|TrinketUITests/*) search_root="Trinket" ;;
+      *) continue ;;
+    esac
+    trinket_add_unique search_roots "$search_root"
+  done
+  if (( ${#search_roots[@]} > 0 )); then
+    printf 'Search: python3 Scripts/agent-search.py <pattern> --scope <root> (add --mode tests or --excerpts)\n'
+    for search_root in "${search_roots[@]}"; do
+      case "$search_root" in
+        Packages/*) printf '  source/tests: %s (test mode includes support targets)\n' "$search_root" ;;
+        Scripts) printf '  source: Scripts; tests: Scripts/Tests\n' ;;
+        Trinket) printf '  source: Trinket; tests: TrinketUITests\n' ;;
+      esac
+    done
+  fi
+
   print_path_summary() {
     local label="$1"
     shift

@@ -1,13 +1,10 @@
 import SwiftUI
 import TrinketContent
 import TrinketCore
-import TrinketDesignSystem
 import TrinketFeatureContracts
-import TrinketFeatureSupport
 import TrinketPersistence
 
 public struct RosterCombatantDetailView: View {
-    @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(PlayerSaveStore.self) private var playerSave
 
     let kind: CombatantDetailContext.Kind
@@ -83,25 +80,6 @@ public struct RosterCombatantDetailView: View {
                     }
                 },
             )
-            .safeAreaInset(edge: .bottom) {
-                if !playerSave.contentAccess.allowsCombatant(combatant.id) {
-                    VStack(spacing: TrinketDesign.Spacing.small) {
-                        Text("Included with Full Game. Recruit through play.")
-                            .trinketTypography(.caption)
-                            .foregroundStyle(.secondary)
-                        Button("View Full Game") { requestOffer(.combatant(combatant.id)) }
-                            .frame(maxWidth: .infinity)
-                            .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.FullGame.boundary)
-                    }
-                    .padding(TrinketDesign.Layout.contentMargin)
-                    .trinketScreenBackground()
-                } else if !playerSave.roster.isUnlocked(combatant) {
-                    Text("Recruit this character as you explore.")
-                        .trinketTypography(.body)
-                        .padding(TrinketDesign.Layout.contentMargin)
-                        .trinketScreenBackground()
-                }
-            }
         } else {
             ContentUnavailableView(
                 kind == .hero ? "Hero Not Found" : "Companion Not Found",

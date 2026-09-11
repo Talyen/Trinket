@@ -1,7 +1,7 @@
 # Materials and depth
 
 Use existing semantic surfaces from
-[TrinketDesignSystem](../../../Packages/TrinketDesignSystem/README.md).
+[semantic modifiers](../../../Packages/TrinketDesignSystem/Documentation/Modifiers.md).
 Choose a material because it establishes hierarchy or preserves context, not
 because every screen needs glass.
 

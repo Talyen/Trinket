@@ -110,6 +110,23 @@ struct MysteryEventCatalogTests {
         try #expect(GameContent.mysteryEvents.contains(event))
     }
 
+    @Test func `free roster exhaustion also falls back to non recruit mystery`() throws {
+        let resolution = GameContent.resolveRecruitEncounter(
+            configuredEventID: "recruit-bear",
+            encounterID: "completed-free-roster-stage",
+            worldSeed: 3,
+            unlockedHeroIDs: Set(ContentAccessPolicy.freeHeroIDs),
+            unlockedCompanionIDs: Set(ContentAccessPolicy.freeCompanionIDs),
+            access: .free,
+        )
+        guard case let .mystery(event) = resolution else {
+            Issue.record("Expected a Mystery replacement")
+            return
+        }
+        try #expect(!event.isRecruit)
+        try #expect(GameContent.mysteryEvents.contains(event))
+    }
+
     @Test func `unchosen legacy starters remain eligible recruits`() throws {
         let knight = GameContent.resolveRecruitEncounter(
             configuredEventID: "recruit-knight",

@@ -35,6 +35,11 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
 screen-readiness assertions measure their destination rather than cold artwork
 preparation. Its bounded timeout lives in `TrinketUITestCase`; a warmup timeout
 fails explicitly instead of being reported as a missing destination.
+The Shop smoke journey opts out of that wait to verify the native cover stays
+behind preparation and an interrupted launch can restart. The debug-only
+`-launch-preparation-delay <seconds>` holds readiness while resources and root
+layouts proceed normally; release builds ignore it. `waitForLaunchPreparation()`
+resumes the normal readiness check after relaunch.
 
 Common screen-entry arguments are `-launch-screen` and `-selectedTab`; state
 seeding uses `-completed-stages`, `-starting-gold`, and the reset/cloud-sync

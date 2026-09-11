@@ -273,7 +273,7 @@ struct AppStatePlayFlowTests {
     }
 
     @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
-    func `end battle returning to origin queues expected deep link`(origin: String) throws {
+    func `end battle restores the origin path without a deferred deep link`(origin: String) throws {
         switch origin {
         case "journey":
             let state = try context.makePlaySession()
@@ -285,7 +285,8 @@ struct AppStatePlayFlowTests {
 
             #expect(state.battle.activeBattle == nil)
             #expect(state.shellSession.selectedTab == .play)
-            #expect(state.consumePendingDestination() == .campaign)
+            #expect(state.shellSession.playPath == [.campaign])
+            #expect(state.consumePendingDestination() == nil)
         case "spire":
             let state = try makeProgressedStateForReturnTests(context)
             try attunePhysicalPartyForReturnTests(on: state)
@@ -298,7 +299,8 @@ struct AppStatePlayFlowTests {
 
             #expect(state.battle.activeBattle == nil)
             #expect(state.shellSession.selectedTab == .play)
-            #expect(state.consumePendingDestination() == .spireClimb(.ironVein))
+            #expect(state.shellSession.playPath == [.explore, .spiresHub, .spireClimb(.ironVein)])
+            #expect(state.consumePendingDestination() == nil)
         case "labyrinth":
             let state = try context.makePlaySession(arguments: ["-reset-state"])
             _ = state.labyrinth.enter()
@@ -310,13 +312,14 @@ struct AppStatePlayFlowTests {
 
             #expect(state.battle.activeBattle == nil)
             #expect(state.shellSession.selectedTab == .play)
-            #expect(state.consumePendingDestination() == .labyrinthMap)
+            #expect(state.shellSession.playPath == [.explore, .labyrinthMap])
+            #expect(state.consumePendingDestination() == nil)
         default:
             Issue.record("Unexpected origin \(origin)")
         }
     }
 
-    @Test func `complete active battle queues spire return destination`() throws {
+    @Test func `complete active battle restores the spire path without a deferred deep link`() throws {
         let state = try makeProgressedStateForReturnTests(context)
         try attunePhysicalPartyForReturnTests(on: state)
 
@@ -325,7 +328,8 @@ struct AppStatePlayFlowTests {
         let configuration = try #require(state.battle.activeBattle)
 
         #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 1)).didComplete)
-        #expect(state.consumePendingDestination() == .spireClimb(.ironVein))
+        #expect(state.shellSession.playPath == [.explore, .spiresHub, .spireClimb(.ironVein)])
+        #expect(state.consumePendingDestination() == nil)
     }
 
     @Test func `complete active battle gold matches victory summary when homestead bonus active`() throws {

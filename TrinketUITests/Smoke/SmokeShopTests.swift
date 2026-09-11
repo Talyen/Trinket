@@ -7,17 +7,32 @@ final class SmokeShopTests: TrinketUITestCase {
     }
 
     func testMerchantShopPurchaseFromDetailAndLeaveReturnsToPlay() {
-        launchApp(arguments: TestLaunchArg.allForShop()
-            + TestLaunchArg.completedStages([
-                "chapter-2-stage-1",
-                "chapter-2-stage-2",
-                "chapter-2-stage-3",
-                "chapter-2-stage-4",
-                "chapter-2-stage-5",
-                "chapter-2-stage-6",
-                "chapter-2-stage-7",
-            ])
-            + ["-starting-gold", "200"])
+        launchApp(
+            arguments: TestLaunchArg.allForShop()
+                + TestLaunchArg.completedStages([
+                    "chapter-2-stage-1",
+                    "chapter-2-stage-2",
+                    "chapter-2-stage-3",
+                    "chapter-2-stage-4",
+                    "chapter-2-stage-5",
+                    "chapter-2-stage-6",
+                    "chapter-2-stage-7",
+                ])
+                + ["-starting-gold", "200", "-launch-preparation-delay", "8"],
+            waitForPreparation: false,
+        )
+
+        assertExists(AccessibilityID.Screen.launchWarmup)
+        let prematureShop = XCTNSPredicateExpectation(
+            predicate: NSPredicate { [self] _, _ in any(AccessibilityID.Shop.goldBalance).exists },
+            object: nil,
+        )
+        prematureShop.isInverted = true
+        XCTAssertEqual(XCTWaiter.wait(for: [prematureShop], timeout: 3), .completed)
+        XCTAssertTrue(any(AccessibilityID.Screen.launchWarmup).exists)
+        app.terminate()
+        app.launch()
+        waitForLaunchPreparation()
 
         assertExists(AccessibilityID.Shop.goldBalance)
 

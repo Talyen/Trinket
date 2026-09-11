@@ -2,157 +2,16 @@
 
 Shared app chrome — semantic surfaces, typography, keyword visuals, and reusable components. Depends on `TrinketCore` only (no `BattleEngine` or `TrinketContent`).
 
-## Components
+Use public semantic APIs for product chrome, typography, colors and motion;
+feature views must not load package assets directly. Existing accessibility
+accommodations and control identifiers remain part of those components.
 
-| File | Role |
-|------|------|
-| `TrinketDesign.swift` | Colors, `Opacity`, `Spacing`/`Layout`/`Bars`, card shape, placeholder styles |
-| `DesignAssetColors.swift` | Package-private semantic color loader (`Bundle.module`); feature code must use `TrinketDesign.Colors` instead |
-| `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, and chapter color sets |
-| `VisualFoundation.swift` | Background modes, surface roles, spacing tokens (table-driven specs) |
-| `HeroScrim.swift` | On-art text styling (`.trinketOnArtText`) |
-| `ArtworkBlend.swift` | Optional semantic bottom-edge artwork blending |
-| `Keyword+VisualStyle.swift` | Color + game icon per Keyword (uses `Opacity` tokens) |
-| `GameIcon.swift`, `GameIconImage.swift` | Lucide/SF icon identity, bundle resource access, and font-aligned SwiftUI rendering |
-| `HomesteadResource+Color.swift` | Homestead resource tint resolution (gold resolves to the theme accent) |
-| `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces (single glass button path) |
-| `ExperienceBar.swift` | XP/level progress bar |
-| `TrinketMotion.swift` | Motion recipes shared by multiple product features (`static let` animations) |
-| `CardArtwork.swift` | Card clipping and stroke (`TrinketDesign.cardShape` single source) |
-| `PlaceholderArtwork.swift` | Unified placeholder wash + symbol (scaled, `Opacity.placeholderWash`) |
-| `WalletResources.swift` | Wallet grid and resource pills/chips (shared compact formatting, fixed layout threshold; chips accept numeric amounts or formatted comparison values) |
-| `KeywordPlasmaBackground.swift` | Keyword-tinted plasma shader (Reduce Motion aware with a static fallback, single-source rendering) |
-| `TrinketShineText.swift` | Shared text shine renderer (`trinketShineText(colors:)`): four text widths, a seamless 14.4-second loop, and a static Reduce Motion fallback |
-| `TrinketRarityLabel.swift` | Rarity badge with shine (Reduce Motion aware) |
-| `TextBalance.swift` | Widow prevention for titles (`Text(balanced:)`) |
-| `PresentationVisibility.swift` | Retained/reveal opacity, touch, and accessibility exposure under one semantic visibility input |
-| `TextFitting.swift` | Native shrinking/wrapping text composition (`.trinketFittedText()`) |
-| `DesignSystemPreview.swift` | Debug-only gallery (`#if DEBUG`, never ships) |
+| Concern | Focused reference |
+|---|---|
+| Locate the component or source owner | [Components](Documentation/Components.md) |
+| Colors, typography, surfaces, keyword identity, game icons | [Visual roles](Documentation/VisualRoles.md) |
+| Choose a semantic modifier, button, material or artwork treatment | [Modifiers](Documentation/Modifiers.md) |
 
-## Color families
-
-All production colors load from `DesignColors.xcassets` through `DesignAssetColors`.
-
-| Family | Public API | Assets |
-|---|---|---|
-| Theme chrome | `TrinketDesign.Colors.canvas/surface/panel/…/accent/success/…` | `ThemeCanvas`, `ThemeSurface`, … |
-| Gameplay health | `TrinketDesign.Colors.health`, `.healthRestore`, battle derived opacities | `ThemeHealth`, `ThemeHealthRestore` |
-| Overlays | `TrinketDesign.Colors.Overlay.ink/paper/…` | `ThemeOverlayInk`, `ThemeOverlayPaper` |
-| Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
-| Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
-| Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
-| Resources | `HomesteadResource.tint` (gold resolves to the theme accent) | `ResourceWood` … `ResourceHide` / `ResourceCrystal` |
-| Chapter | `TrinketDesign.Colors.chapterForest` / `.chapterDungeon` / `.chapterDesert` / `.chapterTundra` | `ChapterForest` … `ChapterTundra` |
-
-On-art text styling uses `.trinketOnArtText(_:)`.
-
-**Enforcement:** `python3 ./Scripts/check-ui-style.py` fails style/CI on one-off colors. A nearby `UIStyleCheck: allow - reason` annotation is permitted only for a narrow content/art exception that the semantic API cannot express; do not use it to bypass product chrome routing. New colors = new `DesignColors` asset + public design-system API.
-
-```sh
-./Scripts/test-package.sh TrinketDesignSystem
-```
-
-## Typography
-
-Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)` for copy.
-
-| Role family | Typeface | Use for |
-|---|---|---|
-| `*Display` (`screenDisplay`, `sectionDisplay`, `rowDisplay`) | Serif (New York) | Branded heroes and journey names on art |
-| `*Title` (`screenTitle`, `sectionTitle`, `cardTitle`) | SF Pro | Apple-native UI chrome, lists, shelves |
-| `eyebrow` | SF caption bold | Label **above** a hero title (chapter, role, rarity) |
-| Body / caption / badge / button / statValue / … | SF Pro | Supporting copy and controls |
-
-Hero stack order is always **eyebrow → title** (never title then rarity/role).
-
-### Detail sheet ladder
-
-Hero / Companion / Enemy / Ability / Item detail sheets share one body ladder (via `DetailSection` + pane copy). Remap at the sheet call sites — do not change these roles’ fonts globally.
-
-| Layer | Role | Color |
-|---|---|---|
-| Section header | `.rowTitle` | `.primary` |
-| Named entries (e.g. trait names) | `.cardTitle` | `.primary` |
-| Reading copy (effects, affixes, blurbs) | `.body` | `.secondary` |
-| Stat labels / values | `.body` / `.statValue` | `.primary` / `.secondary` |
-| On-art eyebrow / title | `.eyebrow` / `.screenDisplay` | `.trinketOnArtText` |
-
-## Surface roles
-
-Use semantic modifiers (`.trinketSurface(.base)`, `.trinketScreenBackground()`) instead of hardcoded colors. Roles include `base`, `secondary`, `elevated`, `card`, `denseRow`, `selected`, `disabled`, `warning`, `reward`.
-
-## Keyword styling
-
-Every keyword has one visual identity via `Keyword.visualStyle`. Do not introduce one-off keyword colors in feature views.
-
-## Game icons
-
-Use bundled Lucide icons for game concepts, including game imagery inside buttons.
-Keep SF Symbols for native navigation, menus, filters, playback, settings, alerts,
-locks/checks, empty-state UI, and existing symbol animations. An SF Symbol remains
-appropriate when its silhouette communicates a game concept better; Thorns uses
-`burst.fill` with Physical's color. Floating combat feedback uses SF Symbols,
-filled where available, for legibility over moving artwork; its presentation is
-owned by [BattleFeature](../TrinketBattleFeature/README.md#uikit-feedback-island).
-Painted artwork remains primary outside symbolic feedback. [Game icon selections](../../Docs/Product/GameIcons.md)
-records surface mappings and links to the individual talent/node selections.
-
-`GameIcon` identifies `.lucide(name)` or `.system(name)`. `GameIconImage` follows
-the surrounding `trinketTypography` font through native font resolution and aligns
-Lucide artwork to its text baseline. Icons are decorative; apply tint at the call
-site and meaningful accessibility labels to their containing controls. It does not
-add symbol effects to Lucide assets.
-Feature views must not look up asset names or package bundles directly.
-
-The selected SVGs in `Resources/GameIcons.xcassets` are vendored from Lucide 1.37.0.
-Geometry and the standard two-unit stroke are unchanged; `currentColor` is
-normalized to black for Xcode template rendering. `LucideProvenance.json` records
-the upstream version and original SHA-256 for each icon. `Lucide-LICENSE.txt` ships
-the upstream license and copyright notices. Bundle only selected assets, retain
-transparent backgrounds, and verify additions through the asset-catalog test.
-
-## Modern API Inventory
-
-Route recurring chrome through these modifiers — do not call raw SwiftUI styling APIs from feature views.
-
-| Modifier / API | Use for |
-|----------------|---------|
-| `.trinketScreenBackground()` | Shared tab/screen canvas (`TrinketDesign.Colors.canvas`) |
-| `.trinketSurface(_:)` | Panels, cards, rows, selected/disabled/warning/reward states |
-| `.trinketMaterial(_:)` | Bottom bars, popovers, reward reveals; modal uses solid surface; toolbar passes through |
-| `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
-| `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
-| `.trinketCardSurface()` | 3:4 card identity tiles |
-| `ArtworkPickerSelectionBadge` / `.trinketArtworkPickerSelectionBorder(isSelected:color:)` | Selected artwork picker checkmark + stroke |
-| `.trinketLockedCardEffect(isLocked:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
-| `TrinketDesign.Layout.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids (via `Spacing`) |
-| `TrinketDesign.Layout.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
-| `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`, single `GlassButtonModifier`) |
-| `.trinketSecondaryActionButton()` | Secondary CTAs (`.glass`) |
-| `.trinketIconButton()` | Circular glass icon controls with stable accessibility identifiers |
-| `.trinketArtworkCardButtonStyle()` / `.trinketSelectionCardButtonStyle()` | Press-scale feedback for card buttons |
-| `.trinketCardLabelSpace(_:)` | Reserved label height under cards |
-| `.trinketAccessibilityIdentifier(_:)` | Optional test identifier passthrough |
-| `.optionalMatchedTransitionSource(id:in:)` | Matched transitions with an optional namespace |
-| `.cardArtworkSurface()` | Card clipping + stroke (`TrinketDesign.cardShape` single source) |
-| `collectionShelfCardWidth()` | Peek-shelf card width |
-| `.trinketFittedText()` / `.trinketSingleLineFittedText()` | Native text shrinking/wrapping |
-| `Text(balanced:)` | Widow-proof titles |
-| `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
-| `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
-| `.trinketQuietTapButtonStyle()` | Compatibility alias for `.buttonStyle(.plain)`; prefer the native style directly |
-| `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
-| `.trinketArtworkBlend(_:)` | Optional `.bottom` blend into a semantic destination surface; defaults to `.none` |
-| `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
-
-Native toolbar buttons use the system-provided container without custom glass
-button styling. Reserve `.trinketIconButton()` for controls outside native toolbars.
-
-Glass chrome routes through `.glassEffect` inside this package only.
-
-Artwork blends provide a transition into destination surfaces. Use `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
-
-Platform API notes: [iOS26AppleReference.md](../../Docs/Platform/iOS26AppleReference.md). Fluid motion: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../Docs/Platform/Architecture.md).
-
-Wallet resource pills accept either a numerical balance or a formatted value for
-production rates and comparisons; amounts remain in the primary text color.
+Load the matching reference, not the whole inventory. The
+[design skill](../../.agents/skills/apple-design/SKILL.md) owns interaction review;
+[Architecture](../../Docs/Platform/Architecture.md) owns package boundaries.

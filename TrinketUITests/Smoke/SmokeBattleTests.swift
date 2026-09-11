@@ -11,6 +11,22 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Play.exploreModeCard)
     }
 
+    func testVictoryContinueReturnsDirectlyToCampaign() {
+        launchApp(arguments: TestLaunchArg.allForScreen("battle-victory"))
+        let lootAll = button(AccessibilityID.Battle.continueButton)
+        scrollUntilVisible(lootAll, swipingUp: true, requireHittable: true)
+        let ready = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "enabled == true"),
+            object: lootAll,
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: Self.defaultTimeout), .completed)
+
+        tapWhenReady(lootAll)
+
+        play.assertCampaignLoaded()
+        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+    }
+
     func testContractsBoardLaunchesBattleAndReturnsAfterRetreat() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.assertLoaded(timeout: 10)

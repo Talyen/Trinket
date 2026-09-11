@@ -158,7 +158,7 @@ class TrinketUITestCase: XCTestCase {
         try super.tearDownWithError()
     }
 
-    func launchApp(arguments: [String] = []) {
+    func launchApp(arguments: [String] = [], waitForPreparation: Bool = true) {
         app = XCUIApplication()
         var launchArgs = arguments
         launchArgs.append(contentsOf: ["-store-name", UUID().uuidString])
@@ -171,6 +171,12 @@ class TrinketUITestCase: XCTestCase {
         }
         app.launchEnvironment = launchEnvironment
         app.launch()
+        if waitForPreparation {
+            waitForLaunchPreparation()
+        }
+    }
+
+    func waitForLaunchPreparation() {
         let warmup = app.descendants(matching: .any)
             .matching(identifier: AccessibilityID.Screen.launchWarmup)
             .firstMatch

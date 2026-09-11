@@ -28,7 +28,6 @@ struct CollectionCombatantDetailSheet: ViewModifier {
             )
         }
         .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))
-        .fullGameOfferHost()
         .trinketDetailSheet()
         .modifier(
             CollectionCombatantSheetSignposts(

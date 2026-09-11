@@ -144,13 +144,12 @@ public struct PreviewLabView: View {
     }
 
     private func warmSelectedCinematics() {
-        guard labSession.areUltimateCinematicAnimationsEnabled else { return }
-        if let ultimate = PreviewLab.cinematicUltimate(for: selectedHeroID) {
-            BattleCinematicPlayer.shared.warm(actorID: selectedHeroID, abilityID: ultimate.id)
-        }
-        if let ultimate = PreviewLab.cinematicUltimate(for: selectedCompanionID) {
-            BattleCinematicPlayer.shared.warm(actorID: selectedCompanionID, abilityID: ultimate.id)
-        }
+        labSession.prepareBattlePresentation(
+            heroActorID: selectedHeroID,
+            heroUltimateID: PreviewLab.cinematicUltimate(for: selectedHeroID)?.id,
+            companionActorID: selectedCompanionID,
+            companionUltimateID: PreviewLab.cinematicUltimate(for: selectedCompanionID)?.id,
+        )
     }
 
     private func warmArtwork() async {
@@ -188,6 +187,7 @@ private enum PreviewLab {
             hapticsEnabled: { false },
             effectsVolume: { 1 },
             shouldAutoSkipUltimateCinematic: { _, _ in false },
+            ultimateCinematicAnimationsEnabled: { true },
         )
     }
 

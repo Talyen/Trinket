@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import Testing
 import TrinketContent
 import TrinketFeatureSupport
@@ -12,6 +13,36 @@ struct BattleSessionAppIntegrationTests {
 
     init() throws {
         context = try AppTestContext()
+    }
+
+    @Test(arguments: [false, true])
+    func `campaign path is restored before the runtime starts tearing down`(retreat: Bool) async throws {
+        let play = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        #expect(play.journey.startBattle(for: stage) == nil)
+        let configuration = try #require(play.battle.activeBattle)
+        let configurationID = configuration.id
+        let battle = try #require(context.lastBattle)
+        play.shellSession.playPath = []
+
+        await confirmation("Origin is present when active battle changes") { ended in
+            withObservationTracking {
+                _ = battle.activeBattle
+            } onChange: {
+                MainActor.assumeIsolated {
+                    #expect(play.shellSession.playPath == [.campaign])
+                    #expect(battle.activeBattle?.id == configurationID)
+                    ended()
+                }
+            }
+            if retreat {
+                play.endBattleReturningToOrigin()
+            } else {
+                #expect(play.completeActiveBattle(configuration, battleGold: .init()).didComplete)
+            }
+        }
+        #expect(battle.activeBattle == nil)
+        #expect(play.consumePendingDestination() == nil)
     }
 
     @Test func `stale victory settlement must refresh before claiming`() throws {

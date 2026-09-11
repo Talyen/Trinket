@@ -41,11 +41,6 @@ struct PlayView: View {
             guard battle.lifecyclePhase != .active else { return }
             restorePlayDestinationIfNeeded()
         }
-        .onChange(of: battle.activeBattle?.id) { _, newID in
-            if newID == nil {
-                restorePlayDestinationIfNeeded()
-            }
-        }
         .modifier(PlaySessionPresentationModifier(stageMessage: $stageMessage))
     }
 
@@ -54,24 +49,7 @@ struct PlayView: View {
         guard battle.lifecyclePhase != .active else { return }
 
         if let destination = play.consumePendingDestination() {
-            apply(destination)
-        }
-    }
-
-    private func apply(_ destination: PlayLaunchDestination) {
-        shellSession.playPath = switch destination {
-        case .campaign:
-            [.campaign]
-        case .explore:
-            [.explore]
-        case .spiresHub:
-            [.explore, .spiresHub]
-        case .labyrinthMap:
-            [.explore, .labyrinthMap]
-        case .contracts:
-            [.explore, .contracts]
-        case let .spireClimb(spireID):
-            [.explore, .spiresHub, .spireClimb(spireID)]
+            shellSession.playPath = destination.navigationPath
         }
     }
 }

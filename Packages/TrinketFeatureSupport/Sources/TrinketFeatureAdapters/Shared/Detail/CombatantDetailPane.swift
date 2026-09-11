@@ -255,15 +255,6 @@ public struct CombatantDetailPane: View {
                 .equatable()
         }
 
-        if combatant.role != .enemy {
-            CombatantTalentsSection(
-                combatantID: combatant.id,
-                progression: progression,
-                unlockedTalents: unlockedTalents,
-                onSelectTree: { selectedTalentTree = $0 },
-            )
-        }
-
         DetailSection("Abilities") {
             AbilitySummaryGrid(
                 combatant: combatant,
@@ -274,6 +265,15 @@ public struct CombatantDetailPane: View {
                 onInspectAbility: { viewingAbility = $0 },
             )
             .padding(.vertical, TrinketDesign.Spacing.extraSmall)
+        }
+
+        if combatant.role != .enemy {
+            CombatantTalentsSection(
+                combatantID: combatant.id,
+                progression: progression,
+                unlockedTalents: unlockedTalents,
+                onSelectTree: { selectedTalentTree = $0 },
+            )
         }
 
         if combatant.role != .enemy {

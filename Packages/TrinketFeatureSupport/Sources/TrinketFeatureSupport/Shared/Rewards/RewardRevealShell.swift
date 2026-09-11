@@ -71,26 +71,28 @@ public struct RewardRevealShell<Content: View>: View {
         ScrollView {
             VStack(spacing: contentStackSpacing) {
                 VStack(spacing: TrinketDesign.Spacing.small) {
-                    if let eyebrow {
-                        Text(balanced: eyebrow)
-                            .trinketTypography(.eyebrow)
-                            .foregroundStyle(TrinketDesign.Colors.accent)
-                            .textCase(.uppercase)
-                            .trinketFittedText()
-                            .trinketPresentationVisibility(eyebrowOpacity >= 1, opacity: eyebrowOpacity)
-                            .offset(y: (1 - eyebrowOpacity) * TrinketDesign.Spacing.small)
-                            .accessibilityIdentifier(eyebrowAccessibilityIdentifier ?? eyebrow)
-                    }
+                    VStack(spacing: TrinketDesign.Spacing.extraSmall) {
+                        if let eyebrow {
+                            Text(balanced: eyebrow)
+                                .trinketTypography(.eyebrow)
+                                .foregroundStyle(TrinketDesign.Colors.accent)
+                                .textCase(.uppercase)
+                                .trinketFittedText()
+                                .trinketPresentationVisibility(eyebrowOpacity >= 1, opacity: eyebrowOpacity)
+                                .offset(y: (1 - eyebrowOpacity) * TrinketDesign.Spacing.small)
+                                .accessibilityIdentifier(eyebrowAccessibilityIdentifier ?? eyebrow)
+                        }
 
-                    if let title {
-                        Text(balanced: title)
-                            .trinketTypography(.screenDisplay)
-                            .foregroundStyle(titleColor)
-                            .multilineTextAlignment(.center)
-                            .trinketFittedText()
-                            .trinketPresentationVisibility(titleOpacity >= 1, opacity: titleOpacity)
-                            .offset(y: (1 - titleOpacity) * TrinketDesign.Spacing.small)
-                            .accessibilityIdentifier(titleAccessibilityIdentifier)
+                        if let title {
+                            Text(balanced: title)
+                                .trinketTypography(.screenDisplay)
+                                .foregroundStyle(titleColor)
+                                .multilineTextAlignment(.center)
+                                .trinketFittedText()
+                                .trinketPresentationVisibility(titleOpacity >= 1, opacity: titleOpacity)
+                                .offset(y: (1 - titleOpacity) * TrinketDesign.Spacing.small)
+                                .accessibilityIdentifier(titleAccessibilityIdentifier)
+                        }
                     }
 
                     if let subtitle {

@@ -10,35 +10,36 @@ struct EncounterArtwork: View {
     var worldSeed: UInt64 = 0
     var prefersThumbnail = false
 
-    private var nonRecruitMysteryEvent: MysteryEvent? {
-        if let resolvedMysteryEvent, !resolvedMysteryEvent.isRecruit {
-            return resolvedMysteryEvent
+    static func reference(
+        for stage: Stage,
+        resolvedMysteryEvent: MysteryEvent?,
+        worldSeed: UInt64,
+    ) -> (any PreparedArtworkReference)? {
+        if let art = stage.encounterCombatantArtReference(worldSeed: worldSeed) {
+            return art
         }
-        guard let event = stage.mysteryEvent, !event.isRecruit else { return nil }
-        return event
-    }
-
-    private var recruitSceneArt: EncounterArtReference? {
-        if let event = resolvedMysteryEvent, event.isRecruit {
-            return GameContent.recruitEncounterArtReference(for: event)
+        if let event = resolvedMysteryEvent {
+            if event.isRecruit {
+                return GameContent.recruitEncounterArtReference(for: event)
+            }
+            return MysteryEventArtwork.preparedReference(event: event, chapterID: stage.chapterID)
         }
-        guard case .recruit = stage.encounter else { return nil }
+        if case .recruit = stage.encounter {
+            return stage.encounterArtReference
+        }
+        if let event = stage.mysteryEvent, !event.isRecruit {
+            return MysteryEventArtwork.preparedReference(event: event, chapterID: stage.chapterID)
+        }
         return stage.encounterArtReference
     }
 
     var body: some View {
         ZStack {
-            if let combatantArt = stage.encounterCombatantArtReference(worldSeed: worldSeed) {
-                MapTileArtwork(art: combatantArt, prefersThumbnail: prefersThumbnail)
-            } else if let art = recruitSceneArt {
-                MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
-            } else if let event = nonRecruitMysteryEvent {
-                MysteryEventHeroArtwork(
-                    event: event,
-                    chapterID: stage.chapterID,
-                    prefersThumbnail: prefersThumbnail,
-                )
-            } else if let art = stage.encounterArtReference {
+            if let art = Self.reference(
+                for: stage,
+                resolvedMysteryEvent: resolvedMysteryEvent,
+                worldSeed: worldSeed,
+            ) {
                 MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
             } else {
                 MapTilePlaceholder(

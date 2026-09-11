@@ -13,8 +13,6 @@ struct CinematicCastKey: Hashable {
 @MainActor
 @Observable
 final class BattleCinematicPlayer {
-    static let shared = BattleCinematicPlayer()
-
     var isEnabled: Bool = BattleFeatureFlags.ultimateCinematicAnimationsEnabled
 
     private var playersByCastKey: [CinematicCastKey: AVPlayer] = [:]
@@ -22,7 +20,9 @@ final class BattleCinematicPlayer {
     private var endObserversByCastKey: [CinematicCastKey: NSObjectProtocol] = [:]
     private var failureObserversByCastKey: [CinematicCastKey: NSObjectProtocol] = [:]
 
-    private init() {}
+    isolated deinit {
+        releaseAll()
+    }
 
     func warmLoadout(
         heroActorID: String?,

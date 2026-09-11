@@ -17,6 +17,8 @@ public struct BattleView: View {
     private let configuration: BattleRunConfiguration
     private let presentationContext: BattlePresentationContext
     private let battleSession: BattleSession
+    private let presentation: BattlePresentationState
+    private let spectacle: BattleSpectacleState
     private let completeVictory: (BattleVictorySummary) -> Bool
     private let restartBattle: () -> Void
     private let retreat: () -> Void
@@ -36,6 +38,8 @@ public struct BattleView: View {
         self.configuration = configuration
         self.presentationContext = presentationContext
         self.battleSession = battleSession
+        presentation = battleSession.presentation
+        spectacle = battleSession.spectacle
         self.completeVictory = completeVictory
         self.restartBattle = restartBattle
         self.retreat = retreat
@@ -45,7 +49,7 @@ public struct BattleView: View {
     }
 
     public var body: some View {
-        if battleSession.presentation.configurationID == configuration.id {
+        if presentation.configurationID == configuration.id {
             bodyContent(battleSession: battleSession)
         } else {
             Color.clear
@@ -57,6 +61,7 @@ public struct BattleView: View {
     private func bodyContent(battleSession: BattleSession) -> some View {
         outcomeContent(battleSession: battleSession)
             .environment(battleSession)
+            .environment(spectacle)
             .trinketScreenBackground()
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
@@ -64,7 +69,7 @@ public struct BattleView: View {
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbarVisibility(.hidden, for: .tabBar)
             .toolbar {
-                if !battleSession.spectacle.outcomePresentation.isOutcomePresented {
+                if !spectacle.outcomePresentation.isOutcomePresented {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         BattleAutoToggle(battleSession: battleSession)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)
@@ -126,7 +131,7 @@ public struct BattleView: View {
 
     private func outcomeContent(battleSession: BattleSession) -> some View {
         ZStack {
-            switch battleSession.spectacle.outcomePresentation {
+            switch spectacle.outcomePresentation {
             case let .victory(victorySummary):
                 VictoryView(
                     summary: victorySummary,
@@ -164,6 +169,7 @@ public struct BattleView: View {
                     configuration: configuration,
                     presentationContext: presentationContext,
                     battleSession: battleSession,
+                    presentation: presentation,
                     interactionState: interactionState,
                     castPresentation: castPresentation,
                     performanceScenario: debugPerformanceScenario,
@@ -171,9 +177,10 @@ public struct BattleView: View {
                 .transition(.opacity)
             }
         }
-        .animation(TrinketMotion.Screen.crossfade, value: battleSession.spectacle.outcomePresentation)
+        .animation(TrinketMotion.Screen.crossfade, value: spectacle.outcomePresentation)
         .modifier(BattleOutcomeHapticsModifier(
             battleSession: battleSession,
+            spectacle: spectacle,
             victoryTrigger: $victoryFeedbackToken,
             defeatTrigger: $defeatFeedbackToken,
         ))
@@ -208,6 +215,7 @@ struct BattleFieldLane: View {
     let configuration: BattleRunConfiguration
     let presentationContext: BattlePresentationContext
     let battleSession: BattleSession
+    let presentation: BattlePresentationState
     let interactionState: BattleInteractionState
     let castPresentation: BattleCastPresentationState
     var performanceScenario: BattlePerformanceScenario?
@@ -219,7 +227,6 @@ struct BattleFieldLane: View {
                 containerWidth: geometry.size.width,
                 layout: layout,
             )
-            let presentation = battleSession.presentation
             let hapticsEnabled = battleSession.hapticsEnabled
 
             ZStack(alignment: .bottom) {
@@ -473,6 +480,7 @@ private extension BattleView {
 
 private struct BattleOutcomeHapticsModifier: ViewModifier {
     let battleSession: BattleSession
+    let spectacle: BattleSpectacleState
     @Binding var victoryTrigger: Int
     @Binding var defeatTrigger: Int
 
@@ -480,7 +488,7 @@ private struct BattleOutcomeHapticsModifier: ViewModifier {
         content
             .trinketSensoryFeedback(.success, trigger: victoryTrigger, enabled: battleSession.hapticsEnabled)
             .trinketSensoryFeedback(.error, trigger: defeatTrigger, enabled: battleSession.hapticsEnabled)
-            .onChange(of: battleSession.spectacle.outcomePresentation) { _, newValue in
+            .onChange(of: spectacle.outcomePresentation) { _, newValue in
                 switch newValue {
                 case .victory:
                     victoryTrigger &+= 1

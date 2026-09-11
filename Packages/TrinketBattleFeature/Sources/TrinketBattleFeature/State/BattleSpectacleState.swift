@@ -36,6 +36,7 @@ public enum BattleOutcomePresentation: Equatable {
 @MainActor
 @Observable
 public final class BattleSpectacleState {
+    let cinematics = BattleCinematicPlayer()
     public internal(set) var outcomePresentation: BattleOutcomePresentation = .battle
     var ultimateHighlightsByActorID: [String: BattleUltimateInFramePresentation] = [:]
     var nextID = 0

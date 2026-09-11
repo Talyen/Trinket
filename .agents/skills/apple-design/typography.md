@@ -1,7 +1,7 @@
 # Typography
 
 Use `.trinketTypography(_:)` and the existing roles in
-[TrinketDesignSystem](../../../Packages/TrinketDesignSystem/README.md).
+[visual roles](../../../Packages/TrinketDesignSystem/Documentation/VisualRoles.md#typography).
 Inspect that implementation before changing font, tracking, or line spacing;
 role defaults already encode the product's text hierarchy.
 

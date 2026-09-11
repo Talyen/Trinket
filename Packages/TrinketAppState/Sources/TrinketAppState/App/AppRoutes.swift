@@ -89,19 +89,32 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
         }
     }
 
-    static func returning(from origin: PlayBattleOrigin?) -> Self? {
-        switch origin {
-        case .none:
-            nil
-        case .journey:
-            .campaign
-        case let .spire(spireID, _):
-            .spireClimb(spireID)
-        case .labyrinth:
-            .labyrinthMap
-        case .contract:
-            .contracts
+    public var navigationPath: [Self] {
+        switch self {
+        case .campaign:
+            [.campaign]
+        case .explore:
+            [.explore]
+        case .spiresHub:
+            [.explore, .spiresHub]
+        case let .spireClimb(spireID):
+            [.explore, .spiresHub, .spireClimb(spireID)]
+        case .labyrinthMap:
+            [.explore, .labyrinthMap]
+        case .contracts:
+            [.explore, .contracts]
         }
+    }
+
+    static func returnPath(from origin: PlayBattleOrigin?) -> [Self]? {
+        let destination: Self? = switch origin {
+        case .none: nil
+        case .journey: .campaign
+        case let .spire(spireID, _): .spireClimb(spireID)
+        case .labyrinth: .labyrinthMap
+        case .contract: .contracts
+        }
+        return destination?.navigationPath
     }
 }
 

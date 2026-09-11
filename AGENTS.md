@@ -35,7 +35,8 @@ Reuse unchanged guidance already present in context; reread when changed or no
 longer available. Reroute when scope crosses owners and read newly applicable
 material. Use `--working-tree` only for intentional whole-tree work.
 
-Search authored owner paths with `rg` and bounded reads. Load linked material only
+Start discovery with `python3 Scripts/agent-search.py <pattern> --scope <owner>`;
+use `rg` and bounded reads for the selected files. Load linked material only
 for its concern; generated catalogs/logs need targeted lookups. See
 [context reading examples](Docs/AgentContext/README.md). Use an execution plan only
 for durable coordination/resumption; [Plans](Docs/Plans/README.md) owns lifecycle.

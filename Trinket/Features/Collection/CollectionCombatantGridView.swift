@@ -8,6 +8,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct CollectionCombatantGridView: View {
+    @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(PlayerSaveStore.self) private var playerSave
     @State private var selectedCombatant: CombatantDetailContext?
     @Namespace private var zoomNamespace
@@ -35,6 +36,10 @@ struct CollectionCombatantGridView: View {
                 isLocked: !playerSave.roster.isUnlocked(combatant) || !playerSave.contentAccess.allowsCombatant(combatant.id),
                 cardWidth: nil,
             ) {
+                guard playerSave.contentAccess.allowsCombatant(combatant.id) else {
+                    requestOffer(.combatant(combatant.id))
+                    return
+                }
                 selectedCombatant = CombatantDetailContext(
                     kind: kind,
                     combatantID: combatant.id,
@@ -42,12 +47,7 @@ struct CollectionCombatantGridView: View {
             }
             .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
         } emptyView: {
-            ContentUnavailableView(
-                "Nothing to Collect",
-                systemImage: "person.3",
-                description: Text("Unlock heroes and companions by progressing through the campaign."),
-            )
-            .accessibilityIdentifier(AccessibilityID.Collection.combatantsEmptyState)
+            EmptyView()
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)

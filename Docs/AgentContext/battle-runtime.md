@@ -21,9 +21,28 @@ Play screens read save slices from `PlayerSaveStore` directly. Mode types own ma
 
 Keep `PlaySession` focused on shell navigation and launch/completion orchestration. Do not add presentation-only methods to `BattleRuntime`.
 
+Battle completion and retreat restore the origin's full browsing path without a
+navigation animation before ending the runtime. Do not defer this return to a
+view's lifecycle callback: the map is the exit crossfade's backdrop and must
+already show the intended destination.
+Pending destinations remain for initial launch routing. Both use
+`PlayLaunchDestination.navigationPath` for the complete browsing hierarchy.
+
 ## Presentation
 
 `BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns cinematics and outcome timing. Views observe the narrow lane they render. App-level options and audio enter through `BattleRuntimeDependencies`; BattleFeature never imports `TrinketAppState`.
+
+`BattleView` captures its combat projection and spectacle references when composed.
+Ending Battle cancels their work and gives the session fresh display objects instead
+of clearing the objects held by outgoing views. The runtime is empty immediately,
+while the retiring view keeps its last hand, combatants, and outcome through the
+exit crossfade. Retiring views must not look up replacement display objects from
+the session. The captured spectacle is supplied through the view environment,
+including ultimate overlays. Each spectacle owns its cinematic players; they
+release when that presentation retires, so ending a run cannot empty a visible
+video layer or release a subsequent run's players.
+The debug Preview Lab opts into cinematic playback through its runtime dependencies
+and uses the session's preparation method, independently of the gameplay feature flag.
 
 Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 

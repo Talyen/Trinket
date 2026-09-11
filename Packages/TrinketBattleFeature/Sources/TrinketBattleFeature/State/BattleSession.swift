@@ -52,7 +52,7 @@ struct CancellableGeneration {
 public final class BattleSession: BattleRuntime {
     let feedback = BattleFeedbackLane()
     let cardCues = BattleCardCueState()
-    public let spectacle = BattleSpectacleState()
+    public internal(set) var spectacle = BattleSpectacleState()
     @ObservationIgnored
     let dependencies: BattleRuntimeDependencies
     public var isAutoBattleEnabled: Bool {
@@ -82,7 +82,7 @@ public final class BattleSession: BattleRuntime {
     @ObservationIgnored
     var preparedBattleRunsByKey: [BattleRunKey: PreparedBattleRun] = [:]
 
-    let presentation = BattlePresentationState()
+    var presentation = BattlePresentationState()
 
     @ObservationIgnored
     var progression: BattleProgression?
@@ -321,9 +321,9 @@ public final class BattleSession: BattleRuntime {
         companionUltimateID: String?,
     ) {
         dependencies.warmSFX(SFXID.battlePrewarmIDs, 2)
-        BattleCinematicPlayer.shared.isEnabled = areUltimateCinematicAnimationsEnabled
+        spectacle.cinematics.isEnabled = areUltimateCinematicAnimationsEnabled
         guard areUltimateCinematicAnimationsEnabled else { return }
-        BattleCinematicPlayer.shared.warmLoadout(
+        spectacle.cinematics.warmLoadout(
             heroActorID: heroActorID,
             heroUltimateID: heroUltimateID,
             companionActorID: companionActorID,

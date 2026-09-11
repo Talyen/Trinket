@@ -46,8 +46,9 @@ extension BattleSession {
     func clearUltimateHighlight(for actorID: String) {
         spectacle.pendingUltimateHighlightTasksByActorID[actorID]?.cancel()
         spectacle.pendingUltimateHighlightTasksByActorID[actorID] = nil
-        spectacle.ultimateHighlightsByActorID[actorID] = nil
-        BattleCinematicPlayer.shared.pause(actorID: actorID, abilityID: "")
+        if let highlight = spectacle.ultimateHighlightsByActorID.removeValue(forKey: actorID) {
+            spectacle.cinematics.pause(actorID: actorID, abilityID: highlight.abilityID)
+        }
     }
 
     func handleOutcomeIfNeeded(at date: Date) {
@@ -232,7 +233,7 @@ extension BattleSession {
     }
 
     func triggerUltimateInFrameHighlight(from event: ActionEvent, at date: Date) {
-        BattleCinematicPlayer.shared.isEnabled = areUltimateCinematicAnimationsEnabled
+        spectacle.cinematics.isEnabled = areUltimateCinematicAnimationsEnabled
         guard areUltimateCinematicAnimationsEnabled else { return }
         let autoSkip = dependencies.shouldAutoSkipUltimateCinematic(
             event.actorID,
@@ -255,7 +256,7 @@ extension BattleSession {
         )
         spectacle.pendingUltimateHighlightTasksByActorID[event.actorID]?.cancel()
         spectacle.ultimateHighlightsByActorID[event.actorID] = highlight
-        BattleCinematicPlayer.shared.warm(actorID: event.actorID, abilityID: event.abilityID)
+        spectacle.cinematics.warm(actorID: event.actorID, abilityID: event.abilityID)
         let hold = ultimateInFrameDurationOverride ?? .seconds(BattleMotion.ultimateInFrameDuration)
         spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = Task { @MainActor [weak self] in
             try? await Task.sleep(for: hold)
@@ -291,7 +292,7 @@ extension BattleSession {
             spectacle.actorsWhoPresentedUltimateThisBattle = []
         }
         if releaseCinematicPlayers {
-            BattleCinematicPlayer.shared.releaseAll()
+            spectacle.cinematics.releaseAll()
         }
     }
 
@@ -321,7 +322,11 @@ extension BattleSession {
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
         completionError = nil
-        presentation.clear()
+        presentation = BattlePresentationState()
+        spectacle.outcomeTask.invalidate()
+        spectacle.celebrateTask.invalidate()
+        cancelUltimateHighlightWatchdogs()
+        spectacle = BattleSpectacleState()
         clearSharedPresentation(releaseCinematicPlayers: true)
         feedback.release()
         CombatFeedbackGlyphAtlas.shared.removeAll()

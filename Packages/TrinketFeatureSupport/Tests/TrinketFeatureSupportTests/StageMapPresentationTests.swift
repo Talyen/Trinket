@@ -58,6 +58,22 @@ struct StageMapPresentationTests {
         #expect(empty.encounterArtReference?.imageName == "encounter_mystery_recruit_heroes")
     }
 
+    @Test func `exhausted recruit stage presents as ordinary mystery`() throws {
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+        let resolved = GameContent.resolveRecruitStage(
+            stage,
+            worldSeed: 3,
+            unlockedHeroIDs: Set(ContentAccessPolicy.freeHeroIDs),
+            unlockedCompanionIDs: Set(ContentAccessPolicy.freeCompanionIDs),
+            access: .free,
+        )
+
+        #expect(resolved.encounter.title == "Mystery")
+        #expect(resolved.encounter.iconID == "lucide:sparkles")
+        #expect(resolved.encounter.primaryActionTitle == "Approach")
+        #expect(resolved.encounterArtReference?.imageName != "encounter_mystery_recruit_companions")
+    }
+
     @Test func `battle stages prefer enemy art over encounter art`() throws {
         let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-1" })
 

@@ -7,22 +7,19 @@ import TrinketFeatureSupport
 struct HomesteadMaterialValue: View {
     let resource: HomesteadResource
     let value: String
-    var available: Int?
+    var isInsufficient = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
-            TrinketWalletResourcePill(title: resource.displayName, value: value) {
-                HomesteadResourceArtwork(resource: resource)
-            }
-            if let available {
-                Text("Have \(available)")
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-            }
+        TrinketWalletResourcePill(
+            title: resource.displayName,
+            value: value,
+            valueColor: isInsufficient ? TrinketDesign.Colors.destructive : .primary,
+        ) {
+            HomesteadResourceArtwork(resource: resource)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(resource.displayName)
-        .accessibilityValue(available.map { "\(value), have \($0)" } ?? value)
+        .accessibilityValue(isInsufficient ? "\(value), insufficient" : value)
     }
 }
 
@@ -33,22 +30,17 @@ struct HomesteadBenefitsView: View {
     var highlightsProduction = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-            Text("Bonus")
-                .trinketTypography(.secondaryBody)
-                .foregroundStyle(.secondary)
-            HStack(alignment: .center, spacing: TrinketDesign.Spacing.medium) {
-                HomesteadEffectDescription(tier: tier, highlightedEffects: highlightedEffects)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityIdentifier(effectsIdentifier)
-                if let production = tier.production {
-                    HomesteadProductionValue(
-                        resource: production.resource,
-                        quantity: production.quantity,
-                        isHighlighted: highlightsProduction,
-                    )
-                    .fixedSize(horizontal: true, vertical: false)
-                }
+        HStack(alignment: .center, spacing: TrinketDesign.Spacing.medium) {
+            HomesteadEffectDescription(tier: tier, highlightedEffects: highlightedEffects)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier(effectsIdentifier)
+            if let production = tier.production {
+                HomesteadProductionValue(
+                    resource: production.resource,
+                    quantity: production.quantity,
+                    isHighlighted: highlightsProduction,
+                )
+                .fixedSize(horizontal: true, vertical: false)
             }
         }
     }

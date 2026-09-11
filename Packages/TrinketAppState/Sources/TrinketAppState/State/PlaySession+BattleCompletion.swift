@@ -19,7 +19,7 @@ struct PlayBattleCompletion {
         route: PlayBattleRoute?,
         presentation: BattlePresentationContext?,
         onPersisted: () -> Void,
-        queueReturnToOrigin: (PlayBattleOrigin?) -> Void,
+        restoreOrigin: (PlayBattleOrigin?) -> Void,
     ) -> BattleCompletionResult {
         guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id else { return .unavailable }
 
@@ -66,7 +66,7 @@ struct PlayBattleCompletion {
         }
         if result.didComplete {
             onPersisted()
-            queueReturnToOrigin(origin)
+            restoreOrigin(origin)
             battle.endBattle()
         }
         return result

@@ -92,18 +92,30 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         fail("Button '\(AccessibilityID.FullGame.purchase)' not found after retrying", file: file, line: line)
     }
 
-    func testNestedCharacterOfferReturnsToDetails() {
+    func testLockedCharactersOpenOfferAndReturnToCollection() {
         launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "collection"])
-        tapButton(AccessibilityID.Collection.heroesCategory)
-        assertExistsAfterScroll(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"), requireHittable: true)
-        tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
-        assertExists(AccessibilityID.CombatantDetail.header(name: "Warlock"), timeout: 20)
-        assertExistsAfterScroll(AccessibilityID.FullGame.boundary, requireHittable: true)
-        tapButton(AccessibilityID.FullGame.boundary)
-        assertExists(AccessibilityID.FullGame.offer)
-        tapButton(AccessibilityID.FullGame.close)
-        XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
-        assertExists(AccessibilityID.CombatantDetail.header(name: "Warlock"))
+        let characters = [
+            (AccessibilityID.Collection.heroesCategory, "Warlock"),
+            (AccessibilityID.Collection.companionsCategory, "Phoenix"),
+        ]
+        for (category, name) in characters {
+            assertExistsAfterScroll(category, requireHittable: true)
+            tapButton(category)
+            let card = AccessibilityID.CombatantDetail.collectionCard(name: name)
+            assertExistsAfterScroll(card, requireHittable: true)
+            tapButton(card)
+            assertExists(AccessibilityID.FullGame.offer)
+            XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.CombatantDetail.header(name: name)].exists)
+            let preview = XCTAttachment(screenshot: app.screenshot())
+            preview.name = "Full Game offer - \(name)"
+            preview.lifetime = .keepAlways
+            add(preview)
+            tapButton(AccessibilityID.FullGame.close)
+            XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
+            assertExists(card)
+            XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.CombatantDetail.header(name: name)].exists)
+            goBack()
+        }
     }
 
     func testCampaignBoundaryKeepsRewardsAndOffersTheNextChapter() {

@@ -1,7 +1,7 @@
 # Game icon selections
 
 Rendering and library policy are owned by the
-[design system](../../Packages/TrinketDesignSystem/README.md#game-icons).
+[design system](../../Packages/TrinketDesignSystem/Documentation/VisualRoles.md#game-icons).
 These mappings cover symbolic game imagery; existing painted art remains primary.
 
 ## Keywords

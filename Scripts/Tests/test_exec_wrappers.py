@@ -283,11 +283,12 @@ if 'appearance' in sys.argv:
                 scripts = root / "Scripts"
                 for relative in ("lib", "config", "Tests"):
                     (scripts / relative).mkdir(parents=True)
-                for name in ("test-scripts.sh", "lib/args.sh", "script_diagnostics.py", "diagnostic_limits.py", "config/diagnostic-limits.env"):
+                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "diagnostic_limits.py", "config/diagnostic-limits.env"):
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "check-build-cache-paths.sh").write_text("#!/bin/bash\nexit 0\n")
                 (scripts / "check-build-cache-paths.sh").chmod(0o755)
                 (root / "payload").write_text(payload)
+                (scripts / "Tests/test_fixture.py").write_text("")
                 (root / "bin").mkdir()
                 stub = root / "bin/python3"
                 stub.write_text(

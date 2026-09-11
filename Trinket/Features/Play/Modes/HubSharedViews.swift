@@ -54,7 +54,7 @@ struct HubArtworkCard: View {
             }
             .trinketLockedCardEffect(isLocked: isLocked)
 
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
                 if let subtitle {
                     HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
                         if let icon {

@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketDesignSystem
-import TrinketFeatureSupport
 
 struct LaunchWarmupView: View {
     @State private var isVisible = false
@@ -63,7 +62,6 @@ struct LaunchWarmupView: View {
         .padding(TrinketDesign.Layout.contentMargin)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
-        .accessibilityIdentifier(AccessibilityID.Screen.launchWarmup)
         .onAppear {
             isVisible = true
         }

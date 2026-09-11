@@ -60,13 +60,14 @@ private extension CombatantBuffAuraKind {
 
 struct CombatantBuffAuraLane: View {
     @Environment(BattleSession.self) private var battleSession
+    @Environment(BattleSpectacleState.self) private var spectacle
     let kind: CombatantBuffAuraKind
 
     var body: some View {
         CombatantBuffAuraBorder(
             kind: kind,
             isMotionActive: battleSession.lifecyclePhase == .active
-                && !battleSession.spectacle.outcomePresentation.isOutcomePresented,
+                && !spectacle.outcomePresentation.isOutcomePresented,
         )
     }
 }

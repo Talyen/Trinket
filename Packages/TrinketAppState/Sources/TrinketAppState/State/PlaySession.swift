@@ -1,6 +1,7 @@
 import BattleEngine
 import Foundation
 import Observation
+import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
@@ -111,12 +112,15 @@ public final class PlaySession {
         return pendingDestination
     }
 
-    func queueDestination(_ destination: PlayLaunchDestination) {
-        pendingDestination = destination
-    }
-
-    func queueReturnToBattleOrigin(from origin: PlayBattleOrigin?) {
-        pendingDestination = PlayLaunchDestination.returning(from: origin)
+    private func restoreBattleOrigin(from origin: PlayBattleOrigin?) {
+        pendingDestination = nil
+        if let path = PlayLaunchDestination.returnPath(from: origin) {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                shellSession.playPath = path
+            }
+        }
     }
 
     public func endBattleReturningToOrigin() {
@@ -125,7 +129,7 @@ public final class PlaySession {
         if runKey != nil, origin == nil {
             appStateLogger.error("Missing route for active battle dismissal")
         }
-        queueReturnToBattleOrigin(from: origin)
+        restoreBattleOrigin(from: origin)
         shellSession.selectedTab = .play
         battle.endBattle()
         battleRunRegistry.removeAll()
@@ -157,8 +161,8 @@ public final class PlaySession {
                     progressionsBefore: progressionsBefore,
                 )
             },
-            queueReturnToOrigin: { [weak self] origin in
-                self?.queueReturnToBattleOrigin(from: origin)
+            restoreOrigin: { [weak self] origin in
+                self?.restoreBattleOrigin(from: origin)
             },
         )
         if result.didComplete {

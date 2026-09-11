@@ -71,7 +71,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     }
 
     private var titleBlock: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
             if let eyebrow {
                 Text(balanced: eyebrow)
                     .trinketTypography(.eyebrow)

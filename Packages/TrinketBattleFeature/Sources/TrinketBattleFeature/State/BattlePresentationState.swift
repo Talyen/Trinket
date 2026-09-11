@@ -100,16 +100,6 @@ final class BattlePresentationState {
             isBattleOver = snapshot.isBattleOver
         }
     }
-
-    func clear() {
-        configurationID = nil
-        hero = nil
-        companion = nil
-        enemy = nil
-        hand = []
-        playableCardIDs = []
-        isBattleOver = false
-    }
 }
 
 extension BattleState {

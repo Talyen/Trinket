@@ -55,7 +55,6 @@ struct HomesteadCategoryView: View {
         .accessibilityIdentifier(AccessibilityID.Homestead.gallery)
         .sheet(isPresented: $showsWallet) {
             HomesteadWalletSheet(onClose: { showsWallet = false })
-                .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(TrinketDesign.Colors.surface)
         }

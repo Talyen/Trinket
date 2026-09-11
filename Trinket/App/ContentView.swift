@@ -16,6 +16,8 @@ struct ContentView: View {
     @State private var didAcknowledgePersistenceRecovery = false
     @Namespace private var homesteadZoomNamespace
 
+    var onFirstLayout: () -> Void = {}
+
     var body: some View {
         @Bindable var shellSession = shellSession
 
@@ -26,6 +28,13 @@ struct ContentView: View {
                     confirmHero: appState.confirmStarterHero,
                     confirmCompanion: appState.completeStarterSelection,
                 )
+                .onGeometryChange(for: Bool.self) { geometry in
+                    geometry.size.width > 0 && geometry.size.height > 0
+                } action: { hasLayout in
+                    if hasLayout {
+                        onFirstLayout()
+                    }
+                }
                 .transition(.opacity)
             } else {
                 tabRoot(selection: $shellSession.selectedTab)
@@ -119,6 +128,10 @@ struct ContentView: View {
         return TabView(selection: intercepting) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
                 PlayView()
+                    .modifier(SelectedTabLayoutAcknowledgement(
+                        isSelected: shellSession.selectedTab == .play,
+                        onLayout: onFirstLayout,
+                    ))
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
@@ -126,16 +139,28 @@ struct ContentView: View {
                     CollectionView {
                         appState.consumePendingCollectionPresentation()
                     }
+                    .modifier(SelectedTabLayoutAcknowledgement(
+                        isSelected: shellSession.selectedTab == .collection,
+                        onLayout: onFirstLayout,
+                    ))
                 }
             }
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
                 homesteadTab
+                    .modifier(SelectedTabLayoutAcknowledgement(
+                        isSelected: shellSession.selectedTab == .homestead,
+                        onLayout: onFirstLayout,
+                    ))
             }
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
                     OptionsView()
+                        .modifier(SelectedTabLayoutAcknowledgement(
+                            isSelected: shellSession.selectedTab == .options,
+                            onLayout: onFirstLayout,
+                        ))
                 }
             }
         }
@@ -169,4 +194,24 @@ struct ContentView: View {
             }
         }
     }
+}
+
+private struct SelectedTabLayoutAcknowledgement: ViewModifier {
+    let isSelected: Bool
+    let onLayout: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .onGeometryChange(for: Bool.self) { geometry in
+                isSelected && geometry.size.width > 0 && geometry.size.height > 0
+            } action: { hasLayout in
+                if hasLayout {
+                    onLayout()
+                }
+            }
+    }
+}
+
+extension EnvironmentValues {
+    @Entry var isLaunchPresentationReady = true
 }

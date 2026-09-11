@@ -16,6 +16,7 @@ public struct AppEnvironment: Sendable {
     public let mysteryRecruitEventID: String?
     public let storeName: String?
     public let battleTickInterval: TimeInterval?
+    public let launchPreparationDelay: TimeInterval
     public let startingGold: Int?
     public let enableFrameMetrics: Bool
     public let battlePerformanceScenario: BattlePerformanceScenario?
@@ -33,6 +34,7 @@ public struct AppEnvironment: Sendable {
         mysteryRecruitEventID: String?,
         storeName: String?,
         battleTickInterval: TimeInterval?,
+        launchPreparationDelay: TimeInterval,
         startingGold: Int?,
         enableFrameMetrics: Bool,
         battlePerformanceScenario: BattlePerformanceScenario?,
@@ -49,6 +51,7 @@ public struct AppEnvironment: Sendable {
         self.mysteryRecruitEventID = mysteryRecruitEventID
         self.storeName = storeName
         self.battleTickInterval = battleTickInterval
+        self.launchPreparationDelay = launchPreparationDelay
         self.startingGold = startingGold
         self.enableFrameMetrics = enableFrameMetrics
         self.battlePerformanceScenario = battlePerformanceScenario
@@ -64,12 +67,17 @@ public struct AppEnvironment: Sendable {
     public static func parse(arguments: [String], environment: [String: String]) -> Self {
         let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
         let disableCloudSync: Bool
+        let launchPreparationDelay: TimeInterval
         #if DEBUG
+        let requestedDelay = argumentValue(after: "-launch-preparation-delay", in: arguments)
+            .flatMap(TimeInterval.init) ?? 0
+        launchPreparationDelay = requestedDelay.isFinite && requestedDelay > 0 ? requestedDelay : 0
         let battlePerformanceScenario = argumentValue(
             after: "-battle-performance-scenario",
             in: arguments,
         ).flatMap(BattlePerformanceScenario.init(rawValue:))
         #else
+        launchPreparationDelay = 0
         let battlePerformanceScenario: BattlePerformanceScenario? = nil
         #endif
         disableCloudSync = arguments.contains("-disable-cloud-sync")
@@ -91,6 +99,7 @@ public struct AppEnvironment: Sendable {
             storeName: argumentValue(after: "-store-name", in: arguments),
             battleTickInterval: argumentValue(after: "-battle-tick-interval", in: arguments)
                 .flatMap(TimeInterval.init),
+            launchPreparationDelay: launchPreparationDelay,
             startingGold: argumentValue(after: "-starting-gold", in: arguments)
                 .flatMap(Int.init),
             enableFrameMetrics: arguments.contains("-enable-frame-metrics"),

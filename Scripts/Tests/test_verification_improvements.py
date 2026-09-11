@@ -75,8 +75,10 @@ class VerificationImprovementsTests(ScriptRegressionTestCase):
         planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
         # Mixed scope must contain docs once and scripts with --skip-docs once.
         self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
-        self.assertIn("./Scripts/test-scripts.sh --skip-docs", planned)
-        self.assertNotIn("./Scripts/test-scripts.sh", [p for p in planned if p == "./Scripts/test-scripts.sh"])
+        script_commands = [p for p in planned if p.startswith("./Scripts/test-scripts.sh")]
+        self.assertEqual(script_commands, [
+            "./Scripts/test-scripts.sh --skip-docs --paths Docs/Platform/Verification.md Scripts/build.sh",
+        ])
 
     def test_plain_script_scope_still_validates_docs(self) -> None:
         result = subprocess.run(
@@ -89,8 +91,8 @@ class VerificationImprovementsTests(ScriptRegressionTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
         # Plain script scope validates docs via test-scripts.sh default (no --skip-docs) but also shows cheap slices.
-        self.assertIn("./Scripts/test-scripts.sh", planned)
-        self.assertNotIn("./Scripts/test-scripts.sh --skip-docs", planned)
+        self.assertIn("./Scripts/test-scripts.sh --paths Scripts/build.sh", planned)
+        self.assertFalse(any("--skip-docs" in command for command in planned))
         # Ensure cheap slices still present; docs not separately listed for plain script is OK because test-scripts.sh runs it internally,
         # but the plan must not have duplicate docs entry.
         self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 0)

@@ -60,7 +60,12 @@ trinket_build_verification_plan() {
     fi
   fi
   if [[ "$TRINKET_NEEDS_SCRIPT_TESTS" == true ]]; then
-    trinket_add_verification scripts all "./Scripts/test-scripts.sh"
+    local scripts_command="./Scripts/test-scripts.sh --paths" quoted_path
+    for authored in "${TRINKET_CHANGED_PATHS[@]}"; do
+      printf -v quoted_path '%q' "$authored"
+      scripts_command+=" $quoted_path"
+    done
+    trinket_add_verification scripts all "$scripts_command"
   fi
   if [[ "$TRINKET_NEEDS_DOCS" == true ]]; then
     trinket_add_verification docs check "python3 ./Scripts/check-docs.py"

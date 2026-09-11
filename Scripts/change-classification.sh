@@ -105,6 +105,7 @@ trinket_add_agent_guide() { trinket_add_unique TRINKET_AGENT_GUIDES "$1"; }
 # Every card in Docs/AgentContext/ must be emitted above or declared here as
 # lookup-only; Scripts/check-docs.py enforces this. Lazy cards load on demand:
 # lookup-only: Docs/AgentContext/ci-diagnostics.md
+# lookup-only: Docs/AgentContext/battle-talents.md
 trinket_add_boundary_warning() { trinket_add_unique TRINKET_BOUNDARY_WARNINGS "$1"; }
 trinket_add_generated_warning() { trinket_add_unique TRINKET_GENERATED_WARNINGS "$1"; }
 trinket_add_verification() {
@@ -333,6 +334,21 @@ trinket_add_battle_subcard_for_path() {
     Packages/BattleEngine/*)
       trinket_add_route_card Docs/AgentContext/battle.md
       trinket_add_context_card Docs/AgentContext/battle-engine.md
+      case "$1" in
+        */Sources/BattleBalanceTools/*|*/Sources/BalanceSweepCLI/*|*/Tests/BattleBalanceToolsTests/*)
+          trinket_add_context_card Docs/AgentContext/battle-balance.md ;;
+        */Damage/*|*/EffectHandlers/*|*DoT*|*EffectTurnEngine*|*DamagePipeline*)
+          trinket_add_context_card Docs/AgentContext/battle-damage.md ;;
+        *Healing*|*Leech*)
+          trinket_add_context_card Docs/AgentContext/battle-healing.md ;;
+        */Cards/*|*BattleHand*|*CombatDeck*|*Mana*|*CardPlay*|*CombatResolution*|*BattleActionContext*)
+          trinket_add_context_card Docs/AgentContext/battle-actions.md ;;
+        *.md) ;;
+        *)
+          trinket_add_context_card Docs/AgentContext/battle-damage.md
+          trinket_add_context_card Docs/AgentContext/battle-actions.md
+          trinket_add_context_card Docs/AgentContext/battle-healing.md ;;
+      esac
       ;;
     Packages/TrinketAppState/*)
       case "$1" in
@@ -348,6 +364,27 @@ trinket_add_battle_subcard_for_path() {
       trinket_add_context_card Docs/AgentContext/battle-runtime.md
       ;;
     *)
+      ;;
+  esac
+}
+
+trinket_add_persistence_contracts_for_path() {
+  case "$1" in
+    Packages/TrinketPersistence/*)
+      trinket_add_context_card Docs/AgentContext/persistence.md
+      case "$1" in
+        */Sources/TrinketPersistence/*Completion.swift|*/Sources/TrinketPersistence/BattleLoot.swift|\
+        */Sources/TrinketPersistence/VictoryRewardApplier.swift|*/Sources/TrinketPersistence/RewardSettlementInputs+Save.swift|\
+        */Sources/TrinketPersistence/Shop*|*/Sources/TrinketPersistence/Mystery*|\
+        */Sources/TrinketPersistence/EncounterIdentity+Save.swift|*/Sources/TrinketPersistence/PlayerSaveStore+Homestead.swift)
+          trinket_add_context_card Docs/AgentContext/persistence-progression.md ;;
+        */PlayerSaveGraph/*|*/ModelContainerBootstrap.swift|*/PlayerSaveSanitizer.swift|*/PlayerSaveStoreConfiguration.swift)
+          trinket_add_context_card Docs/AgentContext/persistence-storage.md ;;
+        *.md) ;;
+        *)
+          trinket_add_context_card Docs/AgentContext/persistence-storage.md
+          trinket_add_context_card Docs/AgentContext/persistence-progression.md ;;
+      esac
       ;;
   esac
 }
@@ -373,6 +410,13 @@ trinket_add_knowledge_for_path() {
 
 trinket_classify_path() {
   local path="$1"
+
+  # Documentation beneath script/manifest roots is still documentation.
+  if [[ "$path" == *.md ]]; then
+    TRINKET_NEEDS_DOCS=true
+    TRINKET_AUTHORED_PATHS+=("$path")
+    return 0
+  fi
 
   if trinket_is_project_generation_input "$path"; then
     TRINKET_HAS_PROJECT=true
@@ -573,6 +617,10 @@ trinket_classify_paths() {
         TRINKET_HAS_VISUAL_UI=true
       fi
       trinket_add_battle_subcard_for_path "$path"
+      trinket_add_persistence_contracts_for_path "$path"
+      if [[ "$path" == ContentManifest/talents.tsv ]]; then
+        trinket_add_context_card Docs/AgentContext/battle-talents.md
+      fi
       case "$path" in
         Trinket/App/*|*PreparedArtwork*|*ArtworkViewportPrewarm*|Trinket/Features/Collection/*|*LaunchWarmup*|*HiddenTabPrewarm*)
           trinket_add_context_card Docs/AgentContext/ui-performance.md

@@ -86,6 +86,7 @@ Read these focused guides:
 | `./Scripts/performance.sh` | Ad hoc app + battle performance matrix (not CI) |
 | `./Scripts/record-time-profiler.sh --output <path.trace>` | Host Time Profiler of the Trinket process (no `xctrace --device`; `--all-processes` is opt-in and slow) |
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; use `--full` for path inventory, route metadata, and full commands and `--working-tree --allow-broad-scope` only intentionally |
+| `python3 Scripts/agent-search.py <pattern> --scope <owner>` | Authored-first discovery: matching filenames/counts by default; `--excerpts` for bounded lines, `--mode tests`, `docs`, or `generated` for other surfaces; omissions are explicit |
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Optional worktree under `.worktrees/<slug>` on `agent/<slug>`; checkout policy lives in [AGENTS.md](../AGENTS.md#protect-the-workspace) |
 | `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |
@@ -93,7 +94,7 @@ Read these focused guides:
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an expiring active execution plan under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, Swift Testing policy, release-note validation, and artwork budget |
 | `./Scripts/ci-gate.sh --fast` | Cheap full-tree slices only (boundaries, API bans, release notes, artwork budget) from `Scripts/config/cheap-slices.txt`; skips generation and style |
-| `./Scripts/test-scripts.sh [--skip-docs] [--fast]` | Script syntax/regressions; runs docs by default, omit docs when a caller already ran `check-docs.py` (mixed script/docs scope or `--final`); `--fast` skips docs, media audio fixtures, and shell regressions for a quick loop |
+| `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions; handoff passes its scope to select leaf families; unknown/shared scripts and unscoped CI run all suites. Runs docs unless already checked by the caller; `--fast` skips docs, media audio fixtures and shell regressions |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan]` | Check links, structure, smoke classes, stale terms, and execution-plan lifecycle |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |
@@ -148,7 +149,9 @@ package/build/generation roots plus test plans in `Scripts/build-inputs.env`
 `Scripts/simctl_json.py`; cheap CI slices live in `Scripts/config/cheap-slices.txt`. The small helpers under `Scripts/lib/` own shared
 mechanics only (tool PATH setup, app build arguments, media conversion/state
 sorting, cache pruning, and infrastructure-failure matching); domain-specific
-policy remains in the owning command.
+policy remains in the owning command. `Scripts/script_test_selection.py` owns
+leaf-script regression families; shared inputs and unknown scripts fall back to
+the full suite. It is consumed by `test-scripts.sh`, not a separate gate.
 
 ## Toolchain ladder
 

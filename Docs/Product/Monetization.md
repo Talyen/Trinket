@@ -51,8 +51,11 @@ additional one-time/subscription reassurance line, or secondary free-play CTA.
 
 The offer opens from deliberate actions at premium campaign, Spire, Labyrinth,
 character, or starter boundaries, and from Options. Never automatically interrupt
-onboarding, defeat, victory, or a reward. Characters remain inspectable before
-purchase; distinguish premium access from an unrecruited character.
+onboarding, defeat, victory, or a reward. Selecting a Full Game-only character
+without access opens the offer directly with that character’s artwork, without
+opening character details underneath. Accessible but unrecruited characters
+remain inspectable with editing disabled. Combatant details have no recruitment
+or purchase footer.
 
 After verified purchase or restoration, return to the requesting screen without
 automatically starting a battle, recruiting, or confirming a starter. Delayed

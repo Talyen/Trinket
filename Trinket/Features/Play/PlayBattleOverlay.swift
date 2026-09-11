@@ -25,33 +25,39 @@ struct PlayBattleOverlay: View {
         let configuration = battle.overlayBattleConfiguration
         let isActive = battle.activeBattle != nil
         NavigationStack {
-            if let configuration {
-                if let presentationContext = battlePresentationContext(for: configuration) {
-                    BattleView(
-                        configuration: configuration,
-                        presentationContext: presentationContext,
-                        battleSession: battle,
-                        completeVictory: { summary in
-                            battle.claimVictory(configurationID: configuration.id, summary: summary)
-                        },
-                        restartBattle: { [weak play] in
-                            if let message = play?.restartActiveBattle() {
-                                stageMessage = message
-                            }
-                        },
-                        retreat: { [weak play] in
-                            play?.endBattleReturningToOrigin()
-                        },
-                        performanceScenario: AppEnvironment.shared.battlePerformanceScenario,
-                    )
+            Group {
+                if let configuration {
+                    if let presentationContext = battlePresentationContext(for: configuration) {
+                        BattleView(
+                            configuration: configuration,
+                            presentationContext: presentationContext,
+                            battleSession: battle,
+                            completeVictory: { summary in
+                                battle.claimVictory(configurationID: configuration.id, summary: summary)
+                            },
+                            restartBattle: { [weak play] in
+                                if let message = play?.restartActiveBattle() {
+                                    stageMessage = message
+                                }
+                            },
+                            retreat: { [weak play] in
+                                play?.endBattleReturningToOrigin()
+                            },
+                            performanceScenario: AppEnvironment.shared.battlePerformanceScenario,
+                        )
+                    } else {
+                        Color.clear
+                            .accessibilityHidden(true)
+                    }
                 } else {
                     Color.clear
                         .accessibilityHidden(true)
                 }
-            } else {
-                Color.clear
-                    .accessibilityHidden(true)
             }
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+            .toolbarVisibility(.visible, for: .navigationBar)
         }
         .trinketPresentationVisibility(isActive)
         .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
@@ -140,29 +146,6 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
             .sheet(isPresented: $battle.isShowingBattleLog) {
                 BattleLogSheet(entries: battle.logEntries)
                     .presentationDetents([.medium])
-            }
-    }
-}
-
-private struct PlayEncounterCoversModifier: ViewModifier {
-    @Environment(EncounterPlayMode.self) private var encounters
-
-    func body(content: Content) -> some View {
-        @Bindable var encounters = encounters
-
-        content
-            .fullScreenCover(item: $encounters.activeMysteryEncounter) { session in
-                MysteryEncounterView(session: session)
-                    .interactiveDismissDisabled()
-            }
-            .fullScreenCover(item: $encounters.activeShopEncounter) { session in
-                ShopEncounterView(
-                    session: session,
-                    onLeave: {
-                        encounters.finishActiveShopEncounter()
-                    },
-                )
-                .interactiveDismissDisabled()
             }
     }
 }

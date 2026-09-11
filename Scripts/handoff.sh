@@ -91,11 +91,11 @@ run_check() {
     scripts)
       [[ "$argument" == all ]] || { echo "Unknown script check: $argument" >&2; return 2; }
       if [[ "$FINAL" == true ]]; then
-        ./Scripts/test-scripts.sh --skip-docs
+        ./Scripts/test-scripts.sh --skip-docs --paths "${TRINKET_CHANGED_PATHS[@]}"
       elif [[ "$TRINKET_NEEDS_DOCS" == true ]]; then
-        ./Scripts/test-scripts.sh --skip-docs
+        ./Scripts/test-scripts.sh --skip-docs --paths "${TRINKET_CHANGED_PATHS[@]}"
       else
-        ./Scripts/test-scripts.sh
+        ./Scripts/test-scripts.sh --paths "${TRINKET_CHANGED_PATHS[@]}"
       fi
       ;;
     docs)
@@ -218,7 +218,7 @@ if [[ "$DRY_RUN" == true ]]; then
       continue
     fi
     if [[ "$kind" == scripts && ( "$FINAL" == true || "$_has_docs_in_plan" == true ) ]]; then
-      _dry_commands+=("./Scripts/test-scripts.sh --skip-docs")
+      _dry_commands+=("${display/ --paths/ --skip-docs --paths}")
     else
       _dry_commands+=("$display")
     fi
@@ -241,7 +241,11 @@ if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
     argument="${TRINKET_VERIFICATION_ARGS[$i]:-}"
     if [[ "$QUIET" != true ]]; then
       echo ""
-      echo "=== $cmd ==="
+      if [[ "$kind" == scripts ]]; then
+        echo "=== Script regressions (${#TRINKET_CHANGED_PATHS[@]} scoped paths) ==="
+      else
+        echo "=== $cmd ==="
+      fi
     fi
     if [[ "$kind" == docs && "$FINAL" == true ]]; then
       # --final already ran check-docs.py with plan-lifecycle flags.

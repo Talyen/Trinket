@@ -67,6 +67,7 @@ struct AppEnvironmentTests {
             "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
             "-mystery-recruit-event", "recruit-ranger",
             "-battle-tick-interval", "60",
+            "-launch-preparation-delay", "8",
             "-starting-gold", "200",
             "-enable-frame-metrics",
             "-battle-performance-scenario", "engine-feedback",
@@ -79,6 +80,7 @@ struct AppEnvironmentTests {
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
         #expect(env.mysteryRecruitEventID == "recruit-ranger")
         #expect(env.battleTickInterval == 60)
+        #expect(env.launchPreparationDelay == 8)
         #expect(env.startingGold == 200)
         #expect(env.enableFrameMetrics)
         #expect(env.battlePerformanceScenario == .engineFeedback)

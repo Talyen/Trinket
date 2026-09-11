@@ -30,3 +30,6 @@ above for lost instructions. Label this as scenario review, not an autonomous
 behavioral trial. In a trial, also record repeated reads, retries, incorrect
 decisions, and actual token usage when available. Word/character counts are
 proxies, not measured tokens; lower volume is useful only with preserved outcomes.
+
+The [context-efficiency review](context-efficiency.md) records the September 2026
+baseline, representative probes and remaining total-token acceptance criterion.

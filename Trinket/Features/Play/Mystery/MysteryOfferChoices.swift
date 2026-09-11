@@ -8,7 +8,7 @@ struct MysteryOfferChoices: View {
     let offers: [MysteryOffer]
     let choices: [MysteryChoice]
     let width: CGFloat
-    let pinnedArtwork: [String]
+    let preparedArtworkNames: [String]
     let isDisabled: Bool
     let onInspect: (InventoryItem) -> Void
     let onChoose: (String) -> Void
@@ -64,7 +64,7 @@ struct MysteryOfferChoices: View {
                 .fill(TrinketDesign.Colors.surface)
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    if let name = offer.item.artReference?.imageName, pinnedArtwork.contains(name) {
+                    if let name = offer.item.artReference?.imageName, preparedArtworkNames.contains(name) {
                         ItemArtwork(item: offer.item)
                             .clipShape(TrinketDesign.cardShape)
                     }

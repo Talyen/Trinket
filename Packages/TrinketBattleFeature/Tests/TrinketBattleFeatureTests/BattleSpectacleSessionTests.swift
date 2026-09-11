@@ -129,7 +129,8 @@ struct BattleSpectacleSessionTests {
         #expect(session.feedback.activeItems.count > beforeFeedbackCount)
     }
 
-    @Test func `in-frame highlight auto clears after duration`() async throws {
+    @Test(arguments: [false, true])
+    func `in-frame highlight expires while active and remains in a retiring presentation`(endBattle: Bool) async throws {
         let hero = CombatantFixtures.combatant(
             id: "knight",
             role: .hero,
@@ -156,10 +157,22 @@ struct BattleSpectacleSessionTests {
         )
         _ = session.playCard(cardID: ultimate.id, at: now)
         #expect(session.spectacle.ultimateHighlightsByActorID["knight"] != nil)
-        #expect(try await BattleSessionTestSupport.waitUntil(timeout: .seconds(2)) {
-            session.spectacle.ultimateHighlightsByActorID["knight"] == nil
-        })
-        #expect(session.canEndTurn)
+        if endBattle {
+            let outgoing = session.spectacle
+            let highlight = outgoing.ultimateHighlightsByActorID["knight"]
+            let expiration = try #require(outgoing.pendingUltimateHighlightTasksByActorID["knight"])
+            session.endBattle()
+            await expiration.value
+            #expect(expiration.isCancelled)
+            #expect(outgoing.ultimateHighlightsByActorID["knight"] == highlight)
+            #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty)
+            #expect(session.spectacle.cinematics !== outgoing.cinematics)
+        } else {
+            #expect(try await BattleSessionTestSupport.waitUntil(timeout: .seconds(2)) {
+                session.spectacle.ultimateHighlightsByActorID["knight"] == nil
+            })
+            #expect(session.canEndTurn)
+        }
     }
 
     @Test func `always policy skips in-frame highlight but keeps feedback`() throws {

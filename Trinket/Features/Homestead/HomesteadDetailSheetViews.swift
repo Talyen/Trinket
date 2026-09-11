@@ -38,7 +38,6 @@ struct HomesteadDetailSheetView: View {
             }
         case .wallet:
             HomesteadWalletSheet(onClose: { dismiss() })
-                .presentationDetents([.medium, .large])
         }
     }
 
@@ -77,7 +76,7 @@ struct HomesteadDetailSheetView: View {
                     HomesteadMaterialValue(
                         resource: amount.resource,
                         value: amount.quantity.formatted(),
-                        available: status.hasEnough(amount) ? nil : status.balance(for: amount),
+                        isInsufficient: !status.hasEnough(amount),
                     )
                 }
             }
@@ -131,5 +130,6 @@ struct HomesteadWalletSheet: View {
                     }
                 }
         }
+        .presentationDetents([.height(260), .large])
     }
 }

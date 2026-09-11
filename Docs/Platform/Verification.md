@@ -29,6 +29,14 @@ route; rerun it when requested work or an encountered fix crosses into another
 owner. The final path list is the union of requested work and every explicitly
 adopted fix, not the task's initial path list.
 
+Markdown routes to documentation checks even beneath script or manifest roots.
+For executable script changes, handoff passes the same path scope to the script
+runner. Registered leaf families run their owning and consumer regressions;
+shared infrastructure, unknown scripts and unscoped CI run the full suite. Syntax,
+build-input alignment and the handoff's cheap slices remain full-tree. Family
+membership lives in `Scripts/script_test_selection.py`; update it when a leaf
+gains a consumer. Do not narrow shared helpers from filename similarity alone.
+
 ## Generated project consistency
 
 `./Scripts/generate.sh` runs XcodeGen through the pinned wrapper with a fresh

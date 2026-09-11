@@ -54,19 +54,18 @@ enum LaunchArtworkCensus {
         let homesteadHero = ArtCatalog.backgroundArtByID["homestead"]?.imageName
         let resourceIcons = ArtCatalog.resourceArtByID.values.map(\.imageName)
 
-        let chapter = appState.play.journey.playChapter
+        let chapter = CampaignStagePresentation.chapter(appState.play.journey.playChapter, playerSave: appState.playerSave)
         let campaignHero = (
             ArtCatalog.backgroundArtByID[chapter.id]
                 ?? ArtCatalog.backgroundArtByID["chapter-1"],
         )?.imageName
         let campaignRows = chapter.stages.flatMap { stage -> [String] in
-            if let combatant = stage.encounterCombatantArtReference(
+            if let art = EncounterArtwork.reference(
+                for: stage,
+                resolvedMysteryEvent: appState.play.journey.previewMysteryEvent(for: stage),
                 worldSeed: appState.playerSave.worldSeed,
             ) {
-                return [combatant.imageName, combatant.thumbnailImageName].compactMap(\.self)
-            }
-            if let encounter = stage.encounterArtReference {
-                return [encounter.imageName, encounter.thumbnailImageName].compactMap(\.self)
+                return [art.imageName, art.preparedThumbnailImageName].compactMap(\.self)
             }
             return []
         }

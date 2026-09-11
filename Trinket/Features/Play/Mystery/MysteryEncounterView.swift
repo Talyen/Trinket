@@ -6,15 +6,18 @@ import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureContracts
 import TrinketFeatureSupport
+import TrinketPersistence
 
 struct MysteryEncounterView: View {
+    @Environment(\.requestFullGameOffer) private var requestOffer
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @Environment(EncounterPlayMode.self) private var encounters
     @Bindable var session: MysteryEncounterSession
+    let preparedArtworkNames: [String]
 
     @State private var selectedDetail: CombatantDetailContext?
     @State private var selectedItem: InventoryItem?
-    @State private var pinnedArtwork: [String] = []
     @State private var selectedChoiceID: String?
     @State private var choiceFeedbackTrigger = 0
     @State private var rewardFeedbackTrigger = 0
@@ -27,7 +30,7 @@ struct MysteryEncounterView: View {
                 MysteryUnlockContent(
                     session: session,
                     unlockedID: unlockedID,
-                    onSelectDetail: { selectedDetail = $0 },
+                    onSelectDetail: presentCombatant,
                     onFinish: { encounters.finishActiveMysteryEncounter(dismiss: false) },
                     onDismiss: { encounters.dismissActiveMysteryEncounter() },
                 )
@@ -95,13 +98,6 @@ struct MysteryEncounterView: View {
                 mysteryPersistErrorTrigger &+= 1
             }
         }
-        .task(id: artworkPinKey) {
-            await refreshArtworkPins()
-        }
-        .onDisappear {
-            PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
-            pinnedArtwork = []
-        }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
                 ItemDetailView(item: item)
@@ -120,6 +116,14 @@ struct MysteryEncounterView: View {
             }
             .trinketDetailSheet()
         }
+    }
+
+    private func presentCombatant(_ context: CombatantDetailContext) {
+        guard playerSave.contentAccess.allowsCombatant(context.combatantID) else {
+            requestOffer(.combatant(context.combatantID))
+            return
+        }
+        selectedDetail = context
     }
 
     private var screenPhase: MysteryScreenPhase {
@@ -158,18 +162,12 @@ struct MysteryEncounterView: View {
                         horizontalPadding: TrinketDesign.Layout.contentMargin,
                         bottomPadding: TrinketDesign.Spacing.large,
                     ) {
-                        Group {
-                            if heroArtworkReady {
-                                heroArtwork
-                            } else {
-                                TrinketDesign.Colors.canvas
-                            }
-                        }
-                        .frame(
-                            width: geometry.size.width,
-                            height: HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: geometry.size.width),
-                        )
-                        .clipped()
+                        heroArtwork
+                            .frame(
+                                width: geometry.size.width,
+                                height: HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: geometry.size.width),
+                            )
+                            .clipped()
                     }
                     .frame(width: geometry.size.width)
 
@@ -186,7 +184,7 @@ struct MysteryEncounterView: View {
                             offers: session.offers,
                             choices: session.event.choices,
                             width: geometry.size.width - TrinketDesign.Layout.contentMargin * 2,
-                            pinnedArtwork: pinnedArtwork,
+                            preparedArtworkNames: preparedArtworkNames,
                             isDisabled: session.isResolvingChoice,
                             onInspect: { selectedItem = $0 },
                             onChoose: { _ = encounters.resolveActiveMysteryChoice(choiceID: $0) },
@@ -200,23 +198,6 @@ struct MysteryEncounterView: View {
             .scrollBounceBehavior(.basedOnSize)
             .toolbar(.hidden, for: .navigationBar)
         }
-    }
-
-    private var heroArtworkNames: [String] {
-        MysteryEventArtwork.focalContent(event: session.event, chapterID: session.stage.chapterID)
-            .map { [$0.imageName] } ?? []
-    }
-
-    private var heroArtworkReady: Bool {
-        Set(heroArtworkNames).isSubset(of: Set(pinnedArtwork))
-    }
-
-    private var artworkPinKey: [String] {
-        Array(Set(heroArtworkNames + session.offers.compactMap { $0.item.artReference?.imageName })).sorted()
-    }
-
-    private func refreshArtworkPins() async {
-        pinnedArtwork = await ArtworkPinSet.refresh(next: artworkPinKey, current: pinnedArtwork)
     }
 
     private var readingContent: some View {

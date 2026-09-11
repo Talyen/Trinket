@@ -8,6 +8,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct CollectionView: View {
+    @Environment(\.requestFullGameOffer) private var requestOffer
+    @Environment(\.isLaunchPresentationReady) private var isLaunchPresentationReady
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var salvageDetail = SalvageDetailState()
@@ -30,6 +32,9 @@ struct CollectionView: View {
             .navigationTitle("Collection")
             .navigationBarTitleDisplayMode(.large)
             .onAppear(perform: presentPendingLaunchRoute)
+            .onChange(of: isLaunchPresentationReady) { _, _ in
+                presentPendingLaunchRoute()
+            }
             .task(id: imminentDetailArtworkPinKey) {
                 await refreshImminentDetailArtworkPins()
             }
@@ -147,13 +152,22 @@ struct CollectionView: View {
         )
     }
 
+    private func presentCombatant(_ context: CombatantDetailContext) {
+        guard playerSave.contentAccess.allowsCombatant(context.combatantID) else {
+            requestOffer(.combatant(context.combatantID))
+            return
+        }
+        selectedCombatant = context
+    }
+
     private func presentPendingLaunchRoute() {
-        guard let presentation = consumePendingPresentation() else { return }
+        guard isLaunchPresentationReady,
+              let presentation = consumePendingPresentation() else { return }
 
         Task { @MainActor in
             switch presentation {
             case let .collectionCombatant(context):
-                selectedCombatant = context
+                presentCombatant(context)
             case let .collectionItem(itemID):
                 if let owned = playerSave.inventory.item(matching: itemID) {
                     salvageDetail.select(owned)
@@ -188,7 +202,7 @@ struct CollectionView: View {
                     cardWidth: nil,
                     showsName: false,
                 ) {
-                    selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
+                    presentCombatant(CombatantDetailContext(kind: kind, combatantID: combatant.id))
                 }
                 .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
                 .collectionShelfCardWidth()

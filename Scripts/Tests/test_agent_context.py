@@ -15,6 +15,56 @@ from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 class AgentContextTests(ScriptRegressionTestCase):
+    def test_focused_contracts_keep_unknown_and_cross_concern_paths_conservative(self) -> None:
+        engine = "Packages/BattleEngine/Sources/BattleEngine/"
+        persistence = "Packages/TrinketPersistence/Sources/TrinketPersistence/"
+        cases = (
+            ([engine + "Damage/DamagePipelineResolutionSteps.swift"], {"battle-damage"}),
+            ([engine + "EffectHandlers/TimedDebuffHandlers.swift"], {"battle-damage"}),
+            ([engine + "HealingEngine.swift"], {"battle-healing"}),
+            ([engine + "BattleState.swift"], {"battle-damage", "battle-actions", "battle-healing"}),
+            ([engine + "Damage/Steps.swift", engine + "BattleHand.swift"], {"battle-damage", "battle-actions"}),
+            ([persistence + "StageCompletion.swift"], {"persistence-progression"}),
+            ([persistence + "PlayerSaveGraph/PlayerSaveRoot.swift"], {"persistence-storage"}),
+            ([persistence + "PlayerSaveStore.swift"], {"persistence-storage", "persistence-progression"}),
+        )
+        details = {"battle-damage", "battle-actions", "battle-healing", "persistence-storage", "persistence-progression"}
+        for paths, expected in cases:
+            with self.subTest(paths=paths):
+                output = subprocess.check_output(
+                    [str(ROOT / "Scripts/agent-context.sh"), "--paths", *paths], cwd=ROOT, text=True,
+                )
+                self.assertEqual({name for name in details if f"/{name}.md" in output}, expected)
+                self.assertIn("/battle-engine.md" if paths[0].startswith(engine) else "/persistence.md", output)
+                self.assertIn("Search: python3 Scripts/agent-search.py", output)
+
+    def test_markdown_under_executable_and_manifest_roots_selects_only_docs(self) -> None:
+        for path in ("Scripts/README.md", "ContentManifest/README.md", "ArtManifest/README.md"):
+            with self.subTest(path=path):
+                output = subprocess.check_output(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path], cwd=ROOT, text=True,
+                )
+                self.assertIn("python3 ./Scripts/check-docs.py", output)
+                self.assertNotIn("./Scripts/test-scripts.sh", output)
+                self.assertNotIn("./Scripts/generate.sh", output)
+
+    def test_script_families_union_leaf_coverage_and_fall_back_for_shared_inputs(self) -> None:
+        selector = load_script("script_test_selection", "script_test_selection.py")
+        select = selector.select_tests
+        all_tests = select([])
+        search = "Scripts/Tests/test_agent_search.py"
+        self.assertEqual(select(["Scripts/agent-search.py", "Scripts/README.md"]), [search])
+        performance = select(["Scripts/compare-performance.py"])
+        self.assertIn("Scripts/Tests/test_exec_wrappers.py", performance)
+        self.assertEqual(select(["Scripts/agent-search.py", "Scripts/compare-performance.py"]), sorted([search, *performance]))
+        self.assertLess(len(select(["Scripts/check-links.py"])), len(all_tests))
+        for shared in ("Scripts/lib/args.sh", "Scripts/test-scripts.sh", "Scripts/new-script.py",
+                       "Scripts/Tests/script_test_support.py", ".github/workflows/tests.yml", "project.yml"):
+            with self.subTest(shared=shared):
+                self.assertEqual(select(["Scripts/agent-search.py", shared]), all_tests)
+        with self.assertRaises(ValueError):
+            select(["Scripts"])
+
     def test_shared_encounters_and_rewards_keep_visual_guidance(self) -> None:
         for relative_path in (
             "Shared/Encounters/EncounterItemTile.swift",

@@ -29,6 +29,7 @@ extension View {
 
 struct BattleCombatantPane: View {
     @Environment(BattleSession.self) private var battleSession
+    @Environment(BattleSpectacleState.self) private var spectacle
     let combatant: Combatant
     let health: Int
     let maxHealth: Int
@@ -96,7 +97,7 @@ struct BattleCombatantPane: View {
     private var artworkLayer: some View {
         ZStack {
             CombatantArtwork(combatant: combatant, variant: .battle)
-            if let highlight = battleSession.spectacle
+            if let highlight = spectacle
                 .ultimateHighlightsByActorID[combatant.id] {
                 UltimateInFrameView(highlight: highlight, effectsVolume: battleSession.effectsVolume)
                     .transition(.opacity)
@@ -104,7 +105,7 @@ struct BattleCombatantPane: View {
         }
         .animation(
             .easeInOut(duration: BattleMotion.ultimateInFrameFadeDuration),
-            value: battleSession.spectacle.ultimateHighlightsByActorID[combatant.id]?.id,
+            value: spectacle.ultimateHighlightsByActorID[combatant.id]?.id,
         )
     }
 

@@ -5,6 +5,7 @@ import TrinketFeatureSupport
 import UIKit
 
 struct UltimateInFrameView: View {
+    @Environment(BattleSpectacleState.self) private var spectacle
     let highlight: BattleUltimateInFramePresentation
     let effectsVolume: Double
 
@@ -18,7 +19,7 @@ struct UltimateInFrameView: View {
                     let width = geometry.size.width.isFinite ? geometry.size.width : 0
                     let height = geometry.size.height.isFinite ? geometry.size.height : 0
                     ZStack {
-                        if showVideo, let player = BattleCinematicPlayer.shared.player(
+                        if showVideo, let player = spectacle.cinematics.player(
                             for: highlight.actorID,
                             abilityID: highlight.abilityID,
                         ) {
@@ -51,7 +52,7 @@ struct UltimateInFrameView: View {
     }
 
     private var hasVideo: Bool {
-        BattleCinematicPlayer.shared.hasVideo(for: highlight.actorID, abilityID: highlight.abilityID)
+        spectacle.cinematics.hasVideo(for: highlight.actorID, abilityID: highlight.abilityID)
     }
 
     private func start() {
@@ -60,14 +61,14 @@ struct UltimateInFrameView: View {
         }
         videoTask?.cancel()
         videoTask = Task { @MainActor in
-            let ready = await BattleCinematicPlayer.shared.whenReady(
+            let ready = await spectacle.cinematics.whenReady(
                 actorID: highlight.actorID,
                 abilityID: highlight.abilityID,
             )
             guard !Task.isCancelled else { return }
             guard ready else { return }
             showVideo = true
-            BattleCinematicPlayer.shared.play(
+            spectacle.cinematics.play(
                 actorID: highlight.actorID,
                 abilityID: highlight.abilityID,
                 effectsVolume: effectsVolume,
@@ -80,7 +81,7 @@ struct UltimateInFrameView: View {
         videoTask?.cancel()
         videoTask = nil
         if hasVideo {
-            BattleCinematicPlayer.shared.pause(actorID: highlight.actorID, abilityID: highlight.abilityID)
+            spectacle.cinematics.pause(actorID: highlight.actorID, abilityID: highlight.abilityID)
         }
         showVideo = false
     }

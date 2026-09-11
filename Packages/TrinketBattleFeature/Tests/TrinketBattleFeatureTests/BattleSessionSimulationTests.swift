@@ -170,7 +170,9 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func `presentation projection tracks simulation without exposing log storage`() throws {
-        let session = BattleSessionTestSupport.makeConfiguredSession()
+        let session = BattleSessionTestSupport.makeConfiguredSession(
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [.slash]),
+        )
         let configurationID = try #require(session.activeBattle?.id)
         let initialEnemyHealth = try #require(session.presentation.enemy?.health)
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
@@ -183,11 +185,32 @@ struct BattleSessionSimulationTests {
         #expect(session.presentation.enemy?.health == engineState.health(of: engineState.enemy))
         #expect((session.presentation.enemy?.health ?? initialEnemyHealth) <= initialEnemyHealth)
 
+        let outgoingSpectacle = session.spectacle
+        outgoingSpectacle.outcomePresentation = .defeat
+        let outgoingPresentation = session.presentation
+        let outgoingHero = outgoingPresentation.hero
+        let outgoingCompanion = outgoingPresentation.companion
+        let outgoingEnemy = outgoingPresentation.enemy
+        let outgoingHand = outgoingPresentation.hand
+        #expect(!outgoingHand.isEmpty)
+
         session.endBattle()
 
         #expect(session.activeBattle == nil)
+        #expect(session.presentation !== outgoingPresentation)
+        #expect(session.spectacle !== outgoingSpectacle)
+        #expect(session.spectacle.outcomePresentation == .battle)
+        #expect(outgoingSpectacle.outcomePresentation == .defeat)
         #expect(session.presentation.configurationID == nil)
         #expect(session.presentation.hand.isEmpty)
+        #expect(session.presentation.hero == nil)
+        #expect(session.presentation.companion == nil)
+        #expect(session.presentation.enemy == nil)
+        #expect(outgoingPresentation.configurationID == configurationID)
+        #expect(outgoingPresentation.hand == outgoingHand)
+        #expect(outgoingPresentation.hero == outgoingHero)
+        #expect(outgoingPresentation.companion == outgoingCompanion)
+        #expect(outgoingPresentation.enemy == outgoingEnemy)
     }
 
     @Test func `end turn excludes milestones from feedback when battle ends`() {

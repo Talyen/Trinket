@@ -84,7 +84,7 @@ struct ChapterStageSelectView: View {
 
     private var stageRows: [StageSelectRowPresentation<Stage>] {
         StageSelectRowPresentation.stageRows(
-            for: chapter,
+            for: CampaignStagePresentation.chapter(chapter, playerSave: playerSave),
             progress: playerSave.journey,
             worldSeed: playerSave.worldSeed,
         )
@@ -173,5 +173,26 @@ struct ChapterStageSelectView: View {
     private func handlePrimaryAction(_ stage: Stage) -> Bool {
         guard playerSave.journey.isActive(stage) else { return false }
         return onStageTap(stage)
+    }
+}
+
+@MainActor
+enum CampaignStagePresentation {
+    static func chapter(_ chapter: Chapter, playerSave: PlayerSaveStore) -> Chapter {
+        Chapter(
+            id: chapter.id,
+            number: chapter.number,
+            title: chapter.title,
+            theme: chapter.theme,
+            stages: chapter.stages.map { stage in
+                GameContent.resolveRecruitStage(
+                    stage,
+                    worldSeed: playerSave.worldSeed,
+                    unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
+                    unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
+                    access: playerSave.contentAccess,
+                )
+            },
+        )
     }
 }

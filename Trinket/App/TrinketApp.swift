@@ -127,6 +127,10 @@ private struct PreparedAppRoot: View {
     @State private var isMinimumLoadingTimeComplete = false
     @State private var areCastEffectsPrepared = false
     @State private var didWarmHiddenTabs = false
+    @State private var didLayOutSelectedRoot = false
+    @State private var didCompleteLaunchPreparation = false
+    @State private var retainedLaunchEncounterID: ObjectIdentifier?
+    @State private var isPreparationDelayComplete = AppEnvironment.shared.launchPreparationDelay == 0
 
     let appState: AppState
     let priorityImageNames: [String]
@@ -139,24 +143,30 @@ private struct PreparedAppRoot: View {
     }
 
     private var shouldWarmHiddenTabs: Bool {
-        appState.playerSave.starterSelection.phase == .complete && !didWarmHiddenTabs
+        isResourcePreparationComplete
+            && appState.playerSave.starterSelection.phase == .complete
+            && !didWarmHiddenTabs
     }
 
     var body: some View {
         ZStack {
             if isResourcePreparationComplete {
-                ContentView()
+                ContentView {
+                    didLayOutSelectedRoot = true
+                }
             }
             if shouldWarmHiddenTabs {
                 HiddenTabPrewarm {
                     didWarmHiddenTabs = true
                 }
             }
-            if !isPreparationComplete {
+            if !didCompleteLaunchPreparation || retainedLaunchEncounterID != nil {
                 LaunchWarmupView {
                     isMinimumLoadingTimeComplete = true
                 }
                 .allowsHitTesting(true)
+                .accessibilityIdentifier(didCompleteLaunchPreparation ? "" : AccessibilityID.Screen.launchWarmup)
+                .accessibilityHidden(didCompleteLaunchPreparation)
                 if !areCastEffectsPrepared {
                     CardCastEffectsPrewarmView {
                         areCastEffectsPrepared = true
@@ -164,6 +174,7 @@ private struct PreparedAppRoot: View {
                 }
             }
         }
+        .environment(\.isLaunchPresentationReady, didCompleteLaunchPreparation)
         .environment(appState)
         .environment(appState.shellSession)
         .environment(appState.play)
@@ -190,6 +201,12 @@ private struct PreparedAppRoot: View {
             appState.synchronizePurchaseAccess()
         }
         .task {
+            guard !isPreparationDelayComplete else { return }
+            try? await Task.sleep(for: .seconds(AppEnvironment.shared.launchPreparationDelay))
+            guard !Task.isCancelled else { return }
+            isPreparationDelayComplete = true
+        }
+        .task {
             MetricKitSubscriber.shared.start()
             guard !isResourcePreparationComplete else { return }
             appState.prepareLaunchPerformanceResources()
@@ -205,17 +222,36 @@ private struct PreparedAppRoot: View {
             isResourcePreparationComplete = true
             artworkCache.reportMemorySnapshot(label: "interactiveRoot")
         }
-        .task(id: shouldWarmHiddenTabs) {
-            guard shouldWarmHiddenTabs else { return }
-            try? await Task.sleep(for: .milliseconds(500))
-            guard !Task.isCancelled else { return }
-            didWarmHiddenTabs = true
+        .onChange(of: isPreparationComplete, initial: true) { _, isComplete in
+            guard isComplete, !didCompleteLaunchPreparation else { return }
+            if appState.shellSession.selectedTab == .play {
+                retainedLaunchEncounterID = activeEncounterID
+            }
+            didCompleteLaunchPreparation = true
         }
+        .onChange(of: activeEncounterID) { _, encounterID in
+            if retainedLaunchEncounterID != encounterID {
+                retainedLaunchEncounterID = nil
+            }
+        }
+    }
+
+    private var activeEncounterID: ObjectIdentifier? {
+        if let mystery = appState.play.encounters.activeMysteryEncounter {
+            return ObjectIdentifier(mystery)
+        }
+        if let shop = appState.play.encounters.activeShopEncounter {
+            return ObjectIdentifier(shop)
+        }
+        return nil
     }
 
     private var isPreparationComplete: Bool {
         isResourcePreparationComplete
+            && didLayOutSelectedRoot
+            && (appState.playerSave.starterSelection.phase != .complete || didWarmHiddenTabs)
             && isMinimumLoadingTimeComplete
             && areCastEffectsPrepared
+            && isPreparationDelayComplete
     }
 }
