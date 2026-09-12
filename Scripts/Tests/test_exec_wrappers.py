@@ -558,7 +558,7 @@ else:
 ''')
             xcrun.chmod(0o755)
             env = {key: value for key, value in os.environ.items()
-                   if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
+                   if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR", "GITHUB_ACTIONS"}}
             env.update(PATH=f"{fake}:{env['PATH']}", MIRROR_CALLS=str(calls))
             for build_status, install_status, product in ((0, 0, True), (65, 0, True), (0, 1, True), (0, 0, False)):
                 with self.subTest(build=build_status, install=install_status, product=product):
