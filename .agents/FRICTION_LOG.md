@@ -22,6 +22,7 @@ Entries point to the corrected owners. Earlier detail is retrievable with
 
 | Date | Area | Resolution (commit / owner link) |
 |------|------|------------------------------------|
+| 2026-09-12 | Overprescribed agent workflow | [Root guidance](../AGENTS.md) permits direct known-file reads and carries authorization through verification; the [feature guide](../Trinket/Features/AGENTS.md) relies on its required contract for shared rules, and [device debugging](skills/ios-device/SKILL.md) no longer implies reinstalling first. |
 | 2026-09-11 | Overbroad and stale guidance | Clarified [locked actions](../Docs/Product/Decisions.md), corrected [victory coverage](../TrinketUITests/README.md#speed), and centralized [battle fixture conventions](../Packages/BattleEngine/Tests/README.md#conventions). |
 | 2026-09-11 | Documentation scope and duplicated policy | [Plan checks](../Docs/Plans/README.md) now warn on age and scope final closure to the task; [CloudKit readiness](../Docs/Platform/CloudKitPreShipChecklist.md#required-readiness-gates) has one ordered checklist, and [storage compatibility](../Docs/AgentContext/persistence-storage.md) protects distributed TestFlight saves. |
 | 2026-09-11 | Broad routine context | [Battle contracts](../Docs/AgentContext/battle-runtime.md), [current-first documentation search](../Scripts/agent-search.py), and a short [command entry page](../Scripts/README.md) reduce unrelated reads; [scenario measurements](evals/context-efficiency.md#focused-retrieval-follow-up-2026-09-11) include follow-up costs and limitations. |

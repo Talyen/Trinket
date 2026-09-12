@@ -7,6 +7,8 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| ContinuousCardPlay.md | 2026-09-12 | Implemented immediate card input, independent full-size automatic casts, ally-first Pack Tactics, and immutable visual-only finishing taps. The approved plan is retained as standing policy in [CardPlay.md](../../Product/CardPlay.md), with regression ownership in the battle presentation contract. |
+| Battle balance tuning | 2026-09-12 | Implemented the agreed card, talent, trait, and affix changes; bounded Fox’s Gold draw loop and repaired enemy Basic Freeze triggers. Isolated handoff passed 887 package tests and repository gates. Balance comparisons retain documented Alchemist/Pixie and Wildcard/Fox progression walls. |
 | Architecture simplification | 2026-09-10 | Contained combat mutation and talent lifetimes, unified save commits and reward wiring, and removed obsolete development-save migrations. Performance retained advisory pacing findings. |
 | Lucide game icons | 2026-09-10 | Added Lucide game imagery with native SF controls, painted resources, and saved icon compatibility. Performance retained a card-play stall and Collection capture timeout. |
 | Prevent recurring defects | 2026-09-10 | Unified combat healing allocation and defense caps, reward settlement and reveal, durable encounter stock and atomic commands, and shared visibility/action semantics; retired replaced session and inventory-prefix paths. |

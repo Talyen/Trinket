@@ -122,7 +122,6 @@ final class AppTestContext {
         )
         state.playerSave.contentAccess = .fullGame
         lastBattle = battle as? BattleSession
-        lastBattle?.openingHandDrawStagger = .zero
         return state
     }
 

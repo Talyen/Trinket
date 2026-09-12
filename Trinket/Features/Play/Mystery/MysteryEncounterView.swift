@@ -152,52 +152,34 @@ struct MysteryEncounterView: View {
 
     private var offerContent: some View {
         GeometryReader { geometry in
-            ScrollView {
-                VStack(spacing: 0) {
-                    DetailHeroHeader(
-                        eyebrow: "MYSTERY",
-                        title: session.event.title,
-                        titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
-                        baseHeight: HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: geometry.size.width),
-                        horizontalPadding: TrinketDesign.Layout.contentMargin,
-                        bottomPadding: TrinketDesign.Spacing.large,
-                    ) {
-                        heroArtwork
-                            .frame(
-                                width: geometry.size.width,
-                                height: HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: geometry.size.width),
-                            )
-                            .clipped()
-                    }
-                    .frame(width: geometry.size.width)
-                    .cardArtworkSurface()
+            DetailHeroScrollShell(
+                title: session.event.title,
+                heroHeightPolicy: .cinematicLandscape,
+                hidesNavigationBar: true,
+            ) { baseHeight in
+                mysteryHeader(baseHeight: baseHeight, singleLineTitle: false)
+            } bodyContent: {
+                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraLarge) {
+                    Text(session.narrative)
+                        .trinketTypography(.body)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
 
-                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraLarge) {
-                        Text(session.narrative)
-                            .trinketTypography(.body)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
+                    mysteryPersistFailureBanner(session.persistFailureMessage)
 
-                        mysteryPersistFailureBanner(session.persistFailureMessage)
-
-                        MysteryOfferChoices(
-                            offers: session.offers,
-                            choices: session.event.choices,
-                            width: geometry.size.width - TrinketDesign.Layout.contentMargin * 2,
-                            preparedArtworkNames: preparedArtworkNames,
-                            isDisabled: session.isResolvingChoice,
-                            onInspect: { selectedItem = $0 },
-                            onChoose: { _ = encounters.resolveActiveMysteryChoice(choiceID: $0) },
-                        )
-                    }
-                    .padding(TrinketDesign.Layout.contentMargin)
+                    MysteryOfferChoices(
+                        offers: session.offers,
+                        choices: session.event.choices,
+                        width: geometry.size.width - TrinketDesign.Layout.contentMargin * 2,
+                        preparedArtworkNames: preparedArtworkNames,
+                        isDisabled: session.isResolvingChoice,
+                        onInspect: { selectedItem = $0 },
+                        onChoose: { _ = encounters.resolveActiveMysteryChoice(choiceID: $0) },
+                    )
                 }
-                .frame(width: geometry.size.width)
+                .padding(TrinketDesign.Layout.contentMargin)
             }
-            .ignoresSafeArea(edges: .top)
-            .scrollBounceBehavior(.basedOnSize)
-            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -207,18 +189,7 @@ struct MysteryEncounterView: View {
             heroHeightPolicy: .cinematicLandscape,
             hidesNavigationBar: true,
         ) { baseHeight in
-            DetailHeroHeader(
-                eyebrow: "MYSTERY",
-                title: session.event.title,
-                titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
-                baseHeight: baseHeight,
-                horizontalPadding: TrinketDesign.Layout.contentMargin,
-                bottomPadding: TrinketDesign.Spacing.large,
-                singleLineTitle: true,
-            ) {
-                heroArtwork
-            }
-            .cardArtworkSurface()
+            mysteryHeader(baseHeight: baseHeight, singleLineTitle: true)
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Layout.contentMargin) {
                 narrativeCard
@@ -232,6 +203,20 @@ struct MysteryEncounterView: View {
             mysteryConfirmAction
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 .padding(.vertical, TrinketDesign.Spacing.medium)
+        }
+    }
+
+    private func mysteryHeader(baseHeight: CGFloat, singleLineTitle: Bool) -> some View {
+        DetailHeroHeader(
+            eyebrow: "MYSTERY",
+            title: session.event.title,
+            titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
+            baseHeight: baseHeight,
+            horizontalPadding: TrinketDesign.Layout.contentMargin,
+            bottomPadding: TrinketDesign.Spacing.large,
+            singleLineTitle: singleLineTitle,
+        ) {
+            heroArtwork
         }
     }
 

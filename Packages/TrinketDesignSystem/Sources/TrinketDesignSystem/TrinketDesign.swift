@@ -128,10 +128,10 @@ public enum TrinketDesign {
         public let color: Color
         public let icon: GameIcon
 
-        public static let hero = Self(color: DesignAssetColors.named("PlaceholderHero"), icon: .lucide("user-round"))
-        public static let companion = Self(color: DesignAssetColors.named("PlaceholderCompanion"), icon: .lucide("paw-print"))
-        public static let enemy = Self(color: DesignAssetColors.named("PlaceholderEnemy"), icon: .lucide("skull"))
-        public static let item = Self(color: DesignAssetColors.named("PlaceholderItem"), icon: .lucide("package"))
-        public static let ability = Self(color: DesignAssetColors.named("PlaceholderAbility"), icon: .lucide("wand-sparkles"))
+        public static let hero = Self(color: DesignAssetColors.named("PlaceholderHero"), icon: .system("person.fill"))
+        public static let companion = Self(color: DesignAssetColors.named("PlaceholderCompanion"), icon: .system("pawprint.fill"))
+        public static let enemy = Self(color: DesignAssetColors.named("PlaceholderEnemy"), icon: .system("shield.slash.fill"))
+        public static let item = Self(color: DesignAssetColors.named("PlaceholderItem"), icon: .system("shippingbox.fill"))
+        public static let ability = Self(color: DesignAssetColors.named("PlaceholderAbility"), icon: .system("wand.and.stars"))
     }
 }

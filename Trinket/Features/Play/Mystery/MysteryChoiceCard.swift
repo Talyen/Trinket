@@ -94,7 +94,7 @@ struct MysterySpecialChoiceCard: View {
             rewardSummary(
                 title: combatantName(id: combatantID),
                 value: "Unlock",
-                icon: .lucide("user-round-plus"),
+                icon: .system("person.badge.plus"),
                 tint: TrinketDesign.Colors.accent,
             )
 
@@ -102,7 +102,7 @@ struct MysterySpecialChoiceCard: View {
             rewardSummary(
                 title: "Corrupt Item",
                 value: "Risk",
-                icon: .lucide("skull"),
+                icon: .system("dice.fill"),
                 tint: TrinketDesign.Colors.destructive,
             )
 
@@ -113,7 +113,7 @@ struct MysterySpecialChoiceCard: View {
             rewardSummary(
                 title: "Walk Away",
                 value: "Safe",
-                icon: .lucide("footprints"),
+                icon: .system("figure.walk"),
                 tint: .secondary,
             )
         }

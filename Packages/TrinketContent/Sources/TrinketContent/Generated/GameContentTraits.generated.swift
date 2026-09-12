@@ -93,9 +93,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "frost_elemental_trait",
             name: "Frost Elemental",
-            description: "Freeze damage is increased by 1. Burn damage taken increased by 30%.",
-            modifiers: [.damageDealt(.freeze, 1), .damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers()
+            description: "Basic attacks deal 1 additional Freeze damage. Burn damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.burn, 0.30)],
+            triggers: CombatTraitTriggers(attack: AttackTriggers(basicAttackFreezeBuildup: 1))
         ))
         list.append(CombatantTraitDefinition(
             id: "slime_trait",
@@ -275,9 +275,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "the_stone_titan_trait",
             name: "The Stone Titan",
-            description: "Deals 1 Stun damage every other turn to all enemies.",
+            description: "Deals 1 Physical damage every other turn to all enemies.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .stun, turnRandomDamageAllEnemiesKeywordB: .stun, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .physical, turnRandomDamageAllEnemiesKeywordB: .physical, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
         ))
         return list
     }()

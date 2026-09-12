@@ -14,14 +14,15 @@ extension BattleSession {
         at date: Date = .now,
         requiresLift: Bool = false,
     ) -> BattleCardPlayResolution {
+        if commandState.phase == .outcome {
+            guard canInteractWithHand, presentation.consumeFinishingCard(id: cardID) else { return .rejected }
+            return .committed
+        }
         guard !requiresLift || cardCues.hasLift(for: cardID) else { return .rejected }
-        cancelPendingAutoEnd()
         feedback.pruneExpired(at: date)
         guard canAcceptBattleCommands
         else {
-            if commandState.phase != .card {
-                clearCardCues()
-            }
+            clearCardCues()
             feedback.noteItemsChanged()
             return .rejected
         }
@@ -43,23 +44,8 @@ extension BattleSession {
 
             cardCues.commit(cardID: cardID)
 
-            if resolution.playback.hasAutomaticDraws {
-                beginCardPresentation(resolution.playback, at: date)
-                return .committed
-            }
-
-            measurePlayCardInterval(
-                BattleFramePacingSignposts.Name.playCardProjection,
-            ) {
-                installSimulationPresentation()
-            }
-            measurePlayCardInterval(
-                BattleFramePacingSignposts.Name.playCardFeedback,
-            ) {
-                presentResolvedEvents(resolution.events, at: date)
-            }
-            handleOutcomeIfNeeded(at: date)
-            scheduleAutoEndIfNeeded()
+            cancelPendingAutoEnd()
+            presentCompletedCommand(resolution.playback, at: date, playedCardID: cardID)
             return .committed
         } catch {
             if let card = engineState?.hand.card(id: cardID) {
@@ -122,22 +108,6 @@ extension BattleSession {
                   canEndTurn,
                   !hasPlayableCard
             else { return }
-
-            if shouldTelegraphEnemyAttack(), let enemyID {
-                publishAttackTelegraph(.full, for: enemyID)
-                let impactDelay = enemyAttackImpactDelayOverride
-                    ?? .seconds(CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay)
-                if impactDelay > .zero {
-                    try? await Task.sleep(for: impactDelay)
-                    guard !Task.isCancelled,
-                          !isSuspendedForScenePhase,
-                          canEndTurn,
-                          !hasPlayableCard
-                    else {
-                        return
-                    }
-                }
-            }
 
             endTurn()
         }

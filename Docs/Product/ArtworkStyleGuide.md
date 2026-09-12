@@ -55,6 +55,15 @@ Focal-point metadata should identify the semantic subject, not compensate for a
 poor source composition. Preview every generated crop in its real UI before
 accepting it.
 
+### XP rewards
+
+Standalone XP rewards use the two-book resource artwork and the same reward pill
+as materials: an Experience caption, an increase-prefixed amount, and prepared artwork.
+The books use blue-violet covers, bright ivory page blocks, and a simple silhouette
+that remains readable at 20 and 36 points. XP bars, their gain labels, and character
+progress totals retain their text treatment without an additional icon. XP artwork
+is a presentation resource, not a Homestead currency.
+
 ## Prompt construction
 
 Prompts should specify the subject, action, setting, lighting, palette,

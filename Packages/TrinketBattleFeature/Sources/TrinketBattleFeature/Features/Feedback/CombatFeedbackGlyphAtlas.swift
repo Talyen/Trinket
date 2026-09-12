@@ -246,19 +246,10 @@ final class CombatFeedbackGlyphAtlas {
             recipe: recipe,
             presentationRole: face.presentationRole,
         )
-        if let resource = icon.imageResource {
-            let image = UIImage(resource: resource).withTintColor(.white, renderingMode: .alwaysOriginal)
-            return rasterize(
-                image: image,
-                displayScaleHundredths: face.displayScaleHundredths,
-                targetHeight: font.pointSize,
-            )
-        }
-        guard case let .system(name) = icon,
-              let image = UIImage(
-                  systemName: name,
-                  withConfiguration: UIImage.SymbolConfiguration(font: font),
-              )?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        guard let image = UIImage(
+            systemName: icon.symbolName,
+            withConfiguration: UIImage.SymbolConfiguration(font: font),
+        )?.withTintColor(.white, renderingMode: .alwaysOriginal)
         else { return nil }
         return rasterize(image: image, displayScaleHundredths: face.displayScaleHundredths)
     }
@@ -299,10 +290,8 @@ final class CombatFeedbackGlyphAtlas {
     nonisolated static func rasterize(
         image: UIImage,
         displayScaleHundredths: Int,
-        targetHeight: CGFloat? = nil,
     ) -> Glyph? {
-        let imageScale = targetHeight.map { $0 / max(1, image.size.height) } ?? 1
-        let size = CGSize(width: image.size.width * imageScale, height: image.size.height * imageScale)
+        let size = image.size
         guard size.width > 0, size.height > 0 else { return nil }
         let format = UIGraphicsImageRendererFormat()
         format.scale = CGFloat(displayScaleHundredths) / 100

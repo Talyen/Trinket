@@ -86,9 +86,6 @@ struct PostBattleTalentChoiceView: View {
             .padding(.top, TrinketDesign.Spacing.medium)
             .padding(.bottom, TrinketDesign.Spacing.large)
         }
-        .toolbar {
-            closeToolbarItem
-        }
         .accessibilityIdentifier(AccessibilityID.TalentChoice.screen)
     }
 
@@ -106,9 +103,6 @@ struct PostBattleTalentChoiceView: View {
                 choose(node: node, tree: tree)
             },
         )
-        .toolbar {
-            closeToolbarItem
-        }
     }
 
     private func talentTreeButton(_ tree: TalentTree, combatantID: String) -> some View {
@@ -162,14 +156,6 @@ struct PostBattleTalentChoiceView: View {
             repeating: GridItem(.flexible(), spacing: TrinketDesign.Spacing.small),
             count: 3,
         )
-    }
-
-    @ToolbarContentBuilder
-    private var closeToolbarItem: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button("Close", action: play.dismissPostBattleTalentChoice)
-                .accessibilityIdentifier(AccessibilityID.TalentChoice.closeButton)
-        }
     }
 
     private func choiceCountLabel(_ count: Int) -> String {

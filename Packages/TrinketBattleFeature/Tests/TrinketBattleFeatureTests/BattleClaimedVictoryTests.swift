@@ -10,7 +10,7 @@ struct BattleClaimedVictoryTests {
     @Test(arguments: [false, true])
     func `claimed victory completes once without an overlay and failed completion presents retry`(fails: Bool) {
         let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
+        let session = BattleSession(outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             rngSeed: CombatantFixtures.deterministicBattleSeed,
@@ -37,7 +37,7 @@ struct BattleClaimedVictoryTests {
 
     @Test func `claimed victory delivery resets for restart`() {
         let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
+        let session = BattleSession(outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
         let first = BattleRunConfigurationTestSupport.make(
             rngSeed: CombatantFixtures.deterministicBattleSeed,

@@ -26,7 +26,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var partyGoldGainedPercent: Double = 0
     public var firstGoldTheftHeal: Int = 0
     public var goldDoubledWhileFullHealth: Bool = false
-    public var onGainGoldDoubleStatusEffectsNextCard: Bool = false
+    public var firstGoldTheftDraw: Int = 0
     public var bountyBlade: Bool = false
     public var consolationPrize: Bool = false
     public var houseCredit: Bool = false
@@ -61,7 +61,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         partyGoldGainedPercent: Double = 0,
         firstGoldTheftHeal: Int = 0,
         goldDoubledWhileFullHealth: Bool = false,
-        onGainGoldDoubleStatusEffectsNextCard: Bool = false,
+        firstGoldTheftDraw: Int = 0,
         bountyBlade: Bool = false,
         consolationPrize: Bool = false,
         houseCredit: Bool = false,
@@ -95,7 +95,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.partyGoldGainedPercent = partyGoldGainedPercent
         self.firstGoldTheftHeal = firstGoldTheftHeal
         self.goldDoubledWhileFullHealth = goldDoubledWhileFullHealth
-        self.onGainGoldDoubleStatusEffectsNextCard = onGainGoldDoubleStatusEffectsNextCard
+        self.firstGoldTheftDraw = firstGoldTheftDraw
         self.bountyBlade = bountyBlade
         self.consolationPrize = consolationPrize
         self.houseCredit = houseCredit
@@ -109,7 +109,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "onGainGoldDoubleStatusEffectsNextCard", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold"]
+    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -136,7 +136,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.partyGoldGainedPercent != other.partyGoldGainedPercent { names.append("partyGoldGainedPercent") }
         if self.firstGoldTheftHeal != other.firstGoldTheftHeal { names.append("firstGoldTheftHeal") }
         if self.goldDoubledWhileFullHealth != other.goldDoubledWhileFullHealth { names.append("goldDoubledWhileFullHealth") }
-        if self.onGainGoldDoubleStatusEffectsNextCard != other.onGainGoldDoubleStatusEffectsNextCard { names.append("onGainGoldDoubleStatusEffectsNextCard") }
+        if self.firstGoldTheftDraw != other.firstGoldTheftDraw { names.append("firstGoldTheftDraw") }
         if self.bountyBlade != other.bountyBlade { names.append("bountyBlade") }
         if self.consolationPrize != other.consolationPrize { names.append("consolationPrize") }
         if self.houseCredit != other.houseCredit { names.append("houseCredit") }
@@ -175,7 +175,7 @@ extension GoldTriggers {
         partyGoldGainedPercent += other.partyGoldGainedPercent
         firstGoldTheftHeal += other.firstGoldTheftHeal
         goldDoubledWhileFullHealth = goldDoubledWhileFullHealth || other.goldDoubledWhileFullHealth
-        onGainGoldDoubleStatusEffectsNextCard = onGainGoldDoubleStatusEffectsNextCard || other.onGainGoldDoubleStatusEffectsNextCard
+        firstGoldTheftDraw += other.firstGoldTheftDraw
         bountyBlade = bountyBlade || other.bountyBlade
         consolationPrize = consolationPrize || other.consolationPrize
         houseCredit = houseCredit || other.houseCredit
@@ -215,7 +215,7 @@ extension GoldTriggers {
             partyGoldGainedPercent: values.decode(Double.self, "partyGoldGainedPercent", default: 0),
             firstGoldTheftHeal: values.decode(Int.self, "firstGoldTheftHeal", default: 0),
             goldDoubledWhileFullHealth: values.decode(Bool.self, "goldDoubledWhileFullHealth", default: false),
-            onGainGoldDoubleStatusEffectsNextCard: values.decode(Bool.self, "onGainGoldDoubleStatusEffectsNextCard", default: false),
+            firstGoldTheftDraw: values.decode(Int.self, "firstGoldTheftDraw", default: 0),
             bountyBlade: values.decode(Bool.self, "bountyBlade", default: false),
             consolationPrize: values.decode(Bool.self, "consolationPrize", default: false),
             houseCredit: values.decode(Bool.self, "houseCredit", default: false),
@@ -252,7 +252,7 @@ extension GoldTriggers {
         try container.encodeNonDefault(partyGoldGainedPercent, "partyGoldGainedPercent", default: 0)
         try container.encodeNonDefault(firstGoldTheftHeal, "firstGoldTheftHeal", default: 0)
         try container.encodeNonDefault(goldDoubledWhileFullHealth, "goldDoubledWhileFullHealth", default: false)
-        try container.encodeNonDefault(onGainGoldDoubleStatusEffectsNextCard, "onGainGoldDoubleStatusEffectsNextCard", default: false)
+        try container.encodeNonDefault(firstGoldTheftDraw, "firstGoldTheftDraw", default: 0)
         try container.encodeNonDefault(bountyBlade, "bountyBlade", default: false)
         try container.encodeNonDefault(consolationPrize, "consolationPrize", default: false)
         try container.encodeNonDefault(houseCredit, "houseCredit", default: false)

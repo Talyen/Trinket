@@ -1404,6 +1404,9 @@ public enum ArtCatalog {
         dict["gold"] = ResourceArtReference(
             imageName: "resource_homestead_gold"
         )
+        dict["experience"] = ResourceArtReference(
+            imageName: "resource_experience"
+        )
         return dict
     }()
 

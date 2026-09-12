@@ -11,7 +11,7 @@ the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage every other turn to 
 the_iron_bear_trait	The Iron Bear	Deals 1 Physical or 1 Stun damage every other turn to all enemies.		turn_random_damage_all_enemies:physical:stun:1|turn_random_damage_all_enemies_interval:2
 goblin_trait	Goblin	Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	
 fire_elemental_trait	Fire Elemental	Burns attackers for 1 damage when hit. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	on_hit_attacker_burn:1
-frost_elemental_trait	Frost Elemental	Freeze damage is increased by 1. Burn damage taken increased by 30%.	damage_dealt:freeze:1|damage_taken_vulnerability:burn:0.30	
+frost_elemental_trait	Frost Elemental	Basic attacks deal 1 additional Freeze damage. Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	basicAttackFreezeBuildup:1
 slime_trait	Slime	Physical and Poison damage taken reduced by 10%.	damage_taken_percent:physical:0.10|damage_taken_percent:poison:0.10	
 will_o_wisp_trait	Will-o'-Wisp	Physical and Freeze damage taken reduced by 30%.	damage_taken_percent:physical:0.30|damage_taken_percent:freeze:0.30	
 bandit_trait	Bandit	Deals double damage on the first attack. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	first_hit_double_damage:1
@@ -37,4 +37,4 @@ banshee_trait	Banshee	Attacks against Stunned enemies deal 1 additional damage. 
 brawler_trait	Brawler	Stunned enemies deal half damage on their next turn. Bleed damage taken increased by 30%.	damage_taken_vulnerability:bleed:0.30	stunnedEnemyNextTurnDamageMultiplier:0.5
 stone_golem_trait	Stone Golem	Gain 1 Block at the start of each round. While you have Block, attacks deal 1 additional damage.		blockPerTurn:1|shieldDamageBonusWhileBlocked:1
 earth_elemental_trait	Earth Elemental	Breaking an enemy's Block deals 1 Physical damage to them. Freeze and Burn damage taken reduced by 20%.	damage_taken_percent:freeze:0.20|damage_taken_percent:burn:0.20	onEnemyBlockBrokenDealPhysical:1
-the_stone_titan_trait	The Stone Titan	Deals 1 Stun damage every other turn to all enemies.		turn_random_damage_all_enemies:stun:stun:1|turn_random_damage_all_enemies_interval:2
+the_stone_titan_trait	The Stone Titan	Deals 1 Physical damage every other turn to all enemies.		turn_random_damage_all_enemies:physical:physical:1|turn_random_damage_all_enemies_interval:2

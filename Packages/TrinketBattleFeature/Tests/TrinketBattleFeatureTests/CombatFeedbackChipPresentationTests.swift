@@ -6,7 +6,7 @@ import TrinketDesignSystem
 
 @Suite(.serialized)
 struct CombatFeedbackChipPresentationTests {
-    @Test @MainActor func `icon prewarming preserves provider identity and cache reuse`() async throws {
+    @Test @MainActor func `icon prewarming preserves shared keyword identity and cache reuse`() async throws {
         let atlas = CombatFeedbackGlyphAtlas()
         await atlas.prepareBattlePresentationAndWait(displayScale: 3)
         let face = CombatFeedbackGlyphAtlas.Face(feedbackClass: .buff, displayScaleHundredths: 300)
@@ -14,22 +14,17 @@ struct CombatFeedbackChipPresentationTests {
 
         for keyword in Keyword.allCases {
             let icon = CombatFeedbackChipPresentation.Style.keyword(keyword).feedbackIcon
-            guard case .system = icon else {
-                Issue.record("Floating feedback requires system symbols")
-                continue
-            }
+            #expect(icon == keyword.visualStyle.icon)
             let key = CombatFeedbackGlyphAtlas.IconKey(face: face, icon: icon)
             let first = try #require(atlas.icons[key])
             let cached = try #require(atlas.icon(icon, face: face, recipe: recipe))
             #expect(first.image === cached.image)
         }
 
-        let lucide = try #require(atlas.icon(.lucide("sparkles"), face: face, recipe: recipe))
         let system = try #require(atlas.icon(.system("sparkles"), face: face, recipe: recipe))
-        #expect(lucide.image !== system.image)
         atlas.removeAll()
-        let rebuilt = try #require(atlas.icon(.lucide("sparkles"), face: face, recipe: recipe))
-        #expect(lucide.image !== rebuilt.image)
+        let rebuilt = try #require(atlas.icon(.system("sparkles"), face: face, recipe: recipe))
+        #expect(system.image !== rebuilt.image)
     }
 
     @Test func `cleanse uses cleanse leading icon`() {

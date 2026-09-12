@@ -95,20 +95,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard healthLost > 0, let sourceActorID,
               let caster = context.roster.combatant(for: sourceActorID) else { return [] }
-        var events = poisonParalysis(target: target, sourceActorID: sourceActorID, in: &context)
-        let leechPercent = context.modifiers(for: sourceActorID).triggers.poisonDamageLeechPercent
-        guard leechPercent > 0 else { return events }
-        let leech = CombatRounding.scaled(healthLost, multiplier: leechPercent)
-        guard leech > 0 else { return events }
-        let outcome = HealingEngine.resolveHeal(
-            HealRequest(amount: leech, target: caster.combatant, sourceActorID: sourceActorID, origin: .leech, logAs: .silent),
-            in: &context,
-        )
-        events.append(contentsOf: outcome.events)
-        if outcome.healthRestored > 0 {
-            events.append(contentsOf: afterLeech(by: caster.combatant, target: target, in: &context))
-        }
-        return events
+        return poisonParalysis(target: target, sourceActorID: caster.id, in: &context)
     }
 
     private static func poisonParalysis(

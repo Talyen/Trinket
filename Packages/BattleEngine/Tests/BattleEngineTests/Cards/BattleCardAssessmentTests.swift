@@ -5,6 +5,27 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct BattleCardAssessmentTests {
+    @Test func `pack tactics previews its opening hit without guessing automatic recipients`() {
+        var state = battle()
+        let card = deal(.packTactics, in: &state)
+        let targets = state.assessCard(card).targets
+        #expect(targets.count == 1)
+        #expect(targets.first?.combatantID == state.enemy.id)
+        #expect(targets.first?.intent == .damage(.physical))
+    }
+
+    @Test func `blessed aegis assessment includes both living allies`() {
+        var state = battle()
+        let card = deal(.blessedAegis, in: &state)
+        let targets = state.assessCard(card).targets
+        #expect(Set(targets.map(\.combatantID)) == [state.hero.id, state.companion.id])
+        for owner in [state.hero.id, state.companion.id] {
+            #expect(targets.contains { $0.combatantID == owner && $0.intent == .effect(.shield(.block, 4)) })
+        }
+        state.roster.companion.currentHealth = 0
+        #expect(Set(state.assessCard(card).targets.map(\.combatantID)) == [state.hero.id])
+    }
+
     @Test func `assessment targets the lowest living ally without advancing combat`() throws {
         var state = battle()
         state.roster.mutateRuntime(for: state.companion) { $0.currentHealth = 5 }

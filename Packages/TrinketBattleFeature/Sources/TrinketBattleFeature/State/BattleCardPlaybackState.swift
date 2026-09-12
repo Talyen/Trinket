@@ -2,31 +2,45 @@ import BattleEngine
 import Foundation
 import Observation
 
-struct BattleRecordedCardCast: Equatable {
+struct BattleRecordedCardCast: Equatable, Identifiable {
     let id = UUID()
-    let startedAt = Date()
+    var startedAt: Date
+    var pausedAt: Date?
     let card: BattleCard
-    let index: Int
-    let cardCount: Int
 }
 
 @MainActor
 @Observable
 final class BattleCardPlaybackState {
-    var liftedCardID: Int?
-    var isSuspended = false
-    private(set) var cast: BattleRecordedCardCast?
-    var delayOverride: Duration?
+    private(set) var casts: [BattleRecordedCardCast] = []
+    private(set) var isSuspended = false
 
-    func play(_ card: BattleCard, hand: [BattleCard], stagedCard: BattleCard?) {
-        let cards = stagedCard.map { [$0] } ?? hand
-        guard let index = cards.firstIndex(where: { $0.id == card.id }) else { return }
-        cast = BattleRecordedCardCast(card: card, index: index, cardCount: cards.count)
-        liftedCardID = nil
+    func append(_ cards: [BattleCard], at date: Date) {
+        var start = max(date, (casts.last?.startedAt ?? date).addingTimeInterval(casts.isEmpty ? 0 : 0.32))
+        for card in cards {
+            casts.append(BattleRecordedCardCast(startedAt: start, card: card))
+            start += 0.32
+        }
+    }
+
+    func remove(id: UUID) {
+        casts.removeAll { $0.id == id }
+    }
+
+    func setSuspended(_ suspended: Bool, at date: Date = .now) {
+        guard isSuspended != suspended else { return }
+        isSuspended = suspended
+        for index in casts.indices {
+            if suspended {
+                casts[index].pausedAt = date
+            } else if let paused = casts[index].pausedAt {
+                casts[index].startedAt += date.timeIntervalSince(paused)
+                casts[index].pausedAt = nil
+            }
+        }
     }
 
     func reset() {
-        liftedCardID = nil
-        cast = nil
+        casts.removeAll()
     }
 }

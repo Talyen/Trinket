@@ -9,6 +9,8 @@ public struct CombatantCardDetail: Hashable, Identifiable {
     public let unlockedTalents: Set<String>
     public let health: Int?
     public let mana: Int?
+    public let maxHealth: Int?
+    public let maxMana: Int?
     public let activeEffectSummaries: [EffectSummary]
     public let labyrinthModifiers: [LabyrinthModifierDefinition]
 
@@ -24,6 +26,8 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         unlockedTalents: Set<String> = [],
         health: Int? = nil,
         mana: Int? = nil,
+        maxHealth: Int? = nil,
+        maxMana: Int? = nil,
         activeEffectSummaries: [EffectSummary] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],
     ) {
@@ -34,6 +38,8 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         self.unlockedTalents = unlockedTalents
         self.health = health
         self.mana = mana
+        self.maxHealth = maxHealth
+        self.maxMana = maxMana
         self.activeEffectSummaries = activeEffectSummaries
         self.labyrinthModifiers = labyrinthModifiers
     }

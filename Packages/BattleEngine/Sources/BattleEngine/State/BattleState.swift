@@ -305,7 +305,15 @@ public struct BattleState {
         recording: ((BattleTransitionCheckpoint, Self, [ActionEvent]) -> Void)? = nil,
     ) -> [ActionEvent] {
         guard !isBattleOver else { return [] }
-        let events = BattleCardCombatEngine.endTurn(context: &self, recording: recording)
+        cardPlayRecording = recording.map { callback in
+            BattleCardPlayRecording { checkpoint, state, _ in
+                if case .cardPlayed = checkpoint {
+                    callback(checkpoint, state, [])
+                }
+            }
+        }
+        defer { cardPlayRecording = nil }
+        let events = BattleCardCombatEngine.endTurn(context: &self, recording: BattleCardPlayRecording.detached(recording))
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
@@ -315,7 +323,15 @@ public struct BattleState {
         rebuildLog: Bool = true,
         recording: ((BattleTransitionCheckpoint, Self, [ActionEvent]) -> Void)? = nil,
     ) -> [ActionEvent] {
-        let events = BattleCardCombatEngine.drawOpeningHand(context: &self, recording: recording)
+        cardPlayRecording = recording.map { callback in
+            BattleCardPlayRecording { checkpoint, state, _ in
+                if case .cardPlayed = checkpoint {
+                    callback(checkpoint, state, [])
+                }
+            }
+        }
+        defer { cardPlayRecording = nil }
+        let events = BattleCardCombatEngine.drawOpeningHand(context: &self, recording: BattleCardPlayRecording.detached(recording))
         finishMutation(rebuildLog: rebuildLog)
         return events
     }

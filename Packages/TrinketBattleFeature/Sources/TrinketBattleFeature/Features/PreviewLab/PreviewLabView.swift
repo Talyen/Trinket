@@ -18,7 +18,6 @@ public struct PreviewLabView: View {
             companionID: companionID,
         )
         let session = BattleSession(
-            openingHandDrawStagger: 0,
             presentationEnvironment: PreviewLab.dependencies,
         )
         _ = session.activate(configuration)

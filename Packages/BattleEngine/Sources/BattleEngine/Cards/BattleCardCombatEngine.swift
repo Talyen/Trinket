@@ -196,7 +196,6 @@ package enum BattleCardCombatEngine {
         if action.performed {
             events.append(contentsOf: CombatTriggerEngine.afterEnemyAbility(in: &context))
         }
-        context.roster.mutateRuntime(for: enemy) { $0.talents.finishCard() }
         return leadingEvents + events
     }
 
@@ -251,6 +250,7 @@ package enum BattleCardCombatEngine {
 
         context.heroTalents.enemyTurnActive = true
         context.heroTalents.healthLostDuringEnemyTurn = []
+        context.heroTalents.attackedDuringEnemyTurn = []
         events.append(contentsOf: resolveEnemyTurn(context: &context))
         events.append(contentsOf: CombatTriggerEngine.afterHeroTalentEnemyTurn(in: &context))
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())

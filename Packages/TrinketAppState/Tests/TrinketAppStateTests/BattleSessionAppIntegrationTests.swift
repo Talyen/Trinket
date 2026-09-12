@@ -340,8 +340,7 @@ struct BattleSessionAppIntegrationTests {
         )
         let battle = BattleSession(
             autoEndTurnDelay: 0,
-            openingHandDrawStagger: 0,
-            enemyAttackImpactDelayOverride: 0,
+
             outcomePresentationDelayOverride: 0,
             presentationEnvironment: .silent,
         )

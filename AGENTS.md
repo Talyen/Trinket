@@ -35,8 +35,8 @@ Reuse unchanged guidance already present in context; reread when changed or no
 longer available. Reroute when scope crosses owners and read newly applicable
 material. Use `--working-tree` only for intentional whole-tree work.
 
-Start discovery with `python3 Scripts/agent-search.py <pattern> --scope <owner>`;
-use `rg` and bounded reads for the selected files. Load linked material only
+When ownership is unknown, start with `python3 Scripts/agent-search.py <pattern> --scope <owner>`.
+For known files, use direct bounded reads or scoped `rg`. Load linked material only
 for its concern; generated catalogs/logs need targeted lookups. See
 [context reading examples](Docs/AgentContext/README.md). Use an execution plan only
 for durable coordination/resumption; [Plans](Docs/Plans/README.md) owns lifecycle.
@@ -51,11 +51,17 @@ for durable coordination/resumption; [Plans](Docs/Plans/README.md) owns lifecycl
 Adopt encountered reproducible defects, gate failures, documentation drift, or
 bounded debt only within scope when evidence, intended behavior, and ownership are
 clear and the complete fix is reversible with targeted verification. No speculative
-sweeps. Ambiguous product choices, migrations, dependencies, architectural
-boundaries, or broad rewrites require a proposal; continue independent authorized
-work. Unrelated dirty work is never permission to overwrite it.
+sweeps. Propose unresolved decisions about product choices, migrations,
+dependencies, architectural boundaries, or broad rewrites; existing session
+approval carries forward. Continue independent authorized work. Unrelated dirty
+work is never permission to overwrite it.
 
 ## Verify and hand off
+
+Continue authorized work through implementation, relevant verification, and fixes
+for failures caused by the change without another approval checkpoint. Stop when
+complete or blocked by a required decision or unavailable prerequisite; apply the
+encountered-fix rules above to other failures.
 
 - Prefer fewer, higher-value tests. Use [Testing.md](Docs/Platform/Testing.md) to justify additions and proactively consolidate, streamline, or retire tests within scope; evidence-based retirement needs no separate approval.
 - Run `./Scripts/handoff.sh --isolate --paths <file...>` for the union of requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification.md](Docs/Platform/Verification.md) owns gates, simulator limits, and failures.

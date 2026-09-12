@@ -37,7 +37,6 @@ struct BattleAbilityCardView: View {
     @State private var didAnnounceDeny = false
     @State private var didReportPlayDenied = false
     @State private var isTapLifting = false
-    @State private var tapLiftTask: Task<Void, Never>?
     @GestureState private var isGestureActive = false
 
     private enum InteractionResolution {
@@ -119,7 +118,6 @@ struct BattleAbilityCardView: View {
                 cancelAnnouncedWindUp()
                 cancelInspection()
                 cancelPressCommit()
-                cancelTapLift()
                 onInteractionChanged(false)
             }
             .onAppear {
@@ -364,7 +362,6 @@ struct BattleAbilityCardView: View {
         didAnnounceDeny = false
         didReportPlayDenied = false
         cancelPressCommit()
-        cancelTapLift()
     }
 
     private enum PlayIntent {
@@ -378,7 +375,6 @@ struct BattleAbilityCardView: View {
             returnDrag()
             return
         }
-        guard tapLiftTask == nil else { return }
         switch intent {
         case .tap: beginTapPlay()
         case .drag: beginPlay()
@@ -426,25 +422,14 @@ struct BattleAbilityCardView: View {
 
 private extension BattleAbilityCardView {
     func beginTapPlay() {
-        guard tapLiftTask == nil else { return }
-        interactionResolution = .idle
         announceWindUpIfNeeded(mode: .tapCommit)
-        withAnimation(BattleMotion.tapLift) {
-            isTapLifting = true
-        }
-        cancelTapLift()
-        tapLiftTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(BattleMotion.tapLiftPlayDelay))
-            guard !Task.isCancelled else { return }
-            publishTapPlay()
-        }
+        beginPlay()
     }
 
     func syncAutoLift(_ liftCardID: Int?) {
         let shouldLift = liftCardID == card.id
         guard shouldLift != isTapLifting else { return }
         if shouldLift {
-            cancelTapLift()
             announceWindUpIfNeeded(mode: .preview)
         } else {
             didAnnounceWindUp = false
@@ -452,28 +437,6 @@ private extension BattleAbilityCardView {
         withAnimation(BattleMotion.tapLift) {
             isTapLifting = shouldLift
         }
-    }
-
-    func publishTapPlay() {
-        let request = CardActivationRequest(
-            artworkName: card.ability.artReference?.imageName,
-            center: CGPoint(
-                x: restingCenter.x + tapLiftOffset.width,
-                y: restingCenter.y + tapLiftOffset.height,
-            ),
-            size: CGSize(width: width, height: height),
-            rotation: restingRotation * .pi / 180,
-            verticalTilt: 0,
-            scale: 1,
-            perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.presentationKeywords,
-        )
-        publishPlay(request)
-    }
-
-    func cancelTapLift() {
-        tapLiftTask?.cancel()
-        tapLiftTask = nil
     }
 
     func announceWindUpIfNeeded(mode: BattleCardCuePresentationMode) {

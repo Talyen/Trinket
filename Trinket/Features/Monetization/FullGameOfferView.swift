@@ -29,9 +29,9 @@ struct FullGameOfferView: View {
             }
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                benefit(Text("All \(Text("chapters & modes").fontWeight(.semibold))"), icon: .lucide("map"))
-                benefit(Text("Every \(Text("hero & companion").fontWeight(.semibold))"), icon: .lucide("users-round"))
-                benefit(Text("Includes \(Text("all future content").fontWeight(.semibold))"), icon: .lucide("sparkles"))
+                benefit(Text("All \(Text("chapters & modes").fontWeight(.semibold))"), icon: .system("map.fill"))
+                benefit(Text("Every \(Text("hero & companion").fontWeight(.semibold))"), icon: .system("person.2.fill"))
+                benefit(Text("Includes \(Text("all future content").fontWeight(.semibold))"), icon: .system("sparkles"))
             }
             .padding(TrinketDesign.Layout.contentMargin)
         }

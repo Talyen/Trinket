@@ -37,4 +37,4 @@ banshee	Banshee	13	false	bash,darkPact,earthquake	banshee_trait	undead
 brawler	Brawler	14	false	bash,sunder,earthquake	brawler_trait	mortal
 stone_golem	Stone Golem	15	false	shieldBash,stoneskinPotion,earthquake	stone_golem_trait	construct
 earth_elemental	Earth Elemental	15	false	bash,sunder,earthquake	earth_elemental_trait	elemental
-the_stone_titan	The Stone Titan	15	true	bash,sunder,earthquake	the_stone_titan_trait	construct
+the_stone_titan	The Stone Titan	15	true	bash,stoneskinPotion,earthquake	the_stone_titan_trait	construct

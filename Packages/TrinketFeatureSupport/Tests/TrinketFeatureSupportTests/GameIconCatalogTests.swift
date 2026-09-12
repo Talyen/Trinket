@@ -6,7 +6,7 @@ import UIKit
 @testable import TrinketFeatureSupport
 
 struct GameIconCatalogTests {
-    @Test func `authored game icons resolve across providers`() throws {
+    @Test func `authored game icons resolve as system symbols`() throws {
         let talentIDs = GameContent.combatants.flatMap { combatant in
             CombatantTalentCatalog.config(for: combatant.id).trees.flatMap { $0.nodes.compactMap(\.iconID) }
         }
@@ -18,16 +18,10 @@ struct GameIconCatalogTests {
         icons.formUnion(HomesteadResource.allCases.map(\.icon))
 
         for id in contentIDs {
-            #expect(id.hasPrefix("lucide:") || id.hasPrefix("sf:"), "Unqualified content icon: \(id)")
+            #expect(id.hasPrefix("sf:"), "Unqualified content icon: \(id)")
         }
         for icon in icons {
-            if let resource = icon.imageResource {
-                let image = UIImage(resource: resource)
-                #expect(image.size.width > 0 && image.size.height > 0, "Missing \(icon.id)")
-            } else if case let .system(name) = icon {
-                _ = try #require(UIImage(systemName: name), "Missing \(icon.id)")
-            }
+            _ = try #require(UIImage(systemName: icon.symbolName), "Missing \(icon.id)")
         }
-        #expect(GameIcon(id: "leaf.fill") == .system("leaf.fill"))
     }
 }

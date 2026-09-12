@@ -42,7 +42,7 @@ id	name	icon_id	description	modifiers	triggers
 ```
 
 - `id`: stable `{combatantID}_{keyword}_t{row}_{slot}` identity. The encoded position is historical; `CombatantTalentCatalog` owns explicit position overrides when nodes move. Preserve these IDs and existing purchases when reordering.
-- `icon_id`: `lucide:name` for a bundled Lucide asset or `sf:name` for an SF Symbol. Choose against the talent's name and description, not its branch alone. [Game icon selections](../Docs/Product/GameIcons.md) explains the visual boundary. Generation rejects unqualified identifiers and missing Lucide assets.
+- `icon_id`: `sf:name` for an SF Symbol. Choose against the talent's name and description, not its branch alone. [Game icon selections](../Docs/Product/GameIcons.md) records shared selections. Generation rejects unqualified identifiers and non-SF providers; the icon catalog test checks symbol availability.
 - `modifiers` / `triggers`: same pipe-separated DSL as affixes (`damage_dealt:physical:1`, `blockPerTurn:2`). CamelCase schema field names are accepted as trigger tokens. Trailing `modifiers` / `triggers` columns may be omitted when empty.
 
 Every Hero and Companion tree has two nodes in each of its first three rows,

@@ -3,14 +3,26 @@ import TrinketCore
 
 package extension CombatTriggerEngine {
     static func afterGoldTheft(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
-        let amount = context.modifiers(for: actor.id).triggers.firstGoldTheftHeal
-        guard amount > 0, context.roster.health(for: actor) > 0,
-              context.claimHeroTalent("scavengersCache", actorID: actor.id)
-        else { return [] }
-        return context.healEmitting(
-            amount: amount, target: actor, source: actor,
-            abilityName: triggerAbilityName("firstGoldTheftHeal", for: actor, fallback: "Scavenger's Cache", in: context),
-        )
+        guard context.roster.health(for: actor) > 0 else { return [] }
+        let triggers = context.modifiers(for: actor.id).triggers
+        var events: [ActionEvent] = []
+        if triggers.firstGoldTheftDraw > 0,
+           let owner = context.roster.participant(for: actor), owner.isPartyMember,
+           context.claimHeroTalent("quickFingers", actorID: actor.id) {
+            events.append(contentsOf: drawCards(
+                triggers.firstGoldTheftDraw, for: owner, actor: actor,
+                abilityName: triggerAbilityName("firstGoldTheftDraw", for: actor, fallback: "Quick Fingers", in: context),
+                in: &context,
+            ))
+        }
+        if triggers.firstGoldTheftHeal > 0,
+           context.claimHeroTalent("scavengersCache", actorID: actor.id) {
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.firstGoldTheftHeal, target: actor, source: actor,
+                abilityName: triggerAbilityName("firstGoldTheftHeal", for: actor, fallback: "Scavenger's Cache", in: context),
+            ))
+        }
+        return events
     }
 
     static func afterEnemyDefeated(in context: inout BattleState) -> [ActionEvent] {
@@ -144,7 +156,8 @@ package extension CombatTriggerEngine {
         if triggers.gainGoldDrawThreshold > 0,
            granted >= triggers.gainGoldDrawThreshold,
            let owner = context.roster.participant(for: combatant),
-           owner.isPartyMember {
+           owner.isPartyMember,
+           context.resolution.claim(.heroTalent("goldenOpportunity"), actorID: combatant.id, cadence: .turn(context.turnCount)) {
             let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
             if drawn > 0 {
                 events.append(context.nextEvent(
@@ -179,9 +192,6 @@ package extension CombatTriggerEngine {
                     ),
                 ))
             }
-        }
-        if triggers.onGainGoldDoubleStatusEffectsNextCard {
-            context.roster.mutateRuntime(for: combatant) { $0.talents.pending.doubleStatusNextCard = true }
         }
         if granted > 0 {
             for owner in [BattleParticipant.hero, .companion] {

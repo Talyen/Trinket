@@ -8,62 +8,64 @@ import TrinketFeatureSupport
 @MainActor
 @Observable
 final class BattleCastPresentationState {
-    private(set) var request: CardActivationRequest?
+    private(set) var requests: [CardActivationRequest] = []
+    var request: CardActivationRequest? {
+        requests.last
+    }
+
     var stuckResetDelayOverride: TimeInterval?
 
     @ObservationIgnored
-    private var pendingStuckResetTask: Task<Void, Never>?
+    private var pendingStuckResetTasks: [UUID: Task<Void, Never>] = [:]
 
     func append(_ request: CardActivationRequest) {
-        self.request = request
-        scheduleStuckReset(for: request.id)
+        if requests.count == 6, let oldest = requests.first {
+            withAnimation(.easeOut(duration: BattleMotion.feedbackHandoffDuration)) {
+                remove(id: oldest.id)
+            }
+        }
+        requests.append(request)
+        scheduleStuckReset(for: request)
     }
 
     func remove(id: UUID) {
-        guard request?.id == id else { return }
-        request = nil
-        cancelStuckReset()
+        requests.removeAll { $0.id == id }
+        pendingStuckResetTasks.removeValue(forKey: id)?.cancel()
     }
 
     func reset() {
-        request = nil
-        cancelStuckReset()
+        requests.removeAll()
+        for task in pendingStuckResetTasks.values {
+            task.cancel()
+        }
+        pendingStuckResetTasks.removeAll()
     }
 
     func setSuspended(_ suspended: Bool, at date: Date = .now) {
-        guard var request else { return }
-        if suspended {
-            guard request.pausedAt == nil else { return }
-            request.pausedAt = date
-            cancelStuckReset()
-        } else {
-            guard let pausedAt = request.pausedAt else { return }
-            request.startedAt += date.timeIntervalSince(pausedAt)
-            request.pausedAt = nil
-        }
-        self.request = request
-        if !suspended {
-            scheduleStuckReset(for: request.id)
+        for index in requests.indices {
+            if suspended, requests[index].pausedAt == nil {
+                requests[index].pausedAt = date
+                pendingStuckResetTasks.removeValue(forKey: requests[index].id)?.cancel()
+            } else if !suspended, let pausedAt = requests[index].pausedAt {
+                requests[index].startedAt += date.timeIntervalSince(pausedAt)
+                requests[index].pausedAt = nil
+                scheduleStuckReset(for: requests[index])
+            }
         }
     }
 
-    private func scheduleStuckReset(for requestID: UUID) {
-        cancelStuckReset()
+    private func scheduleStuckReset(for request: CardActivationRequest) {
+        pendingStuckResetTasks.removeValue(forKey: request.id)?.cancel()
         let delay = stuckResetDelayOverride
-            ?? max(0, BattleMotion.cardActivationDuration - Date.now.timeIntervalSince(request?.startedAt ?? .now))
+            ?? max(0, BattleMotion.cardActivationDuration - Date.now.timeIntervalSince(request.startedAt))
             + BattleMotion.cardActivationStuckSlack
-        pendingStuckResetTask = Task { @MainActor [weak self] in
+        pendingStuckResetTasks[request.id] = Task { @MainActor [weak self] in
             if delay > 0 {
                 try? await Task.sleep(for: .seconds(delay))
             }
-            guard let self, !Task.isCancelled else { return }
-            remove(id: requestID)
+            guard !Task.isCancelled else { return }
+            self?.remove(id: request.id)
         }
-    }
-
-    private func cancelStuckReset() {
-        pendingStuckResetTask?.cancel()
-        pendingStuckResetTask = nil
     }
 }
 
@@ -206,7 +208,10 @@ struct CardCastEffectsLayer: View {
             anchor: .bottom,
             perspective: request.perspective,
         )
-        .position(x: request.center.x, y: request.center.y)
+        .position(
+            x: request.center.x,
+            y: request.center.y - request.size.height * BattleMotion.tapLiftHeightFraction * min(1, progress * 4),
+        )
     }
 }
 
@@ -217,31 +222,21 @@ struct CardCastPresentationLane: View {
     let hapticsEnabled: Bool
 
     var body: some View {
-        CardCastEffectsLayer(request: presentation.request) { requestID in
-            presentation.remove(id: requestID)
-        }
-        .onChange(of: playback.cast) { _, cast in
-            guard let cast else {
-                presentation.reset()
-                return
+        ZStack {
+            ForEach(presentation.requests) { request in
+                CardCastEffectsLayer(request: request) { requestID in
+                    presentation.remove(id: requestID)
+                }
+                .transition(.opacity)
             }
-            presentation.append(.restingRequest(
-                for: cast.card,
-                index: cast.index,
-                cardCount: cast.cardCount,
-                battleSize: battleSize,
-                liftFraction: BattleMotion.tapLiftHeightFraction,
-                startedAt: cast.startedAt,
-            ))
         }
+        .allowsHitTesting(false)
         .onChange(of: playback.isSuspended) { _, suspended in
             presentation.setSuspended(suspended)
         }
-        .trinketSensoryFeedback(
-            .impact(weight: .medium),
-            trigger: playback.cast?.id,
-            enabled: hapticsEnabled && playback.cast != nil,
-        )
+        .onDisappear {
+            presentation.reset()
+        }
     }
 }
 

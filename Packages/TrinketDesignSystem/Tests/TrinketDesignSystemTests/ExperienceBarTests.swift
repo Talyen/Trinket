@@ -102,9 +102,15 @@ struct ExperienceBarTests {
     }
 
     @Test(arguments: [1, 2, 3, 20])
-    func `segment durations partition the animation budget`(segmentCount: Int) {
+    func `level chains preserve fill time and cap the reward wait`(segmentCount: Int) {
         let duration = ExperienceBar.segmentDuration(forSegmentCount: segmentCount)
         #expect(abs(duration * Double(segmentCount) - ExperienceBar.animationBudget) < 0.001)
+        let levelCount = segmentCount - 1
+        let totalDuration = ExperienceBar.initialDelay + duration * Double(segmentCount)
+            + ExperienceBar.levelUpDuration(forLevelCount: levelCount) * Double(levelCount)
+            + ExperienceBar.settleDuration
+        #expect(totalDuration <= 1.20 + 0.001)
         #expect(ExperienceBar.segmentDuration(forSegmentCount: 0) == 0)
+        #expect(ExperienceBar.levelUpDuration(forLevelCount: 0) == 0)
     }
 }

@@ -28,6 +28,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var leechPercentVsLowHealthEnemies: Double = 0
     public var leechBonusHealVsLowHealthEnemies: Int = 0
     public var leechChancePercent: Double = 0
+    public var freezeDamageLeechChancePercent: Double = 0
     public var healingBelowHealthPercentThreshold: Double = 0
     public var healingBelowHealthPercentMultiplier: Double = 1
     public var healOverTimeOnHealTurns: Int = 0
@@ -98,6 +99,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         leechPercentVsLowHealthEnemies: Double = 0,
         leechBonusHealVsLowHealthEnemies: Int = 0,
         leechChancePercent: Double = 0,
+        freezeDamageLeechChancePercent: Double = 0,
         healingBelowHealthPercentThreshold: Double = 0,
         healingBelowHealthPercentMultiplier: Double = 1,
         healOverTimeOnHealTurns: Int = 0,
@@ -167,6 +169,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.leechPercentVsLowHealthEnemies = leechPercentVsLowHealthEnemies
         self.leechBonusHealVsLowHealthEnemies = leechBonusHealVsLowHealthEnemies
         self.leechChancePercent = leechChancePercent
+        self.freezeDamageLeechChancePercent = freezeDamageLeechChancePercent
         self.healingBelowHealthPercentThreshold = healingBelowHealthPercentThreshold
         self.healingBelowHealthPercentMultiplier = healingBelowHealthPercentMultiplier
         self.healOverTimeOnHealTurns = healOverTimeOnHealTurns
@@ -214,7 +217,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "measuredDose", "coolingSalve", "sharedPrescription", "restorativeFumes", "masterworkMixture", "springSap", "pruningTouch", "quietGrove", "shelterSeed", "cleansingDew", "sharedRoots", "verdantShelter", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly"]
+    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "measuredDose", "coolingSalve", "sharedPrescription", "restorativeFumes", "masterworkMixture", "springSap", "pruningTouch", "quietGrove", "shelterSeed", "cleansingDew", "sharedRoots", "verdantShelter", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -243,6 +246,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.leechPercentVsLowHealthEnemies != other.leechPercentVsLowHealthEnemies { names.append("leechPercentVsLowHealthEnemies") }
         if self.leechBonusHealVsLowHealthEnemies != other.leechBonusHealVsLowHealthEnemies { names.append("leechBonusHealVsLowHealthEnemies") }
         if self.leechChancePercent != other.leechChancePercent { names.append("leechChancePercent") }
+        if self.freezeDamageLeechChancePercent != other.freezeDamageLeechChancePercent { names.append("freezeDamageLeechChancePercent") }
         if self.healingBelowHealthPercentThreshold != other.healingBelowHealthPercentThreshold { names.append("healingBelowHealthPercentThreshold") }
         if self.healingBelowHealthPercentMultiplier != other.healingBelowHealthPercentMultiplier { names.append("healingBelowHealthPercentMultiplier") }
         if self.healOverTimeOnHealTurns != other.healOverTimeOnHealTurns { names.append("healOverTimeOnHealTurns") }
@@ -317,6 +321,7 @@ extension HealingTriggers {
         leechPercentVsLowHealthEnemies += other.leechPercentVsLowHealthEnemies
         leechBonusHealVsLowHealthEnemies += other.leechBonusHealVsLowHealthEnemies
         leechChancePercent += other.leechChancePercent
+        freezeDamageLeechChancePercent += other.freezeDamageLeechChancePercent
         healingBelowHealthPercentThreshold = max(healingBelowHealthPercentThreshold, other.healingBelowHealthPercentThreshold)
         healingBelowHealthPercentMultiplier *= other.healingBelowHealthPercentMultiplier
         healOverTimeOnHealTurns = max(healOverTimeOnHealTurns, other.healOverTimeOnHealTurns)
@@ -392,6 +397,7 @@ extension HealingTriggers {
             leechPercentVsLowHealthEnemies: values.decode(Double.self, "leechPercentVsLowHealthEnemies", default: 0),
             leechBonusHealVsLowHealthEnemies: values.decode(Int.self, "leechBonusHealVsLowHealthEnemies", default: 0),
             leechChancePercent: values.decode(Double.self, "leechChancePercent", default: 0),
+            freezeDamageLeechChancePercent: values.decode(Double.self, "freezeDamageLeechChancePercent", default: 0),
             healingBelowHealthPercentThreshold: values.decode(Double.self, "healingBelowHealthPercentThreshold", default: 0),
             healingBelowHealthPercentMultiplier: values.decode(Double.self, "healingBelowHealthPercentMultiplier", default: 1),
             healOverTimeOnHealTurns: values.decode(Int.self, "healOverTimeOnHealTurns", default: 0),
@@ -464,6 +470,7 @@ extension HealingTriggers {
         try container.encodeNonDefault(leechPercentVsLowHealthEnemies, "leechPercentVsLowHealthEnemies", default: 0)
         try container.encodeNonDefault(leechBonusHealVsLowHealthEnemies, "leechBonusHealVsLowHealthEnemies", default: 0)
         try container.encodeNonDefault(leechChancePercent, "leechChancePercent", default: 0)
+        try container.encodeNonDefault(freezeDamageLeechChancePercent, "freezeDamageLeechChancePercent", default: 0)
         try container.encodeNonDefault(healingBelowHealthPercentThreshold, "healingBelowHealthPercentThreshold", default: 0)
         try container.encodeNonDefault(healingBelowHealthPercentMultiplier, "healingBelowHealthPercentMultiplier", default: 1)
         try container.encodeNonDefault(healOverTimeOnHealTurns, "healOverTimeOnHealTurns", default: 0)

@@ -10,11 +10,7 @@ struct CombatFeedbackChipPresentation: Hashable {
         case negativeStatus
 
         var feedbackIcon: GameIcon {
-            switch self {
-            case let .keyword(keyword): .system(keyword.feedbackSymbolName)
-            case .beneficialStatus: .system("arrowshape.up.fill")
-            case .negativeStatus: .system("arrowshape.down.fill")
-            }
+            visualStyle.icon
         }
 
         var visualStyle: Keyword.VisualStyle {
@@ -141,28 +137,6 @@ struct CombatFeedbackChipPresentation: Hashable {
         case .control: .keyword(keyword)
         case .deathsDoor: .keyword(.deathsDoor)
         case .directDamage, .critical, .dot, .buff: .keyword(keyword)
-        }
-    }
-}
-
-private extension Keyword {
-    var feedbackSymbolName: String {
-        switch self {
-        case .physical: "burst.fill"
-        case .burn: "flame.fill"
-        case .stun: "bolt.fill"
-        case .block: "shield.fill"
-        case .health: "heart.fill"
-        case .gold: "circle.circle.fill"
-        case .holy: "sun.max.fill"
-        case .poison, .bleed, .leech: "drop.fill"
-        case .freeze: "snowflake"
-        case .dodge: "figure.run"
-        case .purge: "shield.slash.fill"
-        case .cleanse: "sparkles"
-        case .mana: "moon.stars.fill"
-        case .deathsDoor: "hourglass.bottomhalf.filled"
-        case .thorns: "leaf.fill"
         }
     }
 }

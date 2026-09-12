@@ -39,8 +39,10 @@ their own temporary acquisitions. Shared cache and budget policy remain owned by
 
 ## Card interaction cues
 
-Cards remain artwork-only. Taps use the existing 180 ms lift; dragging uses the
-same begin/commit/cancel cue lifecycle, including Auto Battle. Recipient cues
+Cards remain artwork-only. Manual taps commit on release; dragging and Auto
+Battle use the begin/commit/cancel cue lifecycle. The approved
+[continuous input contract](../../Docs/AgentContext/battle-presentation.md#continuous-card-input)
+owns draw/cast overlap and intentional visual-only finishing taps. Recipient cues
 use small motions and established keyword colors: contracting attack light,
 rising restoration, a protective brace, an outward cleanse, gathered preparation,
 and a gain/draw lift. Combined effects use one motion per recipient, preferring

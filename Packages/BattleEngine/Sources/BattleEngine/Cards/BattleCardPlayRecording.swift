@@ -6,6 +6,18 @@ final class BattleCardPlayRecording {
         self.recording = recording
     }
 
+    static func detached(
+        _ recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)?,
+    ) -> ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? {
+        recording.map { callback in
+            { checkpoint, state, events in
+                var snapshot = state
+                snapshot.cardPlayRecording = nil
+                callback(checkpoint, snapshot, events)
+            }
+        }
+    }
+
     func append(_ event: ActionEvent) {
         pendingEvents.append(event)
     }

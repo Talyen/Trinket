@@ -1417,13 +1417,8 @@ def validate_homestead_prerequisites(
 
 
 def _validate_game_icon(icon_id: str, row_id: str) -> None:
-    if not re.fullmatch(rf"(?:lucide:{_KEBAB_BODY}|sf:[a-z0-9]+(?:\.[a-z0-9]+)*)", icon_id):
-        raise ValueError(f"Invalid icon_id '{icon_id}' for {row_id}; use lucide:name or sf:name")
-    if icon_id.startswith("lucide:"):
-        name = icon_id.removeprefix("lucide:")
-        asset = ROOT / "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Resources/GameIcons.xcassets" / f"lucide-{name}.imageset" / "Contents.json"
-        if not asset.is_file():
-            raise ValueError(f"Missing bundled Lucide icon '{name}' for {row_id}")
+    if not re.fullmatch(r"sf:[a-z0-9]+(?:\.[a-z0-9]+)*", icon_id):
+        raise ValueError(f"Invalid icon_id '{icon_id}' for {row_id}; use sf:name")
 
 
 def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:

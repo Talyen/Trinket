@@ -69,7 +69,7 @@ struct StageMapPresentationTests {
         )
 
         #expect(resolved.encounter.title == "Mystery")
-        #expect(resolved.encounter.iconID == "lucide:sparkles")
+        #expect(resolved.encounter.iconID == "sf:sparkles")
         #expect(resolved.encounter.primaryActionTitle == "Approach")
         #expect(resolved.encounterArtReference?.imageName != "encounter_mystery_recruit_companions")
     }

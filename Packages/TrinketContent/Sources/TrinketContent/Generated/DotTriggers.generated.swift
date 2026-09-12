@@ -29,7 +29,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var damagePerBurnPotencyPercent: Double = 0
     public var burnIncreaseChancePercent: Double = 0
     public var poisonThresholdStunAmount: Int = 0
-    public var poisonDamageLeechPercent: Double = 0
+    public var poisonDamageLeechChancePercent: Double = 0
     public var onCritDoubleBleedDuration: Bool = false
     public var criticalOnBleedingDetonateBleed: Bool = false
     public var criticalOnBleedingDetonateBleedChance: Double = 0
@@ -97,7 +97,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         damagePerBurnPotencyPercent: Double = 0,
         burnIncreaseChancePercent: Double = 0,
         poisonThresholdStunAmount: Int = 0,
-        poisonDamageLeechPercent: Double = 0,
+        poisonDamageLeechChancePercent: Double = 0,
         onCritDoubleBleedDuration: Bool = false,
         criticalOnBleedingDetonateBleed: Bool = false,
         criticalOnBleedingDetonateBleedChance: Double = 0,
@@ -164,7 +164,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.damagePerBurnPotencyPercent = damagePerBurnPotencyPercent
         self.burnIncreaseChancePercent = burnIncreaseChancePercent
         self.poisonThresholdStunAmount = poisonThresholdStunAmount
-        self.poisonDamageLeechPercent = poisonDamageLeechPercent
+        self.poisonDamageLeechChancePercent = poisonDamageLeechChancePercent
         self.onCritDoubleBleedDuration = onCritDoubleBleedDuration
         self.criticalOnBleedingDetonateBleed = criticalOnBleedingDetonateBleed
         self.criticalOnBleedingDetonateBleedChance = criticalOnBleedingDetonateBleedChance
@@ -208,7 +208,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechPercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding", "bleedTickDrawChancePercent"]
+    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechChancePercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding", "bleedTickDrawChancePercent"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -238,7 +238,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.damagePerBurnPotencyPercent != other.damagePerBurnPotencyPercent { names.append("damagePerBurnPotencyPercent") }
         if self.burnIncreaseChancePercent != other.burnIncreaseChancePercent { names.append("burnIncreaseChancePercent") }
         if self.poisonThresholdStunAmount != other.poisonThresholdStunAmount { names.append("poisonThresholdStunAmount") }
-        if self.poisonDamageLeechPercent != other.poisonDamageLeechPercent { names.append("poisonDamageLeechPercent") }
+        if self.poisonDamageLeechChancePercent != other.poisonDamageLeechChancePercent { names.append("poisonDamageLeechChancePercent") }
         if self.onCritDoubleBleedDuration != other.onCritDoubleBleedDuration { names.append("onCritDoubleBleedDuration") }
         if self.criticalOnBleedingDetonateBleed != other.criticalOnBleedingDetonateBleed { names.append("criticalOnBleedingDetonateBleed") }
         if self.criticalOnBleedingDetonateBleedChance != other.criticalOnBleedingDetonateBleedChance { names.append("criticalOnBleedingDetonateBleedChance") }
@@ -310,7 +310,7 @@ extension DotTriggers {
         damagePerBurnPotencyPercent += other.damagePerBurnPotencyPercent
         burnIncreaseChancePercent += other.burnIncreaseChancePercent
         poisonThresholdStunAmount = max(poisonThresholdStunAmount, other.poisonThresholdStunAmount)
-        poisonDamageLeechPercent += other.poisonDamageLeechPercent
+        poisonDamageLeechChancePercent += other.poisonDamageLeechChancePercent
         onCritDoubleBleedDuration = onCritDoubleBleedDuration || other.onCritDoubleBleedDuration
         criticalOnBleedingDetonateBleed = criticalOnBleedingDetonateBleed || other.criticalOnBleedingDetonateBleed
         criticalOnBleedingDetonateBleedChance = max(criticalOnBleedingDetonateBleedChance, other.criticalOnBleedingDetonateBleedChance)
@@ -383,7 +383,7 @@ extension DotTriggers {
             damagePerBurnPotencyPercent: values.decode(Double.self, "damagePerBurnPotencyPercent", default: 0),
             burnIncreaseChancePercent: values.decode(Double.self, "burnIncreaseChancePercent", default: 0),
             poisonThresholdStunAmount: values.decode(Int.self, "poisonThresholdStunAmount", default: 0),
-            poisonDamageLeechPercent: values.decode(Double.self, "poisonDamageLeechPercent", default: 0),
+            poisonDamageLeechChancePercent: values.decode(Double.self, "poisonDamageLeechChancePercent", default: 0),
             onCritDoubleBleedDuration: values.decode(Bool.self, "onCritDoubleBleedDuration", default: false),
             criticalOnBleedingDetonateBleed: values.decode(Bool.self, "criticalOnBleedingDetonateBleed", default: false),
             criticalOnBleedingDetonateBleedChance: values.decode(Double.self, "criticalOnBleedingDetonateBleedChance", default: 0),
@@ -453,7 +453,7 @@ extension DotTriggers {
         try container.encodeNonDefault(damagePerBurnPotencyPercent, "damagePerBurnPotencyPercent", default: 0)
         try container.encodeNonDefault(burnIncreaseChancePercent, "burnIncreaseChancePercent", default: 0)
         try container.encodeNonDefault(poisonThresholdStunAmount, "poisonThresholdStunAmount", default: 0)
-        try container.encodeNonDefault(poisonDamageLeechPercent, "poisonDamageLeechPercent", default: 0)
+        try container.encodeNonDefault(poisonDamageLeechChancePercent, "poisonDamageLeechChancePercent", default: 0)
         try container.encodeNonDefault(onCritDoubleBleedDuration, "onCritDoubleBleedDuration", default: false)
         try container.encodeNonDefault(criticalOnBleedingDetonateBleed, "criticalOnBleedingDetonateBleed", default: false)
         try container.encodeNonDefault(criticalOnBleedingDetonateBleedChance, "criticalOnBleedingDetonateBleedChance", default: 0)

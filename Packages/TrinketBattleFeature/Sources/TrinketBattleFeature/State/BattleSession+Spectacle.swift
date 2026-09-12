@@ -52,7 +52,7 @@ extension BattleSession {
     }
 
     func handleOutcomeIfNeeded(at date: Date) {
-        guard transitionPlayback == nil, let configuration = activeBattle,
+        guard commandState.phase != .outcome, let configuration = activeBattle,
               let context = presentationContext
         else { return }
         switch outcome {
@@ -296,10 +296,7 @@ extension BattleSession {
         }
     }
 
-    func resetRun(
-        from configuration: BattleRunConfiguration,
-        holdOpeningHandForOverlayFade: Bool = false,
-    ) {
+    func resetRun(from configuration: BattleRunConfiguration) {
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
         completionError = nil
@@ -309,12 +306,7 @@ extension BattleSession {
         if isAutoBattleEnabled != preferred {
             isAutoBattleEnabled = preferred
         }
-        beginOpeningHandDeal(
-            for: configuration.id,
-            startDelay: holdOpeningHandForOverlayFade
-                ? .seconds(TrinketMotion.Screen.crossfadeDuration)
-                : .zero,
-        )
+        beginOpeningHandDeal(for: configuration.id)
     }
 
     func clearRunState() {

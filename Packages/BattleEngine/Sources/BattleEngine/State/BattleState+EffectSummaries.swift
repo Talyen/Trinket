@@ -64,7 +64,6 @@ private extension CombatantTalentState.Pending {
             (doubleDamageAfterDodge, .physical, "Prepared Strike: Your next attack deals double damage."),
             (guaranteedCriticalAfterDodge, .physical, "Prepared Critical: Your next \(criticalTarget) is a guaranteed Critical Hit."),
             (basicGuaranteedCritical, .physical, "Prepared Basic: Your next Basic attack is a guaranteed Critical Hit."),
-            (doubleStatusNextCard, .poison, "Golden Touch: Your next card deals double Poison, Bleed, and Burn damage."),
             (damageAfterDodge > 0, .physical, "Prepared Strike: Your next attack deals \(damageAfterDodge) additional damage."),
             (bleedAfterDodge > 0, .bleed, "Prepared Bleed: Your next attack deals \(bleedAfterDodge) additional Bleed damage."),
             (partyCardDamageBonus > 0, .physical, "Feint Strike: The party’s next card deals \(partyCardDamageBonus) additional damage."),
@@ -74,6 +73,7 @@ private extension CombatantTalentState.Pending {
                 .physical,
                 "Prepared Damage: Your next attack deals \(Int((cardDamagePercent * 100).rounded()))% more damage.",
             ),
+            (shadowCamouflageBonus > 0, .physical, "Shadow Camouflage: Your next attack deals 1 additional damage."),
             (nextHitBonus > 0, .physical, "Prepared Hit: Your next attack deals \(nextHitBonus) additional damage."),
             (nextAttackHolyBonus > 0, .holy, "Holy Infusion: Your next attack deals \(nextAttackHolyBonus) additional Holy damage."),
             (

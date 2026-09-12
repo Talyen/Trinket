@@ -103,7 +103,7 @@ public struct ItemCard<Art: View>: View {
     }
 
     private var revealLabel: some View {
-        VStack(spacing: TrinketDesign.Spacing.extraSmall) {
+        VStack(spacing: TrinketDesign.Spacing.tight) {
             TrinketRarityLabel(
                 rarity: item.rarity,
                 labelOverride: item.isTrinket ? "Trinket" : nil,

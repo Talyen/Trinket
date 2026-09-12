@@ -95,6 +95,7 @@ struct PlayBrowsingStack: View {
 
         return CombatantCardDetail(
             combatant: encounter.combatant,
+            progression: .at(level: encounter.level),
         )
     }
 }

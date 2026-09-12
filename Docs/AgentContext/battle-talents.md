@@ -4,6 +4,26 @@ Authored talents and their short descriptions live in
 [the talent manifest](../../ContentManifest/talents.tsv). Talent rule changes
 reuse the ordinary damage, healing, control, and resource pipelines.
 
+## Balance cadence
+
+- Golden Opportunity draws on the first qualifying Gold gain per round. Lucky
+  Charm Cleanses on the first Gold-granting card per round. A qualifying event
+  spends its allowance even when no card or negative effect is available.
+- First Bloom rewards the selected Poison card outcome without requiring a later
+  Mana-restoring card. Grove Reserve divides unspent Mana by six before ordinary
+  Block bonuses; a zero base amount grants no Block.
+- Shadow Camouflage prepares one generic damage on Panther’s next attack after
+  an enemy turn without an attack against Panther. Dodged and fully Blocked attacks
+  count; ongoing damage and aura pulses do not. Skipped enemy turns qualify.
+  The preparation refreshes instead of stacking and survives until consumed.
+- Toxiphage and Cold Hunger roll typed Leech chances through the shared Leech
+  pipeline, including ongoing damage. Generic and matching typed chances add up
+  to 100%; damage already granting Leech skips the roll and never Leeches twice.
+
+Enemy Basic Freeze bonuses apply once to the initial Basic action, including
+Ray of Frost’s immediate pulse, and not to subsequent ongoing damage. This uses
+normal Freeze damage and control resolution for both Frost Elemental and Winter Wolf.
+
 ## Damage and control
 
 - Damage conversions consume their stored effect before resolving the bonus.
@@ -25,6 +45,12 @@ reuse the ordinary damage, healing, control, and resource pipelines.
   element. Neither conversion detonates Burn or creates another attack.
 
 ## Card preparation and rewards
+
+- Quick Fingers replaces Golden Touch in the Rogue’s Cutpurse tree while keeping
+  the saved `rogue_gold_t3_2` unlock. The first positive Gold theft each player turn
+  draws one card from the wearer’s deck; ordinary Gold gains and another party
+  member’s theft do not qualify. Claim the allowance before drawing, even if no
+  card can be drawn. Normal hand limits, buffering, and control restrictions apply.
 
 - Card-triggered elemental reactions use the selected random outcome. A defeated
   card owner cannot continue firing on-play rewards or reactions.

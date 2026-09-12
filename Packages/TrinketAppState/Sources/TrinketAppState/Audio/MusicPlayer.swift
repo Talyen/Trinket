@@ -17,6 +17,7 @@ final class MusicPlayer {
     private var inFlightRequest: MusicPlaybackRequest?
     private var pendingStartVolume: Float?
     private var resumePositions: [MusicResumeKey: TimeInterval] = [:]
+    private var canSaveCurrentPosition = true
     private var hasConfiguredSession = false
     private let logger = Logger(
         subsystem: AudioLogging.subsystem,
@@ -73,13 +74,16 @@ final class MusicPlayer {
         guard !isDisabled else { return }
         let resolvedVolume = Float(max(0, min(volume, 1)))
 
+        if inFlightRequest != nil {
+            pendingStartVolume = resolvedVolume
+        }
+
         if let currentPlayer, let currentRequest {
             currentPlayer.volume = targetVolume(for: currentRequest, appVolume: resolvedVolume)
             cancelActiveFades()
             return
         }
 
-        pendingStartVolume = resolvedVolume
         if resolvedVolume > 0, let preparedPlayer, let preparedRequest {
             startLoadedPlayer(
                 preparedPlayer,
@@ -96,7 +100,6 @@ final class MusicPlayer {
     }
 
     func silenceImmediately(preservingPosition: Bool) {
-        guard currentPlayer != nil else { return }
         cancelPendingLoad()
         clearPrepared()
         if preservingPosition {
@@ -115,6 +118,9 @@ final class MusicPlayer {
     }
 
     func clearEncounterResumePositions() {
+        if let currentRequest, currentRequest.resumeKey.contextKind != .menu {
+            canSaveCurrentPosition = false
+        }
         resumePositions = resumePositions.filter { entry in
             entry.key.contextKind == .menu
         }
@@ -123,6 +129,8 @@ final class MusicPlayer {
     private func play(_ request: MusicPlaybackRequest, volume: Float) {
         if let currentPlayer,
            currentRequest?.resumeKey == request.resumeKey {
+            cancelPendingLoad()
+            clearPrepared()
             cancelActiveFades()
             currentPlayer.numberOfLoops = request.track.isLooping ? -1 : 0
             currentPlayer.volume = targetVolume(for: request, appVolume: volume)
@@ -134,6 +142,7 @@ final class MusicPlayer {
 
         if let preparedPlayer,
            preparedRequest?.resumeKey == request.resumeKey {
+            cancelPendingLoad()
             startLoadedPlayer(
                 preparedPlayer,
                 request: request,
@@ -236,6 +245,7 @@ final class MusicPlayer {
         shouldCrossfade: Bool,
     ) {
         configureSessionIfNeeded()
+        canSaveCurrentPosition = true
         applyResumePosition(player, request: request)
         player.numberOfLoops = request.track.isLooping ? -1 : 0
         let target = targetVolume(for: request, appVolume: volume)
@@ -255,8 +265,10 @@ final class MusicPlayer {
     }
 
     private func fadeOutCurrent(preservingPosition: Bool) {
+        if pendingStartVolume != nil {
+            cancelPendingLoad()
+        }
         guard currentPlayer != nil else { return }
-        cancelPendingLoad()
         clearPrepared()
 
         if preservingPosition {
@@ -363,7 +375,7 @@ final class MusicPlayer {
     }
 
     private func saveCurrentPosition() {
-        guard let currentRequest, let currentPlayer else { return }
+        guard canSaveCurrentPosition, let currentRequest, let currentPlayer else { return }
         resumePositions[currentRequest.resumeKey] = currentPlayer.currentTime
     }
 

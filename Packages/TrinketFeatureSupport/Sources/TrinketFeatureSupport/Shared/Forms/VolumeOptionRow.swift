@@ -72,6 +72,8 @@ public struct VolumeOptionRow: View {
                     }
                 },
             )
+            .accessibilityLabel(title)
+            .accessibilityValue(percentageText)
             .onChange(of: draft) { _, newValue in
                 guard isEditing else { return }
                 onLiveChange?(newValue)

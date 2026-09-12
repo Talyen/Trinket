@@ -14,6 +14,8 @@ public enum EffectPresentation {
             "the next time they attack, they take \(amount) Bleed damage"
         case let .recurringDamage(keyword, amount, turns):
             "deal \(amount) \(keyword.rawValue) damage now and each turn \(durationPhrase(turns: turns))"
+        case let .blessedAegis(block, holyDamage):
+            "each ally gains \(block) Block and deals \(holyDamage) Holy damage the next time they’re hit"
         case let .avatar(holyDamage, blockPerTurn, turns):
             "deal \(holyDamage) Holy damage and gain \(blockPerTurn) Block now and each turn \(durationPhrase(turns: turns))"
         case let .multiplyDoT(keyword, factor):

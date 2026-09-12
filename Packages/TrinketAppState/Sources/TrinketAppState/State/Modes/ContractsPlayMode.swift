@@ -38,7 +38,7 @@ public final class ContractsPlayMode {
         return nil
     }
 
-    private func resolvedEncounter(for offer: ContractOffer) -> (combatant: Combatant, level: Int)? {
+    public func resolvedEncounter(for offer: ContractOffer) -> (combatant: Combatant, level: Int)? {
         PlayBattlePreparation.scaledEncounter(
             enemyID: offer.enemyID,
             level: EncounterLevelResolver.contractEnemyLevel(

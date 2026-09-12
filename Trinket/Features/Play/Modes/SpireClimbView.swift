@@ -143,6 +143,7 @@ struct SpireClimbView: View {
         presentPlayCombatantDetail(
             CombatantCardDetail(
                 combatant: encounter.combatant,
+                progression: .at(level: encounter.level),
             ),
         )
     }
@@ -167,7 +168,7 @@ private struct SpireFloorArtwork: View {
                let art = combatant.artReference {
                 MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
             } else {
-                MapTilePlaceholder(tint: tint, icon: .lucide("flag"))
+                MapTilePlaceholder(tint: tint, icon: .system("flag.fill"))
             }
         }
         .frame(maxWidth: .infinity)

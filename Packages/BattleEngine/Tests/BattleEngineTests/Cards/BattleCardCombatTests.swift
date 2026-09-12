@@ -450,6 +450,23 @@ extension BattleCardCombatTests {
 
 extension BattleCardCombatTests {
     @Test(arguments: [false, true])
+    func `turn and opening recordings never retain a command recorder`(opening: Bool) {
+        var state = BattleStateTestFactory.makeBattle(dealOpeningHand: !opening)
+        var checkpoints: [BattleState] = []
+        let recording: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { _, snapshot, _ in
+            checkpoints.append(snapshot)
+        }
+        if opening {
+            state.drawOpeningHand(recording: recording)
+        } else {
+            state.endTurn(recording: recording)
+        }
+        #expect(!checkpoints.isEmpty)
+        #expect(checkpoints.allSatisfy { $0.cardPlayRecording == nil })
+        #expect(state.cardPlayRecording == nil)
+    }
+
+    @Test(arguments: [false, true])
     func `recorded pack tactics preserves nested play and overflow rules`(nested: Bool) throws {
         var recorded = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
@@ -461,8 +478,8 @@ extension BattleCardCombatTests {
         if nested {
             _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &recorded)
         }
-        recorded.heroDeck = CombatDeck(abilities: [nested ? .packTactics : .slash, .block])
-        recorded.companionDeck = CombatDeck(abilities: [.bash, .block])
+        recorded.heroDeck = CombatDeck(abilities: [.slash, .block])
+        recorded.companionDeck = CombatDeck(abilities: [nested ? .packTactics : .bash, .block])
         var immediate = recorded
         let startingEventID = recorded.nextEventID
         var checkpoints: [BattleTransitionCheckpoint] = []
@@ -476,7 +493,7 @@ extension BattleCardCombatTests {
             capturedEvents.append(contentsOf: events)
             switch checkpoint {
             case let .cardsDrawn(cards):
-                #expect(cards.count == 2)
+                #expect(cards.count == 1)
                 drawnIDs.formUnion(cards.map(\.id))
                 sawBufferedDraw = sawBufferedDraw || cards.contains { card in
                     state.hand.buffer.contains(where: { $0.id == card.id })
@@ -495,10 +512,10 @@ extension BattleCardCombatTests {
         #expect(recordedEvents == immediateEvents)
         #expect(capturedEvents == recorded.events.filter { $0.id > startingEventID })
         #expect(Set(capturedEvents.map(\.id)).count == capturedEvents.count)
-        #expect(playedIDs.count == (nested ? 5 : 3))
+        #expect(playedIDs.count == (nested ? 3 : 2))
         #expect(Set(playedIDs).count == playedIDs.count)
         #expect(checkpoints.last == .ready)
-        #expect(sawBufferedDraw)
+        #expect(sawBufferedDraw == nested)
         #expect(recorded.cardPlayRecording == nil)
         #expect(recorded.hand == immediate.hand)
         #expect(recorded.heroDeck == immediate.heroDeck)
@@ -510,7 +527,27 @@ extension BattleCardCombatTests {
         #expect(recorded.rng.next() == immediate.rng.next())
     }
 
-    @Test func `pack tactics draws both cards from survivor deck`() throws {
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `pack tactics hits first then plays exactly one ally card`(owner: BattleParticipant) throws {
+        var battle = BattleStateTestFactory.makeBattle(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000), dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.heroDeck = CombatDeck(abilities: [.block])
+        battle.companionDeck = CombatDeck(abilities: [.block])
+        let card = BattleCardCombatEngine.deal(.packTactics, owner: owner, context: &battle)
+        let events = try battle.playCard(cardID: card.id)
+        let hit = try #require(events.firstIndex { $0.kind == .abilityDamage && $0.abilityID == Ability.packTactics.id })
+        #expect(events[hit].amount == 3)
+        let follows = events.indices.filter { events[$0].kind == .ability && events[$0].abilityID == Ability.block.id }
+        #expect(follows.count == 1)
+        let follow = try #require(follows.first)
+        #expect(hit < follow)
+        let ally = owner == .hero ? battle.companion : battle.hero
+        #expect(events[follow].actorID == ally.id)
+    }
+
+    @Test func `pack tactics draws one card from survivor deck`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 0
@@ -518,8 +555,8 @@ extension BattleCardCombatTests {
         battle.companionDeck = CombatDeck(abilities: [.slash])
         let card = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &battle)
         let events = try BattleCardCombatEngine.playDrawnCard(card, context: &battle)
-        #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == 2)
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 6)
+        #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == 1)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 3)
         #expect(!events.contains { $0.kind == .ability && $0.actorID == battle.companion.id })
     }
 }

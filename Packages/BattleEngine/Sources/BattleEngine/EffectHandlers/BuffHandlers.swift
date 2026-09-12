@@ -108,15 +108,15 @@ struct MarkedHandler: BattleEffectHandler {
             if maxTicks > 0 {
                 return EffectSummary(
                     keyword: keyword,
-                    text: "Marked: Takes +\(bonus) damage from attacks, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
+                    text: "Marked: The next attack deals +\(bonus) damage and removes Marked; \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
                 )
             }
             return EffectSummary(
                 keyword: keyword,
-                text: "Marked: Takes +\(bonus) damage from attacks.",
+                text: "Marked: The next attack deals +\(bonus) damage and removes Marked.",
             )
         }
-        return EffectSummary(keyword: keyword, text: "Marked: Takes extra damage from attacks.")
+        return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked.")
     }
 
     func apply(

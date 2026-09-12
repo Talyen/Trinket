@@ -20,7 +20,6 @@ struct BattlePresentationSnapshot: Equatable {
     let companion: BattleCombatantPresentation
     let enemy: BattleCombatantPresentation
     var hand: [BattleCard]
-    var stagedCard: BattleCard?
     let playableCardIDs: Set<Int>
     let isBattleOver: Bool
 
@@ -76,9 +75,15 @@ final class BattlePresentationState {
     private(set) var companion: BattleCombatantPresentation?
     private(set) var enemy: BattleCombatantPresentation?
     private(set) var hand: [BattleCard] = []
-    private(set) var stagedCard: BattleCard?
     private(set) var playableCardIDs: Set<Int> = []
     private(set) var isBattleOver = false
+
+    func consumeFinishingCard(id: Int) -> Bool {
+        guard let index = hand.firstIndex(where: { $0.id == id }) else { return false }
+        hand.remove(at: index)
+        playableCardIDs.remove(id)
+        return true
+    }
 
     func install(_ snapshot: BattlePresentationSnapshot) {
         if configurationID != snapshot.configurationID {
@@ -95,9 +100,6 @@ final class BattlePresentationState {
         }
         if hand != snapshot.hand {
             hand = snapshot.hand
-        }
-        if stagedCard != snapshot.stagedCard {
-            stagedCard = snapshot.stagedCard
         }
         if playableCardIDs != snapshot.playableCardIDs {
             playableCardIDs = snapshot.playableCardIDs

@@ -58,26 +58,21 @@ Every keyword has one visual identity via `Keyword.visualStyle`. Do not introduc
 
 ## Game icons
 
-Use bundled Lucide icons for game concepts, including game imagery inside buttons.
-Keep SF Symbols for native navigation, menus, filters, playback, settings, alerts,
-locks/checks, empty-state UI, and existing symbol animations. An SF Symbol remains
-appropriate when its silhouette communicates a game concept better; Thorns uses
-`burst.fill` with Physical's color. Floating combat feedback uses SF Symbols,
-filled where available, for legibility over moving artwork; its presentation is
-owned by [BattleFeature](../../TrinketBattleFeature/README.md#uikit-feedback-island).
-Painted artwork remains primary outside symbolic feedback. [Game icon selections](../../../Docs/Product/GameIcons.md)
-records surface mappings and links to the individual talent/node selections.
+Use SF Symbols for game concepts and native UI. Prefer filled variants when they
+retain the intended meaning; symbols such as `asterisk`, `snowflake`, `wind`, and
+`sparkles` do not need a fill variant. Preserve native font weight, scale, and
+symbol behavior. Painted artwork remains primary outside symbolic feedback.
+[Game icon selections](../../../Docs/Product/GameIcons.md) records shared mappings
+and links to individual talent and Homestead selections.
 
-`GameIcon` identifies `.lucide(name)` or `.system(name)`. `GameIconImage` follows
-the surrounding `trinketTypography` font through native font resolution and aligns
-Lucide artwork to its text baseline. Icons are decorative; apply tint at the call
-site and meaningful accessibility labels to their containing controls. It does not
-add symbol effects to Lucide assets.
-Feature views must not look up asset names or package bundles directly.
+`GameIcon` identifies `.system(name)`. `GameIconImage` renders a native SwiftUI
+symbol in monochrome, inheriting the surrounding typography and tint. Icons are
+decorative; provide meaningful accessibility labels on their containing controls.
+Floating combat feedback consumes the same `Keyword.visualStyle.icon` identities;
+its rasterization and motion remain owned by
+[BattleFeature](../../TrinketBattleFeature/README.md#uikit-feedback-island).
 
-The selected SVGs in `Resources/GameIcons.xcassets` are vendored from Lucide 1.37.0.
-Geometry and the standard two-unit stroke are unchanged; `currentColor` is
-normalized to black for Xcode template rendering. `LucideProvenance.json` records
-the upstream version and original SHA-256 for each icon. `Lucide-LICENSE.txt` ships
-the upstream license and copyright notices. Bundle only selected assets, retain
-transparent backgrounds, and verify additions through the asset-catalog test.
+Authored content uses `sf:` identifiers. `GameIcon.init(id:)` also accepts legacy
+unqualified SF names and translates the previously shipped `lucide:` names through
+`GameIcon+Legacy.swift`. This read compatibility does not require Lucide assets or
+a second renderer. Do not add new entries to the legacy provider vocabulary.

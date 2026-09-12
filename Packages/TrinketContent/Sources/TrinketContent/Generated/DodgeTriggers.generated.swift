@@ -35,7 +35,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var dodgeChanceVsBleedingEnemiesBonus: Double = 0
     public var firstAttackGuaranteedCritical: Bool = false
     public var swapAndDodgeForHeroChance: Double = 0
-    public var redirectSingleTargetAttacksToHero: Bool = false
+    public var shadowCamouflage: Bool = false
     public var untargetableAboveHealthPercent: Double = 0
     public var onDodgeDrawAndPlayCardChainOnCrit: Bool = false
     public var phantomCounter: Bool = false
@@ -82,7 +82,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         dodgeChanceVsBleedingEnemiesBonus: Double = 0,
         firstAttackGuaranteedCritical: Bool = false,
         swapAndDodgeForHeroChance: Double = 0,
-        redirectSingleTargetAttacksToHero: Bool = false,
+        shadowCamouflage: Bool = false,
         untargetableAboveHealthPercent: Double = 0,
         onDodgeDrawAndPlayCardChainOnCrit: Bool = false,
         phantomCounter: Bool = false,
@@ -128,7 +128,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.dodgeChanceVsBleedingEnemiesBonus = dodgeChanceVsBleedingEnemiesBonus
         self.firstAttackGuaranteedCritical = firstAttackGuaranteedCritical
         self.swapAndDodgeForHeroChance = swapAndDodgeForHeroChance
-        self.redirectSingleTargetAttacksToHero = redirectSingleTargetAttacksToHero
+        self.shadowCamouflage = shadowCamouflage
         self.untargetableAboveHealthPercent = untargetableAboveHealthPercent
         self.onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit
         self.phantomCounter = phantomCounter
@@ -145,7 +145,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "redirectSingleTargetAttacksToHero", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "falseOpening", "missedOpportunity", "passingLuck", "scatteredCaltrops", "smokeTrick", "improvingOdds", "blindSpot", "onDodgeNextAttackGuaranteedCritical", "dodgeFirstAttackEachCombat"]
+    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "shadowCamouflage", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "falseOpening", "missedOpportunity", "passingLuck", "scatteredCaltrops", "smokeTrick", "improvingOdds", "blindSpot", "onDodgeNextAttackGuaranteedCritical", "dodgeFirstAttackEachCombat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -181,7 +181,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         if self.dodgeChanceVsBleedingEnemiesBonus != other.dodgeChanceVsBleedingEnemiesBonus { names.append("dodgeChanceVsBleedingEnemiesBonus") }
         if self.firstAttackGuaranteedCritical != other.firstAttackGuaranteedCritical { names.append("firstAttackGuaranteedCritical") }
         if self.swapAndDodgeForHeroChance != other.swapAndDodgeForHeroChance { names.append("swapAndDodgeForHeroChance") }
-        if self.redirectSingleTargetAttacksToHero != other.redirectSingleTargetAttacksToHero { names.append("redirectSingleTargetAttacksToHero") }
+        if self.shadowCamouflage != other.shadowCamouflage { names.append("shadowCamouflage") }
         if self.untargetableAboveHealthPercent != other.untargetableAboveHealthPercent { names.append("untargetableAboveHealthPercent") }
         if self.onDodgeDrawAndPlayCardChainOnCrit != other.onDodgeDrawAndPlayCardChainOnCrit { names.append("onDodgeDrawAndPlayCardChainOnCrit") }
         if self.phantomCounter != other.phantomCounter { names.append("phantomCounter") }
@@ -232,7 +232,7 @@ extension DodgeTriggers {
         dodgeChanceVsBleedingEnemiesBonus += other.dodgeChanceVsBleedingEnemiesBonus
         firstAttackGuaranteedCritical = firstAttackGuaranteedCritical || other.firstAttackGuaranteedCritical
         swapAndDodgeForHeroChance = max(swapAndDodgeForHeroChance, other.swapAndDodgeForHeroChance)
-        redirectSingleTargetAttacksToHero = redirectSingleTargetAttacksToHero || other.redirectSingleTargetAttacksToHero
+        shadowCamouflage = shadowCamouflage || other.shadowCamouflage
         untargetableAboveHealthPercent = max(untargetableAboveHealthPercent, other.untargetableAboveHealthPercent)
         onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit || other.onDodgeDrawAndPlayCardChainOnCrit
         phantomCounter = phantomCounter || other.phantomCounter
@@ -284,7 +284,7 @@ extension DodgeTriggers {
             dodgeChanceVsBleedingEnemiesBonus: values.decode(Double.self, "dodgeChanceVsBleedingEnemiesBonus", default: 0),
             firstAttackGuaranteedCritical: values.decode(Bool.self, "firstAttackGuaranteedCritical", default: false),
             swapAndDodgeForHeroChance: values.decode(Double.self, "swapAndDodgeForHeroChance", default: 0),
-            redirectSingleTargetAttacksToHero: values.decode(Bool.self, "redirectSingleTargetAttacksToHero", default: false),
+            shadowCamouflage: values.decode(Bool.self, "shadowCamouflage", default: false),
             untargetableAboveHealthPercent: values.decode(Double.self, "untargetableAboveHealthPercent", default: 0),
             onDodgeDrawAndPlayCardChainOnCrit: values.decode(Bool.self, "onDodgeDrawAndPlayCardChainOnCrit", default: false),
             phantomCounter: values.decode(Bool.self, "phantomCounter", default: false),
@@ -333,7 +333,7 @@ extension DodgeTriggers {
         try container.encodeNonDefault(dodgeChanceVsBleedingEnemiesBonus, "dodgeChanceVsBleedingEnemiesBonus", default: 0)
         try container.encodeNonDefault(firstAttackGuaranteedCritical, "firstAttackGuaranteedCritical", default: false)
         try container.encodeNonDefault(swapAndDodgeForHeroChance, "swapAndDodgeForHeroChance", default: 0)
-        try container.encodeNonDefault(redirectSingleTargetAttacksToHero, "redirectSingleTargetAttacksToHero", default: false)
+        try container.encodeNonDefault(shadowCamouflage, "shadowCamouflage", default: false)
         try container.encodeNonDefault(untargetableAboveHealthPercent, "untargetableAboveHealthPercent", default: 0)
         try container.encodeNonDefault(onDodgeDrawAndPlayCardChainOnCrit, "onDodgeDrawAndPlayCardChainOnCrit", default: false)
         try container.encodeNonDefault(phantomCounter, "phantomCounter", default: false)

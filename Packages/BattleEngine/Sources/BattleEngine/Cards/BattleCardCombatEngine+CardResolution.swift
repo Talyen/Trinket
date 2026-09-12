@@ -78,7 +78,6 @@ extension BattleCardCombatEngine {
         }
         events.append(contentsOf: CombatTriggerEngine.finishHeroCard(actor: actor, in: &context))
         events.append(contentsOf: UniqueCombatEngine.finishCardDraws(in: &context))
-        context.roster.mutateRuntime(for: actor) { $0.talents.finishCard() }
         if let returned = UniqueCombatEngine.returnPlayedCard(card, in: &context) {
             events.append(returned)
         } else {

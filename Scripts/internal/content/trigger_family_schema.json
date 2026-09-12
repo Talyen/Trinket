@@ -1399,7 +1399,7 @@
         "merge": "max"
       },
       {
-        "name": "poisonDamageLeechPercent",
+        "name": "poisonDamageLeechChancePercent",
         "type": "Double",
         "default": "0",
         "merge": "add"
@@ -2059,7 +2059,7 @@
         "merge": "max"
       },
       {
-        "name": "redirectSingleTargetAttacksToHero",
+        "name": "shadowCamouflage",
         "type": "Bool",
         "default": "false",
         "merge": "or"
@@ -2623,10 +2623,10 @@
         "merge": "or"
       },
       {
-        "name": "onGainGoldDoubleStatusEffectsNextCard",
-        "type": "Bool",
-        "default": "false",
-        "merge": "or"
+        "name": "firstGoldTheftDraw",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       },
       {
         "name": "bountyBlade",
@@ -2834,6 +2834,12 @@
       },
       {
         "name": "leechChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "freezeDamageLeechChancePercent",
         "type": "Double",
         "default": "0",
         "merge": "add"

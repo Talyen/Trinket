@@ -108,7 +108,6 @@ struct PlaySessionPresentationModifier: ViewModifier {
                 content: {
                     PostBattleTalentChoiceView()
                         .trinketDetailSheet()
-                        .interactiveDismissDisabled()
                 },
             )
             .trinketMessageAlert($stageMessage)

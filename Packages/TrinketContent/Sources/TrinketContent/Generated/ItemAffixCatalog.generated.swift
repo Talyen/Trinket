@@ -596,8 +596,8 @@ enum ItemAffixCatalogGenerated {
             slot: .armor,
             keywords: [.mana, .block],
             weight: 8,
-            basic: ItemAffixPower(description: "Gain 2 Block when you gain Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(gainManaBlockFlat: 2))),
-            astral: ItemAffixPower(description: "Gain 4 Block when you gain Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(gainManaBlockFlat: 4)))
+            basic: ItemAffixPower(description: "Gain 1 Block when you gain Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(gainManaBlockFlat: 1))),
+            astral: ItemAffixPower(description: "Gain 2 Block when you gain Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(gainManaBlockFlat: 2)))
         ),
         ItemAffixCatalog.affix(
             id: "gilded",
@@ -718,8 +718,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.freeze, .leech],
             weight: 1,
-            basic: ItemAffixPower(description: "Freeze damage gains Leech.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(freezeDamageLeech: true))),
-            astral: ItemAffixPower(description: "Freeze damage gains Leech.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(freezeDamageLeech: true)))
+            basic: ItemAffixPower(description: "Your Freeze damage has a 50% chance to Leech.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(freezeDamageLeechChancePercent: 0.5))),
+            astral: ItemAffixPower(description: "Your Freeze damage has a 50% chance to Leech.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(freezeDamageLeechChancePercent: 0.5)))
         ),
         ItemAffixCatalog.affix(
             id: "ironwood_buckler",

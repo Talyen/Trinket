@@ -44,7 +44,7 @@ enum GameContentEnemiesGenerated {
         list.append(Enemy(combatant: Combatant(id: "brawler", name: "Brawler", role: .enemy, maxHealth: 14, abilities: [.bash, .sunder, .earthquake]), traitID: "brawler_trait", faction: .mortal))
         list.append(Enemy(combatant: Combatant(id: "stone_golem", name: "Stone Golem", role: .enemy, maxHealth: 15, abilities: [.shieldBash, .stoneskinPotion, .earthquake]), traitID: "stone_golem_trait", faction: .construct))
         list.append(Enemy(combatant: Combatant(id: "earth_elemental", name: "Earth Elemental", role: .enemy, maxHealth: 15, abilities: [.bash, .sunder, .earthquake]), traitID: "earth_elemental_trait", faction: .elemental))
-        list.append(Enemy(combatant: Combatant(id: "the_stone_titan", name: "The Stone Titan", role: .enemy, maxHealth: 15, abilities: [.bash, .sunder, .earthquake]), traitID: "the_stone_titan_trait", isBoss: true, faction: .construct))
+        list.append(Enemy(combatant: Combatant(id: "the_stone_titan", name: "The Stone Titan", role: .enemy, maxHealth: 15, abilities: [.bash, .stoneskinPotion, .earthquake]), traitID: "the_stone_titan_trait", isBoss: true, faction: .construct))
         return list
     }()
 }

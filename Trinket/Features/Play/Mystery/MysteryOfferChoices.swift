@@ -94,12 +94,13 @@ struct MysteryOfferChoices: View {
                     HomesteadResourceArtwork(resource: resource)
                 }
             case let .experience(amount):
-                GameIconImage(.lucide("star"))
-                    .foregroundStyle(TrinketDesign.Colors.arcane)
-                    .accessibilityHidden(true)
-                Text("+\(amount) XP")
-                    .trinketTypography(.statValue)
-                    .fixedSize(horizontal: false, vertical: true)
+                TrinketWalletResourcePill(
+                    title: "Experience",
+                    amount: amount,
+                    showsIncreasePrefix: true,
+                ) {
+                    ExperienceArtwork()
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

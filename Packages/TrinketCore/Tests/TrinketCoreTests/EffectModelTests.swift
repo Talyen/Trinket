@@ -147,6 +147,7 @@ struct EffectModelTests {
         case .multiplyDoT: .multiplyDoT(.burn, 2)
         case .detonateDoT: .detonateDoT(.burn, 2)
         case .recurringDamage: .recurringDamage(.freeze, 3, 2)
+        case .blessedAegis: .blessedAegis(block: 4, holyDamage: 4)
         case .avatar: .avatar(holyDamage: 6, blockPerTurn: 4, turns: 2)
         case .revive: .revive(10)
         case .damageReductionPercent: .damageReductionPercent(0.20, 2)

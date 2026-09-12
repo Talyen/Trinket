@@ -66,13 +66,13 @@ public struct Stage: Identifiable, Hashable, Sendable {
 }
 
 enum StageTypeIconID {
-    static let battle = "lucide:swords"
-    static let boss = "lucide:crown"
-    static let shop = "lucide:store"
-    static let mystery = "lucide:sparkles"
-    static let recruitHero = "lucide:users-round"
-    static let recruitCompanion = "lucide:paw-print"
-    static let entrance = "lucide:door-open"
+    static let battle = "sf:bolt.shield.fill"
+    static let boss = "sf:crown.fill"
+    static let shop = "sf:storefront.fill"
+    static let mystery = "sf:sparkles"
+    static let recruitHero = "sf:person.2.fill"
+    static let recruitCompanion = "sf:pawprint.fill"
+    static let entrance = "sf:door.left.hand.open"
 }
 
 public enum StageEncounter: Hashable, Sendable {

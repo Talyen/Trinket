@@ -24,7 +24,7 @@ struct ContentAccessPolicyTests {
     }
 
     @Test func `conditional and unselected abilities count for attunement`() throws {
-        let frostWhelp = try #require(GameContent.combatant(matching: "frost_whelp"))
+        let frostWhelp = Combatant(id: "frost_whelp", name: "Frost Whelp", role: .companion, maxHealth: 20, abilities: [.iceShot])
         let spire = try #require(GameContent.spire(id: .ironVein))
         #expect(!frostWhelp.keywordProfile.contains(.physical))
         #expect(SpireAttunement.matches(frostWhelp, spire: spire))

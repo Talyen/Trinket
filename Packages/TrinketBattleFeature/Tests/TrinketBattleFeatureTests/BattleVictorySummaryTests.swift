@@ -19,7 +19,7 @@ struct BattleVictorySummaryTests {
             heroExperienceAward: 17,
             companionExperienceAward: 9,
         )
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         _ = session.activate(configuration, presentation: context)
 
         session.presentLaunchVictory()
@@ -39,7 +39,7 @@ struct BattleVictorySummaryTests {
             enemy: party.enemy,
             stageRewardsAlreadyClaimed: true,
         )
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         _ = session.activate(first.configuration, presentation: first.presentation)
         #expect(session.presentationContext?.stageRewardsAlreadyClaimed == true)
 
@@ -217,7 +217,7 @@ struct BattleVictorySummaryTests {
             stageReward: StageReward(gold: 100, itemTemplateIDs: []),
             goldFindPercent: 10,
         )
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         _ = session.activate(configuration, presentation: context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 

@@ -39,6 +39,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case detonateDoT
     case recurringDamage
     case avatar
+    case blessedAegis
     case revive
     case damageReductionPercent
     case damageReductionFlat
@@ -92,7 +93,7 @@ public extension EffectKind {
              .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom,
              .purge, .purgeRandom, .halveShield,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
-             .multiplyDoT, .detonateDoT, .revive:
+             .multiplyDoT, .detonateDoT, .revive, .blessedAegis:
             (false, false, false, true, false, false)
         case .deathsDoor:
             (false, false, true, false, false, false)
@@ -177,6 +178,7 @@ public extension Effect {
         case .detonateDoT: .detonateDoT
         case .recurringDamage: .recurringDamage
         case .avatar: .avatar
+        case .blessedAegis: .blessedAegis
         case .revive: .revive
         case .damageReductionPercent: .damageReductionPercent
         case .damageReductionFlat: .damageReductionFlat

@@ -17,29 +17,42 @@ and uses the session's preparation method, independently of the gameplay feature
 
 Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 
-## Command playback
+## Continuous card input
 
-Opening draws and turn transitions execute synchronously in BattleEngine. Their
-recording callback emits checkpoints that BattleFeature projects into immutable
-`BattleTransitionFrame` values; the callback never advances rules. Animated and
-immediate presentation consume the same resolved transition. `BattleCommandState`
-owns readiness and suspension, and all manual/automatic commands use the same gate.
-Suspension pauses playback; replacing/ending a run invalidates its generation.
-Do not expose incremental draw mutation to BattleFeature or derive readiness from
-whether an animation task happens to exist.
+[Card play](../Product/CardPlay.md) owns PD-024's approved behavior, including
+full-size automatic cards and intentionally visual-only finishing taps. Do not
+restore animation locks or reject finishing taps as a correctness fix.
 
-Card commands can record draw batches, pre-play and removal checkpoints, and
-resolved effect batches through the same boundary. Recording is scoped to the
-synchronous command; retained snapshots never retain its recorder. Recording
-uses an inout state boundary so recursive calls do not retain full
-pre-play state copies. Card announcements accompany their cast while effect
-batches retain resolution order. Pack Tactics
-keeps its collect-before-play rules while presentation reveals each drawn card
-immediately before its automatic play. Nested plays reuse the normal lift, cast,
-and feedback lanes. A buffered card with a full visible hand uses a temporary
-cast position over the hand without changing the hand or buffer. Card playback
-holds command readiness and outcome presentation until the final cast settles;
-scene suspension pauses playback and the cast clock.
+Card, opening-hand, and turn commands finish synchronously in BattleEngine.
+BattleFeature publishes their final hand, resources, statuses, and eligibility
+once per command. Recording is observation only: retained state never retains
+its recorder, and callbacks cannot advance rules. Ordinary card recording emits
+ordered effect batches; opening/turn recording additionally reports nested
+`cardPlayed` checkpoints with empty event batches so aggregate turn events remain
+single-delivery. BattleFeature extracts automatic card identities, not a replay
+of historical hand snapshots. Late visual completion only removes its own cast.
+
+The engine rejects gameplay commands after outcome. The session's finishing-tap
+branch consumes only presentation hand cards and must never enter BattleEngine,
+refresh gameplay projection, emit combat events, or reschedule the outcome.
+The final projection preserves unplayed visible cards removed by defeat cleanup,
+excluding cards actually consumed by the resolving command and its automatic
+plays. It retains the three-card display cap. Subsequent ordinary availability
+checks do not apply to these visual-only cards.
+
+Regression ownership: `BattleSessionSimulationTests+CardPlayback.swift` checks
+consecutive commands against direct engine resolution, independent cast cleanup,
+immutable finishing results/timing, and visual hand survival after lethal
+retaliation. Opening/turn readiness and suspension live in the preparation and
+simulation suites; gesture inspection/drag safety uses `BattleFlowUITests`.
+
+## Display work lifecycle
+
+`BattleCommandState` owns command readiness and suspension. Visual tasks and
+casts never own readiness. Suspension pauses cast clocks; ending/replacing a run
+invalidates its startup generation and clears owned cast work without clearing
+the retiring view's final hand or combatants. Callbacks retain their original
+presentation owner and cannot affect a later run.
 
 ## Card visibility
 

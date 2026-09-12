@@ -32,20 +32,20 @@ struct SpireCatalogTests {
         let ironVein = try #require(GameContent.spire(id: .ironVein))
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
-        let manaMoth = try #require(GameContent.companions.first { $0.id == "mana_moth" })
+        let phoenix = try #require(GameContent.companions.first { $0.id == "phoenix" })
 
         try #expect(SpireAttunement.matches(rogue, spire: ironVein))
         try #expect(SpireAttunement.matches(bear, spire: ironVein))
-        try #expect(!SpireAttunement.matches(manaMoth, spire: ironVein))
+        try #expect(!SpireAttunement.matches(phoenix, spire: ironVein))
         try #expect(
-            SpireAttunement.canEnter(ironVein, heroes: [rogue], companions: [bear, manaMoth]),
+            SpireAttunement.canEnter(ironVein, heroes: [rogue], companions: [bear, phoenix]),
         )
         try #expect(
-            !SpireAttunement.canEnter(ironVein, heroes: [rogue], companions: [manaMoth]),
+            !SpireAttunement.canEnter(ironVein, heroes: [rogue], companions: [phoenix]),
         )
         try #expect(SpireAttunement.evaluate(hero: rogue, companion: bear, spire: ironVein) == .ready)
         try #expect(
-            SpireAttunement.evaluate(hero: rogue, companion: manaMoth, spire: ironVein)
+            SpireAttunement.evaluate(hero: rogue, companion: phoenix, spire: ironVein)
                 == .missingCompanionAffinity,
         )
     }

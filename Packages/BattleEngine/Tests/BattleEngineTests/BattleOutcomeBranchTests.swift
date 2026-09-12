@@ -5,70 +5,27 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct BattleOutcomeBranchTests {
-    @Test func `luck potion skips unneeded restoration and targets lowest eligible ally`() {
-        var outcomes: Set<Keyword> = []
-        for seed in UInt64(1) ... 64 {
+    @Test func `luck potion resolves one seeded damage hit`() throws {
+        var seen: Set<Keyword> = []
+        for seed in UInt64(1) ... 36 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroMaxHealth: 30, companionMaxHealth: 20,
-                heroMaxMana: 10, heroMana: 6, companionMaxMana: 10, companionMana: 2,
+                enemyMaxHealth: 500, heroMaxMana: 0,
+                heroModifiers: .init(triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: -1))),
                 rngSeed: seed, dealOpeningHand: false,
             )
             battle.appliesFightPacing = false
-            battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 12 }
-            battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 5 }
             let events = BattleTurnEngine.performAction(
                 ability: .luckPotion, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
             )
-            if battle.mana(of: battle.companion) > 2 {
-                outcomes.insert(.mana)
-                #expect(battle.mana(of: battle.companion) == 9)
-                #expect(battle.mana(of: battle.hero) == 6)
-            } else if battle.health(of: battle.companion) > 5 {
-                outcomes.insert(.health)
-                #expect([12, 19].contains(battle.health(of: battle.companion)))
-                #expect(battle.health(of: battle.hero) == 12)
-            } else {
-                outcomes.insert(.block)
-                #expect(events.contains { $0.effectKind == .shieldApplied && $0.amount == 7 })
-            }
+            let hits = events.filter { $0.kind == .abilityDamage }
+            #expect(hits.count == 1)
+            let hit = try #require(hits.first)
+            #expect((1 ... 12).contains(hit.amount))
+            #expect(battle.health(of: battle.enemy) == 500 - hit.amount)
+            let keyword = try #require(hit.keyword)
+            seen.insert(keyword)
         }
-        #expect(outcomes == [.mana, .health, .block])
-    }
-
-    @Test(arguments: [0, 10])
-    func `luck potion always gives block when party resources are full`(maxMana: Int) {
-        for seed in UInt64(1) ... 32 {
-            var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroMaxMana: maxMana, companionMaxMana: maxMana,
-                rngSeed: seed, dealOpeningHand: false,
-            )
-            let events = BattleTurnEngine.performAction(
-                ability: .luckPotion, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
-            )
-            #expect(events.contains { $0.effectKind == .shieldApplied && $0.amount == 7 })
-            #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 7)
-        }
-    }
-
-    @Test func `luck potion ignores full or defeated low health allies`() {
-        for heroHealth in [0, 5] {
-            var sawHeal = false
-            for seed in UInt64(1) ... 32 {
-                var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                    heroMaxHealth: 5, companionMaxHealth: 30, rngSeed: seed, dealOpeningHand: false,
-                )
-                battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = heroHealth }
-                battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 10 }
-                _ = BattleTurnEngine.performAction(
-                    ability: .luckPotion, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
-                )
-                #expect(battle.health(of: battle.hero) == heroHealth)
-                if battle.health(of: battle.companion) > 10 {
-                    sawHeal = true
-                }
-            }
-            #expect(sawHeal)
-        }
+        #expect(seen == [.holy, .freeze, .physical])
     }
 
     private func makeBattle(

@@ -9,7 +9,7 @@
 | `HeroScrim.swift` | On-art text styling (`.trinketOnArtText`) |
 | `ArtworkBlend.swift` | Optional semantic bottom-edge artwork blending |
 | `Keyword+VisualStyle.swift` | Color + game icon per Keyword (uses `Opacity` tokens) |
-| `GameIcon.swift`, `GameIconImage.swift` | Lucide/SF icon identity, bundle resource access, and font-aligned SwiftUI rendering |
+| `GameIcon.swift`, `GameIconImage.swift` | SF Symbol identity, legacy identifier translation, and native SwiftUI rendering |
 | `HomesteadResource+Color.swift` | Homestead resource tint resolution (gold resolves to the theme accent) |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces (single glass button path) |
 | `ExperienceBar.swift` | XP/level progress bar |

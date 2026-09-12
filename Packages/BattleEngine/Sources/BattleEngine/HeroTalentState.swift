@@ -52,4 +52,5 @@ struct HeroTalentState {
     var history: [String: HeroTalentHistory] = [:]
     var enemyTurnActive = false
     var healthLostDuringEnemyTurn: Set<String> = []
+    var attackedDuringEnemyTurn: Set<String> = []
 }

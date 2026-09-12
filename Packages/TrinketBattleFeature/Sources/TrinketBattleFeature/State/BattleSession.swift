@@ -93,17 +93,13 @@ public final class BattleSession: BattleRuntime {
     public var completionError: StageMapMessage?
     @ObservationIgnored
     var deliveredClaimedVictoryConfigurationID: UUID?
-    public var openingHandDrawStagger: Duration
 
     var autoBattleRetryDelay: Duration = .milliseconds(50)
     let autoEndTurnDelay: Duration
-    let enemyAttackImpactDelayOverride: Duration?
     @ObservationIgnored
     var autoEnd = CancellableGeneration()
     @ObservationIgnored
     var transitionTask = CancellableGeneration()
-    @ObservationIgnored
-    var transitionPlayback: BattleTransitionPlayback?
     var commandState = BattleCommandState()
     @ObservationIgnored
     var artworkPreparation = BattleArtworkPreparation()
@@ -133,16 +129,13 @@ public final class BattleSession: BattleRuntime {
 
     public init(
         autoEndTurnDelay: TimeInterval = 0.4,
-        openingHandDrawStagger: TimeInterval? = nil,
-        enemyAttackImpactDelayOverride: TimeInterval? = nil,
+
         outcomePresentationDelayOverride: TimeInterval? = nil,
         partyCelebrateDelayOverride: TimeInterval? = nil,
         ultimateInFrameDurationOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies = .silent,
     ) {
         self.autoEndTurnDelay = .seconds(autoEndTurnDelay)
-        self.openingHandDrawStagger = openingHandDrawStagger.map { .seconds($0) } ?? .seconds(BattleMotion.cardDrawStagger)
-        self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride.map { .seconds($0) }
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride.map { .seconds($0) }
         self.partyCelebrateDelayOverride = partyCelebrateDelayOverride.map { .seconds($0) }
         self.ultimateInFrameDurationOverride = ultimateInFrameDurationOverride.map { .seconds($0) }
@@ -176,6 +169,13 @@ public final class BattleSession: BattleRuntime {
             && engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
             && spectacle.outcomePresentation == .battle
             && !isShowingBattleLog && overlayCombatantDetail == nil && overlayAbilityDetail == nil
+    }
+
+    var canInteractWithHand: Bool {
+        activeBattle != nil && !isSuspendedForScenePhase
+            && !spectacle.outcomePresentation.isOutcomePresented
+            && !isShowingBattleLog && overlayCombatantDetail == nil && overlayAbilityDetail == nil
+            && (canAcceptBattleCommands || commandState.phase == .outcome)
     }
 
     var canEndTurn: Bool {
@@ -243,15 +243,8 @@ public final class BattleSession: BattleRuntime {
         spectacle.outcomePresentation = .victory(summary)
     }
 
-    func combatantReadModel(for combatant: Combatant) -> CombatantReadModel? {
-        guard let engineState else { return nil }
-        let summaries = engineState.effectSummaries(of: combatant)
-        return CombatantReadModel(
-            combatant: combatant,
-            health: engineState.health(of: combatant),
-            mana: engineState.mana(of: combatant),
-            activeEffectSummaries: summaries,
-        )
+    func effectSummaries(for combatant: Combatant) -> [EffectSummary]? {
+        engineState?.effectSummaries(of: combatant)
     }
 
     #if DEBUG
@@ -289,14 +282,10 @@ public final class BattleSession: BattleRuntime {
         let resolvedPresentation = presentation ?? progression?.presentation(configuration)
         guard progression == nil || resolvedPresentation != nil else { return false }
         clearCardCues()
-        let holdOpeningHandForOverlayFade = activeBattle == nil
         engineState = state
         activeBattle = configuration
         presentationContext = resolvedPresentation
-        resetRun(
-            from: configuration,
-            holdOpeningHandForOverlayFade: holdOpeningHandForOverlayFade,
-        )
+        resetRun(from: configuration)
         return true
     }
 

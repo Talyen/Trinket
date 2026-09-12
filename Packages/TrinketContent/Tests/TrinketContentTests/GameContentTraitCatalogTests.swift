@@ -53,7 +53,7 @@ struct GameContentTraitCatalogTests {
         try checkAura(id: "the_blight_treant_trait", keywordA: .poison, keywordB: .bleed, amount: 1)
         try checkAura(id: "the_blood_countess_trait", keywordA: .bleed, keywordB: .bleed, amount: 1)
         try checkAura(id: "the_seraph_trait", keywordA: .holy, keywordB: .holy, amount: 1)
-        try checkAura(id: "the_stone_titan_trait", keywordA: .stun, keywordB: .stun, amount: 1)
+        try checkAura(id: "the_stone_titan_trait", keywordA: .physical, keywordB: .physical, amount: 1)
 
         let frostwarden = try #require(GameContent.traits.first { $0.id == "the_frostwarden_trait" })
         try #expect(frostwarden.triggers.turnFreezeDamageAllEnemies == 1)

@@ -26,6 +26,7 @@ enum AbilityValidator {
         "ice-shot",
         "kindling",
         "luck-potion",
+        "pack-tactics",
         "panacea-potion",
         "poison-dagger",
         "pounce",
@@ -45,39 +46,11 @@ enum AbilityValidator {
         issues.append(contentsOf: validateTierDamage(for: ability))
         issues.append(contentsOf: validateDescription(for: ability))
         issues.append(contentsOf: validateConditionalDamage(for: ability))
-        issues.append(contentsOf: validateRestorationBranches(for: ability))
         return issues
     }
 
     static func validateCatalog() -> [Issue] {
         AbilityCatalog.all.flatMap(validate)
-    }
-
-    private static func validateRestorationBranches(for ability: Ability) -> [Issue] {
-        guard let branches = ability.outcomeBranches, branches.contains(where: { $0.restorationResource != nil }) else {
-            return []
-        }
-        var issues: [Issue] = []
-        if !branches.contains(where: { $0.restorationResource == nil }) {
-            issues.append(Issue(abilityID: ability.id, message: "restoration outcomes require an unconditional fallback"))
-        }
-        for branch in branches {
-            guard let resource = branch.restorationResource else { continue }
-            let matches = branch.damageComponents.isEmpty && branch.targetedEffects.count == 1
-                && branch.targetedEffects.allSatisfy { targeted in
-                    guard targeted.condition == nil else { return false }
-                    switch (resource, targeted.effect) {
-                    case let (.health, .instantHeal(.health, amount)), let (.mana, .resourceGain(.mana, amount)):
-                        return amount > 0
-                    default:
-                        return false
-                    }
-                }
-            if !matches {
-                issues.append(Issue(abilityID: ability.id, message: "restoration outcome must restore its selected resource"))
-            }
-        }
-        return issues
     }
 
     private static func validateEffectTargets(for ability: Ability) -> [Issue] {
@@ -149,7 +122,7 @@ enum AbilityValidator {
             [2, 3, 4, 5, 6, 7, 8]
         }
 
-        if allowed.contains(total) || allowsMultiComponentTotal(abilityID: abilityID, total: total) {
+        if allowed.contains(total) || allowsAuthoredDamageTotal(abilityID: abilityID, total: total) {
             return nil
         }
 
@@ -159,8 +132,10 @@ enum AbilityValidator {
         )
     }
 
-    private static func allowsMultiComponentTotal(abilityID: String, total: Int) -> Bool {
+    private static func allowsAuthoredDamageTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
+        case "luck-potion":
+            (1 ... 12).contains(total)
         case "blood-offering":
             total == 4
         case "smite":

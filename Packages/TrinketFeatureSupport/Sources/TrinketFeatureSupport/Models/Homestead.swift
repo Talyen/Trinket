@@ -17,13 +17,13 @@ public extension HomesteadResource {
 
     var icon: GameIcon {
         switch self {
-        case .wood: .lucide("trees")
-        case .stone: .lucide("mountain")
-        case .iron: .lucide("anvil")
-        case .food: .lucide("carrot")
-        case .herbs: .lucide("leaf")
-        case .hide: .lucide("paw-print")
-        case .crystal: .lucide("gem")
+        case .wood: .system("tree.fill")
+        case .stone: .system("mountain.2.fill")
+        case .iron: .system("hammer.fill")
+        case .food: .system("carrot.fill")
+        case .herbs: .system("leaf.fill")
+        case .hide: .system("pawprint.fill")
+        case .crystal: .system("diamond.fill")
         case .gold: Keyword.gold.visualStyle.icon
         }
     }

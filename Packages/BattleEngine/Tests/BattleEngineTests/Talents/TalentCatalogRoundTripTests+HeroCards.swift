@@ -286,14 +286,23 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.thorns, on: .enemy, in: battle) == 0)
     }
 
-    @Test func `lucky charm removes poison on gold cards`() throws {
-        var battle = heroTalentBattle("wildcard_gold_t2_2", "wildcard_gold_t3_2")
+    @Test func `lucky charm cleanses only the first gold card each round`() throws {
+        var battle = heroTalentBattle("wildcard_gold_t2_2")
+        seedHeroTalentEffect(.burn(2), on: .hero, in: &battle)
         seedHeroTalentEffect(.poison(2), on: .hero, in: &battle)
-        seedHeroTalentEffect(.thorns(2), on: .enemy, in: &battle)
         try playHeroTalentCard(heroTalentGoldCard, in: &battle)
+        #expect(battle.activeEffects(of: battle.hero).count(where: { $0.effect.isRemovableDebuff }) == 1)
         try playHeroTalentCard(heroTalentGoldCard, in: &battle)
-        #expect(talentPoints(.poison, on: .hero, in: battle) == 0)
-        #expect(talentPoints(.thorns, on: .enemy, in: battle) == 2)
+        #expect(battle.activeEffects(of: battle.hero).count(where: { $0.effect.isRemovableDebuff }) == 1)
+        battle.turnCount += 1
+        try playHeroTalentCard(heroTalentGoldCard, in: &battle)
+        let hasDebuff = battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff)
+        #expect(!hasDebuff)
+        battle.turnCount += 1
+        try playHeroTalentCard(heroTalentGoldCard, in: &battle)
+        seedHeroTalentEffect(.burn(2), on: .hero, in: &battle)
+        try playHeroTalentCard(heroTalentGoldCard, in: &battle)
+        #expect(talentPoints(.burn, on: .hero, in: battle) == 2)
     }
 
     @Test func `full house carries across turns and pays for each fresh set`() throws {

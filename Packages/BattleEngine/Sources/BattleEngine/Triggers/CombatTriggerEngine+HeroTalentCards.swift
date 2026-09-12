@@ -58,6 +58,9 @@ extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         let companion = context.roster.companion.combatant
         var events: [ActionEvent] = []
+        if triggers.firstBloom {
+            events.append(contentsOf: heroTalentMana(to: companion, source: actor, name: "First Bloom", in: &context))
+        }
         if triggers.reactiveCoating {
             events.append(contentsOf: heroTalentThorns(to: actor, source: actor, name: "Reactive Coating", in: &context))
         }
@@ -110,9 +113,6 @@ extension CombatTriggerEngine {
             }
         }
         if card.restoredMana {
-            if triggers.firstBloom, card.previousDamageKeywords.contains(.poison) {
-                events.append(contentsOf: heroTalentMana(to: companion, source: actor, name: "First Bloom", in: &context))
-            }
             if triggers.livingConduit {
                 events.append(contentsOf: heroTalentThorns(to: companion, source: actor, name: "Living Conduit", in: &context))
             }
@@ -145,8 +145,11 @@ extension CombatTriggerEngine {
             }
         }
         if card.grantedGold {
-            if triggers.luckyCharm {
-                context.removeTalentPoint(.poison, from: actor)
+            if triggers.luckyCharm,
+               context.resolution.claim(.heroTalent("luckyCharm"), actorID: actor.id, cadence: .turn(context.turnCount)) {
+                events.append(contentsOf: performRandomCleanses(
+                    source: actor, target: actor, count: 1, abilityName: "Lucky Charm", in: &context,
+                ))
             }
             if triggers.paidInFull {
                 context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparations.insert(.stealGold)

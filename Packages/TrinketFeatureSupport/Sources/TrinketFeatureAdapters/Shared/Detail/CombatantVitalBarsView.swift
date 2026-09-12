@@ -10,23 +10,28 @@ struct CombatantVitalBarsView: View, Equatable {
     let combatantRole: Combatant.Role
     let battleHealth: Int?
     let battleMana: Int?
+    let battleMaxHealth: Int?
+    let battleMaxMana: Int?
 
     var body: some View {
+        let maxHealth = battleMaxHealth ?? combatBuild.effectiveMaxHealth
+        let maxMana = battleMaxMana ?? combatBuild.effectiveMaxMana
+
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
                 DetailVitalBar(
                     label: "Health",
-                    value: battleHealth ?? combatBuild.effectiveMaxHealth,
-                    maxValue: combatBuild.effectiveMaxHealth,
+                    value: battleHealth ?? maxHealth,
+                    maxValue: maxHealth,
                     fillColor: TrinketDesign.Colors.health,
                     accessibilityID: AccessibilityID.CombatantDetail.healthBar,
                 )
 
-                if combatantRole != .enemy, combatBuild.effectiveMaxMana > 0 {
+                if combatantRole != .enemy, maxMana > 0 {
                     DetailVitalBar(
                         label: "Mana",
-                        value: battleMana ?? combatBuild.effectiveMaxMana,
-                        maxValue: combatBuild.effectiveMaxMana,
+                        value: battleMana ?? maxMana,
+                        maxValue: maxMana,
                         fillColor: Keyword.mana.visualStyle.color,
                         accessibilityID: AccessibilityID.CombatantDetail.manaBar,
                     )

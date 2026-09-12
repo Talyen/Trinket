@@ -180,7 +180,7 @@ struct StageSelectActiveCard<
         Button {
             isPartyPickerPresented = true
         } label: {
-            GameIconImage(.lucide("users-round"))
+            GameIconImage(.system("person.2.fill"))
                 .trinketTypography(.button)
                 .foregroundStyle(.primary)
                 // UIStyleCheck: allow - Compact party icon beside the primary CTA without chip chrome.

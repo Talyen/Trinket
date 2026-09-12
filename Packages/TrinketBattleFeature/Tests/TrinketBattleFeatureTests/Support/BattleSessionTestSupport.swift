@@ -31,8 +31,7 @@ enum BattleSessionTestSupport {
         let resolvedEnemy = party.enemy
         let session = BattleSession(
             autoEndTurnDelay: autoEndTurnDelay,
-            openingHandDrawStagger: 0,
-            enemyAttackImpactDelayOverride: 0,
+
             outcomePresentationDelayOverride: 0,
             ultimateInFrameDurationOverride: ultimateInFrameDurationOverride,
             presentationEnvironment: presentationEnvironment ?? Self.enabledPresentationEnvironment,
@@ -223,7 +222,7 @@ enum BattleSessionTestSupport {
         configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext,
     ) -> BattleVictorySummary? {
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         _ = session.activate(configuration, presentation: presentation)
         driveUntilOutcome(session)
         return session.makeVictorySummary(for: configuration, presentation: presentation)

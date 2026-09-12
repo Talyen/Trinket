@@ -5,7 +5,7 @@ description: Build, install, or debug Trinket on a physical iOS device. Use when
 
 # Physical device deployment
 
-Run the single command:
+For a build and install, run:
 
 ```bash
 ./Scripts/install-device.sh
@@ -19,6 +19,9 @@ to target a specific device, `--no-launch` to install without launching, and
 Prerequisites: a physical iPhone connected (USB or local network), paired with
 this Mac, with Developer Mode enabled. The `DEVELOPMENT_TEAM` in `project.yml`
 and the Xcode-managed provisioning profile handle signing automatically.
+
+For debugging an installed build, inspect the relevant device evidence first.
+Rebuild and reinstall when the investigation needs an updated build.
 
 For simulator deployments, use the [ios-simulator](../ios-simulator/SKILL.md)
 skill instead.

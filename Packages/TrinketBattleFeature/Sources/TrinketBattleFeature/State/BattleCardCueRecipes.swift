@@ -37,7 +37,7 @@ enum BattleCardCueRecipes {
             .cleanse
         case .instantHeal, .revive, .resourceGain(.mana, _):
             .restore
-        case .shield, .thorns, .deathsDoor, .evadeNextHit, .freezeNextAttacker, .onHitDamage,
+        case .shield, .thorns, .deathsDoor, .evadeNextHit, .freezeNextAttacker, .onHitDamage, .blessedAegis,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
              .damageReductionPercent, .damageReductionFlat:
             .protect

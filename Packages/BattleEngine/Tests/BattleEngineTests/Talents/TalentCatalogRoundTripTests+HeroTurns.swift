@@ -255,15 +255,12 @@ extension TalentCatalogRoundTripTests {
         }
     }
 
-    @Test func `grove reserve grants block from unspent mana at turn end`() throws {
+    @Test(arguments: [0, 5, 6, 11, 12, 30])
+    func `grove reserve grants one block per six unspent mana`(mana: Int) {
         var battle = heroTalentBattle("druid_mana_t2_1")
-        try playHeroTalentCard(.kindling, in: &battle)
-        #expect(battle.roster.hero.currentMana == 7)
+        battle.roster.hero.currentMana = mana
         _ = CombatTriggerEngine.endHeroTalentTurn(in: &battle)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 3)
-        battle.roster.hero.currentMana = 1
-        _ = CombatTriggerEngine.endHeroTalentTurn(in: &battle)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 3)
+        #expect(talentPoints(.shield, on: .companion, in: battle) == mana / 6)
     }
 
     @Test func `perfect purity refreshes the next attack after actual cleansing`() throws {

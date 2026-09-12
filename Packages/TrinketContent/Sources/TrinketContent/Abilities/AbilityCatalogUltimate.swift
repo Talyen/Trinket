@@ -11,11 +11,8 @@ enum AbilityCatalogUltimate {
 
     static let blessedAegis = Ability(
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
-        description: "Gain 6 Block. Next time you're hit, Deal 6 Holy damage.",
-        targetedEffects: [
-            TargetedEffect(.shield(.block, 6)),
-            TargetedEffect(.onHitDamage(.holy, 6)),
-        ],
+        description: "Your Hero and Companion each gain 4 Block and deal 4 Holy damage the next time they’re hit.",
+        targetedEffects: [TargetedEffect(.blessedAegis(block: 4, holyDamage: 4))],
     )
 
     static let blizzard = Ability(
@@ -91,12 +88,12 @@ enum AbilityCatalogUltimate {
 
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
-        description: "Randomly restore 7 Health or Mana to the ally who needs it most, or gain 7 Block.",
-        outcomeBranches: [
-            AbilityOutcomeBranch(effects: [.resourceGain(.mana, 7)], restorationResource: .mana),
-            AbilityOutcomeBranch(effects: [.instantHeal(.health, 7)], restorationResource: .health),
-            AbilityOutcomeBranch(effects: [.shield(.block, 7)]),
-        ],
+        description: "Roll a 12-sided die. Deal that much Holy, Freeze, or Physical damage, chosen at random.",
+        outcomeBranches: (1 ... 12).flatMap { amount in
+            [Keyword.holy, .freeze, .physical].map { keyword in
+                AbilityOutcomeBranch(damageComponents: [DamageComponent(amount, keyword: keyword)])
+            }
+        },
     )
 
     static let meteor = Ability(
@@ -116,14 +113,16 @@ enum AbilityCatalogUltimate {
 
     static let packTactics = Ability(
         id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
+        description: "Deal 3 Physical damage. Draw and play 1 card from your ally's deck.",
+        damageComponents: [DamageComponent(3, keyword: .physical)],
         targetedEffects: [
-            TargetedEffect(.drawAndPlayCards(2)),
+            TargetedEffect(.drawAndPlayCards(1)),
         ],
     )
 
     static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
-        description: "Cleanse all debuffs from an ally. Restore 3 Health plus 2 per debuff cleansed.",
+        description: "Cleanse the ally with the most debuffs. Restore 3 Health plus 2 per debuff cleansed to the living ally with the lowest Health.",
         targetedEffects: [
             TargetedEffect(.panacea(baseHeal: 3, healPerDebuff: 2)),
         ],

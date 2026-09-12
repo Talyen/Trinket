@@ -16,14 +16,16 @@ public struct ExperienceBar: View {
     @State private var displayedRequiredXP: Int
     @State private var displayedFraction: Double
     @State private var showsExperienceAward = false
+    @State private var isFlowing = false
+    @State private var isLevelUpHighlighted = false
     @State private var hasAnimated = false
     @State private var hasReportedCompletion = false
     @State private var animationTask: Task<Void, Never>?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let initialDelay: TimeInterval = 0.10
-
-    nonisolated static let animationBudget: TimeInterval = 0.30
+    nonisolated static let initialDelay: TimeInterval = 0.10
+    nonisolated static let animationBudget: TimeInterval = 0.70
+    nonisolated static let settleDuration: TimeInterval = 0.12
 
     private let artworkFocalX: Double
     private let artworkFocalY: Double
@@ -79,38 +81,15 @@ public struct ExperienceBar: View {
                     }
                 }
 
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(.quaternary)
-
-                        Capsule()
-                            .fill(fillColor)
-                            .frame(width: max(0, geometry.size.width * clampedFraction))
-                            .overlay(alignment: .trailing) {
-                                if clampedFraction > 0.02 {
-                                    Circle()
-                                        .fill(fillColor)
-                                        .frame(width: 6, height: 6)
-                                        .shadow(color: fillColor.opacity(0.4), radius: 2)
-                                        .alignmentGuide(.trailing) { dimensions in
-                                            dimensions[HorizontalAlignment.center]
-                                        }
-                                }
-                            }
-                    }
-                }
-                .frame(height: TrinketDesign.Bars.statHeight)
-
-                HStack {
-                    Text("Level \(displayedLevel)")
-                    Spacer(minLength: TrinketDesign.Spacing.small)
-                    Text("\(displayedXP) / \(displayedRequiredXP) XP")
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                }
-                .trinketTypography(.footnote)
-                .foregroundStyle(.secondary)
+                ExperienceProgress(
+                    fraction: displayedFraction,
+                    experience: Double(displayedXP),
+                    level: displayedLevel,
+                    requiredXP: displayedRequiredXP,
+                    fillColor: fillColor,
+                    isFlowing: isFlowing,
+                    isLevelUpHighlighted: isLevelUpHighlighted,
+                )
             }
         }
         .onAppear {
@@ -138,10 +117,10 @@ public struct ExperienceBar: View {
             reportCompletion()
         }
         .onChange(of: pre) { _, _ in
-            snapToPost()
+            finishImmediately()
         }
         .onChange(of: post) { _, _ in
-            snapToPost()
+            finishImmediately()
         }
         .onDisappear {
             animationTask?.cancel()
@@ -183,47 +162,75 @@ public struct ExperienceBar: View {
         }
     }
 
-    private var clampedFraction: Double {
-        min(1, max(0, displayedFraction))
-    }
-
     private func startAnimation() {
         animationTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(initialDelay))
+            try? await Task.sleep(for: .seconds(Self.initialDelay))
             guard !Task.isCancelled else { return }
+            withAnimation(TrinketMotion.Reward.reveal) {
+                showsExperienceAward = (experienceAward ?? 0) > 0
+                isFlowing = pre != post
+            }
             await runSegments()
         }
     }
 
+    private func finishImmediately() {
+        animationTask?.cancel()
+        animationTask = nil
+        snapToPost()
+        reportCompletion()
+    }
+
     private func snapToPost() {
-        displayedLevel = post.level
-        displayedXP = post.currentXP
-        displayedRequiredXP = post.requiredXP
-        displayedFraction = post.progressFraction
-        showsExperienceAward = (experienceAward ?? 0) > 0
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            displayedLevel = post.level
+            displayedXP = post.currentXP
+            displayedRequiredXP = post.requiredXP
+            displayedFraction = post.progressFraction
+            showsExperienceAward = (experienceAward ?? 0) > 0
+            isFlowing = false
+            isLevelUpHighlighted = false
+        }
     }
 
     private func reportCompletion() {
         guard !hasReportedCompletion else { return }
         hasReportedCompletion = true
-        if (experienceAward ?? 0) > 0 {
-            withAnimation(TrinketMotion.Content.fade) {
-                showsExperienceAward = true
-            }
-        }
         onAnimationCompleted()
     }
 
     private func runSegments() async {
         let segments = Self.segments(from: pre, to: post)
-        let segmentDuration = Self.segmentDuration(forSegmentCount: segments.count)
+        let movingSegmentCount = segments.count(where: { $0.startFraction != $0.endFraction })
+        let segmentDuration = Self.segmentDuration(forSegmentCount: movingSegmentCount)
+        let levelUpDuration = Self.levelUpDuration(forLevelCount: segments.count(where: { $0.levelsGained > 0 }))
         for segment in segments {
             guard !Task.isCancelled else { return }
-            await animate(to: segment, duration: segmentDuration)
+            if segment.startFraction != segment.endFraction {
+                await animate(to: segment, duration: segmentDuration)
+            }
             guard !Task.isCancelled else { return }
             if segment.levelsGained > 0 {
+                withAnimation(TrinketMotion.Reward.reveal) {
+                    isLevelUpHighlighted = true
+                    displayedLevel = segment.newLevel
+                }
+                try? await Task.sleep(for: .seconds(levelUpDuration))
+                guard !Task.isCancelled else { return }
                 applyLevelUp(newLevel: segment.newLevel, newRequiredXP: segment.newRequiredXP)
+                withAnimation(TrinketMotion.Reward.reveal) {
+                    isLevelUpHighlighted = false
+                }
             }
+        }
+        guard !Task.isCancelled else { return }
+        withAnimation(.easeOut(duration: Self.settleDuration)) {
+            isFlowing = false
+        }
+        if !segments.isEmpty {
+            try? await Task.sleep(for: .seconds(Self.settleDuration))
         }
         guard !Task.isCancelled else { return }
         reportCompletion()
@@ -241,10 +248,14 @@ public struct ExperienceBar: View {
     }
 
     private func applyLevelUp(newLevel: Int, newRequiredXP: Int) {
-        displayedLevel = newLevel
-        displayedRequiredXP = newRequiredXP
-        displayedXP = 0
-        displayedFraction = 0
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            displayedLevel = newLevel
+            displayedRequiredXP = newRequiredXP
+            displayedXP = 0
+            displayedFraction = 0
+        }
     }
 
     public struct Segment: Equatable, Sendable {
@@ -316,8 +327,73 @@ public struct ExperienceBar: View {
         return segments
     }
 
+    nonisolated static func levelUpDuration(forLevelCount count: Int) -> TimeInterval {
+        guard count > 0 else { return 0 }
+        return min(0.16, 0.28 / Double(count))
+    }
+
     nonisolated static func segmentDuration(forSegmentCount count: Int) -> TimeInterval {
         guard count > 0 else { return 0 }
         return animationBudget / Double(count)
+    }
+}
+
+private struct ExperienceProgress: View, Animatable {
+    nonisolated var fraction: Double
+    nonisolated var experience: Double
+    let level: Int
+    let requiredXP: Int
+    let fillColor: Color
+    let isFlowing: Bool
+    let isLevelUpHighlighted: Bool
+
+    nonisolated var animatableData: AnimatablePair<Double, Double> {
+        get { AnimatablePair(fraction, experience) }
+        set {
+            fraction = newValue.first
+            experience = newValue.second
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: TrinketDesign.Spacing.small) {
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(.quaternary)
+                    Capsule()
+                        .fill(fillColor)
+                        .frame(width: geometry.size.width * min(1, max(0, fraction)))
+                        .overlay(alignment: .trailing) {
+                            if fraction > 0.02 {
+                                Circle()
+                                    .fill(fillColor.gradient)
+                                    .brightness(isFlowing ? 0.25 : 0)
+                                    .frame(width: isFlowing ? 8 : 6, height: isFlowing ? 8 : 6)
+                                    .shadow(color: fillColor.opacity(isFlowing ? 0.8 : 0.4), radius: isFlowing ? 5 : 2)
+                                    .alignmentGuide(.trailing) { dimensions in
+                                        dimensions[HorizontalAlignment.center]
+                                    }
+                            }
+                        }
+                }
+                .brightness(isLevelUpHighlighted ? 0.20 : 0)
+                .scaleEffect(x: 1, y: isLevelUpHighlighted ? 1.35 : 1)
+                .shadow(color: fillColor.opacity(isLevelUpHighlighted ? 0.65 : 0), radius: 6)
+            }
+            .frame(height: TrinketDesign.Bars.statHeight)
+
+            HStack {
+                Text("Level \(level)")
+                    .contentTransition(.numericText())
+                    .scaleEffect(isLevelUpHighlighted ? 1.08 : 1, anchor: .leading)
+                    .foregroundStyle(isLevelUpHighlighted ? fillColor : .secondary)
+                Spacer(minLength: TrinketDesign.Spacing.small)
+                Text("\(Int(experience.rounded())) / \(requiredXP) XP")
+                    .monospacedDigit()
+            }
+            .trinketTypography(.footnote)
+            .foregroundStyle(.secondary)
+        }
     }
 }

@@ -12,7 +12,7 @@ import TrinketTestSupport
 struct BattleSessionPreparationTests {
     @Test func `lifecycle transitions update engine and presentation atomically`() {
         let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         let (configuration, _) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
@@ -36,7 +36,7 @@ struct BattleSessionPreparationTests {
     @Test func `prepared battle presentation revision changes only for replaced runs`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-run")
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         let (configuration, _) = BattleRunConfigurationTestSupport.make(
             runKey: runKey,
             hero: party.hero,
@@ -64,7 +64,7 @@ struct BattleSessionPreparationTests {
 
     @Test func `activate prepared battle installs the prepared engine snapshot`() {
         let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         let runKey = BattleRunKey("test|prepared-activate")
         let (configuration, _) = BattleRunConfigurationTestSupport.make(
             runKey: runKey,
@@ -97,7 +97,7 @@ struct BattleSessionPreparationTests {
     @Test func `prepare installs overlay presentation for A single run`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay")
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         let (configuration, _) = BattleRunConfigurationTestSupport.make(
             runKey: runKey,
             hero: party.hero,
@@ -115,7 +115,7 @@ struct BattleSessionPreparationTests {
 
     @Test func `overlay battle configuration requires A single prepared run`() {
         let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         let (first, _) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("test|prepared-overlay-a"),
             hero: party.hero,
@@ -139,7 +139,7 @@ struct BattleSessionPreparationTests {
     @Test func `activate prepared battle keeps overlay configuration identity`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay-activate")
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         let (configuration, _) = BattleRunConfigurationTestSupport.make(
             runKey: runKey,
             hero: party.hero,
@@ -163,43 +163,25 @@ struct BattleSessionPreparationTests {
         #expect(session.preparedBattlePresentationRevision == preparedRevision)
     }
 
-    @Test func `prepared activation holds opening hand deal until overlay fade completes`() async throws {
+    @Test func `prepared activation publishes playable opening cards before animations finish`() {
         let party = BattlePartyFixtures.quickWinParty(heroAbilities: [.slash, .heal, .smite])
-        let session = BattleSession(openingHandDrawStagger: 0.01)
-        let runKey = BattleRunKey("test|prepared-overlay-deal-hold")
+        let session = BattleSession()
+        defer { session.endBattle() }
+        let runKey = BattleRunKey("test|prepared-overlay-deal")
         let (configuration, _) = BattleRunConfigurationTestSupport.make(
-            runKey: runKey,
-            hero: party.hero,
-            companion: party.companion,
-            enemy: party.enemy,
+            runKey: runKey, hero: party.hero, companion: party.companion, enemy: party.enemy,
         )
-
         #expect(session.prepareBattleRun(configuration))
-        #expect(
-            session.activatePreparedBattle(
-                runKey: runKey,
-                configurationID: configuration.id,
-            ),
-        )
-
-        #expect(session.hand.isEmpty)
-        #expect(session.isDealingOpeningHand)
-        #expect(session.transitionTask.hasPendingTask)
-        let dealtDuringFade = try await BattleSessionTestSupport.waitUntil(
-            timeout: .milliseconds(100),
-        ) {
-            !session.hand.isEmpty
-        }
-        #expect(!dealtDuringFade)
-        #expect(session.isDealingOpeningHand)
-        #expect(try await BattleSessionTestSupport.waitUntil { !session.hand.isEmpty })
-        #expect(try await BattleSessionTestSupport.waitUntil { !session.isDealingOpeningHand })
+        #expect(session.activatePreparedBattle(runKey: runKey, configurationID: configuration.id))
+        #expect(!session.hand.isEmpty)
+        #expect(!session.isDealingOpeningHand)
+        #expect(session.canAcceptBattleCommands)
     }
 
     @Test func `activate prepared battle resolves registered presentation before skip combat`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay-context")
-        let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
+        let session = BattleSession(outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             runKey: runKey,
@@ -234,7 +216,7 @@ struct BattleSessionPreparationTests {
             party.hero.abilityLoadout.abilities.count
                 + party.companion.abilityLoadout.abilities.count,
         )
-        let session = BattleSession(openingHandDrawStagger: 0.05)
+        let session = BattleSession()
         let (initialConfiguration, _) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
@@ -253,7 +235,7 @@ struct BattleSessionPreparationTests {
         #expect(try await BattleSessionTestSupport.waitUntil { !session.hand.isEmpty })
 
         #expect(!session.hand.isEmpty)
-        #expect(session.isDealingOpeningHand)
+        #expect(!session.isDealingOpeningHand)
 
         #expect(try await BattleSessionTestSupport.waitUntil { !session.isDealingOpeningHand })
 

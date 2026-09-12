@@ -3,11 +3,14 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityCatalogTests {
-    @Test func `restoration branches require matching effects and fallback`() {
-        let branch = AbilityOutcomeBranch(effects: [.instantHeal(.health, 7)], restorationResource: .mana)
-        let invalid = Ability(id: "invalid", name: "Invalid", tier: .ultimate, outcomeBranches: [branch])
-        #expect(AbilityValidator.validate(invalid).count == 2)
-        #expect(AbilityValidator.validate(Ability.luckPotion).isEmpty)
+    @Test func `luck potion covers every die face and damage type`() throws {
+        let branches = try #require(Ability.luckPotion.outcomeBranches)
+        #expect(branches.count == 36)
+        for keyword in [Keyword.holy, .freeze, .physical] {
+            let faces = branches.flatMap(\.damageComponents).filter { $0.keyword == keyword }.map(\.amount)
+            #expect(faces.sorted() == Array(1 ... 12))
+        }
+        #expect(branches.allSatisfy { $0.damageComponents.count == 1 && $0.targetedEffects.isEmpty })
     }
 
     @Test func `catalog I ds are unique and unknown lookup returns nil`() throws {
@@ -139,7 +142,7 @@ struct AbilityCatalogTests {
         try #expect(!Ability.block.dealsCombatDamage)
         try #expect(!Ability.heal.dealsCombatDamage)
         try #expect(!Ability.briarShield.dealsCombatDamage)
-        try #expect(!Ability.packTactics.dealsCombatDamage)
+        try #expect(Ability.packTactics.dealsCombatDamage)
     }
 
     @Test func `validator allows condition-gated damage line`() throws {

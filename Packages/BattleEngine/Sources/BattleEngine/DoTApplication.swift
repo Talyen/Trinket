@@ -12,8 +12,4 @@ package enum DoTApplication: Equatable {
     var triggersApplicationReactions: Bool {
         self == .ability || self == .afterHit
     }
-
-    var adjustsPotency: Bool {
-        self != .reflection
-    }
 }

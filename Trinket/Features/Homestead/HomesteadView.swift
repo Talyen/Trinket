@@ -143,7 +143,7 @@ struct HomesteadView: View {
         Label {
             Text("Collect")
         } icon: {
-            GameIconImage(.lucide("gift"))
+            GameIconImage(.system("gift.fill"))
                 .imageScale(.large)
         }
         .trinketTypography(.button)
@@ -238,11 +238,11 @@ struct HomesteadView: View {
 
     private func categoryIcon(_ category: HomesteadNodeCategory) -> GameIcon {
         switch category {
-        case .farming: .lucide("wheat")
-        case .crafting: .lucide("anvil")
-        case .alchemy: .lucide("flask-conical")
-        case .training: .lucide("target")
-        case .arcana: .lucide("moon-star")
+        case .farming: .system("leaf.fill")
+        case .crafting: .system("hammer.fill")
+        case .alchemy: .system("flask.fill")
+        case .training: .system("target")
+        case .arcana: .system("moon.stars.fill")
         }
     }
 

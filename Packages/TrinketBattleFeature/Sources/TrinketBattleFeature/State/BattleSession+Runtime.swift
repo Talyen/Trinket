@@ -10,13 +10,6 @@ extension BattleSession {
         fileprivate let state: BattleState
     }
 
-    struct CombatantReadModel {
-        let combatant: Combatant
-        let health: Int
-        let mana: Int
-        let activeEffectSummaries: [TrinketCore.EffectSummary]
-    }
-
     struct VictoryInput {
         let goldFlow: BattleGoldFlow
         let heroName: String
@@ -81,9 +74,6 @@ extension BattleSession {
     }
 
     func presentationSnapshot() -> BattlePresentationSnapshot? {
-        if let snapshot = transitionPlayback?.currentSnapshot {
-            return snapshot
-        }
         if let activeBattle {
             return engineState?.battlePresentationSnapshot(
                 configurationID: activeBattle.id,
@@ -135,40 +125,40 @@ extension BattleSession {
     @discardableResult
     func playEngineCard(cardID: Int) throws -> (events: [ActionEvent], playback: BattleTransitionPlayback) {
         guard var engineState, let configurationID = activeBattle?.id else { throw BattlePlayError.battleOver }
-        var frames: [BattleTransitionFrame] = []
-        let events = try engineState.playCard(cardID: cardID, rebuildLog: false) { checkpoint, state, events in
-            let assessment: BattleCardAssessment? = if case let .cardWillPlay(card) = checkpoint {
-                state.assessCard(card)
-            } else {
-                nil
+        var automaticCards: [BattleCard] = []
+        let events = try engineState.playCard(cardID: cardID, rebuildLog: false) { checkpoint, _, _ in
+            if case let .cardPlayed(card) = checkpoint, card.id != cardID {
+                automaticCards.append(card)
             }
-            frames.append(BattleTransitionFrame(
-                checkpoint: checkpoint,
-                snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state, acceptsCommands: checkpoint == .ready),
-                events: events,
-                assessment: assessment,
-            ))
         }
         self.engineState = engineState
-        return (events, BattleTransitionPlayback(configurationID: configurationID, frames: frames, initialCardID: cardID))
+        return (events, BattleTransitionPlayback(
+            configurationID: configurationID,
+            snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: engineState),
+            events: events,
+            automaticCards: automaticCards,
+        ))
     }
 
     func resolveTransition(_ kind: BattleTransitionPlayback.Kind) -> BattleTransitionPlayback? {
         guard var state = engineState, let configurationID = activeBattle?.id else { return nil }
-        var frames: [BattleTransitionFrame] = []
-        let record: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { checkpoint, state, events in
-            frames.append(BattleTransitionFrame(
-                checkpoint: checkpoint,
-                snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state, acceptsCommands: checkpoint == .ready),
-                events: events,
-            ))
+        var automaticCards: [BattleCard] = []
+        let record: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { checkpoint, _, _ in
+            if case let .cardPlayed(card) = checkpoint {
+                automaticCards.append(card)
+            }
         }
-        switch kind {
-        case .opening: _ = state.drawOpeningHand(rebuildLog: false, recording: record)
-        case .turn: _ = state.endTurn(rebuildLog: false, recording: record)
+        let events: [ActionEvent] = switch kind {
+        case .opening: state.drawOpeningHand(rebuildLog: false, recording: record)
+        case .turn: state.endTurn(rebuildLog: false, recording: record)
         }
         engineState = state
-        return BattleTransitionPlayback(configurationID: configurationID, frames: frames)
+        return BattleTransitionPlayback(
+            configurationID: configurationID,
+            snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state),
+            events: events,
+            automaticCards: automaticCards,
+        )
     }
 
     func syncEngineLog() {
@@ -275,12 +265,11 @@ extension BattleSession {
     public func setSuspendedForScenePhase(_ suspended: Bool) {
         guard isSuspendedForScenePhase != suspended else { return }
         commandState.suspend(suspended)
-        cardPlayback.isSuspended = suspended
+        cardPlayback.setSuspended(suspended)
         if suspended {
             clearCardCues()
             cancelPendingAutoEnd()
         } else {
-            restoreRecordedCardCue()
             scheduleAutoEndIfNeeded()
         }
     }

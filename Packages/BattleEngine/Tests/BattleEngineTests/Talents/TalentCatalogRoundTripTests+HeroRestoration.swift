@@ -4,6 +4,44 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test func `quick fingers draws for the first own theft each turn and buffers a full hand`() throws {
+        var battle = capstoneBattle(hero: ["rogue_gold_t3_2"])
+        battle.heroDeck = CombatDeck(abilities: [.stab, .fangs, .hemorrhage])
+        for _ in 0 ..< BattleHand.maxSize {
+            _ = BattleCardCombatEngine.deal(.block, owner: .companion, context: &battle)
+        }
+        _ = battle.grantGoldEvent(3, to: battle.hero, abilityName: "Reward")
+        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Partner theft", isTheft: true)
+        _ = battle.grantGoldEvent(0, to: battle.hero, abilityName: "Empty theft", isTheft: true)
+        #expect(battle.hand.buffer.isEmpty)
+        #expect(battle.heroDeck.count == 3)
+
+        let first = try playHeroTalentCard(.steal, in: &battle)
+        #expect(first.count { $0.effectKind == .cardsDrawn && $0.targetID == battle.hero.id && $0.amount == 1 } == 1)
+        #expect(battle.hand.count == BattleHand.maxSize)
+        let drawn = try #require(battle.hand.buffer.first)
+        #expect(drawn.owner == .hero)
+        #expect(drawn.ability.id == Ability.stab.id)
+
+        let second = try playHeroTalentCard(.steal, in: &battle)
+        #expect(!second.contains { $0.effectKind == .cardsDrawn })
+        #expect(battle.hand.buffer.count == 1)
+
+        _ = battle.endTurn()
+        let nextTurn = try playHeroTalentCard(.steal, in: &battle)
+        #expect(nextTurn.count { $0.effectKind == .cardsDrawn && $0.targetID == battle.hero.id && $0.amount == 1 } == 1)
+    }
+
+    @Test func `quick fingers cannot bank a theft while the deck is empty`() {
+        var battle = heroTalentBattle("rogue_gold_t3_2")
+        battle.heroDeck = CombatDeck()
+        _ = battle.grantGoldEvent(2, to: battle.hero, abilityName: "Theft", isTheft: true)
+        battle.heroDeck = CombatDeck(abilities: [.stab])
+        let events = battle.grantGoldEvent(2, to: battle.hero, abilityName: "Theft", isTheft: true)
+        #expect(!events.contains { $0.effectKind == .cardsDrawn })
+        #expect(battle.heroDeck.count == 1)
+    }
+
     @Test(arguments: [38, 40])
     func `scavengers cache heals on first theft each turn without spending gold`(startingHealth: Int) throws {
         var battle = capstoneBattle(companion: [
@@ -191,19 +229,20 @@ extension TalentCatalogRoundTripTests {
         #expect(repeated.contains { $0.abilityName == "Clean Break" && $0.effectKind == .cardsDrawn })
     }
 
-    @Test func `first bloom deep roots and living conduit require actual mana gain`() throws {
+    @Test func `first bloom rewards poison without mana restoration`() throws {
         var battle = heroTalentBattle("druid_mana_t1_1", "druid_mana_t2_2", "druid_mana_t3_2")
-        battle.roster.mutateRuntime(for: battle.companion) { $0.currentMana = 0 }
+        battle.roster.companion.currentMana = 0
         try playHeroTalentCard(.poisonDagger, in: &battle)
+        #expect(battle.roster.companion.currentMana == 1)
         try playHeroTalentCard(.manaBerries, in: &battle)
-        #expect(battle.roster.companion.currentMana == 0)
+        #expect(battle.roster.companion.currentMana == 1)
         #expect(talentPoints(.thorns, on: .companion, in: battle) == 0)
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
+        battle.roster.hero.currentMana = 0
         seedHeroTalentEffect(.thorns(1), on: .hero, in: &battle)
         try playHeroTalentCard(.poisonDagger, in: &battle)
         try playHeroTalentCard(.manaBerries, in: &battle)
         #expect(battle.roster.hero.currentMana == 3)
-        #expect(battle.roster.companion.currentMana == 1)
+        #expect(battle.roster.companion.currentMana == 2)
         #expect(talentPoints(.thorns, on: .companion, in: battle) == 1)
     }
 

@@ -72,6 +72,7 @@ package enum EffectHandlers {
         .detonateDoT: DetonateDoTHandler(),
         .recurringDamage: RecurringDamageHandler(),
         .avatar: AvatarHandler(),
+        .blessedAegis: BlessedAegisHandler(),
         .revive: ReviveHandler(),
         .damageReductionPercent: TimedDebuffHandler(kind: .damageReductionPercent),
         .damageReductionFlat: TimedDebuffHandler(kind: .damageReductionFlat),

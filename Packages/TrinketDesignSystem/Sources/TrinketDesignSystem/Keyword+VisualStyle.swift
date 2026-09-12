@@ -23,86 +23,86 @@ public extension Keyword {
 
         public static let physical = Self(
             color: DesignAssetColors.named("KeywordPhysical"),
-            icon: .lucide("sword"),
+            icon: .system("burst.fill"),
         )
         public static let burn = Self(
             color: DesignAssetColors.named("KeywordBurn"),
             secondaryColor: DesignAssetColors.named("KeywordPhysical"),
-            icon: .lucide("flame"),
+            icon: .system("flame.fill"),
         )
         public static let stun = Self(
             color: DesignAssetColors.named("KeywordStun"),
-            icon: .lucide("zap"),
+            icon: .system("bolt.fill"),
             prefersDarkForeground: true,
         )
         public static let block = Self(
             color: DesignAssetColors.named("KeywordBlock"),
-            icon: .lucide("shield"),
+            icon: .system("shield.fill"),
         )
         public static let health = Self(
             color: DesignAssetColors.named("KeywordHealth"),
             secondaryColor: TrinketDesign.Colors.health,
-            icon: .lucide("heart"),
+            icon: .system("heart.fill"),
         )
         public static let gold = Self(
             color: TrinketDesign.Colors.accent,
-            icon: .lucide("coins"),
+            icon: .system("circle.circle.fill"),
             prefersDarkForeground: true,
         )
         public static let holy = Self(
             color: DesignAssetColors.named("KeywordHoly"),
-            icon: .lucide("sun"),
+            icon: .system("sun.max.fill"),
             prefersDarkForeground: true,
         )
         public static let poison = Self(
             color: DesignAssetColors.named("KeywordPoison"),
-            icon: .lucide("flask-conical"),
+            icon: .system("flask.fill"),
         )
         public static let bleed = Self(
             color: DesignAssetColors.named("KeywordBleed"),
-            icon: .lucide("droplet"),
+            icon: .system("drop.fill"),
         )
         public static let leech = Self(
             color: DesignAssetColors.named("KeywordLeech"),
-            icon: .lucide("pipette"),
+            icon: .system("eyedropper"),
         )
         public static let freeze = Self(
             color: DesignAssetColors.named("KeywordFreeze"),
-            icon: .lucide("snowflake"),
+            icon: .system("snowflake"),
             prefersDarkForeground: true,
         )
         public static let dodge = Self(
             color: DesignAssetColors.named("KeywordDodge"),
-            icon: .lucide("wind"),
+            icon: .system("wind"),
             prefersDarkForeground: true,
         )
         public static let purge = Self(
             color: DesignAssetColors.named("KeywordPurge"),
-            icon: .lucide("shield-off"),
+            icon: .system("shield.slash.fill"),
         )
         public static let cleanse = Self(
             color: DesignAssetColors.named("KeywordCleanse"),
-            icon: .lucide("sparkles"),
+            icon: .system("sparkles"),
         )
         public static let mana = Self(
             color: DesignAssetColors.named("KeywordMana"),
-            icon: .lucide("moon-star"),
+            icon: .system("moon.stars.fill"),
         )
         public static let deathsDoor = Self(
             color: DesignAssetColors.named("KeywordDeathsDoor"),
-            icon: .lucide("hourglass"),
+            icon: .system("hourglass.bottomhalf.filled"),
         )
         public static let thorns = Self(
             color: DesignAssetColors.named("KeywordPhysical"),
-            icon: .system("burst.fill"),
+            icon: .system("asterisk"),
         )
         public static let beneficialStatus = Self(
             color: TrinketDesign.Colors.success,
-            icon: .lucide("arrow-big-up"),
+            icon: .system("arrowshape.up.fill"),
         )
         public static let negativeStatus = Self(
             color: TrinketDesign.Colors.destructive,
-            icon: .lucide("arrow-big-down"),
+            icon: .system("arrowshape.down.fill"),
         )
     }
 

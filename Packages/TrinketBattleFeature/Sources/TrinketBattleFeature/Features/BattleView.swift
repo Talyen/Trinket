@@ -263,6 +263,8 @@ struct BattleFieldLane: View {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
+                automaticCardLane(in: geometry.size)
+
                 BattleHandProjectionLane(
                     presentation: presentation,
                     hapticsEnabled: hapticsEnabled,
@@ -312,6 +314,14 @@ struct BattleFieldLane: View {
         .ignoresSafeArea(.container, edges: .bottom)
     }
 
+    private func automaticCardLane(in size: CGSize) -> some View {
+        ForEach(presentation.cardPlayback.casts) { cast in
+            AutomaticCardCastView(cast: cast, battleSize: size) {
+                presentation.cardPlayback.remove(id: cast.id)
+            }
+        }
+    }
+
     private func cardCastLane(in size: CGSize) -> some View {
         CardCastPresentationLane(
             presentation: castPresentation,
@@ -330,19 +340,28 @@ struct BattleFieldLane: View {
 
     private func showDetails(for combatant: Combatant) {
         guard !interactionState.blocksCombatantTaps,
-              let combatantReadModel = battleSession.combatantReadModel(for: combatant)
+              let effectSummaries = battleSession.effectSummaries(for: combatant)
         else { return }
+        let combatantPresentation = switch combatant.role {
+        case .hero: presentation.hero
+        case .companion: presentation.companion
+        case .enemy: presentation.enemy
+        }
+        guard let combatantPresentation else { return }
         let partyMember = configuration.partyMember(for: combatant.id)
         battleSession.presentCombatantDetail(
             CombatantCardDetail(
                 combatant: combatant,
-                progression: partyMember?.progression ?? .initial,
+                progression: partyMember?.progression
+                    ?? .at(level: configuration.enemyEncounterLevel ?? 1),
                 equipmentLoadout: partyMember?.equipmentLoadout ?? EquipmentLoadout(),
                 inventoryItems: presentationContext.inventoryItems,
                 unlockedTalents: partyMember?.unlockedTalents ?? [],
-                health: combatantReadModel.health,
-                mana: combatantReadModel.mana,
-                activeEffectSummaries: combatantReadModel.activeEffectSummaries,
+                health: combatantPresentation.health,
+                mana: combatantPresentation.mana,
+                maxHealth: combatantPresentation.maxHealth,
+                maxMana: combatantPresentation.maxMana,
+                activeEffectSummaries: effectSummaries,
                 labyrinthModifiers: combatant.role == .enemy
                     ? presentationContext.labyrinthModifiers
                     : [],
@@ -375,7 +394,7 @@ private struct BattleHandProjectionLane: View {
         ZStack(alignment: .bottom) {
             BattleHandView(
                 cards: hand,
-                isPlayable: { playableIDs.contains($0.id) },
+                isPlayable: { presentation.isBattleOver || playableIDs.contains($0.id) },
                 onInspect: { card in
                     battleSession.presentAbilityDetail(card.ability)
                 },
@@ -392,26 +411,13 @@ private struct BattleHandProjectionLane: View {
                 },
                 hapticsEnabled: hapticsEnabled,
                 battleFrame: CGRect(origin: .zero, size: battleSize),
-                autoLiftCardID: presentation.cardPlayback.liftedCardID ?? interactionState.autoLiftCardID,
+                autoLiftCardID: interactionState.autoLiftCardID,
                 onCardInteractionChanged: onInteractionChanged,
                 onLift: onLift,
                 onLiftCancel: onLiftCancel,
             )
-            if let card = presentation.stagedCard {
-                BattleHandView(
-                    cards: [card],
-                    isPlayable: { _ in false },
-                    onInspect: { _ in },
-                    onPlay: { _, _ in false },
-                    onPlayDenied: { _ in },
-                    hapticsEnabled: hapticsEnabled,
-                    battleFrame: CGRect(origin: .zero, size: battleSize),
-                    autoLiftCardID: presentation.cardPlayback.liftedCardID,
-                )
-                .accessibilityHidden(true)
-            }
         }
-        .allowsHitTesting(battleSession.canAcceptBattleCommands)
+        .allowsHitTesting(battleSession.canInteractWithHand)
         .trinketSensoryFeedback(
             .impact(weight: .medium),
             trigger: cardPlayFeedbackToken,

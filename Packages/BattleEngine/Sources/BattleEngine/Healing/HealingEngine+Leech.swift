@@ -38,8 +38,13 @@ package extension HealingEngine {
         if leechPct == 0, keywordGrantsLeech {
             leechPct = Effect.abilityLeechPercent
         }
+        let typedChance: Double = switch damageKeyword {
+        case .poison: profile.triggers.poisonDamageLeechChancePercent
+        case .freeze: profile.triggers.freezeDamageLeechChancePercent
+        default: 0
+        }
         if leechPct == 0,
-           BattleChance.succeeds(probability: profile.triggers.leechChancePercent, using: &context.rng) {
+           BattleChance.succeeds(probability: min(1, profile.triggers.leechChancePercent + typedChance), using: &context.rng) {
             leechPct = Effect.abilityLeechPercent
         }
         guard leechPct > 0 else { return .empty }

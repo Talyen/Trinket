@@ -33,7 +33,7 @@ struct VictoryView: View {
             contentStackSpacing: TrinketDesign.Spacing.large,
             emptyExperience: {
                 BattleOutcomeRewardRow(
-                    icon: .lucide("star"),
+                    icon: .system("star.fill"),
                     tint: .secondary,
                     text: "No experience awarded.",
                 )

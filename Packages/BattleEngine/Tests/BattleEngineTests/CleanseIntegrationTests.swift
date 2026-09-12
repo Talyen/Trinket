@@ -31,9 +31,6 @@ struct CleanseIntegrationTests {
         var applied = debuff
         applied.sourceActorID = battle.enemy.id
         battle.roster.hero.activeEffects = [applied]
-        battle.roster.companion.talents.pending.doubleStatusNextCard = true
-        let isPrepared = battle.roster.companion.talents.pending.doubleStatusNextCard
-        try #require(isPrepared)
         let handler = try #require(EffectHandlers.all[cleanse.kind])
         let enemyHealth = battle.roster.enemy.currentHealth
 
@@ -42,8 +39,6 @@ struct CleanseIntegrationTests {
         )
 
         #expect(battle.roster.hero.activeEffects.isEmpty)
-        let remainsPrepared = battle.roster.companion.talents.pending.doubleStatusNextCard
-        #expect(remainsPrepared)
         let reflected = try #require(battle.roster.enemy.activeEffects.first { $0.effect.kind == debuff.effect.kind })
         #expect(reflected.effect == debuff.effect)
         #expect(reflected.remainingTurns == debuff.remainingTurns)

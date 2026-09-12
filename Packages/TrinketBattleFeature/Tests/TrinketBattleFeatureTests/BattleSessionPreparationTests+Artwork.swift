@@ -25,7 +25,7 @@ extension BattleSessionPreparationTests {
 
     @Test func `pruning prepared artwork releases only discarded runs`() async throws {
         let pins = ArtworkPinRecorder()
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         session.artworkPreparation = pins.makePreparation()
         let first = artworkConfiguration(key: "first", abilities: [.slash])
         let second = artworkConfiguration(key: "second", abilities: [.heal])
@@ -54,7 +54,7 @@ extension BattleSessionPreparationTests {
         let pins = ArtworkPinRecorder()
         let barrier = ArtworkPreparationBarrier()
         var shouldPause = whilePreparing
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         session.artworkPreparation = pins.makePreparation(decoding: {
             if shouldPause {
                 shouldPause = false
@@ -99,7 +99,7 @@ extension BattleSessionPreparationTests {
     private func `obsolete artwork preparation cannot publish`(duringWarmup: Bool, change: ArtworkLifecycleChange) async {
         let pins = ArtworkPinRecorder()
         let barrier = ArtworkPreparationBarrier()
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         session.artworkPreparation = pins.makePreparation(
             warmup: {
                 if duringWarmup {

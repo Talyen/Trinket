@@ -82,9 +82,6 @@ public extension BattleState {
 
     var talentAdjustedEnemyTarget: Combatant {
         let base = roster.enemyAttackTarget
-        if roster.hero.isAlive, companionModifiers.triggers.redirectSingleTargetAttacksToHero {
-            return roster.hero.combatant
-        }
         if base.id == roster.companion.id, roster.hero.isAlive,
            companionModifiers.triggers.untargetableAboveHealthPercent > 0,
            roster.maxHealth(for: roster.companion.combatant) > 0,

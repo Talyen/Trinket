@@ -108,11 +108,11 @@ private extension CorruptionEffectSummary {
 
     var icon: GameIcon {
         switch self {
-        case .addedAffix: .lucide("circle-plus")
-        case .replacedAffix: .lucide("shuffle")
-        case .bumpedUp: .lucide("circle-arrow-up")
-        case .bumpedDown: .lucide("circle-arrow-down")
-        case .upgradedRarity: .lucide("sparkles")
+        case .addedAffix: .system("plus.circle.fill")
+        case .replacedAffix: .system("shuffle")
+        case .bumpedUp: .system("arrow.up.circle.fill")
+        case .bumpedDown: .system("arrow.down.circle.fill")
+        case .upgradedRarity: .system("sparkles")
         }
     }
 

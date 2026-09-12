@@ -275,7 +275,6 @@ public enum AccessibilityID {
 
     public enum TalentChoice {
         public static let screen = "Post-Battle Talent Choice Screen"
-        public static let closeButton = "Close Post-Battle Talent Choice"
         public static let unlockButton = "Unlock Post-Battle Talent"
 
         public static func tree(id: String) -> String {

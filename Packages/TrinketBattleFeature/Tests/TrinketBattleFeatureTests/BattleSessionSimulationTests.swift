@@ -10,42 +10,19 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionSimulationTests {
-    @Test func `turn draw resumes after scene suspension`() async throws {
+    @Test func `turn hand is ready immediately and suspension only pauses interaction`() throws {
         let session = BattleSessionTestSupport.makeConfiguredSession(autoEndTurnDelay: 60)
         defer { session.endBattle() }
         let card = try #require(session.hand.first)
         #expect(session.playCard(cardID: card.id) == .committed)
-        session.openingHandDrawStagger = .milliseconds(10)
         session.endTurn()
+        #expect(session.canEndTurn)
+        #expect(session.hand == session.engineState?.hand.cards)
+        let next = try #require(session.hand.first)
         session.setSuspendedForScenePhase(true)
-        let handAtPause = session.hand
-        for _ in 0 ..< 10 {
-            await Task.yield()
-        }
-        #expect(session.hand == handAtPause)
-        #expect(session.transitionTask.hasPendingTask)
-
+        #expect(session.playCard(cardID: next.id) == .rejected)
         session.setSuspendedForScenePhase(false)
-        #expect(try await BattleSessionTestSupport.waitUntil { !session.transitionTask.hasPendingTask })
-        #expect(session.canEndTurn)
-        #expect(session.hand.count > handAtPause.count)
-    }
-
-    @Test func `turn draw rejects commands until start of turn finishes`() async throws {
-        let session = BattleSessionTestSupport.makeConfiguredSession(autoEndTurnDelay: 60)
-        defer { session.endBattle() }
-        let card = try #require(session.hand.first)
-        session.openingHandDrawStagger = .milliseconds(10)
-        session.endTurn()
-        let turn = session.engineState?.turnCount
-
-        #expect(!session.canEndTurn)
-        #expect(session.playCard(cardID: card.id) == .rejected)
-        session.endTurn()
-        #expect(session.engineState?.turnCount == turn)
-
-        #expect(try await BattleSessionTestSupport.waitUntil { !session.transitionTask.hasPendingTask })
-        #expect(session.canEndTurn)
+        #expect(session.playCard(cardID: next.id) == .committed)
     }
 
     @Test func `defeat presentation locks retreat without victory chrome`() {
@@ -69,7 +46,7 @@ struct BattleSessionSimulationTests {
 
     @Test func `victory presentation holds chrome and locks retreat until configured delay`() async throws {
         let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0.05)
+        let session = BattleSession(outcomePresentationDelayOverride: 0.05)
         session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
@@ -101,7 +78,7 @@ struct BattleSessionSimulationTests {
     @Test func `claimed stage rewards auto complete then persist retry restores loot chrome`() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
+        let session = BattleSession(outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("journey|\(stage.id)"),
@@ -262,7 +239,7 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func `feedback bridge uninstall is owner scoped`() {
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         let survivingOwnerID = UUID()
         let departingOwnerID = UUID()
         let staleOwnerID = UUID()
@@ -298,7 +275,7 @@ struct BattleSessionSimulationTests {
             enemy: enemy.combatant,
             enemyModifiers: enemyModifiers,
         )
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         _ = session.activate(configuration)
 
         _ = session.restart(BattleRunConfigurationTestSupport.make(
@@ -383,7 +360,7 @@ private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int)
 
 extension BattleSessionSimulationTests {
     @Test func `hit and attack reaction bridges notify only the matching combatant`() {
-        let session = BattleSession(openingHandDrawStagger: 0)
+        let session = BattleSession()
         let heroOwner = UUID()
         let enemyOwner = UUID()
         var heroHits: [CombatantHitReaction?] = []
@@ -456,7 +433,6 @@ extension BattleSessionSimulationTests {
         let card = try #require(immediate.hand.first)
         #expect(immediate.playCard(cardID: card.id) == .committed)
         #expect(animated.playCard(cardID: card.id) == .committed)
-        animated.openingHandDrawStagger = .milliseconds(1)
         immediate.endTurn()
         animated.endTurn()
         animated.setSuspendedForScenePhase(true)

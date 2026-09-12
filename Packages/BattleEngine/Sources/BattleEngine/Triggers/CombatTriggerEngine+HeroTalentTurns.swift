@@ -25,9 +25,9 @@ extension CombatTriggerEngine {
             if triggers.lastWager, history.lastGrantedGold, context.turnCadence.cardsPlayed[owner, default: 0] > 0 {
                 events.append(contentsOf: heroTalentThorns(to: actor, source: actor, name: "Last Wager", in: &context))
             }
-            if triggers.groveReserve, runtime.currentMana >= 2, context.roster.companion.isAlive {
+            if triggers.groveReserve, runtime.currentMana >= 6, context.roster.companion.isAlive {
                 events.append(contentsOf: context.applyBlock(
-                    runtime.currentMana / 2, to: context.roster.companion.combatant,
+                    runtime.currentMana / 6, to: context.roster.companion.combatant,
                     source: actor, abilityName: "Grove Reserve",
                 ))
             }
@@ -37,6 +37,11 @@ extension CombatTriggerEngine {
 
     static func afterHeroTalentEnemyTurn(in context: inout BattleState) -> [ActionEvent] {
         context.heroTalents.enemyTurnActive = false
+        let companion = context.roster.companion
+        if companion.isAlive, context.companionModifiers.triggers.shadowCamouflage,
+           !context.heroTalents.attackedDuringEnemyTurn.contains(companion.id) {
+            context.roster.mutateRuntime(for: companion.combatant) { $0.talents.pending.shadowCamouflageBonus = 1 }
+        }
         let actor = context.roster.hero.combatant
         guard context.heroModifiers.triggers.quietGrove,
               !context.heroTalents.healthLostDuringEnemyTurn.contains(actor.id) else { return [] }

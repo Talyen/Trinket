@@ -209,7 +209,7 @@ struct DoTMechanicsTests {
             heroMana: 0,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(criticalChanceBonus: -1),
-                dot: DotTriggers(poisonDamageLeechPercent: 0.5),
+                dot: DotTriggers(poisonDamageLeechChancePercent: 1),
                 mana: ManaTriggers(leechRestoreManaFlat: 2),
             )),
             dealOpeningHand: false,
@@ -227,11 +227,11 @@ struct DoTMechanicsTests {
         #expect(events.contains { $0.effectKind == .resourceGain } == (health == 10))
     }
 
-    @Test func `toxiphage heals once for poison attacks applications and ticks`() throws {
+    @Test func `poison leech heals once for attacks applications and ticks`() throws {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(criticalChanceBonus: -1),
-                dot: DotTriggers(poisonDamageLeechPercent: 0.5),
+                dot: DotTriggers(poisonDamageLeechChancePercent: 1),
             )),
         )
         battle.appliesFightPacing = false

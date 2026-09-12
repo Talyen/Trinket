@@ -89,7 +89,7 @@ struct ContractsBoardView: View {
         if isArtworkReady(for: offer), let art = GameContent.enemy(matching: offer.enemyID)?.combatant.artReference {
             MapTileArtwork(art: art)
         } else {
-            MapTilePlaceholder(tint: TrinketDesign.Colors.encounterBattle, icon: .lucide("scroll-text"))
+            MapTilePlaceholder(tint: TrinketDesign.Colors.encounterBattle, icon: .system("scroll.fill"))
         }
     }
 
@@ -110,9 +110,10 @@ struct ContractsBoardView: View {
     }
 
     private func inspect(_ offer: ContractOffer) {
-        guard let enemy = GameContent.enemy(matching: offer.enemyID) else { return }
+        guard let encounter = contracts.resolvedEncounter(for: offer) else { return }
         presentPlayCombatantDetail(CombatantCardDetail(
-            combatant: enemy.combatant,
+            combatant: encounter.combatant,
+            progression: .at(level: encounter.level),
         ))
     }
 

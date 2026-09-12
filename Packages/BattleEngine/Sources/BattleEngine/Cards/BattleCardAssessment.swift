@@ -34,7 +34,7 @@ public extension BattleState {
         guard denial == nil else {
             return BattleCardAssessment(actorID: actor.id, denial: denial, targets: [], resources: [])
         }
-        let outcomes = BattleAbilityRules.assessmentOutcomes(card.ability, actor: actor, in: self)
+        let outcomes = BattleAbilityRules.assessmentOutcomes(card.ability)
         let candidates = outcomes.map { assessmentTargets($0, actor: actor) }
         let common = (candidates.first ?? []).filter { target in candidates.allSatisfy { $0.contains(target) } }
         var targets: [BattleCardAssessment.Target] = []
@@ -50,12 +50,9 @@ public extension BattleState {
 }
 
 extension BattleAbilityRules {
-    static func assessmentOutcomes(_ ability: Ability, actor: Combatant, in context: BattleState) -> [AbilityOutcomeBranch] {
+    static func assessmentOutcomes(_ ability: Ability) -> [AbilityOutcomeBranch] {
         if let branches = ability.outcomeBranches {
-            let eligible = eligibleOutcomes(branches, actor: actor, in: context)
-            if !eligible.isEmpty {
-                return eligible
-            }
+            return branches
         }
         return [AbilityOutcomeBranch(damageComponents: ability.damageComponents, targetedEffects: ability.targetedEffects)]
     }
@@ -79,8 +76,18 @@ private extension BattleState {
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
                 continue
             }
+            if case .drawAndPlayCards = targeted.effect {
+                continue
+            }
             let recipientCanChange = !branch.damageComponents.isEmpty || index > 0
             if recipientCanChange, [.lowestHealthAlly, .defeatedAlly].contains(targeted.target) {
+                continue
+            }
+            if case let .blessedAegis(block, holyDamage) = targeted.effect {
+                for ally in BattleActionContext(actor: actor, in: self).allies(in: self) where health(of: ally) > 0 {
+                    targets.append(.init(combatantID: ally.id, intent: .effect(.shield(.block, block))))
+                    targets.append(.init(combatantID: ally.id, intent: .effect(.onHitDamage(.holy, holyDamage))))
+                }
                 continue
             }
             if case let .panacea(baseHeal, _) = targeted.effect {

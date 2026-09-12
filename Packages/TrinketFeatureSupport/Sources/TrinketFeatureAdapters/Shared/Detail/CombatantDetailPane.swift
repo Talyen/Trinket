@@ -20,6 +20,8 @@ public struct CombatantDetailPane: View {
     let effectsVolume: Double
     var battleHealth: Int?
     var battleMana: Int?
+    var battleMaxHealth: Int?
+    var battleMaxMana: Int?
     var activeEffectSummaries: [EffectSummary] = []
     var labyrinthModifiers: [LabyrinthModifierDefinition] = []
     var hidesNavigationBar = false
@@ -74,10 +76,12 @@ public struct CombatantDetailPane: View {
                         .trinketTypography(.eyebrow)
                         .trinketOnArtText(.eyebrow)
 
-                    Text("\(progression.currentXP)/\(progression.requiredXP) XP")
-                        .trinketTypography(.eyebrow)
-                        .monospacedDigit()
-                        .trinketOnArtText(.eyebrow)
+                    if combatant.role != .enemy {
+                        Text("\(progression.currentXP)/\(progression.requiredXP) XP")
+                            .trinketTypography(.eyebrow)
+                            .monospacedDigit()
+                            .trinketOnArtText(.eyebrow)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -232,6 +236,8 @@ public struct CombatantDetailPane: View {
             combatantRole: combatant.role,
             battleHealth: battleHealth,
             battleMana: battleMana,
+            battleMaxHealth: battleMaxHealth,
+            battleMaxMana: battleMaxMana,
         )
         .equatable()
 
@@ -335,6 +341,8 @@ public extension CombatantDetailPane {
             effectsVolume: 0,
             battleHealth: snapshot.health,
             battleMana: snapshot.mana,
+            battleMaxHealth: snapshot.maxHealth,
+            battleMaxMana: snapshot.maxMana,
             activeEffectSummaries: snapshot.activeEffectSummaries,
             labyrinthModifiers: snapshot.labyrinthModifiers,
             hidesNavigationBar: hidesNavigationBar,

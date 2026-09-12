@@ -97,6 +97,7 @@ public enum Effect: Hashable, Sendable {
     case multiplyDoT(Keyword, Int)
     case detonateDoT(Keyword, Int)
     case recurringDamage(Keyword, Int, Int)
+    case blessedAegis(block: Int, holyDamage: Int)
     case avatar(holyDamage: Int, blockPerTurn: Int, turns: Int)
     case revive(Int)
     case damageReductionPercent(Double, Int)
@@ -149,7 +150,7 @@ public enum Effect: Hashable, Sendable {
         case let .multiplyDoT(k, _): k
         case let .detonateDoT(k, _): k
         case let .recurringDamage(k, _, _): k
-        case .avatar: .holy
+        case .avatar, .blessedAegis: .holy
         case .revive: .health
         case .damageReductionPercent: .physical
         case .damageReductionFlat: .physical
@@ -208,7 +209,7 @@ public enum Effect: Hashable, Sendable {
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .detonateDoT, .revive,
-             .cleanseHealPerDebuff, .panacea, .hemorrhage:
+             .cleanseHealPerDebuff, .panacea, .blessedAegis, .hemorrhage:
             0
         }
     }
@@ -252,7 +253,7 @@ public enum Effect: Hashable, Sendable {
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar:
+             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar, .blessedAegis:
             .actor
         }
     }

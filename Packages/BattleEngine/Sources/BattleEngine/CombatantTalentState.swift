@@ -44,15 +44,16 @@ struct CombatantTalentState: Hashable, Sendable {
         var cardDamageBonus = 0
         var cardDamagePercent = 0.0
         var nextHitBonus = 0
+        var shadowCamouflageBonus = 0
         var nextAttackHolyBonus = 0
         var basicGuaranteedCritical = false
         var basicCriticalBonus = 0.0
         var attackBonusOnFullHealth = 0
-        var doubleStatusNextCard = false
 
         mutating func reserveAttackBonuses() -> (damage: Int, holy: Int) {
-            let bonuses = (nextHitBonus + attackBonusOnFullHealth, nextAttackHolyBonus)
+            let bonuses = (nextHitBonus + attackBonusOnFullHealth + shadowCamouflageBonus, nextAttackHolyBonus)
             nextHitBonus = 0
+            shadowCamouflageBonus = 0
             attackBonusOnFullHealth = 0
             nextAttackHolyBonus = 0
             return bonuses
@@ -70,10 +71,6 @@ struct CombatantTalentState: Hashable, Sendable {
         var lingeringBlessing: LingeringBlessing?
     }
 
-    struct Card: Hashable, Sendable {
-        var goldenTouchActive = false
-    }
-
     struct Action: Hashable, Sendable {
         var empoweredByMana = false
     }
@@ -82,7 +79,6 @@ struct CombatantTalentState: Hashable, Sendable {
     var turn = Turn()
     var pending = Pending()
     var timed = Timed()
-    var card = Card()
     var action = Action()
 
     mutating func grantDodgeUntilNextTurn(_ amount: Double) {
@@ -111,10 +107,6 @@ struct CombatantTalentState: Hashable, Sendable {
 
     mutating func beginAction() {
         action = Action()
-    }
-
-    mutating func finishCard() {
-        card = Card()
     }
 
     mutating func consumeActionEmpowerment() -> Bool {

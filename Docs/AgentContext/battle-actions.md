@@ -2,11 +2,11 @@
 
 Use with [engine ownership](battle-engine.md) for action identity, hands, preparations or Mana payments.
 
-`CombatantRuntime.talents` groups battle, turn, pending, timed, card, and action
+`CombatantRuntime.talents` groups battle, turn, pending, timed, and action
 state explicitly behind copy-on-write storage. Turn start clears only turn state
 and expired timed bonuses; pending effects survive until their consuming operation.
-Keep an amount and its expiry/source together. Card cleanup and the last-action
-empowerment receipt retain their existing execution checkpoints.
+Keep an amount and its expiry/source together. The last-action empowerment
+receipt retains its existing execution checkpoint.
 Next-turn Dodge boosts from Pack Coordination and Smoke Screen live in turn
 state so a longer Cleanse bonus cannot extend them.
 
@@ -49,8 +49,10 @@ remains zero-based.
 
 Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO buffer in `BattleHand` and promote after effects / end-turn draws. Played cards return to the bottom of that owner’s deck **after** the card’s effects and on-play triggers finish, so a draw during resolve cannot fetch the card still being played.
 
-Pack Tactics alternates between available partner decks and uses the other deck
-when a partner is defeated, unable to play, or has no card to draw.
+Pack Tactics deals 3 Physical damage, then draws and plays one card from the
+caster's ally's deck. It falls back to the caster's deck when the ally is defeated,
+unable to play, or has no card to draw. Other draw-and-play effects retain their
+own target and alternating-deck rules.
 
 Unique card returns move the played ability to hand instead of also cycling it
 into the deck; turn-start recovery runs before normal draws. Ordinary card plays
@@ -67,8 +69,9 @@ playback and command readiness live in [battle presentation](battle-presentation
 
 `BattleState.assessCard(_:)` provides read-only availability, certain effect
 recipients, and resource-use quotes for the battle interaction cues. It shares
-affordability, eligible outcomes, targeting, and the Mana empowerment budget with
+affordability, possible outcomes, targeting, and the Mana empowerment budget with
 resolution. Assessment never advances RNG or consumes combat preparations.
+Automatic-play recipients remain unresolved until their drawn actions execute.
 Targets that depend on preceding effects remain unresolved; Panacea exposes
 its separate cleanse and healing recipients. Branch-dependent costs and reactive repeated payments remain non-quantitative;
 only resolved combat events establish the result. The legacy

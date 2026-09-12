@@ -1007,15 +1007,6 @@ extension TalentMigrationTests {
         #expect(before - battle.health(of: battle.enemy) == 3)
     }
 
-    @Test func `golden opportunity draws on large gold gains`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(gold: GoldTriggers(gainGoldDrawThreshold: 5)))
-        battle.heroDeck.putOnBottom(.slash)
-        let events = battle.withEngineContext { ctx in
-            ctx.grantGoldEvent(5, to: ctx.roster.hero.combatant, abilityName: "test")
-        }
-        #expect(events.contains(where: { $0.effectKind == .cardsDrawn }))
-    }
-
     @Test func `searing bind extends stun against burning enemies`() {
         for burning in [false, true] {
             var battle = makeBattle(heroTriggers: CombatTraitTriggers(control: ControlTriggers(stunExtendVsBurning: true)))

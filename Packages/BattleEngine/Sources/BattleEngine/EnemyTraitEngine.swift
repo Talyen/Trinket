@@ -3,6 +3,25 @@ import TrinketContent
 import TrinketCore
 
 package enum EnemyTraitEngine {
+    static func basicFreezeDamage(from state: DamageResolutionState, context: inout BattleState) -> [ActionEvent] {
+        guard state.sourceActorID == context.enemy.id, state.combatant.role != .enemy,
+              context.health(of: state.combatant) > 0, context.roster.enemy.isAlive else { return [] }
+        let amount = context.enemyModifiers.triggers.basicAttackFreezeBuildup
+        let immediateBasic = state.provenance != nil
+            && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)
+            && context.resolution.actionOutcome?.ability.tier == .basic
+        guard amount > 0, state.options.isBasicAttackHit || immediateBasic else { return [] }
+        if let actionID = context.resolution.actionID {
+            guard context.resolution.claim(
+                .heroTalent("basicAttackFreezeBuildup"), actorID: context.enemy.id, cadence: .action(actionID),
+            ) else { return [] }
+        }
+        return context.resolveDamage(DamageRequest(
+            amount: amount, target: state.combatant, keyword: .freeze,
+            sourceActorID: context.enemy.id, options: .reaction(),
+        )).events
+    }
+
     package static func turnFreeze(
         for combatant: Combatant,
         context: inout BattleState,

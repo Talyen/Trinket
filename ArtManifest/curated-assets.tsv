@@ -251,6 +251,7 @@ resource	herbs	resource_homestead_herbs	Raw Assets/Homestead/Resources/herbs.png
 resource	hide	resource_homestead_hide	Raw Assets/Homestead/Resources/hide.png	0.50	0.50
 resource	crystal	resource_homestead_crystal	Raw Assets/Homestead/Resources/crystal.png	0.50	0.50
 resource	gold	resource_homestead_gold	Raw Assets/Homestead/Resources/gold.png	0.50	0.50
+resource	experience	resource_experience	Raw Assets/Resources/experience.png	0.50	0.50
 encounter	mystery-abandoned-study	encounter_mystery_abandoned_study	Raw Assets/Mystery Events/Abandoned Study.jpeg	0.50	0.50
 encounter	mystery-ancient-altar	encounter_mystery_ancient_altar	Raw Assets/Mystery Events/Ancient Altar.jpeg	0.50	0.50
 encounter	mystery-crystal-garden	encounter_mystery_crystal_garden	Raw Assets/Mystery Events/Crystal Garden.jpeg	0.50	0.50

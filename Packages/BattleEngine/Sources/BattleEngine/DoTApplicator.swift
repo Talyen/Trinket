@@ -14,13 +14,10 @@ package enum DoTApplicator {
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        let resolvedPotency = application.adjustsPotency
-            ? goldenTouchPotency(potency, sourceActorID: sourceActorID, in: &context) : potency
-
         var collected: [ActionEvent] = []
         if application.dealsImmediateDamage {
             collected.append(contentsOf: DoTDamage.resolveDamage(
-                basePotency: resolvedPotency,
+                basePotency: potency,
                 keyword: keyword,
                 target: effectTarget,
                 sourceActorID: sourceActorID,
@@ -30,11 +27,11 @@ package enum DoTApplicator {
         }
 
         var currentEffects = context.roster.activeEffects(for: effectTarget)
-        let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: resolvedPotency)
+        let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: potency)
         guard !context.interceptDebuff(appliedEffect, on: effectTarget) else { return collected }
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = Effect.decayingDoT(keyword: keyword, potency: existingPotency + resolvedPotency)
+            currentEffects[index].effect = Effect.decayingDoT(keyword: keyword, potency: existingPotency + potency)
             currentEffects[index].sourceActorID = sourceActorID
         } else {
             currentEffects.append(
@@ -69,13 +66,10 @@ package enum DoTApplicator {
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        let resolvedPotency = application.adjustsPotency
-            ? goldenTouchPotency(potency, sourceActorID: sourceActorID, in: &context) : potency
-
         var collected: [ActionEvent] = []
         if application.dealsImmediateDamage {
             collected.append(contentsOf: DoTDamage.resolveDamage(
-                basePotency: resolvedPotency,
+                basePotency: potency,
                 keyword: .bleed,
                 target: effectTarget,
                 sourceActorID: sourceActorID,
@@ -84,7 +78,7 @@ package enum DoTApplicator {
             ).events)
         }
 
-        guard !context.interceptDebuff(.bleed(resolvedPotency), on: effectTarget) else { return collected }
+        guard !context.interceptDebuff(.bleed(potency), on: effectTarget) else { return collected }
         let alreadyBleeding = context.roster.activeEffects(for: effectTarget).contains(where: \.effect.isBleed)
         if alreadyBleeding, application != .reflection {
             let sourceTriggers = context.modifiers(for: sourceActorID).triggers
@@ -115,7 +109,7 @@ package enum DoTApplicator {
         }
 
         context.appendEffect(
-            .bleed(resolvedPotency),
+            .bleed(potency),
             to: effectTarget,
             sourceID: sourceActorID,
             remainingTurns: durationTurns ?? (Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus),
@@ -148,24 +142,5 @@ package enum DoTApplicator {
         effects.removeAll { $0.effect.keyword == keyword && $0.effect.isDecayingDoT && $0.effect.potency == 0 }
         context.roster.setActiveEffects(effects, for: target)
         return amount - remaining
-    }
-
-    private static func goldenTouchPotency(
-        _ potency: Int,
-        sourceActorID: String,
-        in context: inout BattleState,
-    ) -> Int {
-        guard let source = context.roster.combatant(for: sourceActorID),
-              let runtime = context.roster.runtime(for: source.combatant)
-        else { return potency }
-        if runtime.talents.card.goldenTouchActive {
-            return potency * 2
-        }
-        guard runtime.talents.pending.doubleStatusNextCard else { return potency }
-        context.roster.mutateRuntime(for: source.combatant) {
-            $0.talents.pending.doubleStatusNextCard = false
-            $0.talents.card.goldenTouchActive = true
-        }
-        return potency * 2
     }
 }

@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "resource_experience.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

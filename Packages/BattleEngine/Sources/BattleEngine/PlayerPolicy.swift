@@ -109,6 +109,8 @@ private enum HeuristicCardScoring {
             count * 5
         case let .shield(_, amount):
             amount
+        case let .blessedAegis(block, _):
+            block * 2 + 4
         case let .instantHeal(_, amount):
             amount
         case let .burn(amount):

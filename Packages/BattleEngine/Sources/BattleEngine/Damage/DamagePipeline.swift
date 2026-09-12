@@ -7,6 +7,12 @@ package enum DamagePipeline {
         state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
+        let immediateEnemyDamage = state.provenance != nil
+            && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)
+        if context.heroTalents.enemyTurnActive, state.options.isAttackHit || immediateEnemyDamage,
+           state.sourceActorID == context.enemy.id, state.combatant.role != .enemy {
+            context.heroTalents.attackedDuringEnemyTurn.insert(state.combatant.id)
+        }
         if state.options.isHealthCost {
             state.remaining = state.amount
             state.dealt = state.amount
@@ -63,6 +69,7 @@ package enum DamagePipeline {
             ))
         }
 
+        state.damageEvents.append(contentsOf: EnemyTraitEngine.basicFreezeDamage(from: state, context: &context))
         applyDoTDamageReactions(to: &state, in: &context)
         applyLeech(to: &state, in: &context)
         applyTalentDamageApplications(to: &state, in: &context)

@@ -136,7 +136,10 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         guard let firstOwner = context.roster.participant(for: target), firstOwner.isPartyMember else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let drawnCards = collectDrawnCards(targetCount: count, firstOwner: firstOwner, in: &context)
+        let drawOwner: BattleParticipant = ability.id == Ability.packTactics.id
+            ? (firstOwner == .hero ? .companion : .hero)
+            : firstOwner
+        let drawnCards = collectDrawnCards(targetCount: count, firstOwner: drawOwner, in: &context)
         guard !drawnCards.isEmpty else {
             return EffectApplyOutcome(events: [], didApply: false)
         }

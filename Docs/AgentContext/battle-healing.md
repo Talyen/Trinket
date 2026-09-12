@@ -21,3 +21,7 @@ Damage operations and caps use [damage contracts](battle-damage.md). For a named
 
 `HealingOrigin` owns healing rules and Critical Hit
 eligibility independently of logging.
+
+Blessed Aegis grants independent Block and Holy retaliation to each living ally
+of the caster. Enemy casters protect only their own side. Reapplying the Holy
+ward refreshes it through the same rules as other on-hit wards.

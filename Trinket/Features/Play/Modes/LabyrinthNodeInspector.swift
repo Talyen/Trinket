@@ -85,6 +85,7 @@ struct LabyrinthNodeInspector: View {
         }
         return CombatantCardDetail(
             combatant: encounter.combatant,
+            progression: .at(level: encounter.level),
             labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs),
         )
     }
@@ -147,11 +148,11 @@ struct LabyrinthNodeInspector: View {
         case "bulwarkBargain", "wardedFlesh": Keyword.block.visualStyle.icon
         case "vampiricLedger": Keyword.leech.visualStyle.icon
         case "bountyMark": Keyword.gold.visualStyle.icon
-        case "scholarsToll": .lucide("book-open")
-        case "scavengersLuck": .lucide("package")
-        case "shopDiscount": .lucide("percent")
-        case "appraisersEye": .lucide("eye")
-        default: .lucide("sparkles")
+        case "scholarsToll": .system("book.fill")
+        case "scavengersLuck": .system("shippingbox.fill")
+        case "shopDiscount": .system("percent")
+        case "appraisersEye": .system("eye.fill")
+        default: .system("sparkles")
         }
     }
 }
