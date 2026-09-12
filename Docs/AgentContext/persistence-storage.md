@@ -6,14 +6,16 @@ Reads use an in-memory observed projection; load/repair sanitizes `root.toPlayer
 
 Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).
 
-Trinket has no released player saves or production CloudKit schema. Historical
-development-save migrations and retired identifier aliases have been removed;
-the current value schema identifier is unchanged. Unsupported value schemas are
-rejected without rewriting their progress. Unsupported Labyrinth map payloads use
+Distributed TestFlight builds have local player saves that must be preserved or
+migrated when schemas or serialized identifiers change. Production CloudKit remains
+gated by the [release checklist](../Platform/CloudKitPreShipChecklist.md).
+Historical development-save migrations and retired identifier aliases were removed
+before that distribution; their retirement is not permission to remove support for
+current saves. The current value schema identifier is unchanged. Unsupported value
+schemas are rejected without rewriting their progress. Unsupported Labyrinth map payloads use
 the existing unreadable-map recovery path, without translating historical floor
 progress. Current-data validation, relationship repair, and corruption recovery
-remain required. Once saves ship, preserve or migrate them before changing their
-schema or serialized identifiers.
+remain required.
 
 Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roster/inventory/homestead are normalized child tables — intentional trade-off for spatial graph queries; don't normalize the labyrinth without measuring encode cost.
 

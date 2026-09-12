@@ -17,13 +17,12 @@ FAMILIES = (
     ),
     (
         {"Scripts/check-links.py", "Scripts/check-docs.py", "Scripts/check-plans.py",
-         "Scripts/check-testplan-sync.py"},
-        {"test_content_and_policy_scripts", "test_ci_verification_scripts",
-         "test_agent_context", "test_verification_improvements", "test_exec_wrappers"},
+         "Scripts/check-testplan-sync.py", "Scripts/agent-read.py", "Scripts/internal/markdown.py"},
+        {"test_documentation"},
     ),
     (
         {"Scripts/aggregate-performance-results.py", "Scripts/compare-performance.py",
-         "Scripts/collect-performance-results.py", "Scripts/performance_model.py",
+         "Scripts/collect-performance-results.py", "Scripts/internal/performance/performance_model.py",
          "Scripts/performance_environment.py"},
         {"test_aggregate_performance", "test_compare_performance", "test_exec_wrappers"},
     ),

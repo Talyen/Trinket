@@ -3,7 +3,10 @@ import TrinketContent
 import TrinketCore
 
 extension BattleSession {
-    func beginCardCue(_ card: BattleCard) {
+    func beginCardCue(
+        _ card: BattleCard,
+        mode: BattleCardCuePresentationMode = .preview,
+    ) {
         guard canPresentCardCue, let state = engineState else { return }
         if cardCues.current?.cardID == card.id, cardCues.current?.phase == .lifted {
             return
@@ -13,7 +16,7 @@ extension BattleSession {
         if let previous = cardCues.current, previous.phase == .lifted, previous.cardID != card.id {
             publishAttackTelegraph(.cancel, for: previous.actorID)
         }
-        cardCues.begin(cardID: card.id, assessment: assessment)
+        cardCues.begin(cardID: card.id, assessment: assessment, mode: mode)
         if card.ability.dealsCombatDamage {
             publishAttackTelegraph(.windUp, for: assessment.actorID)
         }

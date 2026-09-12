@@ -28,12 +28,8 @@ are useful leads; cosmetic rewriting is not the goal.
   alone cannot prove instructions correct.
 - Check external sources when changing their claims and network is available;
   an unavailable endpoint alone does not prove staleness.
-- Keep audit guides procedural. Remove embedded run logs, Done tables, and dated
-  execution trackers. Run outcomes belong in handoffs/commits/PRs;
-  [Proposals.md](Proposals.md) holds only decisions and intentional exceptions.
+- Remove misplaced run history under the [documentation lifecycle](../README.md#lifecycle-and-retention).
 - Reconcile an obsolete memory pointer with the current owner before pruning it;
   a renamed symbol need not invalidate the decision it records.
 
-Success is a usable, consistent workflow or corrected fact at its authoritative
-owner and affected references. Preserve useful design rationale; do not broaden
-this into style-only prose cleanup.
+Preserve useful design rationale; do not broaden this into style-only prose cleanup.

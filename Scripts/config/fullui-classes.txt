@@ -1,9 +1,0 @@
-# FullUI registry — do not hand-edit without updating FullUI.xctestplan.
-# Validated by Scripts/check-testplan-sync.py (plan selection vs UI classes).
-BattleFlowUITests
-MysteryRecruitUITests
-PlayMapUITests
-PlayModeNavigationUITests
-TabNavigationUITests
-HeroDetailAbilityPickerUITests
-HomesteadNodeDetailUITests

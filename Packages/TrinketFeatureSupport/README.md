@@ -12,19 +12,45 @@ features.
 | `TrinketFeatureAdapters` | Save-backed map/detail adapters and equipment editing | Support/Contracts plus Core, Content, BattleEngine, Persistence, DesignSystem |
 
 None of these products may import `TrinketBattleFeature`, `TrinketAppState`, or the
-app module. Keep app routing, encounter orchestration, combat lifecycle, and save
-mutations outside this package.
+app module. Keep app routing, encounter orchestration, and combat lifecycle outside
+this package. Adapters submit save commands to Persistence, which owns transactions
+and durable storage.
 
 Within `Sources/TrinketFeatureSupport/Shared/`, `Cards/` owns reusable cards and
 item artwork, `Encounters/` owns encounter tiles and reading presentation, and
 `Rewards/` owns the reward reveal sequence and its views.
 
-## Architecture and Core Systems
+## Artwork and rendering
 
-- **Artwork Cache & Warmup**: `PreparedArtworkCache` manages decoded UI bitmaps. Image loading and decoding run off the main actor; cache publication and pin ownership remain on the main actor. Overlapping requests share a cache-owned task per image: canceling a caller stops its queued work, while already-started decodes finish and publish for all consumers. Priority assets decode during launch before releasing the interactive UI and stay pinned to avoid hitching on presentation frames; remaining catalog items decode deferred at utility priority. `ArtworkViewportPrewarm` debounces scroll-driven prefetch windows (forward/backward rows). Pinned pictures live outside the evictable `NSCache` cost limit. Current memory targets and enforcement belong to the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
-- **Detail Hero Presentation**: `HeroHeaderLayout` and `DetailHeroScrollShell` standardize full-bleed detail sheets (combatants, abilities, items) across the app, ensuring consistent aspect ratio scaling (`4:3`), rubber-band overscroll metrics, and gradient scrim blending into canvas backgrounds. Single geometry source in `DetailHeroScrollShell` drives both header height and pinned-title opacity.
-- **Shine System**: `Shine` owns game-specific text and border palettes (keyword, color, unique, corruption). Text rendering delegates to the design system’s `trinketShineText(colors:)`, shared with rarity labels; its 14.4-second sweep spreads each palette across two text widths. Border and aura loops remain 4.8 seconds. Views take `Shine` directly (`shineText(_:)`, `shineBorder(_:)`); `ItemCard` falls back to rarity/astral when no override is passed. `InventoryItem.displayShine` derives the border palette. `displayTextShine` uses up to three keywords from displayed affix descriptions, preferring matching base affinities, with primary and 55%-opacity color pairs. Unique titles use gold pairs; title palettes do not limit border or plasma keywords. Animated borders rasterize the static angular gradient before applying rotation, then mask it to the card outline. Keep the changing angle outside the drawing group so each frame reuses the gradient instead of redrawing an offscreen surface. Apply `shineText` before fixed foreground fallback modifiers, including `trinketOnArtText`, so the gradient takes precedence.
-- **Frame Pacing Diagnostics**: `FramePacingAnalyzer` and `FramePacingSignpostSupport` provide signpost instrumentation and refresh-normalized analytics for delivered display-link callbacks, stalls, and 1% low callback rate. These are not rendered-frame or authoritative hitch measurements; interpretation follows the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md#signals). `FramePacingReport` is `Codable` with tolerant decoding (unknown future fields ignored, missing keys default); the UI-test transport preserves its supported schema compatibility.
+`PreparedArtworkCache` decodes off the main actor; publication and pin ownership
+stay on the main actor. Overlapping requests share cache-owned work: cancellation
+stops a caller's queued work, while started decodes finish for all consumers.
+Pins live outside the evictable `NSCache` cost limit. `ArtworkViewportPrewarm`
+owns scroll-driven prefetch. Launch retention follows
+[UI performance](../../Docs/AgentContext/ui-performance.md); memory budgets follow
+the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
+
+`HeroHeaderLayout` and `DetailHeroScrollShell` share full-bleed 4:3 detail heroes,
+overscroll, and scrim blending. One geometry source drives header height and
+pinned-title opacity.
+
+`Shine` owns text and border palettes; `ItemCard` falls back to rarity/Astral
+when no override is supplied. `displayTextShine` derives title colors
+from displayed affixes, preferring base affinities; Unique titles use gold.
+Title palettes do not limit border or plasma keywords. Text delegates to
+DesignSystem's `trinketShineText(colors:)`; source owns palette and motion tuning.
+Apply `shineText` before fixed foreground fallbacks, including `trinketOnArtText`.
+Animated borders rasterize the static gradient before rotation and then mask it
+to the card outline. Keep the changing angle outside the drawing group to reuse
+the raster instead of redrawing an offscreen surface each frame.
+
+## Frame diagnostics
+
+`FramePacingAnalyzer` and `FramePacingSignpostSupport` measure delivered display-link
+callbacks, not rendered frames or authoritative hitches. Interpretation follows
+the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md#signals).
+`FramePacingReport` retains tolerant decoding and the UI-test transport's supported
+schema compatibility.
 
 `FramePacingMeasurementTiming` shares snapshot and warmup timing between the app
 probe, Battle harness, and UI-test capture validation. `FramePacingReport.sampledDuration`
@@ -42,7 +68,11 @@ all three controls. Filtered results show their count against eligible gear.
 
 Each visit starts with equipped gear first, then Unique, Astral, Basic, and name
 (with item identity breaking ties). Inspection preserves ordering, filters, and
-scroll position; changing filters returns to the top. Equipping closes the picker.
+scroll position; changing filters returns to the top. Successfully equipping closes
+the picker. The currently equipped item's detail offers Unequip, which also closes
+the picker after a successful save. Failed edits preserve the detail for retry.
+Combatant details receive read-only loadouts and result-returning edit commands;
+save results control success feedback and navigation, never binding readback.
 Initial eligible thumbnails are prepared and pinned before navigation, owned by
 the picker visit; the lazy grid prewarms nearby artwork as results and visibility
 change. Existing detail and launch pins remain independent.

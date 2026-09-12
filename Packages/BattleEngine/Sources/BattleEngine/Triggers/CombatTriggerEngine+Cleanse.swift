@@ -180,8 +180,7 @@ package extension CombatTriggerEngine {
         if triggers.cleanseDodgeChanceBonus > 0 {
             let duration = max(1, triggers.cleanseDodgeChanceBonusTurns)
             context.roster.mutateRuntime(for: target) {
-                $0.talents.timed.dodge.amount += triggers.cleanseDodgeChanceBonus
-                $0.talents.timed.dodge.expiresAtTurn = max($0.talents.timed.dodge.expiresAtTurn, context.turnCount + duration)
+                $0.talents.grantTimedDodge(triggers.cleanseDodgeChanceBonus, untilTurn: context.turnCount + duration)
             }
         }
         return cleanseOtherPartyMember(source: source, target: target, in: &context)

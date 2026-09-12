@@ -65,16 +65,16 @@ has_safe_inout_target() {
   return 1
 }
 
+trinket_rg_scan -n --glob '*.swift' --glob '!**/Generated/**' '&self\.' "${SOURCE_DIRS[@]}"
 while IFS=: read -r file line_number content; do
   [[ -z "${file:-}" ]] && continue
   if is_allowed "$file" "$line_number"; then
     continue
   fi
   trinket_rg_violation "${file}:${line_number}: ${content}"
-done < <(
-  rg -n --glob '*.swift' --glob '!**/Generated/**' '&self\.' "${SOURCE_DIRS[@]}" 2>/dev/null || true
-)
+done <<< "$TRINKET_RG_MATCHES"
 
+trinket_rg_scan -n --glob '*.swift' --glob '!**/Generated/**' 'into:[[:space:]]*&[A-Za-z_]' "${SOURCE_DIRS[@]}"
 while IFS=: read -r file line_number content; do
   [[ -z "${file:-}" ]] && continue
   if is_allowed "$file" "$line_number"; then
@@ -86,9 +86,7 @@ while IFS=: read -r file line_number content; do
     continue
   fi
   trinket_rg_violation "${file}:${line_number}: ${content}"
-done < <(
-  rg -n --glob '*.swift' --glob '!**/Generated/**' 'into:[[:space:]]*&[A-Za-z_]' "${SOURCE_DIRS[@]}" 2>/dev/null || true
-)
+done <<< "$TRINKET_RG_MATCHES"
 
 trinket_rg_report "Exclusivity footgun check found inout of a likely stored property:" "Exclusivity footgun check passed." "" \
   "Copy the property to a local var, pass &local, then write back — see PlayerRosterState.unlockHero." \

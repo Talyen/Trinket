@@ -32,27 +32,18 @@ package extension CombatTriggerEngine {
             : triggers.retainedBlockGainThornsPercent
         let gained = CombatRounding.scaled(amount, multiplier: percent)
         guard gained > 0 else { return [] }
-        var effects = context.roster.activeEffects(for: actor)
+        let effects = context.roster.activeEffects(for: actor)
         let existing = effects.reduce(0) { total, active in
             if case let .thorns(stacks) = active.effect {
                 return total + stacks
             }
             return total
         }
-        effects.removeAll {
-            if case .thorns = $0.effect {
-                return true
-            }
-            return false
-        }
         let total = existing + gained
-        effects.append(ActiveEffect(
-            id: context.consumeNextEffectID(),
-            effect: .thorns(total),
-            remainingTurns: 0,
-            sourceActorID: actor.id,
-        ))
-        context.roster.setActiveEffects(effects, for: actor)
+        guard context.insertEffect(
+            .thorns(total), to: actor, sourceID: actor.id, remainingTurns: 0,
+            replacing: { $0.kind == .thorns },
+        ) else { return [] }
         return [context.nextEvent(
             kind: .effect,
             effectKind: .thornsApplied,
@@ -115,7 +106,7 @@ package extension CombatTriggerEngine {
                 fallback: "Shield Bond",
                 in: context,
             ),
-            applyOutgoingAdjustment: false,
+            amountBasis: .resolved,
         )
     }
 

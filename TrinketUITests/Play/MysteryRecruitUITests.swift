@@ -21,9 +21,10 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Mystery.continueButton)
         assertDoesNotExist(AccessibilityID.Mystery.rewardTitle)
+        play.assertLoaded()
     }
 
-    func testCompanionRecruitContinueReturnsToCampaign() {
+    func testCompanionRecruitContinueReturnsToPlayAndAdvancesCampaign() {
         launchApp(arguments: TestLaunchArg.allUnseeded()
             + ["-battle-tick-interval", "1.0"]
             + TestLaunchArg.screen("mystery")
@@ -34,6 +35,7 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Mystery.continueButton)
         assertDoesNotExist(AccessibilityID.Mystery.unlockCard(name: "Bear"), timeout: 8)
+        play.assertLoaded()
         play.openCampaign()
         assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: 3))
     }

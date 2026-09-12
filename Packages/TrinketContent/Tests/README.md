@@ -13,7 +13,7 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 | Content access policy | `ContentAccessPolicyTests` | Free/full chapter/labyrinth/spire gates |
 | Unique catalog | `UniqueCatalogTests` | Counts, slots, pinned powers, save decode |
 | Combatant talent trees | `CombatantTalentCatalogTests` | Three trees with at least seven nodes each, affinities, authored IDs, no placeholders |
-| Trigger family schema | `Scripts/content_codegen_triggers.py` + `Scripts/trigger_family_schema.json` | Generated `*Triggers` fields must match the schema; generation fails on drift |
+| Trigger family schema | `Scripts/internal/content/content_codegen_triggers.py` + `Scripts/internal/content/trigger_family_schema.json` | Generated `*Triggers` fields must match the schema; generation fails on drift |
 | Catalog cross-invariants | `GameContentCatalogInvariantTests` | Cross-catalog ID and wiring checks |
 | Enemy traits | `GameContentTraitCatalogTests` | Enemy→trait ID refs and non-empty trait copy |
 | Enemy balance classification | `EnemyCatalogTests` | Normal/boss bands, kits, HP bands |

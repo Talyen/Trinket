@@ -28,6 +28,7 @@ QUIET=false
 FINAL=false
 KEEP_PLAN=false
 PATH_MODE="unset"
+STYLE_CHECKED=false
 declare -a requested_paths=()
 
 # check_run <kind> <argument>
@@ -111,7 +112,11 @@ run_check() {
 run_cheap_ci_slices() {
   # shellcheck source=Scripts/lib/cheap-slices.sh
   source Scripts/lib/cheap-slices.sh
-  trinket_run_cheap_slices
+  if [[ "$STYLE_CHECKED" == true ]]; then
+    trinket_run_cheap_slices --after-style
+  else
+    trinket_run_cheap_slices
+  fi
 }
 
 while [[ $# -gt 0 ]]; do
@@ -146,7 +151,7 @@ by default.
 --smoke opts into the targeted simulator UI smoke canary for touched feature flows.
 --mirror opts into auto-mirroring the built app into Trinket Run on success.
 --isolate forwards to the simulator-slot environment so runs do not collide.
---final applies final documentation and active-plan checks.
+--final applies global documentation checks and task-scoped active-plan closure checks.
 --keep-plan permits an intentionally unfinished active plan with --final.
 Use --working-tree to opt into whole-tree classification; --paths is preferred.
 USAGE
@@ -177,9 +182,19 @@ fi
 
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
 
-if [[ "$FINAL" == true && "$DRY_RUN" != true ]]; then
+if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
+  echo "No working-tree changes to verify."
+  exit 0
+fi
+
+docs_args=()
+if [[ "$FINAL" == true ]]; then
   docs_args=("--final")
   [[ "$KEEP_PLAN" == true ]] && docs_args+=("--keep-plan")
+  docs_args+=("--paths" "${TRINKET_CHANGED_PATHS[@]}")
+fi
+
+if [[ "$FINAL" == true && "$DRY_RUN" != true ]]; then
   if python3 ./Scripts/check-docs.py "${docs_args[@]}"; then
     :
   else
@@ -187,11 +202,6 @@ if [[ "$FINAL" == true && "$DRY_RUN" != true ]]; then
     echo "Handoff FAIL: final documentation check (exit $status)" >&2
     exit "$status"
   fi
-fi
-
-if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
-  echo "No working-tree changes to verify."
-  exit 0
 fi
 
 trinket_classify_paths
@@ -203,8 +213,8 @@ if [[ "$DRY_RUN" == true ]]; then
   echo "Planned checks:"
   declare -a _dry_commands=()
   if [[ "$FINAL" == true ]]; then
-    _final_docs="python3 ./Scripts/check-docs.py --final"
-    [[ "$KEEP_PLAN" == true ]] && _final_docs+=" --keep-plan"
+    printf -v _final_docs '%q ' python3 ./Scripts/check-docs.py "${docs_args[@]}"
+    _final_docs="${_final_docs% }"
     _dry_commands+=("$_final_docs")
   fi
   _has_docs_in_plan=false
@@ -223,13 +233,24 @@ if [[ "$DRY_RUN" == true ]]; then
       _dry_commands+=("$display")
     fi
   done
+  _cheap_args=(--dry-run)
+  for i in "${!TRINKET_VERIFICATION_KINDS[@]}"; do
+    if [[ "${TRINKET_VERIFICATION_KINDS[$i]}" == test && "${TRINKET_VERIFICATION_ARGS[$i]}" == style* ]]; then
+      _cheap_args+=(--after-style)
+      break
+    fi
+  done
+  _cheap_preview="$(trinket_run_cheap_slices "${_cheap_args[@]}")" || exit $?
   while IFS= read -r _slice; do
     [[ -n "$_slice" ]] && _dry_commands+=("$_slice")
-  done < <(trinket_run_cheap_slices --dry-run)
+  done <<< "$_cheap_preview"
   if (( ${#_dry_commands[@]} > 0 )); then
     printf '  %s\n' "${_dry_commands[@]}"
   else
     echo "  (none; review docs/tooling directly)"
+  fi
+  if [[ "$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE" == true ]]; then
+    echo "Unavailable required check: app compilation (xcodebuild missing)."
   fi
   exit 0
 fi
@@ -255,6 +276,7 @@ if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
       echo "Handoff FAIL: $cmd (see diagnostics above)" >&2
       exit 1
     fi
+    if [[ "$kind" == test && "$argument" == style* ]]; then STYLE_CHECKED=true; fi
   done
 else
   echo "No source verification selected for the current changes."
@@ -275,6 +297,11 @@ else
   exit "$status"
 fi
 
+if [[ "$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE" == true ]]; then
+  echo "Handoff INCOMPLETE: app compilation requires xcodebuild; available checks passed." >&2
+  exit 2
+fi
+
 if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${TRINKET_ISOLATE:-}" == "1" && "${ISOLATE}" == true ]]; then
   _mirror_needs_build=false
   if [[ "$TRINKET_NEEDS_APP_BUILD" == true || "$TRINKET_HAS_FEATURE" == true || "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]] || (( ${#TRINKET_PACKAGES[@]} > 0 )); then
@@ -282,9 +309,9 @@ if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${TRINKET_ISOLATE:-}" == "
   fi
   if [[ "$_mirror_needs_build" == true ]]; then
     if [[ "$QUIET" == true ]]; then
-      ./Scripts/promote.sh --quiet || true
+      ./Scripts/promote.sh --quiet || { echo "Handoff FAIL: mirror" >&2; exit 1; }
     else
-      ./Scripts/promote.sh || true
+      ./Scripts/promote.sh || { echo "Handoff FAIL: mirror" >&2; exit 1; }
     fi
   fi
 fi

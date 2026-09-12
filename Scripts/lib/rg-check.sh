@@ -25,6 +25,19 @@ violations=()
 
 TRINKET_RG_BULLET="${TRINKET_RG_BULLET:-  - }"
 
+# Run in the caller, not process substitution, so a search error stops the gate.
+trinket_rg_scan() {
+  local status
+  if TRINKET_RG_MATCHES="$(rg "$@")"; then
+    return 0
+  else
+    status=$?
+  fi
+  [[ "$status" -eq 1 ]] && return 0
+  echo "Policy search failed (rg exit $status)." >&2
+  exit "$status"
+}
+
 trinket_rg_violation() {
   violations+=("$1")
 }

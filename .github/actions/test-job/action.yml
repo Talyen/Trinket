@@ -9,7 +9,7 @@ inputs:
     description: Artifact name for uploaded test results
     required: true
   build-artifact:
-    description: Artifact name containing pruned .DerivedData from the build job
+    description: Artifact name containing the test-products tar archive
     required: false
     default: ''
   rebuild-command:
@@ -24,6 +24,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Clear cached test diagnostics before test preparation
+      shell: bash
+      run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
+
     - name: Preboot simulator
       if: inputs.preboot-simulator == 'true'
       shell: bash
@@ -49,11 +53,13 @@ runs:
       continue-on-error: true
       uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317 # v5
       with:
-        # upload-artifact v4 strips the path LCA. The build job uploads
-        # .DerivedData/ci-test-artifact (Build/Products + stamps); download
-        # into .DerivedData to restore that layout.
         name: ${{ inputs.build-artifact }}
         path: .DerivedData
+
+    - name: Extract test products
+      if: inputs.build-artifact != '' && steps.download-build.outcome == 'success'
+      shell: bash
+      run: tar -xf .DerivedData/ci-test-artifact.tar -C .DerivedData
 
     - name: Rebuild when artifact miss
       if: inputs.build-artifact != '' && steps.download-build.outcome != 'success'
@@ -88,10 +94,6 @@ runs:
         cat "$RUNNER_TEMP/trinket-sim-preboot/boot.log" || true
         mkdir -p .DerivedData/TestResults
         cp "$RUNNER_TEMP/trinket-sim-preboot/boot.log" .DerivedData/TestResults/simulator.log 2>/dev/null || true
-
-    - name: Clear cached test diagnostics after build restore
-      shell: bash
-      run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
 
     - name: Run tests
       shell: bash

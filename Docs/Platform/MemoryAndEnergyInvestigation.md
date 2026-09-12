@@ -18,17 +18,11 @@ budget or improvement.
    first-interactive working set after warmup to lower the peak.
 
 For art inputs, `./Scripts/report-art-memory.sh` estimates full-catalog RGBA decode
-cost. It is a catalog-sizing signal, not expected simultaneous residency. Current
-investigation thresholds:
-
-| Signal | Threshold | Status |
-|---|---:|---|
-| Full generated art catalog estimate | 1024 MiB | Enforced only when `report-art-memory.sh --enforce` is requested |
-| Resident prepared artwork | 240 MiB | Diagnostic target; validate on device before enforcing — current enforced value lives in [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) Artwork Budgets |
-| Total process footprint | 400 MiB | Diagnostic target; validate on representative devices before enforcing — current enforced value lives in [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) Artwork Budgets |
-
-Change a threshold only with a recorded device class, scenario, before/after
-evidence, and the user-visible tradeoff.
+cost. It is a catalog-sizing signal, not expected simultaneous residency. The
+[art pipeline](../../ArtManifest/README.md#decoded-memory-report) owns the catalog
+estimate ceiling and optional enforcement. Runtime artwork and process budgets
+live in [Artwork Budgets](PerformanceInvestigationPlaybook.md#artwork-budgets),
+along with the evidence and approval required to change them.
 
 ## Energy and thermal workflow
 

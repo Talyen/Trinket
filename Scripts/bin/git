@@ -22,12 +22,12 @@ fi
 # Comma-wrapped containment keeps the match portable across sh variants.
 destructive_commands="$(grep -v '^#' "$ROOT/Scripts/config/destructive-git-commands.txt" 2>/dev/null | grep -v '^$' | tr '\n' ',' | sed 's/,$//')"
 if [ -z "$destructive_commands" ]; then
-  destructive_commands="$(sed -n 's/^export const DESTRUCTIVE_GIT_COMMANDS = \[\(.*\)\];$/\1/p' "$ROOT/Scripts/git-safety-guard.mjs" | tr -d ' "')"
-fi
-if [ -z "$destructive_commands" ]; then
   # Fail closed: without the canonical list every command goes via the guard.
   exec env REAL_GIT="$REAL_GIT" node "$ROOT/Scripts/git-safety-guard.mjs" "$@"
 fi
+case "${1:-}" in
+  -*) exec env REAL_GIT="$REAL_GIT" node "$ROOT/Scripts/git-safety-guard.mjs" "$@" ;;
+esac
 case ",${destructive_commands}," in
   *,"${1:-}",*) ;;
   *) exec "$REAL_GIT" "$@" ;;

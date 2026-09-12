@@ -38,9 +38,7 @@ that destroys or misrepresents existing progress.
 
 Establish a reachable violating transition, source-proven silent loss, or reproduction
 of corruption, duplicate application, ordering failure, or misleading recovery.
-Verify the complete repaired path, including reload/retry where it establishes the
-invariant, using the cheapest existing semantic test owner under
-[Testing.md](../Platform/Testing.md).
+Verify reload/retry where it establishes the repaired transaction's invariant.
 
 Audio handling belongs to [12](12_SideEffectSurfaceAudit.md); isolation hazards
 belong to [14](14_SwiftConcurrencyDataRaceAudit.md). Necessary cross-owner repairs

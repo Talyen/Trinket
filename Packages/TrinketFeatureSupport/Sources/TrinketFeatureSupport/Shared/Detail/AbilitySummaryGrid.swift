@@ -5,7 +5,7 @@ import TrinketDesignSystem
 
 public struct AbilitySummaryGrid: View {
     let combatant: Combatant
-    @Binding var loadout: AbilityLoadout
+    let loadout: AbilityLoadout
     let allowsEditing: Bool
     var onSelectTier: ((AbilityTier) -> Void)?
     var onViewAbility: ((Ability) -> Void)?
@@ -13,14 +13,14 @@ public struct AbilitySummaryGrid: View {
 
     public init(
         combatant: Combatant,
-        loadout: Binding<AbilityLoadout>,
+        loadout: AbilityLoadout,
         allowsEditing: Bool,
         onSelectTier: ((AbilityTier) -> Void)? = nil,
         onViewAbility: ((Ability) -> Void)? = nil,
         onInspectAbility: ((Ability) -> Void)? = nil,
     ) {
         self.combatant = combatant
-        _loadout = loadout
+        self.loadout = loadout
         self.allowsEditing = allowsEditing
         self.onSelectTier = onSelectTier
         self.onViewAbility = onViewAbility

@@ -20,16 +20,15 @@ struct CleansePurgeHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        var currentEffects = context.roster.activeEffects(for: target)
         switch mode {
         case .cleanse:
-            return applyCleanse(effect, ability: ability, source: source, target: target, in: &context)
+            applyCleanse(effect, ability: ability, source: source, target: target, in: &context)
         case .cleanseRandom:
-            return applyCleanseRandom(ability: ability, source: source, target: target, in: &context)
+            applyCleanseRandom(ability: ability, source: source, target: target, in: &context)
         case .purge:
-            return applyPurge(effect, ability: ability, source: source, target: target, currentEffects: &currentEffects, in: &context)
+            applyPurge(effect, ability: ability, source: source, target: target, in: &context)
         case .purgeRandom:
-            return applyPurgeRandom(ability: ability, source: source, target: target, currentEffects: &currentEffects, in: &context)
+            applyPurgeRandom(ability: ability, source: source, target: target, in: &context)
         }
     }
 
@@ -73,73 +72,24 @@ struct CleansePurgeHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard case let .purge(targetKeyword) = effect else {
+        guard case let .purge(keyword) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let removed = EffectRemoval.removeBuffs(
-            from: &currentEffects, keyword: targetKeyword,
-            preservingBlock: context.modifiers(for: target.id).triggers.sealedSarcophagus,
-        )
-        guard !removed.isEmpty else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        context.roster.setActiveEffects(currentEffects, for: target)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .purgeApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: targetKeyword ?? .purge,
-            origin: .direct,
-        )
-        CombatTriggerEngine.protectPurgedEffects(removed, source: source, target: target, in: &context)
-        var events = [event]
-        events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
-            removedCount: removed.count,
-            source: source,
-            target: target,
-            in: &context,
-        ))
-        return EffectApplyOutcome(events: events, didApply: true)
+        return PurgeOperation.resolve(
+            .all(keyword), source: source, target: target, abilityName: ability.name, origin: .direct, in: &context,
+        ).application
     }
 
     private func applyPurgeRandom(
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        let preservingBlock = context.modifiers(for: target.id).triggers.sealedSarcophagus
-        guard let removed = EffectRemoval.removeRandomBuff(
-            from: &currentEffects, preservingBlock: preservingBlock, using: &context.rng,
-        ) else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        context.roster.setActiveEffects(currentEffects, for: target)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .purgeApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: removed.keyword,
-            origin: .direct,
-        )
-        CombatTriggerEngine.protectPurgedEffects([removed], source: source, target: target, in: &context)
-        var events = [event]
-        events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
-            removedCount: 1,
-            source: source,
-            target: target,
-            in: &context,
-        ))
-        return EffectApplyOutcome(events: events, didApply: true)
+        PurgeOperation.resolve(
+            .randomBuffs(1), source: source, target: target, abilityName: ability.name, origin: .direct, in: &context,
+        ).application
     }
 }

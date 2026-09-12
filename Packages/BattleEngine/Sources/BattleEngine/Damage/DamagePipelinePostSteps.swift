@@ -336,7 +336,7 @@ package extension DamagePipeline {
                 to: source,
                 abilityName: "Snatch",
                 isTheft: true,
-                isDirectCardGain: state.options.isOriginalCardDamage,
+                isDirectCardGain: state.options.isCardAttack,
             ))
         }
     }
@@ -360,7 +360,7 @@ package extension DamagePipeline {
                 to: source,
                 abilityName: "Pickpocket",
                 isTheft: true,
-                isDirectCardGain: state.options.isOriginalCardDamage,
+                isDirectCardGain: state.options.isCardAttack,
             ))
         }
         if triggers.onAttackBleedingEnemyHeal > 0, targetIsBleeding, targetAlive {

@@ -37,19 +37,13 @@ package extension CombatTriggerEngine {
             }
         }
         if triggers.onDodgePartyNextCardDamageBonus > 0 {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive else { continue }
-                context.roster.mutateRuntime(for: member.combatant) {
-                    $0.talents.pending.cardDamageBonus += triggers.onDodgePartyNextCardDamageBonus
-                }
-            }
+            context.resolution.preparePartyCardDamage(triggers.onDodgePartyNextCardDamageBonus, sourceID: combatant.id)
         }
         if triggers.onCompanionDodgeGrantHeroDodgePercent > 0,
            combatant.id == context.roster.companion.id,
            context.roster.hero.isAlive {
             context.roster.mutateRuntime(for: context.roster.hero.combatant) {
-                $0.talents.timed.dodge.amount += triggers.onCompanionDodgeGrantHeroDodgePercent
+                $0.talents.grantDodgeUntilNextTurn(triggers.onCompanionDodgeGrantHeroDodgePercent)
             }
         }
 

@@ -27,6 +27,7 @@ struct SalvageDetailState {
             salvageSuccessCount += 1
         } else if case .persistenceFailure = result {
             salvageErrorCount &+= 1
+            return
         }
         var dismiss = Transaction()
         dismiss.disablesAnimations = true

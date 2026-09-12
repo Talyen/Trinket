@@ -549,6 +549,28 @@ class ReporterTests(unittest.TestCase):
             self.assertEqual(aggregate["category"], "test-failure")
             self.assertEqual(aggregate["issues"][0]["message"], "Expectation failed")
 
+    def test_ci_aggregator_accepts_only_completed_builds_without_test_results(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "build-invocation.json"
+            output = root / "aggregate.json"
+            env = {k: v for k, v in os.environ.items() if k not in {"TRINKET_DIAGNOSTICS_SESSION_ID", "GITHUB_STEP_SUMMARY"}}
+            for action, code, completion, passed in (
+                ("build", 0, "process-exit", True),
+                ("build-for-testing", 0, "process-exit", True),
+                ("build", 65, "process-exit", False),
+                ("build", 0, "watchdog-log-inference", False),
+                ("test", 0, "process-exit", False),
+                ("unknown", 0, "process-exit", False),
+            ):
+                with self.subTest(action=action, code=code, completion=completion):
+                    manifest_path.write_text(json.dumps({"action": action, "exit_code": code,
+                        "status": "passed" if code == 0 else "failed", "completion_source": completion}))
+                    subprocess.run([sys.executable, str(ROOT / "Scripts/ci-diagnostics.py"), str(root), str(output)], env=env, check=True, capture_output=True)
+                    aggregate = json.loads(output.read_text())
+                    self.assertEqual(aggregate["category"] == "passed", passed)
+                    self.assertEqual(aggregate["failed_invocations"], 0 if passed else 1)
+
     def test_ci_aggregator_distinguishes_watchdog_proof_from_partial_xcresult(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

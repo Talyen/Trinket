@@ -10,18 +10,9 @@ trinket_lock_claim_file() {
 
 trinket_slot_entry_is_stale() {
   local slot="$1"
-  local pid="" stamp="" epoch="" now
-  read -r pid _ stamp < "$slot" 2>/dev/null || true
-  if [[ "$pid" =~ ^[0-9]+$ ]] && ! kill -0 "$pid" 2>/dev/null; then
-    return 0
-  fi
-  local cap="${TRINKET_SLOT_STALE_SECONDS:-21600}"
-  [[ "$cap" =~ ^[0-9]+$ ]] && (( cap > 0 )) || return 1
-  [[ -n "$stamp" ]] || return 1
-  epoch="$(date -j -u -f '%Y-%m-%dT%H:%M:%SZ' "$stamp" +%s 2>/dev/null || true)"
-  [[ -n "$epoch" ]] || return 1
-  now="$(date -u +%s)"
-  (( now - epoch >= cap ))
+  local pid=""
+  read -r pid _ < "$slot" 2>/dev/null || true
+  [[ "$pid" =~ ^[0-9]+$ ]] && ! kill -0 "$pid" 2>/dev/null
 }
 
 trinket_slot_reap_dir() {
@@ -76,18 +67,6 @@ trinket_ui_slot_release() {
   trinket_release_owned_slot "${TRINKET_UI_SLOT_PATH:-}" "${TRINKET_UI_SLOT_OWNER_PID:-}"
   TRINKET_UI_SLOT_PATH=""
   TRINKET_UI_SLOT_OWNER_PID=""
-}
-
-trinket_sim_slot_pool_is_empty() {
-  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
-  local slot
-  trinket_sim_slot_reap
-  [[ -d "$active_dir" ]] || return 0
-  for slot in "$active_dir"/*.slot; do
-    [[ -e "$slot" ]] || continue
-    return 1
-  done
-  return 0
 }
 
 trinket_shared_sim_lease_release() {

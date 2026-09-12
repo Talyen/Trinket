@@ -6,8 +6,8 @@ These mappings cover symbolic game imagery; existing painted art remains primary
 
 ## Keywords
 
-The executable owner is `Keyword.visualStyle` in the design system. All colors
-are unchanged except Thorns, which shares Physical's color.
+The executable owner is `Keyword.visualStyle` in the design system. Thorns shares
+Physical's color.
 
 | Meaning | Icon |
 |---|---|

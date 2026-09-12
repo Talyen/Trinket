@@ -7,7 +7,13 @@ import { fileURLToPath } from "node:url";
 const ownShimDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "Scripts", "bin");
 
 const args = process.argv.slice(2);
-const subcommand = args[0] ?? "";
+const optionsWithValues = new Set(["-C", "-c", "--git-dir", "--work-tree", "--namespace", "--config-env"]);
+let commandIndex = 0;
+while (commandIndex < args.length && args[commandIndex].startsWith("-")) {
+  commandIndex += optionsWithValues.has(args[commandIndex]) ? 2 : 1;
+}
+const globalArgs = args.slice(0, commandIndex);
+const commandArgs = args.slice(commandIndex);
 
 function loadDestructiveCommands() {
   try {
@@ -56,24 +62,15 @@ function isDestructive(parsedArgs) {
 }
 
 function hasDirtyTree() {
-  const diff = spawnSync(realGit, ["diff", "--quiet"], { cwd: process.cwd(), stdio: "ignore" });
-  const diffCached = spawnSync(realGit, ["diff", "--cached", "--quiet"], { cwd: process.cwd(), stdio: "ignore" });
-  const untracked = spawnSync(realGit, ["ls-files", "--others", "--exclude-standard"], {
-    cwd: process.cwd(),
+  const readOptions = { cwd: process.cwd(), env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" } };
+  const diff = spawnSync(realGit, [...globalArgs, "diff", "--quiet"], { ...readOptions, stdio: "ignore" });
+  const diffCached = spawnSync(realGit, [...globalArgs, "diff", "--cached", "--quiet"], { ...readOptions, stdio: "ignore" });
+  const untracked = spawnSync(realGit, [...globalArgs, "ls-files", "--others", "--exclude-standard"], {
+    ...readOptions,
     encoding: "utf8",
   });
   const hasUntracked = untracked.stdout && untracked.stdout.trim().length > 0;
-  return diff.status !== 0 || diffCached.status !== 0 || hasUntracked;
-}
-
-function stashBackup(cmd) {
-  const ts = new Date().toISOString().replace(/[:.]/g, "-");
-  const msg = `auto-backup pre-${cmd} ${ts}`;
-  const result = spawnSync(realGit, ["stash", "push", "-m", msg, "--include-untracked"], {
-    cwd: process.cwd(),
-    encoding: "utf8",
-  });
-  return { msg, status: result.status, output: (result.stdout ?? "") + (result.stderr ?? "") };
+  return diff.status !== 0 || diffCached.status !== 0 || untracked.status !== 0 || hasUntracked;
 }
 
 function findRealGit() {
@@ -89,25 +86,13 @@ function findRealGit() {
 }
 
 function execRealGit(realGit, gitArgs) {
-  const bypassEnv = { ...process.env };
-  const destructiveAliases = DESTRUCTIVE_GIT_COMMANDS;
-  let idx = 0;
-  for (const a of destructiveAliases) {
-    bypassEnv[`GIT_CONFIG_KEY_${idx}`] = `alias.${a}`;
-    bypassEnv[`GIT_CONFIG_VALUE_${idx}`] = "";
-    idx++;
-  }
-  bypassEnv.GIT_CONFIG_COUNT = String(idx);
-  if (process.env.GIT_CONFIG_COUNT) {
-    bypassEnv.GIT_CONFIG_COUNT = String(idx);
-  }
-  const result = spawnSync(realGit, gitArgs, { cwd: process.cwd(), stdio: "inherit", env: bypassEnv });
-  process.exit(result.status ?? 0);
+  const result = spawnSync(realGit, gitArgs, { cwd: process.cwd(), stdio: "inherit" });
+  process.exit(result.status ?? 1);
 }
 
 const realGit = findRealGit();
 
-if (!isDestructive(args)) {
+if (!isDestructive(commandArgs)) {
   execRealGit(realGit, args);
 }
 
@@ -115,23 +100,8 @@ if (!hasDirtyTree()) {
   execRealGit(realGit, args);
 }
 
-const backup = stashBackup(subcommand || "destructive");
 console.error("");
-console.error("blocked: destructive git command with dirty tree");
+console.error("blocked: destructive git command with dirty or unreadable tree");
 console.error(`  attempted: git ${args.join(" ")}`);
-console.error(`  backup: git stash push -m "${backup.msg}" --include-untracked`);
-if (backup.output.trim()) console.error(backup.output.trim());
-console.error("");
-console.error("  Your work was stashed, not lost. Recover with:");
-console.error("    git stash list");
-console.error(`    git stash show -p stash@{0}   # inspect`);
-console.error(`    git stash pop                 # restore`);
-console.error("  Or review recent HEAD moves:");
-console.error("    git reflog | head -20");
-console.error("");
-console.error("  To retry after stashing/committing, run the same git command again on a clean tree.");
-console.error("  If you have parallel agents, use isolated worktrees instead:");
-console.error("    node Scripts/agent-worktree.mjs create --task <slug>");
-console.error("    # legacy sibling checkout: node Scripts/agent-worktree.mjs legacy-detach create <slug>");
-console.error("");
+console.error("  Working files and index were left in place. Review git status before retrying.");
 process.exit(1);

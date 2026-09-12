@@ -32,7 +32,7 @@ package extension CombatTriggerEngine {
                 : (profile.triggers.onBleedDealBurnDamage > 0 ? 1 : 0)
             if profile.triggers.onBleedDealBurnDamage > 0, bleedBurnChance > 0,
                BattleChance.succeeds(probability: min(1, bleedBurnChance), using: &context.rng) {
-                events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: profile.triggers.onBleedDealBurnDamage,
                     keyword: .burn,
                     target: target,
@@ -58,7 +58,7 @@ package extension CombatTriggerEngine {
                 let dodgeBonus = context.modifiers(for: sourceActorID).triggers.onApplyBurnDodgeChanceUntilNextTurn
                 if dodgeBonus > 0 {
                     context.roster.mutateRuntime(for: source.combatant) {
-                        $0.talents.timed.dodge.amount += dodgeBonus
+                        $0.talents.grantDodgeUntilNextTurn(dodgeBonus)
                     }
                 }
             }

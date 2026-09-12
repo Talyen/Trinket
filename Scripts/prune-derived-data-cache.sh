@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
-# Prune DerivedData for CI cache save, and reap stale local isolation metadata.
-# Inverse of stage-ci-test-artifact.sh: that script stages the kept
-# --no-build inputs (Build/Products, stamps) while this script strips the
-# rebuildable bulk around them before cache save.
-#
-# Destructive Intermediate/Index/compilation-cache wipes run only when CI=true
-# or --ci is passed (GitHub Actions cache-save path). Local default runs keep
-# Build/Intermediates so incremental compiles stay warm; they still age-prune
-# one-off .DerivedData/runs/<id> tenants, bulky TestResults/PerformanceResults/
-# Logs, and reap dead UI/sim slots.
-#
-# Simulator device lifecycle (Preview reclaim; single-warm Booted cap) lives in
-# run-env self-clean start + EXIT — this script never mutates devices.
+# Keep incremental build state; remove indexes and old diagnostics before cache save.
+# Local cleanup also reaps dead leases without mutating simulator devices.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -39,8 +28,8 @@ Without --ci (and when CI is unset): age-prune one-off isolated runs, bulky
 TestResults/PerformanceResults/Logs, and reap dead UI/sim slots. Does not
 delete Build/Intermediates or compilation caches.
 
-With --ci or CI=true: also strip bulky rebuildable intermediates under the
-target DerivedData tree before saving a CI cache (keeps Build/Products).
+With --ci or CI=true: also remove indexes, logs, and result bundles before
+saving the cache. Products, intermediates, and compilation caches remain warm.
 USAGE
       exit 0
       ;;
@@ -84,10 +73,7 @@ prune_derived_data_bulk() {
   local target="$1"
   echo "=== Pruning DerivedData cache bulk under $target ==="
 
-  # Index / symbol stores are rebuildable and dominate cache size.
-  # Keep Build/Products, ModuleCache, and SourcePackages so --no-build stays warm.
-  # Intermediates are only needed for incremental compilation and add substantial
-  # transfer cost to every fan-out test job.
+  # Test jobs receive their own products-only archive. Keep build state here.
   trinket_prune_rebuildable_derived_data "$target"
 
   # Per-package DerivedData tenants (parallel package builds).
@@ -105,7 +91,7 @@ prune_derived_data_bulk() {
 if [[ "$CI_MODE" == "true" ]]; then
   prune_derived_data_bulk "$DERIVED_DATA_PATH"
 else
-  echo "=== Skipping Intermediate/compilation-cache wipe (pass --ci or set CI=true) ==="
+  echo "=== Skipping CI index/log cleanup (pass --ci or set CI=true) ==="
 fi
 
 echo "=== Age-pruning bulky DerivedData artifacts (max age ${RUN_MAX_AGE_DAYS}d) ==="

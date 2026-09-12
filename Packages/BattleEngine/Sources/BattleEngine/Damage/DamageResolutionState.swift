@@ -38,6 +38,7 @@ package struct DamageResolutionState {
     }
 
     public let options: DamageOperation
+    var provenance: DamageProvenance?
 
     public var remaining: Int = 0
 

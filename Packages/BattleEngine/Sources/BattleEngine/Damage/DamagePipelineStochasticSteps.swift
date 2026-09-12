@@ -110,7 +110,7 @@ package extension DamagePipeline {
         if let owner = context.roster.participant(for: combatant) {
             chance += context.uniques.owners[owner]?.wrenflightDodge ?? 0
         }
-        chance += context.roster.runtime(for: combatant)?.talents.timed.dodge.amount ?? 0
+        chance += context.roster.runtime(for: combatant)?.talents.dodgeChanceBonus(atTurn: context.turnCount) ?? 0
         if context.roster.runtime(for: combatant)?.talents.turn.subzeroMistActive == true { chance += 0.20 }
         if context.roster.isDeathsDoorActive(for: combatant),
            profile.triggers.deathsDoorDodgeAndDebuffImmunity {

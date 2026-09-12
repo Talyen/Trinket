@@ -13,49 +13,25 @@ from typing import Any, Iterable
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-try:
-    import xcresult_diagnostics as xcresult
-except ModuleNotFoundError:  # Imported as Scripts.failure_diagnostics in repository tests.
-    from Scripts import xcresult_diagnostics as xcresult
-try:
-    from diagnostic_model import (
-        CLASSIFICATIONS, CLASSIFICATION_PRECEDENCE, GENERIC_MESSAGES, MAX_ISSUES, MAX_LINES,
-        DiagnosticIssue, DiagnosticReport, IssueAccumulator, IssueObservation, SourceStatus,
-        identifier_aliases,
-    )
-    from diagnostic_rendering import output_stem, render_annotation, render_markdown, render_terminal, write_report
-except ModuleNotFoundError:
-    from Scripts.diagnostic_model import (
-        CLASSIFICATIONS, CLASSIFICATION_PRECEDENCE, GENERIC_MESSAGES, MAX_ISSUES, MAX_LINES,
-        DiagnosticIssue, DiagnosticReport, IssueAccumulator, IssueObservation, SourceStatus,
-        identifier_aliases,
-    )
-    from Scripts.diagnostic_rendering import output_stem, render_annotation, render_markdown, render_terminal, write_report
+from internal.diagnostics import xcresult_diagnostics as xcresult
+from internal.diagnostics.diagnostic_model import (
+    CLASSIFICATIONS, CLASSIFICATION_PRECEDENCE, GENERIC_MESSAGES, MAX_ISSUES, MAX_LINES,
+    DiagnosticIssue, DiagnosticReport, IssueAccumulator, IssueObservation, SourceStatus,
+    identifier_aliases,
+)
+from internal.diagnostics.diagnostic_rendering import output_stem, render_annotation, render_markdown, render_terminal, write_report
 
-try:
-    from failure_diagnostics_parsers import (
-        ACCESSIBILITY_SNAPSHOT_MARKER as ACCESSIBILITY_SNAPSHOT_MARKER,
-        MAX_TEST_DETAIL_FETCHES as MAX_TEST_DETAIL_FETCHES,
-        _display_path as _display_path,
-        _prioritize_issues as _prioritize_issues,
-        parse_build_results as parse_build_results,
-        parse_log as parse_log,
-        parse_summary as parse_summary,
-        parse_test_detail as parse_test_detail,
-        parse_test_nodes as parse_test_nodes,
-    )
-except ModuleNotFoundError:
-    from Scripts.failure_diagnostics_parsers import (
-        ACCESSIBILITY_SNAPSHOT_MARKER as ACCESSIBILITY_SNAPSHOT_MARKER,
-        MAX_TEST_DETAIL_FETCHES as MAX_TEST_DETAIL_FETCHES,
-        _display_path as _display_path,
-        _prioritize_issues as _prioritize_issues,
-        parse_build_results as parse_build_results,
-        parse_log as parse_log,
-        parse_summary as parse_summary,
-        parse_test_detail as parse_test_detail,
-        parse_test_nodes as parse_test_nodes,
-    )
+from internal.diagnostics.failure_diagnostics_parsers import (
+    ACCESSIBILITY_SNAPSHOT_MARKER as ACCESSIBILITY_SNAPSHOT_MARKER,
+    MAX_TEST_DETAIL_FETCHES as MAX_TEST_DETAIL_FETCHES,
+    _display_path as _display_path,
+    _prioritize_issues as _prioritize_issues,
+    parse_build_results as parse_build_results,
+    parse_log as parse_log,
+    parse_summary as parse_summary,
+    parse_test_detail as parse_test_detail,
+    parse_test_nodes as parse_test_nodes,
+)
 
 
 def _attachment_path(directory: Path, name: str) -> str:

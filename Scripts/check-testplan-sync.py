@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import sys
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,49 +35,40 @@ def testplan_failures() -> list[str]:
             "Smoke.xctestplan selectedTests must match Scripts/config/smoke-classes.txt "
             f"(plan={sorted(selected)}, registry={sorted(registry)})"
         )
-    ui_source = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in sorted((ROOT / "TrinketUITests").rglob("*.swift"))
-    )
-    for test_class in sorted(selected):
-        if not re.search(rf"\b(?:final\s+)?class\s+{re.escape(test_class)}\b", ui_source):
-            failures.append(f"Smoke.xctestplan: selected class {test_class} is not declared")
-
-    # FullUI coverage guard: every UI test class outside Smoke/ and Performance/
-    # must be selected in FullUI.xctestplan, and every FullUI class must appear
-    # in the exhaustive-ui CI matrix. Plans use `automaticallyIncludesTests:
-    # false`, so a new class is silently skipped everywhere without this check.
-    fullui_plan = json.loads((ROOT / "FullUI.xctestplan").read_text(encoding="utf-8"))
-    fullui_selected = {
-        test
-        for target in fullui_plan["testTargets"]
-        for test in target.get("selectedTests", [])
-    }
-    routable_classes: set[str] = set()
-    for path in sorted((ROOT / "TrinketUITests").rglob("*.swift")):
-        parts = path.relative_to(ROOT).parts
-        if any(part in {"Smoke", "Performance", "Support"} for part in parts):
-            continue
-        routable_classes.update(
-            name
-            for name in re.findall(
+    workflow = (ROOT / ".github/workflows/tests.yml").read_text(encoding="utf-8")
+    for plan_name, job, smoke in [("Smoke", "smoke", True), ("FullUI", "exhaustive-ui", False)]:
+        plan = json.loads((ROOT / f"{plan_name}.xctestplan").read_text(encoding="utf-8"))
+        selections = [test for target in plan["testTargets"] for test in target.get("selectedTests", [])]
+        declared: set[str] = set()
+        for path in sorted((ROOT / "TrinketUITests").rglob("*.swift")):
+            parts = path.relative_to(ROOT).parts
+            if any(part in {"Performance", "Support"} for part in parts) or ("Smoke" in parts) != smoke:
+                continue
+            declared.update(re.findall(
                 r"(?:final\s+)?class\s+(\w+)\s*:\s*(?:SeededSmokeUITestCase|TrinketUITestCase)",
                 path.read_text(encoding="utf-8"),
-            )
-            if name.endswith("Tests")
-        )
-    missing_fullui = sorted(routable_classes - fullui_selected)
-    if missing_fullui:
-        failures.append(
-            "FullUI.xctestplan is missing UI test classes "
-            f"{missing_fullui} (add them to the plan or move the files under Smoke/ or Performance/)"
-        )
-    ci_workflow_text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
-    missing_ci = sorted(name for name in fullui_selected if name not in ci_workflow_text)
-    if missing_ci:
-        failures.append(
-            f".github/workflows/tests.yml exhaustive-ui matrix is missing FullUI classes: {missing_ci}"
-        )
+            ))
+        selected = set(selections)
+        if selected != declared:
+            failures.append(f"{plan_name}.xctestplan class mismatch: "
+                            f"missing={sorted(declared - selected)}, undeclared={sorted(selected - declared)}")
+        duplicates = sorted(name for name, count in Counter(selections).items() if count > 1)
+        if duplicates:
+            failures.append(f"{plan_name}.xctestplan duplicate classes: {duplicates}")
+
+        # Read only literal target rows in this job's checked-in matrix layout.
+        section = re.search(rf"^  {re.escape(job)}:\n(.*?)(?=^  [\w-]+:|\Z)", workflow, re.M | re.S)
+        matrix = re.search(r"^      matrix:\n(.*?)(?=^    \S|\Z)", section[1], re.M | re.S) if section else None
+        targets: list[str] = []
+        if matrix:
+            for value in re.findall(r"^            target: (.+)$", matrix[1], re.M):
+                targets.extend(shlex.split(value, comments=True))
+        if set(targets) != selected:
+            failures.append(f".github/workflows/tests.yml {job} matrix mismatch: "
+                            f"missing={sorted(selected - set(targets))}, extra={sorted(set(targets) - selected)}")
+        duplicates = sorted(name for name, count in Counter(targets).items() if count > 1)
+        if duplicates:
+            failures.append(f".github/workflows/tests.yml {job} duplicate classes: {duplicates}")
     return failures
 
 

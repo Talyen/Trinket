@@ -18,8 +18,8 @@ package extension CombatTriggerEngine {
             { scholarlySmiteIfNeeded(keywords: keywords, actor: actor, in: &$0) },
             { infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &$0) },
             { blizzardIfNeeded(keywords: keywords, actor: actor, owner: owner, triggers: triggers, in: &$0) },
-            { talentPrimeIfNeeded(keywords: keywords, actor: actor, in: &$0) },
             { talentRepeatIfNeeded(ability: ability, keywords: keywords, actor: actor, abilityTarget: abilityTarget, in: &$0) },
+            { talentPrimeIfNeeded(keywords: keywords, actor: actor, in: &$0) },
         ], in: &context)
 
         let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
@@ -125,7 +125,7 @@ package extension CombatTriggerEngine {
         let freezeCount = context.turnCadence.freezeCardsPlayed[owner, default: 0] + 1
         context.turnCadence.freezeCardsPlayed[owner] = freezeCount
         let threshold = triggers.freezeCardsPlayedThisTurnFreezeAll
-        guard threshold > 0, freezeCount >= threshold, context.roster.enemy.isAlive else { return [] }
+        guard threshold > 0, freezeCount == threshold, context.roster.enemy.isAlive else { return [] }
         let enemyThreshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
         return ControlMeterEngine.applyMeterCharge(
             enemyThreshold,

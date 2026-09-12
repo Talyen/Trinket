@@ -183,6 +183,11 @@ echo "=== Updating project.yml ==="
 write_project_version "$VERSION" "$NEXT_BUILD"
 ./Scripts/generate.sh
 
+if [[ "$SKIP_TESTS" == "false" ]]; then
+  echo "=== Checking release device compilation ==="
+  SKIP_GENERATE=1 ./Scripts/build.sh --release-device
+fi
+
 unexpected_generated="$({ git diff --name-only; git ls-files --others --exclude-standard; } \
   | grep -Ev '^(project\.yml|Trinket\.xcodeproj/project\.pbxproj)$' || true)"
 if [[ -n "$unexpected_generated" ]]; then

@@ -16,7 +16,7 @@ package enum DefensePoolEngine {
         let stolen = min(block, amount)
         guard stolen > 0 else { return [] }
         set(block - stolen, on: target, in: &context)
-        return context.applyBlock(stolen, to: actor, source: actor, abilityName: abilityName, applyOutgoingAdjustment: false)
+        return context.applyBlock(stolen, to: actor, source: actor, abilityName: abilityName, amountBasis: .resolved)
     }
 
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {

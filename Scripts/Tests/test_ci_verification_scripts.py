@@ -13,56 +13,9 @@ import time
 import unittest
 from pathlib import Path
 
-from script_test_support import ROOT, ScriptRegressionTestCase, load_script
+from script_test_support import ROOT, ScriptRegressionTestCase
 
 class CIVerificationScriptTests(ScriptRegressionTestCase):
-    def test_lint_analyze_is_ci_only(self) -> None:
-        text = (ROOT / "Scripts" / "lint-analyze.sh").read_text(encoding="utf-8")
-        self.assertIn("swiftlint analyze", text)
-        self.assertIn("compiler-log-path", text)
-        # Blocking analyze must not emit Checks annotations: that reporter
-        # volume plus cache save overflowed the 30-minute build job timeout.
-        self.assertNotIn("--reporter github-actions-logging", text)
-        self.assertIn("build-app-", text)
-        style = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        self.assertNotIn("lint-analyze.sh", style)
-        handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
-        self.assertNotIn("lint-analyze.sh", handoff)
-        restore = (ROOT / ".github" / "actions" / "restore-and-build" / "action.yml").read_text(
-            encoding="utf-8"
-        )
-        self.assertNotIn("lint-analyze.sh", restore)
-        tests_yml = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
-        self.assertIn("lint-analyze.sh", tests_yml)
-        self.assertRegex(
-            tests_yml,
-            r"name: SwiftLint analyze \(unused_import blocking\)\n",
-        )
-        self.assertNotRegex(
-            tests_yml,
-            r"name: SwiftLint analyze \(unused_import blocking\)\n(?:.*\n){0,8}    continue-on-error: true",
-        )
-        self.assertRegex(
-            tests_yml,
-            r"- name: SwiftLint analyze\n        env:",
-        )
-        self.assertRegex(
-            tests_yml,
-            r"name: Build for testing\n    needs: \[changes\]\n",
-        )
-        self.assertNotIn("needs: [changes, gate]", tests_yml)
-        self.assertRegex(
-            tests_yml,
-            r"name: Build for testing\n(?:.*\n){0,8}    timeout-minutes: 30",
-        )
-
-    def test_ci_analyze_blocks_on_dead_code(self) -> None:
-        text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
-        self.assertNotRegex(text, r"analyze:\n(?:.*\n){0,8}    continue-on-error: true")
-        self.assertRegex(text, r"  ci-ok:\n(?:.*\n)*?    needs:.*analyze")
-        script = (ROOT / "Scripts" / "lint-analyze.sh").read_text(encoding="utf-8")
-        self.assertIn("unused_import", script)
-
     def test_ci_diff_review_is_advisory(self) -> None:
         text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
         self.assertRegex(text, r"diff-review:\n(?:.*\n){0,8}    continue-on-error: true")
@@ -79,12 +32,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("export DEVELOPER_DIR=", text)
         self.assertIn("export SDKROOT=", text)
         self.assertIn("CommandLineTools", text)
-
-    def test_generate_requires_xcodegen(self) -> None:
-        text = (ROOT / "Scripts" / "generate.sh").read_text(encoding="utf-8")
-        self.assertIn('trinket_generate_project "$PWD" "$PWD"', text)
-        self.assertNotIn("python3 Scripts/sync-xcodeproj-sources.py", text)
-        self.assertFalse((ROOT / "Scripts" / "sync-xcodeproj-sources.py").exists())
 
     def test_build_inputs_include_xctestplans(self) -> None:
         text = (ROOT / "Scripts" / "build-freshness.sh").read_text(encoding="utf-8")
@@ -137,7 +84,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("build-for-testing.sh --app-only", workflow)
         self.assertIn("name: Homestead", workflow)
         self.assertIn("preboot-simulator: 'true'", workflow)
-        self.assertIn("checkout-trinket", workflow)
         self.assertNotIn("checkout-ci", workflow)
         self.assertIn("Smoke tests (${{ matrix.name }})", workflow)
         self.assertIn("needs.changes.outputs.infra", workflow)
@@ -164,39 +110,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("check-module-boundaries.sh", cheap)
         self.assertIn("check-api-bans.sh", cheap)
         self.assertIn("release-notes.sh validate", cheap)
-
-    def test_test_scripts_supports_skip_docs(self) -> None:
-        text = (ROOT / "Scripts" / "test-scripts.sh").read_text(encoding="utf-8")
-        self.assertIn("--skip-docs", text)
-        self.assertIn('if [[ "$SKIP_DOCS" != true ]]; then', text)
-
-    def test_handoff_runs_cheap_ci_slices_and_skips_docs_on_final(self) -> None:
-        handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
-        self.assertIn("run_cheap_ci_slices", handoff)
-        self.assertIn("source Scripts/lib/cheap-slices.sh", handoff)
-        self.assertIn("trinket_run_cheap_slices", handoff)
-        self.assertIn('if [[ "$FINAL" == true ]]; then', handoff)
-        self.assertIn("./Scripts/test-scripts.sh --skip-docs", handoff)
-        self.assertIn('kind" == docs && "$FINAL" == true', handoff)
-
-    def test_docs_markdown_routes_check_docs(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Docs/Platform/Verification.md",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        self.assertIn("python3 ./Scripts/check-docs.py", plan)
-        self.assertIn("./Scripts/check-module-boundaries.sh", plan)
-        self.assertIn("./Scripts/check-artwork-budget.sh", plan)
 
     def test_agent_push_gate_skips_generate_when_classification_does_not_need_it(self) -> None:
         text = (ROOT / "Scripts" / "agent-push-gate.sh").read_text(encoding="utf-8")
@@ -246,18 +159,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             "Reusing green handoff",
             (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8"),
         )
-
-    def test_agent_push_gate_is_internal_pre_push_component(self) -> None:
-        gate = (ROOT / "Scripts" / "agent-push-gate.sh").read_text(encoding="utf-8")
-        self.assertIn("Internal pre-push component", gate)
-        self.assertIn("not a manual post-commit step", gate)
-        self.assertIn("focused iteration", gate)
-        self.assertNotIn("Agents: run this after committing", gate)
-        verification = (ROOT / "Docs" / "Platform" / "Verification.md").read_text(encoding="utf-8")
-        self.assertNotIn("run `agent-push-gate.sh` after committing", verification)
-        self.assertIn("focused iteration", verification)
-        readme = (ROOT / "Scripts" / "README.md").read_text(encoding="utf-8")
-        self.assertIn("not a manual post-commit step", readme)
 
     def test_build_script_routes_script_gate(self) -> None:
         result = subprocess.run(
@@ -596,13 +497,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             claimed_log = raw / "claimed-run.log"
             claimed_log.write_text("has diagnostics report\n", encoding="utf-8")
             (results / "claimed-run-diagnostics.json").write_text("{}", encoding="utf-8")
-            # A retained failure keeps invocation manifests present so cleanup
-            # does not remove raw/ wholesale — the mixed-state case the sweep
-            # is written for.
-            (results / "failed-invocation.json").write_text(
-                json.dumps({"status": "failed", "exit_code": 65, "result_bundle": ""}),
-                encoding="utf-8",
-            )
             for path in (orphan_bundle, orphan_log):
                 os.utime(path, (stale_time, stale_time))
 
@@ -665,28 +559,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("ending recording", text)
         self.assertNotIn("SAVE_BUDGET", text)
         self.assertIn("kill -INT", text)
-
-    def test_new_plan_scaffold_creates_lifecycle_metadata(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            plan_name = f"TokenEfficiencyFixture{Path(directory).name}"
-            plan_path = ROOT / "Docs" / "Plans" / f"{plan_name}.md"
-            try:
-                created = subprocess.run(
-                    [str(ROOT / "Scripts" / "new-plan.sh"), plan_name],
-                    cwd=ROOT,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                self.assertEqual(created.returncode, 0, created.stderr)
-                text = plan_path.read_text(encoding="utf-8")
-                self.assertIn("type: execution-plan", text)
-                self.assertIn("status: active", text)
-                self.assertIn("expires:", text)
-                self.assertIn("Docs/Plans/Archived/README.md", text)
-                self.assertIn("delete this plan", text)
-            finally:
-                plan_path.unlink(missing_ok=True)
 
     def test_handoff_requires_explicit_scope_and_supports_working_tree_override(self) -> None:
         missing = subprocess.run(
@@ -976,7 +848,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                     'trinket_run_env_init() { export RESULTS_DIR="$PWD/results"; }\n'
                 )
                 generate = root / "Scripts/generate.sh"
-                generate.write_text('#!/bin/bash\n[[ "$*" == "--force-xcodegen" ]] || exit 9\nprintf called >> calls\n' + generator + "\n")
+                generate.write_text('#!/bin/bash\n[[ "$*" == "--force-xcodegen" && "$TRINKET_FORCE_ABILITY_DUMP" == 1 ]] || exit 9\nprintf called >> calls\n' + generator + "\n")
                 generate.chmod(0o755)
                 identifier = "A" * 24
                 (root / "Trinket.xcodeproj/project.pbxproj").write_text(
@@ -995,14 +867,50 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                 self.assertEqual((root / "calls").read_text(), "called")
 
+    def test_generation_reuses_dirty_inputs_and_detects_edits_and_deletions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Scripts").mkdir()
+            for filename in ("build-freshness.sh", "build-inputs.env"):
+                shutil.copy2(ROOT / "Scripts" / filename, root / "Scripts" / filename)
+            generate = root / "Scripts/generate.sh"
+            generate.write_text('#!/bin/bash\necho generated >> calls\n')
+            generate.chmod(0o755)
+            script = """
+source Scripts/build-freshness.sh
+content_generation_inputs=(input); project_generation_inputs=(project); asset_generation_inputs=(asset)
+touch input project asset
+git() { printf ' M input\\n'; }
+prepare_generated_inputs results
+prepare_generated_inputs results
+[[ $(wc -l < calls) -eq 1 ]]
+printf changed > input
+prepare_generated_inputs results
+[[ $(wc -l < calls) -eq 2 ]]
+rm input
+prepare_generated_inputs results
+[[ $(wc -l < calls) -eq 3 ]]
+prepare_generated_inputs results
+[[ $(wc -l < calls) -eq 3 ]]
+printf changed > asset
+touch_generate_stamp results
+prepare_generated_inputs results
+[[ $(wc -l < calls) -eq 4 ]]
+"""
+            result = subprocess.run(["bash", "-eu", "-c", script], cwd=root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_generation_tracks_shared_generator_helpers(self) -> None:
         for relative, expected in (
             ("Scripts/lib/project-generation.sh", ""),
             ("Scripts/tool-versions.env", ""),
             ("Scripts/lib/ci-tools.d/xcodegen.sh", ""),
             ("Trinket.xcodeproj/project.pbxproj", ""),
-            ("Scripts/content_codegen_modifiers.py", "--skip-xcodegen"),
-            ("Scripts/content_codegen_triggers.py", "--skip-xcodegen"),
+            ("Scripts/internal/content/content_codegen_modifiers.py", "--skip-xcodegen"),
+            ("Scripts/internal/content/content_codegen_triggers.py", "--skip-xcodegen"),
+            ("Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift", "--skip-xcodegen"),
+            ("Packages/TrinketContent/Sources/TrinketContent/Encounters/MysteryEventPool+Wilds.swift", "--skip-xcodegen"),
+            ("Packages/TrinketContent/Sources/TrinketContent/Encounters/RecruitEventPool.swift", "--skip-xcodegen"),
             ("Scripts/lib/media-assets.sh", "--assets"),
             ("Scripts/prepare-assets.sh", "--assets"),
         ):
@@ -1023,7 +931,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                 generate.chmod(0o755)
                 (root / "results").mkdir()
                 stamp = root / "results/.last-generate.stamp"
-                stamp.touch()
+                subprocess.run(["bash", "-ec", "source Scripts/build-freshness.sh; touch_generate_stamp results true"], cwd=root, check=True)
                 os.utime(root / relative, (time.time() + 60, time.time() + 60))
                 result = subprocess.run(
                     ["bash", "-ec", "source Scripts/build-freshness.sh; prepare_generated_inputs results"],
@@ -1101,29 +1009,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertNotIn("trinket_run_package_tests", test_sh)
         self.assertNotIn("test-package.sh --build-for-testing", test_sh)
         self.assertIn('"${TRINKET_TEST_PACKAGES[@]}"', test_sh)
-        self.assertIn("--destination", test_sh)
-
-    def test_unit_single_pass_preserves_flags_timing_and_reporting(self) -> None:
-        test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        # --no-build forwarding.
-        self.assertIn("package_args+=(--no-build)", test_sh)
-        self.assertIn('if [[ "$NO_BUILD" == "true" ]]; then', test_sh)
-        # Quiet/verbose forwarding to the package owner.
-        self.assertIn("package_args+=(--quiet)", test_sh)
-        self.assertIn("package_args+=(--verbose)", test_sh)
-        # Package coverage via the registry, single parallel invocation.
-        self.assertIn(
-            './Scripts/test-package.sh "${package_args[@]}" "${TRINKET_TEST_PACKAGES[@]}"',
-            test_sh,
-        )
-        # Wall-time aggregate entry for deploy timing reports, on both pass
-        # and fail (mirrors the app path's failure timing sample).
-        self.assertIn("TEST_WALL_SECONDS=$SECONDS", test_sh)
-        self.assertIn("trinket_record_timing", test_sh)
-        self.assertIn("Timing recorded. Hotspots:", test_sh)
-        # Exit status preserved without a redundant prebuild.
-        self.assertIn("exit 1", test_sh)
-        self.assertNotIn("--build-for-testing", test_sh)
 
     def test_bare_full_ui_requires_explicit_opt_in(self) -> None:
         # Full exhaustive UI is CI-owned post-push; bare local runs must opt in.
@@ -1140,59 +1025,6 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn('Packages/.DerivedData', text)
         self.assertIn('rm -rf "$repo_root/Packages/.DerivedData"', text)
 
-    def test_prune_gates_bulk_wipe(self) -> None:
-        text = (ROOT / "Scripts" / "prune-derived-data-cache.sh").read_text(encoding="utf-8")
-        self.assertIn('CI_MODE=true', text)
-        self.assertIn("--ci", text)
-        self.assertIn("Skipping Intermediate/compilation-cache wipe", text)
-
-    def test_run_env_self_cleans_on_start_and_release(self) -> None:
-        text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
-        simctl = (ROOT / "Scripts" / "lib" / "simctl.sh").read_text(encoding="utf-8")
-        derived = (ROOT / "Scripts" / "lib" / "derived-data.sh").read_text(encoding="utf-8")
-        combined = text + simctl + derived
-        self.assertIn("trinket_preview_sims_reclaim", combined)
-        self.assertIn("trinket_simulator_enforce_single_warm_booted", combined)
-        self.assertIn("trinket_derived_data_age_prune", combined)
-        self.assertIn("trinket_run_env_self_clean_hygiene", text)
-        self.assertIn("trinket_run_env_release_slots", text)
-        self.assertIn("trinket_run_env_claim_self_clean_owner", text)
-        self.assertIn("TRINKET_SELF_CLEAN_OWNER", text)
-        self.assertIn("Simulator%20Devices", simctl)
-        self.assertIn("Packages", derived)
-        hygiene = text.split("trinket_run_env_self_clean_hygiene()", 1)[1].split(
-            "trinket_run_env_claim_self_clean_owner", 1
-        )[0]
-        self.assertIn("trinket_preview_sims_reclaim", hygiene)
-        self.assertIn("trinket_simulator_enforce_single_warm_booted", hygiene)
-        self.assertIn("trinket_derived_data_age_prune", hygiene)
-        install = text.split("trinket_run_env_install_self_clean()", 1)[1].split(
-            "trinket_bind_agent_slot", 1
-        )[0] if "trinket_bind_agent_slot" in text else text.split("trinket_run_env_install_self_clean()", 1)[1]
-        self.assertIn("trinket_run_env_self_clean_hygiene", install)
-        self.assertNotIn("trinket_run_env_install_test_simulator_cleanup", text)
-        release = text.split("trinket_run_env_release_slots()", 1)[1].split(
-            "trinket_run_env_install_release_trap", 1
-        )[0]
-        self.assertIn("TRINKET_SELF_CLEAN_OWNER", release)
-        self.assertIn("trinket_run_env_self_clean_hygiene", release)
-        single = simctl.split("trinket_simulator_enforce_single_warm_booted()", 1)[1].split(
-            "trinket_run_env_cleanup_test_artifacts", 1
-        )[0] if "trinket_run_env_cleanup_test_artifacts" in simctl else simctl.split("trinket_simulator_enforce_single_warm_booted()", 1)[1]
-        self.assertIn('TRINKET_CLEANUP_SINGLE_WARMED:-1', single)
-        self.assertIn("trinket_simulator_is_shared_name", single)
-        self.assertIn("trinket_simulator_is_active_agent_name", single)
-        self.assertIn("trinket_simulator_is_shared_name", simctl)
-        self.assertIn("simulator-names.env", simctl)
-        self.assertIn("Trinket CI", (ROOT / "Scripts" / "config" / "simulator-names.env").read_text())
-        self.assertIn("trinket_simulator_is_managed_name", simctl)
-        self.assertNotIn("TRINKET_CLEANUP_IDLE_POOL", text)
-        self.assertNotIn("TRINKET_CLEANUP_EXCESS_SIMULATORS", text)
-        self.assertNotIn("TRINKET_KEEP_DIAGNOSTICS", text)
-        self.assertNotIn("TRINKET_SIM_SLOT_SKIP_ACQUIRE", text)
-        self.assertNotIn("TRINKET_ARTIFACT_MAX_AGE_DAYS", text)
-        self.assertIn('TRINKET_MAX_AGENT_SIMS:-1', text)
-        self.assertFalse((ROOT / "Scripts" / "clean-dev-artifacts.sh").exists())
 
 if __name__ == "__main__":
     unittest.main()

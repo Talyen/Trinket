@@ -111,21 +111,18 @@ package extension CombatTriggerEngine {
         enemy: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let removableCount = context.roster.activeEffects(for: enemy)
-            .filter(\.effect.isRemovableBuff)
-            .count
-        var events = applyPurge(
-            to: enemy,
+        let purge = PurgeOperation.resolve(
+            .all(nil),
             source: actor,
+            target: enemy,
             abilityName: triggerAbilityName("stunPurgeDealHolyPerEffect", for: actor, fallback: "Disrupting", in: context),
-            count: 0,
-            purgeAll: true,
             in: &context,
         )
-        if removableCount > 0, context.roster.health(for: enemy) > 0 {
+        var events = purge.events
+        if !purge.removed.isEmpty, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: context.resolveDamage(
                 DamageRequest(
-                    amount: perEffectHolyDamage * removableCount,
+                    amount: perEffectHolyDamage * purge.removed.count,
                     target: enemy,
                     keyword: .holy,
                     sourceActorID: actor.id,
@@ -195,32 +192,10 @@ package extension CombatTriggerEngine {
         purgeAll: Bool,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard purgeAll || count > 0 else { return [] }
-        var enemyEffects = context.roster.activeEffects(for: target)
-        let preservingBlock = context.modifiers(for: target.id).triggers.sealedSarcophagus
-        let removed = EffectRemoval.removeBuffs(
-            from: &enemyEffects,
-            count: count,
-            removeAll: purgeAll,
-            preservingBlock: preservingBlock,
-            using: &context.rng,
-        )
-        guard !removed.isEmpty else { return [] }
-        context.roster.setActiveEffects(enemyEffects, for: target)
-        protectPurgedEffects(removed, source: source, target: target, in: &context)
-        var events = removed.map { active in
-            context.nextEvent(
-                kind: .effect,
-                effectKind: .purgeApplied,
-                actorName: source.name,
-                abilityName: abilityName,
-                target: target,
-                amount: 0,
-                keyword: active.keyword,
-            )
-        }
-        events.append(contentsOf: crownfallDamage(removedCount: removed.count, source: source, target: target, in: &context))
-        return events
+        PurgeOperation.resolve(
+            purgeAll ? .all(nil) : .randomBuffs(count), source: source, target: target,
+            abilityName: abilityName, in: &context,
+        ).events
     }
 
     static func protectPurgedEffects(

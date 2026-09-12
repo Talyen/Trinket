@@ -37,14 +37,9 @@ enum EffectRemoval {
     static func removeBuffs(
         from effects: inout [ActiveEffect],
         count: Int,
-        removeAll: Bool,
         preservingBlock: Bool = false,
         using rng: inout SeededRandomNumberGenerator,
     ) -> [ActiveEffect] {
-        if removeAll {
-            return removeBuffs(from: &effects, keyword: nil, preservingBlock: preservingBlock)
-        }
-
         var removed: [ActiveEffect] = []
         for _ in 0 ..< count {
             guard let keyword = removeRandomBuff(from: &effects, preservingBlock: preservingBlock, using: &rng) else { break }

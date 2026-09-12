@@ -380,6 +380,7 @@ public enum AccessibilityID {
     }
 
     public enum LoadoutPicker {
+        public static let unequipItem = "Unequip Loadout Item"
         public static let itemFilter = "Loadout Item Filter"
         public static let itemRarityFilter = "Loadout Item Rarity Filter"
         public static let itemKeywordFilter = "Loadout Item Keyword Filter"

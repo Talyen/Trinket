@@ -17,7 +17,7 @@ class ProjectGenerationTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
         self.env['PROJECT_CALLS'] = str(self.root / 'calls')
-        for path in ('.githooks/pre-commit', 'Scripts/check-staged-project.sh',
+        for path in ('Scripts/build-inputs.env', '.githooks/pre-commit', 'Scripts/check-staged-project.sh',
                      'Scripts/apply-scheme-storekit.py',
                      'Scripts/lib/project-generation.sh', 'Scripts/lib/tools.sh'):
             target = self.root / path

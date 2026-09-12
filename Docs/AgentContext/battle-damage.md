@@ -10,14 +10,19 @@ recipient's defenses with outgoing scaling already resolved. `DamageDefensePolic
 owns mitigation and Block bypass, including Intercede, while preserving each
 checkpoint's order and rounding. Partial bypass scales each defense before
 subtracting it and clamping damage. Burn detonation preserves the original
-source's decay rate and ticks per turn. Resolution depth limits recursion, never changes
+source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
+preserves the original source's slower decay. Resolution depth limits recursion, never changes
 the meaning of a request.
+Turn ticks and detonations share `Effect.potencyAfterTurn` for deterministic decay;
+random growth remains a turn-processing rule.
 
 Keep ordered
 damage checkpoints in `DamagePipeline`; commit mutations before their dependent
 reactions. Reserve next-hit resources before nested reactions and never write a
 cached effects array back after a reaction. `CleanseOperation` owns removal and
-all cleanse consequences together. `DoTApplication.reflection` preserves the
+all cleanse consequences together. `PurgeOperation` likewise commits removals
+before protection and rewards; dependent damage reads its actual removed effects.
+`DoTApplication.reflection` preserves the
 removed potency and duration without new-application bonuses or immediate damage.
 Turn handlers commit their own effect updates and return only events. Decaying
 DoTs commit decay before ticking; duration-based effects age the live effect after

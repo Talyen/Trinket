@@ -93,7 +93,7 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
   fi
 
   if ! rg -Fq "id: \"$ability_id\"" \
-    Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.swift; then
+    Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogUltimate.swift; then
     echo "Cinematic ability id '$ability_id' is not an Ultimate in the authored ability catalog." >&2
     exit 1
   fi

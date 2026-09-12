@@ -1,0 +1,213 @@
+import Foundation
+import TrinketContent
+import TrinketCore
+
+package extension HealingEngine {
+    // swiftlint:disable:next function_body_length cyclomatic_complexity - leech resolution is one atomic pipeline
+    static func leechFromDamage(
+        _ damage: Int,
+        sourceActorID: String,
+        target: Combatant? = nil,
+        blockedAmount: Int = 0,
+        abilityHasLeech: Bool = false,
+        damageKeyword: Keyword? = nil,
+        in context: inout BattleState,
+    ) -> CombatOutcome {
+        guard let actor = context.roster.combatant(for: sourceActorID),
+              context.roster.health(for: actor.combatant) > 0
+        else { return .empty }
+        let actorCombatant = actor.combatant
+
+        let profile = context.modifiers(for: sourceActorID)
+        var baseDamage = damage
+        if profile.triggers.leechOnBlockDamage, blockedAmount > 0 {
+            baseDamage += blockedAmount
+        }
+        guard baseDamage > 0 else { return .empty }
+
+        var leechPct = 0.0
+        if abilityHasLeech {
+            leechPct = Effect.abilityLeechPercent
+        }
+        let keywordGrantsLeech = damageKeyword == .freeze && profile.triggers.freezeDamageLeech
+            || damageKeyword == .poison && profile.triggers.poisonDamageLeech
+            || damageKeyword == .burn && profile.triggers.burnDamageLeech
+            || damageKeyword == .bleed && profile.triggers.bleedDamageLeech
+            || damageKeyword == .physical && profile.triggers.borrowedLife
+            && context.roster.isDeathsDoorActive(for: actorCombatant)
+        if leechPct == 0, keywordGrantsLeech {
+            leechPct = Effect.abilityLeechPercent
+        }
+        if leechPct == 0,
+           BattleChance.succeeds(probability: profile.triggers.leechChancePercent, using: &context.rng) {
+            leechPct = Effect.abilityLeechPercent
+        }
+        guard leechPct > 0 else { return .empty }
+        leechPct += profile.leechGainedBonus
+
+        if let target, profile.triggers.leechPercentVsLowHealthEnemies > 0,
+           context.roster.maxHealth(for: target) > 0,
+           Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target)) < 0.5 {
+            leechPct += profile.triggers.leechPercentVsLowHealthEnemies
+        }
+
+        var restored = CombatRounding.scaled(baseDamage, multiplier: leechPct)
+        restored += profile.leechHealingBonus
+        if let target, profile.triggers.leechBonusHealVsLowHealthEnemies > 0,
+           context.roster.maxHealth(for: target) > 0,
+           Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target)) < 0.5 {
+            restored += profile.triggers.leechBonusHealVsLowHealthEnemies
+        }
+        if let target, profile.triggers.leechBonusHealVsStunned > 0,
+           context.roster.hasControlStatus(for: target, keyword: .stun) {
+            restored += profile.triggers.leechBonusHealVsStunned
+        }
+        if let target, profile.triggers.leechHealingVsAfflictedMultiplier > 1 {
+            let afflicted = context.roster.hasAffliction(.poison, on: target) || context.roster.hasAffliction(.bleed, on: target)
+            if afflicted {
+                restored = CombatRounding.scaled(restored, multiplier: profile.triggers.leechHealingVsAfflictedMultiplier)
+            }
+        }
+        guard restored > 0 else { return .empty }
+
+        var healing = resolveHealing(
+            HealRequest(
+                amount: restored,
+                target: actorCombatant,
+                sourceActorID: sourceActorID,
+                origin: .leech, logAs: .silent,
+            ),
+            in: &context,
+        )
+        guard healing.didLeech else { return healing.combatOutcome }
+        let actualRestored = healing.directRestoration
+        var events = healing.events
+        if actualRestored > 0 {
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .leechHeal,
+                actorName: actorCombatant.name,
+                abilityName: "Leech",
+                target: actorCombatant,
+                amount: actualRestored,
+                keyword: .leech,
+                appliedEffectSummaries: [],
+                milestone: nil,
+                isCritical: healing.isCritical,
+            ))
+        }
+        if actorCombatant.id == context.roster.hero.id {
+            events.append(contentsOf: Self.shareHeroLeechWithCompanion(
+                restored: actualRestored,
+                in: &context,
+            ))
+        }
+        if actorCombatant.role == .companion, context.roster.hero.isAlive,
+           profile.triggers.leechSharesToHeroPercent > 0 {
+            let share = CombatRounding.scaled(
+                actualRestored,
+                multiplier: min(1, max(0, profile.triggers.leechSharesToHeroPercent)),
+            )
+            if share > 0 {
+                events.append(contentsOf: Self.resolveHeal(
+                    HealRequest(amount: share, target: context.roster.hero.combatant, sourceActorID: sourceActorID),
+                    in: &context,
+                ).events)
+            }
+        }
+        if actorCombatant.role == .companion, context.roster.hero.isAlive,
+           profile.triggers.onCompanionLeechRestoreHeroMana > 0 {
+            events.append(contentsOf: context.restoreManaEmitting(
+                profile.triggers.onCompanionLeechRestoreHeroMana,
+                to: context.roster.hero.combatant,
+                abilityName: "Vitality Infusion",
+            ))
+        }
+        events.append(contentsOf: CombatTriggerEngine.afterLeech(by: actorCombatant, target: target, in: &context))
+        healing.events = events
+        return healing.combatOutcome
+    }
+
+    static func shareHeroLeechWithCompanion(
+        restored: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let percent = min(max(context.heroModifiers.triggers.companionLeechSharePercent, 0), 1)
+        guard restored > 0,
+              percent > 0,
+              context.roster.companion.isAlive
+        else { return [] }
+        let share = CombatRounding.scaled(restored, multiplier: percent)
+        guard share > 0 else { return [] }
+        return context.healEmitting(
+            amount: share,
+            target: context.roster.companion.combatant,
+            source: context.roster.hero.combatant,
+            abilityName: CombatTriggerEngine.triggerAbilityName(
+                "companionLeechSharePercent",
+                for: context.roster.hero.combatant,
+                fallback: "Symbiosis",
+                in: context,
+            ),
+        )
+    }
+
+    internal static func applyLeechOverhealing(
+        allocation: inout HealingAllocation,
+        request: HealRequest,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        let transferAmount = CombatGain.amount(
+            allocation.remaining, current: context.roster.companion.currentHealth, cap: context.roster.companion.maxHealth,
+        )
+        if request.origin == .leech, sourceTriggers?.leechOverhealTransfersToCompanion == true,
+           request.sourceActorID == context.hero.id, request.target.id == context.hero.id,
+           context.roster.companion.isAlive, transferAmount > 0 {
+            var transfer = HealRequest(
+                amount: transferAmount, target: context.companion, sourceActorID: request.sourceActorID,
+                origin: .leech, logAs: .silent,
+            )
+            transfer.amountBasis = .resolved
+            let outcome = resolveHeal(transfer, in: &context)
+            events.append(contentsOf: outcome.events)
+            if outcome.healthRestored > 0 {
+                allocation.allocate(outcome.healthRestored, to: .transfer)
+                events.append(context.nextEvent(
+                    kind: .effect, effectKind: .leechHeal, actorName: context.hero.name,
+                    abilityName: "Blood Link", target: context.companion,
+                    amount: outcome.healthRestored, keyword: .leech,
+                ))
+            }
+        }
+        if request.origin == .leech, sourceTriggers?.marrowmend == true,
+           request.sourceActorID == request.target.id {
+            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: request.target))
+            let converted = allocation.allocate(max(0, 6 - block), to: .block)
+            if converted > 0 {
+                events.append(contentsOf: context.applyBlock(
+                    converted, to: request.target, source: request.target,
+                    abilityName: "Marrowmend", amountBasis: .resolved,
+                ))
+            }
+        }
+        if request.origin == .leech,
+           let sourceActorID = request.sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID) {
+            let bonus = context.modifiers(for: sourceActorID).triggers.leechOverhealDamageBonus
+            if bonus > 0 {
+                context.roster.mutateRuntime(for: source.combatant) { runtime in
+                    let current = runtime.talents.battle.leechOverhealDamageBonus
+                    let allowed = max(0, 4 - current)
+                    let toAdd = min(bonus, allowed)
+                    if toAdd > 0 {
+                        runtime.talents.battle.leechOverhealDamageBonus += toAdd
+                        runtime.talents.battle.damageBonus += toAdd
+                    }
+                }
+            }
+        }
+        return events
+    }
+}

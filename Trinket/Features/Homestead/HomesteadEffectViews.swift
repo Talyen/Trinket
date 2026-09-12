@@ -29,18 +29,41 @@ struct HomesteadBenefitsView: View {
     var highlightedEffects: Set<HomesteadEffectLine.Key> = []
     var highlightsProduction = false
 
+    var previousTier: HomesteadNodeTier?
+
+    private var hasBonus: Bool {
+        HomesteadEffectLine.lines(for: tier).contains { $0.resource == nil }
+    }
+
     var body: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Spacing.medium) {
-            HomesteadEffectDescription(tier: tier, highlightedEffects: highlightedEffects)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityIdentifier(effectsIdentifier)
-            if let production = tier.production {
-                HomesteadProductionValue(
-                    resource: production.resource,
-                    quantity: production.quantity,
-                    isHighlighted: highlightsProduction,
-                )
-                .fixedSize(horizontal: true, vertical: false)
+        Grid(alignment: .topLeading, horizontalSpacing: TrinketDesign.Spacing.medium, verticalSpacing: TrinketDesign.Spacing.small) {
+            GridRow(alignment: .firstTextBaseline) {
+                if hasBonus {
+                    Text("Bonus")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                if tier.production != nil {
+                    Text("Production")
+                }
+            }
+            .trinketTypography(.caption)
+            .foregroundStyle(.secondary)
+
+            GridRow(alignment: .top) {
+                if hasBonus {
+                    HomesteadEffectDescription(tier: tier, highlightedEffects: highlightedEffects, previousTier: previousTier)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityIdentifier(effectsIdentifier)
+                }
+                if let production = tier.production {
+                    HomesteadProductionValue(
+                        resource: production.resource,
+                        quantity: production.quantity,
+                        isHighlighted: highlightsProduction,
+                        previousQuantity: previousTier?.production?.resource == production.resource
+                            ? previousTier?.production?.quantity : nil,
+                    )
+                }
             }
         }
     }
@@ -50,6 +73,14 @@ private struct HomesteadProductionValue: View {
     let resource: HomesteadResource
     let quantity: Int
     let isHighlighted: Bool
+    var previousQuantity: Int?
+
+    private var displayedRate: String {
+        if let previousQuantity, previousQuantity != quantity {
+            return "\(previousQuantity) → \(quantity) per day"
+        }
+        return "\(quantity) per day"
+    }
 
     var body: some View {
         HStack(spacing: TrinketDesign.Spacing.small) {
@@ -59,7 +90,7 @@ private struct HomesteadProductionValue: View {
                 Text(resource.displayName)
                     .trinketTypography(.caption)
                     .foregroundStyle(.secondary)
-                Text("\(quantity) per day")
+                Text(displayedRate)
                     .trinketTypography(.statValue)
                     .foregroundStyle(isHighlighted ? TrinketDesign.Colors.accent : .primary)
                     .contentTransition(.numericText())
@@ -69,13 +100,23 @@ private struct HomesteadProductionValue: View {
         .frame(minHeight: TrinketDesign.Layout.walletResourceRowMinHeight)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(resource.displayName)
-        .accessibilityValue("\(quantity) per day")
+        .accessibilityValue(displayedRate)
     }
 }
 
 struct HomesteadEffectDescription: View {
     let tier: HomesteadNodeTier
     var highlightedEffects: Set<HomesteadEffectLine.Key> = []
+    var previousTier: HomesteadNodeTier?
+
+    private func displayedValue(for effect: HomesteadEffectLine) -> String {
+        if let previousTier,
+           let previous = HomesteadEffectLine.lines(for: previousTier).first(where: { $0.id == effect.id }),
+           previous.value != effect.value {
+            return "\(previous.displayValue) → \(effect.displayValue)"
+        }
+        return effect.displayValue
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
@@ -83,7 +124,7 @@ struct HomesteadEffectDescription: View {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.extraSmall) {
                     Text(KeywordDescriptionText.attributedText(for: effect.label))
                         .fixedSize(horizontal: false, vertical: true)
-                    Text(effect.displayValue)
+                    Text(displayedValue(for: effect))
                         .bold()
                         .foregroundStyle(highlightedEffects.contains(effect.id) ? TrinketDesign.Colors.accent : .primary)
                         .contentTransition(.numericText())

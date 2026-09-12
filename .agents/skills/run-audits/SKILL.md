@@ -11,26 +11,13 @@ investigating its scope. Read large audit sets incrementally. “All audits” s
 the audit Markdown files directly under `Docs/Audits/`, excluding `README.md` and
 `Proposals.md`; linked platform playbooks are separate tasks.
 
-## Confirm and fix
+## Coordinate the pass
 
-- Use the selected concern's whole scope by default, prioritizing risk. Restrict to
-  changed code only when requested, establishing and reporting the comparison range
-  under the audit policy. Proposal memory is not a coverage baseline.
-- Check relevant prior decisions and exceptions; revisit them when new evidence or
-  changed assumptions supersede the recorded reason.
-- Develop candidates from consequential flows and boundaries; no pre-existing finding
-  is needed. Choose scoped probes and read relevant owners without repeating orientation.
-  Confirm intended behavior and impact before treating a signal as a finding.
-- Apply the selected audit's evidence bar and the shared ownership table. Overlapping
-  audits should produce one finding and remedy for the same cause.
-- Route confirmed paths through `agent-context.sh`. Choose the complete remedy
-  under the audit policy's right-size rules and existing session authorization.
-- For multiple fixes, state the implementation order and verification ownership
-  before editing. Use an execution plan only when durable coordination is needed.
-
-Defer only approval-sensitive work; continue independent authorized findings.
-Follow the audit policy for zero-finding results and cross-owner remedies. Do not
-edit audit guides to record run history.
+Use [the audit policy](../../../Docs/Audits/README.md) for discovery, evidence,
+sizing, approval boundaries, proposal memory, and reporting. Route confirmed paths
+through `agent-context.sh` and state implementation order and verification ownership
+before editing multiple fixes. Use a durable plan only when coordination or
+resumption needs one.
 
 ## Parallel work when useful
 
@@ -50,15 +37,6 @@ union of changed and deleted paths. Do not duplicate the full gate across worker
 
 ## Close the pass
 
-Use [the audit policy](../../../Docs/Audits/README.md) for proposal recording,
-accepted non-findings, and actual review coverage. Check remedies against [Testing.md](../../../Docs/Platform/Testing.md) and the root change discipline;
-a green gate does not justify unnecessary abstractions or tests. Consider deletion,
-consolidation, strengthening, or moving existing coverage before adding cases. Apply
-Testing.md's retirement rules and report meaningful coverage tradeoffs, including
-any distinct coverage deliberately retired without replacement.
-
-Report fixed findings by audit, zero-finding audits, pending proposals, verification
-results, actual scope (including any incremental range), and any skips or blockers.
-Distinguish source confirmation from runtime validation; a guide review is not a
-completed product-code audit. Include change-budget justification when the
-routed checks require it; summarize diagnostics instead of pasting logs.
+Review the integrated changes and report the outcomes required by
+[Verification and handoff](../../../Docs/Audits/README.md#verification-and-handoff).
+A guide review is not a completed product-code audit.

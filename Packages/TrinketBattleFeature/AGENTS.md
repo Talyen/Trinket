@@ -2,6 +2,9 @@
 
 Keep rules in `BattleEngine`. Never import `TrinketAppState` or the app module.
 App options/audio cross only through `BattleRuntimeDependencies`. Conform to
-[`Docs/AgentContext/battle-runtime.md`](../../Docs/AgentContext/battle-runtime.md).
+the [common runtime contract](../../Docs/AgentContext/battle-runtime.md) and the
+focused contracts selected by the router; load another only when crossing its concern.
 
-Run the package suite and routed Battle smoke/performance checks before handoff.
+Package and interaction verification follow
+[Verification.md](../../Docs/Platform/Verification.md#choosing-ui-verification);
+performance work follows the linked playbook.

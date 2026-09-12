@@ -25,8 +25,8 @@ owned tests, flags, resources, configuration, and documentation tied to the remo
 path. For generated surface, edit authored inputs and regenerate—never hand-edit output.
 Demote unnecessary public API only after confirming the current package-client inventory.
 
-A successful fix removes a real maintenance burden. Moving or wrapping the same
-unnecessary surface is not removal; keeping a useful single-use boundary is valid.
+Moving or wrapping the same unnecessary surface is not removal;
+keeping a useful single-use boundary is valid.
 
 ## Boundaries
 

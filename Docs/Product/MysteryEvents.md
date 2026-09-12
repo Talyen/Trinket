@@ -20,7 +20,7 @@ treatment. Keep its artwork constrained to the viewport width. Narrative text be
 the hero names the actual
 offered items and connects each action to its rewards: physical sources for
 materials and Gold, and learning or practice for XP. The authored catalog is
-[MysteryEventPool.swift](../../Packages/TrinketContent/Sources/TrinketContent/Content/MysteryEventPool.swift).
+[MysteryEventPool.swift](../../Packages/TrinketContent/Sources/TrinketContent/Encounters/MysteryEventPool.swift).
 
 ## Reward rules
 

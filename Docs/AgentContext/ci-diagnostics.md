@@ -17,9 +17,18 @@ Every test or package invocation writes an atomically completed
 `*-invocation.json` manifest in the run’s `RESULTS_DIR` (shared default
 `.DerivedData/TestResults/`, or `.DerivedData/runs/agent-N/TestResults/` when
 `TRINKET_ISOLATE=1` / `handoff --isolate`). It records the label,
-exit code, pass/fail status, result-bundle path, and optional diagnostics-report path.
+exit code, action, pass/fail status, result-bundle path, and optional diagnostics-report path.
+Build and build-for-testing actions accept a successful process exit without an
+xcresult; test actions still require result or watchdog execution evidence.
 The manifest also records `completion_source` (`process-exit` or
 `watchdog-log-inference`), `test_execution_proven`, and `result_bundle_complete`.
+Routine simulator test actions pass `-collect-test-diagnostics never`. A sampled
+post-test stall was Xcode waiting for `simctl diagnose --timeout=600`, even after
+all test cases passed; stopping that collector allowed the result bundle to finalize.
+Disabling bulk simulator diagnostics retains XCTest results, ordinary attachments,
+and our structured failure reports. An explicit `-collect-test-diagnostics on-failure`
+argument to the shared runner remains available for a deliberate forensic run.
+
 The shared watchdog allows 45 seconds of quiet after the terminal test marker
 before treating finalization as stalled; `TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`
 overrides that limit. Local tests use the same allowance as CI: healthy exports
@@ -28,7 +37,8 @@ hang during result finalization, leaving an incomplete `.xcresult`. The watchdog
 can report log-proven test success; this does not prove the bundle finalized or
 that motion was correct. Earlier test failures and process crashes still override
 later passing summaries, and zero executed tests cannot establish a test pass.
-This is a supported workaround for the Xcode hang, not a fix to Xcode itself.
+The watchdog remains a fallback for other export stalls; routine runs should finish
+with `completion_source=process-exit` and `result_bundle_complete=true`.
 
 For these investigations, retain the manifest and raw log with
 `./Scripts/ci-diagnostics.sh --cleanup --keep <results-dir>` to suppress cleanup. Capture motion
@@ -97,7 +107,9 @@ to missing detail. Inspect raw xcodebuild logs only when the aggregate category 
 
 After the aggregate has been staged, successful invocation artifacts are ephemeral
 by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,
-raw logs, and timing history while retaining failed evidence for current triage.
+and raw logs while retaining failed evidence and the bounded timing history.
+Timing queries are bounded and optional; targeted-test evidence queries are
+bounded and fail when execution cannot be established.
 Pass `--keep` for a deliberate local investigation. The same cleanup sweeps
 orphaned bundles/logs from runs
 that crashed before writing a completion manifest, age-bounded by

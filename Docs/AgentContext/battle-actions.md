@@ -7,6 +7,17 @@ state explicitly behind copy-on-write storage. Turn start clears only turn state
 and expired timed bonuses; pending effects survive until their consuming operation.
 Keep an amount and its expiry/source together. Card cleanup and the last-action
 empowerment receipt retain their existing execution checkpoints.
+Next-turn Dodge boosts from Pack Coordination and Smoke Screen live in turn
+state so a longer Cleanse bonus cannot extend them.
+
+Playful Energy counts both partners' cards and heals once when the party reaches
+its threshold. Feint Strike refreshes one shared next-card bonus; card preparation
+reserves it, and only that card's first damaging hit can spend it. A support card
+uses the preparation without carrying it forward to another card.
+`CombatResolution` owns party preparations and their per-card reservations.
+Immediate card damage carries action/card provenance independently of damage
+mechanics, including the first pulse of a recurring effect. Later ticks and
+reaction damage cannot spend that reservation.
 
 `CombatResolution` owns nested action/card identity, selected outcomes, automatic-play
 ancestry, cadence claims, and associated mutable talent action/card bookkeeping.
@@ -52,7 +63,7 @@ Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeat
 Turn and opening-hand drivers can record immutable presentation checkpoints while
 finishing all engine work synchronously. Incremental draw helpers are package-only.
 Operation and mutation contracts live in [battle-engine context](battle-engine.md);
-playback and command readiness live in [battle-runtime context](battle-runtime.md).
+playback and command readiness live in [battle presentation](battle-presentation.md).
 
 `BattleState.assessCard(_:)` provides read-only availability, certain effect
 recipients, and resource-use quotes for the battle interaction cues. It shares

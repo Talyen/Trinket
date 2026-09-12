@@ -56,29 +56,8 @@ ensure_xcode_macos_sdk() {
   fi
 }
 
-ensure_xcode_macos_sdk
-
 INCLUDE_ASSETS=false
 SKIP_XCODEGEN=false
-
-# shellcheck source=run-env.sh
-source ./Scripts/run-env.sh
-trinket_run_env_init
-
-GENERATION_LOCK_DIR="$TRINKET_GENERATE_LOCK_DIR"
-LOCK_TIMEOUT_SECONDS="${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
-
-# Shared directory-lock primitive lives in Scripts/lib/lock.sh.
-# shellcheck source=lib/lock.sh
-source Scripts/lib/lock.sh
-
-cleanup_generation_lock() {
-  trinket_dir_lock_release "$GENERATION_LOCK_DIR" "$$"
-}
-
-acquire_generation_lock() {
-  trinket_dir_lock_acquire "$GENERATION_LOCK_DIR" "$LOCK_TIMEOUT_SECONDS"
-}
 
 usage() {
   cat <<'EOF'
@@ -127,7 +106,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-acquire_generation_lock
+ensure_xcode_macos_sdk
+# shellcheck source=run-env.sh
+source ./Scripts/run-env.sh
+trinket_run_env_init
+trinket_dir_lock_acquire "$TRINKET_GENERATE_LOCK_DIR" "${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
 
 # content_codegen validates manifests before writing generated catalogs.
 echo "=== Generating content catalogs ==="

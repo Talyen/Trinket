@@ -19,11 +19,11 @@ inputs:
     required: false
     default: 'false'
   prune:
-    description: Prune DerivedData before cache/artifact save (true/false)
+    description: Remove indexes and diagnostics while retaining incremental build state (true/false)
     required: false
     default: 'false'
   upload-artifact:
-    description: Upload pruned .DerivedData for within-run test fan-out (true/false)
+    description: Upload a test-products tar archive for within-run test fan-out (true/false)
     required: false
     default: 'false'
 
@@ -100,7 +100,8 @@ runs:
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       with:
         name: ${{ steps.ids.outputs.artifact-name }}
-        path: .DerivedData/ci-test-artifact
+        path: .DerivedData/ci-test-artifact.tar
+        compression-level: 1
         include-hidden-files: true
         retention-days: 7
         if-no-files-found: error

@@ -57,7 +57,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
             block = fromGold
         }
 
-        let applied = context.applyBlock(
+        let applied = context.applyBlockGain(
             block,
             to: target,
             source: source,
@@ -68,8 +68,8 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         if let payment {
             events = CombatTriggerEngine.afterSpendMana(payment, in: &context)
         }
-        events.append(contentsOf: applied)
-        return EffectApplyOutcome(events: events, didApply: !applied.isEmpty)
+        events.append(contentsOf: applied.events)
+        return EffectApplyOutcome(events: events, didApply: applied.applied > 0)
     }
 }
 
@@ -217,7 +217,8 @@ struct DetonateDoTHandler: BattleEffectHandler {
             var amplified = active
             amplified.effect = .bleed((active.effect.potency ?? 0) * factor)
             return CombatTriggerEngine.detonateBleedStacks(
-                [amplified], on: target, sourceActorID: source.id, in: &context,
+                [amplified], on: target, sourceActorID: source.id,
+                provenance: context.resolution.damageProvenance(for: source.id), in: &context,
             )
         }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
@@ -226,15 +227,18 @@ struct DetonateDoTHandler: BattleEffectHandler {
         var remaining = active.effect
         var events: [ActionEvent] = []
         while context.roster.health(for: target) > 0 {
-            let next = remaining.potencyAfterTurn(burnDecaySlowPercent: slowBurn)
+            let next = remaining.potencyAfterTurn(
+                burnDecaySlowPercent: slowBurn, poisonDecaySlowPercent: sourceTriggers?.poisonDecaySlowPercent ?? 0,
+            )
             guard next > 0 else { break }
             remaining = .decayingDoT(keyword: active.keyword, potency: next)
             for _ in 0 ..< tickCount where context.roster.health(for: target) > 0 {
-                events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: next * factor,
                     keyword: active.keyword,
                     target: target,
                     sourceActorID: source.id,
+                    provenance: context.resolution.damageProvenance(for: source.id),
                     in: &context,
                 ).events)
             }
@@ -289,11 +293,12 @@ struct RecurringDamageHandler: BattleEffectHandler {
                 sourceActorID: source.id,
             ))
         }
-        let events = DoTDamage.resolveTurnDamage(
+        let events = DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,
             target: target,
             sourceActorID: source.id,
+            provenance: context.resolution.damageProvenance(for: source.id),
             in: &context,
         ).events
         return EffectApplyOutcome(events: application.events + events, didApply: true)
@@ -310,7 +315,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
             return []
         }
         let sourceID = active.sourceActorID ?? target.id
-        let events = DoTDamage.resolveTurnDamage(
+        let events = DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,
             target: target,
@@ -366,6 +371,7 @@ struct AvatarHandler: BattleEffectHandler {
             holyDamage: holyDamage,
             blockPerTurn: blockPerTurn,
             from: target,
+            provenance: context.resolution.damageProvenance(for: source.id),
             in: &context,
         )
         return EffectApplyOutcome(events: application.events + events, didApply: true)
@@ -400,14 +406,16 @@ struct AvatarHandler: BattleEffectHandler {
         holyDamage: Int,
         blockPerTurn: Int,
         from caster: Combatant,
+        provenance: DamageProvenance? = nil,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let opponent = BattleTargetResolver.abilityTarget(for: caster, in: context)
-        var events = DoTDamage.resolveTurnDamage(
+        var events = DoTDamage.resolveDamage(
             basePotency: holyDamage,
             keyword: .holy,
             target: opponent,
             sourceActorID: caster.id,
+            provenance: provenance,
             in: &context,
         ).events
         events.append(contentsOf: context.applyBlock(

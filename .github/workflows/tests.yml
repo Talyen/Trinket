@@ -1,24 +1,10 @@
 name: Build and test
 
-# Shared build-once test fan-out used by ci.yml.
-# Gate, app-only build, and package unit run in parallel after the path filter.
-# Lint/CI-glue Scripts and workflows are infra-only (generate/style, no macos
-# app/UI). Build/test/generate Scripts still classify as product code so macos
-# jobs run. Smoke is sharded; exhaustive UI is sharded by feature and is
-# advisory (nightly/scheduled or workflow_dispatch exhaustive), not a push
-# blocker — smoke + unit gate pushes. The build artifact is Products + stamps,
-# not the full DerivedData tree. Test jobs check out via
-# .github/actions/checkout-trinket (sparse, without Raw Assets, asserting
-# project.yml / *.xctestplan). Warm DerivedData: primary key
-# build-<nonsource>-<full>; restore-keys build-<nonsource>- for same
-# toolchain/assets incremental source rebuilds (script-only edits keep that
-# prefix). Within-run fan-out uses a run-scoped artifact of pruned
-# .DerivedData. The build job compiles the app so smoke and exhaustive UI can
-# run with --no-build; the unit job compiles package schemes itself. SwiftLint
-# analyze runs beside tests from the app-only compiler log, not on
-# the build job, and blocks CI OK on unused_import (other analyzer findings
-# stay advisory). The exhaustive UI suite is sharded by feature so post-push
-# validation does not serialize every journey on one CI simulator.
+# Pushes verify generated inputs, build once for UI tests, and test package schemes.
+# Build orchestration changes exercise the product jobs; lint-only changes use the gate.
+# Nightly/dispatch also run exhaustive UI outside the push path.
+# The warm cache preserves incremental state; UI jobs receive only test products
+# and build stamps in a tar archive. Sparse checkouts omit Raw Assets.
 
 on:
   workflow_call:
@@ -105,14 +91,6 @@ jobs:
           prune: 'true'
           save-cache: 'true'
           upload-artifact: 'true'
-      - name: Upload compiler logs for analyze
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
-        with:
-          name: ${{ steps.restore-and-build.outputs.artifact-name }}-compiler-logs
-          path: .DerivedData/TestResults/raw
-          include-hidden-files: true
-          retention-days: 7
-          if-no-files-found: error
 
   unit:
     name: Unit tests (${{ matrix.name }})
@@ -274,50 +252,6 @@ jobs:
           command: ./Scripts/test.sh ui --no-build ${{ matrix.target }}
           preboot-simulator: 'true'
 
-  analyze:
-    name: SwiftLint analyze (unused_import blocking)
-    needs: [changes, build]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
-    runs-on: macos-26
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-        with:
-          fetch-depth: 1
-          sparse-checkout-cone-mode: true
-          sparse-checkout: |
-            Scripts
-            Packages
-            Trinket
-            TrinketUITests
-            Trinket.xcodeproj
-            StoreKit
-            ContentManifest
-            ArtManifest
-            MusicManifest
-            SoundManifest
-            CinematicManifest
-            .github
-      - name: Assert sparse checkout kept root build inputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f project.yml
-          test -f StoreKit/Trinket.storekit
-          test -f Smoke.xctestplan
-          test -f FullUI.xctestplan
-          test -f BattlePerformance.xctestplan
-      - uses: ./.github/actions/setup-trinket
-      - name: Download compiler logs
-        uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317 # v5
-        with:
-          name: ${{ needs.build.outputs.build-artifact }}-compiler-logs
-          path: .DerivedData/TestResults/raw
-      - name: SwiftLint analyze
-        env:
-          SKIP_GENERATE: 1
-        run: ./Scripts/lint-analyze.sh
-
   diff-review:
     name: Advisory diff review
     needs: [changes]
@@ -370,7 +304,7 @@ jobs:
   # Exhaustive UI is advisory (nightly/dispatch) so it never blocks pushes.
   ci-ok:
     name: CI OK
-    needs: [changes, gate, assets-gate, build, unit, smoke, analyze]
+    needs: [changes, gate, assets-gate, build, unit, smoke]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

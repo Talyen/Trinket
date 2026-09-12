@@ -110,6 +110,24 @@ chmod +x "$TMP_DIR/fake-slow-finalization" "$TMP_DIR/fake-xcodebuild" "$TMP_DIR/
   "$TMP_DIR/fake-hang-success" "$TMP_DIR/fake-hang-selected-suite" \
   "$TMP_DIR/fake-hang-fail" "$TMP_DIR/fake-hang-silent" "$TMP_DIR/fake-hang-zero-tests"
 
+REPORT_CAPTURE="$TMP_DIR/result-args" XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
+  bash -eu -c '
+    source "$1"
+    xcode_runner_prepare summary "$2"
+    mkdir -p "$XCODE_RUNNER_RESULT_BUNDLE_PATH"
+    touch "$XCODE_RUNNER_RESULT_BUNDLE_PATH/Info.plist"
+    xcrun() { cat "$fixture"; }
+    fixture="$3"
+    if xcode_runner_run --label summary \
+      --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
+      --log "$XCODE_RUNNER_LOG_PATH" --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" -- true; then
+      echo "failed result incorrectly accepted a successful process exit" >&2
+      exit 1
+    else
+      [[ "$?" -eq 1 ]]
+    fi
+  ' _ "$RUNNER" "$TMP_DIR/result-summary" "$ROOT_DIR/Scripts/Tests/Fixtures/test-summary.json"
+
 bounded_log="$TMP_DIR/bounded.log"
 for _ in $(seq 1 100); do
   printf 'Sources/VeryLong.swift:17: error: %s\n' "$(printf 'x%.0s' $(seq 1 500))" >> "$bounded_log"
@@ -328,7 +346,113 @@ bash -c '
   fi
 ' _ "$RUNNER" "$TMP_DIR/fake-hang-silent" >"$bounded_run_terminal" 2>&1
 
+# Build manifests identify compile-only proof; targeted checks use the bounded query.
+bash -eu -c '
+  source "$1"
+  xcodebuild() { echo "** BUILD SUCCEEDED **"; }
+  xcode_runner_run --label compile --result-bundle "$2/build.xcresult" \
+    --log "$2/build.log" --report-prefix "$2/build-report" -- xcodebuild build
+  python3 - "$XCODE_RUNNER_MANIFEST_PATH" <<"PY_MANIFEST"
+import json, sys
+manifest = json.load(open(sys.argv[1]))
+assert manifest["action"] == "build" and manifest["exit_code"] == 0
+PY_MANIFEST
+  source "$3/Scripts/lib/test-helpers.sh"
+  TARGETS=(ExampleTests)
+  RESULT_BUNDLE_PATH="$2/complete.xcresult"
+  mkdir -p "$RESULT_BUNDLE_PATH"
+  touch "$RESULT_BUNDLE_PATH/Info.plist"
+  xcrun() { return 99; }
+  xcode_runner_run_bounded() { [[ "$1" == 60 ]] || exit 98; return 124; }
+  if trinket_assert_targeted_tests_executed; then exit 97; fi
+' _ "$RUNNER" "$TMP_DIR" "$ROOT_DIR"
+
+bash -eu -c '
+  source "$1"
+  capture="$2/diagnostic-arguments"
+  xcodebuild() { printf "%s\n" "$@" > "$capture"; }
+  for scenario in test test-without-building build macos explicit; do
+    action=test
+    sdk=iphonesimulator
+    case "$scenario" in
+      test-without-building|build) action="$scenario" ;;
+      macos) sdk=macosx ;;
+    esac
+    args=("$action" -sdk "$sdk")
+    if [[ "$scenario" == explicit ]]; then args+=(-collect-test-diagnostics on-failure); fi
+    xcode_runner_run --label "$scenario" --result-bundle "$2/$scenario.xcresult" \
+      --log "$2/$scenario.log" --report-prefix "$2/$scenario-report" \
+      -- xcodebuild "${args[@]}"
+    python3 - "$capture" "$scenario" <<"PY_OPTIONS"
+from pathlib import Path
+import sys
+args = Path(sys.argv[1]).read_text().splitlines()
+scenario = sys.argv[2]
+if scenario in {"build", "macos"}:
+    assert "-collect-test-diagnostics" not in args, args
+else:
+    assert args.count("-collect-test-diagnostics") == 1, args
+    assert args[args.index("-collect-test-diagnostics") + 1] == ("on-failure" if scenario == "explicit" else "never"), args
+PY_OPTIONS
+  done
+' _ "$RUNNER" "$TMP_DIR"
+
 # Infra retry matcher covers XCUITest launch flakes even when exit is 65.
+python3 - "$ROOT_DIR" <<'PY_FILTERS'
+import json
+import subprocess
+import sys
+import tempfile
+
+def case(identifier, result="Passed"):
+    return {"nodeType": "Test Case", "nodeIdentifier": identifier, "result": result}
+
+checks = [
+    ([case("ExampleTests/testOne()")], ["ExampleTests"], True),
+    ([case("ExampleTests/testOne()")], ["TrinketUITests/ExampleTests/testOne"], True),
+    ([case("ExampleTests/testOne()")], ["ExampleTests", "MissingTests"], False),
+    ([case("ExampleTests/testOne()")], ["ExampleTests/testOther"], False),
+    ([case("ExampleTestsExtra/testOne()")], ["ExampleTests"], False),
+    ([case("ExampleTests/testOne()", "Skipped")], ["ExampleTests"], False),
+    ([case("ExampleTests/testOne()", "Skipped"), case("OtherTests/testOne()")], ["ExampleTests"], False),
+    ([case("ExampleTests/testOne()"), case("ExampleTests/testTwo()", "Skipped")], ["ExampleTests"], True),
+    ([], ["ExampleTests"], False),
+]
+command = '''
+source "$1/Scripts/lib/test-helpers.sh"
+fixture="$2"
+complete="$3"
+shift 3
+TARGETS=("$@")
+RESULT_BUNDLE_PATH=fixture
+XCODEBUILD_LOG_PATH="$fixture"
+xcode_runner_result_bundle_complete() { [[ "$complete" == 1 ]]; }
+xcrun() { :; }
+xcode_runner_run_bounded() { printf '%s' "$fixture"; }
+trinket_assert_targeted_tests_executed
+'''
+for nodes, targets, succeeds in checks:
+    payload = json.dumps({"testNodes": [{"nodeType": "Test Suite", "children": nodes}]})
+    result = subprocess.run(["bash", "-eu", "-c", command, "_", sys.argv[1], payload, "1", *targets],
+                            capture_output=True, text=True)
+    assert (result.returncode == 0) == succeeds, (targets, nodes, result.stdout, result.stderr)
+with tempfile.NamedTemporaryFile(mode="w+") as log:
+    for content, targets, succeeds in [
+        ("Test Case '-[TrinketUITests.ExampleTests testOne]' passed (1 seconds).", ["ExampleTests/testOne"], True),
+        ("Test Case '-[TrinketUITests.ExampleTests testOne]' passed (1 seconds).", ["ExampleTests", "MissingTests"], False),
+        ("Test Case '-[TrinketUITests.ExampleTests testOne]' skipped (1 seconds).", ["ExampleTests"], False),
+        ("Test Case '-[TrinketUITests.ExampleTests testOne]' started.\nExecuted 1 test, with 0 failures", ["ExampleTests"], False),
+    ]:
+        log.seek(0)
+        log.truncate()
+        log.write(content)
+        log.flush()
+        result = subprocess.run(["bash", "-eu", "-c", command, "_", sys.argv[1], log.name, "0", *targets],
+                                capture_output=True, text=True)
+        assert (result.returncode == 0) == succeeds, (content, targets, result.stdout, result.stderr)
+print("Targeted execution filter cases passed")
+PY_FILTERS
+
 # Evidence patterns determine classification; exit code alone must not override.
 launch_log="$TMP_DIR/launch.log"
 cat > "$launch_log" <<'EOF'

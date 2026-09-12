@@ -11,7 +11,7 @@ items; Unique Gear slot filters include locked entries.
 
 ## Catalog contract
 
-The authored [Unique catalog](../../Packages/TrinketContent/Sources/TrinketContent/Content/UniqueCatalog.swift)
+The authored [Unique catalog](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog.swift)
 owns identities and powers. Each Unique has an exclusive signature and three
 fixed supporting powers, resolved at the catalog's Astral values without RNG.
 Item-local pinned supports reuse standard powers when their slot or affinity

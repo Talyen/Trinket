@@ -10,6 +10,11 @@ interaction regressions over per-mechanic or combinatorial matrices.
 The authoritative suite inventory is the
 `Tests/BattleEngineTests/` directory; this guide names stable families.
 
+Card, turn, trigger, talent, and Unique suites are grouped under `Cards/`,
+`Turns/`, `Triggers/`, `Talents/`, and `Uniques/` within `BattleEngineTests/`.
+Keep suite extensions with their main declaration; shared factories and handler
+helpers live in `Support/`. All remain in the same test target.
+
 ## Ownership rules
 
 | Concern | Suite family |
@@ -29,10 +34,9 @@ The authoritative suite inventory is the
   (`CombatantFixtures.deterministicBattleSeed`) for deterministic RNG. Use
   explicit seeds only for RNG edge cases; seed `0` can invalidate
   dodge-sensitive assertions. Do not re-alias the seed under local names.
-- Build combatants with `CombatantFixtures` directly (`passiveHero`,
-  `passiveCompanion`, `passiveEnemy`, `combatant`); `BattleTestFixtures` owns
-  only play helpers (`playFirstPlayableCard`, `endTurn`, …) and `BattleState`
-  assembly via the factory.
+- Build combatants with `CombatantFixtures`. `BattleStateTestFactory` centralizes
+  `BattleState` construction; `BattleTestFixtures` composes it for combat scenarios
+  and provides play, catalog-build, effect-dispatch, and assertion helpers.
 - Use `BattleStateTestFactory.makeMinimalBattle(...)` for pipeline tests that must skip deck bootstrap.
 - Dispatch effects through `EffectHandlers.all`.
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.

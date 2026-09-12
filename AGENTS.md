@@ -13,8 +13,8 @@ verified behavior from inference and state material assumptions.
 
 ## Protect the workspace
 
-- Inspect `git status --short` before editing and each dirty file's diff before touching it. Preserve in-flight work with surgical edits; clarify ownership before editing overlapping changes when it is unclear.
-- Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree. If the safety shim creates a backup before blocking, inspect it and current state before restoration.
+- Inspect scoped Git status with the routing command below before editing, then each overlapping dirty file's full diff. Use `git status --short` for intentional whole-tree inspection. Preserve in-flight work with surgical edits; clarify ownership before editing overlapping changes when it is unclear.
+- Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree. The safety shim refuses these commands without stashing working files.
 - Work directly in the primary checkout on `main` by default; do not create worktrees for routine tasks, branch there, or open pull requests.
 - Commit/push only when requested, following [Release.md](Docs/Platform/Release.md). Include only requested/adopted changes; stage hunks for mixed files. Hosted CI follows a push to `main`, not a prerequisite for it.
 - Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Normal build/handoff handles generation freshness; use `./Scripts/generate.sh` for explicit regeneration.
@@ -29,7 +29,7 @@ verified behavior from inference and state material assumptions.
 
 ## Route and read
 
-Run `./Scripts/agent-context.sh --agent --paths <file...>` once likely touched paths
+Run `./Scripts/agent-context.sh --agent --status --paths <file...>` once likely touched paths
 are known. Read its required guides/cards; load skills when their triggers apply.
 Reuse unchanged guidance already present in context; reread when changed or no
 longer available. Reroute when scope crosses owners and read newly applicable

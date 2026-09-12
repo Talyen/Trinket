@@ -26,6 +26,7 @@ struct CombatantTalentState: Hashable, Sendable {
     }
 
     struct Turn: Hashable, Sendable {
+        var dodgeChanceBonus = 0.0
         var cleansedKeywordProtection: Set<Keyword> = []
         var purgedEffectProtection: Set<EffectKind> = []
         var subzeroMistActive = false
@@ -83,6 +84,20 @@ struct CombatantTalentState: Hashable, Sendable {
     var timed = Timed()
     var card = Card()
     var action = Action()
+
+    mutating func grantDodgeUntilNextTurn(_ amount: Double) {
+        turn.dodgeChanceBonus += amount
+    }
+
+    mutating func grantTimedDodge(_ amount: Double, untilTurn: Int) {
+        timed.dodge.amount += amount
+        timed.dodge.expiresAtTurn = max(timed.dodge.expiresAtTurn, untilTurn)
+    }
+
+    func dodgeChanceBonus(atTurn currentTurn: Int) -> Double {
+        let timedAmount = timed.dodge.expiresAtTurn == 0 || currentTurn < timed.dodge.expiresAtTurn ? timed.dodge.amount : 0
+        return turn.dodgeChanceBonus + timedAmount
+    }
 
     mutating func beginTurn(_ currentTurn: Int) {
         turn = Turn()

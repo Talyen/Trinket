@@ -210,18 +210,6 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
             )
             self.assertIn("cmp -s", sort_owner, f"{name} should skip rewriting unchanged hash/catalog stamps")
 
-    def test_prepare_art_skips_unchanged_catalog_contents_json(self) -> None:
-        text = (ROOT / "Scripts" / "prepare-art-assets.sh").read_text(encoding="utf-8")
-        self.assertIn("contents_json_temp", text)
-        self.assertIn(
-            'trinket_asset_commit_generated "$contents_json_temp" "$asset_catalog/Contents.json"',
-            text,
-        )
-        self.assertIn(
-            'trinket_asset_commit_generated "$generated_temp" "$generated_swift"',
-            text,
-        )
-
     def test_project_yml_keeps_assets_outside_swift_sync_roots(self) -> None:
         text = (ROOT / "project.yml").read_text(encoding="utf-8")
         self.assertIn("path: Trinket/App", text)
@@ -261,7 +249,7 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
             "Raw Assets",
             "Trinket/Assets.xcassets",
             "Packages/TrinketContent/Sources/TrinketContent/Generated",
-            "Packages/TrinketContent/Sources/TrinketContent/Content",
+            "Packages/TrinketContent/Sources/TrinketContent/Abilities",
             "bin",
         ):
             (root / relative).mkdir(parents=True, exist_ok=True)
@@ -276,11 +264,11 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
         (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift").write_text(
             "", encoding="utf-8"
         )
-        (root / "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift").write_text(
+        (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift").write_text(
             'id: "slash"\n', encoding="utf-8"
         )
         for name in ("AbilityCatalogSkill.swift", "AbilityCatalogUltimate.swift"):
-            (root / "Packages/TrinketContent/Sources/TrinketContent/Content" / name).write_text(
+            (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities" / name).write_text(
                 "", encoding="utf-8"
             )
         (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift").write_text(
@@ -372,8 +360,13 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
                 / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv"
             ).read_text(encoding="utf-8")
             self.assertTrue(state.splitlines()[1].startswith("# asset_name\tsource_sha256\tencode_profile"))
+            outputs = [root / "Trinket/Assets.xcassets/Contents.json",
+                       root / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"]
+            for output in outputs:
+                os.utime(output, (1000000000, 1000000000))
             second = self.run_art_fixture(root, environment)
             self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertTrue(all(output.stat().st_mtime == 1000000000 for output in outputs))
             self.assertEqual(len(log.read_text().splitlines()), 16)
             self.assertEqual(
                 (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift").read_text(
@@ -385,6 +378,9 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
     def test_art_rejects_unbacked_ids_and_prunes_orphans(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root, environment, _ = self.make_art_fixture(directory)
+            scratch = root / "scratch"
+            scratch.mkdir()
+            environment["TMPDIR"] = str(scratch)
             manifest = root / "ArtManifest/curated-assets.tsv"
             manifest.write_text(
                 "combatant\tknight\thero_knight_card\tRaw Assets/source.jpeg\t0.5\t0.5\n"
@@ -394,6 +390,7 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
             rejected = self.run_art_fixture(root, environment)
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("Combatant art id 'bogus'", rejected.stderr)
+            self.assertEqual(list(scratch.iterdir()), [])
             manifest.write_text(
                 "combatant\tknight\thero_knight_card\tRaw Assets/source.jpeg\t0.5\t0.5\n",
                 encoding="utf-8",
@@ -408,6 +405,16 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
             self.assertIn("Pruning orphaned asset: hero_stray.imageset", pruned.stdout)
             self.assertFalse(stray.exists())
 
+            product = root / "Trinket/Assets.xcassets/hero_knight_card.imageset/hero_knight_card.heic"
+            previous = product.read_bytes()
+            (root / "bin/sips").write_text("#!/bin/bash\nexit 23\n")
+            environment["FORCE_ASSET_REENCODE"] = "1"
+            failed = self.run_art_fixture(root, environment)
+            self.assertEqual(failed.returncode, 23, failed.stderr)
+            self.assertEqual(product.read_bytes(), previous)
+            self.assertEqual(list(scratch.iterdir()), [])
+            self.assertFalse(list((root / "Trinket/Assets.xcassets").glob("*.tmp.*")))
+
     def test_cinematic_fixture_converts_once_and_stays_stable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -418,7 +425,7 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
                 "Raw Assets/Animations",
                 "Trinket/Media/Cinematics",
                 "Packages/TrinketContent/Sources/TrinketContent/Generated",
-                "Packages/TrinketContent/Sources/TrinketContent/Content",
+                "Packages/TrinketContent/Sources/TrinketContent/Abilities",
                 "bin",
             ):
                 (root / relative).mkdir(parents=True, exist_ok=True)
@@ -436,7 +443,7 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
                 "knight\tKnight\thero\t100\t0\tslash\tslash\tavatarOfJustice\n",
                 encoding="utf-8",
             )
-            (root / "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.swift").write_text(
+            (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogUltimate.swift").write_text(
                 'id: "avatar-of-justice"\n', encoding="utf-8"
             )
             avconvert = root / "bin/avconvert"

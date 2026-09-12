@@ -3,12 +3,13 @@ import TrinketContent
 import TrinketCore
 
 package enum DoTDamage {
-    public static func resolveTurnDamage(
+    public static func resolveDamage(
         basePotency: Int,
         keyword: Keyword,
         target: Combatant,
         sourceActorID: String?,
         guaranteedCritical: Bool = false,
+        provenance: DamageProvenance? = nil,
         in context: inout BattleState,
     ) -> CombatOutcome {
         guard basePotency > 0 else { return .empty }
@@ -20,6 +21,7 @@ package enum DoTDamage {
             sourceActorID: sourceActorID,
         )
         request.options.guaranteedCritical = guaranteedCritical
+        request.provenance = provenance
         let damageOutcome = context.resolveDamage(request)
         guard damageOutcome.healthLost > 0 else { return damageOutcome }
 

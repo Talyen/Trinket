@@ -25,6 +25,7 @@ struct BattleSessionCardCueTests {
         let played = await field.playCardWithTapLift(card, battleSize: CGSize(width: 375, height: 667))
         #expect(played)
         #expect(!session.hand.contains(card))
+        #expect(session.cardCues.current?.mode == .preview)
         session.clearCardCues()
     }
 
@@ -35,6 +36,7 @@ struct BattleSessionCardCueTests {
         let health = session.engineState?.roster.enemy.currentHealth
         session.beginCardCue(card)
         let cue = try #require(session.cardCues.current)
+        #expect(cue.mode == .preview)
         #expect(cue.recipients[session.heroID ?? ""]?.kind == .protect)
         #expect(cue.recipients[session.enemyID ?? ""]?.kind == .attack)
         #expect(session.engineState?.rng == rng)
@@ -42,6 +44,26 @@ struct BattleSessionCardCueTests {
         #expect(session.hand.contains(card))
         session.cancelCardCue(card)
         #expect(session.cardCues.current == nil)
+    }
+
+    @Test func `tap cue keeps tap mode through commitment`() throws {
+        let session = makeSession()
+        let card = try install(.heal, in: session)
+        session.beginCardCue(card, mode: .tapCommit)
+        #expect(session.cardCues.current?.mode == .tapCommit)
+        #expect(session.playCard(cardID: card.id, requiresLift: true).didCommit)
+        #expect(session.cardCues.current?.mode == .tapCommit)
+        session.clearCardCues()
+    }
+
+    @Test func `tap mode suppresses result-backed recipient visuals`() {
+        #expect(!BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .attack))
+        #expect(!BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .restore))
+        #expect(!BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .cleanse))
+        #expect(BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .protect))
+        #expect(BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .prepare))
+        #expect(BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .gain))
+        #expect(BattleCardCuePresentationMode.preview.showsRecipientVisual(for: .attack))
     }
 
     @Test func `tap commitment preserves the resource quote until feedback completes`() throws {

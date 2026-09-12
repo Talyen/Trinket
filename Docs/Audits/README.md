@@ -77,10 +77,6 @@ architectural changes, and approval boundaries.
   [Proposals.md](Proposals.md); continue independent authorized work. Existing session
   authorization applies; do not ask again for an already approved decision.
 
-For multiple fixes, state implementation order and verification ownership before
-editing. Use a durable execution plan only when coordination/resumption needs one,
-following [Plans](../Plans/README.md).
-
 ### Run memory
 
 [Proposals.md](Proposals.md) holds unresolved decisions, rejected proposals, and
@@ -97,16 +93,14 @@ work, not just authored LOC. Ownership/correctness repairs may grow when necessa
 Explain routed change-budget warnings and the simpler rejected alternative under
 [AGENTS.md](../../AGENTS.md). Do not preserve redundant paths to avoid migration work.
 
-Verification does not require new tests. Use the coverage decision and semantic
-owners and retirement rules in [Testing.md](../Platform/Testing.md). Consider
-consolidation, moving coverage, and justified retirement before additions; distinguish
-redundancy from distinct low-value cases retired without replacement. Parameterization
-alone does not reduce expanded executions or prove that cases are interchangeable.
+Test additions, ownership, consolidation, and retirement follow
+[Testing.md](../Platform/Testing.md). Verification does not require new tests;
+report any deliberately relinquished coverage and its material remaining risk.
 
 ### Verification and handoff
 
-Use the path-scoped route in [Verification.md](../Platform/Verification.md):
-`./Scripts/handoff.sh --isolate --paths <changed files>` for the union of fixes.
+Use [Verification.md](../Platform/Verification.md) for the union of fixes,
+including its explicit UI smoke selection and local execution limits.
 Report findings/fixes, proposals, actual review coverage, zero-finding audits, and
 exact verification skips or blockers. Missing toolchains do not invalidate source
 findings, but do not claim runtime validation or required-check completion without it.

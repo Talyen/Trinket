@@ -70,6 +70,6 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
             app.tabBars.firstMatch.trinketWaitForExistence(timeout: 20),
             "Tab bar did not appear after onboarding",
         )
-        _ = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].trinketWaitForExistence(timeout: 20)
+        play.assertLoaded(timeout: 20)
     }
 }

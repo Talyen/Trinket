@@ -291,6 +291,7 @@ package enum ControlMeterEngine {
                     to: member.combatant,
                     source: source.combatant,
                     abilityName: "Lightning Rod",
+                    amountBasis: .resolved,
                 ))
             }
         }
@@ -304,6 +305,7 @@ package enum ControlMeterEngine {
                     to: member.combatant,
                     source: source.combatant,
                     abilityName: "Avalanche Guard",
+                    amountBasis: .resolved,
                 ))
             }
         }

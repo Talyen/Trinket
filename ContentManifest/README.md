@@ -7,7 +7,7 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 Authored inputs (edit these):
 
 - `ContentManifest/*.tsv`: affixes, talents, traits, stages, combatants, enemies, item bases, and homestead nodes — the editable source of truth for game content.
-- `Packages/TrinketContent/Sources/TrinketContent/Content/`: authored ability catalogs.
+- `Packages/TrinketContent/Sources/TrinketContent/Abilities/`: authored ability catalogs.
 
 Generated outputs (never hand-edit) live in
 `Packages/TrinketContent/Sources/TrinketContent/Generated/`; `./Scripts/generate.sh`
@@ -29,7 +29,7 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 - `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `block_per_turn:2`). Empty for flat modifier affixes. Trailing trigger columns may be omitted (no trailing tabs required); extra columns are rejected.
 - One value per field in a cell: repeating a modifier or trigger field is rejected, as are non-numeric amounts and unknown keywords. Trigger value types follow the schema field types.
 
-Trigger tokens resolve against `Scripts/trigger_family_schema.json` (families → `Generated/*Triggers.generated.swift`): explicit aliases and multi-part parsers live in `Scripts/content_codegen_triggers.py`, otherwise `snake_case` maps to the schema field (`dodge_chance_bonus` → `dodgeChanceBonus`). `camelCase` schema field names are accepted everywhere, not only in talents. Separate fields with `|` — gluing two fields with `,` inside one token is rejected. When the same token exists as both a modifier and a trigger (e.g. `dodge_chance_bonus`), the column decides which one it becomes.
+Trigger tokens resolve against `Scripts/internal/content/trigger_family_schema.json` (families → `Generated/*Triggers.generated.swift`): explicit aliases and multi-part parsers live in `Scripts/internal/content/content_codegen_triggers.py`, otherwise `snake_case` maps to the schema field (`dodge_chance_bonus` → `dodgeChanceBonus`). `camelCase` schema field names are accepted everywhere, not only in talents. Separate fields with `|` — gluing two fields with `,` inside one token is rejected. When the same token exists as both a modifier and a trigger (e.g. `dodge_chance_bonus`), the column decides which one it becomes.
 
 Merge semantics when trigger sources stack (schema `merge` op per field): `add` sums, `or` takes either, `max` takes the larger, `mul` multiplies (identity 1), `add_excess` adds only the excess over 1 (identity 1, for a few damage multipliers), `coalesce` keeps the later value, `union` merges the sorted set (only `bonusManaOnTurns`).
 
@@ -70,9 +70,9 @@ id	name	description	modifiers	triggers
 Abilities are authored only in:
 
 ```text
-Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift
-Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogSkill.swift
-Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.swift
+Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift
+Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogSkill.swift
+Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogUltimate.swift
 ```
 
 - Prefer `AbilityBuilder.directHit` / `buffOnly` / `multiDamage` for repeated shapes; use `Ability(...)` when you need custom targeting, mana, conditionals, or other knobs builders do not cover.

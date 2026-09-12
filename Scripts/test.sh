@@ -117,14 +117,6 @@ if [[ "$MODE" == "ui" && ${#TARGETS[@]} -eq 0 \
   exit 1
 fi
 
-# Bare `unit` mode runs the package schemes only. There is no app-level unit
-# bundle (the TrinketTests target was removed), so the app path exists only for
-# --app-only (path-scoped app build).
-RUN_PACKAGES_ONLY=false
-if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 && "$APP_ONLY" == false ]]; then
-  RUN_PACKAGES_ONLY=true
-fi
-
 if [[ "$APP_ONLY" == true ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "--app-only does not accept test filters; it is a compile-only app build." >&2
@@ -132,6 +124,17 @@ if [[ "$APP_ONLY" == true ]]; then
   fi
   echo "App-only unit mode: building the app for compile coverage."
   exec ./Scripts/build.sh
+fi
+
+if [[ "$MODE" == unit ]]; then
+  if (( ${#TARGETS[@]} > 0 )); then
+    echo "Targeted app-level unit runs are not supported; use ./Scripts/test-package.sh <Package>." >&2
+    exit 1
+  fi
+  package_args=()
+  if [[ "$NO_BUILD" == true ]]; then package_args+=(--no-build); fi
+  if [[ "$QUIET" == true ]]; then package_args+=(--quiet); else package_args+=(--verbose); fi
+  exec ./Scripts/test-package.sh "${package_args[@]}" "${TRINKET_TEST_PACKAGES[@]}"
 fi
 
 append_ui_target_filters() {
@@ -180,17 +183,7 @@ case "$MODE" in
     trinket_ui_slot_acquire
     ;;
 esac
-if [[ "$MODE" == "unit" ]]; then
-  if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
-    # Bare unit mode runs package schemes only; no app test plan is executed.
-    : # TEST_TARGET_FLAG stays empty
-  else
-    echo "Targeted app-level unit runs are not supported (the TrinketTests target was removed)." >&2
-    echo "Run package-scoped tests with ./Scripts/test-package.sh <Package>." >&2
-    exit 1
-  fi
-  prepare_serial_test_sim
-elif [[ "$MODE" == "smoke" ]]; then
+if [[ "$MODE" == "smoke" ]]; then
   # Local and CI smoke share Smoke.xctestplan (shell + battle + shop).
   TEST_TARGET_FLAG=(-testPlan Smoke)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -249,7 +242,7 @@ fi
 # Automatic build reuse for agents: if inputs are unchanged since the last
 # matching build, run without rebuilding even without an explicit --no-build.
 # This makes the fast path the default; dirty inputs still trigger a rebuild.
-if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then
+if [[ "$NO_BUILD" == "false" ]]; then
   if [[ -f "$BUILD_STAMP" ]]; then
     if assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$RUN_FINGERPRINT" >/dev/null 2>&1; then
       built_app="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
@@ -270,10 +263,7 @@ XCODEBUILD_REPORT_PREFIX="$XCODE_RUNNER_REPORT_PREFIX"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 
 if [[ "$NO_BUILD" == "true" ]]; then
-  if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
-    # Package stamp freshness is validated inside test-package.sh --no-build.
-    :
-  elif trinket_assert_no_build_is_fresh; then
+  if trinket_assert_no_build_is_fresh; then
     :
   else
     no_build_status=$?
@@ -288,41 +278,12 @@ fi
 TEST_WALL_SECONDS=0
 SECONDS=0
 
-if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
-  echo "Running package schemes only (no app-level unit test bundle)."
-  echo "Running package tests..."
-  package_args=()
-  if [[ "$NO_BUILD" == "true" ]]; then
-    package_args+=(--no-build)
-  fi
-  package_args+=(--destination "$SIMULATOR_DESTINATION")
-  if [[ "$QUIET" == "true" ]]; then
-    package_args+=(--quiet)
-  else
-    package_args+=(--verbose)
-  fi
-  if ! ./Scripts/test-package.sh "${package_args[@]}" "${TRINKET_TEST_PACKAGES[@]}"; then
-    TEST_WALL_SECONDS=$SECONDS
-    trinket_record_timing
-    echo ""
-    echo "Timing recorded. Hotspots: python3 ./Scripts/test-timing.py report"
-    exit 1
-  fi
-  TEST_WALL_SECONDS=$SECONDS
-  trinket_record_timing
-  echo ""
-  echo "Timing recorded. Hotspots: python3 ./Scripts/test-timing.py report"
-  exit 0
-fi
-
 XCODEBUILD_EXIT_CODE=0
+source "$SCRIPT_DIR/lib/app-build.sh"
+trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH" iphonesimulator "$SIMULATOR_DESTINATION"
 XCODEBUILD_ARGS=(
   "$ACTION"
-  -project Trinket.xcodeproj
-  -scheme Trinket
-  -sdk iphonesimulator
-  -destination "$SIMULATOR_DESTINATION"
-  -derivedDataPath "$DERIVED_DATA_PATH"
+  "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
   -resultBundlePath "$RESULT_BUNDLE_PATH"
 )
 if [[ "$MODE" == "performance" ]]; then
@@ -368,7 +329,7 @@ if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
   exit "$XCODEBUILD_EXIT_CODE"
 fi
 
-if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then
+if [[ "$NO_BUILD" == "false" ]]; then
   touch_build_stamp "$RESULTS_DIR" "$RUN_FINGERPRINT"
   # A targeted run also stamps its mode so later targeted --no-build runs can
   # fall back to the mode-level stamp (see BUILD_STAMP fallback above).

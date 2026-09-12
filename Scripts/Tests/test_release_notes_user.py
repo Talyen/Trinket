@@ -28,7 +28,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             notes.is_user_facing(
                 commit(
                     "feat(content): add a new hero",
-                    "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog.swift",
+                    "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
                     "ContentManifest/abilities.tsv",
                 )
             )
@@ -56,7 +56,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             notes.is_user_facing(
                 commit(
                     "Add coverage for dodge triggers",
-                    "Packages/BattleEngine/Tests/BattleEngineTests/CombatTriggerFieldCoverageTests.swift",
+                    "Packages/BattleEngine/Tests/BattleEngineTests/Triggers/CombatTriggerFieldCoverageTests.swift",
                 )
             )
         )
@@ -84,7 +84,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             notes.is_user_facing(
                 commit(
                     "feat(content): reshuffle internal catalog ids",
-                    "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog.swift",
+                    "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
                     body="User-Facing: no",
                 )
             )
@@ -125,7 +125,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
         line = notes.player_line(
             commit(
                 "feat(battle): retarget when a hero dies mid-turn",
-                "Packages/BattleEngine/Sources/BattleEngine/BattleTurnEngine.swift",
+                "Packages/BattleEngine/Sources/BattleEngine/Turns/BattleTurnEngine.swift",
                 body="- Enemies now pick a new target if the current one dies mid-turn.",
             )
         )
@@ -192,7 +192,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             "\n"
             "===FILES===\n"
             "ContentManifest/heroes.tsv\n"
-            "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog.swift\n"
+            "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift\n"
         )
         parsed = notes.parse_git_log(raw)
         self.assertEqual(len(parsed), 1)
@@ -202,7 +202,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
             parsed[0].files,
             (
                 "ContentManifest/heroes.tsv",
-                "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog.swift",
+                "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
             ),
         )
 

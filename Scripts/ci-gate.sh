@@ -74,6 +74,6 @@ echo "=== Script checks ==="
 echo "=== Cheap slices (boundaries, Swift Testing, release notes, artwork-budget) ==="
 # shellcheck source=lib/cheap-slices.sh
 source Scripts/lib/cheap-slices.sh
-trinket_run_cheap_slices
+trinket_run_cheap_slices --after-style
 
 echo "=== Gate checks passed ==="

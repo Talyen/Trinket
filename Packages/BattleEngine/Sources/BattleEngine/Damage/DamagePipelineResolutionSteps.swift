@@ -18,6 +18,9 @@ package extension DamagePipeline {
             state.remaining += bonus
             state.itemBonus += bonus
         }
+        if state.amount > 0 {
+            state.remaining += context.resolution.consumePartyCardDamage(from: state.provenance)
+        }
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)

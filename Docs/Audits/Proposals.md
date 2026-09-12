@@ -21,8 +21,7 @@ Defer the sensitive portion while continuing independent authorized work.
 
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
-| 03 | CloudKit `recoveryURL: nil` → in-memory fallback, no delete/recreate | `PlayerSaveStoreConfiguration.resolveStore` CloudKit branch | Live CloudKit still gated by CloudKitPreShipChecklist; needs a recoverable local URL plus a non-network test | 2026-08-19 |
-| 03 | `deleteStoreOnFailure: true` wipes progress on any open failure | `PlayerSaveStore.openSaveContainer` | Availability-over-durability product policy; needs SchemaMigrationPlan + backup-before-delete | 2026-08-19 |
+| 03 | Save-open failures can delete local progress or fall back to in-memory play; CloudKit configuration has no recovery URL | `ModelContainerBootstrap.open`, `PlayerSaveStoreConfiguration.resolveStore`, `TrinketApp.init`; [startup proposal](../Plans/PersistenceSimplification.md#remaining-startup-decision) | Awaiting the exceptional player-visible outcome decision; the plan owns the combined replacement and verification. Live CloudKit remains separately gated. | 2026-08-19 |
 | Performance playbook | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` (`let snapshot = currentSave`) | High-risk rewrite; measure Instruments first | 2026-08-19 |
 
 The snapshot proposal is a measurement-led investigation under the
@@ -47,9 +46,8 @@ reason. Reuse that conclusion while its assumptions hold.
 | 06 | `BattleRuntime` / `PlayBattleLaunch` | Intentional presentation/runtime and launch seams | 2026-08-05 |
 | 06 | Options vs `PlayerSave`; catalog authored vs generated | Architecture hard-stop dual seams | 2026-08-05 |
 | 06 | `TrinketFeatureAdapters` module split | Enforced package DAG boundary | 2026-08-05 |
-| 06 | `PlayerSaveSanitizer` / labyrinth regeneration | Live save migration; consumer window open | 2026-08-05 |
+| 06 | `PlayerSaveSanitizer` / labyrinth regeneration | Current-data validation and unreadable-map recovery remain required under the [storage contract](../AgentContext/persistence-storage.md); retired development-save migrations do not | 2026-09-11 |
 | 06 | `StageSelectRowPresentation` stage/spire/labyrinth builders | Mode-specific field sources; shared config object would add ceremony | 2026-08-05 |
-| 06 | `PlayerSave` / wire aspects decode, ability-ID remaps | Live save consumer window still open; propose only after sunset | 2026-08-05 |
 | 06 | `PlayModeGraph` / `LaunchRunCallbacks` | Documented Play assembly owner; not deferred-bind theater | 2026-08-05 |
 | 06 | `check-build-cache-paths.sh` divergent path lists | Intentional CI vs local freshness differences; documented | 2026-08-05 |
 | 06 | `KeywordShineBorder` vs `CombatantBuffAuraBorder` | Parallel shimmer, but buff aura uses `TrinketDesign.cardShape` (battle 3:4 identity) vs rounded keyword shine | 2026-08-17 |

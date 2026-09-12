@@ -11,10 +11,10 @@ public struct CombatantDetailPane: View {
 
     let combatant: Combatant
     let progression: CombatantProgression
-    @Binding var loadout: AbilityLoadout
-    @Binding var equipmentLoadout: EquipmentLoadout
-    @Binding var inventoryItems: [InventoryItem]
-    @Binding var unlockedTalents: Set<String>
+    let loadout: AbilityLoadout
+    let equipmentLoadout: EquipmentLoadout
+    let inventoryItems: [InventoryItem]
+    let unlockedTalents: Set<String>
     let allowsEditing: Bool
     let hapticsEnabled: Bool
     let effectsVolume: Double
@@ -23,8 +23,8 @@ public struct CombatantDetailPane: View {
     var activeEffectSummaries: [EffectSummary] = []
     var labyrinthModifiers: [LabyrinthModifierDefinition] = []
     var hidesNavigationBar = false
+    var onEdit: ((CombatantDetailEdit) -> Bool)?
     var onUnlockTalent: ((TalentNode, TalentTree) -> TalentUnlockResult)?
-    var onResetTalents: (() -> Void)?
 
     @State private var selectedItemSlot: ItemSlot?
     @State private var requestedItemSlot: ItemSlot?
@@ -92,6 +92,7 @@ public struct CombatantDetailPane: View {
                 inventoryItems: inventoryItems,
                 initialItems: pickerItems,
                 onEquip: { equip($0, in: slot) },
+                onUnequip: { unequip(slot) },
             )
         }
         .task(id: requestedItemSlot) {
@@ -130,15 +131,13 @@ public struct CombatantDetailPane: View {
             CombatantTalentsView(
                 tree: tree,
                 progression: progression,
-                unlockedTalents: $unlockedTalents,
+                unlockedTalents: unlockedTalents,
                 allowsEditing: allowsEditing,
                 hapticsEnabled: hapticsEnabled,
                 onUnlockTalent: { node, tree in
                     onUnlockTalent?(node, tree) ?? .unavailable
                 },
-                onResetTalents: {
-                    onResetTalents?()
-                },
+                onResetTalents: { onEdit?(.resetTalents) ?? false },
             )
         }
         .onChange(of: selectedTalentTree?.id) { oldValue, newValue in
@@ -258,7 +257,7 @@ public struct CombatantDetailPane: View {
         DetailSection("Abilities") {
             AbilitySummaryGrid(
                 combatant: combatant,
-                loadout: $loadout,
+                loadout: loadout,
                 allowsEditing: allowsEditing,
                 onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil,
                 onViewAbility: allowsEditing ? nil : { viewingAbility = $0 },
@@ -290,24 +289,32 @@ public struct CombatantDetailPane: View {
         }
     }
 
-    private func select(_ ability: Ability) {
-        loadout = loadout.selecting(ability)
+    private func select(_ ability: Ability) -> Bool {
+        guard onEdit?(.selectAbility(ability)) == true else { return false }
         selectionFeedbackTrigger += 1
         selectedAbilityTier = nil
+        return true
     }
 
-    private func equip(_ item: InventoryItem, in slot: ItemSlot) {
-        var updated = equipmentLoadout
-        updated.equip(item, in: slot, inventory: inventoryItems)
-        withAnimation(TrinketMotion.Interaction.selection) {
-            equipmentLoadout = updated
+    private func equip(_ item: InventoryItem, in slot: ItemSlot) -> Bool {
+        let saved = withAnimation(TrinketMotion.Interaction.selection) {
+            onEdit?(.equipItem(item, slot)) == true
         }
+        guard saved else { return false }
         playSFX(SFXID.uiEquip, effectsVolume)
         selectionFeedbackTrigger += 1
         Task { @MainActor in
             await Task.yield()
             selectedItemSlot = nil
         }
+        return true
+    }
+
+    private func unequip(_ slot: ItemSlot) -> Bool {
+        guard onEdit?(.unequipItem(slot)) == true else { return false }
+        selectionFeedbackTrigger += 1
+        selectedItemSlot = nil
+        return true
     }
 }
 
@@ -319,10 +326,10 @@ public extension CombatantDetailPane {
         self.init(
             combatant: snapshot.combatant,
             progression: snapshot.progression,
-            loadout: .constant(snapshot.combatant.abilityLoadout),
-            equipmentLoadout: .constant(snapshot.equipmentLoadout),
-            inventoryItems: .constant(snapshot.inventoryItems),
-            unlockedTalents: .constant(snapshot.unlockedTalents),
+            loadout: snapshot.combatant.abilityLoadout,
+            equipmentLoadout: snapshot.equipmentLoadout,
+            inventoryItems: snapshot.inventoryItems,
+            unlockedTalents: snapshot.unlockedTalents,
             allowsEditing: false,
             hapticsEnabled: false,
             effectsVolume: 0,

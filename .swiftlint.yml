@@ -10,10 +10,8 @@
 # lookbehind (e.g. (?<!//.*)) is invalid and silently disables the rule, so
 # comment-sensitive bans must live in the shell checks, never here.
 #
-# Analyzer rules need `swiftlint analyze` plus a compiler index/log.
-# Scripts/lint-analyze.sh fails the run on unused_import (dead code is
-# blocking); capture_variable and unused_declaration stay advisory.
-# CI runs it as a blocking job after the shared build (Scripts/lint-analyze.sh).
+# Analyzer rules run explicitly through Scripts/lint-analyze.sh with a clean build.
+# unused_import fails that command; other analyzer findings remain advisory.
 analyzer_rules:
   - capture_variable
   - unused_import

@@ -99,6 +99,7 @@ path, label, exit_code, result_bundle, diagnostics_json = sys.argv[1:]
 payload = {
     "schema_version": 1,
     "label": label,
+    "action": os.environ.get("XCODE_RUNNER_ACTION", "unknown"),
     "exit_code": int(exit_code),
     "status": "passed" if int(exit_code) == 0 else "failed",
     "result_bundle": result_bundle,
@@ -124,7 +125,7 @@ xcode_runner_run_bounded() {
   local cap="$1"
   shift
   local remaining=$((cap * 4))
-  "$@" >/dev/null 2>&1 &
+  "$@" &
   local pid=$!
   while (( remaining > 0 )); do
     kill -0 "$pid" 2>/dev/null || break
@@ -133,6 +134,8 @@ xcode_runner_run_bounded() {
   done
   if kill -0 "$pid" 2>/dev/null; then
     xcode_runner_kill_tree "$pid"
+    sleep 1
+    xcode_runner_force_kill_tree "$pid"
     wait "$pid" 2>/dev/null || true
     return 124
   fi

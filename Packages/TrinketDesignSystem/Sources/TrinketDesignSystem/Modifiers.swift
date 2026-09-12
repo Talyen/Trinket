@@ -84,9 +84,11 @@ private struct GlassButtonModifier: ViewModifier {
     }
 
     private struct ForegroundModifier: ViewModifier {
+        @Environment(\.isEnabled) private var isEnabled
+
         let color: Color?
         func body(content: Content) -> some View {
-            if let color {
+            if let color, isEnabled {
                 content.foregroundStyle(color)
             } else {
                 content

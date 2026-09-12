@@ -6,10 +6,11 @@ from __future__ import annotations
 import json
 import math
 import os
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+from internal.diagnostics.xcresult_diagnostics import run_xcresulttool
 
 
 def finite_nonnegative(value: object, label: str) -> float:
@@ -74,11 +75,10 @@ def valid_entry(entry: object) -> bool:
 
 def parse_xcresult(path: Path) -> dict:
     def read(kind: str) -> dict:
-        raw = subprocess.check_output(
-            ["xcrun", "xcresulttool", "get", "test-results", kind, "--path", str(path), "--format", "json"],
-            text=True,
-        )
-        return json.loads(raw)
+        payload, error = run_xcresulttool(path, ["get", "test-results", kind])
+        if not isinstance(payload, dict):
+            raise SystemExit(error or f"xcresult {kind} is not an object")
+        return payload
 
     summary = read("summary")
     payload = read("tests")

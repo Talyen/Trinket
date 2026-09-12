@@ -211,7 +211,7 @@ package extension DamagePipeline {
             guard member.isAlive else { return [] }
             return context.applyBlock(
                 amount, to: member.combatant, source: source,
-                abilityName: "Icebound Exchange", applyOutgoingAdjustment: false,
+                abilityName: "Icebound Exchange", amountBasis: .resolved,
             )
         }
     }

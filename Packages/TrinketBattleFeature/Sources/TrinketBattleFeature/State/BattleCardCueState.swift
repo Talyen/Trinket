@@ -7,6 +7,25 @@ enum BattleCardCueKind: Int, Equatable {
     case deniedHealth, deniedControl, deniedDefeated
 }
 
+enum BattleCardCuePresentationMode: Equatable {
+    case preview
+    case tapCommit
+
+    func showsRecipientVisual(for kind: BattleCardCueKind) -> Bool {
+        switch self {
+        case .preview:
+            true
+        case .tapCommit:
+            switch kind {
+            case .attack, .restore, .cleanse:
+                false
+            case .protect, .prepare, .gain, .deniedHealth, .deniedControl, .deniedDefeated:
+                true
+            }
+        }
+    }
+}
+
 struct BattleRecipientCue: Equatable {
     let kind: BattleCardCueKind
     let keyword: Keyword?
@@ -21,6 +40,7 @@ struct BattleCardCue: Equatable {
     let cardID: Int
     let actorID: String
     var phase: Phase
+    let mode: BattleCardCuePresentationMode
     let recipients: [String: BattleRecipientCue]
     let resources: [BattleCardAssessment.ResourceUse]
 }
@@ -33,12 +53,20 @@ final class BattleCardCueState {
     @ObservationIgnored private var liftedCardIDs: Set<Int> = []
     @ObservationIgnored private var clearTask: Task<Void, Never>?
 
-    func begin(cardID: Int, assessment: BattleCardAssessment) {
+    func begin(
+        cardID: Int,
+        assessment: BattleCardAssessment,
+        mode: BattleCardCuePresentationMode? = nil,
+    ) {
         guard assessment.denial == nil else { return }
         liftedCardIDs.insert(cardID)
+        let resolvedMode = mode
+            ?? (current?.cardID == cardID ? current?.mode : nil)
+            ?? .preview
         if let previous = current, previous.cardID == cardID, previous.phase == .lifted {
             current = BattleCardCue(
                 id: previous.id, cardID: cardID, actorID: assessment.actorID, phase: .lifted,
+                mode: resolvedMode,
                 recipients: BattleCardCueRecipes.recipients(for: assessment), resources: assessment.resources,
             )
             return
@@ -47,6 +75,7 @@ final class BattleCardCueState {
         generation &+= 1
         current = BattleCardCue(
             id: generation, cardID: cardID, actorID: assessment.actorID, phase: .lifted,
+            mode: resolvedMode,
             recipients: BattleCardCueRecipes.recipients(for: assessment), resources: assessment.resources,
         )
     }
@@ -79,6 +108,7 @@ final class BattleCardCueState {
         generation &+= 1
         current = BattleCardCue(
             id: generation, cardID: cardID, actorID: actorID, phase: .denied,
+            mode: .preview,
             recipients: [actorID: recipient], resources: [],
         )
         scheduleClear(after: .milliseconds(400))

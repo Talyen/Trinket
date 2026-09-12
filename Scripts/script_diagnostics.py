@@ -4,7 +4,7 @@ import re
 import sys
 from pathlib import Path
 
-from diagnostic_limits import MAX_DETAIL_LINES, MAX_LINE_CHARS, MAX_LINES
+from internal.diagnostics.diagnostic_limits import MAX_DETAIL_LINES, MAX_LINE_CHARS, MAX_LINES
 
 
 def excerpt(log: Path) -> list[str]:

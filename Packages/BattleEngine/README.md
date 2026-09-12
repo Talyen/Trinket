@@ -12,7 +12,12 @@ Products from `Package.swift`:
 
 Combat trigger cadence files live in `Sources/BattleEngine/Triggers/`; damage
 resolution files live in `Sources/BattleEngine/Damage/`. Effect handlers remain
-in `Sources/BattleEngine/EffectHandlers/`. These folders belong to the same target.
+in `Sources/BattleEngine/EffectHandlers/`. `Cards/` groups card models, assessment,
+play resolution, and hand maintenance; `Turns/` owns turn cadence and processing;
+`Healing/` groups healing allocation, leech, overflow, and results. These folders
+belong to the same target. `State/` keeps `BattleState` and its extensions together;
+`Uniques/` owns Unique equipment state and reactions. Runtime contracts remain at
+the target root.
 
 Enemy abilities resolve offensive effect targets and opponent conditions against
 the selected party member. Conditions keep that target throughout the action,

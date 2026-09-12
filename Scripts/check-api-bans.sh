@@ -14,6 +14,7 @@ source Scripts/lib/rg-check.sh
 scan_pattern() {
   local pattern="$1"
   local reason="$2"
+  trinket_rg_scan -n --glob '*.swift' --glob '!**/Generated/**' "$pattern" Trinket TrinketUITests Packages
   while IFS= read -r match; do
     [[ -z "$match" ]] && continue
     local file line
@@ -27,7 +28,7 @@ scan_pattern() {
       continue
     fi
     trinket_rg_violation "$file:$line: $reason"
-  done < <(rg -n --glob '*.swift' --glob '!**/Generated/**' "$pattern" Trinket TrinketUITests Packages || true)
+  done <<< "$TRINKET_RG_MATCHES"
 }
 
 scan_pattern '\bNavigationView\b' 'Use NavigationStack instead of NavigationView'
@@ -37,6 +38,7 @@ scan_pattern '@StateObject\b' 'Use @Observable + @Environment(Type.self) instead
 scan_pattern '@EnvironmentObject\b' 'Use @Environment(Type.self) instead of @EnvironmentObject'
 scan_pattern '@ObservedObject\b' 'Use @Bindable / @Environment(Type.self) instead of @ObservedObject'
 
+trinket_rg_scan -n 'import XCTest|XCTestCase|XCTAssert|XCTFail|XCTUnwrap' Packages --glob '*Tests/**/*.swift' --glob '!**/TrinketUITests/**'
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   file="${match%%:*}"
@@ -46,7 +48,7 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "$file:$line: Use Swift Testing instead of XCTest outside TrinketUITests"
-done < <(rg -n 'import XCTest|XCTestCase|XCTAssert|XCTFail|XCTUnwrap' Packages --glob '*Tests/**/*.swift' --glob '!**/TrinketUITests/**' 2>/dev/null || true)
+done <<< "$TRINKET_RG_MATCHES"
 
 trinket_rg_report "API ban violations:" "Platform API bans OK." "API Ban" \
   "Swift Testing migration gate: OK (no XCTest imports in unit targets)"

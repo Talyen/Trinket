@@ -1,6 +1,8 @@
 # Modifier API reference
 
-Route recurring chrome through these modifiers — do not call raw SwiftUI styling APIs from feature views.
+Use shared APIs for product colors, typography, glass, and recurring chrome.
+Ordinary native layout and control composition remain appropriate, including plain
+buttons and system toolbar styling.
 
 | Modifier / API | Use for |
 |----------------|---------|
@@ -10,7 +12,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
-| `ArtworkPickerSelectionBadge` / `.trinketArtworkPickerSelectionBorder(isSelected:color:)` | Selected artwork picker checkmark + stroke |
+| `.trinketArtworkPickerSelectionBorder(isSelected:color:lineWidth:)` | Selection border around artwork picker cards |
 | `.trinketLockedCardEffect(isLocked:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
 | `TrinketDesign.Layout.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids (via `Spacing`) |
 | `TrinketDesign.Layout.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |

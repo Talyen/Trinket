@@ -8,10 +8,13 @@ trinket_set_app_xcodebuild_args() {
   TRINKET_APP_XCODEBUILD_ARGS=(
     -project Trinket.xcodeproj
     -scheme Trinket
-    -sdk iphonesimulator
-    -destination 'generic/platform=iOS Simulator'
+    -sdk "${2:-iphonesimulator}"
+    -destination "${3:-generic/platform=iOS Simulator}"
     -derivedDataPath "$derived_data_path"
     -parallelizeTargets
     -disableAutomaticPackageResolution
+    "SYMROOT=$derived_data_path/Build/Products"
+    "OBJROOT=$derived_data_path/Build/Intermediates.noindex"
+    "SHARED_PRECOMPS_DIR=$derived_data_path/Build/Intermediates.noindex/PrecompiledHeaders"
   )
 }

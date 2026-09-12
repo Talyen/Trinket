@@ -15,7 +15,7 @@ Trinket/                    Thin app target — entry, roots, non-Battle product
 
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
-  TrinketContent/           Catalogs + Generated/ content, encounter-level resolution, art, music, SFX, and cinematic catalogs
+  TrinketContent/           Authored content by game domain + Generated/ catalogs (see package structure)
   BattleEngine/             Card combat rules, effect handlers, decks/hand, `CombatBuildResolver` (app-unlinked `BattleBalanceTools`)
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
@@ -33,7 +33,7 @@ MusicManifest/              music.tsv
 SoundManifest/              sfx.tsv
 CinematicManifest/          cinematics.tsv
 Raw Assets/                 Source art/music/SFX/animations (not in Xcode target)
-Scripts/                    generate, build, test, CI helpers
+Scripts/                    generate, build, test, CI commands; internal/ Python and lib/ shell helpers
 ```
 
 ## Module ownership

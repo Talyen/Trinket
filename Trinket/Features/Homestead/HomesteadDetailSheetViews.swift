@@ -44,9 +44,13 @@ struct HomesteadDetailSheetView: View {
     private func improvement(_ tier: HomesteadNodeTier) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                Text(tier.stageName)
+                Text("\(tier.tier == 1 ? "Build" : "Upgrade") \(definition.title)")
                     .trinketTypography(.sectionDisplay)
-                HomesteadBenefitsView(tier: tier, effectsIdentifier: AccessibilityID.Homestead.upgradeEffects)
+                HomesteadBenefitsView(
+                    tier: tier,
+                    effectsIdentifier: AccessibilityID.Homestead.upgradeEffects,
+                    previousTier: status.currentStage,
+                )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
@@ -95,8 +99,8 @@ struct HomesteadDetailSheetView: View {
             Button { onPurchase(tier.tier) } label: {
                 Text(tier.tier == 1 ? "Build" : "Upgrade").frame(maxWidth: .infinity)
             }
-            .disabled(!status.canBuildOrUpgrade || status.nextTier?.tier != tier.tier || purchaseCommitted)
             .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.upgradeButton)
+            .disabled(!status.canBuildOrUpgrade || status.nextTier?.tier != tier.tier || purchaseCommitted)
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)

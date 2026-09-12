@@ -152,8 +152,6 @@ def cleanup(root: Path, keep: bool) -> None:
         remove(manifest_path, removed)
     if not list(root.glob("*-invocation.json")):
         remove(root / "ci-diagnostics.json", removed)
-        remove(root / "timing-log.jsonl", removed)
-        remove(root / "raw", removed)
     sweep_orphans_count = sweep_orphans(root)
     cleaned = removed[0]
     if sweep_orphans_count:

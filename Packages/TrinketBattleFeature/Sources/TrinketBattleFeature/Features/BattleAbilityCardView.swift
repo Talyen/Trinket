@@ -19,7 +19,7 @@ struct BattleAbilityCardView: View {
     let onPlay: (CardActivationRequest) -> Bool
     let onPlayDenied: () -> Void
     let onInteractionChanged: (Bool) -> Void
-    var onLift: (() -> Void)?
+    var onLift: ((BattleCardCuePresentationMode) -> Void)?
     var onLiftCancel: (() -> Void)?
 
     @State private var dragTranslation: CGSize = .zero
@@ -213,7 +213,7 @@ struct BattleAbilityCardView: View {
             cancelInspection()
             commitPressImmediately()
             interactionResolution = .dragging
-            announceWindUpIfNeeded()
+            announceWindUpIfNeeded(mode: .preview)
         }
         dragTranslation = BattleHandLayout.presentationTranslation(
             value.translation,
@@ -428,7 +428,7 @@ private extension BattleAbilityCardView {
     func beginTapPlay() {
         guard tapLiftTask == nil else { return }
         interactionResolution = .idle
-        announceWindUpIfNeeded()
+        announceWindUpIfNeeded(mode: .tapCommit)
         withAnimation(BattleMotion.tapLift) {
             isTapLifting = true
         }
@@ -445,7 +445,7 @@ private extension BattleAbilityCardView {
         guard shouldLift != isTapLifting else { return }
         if shouldLift {
             cancelTapLift()
-            announceWindUpIfNeeded()
+            announceWindUpIfNeeded(mode: .preview)
         } else {
             didAnnounceWindUp = false
         }
@@ -476,10 +476,10 @@ private extension BattleAbilityCardView {
         tapLiftTask = nil
     }
 
-    func announceWindUpIfNeeded() {
+    func announceWindUpIfNeeded(mode: BattleCardCuePresentationMode) {
         guard !didAnnounceWindUp, isPlayable else { return }
         didAnnounceWindUp = true
-        onLift?()
+        onLift?(mode)
     }
 
     func cancelAnnouncedWindUp() {

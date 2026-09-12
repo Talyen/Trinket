@@ -9,9 +9,11 @@ check_no_import() {
   local pattern="$2"
   local reason="$3"
 
+  trinket_rg_scan -l "$pattern" "$folder" -g '*.swift'
   while IFS= read -r file; do
-    [[ -n "$file" ]] && trinket_rg_violation "$file: $reason"
-  done < <(rg -l "$pattern" "$folder" -g '*.swift' 2>/dev/null || true)
+    [[ -n "$file" ]] || continue
+    trinket_rg_violation "$file: $reason"
+  done <<< "$TRINKET_RG_MATCHES"
 }
 
 check_no_package_dependency() {
@@ -20,7 +22,8 @@ check_no_package_dependency() {
   local reason="$3"
   local manifest="Packages/$package/Package.swift"
 
-  if rg -q "\"$dependency\"" "$manifest"; then
+  trinket_rg_scan -l "\"$dependency\"" "$manifest"
+  if [[ -n "$TRINKET_RG_MATCHES" ]]; then
     trinket_rg_violation "$manifest: $reason"
   fi
 }
@@ -45,9 +48,11 @@ check_no_production_target_dependency() {
 }
 
 # Packages must not import the app module.
+trinket_rg_scan -l '^import Trinket$' Packages -g '*.swift'
 while IFS= read -r file; do
-  [[ -n "$file" ]] && trinket_rg_violation "$file: packages must not import Trinket app module"
-done < <(rg -l '^import Trinket$' Packages -g '*.swift' 2>/dev/null || true)
+  [[ -n "$file" ]] || continue
+  trinket_rg_violation "$file: packages must not import Trinket app module"
+done <<< "$TRINKET_RG_MATCHES"
 
 # Enforce the package DAG in both source imports and Package.swift declarations.
 for forbidden in TrinketContent BattleEngine TrinketPersistence TrinketFeatureSupport TrinketBattleFeature TrinketAppState; do
@@ -124,6 +129,7 @@ fi
 # The app target is the composition root, but product screens should not reach
 # into BattleFeature just to use shared support or unrelated state. Keep the
 # concrete BattleFeature imports explicit and reviewable at the battle seams.
+trinket_rg_scan -l '^import TrinketBattleFeature$' Trinket -g '*.swift'
 while IFS= read -r file; do
   [[ -n "$file" ]] || continue
   case "$file" in
@@ -139,7 +145,7 @@ while IFS= read -r file; do
       trinket_rg_violation "$file: app product screens must use BattleRuntime/FeatureSupport instead of importing BattleFeature"
       ;;
   esac
-done < <(rg -l '^import TrinketBattleFeature$' Trinket -g '*.swift' 2>/dev/null || true)
+done <<< "$TRINKET_RG_MATCHES"
 
 # Runtime contracts (now in BattleEngine) must stay portable and presentation-free.
 # BattleRuntime contract files must not import presentation layers.

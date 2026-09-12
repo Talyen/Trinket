@@ -32,11 +32,9 @@ Use the [shared audit contract](README.md) for scope, evidence, severity, and si
 
 ## Evidence and success
 
-Show a violated canonical ownership boundary or a reachable duplication, ordering,
-lifetime, determinism, or failure-handling defect. An effect primitive's presence
-alone is insufficient. Where an existing legitimate seam is missing from guidance,
-repair the canonical documentation rather than inventing another allowlist here.
-A genuinely new boundary follows the shared proposal policy.
+Show a violated ownership boundary or reachable ordering, lifetime, determinism,
+or failure-handling defect. Where an existing legitimate seam is missing from
+guidance, repair its documentation rather than inventing another allowlist here.
 
 Restore the effect's contract and verify relevant observable behavior. Transaction
 outcomes belong to [03](03_BehaviorHardeningAudit.md); actor/executor, reentrancy,

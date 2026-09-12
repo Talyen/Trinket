@@ -14,3 +14,4 @@ Player-facing standing policy. Engineering policy lives in
 | [UniqueItems.md](UniqueItems.md) | Complete equipment Unique collection and combat interactions |
 | [Identity.md](Identity.md) | Identity model, guest-first rules, deletion posture |
 | [ArtworkStyleGuide.md](ArtworkStyleGuide.md) | Visual direction and delivery constraints |
+| [GameIcons.md](GameIcons.md) | Game icon selections and links to authored node mappings |

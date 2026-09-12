@@ -29,11 +29,7 @@ _check_plans = _load_sibling("check_plans", "check-plans.py")
 
 SKIP_PARTS = _check_links.SKIP_PARTS
 LINK = _check_links.LINK
-HEADING = _check_links.HEADING
-FENCE = _check_links.FENCE
 markdown_files = _check_links.markdown_files
-github_slug = _check_links.github_slug
-heading_slugs = _check_links.heading_slugs
 broken_links = _check_links.broken_links
 PLAN_STATUSES = _check_plans.PLAN_STATUSES
 ARCHIVED_PLAN_STATUSES = _check_plans.ARCHIVED_PLAN_STATUSES
@@ -111,23 +107,25 @@ def proposal_evidence_failures() -> list[str]:
 
 
 def script_index_failures() -> list[str]:
-    """Require every top-level Scripts/*.sh to be indexed in Scripts/README.md.
-
-    Either the Everyday command table or the Advanced/internal table must name
-    the script file; otherwise the index drifts and agents miss the owner.
-    """
-    readme = (ROOT / "Scripts" / "README.md").read_text(encoding="utf-8")
+    """Keep the exhaustive command inventory out of the everyday entry page."""
+    reference = ROOT / "Scripts" / "Reference.md"
+    if not reference.is_file():
+        return ["Scripts/Reference.md: command reference is missing"]
+    text = reference.read_text(encoding="utf-8")
     failures: list[str] = []
     for script in sorted((ROOT / "Scripts").glob("*.sh")):
-        if f"Scripts/{script.name}" not in readme:
+        if f"Scripts/{script.name}" not in text:
             failures.append(
-                f"Scripts/README.md: command index is missing Scripts/{script.name} "
-                "(add it to the Everyday table or the Advanced/internal table)"
+                f"Scripts/Reference.md: command index is missing Scripts/{script.name} "
+                "(add it to the owning section)"
             )
     return failures
 
 
-def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool = False) -> list[str]:
+def structural_checks(
+    files: list[Path], *, final: bool = False, keep_plan: bool = False,
+    paths: set[Path] | None = None,
+) -> list[str]:
     failures: list[str] = []
     relative = {path.relative_to(ROOT) for path in files}
 
@@ -140,10 +138,10 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
     failures.extend(script_index_failures())
 
     stale = {
-        "five-surface selector matrix": "smoke plan is SmokeShellTests, SmokeBattleTests, SmokeShopTests",
-        "six-surface selector matrix": "smoke plan is SmokeShellTests, SmokeBattleTests, SmokeShopTests",
+        "five-surface selector matrix": "smoke membership lives in Scripts/config/smoke-classes.txt and Smoke.xctestplan",
+        "six-surface selector matrix": "smoke membership lives in Scripts/config/smoke-classes.txt and Smoke.xctestplan",
         "QuickSmoke": "local and CI smoke share Smoke.xctestplan",
-        "Homestead canary": "bare test.sh smoke runs the three-class smoke plan",
+        "Homestead canary": "test.sh smoke uses Scripts/config/smoke-classes.txt and Smoke.xctestplan",
         "seven-resource": "Homestead wallet has eight HomesteadResource cases",
         "BattleRuntimeSession": "runtime owner is BattleRuntime/BattleSession",
         "art.json": "art manifest is ArtManifest/curated-assets.tsv",
@@ -203,27 +201,20 @@ def structural_checks(files: list[Path], *, final: bool = False, keep_plan: bool
             f"Scripts/change-classification.sh: {', '.join(unrouted_rows)}"
         )
 
-    failures.extend(_check_plans.plan_failures(files, final=final, keep_plan=keep_plan))
+    failures.extend(_check_plans.plan_failures(files, final=final, keep_plan=keep_plan, paths=paths))
     DOC_WARNINGS.extend(_check_plans.DOC_WARNINGS)
     failures.extend(proposal_evidence_failures())
     return failures
 
 
 def main() -> int:
-    final = False
-    keep_plan = False
-    for argument in sys.argv[1:]:
-        if argument == "--final":
-            final = True
-        elif argument == "--keep-plan":
-            keep_plan = True
-        else:
-            print(f"Usage: {Path(sys.argv[0]).name} [--final] [--keep-plan]", file=sys.stderr)
-            return 2
+    args = _check_plans.parse_arguments(__doc__)
     files = markdown_files()
     DOC_WARNINGS.clear()
     _check_plans.DOC_WARNINGS.clear()
-    failures = broken_links(files) + structural_checks(files, final=final, keep_plan=keep_plan)
+    failures = broken_links(files) + structural_checks(
+        files, final=args.final, keep_plan=args.keep_plan, paths=args.paths,
+    )
     if failures:
         print("Documentation checks failed:", file=sys.stderr)
         for failure in failures:

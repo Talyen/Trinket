@@ -18,11 +18,9 @@ not proof that shortening it is safe.
 ## Evidence and remedy
 
 Show the failed/false signal, competing semantic owners, isolation violation, or
-measured avoidable execution cost. Apply Testing.md's value and retirement rules to
-existing journeys as well as additions. Move rule assertions to a cheaper existing
-owner when it can prove the same invariant. Distinguish redundant removal from
-retiring a distinct low-value outcome without replacement; explain the remaining
-risk. Per-mechanic journeys and exhaustive interaction matrices are not a goal.
+measured avoidable execution cost. Move rule assertions to a cheaper existing
+owner when it can prove the same invariant. Test value and retirement follow
+Testing.md; per-mechanic journeys and exhaustive interaction matrices are not a goal.
 
 Prefer stable entry and queries to timing/index assumptions. Remove sleeps or
 shorten waits only when readiness is established and the supported failure timing

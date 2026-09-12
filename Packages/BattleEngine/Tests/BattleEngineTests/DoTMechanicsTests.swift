@@ -426,7 +426,7 @@ extension DoTMechanicsTests {
         let hero = battle.roster.hero.combatant
         let enemy = battle.roster.enemy.combatant
         battle.roster.mutateRuntime(for: hero) { $0.talents.battle.criticalMultiplierBonus = 0.5 }
-        let initial = DoTDamage.resolveTurnDamage(
+        let initial = DoTDamage.resolveDamage(
             basePotency: 4, keyword: .bleed, target: enemy,
             sourceActorID: hero.id, in: &battle,
         )
@@ -443,5 +443,37 @@ extension DoTMechanicsTests {
         #expect(status?.isCritical == specialCrit)
         #expect(battle.activeEffects(of: enemy).first?.effect.potency == 4)
         #expect(battle.activeEffects(of: enemy).first?.remainingTurns == 1)
+    }
+}
+
+extension DoTMechanicsTests {
+    @Test(arguments: [false, true])
+    func `paralysis can trigger on poison damage before turn end`(blocked: Bool) {
+        var profile = CombatantTalentCatalog.profile(for: ["lizard_scout_poison_t3_1"])
+        profile.triggers.poisonStunChancePercent = 1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        battle.appendEffect(.poison(6), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
+        if blocked {
+            DefensePoolEngine.set(5, on: battle.enemy, in: &battle)
+        }
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 1, target: battle.enemy, keyword: .poison, sourceActorID: battle.companion.id,
+            options: .reaction(),
+        ))
+        #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == !blocked)
+    }
+
+    @Test func `blackfletch poison detonation preserves the original sources slower decay`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatantTalentCatalog.profile(for: ["lizard_scout_poison_t3_2"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.appendEffect(.poison(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
+        let before = battle.health(of: battle.enemy)
+        _ = CombatTriggerEngine.detonateBleedAndPoison(on: battle.enemy, sourceActorID: battle.hero.id, in: &battle)
+        #expect(before - battle.health(of: battle.enemy) == 28)
+        #expect(!battle.roster.hasAffliction(.poison, on: battle.enemy))
     }
 }

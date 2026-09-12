@@ -31,6 +31,13 @@ touched paths at release time.
 
 ## Shipping
 
+Before App Store submission, complete the
+[purchase release prerequisites](Purchases.md#before-release), including the
+public support contact and published support/privacy pages. When enabling iCloud
+progress sync, also complete the [CloudKit checklist](CloudKitPreShipChecklist.md).
+Local-only releases do not require CloudKit enablement. The commands below
+produce verified release artifacts; they do not provision these external services.
+
 ```sh
 ./Scripts/release.sh --dry-run
 ./Scripts/release.sh
@@ -39,7 +46,9 @@ git push origin main --tags
 
 The release command runs deploy verification, chooses or accepts a semantic
 version, increments the build number, generates changelog and store notes,
-commits release artifacts, and creates a tag. Useful exceptions include
+checks unsigned device Release compilation after updating the version, commits
+release artifacts, and creates a tag. This compile check does not validate signing
+or App Store distribution. Useful exceptions include
 `--version X.Y.Z`, `--no-tag`, and emergency-only `--skip-tests`.
 
 A pushed `v*` tag triggers the GitHub release workflow. It confirms that the
@@ -55,6 +64,10 @@ plain text and localizable, and permits up to 4,000 characters. See
 
 ## Local hooks and push discipline
 
+The Git safety shim refuses destructive commands on a dirty tree without
+stashing files or changing the index. Leading Git options such as `-C` and `-c`
+apply to both its checks and the requested command.
+
 `git config core.hooksPath .githooks` enables the advisory commit-message hook,
 the [staged project check](Verification.md#generated-project-consistency),
 and the pre-push style/generation checks. Pre-push styles Swift files in the
@@ -64,6 +77,9 @@ content, project, or assets changed), then path-scoped package tests against
 that generated tree. A requested push still requires a green path-scoped
 handoff before commit. Review and include only task-related authored and
 generated files.
+
+Pre-push invokes `agent-push-gate.sh` internally; do not run it manually after
+commit. Landing policy remains in [AGENTS.md](../../AGENTS.md#protect-the-workspace).
 
 Direct pushes to `main` justify repeating these inexpensive path-scoped
 safeguards at pre-push: style, generated-output completeness, and

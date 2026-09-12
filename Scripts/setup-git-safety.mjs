@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const currentFile = fileURLToPath(import.meta.url);
 const root = path.resolve(path.dirname(currentFile), "..");
 const shimDir = path.join(root, "Scripts/bin");
-const line = `export PATH="${shimDir}:$PATH"  # Trinket git safety shim (auto-backup on destructive git)`;
+const line = `export PATH="${shimDir}:$PATH"  # Trinket git safety shim (refuse destructive git on a dirty tree)`;
 
 function ensureLine(filePath) {
   let content = "";
@@ -97,7 +97,12 @@ case "$(pwd)" in
     ;;
 esac
 `;
-  if (!fs.existsSync(globalWrapper) || !fs.readFileSync(globalWrapper, "utf8").includes(shimDir)) {
+  const existing = fs.lstatSync(globalWrapper, { throwIfNoEntry: false });
+  const owned = existing?.isFile()
+    && fs.readFileSync(globalWrapper, "utf8").includes("# Global harness-agnostic shim: if inside Trinket repo, delegate to repo guard");
+  if (existing && !owned) {
+    console.log(`skip: ${globalWrapper} is not a Trinket wrapper`);
+  } else if (!existing || fs.readFileSync(globalWrapper, "utf8") !== wrapperContent) {
     fs.writeFileSync(globalWrapper, wrapperContent, { mode: 0o755 });
     console.log(`installed global wrapper at ${globalWrapper}`);
   } else {

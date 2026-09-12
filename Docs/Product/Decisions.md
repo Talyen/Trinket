@@ -8,7 +8,7 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-002 | Hero and companion loadouts live in their collection detail/drill-in surfaces. | Keep configuration roster-owned and reachable from Collection. |
 | PD-003 | Collection prioritizes overview plus drill-ins. | Keep top-level browsing scannable; put detailed changes behind navigation. |
 | PD-004 | Equipment is configured from Collection and its resolved build affects combat. | Keep loadout editing roster-owned; bake equipment and affix effects into the battle launch rather than reading live inventory from Battle. |
-| PD-005 | Locked UI keeps its structure visible and disables/mutes controls. | Do not replace locked controls with removed layout or a separate funnel. |
+| PD-005 | Locked UI keeps its structure visible and communicates unavailable gameplay actions. | Disable unavailable gameplay actions; inspection and purchase entry follow the surface's product contract, including [Monetization.md](Monetization.md). Do not remove the locked layout. |
 | PD-006 | Native iOS behavior is the default. | Prefer first-party SwiftUI over custom compatibility layers. |
 | PD-007 | Superseded by PD-014. | Retained for decision history. |
 | PD-008 | Identity unlocks cross-device progress only. | iCloud private CloudKit is the sync mechanism; do not add an in-app account. |
@@ -24,7 +24,7 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-018 | Character levels and level-driven enemy power have no designed upper cap or terminal plateau. | Replace the enemy power plateau after level 40 with continuing growth; retain numeric safety and mechanic-specific probability limits. Finite content still ends. |
 | PD-019 | Campaign and Spires retain permanent completion without replays; Labyrinth continues through infinite floors. | Preserve saved completion and explored Labyrinth maps; no terminal Labyrinth depth is required. |
 | PD-020 | Superseded by PD-021. | Retained for decision history. |
-| PD-021 | Contracts provides unlimited single-battle jobs for any party from the start of Play. | Use three offers (Easy normal, Standard normal, Hard boss) at party-average −3/0/+3 levels, full regular rewards and catch-up XP, free refresh/retries, and no reward previews or separate statistics. [Contracts.md](Contracts.md) owns the full rules. |
+| PD-021 | Contracts provides unlimited renewable single-battle jobs for any party from the start of Play. | [Contracts.md](Contracts.md) owns offer, difficulty, reward, lifecycle, and presentation rules. |
 | PD-022 | Trinket is free to start with one permanent Full Game purchase. | [Monetization.md](Monetization.md) owns the free boundaries, purchase offer, earned progression, and future-content promise. |
 | PD-023 | Talents are a finite character kit; levels continue beyond talent completion. | Keep one talent point at even levels, stop talent prompts and affordances when no legal node remains, and preserve uncapped Health, Mana, and level-driven enemy progression. |
 

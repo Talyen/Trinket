@@ -257,14 +257,13 @@ package extension CombatTriggerEngine {
                             application: .ability,
                         ))
                     } else {
-                        events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                            randomDoT,
+                        events.append(contentsOf: context.resolveDamage(DamageRequest(
+                            amount: randomDoT,
+                            target: enemy,
                             keyword: .freeze,
-                            to: enemy,
                             sourceActorID: actor.id,
-                            applyFightPacing: false,
-                            in: &context,
-                        ))
+                            options: .reaction(),
+                        )).events)
                     }
                 }
                 return events

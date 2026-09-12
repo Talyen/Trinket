@@ -130,8 +130,8 @@ recorded measurement.
 | Budget | Value | Location |
 |---|---|---|
 | `NSCache.totalCostLimit` | `min(max(physicalMemory/24, 160 MiB), 260 MiB)` (6 GB→256, 8 GB→260) | `PreparedArtworkCache.configureImageBudget()` |
-| `residentArtworkByteCount` | 320 MiB | `PreparedArtworkMemoryBudget` — lower diagnostic target in [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) requires device validation before enforcement |
-| `steadyStateProcessByteCount` | 550 MiB | `PreparedArtworkMemoryBudget` — lower diagnostic target in [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) requires device validation before enforcement |
+| `residentArtworkByteCount` | 320 MiB | `PreparedArtworkMemoryBudget` |
+| `steadyStateProcessByteCount` | 550 MiB | `PreparedArtworkMemoryBudget` |
 
 `physicalMemory/24` already adapts; the floor and cap above are the product
 decision. A larger catalog alone does not establish a safe cache increase:
@@ -184,7 +184,7 @@ Prefer direct stored-state mutation, one projection publication, narrow observat
 
 ## Device and production evidence
 
-Simulator evidence is the implementation gate for the current migration, not physical-device validation. Before claiming ProMotion performance, pin a supported iPhone/OS, derive cadence from the display link, capture Instruments traces on-device, and record thermal state and Low Power Mode.
+Simulator evidence does not establish physical-device performance. Before claiming ProMotion performance, pin a supported iPhone/OS, derive cadence from the display link, capture Instruments traces on-device, and record thermal state and Low Power Mode.
 
 MetricKit `MXAnimationMetric.hitchTimeRatio` remains production trend evidence. It complements—and does not replace—reproducible local scenarios and Instruments traces.
 

@@ -45,15 +45,8 @@ struct HomesteadScreen {
 
     func openFarmingCategoryAndRevealWheatFieldNode() {
         let categoryButton = app.buttons[AccessibilityID.Homestead.category("Farming")]
-        _ = categoryButton.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout)
-        if categoryButton.isHittable {
-            categoryButton.tap()
-        } else {
-            categoryButton.coordinate(withNormalizedOffset: CGVector(
-                dx: 0.5,
-                dy: 0.5,
-            )).tap()
-        }
+        XCTAssertTrue(categoryButton.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout))
+        categoryButton.trinketTapWhenReady()
         _ = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
             .trinketWaitForExistence(timeout: 2)
         app.scrollUntilVisible(

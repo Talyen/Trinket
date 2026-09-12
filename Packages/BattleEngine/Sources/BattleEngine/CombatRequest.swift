@@ -2,12 +2,18 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+package struct DamageProvenance: Equatable, Hashable, Sendable {
+    let actionID: Int
+    let cardID: Int?
+}
+
 public struct DamageRequest: Equatable, Hashable, Sendable {
     public var amount: Int
     public var target: Combatant
     public var keyword: Keyword?
     public var sourceActorID: String?
     public var options: DamageOperation
+    package var provenance: DamageProvenance?
 
     public init(
         amount: Int,

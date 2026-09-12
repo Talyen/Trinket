@@ -14,14 +14,14 @@
 `.DerivedData/runs/agent-N/` tree. Top-level cleanup preserves warm managed
 devices per tenant — one **Trinket Run** plus one **Trinket Agent N** may stay
 `Booted` concurrently so an agent run never shuts down a human's `Trinket Run`
-session (and vice versa); excess `Run` or excess `Agent` boots within a tenant
-are shut down. In CI (`GITHUB_ACTIONS=true`) there is no human `Run`, so the
+session (and vice versa); only unleased excess `Run` or `Agent` boots are shut
+down. Every active lease is protected, even when multiple agents are running. In CI (`GITHUB_ACTIONS=true`) there is no human `Run`, so the
 legacy single-warm rule across all managed devices still applies. Preview
 devices are reclaimed and bulky artifacts age-pruned. Nested commands release
-only their own leases. Never kill foreign Xcode or Simulator processes. A lease
-left by a crashed run is reaped when its pid is dead or its age exceeds
-`TRINKET_SLOT_STALE_SECONDS` (default 6h) — the age cap defeats pid reuse, so
-stale leases never block the agent pool permanently.
+only their own leases. Cancellation stops owned child processes before EXIT
+cleanup releases locks and leases. Never kill foreign Xcode or Simulator processes. A lease
+left by a crashed run is reaped when its pid is dead. Age alone never revokes
+a live owner’s lease; an ambiguous lease remains reserved for inspection.
 
 ## Inspection lease and capture
 
@@ -62,10 +62,13 @@ content; an inactive inspection connection can otherwise resemble a UI regressio
 Handoff is headless by default. `handoff.sh --isolate --mirror` opts into
 installing the verified app on **Trinket Run** when the changed paths require an
 app or package build. The mirror is install-only by default; it does not launch
-the game. Mirroring can require an app build when only package products exist.
-Use the launcher when foreground inspection is needed.
+the game. Mirroring holds an isolated build lease and the Trinket Run lease,
+builds the app once, and installs that exact product. Build or install failure
+fails the requested mirror. Other agent simulators and their builds are never
+selected as mirror targets or fallback products. Use the launcher when foreground
+inspection is needed.
 
-[Scripts/README.md](../../Scripts/README.md) and `Scripts/promote.sh` own mirror
+[Development commands](../../Scripts/Reference.md#development) and `Scripts/promote.sh` own mirror
 commands and environment switches. A passing handoff without `--mirror` does not
 mean the human simulator has the new build installed.
 

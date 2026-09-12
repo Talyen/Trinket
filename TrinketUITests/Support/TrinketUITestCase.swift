@@ -205,7 +205,7 @@ class TrinketUITestCase: XCTestCase {
             fail("Button '\(identifier)' not found", file: file, line: line)
             return
         }
-        tapWhenReady(element)
+        tapWhenReady(element, file: file, line: line)
     }
 
     @discardableResult
@@ -218,16 +218,8 @@ class TrinketUITestCase: XCTestCase {
         trinketWaitForExistenceMainActorSafe(element, timeout: timeout)
     }
 
-    func tapWhenReady(_ element: XCUIElement) {
-        let deadline = Date().addingTimeInterval(2)
-        while Date() < deadline, !element.isHittable {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-        }
-        if element.isHittable {
-            element.tap()
-        } else {
-            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        }
+    func tapWhenReady(_ element: XCUIElement, file: StaticString = #file, line: UInt = #line) {
+        element.trinketTapWhenReady(file: file, line: line)
     }
 
     func assertButtonExists(
@@ -393,14 +385,6 @@ class TrinketUITestCase: XCTestCase {
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
     }
 
-    var edgeBackSwipeStart: XCUICoordinate {
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.45))
-    }
-
-    var edgeBackSwipeEnd: XCUICoordinate {
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.45))
-    }
-
     func replaceText(in element: XCUIElement, with text: String) {
         tapWhenReady(element)
         let clearButton = element.buttons["Clear text"]
@@ -429,6 +413,22 @@ class TrinketUITestCase: XCTestCase {
 }
 
 extension XCUIElement {
+    func trinketTapWhenReady(file: StaticString = #file, line: UInt = #line) {
+        let ready = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"),
+            object: self,
+        )
+        guard XCTWaiter.wait(for: [ready], timeout: 2) == .completed else {
+            XCTFail(
+                "Control '\(identifier)' not ready: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable)",
+                file: file,
+                line: line,
+            )
+            return
+        }
+        tap()
+    }
+
     func trinketWaitForExistence(timeout: TimeInterval) -> Bool {
         trinketWaitForExistenceMainActorSafe(self, timeout: timeout)
     }

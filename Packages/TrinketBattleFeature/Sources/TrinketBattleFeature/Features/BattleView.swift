@@ -270,7 +270,7 @@ struct BattleFieldLane: View {
                     interactionState: interactionState,
                     onPlay: playCard(_:request:),
                     onInteractionChanged: updateCombatantTapSuppression(_:),
-                    onLift: beginCardLift(for:),
+                    onLift: beginCardLift,
                     onLiftCancel: cancelCardLift(for:),
                 )
                 .frame(height: BattleCardGridLayout.handReservedHeight)
@@ -321,8 +321,11 @@ struct BattleFieldLane: View {
         )
     }
 
-    private func beginCardLift(for card: BattleCard) {
-        battleSession.beginCardCue(card)
+    private func beginCardLift(
+        _ card: BattleCard,
+        _ mode: BattleCardCuePresentationMode,
+    ) {
+        battleSession.beginCardCue(card, mode: mode)
     }
 
     private func showDetails(for combatant: Combatant) {
@@ -361,7 +364,7 @@ private struct BattleHandProjectionLane: View {
     let interactionState: BattleInteractionState
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
-    let onLift: (BattleCard) -> Void
+    let onLift: (BattleCard, BattleCardCuePresentationMode) -> Void
     let onLiftCancel: (BattleCard) -> Void
 
     @State private var cardPlayFeedbackToken = 0

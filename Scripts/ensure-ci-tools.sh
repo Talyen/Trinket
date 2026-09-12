@@ -154,9 +154,24 @@ install_zip_tool() {
   fi
 }
 
+install_swiftformat() {
+  install_zip_tool swiftformat "$SWIFTFORMAT_VERSION" nicklockwood/SwiftFormat --version swiftformat_linux swiftformat
+}
+
+install_swiftlint() {
+  install_zip_tool swiftlint "$SWIFTLINT_VERSION" realm/SwiftLint version swiftlint-static swiftlint
+}
+
+install_xcbeautify() {
+  # Local/darwin only: CI omits --verbose and uses structured failure reports,
+  # so a condensed formatter is only needed on mac for the run/build path.
+  [[ "$os" == "darwin" ]] || return 0
+  install_zip_tool xcbeautify "$XCBEAUTIFY_VERSION" cpisciotta/xcbeautify --version xcbeautify
+}
+
 CI_TOOLS_D="$ROOT/Scripts/lib/ci-tools.d"
-for _ci_tool in swiftformat swiftlint xcodegen ripgrep xcbeautify; do
-  # shellcheck source=lib/ci-tools.d/swiftformat.sh
+for _ci_tool in xcodegen ripgrep; do
+  # shellcheck source=lib/ci-tools.d/xcodegen.sh
   source "$CI_TOOLS_D/$_ci_tool.sh"
 done
 unset _ci_tool

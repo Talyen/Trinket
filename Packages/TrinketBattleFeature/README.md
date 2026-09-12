@@ -16,7 +16,15 @@ Battle simulation rules remain in `BattleEngine`. App options and audio enter th
 the closure-backed `BattleRuntimeDependencies`; this package must not import or
 depend on `TrinketAppState`. Progression capabilities are configured once by the app composition root; BattleSession
 owns reward retry presentation independently of overlay mounting.
-Cross-package contract: [battle-runtime.md](../../Docs/AgentContext/battle-runtime.md).
+Cross-package ownership: [runtime contract](../../Docs/AgentContext/battle-runtime.md).
+Read [presentation](../../Docs/AgentContext/battle-presentation.md) for display/playback changes,
+and [launch/completion](../../Docs/AgentContext/battle-launch.md) for activation or award wiring.
+
+Cinematic playback lives in `State/BattleCinematicPlayer.swift` beside spectacle
+state. Victory summary models and views live together in `Features/Outcome/`.
+Feedback scheduling, recipes, presentation models, and sound mapping live in
+`State/Feedback/`; rendering stays in `Features/Feedback/`. Debug performance
+scenario drivers and harnesses live in `Support/Performance/` within this target.
 
 ## Prepared artwork
 

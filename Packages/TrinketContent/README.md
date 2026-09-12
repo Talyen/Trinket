@@ -7,8 +7,17 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 
 ## Structure
 
-- **Content/** — Authored Swift: abilities in `AbilityCatalog{Basic,Skill,Ultimate}.swift`. Talent lookup/config API stays in `CombatantTalentCatalog.swift`.
+- **Abilities/** — Ability models, builders, validation, and authored `AbilityCatalog{Basic,Skill,Ultimate}.swift` catalogs.
+- **Equipment/** — Item and affix models, Unique catalogs, and loot generation.
+- **Encounters/** — Journey, Labyrinth, Spire, Contracts, Mysteries, shops, and reward settlement.
+- **Roster/** — Combatant models, equipment/keyword projections, and talent/trait lookup.
+- **Homestead/** — Upgrade models, effects, and content lookup.
+- **Media/** — Authored art, music, and sound lookup support.
 - **Generated/** — Auto-generated catalogs from manifests, ability shorthand, talent dictionaries, and trigger-family structs (do not edit directly)
+
+The source root holds `GameContent`, shared access policy, and trigger coding.
+Domain-specific `GameContent` extensions live beside their models and catalogs;
+all folders remain in the same target.
 
 ## Manifest sources
 
@@ -16,8 +25,8 @@ Schemas and input/output ownership live in
 [`ContentManifest/README.md`](../../ContentManifest/README.md) and the matching
 media-manifest READMEs. `Generated/` is the output of `./Scripts/generate.sh`;
 do not maintain a second generated-file inventory here. Abilities remain
-authored in `Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`; trigger-family
-schema remains in `Scripts/trigger_family_schema.json`.
+authored in `Abilities/AbilityCatalog{Basic,Skill,Ultimate}.swift`; trigger-family
+schema remains in `Scripts/internal/content/trigger_family_schema.json`.
 
 ## Adding content
 
@@ -51,7 +60,7 @@ relies on this encapsulation; storage references must never escape the wrapper.
 
 `ItemRewardGenerator` owns category selection and candidate filtering for battles,
 shops, and Mysteries. Tune the level anchors and profile multipliers in
-`Sources/TrinketContent/ItemLootPolicy.swift`. Weights interpolate linearly and clamp
+`Sources/TrinketContent/Equipment/ItemLootPolicy.swift`. Weights interpolate linearly and clamp
 outside the anchors. Bosses triple premium weights; Moonlit Sanctum multiplies
 Astral weight by `1 + bonus/100`. After ownership, reservations, keywords, and
 explicit pools remove unavailable categories, the remaining weights normalize.

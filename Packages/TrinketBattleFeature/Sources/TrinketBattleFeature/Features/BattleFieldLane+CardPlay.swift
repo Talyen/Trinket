@@ -7,7 +7,7 @@ extension BattleFieldLane {
     }
 
     func playCardWithTapLift(_ card: BattleCard, battleSize: CGSize) async -> Bool {
-        battleSession.beginCardCue(card)
+        battleSession.beginCardCue(card, mode: .preview)
         interactionState.suppressCombatantTaps = false
         interactionState.autoLiftCardID = card.id
         defer {

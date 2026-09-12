@@ -2,45 +2,48 @@
 type: execution-plan
 status: active
 created: 2026-09-01
-updated: 2026-09-03
+updated: 2026-09-11
 expires: 2026-09-15
 ---
 
-# SimplificationFollowup
+# Simplification follow-up
 
-## Objective
+## Current disposition
 
-Finish only residual simplification work with a confirmed correctness or
-maintenance win. Keep gameplay balance and artwork budgets unchanged.
+The old Mystery preview-ticket prescription is superseded by
+[the saved-offer contract](../Product/MysteryEvents.md#stability-and-completion).
+`EncounterPlayMode.beginMysteryEncounter` returns on pin failure and publishes an
+ordinary Mystery session only after its offers commit. An unsaved preview ticket
+must not override this boundary. This is source confirmation of the current path,
+not a new runtime or reload verification.
 
-## Plan
+Codegen correctness is complete: direct access emission replaced fragile
+`publicize`/brace counting, with escaping regression coverage. The former blanket
+deferral of BattleState/talent regrouping is also superseded by the current
+[engine ownership](../AgentContext/battle-engine.md) and
+[action contracts](../AgentContext/battle-actions.md).
 
-- [ ] **1. Frozen mystery preview.** Make the preview ticket authoritative even
-  when pinning fails, then add persistence/reload coverage for the same encounter
-  level and reward preview.
-- [x] **2. Codegen correctness.** Replaced fragile `publicize`/brace counting with
-  direct access emission, documented `swift_escape` round trips, and added
-  focused regression cases for quotes, backslashes, and braces.
-- [ ] **3. Measured performance proposals.** Benchmark damage-resolution rescans
-  and combat-feedback layering first. Implement a snapshot or feedback dedup only
-  when measurement confirms a bounded win; otherwise record a non-finding.
+## Remaining investigation
 
-## Explicitly deferred
+Damage-resolution rescans and combat-feedback layering remain unverified performance
+candidates. No benchmark or improvement is established by this documentation pass.
+Use the [performance playbook](../Platform/PerformanceInvestigationPlaybook.md) to
+measure the current interaction and owner before proposing snapshots or feedback
+deduplication. Preserve gameplay balance, feedback, and artwork budgets. Record a
+non-finding if evidence does not justify a bounded change.
 
-Do not pursue broad trigger-codegen, BattleState/TalentState regrouping, lifecycle
-phase renaming, `nextEventID` reseeding, or removal of the primitive
-`CombatantRuntime.heal` method without new evidence. The engine phase and runtime
-lifecycle represent different state machines, and the hand-buffer/target-resolver
-consolidations are already complete.
+Other historical candidates are not a standing backlog. Broad trigger-codegen
+changes, phase renaming, reseeding, or removing combat mutation helpers require
+new evidence under the existing change policy. Engine phases and presentation
+lifecycle remain distinct; hand-buffer and target-resolver consolidations are complete.
 
-## Verification
+## Verification and completion
 
-Use path-scoped isolated handoff for each implementation slice, focused package or
-script tests for changed behavior, and `python3 Scripts/check-docs.py` after plan
-metadata changes.
+Any future implementation uses [path-scoped verification](../Platform/Verification.md)
+for its actual owners. Keep this plan open for the pending investigation; do not
+mark performance work complete from related refactors. On completion or explicit
+cancellation, archive its outcome under [Plans](README.md).
 
-## Disposition
-
-This plan supersedes the deferred portions of `ElegantSimplificationRound4` and
-`SimplificationConsolidationRound2`; their outcomes are retained in the archived
-plan ledger and their full detail remains in Git history.
+This plan retains the residual scope of `ElegantSimplificationRound4` and
+`SimplificationConsolidationRound2`; their outcomes remain in the archived ledger
+and their full detail in Git history.

@@ -6,6 +6,7 @@ enum BattleCardCueMotion {
     static let cancellation = Animation.easeOut(duration: 0.16)
     static let completion = Animation.easeOut(duration: 0.22)
     static let lightOpacity = 0.20
+    static let tapLightOpacity = 0.10
     static let travel: CGFloat = 3
     static let deniedBlinkCount = 2
     static let deniedBlinkInterval: Duration = .milliseconds(90)
@@ -18,14 +19,26 @@ struct BattleRecipientCueLane<Content: View>: View {
 
     @State private var recipient: BattleRecipientCue?
     @State private var strength: CGFloat = 0
+    @State private var presentationMode: BattleCardCuePresentationMode = .preview
 
     var body: some View {
         let cue = battleSession.cardCues.current
         content()
             .overlay {
-                if let recipient, recipient.kind != .deniedHealth {
+                if let recipient,
+                   recipient.kind != .deniedHealth,
+                   presentationMode.showsRecipientVisual(for: recipient.kind) {
+                    let isDenied = switch recipient.kind {
+                    case .deniedControl, .deniedDefeated: true
+                    default: false
+                    }
                     cueLight(for: recipient)
-                        .opacity(Double(strength) * BattleCardCueMotion.lightOpacity)
+                        .opacity(
+                            Double(strength)
+                                * (isDenied || presentationMode == .preview
+                                    ? BattleCardCueMotion.lightOpacity
+                                    : BattleCardCueMotion.tapLightOpacity),
+                        )
                         .clipShape(TrinketDesign.cardShape)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
@@ -84,7 +97,12 @@ struct BattleRecipientCueLane<Content: View>: View {
     }
 
     private func adopt(_ cue: BattleCardCue?) async {
-        guard let cue, let next = cue.recipients[combatantID] else {
+        guard let cue else {
+            withAnimation(BattleCardCueMotion.cancellation) { strength = 0 }
+            return
+        }
+        presentationMode = cue.mode
+        guard let next = cue.recipients[combatantID] else {
             withAnimation(BattleCardCueMotion.cancellation) { strength = 0 }
             return
         }

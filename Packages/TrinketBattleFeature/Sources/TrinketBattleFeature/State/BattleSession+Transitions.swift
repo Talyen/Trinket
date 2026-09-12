@@ -11,7 +11,7 @@ extension BattleSession {
               playback.nextIndex <= playback.frames.count else { return }
         let frame = playback.frames[playback.nextIndex - 1]
         guard let assessment = frame.assessment else { return }
-        cardCues.begin(cardID: cardID, assessment: assessment)
+        cardCues.begin(cardID: cardID, assessment: assessment, mode: .preview)
         if case let .cardWillPlay(card) = frame.checkpoint, card.ability.dealsCombatDamage {
             publishAttackTelegraph(.windUp, for: assessment.actorID)
         }
@@ -104,7 +104,7 @@ extension BattleSession {
             if case let .cardWillPlay(card) = checkpoint {
                 guard await waitForCardPlaybackDelay(.seconds(BattleMotion.cardDealDuration), generation: generation) else { return }
                 if let assessment = next.assessment {
-                    cardCues.begin(cardID: card.id, assessment: assessment)
+                    cardCues.begin(cardID: card.id, assessment: assessment, mode: .preview)
                     if card.ability.dealsCombatDamage {
                         publishAttackTelegraph(.windUp, for: assessment.actorID)
                     }

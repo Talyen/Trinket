@@ -11,6 +11,7 @@ import plistlib
 import shutil
 import tempfile
 import subprocess
+import signal
 import unittest
 from pathlib import Path
 
@@ -28,6 +29,107 @@ def run_script(name: str, *args: str) -> subprocess.CompletedProcess:
 
 
 class ExecWrapperTests(unittest.TestCase):
+    def test_cheap_slices_require_a_readable_nonempty_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            registry = Path(directory) / "slices"
+            script = 'source Scripts/lib/cheap-slices.sh; TRINKET_CHEAP_SLICES_CONFIG="$1"; trinket_run_cheap_slices'
+            for content, status in ((None, 1), ("# empty\n", 1), ("exit 17\n", 17), ("true\n", 0)):
+                if content is not None:
+                    registry.write_text(content)
+                result = subprocess.run(["bash", "-eu", "-c", script, "_", str(registry)], cwd=ROOT, capture_output=True, text=True)
+                self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+
+    def test_git_setup_preserves_foreign_wrappers_and_updates_owned_wrappers(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            scripts.mkdir()
+            shutil.copy2(ROOT / "Scripts/setup-git-safety.mjs", scripts)
+            home = root / "home"
+            wrapper = home / ".local/bin/git"
+            wrapper.parent.mkdir(parents=True)
+            (root / ".envrc").write_text(str(scripts / "bin"))
+            environment = {**os.environ, "HOME": str(home)}
+            for previous in ("#!/bin/sh\necho custom git\n", None,
+                             "#!/bin/sh\n# Global harness-agnostic shim: if inside Trinket repo, delegate to repo guard\nold\n"):
+                if previous is None:
+                    wrapper.unlink()
+                else:
+                    wrapper.write_text(previous)
+                result = subprocess.run(["node", str(scripts / "setup-git-safety.mjs")],
+                                        env=environment, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                if previous and "custom git" in previous:
+                    self.assertEqual(wrapper.read_text(), previous)
+                else:
+                    self.assertIn(str(scripts / "bin/git"), wrapper.read_text())
+                    self.assertNotIn("\nold\n", wrapper.read_text())
+
+    def test_tool_updates_leave_pins_untouched_after_download_or_hash_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            scripts.mkdir()
+            for name in ("update-tools.sh", "tool-versions.env"):
+                shutil.copy2(ROOT / "Scripts" / name, scripts)
+            pins = scripts / "tool-versions.env"
+            initial = pins.read_bytes()
+            curl = root / "curl"
+            curl.write_text('#!/bin/bash\nif [[ "$*" == *api.github.com* ]]; then echo \'{"tag_name":"999.0.0"}\'; exit 0; fi\nexit "$DOWNLOAD_STATUS"\n')
+            curl.chmod(0o755)
+            hasher = root / "shasum"
+            hasher.write_text('#!/bin/bash\nexit 7\n')
+            hasher.chmod(0o755)
+            for download, expected in ((22, 22), (0, 7)):
+                result = subprocess.run([str(scripts / "update-tools.sh"), "--apply"],
+                                        env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}",
+                                             "DOWNLOAD_STATUS": str(download)}, capture_output=True, text=True)
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                self.assertEqual(pins.read_bytes(), initial)
+
+    def test_unit_dispatch_forwards_flags_and_exit_without_app_preparation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scripts = Path(directory) / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            (scripts / "run-env.sh").write_text('trinket_run_env_init() { exit 91; }\n')
+            (scripts / "test-package.sh").write_text('#!/bin/bash\nprintf "%s\\n" "$@"\nexit 17\n')
+            for flags in (("--no-build", "--verbose"), ("--quiet",)):
+                result = subprocess.run([str(scripts / "test.sh"), "unit", *flags],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 17, result.stdout + result.stderr)
+                args = result.stdout.splitlines()
+                self.assertEqual(args[:len(flags)], list(flags))
+                self.assertIn("BattleEngine", args)
+                self.assertEqual(len(args), len(set(args)))
+
+    def test_handoff_reports_unavailable_compilation_after_available_checks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            source = root / "Trinket/App/ContentView.swift"
+            source.parent.mkdir(parents=True)
+            source.write_text("struct ContentView {}")
+            (scripts / "test.sh").write_text('#!/bin/bash\n./Scripts/check-api-bans.sh\necho style-checked\n')
+            (scripts / "check-api-bans.sh").write_text('#!/bin/bash\necho api >> checks\n')
+            (scripts / "config/cheap-slices.txt").write_text('./Scripts/check-api-bans.sh\necho cheap-checked\n')
+            startup = root / "startup"
+            startup.write_text('command() { if [[ "$*" == "-v xcodebuild" ]]; then return 1; fi; builtin command "$@"; }\n')
+            environment = {**os.environ, "BASH_ENV": str(startup)}
+            for dry in (False, True):
+                result = subprocess.run([str(scripts / "handoff.sh"), *(["--dry-run"] if dry else []),
+                                         "--paths", "Trinket/App/ContentView.swift"],
+                                        env=environment, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0 if dry else 2, result.stdout + result.stderr)
+                self.assertNotIn("Handoff PASS", result.stdout)
+                if dry:
+                    self.assertIn("Unavailable required check", result.stdout)
+                else:
+                    self.assertIn("style-checked", result.stdout)
+                    self.assertIn("cheap-checked", result.stdout)
+                    self.assertIn("INCOMPLETE", result.stderr)
+                    self.assertEqual((root / "checks").read_text(), "api\n")
+
     def test_worktree_remove_preserves_unregistered_directories(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
@@ -66,8 +168,10 @@ class ExecWrapperTests(unittest.TestCase):
             )
             cases = [
                 (name, ["--help"], 0, "Usage:")
-                for name in ("test.sh", "test-package.sh", "build-for-testing.sh")
+                for name in ("test.sh", "test-package.sh", "build-for-testing.sh", "generate.sh")
             ] + [
+                ("generate.sh", ["--force-xcodegen", "--help"], 0, "Usage:"),
+                ("generate.sh", ["--bad-option"], 1, "Unknown argument"),
                 ("test.sh", ["style"], 0, "style checked"),
                 ("build-for-testing.sh", ["--bad-option"], 1, "Unknown argument"),
                 ("test-package.sh", ["--bad-option"], 1, "Unknown option"),
@@ -84,21 +188,6 @@ class ExecWrapperTests(unittest.TestCase):
                     result = subprocess.run([str(scripts / name), *args], capture_output=True, text=True)
                     self.assertEqual(result.returncode, status, result.stdout + result.stderr)
                     self.assertIn(message, result.stdout + result.stderr)
-
-    def test_final_handoff_preview_does_not_execute_docs(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            scripts = Path(directory) / "Scripts"
-            shutil.copytree(ROOT / "Scripts", scripts)
-            (scripts / "check-docs.py").write_text('raise SystemExit(91)\n')
-            for flags, status in ((["--dry-run", "--final"], 0), (["--final"], 91)):
-                with self.subTest(flags=flags):
-                    result = subprocess.run(
-                        [str(scripts / "handoff.sh"), *flags, "--paths", "Scripts/build.sh"],
-                        capture_output=True, text=True,
-                    )
-                    self.assertEqual(result.returncode, status, result.stdout + result.stderr)
-                    if status == 0:
-                        self.assertIn("python3 ./Scripts/check-docs.py --final", result.stdout)
 
     def test_package_build_prepares_generated_inputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -207,7 +296,8 @@ if 'appearance' in sys.argv:
                 root = Path(directory)
                 scripts = root / "Scripts"
                 (scripts / "lib").mkdir(parents=True)
-                for name in ("performance.sh", "collect-performance-results.py", "compare-performance.py", "performance_model.py", "lib/lock.sh"):
+                for name in ("performance.sh", "collect-performance-results.py", "compare-performance.py", "internal/performance/performance_model.py", "lib/lock.sh"):
+                    (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "performance_environment.py").write_text(
                     "import pathlib, sys; pathlib.Path(sys.argv[1]).write_text('{}')\n"
@@ -283,7 +373,8 @@ if 'appearance' in sys.argv:
                 scripts = root / "Scripts"
                 for relative in ("lib", "config", "Tests"):
                     (scripts / relative).mkdir(parents=True)
-                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "diagnostic_limits.py", "config/diagnostic-limits.env"):
+                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env"):
+                    (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "check-build-cache-paths.sh").write_text("#!/bin/bash\nexit 0\n")
                 (scripts / "check-build-cache-paths.sh").chmod(0o755)
@@ -361,14 +452,131 @@ if 'appearance' in sys.argv:
         python = (ROOT / "Scripts" / "simctl_json.py").read_text()
         self.assertIn("simulator-names.env", python)
 
-    def test_destructive_git_commands_single_sourced(self) -> None:
-        config = (ROOT / "Scripts" / "config" / "destructive-git-commands.txt").read_text()
-        names = [line.strip() for line in config.splitlines() if line.strip() and not line.startswith("#")]
-        self.assertEqual(names, ["reset", "checkout", "restore", "clean", "switch", "branch", "push"])
-        shim = (ROOT / "Scripts" / "bin" / "git").read_text()
-        self.assertIn("destructive-git-commands.txt", shim)
-        guard = (ROOT / "Scripts" / "git-safety-guard.mjs").read_text()
-        self.assertIn("destructive-git-commands.txt", guard)
+    def test_git_guard_refuses_without_changing_target_repository(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+            env.update(REAL_GIT="/usr/bin/git", GIT_OPTIONAL_LOCKS="0")
+            def git(*args):
+                return subprocess.check_output(["/usr/bin/git", *args], cwd=root, env=env)
+            git("init", "-q")
+            (root / "tracked").write_text("original")
+            git("add", "tracked")
+            git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                "-c", "core.hooksPath=/dev/null", "commit", "-qm", "baseline")
+            (root / "tracked").write_text("staged")
+            git("add", "tracked")
+            (root / "tracked").write_text("unstaged")
+            (root / "untracked").write_text("unfinished")
+            index = (root / ".git/index").read_bytes()
+            for prefix in ([], ["-C", str(root)], ["-c", "core.quotepath=false", "-C", str(root)]):
+                result = subprocess.run([str(ROOT / "Scripts/bin/git"), *prefix, "reset", "--hard"],
+                                        cwd=root, env=env, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 1, result.stderr)
+                self.assertEqual((root / "tracked").read_text(), "unstaged")
+                self.assertEqual((root / "untracked").read_text(), "unfinished")
+                self.assertEqual((root / ".git/index").read_bytes(), index)
+                self.assertEqual(git("stash", "list"), b"")
+
+    def test_chained_locks_preserve_quoted_cleanup_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "owner's resources.lock"
+            second = root / "second.lock"
+            script = '''
+source Scripts/lib/lock.sh
+trinket_dir_lock_acquire "$1" 0
+trinket_dir_lock_acquire "$2" 0
+'''
+            result = subprocess.run(["bash", "-eu", "-c", script, "_", str(first), str(second)],
+                                    cwd=ROOT, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertFalse(first.exists())
+            self.assertFalse(second.exists())
+
+    def test_cancellation_stops_workers_before_releasing_resources(self) -> None:
+        for owner in ("lock", "run-env"):
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                with self.subTest(owner=owner, signal=sig), tempfile.TemporaryDirectory() as directory:
+                    script = '''
+source Scripts/run-env.sh
+trap 'test ! -e "$resource"; ! kill -0 "$worker" 2>/dev/null' EXIT
+if [[ "$1" == lock ]]; then
+  resource="$2/generation.lock"
+  trinket_dir_lock_acquire "$resource" 0
+else
+  TRINKET_REPO_ROOT="$2"
+  TRINKET_ISOLATE=1
+  trinket_run_env_init
+  resource="$TRINKET_SIM_SLOT_PATH"
+fi
+bash -c 'trap "" INT TERM; while :; do sleep 1; done' &
+worker=$!
+printf '%s\\n' "$resource"
+wait "$worker"
+echo continued > "$2/continued"
+'''
+                    env = {key: value for key, value in os.environ.items()
+                           if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
+                    process = subprocess.Popen(["bash", "-eu", "-c", script, "_", owner, directory],
+                                               cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    resource = Path(process.stdout.readline().strip())
+                    self.assertTrue(resource.exists())
+                    process.send_signal(sig)
+                    stdout, stderr = process.communicate(timeout=10)
+                    self.assertEqual(process.returncode, 128 + sig, stdout + stderr)
+                    self.assertFalse(resource.exists())
+                    self.assertFalse((Path(directory) / "continued").exists())
+
+    def test_mirror_uses_its_build_and_only_the_human_simulator(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            calls = root / "calls"
+            (scripts / "build.sh").write_text('#!/bin/bash\nprintf "build\\n" >> "$MIRROR_CALLS"\nexit "$BUILD_STATUS"\n')
+            app = root / ".DerivedData/runs/agent-1/Build/Products/Debug-iphonesimulator/Trinket.app"
+            app.mkdir(parents=True)
+            (app / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": "fixture.app"}))
+            other = root / ".DerivedData/runs/agent-2/Build/Products/Debug-iphonesimulator/Trinket.app"
+            other.mkdir(parents=True)
+            fake = root / "bin"
+            fake.mkdir()
+            xcrun = fake / "xcrun"
+            xcrun.write_text('''#!/usr/bin/env python3
+import json, os, sys
+with open(os.environ["MIRROR_CALLS"], "a") as stream:
+    stream.write(json.dumps(sys.argv[1:]) + "\\n")
+if sys.argv[1:4] == ["simctl", "list", "devices"]:
+    print(json.dumps({"devices": {"runtime": [
+        {"name": "Trinket Run", "udid": "human", "state": "Booted"},
+        {"name": "Trinket Agent 2", "udid": "peer", "state": "Booted"}]}}))
+elif sys.argv[1:3] == ["simctl", "install"]:
+    sys.exit(int(os.environ["INSTALL_STATUS"]))
+else:
+    sys.exit(92)
+''')
+            xcrun.chmod(0o755)
+            env = {key: value for key, value in os.environ.items()
+                   if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
+            env.update(PATH=f"{fake}:{env['PATH']}", MIRROR_CALLS=str(calls))
+            for build_status, install_status, product in ((0, 0, True), (65, 0, True), (0, 1, True), (0, 0, False)):
+                with self.subTest(build=build_status, install=install_status, product=product):
+                    if not product:
+                        shutil.rmtree(app)
+                    calls.write_text("")
+                    result = subprocess.run([str(scripts / "promote.sh")], cwd=root,
+                                            env={**env, "BUILD_STATUS": str(build_status), "INSTALL_STATUS": str(install_status)},
+                                            capture_output=True, text=True, timeout=10)
+                    self.assertEqual(result.returncode, 0 if build_status == install_status == 0 and product else 1,
+                                     result.stdout + result.stderr)
+                    lines = calls.read_text().splitlines()
+                    self.assertEqual(lines.count("build"), 1)
+                    commands = [json.loads(line) for line in lines if line != "build"]
+                    installs = [command for command in commands if command[:2] == ["simctl", "install"]]
+                    self.assertEqual(installs, [] if build_status or not product else [["simctl", "install", "human", str(app)]])
+                    self.assertFalse(any(command[1] in {"terminate", "launch"} for command in commands))
+                    self.assertFalse(list((root / ".DerivedData/.active-sim").glob("*.slot")))
 
     def test_format_roots_derived_from_packages(self) -> None:
         text = (ROOT / "Scripts" / "format-dirs.env").read_text()

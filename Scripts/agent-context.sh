@@ -9,6 +9,7 @@ source Scripts/change-classification.sh
 OUTPUT="agent"
 PATH_MODE="unset"
 FULL=false
+STATUS=false
 ALLOW_BROAD_SCOPE=false
 MAX_WORKING_TREE_PATHS="${TRINKET_MAX_WORKING_TREE_PATHS:-40}"
 [[ "$MAX_WORKING_TREE_PATHS" =~ ^[0-9]+$ ]] || MAX_WORKING_TREE_PATHS=40
@@ -22,20 +23,24 @@ while [[ $# -gt 0 ]]; do
       export TRINKET_ENABLE_SMOKE
       ;;
     --full) FULL=true ;;
+    --status) STATUS=true ;;
     --allow-broad-scope) ALLOW_BROAD_SCOPE=true ;;
     --help|-h)
       cat <<USAGE
-Usage: ./Scripts/agent-context.sh [--agent] [--full] [--smoke] [--allow-broad-scope] [--paths <file> ...]
+Usage: ./Scripts/agent-context.sh [--agent] [--full] [--status] [--smoke] [--allow-broad-scope] [--paths <file> ...]
 
 Prints a compact task briefing: applicable AGENTS.md guides, context cards and
 skills, architecture/generated-output warnings, and the focused sequential
 verification plan. Agents should run the recommended handoff --isolate
-command. Paths are repository-relative; --paths consumes all remaining
+command. In-repository paths are normalized; --paths consumes all remaining
 arguments. Use --working-tree explicitly when the whole tree is intentional.
 The default briefing omits empty sections and plan details; --full adds the
 authored path inventory, route metadata, and complete verification commands. Whole-tree
 classification is capped at ${MAX_WORKING_TREE_PATHS} paths unless explicitly
 overridden with --allow-broad-scope.
+--status adds global dirty counts by owner and exact Git status for supplied files,
+including both rename endpoints. Inspect overlapping diffs before editing;
+status does not establish ownership of another task's work.
 USAGE
       exit 0
       ;;
@@ -70,6 +75,9 @@ if [[ "$PATH_MODE" == working-tree && "$ALLOW_BROAD_SCOPE" != true \
   && ${#TRINKET_CHANGED_PATHS[@]} -gt "$MAX_WORKING_TREE_PATHS" ]]; then
   echo "working-tree scope has ${#TRINKET_CHANGED_PATHS[@]} paths; use explicit --paths or --allow-broad-scope" >&2
   exit 3
+fi
+if [[ "$STATUS" == true ]]; then
+  python3 Scripts/internal/agent_status.py "${TRINKET_CHANGED_PATHS[@]}"
 fi
 trinket_classify_paths
 trinket_build_verification_plan

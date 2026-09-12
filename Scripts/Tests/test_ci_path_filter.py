@@ -4,7 +4,9 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import re
 import sys
+import subprocess
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -63,7 +65,7 @@ class CIPathFilterTests(unittest.TestCase):
         self.assertTrue(match("Scripts/lib/smoke-classes.sh"))
         self.assertFalse(match("Scripts/lint-analyze.sh"))
         self.assertFalse(match("Scripts/release-notes-user.py"))
-        self.assertFalse(match(".github/workflows/tests.yml"))
+        self.assertTrue(match(".github/workflows/tests.yml"))
         self.assertFalse(match("Docs/Platform/Verification.md"))
         self.assertFalse(match("CHANGELOG.md"))
 
@@ -91,17 +93,43 @@ class CIPathFilterTests(unittest.TestCase):
 
     def test_prepare_assets_is_asset_and_infra(self) -> None:
         code, assets, infra = self.filter.classify(["Scripts/prepare-assets.sh"])
-        self.assertFalse(code)
+        self.assertTrue(code)
         self.assertTrue(assets)
         self.assertTrue(infra)
 
-    def test_classify_docs_only_is_false(self) -> None:
-        code, assets, infra = self.filter.classify(
-            ["Docs/Platform/Verification.md", "Scripts/README.md"]
-        )
-        self.assertFalse(code)
-        self.assertFalse(assets)
-        self.assertFalse(infra)
+    def test_generation_helpers_route_local_and_ci_verification(self) -> None:
+        cases = (("internal/content/content_codegen_modifiers.py", False), ("internal/content/content_codegen_triggers.py", False),
+                 ("internal/content/trigger_family_schema.json", False), ("prepare-assets.sh", True), ("lib/media-assets.sh", True))
+        for name, assets in cases:
+            with self.subTest(path=name):
+                path = "Scripts/" + name
+                self.assertEqual(self.filter.classify([path]), (True, assets, True))
+                output = subprocess.check_output(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path], cwd=ROOT, text=True,
+                )
+                planned = [line.strip() for line in output.splitlines() if line.startswith("  ")]
+                self.assertIn("./Scripts/generate.sh" + (" --assets" if assets else ""), planned)
+                self.assertIn("./Scripts/assert-generated-output.sh --idempotent" + (" --assets" if assets else ""), planned)
+
+    def test_build_contract_inputs_and_documentation(self) -> None:
+        cases = {
+            "StoreKit/Trinket.storekit": (True, False, False),
+            "Scripts/tool-versions.env": (True, False, True),
+            "Scripts/build-inputs.env": (True, False, True),
+            "Scripts/xcode-runner.sh": (True, False, True),
+            ".github/actions/restore-and-build/action.yml": (True, False, True),
+            ".github/actions/test-job/action.yml": (True, False, True),
+            ".github/actions/setup-trinket/action.yml": (True, False, True),
+            ".github/workflows/ci.yml": (True, False, True),
+            "Packages/TrinketCore/Package.swift": (True, False, False),
+            "Packages/TrinketCore/README.md": (False, False, False),
+            "ArtManifest/README.md": (False, False, False),
+            "Docs/Platform/Verification.md": (False, False, False),
+            "Scripts/README.md": (False, False, False),
+        }
+        for path, expected in cases.items():
+            with self.subTest(path=path):
+                self.assertEqual(self.filter.classify([path]), expected)
 
     def test_classify_lint_script_only_is_infra(self) -> None:
         code, assets, infra = self.filter.classify(["Scripts/lint-analyze.sh"])
@@ -135,7 +163,12 @@ class CIPathFilterTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(
             encoding="utf-8"
         )
-        self.assertIn("checkout-trinket", workflow)
+        sparse_blocks = re.findall(r"sparse-checkout: \|\n((?:            \S.*\n)+)", workflow)
+        self.assertGreater(len(sparse_blocks), 0)
+        for block in sparse_blocks:
+            roots = block.split()
+            self.assertTrue({"Scripts", "Packages", "Trinket", "StoreKit", ".github"}.issubset(roots))
+            self.assertNotIn("Raw Assets", block)
         self.assertNotIn("checkout-ci", workflow)
 
     def test_test_job_reads_preboot_status(self) -> None:

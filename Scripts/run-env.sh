@@ -21,6 +21,7 @@ trinket_run_env_shared_root() {
 }
 
 _TRINKET_RUN_ENV_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib"
+source "$_TRINKET_RUN_ENV_LIB_DIR/lock.sh"
 # shellcheck source=lib/slots.sh
 source "$_TRINKET_RUN_ENV_LIB_DIR/slots.sh"
 # shellcheck source=lib/simctl.sh
@@ -63,7 +64,7 @@ trinket_run_env_release_slots() {
 }
 
 trinket_run_env_install_release_trap() {
-  trap 'trinket_run_env_release_slots' EXIT INT TERM
+  trinket_dir_lock_chain_trap trinket_run_env_release_slots
 }
 
 trinket_run_env_install_self_clean() {

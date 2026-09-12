@@ -48,9 +48,10 @@ scan_matches() {
   local pattern="$1"
   local glob="$2"
   shift 2
-  rg -n --glob "$glob" --glob '!**/Generated/**' "$pattern" "$@" 2>/dev/null || true
+  trinket_rg_scan -n --glob "$glob" --glob '!**/Generated/**' "$pattern" "$@"
 }
 
+scan_matches '\b(Date|UUID)\(\)' '*.swift' Packages/BattleEngine/Sources/BattleEngine
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   local_file="${match%%:*}"
@@ -64,10 +65,9 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "${local_file}:${line}: unseeded Date()/UUID() in BattleEngine rule code"
-done < <(
-  scan_matches '\b(Date|UUID)\(\)' '*.swift' Packages/BattleEngine/Sources/BattleEngine
-)
+done <<< "$TRINKET_RG_MATCHES"
 
+scan_matches '\.random\(' '*.swift' Packages/BattleEngine/Sources/BattleEngine
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   local_file="${match%%:*}"
@@ -84,10 +84,17 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "${local_file}:${line}: unseeded .random( in BattleEngine rule code (inject RNG via using:)"
-done < <(
-  scan_matches '\.random\(' '*.swift' Packages/BattleEngine/Sources/BattleEngine
-)
+done <<< "$TRINKET_RG_MATCHES"
 
+scan_matches 'Task\.sleep' '*.swift' \
+    Packages/TrinketCore/Tests \
+    Packages/TrinketContent/Tests \
+    Packages/BattleEngine/Tests \
+    Packages/TrinketPersistence/Tests \
+    Packages/TrinketDesignSystem/Tests \
+    Packages/TrinketFeatureSupport/Tests \
+    Packages/TrinketBattleFeature/Tests \
+    Packages/TrinketAppState/Tests
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   local_file="${match%%:*}"
@@ -104,18 +111,9 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "${local_file}:${line}: Task.sleep in package tests must poll with .milliseconds or use TestSleepCheck: allow"
-done < <(
-  scan_matches 'Task\.sleep' '*.swift' \
-    Packages/TrinketCore/Tests \
-    Packages/TrinketContent/Tests \
-    Packages/BattleEngine/Tests \
-    Packages/TrinketPersistence/Tests \
-    Packages/TrinketDesignSystem/Tests \
-    Packages/TrinketFeatureSupport/Tests \
-    Packages/TrinketBattleFeature/Tests \
-    Packages/TrinketAppState/Tests
-)
+done <<< "$TRINKET_RG_MATCHES"
 
+scan_matches 'try\?' '*.swift' Packages/TrinketPersistence/Sources/TrinketPersistence
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   local_file="${match%%:*}"
@@ -129,10 +127,10 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "${local_file}:${line}: try? on persistence write/open; use an explicit path or PersistenceCheck: allow"
-done < <(
-  scan_matches 'try\?' '*.swift' Packages/TrinketPersistence/Sources/TrinketPersistence
-)
+done <<< "$TRINKET_RG_MATCHES"
 
+scan_matches '@unchecked Sendable|nonisolated\(unsafe\)' '*.swift' \
+    "${SWIFT_SOURCE_DIRS[@]}"
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   local_file="${match%%:*}"
@@ -146,11 +144,11 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "${local_file}:${line}: @unchecked Sendable / nonisolated(unsafe) needs a nearby Concurrency-Safety: rationale"
-done < <(
-  scan_matches '@unchecked Sendable|nonisolated\(unsafe\)' '*.swift' \
-    "${SWIFT_SOURCE_DIRS[@]}"
-)
+done <<< "$TRINKET_RG_MATCHES"
 
+trinket_rg_scan -n --glob '*.swift' --glob '!**/Generated/**' \
+    '//[[:space:]]*swiftlint:disable' \
+    "${SWIFT_SOURCE_DIRS[@]}"
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   local_file="${match%%:*}"
@@ -161,12 +159,9 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "${local_file}:${line}: swiftlint:disable must include ' - <reason>'"
-done < <(
-  rg -n --glob '*.swift' --glob '!**/Generated/**' \
-    '//[[:space:]]*swiftlint:disable' \
-    "${SWIFT_SOURCE_DIRS[@]}" 2>/dev/null || true
-)
+done <<< "$TRINKET_RG_MATCHES"
 
+scan_matches 'releasePins' '*.swift' Trinket/App/TrinketApp.swift
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   local_file="${match%%:*}"
@@ -180,9 +175,7 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "${local_file}:${line}: do not release launch artwork pins after warmup (ArtworkWorkingSetCheck)"
-done < <(
-  scan_matches 'releasePins' '*.swift' Trinket/App/TrinketApp.swift
-)
+done <<< "$TRINKET_RG_MATCHES"
 
 trinket_rg_report "Agent invariant check failed:" "Agent invariant check passed." "" \
   "Escape hatches: EntropyCheck / TestSleepCheck / PersistenceCheck / ConcurrencyCheck / ArtworkWorkingSetCheck: allow - <reason>."

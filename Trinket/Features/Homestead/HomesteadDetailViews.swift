@@ -185,7 +185,7 @@ struct HomesteadNodeDetailView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(TrinketDesign.Spacing.large)
-        .background(TrinketDesign.Colors.surface, in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.card))
+        .trinketMaterial(.homesteadFooter, cornerRadius: TrinketDesign.Corners.card)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.benefitsPanel)
     }

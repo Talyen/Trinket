@@ -2,10 +2,12 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
+import TrinketFeatureSupport
 import TrinketPersistence
 
 public struct RosterCombatantDetailView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
+    @State private var persistenceFailure: String?
 
     let kind: CombatantDetailContext.Kind
     let combatantID: String
@@ -33,53 +35,30 @@ public struct RosterCombatantDetailView: View {
             CombatantDetailPane(
                 combatant: combatant,
                 progression: playerSave.roster.progression(for: combatant),
-                loadout: Binding(
-                    get: { playerSave.roster.loadout(for: combatant) },
-                    set: { newValue in
-                        persistRoster {
-                            $0.setLoadout(newValue, for: combatant)
-                        }
-                    },
-                ),
-                equipmentLoadout: Binding(
-                    get: { playerSave.roster.equipmentLoadout(for: combatant) },
-                    set: { newValue in
-                        persistRoster {
-                            $0.setEquipmentLoadout(newValue, for: combatant)
-                        }
-                    },
-                ),
-                inventoryItems: Binding(
-                    get: { playerSave.inventory.items },
-                    set: { newItems in
-                        playerSave.persistBatch(logging: "Failed to save inventory edits") { $0.inventory.items = newItems }
-                    },
-                ),
-                unlockedTalents: Binding(
-                    get: { playerSave.roster.unlockedTalents(for: combatant) },
-                    set: { newTalents in
-                        persistRoster {
-                            $0.setUnlockedTalents(newTalents, for: combatant)
-                        }
-                    },
-                ),
+                loadout: playerSave.roster.loadout(for: combatant),
+                equipmentLoadout: playerSave.roster.equipmentLoadout(for: combatant),
+                inventoryItems: playerSave.inventory.items,
+                unlockedTalents: playerSave.roster.unlockedTalents(for: combatant),
                 allowsEditing: playerSave.roster.isUnlocked(combatant) && playerSave.contentAccess.allowsCombatant(combatant.id),
                 hapticsEnabled: hapticsEnabled,
                 effectsVolume: effectsVolume,
                 hidesNavigationBar: hidesNavigationBar,
+                onEdit: { edit in
+                    reportSaveResult(edit.apply(to: playerSave, for: combatant))
+                },
                 onUnlockTalent: { node, tree in
-                    playerSave.unlockTalent(
+                    let result = playerSave.unlockTalent(
                         nodeID: node.id,
                         treeID: tree.id,
                         for: combatant.id,
                     )
-                },
-                onResetTalents: {
-                    persistRoster {
-                        $0.resetTalents(for: combatant.id)
+                    if result == .persistenceFailed {
+                        _ = reportSaveResult(false)
                     }
+                    return result
                 },
             )
+            .trinketFailureAlert("Couldn't Save Changes", message: $persistenceFailure)
         } else {
             ContentUnavailableView(
                 kind == .hero ? "Hero Not Found" : "Companion Not Found",
@@ -89,9 +68,11 @@ public struct RosterCombatantDetailView: View {
         }
     }
 
-    private func persistRoster(_ update: (inout PlayerRosterState) -> Void) {
-        guard playerSave.contentAccess.allowsCombatant(combatantID) else { return }
-        playerSave.mutateRoster(update)
+    private func reportSaveResult(_ saved: Bool) -> Bool {
+        if !saved {
+            persistenceFailure = "Your changes weren't saved. Try again."
+        }
+        return saved
     }
 
     private func resolveCombatant() -> Combatant? {

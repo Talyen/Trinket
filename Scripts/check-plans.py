@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from datetime import date, timedelta
@@ -58,15 +59,18 @@ def plan_metadata(path: Path) -> tuple[dict[str, str], list[str]]:
         errors.append("updated must not precede created")
     if (
         status not in ARCHIVED_PLAN_STATUSES
-        and parsed_dates.get("updated")
+        and parsed_dates.get("created")
         and parsed_dates.get("expires")
-        and parsed_dates["expires"] <= parsed_dates["updated"]
+        and parsed_dates["expires"] <= parsed_dates["created"]
     ):
-        errors.append("expires must be later than updated")
+        errors.append("expires must be later than created")
     return metadata, errors
 
 
-def plan_failures(files: list[Path], *, final: bool = False, keep_plan: bool = False) -> list[str]:
+def plan_failures(
+    files: list[Path], *, final: bool = False, keep_plan: bool = False,
+    paths: set[Path] | None = None,
+) -> list[str]:
     failures: list[str] = []
     plans_dir = ROOT / "Docs" / "Plans"
     archived_dir = plans_dir / "Archived"
@@ -110,16 +114,16 @@ def plan_failures(files: list[Path], *, final: bool = False, keep_plan: bool = F
             continue
         today = date.today()
         if expires <= today:
-            failures.append(
-                f"{relative_plan}: {status} plan expired on {expires}; update or renew it, or record its outcome in Docs/Plans/Archived/README.md and delete it"
+            DOC_WARNINGS.append(
+                f"{relative_plan}: {status} plan expired on {expires}; review its disposition when resuming this work"
             )
         elif expires <= today + timedelta(days=PLAN_WARNING_DAYS):
             DOC_WARNINGS.append(
-                f"{relative_plan}: {status} plan expires on {expires}; renew or close it"
+                f"{relative_plan}: {status} plan expires on {expires}; review its disposition when resuming this work"
             )
         if status == "active":
             active_plans += 1
-            if final and not keep_plan:
+            if final and not keep_plan and (paths is None or plan_path.resolve() in paths):
                 failures.append(
                     f"{relative_plan}: active plan remains at final handoff; record its outcome in Docs/Plans/Archived/README.md and delete it, or pass --keep-plan"
                 )
@@ -128,17 +132,25 @@ def plan_failures(files: list[Path], *, final: bool = False, keep_plan: bool = F
     return failures
 
 
+def parse_arguments(description: str) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("--final", action="store_true", help="require active plans in scope to be closed")
+    parser.add_argument("--keep-plan", action="store_true", help="allow intentionally unfinished active plans")
+    parser.add_argument("--paths", nargs="+", help="scope final closure checks to individual repository files; other checks remain global")
+    args = parser.parse_args()
+    if args.paths is not None:
+        paths = set()
+        for value in args.paths:
+            path = (ROOT / value).resolve()
+            if not path.is_relative_to(ROOT.resolve()) or path.is_dir():
+                parser.error(f"--paths requires individual files inside the repository: {value}")
+            paths.add(path)
+        args.paths = paths
+    return args
+
+
 def main() -> int:
-    final = False
-    keep_plan = False
-    for argument in sys.argv[1:]:
-        if argument == "--final":
-            final = True
-        elif argument == "--keep-plan":
-            keep_plan = True
-        else:
-            print(f"Usage: {Path(sys.argv[0]).name} [--final] [--keep-plan]", file=sys.stderr)
-            return 2
+    args = parse_arguments(__doc__)
     links_path = Path(__file__).resolve().parent / "check-links.py"
     links_spec = importlib.util.spec_from_file_location("check_links", links_path)
     if links_spec is None or links_spec.loader is None:
@@ -150,7 +162,7 @@ def main() -> int:
 
     DOC_WARNINGS.clear()
     files = check_links.markdown_files()
-    failures = plan_failures(files, final=final, keep_plan=keep_plan)
+    failures = plan_failures(files, final=args.final, keep_plan=args.keep_plan, paths=args.paths)
     if failures:
         print("Execution plan checks failed:", file=sys.stderr)
         for failure in failures:

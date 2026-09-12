@@ -7,7 +7,7 @@ public struct AbilityTierPickerSheet: View {
     let combatant: Combatant
     let tier: AbilityTier
     let selectedAbilityID: String?
-    let onSelectAbility: (Ability) -> Void
+    let onSelectAbility: (Ability) -> Bool
 
     @State private var selectedAbility: Ability?
 
@@ -15,7 +15,7 @@ public struct AbilityTierPickerSheet: View {
         combatant: Combatant,
         tier: AbilityTier,
         selectedAbilityID: String?,
-        onSelectAbility: @escaping (Ability) -> Void,
+        onSelectAbility: @escaping (Ability) -> Bool,
     ) {
         self.combatant = combatant
         self.tier = tier
@@ -65,7 +65,7 @@ public struct AbilityTierPickerSheet: View {
                 primaryActionTitle: "Select Ability",
                 primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.selectAbility(ability.id),
                 onPrimaryAction: {
-                    onSelectAbility(ability)
+                    guard onSelectAbility(ability) else { return }
                     selectedAbility = nil
                 },
             )

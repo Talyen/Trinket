@@ -4,12 +4,52 @@ import SwiftUI
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketFeatureAdapters
 import TrinketFeatureContracts
 import TrinketPersistence
+import TrinketPersistenceTestSupport
+@testable import TrinketFeatureAdapters
 @testable import TrinketFeatureSupport
 
 struct PresentationModelTests {
+    #if DEBUG
+    @Test @MainActor func `failed combatant edits preserve the roster and retry persists`() throws {
+        let directory = try SaveTestSupport.makeTempDirectory(prefix: "CombatantEdits")
+        defer { SaveTestSupport.removeTempDirectory(directory) }
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: directory)
+        let hero = try #require(GameContent.hero(matching: "knight"))
+        let item = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic)
+        let node = try #require(CombatantTalentCatalog.configIfAvailable(for: hero.id)?.trees.first?.nodes.first)
+        try playerSave.performBatchMutation { save in
+            save.roster = .testSeed
+            save.roster.progressions[hero.id] = .at(level: 2)
+            save.roster.setEquipmentLoadout(.init(), for: hero)
+            save.roster.setLoadout(save.roster.loadout(for: hero).selecting(.bash), for: hero)
+            save.roster.setUnlockedTalents([node.id], for: hero)
+            save.inventory.items = [item]
+        }
+        let commands: [CombatantDetailEdit] = [.selectAbility(.slash), .equipItem(item, .weapon), .unequipItem(.weapon), .resetTalents]
+        for command in commands {
+            let before = playerSave.roster
+            playerSave.forcesNextSaveFailure = true
+            #expect(!command.apply(to: playerSave, for: hero))
+            #expect(playerSave.roster == before)
+            #expect(command.apply(to: playerSave, for: hero))
+            let reloaded = try SaveTestSupport.makeSaveStore(directoryURL: directory)
+            #expect(reloaded.roster == playerSave.roster)
+            switch command {
+            case .selectAbility:
+                #expect(reloaded.roster.loadout(for: hero).basic?.id == Ability.slash.id)
+            case .equipItem:
+                #expect(reloaded.roster.equipmentLoadout(for: hero).itemID(for: .weapon) == item.id)
+            case .unequipItem:
+                #expect(reloaded.roster.equipmentLoadout(for: hero).itemID(for: .weapon) == nil)
+            case .resetTalents:
+                #expect(reloaded.roster.unlockedTalents(for: hero).isEmpty)
+            }
+        }
+    }
+    #endif
+
     @Test func `item detail yield list formatting`() {
         let empty: [ResourceAmount] = []
         #expect(empty.formattedYieldList == "nothing")

@@ -1,0 +1,187 @@
+import Foundation
+import TrinketCore
+
+enum AbilityCatalogUltimate {
+    static let avatarOfJustice = Ability(
+        id: "avatar-of-justice", name: "Avatar", tier: .ultimate,
+        targetedEffects: [
+            TargetedEffect(.avatar(holyDamage: 7, blockPerTurn: 2, turns: 2)),
+        ],
+    )
+
+    static let blessedAegis = Ability(
+        id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
+        description: "Gain 6 Block. Next time you're hit, Deal 6 Holy damage.",
+        targetedEffects: [
+            TargetedEffect(.shield(.block, 6)),
+            TargetedEffect(.onHitDamage(.holy, 6)),
+        ],
+    )
+
+    static let blizzard = Ability(
+        id: "blizzard", name: "Blizzard", tier: .ultimate,
+        targetedEffects: [TargetedEffect(.recurringDamage(.freeze, 4, 2))],
+    )
+
+    static let bloodthorn = Ability(
+        id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
+        damageComponents: [
+            DamageComponent(2, keyword: .bleed),
+            DamageComponent(2, keyword: .poison),
+        ],
+        hasLeech: true,
+    )
+
+    static let combustion = Ability(
+        id: "combustion", name: "Combustion", tier: .ultimate,
+        description: "Deal 6 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once.",
+        damageComponents: [
+            DamageComponent(6, keyword: .burn),
+        ],
+        targetedEffects: [
+            TargetedEffect(.detonateDoT(.burn, 1), target: .enemy, condition: .enemyBurning),
+        ],
+    )
+
+    static let astralArrow = Ability(
+        id: "astral-arrow", name: "Astral Arrow", tier: .ultimate,
+        description: "Deal 7 Burn, Freeze, or Bleed damage.",
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .burn)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .freeze)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(7, keyword: .bleed)]),
+        ],
+    )
+
+    static let earthquake = Ability(
+        id: "earthquake", name: "Earthquake", tier: .ultimate,
+        targetedEffects: [TargetedEffect(.recurringDamage(.stun, 4, 2))],
+    )
+
+    static let faustianBargain = Ability(
+        id: "faustian-bargain", name: "Faustian Bargain", tier: .ultimate,
+        damageComponents: [
+            DamageComponent(2, keyword: .physical, target: .actor),
+            DamageComponent(4, keyword: .burn),
+        ],
+        targetedEffects: [
+            TargetedEffect(.drawCards(1), target: .actor),
+        ],
+    )
+
+    static let goldenPlate = Ability(
+        id: "golden-plate", name: "Golden Plate", tier: .ultimate,
+        description: "Gain 3 Block, Gold, and Thorns. Your Hero and Companion each dodge the next attack.",
+        targetedEffects: [
+            TargetedEffect(.shield(.block, 3)),
+            TargetedEffect(.resourceGain(.gold, 3)),
+            TargetedEffect(.thorns(3)),
+            TargetedEffect(.evadeNextHit, target: .hero),
+            TargetedEffect(.evadeNextHit, target: .companion),
+        ],
+    )
+
+    static let hemorrhage = Ability(
+        id: "hemorrhage", name: "Hemorrhage", tier: .ultimate,
+        damageComponents: [DamageComponent(4, keyword: .bleed)],
+        targetedEffects: [
+            TargetedEffect(.hemorrhage(4)),
+        ],
+    )
+
+    static let luckPotion = Ability(
+        id: "luck-potion", name: "Luck Potion", tier: .ultimate,
+        description: "Randomly restore 7 Health or Mana to the ally who needs it most, or gain 7 Block.",
+        outcomeBranches: [
+            AbilityOutcomeBranch(effects: [.resourceGain(.mana, 7)], restorationResource: .mana),
+            AbilityOutcomeBranch(effects: [.instantHeal(.health, 7)], restorationResource: .health),
+            AbilityOutcomeBranch(effects: [.shield(.block, 7)]),
+        ],
+    )
+
+    static let meteor = Ability(
+        id: "meteor", name: "Meteor", tier: .ultimate,
+        damageComponents: [DamageComponent(6, keyword: .burn)],
+        repeatsManaEmpowerment: true,
+    )
+
+    static let moltenBulwark = Ability(
+        id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate,
+        damageComponents: [DamageComponent(3, keyword: .burn)],
+        targetedEffects: [
+            TargetedEffect(.shield(.block, 4)),
+            TargetedEffect(.onHitDamage(.burn, 3)),
+        ],
+    )
+
+    static let packTactics = Ability(
+        id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
+        targetedEffects: [
+            TargetedEffect(.drawAndPlayCards(2)),
+        ],
+    )
+
+    static let panaceaPotion = Ability(
+        id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
+        description: "Cleanse all debuffs from an ally. Restore 3 Health plus 2 per debuff cleansed.",
+        targetedEffects: [
+            TargetedEffect(.panacea(baseHeal: 3, healPerDebuff: 2)),
+        ],
+    )
+
+    static let phoenixFeather = Ability(
+        id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate,
+        damageComponents: [DamageComponent(3, keyword: .burn)],
+        targetedEffects: [
+            TargetedEffect(.revive(1), target: .defeatedAlly),
+        ],
+    )
+
+    static let shadowstep = Ability(
+        id: "shadowstep", name: "Shadowstep", tier: .ultimate,
+        description: "Draw 1 card. Dodge the next attack. Your next attack is a guaranteed Critical Hit.",
+        targetedEffects: [
+            TargetedEffect(.drawCards(1), target: .actor),
+            TargetedEffect(.evadeNextHit, target: .actor),
+            TargetedEffect(.nextStrikeCritical, target: .actor),
+        ],
+    )
+
+    static let sunburst = Ability(
+        id: "sunburst", name: "Sunburst", tier: .ultimate,
+        description: "Deal 6 Holy damage and Restore 6 Health.",
+        damageComponents: [DamageComponent(6, keyword: .holy)],
+        targetedEffects: [TargetedEffect(.instantHeal(.health, 6), target: .lowestHealthAlly)],
+    )
+
+    static let thornMail = Ability(
+        id: "thorn-mail", name: "Thorn Mail", tier: .ultimate,
+        description: "Gain 5 Block and 5 Thorns.",
+        targetedEffects: [
+            TargetedEffect(.shield(.block, 5)),
+            TargetedEffect(.thorns(5)),
+        ],
+    )
+
+    static let all: [Ability] = [
+        avatarOfJustice,
+        astralArrow,
+        blessedAegis,
+        blizzard,
+        bloodthorn,
+        combustion,
+        earthquake,
+        faustianBargain,
+        goldenPlate,
+        hemorrhage,
+        luckPotion,
+        meteor,
+        moltenBulwark,
+        packTactics,
+        panaceaPotion,
+        phoenixFeather,
+        shadowstep,
+        sunburst,
+        thornMail,
+    ]
+}

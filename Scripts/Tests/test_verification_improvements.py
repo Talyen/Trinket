@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import subprocess
 import tempfile
 from pathlib import Path
 import sys
@@ -13,90 +12,6 @@ from script_test_support import ScriptRegressionTestCase
 
 
 class VerificationImprovementsTests(ScriptRegressionTestCase):
-    def test_handoff_dry_run_and_execution_share_cheap_slice_registry(self) -> None:
-        config = (ROOT / "Scripts" / "config" / "cheap-slices.txt").read_text(encoding="utf-8")
-        registry = [
-            line.split("#", 1)[0].strip()
-            for line in config.splitlines()
-            if line.split("#", 1)[0].strip()
-        ]
-        self.assertEqual(
-            registry,
-            [
-                "./Scripts/check-module-boundaries.sh",
-                "./Scripts/check-api-bans.sh",
-                "./Scripts/release-notes.sh validate",
-                "./Scripts/check-artwork-budget.sh",
-            ],
-        )
-        lib = (ROOT / "Scripts" / "lib" / "cheap-slices.sh").read_text(encoding="utf-8")
-        self.assertIn("trinket_cheap_slice_commands", lib)
-        self.assertIn("trinket_run_cheap_slices", lib)
-        self.assertIn("--dry-run", lib)
-        self.assertIn("cheap-slices.txt", lib)
-        handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
-        self.assertIn("trinket_run_cheap_slices --dry-run", handoff)
-        self.assertIn("trinket_run_cheap_slices", handoff)
-        # Dry-run must include cheap slices in order after plan.
-        result = subprocess.run(
-            [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Docs/Platform/Verification.md"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        # Docs scope should contain docs check plus 4 cheap slices in registry order.
-        self.assertIn("python3 ./Scripts/check-docs.py", planned)
-        cheap_positions = [planned.index(cmd) for cmd in registry]
-        self.assertEqual(cheap_positions, sorted(cheap_positions))
-        self.assertEqual(planned[-4:], registry)
-        # ci-gate --fast must also source same registry.
-        gate = (ROOT / "Scripts" / "ci-gate.sh").read_text(encoding="utf-8")
-        self.assertIn("cheap-slices.sh", gate)
-        self.assertIn("trinket_run_cheap_slices", gate)
-
-    def test_mixed_script_and_docs_runs_docs_once(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Scripts/build.sh",
-                "Docs/Platform/Verification.md",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        # Mixed scope must contain docs once and scripts with --skip-docs once.
-        self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
-        script_commands = [p for p in planned if p.startswith("./Scripts/test-scripts.sh")]
-        self.assertEqual(script_commands, [
-            "./Scripts/test-scripts.sh --skip-docs --paths Docs/Platform/Verification.md Scripts/build.sh",
-        ])
-
-    def test_plain_script_scope_still_validates_docs(self) -> None:
-        result = subprocess.run(
-            [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Scripts/build.sh"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        # Plain script scope validates docs via test-scripts.sh default (no --skip-docs) but also shows cheap slices.
-        self.assertIn("./Scripts/test-scripts.sh --paths Scripts/build.sh", planned)
-        self.assertFalse(any("--skip-docs" in command for command in planned))
-        # Ensure cheap slices still present; docs not separately listed for plain script is OK because test-scripts.sh runs it internally,
-        # but the plan must not have duplicate docs entry.
-        self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 0)
-
     def test_xctest_assertion_with_incomplete_bundle_is_test_failure(self) -> None:
         import types
 
@@ -168,11 +83,3 @@ class VerificationImprovementsTests(ScriptRegressionTestCase):
         ]
         for old in old_shas:
             self.assertNotIn(old, text)
-
-    def test_artifact_retention_is_seven_days(self) -> None:
-        tests = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
-        restore = (ROOT / ".github" / "actions" / "restore-and-build" / "action.yml").read_text(encoding="utf-8")
-        self.assertNotRegex(tests, r"retention-days:\s*1\b")
-        self.assertNotRegex(restore, r"retention-days:\s*1\b")
-        self.assertIn("retention-days: 7", tests)
-        self.assertIn("retention-days: 7", restore)

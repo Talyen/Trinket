@@ -66,14 +66,10 @@ echo "=== Unit tests ==="
 
 if [[ "$MODE" == "ui" ]]; then
   echo ""
-  echo "=== Full UI tests ==="
+  echo "=== Additional UI journeys (FullUI plan; smoke runs in main CI) ==="
   # Deliberate release-time full run: opt past test.sh's CI-owned full-suite guard.
   TRINKET_ALLOW_FULL_UI=1 ./Scripts/test.sh ui --no-build
 else
-  echo ""
-  echo "=== Unit timing report ==="
-  python3 ./Scripts/test-timing.py report --mode unit --last 1 --top 10
-
   echo ""
   echo "=== Smoke UI canary ==="
   ./Scripts/test.sh smoke --no-build

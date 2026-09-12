@@ -55,7 +55,7 @@ package enum DamagePipeline {
     }
 
     private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
-        if state.options.isOriginalCardDamage, state.amount > 0, state.combatant.role == .enemy {
+        if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
@@ -152,7 +152,7 @@ package enum DamagePipeline {
             applyCriticalMultiply(to: &state, in: &context)
         }
         applyBackdraftBonus(to: &state, in: &context)
-        if state.options.isOriginalCardDamage, state.amount > 0, state.combatant.role == .enemy {
+        if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
             let bonus = CombatTriggerEngine.heroCardDamageBonus(keyword: state.damageKeyword, sourceID: state.sourceActorID, in: &context)
             state.remaining += bonus
             state.buildupDamage += bonus

@@ -40,9 +40,14 @@ latest_release() { # repo
 checksum_for() { # url
   local tmp
   tmp="$(mktemp)"
-  curl -fsSL "$1" -o "$tmp"
-  shasum -a 256 "$tmp" | awk '{print $1}'
+  local status=0 checksum
+  curl -fsSL "$1" -o "$tmp" || status=$?
+  if (( status == 0 )); then
+    checksum="$(shasum -a 256 "$tmp" | awk '{print $1}')" || status=$?
+  fi
   rm -f "$tmp"
+  (( status == 0 )) || return "$status"
+  printf '%s\n' "$checksum"
 }
 
 rewrite_pins() { # key=value...

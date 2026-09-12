@@ -19,8 +19,7 @@ while many simple similar views may remain clearer independently.
 Choose the smallest coherent presentation slice that removes the demonstrated
 co-maintenance. Deleting a redundant path, reusing an existing component, or sharing
 a local layout can be enough; one parameterized screen is not a required outcome.
-Include repeated state mapping, identifiers, and tests only when they belong to
-that same confirmed duplication.
+Include state mapping, identifiers, and tests tied to that duplication.
 
 Keep content bindings and distinct mode rules with their feature. Shared game UI
 belongs in the existing feature-support owner; app chrome/tokens belong in the

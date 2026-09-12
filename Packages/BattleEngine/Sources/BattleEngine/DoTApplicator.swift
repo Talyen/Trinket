@@ -9,6 +9,7 @@ package enum DoTApplicator {
         to effectTarget: Combatant,
         sourceActorID: String,
         application: DoTApplication,
+        provenance: DamageProvenance? = nil,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
@@ -18,11 +19,12 @@ package enum DoTApplicator {
 
         var collected: [ActionEvent] = []
         if application.dealsImmediateDamage {
-            collected.append(contentsOf: DoTDamage.resolveTurnDamage(
+            collected.append(contentsOf: DoTDamage.resolveDamage(
                 basePotency: resolvedPotency,
                 keyword: keyword,
                 target: effectTarget,
                 sourceActorID: sourceActorID,
+                provenance: provenance,
                 in: &context,
             ).events)
         }
@@ -62,6 +64,7 @@ package enum DoTApplicator {
         sourceActorID: String,
         application: DoTApplication,
         durationTurns: Int? = nil,
+        provenance: DamageProvenance? = nil,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
@@ -71,11 +74,12 @@ package enum DoTApplicator {
 
         var collected: [ActionEvent] = []
         if application.dealsImmediateDamage {
-            collected.append(contentsOf: DoTDamage.resolveTurnDamage(
+            collected.append(contentsOf: DoTDamage.resolveDamage(
                 basePotency: resolvedPotency,
                 keyword: .bleed,
                 target: effectTarget,
                 sourceActorID: sourceActorID,
+                provenance: provenance,
                 in: &context,
             ).events)
         }
@@ -90,7 +94,7 @@ package enum DoTApplicator {
                 }
                 for bleed in bleeds {
                     guard context.roster.health(for: effectTarget) > 0 else { break }
-                    collected.append(contentsOf: DoTDamage.resolveTurnDamage(
+                    collected.append(contentsOf: DoTDamage.resolveDamage(
                         basePotency: bleed.effect.potency ?? 0,
                         keyword: .bleed,
                         target: effectTarget,
@@ -100,7 +104,7 @@ package enum DoTApplicator {
                 }
             }
             if sourceTriggers.onBleedAppliedToBleedingDealDamage > 0 {
-                collected.append(contentsOf: DoTDamage.resolveTurnDamage(
+                collected.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: sourceTriggers.onBleedAppliedToBleedingDealDamage,
                     keyword: .bleed,
                     target: effectTarget,

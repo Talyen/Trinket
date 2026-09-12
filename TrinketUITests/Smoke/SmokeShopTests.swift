@@ -52,6 +52,7 @@ final class SmokeShopTests: TrinketUITestCase {
 
         scrollUntilVisible(shop.leaveButton, swipingUp: true, requireHittable: true)
         shop.leaveButton.tap()
+        play.assertLoaded()
         play.openCampaign(number: 2)
     }
 }

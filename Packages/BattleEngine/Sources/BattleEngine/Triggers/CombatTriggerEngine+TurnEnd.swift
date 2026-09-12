@@ -11,7 +11,7 @@ package extension CombatTriggerEngine {
             let triggers = context.modifiers(for: actor.id).triggers
 
             events.append(contentsOf: endOfTurnBlockConversion(runtime: runtime, actor: actor, in: &context))
-            events.append(contentsOf: endOfTurnHealing(owner: owner, actor: actor, triggers: triggers, in: &context))
+            events.append(contentsOf: endOfTurnHealing(actor: actor, triggers: triggers, in: &context))
             events.append(contentsOf: hoardArmorBlock(actor: actor, triggers: triggers, in: &context))
         }
         return events
@@ -50,14 +50,12 @@ package extension CombatTriggerEngine {
     }
 
     private static func endOfTurnHealing(
-        owner: BattleParticipant,
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         events.append(contentsOf: hibernationHeal(actor: actor, triggers: triggers, in: &context))
-        events.append(contentsOf: playfulEnergyHeal(owner: owner, actor: actor, triggers: triggers, in: &context))
         events.append(contentsOf: cheerUpHeal(actor: actor, triggers: triggers, in: &context))
         events.append(contentsOf: campfireComfortHeal(actor: actor, triggers: triggers, in: &context))
         return events
@@ -77,29 +75,6 @@ package extension CombatTriggerEngine {
             source: actor,
             abilityName: triggerAbilityName("endTurnWithBlockHealFlat", for: actor, fallback: "Hibernation", in: context),
         )
-    }
-
-    private static func playfulEnergyHeal(
-        owner: BattleParticipant,
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard triggers.cardsPlayedHealPartyThreshold > 0,
-              (context.turnCadence.cardsPlayed[owner] ?? 0) >= triggers.cardsPlayedHealPartyThreshold
-        else { return [] }
-        var events: [ActionEvent] = []
-        for otherOwner in [BattleParticipant.hero, .companion] {
-            let member = context.roster[otherOwner]
-            guard member.isAlive else { continue }
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.cardsPlayedHealPartyAmount,
-                target: member.combatant,
-                source: actor,
-                abilityName: triggerAbilityName("cardsPlayedHealPartyThreshold", for: actor, fallback: "Playful Energy", in: context),
-            ))
-        }
-        return events
     }
 
     private static func cheerUpHeal(

@@ -14,13 +14,25 @@ trinket_cheap_slice_commands() {
 }
 
 trinket_run_cheap_slices() {
-  if [[ "${1:-}" == "--dry-run" ]]; then
-    trinket_cheap_slice_commands
-    return 0
-  fi
+  local dry_run=false after_style=false option
+  for option in "$@"; do
+    case "$option" in
+      --dry-run) dry_run=true ;;
+      --after-style) after_style=true ;;
+      *) echo "Unknown cheap-slice option: $option" >&2; return 2 ;;
+    esac
+  done
+  local commands
+  commands="$(trinket_cheap_slice_commands)" || return $?
+  [[ -n "$commands" ]] || { echo "Cheap-slice registry is empty." >&2; return 1; }
   local cmd
   while IFS= read -r cmd; do
     [[ -z "$cmd" ]] && continue
-    bash -c "$cmd" || return $?
-  done < <(trinket_cheap_slice_commands)
+    [[ "$after_style" == true && "$cmd" == ./Scripts/check-api-bans.sh ]] && continue
+    if [[ "$dry_run" == true ]]; then
+      printf '%s\n' "$cmd"
+    else
+      bash -c "$cmd" || return $?
+    fi
+  done <<< "$commands"
 }

@@ -131,6 +131,7 @@ done
 trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" true
 
 run_generate() {
+  export TRINKET_FORCE_ABILITY_DUMP=1
   if [[ "$INCLUDE_ASSETS" == true ]]; then
     ./Scripts/generate.sh --assets --force-xcodegen
   else
@@ -197,7 +198,7 @@ if [[ "$MODE" == "idempotent" ]]; then
   if [[ "$before" == "$after" ]]; then
     echo "Generated output is stable under regenerate (matches manifests)."
     # Align with verify/ci-gate so later wrappers skip generate.
-    touch_generate_stamp "$RESULTS_DIR"
+    touch_generate_stamp "$RESULTS_DIR" "$INCLUDE_ASSETS"
     exit 0
   fi
   echo "ERROR: Regenerating still changed tracked generated output." >&2

@@ -177,4 +177,23 @@ struct RestorationIntegrationTests {
         #expect(CombatGain.amount(3, current: 5, cap: 4) == 0)
         #expect(CombatGain.amount(30, current: 0, cap: 10) == 10)
     }
+
+    @Test func `aether shield waits for overflow remaining after blood link`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxHealth: 20,
+            heroModifiers: .init(triggers: CombatTraitTriggers(healing: HealingTriggers(
+                leechOverhealTransfersToCompanion: true, overhealFirstBlockPerTurn: 3,
+            ))),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.companion.currentHealth = 10
+        var request = HealRequest(amount: 10, target: battle.hero, sourceActorID: battle.hero.id, origin: .leech, logAs: .silent)
+        request.amountBasis = .resolved
+        _ = HealingEngine.resolveHealing(request, in: &battle)
+        #expect(battle.roster.companion.currentHealth == 20)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 0)
+        _ = HealingEngine.resolveHealing(request, in: &battle)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 3)
+    }
 }

@@ -37,4 +37,6 @@ jobs:
           set -euo pipefail
           gh api "repos/${GITHUB_REPOSITORY}/contents/Scripts/ci-path-filter.py?ref=${SHA}" \
             --jq .content | base64 --decode > /tmp/ci-path-filter.py
+          gh api "repos/${GITHUB_REPOSITORY}/contents/Scripts/build-inputs.env?ref=${SHA}" \
+            --jq .content | base64 --decode > /tmp/build-inputs.env
           python3 /tmp/ci-path-filter.py

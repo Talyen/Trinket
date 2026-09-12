@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from content_codegen_modifiers import (
+from internal.content.content_codegen_modifiers import (
     VALID_KEYWORDS,
     modifier_field_key,
     modifier_token_to_swift,
@@ -23,7 +23,7 @@ from content_codegen_modifiers import (
     parse_modifier_tokens,
     reject_duplicate_modifier_tokens,
 )
-from content_codegen_triggers import (
+from internal.content.content_codegen_triggers import (
     _trigger_families,
     triggers_swift,
 )
@@ -31,7 +31,8 @@ from content_codegen_triggers import (
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_DIR = ROOT / "ContentManifest"
 GENERATED_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Generated"
-CONTENT_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Content"
+ABILITY_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Abilities"
+ENCOUNTER_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Encounters"
 TRINKET_CONTENT_PACKAGE = ROOT / "Packages" / "TrinketContent"
 ABILITY_INVENTORY_STAMP = ROOT / ".DerivedData" / "AbilityInventory.stamp"
 
@@ -250,15 +251,15 @@ def collect_art_ids() -> set[str]:
 
 
 @functools.cache
-def _read_content_source(name: str) -> str:
-    return (CONTENT_DIR / name).read_text(encoding="utf-8")
+def _read_encounter_source(name: str) -> str:
+    return (ENCOUNTER_DIR / name).read_text(encoding="utf-8")
 
 
 @functools.cache
 def collect_mystery_event_ids() -> set[str]:
     ids: set[str] = set()
     for name in ("MysteryEventPool+Wilds.swift", "MysteryEventPool+Relics.swift"):
-        ids.update(re.findall(r'makeEvent\(\s*id:\s*"([^"]+)"', _read_content_source(name)))
+        ids.update(re.findall(r'makeEvent\(\s*id:\s*"([^"]+)"', _read_encounter_source(name)))
     if not ids:
         raise ValueError("mystery event id scrape found no ids; update collect_mystery_event_ids")
     return ids
@@ -266,7 +267,7 @@ def collect_mystery_event_ids() -> set[str]:
 
 @functools.cache
 def collect_recruit_event_ids() -> set[str]:
-    ids = set(re.findall(r'recruit\(\s*id:\s*"([^"]+)"', _read_content_source("RecruitEventPool.swift")))
+    ids = set(re.findall(r'recruit\(\s*id:\s*"([^"]+)"', _read_encounter_source("RecruitEventPool.swift")))
     if not ids:
         raise ValueError("recruit event id scrape found no ids; update collect_recruit_event_ids")
     return ids
@@ -492,7 +493,7 @@ ABILITY_DECL_BUILDERS = r"(?:Ability\(|AbilityBuilder\.(?:directHit|buffOnly|mul
 
 @functools.cache
 def _read_ability_source(tier: str) -> str:
-    return (CONTENT_DIR / f"AbilityCatalog{tier}.swift").read_text()
+    return (ABILITY_DIR / f"AbilityCatalog{tier}.swift").read_text()
 
 
 def ability_symbols_in_source(source: str) -> list[str]:
@@ -1780,19 +1781,14 @@ def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
 def _ability_inventory_digest() -> str:
     import hashlib
 
-    # Every input that can change dump output: catalog data plus the
-    # Ability.summary implementation and the dump helper itself.
-    inputs = [
-        CONTENT_DIR / "AbilityCatalogBasic.swift",
-        CONTENT_DIR / "AbilityCatalogSkill.swift",
-        CONTENT_DIR / "AbilityCatalogUltimate.swift",
-        TRINKET_CONTENT_PACKAGE / "Sources" / "TrinketContent" / "Ability.swift",
-        TRINKET_CONTENT_PACKAGE / "Sources" / "AbilityInventoryDump" / "AbilityInventoryDumpMain.swift",
-    ]
+    inputs = [ROOT / "Scripts/content_codegen.py", ROOT / "Scripts/tool-versions.env"]
+    for package in (TRINKET_CONTENT_PACKAGE, ROOT / "Packages/TrinketCore"):
+        inputs.append(package / "Package.swift")
+        inputs.extend((package / "Sources").rglob("*.swift"))
     hasher = hashlib.sha256()
-    for p in inputs:
-        if p.is_file():
-            hasher.update(p.read_bytes())
+    for path in sorted(inputs):
+        hasher.update(str(path.relative_to(ROOT)).encode() + b"\0")
+        hasher.update(path.read_bytes() + b"\0")
     return hasher.hexdigest()
 
 

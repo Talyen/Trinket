@@ -5,6 +5,16 @@ import TrinketCore
 import TrinketTestSupport
 
 struct EffectHandlersApplyBuffDebuffTests {
+    @Test func `status summary order is independent of effect insertion order`() {
+        let keywords: [Keyword] = [.burn, .freeze, .holy]
+        let effects = keywords.enumerated().map { index, keyword in
+            ActiveEffect(id: index, effect: .onHitDamage(keyword, 2), remainingTurns: 0)
+        }
+        for order in [effects, Array(effects.reversed()), [effects[1], effects[2], effects[0]]] {
+            #expect(EffectSummaryBuilder.build(for: order).map(\.keyword) == keywords)
+        }
+    }
+
     @Test(arguments: [
         ([Effect.damageReductionPercent(0.25, 3), .damageReductionPercent(0.20, 3)], "40%"),
         ([Effect.damageReductionFlat(2, 3), .damageReductionFlat(3, 3)], "by 5,"),

@@ -28,7 +28,7 @@ struct BattleHandView: View {
     let battleFrame: CGRect
     var autoLiftCardID: Int?
     var onCardInteractionChanged: ((Bool) -> Void)?
-    var onLift: ((BattleCard) -> Void)?
+    var onLift: ((BattleCard, BattleCardCuePresentationMode) -> Void)?
     var onLiftCancel: ((BattleCard) -> Void)?
 
     @State private var heldInteraction: HeldCardInteraction?
@@ -43,7 +43,7 @@ struct BattleHandView: View {
         battleFrame: CGRect,
         autoLiftCardID: Int? = nil,
         onCardInteractionChanged: ((Bool) -> Void)? = nil,
-        onLift: ((BattleCard) -> Void)? = nil,
+        onLift: ((BattleCard, BattleCardCuePresentationMode) -> Void)? = nil,
         onLiftCancel: ((BattleCard) -> Void)? = nil,
     ) {
         self.cards = cards
@@ -102,7 +102,7 @@ struct BattleHandView: View {
                                 onCardInteractionChanged?(false)
                             }
                         },
-                        onLift: { onLift?(card) },
+                        onLift: { mode in onLift?(card, mode) },
                         onLiftCancel: { onLiftCancel?(card) },
                     )
                     .offset(x: snapshot.fanOffsetX)

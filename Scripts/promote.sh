@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Standalone auto-mirror: install an isolated agent build into Trinket Run.
 # Extracted from handoff.sh --mirror; handoff --mirror execs this script.
-# Install-only — no relaunch — so a mid-session game is not killed.
+# Install-only by default; never updates another agent simulator.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -18,15 +18,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$QUIET_MIRROR" != true ]]; then
-  echo ""
-  echo "=== Auto-mirror: ensuring Trinket.app reflects verified packages ==="
+if [[ "${GITHUB_ACTIONS:-}" == "true" || "${TRINKET_PROMOTE_SKIP:-0}" == "1" ]]; then
+  echo "Mirror skipped by environment."
+  exit 0
 fi
-env SKIP_GENERATE=1 ./Scripts/build.sh >/dev/null 2>&1 || echo "warning: auto-mirror app build failed" >&2
+
+export TRINKET_ISOLATE=1
+source Scripts/run-env.sh
+trinket_run_env_init
+trinket_shared_sim_lease_acquire
+
 if [[ "$QUIET_MIRROR" != true ]]; then
-  echo ""
-  echo "=== Auto-mirror to Trinket Run (isolated build → human simulator) ==="
+  echo "=== Building app for Trinket Run ==="
 fi
-# shellcheck source=lib/promote.sh
+if ! ./Scripts/build.sh >/dev/null; then
+  echo "Mirror failed: app build failed; see build diagnostics above." >&2
+  exit 1
+fi
 source Scripts/lib/promote.sh
-trinket_promote_auto_mirror_to_run || true
+trinket_promote_auto_mirror_to_run

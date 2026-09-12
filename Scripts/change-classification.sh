@@ -180,12 +180,28 @@ trinket_collect_paths() {
 
   local path
   if [[ "$path_mode" == "explicit" ]]; then
-    for path in "$@"; do
-      if [[ -d "$path" ]]; then
-        echo "--paths requires individual files, not directories: $path" >&2
-        return 2
-      fi
-    done
+    local normalized
+    normalized="$(python3 - "$PWD" "$@" <<'PY_PATHS'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1]).resolve()
+for raw in sys.argv[2:]:
+    path = (root / raw).resolve()
+    try:
+        relative = path.relative_to(root)
+    except ValueError:
+        raise SystemExit(f"--paths must stay within the repository: {raw}")
+    if path.is_dir():
+        raise SystemExit(f"--paths requires individual files, not directories: {raw}")
+    if not raw or "\n" in raw:
+        raise SystemExit("--paths requires non-empty single-line paths")
+    print(relative.as_posix())
+PY_PATHS
+)" || return 2
+    set --
+    while IFS= read -r path; do
+      set -- "$@" "$path"
+    done <<< "$normalized"
   fi
 
   while IFS= read -r path; do
@@ -329,8 +345,34 @@ trinket_path_is_visual_ui() {
   esac
 }
 
+trinket_add_runtime_contracts_for_path() {
+  trinket_add_route_card Docs/AgentContext/battle.md
+  trinket_add_context_card Docs/AgentContext/battle-runtime.md
+  case "$1" in
+    *.md) ;;
+    */PlaySession+BattleLaunch.swift|*/PlaySession+BattleCompletion.swift|*/PlayBattleLaunch+Configuration.swift|\
+    */BattleSession+Progression.swift)
+      trinket_add_context_card Docs/AgentContext/battle-launch.md ;;
+    */Features/BattleAbilityCardView.swift|*/Features/BattleHandView.swift|*/Features/BattleFieldLane+CardPlay.swift|\
+    */Features/BattleCombatantProjectionPane.swift|*/Features/BattleLogSheet.swift|*/Features/BattleAutoToggle.swift|\
+    */Features/Battlefield/*|*/Features/Effects/*|*/Features/Feedback/*|*/Features/Layout/*|\
+    */State/Feedback/*|*/State/BattleCard*.swift|\
+    */State/BattlePresentationState.swift|*/State/BattleCommandState.swift|\
+    */State/BattleMotion.swift|*/State/BattleSpectacle*.swift|*/State/BattleSession+CardCues.swift|\
+    */State/BattleSession+Transitions.swift)
+      trinket_add_context_card Docs/AgentContext/battle-presentation.md ;;
+    *)
+      trinket_add_context_card Docs/AgentContext/battle-launch.md
+      trinket_add_context_card Docs/AgentContext/battle-presentation.md ;;
+  esac
+}
+
 trinket_add_battle_subcard_for_path() {
   case "$1" in
+    Trinket/App/TrinketApp.swift)
+      trinket_add_runtime_contracts_for_path "$1" ;;
+    Packages/BattleEngine/Sources/BattleEngine/BattleRuntime.swift|Packages/BattleEngine/Sources/BattleEngine/BattleRuntimeDependencies.swift)
+      trinket_add_runtime_contracts_for_path "$1" ;;
     Packages/BattleEngine/*)
       trinket_add_route_card Docs/AgentContext/battle.md
       trinket_add_context_card Docs/AgentContext/battle-engine.md
@@ -353,15 +395,13 @@ trinket_add_battle_subcard_for_path() {
     Packages/TrinketAppState/*)
       case "$1" in
         */Audio/*) ;;
-        *Battle*|*/Encounter*|*/Play/*)
-          trinket_add_route_card Docs/AgentContext/battle.md
-          trinket_add_context_card Docs/AgentContext/battle-runtime.md
+        *Battle*|*/Encounter*|*/Play/*|*/State/AppState.swift|*/State/PlaySession.swift)
+          trinket_add_runtime_contracts_for_path "$1"
           ;;
       esac
       ;;
     Packages/TrinketBattleFeature/*)
-      trinket_add_route_card Docs/AgentContext/battle.md
-      trinket_add_context_card Docs/AgentContext/battle-runtime.md
+      trinket_add_runtime_contracts_for_path "$1"
       ;;
     *)
       ;;
@@ -373,10 +413,8 @@ trinket_add_persistence_contracts_for_path() {
     Packages/TrinketPersistence/*)
       trinket_add_context_card Docs/AgentContext/persistence.md
       case "$1" in
-        */Sources/TrinketPersistence/*Completion.swift|*/Sources/TrinketPersistence/BattleLoot.swift|\
-        */Sources/TrinketPersistence/VictoryRewardApplier.swift|*/Sources/TrinketPersistence/RewardSettlementInputs+Save.swift|\
-        */Sources/TrinketPersistence/Shop*|*/Sources/TrinketPersistence/Mystery*|\
-        */Sources/TrinketPersistence/EncounterIdentity+Save.swift|*/Sources/TrinketPersistence/PlayerSaveStore+Homestead.swift)
+        */Sources/TrinketPersistence/Progression/*|*/Sources/TrinketPersistence/Encounters/*|\
+        */Sources/TrinketPersistence/PlayerSaveStore+Homestead.swift)
           trinket_add_context_card Docs/AgentContext/persistence-progression.md ;;
         */PlayerSaveGraph/*|*/ModelContainerBootstrap.swift|*/PlayerSaveSanitizer.swift|*/PlayerSaveStoreConfiguration.swift)
           trinket_add_context_card Docs/AgentContext/persistence-storage.md ;;
@@ -408,6 +446,15 @@ trinket_add_knowledge_for_path() {
   esac
 }
 
+trinket_path_matches_inputs() {
+  local path="$1" input
+  shift
+  for input in "$@"; do
+    [[ "$path" == "$input" || "$path" == "$input/"* ]] && return 0
+  done
+  return 1
+}
+
 trinket_classify_path() {
   local path="$1"
 
@@ -416,6 +463,15 @@ trinket_classify_path() {
     TRINKET_NEEDS_DOCS=true
     TRINKET_AUTHORED_PATHS+=("$path")
     return 0
+  fi
+
+  if trinket_path_matches_inputs "$path" "${TRINKET_CONTENT_GENERATION_INPUTS[@]}"; then
+    TRINKET_HAS_CONTENT=true
+    TRINKET_NEEDS_CONTENT_GENERATION=true
+  fi
+  if trinket_path_matches_inputs "$path" "${TRINKET_ASSET_GENERATION_INPUTS[@]}"; then
+    TRINKET_HAS_ASSETS=true
+    TRINKET_NEEDS_ASSET_GENERATION=true
   fi
 
   if trinket_is_project_generation_input "$path"; then
@@ -450,33 +506,11 @@ trinket_classify_path() {
         trinket_add_generated_warning "Processed app output detected; edit the manifest/raw asset source and run the appropriate generation command."
       fi
       ;;
-    ContentManifest/*)
-      TRINKET_HAS_CONTENT=true
-      TRINKET_NEEDS_CONTENT_GENERATION=true
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    Packages/TrinketContent/Sources/TrinketContent/Content/*.swift)
+    Packages/TrinketContent/Sources/TrinketContent/Abilities/*.swift)
       TRINKET_HAS_CONTENT=true
       TRINKET_NEEDS_CONTENT_GENERATION=true
       TRINKET_NEEDS_STYLE=true
       trinket_add_package TrinketContent
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    ArtManifest/*|MusicManifest/*|SoundManifest/*|CinematicManifest/*|Raw\ Assets/*)
-      TRINKET_HAS_ASSETS=true
-      TRINKET_NEEDS_ASSET_GENERATION=true
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    Scripts/content_codegen.py)
-      TRINKET_HAS_CONTENT=true
-      TRINKET_NEEDS_CONTENT_GENERATION=true
-      TRINKET_NEEDS_SCRIPT_TESTS=true
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    Scripts/lib/media-assets.sh|Scripts/prepare-art-assets.sh|Scripts/prepare-audio-assets.sh|Scripts/prepare-cinematic-assets.sh|Scripts/prepare-app-icon.sh)
-      TRINKET_HAS_ASSETS=true
-      TRINKET_NEEDS_ASSET_GENERATION=true
-      TRINKET_NEEDS_SCRIPT_TESTS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     project.yml)

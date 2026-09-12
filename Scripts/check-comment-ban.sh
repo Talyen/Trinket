@@ -39,6 +39,7 @@ if ! command -v rg >/dev/null 2>&1; then
   exit 1
 fi
 
+trinket_rg_scan -n --with-filename --glob '*.swift' --glob '!**/Generated/**' '(^|[[:space:]])//|/\*|\*/' "${SEARCH_ROOTS[@]}"
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
   file="${match%%:*}"
@@ -68,6 +69,6 @@ while IFS= read -r match; do
     continue
   fi
   trinket_rg_violation "$file:$line_num: Comments banned — remove comment or use an allowed toolchain directive (swift-tools-version / swiftlint:disable / swiftformat:disable) — see doc-budget skill"
-done < <(rg -n --with-filename --glob '*.swift' --glob '!**/Generated/**' '(^|[[:space:]])//|/\*|\*/' "${SEARCH_ROOTS[@]}" 2>/dev/null || true)
+done <<< "$TRINKET_RG_MATCHES"
 
 trinket_rg_report "Comment ban violations (${#violations[@]}):" "Comment ban OK." "Comment Ban"

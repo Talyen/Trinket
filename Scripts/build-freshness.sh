@@ -23,18 +23,30 @@ generation_paths_newer_than() {
 
 content_generation_inputs=("${TRINKET_CONTENT_GENERATION_INPUTS[@]}")
 asset_generation_inputs=("${TRINKET_ASSET_GENERATION_INPUTS[@]}")
-project_generation_inputs=(project.yml Scripts/tool-versions.env Scripts/generate.sh
-  Scripts/ensure-ci-tools.sh Scripts/lib/ci-tools.d/xcodegen.sh
-  Scripts/lib/tools.sh Scripts/lib/tool-install.sh Scripts/lib/project-generation.sh
-  Trinket.xcodeproj/project.pbxproj)
+project_generation_inputs=("${TRINKET_PROJECT_GENERATION_INPUTS[@]}" Trinket.xcodeproj/project.pbxproj)
 build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")
 
-generation_inputs_are_dirty() {
-  local paths=("$@")
-  local status
-  status="$(git status --porcelain -- "${paths[@]}" 2>/dev/null)"
-  status="$(printf '%s\n' "$status" | grep -v "\.md$" || true)"
-  [[ -n "$status" ]]
+generation_input_snapshot() {
+  python3 - "$@" <<'PY_SNAPSHOT'
+import glob
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+records = {}
+for pattern in sys.argv[1:]:
+    matches = glob.glob(pattern)
+    records[pattern] = None
+    for match in matches:
+        path = Path(match)
+        files = path.rglob("*") if path.is_dir() else [path]
+        for file in files:
+            if file.is_file() and file.suffix != ".md":
+                stat = file.stat()
+                records[str(file)] = [stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns]
+print(hashlib.sha256(json.dumps(records, sort_keys=True).encode()).hexdigest())
+PY_SNAPSHOT
 }
 
 build_input_git_snapshot() {
@@ -50,6 +62,11 @@ touch_generate_stamp() {
   local results_dir="${1:-${RESULTS_DIR:-$PWD/.DerivedData/TestResults}}"
   local stamp="$results_dir/.last-generate.stamp"
   mkdir -p "$results_dir"
+  generation_input_snapshot "${content_generation_inputs[@]}" > "$stamp.content" || return $?
+  generation_input_snapshot "${project_generation_inputs[@]}" > "$stamp.project" || return $?
+  if [[ "${2:-false}" == true ]]; then
+    generation_input_snapshot "${asset_generation_inputs[@]}" > "$stamp.assets" || return $?
+  fi
   touch "$stamp"
 }
 
@@ -86,19 +103,20 @@ prepare_generated_inputs() {
     return 0
   fi
 
-  if [[ -f "$stamp" ]]; then
-    content_changed="$(generation_paths_newer_than "$stamp" "${content_generation_inputs[@]}")"
-    project_changed="$(generation_paths_newer_than "$stamp" "${project_generation_inputs[@]}")"
-    assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}")"
-  fi
-  if [[ -z "$content_changed" ]] && generation_inputs_are_dirty "${content_generation_inputs[@]}"; then
-    content_changed="dirty content input"
-  fi
-  if [[ -z "$project_changed" ]] && generation_inputs_are_dirty "${project_generation_inputs[@]}"; then
-    project_changed="dirty project input"
-  fi
-  if [[ -z "$assets_changed" ]] && generation_inputs_are_dirty "${asset_generation_inputs[@]}"; then
-    assets_changed="dirty asset input"
+  local content_snapshot project_snapshot assets_snapshot
+  content_snapshot="$(generation_input_snapshot "${content_generation_inputs[@]}")" || return $?
+  project_snapshot="$(generation_input_snapshot "${project_generation_inputs[@]}")" || return $?
+  assets_snapshot="$(generation_input_snapshot "${asset_generation_inputs[@]}")" || return $?
+  [[ -f "$stamp.content" && "$(cat "$stamp.content")" == "$content_snapshot" ]] || content_changed=changed
+  [[ -f "$stamp.project" && "$(cat "$stamp.project")" == "$project_snapshot" ]] || project_changed=changed
+  [[ -f "$stamp.assets" && "$(cat "$stamp.assets")" == "$assets_snapshot" ]] || assets_changed=changed
+  # A legacy or absent stamp gets normal generation; asset conversion remains
+  # selected by changed inputs or dirty asset sources on the first preparation.
+  if [[ ! -f "$stamp.assets" ]]; then
+    assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}" 2>/dev/null || true)"
+    if [[ -z "$assets_changed" ]]; then
+      assets_changed="$(git status --porcelain -- "${asset_generation_inputs[@]}" 2>/dev/null | grep -v '\.md$' || true)"
+    fi
   fi
 
   if [[ -f "$stamp" && -z "$content_changed" && -z "$project_changed" && -z "$assets_changed" ]]; then
@@ -117,11 +135,11 @@ prepare_generated_inputs() {
   fi
 
   if (( ${#generate_args[@]} )); then
-    ./Scripts/generate.sh "${generate_args[@]}"
+    ./Scripts/generate.sh "${generate_args[@]}" || return $?
   else
-    ./Scripts/generate.sh
+    ./Scripts/generate.sh || return $?
   fi
-  touch_generate_stamp "$results_dir"
+  touch_generate_stamp "$results_dir" true
 }
 
 assert_no_build_inputs_are_fresh() {

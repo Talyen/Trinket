@@ -29,15 +29,17 @@ trinket_simulator_is_shared_name() {
   return 1
 }
 
-trinket_simulator_is_managed_name() {
-  local name="$1"
-  trinket_simulator_is_shared_name "$name" || [[ "$name" =~ $TRINKET_AGENT_SIM_PATTERN ]]
-}
-
 trinket_simulator_is_active_agent_name() {
   local name="$1"
   [[ "$name" =~ ^Trinket\ Agent\ ([0-9]+)$ ]] \
     && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}/${BASH_REMATCH[1]}.slot" ]]
+}
+
+trinket_simulator_is_leased_name() {
+  trinket_simulator_is_active_agent_name "$1" || {
+    trinket_simulator_is_shared_name "$1" \
+      && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}/run.slot" ]]
+  }
 }
 
 trinket_sim_shutdown_wait() {
@@ -192,7 +194,7 @@ trinket_simulator_enforce_single_warm_booted() {
     local keep_index=-1
     local index
     for index in "${!managed_names[@]}"; do
-      if trinket_simulator_is_active_agent_name "${managed_names[$index]}"; then
+      if trinket_simulator_is_leased_name "${managed_names[$index]}"; then
         keep_index="$index"
         break
       fi
@@ -217,11 +219,12 @@ trinket_simulator_enforce_single_warm_booted() {
       keep_index=0
     fi
 
-    echo "Simulator cleanup: keeping ${managed_names[$keep_index]} Booted; shutting down $((managed_count - 1)) excess managed simulator(s)."
+    echo "Simulator cleanup: keeping ${managed_names[$keep_index]} Booted; reclaiming unleased excess managed simulators."
     for index in "${!managed_udids[@]}"; do
       if (( index == keep_index )); then
         continue
       fi
+      trinket_simulator_is_leased_name "${managed_names[$index]}" && continue
       trinket_sim_shutdown_wait "${managed_udids[$index]}"
     done
 
@@ -270,11 +273,12 @@ trinket_simulator_enforce_single_warm_booted() {
     if (( keep_agent < 0 )); then
       keep_agent=0
     fi
-    echo "Simulator cleanup: keeping ${agent_names[$keep_agent]} Booted; shutting down $((agent_count - 1)) excess agent simulator(s)."
+    echo "Simulator cleanup: keeping ${agent_names[$keep_agent]} Booted; reclaiming unleased excess agent simulators."
     for index in "${!agent_udids[@]}"; do
       if (( index == keep_agent )); then
         continue
       fi
+      trinket_simulator_is_leased_name "${agent_names[$index]}" && continue
       trinket_sim_shutdown_wait "${agent_udids[$index]}"
     done
   fi
@@ -298,11 +302,12 @@ trinket_simulator_enforce_single_warm_booted() {
     if (( keep_run < 0 )); then
       keep_run=0
     fi
-    echo "Simulator cleanup: keeping ${run_names[$keep_run]} Booted; shutting down $((run_count - 1)) excess Trinket Run simulator(s)."
+    echo "Simulator cleanup: keeping ${run_names[$keep_run]} Booted; reclaiming unleased excess Trinket Run simulators."
     for index in "${!run_udids[@]}"; do
       if (( index == keep_run )); then
         continue
       fi
+      trinket_simulator_is_leased_name "${run_names[$index]}" && continue
       trinket_sim_shutdown_wait "${run_udids[$index]}"
     done
   fi

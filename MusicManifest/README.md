@@ -41,13 +41,5 @@ Set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 ## Runtime Routing
 
-Music is state-driven:
-
-- Menu music plays outside battle contexts.
-- Opening a battle stage preview starts the battle or boss track.
-- Starting battle from that preview keeps the same track.
-- Leaving the Play tab while battle is active returns to menu music and stores the battle track position.
-- Returning to the same battle resumes the saved position.
-- Ending battle clears saved battle and boss positions.
-
-The runtime uses `AVAudioSession.Category.ambient`, so game music respects the Ring/Silent switch and mixes politely with other audio.
+Playback, route selection, and pause/resume behavior belong to
+[TrinketAppState](../Packages/TrinketAppState/README.md#music-routing).

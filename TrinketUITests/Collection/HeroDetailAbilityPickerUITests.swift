@@ -53,5 +53,15 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
         button(AccessibilityID.LoadoutPicker.equipItem("longsword-astral")).tap()
         assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 5)
         assertButtonExists(weaponSlot)
+        button(weaponSlot).tap()
+        button(candidateID).tap()
+        button(AccessibilityID.LoadoutPicker.unequipItem).tap()
+        assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 5)
+        button(weaponSlot).tap()
+        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 10)
+        replaceText(in: search, with: "longsword")
+        assertButtonExists(candidateID)
+        button(candidateID).tap()
+        assertButtonExists(AccessibilityID.LoadoutPicker.equipItem("longsword-astral"))
     }
 }

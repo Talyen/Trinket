@@ -37,13 +37,14 @@ final class AppPerformanceUITests: TrinketUITestCase {
 
             runOnce(scenario: "tab-round-trip", iteration: iteration) {
                 collectionTab.tap()
-                self.pauseForTransition()
+                collection.assertLoaded()
                 homesteadTab.tap()
-                self.pauseForTransition()
+                homestead.assertLoaded()
                 optionsTab.tap()
-                self.pauseForTransition()
+                options.assertLoaded()
                 playTab.tap()
             }
+            play.assertLoaded()
         }
     }
 
@@ -60,9 +61,10 @@ final class AppPerformanceUITests: TrinketUITestCase {
 
             runOnce(scenario: "collection-navigation", iteration: iteration) {
                 cardCoordinate.tap()
-                self.pauseForTransition()
+                combatantDetail.assertLoaded(for: "Knight")
                 dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
             }
+            assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Knight"))
             collection.assertLoaded()
         }
     }
@@ -73,22 +75,14 @@ final class AppPerformanceUITests: TrinketUITestCase {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
             homestead.assertLoaded()
             homestead.openFarmingCategoryAndRevealWheatFieldNode()
-            let detail = app.descendants(matching: .any)[
-                AccessibilityID.Homestead.nodeDetail(title: "Wheat Field"),
-            ]
-            let isShowingDetail = detail.exists
+            assertExists(AccessibilityID.Homestead.gallery)
             let node = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
             let nodeCoordinate = node.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-            let backStart = edgeBackSwipeStart
-            let backEnd = edgeBackSwipeEnd
 
             runOnce(scenario: "homestead-detail-transition", iteration: iteration) {
-                if isShowingDetail {
-                    backStart.press(forDuration: 0.05, thenDragTo: backEnd)
-                } else {
-                    nodeCoordinate.tap()
-                }
+                nodeCoordinate.tap()
             }
+            homestead.assertNodeDetail(named: "Wheat Field")
         }
     }
 
@@ -97,25 +91,13 @@ final class AppPerformanceUITests: TrinketUITestCase {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
             play.assertModeHub()
-            let campaign = app.descendants(matching: .any)[AccessibilityID.Play.chapterHeader(number: 1)]
-            let isShowingCampaign = campaign.exists
             let campaignButton = app.buttons[AccessibilityID.Play.campaignModeCard]
             let campaignCoordinate = campaignButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-            let backStart = edgeBackSwipeStart
-            let backEnd = edgeBackSwipeEnd
 
             runOnce(scenario: "campaign-stage-select-transition", iteration: iteration) {
-                if isShowingCampaign {
-                    backStart.press(forDuration: 0.05, thenDragTo: backEnd)
-                } else {
-                    campaignCoordinate.tap()
-                }
+                campaignCoordinate.tap()
             }
-            if isShowingCampaign {
-                play.assertModeHub()
-            } else {
-                play.assertCampaignLoaded(number: 1)
-            }
+            play.assertCampaignLoaded(number: 1)
         }
     }
 
@@ -133,9 +115,10 @@ final class AppPerformanceUITests: TrinketUITestCase {
 
             runOnce(scenario: "stage-enemy-detail-transition", iteration: iteration) {
                 enemyCoordinate.tap()
-                self.pauseForTransition()
+                assertExists(AccessibilityID.CombatantDetail.vitalBarsSection)
                 dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
             }
+            assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             play.assertCampaignLoaded(number: 1)
         }
     }
@@ -169,10 +152,6 @@ final class AppPerformanceUITests: TrinketUITestCase {
         return tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
     }
 
-    private func pauseForTransition() {
-        RunLoop.current.run(until: Date().addingTimeInterval(0.7))
-    }
-
     @MainActor
     private func runOnce(scenario: String, iteration: Int, action: () -> Void) {
         let reset = app.buttons[AccessibilityID.Debug.frameMetricsReset]
@@ -180,7 +159,12 @@ final class AppPerformanceUITests: TrinketUITestCase {
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
         XCTAssertTrue(metrics.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let resetAt = Date()
-        tapWhenReady(reset)
+        reset.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let measuring = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "measuring"),
+            object: metrics,
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [measuring], timeout: 2), .completed)
         RunLoop.current.run(until: Date().addingTimeInterval(Self.samplerWarmup))
         action()
         let remaining = Self.measurementDuration - Date().timeIntervalSince(resetAt)

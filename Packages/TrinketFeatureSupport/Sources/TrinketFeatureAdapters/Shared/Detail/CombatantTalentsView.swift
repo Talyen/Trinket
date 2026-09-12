@@ -8,7 +8,7 @@ import TrinketPersistence
 public struct CombatantTalentsView: View {
     let tree: TalentTree
     let progression: CombatantProgression
-    @Binding var unlockedTalents: Set<String>
+    let unlockedTalents: Set<String>
     let allowsEditing: Bool
     let visibleNodeIDs: Set<String>?
     let showsReset: Bool
@@ -16,7 +16,7 @@ public struct CombatantTalentsView: View {
     let unlockAccessibilityIdentifier: String
     let hapticsEnabled: Bool
     let onUnlockTalent: (TalentNode, TalentTree) -> TalentUnlockResult
-    let onResetTalents: () -> Void
+    let onResetTalents: (() -> Bool)?
 
     @State private var selectedNodeID: String?
     @State private var selectionFeedbackTrigger = 0
@@ -26,7 +26,7 @@ public struct CombatantTalentsView: View {
     public init(
         tree: TalentTree,
         progression: CombatantProgression,
-        unlockedTalents: Binding<Set<String>>,
+        unlockedTalents: Set<String>,
         allowsEditing: Bool = true,
         initialSelectedNodeID: String? = nil,
         visibleNodeIDs: Set<String>? = nil,
@@ -35,11 +35,11 @@ public struct CombatantTalentsView: View {
         unlockAccessibilityIdentifier: String = AccessibilityID.CombatantDetail.talentsUnlockButton,
         hapticsEnabled: Bool = false,
         onUnlockTalent: @escaping (TalentNode, TalentTree) -> TalentUnlockResult,
-        onResetTalents: @escaping () -> Void,
+        onResetTalents: (() -> Bool)? = nil,
     ) {
         self.tree = tree
         self.progression = progression
-        _unlockedTalents = unlockedTalents
+        self.unlockedTalents = unlockedTalents
         self.allowsEditing = allowsEditing
         self.visibleNodeIDs = visibleNodeIDs
         self.showsReset = showsReset
@@ -123,9 +123,11 @@ public struct CombatantTalentsView: View {
         )
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                if showsReset, allowsEditing, hasTreeUnlocks {
-                    Button("Reset") {
-                        onResetTalents()
+                if showsReset, allowsEditing, hasTreeUnlocks, let onResetTalents {
+                    Button("Reset All Talents") {
+                        if !onResetTalents() {
+                            unlockErrorTrigger &+= 1
+                        }
                     }
                     .trinketTypography(.footnote)
                     .fontWeight(.semibold)

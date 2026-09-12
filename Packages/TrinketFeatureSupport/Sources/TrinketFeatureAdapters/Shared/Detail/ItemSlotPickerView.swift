@@ -8,7 +8,8 @@ struct ItemSlotPickerView: View {
     let slot: ItemSlot
     let equipmentLoadout: EquipmentLoadout
     let inventoryItems: [InventoryItem]
-    let onEquip: (InventoryItem) -> Void
+    let onEquip: (InventoryItem) -> Bool
+    let onUnequip: () -> Bool
 
     @State private var model: ItemPickerItems
     @State private var filter = ItemPickerFilter()
@@ -19,12 +20,14 @@ struct ItemSlotPickerView: View {
         equipmentLoadout: EquipmentLoadout,
         inventoryItems: [InventoryItem],
         initialItems: ItemPickerItems,
-        onEquip: @escaping (InventoryItem) -> Void,
+        onEquip: @escaping (InventoryItem) -> Bool,
+        onUnequip: @escaping () -> Bool,
     ) {
         self.slot = slot
         self.equipmentLoadout = equipmentLoadout
         self.inventoryItems = inventoryItems
         self.onEquip = onEquip
+        self.onUnequip = onUnequip
         _model = State(initialValue: initialItems)
     }
 
@@ -88,12 +91,15 @@ struct ItemSlotPickerView: View {
         .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedItem) { item in
+            let isEquipped = equipmentLoadout.itemID(for: slot) == item.id
             ItemDetailView(
                 item: item,
-                primaryActionTitle: "Equip \(slot.displayName)",
-                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.equipItem(item.id),
+                primaryActionTitle: isEquipped ? "Unequip \(slot.displayName)" : "Equip \(slot.displayName)",
+                primaryActionAccessibilityID: isEquipped
+                    ? AccessibilityID.LoadoutPicker.unequipItem
+                    : AccessibilityID.LoadoutPicker.equipItem(item.id),
                 onPrimaryAction: {
-                    onEquip(item)
+                    guard isEquipped ? onUnequip() : onEquip(item) else { return }
                     selectedItem = nil
                 },
             )

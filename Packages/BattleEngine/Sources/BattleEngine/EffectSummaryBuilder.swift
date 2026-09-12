@@ -24,7 +24,7 @@ public enum EffectSummaryBuilder {
             guard let kindEffects = grouped[kind], !kindEffects.isEmpty else { continue }
             guard let handler = EffectHandlers.all[kind] else { continue }
             let groupedByKeyword = Dictionary(grouping: kindEffects, by: \.keyword)
-            for (keyword, stacks) in groupedByKeyword {
+            for (keyword, stacks) in groupedByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
                 if let summary = handler.summary(for: stacks, keyword: keyword) {
                     summaries.append(summary)
                 }

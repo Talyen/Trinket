@@ -160,6 +160,9 @@ trinket_sim_slot_ensure
 # concrete simulator is needed and none should be booted for it.
 if [[ "$ACTION" != "build-for-testing" ]]; then
   if [[ -z "$DESTINATION" ]]; then
+    if [[ "${TRINKET_ISOLATE:-}" != "1" ]]; then
+      trinket_shared_sim_lease_acquire
+    fi
     ensure_test_simulator_logged
     DESTINATION="$SIMULATOR_DESTINATION"
     DID_ENSURE_SIMULATOR=true

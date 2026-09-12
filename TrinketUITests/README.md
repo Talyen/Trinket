@@ -20,7 +20,11 @@ mirrored in `Scripts/config/smoke-classes.txt`; `check-docs.py` fails when they
 diverge, so update both together. The smoke command can filter the plan for
 focused iteration. When deleting or consolidating a UI class, remove obsolete
 references from the affected test plan, smoke registry, and CI matrix together.
-Keep registration checks so retained tests cannot be silently skipped.
+Keep registration checks so retained tests cannot be silently skipped. The checker
+compares source classes, plans, and literal CI matrix target rows, including duplicates.
+Focused runs require every requested filter and at least one executed test in the
+result tree. When export stalls, terminal per-test log records provide that proof;
+a suite summary alone does not. Documented individual skips remain visible in results.
 
 ## Launch args
 
@@ -49,6 +53,12 @@ Keep default launch args unless testing persistence. Prefer `AccessibilityID`
 selectors and assert with `assertExists`; use visible text only when it is the
 product contract. UI tests tap tab labels, not `AppTab` raw values.
 
+Normal control taps require existence, enablement, and hittability. Use explicit
+coordinate gestures only for gesture tests or a demonstrated automation limitation.
+The transparent frame-metrics reset control reports unhittable in XCUITest;
+its explicit coordinate tap must establish the `measuring` state before stimulus.
+Assert a journey’s return destination before using helpers that navigate elsewhere.
+
 ## Speed
 
 - Prefer `-launch-screen` / `-selectedTab` deep links; do not re-navigate a screen launch args already opened.
@@ -59,8 +69,11 @@ product contract. UI tests tap tab labels, not `AppTab` raw values.
 - Prefer `AccessibilityID` selectors over visible labels for primary CTAs (Aspect Begin Floor, Labyrinth node actions).
 - Mid-battle exhaustive tests enter through the Play map with
   `TestLaunchArg.allForMidBattle()`; do not deep-link into a live battle when
-  setup timing matters. Keep victory/performance ownership in the dedicated
-  performance plan.
+  setup timing matters.
+- Victory Continue navigation belongs to [SmokeBattleTests](Smoke/SmokeBattleTests.swift).
+  Performance measurements use `BattlePerformance.xctestplan` under the
+  [performance playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md);
+  that plan does not currently measure victory or Mystery reveals.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
   do not copy their numeric values into this guide.
 - Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors and interaction outcomes — not display names, rarity labels, or scroll geometry unless that string is the product contract.

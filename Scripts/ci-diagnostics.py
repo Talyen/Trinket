@@ -11,8 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_LABELS_IN_DETAIL, MAX_LINE_CHARS, MAX_MESSAGE_CHARS
-from diagnostic_model import CLASSIFICATION_PRECEDENCE, bounded_text
+from internal.diagnostics.diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_LABELS_IN_DETAIL, MAX_LINE_CHARS, MAX_MESSAGE_CHARS
+from internal.diagnostics.diagnostic_model import CLASSIFICATION_PRECEDENCE, bounded_text
 
 FULL_REPORT = False
 argv = sys.argv[1:]
@@ -87,6 +87,15 @@ def watchdog_log_proves_pass(manifest: dict, status: str, exit_code: int) -> boo
         and exit_code == 0
         and manifest.get("completion_source") == "watchdog-log-inference"
         and manifest.get("test_execution_proven") is True
+    )
+
+
+def successful_build(manifest: dict) -> bool:
+    return (
+        manifest.get("action") in {"build", "build-for-testing"}
+        and manifest.get("status") == "passed"
+        and as_exit_code(manifest.get("exit_code")) == 0
+        and manifest.get("completion_source") == "process-exit"
     )
 
 
@@ -188,16 +197,17 @@ def normalise_report(
     has_result_bundle = result_bundle_exists(result_bundle)
     has_complete_result_bundle = result_bundle_complete(result_bundle)
     has_watchdog_proof = watchdog_log_proves_pass(manifest, status, exit_code)
+    has_build_proof = successful_build(manifest)
     report_exists = path is not None and path.is_file()
     manifest_passed = (
         status == "passed"
         and exit_code == 0
-        and (has_complete_result_bundle or has_watchdog_proof)
+        and (has_complete_result_bundle or has_watchdog_proof or has_build_proof)
     )
     failed = (
         status != "passed"
         or exit_code != 0
-        or not (has_complete_result_bundle or has_watchdog_proof)
+        or not (has_complete_result_bundle or has_watchdog_proof or has_build_proof)
         or (not report_exists and not manifest_passed)
         or classification in KNOWN_CLASSIFICATIONS - {"unknown"}
     )
@@ -216,6 +226,7 @@ def normalise_report(
     invocation.update(
         {
             "label": label,
+            "action": manifest.get("action", "unknown"),
             "classification": classification,
             "exit_code": exit_code,
             "status": status,
@@ -300,6 +311,7 @@ def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
                 and (
                     result_bundle_complete(manifest.get("result_bundle", ""))
                     or watchdog_log_proves_pass(manifest, "passed", 0)
+                    or successful_build(manifest)
                 )
             )
             if diagnostics_path and diagnostics_path.is_file():
@@ -340,9 +352,9 @@ def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
 reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session, distinct_session_count = load_reports()
 recorded_invocations = len(reports)
 failed_reports = [report for report in reports if report["failed"]]
-missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"])
+missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"] and report["action"] not in {"build", "build-for-testing"})
 incomplete_result_invocations = sum(
-    1 for report in reports if not report["result_bundle_complete"]
+    1 for report in reports if not report["result_bundle_complete"] and report["action"] not in {"build", "build-for-testing"}
 )
 
 by_classification = {classification: 0 for classification in CLASSIFICATION_PRECEDENCE}
@@ -421,6 +433,7 @@ def compact_invocation(report: dict) -> dict:
     issues = report.get("issues", [])
     return {
         "label": report.get("label", ""),
+        "action": report.get("action", "unknown"),
         "classification": report.get("classification", "unknown"),
         "exit_code": report.get("exit_code", 1),
         "status": report.get("status", "unknown"),

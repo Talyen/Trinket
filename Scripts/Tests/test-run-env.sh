@@ -19,6 +19,7 @@ mkdir -p "$REPO/Scripts/lib"
 cp "$ROOT_DIR/Scripts/run-env.sh" "$REPO/Scripts/run-env.sh"
 cp "$ROOT_DIR/Scripts/simctl_json.py" "$REPO/Scripts/simctl_json.py"
 cp "$ROOT_DIR/Scripts/lib/slots.sh" "$REPO/Scripts/lib/slots.sh"
+cp "$ROOT_DIR/Scripts/lib/lock.sh" "$REPO/Scripts/lib/lock.sh"
 cp "$ROOT_DIR/Scripts/lib/simctl.sh" "$REPO/Scripts/lib/simctl.sh"
 cp "$ROOT_DIR/Scripts/lib/derived-data.sh" "$REPO/Scripts/lib/derived-data.sh"
 
@@ -470,6 +471,26 @@ bash -c '
   rm -f "$TRINKET_SIM_ACTIVE_DIR/2.slot"
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
+# --- simultaneous live leases survive cleanup locally and in CI ---
+for ci in false true; do
+  : > "$FAKE_SHUTDOWN_LOG"
+  bash -eu -c '
+    cd "$1"
+    export PATH="$2:$PATH" FAKE_SHUTDOWN_LOG="$3" GITHUB_ACTIONS="$4"
+    source Scripts/run-env.sh
+    TRINKET_REPO_ROOT="$1"
+    TRINKET_SIM_ACTIVE_DIR="$1/.DerivedData/.active-sim"
+    mkdir -p "$TRINKET_SIM_ACTIVE_DIR"
+    for slot in 1 2 run; do
+      printf "%s peer 2020-01-01T00:00:00Z\n" "$$" > "$TRINKET_SIM_ACTIVE_DIR/$slot.slot"
+    done
+    trinket_sim_slot_reap
+    trinket_simulator_enforce_single_warm_booted
+    [[ ! -s "$FAKE_SHUTDOWN_LOG" ]]
+    rm -f "$TRINKET_SIM_ACTIVE_DIR"/*.slot
+  ' _ "$REPO" "$FAKE_BIN" "$FAKE_SHUTDOWN_LOG" "$ci"
+done
+
 # --- empty pool + single-warm off: keep Agents warm (no shutdown/erase) ---
 : > "$FAKE_PREVIEW_LOG"
 : > "$FAKE_SHUTDOWN_LOG"
@@ -601,7 +622,7 @@ bash -c '
   TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=0 trinket_sim_shutdown_wait agent-1 >/dev/null
 ' _ "$REPO" "$FAKE_BIN"
 
-# --- leases are reaped when stale by age, even with a live pid (pid reuse) ---
+# --- live owners retain leases regardless of age ---
 bash -c '
   set -euo pipefail
   cd "$1"
@@ -611,7 +632,8 @@ bash -c '
   trinket_run_env_init
   printf "%s old %s\n" "$$" "2020-01-01T00:00:00Z" > "$TRINKET_SIM_ACTIVE_DIR/stale.slot"
   trinket_sim_slot_reap
-  [[ ! -e "$TRINKET_SIM_ACTIVE_DIR/stale.slot" ]]
+  [[ -e "$TRINKET_SIM_ACTIVE_DIR/stale.slot" ]]
+  rm -f "$TRINKET_SIM_ACTIVE_DIR/stale.slot"
   printf "%s fresh %s\n" "$$" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$TRINKET_SIM_ACTIVE_DIR/fresh.slot"
   trinket_sim_slot_reap
   [[ -e "$TRINKET_SIM_ACTIVE_DIR/fresh.slot" ]]
@@ -644,7 +666,7 @@ bash -c '
   trinket_shared_sim_lease_release
   [[ ! -e "$TRINKET_SIM_ACTIVE_DIR/run.slot" ]]
   # A stale lease is reclaimed automatically on the next acquire.
-  printf "%s stale %s\n" "$$" "2020-01-01T00:00:00Z" > "$TRINKET_SIM_ACTIVE_DIR/run.slot"
+  printf "%s stale %s\n" "99999999" "2020-01-01T00:00:00Z" > "$TRINKET_SIM_ACTIVE_DIR/run.slot"
   trinket_shared_sim_lease_acquire
   read -r holder _ < "$TRINKET_SIM_ACTIVE_DIR/run.slot"
   [[ "$holder" == "$$" ]]

@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from performance_model import METRICS, load_baseline, validate_report as validate_frame_report, goal_findings
+from internal.performance.performance_model import METRICS, load_baseline, validate_report as validate_frame_report, goal_findings
 
 
 def aggregate(values: list[float]) -> dict[str, float]:

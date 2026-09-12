@@ -36,5 +36,4 @@ Show a concrete adaptation/native-behavior failure or avoidable custom maintenan
 then verify that the remedy preserves intended constraints. Visible layout and
 battlefield adaptations need runtime evidence at the affected conditions.
 Source can establish an enforced style violation; a token substitution alone does
-not establish better UX. Success is usable adaptation or simpler supported layout,
-not a mandatory reduction in constants, wrappers, or lines.
+not establish better UX. Success is usable adaptation or simpler supported layout.

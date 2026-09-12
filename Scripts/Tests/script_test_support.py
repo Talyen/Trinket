@@ -13,6 +13,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "Scripts"))
 
 
 def load_script(name: str, filename: str):
@@ -26,11 +27,6 @@ def load_script(name: str, filename: str):
 
 
 class ScriptRegressionTestCase(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.codegen = load_script("content_codegen", "content_codegen.py")
-        cls.check_docs = load_script("check_docs", "check-docs.py")
 
     def make_sfx_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
         root = Path(directory)

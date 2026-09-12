@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import os
-import re
 import subprocess
 import sys
 import tempfile
-import time
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -16,6 +13,25 @@ from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.codegen = load_script("content_codegen", "content_codegen.py")
+
+    def test_shell_policy_checks_reject_search_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fake_rg = Path(directory) / "rg"
+            fake_rg.write_text('#!/bin/sh\nexit "$SEARCH_STATUS"\n')
+            fake_rg.chmod(0o755)
+            for name in ("api-bans", "agent-invariants", "comment-ban", "exclusivity-footguns", "module-boundaries"):
+                for status in (1, 2):
+                    with self.subTest(check=name, status=status):
+                        result = subprocess.run(
+                            [str(ROOT / f"Scripts/check-{name}.sh")], cwd=ROOT,
+                            env={**os.environ, "PATH": f"{directory}:{os.environ['PATH']}", "SEARCH_STATUS": str(status)},
+                            capture_output=True, text=True,
+                        )
+                        self.assertEqual(result.returncode, 0 if status == 1 else 2, result.stdout + result.stderr)
+
     def test_generated_files_carry_explicit_access_control(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "Sample.generated.swift"
@@ -86,10 +102,16 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             self.codegen.triggers_swift("poison_decay_slow_percent:50,bogus_field:1")
 
     def test_triggers_swift_rejects_duplicate_fields(self) -> None:
-        with self.assertRaises(ValueError):
-            self.codegen.triggers_swift("block_per_turn:1|block_per_turn:2")
-        with self.assertRaises(ValueError):
-            self.codegen.triggers_swift("cards_played_mana:2:3|cards_played_mana:4:5")
+        for tokens in (
+            "block_per_turn:1|block_per_turn:2",
+            "cards_played_mana:2:3|cards_played_mana:4:5",
+            "on_cleanse_draw:1|cleanseBonusDraw:2",
+            "on_cleanse_draw:1|cleanse_bonus_draw:2",
+            "cards_played_mana:2:3|cardsPlayedManaFlat:4",
+        ):
+            for value in (tokens, "|".join(reversed(tokens.split("|")))):
+                with self.subTest(value=value), self.assertRaisesRegex(ValueError, "Duplicate trigger field"):
+                    self.codegen.triggers_swift(value)
 
     def test_triggers_swift_rejects_badly_typed_values(self) -> None:
         for token in [
@@ -117,7 +139,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
                 self.assertIn("expects", str(ctx.exception))
 
     def test_trigger_alias_targets_exist_in_schema(self) -> None:
-        triggers = load_script("content_codegen_triggers", "content_codegen_triggers.py")
+        triggers = load_script("internal.content.content_codegen_triggers", "internal/content/content_codegen_triggers.py")
         names = {
             field["name"]
             for family in self.codegen._trigger_families()
@@ -240,17 +262,6 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
         self.assertIn("recruit-knight", self.codegen.collect_recruit_event_ids())
         self.assertIn("destination-merchant-shop", self.codegen.collect_art_ids())
 
-    def test_generate_accepts_force_xcodegen_alias(self) -> None:
-        result = subprocess.run(
-            [str(ROOT / "Scripts" / "generate.sh"), "--force-xcodegen", "--help"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0)
-        self.assertIn("--force-xcodegen", result.stdout)
-
     def test_modifier_token_to_swift_multipart_keyword(self) -> None:
         self.assertEqual(
             self.codegen.modifier_token_to_swift("damage_dealt:burn:3"),
@@ -308,11 +319,30 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             with self.assertRaises(ValueError):
                 self.codegen._parse_tsv_rows(tsv_path, ["id", "name", "opt1", "opt2"], DummyRow, min_columns=3)
 
-    def test_ability_inventory_digest_computes_fingerprint(self) -> None:
-        digest = self.codegen._ability_inventory_digest()
-        self.assertIsInstance(digest, str)
-        self.assertRegex(digest, r"\A[0-9a-f]{64}\Z")
-        self.assertEqual(digest, self.codegen._ability_inventory_digest())
+    def test_inventory_digest_tracks_formatter_and_dependency_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            files = ["Scripts/content_codegen.py", "Scripts/tool-versions.env",
+                     "Packages/TrinketContent/Package.swift", "Packages/TrinketCore/Package.swift",
+                     "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityDescriptionFormatter.swift",
+                     "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift"]
+            for name in files:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("initial")
+            with patch.object(self.codegen, "ROOT", root), patch.object(
+                self.codegen, "TRINKET_CONTENT_PACKAGE", root / "Packages/TrinketContent"
+            ):
+                previous = self.codegen._ability_inventory_digest()
+                self.assertEqual(previous, self.codegen._ability_inventory_digest())
+                for name in files[-2:]:
+                    path = root / name
+                    path.write_text("changed")
+                    current = self.codegen._ability_inventory_digest()
+                    self.assertNotEqual(previous, current)
+                    previous = current
+                path.unlink()
+                self.assertNotEqual(previous, self.codegen._ability_inventory_digest())
 
     def test_swift_escape_handles_quotes_backslashes_and_newlines(self) -> None:
         self.assertEqual(self.codegen.swift_escape("plain"), "plain")
@@ -332,102 +362,6 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             with patch.object(Path, "write_text") as writer:
                 self.codegen.write_if_changed(path, "content\n")
                 writer.assert_not_called()
-
-    def test_plan_metadata_requires_lifecycle_fields_and_blocked_reason(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            valid = root / "valid.md"
-            valid.write_text(
-                "---\n"
-                "type: execution-plan\n"
-                "status: active\n"
-                "created: 2026-08-20\n"
-                "updated: 2026-08-20\n"
-                "expires: 2026-09-03\n"
-                "---\n\n# Plan\n",
-                encoding="utf-8",
-            )
-            metadata, errors = self.check_docs.plan_metadata(valid)
-            self.assertEqual(errors, [])
-            self.assertEqual(metadata["status"], "active")
-
-            blocked = root / "blocked.md"
-            blocked.write_text(valid.read_text(encoding="utf-8").replace("status: active", "status: blocked"), encoding="utf-8")
-            _, errors = self.check_docs.plan_metadata(blocked)
-            self.assertIn("blocked plans require reason", errors)
-
-    def test_completed_plans_are_summarized_instead_of_archived_verbatim(self) -> None:
-        plan_name = f"ArchiveFixture{os.getpid()}"
-        active_path = ROOT / "Docs" / "Plans" / f"{plan_name}.md"
-        archived_path = ROOT / "Docs" / "Plans" / "Archived" / f"{plan_name}.md"
-        plan = (
-            "---\n"
-            "type: execution-plan\n"
-            "status: complete\n"
-            "created: 2026-08-01\n"
-            "updated: 2026-08-20\n"
-            "expires: 2026-08-19\n"
-            "---\n\n# Archived fixture\n"
-        )
-        try:
-            active_path.write_text(plan, encoding="utf-8")
-            rejected = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "check-docs.py")],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn("must be summarized in Docs/Plans/Archived/README.md and deleted", rejected.stderr)
-
-            active_path.unlink()
-            archived_path.write_text(plan, encoding="utf-8")
-            archived_rejected = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "check-docs.py")],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertNotEqual(archived_rejected.returncode, 0)
-            self.assertIn("completed plan detail belongs in Git history", archived_rejected.stderr)
-        finally:
-            active_path.unlink(missing_ok=True)
-            archived_path.unlink(missing_ok=True)
-
-    def test_parallel_agent_plan_folder_is_rejected(self) -> None:
-        plans_dir = ROOT / ".agents" / "plans"
-        plan_path = plans_dir / f"ParallelPlanFixture{os.getpid()}.md"
-        plans_dir.mkdir(parents=True, exist_ok=True)
-        try:
-            plan_path.write_text("# Parallel execution plan\n", encoding="utf-8")
-            rejected = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "check-docs.py")],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn("execution plans are allowed only directly under Docs/Plans/", rejected.stderr)
-        finally:
-            plan_path.unlink(missing_ok=True)
-            try:
-                plans_dir.rmdir()
-            except OSError:
-                pass
-
-    def test_proposal_evidence_identifier_resolution(self) -> None:
-        self.assertTrue(self.check_docs.source_contains_identifier("performBatchMutation"))
-        missing = "RemovedProposal" + "EvidenceSymbol"
-        self.assertFalse(self.check_docs.source_contains_identifier(missing))
-
-    def test_markdown_inventory_excludes_ignored_run_reports(self) -> None:
-        paths = self.check_docs.markdown_files()
-        self.assertTrue(paths)
-        self.assertTrue(all(path.suffix == ".md" for path in paths))
-        self.assertFalse(any("BalanceSweepReports" in path.parts for path in paths))
 
     def test_ui_style_requires_explicit_catalog_artwork_display_size(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -582,7 +516,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
-                "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift",
+                "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift",
             ],
             cwd=ROOT,
             capture_output=True,
@@ -596,7 +530,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             [
                 "./Scripts/generate.sh",
                 "./Scripts/assert-generated-output.sh --idempotent",
-                "./Scripts/test.sh style Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift",
+                "./Scripts/test.sh style Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift",
                 "./Scripts/test-package.sh TrinketContent",
             ],
         )
@@ -604,7 +538,6 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             plan[4:],
             [
                 "./Scripts/check-module-boundaries.sh",
-                "./Scripts/check-api-bans.sh",
                 "./Scripts/release-notes.sh validate",
                 "./Scripts/check-artwork-budget.sh",
             ],

@@ -27,14 +27,14 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 
 ## Fixtures
 
-Prefer `TrinketTestSupport` (`CombatantFixtures`, `ItemFixtures`, battle parties) for shared fixtures; `BattleStateTestFactory` owns `BattleState` construction in `BattleEngineTests` and `BattleTestFixtures` owns only play helpers (`playFirstPlayableCard`, `endTurn`). Save harnesses live
-in `TrinketPersistence`'s `TrinketPersistenceTestSupport` target—not in `TrinketTestSupport`—so TestSupport stays
-Persistence-free. App suites use `AppTestContext`; Persistence uses
-`PersistenceTestContext`. Canonical RNG seed is `CombatantFixtures.deterministicBattleSeed` (1772). `TrinketContentTests`
-cannot depend on `TrinketTestSupport` without a package cycle, so it carries a mirrored `ItemFixtures` copy instead —
-keep the two signatures in sync. Package-specific fixture, RNG, and handler-dispatch
-conventions belong in the owning package's test README; do not duplicate them
-here.
+Prefer [TrinketTestSupport](../../Packages/TrinketTestSupport/README.md) for shared
+combat and content fixtures. Save harnesses belong to `TrinketPersistence`'s
+`TrinketPersistenceTestSupport` target so shared combat fixtures stay Persistence-free.
+`TrinketContentTests` carries a mirrored `ItemFixtures` copy to avoid a package
+cycle; keep the two signatures in sync. Package-specific construction, RNG, and
+dispatch conventions belong in the owning test guide, including
+[BattleEngine](../../Packages/BattleEngine/Tests/README.md#conventions) and
+[Persistence](../../Packages/TrinketPersistence/Tests/README.md).
 
 ## Unit conventions
 
@@ -79,7 +79,7 @@ adding a declaration over a new file or class. Remove or merge coverage made red
 
 **Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketAppStateTests`.
 
-New user flows still need a stable `AccessibilityID` selector (or an existing appropriate one), but add or extend a UI test only when the keep/drop rubric below applies. Prefer a coherent existing smoke/exhaustive journey over a new class; assert visible outcomes, not custom accessibility prose. Per PD-014, assertions may rely on identifiers and hittability only; accessibility wording is not a stable test contract.
+New user flows still need a stable `AccessibilityID` selector (or an existing appropriate one), but add or extend a UI test only when the keep/drop rubric below applies. Prefer a coherent existing smoke/exhaustive journey over a new class. Use stable identifiers to locate controls; assert meaningful outcomes without pinning incidental accessibility wording.
 
 ### Consolidation and retirement
 
@@ -103,14 +103,10 @@ declaration counts. Remove unused fixtures and support code left by retirement.
 ### Presentation / accessibility-ID changes (before push)
 
 Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or a
-Homestead/Play presentation contract is not style-only. Run the path-scoped
-handoff and complete every routed package, compile, and smoke step. The
-classifier owns the exact route; do not stop after style. Stable identifiers
-must be applied at the modifier that remains visible to XCUITest (for example,
-the shared glass CTA modifier).
-
-Command routing, isolation, and mid-task `--no-build` live in
-[Verification.md](Verification.md).
+Homestead/Play interaction contract follows
+[UI verification requirements](Verification.md#choosing-ui-verification).
+Stable identifiers must be applied at the modifier that remains visible to
+XCUITest (for example, the shared glass CTA modifier).
 
 ## UI keep / drop rubric
 

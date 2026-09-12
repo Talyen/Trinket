@@ -10,6 +10,7 @@ from __future__ import annotations
 import fnmatch
 import json
 import os
+import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -21,12 +22,6 @@ CODE_INCLUDES = (
     "Trinket/**",
     "Packages/**",
     "TrinketUITests/**",
-    "ContentManifest/**",
-    "ArtManifest/**",
-    "MusicManifest/**",
-    "SoundManifest/**",
-    "CinematicManifest/**",
-    "Raw Assets/**",
     "project.yml",
     "Trinket.xcodeproj/**",
     "*.xctestplan",
@@ -44,10 +39,18 @@ CODE_SCRIPT_INCLUDES = (
     "Scripts/stage-ci-*.sh",
     "Scripts/prune-*.sh",
     "Scripts/run-env.sh",
+    "Scripts/xcode-runner.sh",
     "Scripts/ci-path-filter.py",
     "Scripts/lib/**",
+    ".github/actions/setup-trinket/**",
+    ".github/actions/checkout-trinket/**",
+    ".github/actions/restore-and-build/**",
+    ".github/actions/build-cache-key/**",
+    ".github/actions/test-job/**",
+    ".github/workflows/tests.yml",
+    ".github/workflows/ci.yml",
 )
-CODE_EXCLUDES: tuple[str, ...] = ()
+CODE_EXCLUDES = ("**/*.md",)
 INFRA_INCLUDES = (
     "Scripts/**",
     ".github/actions/**",
@@ -57,14 +60,25 @@ INFRA_INCLUDES = (
     "cliff.toml",
 )
 INFRA_EXCLUDES = ("Scripts/**/*.md",)
-ASSET_INCLUDES = (
-    "ArtManifest/**",
-    "MusicManifest/**",
-    "SoundManifest/**",
-    "CinematicManifest/**",
-    "Raw Assets/**",
-    "Scripts/prepare-*.sh",
-)
+
+
+def generation_inputs() -> tuple[tuple[str, ...], ...]:
+    registry = Path(__file__).with_name("build-inputs.env")
+    output = subprocess.check_output(
+        ["bash", "-eu", "-c", 'source "$1"; printf "content\\t%s\\n" "${TRINKET_CONTENT_GENERATION_INPUTS[@]}"; '
+         'printf "asset\\t%s\\n" "${TRINKET_ASSET_GENERATION_INPUTS[@]}"; '
+         'printf "project\\t%s\\n" "${TRINKET_PROJECT_GENERATION_INPUTS[@]}"', "_", str(registry)],
+        text=True,
+    )
+    rows = [line.split("\t", 1) for line in output.splitlines()]
+    return tuple(tuple(path for kind, path in rows if kind == group) for group in ("content", "asset", "project"))
+
+
+CONTENT_INPUTS, ASSET_INPUTS, PROJECT_INPUTS = generation_inputs()
+
+
+def is_generation_input(path: str, inputs: tuple[str, ...]) -> bool:
+    return any(glob_match(path, entry) or path.startswith(entry + "/") for entry in inputs)
 
 
 def _match_segments(pattern_segments: list[str], path_segments: list[str]) -> bool:
@@ -96,7 +110,8 @@ def matches_any(path: str, patterns: tuple[str, ...]) -> bool:
 def is_code_path(path: str) -> bool:
     if matches_any(path, CODE_EXCLUDES):
         return False
-    return matches_any(path, CODE_INCLUDES) or matches_any(path, CODE_SCRIPT_INCLUDES)
+    return (matches_any(path, CODE_INCLUDES) or matches_any(path, CODE_SCRIPT_INCLUDES)
+            or is_generation_input(path, CONTENT_INPUTS + ASSET_INPUTS + PROJECT_INPUTS))
 
 
 def is_infra_path(path: str) -> bool:
@@ -104,7 +119,7 @@ def is_infra_path(path: str) -> bool:
 
 
 def is_asset_path(path: str) -> bool:
-    return matches_any(path, ASSET_INCLUDES)
+    return not path.endswith(".md") and is_generation_input(path, ASSET_INPUTS)
 
 
 def classify(paths: list[str]) -> tuple[bool, bool, bool]:

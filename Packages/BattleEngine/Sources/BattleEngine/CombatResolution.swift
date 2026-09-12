@@ -36,6 +36,7 @@ struct CombatResolution {
 
     private struct Action {
         let id: Int
+        let cardID: Int?
         let context: BattleActionContext
         let origin: DamageOperation.AttackOrigin
         var outcome: ResolvedActionFacts?
@@ -43,6 +44,7 @@ struct CombatResolution {
     }
 
     private struct Card {
+        var partyDamageBonus = 0
         let id: Int
         let actorID: String
         var outcome: ResolvedActionFacts?
@@ -58,6 +60,7 @@ struct CombatResolution {
     private var frames: [Frame] = []
     private var nextActionID = 0
     private var cards: [Card] = []
+    private var partyCardDamageBySource: [String: Int] = [:]
     private(set) var nextCardID = 0
     private var claims: Set<ClaimKey> = []
 
@@ -112,14 +115,40 @@ struct CombatResolution {
         cards.last(where: { $0.talents != nil })?.talents
     }
 
-    mutating func beginCard(actorID: String, tier: AbilityTier, previousDamageKeywords: Set<Keyword>) -> Int {
+    func pendingPartyCardDamage(from actorID: String) -> Int {
+        partyCardDamageBySource[actorID, default: 0]
+    }
+
+    mutating func preparePartyCardDamage(_ amount: Int, sourceID: String) {
+        partyCardDamageBySource[sourceID] = amount
+    }
+
+    mutating func reservePartyCardDamage(livingSourceIDs: [String]) -> Int {
+        livingSourceIDs.reduce(0) { $0 + (partyCardDamageBySource.removeValue(forKey: $1) ?? 0) }
+    }
+
+    mutating func beginCard(actorID: String, tier: AbilityTier, previousDamageKeywords: Set<Keyword>, partyDamageBonus: Int = 0) -> Int {
         let id = nextCardID
         nextCardID += 1
         var talents = HeroTalentCardFacts(actorID: actorID, tier: tier)
         talents.playSerial = id
         talents.previousDamageKeywords = previousDamageKeywords
-        cards.append(Card(id: id, actorID: actorID, talents: talents))
+        cards.append(Card(partyDamageBonus: partyDamageBonus, id: id, actorID: actorID, talents: talents))
         return id
+    }
+
+    func damageProvenance(for actorID: String) -> DamageProvenance? {
+        guard let action = currentAction, action.context.actor.id == actorID else { return nil }
+        return DamageProvenance(actionID: action.id, cardID: action.cardID)
+    }
+
+    mutating func consumePartyCardDamage(from provenance: DamageProvenance?) -> Int {
+        guard let provenance, let cardID = provenance.cardID,
+              let index = cards.indices.last, cards[index].id == cardID,
+              currentAction?.id == provenance.actionID else { return 0 }
+        let amount = cards[index].partyDamageBonus
+        cards[index].partyDamageBonus = 0
+        return amount
     }
 
     mutating func mutateCardTalents(_ body: (inout HeroTalentCardFacts) -> Void) {
@@ -198,7 +227,12 @@ struct CombatResolution {
     }
 
     mutating func beginAction(_ context: BattleActionContext, origin: DamageOperation.AttackOrigin) {
-        frames.append(.action(Action(id: nextActionID, context: context, origin: origin)))
+        let cardID: Int? = switch origin {
+        case .card, .ordinaryCard, .cardRepeat:
+            cards.last?.actorID == context.actor.id ? cards.last?.id : nil
+        default: nil
+        }
+        frames.append(.action(Action(id: nextActionID, cardID: cardID, context: context, origin: origin)))
         nextActionID += 1
     }
 
@@ -247,6 +281,7 @@ enum CombatResolver {
             amount: request.amount, combatant: request.target, sourceActorID: request.sourceActorID,
             damageKeyword: request.keyword, options: request.options,
         )
+        state.provenance = request.provenance
         DamagePipeline.run(state: &state, in: &context)
         return CombatOutcome.fromDamage(state: state)
     }

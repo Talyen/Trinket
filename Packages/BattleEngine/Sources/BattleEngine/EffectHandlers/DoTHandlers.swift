@@ -32,7 +32,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
             let tickCount = (keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true) ? 2 : 1
             var events: [ActionEvent] = []
             for _ in 0 ..< tickCount {
-                let outcome = DoTDamage.resolveTurnDamage(
+                let outcome = DoTDamage.resolveDamage(
                     basePotency: nextPotency,
                     keyword: keyword,
                     target: target,
@@ -48,13 +48,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
                     in: &context,
                 ))
             }
-            events.append(contentsOf: CombatTriggerEngine.afterDecayingDoTTurn(
-                keyword: keyword,
-                nextPotency: nextPotency,
-                target: target,
-                sourceActorID: active.sourceActorID,
-                in: &context,
-            ))
             return events
         }
 
@@ -97,6 +90,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
             to: target,
             sourceActorID: source.id,
             application: .ability,
+            provenance: context.resolution.damageProvenance(for: source.id),
         )
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -124,13 +118,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         if BattleChance.succeeds(probability: chance, using: &context.rng) {
             return potency + 1
         }
-        let slowPercent = sourceTriggers?.poisonDecaySlowPercent ?? 0
-        if slowPercent > 0 {
-            let decrease = Effect.poisonDecayAmount(for: potency)
-            let adjustedDecrease = CombatRounding.scaled(decrease, multiplier: 1 - min(1, slowPercent))
-            return max(0, potency - adjustedDecrease)
-        }
-        return active.effect.potencyAfterTurn()
+        return active.effect.potencyAfterTurn(poisonDecaySlowPercent: sourceTriggers?.poisonDecaySlowPercent ?? 0)
     }
 }
 
@@ -146,7 +134,7 @@ struct BleedHandler: BattleEffectHandler {
             probability: sourceTriggers?.bleedTickCritChancePercent ?? 0,
             using: &context.rng,
         )
-        let tickOutcome = DoTDamage.resolveTurnDamage(
+        let tickOutcome = DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: .bleed,
             target: target,
@@ -213,6 +201,7 @@ struct BleedHandler: BattleEffectHandler {
             to: target,
             sourceActorID: source.id,
             application: .ability,
+            provenance: context.resolution.damageProvenance(for: source.id),
             in: &context,
         )
         let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
@@ -231,8 +220,7 @@ struct BleedHandler: BattleEffectHandler {
               let source = context.roster.combatant(for: attackerID),
               let owner = context.roster.participant(for: source.combatant), owner.isPartyMember
         else { return [] }
-        let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
-        guard drawn > 0 else { return [] }
+        guard BattleCardCombatEngine.drawFirstCard(matching: .physical, for: owner, context: &context) != nil else { return [] }
         return [context.nextEvent(
             kind: .effect,
             effectKind: .cardsDrawn,
@@ -244,7 +232,7 @@ struct BleedHandler: BattleEffectHandler {
                 in: context,
             ),
             target: source.combatant,
-            amount: drawn,
+            amount: 1,
             keyword: .physical,
         )]
     }
@@ -282,7 +270,7 @@ enum DoTMirrorCascade {
             }
             guard chance > 0, BattleChance.succeeds(probability: chance, using: &context.rng) else { break }
             let mirrored: Keyword = currentKeyword == .burn ? .bleed : .burn
-            let outcome = DoTDamage.resolveTurnDamage(
+            let outcome = DoTDamage.resolveDamage(
                 basePotency: 1,
                 keyword: mirrored,
                 target: target,

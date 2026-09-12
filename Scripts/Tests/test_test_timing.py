@@ -9,6 +9,9 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+from script_test_support import load_script
 
 
 SCRIPT = Path(__file__).parents[1] / "test-timing.py"
@@ -31,6 +34,27 @@ class TestTimingTests(unittest.TestCase):
             text=True,
             check=False,
         )
+
+    def test_timing_history_survives_successful_artifact_cleanup(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "TestResults"
+            recorded = self.run_script(root, "record", "--mode", "unit", "--run", "retained", "--wall", "1", "--no-xcresult")
+            self.assertEqual(recorded.returncode, 0, recorded.stderr)
+            (root / "passed-invocation.json").write_text(json.dumps({"status": "passed", "exit_code": 0}))
+            maintenance = load_script("review_maintenance", "diagnostic_maintenance.py")
+            maintenance.cleanup(root, False)
+            self.assertFalse((root / "passed-invocation.json").exists())
+            report = self.run_script(root, "show")
+            self.assertEqual(report.returncode, 0, report.stderr)
+            self.assertIn("retained", report.stdout)
+
+    def test_timing_queries_are_bounded_and_timeout_is_reported(self) -> None:
+        xcresult_diagnostics = load_script("internal.diagnostics.xcresult_diagnostics", "internal/diagnostics/xcresult_diagnostics.py")
+        timing = load_script("review_timing", "test-timing.py")
+        with patch.object(xcresult_diagnostics.subprocess, "run", side_effect=subprocess.TimeoutExpired("xcresulttool", 120)) as query:
+            with self.assertRaisesRegex(SystemExit, "timed out"):
+                timing.parse_xcresult(Path("partial.xcresult"))
+            self.assertEqual(query.call_args.kwargs["timeout"], 120)
 
     def test_malformed_history_is_skipped_and_numeric_inputs_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

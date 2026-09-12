@@ -3,13 +3,10 @@
 trinket_prune_rebuildable_derived_data() {
   local target="$1"
   rm -rf \
-    "$target/Build/Intermediates.noindex" \
     "$target/Build/ProfileData" \
     "$target/Index.noindex" \
     "$target/Index" \
     "$target/SymbolCache" \
-    "$target/SDKStatCaches.noindex" \
-    "$target/CompilationCache.noindex" \
     "$target/Logs" \
     2>/dev/null || true
 }

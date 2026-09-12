@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from performance_model import REQUIRED_NUMERIC_FIELDS, finite_number, load_baseline, validate_report, goal_findings
+from internal.performance.performance_model import REQUIRED_NUMERIC_FIELDS, finite_number, load_baseline, validate_report, goal_findings
 
 
 def main() -> int:

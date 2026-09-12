@@ -30,7 +30,7 @@ package extension CombatTriggerEngine {
         if triggers.bleedConsumesPoison, context.roster.health(for: target) > 0 {
             let poisonPotency = DoTApplicator.consume(.poison, upTo: healthLost, on: target, in: &context)
             if poisonPotency > 0 {
-                events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: poisonPotency,
                     keyword: .poison,
                     target: target,
@@ -95,35 +95,37 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard healthLost > 0, let sourceActorID,
               let caster = context.roster.combatant(for: sourceActorID) else { return [] }
+        var events = poisonParalysis(target: target, sourceActorID: sourceActorID, in: &context)
         let leechPercent = context.modifiers(for: sourceActorID).triggers.poisonDamageLeechPercent
-        guard leechPercent > 0 else { return [] }
+        guard leechPercent > 0 else { return events }
         let leech = CombatRounding.scaled(healthLost, multiplier: leechPercent)
-        guard leech > 0 else { return [] }
+        guard leech > 0 else { return events }
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: leech, target: caster.combatant, sourceActorID: sourceActorID, origin: .leech, logAs: .silent),
             in: &context,
         )
-        var events = outcome.events
+        events.append(contentsOf: outcome.events)
         if outcome.healthRestored > 0 {
             events.append(contentsOf: afterLeech(by: caster.combatant, target: target, in: &context))
         }
         return events
     }
 
-    static func afterDecayingDoTTurn(
-        keyword: Keyword,
-        nextPotency: Int,
+    private static func poisonParalysis(
         target: Combatant,
-        sourceActorID: String?,
+        sourceActorID: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard keyword == .poison,
-              let sourceActorID,
-              let sourceTriggers = Optional(context.modifiers(for: sourceActorID).triggers),
-              sourceTriggers.poisonThresholdStunAmount > 0,
-              nextPotency >= sourceTriggers.poisonThresholdStunAmount,
+        let sourceTriggers = context.modifiers(for: sourceActorID).triggers
+        guard sourceTriggers.poisonThresholdStunAmount > 0,
               target.role == .enemy,
-              context.roster.health(for: target) > 0
+              context.roster.health(for: target) > 0,
+              context.roster.activeEffects(for: target).contains(where: {
+                  if case let .poison(potency) = $0.effect {
+                      return potency >= sourceTriggers.poisonThresholdStunAmount
+                  }
+                  return false
+              })
         else { return [] }
         let chance = sourceTriggers.poisonStunChancePercent > 0 ? sourceTriggers.poisonStunChancePercent : 1
         guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return [] }
@@ -185,11 +187,8 @@ package extension CombatTriggerEngine {
 
         let currentEffects = context.roster.activeEffects(for: target)
         let bleeds = currentEffects.filter { $0.effect.isBleed && $0.remainingTurns > 0 }
-        let poisonPotency = includePoison ? currentEffects.reduce(0) { total, active in
-            guard case let .poison(potency) = active.effect else { return total }
-            return total + potency
-        } : 0
-        guard !bleeds.isEmpty || poisonPotency > 0 else { return [] }
+        let poisons = includePoison ? currentEffects.filter { $0.effect.kind == .poison } : []
+        guard !bleeds.isEmpty || !poisons.isEmpty else { return [] }
 
         context.roster.setActiveEffects(
             currentEffects.filter { active in
@@ -207,17 +206,20 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         events.append(contentsOf: Self.detonateBleedStacks(bleeds, on: target, sourceActorID: sourceActorID, in: &context))
 
-        var potency = poisonPotency
-        while potency > 0, context.roster.health(for: target) > 0 {
-            potency -= Effect.poisonDecayAmount(for: potency)
-            guard potency > 0 else { break }
-            events.append(contentsOf: DoTDamage.resolveTurnDamage(
-                basePotency: potency,
-                keyword: .poison,
-                target: target,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ).events)
+        for active in poisons {
+            let slowPercent = active.sourceActorID.map { context.modifiers(for: $0).triggers.poisonDecaySlowPercent } ?? 0
+            var potency = active.effect.potency ?? 0
+            while potency > 0, context.roster.health(for: target) > 0 {
+                potency = Effect.poison(potency).potencyAfterTurn(poisonDecaySlowPercent: slowPercent)
+                guard potency > 0 else { break }
+                events.append(contentsOf: DoTDamage.resolveDamage(
+                    basePotency: potency,
+                    keyword: .poison,
+                    target: target,
+                    sourceActorID: sourceActorID,
+                    in: &context,
+                ).events)
+            }
         }
         return events
     }
@@ -226,6 +228,7 @@ package extension CombatTriggerEngine {
         _ bleeds: [ActiveEffect],
         on target: Combatant,
         sourceActorID: String,
+        provenance: DamageProvenance? = nil,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         if context.modifiers(for: sourceActorID).triggers.redline,
@@ -239,21 +242,23 @@ package extension CombatTriggerEngine {
             let damageSourceID = extends ? (active.sourceActorID ?? sourceActorID) : sourceActorID
             for _ in 0 ..< active.remainingTurns {
                 guard context.roster.health(for: target) > 0 else { break }
-                events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: potency,
                     keyword: .bleed,
                     target: target,
                     sourceActorID: damageSourceID,
+                    provenance: provenance,
                     in: &context,
                 ).events)
             }
             var tail = extends ? potency / 2 : 0
             while tail > 0, context.roster.health(for: target) > 0 {
-                events.append(contentsOf: DoTDamage.resolveTurnDamage(
+                events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: tail,
                     keyword: .bleed,
                     target: target,
                     sourceActorID: damageSourceID,
+                    provenance: provenance,
                     in: &context,
                 ).events)
                 tail /= 2

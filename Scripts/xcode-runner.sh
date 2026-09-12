@@ -149,18 +149,29 @@ xcode_runner_run() {
     return 2
   fi
 
+  local arg
   local cmd_name="${command_args[0]##*/}"
+  XCODE_RUNNER_ACTION="unknown"
+  if [[ "$cmd_name" == xcodebuild ]]; then
+    for arg in "${command_args[@]:1}"; do
+      case "$arg" in
+        build|build-for-testing|test|test-without-building) XCODE_RUNNER_ACTION="$arg"; break ;;
+      esac
+    done
+  fi
+  export XCODE_RUNNER_ACTION
   local has_index_store=false
   local has_signing_allowed=false
   local has_signing_required=false
+  local has_test_diagnostics=false
   local uses_simulator=false
-  local arg
   if [[ "$cmd_name" == "xcodebuild" ]]; then
     for arg in "${command_args[@]}"; do
       case "$arg" in
         COMPILER_INDEX_STORE_ENABLE=*) has_index_store=true ;;
         CODE_SIGNING_ALLOWED=*) has_signing_allowed=true ;;
         CODE_SIGNING_REQUIRED=*) has_signing_required=true ;;
+        -collect-test-diagnostics) has_test_diagnostics=true ;;
         *iphonesimulator*|*iOS\ Simulator*) uses_simulator=true ;;
       esac
     done
@@ -168,6 +179,9 @@ xcode_runner_run() {
       command_args+=("COMPILER_INDEX_STORE_ENABLE=NO")
     fi
     if [[ "$uses_simulator" == "true" ]]; then
+      if [[ "$has_test_diagnostics" == "false" && "$XCODE_RUNNER_ACTION" == test* ]]; then
+        command_args+=(-collect-test-diagnostics never)
+      fi
       if [[ "$has_signing_allowed" == "false" ]]; then
         command_args+=("CODE_SIGNING_ALLOWED=NO")
       fi

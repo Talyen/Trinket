@@ -63,7 +63,7 @@ sys.exit(1)
   echo "Auto-selected device: $DEVICE"
 fi
 
-DERIVED_DATA=".DerivedData/Device"
+DERIVED_DATA="$PWD/.DerivedData/Device"
 mkdir -p "$DERIVED_DATA"
 
 # shellcheck source=build-freshness.sh
@@ -73,12 +73,11 @@ prepare_generated_inputs "$DERIVED_DATA/TestResults"
 echo "=== Building Trinket for device ==="
 # Generic destination keeps the build portable across physical devices so
 # --device accepts a name, UDID, or CoreDevice identifier at install time.
+source ./Scripts/lib/app-build.sh
+trinket_set_app_xcodebuild_args "$DERIVED_DATA" iphoneos 'generic/platform=iOS'
 BUILD_ARGS=(
-  -project Trinket.xcodeproj
-  -scheme Trinket
-  -destination generic/platform=iOS
+  "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
   -configuration Debug
-  -derivedDataPath "$DERIVED_DATA"
   -allowProvisioningUpdates
   COMPILER_INDEX_STORE_ENABLE=NO
 )

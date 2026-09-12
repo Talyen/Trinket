@@ -39,11 +39,7 @@ struct PlayScreen {
         for _ in 0 ..< 4 {
             let back = app.navigationBars.buttons.firstMatch
             guard back.trinketWaitForExistence(timeout: 1) else { break }
-            if back.isHittable {
-                back.tap()
-            } else {
-                back.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            }
+            back.trinketTapWhenReady()
             let hub = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen]
             if hub.exists {
                 return
@@ -59,11 +55,7 @@ struct PlayScreen {
             campaign.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout),
             "Campaign control not found",
         )
-        if campaign.isHittable {
-            campaign.tap()
-        } else {
-            campaign.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        }
+        campaign.trinketTapWhenReady()
         assertCampaignLoaded(number: number)
     }
 
@@ -71,11 +63,7 @@ struct PlayScreen {
         openModeHub()
         let element = app.buttons[AccessibilityID.Play.exploreModeCard]
         XCTAssertTrue(element.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Explore control not found")
-        if element.isHittable {
-            element.tap()
-        } else {
-            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        }
+        element.trinketTapWhenReady()
         assertElementExists(AccessibilityID.Play.exploreHub)
     }
 
@@ -95,11 +83,7 @@ struct PlayScreen {
 
         let start = app.buttons[AccessibilityID.Play.stageAction(chapter: chapter, stage: stage)]
         XCTAssertTrue(start.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle CTA not found")
-        if start.isHittable {
-            start.tap()
-        } else {
-            start.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        }
+        start.trinketTapWhenReady()
 
         let hand = app.descendants(matching: .any)[AccessibilityID.Battle.hand]
         let victory = app.descendants(matching: .any)[AccessibilityID.Battle.victory]

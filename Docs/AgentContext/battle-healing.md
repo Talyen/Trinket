@@ -11,6 +11,9 @@ observers such as Wishspring read original overflow without consuming it.
 `CombatGain` owns bounded applied gains; proportional effects use `CombatRounding`
 without an implicit minimum-one grant. Lingering Blessing stores its amount,
 source, and remaining duration together.
+Block grants declare a base or resolved amount through `BlockAmountBasis`.
+Duplication, transfer, and already-scaled gains use `.resolved` to avoid applying
+outgoing bonuses and fight pacing again; consequences read `BlockGain.applied`.
 Boolean party-aura checks use `hasLivingPartyTrigger` rather than merging every
 trigger group on nested reaction paths.
 

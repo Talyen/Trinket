@@ -96,10 +96,7 @@ struct PostBattleTalentChoiceView: View {
         CombatantTalentsView(
             tree: tree,
             progression: playerSave.roster.progression(for: combatant),
-            unlockedTalents: Binding(
-                get: { playerSave.roster.unlockedTalents(for: combatant.id) },
-                set: { _ in },
-            ),
+            unlockedTalents: playerSave.roster.unlockedTalents(for: combatant.id),
             initialSelectedNodeID: legalNodes(in: tree, combatantID: combatant.id).first?.id,
             showsReset: false,
             nodeAccessibilityIdentifier: AccessibilityID.TalentChoice.node,
@@ -108,7 +105,6 @@ struct PostBattleTalentChoiceView: View {
             onUnlockTalent: { node, tree in
                 choose(node: node, tree: tree)
             },
-            onResetTalents: {},
         )
         .toolbar {
             closeToolbarItem
