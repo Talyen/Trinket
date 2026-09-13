@@ -27,3 +27,21 @@ survives inventory removal and reload; singleton ownership is a separate check.
 Views and commands share its availability query. Never infer claims from inventory
 ID prefixes or session flags. Homestead build commands require the displayed target
 tier and validate that tier inside the transaction.
+
+Homestead collection and build/upgrade commands are asynchronous. Local-only and
+confirmed signed-out play retain the existing local transactions. Linked cloud
+players can view estimated production offline, but claims/upgrades wait for the
+private CloudKit authority; other gameplay remains available. Immediately before
+queueing collection or an upgrade, the local snapshot must still match its
+acknowledged head. Synchronize intervening gameplay first; if it changes again
+while waiting, leave the production action unqueued for retry.
+
+The authority refreshes a server timestamp using a conditional write, settles the
+old production rate, and atomically commits the complete head and an immutable
+operation receipt. Change-tag conflicts refetch and retry the same request ID.
+Claim cursor, pending amounts, wallet application, and upgrades cannot commit
+independently. A lost response or process termination replays the receipt by
+installing the committed head, not by adding the reward again. The authority
+sequence prevents older offline snapshots from undoing a committed claim/upgrade.
+Reset epochs invalidate outstanding claims. Development and Production evidence
+is required by the [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).

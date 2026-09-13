@@ -26,3 +26,66 @@ relationship rows can crash SwiftData on the iOS 27 simulator. An immediate fail
 preserves earlier deferred changes, while a failed deferred flush restores its
 last persisted snapshot. Full resets compensate the complete graph. Reload tests
 must also prove that a subsequent successful write preserves the recovered values.
+
+## CloudKit preparation
+
+SwiftData always opens the local graph at its existing URL with CloudKit mirroring
+set to `.none`. `PlayerSaveCloudSync` and `CloudKitSaveTransport`, owned by
+Persistence, exchange versioned complete snapshots in the existing private
+container. The authored `CLOUDKIT_SYNC_ENABLED` build setting defaults to `NO`;
+an explicitly enabled build requests automatic sync through its Info.plist value.
+Debug also supports an opt-in retained until disabled; Release ignores that
+development argument/preference. Test, reset, named, explicit-URL, and in-memory
+public configurations stay isolated even in a cloud-enabled build.
+
+`PlayerSaveRoot.cloudStatePayload` is optional local metadata: device revision
+clock, active account, last acknowledged head, pending request, reset intent,
+account archives, and first-attachment/guest backup. Account keys include container
+and CloudKit environment so Development state cannot be mistaken for Production state. It is committed with the
+same graph transaction. The payload is never uploaded wholesale; cloud snapshots
+contain only the active game's values. Invalid sync metadata is retained while
+sync is disabled and local play continues. Store-open failure preserves the
+original files and reports memory-only play; only an explicit reset may delete
+the store. The confirmed Reset Game Progress action reopens durable storage and
+commits a fresh save before replacing the memory-only session. A failed recovery
+keeps that session available for retry. Do not restore automatic delete-and-recreate
+recovery during migration.
+
+Approved reconciliation selects a complete save without player conflict prompts.
+Within the same reset epoch and production-authority sequence, prefer causal
+continuation using device revision clocks, then furthest Campaign completion,
+then most recent play and a stable revision-ID tie-breaker. A fresh installation
+cannot displace populated progress. Archive conflicting progress in the same
+atomic server operation before installing the selected snapshot. A failed archive
+leaves the local snapshot and outbox intact. Currency, materials, reward claims,
+inventory/equipment, recruitment/talents, Campaign, Spires, Labyrinth, Contracts,
+and Homestead upgrades remain coherent; never sum independent balances.
+
+The server's Homestead cursor and pending production are authoritative across
+branch selection. A snapshot predating a committed production claim or upgrade
+is archived rather than allowed to undo that operation, even if its Campaign rank
+is higher. Some offline play can therefore remain only in its recovery backup.
+[Progression](persistence-progression.md) owns the claim transaction.
+
+Reset advances the server epoch and invalidates older progress and claims.
+Concurrent stale reset requests cannot wipe a newer epoch. Backups from older
+epochs are never automatically restored. Signing out keeps a local copy and an
+account archive. Further signed-out play stays separate; returning to an account
+restores its own archive/cloud head, retaining the guest copy locally. Switching
+accounts never uploads the previous account's progress into the new account.
+If a cloud-disabled rollback build performs local production, it first archives
+and detaches the linked account. That local session remains a guest backup when
+cloud play resumes, preventing an offline claim from reopening a server interval.
+
+Late asynchronous results compare their captured snapshot with current local
+values. New local mutations are reconciled in a later request; receipt recovery
+cannot acknowledge unseen remote changes as ancestors of those mutations.
+Adopting external progress increments the device-local session generation and
+invokes AppState's transient-session invalidation. Starter navigation also follows
+that generation so an imported hero choice refreshes the companion step.
+Acknowledging this device's own upload or claim does not end its current session. Session generation is local
+coordination state and is excluded from cloud snapshot coding.
+
+These contracts have isolated test coverage. Real provisioning, schema, upgrade,
+rollback, account, and two-device evidence remain the
+[CloudKit release gates](../Platform/CloudKitPreShipChecklist.md).

@@ -10,13 +10,22 @@ Do not check boxes into git as durable state — leave items unchecked in the co
 
 **Apple Developer Program:** A paid membership is required to create the CloudKit container, fill production entitlements, and verify multi-device sync. Local SwiftData, privacy-manifest prep, and `-disable-cloud-sync` testing do **not** require an account.
 
-**Current ship posture:** Progress is **local-only**, including TestFlight.
-`AppEnvironment.parse` disables CloudKit unless `-enable-cloud-sync` is passed;
-tests, `-disable-cloud-sync`, and `-reset-state` force local storage.
-`Trinket/Trinket.entitlements` is still empty. Provisioning alone is not permission
-to enable sync. Add app capabilities for controlled development testing only after
-the safety requirements below are implemented; change the distributed default and
-player-facing sync copy only after verification.
+**Current ship posture:** Ordinary builds default to **local-only** progress.
+Explicitly enabled internal TestFlight builds use CloudKit Production for controlled
+testing; wider distribution remains subject to the readiness gates below.
+`-enable-cloud-sync` opts a Debug installation in and retains that preference
+for later launches; `-disable-cloud-sync` clears it. The pure environment parser
+and test/reset overrides remain credential-free.
+`CLOUDKIT_SYNC_ENABLED` in `project.yml` defaults to `NO`. A build made with `YES`
+requests automatic sync, including Release; Release ignores the Debug opt-in
+argument and saved preference. Tests, `-disable-cloud-sync`,
+`-reset-state`, and `-seed-test-progress` force local storage. The save-store
+initializer also defaults to local storage.
+SwiftData stays local in every configuration. An explicit CloudKit service handles
+complete-save exchange. `project.yml` generates the iCloud/Push entitlements and
+background modes for controlled Development verification; provisioning alone does
+not establish readiness. Change the distributed default and player-facing sync
+copy only after the gates below pass.
 
 **Identity:** Cross-device progress uses this CloudKit private container — not Sign in with Apple / Google. Guest-first, no login UI. See [Identity.md](../Product/Identity.md).
 
@@ -48,39 +57,47 @@ Persistence owns save policy; AppState owns lifecycle coordination. Record appro
 outcomes in the [persistence contracts](../AgentContext/persistence.md) before
 implementing the unresolved choices:
 
-- [ ] Define first-sync reconciliation when two devices already have different local
-  progress. Preserve the existing TestFlight save; neither replacing it with a fresh
-  root nor silently picking one device is acceptable.
-- [ ] Define conflict outcomes for earned/spent currency and materials, reward claims,
-  inventory/equipment, recruitment/talents, Campaign and Spire completion, Labyrinth,
-  Contracts, and Homestead upgrades. Framework field merging is not a game-level
-  policy for preventing duplicate rewards, double spending, or invalid relationships.
-- [ ] Define reset precedence, including an offline device returning with pre-reset
-  progress, and account switching/sign-out behavior that prevents progress from
-  leaking into another account's container.
+- [ ] Verify first-sync and concurrent-play reconciliation against the approved
+  [complete-save selection policy](../AgentContext/persistence-storage.md#cloudkit-preparation):
+  prefer shared-history continuation, Campaign progress, then recency and a stable
+  tie-breaker; preserve the other save as a recovery backup before replacement.
+  Players receive no save-conflict choices. Preserve the existing TestFlight save;
+  never replace it with a fresh root during enablement.
+- [ ] Keep the selected save's currency/materials, reward claims, inventory/equipment,
+  recruitment/talents, Campaign, Spires, Labyrinth, Contracts, and Homestead consistent
+  together. Independent field merging and balance addition do not implement this
+  policy. Implement complete-save exchange, backup durability, and replay-safe
+  production authority before enabling cloud play.
+- [ ] Implement and verify the approved reset/account policy in the
+  [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation):
+  reset wins over older offline saves, sign-out retains a local copy, and account
+  changes cannot leak prior-account progress into a new container.
 
 These decisions do not authorize hosted accounts, a manual sync funnel, or an
 unapproved merge algorithm.
 
 ### 2. Persistence safety
 
-- [ ] Preserve or explicitly migrate the store URL and schema when moving from
-  `PlayerSaveStoreConfiguration.resolveStore`'s explicit local URL to its private
-  CloudKit configuration. Prove upgrade and rollback against a populated local save;
-  disabling sync must not select an empty or stale alternate store.
-- [ ] Replace any unsafe cloud root reconciliation. `fetchRoot` currently keeps the
-  newest root and deletes extras; that local repair is not a cloud conflict strategy.
-  Remote imports must refresh observed values without overwriting pending local work
-  or requiring an app restart.
-- [ ] Enforce Homestead cloud readiness before cloud-enabled play. `collectProduction`
-  currently performs a local batch despite the `cloudSyncUnsupported` result case;
-  upgrades also settle production locally. Gate both paths until the canonical cloud
-  production/claim authority exists. Keep local-only collection working.
-- [ ] Implement that authority with interval identity, authoritative time, old-rate
-  settlement on upgrade, conflict retry, and replay-safe wallet application. Cover
-  idempotent collection, cursor conflicts, `serverRecordChanged`, and interrupted
-  application. Offline cloud players can view pending production but claims wait for
-  the authority; ordinary offline gameplay remains available.
+- [ ] Prove upgrade and rollback against a populated beta save. SwiftData always
+  opens the existing local URL with mirroring disabled. The optional
+  `PlayerSaveRoot.cloudStatePayload` adds local outbox/account metadata; value schema
+  18 is unchanged. Store-open errors preserve the original files. Disabling sync
+  must retain both current progress and metadata at that same URL.
+- [ ] Verify complete-save reconciliation and atomic conflict backups. The explicit
+  service implements the approved selection policy and rejects stale reset epochs
+  and production sequences. Remote imports refresh observed values, preserve newer
+  local mutations, and invalidate stale encounter sessions. Own upload acknowledgements
+  must not interrupt gameplay. Native SwiftData root mirroring is removed; duplicate
+  local roots still fail safely when opening for cloud play.
+- [ ] Verify the asynchronous Homestead commands against the canonical authority.
+  Linked cloud collection/upgrades require a server response; ordinary offline
+  gameplay and confirmed signed-out local collection remain available.
+- [ ] Verify server-time settlement, old-rate settlement on upgrade, change-tag retry,
+  and replay-safe wallet application. Head, cursor, wallet, and operation receipt
+  commit atomically. A receipt survives response loss or termination; a snapshot
+  predating a committed claim/upgrade cannot undo it or reopen its interval. Isolated
+  tests cover these rules, but real `serverRecordChanged`, network failures, and
+  interrupted application still need Development/device evidence.
 - [ ] Retain isolated, credential-free tests and CI. `TestLaunchArg` and `AppEnvironment`
   keep tests/reset local; persistence fixtures use in-memory or unique temporary
   stores. Cover root creation, reset, test seeding, graph mutations, and disk reload.
@@ -88,15 +105,19 @@ unapproved merge algorithm.
 ### 3. Development verification
 
 - [ ] Recheck the setup baseline against the signed build. Edit authored `project.yml`
-  and entitlements, then regenerate. Match the registered app ID, private container,
+  and regenerate; `Trinket/Info.plist` and `Trinket/Trinket.entitlements` are generated
+  outputs. Match the registered app ID, private container,
   `com.apple.developer.icloud-services = CloudKit`, container identifiers,
   Push Notifications and signed `aps-environment` to the provisioning profile.
   Add Remote notifications background mode for background change delivery. Keep
   development opt-in and distributed builds local-only during these trials.
-- [ ] Validate and initialize the complete SwiftData Development schema: root,
-  Journey, roster, inventory, Homestead, aspects, Labyrinth, and the chosen production
-  authority records. Preserve optional relationships, scalar defaults/optionals,
-  and absence of `@Attribute(.unique)`. Do not force Production onto Development builds.
+- [ ] Initialize and inspect the explicit Development schema in private custom zone
+  `TrinketProgressV1`: `TrinketSaveHead` (`payload`: Asset, `clockProbe`: String),
+  `TrinketSaveBackup` (`payload`: Asset), and `TrinketSaveOperation` (`payload`: Bytes).
+  Head and backup assets carry versioned complete snapshots; operations carry immutable
+  receipts. The service creates the zone and head subscription during authenticated
+  Development use. SwiftData models are local and are not deployed as CloudKit records.
+  Do not force Production onto Development builds.
 - [ ] Verify actual import/export on two devices (or Simulator plus device) using
   the same iCloud account: fresh B imports A, two populated saves reconcile according
   to stage 1, concurrent domain changes honor that policy, and remote progress appears
@@ -127,6 +148,47 @@ unapproved merge algorithm.
 - [ ] Enable automatic sync by default only after the required gates pass. Retain the
   tested rollback and repeat relevant checks when the implementation or provisioning
   changes. Verify Production again before App Store submission.
+
+## Prepared TestFlight activation
+
+TestFlight always uses CloudKit **Production**, including internal testing.
+Deploying a CloudKit schema does not submit the app for App Review or release it.
+Preparing and compiling an enabled Release build does not access Production;
+installing/running that distributed build does. Keep these actions distinct.
+
+The build switch is ready without another save-code change:
+
+| Build | `CLOUDKIT_SYNC_ENABLED` | CloudKit environment |
+|---|---|---|
+| Ordinary Debug | `NO`; explicit retained launch opt-in available | Development |
+| Ordinary Release / rollback | `NO` | Production entitlement, sync inactive |
+| Intended cloud-enabled TestFlight archive | `YES` | Production |
+
+The setting expands into `TrinketCloudSyncEnabled` in the built Info.plist.
+Inspect that value together with `TrinketCloudEnvironment` and the final signed
+entitlements; passing a Debug launch argument does not enable TestFlight.
+
+After the Development gates pass, the remaining activation sequence is:
+
+1. In CloudKit Console, select `iCloud.com.ryanmcintire.Trinket`, review the
+   Development-to-Production schema changes, and deploy the three explicit record
+   types above. This promotes structure, not Development player records.
+2. Choose the next internal beta build number in `project.yml`, regenerate, and
+   archive scheme `Trinket` in Release with `CLOUDKIT_SYNC_ENABLED=YES`. Keep the
+   existing bundle ID and verify Production entitlements when exporting for
+   App Store Connect. Leave the checked-in default `NO` until adoption is verified.
+3. Upload only to internal TestFlight, attach the prepared cloud beta notes from
+   [AppStoreMetadata.md](AppStoreMetadata.md#cloud-enabled-beta-copy), and run the
+   critical two-device/restart/reset/production-claim checks in Production. This
+   requires a Production-capable second device/build; the ordinary Debug Simulator
+   uses Development and cannot verify the TestFlight user's Production save.
+4. Reconcile privacy/support copy with the enabled beta. Keep the App Store version
+   and Full Game purchase out of App Review until the owner requests submission.
+
+If a rollback is needed, distribute a higher build number with
+`CLOUDKIT_SYNC_ENABLED=NO`; do not delete the local store or cloud records.
+The tested account/production detachment policy remains in the
+[storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
 
 ## Optional post-launch follow-ups
 

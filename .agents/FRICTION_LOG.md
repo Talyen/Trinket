@@ -55,6 +55,8 @@ Entries point to the corrected owners. Earlier detail is retrievable with
 | 2026-09-05 | Generation verification | The documented freshness shortcut reported idempotence without comparing regenerated outputs. Removed it and its unused sidecar helpers; [the assertion](../Scripts/assert-generated-output.sh) now always regenerates, with regression fixtures for damaged and unstable outputs. |
 | 2026-09-04 | Agent guidance | Resolved; see [agent guide](../AGENTS.md), [coverage decision](../Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior), [verification policy](../Docs/Platform/Verification.md). |
 | 2026-09-06 | Audit guidance | Resolved; see [Shared audit policy](../Docs/Audits/README.md). |
+| 2026-09-13 | CloudKit project inputs | XcodeGen owns the Info.plist and entitlements outputs; direct edits are overwritten. The [CloudKit checklist](../Docs/Platform/CloudKitPreShipChecklist.md) now points to `project.yml`, and [generation assertions](../Scripts/config/generated-paths.tsv) cover both outputs. |
+| 2026-09-13 | Simulator CloudKit launch | Simulator builds omitted entitlements and trapped in CKContainer initialization. [project.yml](../project.yml) enables Simulator entitlements; [app-build.sh](../Scripts/lib/app-build.sh) also overrides the generic runner's disabled signing with ad-hoc signing. Both are required for [CloudKit-capable app launches](../Docs/Platform/SimulatorOperations.md#launch-visibility); isolated package tests remain unsigned and local. |
 
 ## Details
 

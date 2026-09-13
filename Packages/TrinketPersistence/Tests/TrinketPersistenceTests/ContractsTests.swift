@@ -103,7 +103,7 @@ struct ContractsPersistenceTests {
             root.contractsPayload = nil
         }
         let store = try context.makeSaveStore()
-        #expect(!store.recoveredAfterStoreDeletion)
+        #expect(!store.isPersistenceDegraded)
         #expect(store.contracts == .freshStart)
         #expect(store.roster == saved.roster)
         #expect(store.inventory == saved.inventory)

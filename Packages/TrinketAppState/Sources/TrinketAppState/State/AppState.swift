@@ -70,6 +70,7 @@ public final class AppState {
         )
         configureBattleRuntime?(resolvedBattle, play)
         finishBootstrap(environment: environment)
+        installCloudSynchronization()
     }
 
     private static func resolveBattleRuntime(
@@ -151,7 +152,7 @@ public final class AppState {
     }
 
     public var requiresPersistenceRecoveryAcknowledgement: Bool {
-        playerSave.isPersistenceDegraded || playerSave.recoveredAfterStoreDeletion
+        playerSave.isPersistenceDegraded
     }
 
     @discardableResult
@@ -205,8 +206,12 @@ public final class AppState {
     }
 
     private var memoryPressureObserver: (any NSObjectProtocol)?
+    var cloudAccountObserver: (any NSObjectProtocol)?
 
     isolated deinit {
+        if let cloudAccountObserver {
+            NotificationCenter.default.removeObserver(cloudAccountObserver)
+        }
         if let memoryPressureObserver {
             NotificationCenter.default.removeObserver(memoryPressureObserver)
         }

@@ -1,7 +1,7 @@
 import Foundation
 import TrinketContent
 
-public struct PlayerSpiresState: Equatable, Sendable {
+public struct PlayerSpiresState: Codable, Equatable, Sendable {
     public var highestClearedFloorBySpireID: [String: Int]
 
     public init(highestClearedFloorBySpireID: [String: Int] = [:]) {

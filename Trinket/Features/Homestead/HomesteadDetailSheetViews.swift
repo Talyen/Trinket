@@ -97,10 +97,11 @@ struct HomesteadDetailSheetView: View {
             }
 
             Button { onPurchase(tier.tier) } label: {
-                Text(tier.tier == 1 ? "Build" : "Upgrade").frame(maxWidth: .infinity)
+                Text(build.isPending ? "Finishing…" : (tier.tier == 1 ? "Build" : "Upgrade"))
+                    .frame(maxWidth: .infinity)
             }
             .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.upgradeButton)
-            .disabled(!status.canBuildOrUpgrade || status.nextTier?.tier != tier.tier || purchaseCommitted)
+            .disabled(!status.canBuildOrUpgrade || status.nextTier?.tier != tier.tier || purchaseCommitted || build.isPending)
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)

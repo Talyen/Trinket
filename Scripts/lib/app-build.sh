@@ -17,4 +17,7 @@ trinket_set_app_xcodebuild_args() {
     "OBJROOT=$derived_data_path/Build/Intermediates.noindex"
     "SHARED_PRECOMPS_DIR=$derived_data_path/Build/Intermediates.noindex/PrecompiledHeaders"
   )
+  if [[ "${2:-iphonesimulator}" == iphonesimulator ]]; then
+    TRINKET_APP_XCODEBUILD_ARGS+=(CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=-)
+  fi
 }

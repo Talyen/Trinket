@@ -38,6 +38,45 @@ progress sync, also complete the [CloudKit checklist](CloudKitPreShipChecklist.m
 Local-only releases do not require CloudKit enablement. The commands below
 produce verified release artifacts; they do not provision these external services.
 
+### Prepare while the beta is running
+
+The app record needed for TestFlight is already recorded in the
+[CloudKit setup baseline](CloudKitPreShipChecklist.md#setup-baseline). Complete its
+public listing using the [metadata draft](AppStoreMetadata.md) in that existing
+App Store Connect record; do not create another
+app or change the bundle ID to match the display name.
+
+1. In **Apps → Trinket: Heroes & Companions → App Information**, prepare the
+   subtitle, Games category/subcategories, content rights, and age-rating answers
+   based on actual game content. Use Apple's
+   [age-rating questionnaire](https://developer.apple.com/help/app-store-connect/manage-app-information/set-an-app-age-rating/).
+2. Prepare the first iOS version's description, keywords, copyright, support URL,
+   review contact, and review notes. Capture representative portrait gameplay
+   screenshots from the intended release build using Apple's current
+   [screenshot requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/).
+   Explain offline play and where reviewers can find Options → Full Game.
+3. Publish and check the [support](../../Website/index.html) and
+   [privacy](../../Website/privacy.html) pages without authentication. Their expected
+   URLs are `https://talyen.github.io/Trinket/` and
+   `https://talyen.github.io/Trinket/privacy.html`. Page source in Git is not proof
+   that hosting is enabled. In **App Privacy**, enter the public privacy-policy URL
+   and review [Apple's privacy questions](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/)
+   against the shipped app, including purchases and diagnostics. Revisit the answers
+   when iCloud behavior changes; the privacy manifest alone does not fill them in.
+4. Complete the [purchase prerequisites](Purchases.md#before-release): agreements,
+   banking/tax, the Full Game non-consumable, pricing/territories, and real sandbox
+   purchase/restore testing. Set up paid access independently of progress sync.
+5. In App Store Connect, review pricing/availability, the applicable regional
+   business requirements, export-compliance questions, and the release method.
+   Prefer manual release when the launch date is not yet settled. Recheck Apple's
+   submission requirements near release rather than freezing today's requirements.
+6. Use beta updates to test preservation of the existing save, offline play,
+   interrupted battles, restart, and purchase restoration. Record build IDs and
+   observed outcomes. Run CloudKit's Development and TestFlight stages separately;
+   a successful local-only TestFlight launch does not verify iCloud sync.
+
+### Produce release artifacts
+
 ```sh
 ./Scripts/release.sh --dry-run
 ./Scripts/release.sh

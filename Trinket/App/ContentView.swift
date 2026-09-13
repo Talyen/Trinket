@@ -28,6 +28,7 @@ struct ContentView: View {
                     confirmHero: appState.confirmStarterHero,
                     confirmCompanion: appState.completeStarterSelection,
                 )
+                .id(playerSave.currentSave.sessionGeneration)
                 .onGeometryChange(for: Bool.self) { geometry in
                     geometry.size.width > 0 && geometry.size.height > 0
                 } action: { hasLayout in
@@ -74,6 +75,11 @@ struct ContentView: View {
         }
         .onAppear {
             appState.reconcileShellState(.scenePhaseChanged, scenePhase: scenePhase)
+        }
+        .task(id: scenePhase) {
+            if scenePhase == .active {
+                await appState.runCloudSynchronization()
+            }
         }
         .onChange(of: shellSession.selectedTab) { _, newTab in
             appState.refreshMusic(scenePhase: scenePhase)

@@ -1,5 +1,7 @@
 # kind|path
 project|Trinket.xcodeproj/project.pbxproj
+project|Trinket/Info.plist
+project|Trinket/Trinket.entitlements
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv

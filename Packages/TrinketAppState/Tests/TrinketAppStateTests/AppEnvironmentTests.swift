@@ -4,6 +4,33 @@ import TrinketFeatureSupport
 @testable import TrinketAppState
 
 struct AppEnvironmentTests {
+    @Test(arguments: ["-disable-cloud-sync", "-reset-state", "-seed-test-progress"], [false, true])
+    func `local safety flags override cloud opt in and build default`(flag: String, cloudDefault: Bool) {
+        #expect(Self.parse(arguments: ["-enable-cloud-sync", flag], cloudDefault: cloudDefault).disableCloudSync)
+    }
+
+    @Test(arguments: [false, true])
+    func `runners override cloud opt in and build default`(cloudDefault: Bool) {
+        #expect(Self.parse(
+            arguments: ["-enable-cloud-sync"],
+            environment: ["XCTestConfigurationFilePath": "isolated-tests"],
+            cloudDefault: cloudDefault,
+        ).disableCloudSync)
+    }
+
+    @Test(arguments: [false, true])
+    func `cloud build default controls ordinary launch`(cloudDefault: Bool) {
+        #expect(Self.parse(arguments: [], cloudDefault: cloudDefault).disableCloudSync == !cloudDefault)
+    }
+
+    @Test func `cloud launch opt in respects build configuration`() {
+        #if DEBUG
+        #expect(!Self.parse(arguments: ["-enable-cloud-sync"]).disableCloudSync)
+        #else
+        #expect(Self.parse(arguments: ["-enable-cloud-sync"]).disableCloudSync)
+        #endif
+    }
+
     private static let emptyEnvironment: [String: String] = [:]
 
     private static let selectedTabCases: [(String, AppTab?)] =
@@ -80,12 +107,15 @@ struct AppEnvironmentTests {
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
         #expect(env.mysteryRecruitEventID == "recruit-ranger")
         #expect(env.battleTickInterval == 60)
-        #expect(env.launchPreparationDelay == 8)
         #expect(env.startingGold == 200)
         #expect(env.enableFrameMetrics)
+        #if DEBUG
+        #expect(env.launchPreparationDelay == 8)
         #expect(env.battlePerformanceScenario == .engineFeedback)
-
-        #expect(!Self.parse(arguments: ["-enable-cloud-sync"]).disableCloudSync)
+        #else
+        #expect(env.launchPreparationDelay == 0)
+        #expect(env.battlePerformanceScenario == nil)
+        #endif
         #expect(
             Self.parse(arguments: ["-battle-performance-scenario", "unknown"]).battlePerformanceScenario == nil,
         )
@@ -114,7 +144,12 @@ struct AppEnvironmentTests {
     private static func parse(
         arguments: [String],
         environment: [String: String]? = nil,
+        cloudDefault: Bool = false,
     ) -> AppEnvironment {
-        AppEnvironment.parse(arguments: arguments, environment: environment ?? emptyEnvironment)
+        AppEnvironment.parse(
+            arguments: arguments,
+            environment: environment ?? emptyEnvironment,
+            cloudSyncEnabledByDefault: cloudDefault,
+        )
     }
 }

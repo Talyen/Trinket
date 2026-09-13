@@ -5,7 +5,6 @@ import SwiftData
 enum PlayerSaveStoreConfiguration {
     struct ResolvedStore {
         let config: ModelConfiguration
-        let recoveryURL: URL?
         let finalURL: URL
     }
 
@@ -29,33 +28,26 @@ enum PlayerSaveStoreConfiguration {
         schema: Schema,
         storeName: String?,
         storeURL: URL?,
-        disableCloudSync: Bool,
         inMemoryOnly: Bool,
-        cloudKitContainerIdentifier: String,
     ) -> ResolvedStore {
         let finalURL = resolveStoreURL(storeName: storeName, storeURL: storeURL)
         if inMemoryOnly {
             return ResolvedStore(
                 config: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none),
-                recoveryURL: nil,
-                finalURL: finalURL,
-            )
-        }
-        if storeName != nil || storeURL != nil || disableCloudSync {
-            return ResolvedStore(
-                config: ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none),
-                recoveryURL: finalURL,
                 finalURL: finalURL,
             )
         }
         return ResolvedStore(
-            config: ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
-            recoveryURL: nil,
+            config: ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none),
             finalURL: finalURL,
         )
     }
 
-    static func fetchRoot(in context: ModelContext, logger: Logger) throws -> PlayerSaveRoot? {
+    static func fetchRoot(
+        in context: ModelContext,
+        isCloudSyncEnabled: Bool,
+        logger: Logger,
+    ) throws -> PlayerSaveRoot? {
         let descriptor = FetchDescriptor<PlayerSaveRoot>(
             predicate: #Predicate { $0.id == "primary" },
             sortBy: [
@@ -79,6 +71,11 @@ enum PlayerSaveStoreConfiguration {
         }
         let extras = primaries.filter { $0 !== keeper }
         guard !extras.isEmpty else { return keeper }
+        guard !isCloudSyncEnabled else {
+            throw PlayerSavePersistenceError.storeUnavailable(
+                "Multiple iCloud saves need reconciliation. Saved progress has been preserved.",
+            )
+        }
         logger.notice(
             "Dropped \(extras.count, privacy: .public) duplicate player save roots; kept the newest primary.",
         )

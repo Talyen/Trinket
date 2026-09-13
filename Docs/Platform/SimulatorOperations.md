@@ -74,6 +74,12 @@ mean the human simulator has the new build installed.
 
 ## Launch visibility
 
+Simulator app builds use ad-hoc code signing through `Scripts/lib/app-build.sh`.
+Keep that explicit override: the generic Xcode runner disables signing for isolated
+package tests, but CloudKit-enabled app launches require the Simulator's embedded
+iCloud entitlements.
+`ENTITLEMENTS_ALLOWED` alone does not preserve them in an unsigned app product.
+
 `./Scripts/run-simulator.sh` (the `run` alias) builds, installs, then ensures
 `Simulator.app` is frontmost for the target device. `open -a Simulator --args
 -CurrentDeviceUDID` only affects a fresh launch — when Simulator is already

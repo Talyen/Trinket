@@ -15,6 +15,7 @@ private let trinketAppLogger = Logger(
 
 @main
 struct TrinketApp: App {
+    @UIApplicationDelegateAdaptor(CloudNotificationDelegate.self) private var cloudNotifications
     @State private var appState: AppState?
     @State private var bootstrapFailureMessage: String?
     @State private var launchPriorityImageNames: [String] = []
@@ -42,11 +43,12 @@ struct TrinketApp: App {
 
         do {
             let state = try makeState(nil)
+            cloudNotifications.store = state.playerSave
             _appState = State(initialValue: state)
             _launchPriorityImageNames = State(initialValue: LaunchArtworkCensus.priorityImageNames(for: state))
         } catch {
             trinketAppLogger.error(
-                "AppState bootstrap failed: \(error.localizedDescription, privacy: .public)",
+                "AppState bootstrap failed: \(String(describing: error), privacy: .public)",
             )
             do {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)

@@ -371,7 +371,8 @@ bash -eu -c '
   source "$1"
   capture="$2/diagnostic-arguments"
   xcodebuild() { printf "%s\n" "$@" > "$capture"; }
-  for scenario in test test-without-building build macos explicit; do
+  source "$3/Scripts/lib/app-build.sh"
+  for scenario in test test-without-building build macos explicit app-build device-build; do
     action=test
     sdk=iphonesimulator
     case "$scenario" in
@@ -379,6 +380,12 @@ bash -eu -c '
       macos) sdk=macosx ;;
     esac
     args=("$action" -sdk "$sdk")
+    if [[ "$scenario" == app-build || "$scenario" == device-build ]]; then
+      destination="generic/platform=iOS Simulator"
+      if [[ "$scenario" == device-build ]]; then sdk=iphoneos; destination="generic/platform=iOS"; fi
+      trinket_set_app_xcodebuild_args "$2/app-build" "$sdk" "$destination"
+      args=(build "${TRINKET_APP_XCODEBUILD_ARGS[@]}")
+    fi
     if [[ "$scenario" == explicit ]]; then args+=(-collect-test-diagnostics on-failure); fi
     xcode_runner_run --label "$scenario" --result-bundle "$2/$scenario.xcresult" \
       --log "$2/$scenario.log" --report-prefix "$2/$scenario-report" \
@@ -388,14 +395,19 @@ from pathlib import Path
 import sys
 args = Path(sys.argv[1]).read_text().splitlines()
 scenario = sys.argv[2]
-if scenario in {"build", "macos"}:
+if scenario in {"build", "macos", "app-build", "device-build"}:
     assert "-collect-test-diagnostics" not in args, args
 else:
     assert args.count("-collect-test-diagnostics") == 1, args
     assert args[args.index("-collect-test-diagnostics") + 1] == ("on-failure" if scenario == "explicit" else "never"), args
+if scenario == "app-build":
+    assert "CODE_SIGNING_ALLOWED=YES" in args and "CODE_SIGNING_ALLOWED=NO" not in args, args
+    assert "CODE_SIGN_IDENTITY=-" in args, args
+elif scenario == "device-build":
+    assert not any(arg.startswith("CODE_SIGNING_") or arg.startswith("CODE_SIGN_IDENTITY=") for arg in args), args
 PY_OPTIONS
   done
-' _ "$RUNNER" "$TMP_DIR"
+' _ "$RUNNER" "$TMP_DIR" "$ROOT_DIR"
 
 # Infra retry matcher covers XCUITest launch flakes even when exit is 65.
 python3 - "$ROOT_DIR" <<'PY_FILTERS'

@@ -17,8 +17,10 @@ public final class PlayerSaveStore {
         category: "PersistencePerformance",
     )
 
-    private let container: ModelContainer
-    private let context: ModelContext
+    @ObservationIgnored private var container: ModelContainer
+    @ObservationIgnored private var usesMemoryFallback: Bool
+    @ObservationIgnored private var context: ModelContext
+    private let recoveryConfiguration: ModelConfiguration?
     private var root: PlayerSaveRoot
     private var deferredSaveTask: Task<Void, Never>?
     private var pendingRollbackSnapshot: PlayerSave?
@@ -35,8 +37,15 @@ public final class PlayerSaveStore {
 
     public private(set) var isPersistenceDegraded = false
 
-    public private(set) var recoveredAfterStoreDeletion = false
-    public let isCloudSyncEnabled: Bool
+    public private(set) var isCloudSyncEnabled: Bool
+    public private(set) var resetAffectsCloudProgress = false
+    public private(set) var cloudSync: PlayerSaveCloudSync?
+    @ObservationIgnored public var onExternalProgressChange: (@MainActor () -> Void)?
+    @ObservationIgnored var cloudDeviceState = CloudDeviceState()
+    private var preservesUnreadableCloudState = false
+    private static let memoryFallbackError = PlayerSavePersistenceError.storeUnavailable(
+        "Couldn't open saved progress on this device. Existing save files were preserved. New progress is kept only until the app closes.",
+    )
 
     #if DEBUG
     public var forcesNextSaveFailure = false
@@ -86,10 +95,10 @@ public final class PlayerSaveStore {
         observedSave
     }
 
-    public init(
+    public convenience init(
         storeName: String? = nil,
         storeURL: URL? = nil,
-        disableCloudSync: Bool = false,
+        disableCloudSync: Bool = true,
         resetState: Bool = false,
         inMemoryOnly: Bool = false,
     ) throws {
@@ -98,6 +107,7 @@ public final class PlayerSaveStore {
             Self.performanceSignposter.endInterval("PlayerSaveBootstrap", bootstrapInterval)
         }
         let requestedCloudSync = !disableCloudSync
+            && !resetState
             && !inMemoryOnly
             && storeName == nil
             && storeURL == nil
@@ -106,34 +116,41 @@ public final class PlayerSaveStore {
             schema: schema,
             storeName: storeName,
             storeURL: storeURL,
-            disableCloudSync: disableCloudSync,
             inMemoryOnly: inMemoryOnly,
-            cloudKitContainerIdentifier: Self.cloudKitContainerIdentifier,
         )
 
-        if resetState, !inMemoryOnly, resolved.recoveryURL != nil {
+        if resetState, !inMemoryOnly {
             PlayerSaveStoreConfiguration.cleanStoreFiles(at: resolved.finalURL)
         }
-
+        let logger = Logger(subsystem: PlayerSaveDefaults.loggingSubsystem, category: "PlayerSave")
         let openResult = try Self.openSaveContainer(
             schema: schema,
             configuration: resolved.config,
-            recoveryURL: resolved.recoveryURL,
             logger: logger,
         )
+        try self.init(
+            openResult: openResult,
+            cloudSyncEnabled: requestedCloudSync,
+            cloudTransport: requestedCloudSync ? CloudKitSaveTransport(containerIdentifier: Self.cloudKitContainerIdentifier) : nil,
+            resetState: resetState,
+            recoveryConfiguration: inMemoryOnly ? nil : resolved.config,
+        )
+    }
+
+    init(
+        openResult: ModelContainerBootstrap.OpenResult,
+        cloudSyncEnabled: Bool,
+        cloudTransport: (any CloudSaveTransport)? = nil,
+        resetState: Bool = false,
+        recoveryConfiguration: ModelConfiguration? = nil,
+    ) throws {
+        self.recoveryConfiguration = recoveryConfiguration
         container = openResult.container
-        isCloudSyncEnabled = requestedCloudSync && !openResult.usedInMemoryFallback
+        usesMemoryFallback = openResult.usedInMemoryFallback
+        isCloudSyncEnabled = cloudSyncEnabled && !openResult.usedInMemoryFallback
         if openResult.usedInMemoryFallback {
             isPersistenceDegraded = true
-            lastPersistenceError = .storeUnavailable(
-                "Couldn't open on-device save storage. Progress is kept in memory until you restart after freeing space.",
-            )
-        }
-        if openResult.recoveredAfterStoreDeletion {
-            recoveredAfterStoreDeletion = true
-            lastPersistenceError = .storeUnavailable(
-                "Saved progress was unreadable and couldn't be repaired, so a fresh start was created.",
-            )
+            lastPersistenceError = Self.memoryFallbackError
         }
         context = ModelContext(container)
         context.autosaveEnabled = false
@@ -142,8 +159,20 @@ public final class PlayerSaveStore {
             try PlayerSaveStoreConfiguration.clearSaveRoot(in: context, logger: logger)
         }
 
-        let loadedRoot = try Self.loadOrCreateRoot(in: context, logger: logger)
+        let loadedRoot = try Self.loadOrCreateRoot(
+            in: context,
+            isCloudSyncEnabled: cloudSyncEnabled && !openResult.usedInMemoryFallback,
+            logger: logger,
+        )
         root = loadedRoot.root
+        do {
+            cloudDeviceState = try CloudDeviceState.decode(root.cloudStatePayload)
+            resetAffectsCloudProgress = cloudDeviceState.activeAccountID != nil
+        } catch {
+            preservesUnreadableCloudState = true
+            isCloudSyncEnabled = false
+            logger.error("iCloud metadata could not be read; keeping progress local: \(String(describing: error), privacy: .public)")
+        }
         let rawSave = root.toPlayerSave()
         guard rawSave.schemaVersion == PlayerSave.currentSchemaVersion else {
             throw PlayerSavePersistenceError.invalidSave("Unsupported save schema version.")
@@ -156,6 +185,9 @@ public final class PlayerSaveStore {
         } else if loadedRoot.initialSaveFailed {
             lastPersistenceError = .writeFailed
             isPersistenceDegraded = true
+        }
+        if isCloudSyncEnabled, let cloudTransport {
+            cloudSync = PlayerSaveCloudSync(store: self, transport: cloudTransport)
         }
     }
 
@@ -214,7 +246,6 @@ public final class PlayerSaveStore {
         do {
             try saveGraph()
             clearPendingDeferredPersistence()
-            lastPersistenceError = nil
         } catch {
             rollbackPendingMutationIfNeeded()
         }
@@ -228,7 +259,24 @@ public final class PlayerSaveStore {
     }
 
     public func resetGameplayProgress() throws {
-        try resetWithIncrementedSessionGeneration(.fresh)
+        if usesMemoryFallback {
+            try resetDurableStorage()
+            return
+        }
+        let previous = cloudDeviceState
+        if cloudDeviceState.activeAccountID != nil {
+            cloudDeviceState.account.pending = nil
+            cloudDeviceState.account.resetRequested = true
+        }
+        do {
+            try resetWithIncrementedSessionGeneration(.fresh)
+        } catch {
+            cloudDeviceState = previous
+            if !preservesUnreadableCloudState {
+                root.cloudStatePayload = try JSONEncoder().encode(previous)
+            }
+            throw error
+        }
     }
 
     public func applyTestSeed() throws {
@@ -251,6 +299,9 @@ public final class PlayerSaveStore {
             Self.performanceSignposter.endInterval("ModelContextSave", interval)
         }
         do {
+            if !preservesUnreadableCloudState {
+                root.cloudStatePayload = try JSONEncoder().encode(cloudDeviceState)
+            }
             #if DEBUG
             if forcesNextSaveFailure {
                 forcesNextSaveFailure = false
@@ -258,7 +309,8 @@ public final class PlayerSaveStore {
             }
             #endif
             try context.save()
-            lastPersistenceError = nil
+            isPersistenceDegraded = usesMemoryFallback
+            lastPersistenceError = usesMemoryFallback ? Self.memoryFallbackError : nil
         } catch {
             lastPersistenceError = .writeFailed
             logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
@@ -319,6 +371,48 @@ public final class PlayerSaveStore {
     }
 }
 
+extension PlayerSaveStore {
+    func commitCloudState(
+        _ state: CloudDeviceState,
+        replacing save: PlayerSave? = nil,
+        invalidatesSession: Bool = true,
+    ) throws {
+        let previous = cloudDeviceState
+        cloudDeviceState = state
+        do {
+            if var save {
+                let changed = invalidatesSession && CloudSaveSnapshot(currentSave) != CloudSaveSnapshot(save)
+                save.sessionGeneration = changed ? currentSave.sessionGeneration &+ 1 : currentSave.sessionGeneration
+                try resetRoot(with: save)
+                if changed {
+                    onExternalProgressChange?()
+                }
+            } else {
+                try saveGraph()
+            }
+            resetAffectsCloudProgress = state.activeAccountID != nil
+        } catch {
+            cloudDeviceState = previous
+            root.cloudStatePayload = try JSONEncoder().encode(previous)
+            throw error
+        }
+    }
+
+    func prepareLocalProduction() -> Bool {
+        guard let accountID = cloudDeviceState.activeAccountID else { return true }
+        var state = cloudDeviceState
+        state.archives[accountID] = CloudAccountArchive(snapshot: CloudSaveSnapshot(currentSave), state: state.account)
+        state.activeAccountID = nil
+        state.account = CloudAccountState()
+        do {
+            try commitCloudState(state)
+            return true
+        } catch {
+            return false
+        }
+    }
+}
+
 #if DEBUG
 public extension PlayerSaveStore {
     func dropInventoryGraphForTesting() {
@@ -338,7 +432,6 @@ private extension PlayerSaveStore {
     static func openSaveContainer(
         schema: Schema,
         configuration: ModelConfiguration,
-        recoveryURL: URL?,
         logger: Logger,
     ) throws -> ModelContainerBootstrap.OpenResult {
         let interval = performanceSignposter.beginInterval("ModelContainerOpen")
@@ -348,20 +441,23 @@ private extension PlayerSaveStore {
             primaryConfiguration: configuration,
             logger: logger,
             logLabel: "player save",
-            storeURLForRecovery: recoveryURL,
-            deleteStoreOnFailure: true,
         )
     }
 
     static func loadOrCreateRoot(
         in context: ModelContext,
+        isCloudSyncEnabled: Bool,
         logger: Logger,
     ) throws -> (root: PlayerSaveRoot, wasExisting: Bool, initialSaveFailed: Bool) {
         let interval = performanceSignposter.beginInterval("PlayerSaveRootLoad")
         defer {
             performanceSignposter.endInterval("PlayerSaveRootLoad", interval)
         }
-        if let root = try PlayerSaveStoreConfiguration.fetchRoot(in: context, logger: logger) {
+        if let root = try PlayerSaveStoreConfiguration.fetchRoot(
+            in: context,
+            isCloudSyncEnabled: isCloudSyncEnabled,
+            logger: logger,
+        ) {
             return (root, true, false)
         }
         let root = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
@@ -377,6 +473,34 @@ private extension PlayerSaveStore {
         }
     }
 
+    func resetDurableStorage() throws {
+        guard let recoveryConfiguration else { throw Self.memoryFallbackError }
+        do {
+            PlayerSaveStoreConfiguration.cleanStoreFiles(at: recoveryConfiguration.url)
+            let replacement = try ModelContainer(for: PlayerSaveGraph.schema, configurations: recoveryConfiguration)
+            let replacementContext = ModelContext(replacement)
+            replacementContext.autosaveEnabled = false
+            try replacementContext.delete(model: PlayerSaveRoot.self)
+            var save = PlayerSaveSanitizer.sanitize(.fresh)
+            save.sessionGeneration = currentSave.sessionGeneration &+ 1
+            let replacementRoot = PlayerSaveRoot(save: save)
+            replacementRoot.cloudStatePayload = try JSONEncoder().encode(cloudDeviceState)
+            replacementContext.insert(replacementRoot)
+            try replacementContext.save()
+            clearPendingDeferredPersistence()
+            container = replacement
+            context = replacementContext
+            root = replacementRoot
+            usesMemoryFallback = false
+            isPersistenceDegraded = false
+            lastPersistenceError = nil
+            installObservedSave(save)
+        } catch {
+            lastPersistenceError = .writeFailed
+            throw PlayerSavePersistenceError.writeFailed
+        }
+    }
+
     func scheduleDeferredSave() {
         deferredSaveTask?.cancel()
         deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
@@ -389,7 +513,6 @@ private extension PlayerSaveStore {
             do {
                 try saveGraph()
                 clearPendingDeferredPersistence()
-                lastPersistenceError = nil
             } catch {
                 rollbackPendingMutationIfNeeded()
             }

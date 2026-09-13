@@ -105,28 +105,19 @@ struct HomesteadView: View {
             let amounts = depositEvent?.amounts ?? pending
             Group {
                 if !amounts.isEmpty {
-                    let layout = playerSave.isCloudSyncEnabled
-                        ? AnyLayout(HStackLayout(spacing: TrinketDesign.Spacing.large))
-                        : AnyLayout(VStackLayout(spacing: TrinketDesign.Spacing.small))
-                    layout {
-                        if playerSave.isCloudSyncEnabled {
-                            Text("Unavailable with cloud sync")
-                                .trinketTypography(.caption)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            HomesteadCollectionPreview(amounts: amounts, isCollecting: depositEvent != nil)
-                        }
+                    VStack(spacing: TrinketDesign.Spacing.small) {
+                        HomesteadCollectionPreview(amounts: amounts, isCollecting: depositEvent != nil)
                         Button {
                             collectProduction(at: context.date)
                         } label: {
                             collectLabel
                         }
-                        .disabled(playerSave.isCloudSyncEnabled || depositEvent != nil)
+                        .disabled(collection.isPending || depositEvent != nil)
                         .trinketPrimaryActionButton(
                             accessibilityIdentifier: AccessibilityID.Homestead.collectButton,
                         )
                         .shadow(
-                            color: HomesteadResource.gold.tint.opacity(playerSave.isCloudSyncEnabled ? 0 : 0.22),
+                            color: HomesteadResource.gold.tint.opacity(0.22),
                             radius: TrinketDesign.Spacing.medium,
                         )
                         .trinketPresentationVisibility(depositEvent?.gathered != true)
@@ -141,7 +132,7 @@ struct HomesteadView: View {
 
     private var collectLabel: some View {
         Label {
-            Text("Collect")
+            Text(collection.isPending ? "Collecting…" : "Collect")
         } icon: {
             GameIconImage(.system("gift.fill"))
                 .imageScale(.large)
@@ -158,11 +149,15 @@ struct HomesteadView: View {
     }
 
     private func collectProduction(at date: Date) {
-        guard depositEvent == nil else { return }
-        var granted: [ResourceAmount] = []
-        collection.perform(saveStore: playerSave, at: date) { amounts in
-            granted = amounts
+        guard depositEvent == nil, !collection.isPending else { return }
+        collection.isPending = true
+        Task {
+            let result = await playerSave.collectProduction(at: date)
+            collection.complete(result, onSuccess: presentCollection)
         }
+    }
+
+    private func presentCollection(_ granted: [ResourceAmount]) {
         guard !granted.isEmpty else { return }
         guard depositGeometry.supports(granted) else {
             collectionSuccessTrigger &+= 1

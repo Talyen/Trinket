@@ -8,6 +8,7 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 |---------|-------|-------|
 | SwiftData graph / hub | `PlayerSaveStoreTests` | Root creation, reset, seed, relaunch, independent records, snapshot validation, deferred flush |
 | Save schema | `PlayerSaveStoreTests` | Current-schema reload and rejection of unsupported development saves without replacement |
+| Complete-save sync | `CloudSaveSyncTests` | Snapshot coding, conflict backups, account separation, reset epochs, server claims/retries, late imports, and disk recovery with a fake transport |
 | Store cleanup / duplicate roots | `PlayerSaveStoreCleanupTests` | Sidecar wipe, `resetState`, newest-primary repair |
 | Graph identity | `PlayerSaveGraphIdentityTests` | Persistent IDs survive in-place updates |
 | Graph repair | `PlayerSaveGraphRepairTests` | Duplicate/orphan row repair on load |

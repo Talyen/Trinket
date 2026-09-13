@@ -34,5 +34,7 @@ receive both contracts. Follow the storage contract when a domain change touches
 graph reconciliation or serialization. Current-data validation and corruption
 recovery remain required; schema changes must follow the storage contract.
 
-CloudKit enablement: [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
+SwiftData remains local; explicit complete-save CloudKit synchronization is owned
+by Persistence, with lifecycle polling, account events, and session invalidation
+owned by AppState. CloudKit enablement: [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
 Identity: [Identity](../Product/Identity.md).

@@ -6,20 +6,22 @@ Persistence mechanics belong to [persistence context](../AgentContext/persistenc
 
 ## Current behavior
 
-Progress is local-only; live CloudKit remains gated. Players begin without login,
-iCloud, or identity prompts. Identity and sync errors must not gate local play.
+Ordinary builds default to local-only progress. Explicitly enabled internal beta
+builds use iCloud as described below. Players begin without login or identity
+prompts. Identity and sync errors must not gate local play.
 Do not add Sign in with Apple, Google, hosted accounts, or Game Center integration.
 
 Options → **Reset Game Progress** requires confirmation and clears progress on
-this device. Its copy must describe that device-local scope. Do not add a separate
+this device and, when linked to iCloud, its synced devices. Its copy must describe
+the applicable scope. Do not add a separate
 Delete Account action when no Trinket account exists. Reset never removes Full Game
 ownership; purchase access and restoration follow [Monetization.md](Monetization.md)
 and remain independent of save synchronization.
 
-## Future iCloud synchronization
+## iCloud-enabled builds
 
-After enablement, the device's iCloud account supplies private CloudKit storage
-for automatic SwiftData progress synchronization. Devices using the same iCloud
+In an enabled build, the device's iCloud account supplies private CloudKit storage
+for automatic complete-save synchronization; SwiftData remains the on-device store. Devices using the same iCloud
 account share progress silently. Offline or signed-out players retain local play;
 there is no login splash, save-progress prompt, or manual sync funnel. A quiet
 Options status may be added only if useful.

@@ -1,7 +1,7 @@
 import Foundation
 import TrinketContent
 
-public struct JourneyProgressState: Equatable, Sendable {
+public struct JourneyProgressState: Codable, Equatable, Sendable {
     public var activeChapterID: String
     public var activeStageID: String?
     public var completedStageIDs: Set<String>

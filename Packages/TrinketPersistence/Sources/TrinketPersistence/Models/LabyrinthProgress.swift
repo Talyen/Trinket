@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct PlayerLabyrinthState: Equatable, Sendable {
+public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
     private struct ReachabilityIndex {
         var explicitOutgoingIDs: Set<String> = []
         var clearedPositionsByCluster: [String: Set<LabyrinthGridPosition>] = [:]

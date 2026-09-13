@@ -97,7 +97,7 @@ enum RosterHydration {
         return exactAbility(id, choices: choices.abilities(for: tier)) ?? fallback
     }
 
-    struct AbilityLoadoutIDs {
+    struct AbilityLoadoutIDs: Codable, Equatable, Sendable {
         var basicID: String?
         var skillID: String?
         var ultimateID: String?

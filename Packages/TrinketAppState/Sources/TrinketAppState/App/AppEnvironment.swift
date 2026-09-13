@@ -58,15 +58,34 @@ public struct AppEnvironment: Sendable {
     }
 
     private static func load() -> Self {
-        parse(
-            arguments: ProcessInfo.processInfo.arguments,
+        var arguments = ProcessInfo.processInfo.arguments
+        #if DEBUG
+        let key = "development.cloudSyncEnabled"
+        let defaults = UserDefaults.standard
+        if arguments.contains("-enable-cloud-sync") {
+            defaults.set(true, forKey: key)
+        }
+        if arguments.contains("-disable-cloud-sync") {
+            defaults.set(false, forKey: key)
+        }
+        if defaults.bool(forKey: key), !arguments.contains("-enable-cloud-sync") {
+            arguments.append("-enable-cloud-sync")
+        }
+        #endif
+        return parse(
+            arguments: arguments,
             environment: ProcessInfo.processInfo.environment,
+            cloudSyncEnabledByDefault: Bundle.main.object(forInfoDictionaryKey: "TrinketCloudSyncEnabled") as? String == "YES",
         )
     }
 
-    public static func parse(arguments: [String], environment: [String: String]) -> Self {
+    public static func parse(
+        arguments: [String],
+        environment: [String: String],
+        cloudSyncEnabledByDefault: Bool = false,
+    ) -> Self {
         let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
-        let disableCloudSync: Bool
+        let cloudSyncRequested: Bool
         let launchPreparationDelay: TimeInterval
         #if DEBUG
         let requestedDelay = argumentValue(after: "-launch-preparation-delay", in: arguments)
@@ -76,14 +95,17 @@ public struct AppEnvironment: Sendable {
             after: "-battle-performance-scenario",
             in: arguments,
         ).flatMap(BattlePerformanceScenario.init(rawValue:))
+        cloudSyncRequested = cloudSyncEnabledByDefault || arguments.contains("-enable-cloud-sync")
         #else
         launchPreparationDelay = 0
         let battlePerformanceScenario: BattlePerformanceScenario? = nil
+        cloudSyncRequested = cloudSyncEnabledByDefault
         #endif
-        disableCloudSync = arguments.contains("-disable-cloud-sync")
+        let disableCloudSync = !cloudSyncRequested
+            || arguments.contains("-disable-cloud-sync")
             || arguments.contains("-reset-state")
+            || arguments.contains("-seed-test-progress")
             || isRunningTests
-            || !arguments.contains("-enable-cloud-sync")
 
         return Self(
             launchTab: launchTab(from: arguments),

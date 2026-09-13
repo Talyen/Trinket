@@ -1,12 +1,17 @@
 import TrinketContent
 
-public enum StarterSelectionPhase: String, Equatable, Sendable {
-    case chooseHero
-    case chooseCompanion
+// swiftformat:disable redundantRawValues - persisted starter phases must remain explicit
+// swiftlint:disable redundant_string_enum_value - persisted starter phases must remain explicit
+public enum StarterSelectionPhase: String, Codable, Equatable, Sendable {
+    case chooseHero = "chooseHero"
+    case chooseCompanion = "chooseCompanion"
     case complete
 }
 
-public struct StarterSelectionState: Equatable, Sendable {
+// swiftlint:enable redundant_string_enum_value
+// swiftformat:enable redundantRawValues
+
+public struct StarterSelectionState: Codable, Equatable, Sendable {
     public private(set) var phase: StarterSelectionPhase
     public private(set) var heroID: String?
 

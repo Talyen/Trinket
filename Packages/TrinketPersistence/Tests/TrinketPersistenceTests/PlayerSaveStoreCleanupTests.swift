@@ -5,6 +5,34 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct PlayerSaveStoreCleanupTests {
+    @Test @MainActor func `cloud duplicate roots are preserved without choosing or repairing either save`() throws {
+        let context = try PersistenceTestContext()
+        let storeURL = context.storeURL()
+        let original = try context.makeSaveStore()
+        #expect(original.persistBatch(logging: "Test setup") { $0.roster.gold = 99 })
+        let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
+        let other = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
+        other.modifiedAt = .distantPast
+        sideContext.insert(other)
+        try sideContext.save()
+        let before = try sideContext.fetch(FetchDescriptor<PlayerSaveRoot>()).map { $0.toPlayerSave() }
+
+        #expect(throws: PlayerSavePersistenceError.self) {
+            _ = try PlayerSaveStore(
+                openResult: .init(
+                    container: sideContext.container,
+                    usedInMemoryFallback: false,
+                ),
+                cloudSyncEnabled: true,
+            )
+        }
+
+        let reloadedContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
+        let after = try reloadedContext.fetch(FetchDescriptor<PlayerSaveRoot>()).map { $0.toPlayerSave() }
+        #expect(after.count == 2)
+        #expect(before.allSatisfy { after.contains($0) })
+    }
+
     @Test(arguments: ["PlayerSave.sqlite", "default.store", "save"])
     func `clean store files removes only the store and its sidecars`(filename: String) throws {
         let context = try PersistenceTestContext()

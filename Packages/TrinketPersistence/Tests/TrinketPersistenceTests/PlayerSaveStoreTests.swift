@@ -88,28 +88,50 @@ struct PlayerSaveStoreTests {
         try #expect(reloaded.homestead.resources[.wood] == 12345)
     }
 
-    @Test @MainActor func `corrupt store recovers by deleting and recreating`() throws {
+    @Test @MainActor func `unreadable store is preserved until explicit reset`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let originalData = Data("not-a-sqlite-store".utf8)
         try originalData.write(to: storeURL)
-
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-
-        try #expect(!store.isPersistenceDegraded)
-        try #expect(store.recoveredAfterStoreDeletion)
-        if case let .storeUnavailable(message) = store.lastPersistenceError {
-            #expect(message.contains("fresh start"))
-        } else {
-            Issue.record("Expected store-unavailable error after wipe recovery")
-        }
-
+        #expect(store.isPersistenceDegraded)
+        #expect(store.lastPersistenceError != nil)
         store.grantGold(42)
+        #expect(store.roster.gold == 42)
+        #expect(store.lastPersistenceError != nil)
+        #expect(try Data(contentsOf: storeURL) == originalData)
+        let generation = store.currentSave.sessionGeneration
+        try store.resetGameplayProgress()
+        #expect(!store.isPersistenceDegraded)
+        #expect(store.lastPersistenceError == nil)
+        #expect(store.roster.gold == 0)
+        #expect(store.currentSave.sessionGeneration == generation + 1)
+        store.grantGold(42)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.gold == 42)
+        #expect(!reloaded.isPersistenceDegraded)
+    }
 
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(reloaded.roster.gold == 42)
-        #expect(!reloaded.isPersistenceDegraded && !reloaded.recoveredAfterStoreDeletion)
-        #expect(reloaded.lastPersistenceError == nil)
+    @Test @MainActor func `failed recovery reset retains temporary progress and can retry`() throws {
+        let context = try PersistenceTestContext()
+        let blockedDirectory = context.directoryURL.appending(path: "blocked")
+        try Data("not-a-directory".utf8).write(to: blockedDirectory)
+        let url = blockedDirectory.appending(path: "PlayerSave.sqlite")
+        let store = try PlayerSaveStore(storeURL: url)
+        store.grantGold(17)
+        let before = store.currentSave
+        #expect(throws: PlayerSavePersistenceError.writeFailed) { try store.resetGameplayProgress() }
+        #expect(store.currentSave == before)
+        #expect(store.isPersistenceDegraded)
+        try FileManager.default.removeItem(at: blockedDirectory)
+        try FileManager.default.createDirectory(at: blockedDirectory, withIntermediateDirectories: true)
+        try store.resetGameplayProgress()
+        #expect(!store.isPersistenceDegraded)
+        #expect(store.roster.gold == 0)
+        store.grantGold(42)
+        let reloaded = try PlayerSaveStore(storeURL: url)
+        #expect(reloaded.roster.gold == 42)
+        #expect(!reloaded.isPersistenceDegraded)
     }
 
     @Test @MainActor func `mutate roster persists through hub`() throws {
@@ -321,7 +343,7 @@ struct PlayerSaveStoreTests {
 
 #if DEBUG
 extension PlayerSaveStoreTests {
-    @Test @MainActor func `failed collection preserves persisted pending food and can retry exactly once`() throws {
+    @Test @MainActor func `failed collection preserves persisted pending food and can retry exactly once`() async throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
@@ -334,14 +356,14 @@ extension PlayerSaveStoreTests {
         let snapshot = store.currentSave
         store.forcesNextSaveFailure = true
 
-        #expect(store.collectProduction(at: date) == .persistFailed)
+        #expect(await store.collectProduction(at: date) == .persistFailed)
         #expect(store.currentSave == snapshot)
         #expect(store.lastPersistenceError == .writeFailed)
         let failedReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(failedReload.currentSave == snapshot)
 
-        #expect(store.collectProduction(at: date) == .success([ResourceAmount(.food, 10)]))
-        #expect(store.collectProduction(at: date) == .noProduction)
+        #expect(await store.collectProduction(at: date) == .success([ResourceAmount(.food, 10)]))
+        #expect(await store.collectProduction(at: date) == .noProduction)
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(reloaded.homestead.resources[.food] == 910)
         #expect(reloaded.homestead.pendingProduction.isEmpty)

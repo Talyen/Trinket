@@ -6,7 +6,6 @@ enum ModelContainerBootstrap {
     struct OpenResult {
         let container: ModelContainer
         let usedInMemoryFallback: Bool
-        let recoveredAfterStoreDeletion: Bool
     }
 
     static func open(
@@ -14,39 +13,17 @@ enum ModelContainerBootstrap {
         primaryConfiguration: ModelConfiguration,
         logger: Logger,
         logLabel: String,
-        storeURLForRecovery: URL? = nil,
-        deleteStoreOnFailure: Bool = true,
     ) throws -> OpenResult {
         do {
             let container = try ModelContainer(
                 for: schema,
                 configurations: primaryConfiguration,
             )
-            return OpenResult(container: container, usedInMemoryFallback: false, recoveredAfterStoreDeletion: false)
+            return OpenResult(container: container, usedInMemoryFallback: false)
         } catch {
             logger.error(
                 "Failed to open \(logLabel, privacy: .public) store: \(error.localizedDescription, privacy: .public)",
             )
-
-            if deleteStoreOnFailure, let storeURL = storeURLForRecovery {
-                deleteStoreFiles(at: storeURL, logger: logger, logLabel: logLabel)
-                do {
-                    let recovered = try ModelContainer(
-                        for: schema,
-                        configurations: primaryConfiguration,
-                    )
-                    logger.notice("Recovered \(logLabel, privacy: .public) store after deleting corrupt files.")
-                    return OpenResult(
-                        container: recovered,
-                        usedInMemoryFallback: false,
-                        recoveredAfterStoreDeletion: true,
-                    )
-                } catch {
-                    logger.error(
-                        "Failed to recover \(logLabel, privacy: .public) store after deletion: \(error.localizedDescription, privacy: .public)",
-                    )
-                }
-            }
 
             let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
             do {
@@ -55,7 +32,7 @@ enum ModelContainerBootstrap {
                     configurations: fallbackConfig,
                 )
                 logger.notice("\(logLabel, privacy: .public) store opened in-memory fallback.")
-                return OpenResult(container: container, usedInMemoryFallback: true, recoveredAfterStoreDeletion: false)
+                return OpenResult(container: container, usedInMemoryFallback: true)
             } catch {
                 logger.fault(
                     "Failed to open in-memory fallback for \(logLabel, privacy: .public): \(error.localizedDescription, privacy: .public)",
