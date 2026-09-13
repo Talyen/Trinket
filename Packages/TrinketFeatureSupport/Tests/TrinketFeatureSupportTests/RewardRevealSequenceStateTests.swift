@@ -57,6 +57,57 @@ struct RewardRevealSequenceStateTests {
         #expect(twoAwardState.visibleWalletRewardCount == 1)
     }
 
+    @Test(arguments: [false, true])
+    func `collection confirms once and exits after success`(interrupt: Bool) async {
+        let state = RewardCollectionState(clock: TestRewardRevealClock { _ in })
+        var claims = 0
+        var exits = 0
+        let action = RewardRevealAction.collect(hapticsEnabled: true, claim: {
+            claims += 1
+            return true
+        }, finish: { exits += 1 })
+        state.perform(action)
+        #expect(state.isCollected)
+        #expect(exits == 0)
+        state.perform(action)
+        if interrupt {
+            state.finish()
+        }
+        #expect(await waitUntil { exits == 1 })
+        state.finish()
+        state.perform(action)
+        #expect(claims == 1)
+        #expect(exits == 1)
+        #expect(state.feedbackTrigger == 1)
+    }
+
+    @Test func `immediate actions bypass the collection beat`() {
+        let state = RewardCollectionState()
+        var completions = 0
+        state.perform(.immediate {
+            completions += 1
+            return true
+        })
+        state.finish()
+        #expect(completions == 1)
+        #expect(!state.isCollected)
+        #expect(state.feedbackTrigger == 0)
+    }
+
+    @Test func `failed collection stays available without success feedback`() {
+        let state = RewardCollectionState(clock: TestRewardRevealClock { _ in })
+        var exits = 0
+        state.perform(.collect(hapticsEnabled: true, claim: { false }, finish: { exits += 1 }))
+        state.finish()
+        #expect(!state.isCompleting)
+        #expect(!state.isCollected)
+        #expect(state.feedbackTrigger == 0)
+        #expect(exits == 0)
+        state.perform(.collect(hapticsEnabled: true, claim: { true }, finish: { exits += 1 }))
+        state.finish()
+        #expect(exits == 1)
+    }
+
     private func waitUntil(
         timeout: Duration = .seconds(5),
         condition: @MainActor () -> Bool,

@@ -8,6 +8,7 @@ import TrinketPersistence
 
 struct PlayBrowsingStack: View {
     @Environment(PlaySession.self) private var play
+    @Environment(EncounterPlayMode.self) private var encounters
     @Environment(JourneyPlayMode.self) private var journey
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
@@ -20,21 +21,25 @@ struct PlayBrowsingStack: View {
     var body: some View {
         NavigationStack(path: browsingPath) {
             PlayModeHubView()
-                .trinketPresentationVisibility(!isBattleActive, opacity: 1)
+                .trinketPresentationVisibility(isBrowsingInteractive, opacity: 1)
                 .navigationDestination(for: PlayLaunchDestination.self) { destination in
                     destinationView(for: destination)
-                        .trinketPresentationVisibility(!isBattleActive, opacity: 1)
+                        .trinketPresentationVisibility(isBrowsingInteractive, opacity: 1)
                 }
         }
         .trinketSensoryFeedback(.selection, trigger: modeSelectionTrigger, enabled: options.hapticsEnabled)
+    }
+
+    private var isBrowsingInteractive: Bool {
+        !isBattleActive && encounters.activeMysteryEncounter == nil && encounters.activeShopEncounter == nil
     }
 
     private var browsingPath: Binding<[PlayLaunchDestination]> {
         Binding(
             get: { navigationPath },
             set: { newPath in
+                guard isBrowsingInteractive else { return }
                 if navigationPath.isEmpty, !newPath.isEmpty {
-                    guard !isBattleActive else { return }
                     modeSelectionTrigger &+= 1
                 }
                 navigationPath = newPath

@@ -170,7 +170,7 @@ struct ShopEncounterView: View {
                         buyButtonLabel(offer: offer, soldOut: soldOut, canBuy: canBuy)
                     }
                     // UIStyleCheck: allow - Compact price chip buy control without full primary chrome.
-                    .trinketQuietTapButtonStyle()
+                    .trinketArtworkCardButtonStyle()
                     .disabled(!canBuy || session.isPurchasing)
                     .accessibilityIdentifier(AccessibilityID.Shop.buyButton(offerID: offer.id))
                 }

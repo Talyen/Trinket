@@ -8,6 +8,7 @@ import TrinketPersistence
 
 public struct CombatantDetailPane: View {
     @Environment(\.playSFX) private var playSFX
+    @Environment(\.scenePhase) private var scenePhase
 
     let combatant: Combatant
     let progression: CombatantProgression
@@ -30,6 +31,9 @@ public struct CombatantDetailPane: View {
 
     @State private var selectedItemSlot: ItemSlot?
     @State private var requestedItemSlot: ItemSlot?
+    @State private var loadingItemSlot: ItemSlot?
+    @State private var equipmentEditSucceeded = false
+    @State private var equipmentConfirmation: EquipmentSlotConfirmation?
     @State private var pickerItems = ItemPickerItems()
     @State private var pickerArtworkLease: ItemPickerArtworkLease?
     @State private var selectedAbilityTier: AbilityTier?
@@ -104,11 +108,38 @@ public struct CombatantDetailPane: View {
             var items = ItemPickerItems()
             items.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
             let lease = await ItemPickerArtworkLease(items: items.eligible)
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, requestedItemSlot == slot else { return }
             pickerItems = items
             pickerArtworkLease = lease
             selectedItemSlot = slot
             requestedItemSlot = nil
+        }
+        .task(id: requestedItemSlot) {
+            loadingItemSlot = nil
+            guard let slot = requestedItemSlot else { return }
+            do {
+                try await Task.sleep(for: .seconds(TrinketMotion.Interaction.pendingIndicatorDelay))
+                try Task.checkCancellation()
+                guard requestedItemSlot == slot else { return }
+                loadingItemSlot = slot
+            } catch {}
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                requestedItemSlot = nil
+                loadingItemSlot = nil
+                equipmentConfirmation = nil
+            }
+        }
+        .onChange(of: equipmentLoadout) { oldLoadout, newLoadout in
+            guard equipmentEditSucceeded else { return }
+            equipmentEditSucceeded = false
+            let changed = Set(combatant.role.equipmentSlots.filter {
+                oldLoadout.itemID(for: $0) != newLoadout.itemID(for: $0)
+            })
+            if !changed.isEmpty {
+                equipmentConfirmation = EquipmentSlotConfirmation(slots: changed)
+            }
         }
         .onChange(of: selectedItemSlot) { _, slot in
             if slot == nil {
@@ -289,6 +320,9 @@ public struct CombatantDetailPane: View {
                     inventoryItems: inventoryItems,
                     onSelect: allowsEditing ? { requestedItemSlot = $0 } : nil,
                     onViewItem: allowsEditing ? nil : { viewingItem = $0 },
+                    requestedSlot: requestedItemSlot,
+                    loadingSlot: loadingItemSlot,
+                    confirmation: equipmentConfirmation,
                 )
                 .padding(.vertical, TrinketDesign.Spacing.extraSmall)
             }
@@ -302,25 +336,22 @@ public struct CombatantDetailPane: View {
         return true
     }
 
-    private func equip(_ item: InventoryItem, in slot: ItemSlot) -> Bool {
+    private func equip(_ item: InventoryItem, in slot: ItemSlot) {
         let saved = withAnimation(TrinketMotion.Interaction.selection) {
             onEdit?(.equipItem(item, slot)) == true
         }
-        guard saved else { return false }
+        guard saved else { return }
+        equipmentEditSucceeded = true
         playSFX(SFXID.uiEquip, effectsVolume)
         selectionFeedbackTrigger += 1
-        Task { @MainActor in
-            await Task.yield()
-            selectedItemSlot = nil
-        }
-        return true
+        selectedItemSlot = nil
     }
 
-    private func unequip(_ slot: ItemSlot) -> Bool {
-        guard onEdit?(.unequipItem(slot)) == true else { return false }
+    private func unequip(_ slot: ItemSlot) {
+        guard onEdit?(.unequipItem(slot)) == true else { return }
+        equipmentEditSucceeded = true
         selectionFeedbackTrigger += 1
         selectedItemSlot = nil
-        return true
     }
 }
 

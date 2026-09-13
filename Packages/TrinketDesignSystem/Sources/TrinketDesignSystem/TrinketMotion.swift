@@ -9,6 +9,8 @@ public enum TrinketMotion: Sendable {
         public static let walletIncreaseDelayStep: TimeInterval = 0.055
         public static let walletIncreaseMaximumDelay: TimeInterval = 0.30
         public static let manaRestoreDuration: TimeInterval = 0.22
+        public static let pendingIndicatorDelay: TimeInterval = 0.15
+        public static let confirmationDuration: TimeInterval = 0.28
 
         public static let press: Animation = .spring(response: 0.18, dampingFraction: 1)
 
@@ -22,6 +24,16 @@ public enum TrinketMotion: Sendable {
     }
 
     public enum Reward: Sendable {
+        public static let collectionDuration: TimeInterval = 0.55
+        public static let collectionLiftDuration: TimeInterval = 0.12
+        public static let collectionWalletDelay: TimeInterval = 0.04
+        public static let collectionLiftScale: CGFloat = 1.025
+        public static let collectionGatherScale: CGFloat = 0.94
+        public static let collectionLiftOffset: CGFloat = -4
+        public static let collectionGatherOffset: CGFloat = 20
+        public static let collectionLift: Animation = .easeOut(duration: collectionLiftDuration)
+        public static let collectionGather: Animation = .easeIn(duration: 0.19)
+
         public static let resourceStagger: TimeInterval = 0.06
         public static let itemRevealDelay: TimeInterval = 0.08
         public static let completionDelay: TimeInterval = 0.10

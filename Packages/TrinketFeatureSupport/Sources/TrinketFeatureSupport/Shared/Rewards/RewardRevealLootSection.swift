@@ -12,6 +12,8 @@ public struct RewardRevealLootSection: View {
     let itemAccessibilityID: (String) -> String
     let areItemsVisible: Bool
     let visibleWalletRewardCount: Int
+    let isCollected: Bool
+    let hasGathered: Bool
     var spacing: CGFloat = TrinketDesign.Spacing.large
     let onSelectItem: (InventoryItem) -> Void
     @Binding var focusedItemID: String?
@@ -30,6 +32,8 @@ public struct RewardRevealLootSection: View {
         areItemsVisible: Bool,
         visibleWalletRewardCount: Int,
         spacing: CGFloat = TrinketDesign.Spacing.large,
+        isCollected: Bool = false,
+        hasGathered: Bool = false,
         focusedItemID: Binding<String?>,
         onSelectItem: @escaping (InventoryItem) -> Void,
     ) {
@@ -42,6 +46,8 @@ public struct RewardRevealLootSection: View {
         self.areItemsVisible = areItemsVisible
         self.visibleWalletRewardCount = visibleWalletRewardCount
         self.spacing = spacing
+        self.isCollected = isCollected
+        self.hasGathered = hasGathered
         _focusedItemID = focusedItemID
         self.onSelectItem = onSelectItem
     }
@@ -52,9 +58,14 @@ public struct RewardRevealLootSection: View {
                 rewardItemPager
                     .trinketPresentationVisibility(areItemsVisible)
                     .scaleEffect(areItemsVisible ? 1 : 0.98)
+                    .modifier(RewardGatherModifier(isCollected: isCollected, hasGathered: hasGathered, delay: 0))
             }
 
             rewardWallet
+                .modifier(RewardGatherModifier(
+                    isCollected: isCollected, hasGathered: hasGathered,
+                    delay: TrinketMotion.Reward.collectionWalletDelay,
+                ))
         }
     }
 
@@ -119,5 +130,26 @@ public struct RewardRevealLootSection: View {
                 .foregroundStyle(.secondary)
                 .trinketPresentationVisibility(areItemsVisible)
         }
+    }
+}
+
+private struct RewardGatherModifier: ViewModifier {
+    let isCollected: Bool
+    let hasGathered: Bool
+    let delay: TimeInterval
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(hasGathered ? TrinketMotion.Reward.collectionGatherScale : isCollected ? TrinketMotion.Reward
+                .collectionLiftScale : 1)
+            .offset(y: hasGathered ? TrinketMotion.Reward.collectionGatherOffset : isCollected ? TrinketMotion.Reward
+                .collectionLiftOffset : 0)
+            .opacity(hasGathered ? 0 : 1)
+            .animation(
+                hasGathered ? TrinketMotion.Reward.collectionGather.delay(delay) : TrinketMotion.Reward.collectionLift,
+                value: isCollected && !hasGathered,
+            )
+            .allowsHitTesting(!isCollected)
+            .accessibilityHidden(isCollected)
     }
 }

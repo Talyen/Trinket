@@ -32,6 +32,7 @@ struct BattleAbilityCardView: View {
     @State private var pressCommitTask: Task<Void, Never>?
     @State private var didAnnounceWindUp = false
     @State private var playArmFeedbackToken = 0
+    @State private var availabilityFeedbackToken = 0
     @State private var inspectFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didAnnounceDeny = false
@@ -67,16 +68,9 @@ struct BattleAbilityCardView: View {
         BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
             .equatable()
             .frame(width: width, height: height)
-            .overlay {
-                if isPlayArmed {
-                    TrinketDesign.cardShape
-                        .stroke(
-                            TrinketDesign.Colors.accent.opacity(BattleMotion.cardArmedRingOpacity),
-                            lineWidth: BattleMotion.cardArmedRingLineWidth,
-                        )
-                }
-            }
+            .overlay { availabilityBorder }
             .scaleEffect(x: activeScale.width, y: activeScale.height)
+            .animation(BattleMotion.cardPress, value: isGestureActive)
             .rotationEffect(.degrees(activeRotation), anchor: .bottom)
             .rotation3DEffect(
                 .degrees(isScaleCommitted ? verticalTilt : 0),
@@ -131,7 +125,9 @@ struct BattleAbilityCardView: View {
                 returnDrag()
             }
             .onChange(of: isPlayable) { _, playable in
-                if !playable {
+                if playable {
+                    availabilityFeedbackToken &+= 1
+                } else {
                     returnDrag()
                 }
             }
@@ -181,7 +177,10 @@ struct BattleAbilityCardView: View {
     }
 
     private var heldScale: CGSize {
-        guard isScaleCommitted else { return CGSize(width: 1, height: 1) }
+        guard isScaleCommitted else {
+            let scale = isGestureActive ? TrinketMotion.Interaction.artworkCardPressedScale : 1
+            return CGSize(width: scale, height: scale)
+        }
         var base = CGFloat(BattleMotion.cardHeldScale)
         if isPlayArmed {
             base += BattleMotion.cardArmedScaleBoost
@@ -421,6 +420,28 @@ struct BattleAbilityCardView: View {
 }
 
 private extension BattleAbilityCardView {
+    var availabilityBorder: some View {
+        TrinketDesign.cardShape
+            .strokeBorder(
+                TrinketDesign.Colors.accent.opacity(
+                    isPlayArmed ? BattleMotion.cardArmedRingOpacity : (isPlayable ? BattleMotion.cardReadyRingOpacity : 0),
+                ),
+                lineWidth: isPlayArmed ? BattleMotion.cardArmedRingLineWidth : BattleMotion.cardReadyRingLineWidth,
+            )
+            .animation(TrinketMotion.Interaction.stateChange, value: isPlayable)
+            .overlay {
+                TrinketDesign.cardShape
+                    .strokeBorder(TrinketDesign.Colors.accent, lineWidth: BattleMotion.cardReadyRingLineWidth)
+                    .keyframeAnimator(initialValue: 0.0, trigger: availabilityFeedbackToken) { content, opacity in
+                        content.opacity(isPlayable && !isPlayArmed ? opacity : 0)
+                    } keyframes: { _ in
+                        LinearKeyframe(BattleMotion.cardReadyPulseOpacity, duration: 0.08)
+                        CubicKeyframe(0, duration: TrinketMotion.Interaction.confirmationDuration)
+                    }
+            }
+            .allowsHitTesting(false)
+    }
+
     func beginTapPlay() {
         announceWindUpIfNeeded(mode: .tapCommit)
         beginPlay()

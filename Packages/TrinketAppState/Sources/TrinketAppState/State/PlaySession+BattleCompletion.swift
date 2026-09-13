@@ -6,9 +6,36 @@ import TrinketFeatureContracts
 import TrinketPersistence
 
 @MainActor
-struct PlayBattleCompletion {
+final class PlayBattleCompletion {
     let playerSave: PlayerSaveStore
     let battle: any BattleRuntime
+
+    private struct PendingExit {
+        let configurationID: UUID
+        let origin: PlayBattleOrigin?
+        let onFinished: () -> Void
+        let restoreOrigin: (PlayBattleOrigin?) -> Void
+    }
+
+    private var pendingExit: PendingExit?
+
+    init(playerSave: PlayerSaveStore, battle: any BattleRuntime) {
+        self.playerSave = playerSave
+        self.battle = battle
+    }
+
+    func finishPresentation(configurationID: UUID) {
+        guard let pendingExit, pendingExit.configurationID == configurationID else { return }
+        self.pendingExit = nil
+        guard battle.activeBattle?.id == configurationID else { return }
+        pendingExit.restoreOrigin(pendingExit.origin)
+        battle.endBattle()
+        pendingExit.onFinished()
+    }
+
+    func cancelPendingExit() {
+        pendingExit = nil
+    }
 
     @discardableResult
     func completeActiveBattle(
@@ -18,9 +45,11 @@ struct PlayBattleCompletion {
         settlement: BattleRewardSettlement? = nil,
         route: PlayBattleRoute?,
         presentation: BattlePresentationContext?,
-        onPersisted: () -> Void,
-        restoreOrigin: (PlayBattleOrigin?) -> Void,
+        defersPresentationExit: Bool,
+        onFinished: @escaping () -> Void,
+        restoreOrigin: @escaping (PlayBattleOrigin?) -> Void,
     ) -> BattleCompletionResult {
+        guard pendingExit?.configurationID != configuration.id else { return .unavailable }
         guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id else { return .unavailable }
 
         guard PlayBattleRoute.matches(
@@ -65,9 +94,13 @@ struct PlayBattleCompletion {
             } ? .completed : .persistenceFailed
         }
         if result.didComplete {
-            onPersisted()
-            restoreOrigin(origin)
-            battle.endBattle()
+            pendingExit = PendingExit(
+                configurationID: configuration.id, origin: origin,
+                onFinished: onFinished, restoreOrigin: restoreOrigin,
+            )
+            if !defersPresentationExit {
+                finishPresentation(configurationID: configuration.id)
+            }
         }
         return result
     }

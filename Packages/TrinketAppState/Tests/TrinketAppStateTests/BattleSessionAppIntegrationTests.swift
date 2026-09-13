@@ -45,7 +45,8 @@ struct BattleSessionAppIntegrationTests {
         #expect(play.consumePendingDestination() == nil)
     }
 
-    @Test func `stale victory settlement must refresh before claiming`() throws {
+    @Test(arguments: [false, true])
+    func `stale victory settlement must refresh before claiming`(defersExit: Bool) throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(state.journey.startBattle(for: stage) == nil)
@@ -54,7 +55,7 @@ struct BattleSessionAppIntegrationTests {
         battle.presentLaunchVictory()
         let summary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
         try state.playerSave.performBatchMutation { save in save.roster.gold = 999 }
-        #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary))
+        #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: defersExit))
         #expect(!state.playerSave.journey.hasClaimedRewards(for: stage))
         #expect(battle.completionError == nil)
         let refreshedSummary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
@@ -63,13 +64,23 @@ struct BattleSessionAppIntegrationTests {
         #expect(refreshed.replacementExperience > 0)
         #expect(refreshedSummary.totalGold == 0)
         #expect(refreshedSummary.experience == refreshed.award.heroExperience)
-        #expect(battle.claimVictory(configurationID: configuration.id, summary: refreshedSummary))
+        #expect(battle.claimVictory(configurationID: configuration.id, summary: refreshedSummary, defersPresentationExit: defersExit))
         #expect(state.playerSave.roster.gold == 999)
         #expect(state.playerSave.roster.progression(for: configuration.hero.combatant) == refreshed.heroProgressionAfter)
         #expect(state.playerSave.roster.progression(for: configuration.companion.combatant) == refreshed.companionProgressionAfter)
+        #expect((battle.activeBattle != nil) == defersExit)
         let claimedSave = state.playerSave.currentSave
-        #expect(!battle.claimVictory(configurationID: configuration.id, summary: refreshedSummary))
+        #expect(!battle.claimVictory(configurationID: configuration.id, summary: refreshedSummary, defersPresentationExit: defersExit))
         #expect(state.playerSave.currentSave == claimedSave)
+        battle.finishVictoryPresentation(configurationID: configuration.id)
+        #expect(battle.activeBattle == nil)
+        #expect(state.shellSession.playPath == [.campaign])
+        battle.finishVictoryPresentation(configurationID: configuration.id)
+        #expect(state.playerSave.currentSave == claimedSave)
+        #expect(state.journey.startBattle(for: stage) == nil)
+        let nextID = try #require(battle.activeBattle?.id)
+        battle.finishVictoryPresentation(configurationID: configuration.id)
+        #expect(battle.activeBattle?.id == nextID)
     }
 
     @Test func `prepared battle uses current party build`() throws {
@@ -333,7 +344,8 @@ struct BattleSessionAppIntegrationTests {
     }
 
     #if DEBUG
-    @Test func `victory persist failure preserves the award and retries through composition`() throws {
+    @Test(arguments: [false, true])
+    func `victory persist failure preserves the award and retries through composition`(defersExit: Bool) throws {
         let playerSave = try PlayerSaveStore(
             disableCloudSync: true,
             inMemoryOnly: true,
@@ -354,14 +366,16 @@ struct BattleSessionAppIntegrationTests {
         let summary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
         let before = playerSave.currentSave
         playerSave.forcesNextSaveFailure = true
-        #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary))
+        #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: defersExit))
         #expect(playerSave.currentSave == before)
         #expect(battle.completionError != nil)
         #expect(battle.spectacle.outcomePresentation.isVictoryPresented)
         #expect(battle.spectacle.outcomePresentation.victorySummaryIfAvailable == summary)
         #expect(state.battle.activeBattle != nil)
-        #expect(battle.claimVictory(configurationID: configuration.id, summary: summary))
+        #expect(battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: defersExit))
         #expect(state.playerSave.journey.hasClaimedRewards(for: stage))
+        #expect((state.battle.activeBattle != nil) == defersExit)
+        battle.finishVictoryPresentation(configurationID: configuration.id)
         #expect(state.battle.activeBattle == nil)
     }
     #endif

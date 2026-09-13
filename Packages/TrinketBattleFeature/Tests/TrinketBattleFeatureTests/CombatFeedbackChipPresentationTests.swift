@@ -159,8 +159,6 @@ struct CombatFeedbackChipPresentationTests {
             sourceEventIDs: [id],
             actionGroupID: id,
             presentationIndex: 0,
-            groupResultCount: 1,
-            presentationRole: .headline,
             targetID: targetID,
             feedbackClass: .directDamage,
             keyword: .physical,

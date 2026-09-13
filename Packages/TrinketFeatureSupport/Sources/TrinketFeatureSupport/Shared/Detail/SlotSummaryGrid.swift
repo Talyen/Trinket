@@ -63,7 +63,7 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
             isInspectionEnabled: !locked,
             label: { card(slot) },
         )
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .frame(maxWidth: .infinity, alignment: .top)
         .accessibilityIdentifier(accessibilityIdentifier(slot))
     }

@@ -76,6 +76,12 @@ save results control success feedback and navigation, never binding readback.
 Initial eligible thumbnails are prepared and pinned before navigation, owned by
 the picker visit; the lazy grid prewarms nearby artwork as results and visibility
 change. Existing detail and launch pins remain independent.
+The requested slot highlights immediately and shows progress only when preparation
+outlasts the shared pending-indicator delay. A successful equipment edit highlights
+its changed slots when the detail becomes visible again; failed saves preserve the
+current picker and produce no success accent.
+The combatant detail owns that successful return. Nested item details must not
+issue a second pop that briefly exposes the intermediate picker.
 
 ## Testing
 

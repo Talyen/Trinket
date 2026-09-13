@@ -75,11 +75,12 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     let loot: Loot
     let primaryActionTitle: String
     let primaryActionAccessibilityIdentifier: String
-    let onPrimaryAction: () -> Bool
+    let action: RewardRevealAction
     var contentTopPadding: CGFloat
     var contentStackSpacing: CGFloat
 
-    @State private var isCompleting = false
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var collection = RewardCollectionState()
     @State private var revealSequence = RewardRevealSequenceState()
     @State private var selectedRewardItem: InventoryItem?
     @State private var focusedItemID: String?
@@ -94,7 +95,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         loot: Loot,
         primaryActionTitle: String,
         primaryActionAccessibilityIdentifier: String,
-        onPrimaryAction: @escaping () -> Bool,
+        action: RewardRevealAction,
         contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
         contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
         @ViewBuilder emptyExperience: @escaping () -> EmptyExperience,
@@ -109,7 +110,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         self.loot = loot
         self.primaryActionTitle = primaryActionTitle
         self.primaryActionAccessibilityIdentifier = primaryActionAccessibilityIdentifier
-        self.onPrimaryAction = onPrimaryAction
+        self.action = action
         self.contentTopPadding = contentTopPadding
         self.contentStackSpacing = contentStackSpacing
         _focusedItemID = State(initialValue: loot.items.first?.id)
@@ -142,6 +143,8 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                             areItemsVisible: revealSequence.areItemsVisible,
                             visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
                             spacing: loot.lootSpacing,
+                            isCollected: collection.isCollected,
+                            hasGathered: collection.hasGathered,
                             focusedItemID: $focusedItemID,
                             onSelectItem: { selectedRewardItem = $0 },
                         )
@@ -150,12 +153,20 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                 },
                 primaryActionTitle: primaryActionTitle,
                 primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-                isPrimaryActionDisabled: isCompleting || !revealSequence.isSequenceComplete,
+                isPrimaryActionDisabled: collection.isCompleting || !revealSequence.isSequenceComplete,
+                isPrimaryActionConfirmed: collection.isCollected,
                 onPrimaryAction: complete,
                 contentTopPadding: contentTopPadding,
                 contentStackSpacing: contentStackSpacing,
                 pinsPrimaryActionToBottom: false,
             )
+        }
+        .scrollDisabled(collection.isCompleting)
+        .trinketSensoryFeedback(.success, trigger: collection.feedbackTrigger, enabled: action.hapticsEnabled)
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                collection.finish()
+            }
         }
         .sheet(item: $selectedRewardItem) { item in
             NavigationStack {
@@ -172,6 +183,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             }
         }
         .onDisappear {
+            collection.finish()
             revealSequence.cancel(walletCount: walletRewardCount)
         }
     }
@@ -221,8 +233,8 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     }
 
     private func complete() {
-        guard revealSequence.isSequenceComplete, !isCompleting else { return }
-        isCompleting = onPrimaryAction()
+        guard revealSequence.isSequenceComplete else { return }
+        collection.perform(action)
     }
 
     private var walletRewardCount: Int {
@@ -241,7 +253,7 @@ public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView
         loot: Loot,
         primaryActionTitle: String,
         primaryActionAccessibilityIdentifier: String,
-        onPrimaryAction: @escaping () -> Bool,
+        action: RewardRevealAction,
         contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
         contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
     ) {
@@ -255,7 +267,7 @@ public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView
             loot: loot,
             primaryActionTitle: primaryActionTitle,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-            onPrimaryAction: onPrimaryAction,
+            action: action,
             contentTopPadding: contentTopPadding,
             contentStackSpacing: contentStackSpacing,
             emptyExperience: { EmptyView() },

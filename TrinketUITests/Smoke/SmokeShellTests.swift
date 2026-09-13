@@ -7,6 +7,40 @@ final class SmokeShellTests: SeededSmokeUITestCase {
         TestLaunchArg.allForTab("play")
     }
 
+    func testSalvageReturnsToCollectionWithoutAnInteractiveRetiringItem() {
+        tabBar.selectCollection()
+        collection.assertLoaded(timeout: 10)
+        salvageItem("crossbow-basic")
+        scrollUntilVisible(button(AccessibilityID.Collection.basicGearCategory), swipingUp: false, requireHittable: true)
+        tapButton(AccessibilityID.Collection.basicGearCategory)
+        assertDoesNotExist(AccessibilityID.Collection.itemCard(itemID: "crossbow-basic"))
+        tapButton(AccessibilityID.Collection.gearFilter)
+        tapButton(AccessibilityID.Collection.gearFilterOption(slot: "armor"))
+        salvageItem("leather_armor-basic")
+        salvageItem("plate_armor-basic")
+        assertExists(AccessibilityID.Collection.itemsNoResults, timeout: 5)
+        assertDoesNotExist(AccessibilityID.Collection.itemsEmptyState)
+        tapButton(AccessibilityID.Collection.gearFilter)
+        tapButton(AccessibilityID.Collection.gearFilterOption(slot: "all"))
+        assertExistsAfterScroll(AccessibilityID.Collection.itemCard(itemID: "double_axe-basic"))
+    }
+
+    private func salvageItem(_ itemID: String) {
+        let card = AccessibilityID.Collection.itemCard(itemID: itemID)
+        let item = button(card)
+        scrollUntilVisible(item, swipingUp: false, maxAttempts: 12, requireHittable: true)
+        if !item.exists || !item.isHittable {
+            scrollUntilVisible(item, swipingUp: true, maxAttempts: 12, requireHittable: true)
+        }
+        tapWhenReady(item)
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail(itemID))
+        assertExistsAfterScroll(AccessibilityID.Collection.salvageButton, requireHittable: true)
+        tapButton(AccessibilityID.Collection.salvageButton)
+        tapWhenReady(app.alerts.buttons.matching(identifier: AccessibilityID.Collection.salvageConfirmButton).firstMatch)
+        assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail(itemID), timeout: 5)
+        assertDoesNotExist(card, timeout: 5)
+    }
+
     func testTabShellsAreReachable() {
         play.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Play.campaignModeCard, timeout: 10)

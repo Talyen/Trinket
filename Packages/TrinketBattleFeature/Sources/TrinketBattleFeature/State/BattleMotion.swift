@@ -40,6 +40,9 @@ enum BattleMotion {
     static let cardArmedScaleBoost: CGFloat = 0.01
     static let cardArmedRingOpacity: CGFloat = 0.55
     static let cardArmedRingLineWidth: CGFloat = 2
+    static let cardReadyRingOpacity = 0.18
+    static let cardReadyPulseOpacity = 0.38
+    static let cardReadyRingLineWidth: CGFloat = 1
     static let dealInsertOffset: CGFloat = 120
     static let dealInsertScale: CGFloat = 0.50
     static let cardInspectHoldDuration: TimeInterval = 0.5
@@ -74,7 +77,6 @@ enum BattleMotion {
 
     static let chipDisplayDuration: TimeInterval = 0.95
     static let feedbackHandoffDuration: TimeInterval = 0.15
-    static let chipTravelFraction: CGFloat = 0.48
     static let chipPopStartScale: CGFloat = 0.5
     static let chipPopOvershootScale: CGFloat = 2.0
     static let chipPopHoldScale: CGFloat = 1.8
@@ -84,7 +86,6 @@ enum BattleMotion {
     static let chipPopDuration: TimeInterval = 0.14
     static let chipPopHoldDuration: TimeInterval = 0.14
     static let chipPopShrinkDuration: TimeInterval = 0.45
-    static let chipPopRiseDuration: TimeInterval = 0.45
     static let chipPopFadeDuration: TimeInterval = 0.28
     static let maxContinuousChipLifetime: TimeInterval = 1.2
 
@@ -103,10 +104,12 @@ enum BattleMotion {
     static let statusBorderPulseDimOpacity = 0.45
 
     static func chipMotionProgress(elapsed: TimeInterval) -> Double {
-        guard elapsed > chipHoldEndTime else { return 0 }
-        let riseProgress = (elapsed - chipHoldEndTime) / chipPopRiseDuration
-        let clamped = min(max(riseProgress, 0), 1)
-        return clamped * clamped * clamped
+        smoothProgress((elapsed - chipPopPeakTime) / (chipDisplayDuration - chipPopPeakTime))
+    }
+
+    static func smoothProgress(_ progress: Double) -> Double {
+        let clamped = min(max(progress, 0), 1)
+        return clamped * clamped * (3 - 2 * clamped)
     }
 
     static func chipScale(elapsed: TimeInterval) -> CGFloat {
@@ -115,17 +118,17 @@ enum BattleMotion {
         }
         if elapsed <= chipPopPeakTime {
             let progress = elapsed / chipPopPeakTime
-            return lerp(chipPopStartScale, chipPopOvershootScale, progress)
+            return lerp(chipPopStartScale, chipPopOvershootScale, smoothProgress(progress))
         }
         if elapsed <= chipPopEndTime {
             let progress = (elapsed - chipPopPeakTime) / (chipPopEndTime - chipPopPeakTime)
-            return lerp(chipPopOvershootScale, chipPopHoldScale, progress)
+            return lerp(chipPopOvershootScale, chipPopHoldScale, smoothProgress(progress))
         }
         if elapsed <= chipHoldEndTime {
             return chipPopHoldScale
         }
         let shrinkProgress = min(1, (elapsed - chipHoldEndTime) / chipPopShrinkDuration)
-        return lerp(chipPopHoldScale, chipPopEndScale, shrinkProgress)
+        return lerp(chipPopHoldScale, chipPopEndScale, smoothProgress(shrinkProgress))
     }
 
     static var chipPopPeakTime: TimeInterval {

@@ -9,12 +9,18 @@ struct SalvageTransmutationEvent: Identifiable {
     let id = UUID()
     let item: InventoryItem
     let yields: [ResourceAmount]
+    let inventoryIndex: Int?
+    var hasReturned = false
 }
 
 struct SalvageItemButton: View {
+    @Environment(\.salvageZoomNamespace) private var zoomNamespace
     let item: InventoryItem
     var isLocked = false
     let showsName: Bool
+    var isPreparing = false
+    var isRetiring = false
+    var isTransmuting = false
     let onSelect: () -> Void
 
     var body: some View {
@@ -22,11 +28,19 @@ struct SalvageItemButton: View {
             ItemCard(
                 item: item,
                 showsAffixCount: false,
-                isLocked: isLocked,
+                isLocked: isLocked && !isRetiring,
                 showsName: showsName,
-            )
+                isSelected: isPreparing,
+            ) {
+                ItemArtwork(item: item, variant: .thumbnail)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
+                    .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { [item.id: $0] }
+            }
         }
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
+        .trinketPresentationVisibility(!isRetiring, opacity: isTransmuting ? 0 : 1)
+        .animation(TrinketMotion.Interaction.stateChange, value: isTransmuting)
         .accessibilityLabel(isLocked ? "\(item.displayName), locked" : item.displayName)
         .accessibilityIdentifier(AccessibilityID.Collection.itemCard(itemID: item.id))
     }
@@ -34,17 +48,29 @@ struct SalvageItemButton: View {
 
 struct SalvageTransmutationLayer: View {
     let event: SalvageTransmutationEvent
+    let sourceFrame: CGRect
     let onFinished: () -> Void
 
     var body: some View {
-        GeometryReader { geometry in
-            let width = min(geometry.size.width * 0.56, geometry.size.height * 0.36)
-            SalvageTransmutationEffect(event: event, onFinished: onFinished)
-                .frame(width: width)
-                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-        }
-        .allowsHitTesting(false)
+        SalvageTransmutationEffect(event: event, onFinished: onFinished)
+            .frame(width: sourceFrame.width, height: sourceFrame.height)
+            .position(x: sourceFrame.midX, y: sourceFrame.midY)
+            .allowsHitTesting(false)
     }
+}
+
+struct SalvageArtworkAnchors: PreferenceKey {
+    static var defaultValue: [String: Anchor<CGRect>] {
+        [:]
+    }
+
+    static func reduce(value: inout [String: Anchor<CGRect>], nextValue: () -> [String: Anchor<CGRect>]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, next in next })
+    }
+}
+
+extension EnvironmentValues {
+    @Entry var salvageZoomNamespace: Namespace.ID?
 }
 
 private struct SalvageTransmutationEffect: View {

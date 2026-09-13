@@ -7,14 +7,22 @@ enum WalletFormatting {
     }
 }
 
+private enum WalletBumpPhase: CaseIterable {
+    case resting
+    case increased
+    case settled
+}
+
 extension View {
     func walletIncreaseBump(trigger: Int, delay: TimeInterval = 0) -> some View {
-        keyframeAnimator(initialValue: CGFloat(1), trigger: trigger) { content, scale in
-            content.scaleEffect(scale)
-        } keyframes: { _ in
-            LinearKeyframe(1, duration: max(0, delay))
-            CubicKeyframe(TrinketMotion.Interaction.walletIncreaseScale, duration: 0.08)
-            SpringKeyframe(1, duration: 0.18, spring: .smooth)
+        phaseAnimator(WalletBumpPhase.allCases, trigger: trigger) { content, phase in
+            content.scaleEffect(phase == .increased ? TrinketMotion.Interaction.walletIncreaseScale : 1)
+        } animation: { phase in
+            switch phase {
+            case .resting: nil
+            case .increased: .easeOut(duration: 0.08).delay(max(0, delay))
+            case .settled: .spring(response: 0.18, dampingFraction: 1)
+            }
         }
     }
 }

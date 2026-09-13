@@ -6,8 +6,6 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
     let title: String
     var linkAccessibilityIdentifier: String?
     var sectionAccessibilityIdentifier: String?
-    var shelfContentIdentity: String = ""
-    var shelfAnimation: Animation?
     var totalCount: Int?
     var previewLimit: Int
 
@@ -18,8 +16,6 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         title: String,
         linkAccessibilityIdentifier: String? = nil,
         sectionAccessibilityIdentifier: String? = nil,
-        shelfContentIdentity: String = "",
-        shelfAnimation: Animation? = nil,
         totalCount: Int? = nil,
         previewLimit: Int = TrinketDesign.Layout.collectionShelfPreviewLimit,
         @ViewBuilder destination: @escaping () -> Destination,
@@ -28,8 +24,6 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         self.title = title
         self.linkAccessibilityIdentifier = linkAccessibilityIdentifier
         self.sectionAccessibilityIdentifier = sectionAccessibilityIdentifier
-        self.shelfContentIdentity = shelfContentIdentity
-        self.shelfAnimation = shelfAnimation
         self.totalCount = totalCount
         self.previewLimit = previewLimit
         self.destination = destination
@@ -43,7 +37,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
             } label: {
                 categoryHeader
             }
-            .trinketQuietTapButtonStyle()
+            .trinketArtworkCardButtonStyle()
             .trinketAccessibilityIdentifier(linkAccessibilityIdentifier)
 
             horizontalShelf
@@ -81,13 +75,12 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
                             accessibilityIdentifier: AccessibilityID.Collection.viewAllCard(category: title),
                         )
                     }
-                    .trinketQuietTapButtonStyle()
+                    .trinketArtworkCardButtonStyle()
                     .accessibilityLabel("View all \(title)")
                 }
             }
             .scrollTargetLayout()
             .padding(.vertical, TrinketDesign.Layout.shelfVerticalPadding)
-            .animation(shelfAnimation, value: shelfContentIdentity)
         }
         .contentMargins(
             .horizontal,

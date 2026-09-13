@@ -12,26 +12,21 @@ final class CombatFeedbackGlyphAtlas {
 
     struct Face: Hashable {
         let typography: CombatFeedbackTypographyTier
-        let presentationRole: CombatFeedbackPresentationRole
         let displayScaleHundredths: Int
 
         init(
             feedbackClass: CombatFeedbackClass,
-            presentationRole: CombatFeedbackPresentationRole = .headline,
             displayScaleHundredths: Int,
         ) {
             typography = feedbackClass.typographyTier
-            self.presentationRole = presentationRole
             self.displayScaleHundredths = displayScaleHundredths
         }
 
         init(
             typography: CombatFeedbackTypographyTier,
-            presentationRole: CombatFeedbackPresentationRole = .headline,
             displayScaleHundredths: Int,
         ) {
             self.typography = typography
-            self.presentationRole = presentationRole
             self.displayScaleHundredths = displayScaleHundredths
         }
     }
@@ -188,29 +183,26 @@ final class CombatFeedbackGlyphAtlas {
 
         for typography in CombatFeedbackTypographyTier.allCases {
             let recipe = CombatFeedbackChipStyle.forClass(typography.representativeClass)
-            for role in CombatFeedbackPresentationRole.allCases {
-                let face = Face(
-                    typography: typography,
-                    presentationRole: role,
-                    displayScaleHundredths: displayScaleHundredths,
-                )
-                for icon in requiredIcons {
-                    let key = IconKey(face: face, icon: icon)
-                    if icons[key] == nil {
-                        requests.append(.icon(key, recipe))
-                    }
+            let face = Face(
+                typography: typography,
+                displayScaleHundredths: displayScaleHundredths,
+            )
+            for icon in requiredIcons {
+                let key = IconKey(face: face, icon: icon)
+                if icons[key] == nil {
+                    requests.append(.icon(key, recipe))
                 }
-                for fragment in numericFragments {
-                    let key = FragmentKey(face: face, text: fragment)
-                    if fragments[key] == nil {
-                        requests.append(.fragment(key, recipe))
-                    }
+            }
+            for fragment in numericFragments {
+                let key = FragmentKey(face: face, text: fragment)
+                if fragments[key] == nil {
+                    requests.append(.fragment(key, recipe))
                 }
-                for fragment in Self.wordAtlasFragments(for: typography) {
-                    let key = FragmentKey(face: face, text: fragment)
-                    if fragments[key] == nil {
-                        requests.append(.fragment(key, recipe))
-                    }
+            }
+            for fragment in Self.wordAtlasFragments(for: typography) {
+                let key = FragmentKey(face: face, text: fragment)
+                if fragments[key] == nil {
+                    requests.append(.fragment(key, recipe))
                 }
             }
         }
@@ -244,7 +236,6 @@ final class CombatFeedbackGlyphAtlas {
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
-            presentationRole: face.presentationRole,
         )
         guard let image = UIImage(
             systemName: icon.symbolName,
@@ -261,7 +252,6 @@ final class CombatFeedbackGlyphAtlas {
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
-            presentationRole: face.presentationRole,
         )
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
@@ -318,23 +308,12 @@ private extension CombatFeedbackTypographyTier {
 enum CombatFeedbackGlyphMetrics {
     static func uiFont(
         recipe: CombatFeedbackChipStyle,
-        presentationRole: CombatFeedbackPresentationRole = .headline,
     ) -> UIFont {
-        let style: Font.TextStyle
-        let weight: Font.Weight
-        switch presentationRole {
-        case .headline:
-            style = recipe.textStyle
-            weight = recipe.fontWeight
-        case .secondary:
-            style = .title2
-            weight = .bold
-        }
-        let textStyle = uiTextStyle(style)
+        let textStyle = uiTextStyle(recipe.textStyle)
         let traits = UITraitCollection(preferredContentSizeCategory: .large)
         let preferred = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: traits)
         let pointSize = preferred.pointSize * 0.90
-        let resolvedWeight = uiWeight(weight)
+        let resolvedWeight = uiWeight(recipe.fontWeight)
         let weighted = UIFont.systemFont(ofSize: pointSize, weight: resolvedWeight)
         let roundedDescriptor = weighted.fontDescriptor.withDesign(.rounded) ?? weighted.fontDescriptor
         let monospacedDescriptor = roundedDescriptor.addingAttributes([

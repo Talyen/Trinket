@@ -76,11 +76,15 @@ struct TrinketApp: App {
             settleRewards: { [weak play] configuration, gold in
                 play?.settleBattleRewards(configuration, battleGold: gold)
             },
-            completeVictory: { [weak play] configuration, gold, settlement in
+            completeVictory: { [weak play] configuration, gold, settlement, defersExit in
                 play?.completeActiveBattle(
                     configuration, battleGold: gold,
                     materialRewards: settlement?.award.materials, settlement: settlement,
+                    defersPresentationExit: defersExit,
                 ) ?? .unavailable
+            },
+            finishPresentation: { [weak play] id in
+                play?.finishBattleRewardPresentation(configurationID: id)
             },
         )
     }

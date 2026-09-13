@@ -8,7 +8,6 @@ import TrinketFeatureSupport
 
 struct CombatFeedbackRasterKey: Hashable {
     let typography: CombatFeedbackTypographyTier
-    let presentationRole: CombatFeedbackPresentationRole
     let presentation: CombatFeedbackChipPresentation
     let layoutDirection: LayoutDirection
     let displayScaleHundredths: Int
@@ -19,7 +18,6 @@ struct CombatFeedbackRasterKey: Hashable {
         displayScale: CGFloat,
     ) {
         typography = item.feedbackClass.typographyTier
-        presentationRole = item.presentationRole
         presentation = item.chipPresentation
         self.layoutDirection = layoutDirection
         displayScaleHundredths = Int((max(1, displayScale) * 100).rounded())
@@ -142,7 +140,6 @@ final class CombatFeedbackRasterPool {
         guard let composed = CombatFeedbackChipComposer.compose(
             presentation: item.chipPresentation,
             feedbackClass: item.feedbackClass,
-            presentationRole: item.presentationRole,
             layoutDirection: layoutDirection,
             displayScale: scale,
         ) else {

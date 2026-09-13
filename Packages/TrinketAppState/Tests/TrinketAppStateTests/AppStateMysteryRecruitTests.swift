@@ -278,10 +278,21 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.journey.mysteryOfferPayloads[session.stage.id] == nil)
         #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: shown.choiceID))
         playerSave.forcesNextSaveFailure = true
-        #expect(state.encounters.finishActiveMysteryEncounter())
+        #expect(state.encounters.collectMysteryReward(session: session))
         #expect(playerSave.forcesNextSaveFailure)
-        #expect(state.encounters.activeMysteryEncounter == nil)
+        #expect(state.encounters.activeMysteryEncounter === session)
         #expect(state.playerSave.roster.gold == goldBefore + 20)
+        state.encounters.dismissMysteryReward(session: session)
+        #expect(state.encounters.activeMysteryEncounter == nil)
+        let replacement = MysteryEncounterSession(
+            origin: .journey(stage: session.stage),
+            encounter: PlayEncounterOrigin.journey(stage: session.stage).identity(in: state.playerSave.currentSave),
+            event: session.event, combatant: nil,
+        )
+        state.encounters.activeMysteryEncounter = replacement
+        #expect(!state.encounters.collectMysteryReward(session: session))
+        state.encounters.dismissMysteryReward(session: session)
+        #expect(state.encounters.activeMysteryEncounter === replacement)
     }
 
     @Test func `recruit persist failure rolls back unlock and progress together`() throws {

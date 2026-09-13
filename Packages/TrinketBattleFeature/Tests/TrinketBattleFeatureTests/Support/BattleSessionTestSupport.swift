@@ -73,7 +73,10 @@ enum BattleSessionTestSupport {
                     ),
                 )
             },
-            completeVictory: completeVictory,
+            completeVictory: { configuration, gold, settlement, _ in
+                completeVictory(configuration, gold, settlement)
+            },
+            finishPresentation: { _ in },
         )
     }
 

@@ -8,8 +8,8 @@ struct ItemSlotPickerView: View {
     let slot: ItemSlot
     let equipmentLoadout: EquipmentLoadout
     let inventoryItems: [InventoryItem]
-    let onEquip: (InventoryItem) -> Bool
-    let onUnequip: () -> Bool
+    let onEquip: (InventoryItem) -> Void
+    let onUnequip: () -> Void
 
     @State private var model: ItemPickerItems
     @State private var filter = ItemPickerFilter()
@@ -20,8 +20,8 @@ struct ItemSlotPickerView: View {
         equipmentLoadout: EquipmentLoadout,
         inventoryItems: [InventoryItem],
         initialItems: ItemPickerItems,
-        onEquip: @escaping (InventoryItem) -> Bool,
-        onUnequip: @escaping () -> Bool,
+        onEquip: @escaping (InventoryItem) -> Void,
+        onUnequip: @escaping () -> Void,
     ) {
         self.slot = slot
         self.equipmentLoadout = equipmentLoadout
@@ -99,8 +99,11 @@ struct ItemSlotPickerView: View {
                     ? AccessibilityID.LoadoutPicker.unequipItem
                     : AccessibilityID.LoadoutPicker.equipItem(item.id),
                 onPrimaryAction: {
-                    guard isEquipped ? onUnequip() : onEquip(item) else { return }
-                    selectedItem = nil
+                    if isEquipped {
+                        onUnequip()
+                    } else {
+                        onEquip(item)
+                    }
                 },
             )
         }

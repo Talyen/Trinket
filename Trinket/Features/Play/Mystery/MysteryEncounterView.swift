@@ -39,7 +39,8 @@ struct MysteryEncounterView: View {
                 MysteryRewardContent(
                     session: session,
                     result: result,
-                    onFinish: { encounters.finishActiveMysteryEncounter() },
+                    onClaim: { encounters.collectMysteryReward(session: session) },
+                    onFinish: { encounters.dismissMysteryReward(session: session) },
                 )
                 .transition(.opacity)
             } else if session.showsCorruptionReveal, let result = session.corruptionResult {

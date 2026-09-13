@@ -30,7 +30,10 @@ struct PlayView: View {
             )
             PlayBattleOverlay(stageMessage: $stageMessage)
         }
-        .toolbarVisibility(play.isGameplayActive ? .hidden : .visible, for: .tabBar)
+        .toolbarVisibility(
+            battle.lifecyclePhase == .active || play.currentPostBattleTalentCombatantID != nil ? .hidden : .visible,
+            for: .tabBar,
+        )
         .environment(\.isBattleActive, battle.lifecyclePhase == .active)
         .environment(\.presentPlayCombatantDetail, battle.presentCombatantDetail)
         .onAppear {

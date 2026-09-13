@@ -75,6 +75,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                     .trinketSelectionCardButtonStyle()
                     .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
                     .accessibilityIdentifier(accessibilityIdentifier(item))
+                    .accessibilityAddTraits(selected ? .isSelected : [])
                     .id(item.id)
                     .onAppear {
                         guard artworkNameProvider != nil else { return }

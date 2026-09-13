@@ -15,12 +15,14 @@ enum CombatFeedbackMotionSampler {
         at date: Date,
     ) -> CombatFeedbackAnimationState {
         let elapsed = max(0, date.timeIntervalSince(item.firstScheduledAt))
-        let fadeDuration = item.retiringAt == nil ? BattleMotion.chipPopFadeDuration : BattleMotion.feedbackHandoffDuration
+        let fadeDuration = item.retiringAt.map {
+            max(TimeInterval.ulpOfOne, item.expiresAt.timeIntervalSince($0))
+        } ?? BattleMotion.chipPopFadeDuration
         let opacity = min(1, max(0, item.expiresAt.timeIntervalSince(date) / fadeDuration))
         let updateElapsed = item.lastUpdatedAt.map { max(0, date.timeIntervalSince($0)) } ?? 1
-        let updateScale = 1 + Double(BattleMotion.chipUpdateOvershootScale - 1) * max(0, 1 - updateElapsed / 0.18)
+        let updateScale = 1 + Double(BattleMotion.chipUpdateOvershootScale - 1) * (1 - BattleMotion.smoothProgress(updateElapsed / 0.18))
         return CombatFeedbackAnimationState(
-            opacity: opacity,
+            opacity: BattleMotion.smoothProgress(opacity),
             scale: Double(BattleMotion.chipScale(elapsed: elapsed)) * updateScale,
         )
     }

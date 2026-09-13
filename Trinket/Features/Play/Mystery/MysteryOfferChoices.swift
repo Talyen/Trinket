@@ -60,15 +60,15 @@ struct MysteryOfferChoices: View {
         Button {
             onInspect(offer.item)
         } label: {
-            TrinketDesign.cardShape
-                .fill(TrinketDesign.Colors.surface)
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .overlay {
+            ProductCardShell(
+                showsLabel: false,
+                reservesLabelSpace: false,
+                art: {
                     if let name = offer.item.artReference?.imageName, preparedArtworkNames.contains(name) {
                         ItemArtwork(item: offer.item)
-                            .clipShape(TrinketDesign.cardShape)
                     }
-                }
+                },
+            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Inspect \(offer.item.displayName)")

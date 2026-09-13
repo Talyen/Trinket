@@ -74,10 +74,10 @@ Single entry point: `./Scripts/generate.sh` (add `--assets` for art, music, SFX,
 
 ## Dependency rules
 
-This is the enforced package-policy graph, not an exhaustive list of every direct app
-target dependency. Arrows mean “may depend on.” Every edge points downward; reverse
-edges are forbidden. `project.yml` and each `Package.swift` remain the executable
-dependency sources of truth.
+This diagram highlights production ownership boundaries; it omits some direct
+dependencies on lower-level modules. Arrows mean “may depend on.” Reverse edges
+are forbidden. `project.yml` and each `Package.swift` enumerate the actual target
+dependencies; `check-module-boundaries.sh` enforces the production restrictions.
 `TrinketFeatureSupport`, `TrinketFeatureContracts`, and
 `TrinketFeatureAdapters` below are products/targets hosted by the single
 `Packages/TrinketFeatureSupport` package.
@@ -86,12 +86,14 @@ dependency sources of truth.
 Trinket app
   ├── TrinketAppState
   │     ├── BattleEngine (BattleRuntime contract)
+  │     ├── TrinketPersistence
   │     └── TrinketFeatureContracts
   ├── TrinketBattleFeature
   ├── TrinketFeatureSupport
   └── TrinketFeatureAdapters
 
 TrinketBattleFeature ───→ TrinketFeatureSupport
+TrinketBattleFeature ───→ TrinketFeatureContracts
 TrinketBattleFeature ───→ BattleEngine
 
 BattleEngine ───────────→ TrinketContent ──→ TrinketCore
@@ -120,7 +122,10 @@ TrinketDesignSystem ────────────────────
 it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
 `TrinketBattleFeature` or `TrinketAppState`.
 `TrinketBattleFeature` cannot depend on `TrinketAppState`. `TrinketAppState` depends on
-`BattleEngine` (for `BattleRuntime`), never the presentation feature. No package may import the `Trinket`
+`BattleEngine` (for `BattleRuntime`) in production, never the presentation feature.
+`TrinketAppStateTests` may use concrete BattleFeature and shared presentation
+support for integration tests; those test-only dependencies do not permit
+production imports. No package may import the `Trinket`
 app module. `./Scripts/check-module-boundaries.sh` enforces these rules in source imports
 and package manifests.
 

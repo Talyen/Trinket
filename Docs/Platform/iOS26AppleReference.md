@@ -15,7 +15,7 @@ Start here: [Adopting Liquid Glass](https://developer.apple.com/documentation/te
 | `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (`check-ui-style.py`) |
 | Raw `.glassEffect` in feature views | Forbidden — DesignSystem only |
 
-Let system chrome adopt glass where it does not fight art-forward screens. Use glass sparingly on custom controls (combat chips, wallet pills), not every card. Dense Collection / Inventory / Options stay on solid themed surfaces. Do not stack glass on glass. Accessibility: PD-014.
+Let system chrome adopt glass where it does not fight art-forward screens. Use glass sparingly through existing semantic components, such as compact resource chips. Dense Collection / Inventory / Options stay on solid themed surfaces. Floating combat feedback follows the [BattleFeature rendering contract](../../Packages/TrinketBattleFeature/README.md#uikit-feedback-island). Do not stack glass on glass. Accessibility: PD-014.
 
 ## Current vs banned SwiftUI
 

@@ -27,7 +27,6 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-021 | Contracts provides unlimited renewable single-battle jobs for any party from the start of Play. | [Contracts.md](Contracts.md) owns offer, difficulty, reward, lifecycle, and presentation rules. |
 | PD-022 | Trinket is free to start with one permanent Full Game purchase. | [Monetization.md](Monetization.md) owns the free boundaries, purchase offer, earned progression, and future-content promise. |
 | PD-023 | Talents are a finite character kit; levels continue beyond talent completion. | Keep one talent point at even levels, stop talent prompts and affordances when no legal node remains, and preserve uncapped Health, Mana, and level-driven enemy progression. |
-
 | PD-024 | Battle card input stays continuous through effects, draws, turn transitions, and finishing animations. | [Card play](CardPlay.md) owns the approved interaction contract. Animation locks and rejecting visual-only finishing taps are regressions, not safety fixes. |
 
 These are product constraints, not a backlog. Sibling product docs:

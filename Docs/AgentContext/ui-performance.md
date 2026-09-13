@@ -38,6 +38,28 @@ from encounter creation and gameplay eligibility. A mounted cover refreshes its
 pins when offer artwork changes, without replacing the cover or exposing undecoded
 offer artwork. Campaign launch pins use the same resolved stages and artwork
 selection as the map, including Mystery replacements for exhausted recruits.
+Campaign and Labyrinth capture their outgoing map presentation before invoking an
+encounter action. Retain it only when Mystery or Shop opens, including resolved
+recruit artwork and Labyrinth selection; persistence still commits immediately.
+While the encounter prepares or is active, browsing content remains mounted and
+visually unchanged but cannot receive input or accessibility interaction. Release
+the retained values without animation when the encounter ends, reconciling cleared
+nodes and floor advancement before the cover reveals the map. Native encounter
+covers leave the underlying tab bar in place and ignore tab selection and back
+navigation during encounter presentation; only battle and the post-battle talent
+flow hide it. Failed opens and empty shops without a cover do not retain the map.
+
+Collection item inspection prepares and pins detail artwork before presenting its
+source-linked sheet. Successful salvage retains only the outgoing item's position
+and artwork through the native return and source-anchored dissolve; the saved item
+is already removed. The retiring card is noninteractive, and losing the source or
+leaving the flow ends its decorative presentation and releases the pins.
+
+Contracts retains the displayed board while replacement artwork prepares. Only
+the latest offer snapshot may publish, with actions bound to those same identities.
+Outgoing pins survive the board crossfade. Superseded preparation, navigation away,
+and failed refreshes must not expose mismatched offers or leak artwork pins.
+
 Memory targets and enforcement: [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets.
 
 For players who completed starter selection, the selected tab and every hidden

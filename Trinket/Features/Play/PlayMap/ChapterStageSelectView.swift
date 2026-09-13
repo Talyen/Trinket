@@ -72,6 +72,8 @@ struct StageSelectCompletionPanel: View {
 
 struct ChapterStageSelectView: View {
     @Environment(JourneyPlayMode.self) private var journey
+    @Environment(EncounterPlayMode.self) private var encounters
+    @State private var retainedPresentation: CampaignMapSnapshot?
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
 
@@ -79,22 +81,20 @@ struct ChapterStageSelectView: View {
     let onEnemyTap: (Stage) -> Void
 
     private var chapter: Chapter {
-        journey.playChapter
+        presentation.chapter
     }
 
-    private var stageRows: [StageSelectRowPresentation<Stage>] {
-        StageSelectRowPresentation.stageRows(
-            for: CampaignStagePresentation.chapter(chapter, playerSave: playerSave),
-            progress: playerSave.journey,
-            worldSeed: playerSave.worldSeed,
-        )
+    private var presentation: CampaignMapSnapshot {
+        retainedPresentation ?? CampaignMapSnapshot(journey: journey, playerSave: playerSave)
     }
 
-    private var isCampaignComplete: Bool {
-        playerSave.journey.activeStageID == nil && stageRows.isEmpty
+    private var hasEncounter: Bool {
+        encounters.activeMysteryEncounter != nil || encounters.activeShopEncounter != nil
     }
 
     var body: some View {
+        let presentation = presentation
+        let chapter = presentation.chapter
         StageSelectScreen(
             eyebrow: "Chapter \(chapter.number)".uppercased(),
             title: chapter.title,
@@ -111,21 +111,21 @@ struct ChapterStageSelectView: View {
             }
         } content: {
             Group {
-                if isCampaignComplete {
+                if presentation.isComplete {
                     campaignCompletionState
                 } else {
                     if !playerSave.contentAccess.allowsChapter(chapter.number) {
                         FullGameBoundaryView(title: chapter.title, origin: .campaign(chapter: chapter.number))
                     }
                     StageSelectList(
-                        rows: stageRows,
+                        rows: presentation.rows,
                         isPrimaryActionDisabled: { _ in !playerSave.contentAccess.allowsChapter(chapter.number) },
                         onArtworkTap: onEnemyTap,
                         onPrimaryAction: handlePrimaryAction,
                         artwork: { stage, isActive in
                             EncounterArtwork(
                                 stage: stage,
-                                resolvedMysteryEvent: journey.previewMysteryEvent(for: stage),
+                                resolvedMysteryEvent: presentation.events[stage.id],
                                 worldSeed: playerSave.worldSeed,
                                 prefersThumbnail: !isActive,
                             )
@@ -146,6 +146,14 @@ struct ChapterStageSelectView: View {
                 )
                 .frame(width: 0, height: 0)
                 .opacity(0)
+        }
+        .onChange(of: hasEncounter) { _, isActive in
+            guard !isActive else { return }
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                retainedPresentation = nil
+            }
         }
         .task(id: StageSelectPrepareDependency.journey(playerSave: playerSave)) {
             prepareActiveBattleRun()
@@ -171,8 +179,13 @@ struct ChapterStageSelectView: View {
     }
 
     private func handlePrimaryAction(_ stage: Stage) -> Bool {
-        guard playerSave.journey.isActive(stage) else { return false }
-        return onStageTap(stage)
+        guard !hasEncounter, playerSave.journey.isActive(stage) else { return false }
+        retainedPresentation = presentation
+        let accepted = onStageTap(stage)
+        if !hasEncounter {
+            retainedPresentation = nil
+        }
+        return accepted
     }
 }
 
@@ -194,5 +207,26 @@ enum CampaignStagePresentation {
                 )
             },
         )
+    }
+}
+
+@MainActor
+private struct CampaignMapSnapshot {
+    let chapter: Chapter
+    let rows: [StageSelectRowPresentation<Stage>]
+    let events: [String: MysteryEvent]
+    let isComplete: Bool
+
+    init(journey: JourneyPlayMode, playerSave: PlayerSaveStore) {
+        chapter = CampaignStagePresentation.chapter(journey.playChapter, playerSave: playerSave)
+        rows = StageSelectRowPresentation.stageRows(
+            for: chapter,
+            progress: playerSave.journey,
+            worldSeed: playerSave.worldSeed,
+        )
+        events = Dictionary(uniqueKeysWithValues: rows.compactMap { row in
+            journey.previewMysteryEvent(for: row.item).map { (row.item.id, $0) }
+        })
+        isComplete = playerSave.journey.activeStageID == nil && rows.isEmpty
     }
 }

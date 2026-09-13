@@ -7,6 +7,7 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| CoreInteractionPolish.md | 2026-09-13 | Implemented consistent presses, stable party selection, equipment and Talent confirmations, source-linked item inspection and salvage, prepared Contracts refresh, and battle-card touch/availability cues. Repaired disappearing wallet artwork and consolidated salvage coverage into smoke; preserved immediate commits and ongoing combat-text work. |
 | ContinuousCardPlay.md | 2026-09-12 | Implemented immediate card input, independent full-size automatic casts, ally-first Pack Tactics, and immutable visual-only finishing taps. The approved plan is retained as standing policy in [CardPlay.md](../../Product/CardPlay.md), with regression ownership in the battle presentation contract. |
 | Battle balance tuning | 2026-09-12 | Implemented the agreed card, talent, trait, and affix changes; bounded Fox’s Gold draw loop and repaired enemy Basic Freeze triggers. Isolated handoff passed 887 package tests and repository gates. Balance comparisons retain documented Alchemist/Pixie and Wildcard/Fox progression walls. |
 | Architecture simplification | 2026-09-10 | Contained combat mutation and talent lifetimes, unified save commits and reward wiring, and removed obsolete development-save migrations. Performance retained advisory pacing findings. |

@@ -255,7 +255,7 @@ struct CombatFeedbackPresenterTests {
         #expect(directAndStatus.map(\.feedbackClass) == [.directDamage, .directDamage])
     }
 
-    @Test func `assigns priority and presentation roles deterministically`() {
+    @Test func `orders simultaneous results deterministically`() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed, actionID: 1),
@@ -284,10 +284,7 @@ struct CombatFeedbackPresenterTests {
         #expect(items.count == 7)
         #expect(items[0].feedbackClass == .dodge)
         #expect(items[0].presentationIndex == 0)
-        #expect(items.allSatisfy { $0.groupResultCount == 7 })
         #expect(items.map(\.presentationIndex) == Array(0 ..< 7))
-        #expect(items[0].presentationRole == .headline)
-        #expect(items.dropFirst().allSatisfy { $0.presentationRole == .secondary })
     }
 
     private func makeEvent(
@@ -361,36 +358,6 @@ extension CombatFeedbackPresenterTests {
         #expect(items.count == 2)
         #expect(items.map(\.actionGroupID) == [10, 11])
         #expect(items.map(\.text) == ["4", "3"])
-        #expect(items.allSatisfy { $0.groupResultCount == 1 })
-        #expect(items.allSatisfy { $0.presentationRole == .headline })
-    }
-
-    @Test func `keeps presentation roles local to each action and target`() throws {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .abilityDamage, amount: 8, keyword: .physical, actionID: 1),
-                makeEvent(id: 2, kind: .status, amount: 1, keyword: .bleed, actionID: 1),
-                makeEvent(
-                    id: 3, kind: .effect, effectKind: .instantHeal, amount: 2, keyword: .health, actionID: 1,
-                ),
-                makeEvent(
-                    id: 4, kind: .effect, effectKind: .shieldApplied, amount: 3, keyword: .block, actionID: 1,
-                ),
-                makeEvent(id: 5, kind: .abilityDamage, amount: 4, keyword: .physical, actionID: 2),
-            ],
-            at: .now,
-        )
-        let firstAction = items.filter { $0.actionGroupID == 1 }
-        let secondAction = items.filter { $0.actionGroupID == 2 }
-        #expect(firstAction.count == 4)
-        #expect(firstAction.allSatisfy { $0.groupResultCount == 4 })
-        let firstHeadline = try #require(firstAction.first)
-        #expect(firstHeadline.presentationRole == .headline)
-        #expect(firstAction.dropFirst().allSatisfy { $0.presentationRole == .secondary })
-        #expect(secondAction.count == 1)
-        let secondItem = try #require(secondAction.first)
-        #expect(secondItem.groupResultCount == 1)
-        #expect(secondItem.presentationRole == .headline)
     }
 
     @Test func `overlay keeps all groups and emits one canvas chip per distinct kind`() {

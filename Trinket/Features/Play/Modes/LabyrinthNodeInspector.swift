@@ -10,23 +10,14 @@ import TrinketPersistence
 
 struct LabyrinthNodeInspector: View {
     @Environment(LabyrinthPlayMode.self) private var labyrinth
-    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.isBattleActive) private var isBattleActive
     @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
 
     let node: LabyrinthNode
-    let state: PlayerLabyrinthState
-    let onMessage: (StageMapMessage) -> Void
-
-    private var type: LabyrinthNodeType {
-        LabyrinthMapPresentation.effectiveType(
-            for: node,
-            worldSeed: playerSave.worldSeed,
-            unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-            unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
-            access: playerSave.contentAccess,
-        )
-    }
+    let type: LabyrinthNodeType
+    let resolvedMysteryEvent: MysteryEvent?
+    let recruitArtwork: EncounterArtReference?
+    let onPrimaryAction: () -> Bool
 
     private var presentation: StageSelectRowPresentation<LabyrinthNode> {
         StageSelectRowPresentation.labyrinthRow(
@@ -46,18 +37,13 @@ struct LabyrinthNodeInspector: View {
                     presentPlayCombatantDetail(enemyDetail)
                 }
             },
-            onPrimaryAction: {
-                if let message = labyrinth.handleNodeAction(nodeID: node.id) {
-                    onMessage(message)
-                    return false
-                }
-                return true
-            },
+            onPrimaryAction: onPrimaryAction,
             artwork: {
                 LabyrinthNodeArtwork(
                     node: node,
                     type: type,
-                    resolvedMysteryEvent: labyrinth.previewMysteryEvent(for: node),
+                    resolvedMysteryEvent: resolvedMysteryEvent,
+                    recruitArtwork: recruitArtwork,
                     style: .inspector,
                 )
             },

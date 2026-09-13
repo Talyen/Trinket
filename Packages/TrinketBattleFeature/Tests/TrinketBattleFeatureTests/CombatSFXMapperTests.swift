@@ -157,8 +157,6 @@ struct CombatSFXMapperTests {
             sourceEventIDs: [id],
             actionGroupID: id,
             presentationIndex: 0,
-            groupResultCount: 1,
-            presentationRole: .headline,
             targetID: targetID,
             feedbackClass: feedbackClass,
             keyword: keyword,

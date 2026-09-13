@@ -230,6 +230,18 @@ public extension EncounterPlayMode {
         return true
     }
 
+    func collectMysteryReward(session: MysteryEncounterSession) -> Bool {
+        guard activeMysteryEncounter === session, session.showsReward,
+              finishActiveMysteryEncounter(dismiss: false) else { return false }
+        sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
+        return true
+    }
+
+    func dismissMysteryReward(session: MysteryEncounterSession) {
+        guard activeMysteryEncounter === session, session.showsReward else { return }
+        activeMysteryEncounter = nil
+    }
+
     func dismissActiveMysteryEncounter() {
         activeMysteryEncounter = nil
     }

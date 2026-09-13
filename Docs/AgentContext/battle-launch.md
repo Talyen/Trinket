@@ -40,3 +40,19 @@ imports Persistence or AppState; these capabilities stay outside `BattleRuntime`
 Capacity, reservations, and transaction rules live in
 [persistence context](persistence.md). Current combat content only grants Gold;
 it must not debit the battle wallet.
+
+Loot All persists the settled award before its shared collection presentation.
+Interactive claims defer the exit for that presentation; automatic completion
+continues to exit immediately. Play retains a transient exit keyed to the battle
+configuration and refuses duplicate claims while it is pending. Finishing restores
+the origin before ending battle, clears registrations, and then exposes earned
+talent choices. Interruption or backgrounding finishes the same keyed exit without
+replaying feedback or granting rewards again. Animation timing never authorizes a
+save, and a stale callback cannot dismiss a newer battle.
+
+Post-battle Talent choices persist before their short unlock confirmation. Play
+retains the displayed combatant under a unique confirmation token, even after
+their last point is spent. Finishing that token exposes the next eligible
+combatant or dismisses the sheet. Additional legal choices replace the token;
+stale completions cannot advance the flow. Dismissal clears the presentation,
+and backgrounding finishes its current confirmation without replaying feedback.

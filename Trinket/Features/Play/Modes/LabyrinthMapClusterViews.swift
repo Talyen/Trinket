@@ -8,11 +8,13 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthFloorMap: View {
-    @Environment(LabyrinthPlayMode.self) private var labyrinth
-    @Environment(PlayerSaveStore.self) private var playerSave
-
     let cluster: LabyrinthCluster
-    let state: PlayerLabyrinthState
+    let snapshot: LabyrinthMapSnapshot
+
+    private var state: PlayerLabyrinthState {
+        snapshot.state
+    }
+
     let selectedNodeID: String?
     let availableWidth: CGFloat
     let onSelectNode: (String) -> Void
@@ -37,19 +39,12 @@ struct LabyrinthFloorMap: View {
         let mapHeight = CGFloat(lastRow) * metrics.verticalStep
             + metrics.height
             + metrics.hitExpansion * 2
-        let roster = playerSave.roster
         let displayNodes = nodes.map { node in
             let visualState = LabyrinthMapPresentation.state(for: node, in: state)
             return LabyrinthMapNodePresentation(
                 node: node,
                 visualState: visualState,
-                type: LabyrinthMapPresentation.effectiveType(
-                    for: node,
-                    worldSeed: playerSave.worldSeed,
-                    unlockedHeroIDs: roster.unlockedHeroIDs,
-                    unlockedCompanionIDs: roster.unlockedCompanionIDs,
-                    access: playerSave.contentAccess,
-                ),
+                type: snapshot.type(for: node),
                 position: point(
                     for: node,
                     horizontalCenter: horizontalCenter,
@@ -78,7 +73,8 @@ struct LabyrinthFloorMap: View {
                     type: presentation.type,
                     isSelected: selectedNodeID == presentation.id,
                     metrics: metrics,
-                    resolvedMysteryEvent: labyrinth.previewMysteryEvent(for: presentation.node),
+                    resolvedMysteryEvent: snapshot.events[presentation.id],
+                    recruitArtwork: snapshot.recruitArtwork(for: presentation.node),
                     floorDepthBand: cluster.depthBand,
                     onActivate: {
                         if presentation.visualState == .reachable {
@@ -136,6 +132,7 @@ private struct LabyrinthMapNodeSeal: View {
     let isSelected: Bool
     let metrics: LabyrinthHexMetrics
     let resolvedMysteryEvent: MysteryEvent?
+    let recruitArtwork: EncounterArtReference?
     let floorDepthBand: Int
     let onActivate: () -> Void
     @State private var reachablePulseOpacity: Double = 0
@@ -155,6 +152,7 @@ private struct LabyrinthMapNodeSeal: View {
                         node: node,
                         type: type,
                         resolvedMysteryEvent: resolvedMysteryEvent,
+                        recruitArtwork: recruitArtwork,
                         style: .hexSeal,
                     )
                     .saturation(visualState == .cleared ? 0 : 1)
@@ -279,11 +277,10 @@ struct LabyrinthNodeArtwork: View {
         case hexSeal
     }
 
-    @Environment(PlayerSaveStore.self) private var playerSave
-
     let node: LabyrinthNode
     let type: LabyrinthNodeType
     let resolvedMysteryEvent: MysteryEvent?
+    let recruitArtwork: EncounterArtReference?
     var style: Style = .inspector
 
     private var icon: GameIcon {
@@ -320,13 +317,7 @@ struct LabyrinthNodeArtwork: View {
                 variant: prefersThumbnail ? .card : .battle,
             )
         } else if type == .recruit,
-                  let art = LabyrinthMapPresentation.recruitEncounterArtReference(
-                      for: node,
-                      worldSeed: playerSave.worldSeed,
-                      unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-                      unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
-                      access: playerSave.contentAccess,
-                  ) {
+                  let art = recruitArtwork {
             MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
         } else if let event = resolvedMysteryEvent, !event.isRecruit {
             MysteryEventHeroArtwork(
@@ -350,13 +341,7 @@ struct LabyrinthNodeArtwork: View {
            let art = enemy.combatant.artReference {
             combatFocal(art)
         } else if type == .recruit,
-                  let art = LabyrinthMapPresentation.recruitEncounterArtReference(
-                      for: node,
-                      worldSeed: playerSave.worldSeed,
-                      unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-                      unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
-                      access: playerSave.contentAccess,
-                  ) {
+                  let art = recruitArtwork {
             encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
         } else if let event = resolvedMysteryEvent, !event.isRecruit {
             hexMysteryFocalContent(for: event)

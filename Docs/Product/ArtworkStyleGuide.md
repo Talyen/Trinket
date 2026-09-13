@@ -2,7 +2,9 @@
 
 This guide defines the visual language and production constraints for authored
 and generated artwork. `ArtManifest/curated-assets.tsv` remains the source of truth for
-asset IDs, kinds, source files, focal points, and processing settings.
+asset IDs, kinds, source files, and focal points. Encoding settings belong to
+`Scripts/prepare-art-assets.sh`; the [art pipeline](../../ArtManifest/README.md)
+documents its formats and overrides.
 
 ## Art direction
 

@@ -6,13 +6,27 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct SalvageDetailState {
+    var requestedItem: InventoryItem?
     var selectedItem: InventoryItem?
+    private var selectedInventoryIndex: Int?
     var transmutationEvent: SalvageTransmutationEvent?
     var salvageSuccessCount = 0
     var salvageErrorCount = 0
 
-    mutating func select(_ item: InventoryItem) {
-        selectedItem = item
+    mutating func select(_ item: InventoryItem, inventory: [InventoryItem]) {
+        withAnimation(TrinketMotion.Reward.stateChange) {
+            transmutationEvent = nil
+        }
+        selectedInventoryIndex = inventory.firstIndex { $0.id == item.id }
+        requestedItem = item
+    }
+
+    func presentationItems(in inventory: [InventoryItem]) -> [InventoryItem] {
+        guard let event = transmutationEvent, let index = event.inventoryIndex,
+              !inventory.contains(where: { $0.id == event.item.id }) else { return inventory }
+        var items = inventory
+        items.insert(event.item, at: min(index, items.count))
+        return items
     }
 
     mutating func salvageFinished(
@@ -23,22 +37,27 @@ struct SalvageDetailState {
             transmutationEvent = SalvageTransmutationEvent(
                 item: item,
                 yields: yields,
+                inventoryIndex: selectedInventoryIndex,
             )
             salvageSuccessCount += 1
         } else if case .persistenceFailure = result {
             salvageErrorCount &+= 1
             return
         }
-        var dismiss = Transaction()
-        dismiss.disablesAnimations = true
-        withTransaction(dismiss) {
-            selectedItem = nil
+    }
+
+    mutating func detailDismissed() {
+        if selectedItem == nil, requestedItem == nil {
+            selectedInventoryIndex = nil
         }
+        transmutationEvent?.hasReturned = true
     }
 
     mutating func finishTransmutation(id: UUID) {
         guard transmutationEvent?.id == id else { return }
-        transmutationEvent = nil
+        withAnimation(TrinketMotion.Reward.stateChange) {
+            transmutationEvent = nil
+        }
     }
 }
 

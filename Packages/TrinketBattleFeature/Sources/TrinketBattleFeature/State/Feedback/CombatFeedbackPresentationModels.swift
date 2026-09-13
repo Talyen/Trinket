@@ -16,11 +16,6 @@ enum CombatFeedbackClass: String, CaseIterable, Equatable {
     case deathsDoor
 }
 
-enum CombatFeedbackPresentationRole: String, CaseIterable, Equatable {
-    case headline
-    case secondary
-}
-
 struct CombatFeedbackKeyframeSample: Equatable {
     let value: Double
     let duration: TimeInterval

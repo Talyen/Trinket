@@ -11,6 +11,8 @@ struct LabyrinthMapView: View {
     private static let inspectorScrollClearance: CGFloat = 360
 
     @Environment(LabyrinthPlayMode.self) private var labyrinth
+    @Environment(EncounterPlayMode.self) private var encounters
+    @State private var retainedPresentation: LabyrinthMapSnapshot?
     @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
@@ -20,7 +22,11 @@ struct LabyrinthMapView: View {
     @State private var nodeSelectionFeedbackTrigger = 0
 
     private var state: PlayerLabyrinthState {
-        playerSave.labyrinth
+        retainedPresentation?.state ?? playerSave.labyrinth
+    }
+
+    private var hasEncounter: Bool {
+        encounters.activeMysteryEncounter != nil || encounters.activeShopEncounter != nil
     }
 
     private var floors: [LabyrinthCluster] {
@@ -38,7 +44,12 @@ struct LabyrinthMapView: View {
     var body: some View {
         Group {
             if state.hasMap, let viewedCluster {
-                floorContent(viewedCluster)
+                floorContent(
+                    viewedCluster,
+                    snapshot: retainedPresentation ?? LabyrinthMapSnapshot(
+                        playerSave: playerSave, labyrinth: labyrinth, cluster: viewedCluster,
+                    ),
+                )
             } else {
                 emptyState
             }
@@ -54,6 +65,7 @@ struct LabyrinthMapView: View {
             }
         }
         .onAppear {
+            guard retainedPresentation == nil else { return }
             let enteredMap = !state.hasMap
             if enteredMap, let message = labyrinth.enter() {
                 nodeMessage = message
@@ -64,11 +76,16 @@ struct LabyrinthMapView: View {
             }
         }
         .onChange(of: playerSave.labyrinth) { previous, current in
-            if current.currentFloorNumber > previous.currentFloorNumber {
-                selectedNodeID = nil
-                showFloor(accessibleFloor(current.currentFloorNumber))
-            } else if let selectedNodeID, current.node(id: selectedNodeID)?.isCleared == true {
-                self.selectedNodeID = nil
+            guard retainedPresentation == nil else { return }
+            reconcileProgress(previous: previous, current: current)
+        }
+        .onChange(of: hasEncounter) { _, isActive in
+            guard !isActive, let retainedPresentation else { return }
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                self.retainedPresentation = nil
+                reconcileProgress(previous: retainedPresentation.state, current: playerSave.labyrinth)
             }
         }
         .onChange(of: StageSelectPrepareDependency.labyrinth(playerSave: playerSave)) { _, _ in
@@ -142,12 +159,12 @@ struct LabyrinthMapView: View {
         }
     }
 
-    private func floorContent(_ cluster: LabyrinthCluster) -> some View {
+    private func floorContent(_ cluster: LabyrinthCluster, snapshot: LabyrinthMapSnapshot) -> some View {
         GeometryReader { proxy in
             ScrollView(.vertical) {
                 LabyrinthFloorMap(
                     cluster: cluster,
-                    state: state,
+                    snapshot: snapshot,
                     selectedNodeID: selectedNodeID,
                     availableWidth: max(
                         1,
@@ -175,8 +192,10 @@ struct LabyrinthMapView: View {
             if let selectedNode {
                 LabyrinthNodeInspector(
                     node: selectedNode,
-                    state: state,
-                    onMessage: { nodeMessage = $0 },
+                    type: snapshot.type(for: selectedNode),
+                    resolvedMysteryEvent: snapshot.events[selectedNode.id],
+                    recruitArtwork: snapshot.recruitArtwork(for: selectedNode),
+                    onPrimaryAction: { handleNodeAction(selectedNode, snapshot: snapshot) },
                 )
                 .frame(maxWidth: 340)
                 .padding(.bottom, TrinketDesign.Spacing.small)
@@ -193,6 +212,29 @@ struct LabyrinthMapView: View {
         .onChange(of: selectedNodeID) { _, newValue in
             guard newValue != nil else { return }
             nodeSelectionFeedbackTrigger &+= 1
+        }
+    }
+
+    private func handleNodeAction(_ node: LabyrinthNode, snapshot: LabyrinthMapSnapshot) -> Bool {
+        guard !hasEncounter else { return false }
+        retainedPresentation = snapshot
+        let message = labyrinth.handleNodeAction(nodeID: node.id)
+        if !hasEncounter {
+            retainedPresentation = nil
+        }
+        if let message {
+            nodeMessage = message
+            return false
+        }
+        return true
+    }
+
+    private func reconcileProgress(previous: PlayerLabyrinthState, current: PlayerLabyrinthState) {
+        if current.currentFloorNumber > previous.currentFloorNumber {
+            selectedNodeID = nil
+            showFloor(accessibleFloor(current.currentFloorNumber))
+        } else if let selectedNodeID, current.node(id: selectedNodeID)?.isCleared == true {
+            self.selectedNodeID = nil
         }
     }
 

@@ -48,7 +48,7 @@ struct CombatFeedbackMotionTests {
 
     @Test func `chip pop motion progress lifecycle`() {
         #expect(BattleMotion.chipMotionProgress(elapsed: 0) == 0)
-        #expect(BattleMotion.chipMotionProgress(elapsed: BattleMotion.chipHoldEndTime) == 0)
+        #expect(BattleMotion.chipMotionProgress(elapsed: BattleMotion.chipPopPeakTime) == 0)
         let midProgress = BattleMotion.chipMotionProgress(
             elapsed: BattleMotion.chipHoldEndTime + 0.225,
         )

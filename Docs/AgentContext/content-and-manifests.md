@@ -13,7 +13,8 @@ README; open only the manifest README for the input being changed.
 | Trigger-family schema | `./Scripts/generate.sh` | Generated trigger output; authored exceptions stay authored |
 | Media manifests or matching raw inputs | `./Scripts/generate.sh --assets` | Generated catalog plus expected processed files |
 | `project.yml` or XcodeGen tool/wrapper inputs | `./Scripts/generate.sh` | Review authored inputs and canonical project output together |
-| Content/assets without regenerating the Xcode project | `./Scripts/generate.sh --skip-xcodegen` | Catalog/asset diff only |
+| Content without regenerating the Xcode project | `./Scripts/generate.sh --skip-xcodegen` | Content catalog diff only |
+| Media assets without regenerating the Xcode project | `./Scripts/generate.sh --assets --skip-xcodegen` | Content/media catalogs and processed files |
 
 Project consistency and staged commit validation follow
 [Verification.md](../Platform/Verification.md#generated-project-consistency).

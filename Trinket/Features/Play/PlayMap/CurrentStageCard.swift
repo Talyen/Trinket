@@ -87,7 +87,7 @@ struct StageSelectActiveCard<
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             // UIStyleCheck: allow - Encounter artwork is the enemy-detail affordance.
-            .trinketQuietTapButtonStyle()
+            .trinketArtworkCardButtonStyle()
             .accessibilityIdentifier(presentation.artworkAccessibilityID)
         } else {
             artwork()
@@ -187,7 +187,7 @@ struct StageSelectActiveCard<
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .disabled(isBattleActive)
         .accessibilityLabel("Party")
         .accessibilityIdentifier(presentation.partyControlAccessibilityID)

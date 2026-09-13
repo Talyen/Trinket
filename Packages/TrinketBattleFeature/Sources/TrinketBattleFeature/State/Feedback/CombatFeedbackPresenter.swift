@@ -79,18 +79,12 @@ enum CombatFeedbackPresenter {
             }
             let availableAt = date
             let expiresAt = availableAt.addingTimeInterval(BattleMotion.chipDisplayDuration)
-            let groupResultCount = sorted.count
             return sorted.enumerated().map { presentationIndex, prepared in
                 CombatFeedbackItem(
                     id: prepared.id,
                     sourceEventIDs: prepared.sourceEventIDs,
                     actionGroupID: key.actionID,
                     presentationIndex: presentationIndex,
-                    groupResultCount: groupResultCount,
-                    presentationRole: presentationRole(
-                        index: presentationIndex,
-                        groupResultCount: groupResultCount,
-                    ),
                     targetID: prepared.targetID,
                     feedbackClass: prepared.feedbackClass,
                     keyword: prepared.keyword,
@@ -103,16 +97,6 @@ enum CombatFeedbackPresenter {
                 )
             }
         }
-    }
-
-    private static func presentationRole(
-        index: Int,
-        groupResultCount: Int,
-    ) -> CombatFeedbackPresentationRole {
-        if groupResultCount <= 3 {
-            return .headline
-        }
-        return index == 0 ? .headline : .secondary
     }
 
     private struct PreparedSource: Equatable {

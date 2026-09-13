@@ -7,7 +7,14 @@ Approved September 12, 2026. This is the standing product specification for
 
 A valid card plays immediately when the player releases their finger. Its lift
 and dissolve follow the action; no animation completion gates the next tap.
+The departing card rises quickly, then eases upward through the artwork's
+dissolve while retaining its full departure travel distance.
 Holding to inspect, dragging to play, and cancelling a drag remain available.
+
+Touch-down gives an immediate small compression before the larger held-card lift.
+A restrained edge marks playable cards, with one settling accent when a card
+becomes playable. The armed-drag edge takes precedence; these cues never dim the
+artwork, repeat continuously, or delay an action.
 
 The hand remains a physical, smoothly reflowing fan. A touch stays attached to
 the card originally pressed, and that card stays steady while surrounding cards

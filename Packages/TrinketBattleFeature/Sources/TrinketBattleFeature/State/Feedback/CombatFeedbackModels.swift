@@ -15,8 +15,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     var sourceEventIDs: [Int]
     let actionGroupID: Int
     let presentationIndex: Int
-    let groupResultCount: Int
-    let presentationRole: CombatFeedbackPresentationRole
     let targetID: String
     let feedbackClass: CombatFeedbackClass
     let keyword: Keyword
@@ -36,8 +34,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         sourceEventIDs: [Int],
         actionGroupID: Int,
         presentationIndex: Int,
-        groupResultCount: Int,
-        presentationRole: CombatFeedbackPresentationRole,
         targetID: String,
         feedbackClass: CombatFeedbackClass,
         keyword: Keyword,
@@ -53,8 +49,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         self.sourceEventIDs = sourceEventIDs
         self.actionGroupID = actionGroupID
         self.presentationIndex = presentationIndex
-        self.groupResultCount = groupResultCount
-        self.presentationRole = presentationRole
         self.targetID = targetID
         self.feedbackClass = feedbackClass
         self.keyword = keyword

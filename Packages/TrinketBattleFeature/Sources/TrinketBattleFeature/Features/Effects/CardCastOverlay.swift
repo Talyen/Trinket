@@ -192,11 +192,16 @@ struct CardCastEffectsLayer: View {
     }
 
     private func cast(_ request: CardActivationRequest, progress: CGFloat) -> some View {
-        CardDissolveEffect(
+        let configuration = CardDissolveConfiguration()
+        let riseProgress = min(max(progress / configuration.dissolveDuration, 0), 1)
+        let rise = 1 - pow(1 - riseProgress, 3)
+
+        return CardDissolveEffect(
             progress: progress,
             keywords: request.keywords,
             size: request.size,
             particles: request.particles,
+            configuration: configuration,
         ) {
             BattleAbilityCardFace(artworkName: request.artworkName)
         }
@@ -210,7 +215,7 @@ struct CardCastEffectsLayer: View {
         )
         .position(
             x: request.center.x,
-            y: request.center.y - request.size.height * BattleMotion.tapLiftHeightFraction * min(1, progress * 4),
+            y: request.center.y - request.size.height * BattleMotion.tapLiftHeightFraction * rise,
         )
     }
 }

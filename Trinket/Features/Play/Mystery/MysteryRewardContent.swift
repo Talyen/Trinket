@@ -8,11 +8,13 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryRewardContent: View {
+    @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
 
     @Bindable var session: MysteryEncounterSession
     let result: MysteryEffectResult
-    let onFinish: () -> Bool
+    let onClaim: () -> Bool
+    let onFinish: () -> Void
 
     var body: some View {
         RewardRevealExperienceScreen(
@@ -31,7 +33,7 @@ struct MysteryRewardContent: View {
             ),
             primaryActionTitle: "Loot All",
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
-            onPrimaryAction: onFinish,
+            action: .collect(hapticsEnabled: options.hapticsEnabled, claim: onClaim, finish: onFinish),
             contentTopPadding: TrinketDesign.Layout.contentTopPadding + TrinketDesign.Spacing.medium,
             contentStackSpacing: TrinketDesign.Layout.sectionSpacing,
         )

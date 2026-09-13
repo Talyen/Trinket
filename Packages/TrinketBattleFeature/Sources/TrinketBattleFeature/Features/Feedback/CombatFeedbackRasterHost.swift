@@ -8,15 +8,11 @@ struct CombatFeedbackRasterSlot: View {
     @Environment(\.layoutDirection) private var layoutDirection
 
     let combatantID: String
-    let cardHeight: CGFloat
-    var isPartyMember = false
     let displayScale: CGFloat
 
     var body: some View {
         CombatFeedbackRasterHost(
             combatantID: combatantID,
-            cardHeight: cardHeight,
-            isPartyMember: isPartyMember,
             layoutDirection: layoutDirection,
             displayScale: displayScale,
         )
@@ -26,15 +22,11 @@ struct CombatFeedbackRasterSlot: View {
 
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
     let combatantID: String
-    let cardHeight: CGFloat
-    var isPartyMember = false
     let layoutDirection: LayoutDirection
     let displayScale: CGFloat
 
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
-        view.cardHeight = cardHeight
-        view.isPartyMember = isPartyMember
         CombatFeedbackChipBridge.register(
             view,
             combatantID: combatantID,
@@ -45,8 +37,6 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: CombatFeedbackRasterUIView, context _: Context) {
-        uiView.cardHeight = cardHeight
-        uiView.isPartyMember = isPartyMember
         CombatFeedbackChipBridge.register(
             uiView,
             combatantID: combatantID,
@@ -64,6 +54,7 @@ final class CombatFeedbackRasterUIView: UIView {
     private final class ChipLayer {
         let layer: CALayer
         var item: CombatFeedbackItem
+        var retiringOpacity = 1.0
         let rasterIdentity: ObjectIdentifier
 
         init(
@@ -84,14 +75,17 @@ final class CombatFeedbackRasterUIView: UIView {
     private var reusableLayers: [CALayer] = []
     private struct Group {
         let layers: [ChipLayer]
-        let offsets: [CGPoint]
-        let height: CGFloat
+        let motionItem: CombatFeedbackItem
+        let placements: [Placement]
+        let topRetention: CGFloat
+    }
+
+    private struct Placement {
+        var offset: CGPoint
         let fitScale: CGFloat
     }
 
     private var groups: [Group] = []
-    var isPartyMember = false
-    var cardHeight: CGFloat = 0
     #if DEBUG
     var debugLastAppliedChips: [CombatFeedbackItem] = []
     #endif
@@ -149,6 +143,9 @@ final class CombatFeedbackRasterUIView: UIView {
         for (item, raster) in validChips {
             if let existing = layersByID[item.id],
                existing.rasterIdentity == ObjectIdentifier(raster) {
+                if existing.item.retiringAt == nil, let retiringAt = item.retiringAt {
+                    existing.retiringOpacity = CombatFeedbackMotionSampler.state(for: existing.item, at: retiringAt).opacity
+                }
                 existing.item = item
                 continue
             }
@@ -185,70 +182,98 @@ final class CombatFeedbackRasterUIView: UIView {
 
     private func layoutGroups() {
         let grouped = Dictionary(grouping: orderedLayers, by: { $0.item.actionGroupID })
-        groups = grouped.values.sorted { $0[0].item.availableAt < $1[0].item.availableAt }.map { layers in
+        groups = grouped.values.sorted { Self.chipLayerOrder($0[0], $1[0]) }.map { layers in
             let layers = layers.sorted {
                 if $0.item.presentationIndex == $1.item.presentationIndex {
                     return $0.item.id < $1.item.id
                 }
                 return $0.item.presentationIndex < $1.item.presentationIndex
             }
-            let gap: CGFloat = 6
-            let width = layers.reduce(CGFloat.zero) { $0 + $1.layer.bounds.width + gap } - gap
-            let rowCount = width * BattleMotion.chipMaximumScale <= bounds.width - 16 ? 1 : min(2, layers.count)
-            let columns = (layers.count + rowCount - 1) / rowCount
-            var offsets: [CGPoint] = []
-            var height: CGFloat = 0
-            var widest: CGFloat = 0
-            for start in stride(from: 0, to: layers.count, by: columns) {
-                let row = layers[start ..< min(start + columns, layers.count)]
-                let rowWidth = row.reduce(CGFloat.zero) { $0 + $1.layer.bounds.width + gap } - gap
-                let rowHeight = row.map(\.layer.bounds.height).max() ?? 0
-                var x = -rowWidth / 2
-                for chip in row {
-                    offsets.append(CGPoint(x: x + chip.layer.bounds.width / 2, y: height + rowHeight / 2))
-                    x += chip.layer.bounds.width + gap
-                }
-                height += rowHeight + gap
-                widest = max(widest, rowWidth)
+            let sizes = layers.map(\.layer.bounds.size)
+            let fits = sizes.map { size in
+                min(
+                    1,
+                    max(0, bounds.width - 16) / max(1, size.width * BattleMotion.chipMaximumScale),
+                    max(0, bounds.height - 16) / max(1, size.height * BattleMotion.chipMaximumScale),
+                )
             }
-            height = max(0, height - gap)
-            offsets = offsets.map { CGPoint(x: $0.x, y: $0.y - height / 2) }
-            let fit = min(
-                1,
-                max(0, bounds.width - 16) / max(1, widest * BattleMotion.chipMaximumScale),
-                max(0, bounds.height - 16) / max(1, height * BattleMotion.chipMaximumScale),
-            )
-            return Group(layers: layers, offsets: offsets, height: height, fitScale: fit)
+            let placements = placements(sizes: sizes, fits: fits)
+            let topRetention = zip(sizes, placements).map { size, placement in
+                size.height * placement.fitScale * 0.25 - placement.offset.y
+            }.max() ?? 0
+            var motionItem = layers[0].item
+            motionItem.lastUpdatedAt = layers.compactMap(\.item.lastUpdatedAt).max()
+            return Group(layers: layers, motionItem: motionItem, placements: placements, topRetention: topRetention)
+        }
+    }
+
+    private func placements(sizes: [CGSize], fits: [CGFloat]) -> [Placement] {
+        let gap: CGFloat = 6
+        let availableWidth = max(0, bounds.width - 16) / BattleMotion.chipMaximumScale
+        var rows: [[Int]] = []
+        var row: [Int] = []
+        var width: CGFloat = 0
+        for index in sizes.indices {
+            let chipWidth = sizes[index].width * fits[index]
+            if !row.isEmpty, width + gap + chipWidth > availableWidth {
+                rows.append(row)
+                row = []
+                width = 0
+            }
+            width += (row.isEmpty ? 0 : gap) + chipWidth
+            row.append(index)
+        }
+        if !row.isEmpty {
+            rows.append(row)
+        }
+        var placements: [Placement] = []
+        var height: CGFloat = 0
+        for row in rows {
+            let rowWidth = row.reduce(CGFloat.zero) { $0 + sizes[$1].width * fits[$1] }
+                + CGFloat(row.count - 1) * gap
+            let rowHeight = row.map { sizes[$0].height * fits[$0] }.max() ?? 0
+            var x = -rowWidth / 2
+            for index in row {
+                let chipWidth = sizes[index].width * fits[index]
+                placements.append(Placement(
+                    offset: CGPoint(x: x + chipWidth / 2, y: height + rowHeight / 2),
+                    fitScale: fits[index],
+                ))
+                x += chipWidth + gap
+            }
+            height += rowHeight + gap
+        }
+        height = max(0, height - gap)
+        return placements.map { placement in
+            var centered = placement
+            centered.offset.y -= height / 2
+            return centered
         }
     }
 
     fileprivate func tickMotion(at date: Date) {
         guard !bounds.isEmpty else { return }
-        let current = groups.last(where: { $0.layers[0].item.retiringAt == nil })
-        let currentHeight = (current?.height ?? 0) * (current?.fitScale ?? 1) * BattleMotion.chipMaximumScale
-        let currentTravel = isPartyMember ? min(24, cardHeight * 0.12) : cardHeight * BattleMotion.chipTravelFraction
-        let currentProgress = current.map {
-            BattleMotion.chipMotionProgress(elapsed: max(0, date.timeIntervalSince($0.layers[0].item.firstScheduledAt)))
-        } ?? 0
-        let currentY = max(8 + currentHeight / 2, bounds.midY - currentTravel * currentProgress)
         withLayerActionsDisabled {
-            for group in groups {
-                let representative = group.layers[0].item
-                let height = group.height * group.fitScale * BattleMotion.chipMaximumScale
-                let desiredY = representative.retiringAt == nil ? currentY : currentY - currentHeight / 2 - height / 2 - 6
-                let centerY = min(bounds.height - height / 2 - 8, max(height / 2 + 8, desiredY))
+            for (groupIndex, group) in groups.enumerated() {
+                let representative = group.motionItem
+                let state = CombatFeedbackMotionSampler.state(for: representative, at: date)
+                let progress = BattleMotion.chipMotionProgress(
+                    elapsed: max(0, date.timeIntervalSince(representative.firstScheduledAt)),
+                )
+                let endY = max(bounds.height * 0.04, group.topRetention * BattleMotion.chipPopEndScale)
+                let centerY = bounds.midY - max(0, bounds.midY - endY) * progress
                 for (index, chip) in group.layers.enumerated() {
-                    let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
-                    let scale = group.fitScale * state.scale
-                    let offset = group.offsets[index]
+                    let placement = group.placements[index]
+                    let scale = placement.fitScale * state.scale
+                    let retention = chip.layer.bounds.height * scale * 0.25
+                    let y = centerY + placement.offset.y * state.scale
                     chip.layer.position = CGPoint(
-                        x: bounds.midX + offset.x * group.fitScale * BattleMotion.chipMaximumScale,
-                        y: centerY + offset.y * group.fitScale * BattleMotion.chipMaximumScale,
+                        x: bounds.midX + placement.offset.x * state.scale,
+                        y: min(bounds.height - retention, max(retention, y)),
                     )
                     chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
-                    let overlapsCurrent = representative.retiringAt != nil
-                        && centerY + height / 2 > currentY - currentHeight / 2 - 6
-                    chip.layer.opacity = overlapsCurrent ? 0 : Float(state.opacity)
+                    chip.layer.zPosition = CGFloat(groupIndex)
+                    chip.layer.opacity = Float(state.opacity * chip.retiringOpacity)
                     let criticalElapsed = chip.item.criticalAt.map { max(0, date.timeIntervalSince($0)) } ?? 1
                     chip.layer.shadowOpacity = Float(max(0, 1 - criticalElapsed / 0.3))
                 }

@@ -74,6 +74,20 @@ enum BattlePartySlot: String {
 }
 
 struct StageBattlePartyPickerSheet: View {
+    @Environment(PlayerSaveStore.self) private var playerSave
+
+    let spire: SpireDefinition?
+
+    init(spire: SpireDefinition? = nil) {
+        self.spire = spire
+    }
+
+    var body: some View {
+        StageBattlePartyPickerContent(spire: spire, roster: playerSave.roster)
+    }
+}
+
+private struct StageBattlePartyPickerContent: View {
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
@@ -81,11 +95,15 @@ struct StageBattlePartyPickerSheet: View {
     @State private var selectionFeedbackTrigger = 0
     @State private var persistError: String?
     @State private var persistErrorTrigger = 0
+    @State private var combatantOrder: [BattlePartySlot: [String]]
 
     let spire: SpireDefinition?
 
-    init(spire: SpireDefinition? = nil) {
+    init(spire: SpireDefinition?, roster: PlayerRosterState) {
         self.spire = spire
+        _combatantOrder = State(initialValue: Dictionary(uniqueKeysWithValues: [BattlePartySlot.hero, .companion].map {
+            ($0, $0.orderedCombatants(in: roster, spire: spire).map(\.id))
+        }))
     }
 
     var body: some View {
@@ -134,11 +152,9 @@ struct StageBattlePartyPickerSheet: View {
         return CategoryBrowseShelf(
             title: slot.sectionTitle,
             sectionAccessibilityIdentifier: AccessibilityID.Play.battlePartyShelf(for: slot.title),
-            shelfContentIdentity: shelfCombatants.map(\.id).joined(separator: ","),
-            shelfAnimation: TrinketMotion.Interaction.progressArrival,
             totalCount: allCombatants.count,
         ) {
-            BattlePartySlotGridView(slot: slot, spire: spire)
+            BattlePartySlotGridView(slot: slot, spire: spire, combatantIDs: combatantOrder[slot] ?? [])
         } content: {
             ForEach(shelfCombatants) { combatant in
                 partyOption(combatant, for: slot)
@@ -153,7 +169,6 @@ struct StageBattlePartyPickerSheet: View {
         let locked = eligibility == .locked
 
         return Button {
-            guard !selected, eligible else { return }
             select(combatant, for: slot)
         } label: {
             CombatantCard(
@@ -164,8 +179,10 @@ struct StageBattlePartyPickerSheet: View {
             )
             .collectionShelfCardWidth()
         }
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .disabled(!eligible)
+        .accessibilityLabel(combatant.name)
+        .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityIdentifier(
             AccessibilityID.Play.battlePartyOption(
                 for: slot.title,
@@ -176,6 +193,7 @@ struct StageBattlePartyPickerSheet: View {
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
         guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
+        guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
         let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
             slot.select(combatant, in: &$0)
         }
@@ -188,7 +206,8 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func orderedCombatants(for slot: BattlePartySlot) -> [Combatant] {
-        slot.orderedCombatants(in: playerSave.roster, spire: spire)
+        let current = Dictionary(uniqueKeysWithValues: slot.combatants(in: playerSave.roster).map { ($0.id, $0) })
+        return (combatantOrder[slot] ?? []).compactMap { current[$0] }
     }
 
     private var partyPickerAccessibilityID: String {
@@ -209,6 +228,7 @@ private struct BattlePartySlotGridView: View {
 
     let slot: BattlePartySlot
     let spire: SpireDefinition?
+    let combatantIDs: [String]
 
     var body: some View {
         OptionPickerGrid(
@@ -249,7 +269,8 @@ private struct BattlePartySlotGridView: View {
     }
 
     private var orderedCombatants: [Combatant] {
-        slot.orderedCombatants(in: playerSave.roster, spire: spire)
+        let current = Dictionary(uniqueKeysWithValues: slot.combatants(in: playerSave.roster).map { ($0.id, $0) })
+        return combatantIDs.compactMap { current[$0] }
     }
 
     private func select(_ combatant: Combatant) {

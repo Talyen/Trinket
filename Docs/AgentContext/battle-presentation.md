@@ -46,6 +46,19 @@ immutable finishing results/timing, and visual hand survival after lethal
 retaliation. Opening/turn readiness and suspension live in the preparation and
 simulation suites; gesture inspection/drag safety uses `BattleFlowUITests`.
 
+## Floating combat feedback
+
+Each result uses the same typography and size curve whether alone or alongside
+other results on that combatant. Fit an individually oversized result against
+the artwork; never shrink the group or introduce smaller secondary typography
+because more results are present. Arrange results in presentation order and wrap
+at their peak size. The group shares pop, settling, rise, update pulse, and fade;
+keyword colors and critical emphasis remain specific to each result.
+
+Rise begins during pop settling and stays within the combatant artwork, allowing
+slight edge clipping. Retiring groups continue their own trajectory during the
+handoff fade; incoming results must not reposition outgoing feedback.
+
 ## Display work lifecycle
 
 `BattleCommandState` owns command readiness and suspension. Visual tasks and

@@ -62,6 +62,7 @@ struct CollectionView: View {
 
     private var collectionBrowseContent: some View {
         let inventoryState = playerSave.inventory
+        let presentationItems = salvageDetail.presentationItems(in: inventoryState.items)
         let rosterState = playerSave.roster
         let ownedIDs = Set(inventoryState.items.map(\.id))
         let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
@@ -90,7 +91,7 @@ struct CollectionView: View {
                 )
 
                 ForEach(CollectionItemCategory.allCases) { category in
-                    let items = category.collectionItems(in: inventoryState.items)
+                    let items = category.collectionItems(in: presentationItems)
                     if !items.isEmpty {
                         CategoryBrowseShelf(
                             title: category.rawValue,
@@ -104,8 +105,12 @@ struct CollectionView: View {
                                     item: item,
                                     isLocked: !ownedIDs.contains(item.id),
                                     showsName: false,
+                                    isPreparing: salvageDetail.requestedItem?.id == item.id,
+                                    isRetiring: salvageDetail.transmutationEvent?.item.id == item.id,
+                                    isTransmuting: salvageDetail.transmutationEvent?.item.id == item.id
+                                        && salvageDetail.transmutationEvent?.hasReturned == true,
                                 ) {
-                                    salvageDetail.select(item)
+                                    salvageDetail.select(item, inventory: inventoryState.items)
                                 }
                                 .collectionShelfCardWidth()
                             }
@@ -170,9 +175,9 @@ struct CollectionView: View {
                 presentCombatant(context)
             case let .collectionItem(itemID):
                 if let owned = playerSave.inventory.item(matching: itemID) {
-                    salvageDetail.select(owned)
+                    salvageDetail.select(owned, inventory: playerSave.inventory.items)
                 } else if let template = GameContent.itemTemplate(matching: itemID) {
-                    salvageDetail.select(template)
+                    salvageDetail.select(template, inventory: playerSave.inventory.items)
                 } else {
                     showMissingItem = true
                 }

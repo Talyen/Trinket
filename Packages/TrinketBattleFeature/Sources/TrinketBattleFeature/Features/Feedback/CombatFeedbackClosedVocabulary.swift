@@ -54,27 +54,20 @@ enum CombatFeedbackClosedVocabulary {
     static func enumerateItems(at date: Date = .now) -> [CombatFeedbackItem] {
         let expiresAt = date.addingTimeInterval(1)
         var items: [CombatFeedbackItem] = []
-        var preparedAppearances: Set<PreparedAppearance> = []
-        var nextID = 1
+        var appearances: Set<ResolvedAppearance> = []
         for source in staticSources {
-            for role in CombatFeedbackPresentationRole.allCases {
-                let item = catalogItem(
-                    from: source,
-                    id: nextID,
-                    presentationRole: role,
-                    availableAt: date,
-                    expiresAt: expiresAt,
-                )
-                let appearance = PreparedAppearance(
-                    typography: item.feedbackClass.typographyTier,
-                    presentationRole: role,
-                    presentation: item.chipPresentation,
-                )
-                if preparedAppearances.insert(appearance).inserted {
-                    items.append(item)
-                    nextID += 1
-                }
-            }
+            let item = catalogItem(
+                from: source,
+                id: items.count + 1,
+                availableAt: date,
+                expiresAt: expiresAt,
+            )
+            let appearance = ResolvedAppearance(
+                typography: item.feedbackClass.typographyTier,
+                presentation: item.chipPresentation,
+            )
+            guard appearances.insert(appearance).inserted else { continue }
+            items.append(item)
         }
         return items
     }
@@ -86,12 +79,6 @@ enum CombatFeedbackClosedVocabulary {
             }
             return false
         }
-    }
-
-    private struct PreparedAppearance: Hashable {
-        let typography: CombatFeedbackTypographyTier
-        let presentationRole: CombatFeedbackPresentationRole
-        let presentation: CombatFeedbackChipPresentation
     }
 
     private struct ResolvedAppearance: Hashable {
@@ -135,7 +122,6 @@ enum CombatFeedbackClosedVocabulary {
     private static func catalogItem(
         from source: Source,
         id: Int,
-        presentationRole: CombatFeedbackPresentationRole,
         availableAt: Date,
         expiresAt: Date,
     ) -> CombatFeedbackItem {
@@ -143,9 +129,7 @@ enum CombatFeedbackClosedVocabulary {
             id: id,
             sourceEventIDs: [id],
             actionGroupID: id,
-            presentationIndex: presentationRole == .headline ? 0 : 1,
-            groupResultCount: presentationRole == .headline ? 1 : 4,
-            presentationRole: presentationRole,
+            presentationIndex: 0,
             targetID: "catalog",
             feedbackClass: source.feedbackClass,
             keyword: source.keyword,

@@ -9,21 +9,66 @@ import TrinketPersistence
 
 struct PostBattleTalentChoiceView: View {
     @Environment(PlaySession.self) private var play
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var retainedCombatantID: String?
+
+    var body: some View {
+        ZStack {
+            if let combatantID = play.currentPostBattleTalentCombatantID ?? retainedCombatantID {
+                PostBattleTalentChoiceContent(combatantID: combatantID)
+                    .id(combatantID)
+                    .transition(.opacity)
+            }
+        }
+        .animation(TrinketMotion.Screen.crossfade, value: play.currentPostBattleTalentCombatantID)
+        .onChange(of: play.currentPostBattleTalentCombatantID, initial: true) { _, id in
+            if let id {
+                retainedCombatantID = id
+            }
+        }
+        .task(id: play.postBattleTalentConfirmationID) {
+            guard let id = play.postBattleTalentConfirmationID else { return }
+            do {
+                try await Task.sleep(for: .seconds(TrinketMotion.Interaction.confirmationDuration))
+                try Task.checkCancellation()
+                play.finishPostBattleTalentConfirmation(id: id)
+            } catch {}
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                finishConfirmation()
+            }
+        }
+        .onDisappear(perform: finishConfirmation)
+    }
+
+    private func finishConfirmation() {
+        if let id = play.postBattleTalentConfirmationID {
+            play.finishPostBattleTalentConfirmation(id: id)
+        }
+    }
+}
+
+private struct PostBattleTalentChoiceContent: View {
+    @Environment(PlaySession.self) private var play
     @Environment(PlayerSaveStore.self) private var playerSave
 
     @Environment(OptionsStore.self) private var options
     @State private var navigationPath: [String] = []
     @State private var showsSaveFailure = false
     @State private var treeSelectionTrigger = 0
-    @State private var talentErrorTrigger = 0
+
+    let combatantID: String
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             if let combatant, let config {
                 treeSelection(combatant: combatant, config: config)
+                    .trinketPresentationVisibility(play.currentPostBattleTalentCombatantID == combatantID, opacity: 1)
                     .navigationDestination(for: String.self) { treeID in
                         if let tree = config.tree(matching: treeID) {
                             talentSelection(combatant: combatant, tree: tree)
+                                .trinketPresentationVisibility(play.currentPostBattleTalentCombatantID == combatantID, opacity: 1)
                         }
                     }
             } else {
@@ -31,9 +76,7 @@ struct PostBattleTalentChoiceView: View {
                     .onAppear(perform: play.dismissPostBattleTalentChoice)
             }
         }
-        .onChange(of: play.currentPostBattleTalentCombatantID) { _, _ in
-            navigationPath.removeAll()
-        }
+        .trinketPresentationVisibility(play.currentPostBattleTalentCombatantID == combatantID, opacity: 1)
         .alert("Couldn't Save Talent", isPresented: $showsSaveFailure) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -44,21 +87,14 @@ struct PostBattleTalentChoiceView: View {
             trigger: treeSelectionTrigger,
             enabled: options.hapticsEnabled,
         )
-        .trinketSensoryFeedback(
-            .error,
-            trigger: talentErrorTrigger,
-            enabled: options.hapticsEnabled,
-        )
     }
 
     private var combatant: Combatant? {
-        guard let combatantID = play.currentPostBattleTalentCombatantID else { return nil }
-        return GameContent.combatant(matching: combatantID)
+        GameContent.combatant(matching: combatantID)
     }
 
     private var config: CombatantTalentConfig? {
-        guard let combatantID = play.currentPostBattleTalentCombatantID else { return nil }
-        return CombatantTalentCatalog.config(for: combatantID)
+        CombatantTalentCatalog.config(for: combatantID)
     }
 
     private func treeSelection(
@@ -120,7 +156,7 @@ struct PostBattleTalentChoiceView: View {
                 accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id),
             )
         }
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .disabled(nodes.isEmpty)
     }
 
@@ -138,6 +174,7 @@ struct PostBattleTalentChoiceView: View {
     }
 
     private func choose(node: TalentNode, tree: TalentTree) -> TalentUnlockResult {
+        guard play.currentPostBattleTalentCombatantID == combatantID else { return .unavailable }
         let result = play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id)
         switch result {
         case .unlocked:
@@ -146,7 +183,6 @@ struct PostBattleTalentChoiceView: View {
             navigationPath.removeAll()
         case .persistenceFailed:
             showsSaveFailure = true
-            talentErrorTrigger &+= 1
         }
         return result
     }

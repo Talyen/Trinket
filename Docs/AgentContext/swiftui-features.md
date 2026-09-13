@@ -40,3 +40,6 @@ separate from primary actions through `InspectableTapButton` and the existing
 encounter presentation contract. Cache readiness controls artwork presentation,
 not gameplay eligibility. Party shelves and grids share their selection eligibility
 rule, and card tap, drag, and accessibility activation share one play-intent gate.
+Party pickers capture selected-first ordering once per presentation and share it
+between shelves and grids. Selection changes animate emphasis without reordering
+the choices; reopening captures the new selection order. Eligibility stays live.

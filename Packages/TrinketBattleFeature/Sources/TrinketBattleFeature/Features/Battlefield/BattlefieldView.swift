@@ -49,13 +49,11 @@ struct BattlefieldFeedbackOverlay: View {
                 combatantID: heroID,
                 size: layout.partySize,
                 center: anchors.hero,
-                isPartyMember: true,
             )
             feedbackSlot(
                 combatantID: companionID,
                 size: layout.partySize,
                 center: anchors.companion,
-                isPartyMember: true,
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -67,13 +65,10 @@ struct BattlefieldFeedbackOverlay: View {
         combatantID: String?,
         size: CGSize,
         center: CGPoint,
-        isPartyMember: Bool = false,
     ) -> some View {
         if let combatantID {
             CombatFeedbackRasterSlot(
                 combatantID: combatantID,
-                cardHeight: size.height,
-                isPartyMember: isPartyMember,
                 displayScale: displayScale,
             )
             .frame(width: size.width, height: size.height)

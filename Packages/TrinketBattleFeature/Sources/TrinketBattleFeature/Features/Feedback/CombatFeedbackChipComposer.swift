@@ -20,7 +20,6 @@ enum CombatFeedbackChipComposer {
     static func compose(
         presentation: CombatFeedbackChipPresentation,
         feedbackClass: CombatFeedbackClass,
-        presentationRole: CombatFeedbackPresentationRole = .headline,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared,
@@ -29,7 +28,6 @@ enum CombatFeedbackChipComposer {
         let scale = max(1, displayScale)
         let face = CombatFeedbackGlyphAtlas.Face(
             feedbackClass: feedbackClass,
-            presentationRole: presentationRole,
             displayScaleHundredths: Int((scale * 100).rounded()),
         )
 
@@ -235,7 +233,7 @@ enum CombatFeedbackChipComposer {
         let silhouette = tinted.withTintColor(outline, renderingMode: .alwaysOriginal)
         for step in 0 ..< 8 {
             let angle = CGFloat(step) * .pi / 4
-            silhouette.draw(in: rect.offsetBy(dx: cos(angle) * 1.25, dy: sin(angle) * 1.25))
+            silhouette.draw(in: rect.offsetBy(dx: cos(angle), dy: sin(angle)))
         }
         tinted.draw(in: rect)
     }

@@ -139,7 +139,11 @@ public struct BattleView: View {
                     primaryActionAccessibilityIdentifier: hasStageProgression
                         ? AccessibilityID.Battle.continueButton
                         : AccessibilityID.Battle.battleAgainButton,
-                    onPrimaryAction: { completeVictoryPrimaryAction(summary: victorySummary) },
+                    action: hasStageProgression ? .collect(
+                        hapticsEnabled: battleSession.hapticsEnabled,
+                        claim: { completeVictoryPrimaryAction(summary: victorySummary) },
+                        finish: { battleSession.finishVictoryPresentation(configurationID: configuration.id) },
+                    ) : .immediate { completeVictoryPrimaryAction(summary: victorySummary) },
                 )
                 .transition(.opacity)
             case .defeat:

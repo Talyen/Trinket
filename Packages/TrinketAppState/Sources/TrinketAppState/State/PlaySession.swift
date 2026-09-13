@@ -28,9 +28,20 @@ public final class PlaySession {
 
     public private(set) var pendingDestination: PlayLaunchDestination?
     private var postBattleTalentCombatantIDs: [String] = []
+    private var pendingTalentConfirmation: TalentConfirmation?
+
+    private struct TalentConfirmation {
+        let id = UUID()
+        let combatantID: String
+    }
+
+    public var postBattleTalentConfirmationID: UUID? {
+        pendingTalentConfirmation?.id
+    }
 
     public var currentPostBattleTalentCombatantID: String? {
-        postBattleTalentCombatantIDs.first { playerSave.roster.hasUnlockableTalent(for: $0) }
+        pendingTalentConfirmation?.combatantID
+            ?? postBattleTalentCombatantIDs.first { playerSave.roster.hasUnlockableTalent(for: $0) }
     }
 
     private func prunePostBattleTalentCombatantIDs() {
@@ -141,6 +152,7 @@ public final class PlaySession {
         battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
         settlement: BattleRewardSettlement? = nil,
+        defersPresentationExit: Bool = false,
     ) -> BattleCompletionResult {
         let combatants = [configuration.hero.combatant, configuration.companion.combatant]
         let progressionsBefore = Dictionary(
@@ -148,14 +160,16 @@ public final class PlaySession {
                 (combatant.id, playerSave.roster.progression(for: combatant))
             },
         )
-        let result = battleCompletion.completeActiveBattle(
+        return battleCompletion.completeActiveBattle(
             configuration,
             battleGold: battleGold,
             materialRewards: materialRewards,
             settlement: settlement,
             route: route(for: configuration.runKey),
             presentation: battlePresentation(for: configuration.runKey),
-            onPersisted: { [weak self] in
+            defersPresentationExit: defersPresentationExit,
+            onFinished: { [weak self] in
+                self?.battleRunRegistry.removeAll()
                 self?.queuePostBattleTalentChoices(
                     for: combatants,
                     progressionsBefore: progressionsBefore,
@@ -165,10 +179,10 @@ public final class PlaySession {
                 self?.restoreBattleOrigin(from: origin)
             },
         )
-        if result.didComplete {
-            battleRunRegistry.removeAll()
-        }
-        return result
+    }
+
+    public func finishBattleRewardPresentation(configurationID: UUID) {
+        battleCompletion.finishPresentation(configurationID: configurationID)
     }
 
     public func settleBattleRewards(
@@ -196,6 +210,7 @@ public final class PlaySession {
             for: combatantID,
         )
         if result == .unlocked {
+            pendingTalentConfirmation = TalentConfirmation(combatantID: combatantID)
             if !playerSave.roster.hasUnlockableTalent(for: combatantID) {
                 postBattleTalentCombatantIDs.removeAll(where: { $0 == combatantID })
             }
@@ -204,10 +219,18 @@ public final class PlaySession {
     }
 
     public func dismissPostBattleTalentChoice() {
+        pendingTalentConfirmation = nil
         postBattleTalentCombatantIDs.removeAll(keepingCapacity: true)
     }
 
+    public func finishPostBattleTalentConfirmation(id: UUID) {
+        guard pendingTalentConfirmation?.id == id else { return }
+        pendingTalentConfirmation = nil
+        prunePostBattleTalentCombatantIDs()
+    }
+
     func clearTransientState() {
+        battleCompletion.cancelPendingExit()
         battle.endBattle()
         battleRunRegistry.removeAll()
         dismissPostBattleTalentChoice()

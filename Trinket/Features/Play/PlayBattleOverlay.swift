@@ -33,7 +33,7 @@ struct PlayBattleOverlay: View {
                             presentationContext: presentationContext,
                             battleSession: battle,
                             completeVictory: { summary in
-                                battle.claimVictory(configurationID: configuration.id, summary: summary)
+                                battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: true)
                             },
                             restartBattle: { [weak play] in
                                 if let message = play?.restartActiveBattle() {

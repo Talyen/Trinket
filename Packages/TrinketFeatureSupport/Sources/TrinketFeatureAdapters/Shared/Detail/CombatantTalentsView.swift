@@ -22,6 +22,7 @@ public struct CombatantTalentsView: View {
     @State private var selectionFeedbackTrigger = 0
     @State private var unlockSuccessTrigger = 0
     @State private var unlockErrorTrigger = 0
+    @State private var confirmedNodeID: String?
 
     public init(
         tree: TalentTree,
@@ -106,6 +107,8 @@ public struct CombatantTalentsView: View {
                 selectedNodeID = displayedNodes.first?.id
             }
         }
+        .animation(TrinketMotion.Interaction.selection, value: selectedNodeID)
+        .animation(TrinketMotion.Interaction.selection, value: unlockedTalents)
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
@@ -235,10 +238,22 @@ public struct CombatantTalentsView: View {
                 color: isSelected ? style.glowColor.opacity(0.4) : .clear,
                 radius: 8,
             )
+            .overlay { unlockAccent(for: node) }
         }
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
         .accessibilityLabel(isRowLocked ? "\(node.name), locked" : node.name)
+    }
+
+    private func unlockAccent(for node: TalentNode) -> some View {
+        TrinketDesign.cardShape
+            .strokeBorder(node.keyword.visualStyle.color, lineWidth: 2)
+            .keyframeAnimator(initialValue: 0.0, trigger: unlockSuccessTrigger) { content, opacity in
+                content.opacity(confirmedNodeID == node.id ? opacity : 0)
+            } keyframes: { _ in
+                LinearKeyframe(0.9, duration: 0.08)
+                CubicKeyframe(0, duration: TrinketMotion.Interaction.confirmationDuration)
+            }
     }
 
     private func referencedKeywords(for node: TalentNode) -> [Keyword] {
@@ -272,11 +287,15 @@ public struct CombatantTalentsView: View {
                         .foregroundStyle(style.color)
                         .trinketFittedText()
                 }
+                .id(selectedNode.id)
+                .transition(.opacity)
 
                 KeywordDescriptionText(text: selectedNode.description)
                     .trinketTypography(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .id(selectedNode.id)
+                    .transition(.opacity)
 
                 unlockButton(
                     for: selectedNode,
@@ -295,6 +314,7 @@ public struct CombatantTalentsView: View {
                 let result = onUnlockTalent(node, tree)
                 switch result {
                 case .unlocked:
+                    confirmedNodeID = node.id
                     unlockSuccessTrigger &+= 1
                 case .persistenceFailed:
                     unlockErrorTrigger &+= 1

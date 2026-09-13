@@ -16,6 +16,7 @@ public struct RewardRevealShell<Content: View>: View {
     @ViewBuilder let content: () -> Content
     let primaryActionTitle: String?
     let primaryActionAccessibilityIdentifier: String
+    let isPrimaryActionConfirmed: Bool
     let isPrimaryActionDisabled: Bool
     let onPrimaryAction: () -> Void
     var contentTopPadding = TrinketDesign.Layout.contentTopPadding
@@ -39,6 +40,7 @@ public struct RewardRevealShell<Content: View>: View {
         primaryActionTitle: String?,
         primaryActionAccessibilityIdentifier: String,
         isPrimaryActionDisabled: Bool,
+        isPrimaryActionConfirmed: Bool = false,
         onPrimaryAction: @escaping () -> Void,
         contentTopPadding: CGFloat = TrinketDesign.Layout.contentTopPadding,
         contentStackSpacing: CGFloat = TrinketDesign.Layout.sectionSpacing,
@@ -60,6 +62,7 @@ public struct RewardRevealShell<Content: View>: View {
         self.primaryActionTitle = primaryActionTitle
         self.primaryActionAccessibilityIdentifier = primaryActionAccessibilityIdentifier
         self.isPrimaryActionDisabled = isPrimaryActionDisabled
+        self.isPrimaryActionConfirmed = isPrimaryActionConfirmed
         self.onPrimaryAction = onPrimaryAction
         self.contentTopPadding = contentTopPadding
         self.contentStackSpacing = contentStackSpacing
@@ -146,14 +149,26 @@ public struct RewardRevealShell<Content: View>: View {
     private var primaryAction: some View {
         if let primaryActionTitle {
             Button {
+                guard !isPrimaryActionDisabled else { return }
                 onPrimaryAction()
             } label: {
-                Text(primaryActionTitle)
-                    .frame(maxWidth: .infinity)
+                ZStack {
+                    Text(primaryActionTitle)
+                        .opacity(isPrimaryActionConfirmed ? 0 : 1)
+                    Label("Collected", systemImage: "checkmark")
+                        .opacity(isPrimaryActionConfirmed ? 1 : 0)
+                }
+                .frame(maxWidth: .infinity)
+                .animation(TrinketMotion.Interaction.stateChange, value: isPrimaryActionConfirmed)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(isPrimaryActionConfirmed ? "Collected" : primaryActionTitle)
             }
             .trinketPrimaryActionButton()
             .trinketCenteredPrimaryAction()
-            .disabled(isPrimaryActionDisabled)
+            .disabled(isPrimaryActionDisabled && !isPrimaryActionConfirmed)
+            .allowsHitTesting(!isPrimaryActionDisabled)
+            .brightness(isPrimaryActionConfirmed ? 0.06 : 0)
+            .animation(TrinketMotion.Reward.collectionLift.repeatCount(2, autoreverses: true), value: isPrimaryActionConfirmed)
             .trinketPresentationVisibility(primaryActionOpacity >= 1, opacity: primaryActionOpacity)
             .offset(y: (1 - primaryActionOpacity) * TrinketDesign.Spacing.small)
             .accessibilityIdentifier(primaryActionAccessibilityIdentifier)

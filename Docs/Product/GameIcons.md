@@ -24,7 +24,7 @@ combat feedback. Thorns shares Physical's color, but has a distinct silhouette.
 
 Floating combat feedback uses the same identities, with dark outlines for contrast
 over artwork. Numbers match their adjacent icon's keyword color. Size and motion
-policy lives in [BattleFeature](../../Packages/TrinketBattleFeature/README.md#uikit-feedback-island).
+policy lives in the [floating combat feedback contract](../AgentContext/battle-presentation.md#floating-combat-feedback).
 
 ## Talents and Homestead nodes
 
@@ -60,10 +60,13 @@ Spikes and direct Thorns motifs use `asterisk`; explosive impacts retain
 | Wood / Stone / Iron fallback | `tree.fill` / `mountain.2.fill` / `hammer.fill` |
 | Food / Herbs / Hide / Crystal / Gold fallback | `carrot.fill` / `leaf.fill` / `pawprint.fill` / `diamond.fill` / `circle.circle.fill` |
 | Farming / Crafting / Alchemy / Training / Arcana category | `leaf.fill` / `hammer.fill` / `flask.fill` / `target` / `moon.stars.fill` |
-| Collect / Experience | `gift.fill` / `star.fill` |
+| Collect | `gift.fill` |
 | Corruption reward / Walk Away reward | `dice.fill` / `figure.walk` |
 | Affix added / remade / empowered / weakened / rarity raised | `plus.circle.fill` / `shuffle` / `arrow.up.circle.fill` / `arrow.down.circle.fill` / `sparkles` |
 | Full-game benefits: world / party / future content | `map.fill` / `person.2.fill` / `sparkles` |
+
+Standalone XP rewards use the [two-book artwork](ArtworkStyleGuide.md#xp-rewards).
+XP bars and character progress totals keep their existing text treatment.
 
 Labyrinth modifiers reuse their associated keyword imagery; scholar, scavenger,
 discount, and appraisal modifiers use `book.fill`, `shippingbox.fill`, `percent`,

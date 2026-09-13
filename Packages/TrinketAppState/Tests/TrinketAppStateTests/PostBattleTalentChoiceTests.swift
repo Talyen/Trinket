@@ -13,7 +13,8 @@ struct PostBattleTalentChoiceTests {
         context = try AppTestContext()
     }
 
-    @Test func `victory queues only combatant who earned talent point`() throws {
+    @Test(arguments: [false, true])
+    func `victory queues only combatant who earned talent point`(defersExit: Bool) throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
@@ -29,16 +30,33 @@ struct PostBattleTalentChoiceTests {
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0), defersPresentationExit: defersExit).didComplete)
+        if defersExit {
+            #expect(state.currentPostBattleTalentCombatantID == nil)
+            #expect(state.playerSave.roster.progression(for: hero).level == 2)
+            state.finishBattleRewardPresentation(configurationID: configuration.id)
+        }
+        #expect(state.battle.activeBattle == nil)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
 
         let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
         let node = try #require(tree.nodes.first)
         #expect(state.choosePostBattleTalent(nodeID: "missing", treeID: tree.id) == .unavailable)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
+        #if DEBUG
+        state.playerSave.forcesNextSaveFailure = true
+        #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) == .persistenceFailed)
+        #expect(state.postBattleTalentConfirmationID == nil)
+        #expect(state.playerSave.roster.unlockedTalents(for: hero.id).isEmpty)
+        #endif
         #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) == .unlocked)
-        #expect(state.currentPostBattleTalentCombatantID == nil)
         #expect(state.playerSave.roster.unlockedTalents(for: hero.id) == [node.id])
+        #expect(state.currentPostBattleTalentCombatantID == hero.id)
+        #expect(state.isGameplayActive)
+        let confirmation = try #require(state.postBattleTalentConfirmationID)
+        state.finishPostBattleTalentConfirmation(id: confirmation)
+        #expect(state.currentPostBattleTalentCombatantID == nil)
+        #expect(!state.isGameplayActive)
     }
 
     @Test func `victory queues hero then companion when both earn talent point`() throws {
@@ -60,9 +78,13 @@ struct PostBattleTalentChoiceTests {
         let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
         let node = try #require(tree.nodes.first)
         #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) == .unlocked)
+        #expect(state.currentPostBattleTalentCombatantID == hero.id)
+        let confirmation = try #require(state.postBattleTalentConfirmationID)
+        state.finishPostBattleTalentConfirmation(id: confirmation)
         #expect(state.currentPostBattleTalentCombatantID == companion.id)
 
         state.dismissPostBattleTalentChoice()
+        state.finishPostBattleTalentConfirmation(id: confirmation)
         #expect(state.currentPostBattleTalentCombatantID == nil)
         #expect(state.playerSave.roster.unlockedTalents(for: companion.id).isEmpty)
     }
@@ -93,9 +115,17 @@ struct PostBattleTalentChoiceTests {
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 1)
 
+        let firstConfirmation = try #require(state.postBattleTalentConfirmationID)
         #expect(state.choosePostBattleTalent(nodeID: secondNode.id, treeID: tree.id) == .unlocked)
-        #expect(state.currentPostBattleTalentCombatantID == nil)
+        let lastConfirmation = try #require(state.postBattleTalentConfirmationID)
+        #expect(firstConfirmation != lastConfirmation)
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 0)
+        state.finishPostBattleTalentConfirmation(id: firstConfirmation)
+        #expect(state.currentPostBattleTalentCombatantID == hero.id)
+        #expect(state.postBattleTalentConfirmationID == lastConfirmation)
+        #expect(state.choosePostBattleTalent(nodeID: secondNode.id, treeID: tree.id) == .unavailable)
+        state.finishPostBattleTalentConfirmation(id: lastConfirmation)
+        #expect(state.currentPostBattleTalentCombatantID == nil)
     }
 
     @Test func `victory does not queue old unspent talent point`() throws {

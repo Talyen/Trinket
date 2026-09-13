@@ -80,7 +80,7 @@ struct InventoryGridView: View {
 
     var body: some View {
         let ownedIDs = Set(playerSave.inventory.items.map(\.id))
-        let categoryItems = category.collectionItems(in: playerSave.inventory.items)
+        let categoryItems = category.collectionItems(in: salvageDetail.presentationItems(in: playerSave.inventory.items))
         let items = categoryItems.filter { item in
             selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
         }
@@ -90,8 +90,12 @@ struct InventoryGridView: View {
                 item: item,
                 isLocked: !ownedIDs.contains(item.id),
                 showsName: true,
+                isPreparing: salvageDetail.requestedItem?.id == item.id,
+                isRetiring: salvageDetail.transmutationEvent?.item.id == item.id,
+                isTransmuting: salvageDetail.transmutationEvent?.item.id == item.id
+                    && salvageDetail.transmutationEvent?.hasReturned == true,
             ) {
-                salvageDetail.select(item)
+                salvageDetail.select(item, inventory: playerSave.inventory.items)
             }
             .onAppear { visibleItemIDs.insert(item.id) }
             .onDisappear { visibleItemIDs.remove(item.id) }

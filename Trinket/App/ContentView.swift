@@ -115,6 +115,8 @@ struct ContentView: View {
         let intercepting = Binding<AppTab>(
             get: { selection.wrappedValue },
             set: { newTab in
+                guard appState.play.encounters.activeMysteryEncounter == nil,
+                      appState.play.encounters.activeShopEncounter == nil else { return }
                 let oldTab = selection.wrappedValue
                 if newTab == oldTab {
                     guard newTab != .play || battle.lifecyclePhase != .active else { return }

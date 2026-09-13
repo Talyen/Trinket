@@ -8,7 +8,7 @@ struct VictoryView: View {
     let summary: BattleVictorySummary
     let primaryActionTitle: String
     let primaryActionAccessibilityIdentifier: String
-    let onPrimaryAction: () -> Bool
+    let action: RewardRevealAction
 
     var body: some View {
         RewardRevealExperienceScreen(
@@ -28,7 +28,7 @@ struct VictoryView: View {
             ),
             primaryActionTitle: primaryActionTitle,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-            onPrimaryAction: onPrimaryAction,
+            action: action,
             contentTopPadding: TrinketDesign.Spacing.extraSmall,
             contentStackSpacing: TrinketDesign.Spacing.large,
             emptyExperience: {
