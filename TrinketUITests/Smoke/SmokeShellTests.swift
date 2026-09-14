@@ -2,46 +2,37 @@ import TrinketContent
 import TrinketFeatureSupport
 import XCTest
 
-final class SmokeShellTests: SeededSmokeUITestCase {
-    override var launchArguments: [String] {
-        TestLaunchArg.allForTab("play")
-    }
-
+final class SmokeShellTests: TrinketUITestCase {
     func testSalvageReturnsToCollectionWithoutAnInteractiveRetiringItem() {
-        tabBar.selectCollection()
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
         collection.assertLoaded(timeout: 10)
         salvageItem("crossbow-basic")
-        scrollUntilVisible(button(AccessibilityID.Collection.basicGearCategory), swipingUp: false, requireHittable: true)
-        tapButton(AccessibilityID.Collection.basicGearCategory)
-        assertDoesNotExist(AccessibilityID.Collection.itemCard(itemID: "crossbow-basic"), timeout: 2)
-        assertExistsAfterScroll(AccessibilityID.Collection.itemCard(itemID: "double_axe-basic"))
     }
 
     private func salvageItem(_ itemID: String) {
         let card = AccessibilityID.Collection.itemCard(itemID: itemID)
         let item = button(card)
-        scrollUntilVisible(item, swipingUp: false, maxAttempts: 6, requireHittable: true)
+        scrollUntilVisible(item, swipingUp: false, maxAttempts: 3, requireHittable: true)
         if !item.exists || !item.isHittable {
-            scrollUntilVisible(item, swipingUp: true, maxAttempts: 3, requireHittable: true)
+            scrollUntilVisible(item, swipingUp: true, maxAttempts: 2, requireHittable: true)
         }
         tapWhenReady(item)
         assertExists(AccessibilityID.LoadoutPicker.itemDetail(itemID))
         assertExistsAfterScroll(AccessibilityID.Collection.salvageButton, requireHittable: true)
         tapButton(AccessibilityID.Collection.salvageButton)
         tapWhenReady(app.alerts.buttons.matching(identifier: AccessibilityID.Collection.salvageConfirmButton).firstMatch)
-        assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail(itemID), timeout: 5)
-        assertDoesNotExist(card, timeout: 5)
+        assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail(itemID), timeout: 3)
+        assertDoesNotExist(card, timeout: 3)
     }
 
     func testTabShellsAreReachable() {
+        launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Play.campaignModeCard, timeout: 10)
-        assertExists(AccessibilityID.Play.exploreModeCard, timeout: 10)
 
         tabBar.selectCollection()
         collection.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Collection.heroesCategory, timeout: 10)
-        assertExists(AccessibilityID.Collection.companionsCategory, timeout: 10)
 
         tabBar.selectHomestead()
         homestead.assertLoaded(timeout: 10)

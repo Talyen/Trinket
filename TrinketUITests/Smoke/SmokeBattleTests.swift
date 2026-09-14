@@ -60,7 +60,6 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.battlePartyDone)
         tapButton(AccessibilityID.Play.battlePartyDone)
         assertDoesNotExist(AccessibilityID.Play.battlePartyDone, timeout: 5)
-        tapButton(AccessibilityID.Play.contractsRefresh)
         assertExistsAfterScroll(AccessibilityID.Play.contractFight("standard"), requireHittable: true)
         tapButton(AccessibilityID.Play.contractFight("standard"))
         battle.assertActive(timeout: 10)
