@@ -52,7 +52,7 @@ dispatch conventions belong in the owning test guide, including
 - **Stores (persistence reload semantics):** mutate → close/reload from disk → `#expect`; an in-memory accessor/setter round trip is not persistence coverage.
 - **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
-- **Do not unit-test:** log prose (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O, BattleFeature layout/glyph/dissolve/recipe chrome.
+- **Tier fit:** Keep package tests deterministic and credential-free; real CloudKit I/O and physical audio playback need integration/device evidence. Presentation logic can merit unit coverage for consequential contracts such as finite geometry, interruption continuity, and resource cleanup; apply the coverage decision below.
 
 ## Coverage decision (new and changed behavior)
 
@@ -73,9 +73,12 @@ exercise materially different, consequential failure modes. Cheap catalog-wide
 invariants remain useful when they detect content errors that representative cases
 cannot; case count alone establishes neither value nor waste.
 
-Extend the existing semantic matrix, journey, method, or file first. Add a new
-owner only when the behavior cannot fit coherently in an existing one. Prefer
-adding a declaration over a new file or class. Remove or merge coverage made redundant by the change. Do not test plumbing, in-memory stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
+Prefer an existing semantic owner when the behavior fits coherently; a new file or
+suite is appropriate when it improves cohesion and diagnostics. Remove or merge
+coverage made redundant by the change. Avoid assertions that merely mirror plumbing,
+stored properties, incidental copy, style constants, framework behavior, or trivial
+delegation. Judge the contract and failure mode rather than banning an entire
+implementation category.
 
 **Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketAppStateTests`.
 
@@ -121,9 +124,15 @@ Keep UI tests only for a **shipping product outcome** that unit/package tests ca
 2. **State-changing journey** — a user action mutates durable or navigable state (shop leave returns to Play, retreat returns to Play, recruit continue).
 3. **Safety invariant** — a wrong interaction must not happen (locked slot inert; hand drag must not open detail). **One owner only** across smoke + exhaustive.
 
-Do **not** UI-test (delete or never add): marketing/copy strings, nav titles, unexpected-text catalogs, layout/chrome mirrors (overscroll, swipe scroll ownership, grid layout), mid-battle detail marathons that race live ticks, or second copies of the same interaction across smoke and FullUI. Push loadout, party-selection, and unlock rules down to package tests when possible; UI proves the sheet/control path once.
+Avoid UI tests that mirror incidental copy or chrome, race live ticks during long
+detail journeys, or duplicate the same failure mode across smoke and FullUI. A
+focused layout or scroll/gesture regression is appropriate when it protects a
+consequential outcome, such as reaching a control, that a cheaper tier cannot prove.
+Push loadout, party-selection, and unlock rules down to package tests when possible.
 
-**Brittleness:** assert `AccessibilityID` plus one visible outcome (exists / dismissed / tab returned). Never pin display names, rarity labels, or scroll geometry unless that string is the product contract.
+**Brittleness:** locate controls by `AccessibilityID` and assert the meaningful
+outcome. Avoid incidental display names, rarity labels, or exact scroll geometry;
+assert those values only when they are themselves the contract being protected.
 
 Smoke/full-UI class membership and launch details belong to
 [`TrinketUITests/README.md`](../../TrinketUITests/README.md); this document owns

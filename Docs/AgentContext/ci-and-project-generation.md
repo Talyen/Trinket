@@ -15,4 +15,4 @@ Preview an unfamiliar route with the dry-run form documented in
 - **Commit and push gates**: [Release.md](../Platform/Release.md#local-hooks-and-push-discipline) owns their sequence and safeguards.
 - **Environment & pinning**: `generate.sh` exports `LC_ALL=C` and pins `DEVELOPER_DIR` + `SDKROOT` to Xcode's macOS SDK. `--force-xcodegen` explicitly requests the default uncached behavior. Project generation installs/verifies pinned tools before invoking `.tools/xcodegen`. CI selects Xcode from `Scripts/tool-versions.env` (`XCODE_VERSION`).
 - **Diagnostics**: When a test or CI invocation fails, load [`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs.
-- **Linux style builds**: SourceKit `custom_rules` are skipped on Linux — treat Linux style PASS as provisional.
+- **Portable policy checks**: API bans and SwiftLint suppression reasons use SwiftFormat token export without SourceKit. The scripts own enforcement on macOS and Linux; see [style ownership](../Platform/Verification.md#style-and-boundary-ownership).

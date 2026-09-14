@@ -90,8 +90,9 @@ run logs or Done tables to audit guides.
 
 Judge simplification by avoided maintenance, indirection, duplication, or executed
 work, not just authored LOC. Ownership/correctness repairs may grow when necessary.
-Explain routed change-budget warnings and the simpler rejected alternative under
-[AGENTS.md](../../AGENTS.md). Do not preserve redundant paths to avoid migration work.
+Treat routed change-budget counts as investigation signals under
+[AGENTS.md](../../AGENTS.md), not targets or justification quotas. Do not preserve
+redundant paths to avoid migration work.
 
 Test additions, ownership, consolidation, and retirement follow
 [Testing.md](../Platform/Testing.md). Verification does not require new tests;

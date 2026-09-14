@@ -7,6 +7,63 @@ import TrinketFeatureSupport
 @testable import TrinketBattleFeature
 
 struct BattleFeedbackLaneTests {
+    @Test(arguments: Keyword.damageTypes)
+    @MainActor func `direct damage keywords always react`(keyword: Keyword) {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        lane.record([makeEvent(id: 1, kind: .abilityDamage, amount: 5, keyword: keyword)])
+        #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .damage)
+    }
+
+    @Test @MainActor func `block and critical damage cannot be hidden by other results`() {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let blocked = ActionEvent(
+            id: 1, actionID: 1, kind: .effect, effectKind: .shieldAbsorbed,
+            actorName: "Hero", abilityName: "Slash", targetID: "enemy", targetName: "Enemy",
+            amount: 5, keyword: .block, isFullyBlocked: true,
+        )
+        lane.record([blocked])
+        #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .block)
+        lane.clear()
+        lane.record([
+            makeEvent(id: 2, kind: .effect, effectKind: .instantHeal, amount: 3, keyword: .health),
+            makeEvent(id: 3, kind: .effect, effectKind: .dodgeApplied, amount: 0, keyword: .dodge),
+            makeEvent(id: 4, kind: .abilityDamage, amount: 3, keyword: .burn),
+            makeEvent(id: 5, kind: .abilityDamage, amount: 9, keyword: .holy, isCritical: true),
+            makeEvent(id: 6, kind: .effect, effectKind: .thornsTriggered, amount: 2, keyword: .thorns, targetID: "hero"),
+        ])
+        #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .critical)
+        #expect(lane.hitReactionsByTargetID["hero"]?.kind == .damage)
+    }
+
+    @Test @MainActor func `periodic results stay quiet without suppressing matching direct damage`() {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        lane.record([makeEvent(id: 1, kind: .status, amount: 2, keyword: .burn)])
+        #expect(lane.hitReactionsByTargetID.isEmpty)
+        lane.clear()
+        lane.record([
+            makeEvent(id: 2, kind: .status, amount: 2, keyword: .burn),
+            makeEvent(id: 3, kind: .abilityDamage, amount: 3, keyword: .burn),
+        ])
+        #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .damage)
+        #expect(lane.activeItems.first?.label == .amount(-5))
+    }
+
+    @Test @MainActor func `periodic critical emphasis does not upgrade an ordinary direct hit`() {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        lane.record([
+            makeEvent(id: 1, kind: .status, amount: 5, keyword: .burn, isCritical: true),
+            makeEvent(id: 2, kind: .abilityDamage, amount: 3, keyword: .burn),
+        ], damage: [BattleResolvedDamage(
+            targetID: "enemy", keyword: .burn, impact: .landed(blocked: 0, healthLost: 3), isCritical: false,
+        )])
+        #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .damage)
+        #expect(lane.activeItems.first?.isCritical == true)
+    }
+
     private func makeEvent(
         id: Int,
         kind: ActionEvent.Kind,

@@ -107,7 +107,6 @@ struct EffectModelTests {
         #expect(!(Effect.halveShield(.block)).advancesEachTurn)
     }
 
-    // swiftlint:disable cyclomatic_complexity - exhaustive kind mapping must reject missing cases at compile time
     private static func representativeEffect(for kind: EffectKind) -> Effect {
         switch kind {
         case .burn: .burn(2)
@@ -156,8 +155,6 @@ struct EffectModelTests {
         case .hemorrhage: .hemorrhage(5)
         }
     }
-
-    // swiftlint:enable cyclomatic_complexity
 
     @Test func `every effect kind has behavior metadata`() {
         for kind in EffectKind.allCases {

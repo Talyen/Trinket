@@ -92,7 +92,7 @@ final class CombatFeedbackRasterPool {
     }
 
     @concurrent
-    nonisolated private static func rasterize(
+    private nonisolated static func rasterize(
         _ requests: [CombatFeedbackChipComposer.RasterInputs],
     ) async -> [CombatFeedbackChipComposer.ComposedRaster?] {
         var prepared: [CombatFeedbackChipComposer.ComposedRaster?] = []

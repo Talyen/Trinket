@@ -313,7 +313,7 @@ trinket_path_has_diff_pattern() {
 }
 
 trinket_path_needs_doc_budget() {
-  trinket_path_has_diff_pattern "$1" '(^|[^:])(/\*|\*/|///|//[^/])'
+  trinket_path_has_diff_pattern "$1" '//.*(swiftlint:|swiftformat:|[A-Za-z]+Check:[[:space:]]*allow|Concurrency-Safety:)'
 }
 
 trinket_path_needs_architect() {

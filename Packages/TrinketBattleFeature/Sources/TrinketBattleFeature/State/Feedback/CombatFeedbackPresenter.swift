@@ -52,6 +52,7 @@ enum CombatFeedbackPresenter {
     static func makeItems(
         from events: [ActionEvent],
         at date: Date,
+        actionGroupID: Int? = nil,
     ) -> [CombatFeedbackItem] {
         let filteredSources = filterDisplayable(events).enumerated().map { order, event in
             PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
@@ -61,7 +62,7 @@ enum CombatFeedbackPresenter {
         var groupOrder: [PresentationGroupKey] = []
         var grouped: [PresentationGroupKey: [PreparedEvent]] = [:]
         for item in prepared {
-            let key = PresentationGroupKey(actionID: item.actionID, targetID: item.targetID)
+            let key = PresentationGroupKey(actionID: actionGroupID ?? item.actionID, targetID: item.targetID)
             if grouped[key] == nil {
                 groupOrder.append(key)
             }
@@ -175,8 +176,10 @@ enum CombatFeedbackPresenter {
             }
             if let index = keyIndices[key] {
                 let existing = result[index]
+                let representative = existing.event.kind == .status && source.event.kind != .status
+                    ? source.event : existing.event
                 result[index] = PreparedSource(
-                    event: existing.event.with(
+                    event: representative.with(
                         amount: existing.event.amount + source.event.amount,
                         isCritical: existing.event.isCritical || source.event.isCritical,
                     ),
@@ -235,7 +238,7 @@ enum CombatFeedbackPresenter {
             keyword: feedbackClass == .heal ? .health : event.keyword,
             visualRole: visualRole(for: event),
             label: label,
-            reactionKind: event.kind == .status ? .none : reactionKind(for: feedbackClass),
+            reactionKind: event.kind == .status || event.origin == .periodic ? .none : reactionKind(for: feedbackClass),
             isCritical: event.isCritical,
         )
     }

@@ -41,8 +41,8 @@ setup/executed work, clearer ownership, or repaired nondeterminism.
 
 - Preserve consequential correctness evidence under Testing.md; distinctness alone
   does not justify retention. Do not delete failures or relax assertions to make the suite green.
-- Apply Testing.md's exclusions for presentation/plumbing tests; do not reproduce
-  a parallel list of banned test shapes here.
+- Apply Testing.md's value-based coverage decision to presentation and plumbing;
+  judge the consequential contract rather than the implementation category.
 - Do not force shared fixtures across package boundaries or introduce production
   testability APIs without a consequential gap and a justified owner.
 - UI portfolio quality belongs to [10](10_E2ETestQualityAudit.md); production-only

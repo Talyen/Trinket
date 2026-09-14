@@ -97,7 +97,7 @@ package enum BattleTurnEngine {
         guard !context.isBattleOver, action.canContinue(in: context) else { return ([], false) }
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
-        context.resolution.beginAction(action, origin: origin)
+        let actionID = context.resolution.beginAction(action, origin: origin)
         defer { context.resolution.endAction() }
         var events: [ActionEvent] = []
         context.roster.mutateRuntime(for: actor) { $0.talents.beginAction() }
@@ -114,6 +114,11 @@ package enum BattleTurnEngine {
             events.append(contentsOf: interception.events)
             guard !interception.cancelled else { return (events, false) }
         }
+        context.cardPlayRecording?.beginAction(
+            id: actionID, actorID: actor.id,
+            abilityID: resolvedAbility.id, isAttack: resolvedAbility.dealsCombatDamage, afterEventID: context.nextEventID,
+        )
+        defer { context.cardPlayRecording?.endAction(state: context) }
         let capturedCard = context.resolution.prepareAction(facts)
         let checkpoint = CombatCheckpoint.preparedAction(actor.id)
         checkpoint.perform(in: &context) { UniqueCombatEngine.prepareResolvedAttack(facts, in: &$0) }

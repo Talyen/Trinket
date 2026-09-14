@@ -18,7 +18,7 @@ Give a view the narrowest owner it needs: a Play mode coordinator, `PlaySession`
 
 ## Focused contracts
 
-Read the routed contract and load the other when following a call across concerns:
+Read relevant sections of the routed references and follow calls across concerns:
 
 - [Launch and completion](battle-launch.md): preparation, activation, return navigation, reward settlement, and retry. Outcome/Continue wiring also needs this contract.
 - [Presentation](battle-presentation.md): retiring display objects, command playback, feedback, spectacle, and card visibility.

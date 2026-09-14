@@ -94,8 +94,23 @@ print_agent() {
     printf '  %s\n' "${TRINKET_AGENT_GUIDES[@]}"
   fi
   if (( ${#TRINKET_CONTEXT_CARDS[@]} > 0 )); then
-    printf 'Context cards:\n'
-    printf '  %s\n' "${TRINKET_CONTEXT_CARDS[@]}"
+    local -a ownership_cards=() behavior_cards=()
+    local card
+    for card in "${TRINKET_CONTEXT_CARDS[@]}"; do
+      case "$card" in
+        */battle-damage.md|*/battle-actions.md|*/battle-healing.md|*/battle-talents.md|*/battle-balance.md|*/battle-launch.md|*/battle-presentation.md|*/persistence-storage.md|*/persistence-progression.md|*/ui-performance.md)
+          behavior_cards+=("$card") ;;
+        *) ownership_cards+=("$card") ;;
+      esac
+    done
+    if (( ${#ownership_cards[@]} > 0 )); then
+      printf 'Ownership and integration (read applicable constraints):\n'
+      printf '  %s\n' "${ownership_cards[@]}"
+    fi
+    if (( ${#behavior_cards[@]} > 0 )); then
+      printf 'Behavior references (read relevant sections and follow dependencies):\n'
+      printf '  %s\n' "${behavior_cards[@]}"
+    fi
   fi
   if [[ "$FULL" == true ]] && (( ${#TRINKET_ROUTE_CARDS[@]} > 0 )); then
     printf 'Route metadata (lookup only):\n'
@@ -108,7 +123,7 @@ print_agent() {
       case "$skill" in
         */apple-design/*) trigger='visual or interaction changes' ;;
         */architect/*) trigger='public type, protocol, schema, or package boundary changes' ;;
-        */doc-budget/*) trigger='Swift comments or comment-gate failures' ;;
+        */doc-budget/*) trigger='checker directives or suppression failures' ;;
         *) trigger='see skill description' ;;
       esac
       printf '  %s — %s\n' "$skill" "$trigger"
@@ -133,7 +148,7 @@ print_agent() {
     trinket_add_unique search_roots "$search_root"
   done
   if (( ${#search_roots[@]} > 0 )); then
-    printf 'Search: python3 Scripts/agent-search.py <pattern> --scope <root> (add --mode tests or --excerpts)\n'
+    printf 'Discovery: scoped rg, direct reads, or python3 Scripts/agent-search.py <pattern> --scope <root> (add --mode tests or --excerpts)\n'
     for search_root in "${search_roots[@]}"; do
       case "$search_root" in
         Packages/*) printf '  source/tests: %s (test mode includes support targets)\n' "$search_root" ;;

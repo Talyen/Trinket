@@ -4,7 +4,6 @@ import TrinketContent
 import TrinketCore
 
 // swiftformat:disable redundantRawValues - serialized report tiers must remain explicit
-// swiftlint:disable redundant_string_enum_value - serialized report tiers must remain explicit
 public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
     case early = "early"
     case middle = "middle"
@@ -68,7 +67,6 @@ public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
     }
 }
 
-// swiftlint:enable redundant_string_enum_value
 // swiftformat:enable redundantRawValues
 
 public struct SimulationBuildContext: Equatable, Hashable, Sendable {

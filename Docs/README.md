@@ -9,7 +9,7 @@ One fact has one owner. Link instead of copying policy.
 | Human onboarding | [README.md](../README.md), [Scripts/README.md](../Scripts/README.md) | Setup and command index |
 | Agent constitution | [AGENTS.md](../AGENTS.md), nested `AGENTS.md` | Guardrails and local hard stops |
 | Standing policy | [Platform](Platform/README.md), [Product](Product/Decisions.md) | Architecture, verification, player decisions |
-| Path-routed depth | [AgentContext](AgentContext/) ([router](AgentContext/README.md)), package and manifest READMEs, [skills](../.agents/skills/) | Domain exceptions and how-to |
+| Path-routed depth | [AgentContext](AgentContext/) ([router](AgentContext/README.md)), package and manifest READMEs, [skills](../.agents/skills/) | Applicable ownership constraints and on-demand behavior references |
 | On demand | [Audits](Audits/README.md), performance/CloudKit playbooks, [Plans](Plans/README.md) | Cited audits, investigation, in-flight plans, and archived plan records |
 
 ## Source of truth

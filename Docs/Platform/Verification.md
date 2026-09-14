@@ -28,7 +28,7 @@ files and reject directories or paths outside the repository.
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
 are known. Use `--working-tree` only for an intentional whole-tree scope. The
-briefing prints the required/optional read contract and applicable handoff
+briefing separates ownership constraints from behavior references and prints the handoff
 route; rerun it when requested work or an encountered fix crosses into another
 owner. The final path list is the union of requested work and every explicitly
 adopted fix, not the task's initial path list.
@@ -111,7 +111,7 @@ Their gate roles are listed below. Locally:
 
 - Run the package/unit checks selected by the changed paths. Documentation-only work does not require unit tests unless its route selects them.
 - During interaction iteration, use the routed targeted smoke class (`test.sh smoke <Class>`).
-- Debug at most one exhaustive target (`test.sh ui <Class>`) when touching its feature area.
+- Select the smallest set of focused exhaustive journeys (`test.sh ui <Class>`) covering affected behavior. Additional runs should answer an unresolved question or verify a relevant change; shared fixes may need more than one class.
 - Bare full-suite UI is refused locally unless `TRINKET_ALLOW_FULL_UI=1`; routine development never sets it.
 - The full local UI run belongs to pre-release deploy verification (`release.sh` / `test-deploy.sh`).
 
@@ -160,15 +160,31 @@ package runner; per-package timing records own its diagnostic evidence.
 
 | Check | Owns |
 |---|---|
-| SwiftFormat | Mechanical Swift formatting and preferred rewrites |
+| SwiftFormat | Mechanical Swift formatting, modifier ordering, and preferred rewrites |
 | SwiftLint | API idioms, semantics, size, and unsafe operations |
 | `check-ui-style.py` | Product colors, materials, and chrome routed through `TrinketDesign` |
-| `check-api-bans.sh` | Repository-banned legacy observation/navigation APIs (mirrored from SwiftLint for portable builds) plus XCTest-outside-UITests migration |
+| `check-api-bans.sh` | Repository-banned legacy observation/navigation APIs plus XCTest-outside-UITests migration |
 | `check-exclusivity-footguns.sh` | Suspicious `inout` access to stored properties |
 | `check-agent-invariants.sh` | BattleEngine entropy, test `Task.sleep`, persistence `try?`, undocumented concurrency escapes, SwiftLint disables without reasons |
 | `check-accessibility-ids.py` | Unique `AccessibilityID` constants; UITests must query `AccessibilityID.*` |
-| `check-comment-ban.sh` | Banned `//` in Swift authored sources (allowlist: `swift-tools-version` / `swiftlint:disable` / `swiftformat:disable` / `Generated` headers; transitional `*Check: allow` / `Concurrency-Safety:`) |
 | `check-module-boundaries.sh` | Package layering and imports |
+
+API bans and SwiftLint suppression reasons use the pinned SwiftFormat token
+export through `Scripts/internal/swift_policy.py`, with all transformations
+disabled. The scripts are their sole enforcement owners on macOS and Linux;
+SwiftLint has no custom-rule mirrors. Candidate search and tokenizer failures
+fail the gate. Comments and string literals are not API usage; code inside
+string interpolation is. A suppression requires a nonblank ` - <reason>` in
+its actual line comment, including when that directive follows code.
+
+SwiftFormat owns the duplicated formatting and rewrite checks disabled in
+`.swiftlint.yml`; retain SwiftLint checks that provide additional diagnostics,
+such as `async_without_await` and `unneeded_throws_rethrows`. Persisted string
+identifiers may keep a reasoned `swiftformat:disable redundantRawValues`.
+SwiftLint complexity counts branches and loops within switch cases, not the
+cases themselves; its file-size limit excludes comment-only lines. UI tests
+retain XCTest assertion checks, without single-class or paired-lifecycle rules
+that conflict with shared test bases.
 
 `Color.primary`, `.secondary`, and `.clear` remain valid adaptive primitives.
 Feature-specific product colors and visual effects go through the design system.
@@ -200,9 +216,10 @@ Read structured invocation reports before raw build logs. Use
 [CI diagnostics](../AgentContext/ci-diagnostics.md) for classification and
 escalation. Never kill foreign Xcode or Simulator processes.
 
-The push gate may print an advisory change-budget report. Warnings do not fail
-the task, but unusual production/test surface growth needs a necessity statement
-and the simpler alternative that was rejected. Timing logs are diagnostic data,
+The push gate may print an advisory change-budget report. Counts can prompt
+investigation but do not require a justification for every threshold crossing.
+Distinguish the task's changes from pre-existing edits against HEAD. Explain
+material tradeoffs when they affect the solution. Timing logs are diagnostic data,
 not a routine optimization mandate.
 
 Commit and push safeguards follow [Release.md](Release.md#local-hooks-and-push-discipline).

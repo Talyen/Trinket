@@ -62,6 +62,10 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         criticalAt = isCritical ? availableAt : nil
     }
 
+    var reactionPriority: Int {
+        (isCritical && reactionKind == .damage ? CombatantHitReactionKind.critical : reactionKind).priority
+    }
+
     var text: String {
         label.displayString
     }
@@ -90,6 +94,18 @@ struct CombatantHitReaction: Equatable {
 
 struct CombatantAttackReaction: Equatable {
     let id: Int
-    let kind: CombatantAttackReactionKind
     let phase: CombatantAttackPhase
+    var startedAt: Date = .now
+    var duration: TimeInterval?
+    var pausedAt: Date?
+}
+
+extension BattleResolvedDamage {
+    var reactionKind: CombatantHitReactionKind? {
+        switch impact {
+        case .dodged: .dodge
+        case let .landed(blocked, healthLost):
+            healthLost > 0 ? (isCritical ? .critical : .damage) : (blocked > 0 ? .block : nil)
+        }
+    }
 }

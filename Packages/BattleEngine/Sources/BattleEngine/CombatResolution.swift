@@ -226,7 +226,8 @@ struct CombatResolution {
         depths[scope, default: 0] -= 1
     }
 
-    mutating func beginAction(_ context: BattleActionContext, origin: DamageOperation.AttackOrigin) {
+    @discardableResult
+    mutating func beginAction(_ context: BattleActionContext, origin: DamageOperation.AttackOrigin) -> Int {
         let cardID: Int? = switch origin {
         case .card, .ordinaryCard, .cardRepeat:
             cards.last?.actorID == context.actor.id ? cards.last?.id : nil
@@ -234,6 +235,7 @@ struct CombatResolution {
         }
         frames.append(.action(Action(id: nextActionID, cardID: cardID, context: context, origin: origin)))
         nextActionID += 1
+        return nextActionID - 1
     }
 
     mutating func endAction() {
@@ -283,6 +285,12 @@ enum CombatResolver {
         )
         state.provenance = request.provenance
         DamagePipeline.run(state: &state, in: &context)
-        return CombatOutcome.fromDamage(state: state)
+        let outcome = CombatOutcome.fromDamage(state: state)
+        if !request.options.isPeriodic, !request.options.isHealthCost, let impact = outcome.damageImpact {
+            context.cardPlayRecording?.recordDamage(BattleResolvedDamage(
+                targetID: request.target.id, keyword: request.keyword ?? .physical, impact: impact, isCritical: outcome.isCritical,
+            ))
+        }
+        return outcome
     }
 }

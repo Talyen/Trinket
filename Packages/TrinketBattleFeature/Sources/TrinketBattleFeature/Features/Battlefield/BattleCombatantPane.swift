@@ -309,7 +309,7 @@ private struct ReactionLayoutState {
             width: CGFloat(reactionRecipe.rawImpactOffsetX),
             height: CGFloat(reactionRecipe.rawImpactOffsetY),
         )
-        let isVerticalImpact = activeKind == .damage || activeKind == .critical
+        let isVerticalImpact = activeKind == .damage || activeKind == .critical || activeKind == .block
         let recipeScaleX: Double = reactionRecipe.rawImpactScaleX
         let recipeScaleY: Double = reactionRecipe.rawImpactScaleY
         let impactScales = isVerticalImpact

@@ -7,7 +7,9 @@ struct AutomaticCardCastView: View {
     let battleSize: CGSize
     let onFinished: () -> Void
 
-    private let revealDuration: TimeInterval = 0.48
+    private var revealDuration: TimeInterval {
+        cast.activationAt.timeIntervalSince(cast.startedAt)
+    }
 
     var body: some View {
         let metrics = BattleHandLayout.metrics(containerWidth: battleSize.width, cardCount: 3)

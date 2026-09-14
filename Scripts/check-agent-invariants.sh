@@ -146,20 +146,11 @@ while IFS= read -r match; do
   trinket_rg_violation "${local_file}:${line}: @unchecked Sendable / nonisolated(unsafe) needs a nearby Concurrency-Safety: rationale"
 done <<< "$TRINKET_RG_MATCHES"
 
-trinket_rg_scan -n --glob '*.swift' --glob '!**/Generated/**' \
-    '//[[:space:]]*swiftlint:disable' \
-    "${SWIFT_SOURCE_DIRS[@]}"
+policy_matches="$(python3 Scripts/internal/swift_policy.py swiftlint-reasons "${SWIFT_SOURCE_DIRS[@]}")"
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue
-  local_file="${match%%:*}"
-  rest="${match#*:}"
-  line="${rest%%:*}"
-  text="${rest#*:}"
-  if [[ "$text" == *" - "* ]]; then
-    continue
-  fi
-  trinket_rg_violation "${local_file}:${line}: swiftlint:disable must include ' - <reason>'"
-done <<< "$TRINKET_RG_MATCHES"
+  trinket_rg_violation "$match"
+done <<< "$policy_matches"
 
 scan_matches 'releasePins' '*.swift' Trinket/App/TrinketApp.swift
 while IFS= read -r match; do

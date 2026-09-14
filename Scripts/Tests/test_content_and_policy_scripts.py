@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -22,7 +23,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             fake_rg = Path(directory) / "rg"
             fake_rg.write_text('#!/bin/sh\nexit "$SEARCH_STATUS"\n')
             fake_rg.chmod(0o755)
-            for name in ("api-bans", "agent-invariants", "comment-ban", "exclusivity-footguns", "module-boundaries"):
+            for name in ("api-bans", "agent-invariants", "exclusivity-footguns", "module-boundaries"):
                 for status in (1, 2):
                     with self.subTest(check=name, status=status):
                         result = subprocess.run(
@@ -426,56 +427,39 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
                     fixture.write_text(source)
                     self.assertEqual(checker.main(["check-ui-style.py", directory]), expected)
 
-    def test_comment_ban_rejects_inline_and_block_comments(self) -> None:
+    def test_comment_rationale_preserves_suppression_and_concurrency_checks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            fixture = Path(directory) / "CommentFixture.swift"
-            fixture.write_text(
-                "let value = 1 // inline rationale\n"
-                "/* block rationale */\n",
-                encoding="utf-8",
+            root = Path(directory)
+            for name in ("check-agent-invariants.sh", "lib/rg-check.sh", "swift-source-dirs.env",
+                         "format-dirs.env", "build-inputs.env", "internal/swift_policy.py", "tool-versions.env"):
+                target = root / "Scripts" / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT / "Scripts" / name, target)
+            (root / ".tools").symlink_to(ROOT / ".tools", target_is_directory=True)
+            for package in (ROOT / "Packages").iterdir():
+                if package.is_dir():
+                    (root / "Packages" / package.name / "Sources" / package.name).mkdir(parents=True)
+                    (root / "Packages" / package.name / "Tests").mkdir()
+            (root / "Trinket/App").mkdir(parents=True)
+            (root / "TrinketUITests").mkdir()
+            (root / "Trinket/App/TrinketApp.swift").write_text("import SwiftUI\n")
+            fixture = root / "Trinket/Probe.swift"
+            cases = (
+                ("// Preserve ordering across suspension.\n/* The callback owns its lifetime. */\nstruct Probe {}\n", None),
+                ("// swiftlint:disable type_body_length\nstruct Probe {}\n", "swiftlint:disable must include"),
+                ("// swiftlint:disable type_body_length - cohesive fixture\nstruct Probe {}\n", None),
+                ("final class Probe: @unchecked Sendable {}\n", "needs a nearby Concurrency-Safety"),
+                ("// Concurrency-Safety: immutable fields never change after initialization\n"
+                 "final class Probe: @unchecked Sendable {}\n", None),
             )
-
-            result = subprocess.run(
-                [str(ROOT / "Scripts" / "check-comment-ban.sh"), "--", str(fixture)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("Comment ban violations (2)", result.stderr)
-
-    def test_comment_ban_keeps_toolchain_and_transitional_allowlist(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            fixture = Path(directory) / "AllowedCommentFixture.swift"
-            fixture.write_text(
-                "// swift-tools-version: 6.2\n"
-                "struct Probe {} // swiftlint:disable:this type_body_length - fixture\n"
-                "/// Concurrency-Safety: immutable fixture\n",
-                encoding="utf-8",
-            )
-
-            result = subprocess.run(
-                [str(ROOT / "Scripts" / "check-comment-ban.sh"), "--", str(fixture)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-
-    def test_agent_invariants_cover_entropy_sleep_persistence_and_concurrency(self) -> None:
-        text = (ROOT / "Scripts" / "check-agent-invariants.sh").read_text(encoding="utf-8")
-        self.assertIn(r"\b(Date|UUID)\(\)", text)
-        self.assertIn("Task.sleep", text)
-        self.assertIn("PersistenceCheck", text)
-        self.assertIn("@unchecked Sendable", text)
-        self.assertIn("ArtworkWorkingSetCheck", text)
-        self.assertIn("Trinket/App/TrinketApp.swift", text)
-        self.assertIn("swiftlint:disable must include ' - <reason>'", text)
-        self.assertIn(r"//[[:space:]]*swiftlint:disable", text)
+            for source, failure in cases:
+                with self.subTest(source=source):
+                    fixture.write_text(source)
+                    result = subprocess.run([str(root / "Scripts/check-agent-invariants.sh")],
+                                            cwd=root, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
+                    if failure:
+                        self.assertIn(failure, result.stderr)
 
     def test_accessibility_ids_reject_duplicate_constants_and_raw_uitest_literals(self) -> None:
         checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")

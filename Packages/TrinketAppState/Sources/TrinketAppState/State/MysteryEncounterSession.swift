@@ -15,7 +15,7 @@ enum MysteryEncounterPhase: Equatable {
 @MainActor
 @Observable
 public final class MysteryEncounterSession: Identifiable {
-    nonisolated public var id: String {
+    public nonisolated var id: String {
         stage.id
     }
 

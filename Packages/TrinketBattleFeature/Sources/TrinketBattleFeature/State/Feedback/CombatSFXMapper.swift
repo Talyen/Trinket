@@ -34,21 +34,21 @@ enum CombatSFXMapper {
         }
     }
 
-    static func uniqueClipIDs(for items: [CombatFeedbackItem]) -> [String] {
+    static func uniqueClipIDs(for items: [CombatFeedbackItem], damageKeywords: [Keyword] = []) -> [String] {
         var clips: [String] = []
         var seen: Set<String> = []
         var hasTypedHit = false
         var hasSuppressibleGenericHit = false
         var hasHitAsKeywordSFX = false
 
-        for item in items {
-            guard let clipID = clipID(for: item) else { continue }
-
+        let candidates = items.compactMap { item in clipID(for: item).map { (item.keyword, $0) } }
+            + damageKeywords.map { ($0, damageClipID(for: $0)) }
+        for (keyword, clipID) in candidates {
             if typedHitClipIDs.contains(clipID) {
                 hasTypedHit = true
             }
             if clipID == SFXID.hit {
-                if hitAsKeywordIdentity.contains(item.keyword) {
+                if hitAsKeywordIdentity.contains(keyword) {
                     hasHitAsKeywordSFX = true
                 } else {
                     hasSuppressibleGenericHit = true

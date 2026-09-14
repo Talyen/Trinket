@@ -6,5 +6,6 @@ public enum BattleTransitionCheckpoint: Equatable, Sendable {
     case cardWillPlay(BattleCard)
     case cardPlayed(BattleCard)
     case cardActions(BattleCard)
+    case actionResolved(BattleResolvedAction)
     case ready
 }

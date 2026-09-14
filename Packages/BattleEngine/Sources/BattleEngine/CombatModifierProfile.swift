@@ -146,7 +146,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         return true
     }
 
-    // swiftlint:disable:next cyclomatic_complexity - exhaustive affix mapping belongs in one switch
     mutating func applyAffixCombatBonus(_ modifier: AffixModifier) -> Bool {
         switch modifier {
         case let .damageDealt(keyword, amount):

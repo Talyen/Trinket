@@ -6,6 +6,33 @@ import UIKit
 @testable import TrinketDesignSystem
 
 struct KeywordPlasmaTests {
+    @Test func `plasma clock preserves phase across repeated pauses`() {
+        let origin = Date(timeIntervalSinceReferenceDate: 0)
+        var clock = KeywordPlasmaBackground.PlasmaClock()
+        clock.setActive(true, at: origin)
+        #expect(clock.elapsed(at: origin.addingTimeInterval(5)) == 5)
+        clock.setActive(false, at: origin.addingTimeInterval(5))
+        #expect(clock.elapsed(at: origin.addingTimeInterval(20)) == 5)
+        clock.setActive(false, at: origin.addingTimeInterval(20))
+        clock.setActive(true, at: origin.addingTimeInterval(30))
+        #expect(clock.elapsed(at: origin.addingTimeInterval(30)) == 5)
+        clock.setActive(true, at: origin.addingTimeInterval(32))
+        clock.setActive(false, at: origin.addingTimeInterval(35))
+        #expect(clock.elapsed(at: origin.addingTimeInterval(50)) == 10)
+        clock.setActive(true, at: origin.addingTimeInterval(60))
+        #expect(clock.elapsed(at: origin.addingTimeInterval(62)) == 12)
+    }
+
+    @Test func `plasma clock starts paused and handles stale timeline dates`() {
+        let origin = Date(timeIntervalSinceReferenceDate: 0)
+        var clock = KeywordPlasmaBackground.PlasmaClock()
+        clock.setActive(false, at: origin)
+        #expect(clock.elapsed(at: origin.addingTimeInterval(20)) == 0)
+        clock.setActive(true, at: origin.addingTimeInterval(30))
+        #expect(clock.elapsed(at: origin.addingTimeInterval(20)) == 0)
+        #expect(clock.elapsed(at: origin.addingTimeInterval(32)) == 2)
+    }
+
     @Test func `empty keywords fall back to accent`() throws {
         let resolved = KeywordPlasmaBackground.colors(for: [])
         #expect(try matches(resolved.primary, asset: "ThemeAntiqueGold"))

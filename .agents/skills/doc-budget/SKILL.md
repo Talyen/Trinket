@@ -1,19 +1,19 @@
 ---
 name: doc-budget
-description: Resolve Swift comment violations or add a necessary checker directive in authored Swift. Use when a task touches comments or a comment gate fails.
+description: Add or repair checker directives and suppression reasons in authored Swift. Use for toolchain/checker annotations or suppression failures, not ordinary explanatory comments.
 ---
 
-# Swift comment hygiene
+# Checker directives
 
-[AGENTS.md](../../../AGENTS.md) owns the no-explanatory-comments rule.
-Put durable explanation in the owning documentation; prefer expressive names,
-types, and consequential tests for behavior visible in code.
+[AGENTS.md](../../../AGENTS.md) owns comment guidance. Ordinary rationale comments
+do not require this skill or a checker exception.
 
 For a necessary toolchain directive or narrow checker exception, inspect the
-accepted form in [check-comment-ban.sh](../../../Scripts/check-comment-ban.sh)
-and the checker reporting the violation. Keep the reason specific to the site;
-an accepted annotation does not authorize bypassing product or safety policy.
-Do not copy a transitional exception as a general-purpose comment escape.
+checker reporting the violation and its accepted form. Keep the reason specific
+to the site; an annotation does not authorize bypassing product or safety policy.
+[Agent invariants](../../../Scripts/check-agent-invariants.sh) checks concurrency
+rationales and SwiftLint suppression reasons; the owning checker validates other
+exceptions. A rationale must explain the actual invariant or synchronization.
 
-Verify changed Swift through the routed style check. The comment checker alone
-cannot establish that an exception satisfies the checker whose rule it suppresses.
+Verify changed Swift through the routed style check, including the checker whose
+rule is suppressed. A comment alone does not establish that the code is safe.

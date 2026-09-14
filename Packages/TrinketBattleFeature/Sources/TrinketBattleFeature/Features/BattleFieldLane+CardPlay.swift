@@ -33,12 +33,8 @@ extension BattleFieldLane {
     }
 
     func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
-        let wasBattleOver = battleSession.isBattleOver
         let outcome = battleSession.playCard(cardID: card.id)
         guard case .committed = outcome else { return false }
-        if !wasBattleOver, card.ability.dealsCombatDamage, let actorID = battleSession.combatantID(for: card.owner) {
-            battleSession.publishAttackTelegraph(.swing, for: actorID)
-        }
         castPresentation.append(request)
         return true
     }

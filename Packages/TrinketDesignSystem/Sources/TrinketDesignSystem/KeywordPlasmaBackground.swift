@@ -9,7 +9,7 @@ public struct KeywordPlasmaBackground: View {
     @Environment(\.isDecorativeMotionActive) private var isPresentationMotionActive
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var startDate = Date()
+    @State private var clock = PlasmaClock()
 
     public init(keywords: [Keyword], focalYOffset: CGFloat = 75, isMotionActive: Bool = true) {
         self.keywords = keywords
@@ -43,7 +43,11 @@ public struct KeywordPlasmaBackground: View {
                 }
             }
         }
-        .onAppear { startDate = Date() }
+        .onAppear { clock.setActive(!isTimelinePaused, at: Date()) }
+        .onChange(of: isTimelinePaused) { _, paused in
+            clock.setActive(!paused, at: Date())
+        }
+        .onDisappear { clock.setActive(false, at: Date()) }
     }
 
     private func singlePlasmaLayer(primary: Color, secondary: Color, center: CGPoint, size: CGSize, time: Float) -> some View {
@@ -63,7 +67,7 @@ public struct KeywordPlasmaBackground: View {
     private func singleSourceBody(primary: Color, secondary: Color) -> some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: isTimelinePaused)) { timeline in
             GeometryReader { geometry in
-                let time: Float = isTimelinePaused ? 0 : Float(timeline.date.timeIntervalSince(startDate))
+                let time = Float(clock.elapsed(at: timeline.date))
                 let focalCenter = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2 - focalYOffset)
                 singlePlasmaLayer(
                     primary: primary,
@@ -85,5 +89,28 @@ public struct KeywordPlasmaBackground: View {
         let primary = firstStyle?.color ?? TrinketDesign.Colors.accent
         let secondary = keywords.count > 1 ? keywords[1].visualStyle.color : (firstStyle?.secondaryColor ?? primary)
         return (primary, secondary)
+    }
+}
+
+extension KeywordPlasmaBackground {
+    struct PlasmaClock {
+        private var accumulated: TimeInterval = 0
+        private var runningSince: Date?
+
+        func elapsed(at date: Date) -> TimeInterval {
+            accumulated + (runningSince.map { max(0, date.timeIntervalSince($0)) } ?? 0)
+        }
+
+        mutating func setActive(_ active: Bool, at date: Date) {
+            if active {
+                if runningSince == nil {
+                    runningSince = date
+                }
+            } else if runningSince != nil {
+                // Freeze the current shader phase and exclude time spent behind presentations.
+                accumulated = elapsed(at: date)
+                runningSince = nil
+            }
+        }
     }
 }

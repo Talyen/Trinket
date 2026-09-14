@@ -2,7 +2,7 @@
 # Shared harness for the ripgrep-based gate scripts.
 #
 # Sourced by check-agent-invariants.sh, check-exclusivity-footguns.sh,
-# check-comment-ban.sh, and check-module-boundaries.sh. On source it moves
+# and check-module-boundaries.sh. On source it moves
 # to the repository root and provides the violations convention plus the
 # shared failure/OK reporter. Callers own every rule, pattern, and message;
 # this file only owns the mechanics.

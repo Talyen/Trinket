@@ -17,7 +17,7 @@ extension BattleSession {
             publishAttackTelegraph(.cancel, for: previous.actorID)
         }
         cardCues.begin(cardID: card.id, assessment: assessment, mode: mode)
-        if card.ability.dealsCombatDamage {
+        if card.ability.dealsCombatDamage, mode == .preview {
             publishAttackTelegraph(.windUp, for: assessment.actorID)
         }
     }

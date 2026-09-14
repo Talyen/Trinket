@@ -48,7 +48,30 @@ class AgentContextTests(ScriptRegressionTestCase):
                 )
                 self.assertEqual({name for name in details if f"/{name}.md" in output}, expected)
                 self.assertIn("/battle-engine.md" if paths[0].startswith(engine) else "/persistence.md", output)
-                self.assertIn("Search: python3 Scripts/agent-search.py", output)
+                self.assertIn("python3 Scripts/agent-search.py", output)
+                references = output.split("Behavior references", 1)[1].split("Skills", 1)[0].split("Memory", 1)[0].split("Discovery", 1)[0]
+                self.assertTrue(all(f"/{name}.md" in references for name in expected))
+                self.assertNotIn("/battle-engine.md", references)
+                self.assertNotIn("/persistence.md", references)
+
+    def test_directive_skill_does_not_route_ordinary_rationale_comments(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "Probe.swift"
+            for source, expected in (
+                ("// Preserve ordering across suspension.\nstruct Probe {}\n", False),
+                ("/* Platform workaround. */\nstruct Probe {}\n", False),
+                ("/// Documents the public invariant.\npublic struct Probe {}\n", False),
+                ("// swiftlint:disable type_body_length - cohesive owner\nstruct Probe {}\n", True),
+                ("// Concurrency-Safety: immutable storage\nstruct Probe {}\n", True),
+                ("// UIStyleCheck: allow - content art\nstruct Probe {}\n", True),
+            ):
+                with self.subTest(source=source):
+                    fixture.write_text(source)
+                    result = subprocess.run(
+                        ["bash", "-c", 'source Scripts/change-classification.sh; trinket_path_needs_doc_budget "$1"',
+                         "bash", str(fixture)], cwd=ROOT, capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, 0 if expected else 1, result.stderr)
 
     def test_runtime_contracts_follow_concerns_and_keep_shared_paths_conservative(self) -> None:
         feature = "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/"

@@ -31,8 +31,9 @@ existing persistence tests may suffice for a new API. Apply
 | Graph, schema, sanitization, deferred writes and failure recovery | [Storage](persistence-storage.md) |
 | Rewards, claims, Shop stock, encounter identity and Homestead transactions | [Progression](persistence-progression.md) |
 
-`agent-context.sh` selects known domain paths; store hubs, tests and unknown paths
-receive both contracts. Follow the storage contract when a domain change touches
+`agent-context.sh` suggests references for known domain paths; store hubs, tests
+and unknown paths list both for discovery. Read relevant sections and follow the
+storage contract when a domain change touches
 graph reconciliation or serialization. Current-data validation and corruption
 recovery remain required; schema changes must follow the storage contract.
 

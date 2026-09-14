@@ -1,7 +1,8 @@
 # TrinketBattleFeature Tests
 
-Ownership for remaining BattleFeature suites. Do not restore layout, glyph,
-dissolve, or recipe unit tests — presentation chrome is not a unit-test owner.
+BattleFeature test ownership follows [Testing.md](../../../Docs/Platform/Testing.md).
+Deterministic presentation contracts can merit coverage; tests that only mirror
+styling or constants do not establish useful regression protection.
 
 ## Ownership matrix
 

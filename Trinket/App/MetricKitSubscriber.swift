@@ -92,7 +92,7 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
         return crashes + hangs + diskWrites
     }
 
-    nonisolated private static func makeSnapshot(
+    private nonisolated static func makeSnapshot(
         kind: MetricKitDiagnosticSnapshot.Kind,
         applicationVersion: String,
         periodStart: TimeInterval,

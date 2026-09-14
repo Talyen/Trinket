@@ -4,7 +4,12 @@ import SwiftUI
 import TrinketContent
 
 extension BattleSession {
-    func presentCompletedCommand(_ playback: BattleTransitionPlayback, at date: Date, playedCardID: Int? = nil) {
+    func presentCompletedCommand(
+        _ playback: BattleTransitionPlayback,
+        at date: Date,
+        playedCardID: Int? = nil,
+        preparedCardID: Int? = nil,
+    ) {
         guard activeBattle?.id == playback.configurationID else { return }
         let previousIDs = Set(presentation.hand.map(\.id))
         var snapshot = playback.snapshot
@@ -22,8 +27,20 @@ extension BattleSession {
         withAnimation(BattleMotion.handReflow) {
             presentation.install(snapshot)
         }
-        cardPlayback.append(playback.automaticCards, at: date)
-        presentResolvedEvents(playback.events, at: date)
+        let configurationID = playback.configurationID
+        presentUltimateHighlight(playback.events, at: date)
+        feedback.scheduleActions(
+            playback, preparedCardID: preparedCardID, at: date, cardPlayback: cardPlayback,
+        ) { [weak self] events, damage, impactAt, groupID in
+            guard let self, activeBattle?.id == configurationID else { return }
+            feedback.record(
+                events.filter { $0.kind != .milestone },
+                at: impactAt,
+                environment: dependencies,
+                actionGroupID: groupID,
+                damage: damage,
+            )
+        }
         commandState.transition(to: .ready)
         handleOutcomeIfNeeded(at: date)
         scheduleAutoEndIfNeeded()

@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 public struct CombatOutcome: Equatable {
-    public enum DamageImpact: Equatable {
+    public enum DamageImpact: Equatable, Sendable {
         case dodged
         case landed(blocked: Int, healthLost: Int)
     }

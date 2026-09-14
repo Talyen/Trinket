@@ -69,23 +69,11 @@ enum CombatFeedbackCardRecipes {
 
     static let blockCardReaction = CombatantHitReactionRecipe(
         kind: .block,
-        scaleX: [
-            .init(value: 0.985, duration: 0.08),
-            .init(value: 1.0, duration: 0.18),
-        ],
-        scaleY: [
-            .init(value: 0.985, duration: 0.08),
-            .init(value: 1.0, duration: 0.18),
-        ],
-        offsetX: [
-            .init(value: 0, duration: 0.08),
-            .init(value: 0, duration: 0.18),
-        ],
-        offsetY: [
-            .init(value: 0, duration: 0.08),
-            .init(value: 0, duration: 0.18),
-        ],
-        duration: 0.28,
+        scaleX: damageCardReaction.scaleX,
+        scaleY: damageCardReaction.scaleY,
+        offsetX: damageCardReaction.offsetX,
+        offsetY: damageCardReaction.offsetY,
+        duration: damageCardReaction.duration,
     )
 
     static let healCardReaction = CombatantHitReactionRecipe(

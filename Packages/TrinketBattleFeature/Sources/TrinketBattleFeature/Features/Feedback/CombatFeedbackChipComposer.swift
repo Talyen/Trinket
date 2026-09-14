@@ -7,10 +7,10 @@ import UIKit
 
 @MainActor
 enum CombatFeedbackChipComposer {
-    nonisolated private static let horizontalPadding: CGFloat = 4
-    nonisolated private static let verticalPadding: CGFloat = 5
-    nonisolated private static let glyphSpacing: CGFloat = 8
-    nonisolated private static let shadowOffsetY: CGFloat = 1.5
+    private nonisolated static let horizontalPadding: CGFloat = 4
+    private nonisolated static let verticalPadding: CGFloat = 5
+    private nonisolated static let glyphSpacing: CGFloat = 8
+    private nonisolated static let shadowOffsetY: CGFloat = 1.5
 
     /// Concurrency-Safety: immutable CGImage and dimensions cross from the raster worker to the main-actor pool.
     struct ComposedRaster: @unchecked Sendable {
@@ -126,7 +126,7 @@ enum CombatFeedbackChipComposer {
         )
     }
 
-    nonisolated private static func blit(
+    private nonisolated static func blit(
         leading: (CombatFeedbackGlyphAtlas.Glyph, UIColor)?,
         trailing: (CombatFeedbackGlyphAtlas.Glyph, UIColor),
         textGlyphs: [CombatFeedbackGlyphAtlas.Glyph],
@@ -202,12 +202,12 @@ enum CombatFeedbackChipComposer {
         return ComposedRaster(image: cgImage, pointSize: pointSize)
     }
 
-    nonisolated private static func resolvedColor(_ color: CGColor) -> UIColor {
+    private nonisolated static func resolvedColor(_ color: CGColor) -> UIColor {
         // UIStyleCheck: allow - Reconstruct the immutable semantic color resolved before leaving the main actor.
         UIColor(cgColor: color)
     }
 
-    nonisolated private static func horizontalOrigins(
+    private nonisolated static func horizontalOrigins(
         contentX: CGFloat,
         leadingWidth: CGFloat,
         textWidth: CGFloat,
@@ -263,7 +263,7 @@ enum CombatFeedbackChipComposer {
         return glyphs
     }
 
-    nonisolated private static func draw(
+    private nonisolated static func draw(
         glyph: CombatFeedbackGlyphAtlas.Glyph,
         at origin: CGPoint,
         tint: UIColor,

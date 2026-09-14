@@ -61,8 +61,10 @@ info sheet, or future-tier browser.
 
 ## Purchases and feedback
 
-Purchases validate the displayed tier and save immediately. Failed saves retain
-the existing error handling. Success closes the offer, then fills the newly earned
+Purchases validate the displayed tier and save immediately. Transient save/cloud
+failures retain the action for silent retry under the
+[storage contract](../AgentContext/persistence-storage.md); domain rejections retain
+their existing feedback. Success closes the offer, then fills the newly earned
 segment left-to-right with a spring, followed by numeric transitions and brief gold
 emphasis on changed bonuses and increased production. Labels and material artwork
 stay still. Hold the previous presentation values until dismissal; animation never
@@ -84,7 +86,8 @@ collection row's height through transfer, then settle it away after the last lan
 
 Presentation never grants rewards. Leaving Homestead, backgrounding, or changing
 flight geometry cancels the effect and reveals saved balances. Missing or offscreen
-endpoints skip travel. Preserve collection-error alerts and feedback.
+endpoints skip travel. Transient save/cloud failures retry silently without success
+feedback until committed; other domain outcomes retain their existing feedback.
 
 ## Artwork
 

@@ -34,9 +34,9 @@ active debuffs from keyword-associated buffs for conditions and damage rules.
 
 ## Focused contracts
 
-Read the contracts selected by `agent-context.sh`; when following a call into a
-new concern, load that contract too. Shared or unrecognized engine paths route
-all three operation contracts so an ambiguous owner cannot silently omit rules.
+Use `agent-context.sh` to locate applicable contracts; follow calls into other
+concerns as needed. Shared or unrecognized engine paths list all three operation
+references for discovery, not as unconditional whole-document prereads.
 
 | Concern | Canonical contract |
 |---|---|

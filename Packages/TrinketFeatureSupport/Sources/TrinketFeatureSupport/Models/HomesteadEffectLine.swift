@@ -75,7 +75,6 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         return "+" + value
     }
 
-    // swiftlint:disable:next cyclomatic_complexity - Exhaustive modifier labels must reject missing cases at compile time
     private static func label(for modifier: AffixModifier) -> String {
         switch modifier {
         case .maximumHealth: "Health"

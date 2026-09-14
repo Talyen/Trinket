@@ -5,11 +5,12 @@ Path-routed domain guides. `./Scripts/agent-context.sh` attaches them from
 cross-package exceptions, not restated root policy. Platform docs own architecture
 and testing; nested `AGENTS.md` files own local hard stops.
 
-The router prints a read contract. Read the root and nested `AGENTS.md` files plus
-the listed focused card(s) first. Skills are optional lookups: open one only when
-the trigger applies. A route card such as `battle.md` is lookup-only metadata shown with `--full`;
-read it only when ownership is unclear. Reuse unchanged guidance already in
-context and read newly applicable material when scope expands.
+Read the root and nested `AGENTS.md` safeguards and the applicable ownership and
+integration constraints. The router lists detailed behavior references separately:
+read the sections relevant to the change and follow dependencies across concerns.
+A shared filename does not require reading every listed behavior reference. Skills
+apply by trigger. Route metadata such as `battle.md` appears with `--full` for
+owner discovery. Reuse unchanged guidance already in context.
 All skills live under `../../.agents/skills/`; the design skill below is the one
 most routes attach.
 
@@ -17,7 +18,8 @@ Sample briefing shape (exact cards vary by path):
 
 ```text
 Read first: AGENTS.md, Packages/BattleEngine/AGENTS.md
-Context cards: Docs/AgentContext/battle-engine.md
+Ownership and integration: Docs/AgentContext/battle-engine.md
+Behavior references: Docs/AgentContext/battle-damage.md
 Verification: ./Scripts/handoff.sh --isolate --paths <files...>
 ```
 
@@ -45,19 +47,19 @@ Verification: ./Scripts/handoff.sh --isolate --paths <files...>
 
 Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.
 
-Reading budget: discover owners with `agent-search.py`, read a bounded line range, and open a
-linked guide only when the task crosses that guide's concern. Generated catalogs and
-schemas are lookup outputs; inspect the targeted entry rather than loading the whole
-file. Do not recursively follow every link in a card.
-If a command emits a long log, consume its structured summary or a bounded tail
-before opening the raw file.
+Choose scoped `rg`, filename discovery, direct reads, or `agent-search.py` according
+to the question. Read enough surrounding context to understand the contract and
+its exceptions, including relevant callers, tests, configuration, and generated
+references. Prefer targeted catalog lookups and bounded diagnostic output over
+loading unrelated material. [CI diagnostics](ci-diagnostics.md) explains retained
+reports and raw-log access when summaries are insufficient.
 
-Search fence: default searches are tracked/authored paths or the explicit owner
-directory. Do not use whole-tree `find`, `--hidden`, or recursive file browsing over
-`.DerivedData/`, `BalanceSweepReports/`, build products, or raw logs unless the
-task is specifically an artifact investigation.
+Default searches should avoid build products and raw logs. Scope hidden-file
+searches to the relevant owner (for example `.agents/` or `.github/`). Inspect
+`.DerivedData/`, `BalanceSweepReports/`, or other artifacts when needed for the
+investigation, using explicit paths and bounded output.
 
-Search defaults to authored production text from Git's tracked and nonignored
+The optional `agent-search.py` helper defaults to authored production text from Git's tracked and nonignored
 untracked inventory. Generated paths use the existing generated-output registry;
 tests (including test-support targets), Markdown/`.mdc` and generated output have explicit
 `--mode` surfaces. Results default to filenames with matching-line counts.
@@ -67,11 +69,14 @@ without reading their contents, using the same filters and bounds.
 Documentation results put current guides and references first, procedures/knowledge
 next, and task records last, alphabetically within each group. This ordering
 applies before either file or excerpt limits; explicit scopes can still retrieve
-plans, evals, and friction records directly. Bounds always report omitted
+plans, evals, and friction records directly. Resolved friction archives are excluded
+unless `--scope` names `.agents/friction-archive` or a file within it. For direct
+`rg` discovery, likewise omit that archive unless investigating past friction.
+Bounds always report omitted
 files/lines and shortened excerpts; no matches means no
 matches within the displayed surface, not within the whole repository.
 
-The router prints source/test roots. Locate owners before opening excerpts:
+The router prints source/test roots. Example discovery and reads:
 
 ```sh
 python3 Scripts/agent-search.py '(^|/)DamagePipeline\.swift$' --files --scope Packages/BattleEngine
@@ -81,7 +86,7 @@ python3 Scripts/agent-search.py DamagePipeline --scope Packages/BattleEngine/Sou
 sed -n '40,100p' Packages/BattleEngine/Sources/BattleEngine/Damage/DamagePipelineResolutionSteps.swift
 ```
 
-Read optional references as complete sections rather than search fragments:
+For section-based reads with heading context, use the optional reader:
 
 ```sh
 python3 Scripts/agent-read.py Docs/Platform/Verification.md --outline
@@ -89,7 +94,8 @@ python3 Scripts/agent-read.py 'Docs/Platform/Verification.md#local-simulator-bud
 ```
 
 The reader prints source lines and parent headings; without an anchor it reads
-all of the document. Required guides/cards still need their full contract.
+all of the document. Read applicable constraints and relevant behavior sections,
+including their exceptions; unrelated sections are not mandatory prereads.
 Missing anchors fail explicitly. Sections are never silently truncated.
 
 For a generated-content investigation, explicitly target the catalog and entry:
@@ -99,13 +105,15 @@ python3 Scripts/agent-search.py 'enum ArtCatalog' --mode generated --scope Packa
 ```
 
 Focused contracts replace the corresponding detail in package READMEs. Known
-paths select their concern; shared or unknown engine/persistence paths retain all
-operation contracts. When following a call across concerns, load its contract too.
+paths suggest their concern; shared or unknown engine/persistence paths list all
+operation references for discovery. Select the relevant sections and follow calls
+across concerns. This reading choice does not narrow verification routing.
 Use the package README as an index to optional API and behavior references.
 
 The default router omits empty sections, repeated policy, and expanded check
 commands. `--full` includes authored paths, route metadata, and the sequential
-verification plan. Both forms retain required guidance and safety warnings.
+verification plan. Both forms retain ownership guidance, behavior references, and
+safety warnings.
 
 Use `--status` on the initial route to see global dirty counts and exact status
 for task files, including either endpoint of a rename. Counts are informational;

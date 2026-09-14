@@ -38,9 +38,14 @@ BattleFeature publishes their final hand, resources, statuses, and eligibility
 once per command. Recording is observation only: retained state never retains
 its recorder, and callbacks cannot advance rules. Ordinary card recording emits
 ordered effect batches; opening/turn recording additionally reports nested
-`cardPlayed` checkpoints with empty event batches so aggregate turn events remain
-single-delivery. BattleFeature extracts automatic card identities, not a replay
-of historical hand snapshots. Late visual completion only removes its own cast.
+`cardPlayed` and `actionResolved` checkpoints with empty event batches so aggregate
+turn events remain single-delivery. Resolved actions carry stable action and card
+identity and the action-start event boundary, the selected attack classification,
+exclusive event membership, and
+actual direct-damage receipts. Receipts include redirected recipients even when
+combat logging has no corresponding damage event; they never change the log.
+Nested actions own their own events. BattleFeature extracts these records and
+automatic card identities, not a replay of historical hand snapshots. Late visual completion only removes its own cast.
 
 The engine rejects gameplay commands after outcome. The session's finishing-tap
 branch consumes only presentation hand cards and must never enter BattleEngine,
@@ -55,6 +60,24 @@ consecutive commands against direct engine resolution, independent cast cleanup,
 immutable finishing results/timing, and visual hand survival after lethal
 retaliation. Opening/turn readiness and suspension live in the preparation and
 simulation suites; gesture inspection/drag safety uses `BattleFlowUITests`.
+
+## Attack and impact presentation
+
+`BattleFeedbackLane` schedules attack phases and impact delivery from resolved
+actions. Combatant motion uses the same clock and native SwiftUI spring recipes,
+retargeting from its current pose. A prepared drag commits its swing; a tap starts
+full preparation. Later attacks by the same actor can shorten pending preparation
+and interrupt recovery, while distinct impacts remain ordered. Automatic card
+reveal and dissolve use the same scheduled swing time. Ultimate highlights still
+start with the committed action, while hit feedback waits for impact. Skipped and support actions
+do not invent attacks.
+
+Impact delivery groups results by the presentation beat, independent of the
+engine's broader feedback group. Recoil chooses the strongest result per recipient,
+including directional Block recoil; periodic results cannot suppress a direct hit
+or produce recoil. Floating results, sounds, and haptics share impact delivery.
+`BattleActionPresentationTests` owns sequencing, timing, interruption, and lifecycle;
+recording parity remains in BattleEngine's card tests.
 
 ## Floating combat feedback
 
@@ -76,10 +99,13 @@ updates do not release or restart the hold. Unattended feedback lasts 0.95 secon
 ## Display work lifecycle
 
 `BattleCommandState` owns command readiness and suspension. Visual tasks and
-casts never own readiness. Suspension pauses cast clocks; ending/replacing a run
+casts never own readiness. Suspension pauses cast and attack clocks, pending
+impacts, and the outcome countdown; ending/replacing a run
 invalidates its startup generation and clears owned cast work without clearing
 the retiring view's final hand or combatants. Callbacks retain their original
-presentation owner and cannot affect a later run.
+presentation owner and cannot affect a later run. The outcome deadline includes
+already-queued real impacts and their feedback lifetime; finishing taps cannot
+extend it.
 
 ## Card visibility
 

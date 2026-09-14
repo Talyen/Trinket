@@ -51,4 +51,5 @@ struct BattleTransitionPlayback {
     let snapshot: BattlePresentationSnapshot
     let events: [ActionEvent]
     let automaticCards: [BattleCard]
+    var actions: [BattleResolvedAction] = []
 }

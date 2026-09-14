@@ -1,7 +1,7 @@
 import Foundation
 
 public enum EffectPresentation {
-    // swiftlint:disable function_body_length cyclomatic_complexity - exhaustive effect descriptions must reject missing cases at compile time
+    // swiftlint:disable function_body_length - exhaustive effect descriptions must reject missing cases at compile time
     public static func applyPhrase(for effect: Effect) -> String {
         switch effect {
         case let .burn(amount):
@@ -113,7 +113,7 @@ public enum EffectPresentation {
         }
     }
 
-    // swiftlint:enable function_body_length cyclomatic_complexity
+    // swiftlint:enable function_body_length
 
     private static func durationPhrase(turns: Int) -> String {
         turns == 1 ? "for 1 turn" : "for \(turns) turns"

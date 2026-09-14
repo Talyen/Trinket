@@ -267,7 +267,6 @@ public struct ExperienceBar: View {
         public let newRequiredXP: Int
     }
 
-    // swiftlint:disable:next modifier_order - public nonisolated is the required concurrency spelling
     public nonisolated static func segments(
         from pre: CombatantProgression,
         to post: CombatantProgression,

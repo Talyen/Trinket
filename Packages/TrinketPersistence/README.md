@@ -27,7 +27,9 @@ Tests use `SaveTestSupport` with `disableCloudSync: true`. The
 `-disable-cloud-sync` launch argument belongs to app / UI tests through
 `AppEnvironment`, not package unit tests.
 
-Live CloudKit stays off until [CloudKitPreShipChecklist.md](../../Docs/Platform/CloudKitPreShipChecklist.md).
+Ordinary builds default to local-only; explicitly enabled builds use complete-save
+sync. Enablement and wider distribution follow
+[CloudKitPreShipChecklist.md](../../Docs/Platform/CloudKitPreShipChecklist.md).
 
 ```sh
 ./Scripts/test-package.sh TrinketPersistence

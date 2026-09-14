@@ -21,7 +21,6 @@ Defer the sensitive portion while continuing independent authorized work.
 
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
-| 03 | Save-open failures can delete local progress or fall back to in-memory play; CloudKit configuration has no recovery URL | `ModelContainerBootstrap.open`, `PlayerSaveStoreConfiguration.resolveStore`, `TrinketApp.init`; [startup proposal](../Plans/PersistenceSimplification.md#remaining-startup-decision) | Awaiting the exceptional player-visible outcome decision; the plan owns the combined replacement and verification. Live CloudKit remains separately gated. | 2026-08-19 |
 | Performance playbook | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` (`let snapshot = currentSave`) | High-risk rewrite; measure Instruments first | 2026-08-19 |
 
 The snapshot proposal is a measurement-led investigation under the

@@ -66,7 +66,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/agent-watch-ci.sh [--sha …]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session |
 | `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Remove completed successful invocations individually after staging; retain failures and keep unfinished logs until orphan-retention expiry; `--keep` preserves evidence |
-| `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD; `--base <rev>` for CI ranges |
+| `./Scripts/change-budget.sh --paths …` | Advisory authored-surface signals against HEAD; counts can include pre-existing work and are not justification quotas; `--base <rev>` for CI ranges |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe, old local build artifacts |
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |
 
@@ -86,7 +86,7 @@ These helpers are sourced or invoked by commands, Git hooks, or CI workflows. Li
 | `./Scripts/run-env.sh`, `./Scripts/xcode-runner.sh`, `./Scripts/build-freshness.sh` | Run environment, Xcode execution, generated-input freshness, and `--no-build` stamps for `build` / `test` / `generate` / `run-simulator` |
 | `./Scripts/change-classification.sh` | Sourced by `handoff` / `agent-context` / `agent-push-gate` |
 | `./Scripts/ensure-simulator.sh` | Invoked by `test` / `run-simulator` slot setup |
-| `./Scripts/check-module-boundaries.sh`, `./Scripts/check-comment-ban.sh`, `./Scripts/check-agent-invariants.sh`, `./Scripts/check-exclusivity-footguns.sh` | Invoked via style gate / `ci-gate --fast` cheap slices |
+| `./Scripts/check-module-boundaries.sh`, `./Scripts/check-agent-invariants.sh`, `./Scripts/check-exclusivity-footguns.sh` | Invoked via style gate / `ci-gate --fast` cheap slices |
 | `./Scripts/check-artwork-budget.sh`, `./Scripts/release-notes.sh` | Invoked via `ci-gate` cheap slices |
 | `./Scripts/check-build-cache-paths.sh`, `./Scripts/check-testplan-sync.py`, `./Scripts/check-links.py`, `./Scripts/check-plans.py` | Invoked via `test-scripts.sh` / `check-docs.py` |
 | `./Scripts/check-unused-assets.py`, `./Scripts/check-accessibility-ids.py`, `./Scripts/check-ui-style.py` | Invoked via style / asset gates |

@@ -232,12 +232,12 @@ private actor SFXPlayback {
         return buffer
     }
 
-    nonisolated private static let decodeLogger = Logger(
+    private nonisolated static let decodeLogger = Logger(
         subsystem: AudioLogging.subsystem,
         category: "Audio",
     )
 
-    nonisolated private static func decodePCMBuffer(at url: URL) -> AVAudioPCMBuffer? {
+    private nonisolated static func decodePCMBuffer(at url: URL) -> AVAudioPCMBuffer? {
         do {
             let file = try AVAudioFile(forReading: url)
             guard file.length > 0,
@@ -257,7 +257,7 @@ private actor SFXPlayback {
         }
     }
 
-    nonisolated private static func resourceURL(for clip: SFXClip) -> URL? {
+    private nonisolated static func resourceURL(for clip: SFXClip) -> URL? {
         AudioResourceLocator.url(
             resourceName: clip.resourceName,
             fileExtension: clip.fileExtension,

@@ -53,7 +53,7 @@ struct BattleSpectacleSessionTests {
         #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty || session.spectacle.ultimateHighlightsByActorID["hero"] != nil)
     }
 
-    @Test func `unmapped ultimate records feedback immediately with in-frame highlight`() throws {
+    @Test func `unmapped ultimate aligns feedback with impact and starts highlight immediately`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -77,13 +77,13 @@ struct BattleSpectacleSessionTests {
                 at: now,
             ),
         )
-        let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: ultimate.id,
             at: now,
         )
 
-        #expect(session.feedback.activeItems.count > beforeFeedbackCount)
+        presentPendingImpacts(in: session)
+        #expect(!session.feedback.activeItems.isEmpty)
         #expect(session.spectacle.ultimateHighlightsByActorID["hero"] != nil)
         #expect(session.canEndTurn == true)
     }
@@ -112,7 +112,6 @@ struct BattleSpectacleSessionTests {
                 at: now,
             ),
         )
-        let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: ultimate.id,
             at: now,
@@ -121,12 +120,14 @@ struct BattleSpectacleSessionTests {
         let highlight = try #require(session.spectacle.ultimateHighlightsByActorID["knight"])
         #expect(highlight.abilityID == Ability.avatarOfJustice.id)
         #expect(highlight.actorID == "knight")
-        #expect(session.feedback.activeItems.count > beforeFeedbackCount)
+        presentPendingImpacts(in: session)
+        #expect(!session.feedback.activeItems.isEmpty)
         #expect(session.canEndTurn == true)
 
         session.clearUltimateHighlight(for: "knight")
         #expect(session.spectacle.ultimateHighlightsByActorID["knight"] == nil)
-        #expect(session.feedback.activeItems.count > beforeFeedbackCount)
+        presentPendingImpacts(in: session)
+        #expect(!session.feedback.activeItems.isEmpty)
     }
 
     @Test(arguments: [false, true])
@@ -203,14 +204,14 @@ struct BattleSpectacleSessionTests {
                 at: now,
             ),
         )
-        let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: ultimate.id,
             at: now,
         )
 
         #expect(session.spectacle.ultimateHighlightsByActorID["knight"] == nil)
-        #expect(session.feedback.activeItems.count > beforeFeedbackCount)
+        presentPendingImpacts(in: session)
+        #expect(!session.feedback.activeItems.isEmpty)
     }
 
     @Test func `disabled ultimate cinematic feature keeps feedback without a highlight`() throws {
@@ -242,11 +243,11 @@ struct BattleSpectacleSessionTests {
                 at: now,
             ),
         )
-        let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(cardID: ultimate.id, at: now)
 
         #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty)
-        #expect(session.feedback.activeItems.count > beforeFeedbackCount)
+        presentPendingImpacts(in: session)
+        #expect(!session.feedback.activeItems.isEmpty)
     }
 
     @Test func `once per battle shows highlight once then skips`() throws {
@@ -290,13 +291,13 @@ struct BattleSpectacleSessionTests {
         )
         let playAt = secondUltimateAt.addingTimeInterval(5)
         session.feedback.pruneExpired(at: playAt)
-        let feedbackBefore = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: secondUltimate.id,
             at: playAt,
         )
         #expect(session.spectacle.ultimateHighlightsByActorID["knight"] == nil)
-        #expect(session.feedback.activeItems.count > feedbackBefore)
+        presentPendingImpacts(in: session)
+        #expect(!session.feedback.activeItems.isEmpty)
     }
 
     @Test func `enemy ultimate does not present highlight`() {
@@ -342,5 +343,11 @@ struct BattleSpectacleSessionTests {
 
         #expect(session.spectacle.celebrateTask.task == nil)
         #expect(session.spectacle.outcomeTask.task == nil)
+    }
+
+    private func presentPendingImpacts(in session: BattleSession) {
+        for impact in session.feedback.scheduledActions.filter({ $0.stage <= 2 }).map(\.impactAt).sorted() {
+            session.feedback.advance(to: impact)
+        }
     }
 }

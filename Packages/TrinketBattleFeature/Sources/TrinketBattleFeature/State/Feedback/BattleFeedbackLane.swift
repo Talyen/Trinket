@@ -1,6 +1,7 @@
 import BattleEngine
 import Foundation
 import Observation
+import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
@@ -19,6 +20,16 @@ final class BattleFeedbackLane {
     var nextPruneAt: Date?
     @ObservationIgnored
     var scheduler: FeedbackDeadlineTimer?
+
+    @ObservationIgnored var scheduledActions: [BattleScheduledAction] = []
+    @ObservationIgnored var nextActionBeatID = 0
+    @ObservationIgnored var nextAttackReactionID = 0
+    @ObservationIgnored var nextRecordedHitID = Int.min
+    @ObservationIgnored var recordedHitExpirations: [String: (id: Int, date: Date)] = [:]
+    @ObservationIgnored var attackOwners: [String: Int] = [:]
+    @ObservationIgnored var previewActors: Set<String> = []
+    @ObservationIgnored var suspendedAt: Date?
+    @ObservationIgnored weak var automaticPlayback: BattleCardPlaybackState?
 
     @ObservationIgnored
     private var bridges: [(
@@ -115,11 +126,17 @@ final class BattleFeedbackLane {
         _ events: [ActionEvent],
         at date: Date = .now,
         environment: BattleRuntimeDependencies = .silent,
+        actionGroupID: Int? = nil,
+        damage: [BattleResolvedDamage] = [],
     ) {
         pruneExpired(at: date)
         let knownIDs = Set(activeItems.flatMap(\.sourceEventIDs))
-        let prepared = CombatFeedbackPresenter.makeItems(from: events.filter { !knownIDs.contains($0.id) }, at: date)
-        guard !prepared.isEmpty else { return }
+        let prepared = CombatFeedbackPresenter.makeItems(
+            from: events.filter { !knownIDs.contains($0.id) },
+            at: date,
+            actionGroupID: actionGroupID,
+        )
+        guard !prepared.isEmpty || !damage.isEmpty else { return }
 
         for item in prepared {
             let existingGroup = activeItems.first {
@@ -170,7 +187,7 @@ final class BattleFeedbackLane {
             }
         }
         noteItemsChanged()
-        applyMultimodalPresentation(for: prepared, environment: environment)
+        applyMultimodalPresentation(for: prepared, damage: damage, at: date, environment: environment)
         updatePruneDate()
     }
 
@@ -179,6 +196,7 @@ final class BattleFeedbackLane {
     }
 
     func pruneExpired(at date: Date = .now) {
+        guard suspendedAt == nil else { return }
         var removedItemIDs: Set<Int> = []
         var reactedTargetIDsToNotify: Set<String> = []
         var remainingItems: [CombatFeedbackItem] = []
@@ -199,6 +217,13 @@ final class BattleFeedbackLane {
             }
         }
         activeItems = remainingItems
+        for (targetID, expiry) in recordedHitExpirations where date >= expiry.date {
+            recordedHitExpirations.removeValue(forKey: targetID)
+            if hitReactionsByTargetID[targetID]?.id == expiry.id {
+                hitReactionsByTargetID.removeValue(forKey: targetID)
+                reactedTargetIDsToNotify.insert(targetID)
+            }
+        }
 
         for targetID in celebrateReactionExpiresAt.keys {
             guard let expiresAt = celebrateReactionExpiresAt[targetID], date >= expiresAt else { continue }
@@ -219,6 +244,12 @@ final class BattleFeedbackLane {
     }
 
     func clear() {
+        scheduledActions.removeAll()
+        recordedHitExpirations.removeAll()
+        attackOwners.removeAll()
+        previewActors.removeAll()
+        suspendedAt = nil
+        automaticPlayback = nil
         let hadPublishedPresentation = !activeItems.isEmpty
             || !hitReactionsByTargetID.isEmpty
             || !attackReactionsByCombatantID.isEmpty
@@ -241,8 +272,10 @@ final class BattleFeedbackLane {
     func updatePruneDate() {
         let chipExpiry = activeItems.lazy.map(\.expiresAt).min()
         let celebrationExpiry = celebrateReactionExpiresAt.values.min()
-        nextPruneAt = [chipExpiry, celebrationExpiry].compactMap(\.self).min()?
+        let expiry = [chipExpiry, celebrationExpiry, recordedHitExpirations.values.map(\.date).min()].compactMap(\.self).min()?
             .addingTimeInterval(0.02)
+        nextPruneAt = [expiry, scheduledActions.map(\.nextDate).min()].compactMap(\.self).min()
+        guard suspendedAt == nil else { return }
         if let nextPruneAt {
             resolvedScheduler().schedule(at: nextPruneAt)
         } else {
@@ -252,7 +285,7 @@ final class BattleFeedbackLane {
 
     private func resolvedScheduler() -> FeedbackDeadlineTimer {
         let scheduler = scheduler ?? FeedbackDeadlineTimer { [weak self] in
-            self?.pruneExpired()
+            self?.advance(to: .now)
         }
         self.scheduler = scheduler
         return scheduler
@@ -260,22 +293,46 @@ final class BattleFeedbackLane {
 
     private func applyMultimodalPresentation(
         for due: [CombatFeedbackItem],
+        damage: [BattleResolvedDamage],
+        at date: Date,
         environment: BattleRuntimeDependencies,
     ) {
-        guard !due.isEmpty else { return }
-
-        environment.playSFX(CombatSFXMapper.uniqueClipIDs(for: due))
-
-        var reactedTargetIDs: Set<String> = []
-        for item in due where item.reactionKind != .none
-            && reactedTargetIDs.insert(item.targetID).inserted {
-            hitReactionsByTargetID[item.targetID] = CombatantHitReaction(
+        let damageKeywords = damage.compactMap { damage -> Keyword? in
+            if case let .landed(_, healthLost) = damage.impact, healthLost > 0 {
+                return damage.keyword
+            }
+            return nil
+        }
+        environment.playSFX(CombatSFXMapper.uniqueClipIDs(for: due, damageKeywords: damageKeywords))
+        let recordedTargets = Set(damage.filter { $0.reactionKind != nil }.map(\.targetID))
+        var reactions: [String: CombatantHitReaction] = [:]
+        for (targetID, items) in Dictionary(grouping: due, by: \.targetID) {
+            let candidates = items.filter { item in
+                item.reactionKind != .none && (!recordedTargets.contains(targetID)
+                    || item.reactionKind == .heal || item.reactionKind == .celebrate)
+            }
+            guard let item = candidates.max(by: {
+                $0.reactionPriority < $1.reactionPriority
+            }) else { continue }
+            reactions[targetID] = CombatantHitReaction(
                 id: item.id,
                 kind: item.isCritical && item.reactionKind == .damage ? .critical : item.reactionKind,
             )
         }
-        if !reactedTargetIDs.isEmpty {
-            noteHitReactionsChanged(for: reactedTargetIDs)
+        for hit in damage {
+            guard let kind = hit.reactionKind else { continue }
+            if let current = reactions[hit.targetID], current.kind.priority >= kind.priority {
+                continue
+            }
+            nextRecordedHitID += 1
+            reactions[hit.targetID] = CombatantHitReaction(id: nextRecordedHitID, kind: kind)
+            recordedHitExpirations[hit.targetID] = (nextRecordedHitID, date.addingTimeInterval(BattleMotion.chipDisplayDuration))
+        }
+        for (targetID, reaction) in reactions {
+            hitReactionsByTargetID[targetID] = reaction
+        }
+        if !reactions.isEmpty {
+            noteHitReactionsChanged(for: Set(reactions.keys))
         }
     }
 }

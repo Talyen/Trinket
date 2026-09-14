@@ -42,10 +42,13 @@ extension BattleSession {
                 return .rejected
             }
 
+            let preparedCardID = cardCues.current.flatMap {
+                $0.cardID == cardID && $0.phase == .lifted && $0.mode == .preview ? cardID : nil
+            }
             cardCues.commit(cardID: cardID)
 
             cancelPendingAutoEnd()
-            presentCompletedCommand(resolution.playback, at: date, playedCardID: cardID)
+            presentCompletedCommand(resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCardID)
             return .committed
         } catch {
             if let card = engineState?.hand.card(id: cardID) {

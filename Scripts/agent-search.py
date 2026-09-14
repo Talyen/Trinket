@@ -35,6 +35,11 @@ def inventory(root: Path, mode: str, scopes: list[str]) -> list[str]:
             continue
         if scopes and not any(name == scope or name.startswith(scope + "/") for scope in scopes):
             continue
+        if name.startswith(".agents/friction-archive/") and not any(
+            scope == ".agents/friction-archive" or scope.startswith(".agents/friction-archive/")
+            for scope in scopes
+        ):
+            continue
         is_generated = any(name == entry or name.startswith(entry + "/") for entry in generated)
         is_generated |= "/Generated/" in name or ".generated." in name
         is_docs = path.suffix in {".md", ".mdc"}
@@ -47,7 +52,7 @@ def inventory(root: Path, mode: str, scopes: list[str]) -> list[str]:
 
 
 def documentation_order(name: str) -> tuple[int, str]:
-    if name.startswith(("Docs/Plans/", ".agents/evals/")) or name in {
+    if name.startswith(("Docs/Plans/", ".agents/evals/", ".agents/friction-archive/")) or name in {
         ".agents/FRICTION_LOG.md", "Docs/Audits/Proposals.md",
     }:
         return (2, name)
@@ -89,6 +94,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     print(f"Search: {args.mode}; {len(files)} text files; scope: {', '.join(scopes) or 'repository'}")
     if args.mode == "docs":
         print("Order: current documentation, procedures/knowledge, then task records (alphabetical within each).")
+        print("Friction archives require --scope .agents/friction-archive or a file within it.")
     if not files:
         print("No files in this search surface. Choose another --mode or --scope.")
         return 1

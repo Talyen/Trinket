@@ -486,12 +486,16 @@ extension BattleCardCombatTests {
         var capturedEvents: [ActionEvent] = []
         var drawnIDs: Set<Int> = []
         var playedIDs: [Int] = []
+        var resolvedActions: [BattleResolvedAction] = []
         var sawBufferedDraw = false
         let recordedEvents = try recorded.playCard(cardID: initiating.id) { checkpoint, state, events in
             #expect(state.cardPlayRecording == nil)
             checkpoints.append(checkpoint)
             capturedEvents.append(contentsOf: events)
             switch checkpoint {
+            case let .actionResolved(action):
+                resolvedActions.append(action)
+                #expect(events.isEmpty)
             case let .cardsDrawn(cards):
                 #expect(cards.count == 1)
                 drawnIDs.formUnion(cards.map(\.id))
@@ -511,9 +515,8 @@ extension BattleCardCombatTests {
         let immediateEvents = try immediate.playCard(cardID: initiating.id)
         #expect(recordedEvents == immediateEvents)
         #expect(capturedEvents == recorded.events.filter { $0.id > startingEventID })
-        #expect(Set(capturedEvents.map(\.id)).count == capturedEvents.count)
         #expect(playedIDs.count == (nested ? 3 : 2))
-        #expect(Set(playedIDs).count == playedIDs.count)
+        assertResolvedAttacks(resolvedActions, playedIDs: playedIDs, events: capturedEvents)
         #expect(checkpoints.last == .ready)
         #expect(sawBufferedDraw == nested)
         #expect(recorded.cardPlayRecording == nil)
@@ -525,6 +528,23 @@ extension BattleCardCombatTests {
             #expect(recorded.roster[owner] == immediate.roster[owner])
         }
         #expect(recorded.rng.next() == immediate.rng.next())
+    }
+
+    private func assertResolvedAttacks(_ actions: [BattleResolvedAction], playedIDs: [Int], events: [ActionEvent]) {
+        #expect(Set(events.map(\.id)).count == events.count)
+        #expect(Set(playedIDs).count == playedIDs.count)
+        #expect(Set(actions.compactMap(\.cardID)) == Set(playedIDs))
+        #expect(Set(actions.map(\.id)).count == actions.count)
+        let memberIDs = actions.flatMap(\.eventIDs)
+        #expect(Set(memberIDs).count == memberIDs.count)
+        #expect(Set(memberIDs).isSubset(of: Set(events.map(\.id))))
+        let allAttacks = actions.allSatisfy(\.isAttack)
+        #expect(allAttacks)
+        for action in actions {
+            let damage = events.filter { action.eventIDs.contains($0.id) && $0.kind == .abilityDamage }
+            #expect(!damage.isEmpty)
+            #expect(damage.allSatisfy { $0.actorID == action.actorID && $0.abilityID == action.abilityID })
+        }
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])

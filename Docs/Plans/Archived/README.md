@@ -7,6 +7,7 @@ plan—create a new active plan under `Docs/Plans/` when follow-up work is neede
 
 | Plan | Closed | Outcome |
 |------|--------|---------|
+| PersistenceSimplification.md | 2026-09-13 | Superseded startup proposal retired: current [storage recovery](../../AgentContext/persistence-storage.md) preserves original files and supports recovery-backed play. Existing cleanup work remains; this closure adds no runtime verification. |
 | SilentBattleSaves.md | 2026-09-13 | Replaced save-error prompts with automatic retries, added durable local recovery records with reset/account isolation, and preserved offline local play with automatic cloud catch-up. Verified recovery across relaunch, silent battle completion, 16-point action spacing, 1473 package tests, and 9 UI smoke tests; existing Homestead authority requirements remain. |
 | DefeatRewards.md | 2026-09-13 | Added shared victory-style portrait/XP presentation, Retry and Leave, and peak-health-based partial XP with atomic claims, save recovery, and deferred talent choices. Verified package behavior and Simulator gain, zero gain, level-up, longer names, navigation, and failed-save recovery; kept the approved 50% cap. |
 | CoreInteractionPolish.md | 2026-09-13 | Implemented consistent presses, stable party selection, equipment and Talent confirmations, source-linked item inspection and salvage, prepared Contracts refresh, and battle-card touch/availability cues. Repaired disappearing wallet artwork and consolidated salvage coverage into smoke; preserved immediate commits and ongoing combat-text work. |

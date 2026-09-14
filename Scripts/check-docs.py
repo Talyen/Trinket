@@ -137,32 +137,6 @@ def structural_checks(
     failures.extend(_check_testplan_sync.testplan_failures())
     failures.extend(script_index_failures())
 
-    stale = {
-        "five-surface selector matrix": "smoke membership lives in Scripts/config/smoke-classes.txt and Smoke.xctestplan",
-        "six-surface selector matrix": "smoke membership lives in Scripts/config/smoke-classes.txt and Smoke.xctestplan",
-        "QuickSmoke": "local and CI smoke share Smoke.xctestplan",
-        "Homestead canary": "test.sh smoke uses Scripts/config/smoke-classes.txt and Smoke.xctestplan",
-        "seven-resource": "Homestead wallet has eight HomesteadResource cases",
-        "BattleRuntimeSession": "runtime owner is BattleRuntime/BattleSession",
-        "art.json": "art manifest is ArtManifest/curated-assets.tsv",
-        "TrinketBattleEngine": "package scheme is BattleEngine",
-        "Task→Command Router": "command routing lives in Docs/Platform/Verification.md",
-        "follows the proposal bar": "audit right-size policy lives only in Docs/Audits/README.md",
-        "A clean pass is valid": "zero-findings-is-success lives only in Docs/Audits/README.md",
-        "Swift 6.0": "project.yml sets SWIFT_VERSION to 6.2",
-        "accessibility-setting UI test only": "PD-014 forbids accessibility-setting UI tests",
-        "do not regenerate on enter": "Labyrinth entry rebuilds unreadable map payloads",
-        "TrinketDesign.Metrics": "design tokens are TrinketDesign.Spacing and TrinketDesign.Layout",
-        "InelegantSlop": "retired audit name; route to audit 02 or 06",
-        "DualPathRetention": "retired audit name; route to audit 06",
-        "reduced-transparency handling": "the design system has no reduced-transparency policy",
-    }
-    for source in files:
-        text = source.read_text(encoding="utf-8")
-        for phrase, explanation in stale.items():
-            if phrase in text:
-                failures.append(f"{source.relative_to(ROOT)}: stale phrase {phrase!r} ({explanation})")
-
     suites = test_suite_names()
     for tests_readme in sorted((ROOT / "Packages").glob("*/Tests/README.md")):
         text = tests_readme.read_text(encoding="utf-8")

@@ -25,11 +25,7 @@ extension BattleSession {
         _ phase: CombatantAttackPhase,
         for combatantID: String,
     ) {
-        spectacle.nextID += 1
-        publishAttackReaction(
-            CombatantAttackReaction(id: spectacle.nextID, kind: .attack, phase: phase),
-            for: combatantID,
-        )
+        feedback.previewAttack(phase, for: combatantID)
     }
 
     func combatantID(for participant: BattleParticipant) -> String? {
@@ -211,7 +207,8 @@ extension BattleSession {
         let latestFeedbackDelay = feedback.activeItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
-        let spectacleDelaySeconds = max(BattleMotion.outcomePresentationMinimum, latestFeedbackDelay)
+        let pendingFeedbackDelay = max(0, feedback.pendingFeedbackEnd?.timeIntervalSince(date) ?? 0)
+        let spectacleDelaySeconds = max(BattleMotion.outcomePresentationMinimum, latestFeedbackDelay, pendingFeedbackDelay)
             + BattleMotion.outcomePresentationPadding
         let spectacleDelay = Duration.seconds(spectacleDelaySeconds)
         let delay = outcomePresentationDelayOverride ?? spectacleDelay
@@ -221,17 +218,31 @@ extension BattleSession {
             return
         }
         spectacle.outcomeTask.task = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: delay)
-            guard let self, !Task.isCancelled, outcome == expected else { return }
+            guard let self else { return }
+            var remaining = delay
+            let clock = ContinuousClock()
+            while remaining > .zero, !Task.isCancelled {
+                let started = clock.now
+                let wasSuspended = isSuspendedForScenePhase
+                try? await Task.sleep(for: min(remaining, .milliseconds(50)))
+                if !wasSuspended, !isSuspendedForScenePhase {
+                    remaining -= started.duration(to: clock.now)
+                }
+            }
+            guard !Task.isCancelled, outcome == expected else { return }
             show(self)
             dependencies.playSFX([sfx])
             spectacle.outcomeTask.task = nil
         }
     }
 
-    func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
+    func presentResolvedEvents(_ events: [ActionEvent], at date: Date, actionGroupID: Int? = nil) {
         let nonMilestone = events.filter { $0.kind != .milestone }
-        feedback.record(nonMilestone, at: date, environment: dependencies)
+        feedback.record(nonMilestone, at: date, environment: dependencies, actionGroupID: actionGroupID)
+        presentUltimateHighlight(nonMilestone, at: date)
+    }
+
+    func presentUltimateHighlight(_ nonMilestone: [ActionEvent], at date: Date) {
         guard let heroID,
               let companionID
         else { return }

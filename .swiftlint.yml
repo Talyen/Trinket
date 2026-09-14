@@ -1,14 +1,12 @@
 # SwiftLint enforces semantics and API idioms. Formatting (whitespace, commas,
 # trailing newlines) is owned by SwiftFormat (.swiftformat). Product UI chrome is
 # guarded by Scripts/check-ui-style.py (TrinketDesign / UIStyleCheck: allow).
-# See Scripts/README.md "Style & lint ownership".
+# See Docs/Platform/Verification.md "Style and boundary ownership".
 #
-# Ownership split for bans: portable ripgrep checks own enforcement
+# Portable scripts own custom policy enforcement
 # (check-api-bans.sh for observation/navigation, check-agent-invariants.sh for
-# entropy/sleep/persistence/artwork/disables). SwiftLint custom_rules below
-# mirror ONLY patterns that are valid NSRegularExpression; variable-length
-# lookbehind (e.g. (?<!//.*)) is invalid and silently disables the rule, so
-# comment-sensitive bans must live in the shell checks, never here.
+# entropy/sleep/persistence/artwork/disables). API bans and suppression reasons
+# inspect SwiftFormat tokens so prose is not mistaken for code or directives.
 #
 # Analyzer rules run explicitly through Scripts/lint-analyze.sh with a clean build.
 # unused_import fails that command; other analyzer findings remain advisory.
@@ -23,12 +21,8 @@ unused_declaration:
 
 swiftlint_version: 0.65.0
 
-# modifier_order lives here, not in SwiftFormat (.swiftformat disables
-# modifierOrder): the compiler-required `public nonisolated` spelling beats
-# the rule, so that site carries a reasoned swiftlint:disable:next.
-# single_test_class / balanced_xctest_lifecycle / xct_specific_matcher stay
-# until the XCTest-to-Swift-Testing migration (check-api-bans.sh) completes,
-# then retire them.
+# XCTest assertion idioms still apply to UI tests. single_test_class and
+# balanced_xctest_lifecycle do not fit our shared XCTest base classes.
 opt_in_rules:
   - accessibility_label_for_image
   - accessibility_trait_for_button
@@ -44,11 +38,9 @@ opt_in_rules:
   - redundant_nil_coalescing
   - array_init
   - unhandled_throwing_task
-  - modifier_order
   - async_without_await
   - force_unwrapping
   - prefer_zero_over_explicit_init
-  - single_test_class
   - xct_specific_matcher
   - toggle_bool
   - legacy_multiple
@@ -57,7 +49,6 @@ opt_in_rules:
   - prefer_self_in_static_references
   - prefer_self_type_over_type_of_self
   - self_binding
-  - shorthand_optional_binding
   - superfluous_else
   - fatal_error_message
   - unowned_variable_capture
@@ -66,11 +57,9 @@ opt_in_rules:
   - convenience_type
   - contains_over_range_nil_comparison
   - empty_collection_literal
-  - unneeded_parentheses_in_closure_argument
   - return_value_from_void_function
   - unavailable_function
   - static_operator
-  - balanced_xctest_lifecycle
   - enum_case_associated_values_count
   - prohibited_interface_builder
   - raw_value_for_camel_cased_codable_enum
@@ -89,28 +78,47 @@ disabled_rules:
   - contains_over_filter_count
   - contains_over_filter_is_empty
   - contains_over_first_not_nil
+  - control_statement
   - duplicate_imports
   - empty_count
+  - empty_parentheses_with_trailing_closure
   - explicit_init
   - first_where
   - flatmap_over_map_reduce
   - implicit_return
+  - implicit_getter
   - prefer_key_path
+  - private_over_fileprivate
   - redundant_discardable_let
+  - redundant_string_enum_value
+  - redundant_void_return
+  - shorthand_optional_binding
   - sorted_first_last
+  - trailing_semicolon
+  - unneeded_break_in_switch
+  - unneeded_parentheses_in_closure_argument
+  - unused_closure_parameter
+  - void_return
   - yoda_condition
   # Formatting owned by SwiftFormat (maxwidth 140, trailing commas, newlines).
+  - closing_brace
+  - colon
+  - comma
+  - comment_spacing
+  - function_name_whitespace
+  - no_space_in_method_call
+  - return_arrow_whitespace
   - trailing_comma
   - trailing_newline
+  - trailing_whitespace
+  - vertical_parameter_alignment
   - vertical_whitespace
   - statement_position
   - line_length
   # Deliberately off with reason:
-  # - private_swiftui_state: @Observable replaced @State wrappers; the rule
-  #   pushes legacy state patterns.
+  # - private_swiftui_state: SwiftFormat's privateStateVariables owns this rewrite.
   # - identifier_name: game domain and SwiftUI DSL use short names pervasively.
-  # - large_tuple: 3-element tuples (coordinates, test rows) are idiomatic;
-  #   cyclomatic_complexity bounds the egregious cases.
+  # - large_tuple: 3-element tuples (coordinates, test rows) are idiomatic.
   - private_swiftui_state
   - identifier_name
   - large_tuple
@@ -121,11 +129,16 @@ force_unwrapping: error
 force_cast: error
 force_try: error
 
-file_length: 600
+file_length:
+  warning: 600
+  ignore_comment_only_lines: true
 type_body_length: 350
 function_body_length: 60
 closure_body_length: 80
-cyclomatic_complexity: 15
+cyclomatic_complexity:
+  warning: 15
+  # Enum mappings remain exhaustive; branches within cases still count.
+  ignores_case_statements: true
 
 nesting:
   type_level:
@@ -133,40 +146,9 @@ nesting:
   function_level:
     warning: 3
 
-# Structural guardrails use generous thresholds above. Keep large generated or
-# catalog content split across focused files instead of raising limits further.
+# Structural guardrails use generous thresholds above. Keep authored catalog
+# content split across focused files instead of raising limits further.
 function_parameter_count: 7
-
-# Platform bans from AGENTS.md — prefer @Observable / NavigationStack.
-# check-api-bans.sh is the portable owner and runs in every style gate;
-# the observation/navigation customs below are editor-speed mirrors only.
-# Entropy, test-sleep, persistence, and artwork bans live SOLELY in
-# check-agent-invariants.sh: their patterns need comment awareness that
-# NSRegularExpression cannot express, so SwiftLint copies were dead rules.
-# Product color policy belongs to check-ui-style.py.
-custom_rules:
-  banned_observation_apis:
-    name: "Banned Observation APIs"
-    regex: '(?<!\w)(@Published|@StateObject|@EnvironmentObject|@ObservedObject|ObservableObject)(?!\w)'
-    message: "Use @Observable with @Environment(Type.self) and @Bindable instead."
-    severity: error
-  banned_navigation_view:
-    name: "Banned NavigationView"
-    regex: '(?<!\w)NavigationView(?!\w)'
-    message: "Use NavigationStack instead of NavigationView."
-    severity: error
-  banned_comments:
-    name: "Banned comments"
-    regex: '//(?!\s*(swift-tools-version:|swiftlint:(disable|enable)|swiftformat:(disable|enable)|Generated by|.*(UIStyleCheck|EntropyCheck|PersistenceCheck|ConcurrencyCheck|ExclusivityCheck|ArtworkWorkingSetCheck|TestSleepCheck):\s*allow\s*-\s*\S+|.*Concurrency-Safety:))|/\*'
-    match_kinds:
-      - comment
-    message: "Comments banned — remove or use an allowed toolchain directive (swift-tools-version / swiftlint:disable / swiftformat:disable). See doc-budget skill."
-    severity: error
-  banned_swiftlint_disable_without_reason:
-    name: "swiftlint:disable without reason"
-    regex: '//\s*swiftlint:disable\b(?![^\n]*-\s*\S+)'
-    message: "swiftlint:disable must include ' - <reason>'"
-    severity: error
 
 excluded:
   - Packages/TrinketContent/Sources/TrinketContent/Generated

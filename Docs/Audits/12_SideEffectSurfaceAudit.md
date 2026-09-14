@@ -26,8 +26,10 @@ Use the [shared audit contract](README.md) for scope, evidence, severity, and si
 - Effects must not duplicate, outlive their purpose, or reorder observable state
   because initiation/retry/termination is unowned. Cancellation and failures follow
   the boundary's contract; not every effect requires user-facing error UI.
-- Absence of direct CloudKit calls does not imply missing OS-managed SwiftData sync.
-  Release readiness belongs to the
+- SwiftData stays local; Persistence owns explicit complete-save CloudKit exchange.
+  Judge sync effects against the [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
+  Ordinary local-only and explicitly enabled builds have different sync behavior;
+  enablement and release readiness belong to the
   [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
 
 ## Evidence and success

@@ -17,13 +17,8 @@ trinket_run_style_gate() {
   ./Scripts/check-exclusivity-footguns.sh || style_status=$?
   ./Scripts/check-agent-invariants.sh || style_status=$?
   python3 ./Scripts/check-accessibility-ids.py || style_status=$?
-  if (( ${#style_paths[@]} > 0 )); then
-    ./Scripts/check-comment-ban.sh -- "${style_paths[@]}" || style_status=$?
-  else
-    ./Scripts/check-comment-ban.sh || style_status=$?
-  fi
   if [[ "$style_status" -ne 0 ]]; then
-    echo "Style gate failed (format / lint / UI style / platform API bans / exclusivity / agent invariants / accessibility IDs / comment ban)." >&2
+    echo "Style gate failed (format / lint / UI style / platform API bans / exclusivity / agent invariants / accessibility IDs)." >&2
     return "$style_status"
   fi
   echo "Style gate passed."

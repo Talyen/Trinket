@@ -131,7 +131,7 @@ class DocumentationTests(ScriptRegressionTestCase):
                 ".github/workflows/tests.yml": "",
                 "Docs/AgentContext/README.md": "# Context",
                 "Docs/Audits/Proposals.md": "# Proposals",
-                "README.md": "# Fixture",
+                "README.md": "# Fixture\nA clean pass is valid. Historical label: QuickSmoke.\n",
             }.items():
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)

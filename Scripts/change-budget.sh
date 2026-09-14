@@ -107,15 +107,16 @@ LC_ALL=C awk \
   END {
     pn = pa - pd; tn = ta - td; dn = da - dd; typen = types_added - types_deleted; testn = tests_added - tests_deleted
     print "Change budget (advisory vs " rev "):"
+    print "  Counts may include pre-existing work; thresholds are signals, not targets or justification requirements."
     printf "  Production Swift: +%d/-%d (net %+d), new files %d, types +%d/-%d\n", pa, pd, pn, new_prod, types_added, types_deleted
     printf "  Test Swift:       +%d/-%d (net %+d), new files %d, declarations +%d/-%d\n", ta, td, tn, new_test, tests_added, tests_deleted
     printf "  Docs/tools:       +%d/-%d (net %+d)\n", da, dd, dn
     if (generated) printf "  Generated/processed: %d changed path(s), excluded\n", generated
-    if (pn > prod_limit) warning("production growth exceeds +" prod_limit " LOC; explain necessity and the simpler rejected alternative")
-    if (tn > test_limit) warning("test growth exceeds +" test_limit " LOC; confirm unique semantic ownership")
-    if (new_prod > file_limit) warning("more than " file_limit " production Swift files were added; confirm each owner")
+    if (pn > prod_limit) warning("production growth exceeds +" prod_limit " LOC; inspect maintenance impact if relevant")
+    if (tn > test_limit) warning("test growth exceeds +" test_limit " LOC; inspect coverage value if relevant")
+    if (new_prod > file_limit) warning("more than " file_limit " production Swift files were added; inspect cohesion if relevant")
     if (typen > type_limit) warning("net production type growth exceeds +" type_limit "; check helper/wrapper/manager ceremony")
-    if (testn > decl_limit) warning("net test declarations exceed +" decl_limit "; confirm the test-addition gate")
+    if (testn > decl_limit) warning("net test declarations exceed +" decl_limit "; inspect distinct failure modes if relevant")
     if (ta || td) print "  Runtime note: declarations exclude expanded argument cases; inspect test-timing.py for affected owners."
     if (!warnings) print "  Warnings: none"
   }

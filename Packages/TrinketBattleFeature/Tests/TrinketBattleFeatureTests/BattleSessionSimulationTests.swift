@@ -131,6 +131,8 @@ struct BattleSessionSimulationTests {
         _ = session.playCard(cardID: card.id, at: expired.expiresAt.addingTimeInterval(0.01))
 
         #expect(removedIDs == [expired.id])
+        let impact = try #require(session.feedback.scheduledActions.first?.impactAt)
+        session.feedback.advance(to: impact)
         #expect(!(session.feedback.activeItems.isEmpty))
         let recordedIDs = Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))
         let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
@@ -233,6 +235,8 @@ struct BattleSessionSimulationTests {
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
         _ = session.playCard(cardID: card.id)
+        let impact = try #require(session.feedback.scheduledActions.first?.impactAt)
+        session.feedback.advance(to: impact)
         #expect(!(session.feedback.activeItems.isEmpty))
         let engineState = try #require(session.engineState)
         #expect(engineState.health(of: engineState.enemy) < 100)
@@ -402,7 +406,7 @@ extension BattleSessionSimulationTests {
         session.feedback.hitReactionsByTargetID["enemy"] = enemyHit
         session.feedback.noteHitReactionsChanged(for: ["enemy"])
 
-        let heroAttack = CombatantAttackReaction(id: 42, kind: .attack, phase: .swing)
+        let heroAttack = CombatantAttackReaction(id: 42, phase: .swing)
         session.publishAttackReaction(heroAttack, for: "hero")
 
         #expect(heroHits == [nil])

@@ -81,6 +81,17 @@ enum CombatantHitReactionKind: String, CaseIterable, Equatable {
     case heal
     case dodge
     case celebrate
+
+    var priority: Int {
+        switch self {
+        case .critical: 5
+        case .damage: 4
+        case .block: 3
+        case .dodge: 2
+        case .heal, .celebrate: 1
+        case .none: 0
+        }
+    }
 }
 
 struct CombatReactionKeyframes: Equatable {
@@ -231,16 +242,12 @@ struct CombatantHitReactionRecipe: Equatable {
     }
 }
 
-enum CombatantAttackReactionKind: String, CaseIterable, Equatable {
-    case none
-    case attack
-}
-
 enum CombatantAttackPhase: String, CaseIterable, Equatable {
     case windUp
     case swing
     case cancel
-    case full
+    case recover
+    case rest
 }
 
 struct CombatantAttackPose: Equatable {
@@ -284,22 +291,15 @@ enum CombatantAttackAim: String, CaseIterable, Equatable {
 }
 
 struct CombatantAttackReactionRecipe: Equatable {
-    let kind: CombatantAttackReactionKind
     let keyframes: CombatReactionKeyframes
-    let impactDelay: TimeInterval
-    let duration: TimeInterval
 
     init(
-        kind: CombatantAttackReactionKind,
         scaleX: [CombatFeedbackKeyframeSample],
         scaleY: [CombatFeedbackKeyframeSample],
         offsetX: [CombatFeedbackKeyframeSample],
         offsetY: [CombatFeedbackKeyframeSample],
         rotation: [CombatFeedbackKeyframeSample] = [],
-        impactDelay: TimeInterval,
-        duration: TimeInterval,
     ) {
-        self.kind = kind
         keyframes = CombatReactionKeyframes(
             scaleX: scaleX,
             scaleY: scaleY,
@@ -307,8 +307,6 @@ struct CombatantAttackReactionRecipe: Equatable {
             offsetY: offsetY,
             rotation: rotation,
         )
-        self.impactDelay = impactDelay
-        self.duration = duration
     }
 
     var scaleX: [CombatFeedbackKeyframeSample] {
@@ -349,10 +347,6 @@ struct CombatantAttackReactionRecipe: Equatable {
 
     func swingPose(aim: CombatantAttackAim) -> CombatantAttackPose {
         pose(at: 1, aim: aim)
-    }
-
-    var restPose: CombatantAttackPose {
-        .rest
     }
 
     private func pose(at index: Int, aim: CombatantAttackAim) -> CombatantAttackPose {

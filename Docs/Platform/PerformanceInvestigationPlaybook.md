@@ -177,10 +177,14 @@ budgets there.
    window, so variable-refresh device deadline counts are approximate. Do not
    add speculative signposts everywhere: add a narrow span only when the trace
    cannot distinguish two plausible owners.
-5. Make one small change that removes work or code while preserving/improving intended gameplay feel.
-6. Run the focused stage again, then the full six-scenario Battle matrix.
+5. Make the simplest complete change supported by the evidence while preserving
+   intended gameplay feel. Additional code can be appropriate when it removes the
+   measured cost or establishes a necessary lifetime boundary.
+6. Rerun the affected scenario and relevant shared consumers. Run the full Battle
+   matrix when the change affects its shared boundaries or a broad comparison is
+   needed; unrelated scenarios are not a mandatory iteration step.
 
-Prefer direct stored-state mutation, one projection publication, narrow observation, cached immutable geometry, equatable static faces, bounded/preallocated resources, and parked idle clocks. Delete dead wrappers and redundant passes before adding abstractions.
+Prefer direct stored-state mutation, one projection publication, narrow observation, cached immutable geometry, equatable static faces, bounded/preallocated resources, and parked idle clocks. Consider removing dead wrappers and redundant passes when that addresses the measured cause.
 
 ## Device and production evidence
 
@@ -190,6 +194,6 @@ MetricKit `MXAnimationMetric.hitchTimeRatio` remains production trend evidence. 
 
 ## Reporting
 
-Report the source revision/dirty state, Xcode, Simulator model/runtime, seed, optimized build settings, duration, all five individual results, aggregate spread, failing stage, Instruments evidence when available, production LOC before/after, and functional verification. If any input or evidence is missing, record the limitation and do not claim an improvement.
+Report the source revision/dirty state, Xcode, Simulator model/runtime, seed, optimized build settings, duration, all five individual results for formal comparisons, aggregate spread, affected scenarios, Instruments evidence when available, and functional verification. If any input or evidence is missing, record the limitation and do not claim an improvement.
 
 Apple references: [Animation hitches](https://developer.apple.com/documentation/xcode/understanding-hitches-in-your-app), [Optimize for variable refresh-rate displays](https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays), and [MXAnimationMetric hitch time ratio](https://developer.apple.com/documentation/metrickit/mxanimationmetric/hitchtimeratio).

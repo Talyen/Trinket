@@ -158,7 +158,7 @@ printf cached > "$cache"
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / relative, target)
         for filename in ('check-api-bans.sh', 'check-exclusivity-footguns.sh',
-                         'check-agent-invariants.sh', 'check-comment-ban.sh',
+                         'check-agent-invariants.sh',
                          'change-budget.sh', 'test.sh'):
             self.write('Scripts/' + filename, '#!/bin/bash\nexit 0\n', executable=True)
         self.write('Scripts/check-accessibility-ids.py', '')

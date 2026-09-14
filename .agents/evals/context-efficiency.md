@@ -1,5 +1,10 @@
 # Context-efficiency scenario review
 
+Historical measurements and instructions from September 2026. The former complete-
+card reading contract and 10% token-savings target are not current policy. Use
+[the evaluation guide](README.md) for current acceptance criteria and
+[the judgment review](agent-judgment.md) for the later guidance comparison.
+
 2026-09-11; baseline checkout `3d327ae2`, with the existing in-flight app changes
 preserved. This is a routing/search scenario review, not an autonomous feature
 trial. Counts are Unicode characters, not tokenizer counts or billed tokens.

@@ -1,7 +1,8 @@
 # CI failure diagnostics context
 
 Load this card only after a test, package, build, or CI invocation fails. Structured
-diagnostics are the first source of evidence; raw xcodebuild logs are a last resort.
+diagnostics are the preferred starting point; use targeted raw-log searches when
+the reports cannot answer the diagnostic question.
 
 ## Script regressions
 
@@ -99,11 +100,12 @@ start without deleting raw logs or xcresult bundles:
 ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
 # or the isolated RESULTS_DIR for an agent run
 ```
-Coding agents should inspect the aggregate first, then the referenced per-invocation
-Markdown for the failure category, issue, source location, and suggested action.
-Open per-invocation JSON, annotations, or attachments only when the Markdown points
-to missing detail. Inspect raw xcodebuild logs only when the aggregate category is
-`unknown` (or a report explicitly escalates to raw-log inspection).
+Prefer the aggregate and referenced per-invocation Markdown for the failure
+category, issue, source location, and suggested action. Inspect JSON, annotations,
+attachments, or targeted raw-log excerpts when reports are incomplete, contradictory,
+or insufficient to test a hypothesis. A known classification does not imply a
+complete explanation; no report-issued escalation is required. Keep output bounded
+and use the current invocation's evidence.
 
 After the aggregate has been staged, successful invocation artifacts are ephemeral
 by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,

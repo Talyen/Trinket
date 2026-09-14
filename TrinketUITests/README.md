@@ -79,5 +79,5 @@ Assert a journey’s return destination before using helpers that navigate elsew
   that plan does not currently measure victory or Mystery reveals.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
   do not copy their numeric values into this guide.
-- Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors and interaction outcomes — not display names, rarity labels, or scroll geometry unless that string is the product contract.
+- Accessibility-setting audits remain outside PD-014. Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.
 - UI tests run serially on a single simulator by default. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.

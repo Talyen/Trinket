@@ -5,6 +5,7 @@ import Observation
 struct BattleRecordedCardCast: Equatable, Identifiable {
     let id = UUID()
     var startedAt: Date
+    var activationAt: Date
     var pausedAt: Date?
     let card: BattleCard
 }
@@ -15,12 +16,16 @@ final class BattleCardPlaybackState {
     private(set) var casts: [BattleRecordedCardCast] = []
     private(set) var isSuspended = false
 
-    func append(_ cards: [BattleCard], at date: Date) {
-        var start = max(date, (casts.last?.startedAt ?? date).addingTimeInterval(casts.isEmpty ? 0 : 0.32))
-        for card in cards {
-            casts.append(BattleRecordedCardCast(startedAt: start, card: card))
-            start += 0.32
-        }
+    @discardableResult
+    func append(_ card: BattleCard, at date: Date, activationAt: Date) -> UUID {
+        let cast = BattleRecordedCardCast(startedAt: date, activationAt: activationAt, card: card)
+        casts.append(cast)
+        return cast.id
+    }
+
+    func retime(id: UUID, activationAt: Date) {
+        guard let index = casts.firstIndex(where: { $0.id == id }) else { return }
+        casts[index].activationAt = activationAt
     }
 
     func remove(id: UUID) {
@@ -35,6 +40,7 @@ final class BattleCardPlaybackState {
                 casts[index].pausedAt = date
             } else if let paused = casts[index].pausedAt {
                 casts[index].startedAt += date.timeIntervalSince(paused)
+                casts[index].activationAt += date.timeIntervalSince(paused)
                 casts[index].pausedAt = nil
             }
         }

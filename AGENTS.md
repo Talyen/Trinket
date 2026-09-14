@@ -25,28 +25,30 @@ verified behavior from inference and state material assumptions.
 - Use the checked-in deployment target and first-party SwiftUI; no legacy compatibility or UIKit feature chrome. Extend existing measured UIKit feedback only through its package guide.
 - Do not remove launch/imminent artwork pins, switch first-screen art to on-demand `Image(name)`, or lower artwork memory budgets without product approval. [Performance playbook](Docs/Platform/PerformanceInvestigationPlaybook.md) owns budgets; `check-artwork-budget.sh` enforces them.
 - Preserve or migrate saves, serialized identifiers, manifests, and live schemas unless the consumer window is proven closed or a break is approved. Source/API compatibility needs a confirmed current consumer.
-- No explanatory Swift comments or temporary debug output. [doc-budget](.agents/skills/doc-budget/SKILL.md) and `check-comment-ban.sh` own permitted directives and exceptions.
+- Prefer self-explanatory code. Add concise comments for non-obvious rationale, invariants, or platform limitations; avoid narrating the implementation. Remove temporary debug output. [doc-budget](.agents/skills/doc-budget/SKILL.md) covers checker directives and suppression reasons.
 
 ## Route and read
 
 Run `./Scripts/agent-context.sh --agent --status --paths <file...>` once likely touched paths
-are known. Read its required guides/cards; load skills when their triggers apply.
+are known. Read root/local safeguards and applicable ownership constraints; use the
+routed cards to find relevant behavior contracts. Load skills when their triggers apply.
 Reuse unchanged guidance already present in context; reread when changed or no
 longer available. Reroute when scope crosses owners and read newly applicable
 material. Use `--working-tree` only for intentional whole-tree work.
 
-When ownership is unknown, start with `python3 Scripts/agent-search.py <pattern> --scope <owner>`.
-For known files, use direct bounded reads or scoped `rg`. Load linked material only
+Choose scoped `rg`, filename discovery, direct reads, or
+`python3 Scripts/agent-search.py <pattern> --scope <owner>` for the question.
+Follow relevant callers, tests, and configuration across owners. Load linked material only
 for its concern; generated catalogs/logs need targeted lookups. See
 [context reading examples](Docs/AgentContext/README.md). Use an execution plan only
 for durable coordination/resumption; [Plans](Docs/Plans/README.md) owns lifecycle.
 
 ## Choose the change
 
-- Fix the owning module's root cause. Prefer deletion, reuse, or simplification; larger changes must remove the complete cause or replaced path.
+- Fix the owning module's root cause with the simplest complete solution. Reuse or delete when that improves clarity; additional code is appropriate for correctness, coherent ownership, or measured performance.
 - Keep types/files cohesive. Share abstractions for confirmed repeated behavior or enforced boundaries, not predicted reuse. Avoid speculative extension points, compatibility layers, or defensive paths for impossible states.
 - Prefer existing dependencies. New ones need material simplification and checked maintenance, license, platform, and toolchain fit.
-- Delete replaced implementations and redundant tests unless current compatibility requires parallel paths. Production/test surface is a budget: explain advisory `change-budget.sh` warnings and the simpler alternative rejected; do not compress code to satisfy counts.
+- Delete replaced implementations and redundant tests unless current compatibility requires parallel paths. `change-budget.sh` counts are investigation signals, not targets or mandatory justification triggers; distinguish task changes from pre-existing work. Explain material tradeoffs, not every threshold crossing.
 
 Adopt encountered reproducible defects, gate failures, documentation drift, or
 bounded debt only within scope when evidence, intended behavior, and ownership are
@@ -63,7 +65,7 @@ for failures caused by the change without another approval checkpoint. Stop when
 complete or blocked by a required decision or unavailable prerequisite; apply the
 encountered-fix rules above to other failures.
 
-- Prefer fewer, higher-value tests. Use [Testing.md](Docs/Platform/Testing.md) to justify additions and proactively consolidate, streamline, or retire tests within scope; evidence-based retirement needs no separate approval.
+- Choose tests for consequential confidence under [Testing.md](Docs/Platform/Testing.md). Consolidate or retire coverage made redundant within scope when evidence justifies it; test counts are not a goal and evidence-based retirement needs no separate approval.
 - Run `./Scripts/handoff.sh --isolate --paths <file...>` for the union of requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification.md](Docs/Platform/Verification.md) owns gates, simulator limits, and failures.
 - Review the final diff for scope and generated consistency. Report results, verification, adopted fixes separately, and exact blockers/skips. Do not claim verified completion with unresolved required checks.
 

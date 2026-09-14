@@ -30,7 +30,6 @@ public struct ResourceAmount: Codable, Hashable, Identifiable, Sendable {
 }
 
 // swiftformat:disable redundantRawValues - persisted node identifiers must remain explicit
-// swiftlint:disable redundant_string_enum_value - persisted node identifiers must remain explicit
 public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiable, Sendable {
     case wheatField = "wheatField"
     case herbGarden = "herbGarden"
@@ -52,7 +51,6 @@ public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiab
     }
 }
 
-// swiftlint:enable redundant_string_enum_value
 // swiftformat:enable redundantRawValues
 
 public enum HomesteadNodeCategory: String, CaseIterable, Hashable, Identifiable, Sendable {

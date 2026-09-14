@@ -48,6 +48,17 @@ Opening and new-turn cards become playable immediately. Enemy attacks, dealing,
 damage, healing, status effects, and ultimate highlights may still be animating.
 Health, Mana, status, and availability always show the current resolved state.
 
+Combatant attacks retain a visible wind-up, swing, and recovery for taps,
+drags, automatic cards, and enemy actions. Isolated attacks use the full motion;
+rapid attacks shorten preparation and overlap recovery to keep pace. Dragging
+holds preparation until release and settles back on cancellation.
+
+Hit recoil, floating results, sounds, and hit haptics land together with the
+swing. Separate attacks retain distinct impacts; simultaneous components of one
+attack share the strongest recoil. Fully blocked direct hits recoil visibly
+with Block styling. Damage-over-time ticks remain quiet. These are presentation
+beats only: the engine and current resources never wait for them.
+
 Automatic end turn keeps the 0.4-second grace period when no cards are playable.
 It does not add a wait for the enemy's attack animation. Ordinary draws,
 equipment/talent draws, hidden-buffer promotion, and returned cards follow the

@@ -311,8 +311,10 @@ public struct BattleState {
         guard !isBattleOver else { return [] }
         cardPlayRecording = recording.map { callback in
             BattleCardPlayRecording { checkpoint, state, _ in
-                if case .cardPlayed = checkpoint {
+                switch checkpoint {
+                case .cardPlayed, .actionResolved:
                     callback(checkpoint, state, [])
+                default: break
                 }
             }
         }
@@ -329,8 +331,10 @@ public struct BattleState {
     ) -> [ActionEvent] {
         cardPlayRecording = recording.map { callback in
             BattleCardPlayRecording { checkpoint, state, _ in
-                if case .cardPlayed = checkpoint {
+                switch checkpoint {
+                case .cardPlayed, .actionResolved:
                     callback(checkpoint, state, [])
+                default: break
                 }
             }
         }

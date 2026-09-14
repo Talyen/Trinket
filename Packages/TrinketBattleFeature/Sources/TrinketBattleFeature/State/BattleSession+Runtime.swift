@@ -109,7 +109,11 @@ extension BattleSession {
     func playEngineCard(cardID: Int) throws -> (events: [ActionEvent], playback: BattleTransitionPlayback) {
         guard var engineState, let configurationID = activeBattle?.id else { throw BattlePlayError.battleOver }
         var automaticCards: [BattleCard] = []
+        var actions: [BattleResolvedAction] = []
         let events = try engineState.playCard(cardID: cardID, rebuildLog: false) { checkpoint, _, _ in
+            if case let .actionResolved(action) = checkpoint {
+                actions.append(action)
+            }
             if case let .cardPlayed(card) = checkpoint, card.id != cardID {
                 automaticCards.append(card)
             }
@@ -120,13 +124,18 @@ extension BattleSession {
             snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: engineState),
             events: events,
             automaticCards: automaticCards,
+            actions: actions,
         ))
     }
 
     func resolveTransition(_ kind: BattleTransitionPlayback.Kind) -> BattleTransitionPlayback? {
         guard var state = engineState, let configurationID = activeBattle?.id else { return nil }
         var automaticCards: [BattleCard] = []
+        var actions: [BattleResolvedAction] = []
         let record: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { checkpoint, _, _ in
+            if case let .actionResolved(action) = checkpoint {
+                actions.append(action)
+            }
             if case let .cardPlayed(card) = checkpoint {
                 automaticCards.append(card)
             }
@@ -141,6 +150,7 @@ extension BattleSession {
             snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state),
             events: events,
             automaticCards: automaticCards,
+            actions: actions,
         )
     }
 
@@ -150,11 +160,6 @@ extension BattleSession {
 
     func releaseEngineLogProjection() {
         mutateEngine { $0.releaseLogProjection() }
-    }
-
-    func shouldTelegraphEnemyAttack() -> Bool {
-        guard let engineState, engineState.roster.enemy.isAlive else { return false }
-        return !engineState.roster.hasPendingActionSkip(for: engineState.enemy)
     }
 
     func preparedBattleRun(for runKey: BattleRunKey) -> PreparedBattleRun? {
@@ -249,6 +254,7 @@ extension BattleSession {
         guard isSuspendedForScenePhase != suspended else { return }
         commandState.suspend(suspended)
         cardPlayback.setSuspended(suspended)
+        feedback.setSuspended(suspended)
         if suspended {
             clearCardCues()
             cancelPendingAutoEnd()
