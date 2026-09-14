@@ -11,7 +11,7 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Mystery.encounterTitle)
         assertExists(AccessibilityID.Mystery.offerArtwork(choiceID: "harvest-remedies"))
         assertExists(AccessibilityID.Mystery.offerArtwork(choiceID: "take-the-notes"))
-        assertDoesNotExist(AccessibilityID.Mystery.confirmChoiceButton)
+        assertDoesNotExist(AccessibilityID.Mystery.confirmChoiceButton, timeout: 2)
         tapButton(AccessibilityID.Mystery.offerArtwork(choiceID: "harvest-remedies"))
         let itemDetail = app.descendants(matching: .any).matching(NSPredicate(
             format: "identifier BEGINSWITH %@",
@@ -19,13 +19,13 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         )).firstMatch
         assertExists(itemDetail)
         dismissSheet()
-        assertDoesNotExist(AccessibilityID.Mystery.rewardTitle)
+        assertDoesNotExist(AccessibilityID.Mystery.rewardTitle, timeout: 2)
         assertExistsAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies"), requireHittable: true)
         tapButton(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies"))
         assertExists(AccessibilityID.Mystery.rewardTitle)
         assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Mystery.continueButton)
-        assertDoesNotExist(AccessibilityID.Mystery.rewardTitle)
+        assertDoesNotExist(AccessibilityID.Mystery.rewardTitle, timeout: 5)
         play.assertLoaded()
     }
 
@@ -38,7 +38,7 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
         assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Mystery.continueButton)
-        assertDoesNotExist(AccessibilityID.Mystery.unlockCard(name: "Bear"), timeout: 8)
+        assertDoesNotExist(AccessibilityID.Mystery.unlockCard(name: "Bear"), timeout: 5)
         play.assertLoaded()
     }
 }

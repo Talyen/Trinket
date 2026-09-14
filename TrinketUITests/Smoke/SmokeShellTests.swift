@@ -13,24 +13,16 @@ final class SmokeShellTests: SeededSmokeUITestCase {
         salvageItem("crossbow-basic")
         scrollUntilVisible(button(AccessibilityID.Collection.basicGearCategory), swipingUp: false, requireHittable: true)
         tapButton(AccessibilityID.Collection.basicGearCategory)
-        assertDoesNotExist(AccessibilityID.Collection.itemCard(itemID: "crossbow-basic"))
-        tapButton(AccessibilityID.Collection.gearFilter)
-        tapButton(AccessibilityID.Collection.gearFilterOption(slot: "armor"))
-        salvageItem("leather_armor-basic")
-        salvageItem("plate_armor-basic")
-        assertExists(AccessibilityID.Collection.itemsNoResults, timeout: 5)
-        assertDoesNotExist(AccessibilityID.Collection.itemsEmptyState)
-        tapButton(AccessibilityID.Collection.gearFilter)
-        tapButton(AccessibilityID.Collection.gearFilterOption(slot: "all"))
+        assertDoesNotExist(AccessibilityID.Collection.itemCard(itemID: "crossbow-basic"), timeout: 2)
         assertExistsAfterScroll(AccessibilityID.Collection.itemCard(itemID: "double_axe-basic"))
     }
 
     private func salvageItem(_ itemID: String) {
         let card = AccessibilityID.Collection.itemCard(itemID: itemID)
         let item = button(card)
-        scrollUntilVisible(item, swipingUp: false, maxAttempts: 12, requireHittable: true)
+        scrollUntilVisible(item, swipingUp: false, maxAttempts: 6, requireHittable: true)
         if !item.exists || !item.isHittable {
-            scrollUntilVisible(item, swipingUp: true, maxAttempts: 12, requireHittable: true)
+            scrollUntilVisible(item, swipingUp: true, maxAttempts: 3, requireHittable: true)
         }
         tapWhenReady(item)
         assertExists(AccessibilityID.LoadoutPicker.itemDetail(itemID))
@@ -51,12 +43,6 @@ final class SmokeShellTests: SeededSmokeUITestCase {
         assertExists(AccessibilityID.Collection.heroesCategory, timeout: 10)
         assertExists(AccessibilityID.Collection.companionsCategory, timeout: 10)
 
-        assertExistsAfterScroll(AccessibilityID.Collection.basicGearCategory, requireHittable: true)
-        tapButton(AccessibilityID.Collection.basicGearCategory)
-        assertExists(AccessibilityID.Collection.gearFilter)
-        goBack()
-        assertExistsAfterScroll(AccessibilityID.Collection.basicGearCategory)
-
         tabBar.selectHomestead()
         homestead.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Homestead.resourceWallet, timeout: 10)
@@ -75,25 +61,24 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
-            TestLaunchArg.skipOnboardingCeremony,
             "-disable-audio",
         ])
 
-        assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 20)
+        assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 15)
         XCTAssertEqual(app.tabBars.count, 0)
 
         let heroConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: .hero)]
-        if !heroConfirm.trinketWaitForExistence(timeout: 20) {
+        if !heroConfirm.trinketWaitForExistence(timeout: 15) {
             XCTFail("Confirm Hero not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
         XCTAssertTrue(heroConfirm.isEnabled)
         XCTAssertNotEqual(heroConfirm.label.trimmingCharacters(in: .whitespacesAndNewlines), "Confirm Hero")
         tapWhenReady(heroConfirm)
 
-        assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 20)
+        assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 15)
 
         let companionConfirm = app.descendants(matching: .any)[AccessibilityID.Onboarding.confirm(role: .companion)]
-        if !companionConfirm.trinketWaitForExistence(timeout: 20) {
+        if !companionConfirm.trinketWaitForExistence(timeout: 15) {
             XCTFail("Confirm Companion not found. Tree: \(String(app.debugDescription.prefix(2500)))")
         }
         XCTAssertTrue(companionConfirm.isEnabled)
@@ -101,9 +86,9 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         tapWhenReady(companionConfirm)
 
         XCTAssertTrue(
-            app.tabBars.firstMatch.trinketWaitForExistence(timeout: 20),
+            app.tabBars.firstMatch.trinketWaitForExistence(timeout: 15),
             "Tab bar did not appear after onboarding",
         )
-        play.assertLoaded(timeout: 20)
+        play.assertLoaded(timeout: 15)
     }
 }

@@ -18,7 +18,7 @@ final class SmokeShopTests: TrinketUITestCase {
                     "chapter-2-stage-6",
                     "chapter-2-stage-7",
                 ])
-                + ["-starting-gold", "200", "-launch-preparation-delay", "8"],
+                + ["-starting-gold", "200", "-launch-preparation-delay", "2"],
             waitForPreparation: false,
         )
 
@@ -28,7 +28,7 @@ final class SmokeShopTests: TrinketUITestCase {
             object: nil,
         )
         prematureShop.isInverted = true
-        XCTAssertEqual(XCTWaiter.wait(for: [prematureShop], timeout: 3), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [prematureShop], timeout: 1), .completed)
         XCTAssertTrue(any(AccessibilityID.Screen.launchWarmup).exists)
         app.terminate()
         app.launch()

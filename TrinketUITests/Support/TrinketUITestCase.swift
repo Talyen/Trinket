@@ -58,9 +58,9 @@ enum TestLaunchArg {
     }
 
     static func allForBattle(reset: Bool = true, fastTicks: Bool = false) -> [String] {
-        var args = allForScreen("battle", reset: reset)
+        let args = allForScreen("battle", reset: reset)
         if fastTicks {
-            args += ["-battle-tick-interval", "0.01"]
+            return replacingBattleTickInterval("0.01", in: args)
         }
         return args
     }

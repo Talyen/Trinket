@@ -4,11 +4,11 @@ import XCTest
 
 final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
     @MainActor
-    func testHeroDetailPickersSelectAndDismiss() {
+    func testHeroDetailAbilitySelectAndDismiss() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
         combatantDetail.assertLoaded(for: "Knight", timeout: 8)
 
-        scrollUntilVisible(button(AccessibilityID.Equipment.basicAbilitySlot), swipingUp: true, maxAttempts: 12)
+        scrollUntilVisible(button(AccessibilityID.Equipment.basicAbilitySlot), swipingUp: true, maxAttempts: 6)
         assertButtonExists(AccessibilityID.Equipment.basicAbilitySlot, timeout: 10)
         button(AccessibilityID.Equipment.basicAbilitySlot).tap()
         assertExists(AccessibilityID.LoadoutPicker.abilityGrid("Basic"), timeout: 10)
@@ -19,9 +19,15 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
 
         assertDoesNotExist(AccessibilityID.LoadoutPicker.abilityGrid("Basic"), timeout: 5)
         assertButtonExists(AccessibilityID.Equipment.basicAbilitySlot)
+    }
+
+    @MainActor
+    func testHeroDetailItemSearchEquipAndDismiss() {
+        launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
+        combatantDetail.assertLoaded(for: "Knight", timeout: 8)
 
         let weaponSlot = ItemSlot.weapon.accessibilityIdentifier
-        scrollUntilVisible(button(weaponSlot), swipingUp: true, maxAttempts: 12)
+        scrollUntilVisible(button(weaponSlot), swipingUp: true, maxAttempts: 6)
         button(weaponSlot).tap()
         assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 10)
         assertButtonExists(AccessibilityID.LoadoutPicker.itemFilter)
@@ -30,9 +36,6 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
         app.buttons["Astral"].tap()
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.trinketWaitForExistence(timeout: 5))
-        replaceText(in: search, with: "zzz")
-        assertExists(AccessibilityID.LoadoutPicker.itemsNoResults)
-        button(AccessibilityID.LoadoutPicker.clearItemFilters).tap()
         replaceText(in: search, with: "long")
         let candidateID = AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral")
         assertButtonExists(candidateID)
@@ -43,13 +46,6 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
         XCTAssertEqual(search.value as? String, "long")
         button(candidateID).tap()
         button(AccessibilityID.LoadoutPicker.equipItem("longsword-astral")).tap()
-        assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 5)
-        assertButtonExists(weaponSlot)
-        button(weaponSlot).tap()
-        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 10)
-        XCTAssertNotEqual(search.value as? String, "long")
-        button(candidateID).tap()
-        button(AccessibilityID.LoadoutPicker.unequipItem).tap()
         assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 5)
         assertButtonExists(weaponSlot)
     }

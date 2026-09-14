@@ -3,7 +3,7 @@ import XCTest
 
 final class SmokeBattleTests: TrinketUITestCase {
     func testBattleLaunchScreenStartsStageOneOne() {
-        launchApp(arguments: TestLaunchArg.allForBattle())
+        launchApp(arguments: TestLaunchArg.allForBattle(fastTicks: true))
         battle.assertActive(timeout: 8)
         assertExists(battle.actionsMenu)
         XCTAssertTrue(battle.actionsMenu.isHittable, "Battle controls must remain exposed above the retained map")
@@ -12,7 +12,10 @@ final class SmokeBattleTests: TrinketUITestCase {
     }
 
     func testVictoryContinueReturnsDirectlyToCampaign() {
-        launchApp(arguments: TestLaunchArg.allForScreen("battle-victory"))
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
+            "0.01",
+            in: TestLaunchArg.allForScreen("battle-victory"),
+        ))
         let lootAll = button(AccessibilityID.Battle.continueButton)
         scrollUntilVisible(lootAll, swipingUp: true, requireHittable: true)
         tapWhenReady(lootAll)
@@ -22,13 +25,19 @@ final class SmokeBattleTests: TrinketUITestCase {
     }
 
     func testDefeatRetryStartsBattle() {
-        launchApp(arguments: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat"))
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
+            "0.01",
+            in: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat"),
+        ))
         tapWhenReady(button(AccessibilityID.Battle.defeatPrimaryButton))
         battle.assertActive(timeout: 8)
     }
 
     func testDefeatLeaveRecoversFromSaveFailureAndReturnsToCampaign() {
-        launchApp(arguments: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat-save-failure"))
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
+            "0.01",
+            in: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat-save-failure"),
+        ))
         tapWhenReady(button(AccessibilityID.Battle.defeatLeaveButton))
         play.assertCampaignLoaded()
         XCTAssertFalse(app.alerts.firstMatch.exists)
@@ -36,7 +45,10 @@ final class SmokeBattleTests: TrinketUITestCase {
     }
 
     func testContractsBoardLaunchesBattleAndReturnsAfterRetreat() {
-        launchApp(arguments: TestLaunchArg.allForTab("play"))
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
+            "0.01",
+            in: TestLaunchArg.allForTab("play"),
+        ))
         play.assertLoaded(timeout: 10)
         play.openExplore()
         assertExistsAfterScroll(AccessibilityID.Play.contractsModeCard, requireHittable: true)
@@ -48,8 +60,6 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.battlePartyDone)
         tapButton(AccessibilityID.Play.battlePartyDone)
         assertDoesNotExist(AccessibilityID.Play.battlePartyDone, timeout: 5)
-        scrollUntilVisible(button(AccessibilityID.Play.contractFight("standard")), swipingUp: false, requireHittable: true)
-
         tapButton(AccessibilityID.Play.contractsRefresh)
         assertExistsAfterScroll(AccessibilityID.Play.contractFight("standard"), requireHittable: true)
         tapButton(AccessibilityID.Play.contractFight("standard"))
