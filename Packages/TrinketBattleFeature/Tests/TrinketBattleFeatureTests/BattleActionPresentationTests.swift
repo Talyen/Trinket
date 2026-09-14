@@ -9,10 +9,19 @@ import TrinketTestSupport
 @MainActor
 struct BattleActionPresentationTests {
     @Test(arguments: [false, true])
-    func `tap and prepared drag resolve immediately and deliver one impact`(prepared: Bool) throws {
-        let session = BattleSessionTestSupport.makePassiveSession()
+    func `tap and prepared drag deliver all results once while attack motion continues`(prepared: Bool) throws {
+        var sounds: [[String]] = []
+        let environment = BattleRuntimeDependencies(
+            playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { true },
+            effectsVolume: { 1 }, shouldAutoSkipUltimateCinematic: { _, _ in false },
+        )
+        let session = BattleSessionTestSupport.makeConfiguredSession(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
+            autoEndTurnDelay: 60, presentationEnvironment: environment,
+        )
         defer { session.endBattle() }
         let card = try installAttacks(in: session)[0]
+        sounds.removeAll()
         let date = Date.now
         let enemyID = try #require(session.enemyID)
         let health = try #require(session.engineState?.roster.enemy.currentHealth)
@@ -20,10 +29,15 @@ struct BattleActionPresentationTests {
         #expect(session.playCard(cardID: card.id, at: date) == .committed)
         #expect(session.canEndTurn)
         #expect((session.engineState?.roster.enemy.currentHealth ?? health) < health)
-        #expect(session.feedback.activeItems.isEmpty)
+        #expect(session.feedback.activeItems.contains { $0.targetID == enemyID && $0.availableAt == date })
         let actorID = try #require(session.heroID)
         #expect(session.feedback.attackReactionsByCombatantID[actorID]?.phase == (prepared ? .swing : .windUp))
         let beat = try #require(session.feedback.scheduledActions.first { $0.actorID == actorID })
+        #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - (prepared ? 0 : 0.10)) < 0.001)
+        let results = session.feedback.activeItems
+        let immediateSounds = sounds
+        #expect(immediateSounds.contains { !$0.isEmpty })
+        #expect(session.feedback.hitReactionsByTargetID[enemyID] != nil)
         var hits: [Int] = []
         session.feedback.installHitReactionBridge(ownerID: UUID(), combatantID: enemyID) {
             if let reaction = $0 {
@@ -31,12 +45,58 @@ struct BattleActionPresentationTests {
             }
         }
         session.feedback.advance(to: beat.impactAt.addingTimeInterval(-0.001))
-        #expect(hits.isEmpty)
+        #expect(hits.count == 1)
+        session.feedback.advance(to: beat.impactAt)
         session.feedback.advance(to: beat.impactAt)
         #expect(hits.count == 1)
-        #expect(session.feedback.activeItems.contains { $0.targetID == enemyID })
+        #expect(session.feedback.activeItems == results)
+        #expect(sounds == immediateSounds)
+    }
+
+    @Test(arguments: [false, true])
+    func `play origin controls feedback even with auto battle enabled`(isAutomatic: Bool) throws {
+        let environment = BattleRuntimeDependencies(
+            playSFX: { _ in }, warmSFX: { _, _ in }, hapticsEnabled: { false }, effectsVolume: { 0 },
+            rememberAutoBattlePreference: { true }, autoBattleEnabled: { true },
+            shouldAutoSkipUltimateCinematic: { _, _ in false },
+        )
+        let session = BattleSessionTestSupport.makeConfiguredSession(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
+            autoEndTurnDelay: 60, presentationEnvironment: environment,
+        )
+        defer { session.endBattle() }
+        let card = try installAttacks(in: session)[0]
+        #expect(session.isAutoBattleEnabled)
+        #expect(session.playCard(cardID: card.id, isAutomatic: isAutomatic) == .committed)
+        let beat = try #require(session.feedback.scheduledActions.first)
+        #expect(session.feedback.activeItems.isEmpty == isAutomatic)
+        #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - (isAutomatic ? 0.40 : 0.10)) < 0.001)
         session.feedback.advance(to: beat.impactAt)
-        #expect(hits.count == 1)
+        #expect(!session.feedback.activeItems.isEmpty)
+    }
+
+    @Test(arguments: [Ability.block, .heal, .slash])
+    func `a following manual card publishes results without waiting for earlier motion`(ability: Ability) throws {
+        let session = BattleSessionTestSupport.makePassiveSession()
+        defer { session.endBattle() }
+        var state = try #require(session.engineState)
+        state.hand = BattleHand()
+        let first = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &state)
+        let second = BattleCardCombatEngine.deal(ability, owner: .hero, context: &state)
+        state.roster.hero.currentHealth = 50
+        session.engineState = state
+        session.installSimulationPresentation()
+        session.feedback.clear()
+        let date = Date.now
+        #expect(session.playCard(cardID: first.id, at: date) == .committed)
+        let nextDate = date.addingTimeInterval(0.01)
+        #expect(session.playCard(cardID: second.id, at: nextDate) == .committed)
+        let beat = try #require(session.feedback.scheduledActions.last)
+        #expect(beat.impactAt > nextDate)
+        #expect(session.feedback.activeItems.contains { $0.actionGroupID == beat.id && $0.availableAt == nextDate })
+        if ability == .heal {
+            #expect(session.feedback.hitReactionsByTargetID[state.hero.id]?.kind == .heal)
+        }
     }
 
     @Test func `prepared random support outcome releases attack wind up`() throws {
@@ -81,9 +141,10 @@ struct BattleActionPresentationTests {
         session.installSimulationPresentation()
         #expect(session.playCard(cardID: card.id) == .committed)
         let impact = try #require(session.feedback.scheduledActions.first { $0.actorID == state.hero.id }?.impactAt)
-        session.feedback.advance(to: impact)
         let reaction = try #require(session.feedback.hitReactionsByTargetID[state.enemy.id])
         #expect(reaction.kind == (block == 100 ? .block : .damage))
+        session.feedback.advance(to: impact)
+        #expect(session.feedback.hitReactionsByTargetID[state.enemy.id] == reaction)
     }
 
     @Test func `burst keeps every impact and shortens preparation`() throws {
@@ -91,13 +152,6 @@ struct BattleActionPresentationTests {
         defer { session.endBattle() }
         let cards = try installAttacks(in: session)
         let date = Date.now
-        #expect(session.playCard(cardID: cards[0].id, at: date) == .committed)
-        let originalImpact = try #require(session.feedback.scheduledActions.first?.impactAt)
-        #expect(session.playCard(cardID: cards[1].id, at: date.addingTimeInterval(0.01)) == .committed)
-        let beats = session.feedback.scheduledActions.filter { $0.actorID != nil }
-        #expect(beats.count == 2)
-        #expect(beats[0].impactAt < originalImpact)
-        #expect(beats[1].swingAt >= beats[0].impactAt)
         var hits: [Int] = []
         let enemyID = try #require(session.enemyID)
         session.feedback.installHitReactionBridge(ownerID: UUID(), combatantID: enemyID) {
@@ -105,12 +159,20 @@ struct BattleActionPresentationTests {
                 hits.append(reaction.id)
             }
         }
+        #expect(session.playCard(cardID: cards[0].id, at: date) == .committed)
+        let originalImpact = try #require(session.feedback.scheduledActions.first?.impactAt)
+        #expect(session.playCard(cardID: cards[1].id, at: date.addingTimeInterval(0.01)) == .committed)
+        let beats = session.feedback.scheduledActions.filter { $0.actorID != nil }
+        #expect(hits.count == 2)
+        #expect(beats.count == 2)
+        #expect(beats[0].impactAt < originalImpact)
+        #expect(beats[1].swingAt >= beats[0].impactAt)
         for beat in beats {
             session.feedback.advance(to: beat.impactAt)
         }
         #expect(hits.count == 2)
         #expect(Set(hits).count == 2)
-        #expect(Set(session.feedback.activeItems.map(\.actionGroupID)).count == 2)
+        #expect(session.feedback.activeItems.last?.actionGroupID == beats[1].id)
     }
 
     @Test func `automatic cards share reveal and attack timing`() throws {
@@ -131,6 +193,10 @@ struct BattleActionPresentationTests {
         #expect(cast.activationAt == beat.swingAt)
         #expect(beat.impactAt > beat.swingAt)
         #expect(beat.actorID == session.companionID)
+        #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - 0.40) < 0.001)
+        #expect(!session.feedback.activeItems.contains { $0.actionGroupID == beat.id })
+        session.feedback.advance(to: beat.impactAt)
+        #expect(session.feedback.activeItems.contains { $0.actionGroupID == beat.id })
         #expect(session.canEndTurn)
     }
 
@@ -160,8 +226,10 @@ struct BattleActionPresentationTests {
         #expect(session.playCard(cardID: card.id, at: date) == .committed)
         let impact = try #require(session.feedback.scheduledActions.first?.impactAt)
         session.feedback.setSuspended(true, at: date.addingTimeInterval(0.1))
+        let pausedItems = session.feedback.activeItems
         session.feedback.advance(to: impact.addingTimeInterval(10))
-        #expect(session.feedback.activeItems.isEmpty)
+        #expect(session.feedback.activeItems == pausedItems)
+        #expect(!session.feedback.hitReactionsByTargetID.isEmpty)
         session.feedback.setSuspended(false, at: date.addingTimeInterval(10.1))
         let resumedImpact = try #require(session.feedback.scheduledActions.first?.impactAt)
         #expect(abs(resumedImpact.timeIntervalSince(impact) - 10) < 0.001)
@@ -282,7 +350,9 @@ struct BattleActionPresentationTests {
             ],
         )
         var delivered: [Int] = []
-        session.feedback.scheduleActions(playback, preparedCardID: nil, at: .now, cardPlayback: session.cardPlayback) { events, _, _, _ in
+        session.feedback.scheduleActions(
+            playback, preparedCardID: nil, at: .now, cardPlayback: session.cardPlayback,
+        ) { events, _, _, _ in
             delivered += events.map(\.id)
         }
         let beats = session.feedback.scheduledActions

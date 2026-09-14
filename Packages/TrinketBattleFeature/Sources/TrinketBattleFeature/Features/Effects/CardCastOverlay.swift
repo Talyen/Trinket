@@ -118,7 +118,6 @@ struct CardActivationRequest: Equatable, Identifiable {
         index: Int,
         cardCount: Int,
         battleSize: CGSize,
-        liftFraction: CGFloat = 0,
         startedAt: Date = .now,
     ) -> Self {
         let metrics = BattleHandLayout.metrics(
@@ -134,10 +133,7 @@ struct CardActivationRequest: Equatable, Identifiable {
         return Self(
             startedAt: startedAt,
             artworkName: card.ability.artReference?.imageName,
-            center: CGPoint(
-                x: restingCenter.x,
-                y: restingCenter.y - metrics.cardHeight * liftFraction,
-            ),
+            center: restingCenter,
             size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
             rotation: BattleHandLayout.rotation(index: index, cardCount: cardCount) * .pi / 180,
             verticalTilt: 0,
@@ -215,7 +211,7 @@ struct CardCastEffectsLayer: View {
         )
         .position(
             x: request.center.x,
-            y: request.center.y - request.size.height * BattleMotion.tapLiftHeightFraction * rise,
+            y: request.center.y - request.size.height * BattleMotion.cardPlayRiseHeightFraction * rise,
         )
     }
 }

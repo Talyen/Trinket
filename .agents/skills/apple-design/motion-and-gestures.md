@@ -3,6 +3,13 @@
 Use native controls and existing `TrinketMotion` recipes before custom gesture
 machinery. Keep press feedback immediate and motion tied to the player's input.
 
+For touch controls, use Apple's 44-by-44-point game-control target and enough
+separation to avoid adjacent actions. Inspect the effective hit region, including
+native padding and `contentShape`, before adding frames; a small glyph is not proof
+of a small target. Consider thumb reach for frequent actions without moving the
+established battlefield. Essential custom gestures need a discoverable alternative;
+retain card tap/inspection paths and don't compete with system edge gestures.
+
 - Separate feedback from commitment: highlight on press, commit a button action
   on release, and allow cancellation by moving away. Preserve a usable hit target.
 - Track a drag from its grab offset. Use `@GestureState` for transient state so
@@ -29,3 +36,5 @@ Unchanged interactions do not require revalidation merely because the screen
 contains them.
 
 Background: Apple's [Designing Fluid Interfaces](https://developer.apple.com/videos/play/wwdc2018/803/).
+Touch guidance: [Designing for games](https://developer.apple.com/design/human-interface-guidelines/designing-for-games)
+and [Gestures](https://developer.apple.com/design/human-interface-guidelines/gestures).

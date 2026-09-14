@@ -11,6 +11,13 @@ enum BattleCardCuePresentationMode: Equatable {
     case preview
     case tapCommit
 
+    func showsRecipientVisual(for recipient: BattleRecipientCue, isActor: Bool) -> Bool {
+        if self == .preview, isActor, recipient.isActorPreparationFallback {
+            return false
+        }
+        return showsRecipientVisual(for: recipient.kind)
+    }
+
     func showsRecipientVisual(for kind: BattleCardCueKind) -> Bool {
         switch self {
         case .preview:
@@ -29,6 +36,17 @@ enum BattleCardCuePresentationMode: Equatable {
 struct BattleRecipientCue: Equatable {
     let kind: BattleCardCueKind
     let keyword: Keyword?
+    let isActorPreparationFallback: Bool
+
+    init(
+        kind: BattleCardCueKind,
+        keyword: Keyword?,
+        isActorPreparationFallback: Bool = false,
+    ) {
+        self.kind = kind
+        self.keyword = keyword
+        self.isActorPreparationFallback = isActorPreparationFallback
+    }
 }
 
 struct BattleCardCue: Equatable {

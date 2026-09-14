@@ -27,21 +27,17 @@ public enum TrinketMotion: Sendable {
     public enum Reward: Sendable {
         public static let categoryEntranceScale: CGFloat = 0.97
         public static let categoryEntranceStagger: TimeInterval = 0.06
-        public static let collectionDuration: TimeInterval = 0.55
-        public static let collectionLiftDuration: TimeInterval = 0.12
-        public static let collectionWalletDelay: TimeInterval = 0.04
-        public static let collectionLiftScale: CGFloat = 1.025
-        public static let collectionGatherScale: CGFloat = 0.94
-        public static let collectionLiftOffset: CGFloat = -4
-        public static let collectionGatherOffset: CGFloat = 20
-        public static let collectionLift: Animation = .easeOut(duration: collectionLiftDuration)
-        public static let collectionGather: Animation = .easeIn(duration: 0.19)
+        public static let collectionDuration: TimeInterval = 0.18
+        public static let collectionPulseScale: CGFloat = 1.025
+        public static let collectionPulse: Animation = .easeInOut(duration: collectionDuration / 2)
 
         public static let resourceStagger: TimeInterval = 0.06
-        public static let itemRevealDelay: TimeInterval = 0.08
-        public static let completionDelay: TimeInterval = 0.10
+        public static let entranceDelay: TimeInterval = 0.08
+        public static let revealDuration: TimeInterval = 0.18
 
         public static let stateChange: Animation = .spring(response: 0.22, dampingFraction: 1.0)
+
+        public static let lootReveal: Animation = .easeOut(duration: revealDuration)
 
         public static let reveal: Animation = .spring(response: 0.28, dampingFraction: 0.88)
     }

@@ -33,8 +33,9 @@ For interactive inspection, use one persistent terminal session:
 
 In Codex, call `exec_command` with `tty=true` and retain its session ID. The
 launcher acquires an available agent slot, builds, installs, launches, then
-prints `Inspection ready` with the simulator name, UDID, bundle ID, and product
-path. It keeps its lease until you send `stop\n` through `write_stdin`, close
+prints `Inspection ready` with the simulator name, UDID, bundle ID, product
+path, and device UI path. Xcode 27 uses Device Hub; older Xcode uses Simulator.
+It keeps its lease until you send `stop\n` through `write_stdin`, close
 terminal input, or cancel the process. Confirm process exit after finishing.
 Do not wait for this command to exit before beginning Computer Use. Keep its
 session alive across tool calls; do not run another simulator job against its
@@ -47,12 +48,16 @@ parent lease for that slot; otherwise let `--isolate` acquire an available slot.
 
 ### Computer Use
 
-Use Computer Use (`mcp__cua_repl`) to view and operate Simulator. Start with
-`cua.getApp("com.apple.iphonesimulator")` and follow its returned documentation.
+Use Computer Use (`mcp__cua_repl`) to view and operate the device UI. Start with
+`cua.getApp(...)` using the launcher's printed device UI path and follow its returned
+documentation. Xcode 27 ships Device Hub (`com.apple.dt.Devices`) under
+`Contents/Applications/DeviceHub.app`; the old Simulator path may no longer exist.
+The launcher resolves the UI from the selected Xcode to avoid stale registrations.
 Confirm the window's device name matches the launcher's leased simulator before
-interacting; use the Simulator window/device UI if another device is selected.
+interacting; select the leased device in Device Hub's sidebar (or Simulator) if
+another device is selected. An opened app alone does not prove device selection.
 Recheck the target after a window change. Device leases protect device ownership,
-but do not give each agent a separate Simulator.app foreground window.
+but do not give each agent a separate device UI foreground window.
 
 Observe the current screen, act, and inspect the resulting state before choosing
 the next action. Computer Use provides both screenshots and accessibility
@@ -119,15 +124,15 @@ package tests, but CloudKit-enabled app launches require the Simulator's embedde
 iCloud entitlements.
 `ENTITLEMENTS_ALLOWED` alone does not preserve them in an unsigned app product.
 
-`./Scripts/run-simulator.sh` (the `run` alias) builds, installs, then ensures
-`Simulator.app` is frontmost for the target device. `open -a Simulator --args
--CurrentDeviceUDID` only affects a fresh launch — when Simulator is already
-running the script explicitly re-opens, activates, and re-applies the UDID so
-`simctl launch` does not succeed headlessly with no window. If the window
-still does not appear, run `open -a Simulator --args -CurrentDeviceUDID <UDID>`
-or `open -a Simulator` and check `xcrun simctl list devices` for the `Booted`
-state. An opted-in handoff mirror does not launch by default. Agents use
-`./Scripts/run-simulator.sh --isolate` to foreground their leased build.
+`./Scripts/run-simulator.sh` (the `run` alias) builds, installs, opens the selected
+Xcode's device UI, and launches the app on the leased device. Opening Device Hub
+or Simulator does not guarantee that the target screen is visible; confirm the
+device selection through the [Computer Use workflow](#computer-use). Legacy
+Simulator's `-CurrentDeviceUDID` argument only affects a fresh launch. The launcher
+reports UI-open failures separately from app-launch failures, so a successful
+headless launch is not visual verification. An opted-in handoff mirror does not
+launch by default. Agents use `./Scripts/run-simulator.sh --isolate --inspect`
+to keep their lease throughout inspection.
 
 ## Xcode IDE loop
 

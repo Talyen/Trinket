@@ -10,7 +10,7 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | [SimulatorOperations.md](SimulatorOperations.md) | Managed simulator isolation and local Xcode operations |
 | [Purchases.md](Purchases.md) | StoreKit testing, purchase ownership, and release prerequisites |
 | [Release.md](Release.md) | Versions, release notes, tags, and App Store handoff |
-| [iOS26AppleReference.md](iOS26AppleReference.md) | Trinket Apple API choices |
+| [ApplePlatformReference.md](ApplePlatformReference.md) | iOS support, adoption, and Apple design/API choices |
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Human CloudKit / App Store enablement checklist |
 | [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) | Frame-pacing investigation only — do not run unless the task is performance |
 | [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) | Device-led memory/energy investigation only |

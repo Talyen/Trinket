@@ -218,7 +218,7 @@ class ExecWrapperTests(unittest.TestCase):
 
     def test_simulator_launcher_installs_resolved_product_and_rejects_missing_outputs(self) -> None:
         for mode in ("valid", "missing-target", "missing-product", "missing-plist", "settings-failed",
-                     "inspect-stop", "inspect-eof", "inspect-cancel", "inspect-no-terminal"):
+                     "inspect-stop", "inspect-eof", "inspect-cancel", "inspect-no-terminal", "inspect-legacy"):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 scripts = root / "Scripts"
@@ -275,7 +275,15 @@ if 'appearance' in sys.argv:
 """,
                 }
                 if mode.startswith("inspect-"):
-                    commands.update({name: "#!/bin/sh\nexit 0\n" for name in ("open", "osascript", "pgrep")})
+                    developer = root / "Xcode.app/Contents/Developer"
+                    device_app = (developer / "Applications/Simulator.app" if mode == "inspect-legacy"
+                                  else developer.parent / "Applications/DeviceHub.app")
+                    device_app.mkdir(parents=True)
+                    commands["xcode-select"] = "#!/bin/sh\nprintf '%s\\n' '" + str(developer) + "'\n"
+                    commands["open"] = """#!/usr/bin/env python3
+import json, pathlib, sys
+pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
+"""
                 for name, source in commands.items():
                     binary = binaries / name
                     binary.write_text(source)
@@ -284,6 +292,7 @@ if 'appearance' in sys.argv:
                                if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
                 environment["PATH"] = str(binaries) + os.pathsep + os.environ["PATH"]
                 if mode.startswith("inspect-"):
+                    environment.pop("DEVELOPER_DIR", None)
                     command = [str(scripts / "run-simulator.sh"), "--isolate", "--inspect"]
                     if mode == "inspect-no-terminal":
                         result = subprocess.run(command, env=environment, stdin=subprocess.DEVNULL,
@@ -325,6 +334,10 @@ if 'appearance' in sys.argv:
                         os.close(master)
                         os.close(slave)
                     self.assertEqual(json.loads((root / "install.json").read_text()), ["fixture", str(app)])
+                    opened = json.loads((root / "open.json").read_text())
+                    self.assertEqual(opened[:2], ["-a", str(device_app)])
+                    self.assertEqual(opened[2:], ["--args", "-CurrentDeviceUDID", "fixture"]
+                                     if mode == "inspect-legacy" else [])
                     continue
                 result = subprocess.run(
                     [str(scripts / "run-simulator.sh"), "--isolate"],

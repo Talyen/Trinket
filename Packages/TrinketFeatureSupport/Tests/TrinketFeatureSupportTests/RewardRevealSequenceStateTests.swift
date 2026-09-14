@@ -7,14 +7,14 @@ struct RewardRevealSequenceStateTests {
     @Test func `a gold loss remains visible in the reward sequence`() async {
         let state = makeState()
         let count = RewardRevealLootSection.walletRewardCount(gold: -5, materials: [])
-        state.start(itemCount: 0, walletCount: count)
+        state.start(walletCount: count)
         #expect(await waitUntil { state.isSequenceComplete })
         #expect(state.visibleWalletRewardCount == 1)
     }
 
     @Test func `start completes wallet and item reveal`() async {
         let state = makeState()
-        state.start(itemCount: 1, walletCount: 2)
+        state.start(walletCount: 2)
         #expect(await waitUntil { state.isSequenceComplete })
         #expect(state.areItemsVisible)
         #expect(state.visibleWalletRewardCount == 2)
@@ -22,9 +22,9 @@ struct RewardRevealSequenceStateTests {
 
     @Test func `start is idempotent`() async {
         let state = makeState()
-        state.start(itemCount: 1, walletCount: 1)
+        state.start(walletCount: 1)
         #expect(await waitUntil { state.isSequenceComplete })
-        state.start(itemCount: 0, walletCount: 3)
+        state.start(walletCount: 3)
         #expect(state.visibleWalletRewardCount == 1)
     }
 
@@ -35,7 +35,7 @@ struct RewardRevealSequenceStateTests {
             }
             throw CancellationError()
         }
-        state.start(itemCount: 1, walletCount: 2)
+        state.start(walletCount: 2)
         await Task.yield()
         state.cancel(walletCount: 2)
         #expect(state.isSequenceComplete)
@@ -43,18 +43,22 @@ struct RewardRevealSequenceStateTests {
         #expect(state.visibleWalletRewardCount == 2)
     }
 
-    @Test func `experience bars gate the reveal`() async {
-        let singleAwardState = makeState()
-        singleAwardState.experienceBarCompleted(requiredCount: 1, itemCount: 0, walletCount: 1)
-        #expect(await waitUntil { singleAwardState.isSequenceComplete })
-        #expect(singleAwardState.visibleWalletRewardCount == 1)
-
-        let twoAwardState = makeState()
-        twoAwardState.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
-        #expect(!twoAwardState.isSequenceComplete)
-        twoAwardState.experienceBarCompleted(requiredCount: 2, itemCount: 0, walletCount: 1)
-        #expect(await waitUntil { twoAwardState.isSequenceComplete })
-        #expect(twoAwardState.visibleWalletRewardCount == 1)
+    @Test(arguments: [0, 1, 3])
+    func `loot reveals together and becomes ready without XP callbacks`(walletCount: Int) async {
+        let clock = ControlledRewardRevealClock()
+        let state = RewardRevealSequenceState(clock: clock)
+        state.start(walletCount: walletCount)
+        #expect(await waitUntil { clock.isSleeping })
+        #expect(!state.areItemsVisible)
+        #expect(state.visibleWalletRewardCount == 0)
+        #expect(!state.isSequenceComplete)
+        clock.advance()
+        #expect(await waitUntil { clock.isSleeping })
+        #expect(state.areItemsVisible)
+        #expect(state.visibleWalletRewardCount == walletCount)
+        #expect(!state.isSequenceComplete)
+        clock.advance()
+        #expect(await waitUntil { state.isSequenceComplete })
     }
 
     @Test(arguments: [false, true])
@@ -79,6 +83,20 @@ struct RewardRevealSequenceStateTests {
         #expect(claims == 1)
         #expect(exits == 1)
         #expect(state.feedbackTrigger == 1)
+    }
+
+    @Test func `collection exits after one brief confirmation beat`() async {
+        let clock = ControlledRewardRevealClock()
+        let state = RewardCollectionState(clock: clock)
+        var exits = 0
+        state.perform(.collect(hapticsEnabled: true, claim: { true }, finish: { exits += 1 }))
+        #expect(await waitUntil { clock.isSleeping })
+        #expect(state.isCollected)
+        #expect(exits == 0)
+        #expect(clock.requestedDurations == [.milliseconds(180)])
+        clock.advance()
+        #expect(await waitUntil { exits == 1 })
+        #expect(!clock.isSleeping)
     }
 
     @Test func `immediate actions bypass the collection beat`() {
@@ -136,5 +154,26 @@ private struct TestRewardRevealClock: RewardRevealClock, Sendable {
 
     func sleep(for duration: Duration) async throws {
         try await sleepAction(duration)
+    }
+}
+
+@MainActor
+private final class ControlledRewardRevealClock: RewardRevealClock {
+    private var continuation: CheckedContinuation<Void, Never>?
+    private(set) var requestedDurations: [Duration] = []
+
+    var isSleeping: Bool {
+        continuation != nil
+    }
+
+    func sleep(for duration: Duration) async {
+        requestedDurations.append(duration)
+        await withCheckedContinuation { continuation = $0 }
+    }
+
+    func advance() {
+        let pending = continuation
+        continuation = nil
+        pending?.resume()
     }
 }

@@ -29,6 +29,7 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-023 | Talents are a finite character kit; levels continue beyond talent completion. | Keep one talent point at even levels, stop talent prompts and affordances when no legal node remains, and preserve uncapped Health, Mana, and level-driven enemy progression. |
 | PD-024 | Battle card input stays continuous through effects, draws, turn transitions, and finishing animations. | [Card play](CardPlay.md) owns the approved interaction contract. Animation locks and rejecting visual-only finishing taps are regressions, not safety fixes. |
 | PD-025 | Saving is automatic and player-transparent. | Normal play saves locally and continues offline; cloud synchronization catches up automatically. Handle transient write and sync failures internally without save-error alerts. Preserve recoverable progress and pending actions; [persistence storage](../AgentContext/persistence-storage.md) owns durability and retry rules. |
+| PD-026 | Trinket adopts each new iOS release and supports the latest public major plus the previous major. | Prioritize current native behavior and useful new APIs; test prereleases, ship with a validated stable toolchain. [Platform support](../Platform/ApplePlatformReference.md#platform-support) owns adoption, minimum-version transitions, and verification. |
 
 These are product constraints, not a backlog. Sibling product docs:
 [README.md](README.md). For source ownership and tests, read the relevant `Docs/AgentContext/` card.

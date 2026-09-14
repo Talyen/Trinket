@@ -9,7 +9,7 @@ public struct RewardRevealExperienceSection: View {
     public init(
         awards: [RewardRevealExperienceAward],
         spacing: CGFloat = TrinketDesign.Spacing.medium,
-        onAnimationCompleted: @escaping () -> Void,
+        onAnimationCompleted: @escaping () -> Void = {},
     ) {
         self.awards = awards
         self.spacing = spacing

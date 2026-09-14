@@ -144,7 +144,6 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                             visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
                             spacing: loot.lootSpacing,
                             isCollected: collection.isCollected,
-                            hasGathered: collection.hasGathered,
                             focusedItemID: $focusedItemID,
                             onSelectItem: { selectedRewardItem = $0 },
                         )
@@ -159,6 +158,8 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                 contentTopPadding: contentTopPadding,
                 contentStackSpacing: contentStackSpacing,
                 pinsPrimaryActionToBottom: false,
+                primaryActionOpacity: revealSequence.areItemsVisible ? 1 : 0,
+                primaryActionEntranceOffset: 0,
             )
         }
         .scrollDisabled(collection.isCompleting)
@@ -178,9 +179,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             if focusedItemID == nil {
                 focusedItemID = loot.items.first?.id
             }
-            if experienceAwards.isEmpty {
-                revealSequence.start(itemCount: loot.items.count, walletCount: walletRewardCount)
-            }
+            revealSequence.start(walletCount: walletRewardCount)
         }
         .onDisappear {
             collection.finish()
@@ -194,7 +193,6 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             RewardRevealExperienceSection(
                 awards: experienceAwards,
                 spacing: experienceSpacing,
-                onAnimationCompleted: onExperienceBarCompleted,
             )
             .accessibilityIdentifier(experienceAccessibilityIdentifier ?? "")
         } else if EmptyExperience.self != EmptyView.self {
@@ -211,14 +209,6 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             return loot.items.first?.plasmaKeywords ?? []
         }
         return item.plasmaKeywords
-    }
-
-    private func onExperienceBarCompleted() {
-        revealSequence.experienceBarCompleted(
-            requiredCount: experienceAwards.count,
-            itemCount: loot.items.count,
-            walletCount: walletRewardCount,
-        )
     }
 
     private func complete() {

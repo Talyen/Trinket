@@ -8,8 +8,8 @@ buttons and system toolbar styling.
 |----------------|---------|
 | `.trinketScreenBackground()` | Shared tab/screen canvas (`TrinketDesign.Colors.canvas`) |
 | `.trinketSurface(_:)` | Panels, cards, rows, selected/disabled/warning/reward states |
-| `.trinketMaterial(_:)` | Bottom bars, popovers, reward reveals; modal uses solid surface; toolbar passes through |
-| `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
+| `.trinketMaterial(_:)` | `.bottomBar` / `.homesteadFooter`: regular glass; `.rewardReveal`: accent-tinted regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke |
+| `.trinketGlassChip(_:)` | Regular-glass capsules; `.standard` / `.emphasis` select shared padding and emphasis stroke |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
 | `.trinketArtworkPickerSelectionBorder(isSelected:color:lineWidth:)` | Selection border around artwork picker cards |
@@ -41,7 +41,7 @@ Glass chrome routes through `.glassEffect` inside this package only.
 
 Artwork blends provide a transition into destination surfaces. Use `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
-Platform API notes: [iOS26AppleReference.md](../../../Docs/Platform/iOS26AppleReference.md). Fluid motion: [apple-design skill](../../../.agents/skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../../Docs/Platform/Architecture.md).
+Platform API notes: [Apple platform reference](../../../Docs/Platform/ApplePlatformReference.md). Fluid motion: [apple-design skill](../../../.agents/skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../../Docs/Platform/Architecture.md).
 
 Wallet resource pills accept either a numerical balance or a formatted value for
 production rates and comparisons. Amounts default to the primary text color;

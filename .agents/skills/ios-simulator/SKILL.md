@@ -13,7 +13,10 @@ with `tty=true`), and retain the returned session ID:
 ```
 
 Wait for `Inspection ready`, then use **Computer Use** (`mcp__cua_repl`) to view
-and operate the matching Simulator window. Follow the tool's live documentation;
+and operate the matching device window in **Device Hub** (Xcode 27) or Simulator.
+Use the device UI path printed by the launcher with `cua.getApp(...)`; do not
+assume the old Simulator bundle identifier still resolves after an Xcode upgrade.
+Follow the tool's live documentation;
 its JavaScript calls are the supported interaction interface. Keep the terminal
 session alive throughout inspection. Send `stop\n` to that session using
 `write_stdin` when finished, and confirm the process exits.

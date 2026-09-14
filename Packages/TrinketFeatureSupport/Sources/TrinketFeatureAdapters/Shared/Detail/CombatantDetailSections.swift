@@ -33,6 +33,8 @@ struct CombatantLabyrinthSection: View, Equatable {
                 title: modifier.title,
                 description: trimmed(modifier.effect.description),
                 descriptionAccessibilityID: AccessibilityID.CombatantDetail.labyrinthModifierDescription,
+                leadingIcon: LabyrinthModifierPresentation.style(for: modifier).icon,
+                titleColor: LabyrinthModifierPresentation.style(for: modifier).color,
             )
         }
     }

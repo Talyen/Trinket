@@ -95,10 +95,16 @@ public enum LabyrinthMapPresentation {
 
     public static func hexRadius(
         forAvailableWidth availableWidth: CGFloat,
-        edgePad: CGFloat = 0,
+        projectedHalfColumnSpan: Int = LabyrinthMapLayout.maxProjectedSpan,
+        edgePad: CGFloat = 6,
     ) -> CGFloat {
         let usableWidth = max(1, availableWidth - edgePad * 2)
         let columns = CGFloat(LabyrinthMapLayout.fullColumnsAcross)
-        return usableWidth / (columns * CGFloat(3).squareRoot())
+        let targetRadius = availableWidth / (columns * CGFloat(3).squareRoot()) * 1.2
+        // Reserve the selected seal's scale and stroke at both horizontal edges.
+        let fittedRadius = max(1, usableWidth - 3) / (
+            (CGFloat(projectedHalfColumnSpan) / 2 + 1.035) * CGFloat(3).squareRoot()
+        )
+        return min(targetRadius, fittedRadius)
     }
 }

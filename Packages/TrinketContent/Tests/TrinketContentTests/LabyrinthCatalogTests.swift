@@ -122,7 +122,7 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func `generated combat modifiers align with node enemies`() {
-        for seed in 0 ..< 20 {
+        for seed in 0 ..< 40 {
             let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
             for node in generated.nodes.values where node.type.isCombat {
                 guard let enemyID = node.enemyID else { continue }
@@ -175,8 +175,9 @@ struct LabyrinthCatalogTests {
     @Test func `floor shape stays within plan bounds`() {
         var layoutSignatures = Set<String>()
         var observedCycleCounts = Set<Int>()
+        var observedFourWayJunction = false
 
-        for seed in 0 ..< 20 {
+        for seed in 0 ..< 40 {
             let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
             for cluster in generated.clusters where cluster.depthBand > 0 {
                 let nodes = cluster.nodeIDs.compactMap { generated.nodes[$0] }
@@ -190,6 +191,9 @@ struct LabyrinthCatalogTests {
                 #expect(nodes.count(where: { !$0.type.isCombat }) >= 2)
 
                 let geometry = validateGeometry(of: nodes)
+                observedFourWayJunction = observedFourWayJunction || nodes.contains { source in
+                    nodes.count(where: { source.id != $0.id && source.isAdjacent(to: $0) }) == 4
+                }
                 for node in nodes {
                     let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
                     #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
@@ -210,7 +214,8 @@ struct LabyrinthCatalogTests {
         }
 
         #expect(layoutSignatures.count >= 10)
-        #expect(observedCycleCounts == [0, 1])
+        #expect(observedCycleCounts == [0, 1, 2])
+        #expect(observedFourWayJunction)
     }
 
     private func validateGeometry(of nodes: [LabyrinthNode]) -> (signature: String, cycleCount: Int) {
@@ -235,10 +240,10 @@ struct LabyrinthCatalogTests {
             (node.id, nodes.filter { node.id != $0.id && node.isAdjacent(to: $0) }.map(\.id))
         })
         let degrees = nodes.map { neighborsByID[$0.id]?.count ?? 0 }
-        #expect(degrees.allSatisfy { $0 <= 3 })
+        #expect(degrees.allSatisfy { $0 <= 4 })
         #expect(degrees.first == 1)
         #expect(degrees.last == 1)
-        #expect(degrees.contains(3))
+        #expect(degrees.contains(where: { $0 >= 3 }))
 
         var reached = Set(nodes.prefix(1).map(\.id))
         var frontier = Array(reached)
@@ -249,7 +254,7 @@ struct LabyrinthCatalogTests {
         }
         #expect(reached == Set(nodes.map(\.id)))
         let cycleCount = degrees.reduce(0, +) / 2 - nodes.count + 1
-        #expect(cycleCount == 0 || cycleCount == 1)
+        #expect((0 ... 2).contains(cycleCount))
         return (
             positions.map { "\($0.row):\($0.column)" }.joined(separator: "|"),
             cycleCount,

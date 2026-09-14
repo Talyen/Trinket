@@ -7,6 +7,8 @@ public struct DetailTraitRow: View {
     let description: String
     var descriptionAccessibilityID: String?
     var leadingIconKeyword: Keyword?
+    var leadingIcon: GameIcon?
+    var titleColor: Color?
     var titleShine: Shine
     var titlePrefix: String?
     var titlePrefixShine: Shine
@@ -16,6 +18,8 @@ public struct DetailTraitRow: View {
         description: String,
         descriptionAccessibilityID: String? = nil,
         leadingIconKeyword: Keyword? = nil,
+        leadingIcon: GameIcon? = nil,
+        titleColor: Color? = nil,
         titleShine: Shine = .none,
         titlePrefix: String? = nil,
         titlePrefixShine: Shine = .none,
@@ -24,6 +28,8 @@ public struct DetailTraitRow: View {
         self.description = description
         self.descriptionAccessibilityID = descriptionAccessibilityID
         self.leadingIconKeyword = leadingIconKeyword
+        self.leadingIcon = leadingIcon
+        self.titleColor = titleColor
         self.titleShine = titleShine
         self.titlePrefix = titlePrefix
         self.titlePrefixShine = titlePrefixShine
@@ -33,7 +39,12 @@ public struct DetailTraitRow: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             if !(title?.isEmpty ?? true) || !(titlePrefix?.isEmpty ?? true) {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.extraSmall) {
-                    if let leadingIconKeyword {
+                    if let leadingIcon {
+                        GameIconImage(leadingIcon)
+                            .trinketTypography(.cardTitle)
+                            .foregroundStyle(titleColor ?? .primary)
+                            .accessibilityHidden(true)
+                    } else if let leadingIconKeyword {
                         if leadingIconKeyword == .gold {
                             HomesteadResourceArtwork(resource: .gold)
                                 .frame(width: 18, height: 18)
@@ -69,7 +80,7 @@ public struct DetailTraitRow: View {
                 Text(balanced: title)
                     .trinketTypography(.cardTitle)
                     .shineText(titleShine)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(titleColor ?? .primary)
                     .trinketFittedText()
             }
         }

@@ -65,6 +65,13 @@ symbol behavior. Painted artwork remains primary outside symbolic feedback.
 [Game icon selections](../../../Docs/Product/GameIcons.md) records shared mappings
 and links to individual talent and Homestead selections.
 
+Check each new symbol and symbol effect against the minimum supported OS; the
+current SF Symbols app can include names available only on newer releases. Use an
+availability-gated newer symbol where it materially improves communication, with
+an existing symbol on the older supported OS. Keep stable gameplay identities;
+do not change serialized icon IDs merely to animate a presentation. Review symbols
+at the surrounding text's weight and scale and over their actual backgrounds.
+
 `GameIcon` identifies `.system(name)`. `GameIconImage` renders a native SwiftUI
 symbol in monochrome, inheriting the surrounding typography and tint. Icons are
 decorative; provide meaningful accessibility labels on their containing controls.

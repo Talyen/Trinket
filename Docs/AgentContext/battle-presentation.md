@@ -66,16 +66,21 @@ simulation suites; gesture inspection/drag safety uses `BattleFlowUITests`.
 `BattleFeedbackLane` schedules attack phases and impact delivery from resolved
 actions. Combatant motion uses the same clock and native SwiftUI spring recipes,
 retargeting from its current pose. A prepared drag commits its swing; a tap starts
-full preparation. Later attacks by the same actor can shorten pending preparation
+0.10-second preparation for manual plays (automatic and enemy attacks retain
+0.40 seconds). Later attacks by the same actor can shorten pending preparation
 and interrupt recovery, while distinct impacts remain ordered. Automatic card
 reveal and dissolve use the same scheduled swing time. Ultimate highlights still
-start with the committed action, while hit feedback waits for impact. Skipped and support actions
+start with the committed action. Manual results and recoil publish at commitment
+while attacker motion continues. Skipped and support actions
 do not invent attacks.
 
 Impact delivery groups results by the presentation beat, independent of the
 engine's broader feedback group. Recoil chooses the strongest result per recipient,
 including directional Block recoil; periodic results cannot suppress a direct hit
-or produce recoil. Floating results, sounds, and haptics share impact delivery.
+or produce recoil. Manual floating results, sounds, result haptics, and recoil
+share immediate delivery, including support results while earlier attacks are pending. Scheduled
+attack phases never replay those results. Automatic plays, counterattacks,
+enemy actions, and auto-battle retain combined impact delivery.
 `BattleActionPresentationTests` owns sequencing, timing, interruption, and lifecycle;
 recording parity remains in BattleEngine's card tests.
 
@@ -108,6 +113,11 @@ already-queued real impacts and their feedback lifetime; finishing taps cannot
 extend it.
 
 ## Card visibility
+
+Holding a hand card to inspect it preserves its held appearance and foreground
+ordering through detail-sheet presentation until dismissal. Gesture release or
+cancellation during inspection must not return or play the card; dismissal
+returns it with the existing hand motion.
 
 Hand cards remain fully opaque whenever visible, including opening and subsequent
 draws. Deal motion uses offset and scale without an opacity transition. Battle

@@ -26,6 +26,7 @@ public struct RewardRevealShell<Content: View>: View {
     var contentStackSpacing = TrinketDesign.Layout.sectionSpacing
     var pinsPrimaryActionToBottom = true
     var primaryActionOpacity: Double = 1
+    var primaryActionEntranceOffset: CGFloat = TrinketDesign.Spacing.small
 
     public init(
         eyebrow: String?,
@@ -52,6 +53,7 @@ public struct RewardRevealShell<Content: View>: View {
         contentStackSpacing: CGFloat = TrinketDesign.Layout.sectionSpacing,
         pinsPrimaryActionToBottom: Bool = true,
         primaryActionOpacity: Double = 1,
+        primaryActionEntranceOffset: CGFloat = TrinketDesign.Spacing.small,
     ) {
         self.eyebrow = eyebrow
         self.eyebrowAccessibilityIdentifier = eyebrowAccessibilityIdentifier
@@ -77,6 +79,7 @@ public struct RewardRevealShell<Content: View>: View {
         self.contentStackSpacing = contentStackSpacing
         self.pinsPrimaryActionToBottom = pinsPrimaryActionToBottom
         self.primaryActionOpacity = primaryActionOpacity
+        self.primaryActionEntranceOffset = primaryActionEntranceOffset
     }
 
     public var body: some View {
@@ -196,9 +199,9 @@ public struct RewardRevealShell<Content: View>: View {
             .disabled(isPrimaryActionDisabled && !isPrimaryActionConfirmed)
             .allowsHitTesting(!isPrimaryActionDisabled)
             .brightness(isPrimaryActionConfirmed ? 0.06 : 0)
-            .animation(TrinketMotion.Reward.collectionLift.repeatCount(2, autoreverses: true), value: isPrimaryActionConfirmed)
+            .animation(TrinketMotion.Reward.collectionPulse, value: isPrimaryActionConfirmed)
             .trinketPresentationVisibility(primaryActionOpacity >= 1, opacity: primaryActionOpacity)
-            .offset(y: (1 - primaryActionOpacity) * TrinketDesign.Spacing.small)
+            .offset(y: (1 - primaryActionOpacity) * primaryActionEntranceOffset)
             .accessibilityIdentifier(primaryActionAccessibilityIdentifier)
         }
     }

@@ -81,3 +81,12 @@ swift run --package-path Packages/TrinketContent LootBalanceReport
 The report covers levels 1–20, both profiles, all Sanctum bonuses, category
 exhaustion, shops, and guaranteed Astral rewards. Its cumulative chances assume
 unchanged inputs and pool availability across the displayed reward count.
+
+## Labyrinth floor layout
+
+New floors contain 7–9 nodes within the existing three-column hex envelope.
+Connected layouts have single-neighbor entry and boss nodes and at most four
+neighbors per node. Generation chooses trees 60% of the time, single loops 20%,
+and two-loop layouts 20%. Existing saved floors retain their geometry.
+The map targets 20% larger hex dimensions where the actual floor span permits,
+then caps sizing to keep selected seals inside the viewport without horizontal scrolling.

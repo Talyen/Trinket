@@ -48,8 +48,7 @@ enum BattleMotion {
     static let dealInsertScale: CGFloat = 0.50
     static let cardInspectHoldDuration: TimeInterval = 0.5
     static let cardPressCommitDelay: TimeInterval = 0.11
-    static let tapLiftHeightFraction: CGFloat = 0.40
-    static let tapLiftPlayDelay: TimeInterval = 0.18
+    static let cardPlayRiseHeightFraction: CGFloat = 0.55
 
     static var cardPress: Animation {
         .spring(response: 0.16, dampingFraction: 1.0)
@@ -61,10 +60,6 @@ enum BattleMotion {
 
     static var cardReturn: Animation {
         .spring(response: 0.38, dampingFraction: 0.82)
-    }
-
-    static var tapLift: Animation {
-        .spring(response: 0.30, dampingFraction: 0.68)
     }
 
     static var handReflow: Animation {

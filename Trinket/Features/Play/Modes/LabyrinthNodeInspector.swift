@@ -87,13 +87,14 @@ struct LabyrinthNodeInspector: View {
                 ForEach(modifiers) { modifier in
                     VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                         HStack(spacing: TrinketDesign.Spacing.small) {
-                            GameIconImage(modifierIcon(for: modifier))
+                            GameIconImage(LabyrinthModifierPresentation.style(for: modifier).icon)
                                 .symbolRenderingMode(.hierarchical)
                                 .accessibilityHidden(true)
                             Text(balanced: modifier.title.uppercased())
                                 .trinketFittedText()
                         }
                         .trinketTypography(.eyebrow)
+                        .foregroundStyle(LabyrinthModifierPresentation.style(for: modifier).color)
                         .trinketOnArtText(.title)
 
                         KeywordDescriptionText(text: modifier.effect.description)
@@ -119,26 +120,6 @@ struct LabyrinthNodeInspector: View {
                 )
             }
             .allowsHitTesting(false)
-        }
-    }
-
-    private func modifierIcon(for modifier: LabyrinthModifierDefinition) -> GameIcon {
-        switch modifier.id.rawValue {
-        case "ironPressure": Keyword.physical.visualStyle.icon
-        case "ashTithe": Keyword.burn.visualStyle.icon
-        case "bloodMarket": Keyword.bleed.visualStyle.icon
-        case "serpentBloom": Keyword.poison.visualStyle.icon
-        case "rimeTax", "frostboundWard": Keyword.freeze.visualStyle.icon
-        case "sunTithe": Keyword.holy.visualStyle.icon
-        case "concussionToll": Keyword.stun.visualStyle.icon
-        case "bulwarkBargain", "wardedFlesh": Keyword.block.visualStyle.icon
-        case "vampiricLedger": Keyword.leech.visualStyle.icon
-        case "bountyMark": Keyword.gold.visualStyle.icon
-        case "scholarsToll": .system("book.fill")
-        case "scavengersLuck": .system("shippingbox.fill")
-        case "shopDiscount": .system("percent")
-        case "appraisersEye": .system("eye.fill")
-        default: .system("sparkles")
         }
     }
 }

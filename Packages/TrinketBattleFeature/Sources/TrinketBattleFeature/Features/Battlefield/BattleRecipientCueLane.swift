@@ -27,7 +27,10 @@ struct BattleRecipientCueLane<Content: View>: View {
             .overlay {
                 if let recipient,
                    recipient.kind != .deniedHealth,
-                   presentationMode.showsRecipientVisual(for: recipient.kind) {
+                   presentationMode.showsRecipientVisual(
+                       for: recipient,
+                       isActor: cue?.actorID == combatantID,
+                   ) {
                     let isDenied = switch recipient.kind {
                     case .deniedControl, .deniedDefeated: true
                     default: false

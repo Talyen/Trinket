@@ -22,6 +22,7 @@ One fact has one owner. Link instead of copying policy.
 | What a good test is | [Platform/Testing.md](Platform/Testing.md) |
 | Module DAG and hub containment | [Platform/Architecture.md](Platform/Architecture.md) (`check-module-boundaries.sh`) |
 | Player-facing locked choices | [Product/Decisions.md](Product/Decisions.md) |
+| iOS support window and native API adoption | [Platform/ApplePlatformReference.md](Platform/ApplePlatformReference.md) |
 | Game surfaces and modes | [Product/Overview.md](Product/Overview.md) |
 | Art direction and delivery constraints | [Product/ArtworkStyleGuide.md](Product/ArtworkStyleGuide.md) |
 | Cross-package battle / persistence / content | matching [AgentContext](AgentContext/) card |

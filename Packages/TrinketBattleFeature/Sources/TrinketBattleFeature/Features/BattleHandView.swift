@@ -20,13 +20,13 @@ private struct HeldCardInteraction: Equatable {
 
 struct BattleHandView: View {
     let cards: [BattleCard]
+    let isDetailPresented: Bool
     let isPlayable: (BattleCard) -> Bool
     let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onPlayDenied: (BattleCard) -> Void
     let hapticsEnabled: Bool
     let battleFrame: CGRect
-    var autoLiftCardID: Int?
     var onCardInteractionChanged: ((Bool) -> Void)?
     var onLift: ((BattleCard, BattleCardCuePresentationMode) -> Void)?
     var onLiftCancel: ((BattleCard) -> Void)?
@@ -35,25 +35,25 @@ struct BattleHandView: View {
 
     init(
         cards: [BattleCard],
+        isDetailPresented: Bool,
         isPlayable: @escaping (BattleCard) -> Bool,
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
         onPlayDenied: @escaping (BattleCard) -> Void,
         hapticsEnabled: Bool,
         battleFrame: CGRect,
-        autoLiftCardID: Int? = nil,
         onCardInteractionChanged: ((Bool) -> Void)? = nil,
         onLift: ((BattleCard, BattleCardCuePresentationMode) -> Void)? = nil,
         onLiftCancel: ((BattleCard) -> Void)? = nil,
     ) {
         self.cards = cards
+        self.isDetailPresented = isDetailPresented
         self.isPlayable = isPlayable
         self.onInspect = onInspect
         self.onPlay = onPlay
         self.onPlayDenied = onPlayDenied
         self.hapticsEnabled = hapticsEnabled
         self.battleFrame = battleFrame
-        self.autoLiftCardID = autoLiftCardID
         self.onCardInteractionChanged = onCardInteractionChanged
         self.onLift = onLift
         self.onLiftCancel = onLiftCancel
@@ -78,13 +78,13 @@ struct BattleHandView: View {
                     BattleAbilityCardView(
                         card: card,
                         isPlayable: isPlayable(card),
+                        isDetailPresented: isDetailPresented,
                         width: snapshot.width,
                         height: snapshot.height,
                         restingRotation: snapshot.restingRotation,
                         restingOffsetY: snapshot.restingOffsetY,
                         restingCenter: snapshot.restingCenter,
                         hapticsEnabled: hapticsEnabled,
-                        autoLiftCardID: autoLiftCardID,
                         onInspect: { onInspect(card) },
                         onPlay: { command in onPlay(card, command) },
                         onPlayDenied: { onPlayDenied(card) },
@@ -106,7 +106,7 @@ struct BattleHandView: View {
                         onLiftCancel: { onLiftCancel?(card) },
                     )
                     .offset(x: snapshot.fanOffsetX)
-                    .zIndex((isHeld || autoLiftCardID == card.id) ? 100 : Double(index))
+                    .zIndex(isHeld ? 100 : Double(index))
                     .allowsHitTesting(true)
                     .animation(isHeld ? nil : BattleMotion.handReflow, value: liveSnapshot)
                     .transition(

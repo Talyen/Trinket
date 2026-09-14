@@ -2,6 +2,8 @@
 import SwiftUI
 
 private struct DesignSystemGallery: View {
+    @State private var actionsEnabled = true
+
     private let semanticColors: [(String, Color)] = [
         ("Antique Gold", TrinketDesign.Colors.accent),
         ("Highlight Gold", TrinketDesign.Colors.accentEmphasized),
@@ -23,7 +25,6 @@ private struct DesignSystemGallery: View {
                 colors
                 controls
                 materials
-                solidFallbackReference
             }
             .padding(TrinketDesign.Layout.contentMargin)
         }
@@ -36,6 +37,7 @@ private struct DesignSystemGallery: View {
             Text("Trinket Theme")
                 .trinketTypography(.screenDisplay)
             Text("System semantic text remains adaptive over the cool charcoal canvas.")
+                .trinketTypography(.body)
                 .foregroundStyle(.secondary)
         }
     }
@@ -73,53 +75,72 @@ private struct DesignSystemGallery: View {
     private var controls: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             Text("Controls").trinketTypography(.sectionTitle)
-            HStack {
-                Button("Primary") {}
-                    .trinketPrimaryActionButton()
-                Button("Disabled") {}
-                    .trinketPrimaryActionButton()
-                    .disabled(true)
-            }
-            Toggle("Native gold tint", isOn: .constant(true))
+            Toggle("Actions Available", isOn: $actionsEnabled)
+                .trinketTypography(.body)
+            actionRow
+                .disabled(!actionsEnabled)
+            Text("Unavailable").trinketTypography(.caption)
+            actionRow.disabled(true)
+            Button("Inspect Selected Companion") {}
+                .trinketTypography(.button)
+                .trinketSecondaryActionButton()
+                .disabled(!actionsEnabled)
+        }
+    }
+
+    private var actionRow: some View {
+        HStack(spacing: TrinketDesign.Spacing.medium) {
+            Button("Build") {}
+                .trinketTypography(.button)
+                .trinketPrimaryActionButton()
+            Button("Inspect") {}
+                .trinketTypography(.button)
+                .trinketSecondaryActionButton()
+            Button("Close", systemImage: "xmark") {}
+                .trinketIconButton()
         }
     }
 
     private var materials: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             Text("Materials").trinketTypography(.sectionTitle)
-            Text("Neutral utility glass")
-                .padding()
-                .frame(maxWidth: .infinity)
-                .trinketMaterial(.bottomBar)
-            Text("Gold is reserved for rewards")
-                .padding()
-                .frame(maxWidth: .infinity)
-                .trinketMaterial(.rewardReveal)
+            previewMaterial("Bottom Bar", role: .bottomBar)
+            previewMaterial("Homestead Footer", role: .homesteadFooter)
+            previewMaterial("Reward Reveal", role: .rewardReveal)
+            previewMaterial("Subtle Overlay", role: .subtleOverlay)
+            HStack(spacing: TrinketDesign.Spacing.medium) {
+                Text("999,999 Gold")
+                    .trinketTypography(.statValue)
+                    .trinketGlassChip()
+                Text("Selected")
+                    .trinketTypography(.badge)
+                    .trinketGlassChip(.emphasis)
+            }
         }
     }
 
-    private var solidFallbackReference: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-            Text("Reduce Transparency Fallback").trinketTypography(.sectionTitle)
-            Text("Glass becomes a solid semantic panel with a visible boundary.")
-                .foregroundStyle(.secondary)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(TrinketDesign.Colors.elevated, in: TrinketDesign.cardShape)
-                .overlay {
-                    TrinketDesign.cardShape.stroke(TrinketDesign.Colors.subtleStroke)
-                }
-        }
+    private func previewMaterial(_ title: String, role: MaterialRole) -> some View {
+        Text(title)
+            .trinketTypography(.body)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .trinketMaterial(role)
     }
 
     private func previewSurface(_ title: String, role: SurfaceRole) -> some View {
         Text(title)
+            .trinketTypography(.body)
             .frame(maxWidth: .infinity, minHeight: 50)
             .trinketSurface(role)
     }
 }
 
-#Preview("Gold and Charcoal Palette") {
+#Preview("Compact iPhone", traits: .fixedLayout(width: 375, height: 812)) {
+    DesignSystemGallery()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Wide iPhone", traits: .fixedLayout(width: 430, height: 932)) {
     DesignSystemGallery()
         .preferredColorScheme(.dark)
 }

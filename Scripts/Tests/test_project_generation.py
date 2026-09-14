@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 
 from script_test_support import ROOT
 
@@ -117,6 +118,35 @@ printf cached > "$cache"
         self.git('add', 'code.swift')
         self.git('commit', '-qm', 'code change')
         self.assertFalse((self.root / 'calls').exists())
+
+    def test_storekit_references_resolve_from_xcode_workspace(self):
+        self.write('project.yml', '''schemes:
+  Trinket:
+    run:
+      storeKitConfiguration: StoreKit/Trinket.storekit
+  Trinket Development:
+    run:
+      storeKitConfiguration: StoreKit/Trinket.storekit
+''')
+        self.write('StoreKit/Trinket.storekit', '{}\n')
+        workspace = self.root / 'Trinket.xcodeproj/project.xcworkspace'
+        workspace.mkdir()
+        for name in ('Trinket', 'Trinket Development'):
+            self.write(f'Trinket.xcodeproj/xcshareddata/xcschemes/{name}.xcscheme',
+                       '<Scheme>\n   <LaunchAction>\n'
+                       '      <StoreKitConfigurationFileReference '
+                       'identifier="StoreKit/Trinket.storekit"/>\n'
+                       '   </LaunchAction>\n</Scheme>\n')
+        command = ('python3', 'Scripts/apply-scheme-storekit.py',
+                   '--project-root', str(self.root))
+        self.run_command(*command)
+        for scheme in (self.root / 'Trinket.xcodeproj/xcshareddata/xcschemes').glob('*.xcscheme'):
+            references = ET.parse(scheme).findall('./LaunchAction/StoreKitConfigurationFileReference')
+            self.assertEqual(len(references), 1)
+            resolved = (workspace / references[0].attrib['identifier']).resolve()
+            self.assertEqual(resolved, (self.root / 'StoreKit/Trinket.storekit').resolve())
+            self.assertTrue(resolved.is_file())
+        self.assertEqual(self.run_command(*command).stdout, '')
 
     def test_tool_revision_commit_generates_and_mixed_tool_staging_is_rejected(self):
         self.write('Scripts/tool-versions.env', 'XCODEGEN_WRAPPER_REV=2\n')

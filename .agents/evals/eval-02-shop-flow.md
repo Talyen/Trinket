@@ -24,6 +24,9 @@ and test identifiers where possible; do not invent a new flow for the probe.
 - Visual evidence covers both states. A screenshot supports appearance; any claim
   about purchasing requires exercising that action or relevant existing tests.
 - Coverage follows Testing.md: extend meaningful existing coverage only if needed.
+- New guidance stays scoped: retain existing native disabled behavior and price
+  labels, check their readability with actual costs, and do not add a help system,
+  blanket hit-target frames, or an OS upgrade to solve a local price treatment.
   Use the routed isolated handoff and targeted smoke when interaction verification
   calls for it; do not bypass generation with an unconditional environment flag.
 - Report what was actually observed and any blocked verification. The probe does

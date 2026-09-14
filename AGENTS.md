@@ -22,7 +22,7 @@ verified behavior from inference and state material assumptions.
 
 ## Product constraints
 
-- Use the checked-in deployment target and first-party SwiftUI; no legacy compatibility or UIKit feature chrome. Extend existing measured UIKit feedback only through its package guide.
+- Use first-party SwiftUI and the [platform support policy](Docs/Platform/ApplePlatformReference.md#platform-support); the deployment target is a minimum, not an adoption ceiling. Small availability checks within the supported window are appropriate; avoid legacy compatibility frameworks and UIKit feature chrome. Extend existing measured UIKit feedback only through its package guide.
 - Do not remove launch/imminent artwork pins, switch first-screen art to on-demand `Image(name)`, or lower artwork memory budgets without product approval. [Performance playbook](Docs/Platform/PerformanceInvestigationPlaybook.md) owns budgets; `check-artwork-budget.sh` enforces them.
 - Preserve or migrate saves, serialized identifiers, manifests, and live schemas unless the consumer window is proven closed or a break is approved. Source/API compatibility needs a confirmed current consumer.
 - Prefer self-explanatory code. Add concise comments for non-obvious rationale, invariants, or platform limitations; avoid narrating the implementation. Remove temporary debug output. [doc-budget](.agents/skills/doc-budget/SKILL.md) covers checker directives and suppression reasons.

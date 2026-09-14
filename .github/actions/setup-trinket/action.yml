@@ -1,5 +1,5 @@
 name: Setup Trinket CI
-description: Xcode 26 selection and pinned tooling for Trinket CI on macos-26
+description: Select the validated Xcode version and pinned tooling for Trinket CI
 
 runs:
   using: composite

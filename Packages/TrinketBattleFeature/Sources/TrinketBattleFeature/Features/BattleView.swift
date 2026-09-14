@@ -79,7 +79,6 @@ public struct BattleView: View {
             .onChange(of: configuration.id) { _, _ in
                 castPresentation.reset()
                 interactionState.suppressCombatantTaps = false
-                interactionState.autoLiftCardID = nil
             }
             .alert(
                 "Retreat from this battle?",
@@ -263,8 +262,7 @@ struct BattleFieldLane: View {
                     presentation: presentation,
                     hapticsEnabled: hapticsEnabled,
                     battleSize: geometry.size,
-                    interactionState: interactionState,
-                    onPlay: playCard(_:request:),
+                    onPlay: { playCard($0, request: $1) },
                     onInteractionChanged: updateCombatantTapSuppression(_:),
                     onLift: beginCardLift,
                     onLiftCancel: cancelCardLift(for:),
@@ -300,7 +298,7 @@ struct BattleFieldLane: View {
                     isCardCastActive: { castPresentation.request != nil },
                     isManualInteractionActive: { interactionState.blocksCombatantTaps },
                     playCard: { card in
-                        await playCardWithTapLift(card, battleSize: geometry.size)
+                        playAutoBattleCard(card, battleSize: geometry.size)
                     },
                 )
             }
@@ -374,7 +372,6 @@ private struct BattleHandProjectionLane: View {
     let presentation: BattlePresentationState
     let hapticsEnabled: Bool
     let battleSize: CGSize
-    let interactionState: BattleInteractionState
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
     let onLift: (BattleCard, BattleCardCuePresentationMode) -> Void
@@ -388,6 +385,7 @@ private struct BattleHandProjectionLane: View {
         ZStack(alignment: .bottom) {
             BattleHandView(
                 cards: hand,
+                isDetailPresented: battleSession.overlayAbilityDetail != nil,
                 isPlayable: { presentation.isBattleOver || playableIDs.contains($0.id) },
                 onInspect: { card in
                     battleSession.presentAbilityDetail(card.ability)
@@ -405,7 +403,6 @@ private struct BattleHandProjectionLane: View {
                 },
                 hapticsEnabled: hapticsEnabled,
                 battleFrame: CGRect(origin: .zero, size: battleSize),
-                autoLiftCardID: interactionState.autoLiftCardID,
                 onCardInteractionChanged: onInteractionChanged,
                 onLift: onLift,
                 onLiftCancel: onLiftCancel,

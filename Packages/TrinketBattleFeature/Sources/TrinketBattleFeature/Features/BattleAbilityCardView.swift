@@ -8,13 +8,13 @@ import TrinketFeatureSupport
 struct BattleAbilityCardView: View {
     let card: BattleCard
     let isPlayable: Bool
+    let isDetailPresented: Bool
     let width: CGFloat
     let height: CGFloat
     let restingRotation: CGFloat
     let restingOffsetY: CGFloat
     let restingCenter: CGPoint
     let hapticsEnabled: Bool
-    var autoLiftCardID: Int?
     let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
     let onPlayDenied: () -> Void
@@ -37,7 +37,6 @@ struct BattleAbilityCardView: View {
     @State private var denyFeedbackToken = 0
     @State private var didAnnounceDeny = false
     @State private var didReportPlayDenied = false
-    @State private var isTapLifting = false
     @GestureState private var isGestureActive = false
 
     private enum InteractionResolution {
@@ -47,11 +46,11 @@ struct BattleAbilityCardView: View {
         case inspecting
     }
 
-    private var isDragging: Bool {
+    private var isHeld: Bool {
         switch interactionResolution {
-        case .pressing, .dragging:
+        case .pressing, .dragging, .inspecting:
             true
-        case .idle, .inspecting:
+        case .idle:
             false
         }
     }
@@ -79,7 +78,6 @@ struct BattleAbilityCardView: View {
                 perspective: BattleMotion.cardPerspective,
             )
             .offset(activeOffset)
-            .offset(tapLiftOffset)
             .shadow(
                 color: isScaleCommitted ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
                 radius: BattleMotion.cardHeldShadowRadius,
@@ -109,25 +107,22 @@ struct BattleAbilityCardView: View {
                 enabled: hapticsEnabled,
             )
             .onDisappear {
-                cancelAnnouncedWindUp()
-                cancelInspection()
-                cancelPressCommit()
-                onInteractionChanged(false)
-            }
-            .onAppear {
-                syncAutoLift(autoLiftCardID)
-            }
-            .onChange(of: autoLiftCardID) { _, liftCardID in
-                syncAutoLift(liftCardID)
+                returnDrag()
             }
             .onChange(of: isGestureActive) { wasActive, isActive in
-                guard wasActive, !isActive, interactionResolution != .idle else { return }
+                guard wasActive, !isActive,
+                      interactionResolution != .idle,
+                      interactionResolution != .inspecting else { return }
+                returnDrag()
+            }
+            .onChange(of: isDetailPresented) { _, isPresented in
+                guard !isPresented, interactionResolution == .inspecting else { return }
                 returnDrag()
             }
             .onChange(of: isPlayable) { _, playable in
                 if playable {
                     availabilityFeedbackToken &+= 1
-                } else {
+                } else if interactionResolution != .inspecting {
                     returnDrag()
                 }
             }
@@ -142,14 +137,9 @@ struct BattleAbilityCardView: View {
     private var activeOffset: CGSize {
         let resting = restingTranslation
         return CGSize(
-            width: resting.width + (isDragging ? dragTranslation.width : 0),
-            height: resting.height + (isDragging ? dragTranslation.height : 0),
+            width: resting.width + (isHeld ? dragTranslation.width : 0),
+            height: resting.height + (isHeld ? dragTranslation.height : 0),
         )
-    }
-
-    private var tapLiftOffset: CGSize {
-        guard isTapLifting else { return .zero }
-        return CGSize(width: 0, height: -height * BattleMotion.tapLiftHeightFraction)
     }
 
     private var restingTranslation: CGSize {
@@ -157,7 +147,7 @@ struct BattleAbilityCardView: View {
     }
 
     private var activeRotation: Double {
-        guard isDragging else { return restingRotation }
+        guard isHeld else { return restingRotation }
         return restingRotation + BattleHandLayout.heldTilt(
             translation: dragTranslation,
             predictedEndTranslation: predictedEndTranslation,
@@ -251,7 +241,6 @@ struct BattleAbilityCardView: View {
 
     private func endDrag(_ value: DragGesture.Value) {
         guard interactionResolution != .inspecting else {
-            returnDrag()
             return
         }
         cancelInspection()
@@ -294,8 +283,7 @@ struct BattleAbilityCardView: View {
         cancelPressCommit()
         interactionResolution = .inspecting
         inspectFeedbackToken &+= 1
-        resetVisualState()
-        onInteractionChanged(false)
+        // Sheet dismissal owns the held appearance after the gesture hands off inspection.
         onInspect()
     }
 
@@ -355,7 +343,6 @@ struct BattleAbilityCardView: View {
             predictedEndTranslation = .zero
             isPlayArmed = false
             didExceedTapSlop = false
-            isTapLifting = false
             pressCommitted = false
         }
         didAnnounceDeny = false
@@ -445,19 +432,6 @@ private extension BattleAbilityCardView {
     func beginTapPlay() {
         announceWindUpIfNeeded(mode: .tapCommit)
         beginPlay()
-    }
-
-    func syncAutoLift(_ liftCardID: Int?) {
-        let shouldLift = liftCardID == card.id
-        guard shouldLift != isTapLifting else { return }
-        if shouldLift {
-            announceWindUpIfNeeded(mode: .preview)
-        } else {
-            didAnnounceWindUp = false
-        }
-        withAnimation(BattleMotion.tapLift) {
-            isTapLifting = shouldLift
-        }
     }
 
     func announceWindUpIfNeeded(mode: BattleCardCuePresentationMode) {

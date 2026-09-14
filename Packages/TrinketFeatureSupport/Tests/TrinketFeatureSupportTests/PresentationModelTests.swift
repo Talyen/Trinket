@@ -111,6 +111,23 @@ struct PresentationModelTests {
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .battle) == nil)
     }
 
+    @Test func `labyrinth sizing grows narrow floors and contains selected edges`() {
+        for width: CGFloat in [280, 360, 430] {
+            let baseline = width / (3 * CGFloat(3).squareRoot())
+            let narrow = LabyrinthMapPresentation.hexRadius(
+                forAvailableWidth: width, projectedHalfColumnSpan: 2,
+            )
+            #expect(abs(narrow - baseline * 1.2) < 0.001)
+            for span in 0 ... LabyrinthMapLayout.maxProjectedSpan {
+                let radius = LabyrinthMapPresentation.hexRadius(
+                    forAvailableWidth: width, projectedHalfColumnSpan: span,
+                )
+                let selectedWidth = radius * CGFloat(3).squareRoot() * (CGFloat(span) / 2 + 1.035) + 3
+                #expect(selectedWidth <= width - 12 + 0.001)
+            }
+        }
+    }
+
     @Test func `stage encounter and stage presentation properties`() {
         let stage = Stage(
             id: "test-stage",

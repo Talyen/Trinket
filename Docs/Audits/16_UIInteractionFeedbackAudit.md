@@ -14,6 +14,12 @@ incoherent enabled/loading/error/retry states, hidden required actions, and flow
 that fail to recover from interruption. Review consequential flows by risk; expand
 a confirmed component defect to its affected callers.
 
+Check whether an essential action is discoverable without guessing a custom gesture,
+whether labels predict the result, and whether an unavailable action explains its
+reason when that is unclear. Essential state must remain understandable without
+color or optional sound/haptics alone. Use [writing and help](../../.agents/skills/apple-design/writing-and-help.md)
+for contextual teaching; do not add tutorial infrastructure without evidence.
+
 Controls should communicate action and state. Native buttons are preferred, while
 intentional game gestures can be valid. Image labeling/hiding and stable test
 identifiers follow existing product and testing contracts. Preserve portrait-first

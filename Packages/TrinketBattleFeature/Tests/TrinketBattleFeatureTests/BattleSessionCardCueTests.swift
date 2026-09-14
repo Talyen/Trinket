@@ -8,25 +8,61 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionCardCueTests {
-    @Test func `auto battle starts its cue before the hand view renders`() async throws {
+    @Test func `auto battle departs from rest and a manual play commits during its cast`() throws {
         let session = makeSession()
+        defer { session.endBattle() }
         let card = try install(.slash, in: session)
+        var state = try #require(session.engineState)
+        let next = BattleCardCombatEngine.deal(.block, owner: .hero, context: &state)
+        session.engineState = state
+        session.installSimulationPresentation()
         session.isAutoBattleEnabled = true
         let configuration = try #require(session.activeBattle)
         let presentation = try #require(session.presentationContext)
+        let casts = BattleCastPresentationState()
+        defer { casts.reset() }
         let field = BattleFieldLane(
             configuration: configuration,
             presentationContext: presentation,
             battleSession: session,
             presentation: session.presentation,
             interactionState: BattleInteractionState(),
-            castPresentation: BattleCastPresentationState(),
+            castPresentation: casts,
         )
-        let played = await field.playCardWithTapLift(card, battleSize: CGSize(width: 375, height: 667))
-        #expect(played)
+        let battleSize = CGSize(width: 375, height: 667)
+        let departure = CardActivationRequest.restingRequest(
+            for: card, index: 0, cardCount: session.hand.count, battleSize: battleSize,
+        )
+        #expect(field.playAutoBattleCard(card, battleSize: battleSize))
         #expect(!session.hand.contains(card))
-        #expect(session.cardCues.current?.mode == .preview)
-        session.clearCardCues()
+        #expect(session.cardCues.current?.mode == .tapCommit)
+        let automaticCast = try #require(casts.request)
+        #expect(automaticCast.center == departure.center)
+        #expect(automaticCast.size == departure.size)
+        #expect(automaticCast.rotation == departure.rotation)
+        let automaticAction = try #require(session.feedback.scheduledActions.first)
+        #expect(!automaticAction.deliversResultsImmediately)
+        #expect(automaticAction.swingAt > automaticAction.startAt)
+
+        #expect(session.canInteractWithHand)
+        session.beginCardCue(next, mode: .tapCommit)
+        let manualCast = CardActivationRequest.restingRequest(
+            for: next, index: 0, cardCount: session.hand.count, battleSize: battleSize,
+        )
+        #expect(field.playCard(next, request: manualCast))
+        #expect(session.hand.isEmpty)
+        #expect(casts.requests.map(\.id) == [automaticCast.id, manualCast.id])
+        _ = try state.playCard(cardID: card.id)
+        _ = try state.playCard(cardID: next.id)
+        #expect(session.engineState?.events == state.events)
+        #expect(session.engineState?.rng == state.rng)
+
+        session.isAutoBattleEnabled = false
+        #expect(!field.playAutoBattleCard(card, battleSize: battleSize))
+        #expect(casts.requests.map(\.id) == [automaticCast.id, manualCast.id])
+        casts.remove(id: automaticCast.id)
+        #expect(casts.requests.map(\.id) == [manualCast.id])
+        #expect(session.hand.isEmpty)
     }
 
     @Test func `lifting a mixed card cues its actual recipients without playing it`() throws {
@@ -64,6 +100,29 @@ struct BattleSessionCardCueTests {
         #expect(BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .prepare))
         #expect(BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .gain))
         #expect(BattleCardCuePresentationMode.preview.showsRecipientVisual(for: .attack))
+    }
+
+    @Test func `drag preview hides only the fallback actor preparation cue`() throws {
+        let session = makeSession()
+        let fallbackCard = try install(.slash, in: session)
+        session.beginCardCue(fallbackCard)
+        let fallbackCue = try #require(session.cardCues.current)
+        let fallbackActor = try #require(fallbackCue.recipients[fallbackCue.actorID])
+        let enemy = try #require(fallbackCue.recipients[session.enemyID ?? ""])
+
+        #expect(fallbackActor.isActorPreparationFallback)
+        #expect(!BattleCardCuePresentationMode.preview.showsRecipientVisual(for: fallbackActor, isActor: true))
+        #expect(BattleCardCuePresentationMode.preview.showsRecipientVisual(for: enemy, isActor: false))
+
+        let explicitCard = try install(.kindling, in: session)
+        session.beginCardCue(explicitCard)
+        let explicitCue = try #require(session.cardCues.current)
+        let explicitActor = try #require(explicitCue.recipients[explicitCue.actorID])
+        #expect(explicitActor.kind == .prepare)
+        #expect(!explicitActor.isActorPreparationFallback)
+        #expect(BattleCardCuePresentationMode.preview.showsRecipientVisual(for: explicitActor, isActor: true))
+
+        session.clearCardCues()
     }
 
     @Test func `tap commitment preserves the resource quote until feedback completes`() throws {

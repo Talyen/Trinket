@@ -31,6 +31,19 @@ struct SemanticColorContrastTests {
         let color = try resolvedSRGB(colorName, style: .light)
         #expect(contrastRatio(color, canvas) >= 4.5)
     }
+
+    @Test func `death's door keyword remains readable on gameplay surfaces`() throws {
+        for style in [UIUserInterfaceStyle.dark, .light] {
+            let color = try resolvedSRGB("KeywordDeathsDoor", style: style)
+            for backgroundName in ["ThemeCanvas", "ThemeSurface", "ThemePanel"] {
+                let background = try resolvedSRGB(backgroundName, style: style)
+                #expect(
+                    contrastRatio(color, background) >= 3.0,
+                    "Death's Door should remain readable over \(backgroundName) in \(style)",
+                )
+            }
+        }
+    }
 }
 
 private func resolvedSRGB(_ name: String, style: UIUserInterfaceStyle) throws -> (red: Double, green: Double, blue: Double) {

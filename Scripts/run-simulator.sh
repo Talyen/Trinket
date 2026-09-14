@@ -150,25 +150,28 @@ xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
 # invalidate test-without-building stamps that depend on that simulator state.
 rm -f "$DERIVED_DATA_PATH"/TestResults/.last-build-*.stamp 2>/dev/null || true
 
-echo "Opening Simulator and launching $BUNDLE_ID..."
-# Simulator.app visibility: `open --args -CurrentDeviceUDID` only affects a fresh
-# launch. When Simulator is already running (idle or on another device) the
-# `open` is a no-op and `simctl launch` succeeds headlessly with no window.
-# Ensure the app is running, frontmost, and pointed at this UDID.
-if pgrep -x Simulator >/dev/null 2>&1; then
-  open -a Simulator 2>/dev/null || true
-  open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID" 2>/dev/null || true
-else
-  open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID" 2>/dev/null || open -a Simulator 2>/dev/null || true
+# Resolve the device UI from the selected Xcode instead of a stale Launch Services
+# registration left behind by an Xcode replacement. Xcode 27 uses Device Hub.
+SIMULATOR_DEVELOPER_DIR="${DEVELOPER_DIR:-$(xcode-select -p)}"
+if [[ -d "$SIMULATOR_DEVELOPER_DIR/Contents/Developer" ]]; then
+  SIMULATOR_DEVELOPER_DIR="$SIMULATOR_DEVELOPER_DIR/Contents/Developer"
 fi
-osascript -e 'tell application "Simulator" to activate' 2>/dev/null || true
-for _ in {1..10}; do
-  pgrep -x Simulator >/dev/null 2>&1 && break
-  sleep 0.5
-done
-if ! pgrep -x Simulator >/dev/null 2>&1; then
-  echo "warning: Simulator.app did not appear after open; launch will be headless" >&2
-  echo "  Try: open -a Simulator" >&2
+SIMULATOR_APP_PATH="$(dirname "$SIMULATOR_DEVELOPER_DIR")/Applications/DeviceHub.app"
+SIMULATOR_APP_NAME="Device Hub"
+if [[ ! -d "$SIMULATOR_APP_PATH" ]]; then
+  SIMULATOR_APP_PATH="$SIMULATOR_DEVELOPER_DIR/Applications/Simulator.app"
+  SIMULATOR_APP_NAME="Simulator"
+fi
+SIMULATOR_UI_OPENED=0
+if [[ -d "$SIMULATOR_APP_PATH" ]]; then
+  if [[ "$SIMULATOR_APP_NAME" == "Device Hub" ]]; then
+    if open -a "$SIMULATOR_APP_PATH"; then SIMULATOR_UI_OPENED=1; fi
+  elif open -a "$SIMULATOR_APP_PATH" --args -CurrentDeviceUDID "$SIMULATOR_UDID"; then
+    SIMULATOR_UI_OPENED=1
+  fi
+fi
+if [[ "$SIMULATOR_UI_OPENED" == "0" ]]; then
+  echo "warning: could not open $SIMULATOR_APP_NAME at $SIMULATOR_APP_PATH; launching headlessly" >&2
 fi
 LAUNCH_DEADLINE=$((SECONDS + 20))
 until xcrun simctl launch --terminate-running-process \
@@ -183,18 +186,15 @@ do
   fi
   sleep 0.4
 done
-if ! pgrep -x Simulator >/dev/null 2>&1; then
-  echo "warning: $BUNDLE_ID launched headlessly — Simulator.app is not running" >&2
-  echo "  Open it: open -a Simulator --args -CurrentDeviceUDID $SIMULATOR_UDID" >&2
-else
-  osascript -e 'tell application "Simulator" to activate' 2>/dev/null || true
-  echo "Launched $BUNDLE_ID on $TRINKET_SIMULATOR_NAME ($SIMULATOR_UDID) — Simulator window should be frontmost."
-  echo "  If no window is visible: open -a Simulator --args -CurrentDeviceUDID $SIMULATOR_UDID"
+echo "Launched $BUNDLE_ID on $TRINKET_SIMULATOR_NAME ($SIMULATOR_UDID)."
+if [[ "$SIMULATOR_UI_OPENED" == "1" ]]; then
+  echo "Opened $SIMULATOR_APP_NAME. Select $TRINKET_SIMULATOR_NAME ($SIMULATOR_UDID) and confirm its screen before interacting."
 fi
 
 if [[ "$INSPECT" == "1" ]]; then
   printf 'Inspection ready: %s (%s)\nApp: %s\nProduct: %s\n' \
     "$TRINKET_SIMULATOR_NAME" "$SIMULATOR_UDID" "$BUNDLE_ID" "$APP_PATH"
+  echo "Device UI: $SIMULATOR_APP_NAME ($SIMULATOR_APP_PATH)"
   echo "Lease held by this process. Use computer use on this simulator; type stop here when finished."
   while IFS= read -r inspection_command; do
     [[ "$inspection_command" == "stop" ]] && break

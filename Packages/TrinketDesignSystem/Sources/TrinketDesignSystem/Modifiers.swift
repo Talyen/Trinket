@@ -37,6 +37,7 @@ struct LockedCardEffectModifier: ViewModifier {
     private var lockBadgeOverlay: some View {
         let ink = TrinketDesign.Colors.Overlay.ink
         return Image(systemName: "lock.fill")
+            .accessibilityHidden(true)
             .font(.system(size: lockIconSize))
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(TrinketDesign.Colors.Overlay.paper)

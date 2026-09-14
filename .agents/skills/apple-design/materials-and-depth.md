@@ -5,6 +5,13 @@ Use existing semantic surfaces from
 Choose a material because it establishes hierarchy or preserves context, not
 because every screen needs glass.
 
+Liquid Glass belongs to the floating control/navigation layer. Standard materials
+and solid semantic surfaces organize content beneath it. Preserve documented
+game-specific uses such as reward reveals; do not turn dense content into glass.
+Use regular glass by default. Clear glass needs a visually rich background and
+verified label contrast, with dimming when that background is bright; do not mix
+variants casually or hard-code a dimming recipe across all artwork.
+
 - Inspect text and controls over the actual artwork, including busy backgrounds
   and scrolling content. Resolve poor legibility through the shared surface or
   contrast treatment before adding layers of blur, shadow, and tracking.
@@ -12,6 +19,9 @@ because every screen needs glass.
   surrounding content visibly usable.
 - Keep content and controls visually distinct. Avoid stacking translucent surfaces
   when an existing opaque or shared material expresses the hierarchy more clearly.
+- Preserve native scroll-edge separation beneath floating controls. Use the
+  automatic effect where possible; avoid stacking custom fades or applying an
+  edge effect where no control floats above the scroll view.
 - Prefer the native or shared presentation transition. Custom blur/scale animation
   needs a specific interaction benefit; it is not a requirement for material entry.
 

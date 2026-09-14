@@ -5,7 +5,7 @@ Trinket's intentional game UI.
 
 Use the [shared audit contract](README.md) for evidence, severity, scope, and sizing.
 [TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md) and
-[iOS reference](../Platform/iOS26AppleReference.md) own native API/token guidance;
+[platform reference](../Platform/ApplePlatformReference.md) own native API/token guidance;
 [PD-014](../Product/Decisions.md) owns accessibility scope.
 
 ## What to investigate
@@ -15,6 +15,13 @@ safe-area or keyboard conflicts, inconsistent native-control behavior, and custo
 layout/typography that duplicates an existing capability with real maintenance cost.
 Consider supported screen sizes and content expansion without inventing product
 requirements. A raw constant or custom modifier alone is not a defect.
+
+For controls affected by the change, inspect effective touch regions and spacing
+against the game-control guidance in [motion and gestures](../../.agents/skills/apple-design/motion-and-gestures.md).
+Check text over actual artwork and beneath floating chrome; distinguish Liquid
+Glass controls from content surfaces and retain native scroll-edge separation.
+When reviewing a new OS, use the [release-readiness checks](../Platform/Verification.md#new-ios-release-readiness)
+rather than treating the minimum deployment target as the only supported runtime.
 
 ## Domain boundaries
 

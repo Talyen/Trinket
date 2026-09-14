@@ -16,6 +16,7 @@ a no-op when nothing changed, keeping regeneration idempotent.
 """
 
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -147,7 +148,11 @@ def main():
             continue
         text = scheme_path.read_text()
         try:
-            updated, did_change = patch_scheme(text, identifier)
+            # Xcode resolves this reference from the embedded workspace, not
+            # the repository root used by the authored project specification.
+            workspace = root / "Trinket.xcodeproj/project.xcworkspace"
+            reference = os.path.relpath(root / identifier, workspace)
+            updated, did_change = patch_scheme(text, reference)
         except ValueError as error:
             print(f"error: {scheme_path}: {error}", file=sys.stderr)
             return 1

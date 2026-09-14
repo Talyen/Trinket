@@ -13,6 +13,7 @@ extension BattleSession {
         cardID: Int,
         at date: Date = .now,
         requiresLift: Bool = false,
+        isAutomatic: Bool = false,
     ) -> BattleCardPlayResolution {
         if commandState.phase == .outcome {
             guard canInteractWithHand, presentation.consumeFinishingCard(id: cardID) else { return .rejected }
@@ -48,7 +49,10 @@ extension BattleSession {
             cardCues.commit(cardID: cardID)
 
             cancelPendingAutoEnd()
-            presentCompletedCommand(resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCardID)
+            presentCompletedCommand(
+                resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCardID,
+                isAutomatic: isAutomatic,
+            )
             return .committed
         } catch {
             if let card = engineState?.hand.card(id: cardID) {

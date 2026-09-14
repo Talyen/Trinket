@@ -13,7 +13,6 @@ public struct RewardRevealLootSection: View {
     let areItemsVisible: Bool
     let visibleWalletRewardCount: Int
     let isCollected: Bool
-    let hasGathered: Bool
     var spacing: CGFloat = TrinketDesign.Spacing.large
     let onSelectItem: (InventoryItem) -> Void
     @Binding var focusedItemID: String?
@@ -33,7 +32,6 @@ public struct RewardRevealLootSection: View {
         visibleWalletRewardCount: Int,
         spacing: CGFloat = TrinketDesign.Spacing.large,
         isCollected: Bool = false,
-        hasGathered: Bool = false,
         focusedItemID: Binding<String?>,
         onSelectItem: @escaping (InventoryItem) -> Void,
     ) {
@@ -47,7 +45,6 @@ public struct RewardRevealLootSection: View {
         self.visibleWalletRewardCount = visibleWalletRewardCount
         self.spacing = spacing
         self.isCollected = isCollected
-        self.hasGathered = hasGathered
         _focusedItemID = focusedItemID
         self.onSelectItem = onSelectItem
     }
@@ -57,15 +54,11 @@ public struct RewardRevealLootSection: View {
             if !items.isEmpty {
                 rewardItemPager
                     .trinketPresentationVisibility(areItemsVisible)
-                    .scaleEffect(areItemsVisible ? 1 : 0.98)
-                    .modifier(RewardGatherModifier(isCollected: isCollected, hasGathered: hasGathered, delay: 0))
+                    .modifier(RewardCollectionPulseModifier(isCollected: isCollected))
             }
 
             rewardWallet
-                .modifier(RewardGatherModifier(
-                    isCollected: isCollected, hasGathered: hasGathered,
-                    delay: TrinketMotion.Reward.collectionWalletDelay,
-                ))
+                .modifier(RewardCollectionPulseModifier(isCollected: isCollected))
         }
     }
 
@@ -133,22 +126,16 @@ public struct RewardRevealLootSection: View {
     }
 }
 
-private struct RewardGatherModifier: ViewModifier {
+private struct RewardCollectionPulseModifier: ViewModifier {
     let isCollected: Bool
-    let hasGathered: Bool
-    let delay: TimeInterval
 
     func body(content: Content) -> some View {
         content
-            .scaleEffect(hasGathered ? TrinketMotion.Reward.collectionGatherScale : isCollected ? TrinketMotion.Reward
-                .collectionLiftScale : 1)
-            .offset(y: hasGathered ? TrinketMotion.Reward.collectionGatherOffset : isCollected ? TrinketMotion.Reward
-                .collectionLiftOffset : 0)
-            .opacity(hasGathered ? 0 : 1)
-            .animation(
-                hasGathered ? TrinketMotion.Reward.collectionGather.delay(delay) : TrinketMotion.Reward.collectionLift,
-                value: isCollected && !hasGathered,
-            )
+            .phaseAnimator([false, true, false], trigger: isCollected) { view, expanded in
+                view.scaleEffect(expanded ? TrinketMotion.Reward.collectionPulseScale : 1)
+            } animation: { _ in
+                TrinketMotion.Reward.collectionPulse
+            }
             .allowsHitTesting(!isCollected)
             .accessibilityHidden(isCollected)
     }

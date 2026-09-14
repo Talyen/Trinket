@@ -18,7 +18,8 @@ enum BattleCardCueRecipes {
             }
             recipients[resource.combatantID] = cue
         }
-        recipients[assessment.actorID] = recipients[assessment.actorID] ?? .init(kind: .prepare, keyword: nil)
+        recipients[assessment.actorID] = recipients[assessment.actorID]
+            ?? .init(kind: .prepare, keyword: nil, isActorPreparationFallback: true)
         return recipients
     }
 

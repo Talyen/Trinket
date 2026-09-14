@@ -70,8 +70,12 @@ XP bars and character progress totals keep their existing text treatment.
 
 Labyrinth modifiers reuse their associated keyword imagery; scholar, scavenger,
 discount, and appraisal modifiers use `book.fill`, `shippingbox.fill`, `percent`,
-and `eye.fill`. Native navigation, settings, filters, alerts, and other UI retain
-their existing SF selections and symbol animations.
+and `eye.fill`. Modifier icons and names share the same themed color in map
+inspector captions and combatant-detail Labyrinth entries: combat keyword colors,
+informational blue for XP, wood for materials, Gold for discounts, and arcane for
+Astral offers. Warded Flesh retains its shield icon with Physical coloring.
+Native navigation, settings, filters, alerts, and other UI retain their existing
+SF selections and symbol animations.
 
 ## Data compatibility
 

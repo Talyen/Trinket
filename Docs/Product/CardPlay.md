@@ -8,7 +8,7 @@ Approved September 12, 2026. This is the standing product specification for
 A valid card plays immediately when the player releases their finger. Its lift
 and dissolve follow the action; no animation completion gates the next tap.
 The departing card rises quickly, then eases upward through the artwork's
-dissolve while retaining its full departure travel distance.
+dissolve, travelling 55% of its height with the existing departure duration.
 Holding to inspect, dragging to play, and cancelling a drag remain available.
 
 Touch-down gives an immediate small compression before the larger held-card lift.
@@ -24,6 +24,12 @@ card requires a fresh tap; one gesture cannot play it twice.
 Departing manual cards finish independently. Up to six departure visuals may
 overlap; under saturation, the oldest fades out. Decorative cards never
 intercept touches or affect gameplay.
+
+With the autoplay toggle enabled, cards commit immediately from their resting
+hand position and use the same rise and dissolve as tap-to-play. There is no
+separate pre-lift or play delay. Autoplay waits between casts and pauses for
+manual interaction, while manual plays remain available during those casts.
+Autoplay keeps its sequenced combat feedback.
 
 ## Automatic cards stay full-size
 
@@ -49,12 +55,17 @@ damage, healing, status effects, and ultimate highlights may still be animating.
 Health, Mana, status, and availability always show the current resolved state.
 
 Combatant attacks retain a visible wind-up, swing, and recovery for taps,
-drags, automatic cards, and enemy actions. Isolated attacks use the full motion;
-rapid attacks shorten preparation and overlap recovery to keep pace. Dragging
+drags, automatic cards, and enemy actions. Manual tap attacks prepare for 0.10
+seconds; automatic and enemy attacks retain their 0.40-second preparation.
+Rapid attacks shorten preparation and overlap recovery to keep pace. Dragging
 holds preparation until release and settles back on cancellation.
 
-Hit recoil, floating results, sounds, and hit haptics land together with the
-swing. Separate attacks retain distinct impacts; simultaneous components of one
+Manual card results appear immediately on successful finger release: floating
+text, sounds, result haptics, and target recoil never wait for an earlier
+animation. Healing and support reactions are immediate too. The attacker
+continues its motion without replaying feedback at impact. Triggered cards,
+counterattacks, enemy actions, and auto-battle retain sequenced feedback.
+Separate attacks retain distinct impacts; simultaneous components of one
 attack share the strongest recoil. Fully blocked direct hits recoil visibly
 with Block styling. Damage-over-time ticks remain quiet. These are presentation
 beats only: the engine and current resources never wait for them.

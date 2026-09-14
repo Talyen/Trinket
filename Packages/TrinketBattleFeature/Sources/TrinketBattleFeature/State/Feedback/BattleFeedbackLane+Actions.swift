@@ -7,6 +7,7 @@ struct BattleScheduledAction {
     let events: [ActionEvent]
     let damage: [BattleResolvedDamage]
     let castID: UUID?
+    let deliversResultsImmediately: Bool
     var startAt: Date
     var swingAt: Date
     var impactAt: Date
@@ -27,6 +28,7 @@ extension BattleFeedbackLane {
     func scheduleActions(
         _ playback: BattleTransitionPlayback,
         preparedCardID: Int?,
+        playedCardID: Int? = nil,
         at date: Date,
         cardPlayback: BattleCardPlaybackState,
         present: @escaping ([ActionEvent], [BattleResolvedDamage], Date, Int) -> Void,
@@ -43,6 +45,7 @@ extension BattleFeedbackLane {
             let card = automaticIndex.map { automaticCards.remove(at: $0) }
             guard !group.events.isEmpty || card != nil else { continue }
             let actorID = action.flatMap { $0.isAttack ? $0.actorID : nil }
+            let isManual = playedCardID != nil && action?.cardID == playedCardID
             let isPrepared = action?.cardID != nil && action?.cardID == preparedCardID
             if isPrepared, let action, !action.isAttack {
                 previewAttack(.cancel, for: action.actorID, at: date)
@@ -55,7 +58,7 @@ extension BattleFeedbackLane {
                 attackOwners[actorID] != nil || scheduledActions.contains { $0.actorID == actorID && $0.stage <= 2 }
             } == true
             let recipe = CombatFeedbackAttackRecipes.lungeCardAttack
-            let windUp = actorID == nil || isPrepared ? 0 : (isBurst ? 0.08 : recipe.windUpDuration)
+            let windUp = actorID == nil || isPrepared ? 0 : (isBurst ? 0.08 : (isManual ? 0.10 : recipe.windUpDuration))
             let revealAt = max(date, previousImpact ?? date)
             let startAt = card == nil ? revealAt : revealAt.addingTimeInterval(BattleMotion.cardDealDuration)
             let swingAt = startAt.addingTimeInterval(windUp)
@@ -74,11 +77,15 @@ extension BattleFeedbackLane {
             nextActionBeatID -= 1
             scheduledActions.append(BattleScheduledAction(
                 id: nextActionBeatID, actorID: actorID, events: group.events, damage: action?.damage ?? [], castID: castID,
+                deliversResultsImmediately: isManual,
                 startAt: startAt, swingAt: swingAt,
                 impactAt: actorID == nil && card != nil
                     ? max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration)) : impactAt,
                 stage: actorID == nil ? 2 : (isPrepared ? 1 : 0), present: present,
             ))
+            if isManual {
+                present(group.events, action?.damage ?? [], date, nextActionBeatID)
+            }
         }
         for card in automaticCards {
             let start = max(date, scheduledActions.map(\.impactAt).max() ?? date)
@@ -116,7 +123,9 @@ extension BattleFeedbackLane {
                     )
                 }
             case 2:
-                action.present(action.events, action.damage, action.impactAt, action.id)
+                if !action.deliversResultsImmediately {
+                    action.present(action.events, action.damage, action.impactAt, action.id)
+                }
                 if let actorID = action.actorID, attackOwners[actorID] == action.id {
                     publishAttack(.recover, for: actorID, at: action.impactAt)
                     if previewActors.contains(actorID) {

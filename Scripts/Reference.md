@@ -115,7 +115,33 @@ the full suite. It is consumed by `test-scripts.sh`, not a separate gate.
 
 ## Toolchain ladder
 
-Local and CI verification requires Xcode 26 or newer. If the simulator
+CI selects the exact `XCODE_VERSION` in `Scripts/tool-versions.env`. Local scripts
+honor `DEVELOPER_DIR`, otherwise inheriting the Mac's selected Xcode; they do not
+automatically enforce the CI pin. [Platform support](../Docs/Platform/ApplePlatformReference.md#platform-support)
+owns when that stable pin advances and how beta validation is used.
+
+Check [Apple's supported macOS range](https://developer.apple.com/xcode/system-requirements)
+as well as the Xcode version. An older Xcode command-line build can succeed even
+when its GUI cannot open on a newer macOS. macOS updates do not replace a separately
+installed `Xcode-beta.app`; update Xcode itself and then verify command-line selection.
+
+For release verification, use the matching stable installation explicitly without
+changing global `xcode-select`. These examples assume the conventional app names;
+check the reported version/build and substitute the actual installed path:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -version
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./Scripts/handoff.sh --isolate --paths <files...>
+DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer xcodebuild -version
+DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer ./Scripts/handoff.sh --isolate --paths <files...>
+```
+
+The second handoff is prerelease evidence, not release qualification. Confirm the
+simulator runtime separately; an existing managed device can use a different OS
+than the SDK. Do not reuse `--no-build` products across toolchains. Leave `SDKROOT`
+unset unless the owning workflow requires it so SDK and compiler stay aligned.
+
+If the simulator
 toolchain is unavailable, run the non-simulator checks that the host supports
 (`generate.sh`, generated-output assertion, boundaries, style, and `ci-gate.sh`)
 and explicitly report skipped build/test work. Do not claim full verification

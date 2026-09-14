@@ -89,7 +89,7 @@
       <CommandLineArguments>
       </CommandLineArguments>
       <StoreKitConfigurationFileReference
-         identifier = "StoreKit/Trinket.storekit">
+         identifier = "../../StoreKit/Trinket.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction

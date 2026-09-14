@@ -42,6 +42,38 @@ build-input alignment and the handoff's cheap slices remain full-tree. Family
 membership lives in `Scripts/script_test_selection.py`; update it when a leaf
 gains a consumer. Do not narrow shared helpers from filename similarity alone.
 
+## New iOS release readiness
+
+Use this at a major iOS/Xcode adoption boundary, not for every UI change.
+[Platform support](ApplePlatformReference.md#platform-support) owns the supported
+window and beta/stable policy; [toolchain selection](../../Scripts/Reference.md#toolchain-ladder)
+owns command setup. Record host macOS, Xcode build, SDK, runtime, device, app revision, and
+observed outcomes so beta evidence is distinguishable from release evidence.
+
+1. During betas, compile with the candidate SDK and run existing focused journeys
+   on its runtime. Review relevant release notes, deprecations, native component
+   changes, and useful new APIs. New symbols require OS availability checks too.
+2. Inspect Play, Collection, Homestead, Options, a detail sheet, and a battle on
+   the new runtime: safe areas, floating chrome, legibility, hit targets, card
+   input, dismissal, and meaningful feedback. Check icon appearances through the
+   [icon workflow](ApplePlatformReference.md#app-icon). Retain PD-014's scope.
+3. Check save/relaunch, an interrupted battle, and purchase/restore using existing
+   fixtures and the owning integration routes. Check physical audio/haptics only
+   on a device; use the [feedback reference](../../.agents/skills/apple-design/performance-and-feedback.md).
+   Synthetic StoreKit/CloudKit results do not replace their release prerequisites.
+4. Once the public stable toolchain is available, update its exact CI pin and
+   verify runner availability, generation idempotence, app Release compilation,
+   and routed package/smoke checks. Exercise the retained previous-major runtime
+   as well as the newest one, including both branches of any new availability
+   checks. Confirm the leased simulator's runtime: a cached simulator name or
+   the build SDK alone is not runtime coverage.
+5. Complete existing release verification and report missing runtime/device or
+   service prerequisites as gaps. Platform readiness does not authorize publishing.
+
+Use existing isolated runners and tests. Do not add a permanent full-device matrix
+or snapshot suite merely to record an OS transition. When a supported runtime is
+unavailable, report it; do not claim the support window has been verified.
+
 ## Generated project consistency
 
 `./Scripts/generate.sh` runs XcodeGen through the pinned wrapper with a fresh

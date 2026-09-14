@@ -20,7 +20,6 @@ final class RewardCollectionState {
     }
 
     private var phase = Phase.ready
-    private(set) var hasGathered = false
     private(set) var feedbackTrigger = 0
     private var finishAction: (() -> Void)?
     private var task: Task<Void, Never>?
@@ -54,12 +53,7 @@ final class RewardCollectionState {
             feedbackTrigger &+= 1
             task = Task { @MainActor [weak self, clock] in
                 do {
-                    try await clock.sleep(for: .seconds(TrinketMotion.Reward.collectionLiftDuration))
-                    guard !Task.isCancelled else { return }
-                    self?.hasGathered = true
-                    try await clock.sleep(for: .seconds(
-                        TrinketMotion.Reward.collectionDuration - TrinketMotion.Reward.collectionLiftDuration,
-                    ))
+                    try await clock.sleep(for: .seconds(TrinketMotion.Reward.collectionDuration))
                     guard !Task.isCancelled else { return }
                     self?.finish()
                 } catch {}

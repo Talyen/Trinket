@@ -18,7 +18,12 @@ and durable storage.
 
 Within `Sources/TrinketFeatureSupport/Shared/`, `Cards/` owns reusable cards and
 item artwork, `Encounters/` owns encounter tiles and reading presentation, and
-`Rewards/` owns the reward reveal sequence and its views.
+`Rewards/` owns the reward reveal sequence and its views. Victory and Mystery
+reveal loot and the primary action together while XP animates, keeping layout
+positions stable. Collection becomes available after the reveal fade, independent
+of XP completion. A successful claim triggers a brief stationary pulse before
+exit; animation never determines the amount awarded. Interrupted collection
+finishes the already committed action once.
 
 ## Artwork and rendering
 

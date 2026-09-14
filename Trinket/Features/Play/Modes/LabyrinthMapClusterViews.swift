@@ -21,8 +21,12 @@ struct LabyrinthFloorMap: View {
     let onDismissSelection: () -> Void
 
     private var metrics: LabyrinthHexMetrics {
-        LabyrinthHexMetrics(
-            radius: LabyrinthMapPresentation.hexRadius(forAvailableWidth: availableWidth),
+        let columns = nodes.compactMap(\.gridPosition?.projectedHalfColumn)
+        return LabyrinthHexMetrics(
+            radius: LabyrinthMapPresentation.hexRadius(
+                forAvailableWidth: availableWidth,
+                projectedHalfColumnSpan: (columns.max() ?? 0) - (columns.min() ?? 0),
+            ),
         )
     }
 
@@ -169,7 +173,7 @@ private struct LabyrinthMapNodeSeal: View {
                         isSelected ? TrinketDesign.Colors.accent :
                             visualState == .cleared ? TrinketDesign.Colors.subtleStroke.opacity(0.55) :
                             visualState == .locked ? TrinketDesign.Colors.subtleStroke : tint,
-                        lineWidth: visualState == .cleared ? 1.5 : visualState == .reachable ? 3 : 2,
+                        lineWidth: isSelected ? 3 : visualState == .cleared ? 1 : visualState == .reachable ? 2 : 1.5,
                     )
 
                 LabyrinthHexagon()

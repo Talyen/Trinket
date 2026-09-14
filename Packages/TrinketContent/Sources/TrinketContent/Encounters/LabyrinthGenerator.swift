@@ -133,7 +133,7 @@ public enum LabyrinthGenerator {
 
     private struct LayoutKey: Hashable {
         let nodeCount: Int
-        let closesLoop: Bool
+        let cycleCount: Int
     }
 
     private static let validLayoutsByKey: [LayoutKey: [[LabyrinthGridPosition]]] = {
@@ -141,8 +141,8 @@ public enum LabyrinthGenerator {
         let entrance = LabyrinthGridPosition(row: 0, column: 0)
 
         for nodeCount in 7 ... 9 {
-            for closesLoop in [false, true] {
-                let key = LayoutKey(nodeCount: nodeCount, closesLoop: closesLoop)
+            for cycleCount in 0 ... 2 {
+                let key = LayoutKey(nodeCount: nodeCount, cycleCount: cycleCount)
                 let middleCount = nodeCount - 2
                 var layouts: [[LabyrinthGridPosition]] = []
 
@@ -153,7 +153,7 @@ public enum LabyrinthGenerator {
                     for boss in boundedPositions(in: depth) {
                         for middle in combinations(of: middleCandidates, choosing: middleCount) {
                             let positions = [entrance] + middle + [boss]
-                            guard isValidFloorShape(positions, closesLoop: closesLoop) else { continue }
+                            guard isValidFloorShape(positions, cycleCount: cycleCount) else { continue }
                             layouts.append(
                                 [entrance]
                                     + middle.sorted(by: LabyrinthGridPosition.isOrderedBefore)
@@ -237,8 +237,9 @@ public enum LabyrinthGenerator {
         nodeCount: Int,
         using rng: inout some RandomNumberGenerator,
     ) -> [LabyrinthGridPosition] {
-        let closesLoop = Int.random(in: 0 ..< 5, using: &rng) == 0
-        let key = LayoutKey(nodeCount: nodeCount, closesLoop: closesLoop)
+        let roll = Int.random(in: 0 ..< 5, using: &rng)
+        let cycleCount = roll < 3 ? 0 : roll - 2
+        let key = LayoutKey(nodeCount: nodeCount, cycleCount: cycleCount)
         guard let layouts = validLayoutsByKey[key],
               let selected = layouts.randomElement(using: &rng)
         else { preconditionFailure("Labyrinth floor constraints must produce a layout") }
@@ -286,7 +287,7 @@ public enum LabyrinthGenerator {
 
     private static func isValidFloorShape(
         _ positions: [LabyrinthGridPosition],
-        closesLoop: Bool,
+        cycleCount: Int,
     ) -> Bool {
         let degrees = positions.map { source in
             positions.count(where: { target in
@@ -295,8 +296,8 @@ public enum LabyrinthGenerator {
         }
         guard degrees.first == 1,
               degrees.last == 1,
-              degrees.allSatisfy({ $0 <= 3 }),
-              degrees.contains(3)
+              degrees.allSatisfy({ $0 <= 4 }),
+              degrees.contains(where: { $0 >= 3 })
         else { return false }
 
         var reached: Set<LabyrinthGridPosition> = [positions[0]]
@@ -309,8 +310,7 @@ public enum LabyrinthGenerator {
         guard reached.count == positions.count else { return false }
 
         let edgeCount = degrees.reduce(0, +) / 2
-        let cycleCount = edgeCount - positions.count + 1
-        return cycleCount == (closesLoop ? 1 : 0)
+        return edgeCount - positions.count + 1 == cycleCount
     }
 
     private static func plannedTypes(

@@ -6,10 +6,9 @@ import TrinketContent
 @Observable
 final class BattleInteractionState {
     var suppressCombatantTaps = false
-    var autoLiftCardID: Int?
 
     var blocksCombatantTaps: Bool {
-        suppressCombatantTaps || autoLiftCardID != nil
+        suppressCombatantTaps
     }
 }
 

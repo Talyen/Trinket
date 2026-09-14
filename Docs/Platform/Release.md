@@ -31,6 +31,13 @@ touched paths at release time.
 
 ## Shipping
 
+Before adopting a new major iOS release, complete the
+[platform readiness checks](Verification.md#new-ios-release-readiness). Release
+artifacts use the validated stable Xcode recorded in `Scripts/tool-versions.env`;
+select it explicitly when the Mac's default is a beta. The
+[platform support policy](ApplePlatformReference.md#platform-support) owns the
+rolling support window; verify both supported majors before claiming readiness.
+
 Before App Store submission, complete the
 [purchase release prerequisites](Purchases.md#before-release), including the
 public support contact and published support/privacy pages. When enabling iCloud

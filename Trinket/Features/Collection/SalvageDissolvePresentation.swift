@@ -39,6 +39,7 @@ struct SalvageItemButton: View {
             }
         }
         .trinketArtworkCardButtonStyle()
+        .disabled(isLocked)
         .trinketPresentationVisibility(!isRetiring, opacity: isTransmuting ? 0 : 1)
         .animation(TrinketMotion.Interaction.stateChange, value: isTransmuting)
         .accessibilityLabel(isLocked ? "\(item.displayName), locked" : item.displayName)
