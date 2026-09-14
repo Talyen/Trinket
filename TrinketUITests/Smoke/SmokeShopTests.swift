@@ -18,7 +18,7 @@ final class SmokeShopTests: TrinketUITestCase {
                     "chapter-2-stage-6",
                     "chapter-2-stage-7",
                 ])
-                + ["-starting-gold", "200", "-launch-preparation-delay", "2"],
+                + ["-starting-gold", "200", "-launch-preparation-delay", "5"],
             waitForPreparation: false,
         )
 
