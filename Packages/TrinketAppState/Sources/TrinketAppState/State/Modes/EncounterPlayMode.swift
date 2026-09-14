@@ -38,6 +38,7 @@ public final class EncounterPlayMode {
     @discardableResult
     func beginShopEncounter(
         origin: PlayEncounterOrigin,
+        onAutoComplete: @escaping () -> StageMapMessage? = { nil },
     ) -> ShopEncounterOpenResult {
         guard playerSave.encounterAccessRestriction(for: origin) == nil,
               canBeginTransientEncounter else { return .unavailable }
@@ -54,7 +55,13 @@ public final class EncounterPlayMode {
         case .rejected:
             return .failed(StageMapMessage(title: "Shop Unavailable", message: "The shop could not be opened. Your progress is preserved."))
         case .persistFailed:
-            return .failed(StageMapMessage(title: "Couldn't Save Shop", message: "The shop was not saved. Try opening it again."))
+            playerSave.retrySaveAction(key: "shop-open") { [weak self] in
+                guard let self else { return }
+                if case .autoCompleted = beginShopEncounter(origin: origin, onAutoComplete: onAutoComplete) {
+                    _ = onAutoComplete()
+                }
+            }
+            return .unavailable
         }
     }
 
@@ -75,7 +82,11 @@ public final class EncounterPlayMode {
             sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
             return false
         case .persistFailed:
-            shopSession.markPurchaseFailed(message: "Purchase failed. Try again.")
+            shopSession.markPurchaseFinished()
+            playerSave.retrySaveAction(key: "shop-purchase-\(offerID)") { [weak self] in
+                guard let self, activeShopEncounter === shopSession else { return }
+                _ = purchaseActiveShopOffer(offerID: offerID)
+            }
             return false
         }
     }
@@ -84,9 +95,9 @@ public final class EncounterPlayMode {
     func beginShopOrAutoComplete(
         origin: PlayEncounterOrigin,
         identifier: String,
-        onAutoComplete: () -> StageMapMessage?,
+        onAutoComplete: @escaping () -> StageMapMessage?,
     ) -> StageMapMessage? {
-        switch beginShopEncounter(origin: origin) {
+        switch beginShopEncounter(origin: origin, onAutoComplete: onAutoComplete) {
         case .autoCompleted:
             if let failure = onAutoComplete() {
                 return failure
@@ -107,7 +118,6 @@ public final class EncounterPlayMode {
     public func finishActiveShopEncounter() -> Bool {
         guard let shopSession = activeShopEncounter else { return false }
 
-        shopSession.clearPersistFailure()
         guard playerSave.persistBatch(logging: "Failed to leave shop", { save in
             StageCompletion.completeEncounter(
                 stage: shopSession.stage,
@@ -118,7 +128,10 @@ public final class EncounterPlayMode {
                 save: &save,
             )
         }) else {
-            shopSession.markPersistFailed("Couldn't save progress. Stay here and try Leave Shop again.")
+            playerSave.retrySaveAction(key: "shop-leave") { [weak self] in
+                guard let self, activeShopEncounter === shopSession else { return }
+                _ = finishActiveShopEncounter()
+            }
             return false
         }
         clearActiveShopEncounter()

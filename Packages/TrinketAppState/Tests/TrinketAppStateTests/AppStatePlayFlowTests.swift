@@ -390,6 +390,10 @@ private func attunePhysicalPartyForReturnTests(on state: PlaySession) throws {
 
 @MainActor
 private class RejectingBattleRuntime: BattleRuntime {
+    var resolvedDefeatProgress: BattleDefeatProgress? {
+        nil
+    }
+
     var activeBattle: BattleRunConfiguration?
     var lifecyclePhase: BattleLifecyclePhase = .idle
     var isSuspendedForScenePhase = false

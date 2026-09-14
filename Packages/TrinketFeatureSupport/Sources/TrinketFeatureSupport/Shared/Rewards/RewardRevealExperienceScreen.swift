@@ -191,22 +191,11 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     @ViewBuilder
     private var experienceSection: some View {
         if !experienceAwards.isEmpty {
-            VStack(alignment: .leading, spacing: experienceSpacing) {
-                ForEach(experienceAwards) { award in
-                    ExperienceBar(
-                        combatantName: award.combatantName,
-                        artworkName: award.artworkName,
-                        pre: award.progressionBefore,
-                        post: award.progressionAfter,
-                        fillColor: TrinketDesign.Colors.accentEmphasized,
-                        experienceAward: award.experienceAward,
-                        snapToFinal: false,
-                        onAnimationCompleted: onExperienceBarCompleted,
-                    )
-                    .accessibilityIdentifier(award.accessibilityIdentifier ?? "\(award.combatantName) experience bar")
-                }
-            }
-            .trinketSurface(.secondary)
+            RewardRevealExperienceSection(
+                awards: experienceAwards,
+                spacing: experienceSpacing,
+                onAnimationCompleted: onExperienceBarCompleted,
+            )
             .accessibilityIdentifier(experienceAccessibilityIdentifier ?? "")
         } else if EmptyExperience.self != EmptyView.self {
             emptyExperience()

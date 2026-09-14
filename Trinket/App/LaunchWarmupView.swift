@@ -2,9 +2,12 @@ import SwiftUI
 import TrinketDesignSystem
 
 struct LaunchWarmupView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.isLaunchPresentationReady) private var isLaunchPresentationReady
     @State private var isVisible = false
     @State private var loadingStartDate: Date?
     @State private var currentTermIndex = 0
+    @State private var isMinimumTimeComplete = false
 
     let onMinimumLoadingTimeComplete: () -> Void
 
@@ -28,36 +31,43 @@ struct LaunchWarmupView: View {
         "Restocking mystery shops…",
     ]
 
+    private var loadingTitle: some View {
+        TimelineView(.animation(
+            minimumInterval: 1.0 / 30.0,
+            paused: !isVisible || loadingStartDate == nil || scenePhase != .active || isLaunchPresentationReady,
+        )) { context in
+            let elapsed = loadingStartDate.map { max(0, context.date.timeIntervalSince($0)) } ?? 0
+            let fill = isMinimumTimeComplete ? 1 : min(1, elapsed / Self.minimumLoadingDuration)
+            let scale = isLaunchPresentationReady ? 1 : 1 + 0.01 * (1 - cos(elapsed * .pi * 2 / 2.4))
+
+            Text("TRINKET")
+                .foregroundStyle(.secondary)
+                .overlay {
+                    Text("TRINKET")
+                        .foregroundStyle(TrinketDesign.Colors.accent)
+                        .mask(alignment: .leading) {
+                            GeometryReader { geometry in
+                                Rectangle()
+                                    .frame(width: geometry.size.width * fill)
+                            }
+                        }
+                        .accessibilityHidden(true)
+                }
+                .trinketTypography(.screenDisplay)
+                .scaleEffect(scale)
+                .accessibilityLabel("Loading Trinket")
+        }
+    }
+
     var body: some View {
         VStack(spacing: TrinketDesign.Layout.sectionSpacing) {
-            Text("TRINKET")
-                .trinketTypography(.screenDisplay)
-                .foregroundStyle(TrinketDesign.Colors.accent)
-
-            Group {
-                if let loadingStartDate {
-                    ProgressView(
-                        timerInterval: loadingStartDate ... loadingStartDate.addingTimeInterval(Self.minimumLoadingDuration),
-                        countsDown: false,
-                    ) {
-                        EmptyView()
-                    } currentValueLabel: {
-                        EmptyView()
-                    }
-                } else {
-                    ProgressView(value: 0)
-                }
-            }
-            .progressViewStyle(.linear)
-            .tint(TrinketDesign.Colors.accent)
-            .frame(maxWidth: 240)
+            loadingTitle
 
             Text(Self.loadingTerms[currentTermIndex])
                 .trinketTypography(.secondaryBody)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .id(currentTermIndex)
-                .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                .contentTransition(.opacity)
         }
         .padding(TrinketDesign.Layout.contentMargin)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -68,6 +78,7 @@ struct LaunchWarmupView: View {
         .onDisappear {
             isVisible = false
             loadingStartDate = nil
+            isMinimumTimeComplete = false
         }
         .task(id: isVisible) {
             guard isVisible else { return }
@@ -79,13 +90,14 @@ struct LaunchWarmupView: View {
             guard loadingStartDate != nil else { return }
             try? await Task.sleep(for: .seconds(Self.minimumLoadingDuration))
             guard !Task.isCancelled else { return }
+            isMinimumTimeComplete = true
             onMinimumLoadingTimeComplete()
         }
         .task(id: loadingStartDate) {
             guard loadingStartDate != nil else { return }
-            while !Task.isCancelled {
+            while !Task.isCancelled, !isMinimumTimeComplete {
                 try? await Task.sleep(for: .milliseconds(750))
-                guard !Task.isCancelled else { break }
+                guard !Task.isCancelled, !isMinimumTimeComplete else { break }
                 withAnimation(TrinketMotion.Content.fade) {
                     currentTermIndex = (currentTermIndex + 1) % Self.loadingTerms.count
                 }

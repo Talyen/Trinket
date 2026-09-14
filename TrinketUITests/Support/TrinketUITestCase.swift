@@ -3,10 +3,10 @@ import XCTest
 
 private func trinketWaitForExistenceMainActorSafe(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
     if Thread.isMainThread {
-        return MainActor.assumeIsolated { element.waitForExistence(timeout: timeout) }
+        return MainActor.assumeIsolated { element.exists || element.waitForExistence(timeout: timeout) }
     }
     return DispatchQueue.main.sync {
-        MainActor.assumeIsolated { element.waitForExistence(timeout: timeout) }
+        MainActor.assumeIsolated { element.exists || element.waitForExistence(timeout: timeout) }
     }
 }
 
@@ -368,12 +368,11 @@ class TrinketUITestCase: XCTestCase {
 
     func dismissSheet() {
         let closeButton = app.navigationBars.buttons["Close"]
-        if waitForExistence(closeButton, timeout: 2), closeButton.isHittable {
+        if closeButton.exists, closeButton.isHittable {
             closeButton.tap()
             _ = closeButton.waitForNonExistence(timeout: 3)
         } else {
             sheetDismissDragStart.press(forDuration: 0.1, thenDragTo: sheetDismissDragEnd)
-            _ = closeButton.waitForNonExistence(timeout: 3)
         }
     }
 
@@ -388,9 +387,10 @@ class TrinketUITestCase: XCTestCase {
     func replaceText(in element: XCUIElement, with text: String) {
         tapWhenReady(element)
         let clearButton = element.buttons["Clear text"]
-        if waitForExistence(clearButton, timeout: 1) {
+        if clearButton.exists {
             clearButton.tap()
-        } else if let stringValue = element.value as? String, !stringValue.isEmpty {
+        } else if let stringValue = element.value as? String,
+                  !stringValue.isEmpty, stringValue != element.placeholderValue {
             let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: stringValue.count)
             element.typeText(deleteString)
         }
@@ -415,12 +415,21 @@ class TrinketUITestCase: XCTestCase {
 extension XCUIElement {
     func trinketTapWhenReady(file: StaticString = #file, line: UInt = #line) {
         let ready = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"),
+            predicate: NSPredicate { [self] _, _ in
+                guard exists, isEnabled else { return false }
+                let bounds = frame
+                guard !bounds.isEmpty,
+                      bounds.minX.isFinite, bounds.minY.isFinite,
+                      bounds.maxX.isFinite, bounds.maxY.isFinite
+                else { return false }
+                return isHittable
+            },
             object: self,
         )
-        guard XCTWaiter.wait(for: [ready], timeout: 2) == .completed else {
+        guard ready.predicate.evaluate(with: self)
+            || XCTWaiter.wait(for: [ready], timeout: TrinketUITestCase.defaultTimeout) == .completed else {
             XCTFail(
-                "Control '\(identifier)' not ready: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable)",
+                "Control '\(identifier)' not ready: exists=\(exists), enabled=\(isEnabled), frame=\(frame)",
                 file: file,
                 line: line,
             )

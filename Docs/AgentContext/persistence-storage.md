@@ -19,13 +19,36 @@ remain required.
 
 Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roster/inventory/homestead are normalized child tables — intentional trade-off for spatial graph queries; don't normalize the labyrinth without measuring encode cost.
 
-Failed writes restore the pre-mutation value snapshot into the affected graph slices
-and observed projection. This compensation stays unsaved until a later successful
-write; recovery does not call `ModelContext.rollback()` because restoring deleted
-relationship rows can crash SwiftData on the iOS 27 simulator. An immediate failure
-preserves earlier deferred changes, while a failed deferred flush restores its
-last persisted snapshot. Full resets compensate the complete graph. Reload tests
-must also prove that a subsequent successful write preserves the recovered values.
+A database write failure first preserves the complete candidate in an atomic
+`.pending-save.json` file beside the store. The versioned local envelope reuses
+`CloudSaveSnapshot` and includes local session generation and exact cloud metadata.
+A pending recovery record is authoritative: subsequent writes update it before the
+primary graph, so account switches, resets, receipts, and gameplay cannot separate.
+Successful graph persistence removes the pending record. Recovery retries use
+bounded backoff while the app runs. Startup restores the pending record before
+publishing state and preserves the previous readable graph snapshot separately.
+An unreadable recovery record is not discarded or replaced with older progress.
+Reset replaces the prior pending record only when the fresh reset is durable;
+a failed reset retains the prior recoverable progress. Previous snapshots are
+never restored automatically after reset. This does not change the SwiftData or CloudKit schema.
+
+An action completes only after the graph or recovery file accepts its save. If
+both writes fail, restore the pre-mutation value snapshot into affected graph
+slices and the observed projection. Compensation stays unsaved until a later
+successful write; do not use `ModelContext.rollback()` because restoring deleted
+relationship rows can crash SwiftData on the iOS 27 simulator. An immediate total
+failure preserves earlier deferred changes; a failed explicit deferred flush
+restores its last persisted snapshot. Reload tests prove subsequent writes retain
+the recovered values. Production actions use immediate commits.
+
+`retrySaveAction` retains a failed action and retries it without a player prompt.
+Keys prevent duplicate retries; the captured session generation prevents late
+writes or navigation across reset/account boundaries. Interaction owners retain
+only current choices/encounters while pending. Transient cloud production failures
+use the same silent retry policy with asynchronous operations; server authority
+and receipt rules remain unchanged. Total device write refusal cannot guarantee
+survival of an uncommitted action across process termination; do not report that
+an action completed before a durable write succeeds.
 
 ## CloudKit preparation
 
@@ -45,8 +68,8 @@ and CloudKit environment so Development state cannot be mistaken for Production 
 same graph transaction. The payload is never uploaded wholesale; cloud snapshots
 contain only the active game's values. Invalid sync metadata is retained while
 sync is disabled and local play continues. Store-open failure preserves the
-original files and reports memory-only play; only an explicit reset may delete
-the store. The confirmed Reset Game Progress action reopens durable storage and
+original files and retains accepted new progress in the recovery file; only an
+explicit reset may delete the store. The confirmed Reset Game Progress action reopens durable storage and
 commits a fresh save before replacing the memory-only session. A failed recovery
 keeps that session available for retry. Do not restore automatic delete-and-recreate
 recovery during migration.

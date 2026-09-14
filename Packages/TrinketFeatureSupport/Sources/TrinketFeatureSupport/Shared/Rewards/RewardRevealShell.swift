@@ -19,6 +19,9 @@ public struct RewardRevealShell<Content: View>: View {
     let isPrimaryActionConfirmed: Bool
     let isPrimaryActionDisabled: Bool
     let onPrimaryAction: () -> Void
+    let secondaryActionTitle: String?
+    let secondaryActionAccessibilityIdentifier: String?
+    let onSecondaryAction: () -> Void
     var contentTopPadding = TrinketDesign.Layout.contentTopPadding
     var contentStackSpacing = TrinketDesign.Layout.sectionSpacing
     var pinsPrimaryActionToBottom = true
@@ -42,6 +45,9 @@ public struct RewardRevealShell<Content: View>: View {
         isPrimaryActionDisabled: Bool,
         isPrimaryActionConfirmed: Bool = false,
         onPrimaryAction: @escaping () -> Void,
+        secondaryActionTitle: String? = nil,
+        secondaryActionAccessibilityIdentifier: String? = nil,
+        onSecondaryAction: @escaping () -> Void = {},
         contentTopPadding: CGFloat = TrinketDesign.Layout.contentTopPadding,
         contentStackSpacing: CGFloat = TrinketDesign.Layout.sectionSpacing,
         pinsPrimaryActionToBottom: Bool = true,
@@ -64,6 +70,9 @@ public struct RewardRevealShell<Content: View>: View {
         self.isPrimaryActionDisabled = isPrimaryActionDisabled
         self.isPrimaryActionConfirmed = isPrimaryActionConfirmed
         self.onPrimaryAction = onPrimaryAction
+        self.secondaryActionTitle = secondaryActionTitle
+        self.secondaryActionAccessibilityIdentifier = secondaryActionAccessibilityIdentifier
+        self.onSecondaryAction = onSecondaryAction
         self.contentTopPadding = contentTopPadding
         self.contentStackSpacing = contentStackSpacing
         self.pinsPrimaryActionToBottom = pinsPrimaryActionToBottom
@@ -113,7 +122,7 @@ public struct RewardRevealShell<Content: View>: View {
                 content()
 
                 if !pinsPrimaryActionToBottom {
-                    primaryAction
+                    actions
                 }
             }
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
@@ -121,9 +130,10 @@ public struct RewardRevealShell<Content: View>: View {
             .padding(.bottom, contentStackSpacing)
             .frame(maxWidth: .infinity)
         }
+        .defaultScrollAnchor(.center, for: .alignment)
         .safeAreaInset(edge: .bottom) {
             if pinsPrimaryActionToBottom, primaryActionTitle != nil {
-                primaryAction
+                actions
                     .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                     .padding(.vertical, TrinketDesign.Spacing.medium)
                     .frame(maxWidth: .infinity)
@@ -141,6 +151,24 @@ public struct RewardRevealShell<Content: View>: View {
                         .offset(y: -28)
                         .allowsHitTesting(false)
                     }
+            }
+        }
+    }
+
+    private var actions: some View {
+        VStack(spacing: TrinketDesign.Spacing.large) {
+            primaryAction
+            if let secondaryActionTitle {
+                Button {
+                    guard !isPrimaryActionDisabled else { return }
+                    onSecondaryAction()
+                } label: {
+                    Text(secondaryActionTitle)
+                        .frame(maxWidth: .infinity)
+                }
+                .trinketSecondaryActionButton(accessibilityIdentifier: secondaryActionAccessibilityIdentifier)
+                .trinketCenteredPrimaryAction()
+                .disabled(isPrimaryActionDisabled)
             }
         }
     }

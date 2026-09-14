@@ -84,7 +84,7 @@ enum BattleMotion {
     static let chipMaximumScale = chipPopOvershootScale * chipUpdateOvershootScale
     static let chipPopEndScale: CGFloat = 1.0
     static let chipPopDuration: TimeInterval = 0.14
-    static let chipPopHoldDuration: TimeInterval = 0.14
+    static let chipPopHoldDuration: TimeInterval = 0.20
     static let chipPopShrinkDuration: TimeInterval = 0.45
     static let chipPopFadeDuration: TimeInterval = 0.28
     static let maxContinuousChipLifetime: TimeInterval = 1.2
@@ -102,10 +102,6 @@ enum BattleMotion {
     }
 
     static let statusBorderPulseDimOpacity = 0.45
-
-    static func chipMotionProgress(elapsed: TimeInterval) -> Double {
-        smoothProgress((elapsed - chipPopPeakTime) / (chipDisplayDuration - chipPopPeakTime))
-    }
 
     static func smoothProgress(_ progress: Double) -> Double {
         let clamped = min(max(progress, 0), 1)

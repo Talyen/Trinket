@@ -18,6 +18,8 @@ final class PlayBattleCompletion {
     }
 
     private var pendingExit: PendingExit?
+    var deferredDefeatTalentProgressions: [String: CombatantProgression] = [:]
+    var claimedDefeat: (configurationID: UUID, settlement: BattleRewardSettlement)?
 
     init(playerSave: PlayerSaveStore, battle: any BattleRuntime) {
         self.playerSave = playerSave
@@ -35,6 +37,8 @@ final class PlayBattleCompletion {
 
     func cancelPendingExit() {
         pendingExit = nil
+        claimedDefeat = nil
+        deferredDefeatTalentProgressions.removeAll()
     }
 
     @discardableResult

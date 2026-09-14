@@ -58,10 +58,11 @@ struct PreparedArtworkCacheTests {
         }
 
         await cache.prepareAll(priorityImageNames: [])
-        await blockedStarts.wait(until: 2)
+        await blockedStarts.wait(until: 1)
         await cache.prepare(names: ["viewport"])
 
         #expect(cache.image(named: "viewport") != nil)
+        #expect(await blockedStarts.count == 1)
 
         await deferredGate.open()
         await cache.waitForDeferredWarmup()
@@ -75,6 +76,61 @@ struct PreparedArtworkCacheTests {
 
         #expect(PreparedArtworkCache.defaultPresentationImageNames.contains(reference.imageName))
         #expect(PreparedArtworkCache.defaultPresentationImageNames.contains(thumbnail))
+    }
+
+    @Test func `concurrent callers share two decode slots and canceled queued pins are balanced`() async {
+        let probe = DecodeProbe()
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
+            await probe.decode(name)
+        }
+        let first = Task { await cache.prepare(names: ["a", "b"]) }
+        await probe.waitForStarts(2)
+        let canceled = Task { await cache.prepareAndPin(names: ["c"]) }
+        let pinned = Task { await cache.prepareAndPin(names: ["d", "e"]) }
+        while cache.pinDemandCount(for: "c") == 0 || cache.pinDemandCount(for: "e") == 0 {
+            await Task.yield()
+        }
+        #expect(await probe.started == ["a", "b"])
+        canceled.cancel()
+        await canceled.value
+        #expect(cache.pinDemandCount(for: "c") == 0)
+        await probe.release("a")
+        await probe.waitForStarts(3)
+        #expect(await probe.started == ["a", "b", "d"])
+        await probe.release("b")
+        await probe.waitForStarts(4)
+        await probe.release("d")
+        await probe.release("e")
+        await first.value
+        await pinned.value
+        #expect(await probe.maximumActive == 2)
+    }
+
+    @Test func `imminent demand promotes deferred work ahead of queued viewport work`() async {
+        let probe = DecodeProbe()
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["a", "z"]) { name in
+            await probe.decode(name)
+        }
+        await cache.prepareAll(priorityImageNames: [])
+        await probe.waitForStarts(1)
+        let viewport = Task { await cache.prepare(names: ["b", "c"]) }
+        await probe.waitForStarts(2)
+        let imminent = Task { await cache.prepareAndPin(names: ["z"]) }
+        while cache.pinDemandCount(for: "z") == 0 {
+            await Task.yield()
+        }
+        await probe.release("b")
+        await probe.waitForStarts(3)
+        #expect(await probe.started == ["a", "b", "z"])
+        await probe.release("z")
+        await probe.waitForStarts(4)
+        await probe.release("a")
+        await probe.release("c")
+        await viewport.value
+        await imminent.value
+        await cache.waitForDeferredWarmup()
+        #expect(await probe.maximumActive == 2)
+        #expect(await probe.started.count(where: { $0 == "z" }) == 1)
     }
 
     @Test func `portrait backgrounds are prepared by their owning surface`() {
@@ -285,6 +341,23 @@ struct PreparedArtworkCacheTests {
         #expect(cache.image(named: "d") == nil)
     }
 
+    @Test func `canceled cached pin acquisition does not release another owners demand`() async {
+        let image = makeImage()
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
+            PreparedArtwork(name: name, image: image)
+        }
+        await cache.prepareAndPin(names: ["art"])
+        let canceled = Task {
+            await cache.prepareAndPin(names: ["art"])
+            cache.releasePins(names: ["art"])
+        }
+        canceled.cancel()
+        await canceled.value
+        #expect(cache.pinDemandCount(for: "art") == 1)
+        #expect(cache.snapshot().pinnedCount == 1)
+        cache.releasePins(names: ["art"])
+    }
+
     @Test func `already canceled batch does not decode or leave pin demand`() async {
         let counter = DecodeCallCounter()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
@@ -368,5 +441,35 @@ private actor DecodeCallCounter {
         await withCheckedContinuation { continuation in
             waiters.append((target, continuation))
         }
+    }
+}
+
+private actor DecodeProbe {
+    private(set) var started: [String] = []
+    private(set) var maximumActive = 0
+    private var pending: [String: CheckedContinuation<Void, Never>] = [:]
+    private var startWaiters: [(Int, CheckedContinuation<Void, Never>)] = []
+
+    func decode(_ name: String) async -> PreparedArtwork {
+        await withCheckedContinuation { continuation in
+            pending[name] = continuation
+            started.append(name)
+            maximumActive = max(maximumActive, pending.count)
+            let ready = startWaiters.filter { started.count >= $0.0 }
+            startWaiters.removeAll { started.count >= $0.0 }
+            for waiter in ready {
+                waiter.1.resume()
+            }
+        }
+        return PreparedArtwork(name: name, image: nil)
+    }
+
+    func release(_ name: String) {
+        pending.removeValue(forKey: name)?.resume()
+    }
+
+    func waitForStarts(_ count: Int) async {
+        guard started.count < count else { return }
+        await withCheckedContinuation { startWaiters.append((count, $0)) }
     }
 }

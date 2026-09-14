@@ -93,8 +93,6 @@ private struct StageBattlePartyPickerContent: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectionFeedbackTrigger = 0
-    @State private var persistError: String?
-    @State private var persistErrorTrigger = 0
     @State private var combatantOrder: [BattlePartySlot: [String]]
 
     let spire: SpireDefinition?
@@ -135,12 +133,8 @@ private struct StageBattlePartyPickerContent: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled,
         )
-        .trinketSensoryFeedback(
-            .error,
-            trigger: persistErrorTrigger,
-            enabled: options.hapticsEnabled,
-        )
-        .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
+        .disabled(playerSave.isRetryingSaveAction)
+        .interactiveDismissDisabled(playerSave.isRetryingSaveAction)
     }
 
     private func partyShelf(for slot: BattlePartySlot) -> some View {
@@ -153,6 +147,7 @@ private struct StageBattlePartyPickerContent: View {
             title: slot.sectionTitle,
             sectionAccessibilityIdentifier: AccessibilityID.Play.battlePartyShelf(for: slot.title),
             totalCount: allCombatants.count,
+            artworkNames: shelfCombatants.compactMap { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
         ) {
             BattlePartySlotGridView(slot: slot, spire: spire, combatantIDs: combatantOrder[slot] ?? [])
         } content: {
@@ -198,8 +193,9 @@ private struct StageBattlePartyPickerContent: View {
             slot.select(combatant, in: &$0)
         }
         guard didPersist else {
-            persistError = "Your party change was not saved. Try again."
-            persistErrorTrigger &+= 1
+            playerSave.retrySaveAction(key: "party-\(slot.title)") {
+                select(combatant, for: slot)
+            }
             return
         }
         selectionFeedbackTrigger += 1
@@ -223,8 +219,6 @@ private struct BattlePartySlotGridView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 
     @State private var selectionFeedbackTrigger = 0
-    @State private var persistError: String?
-    @State private var persistErrorTrigger = 0
 
     let slot: BattlePartySlot
     let spire: SpireDefinition?
@@ -260,12 +254,8 @@ private struct BattlePartySlotGridView: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled,
         )
-        .trinketSensoryFeedback(
-            .error,
-            trigger: persistErrorTrigger,
-            enabled: options.hapticsEnabled,
-        )
-        .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
+        .disabled(playerSave.isRetryingSaveAction)
+        .interactiveDismissDisabled(playerSave.isRetryingSaveAction)
     }
 
     private var orderedCombatants: [Combatant] {
@@ -280,8 +270,9 @@ private struct BattlePartySlotGridView: View {
             slot.select(combatant, in: &$0)
         }
         guard didPersist else {
-            persistError = "Your party change was not saved. Try again."
-            persistErrorTrigger &+= 1
+            playerSave.retrySaveAction(key: "party-\(slot.title)") {
+                select(combatant)
+            }
             return
         }
         selectionFeedbackTrigger += 1

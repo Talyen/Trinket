@@ -17,11 +17,14 @@ public final class PlayerSaveStore {
         category: "PersistencePerformance",
     )
 
-    @ObservationIgnored private var container: ModelContainer
-    @ObservationIgnored private var usesMemoryFallback: Bool
-    @ObservationIgnored private var context: ModelContext
-    private let recoveryConfiguration: ModelConfiguration?
-    private var root: PlayerSaveRoot
+    @ObservationIgnored var container: ModelContainer
+    @ObservationIgnored var usesMemoryFallback: Bool
+    @ObservationIgnored var context: ModelContext
+    let recoveryConfiguration: ModelConfiguration?
+    let pendingSaveRecovery: PendingSaveRecovery?
+    var root: PlayerSaveRoot
+    @ObservationIgnored var saveActionRetries: [String: Task<Void, Never>] = [:]
+    public internal(set) var isRetryingSaveAction = false
     private var deferredSaveTask: Task<Void, Never>?
     private var pendingRollbackSnapshot: PlayerSave?
     private var pendingRollbackSlices: PlayerSaveSlice = []
@@ -31,24 +34,25 @@ public final class PlayerSaveStore {
         category: "PlayerSave",
     )
 
-    public private(set) var lastPersistenceError: PlayerSavePersistenceError?
+    public internal(set) var lastPersistenceError: PlayerSavePersistenceError?
 
     public var contentAccess: ContentAccessPolicy = .free
 
-    public private(set) var isPersistenceDegraded = false
+    public internal(set) var isPersistenceDegraded = false
 
     public private(set) var isCloudSyncEnabled: Bool
-    public private(set) var resetAffectsCloudProgress = false
+    public internal(set) var resetAffectsCloudProgress = false
     public private(set) var cloudSync: PlayerSaveCloudSync?
     @ObservationIgnored public var onExternalProgressChange: (@MainActor () -> Void)?
     @ObservationIgnored var cloudDeviceState = CloudDeviceState()
-    private var preservesUnreadableCloudState = false
-    private static let memoryFallbackError = PlayerSavePersistenceError.storeUnavailable(
-        "Couldn't open saved progress on this device. Existing save files were preserved. New progress is kept only until the app closes.",
+    var preservesUnreadableCloudState = false
+    static let memoryFallbackError = PlayerSavePersistenceError.storeUnavailable(
+        "Restoring progress on this device.",
     )
 
     #if DEBUG
     public var forcesNextSaveFailure = false
+    public var forcesNextDatabaseSaveFailure = false
     #endif
 
     public var journey: JourneyProgressState {
@@ -120,7 +124,7 @@ public final class PlayerSaveStore {
         )
 
         if resetState, !inMemoryOnly {
-            PlayerSaveStoreConfiguration.cleanStoreFiles(at: resolved.finalURL)
+            try PlayerSaveStoreConfiguration.cleanStoreFiles(at: resolved.finalURL)
         }
         let logger = Logger(subsystem: PlayerSaveDefaults.loggingSubsystem, category: "PlayerSave")
         let openResult = try Self.openSaveContainer(
@@ -145,6 +149,7 @@ public final class PlayerSaveStore {
         recoveryConfiguration: ModelConfiguration? = nil,
     ) throws {
         self.recoveryConfiguration = recoveryConfiguration
+        pendingSaveRecovery = recoveryConfiguration.map { PendingSaveRecovery(storeURL: $0.url) }
         container = openResult.container
         usesMemoryFallback = openResult.usedInMemoryFallback
         isCloudSyncEnabled = cloudSyncEnabled && !openResult.usedInMemoryFallback
@@ -166,6 +171,18 @@ public final class PlayerSaveStore {
         )
         root = loadedRoot.root
         do {
+            try pendingSaveRecovery?.restore(
+                into: root, context: context, preservesPrevious: !usesMemoryFallback && loadedRoot.wasExisting,
+            )
+        } catch {
+            // PersistenceCheck: allow - record is preserved aside when possible; retry persists newer progress
+            try? pendingSaveRecovery?.moveCorruptAside()
+            logger.error(
+                "Pending save could not be read; continuing with readable progress: \(String(describing: error), privacy: .public)",
+            )
+            isPersistenceDegraded = true
+        }
+        do {
             cloudDeviceState = try CloudDeviceState.decode(root.cloudStatePayload)
             resetAffectsCloudProgress = cloudDeviceState.activeAccountID != nil
         } catch {
@@ -186,6 +203,9 @@ public final class PlayerSaveStore {
             lastPersistenceError = .writeFailed
             isPersistenceDegraded = true
         }
+        if pendingSaveRecovery?.hasPendingSave == true {
+            do { try saveGraph() } catch { scheduleRecoveryRetry() }
+        }
         if isCloudSyncEnabled, let cloudTransport {
             cloudSync = PlayerSaveCloudSync(store: self, transport: cloudTransport)
         }
@@ -193,6 +213,9 @@ public final class PlayerSaveStore {
 
     isolated deinit {
         deferredSaveTask?.cancel()
+        for task in saveActionRetries.values {
+            task.cancel()
+        }
     }
 
     public func performBatchMutation(
@@ -242,7 +265,7 @@ public final class PlayerSaveStore {
     public func flushPendingPersistence() {
         deferredSaveTask?.cancel()
         deferredSaveTask = nil
-        guard !pendingRollbackSlices.isEmpty else { return }
+        guard !pendingRollbackSlices.isEmpty || pendingSaveRecovery?.hasPendingSave == true else { return }
         do {
             try saveGraph()
             clearPendingDeferredPersistence()
@@ -251,49 +274,7 @@ public final class PlayerSaveStore {
         }
     }
 
-    private func resetRoot(with save: PlayerSave) throws {
-        let snapshot = currentSave
-        let sanitized = PlayerSaveSanitizer.sanitize(save)
-        try PlayerSaveSanitizer.validate(sanitized)
-        try applyCandidate(sanitized, replacing: snapshot, slices: .all)
-    }
-
-    public func resetGameplayProgress() throws {
-        if usesMemoryFallback {
-            try resetDurableStorage()
-            return
-        }
-        let previous = cloudDeviceState
-        if cloudDeviceState.activeAccountID != nil {
-            cloudDeviceState.account.pending = nil
-            cloudDeviceState.account.resetRequested = true
-        }
-        do {
-            try resetWithIncrementedSessionGeneration(.fresh)
-        } catch {
-            cloudDeviceState = previous
-            if !preservesUnreadableCloudState {
-                root.cloudStatePayload = try JSONEncoder().encode(previous)
-            }
-            throw error
-        }
-    }
-
-    public func applyTestSeed() throws {
-        try resetWithIncrementedSessionGeneration(.testSeed)
-    }
-
-    public func unlockAllContent() throws {
-        try resetWithIncrementedSessionGeneration(.unlockedAll)
-    }
-
-    private func resetWithIncrementedSessionGeneration(_ base: PlayerSave) throws {
-        var save = base
-        save.sessionGeneration = currentSave.sessionGeneration &+ 1
-        try resetRoot(with: save)
-    }
-
-    private func saveGraph() throws {
+    func saveGraph() throws {
         let interval = Self.performanceSignposter.beginInterval("ModelContextSave")
         defer {
             Self.performanceSignposter.endInterval("ModelContextSave", interval)
@@ -308,9 +289,9 @@ public final class PlayerSaveStore {
                 throw NSError(domain: "PlayerSaveStoreTests", code: 1)
             }
             #endif
-            try context.save()
-            isPersistenceDegraded = usesMemoryFallback
-            lastPersistenceError = usesMemoryFallback ? Self.memoryFallbackError : nil
+            try saveGraphWithRecovery()
+            isPersistenceDegraded = usesMemoryFallback || pendingSaveRecovery?.hasPendingSave == true
+            lastPersistenceError = nil
         } catch {
             lastPersistenceError = .writeFailed
             logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
@@ -318,7 +299,12 @@ public final class PlayerSaveStore {
         }
     }
 
-    private func applyCandidate(
+    func restoreCloudMetadata(_ state: CloudDeviceState) throws {
+        cloudDeviceState = state
+        root.cloudStatePayload = try JSONEncoder().encode(state)
+    }
+
+    func applyCandidate(
         _ candidate: PlayerSave,
         replacing snapshot: PlayerSave,
         slices: PlayerSaveSlice,
@@ -365,52 +351,6 @@ public final class PlayerSaveStore {
             lastPersistenceError = .writeFailed
         }
     }
-
-    private func compensate(snapshot: PlayerSave, slices: PlayerSaveSlice) {
-        restoreSnapshot(snapshot, slices: slices)
-    }
-}
-
-extension PlayerSaveStore {
-    func commitCloudState(
-        _ state: CloudDeviceState,
-        replacing save: PlayerSave? = nil,
-        invalidatesSession: Bool = true,
-    ) throws {
-        let previous = cloudDeviceState
-        cloudDeviceState = state
-        do {
-            if var save {
-                let changed = invalidatesSession && CloudSaveSnapshot(currentSave) != CloudSaveSnapshot(save)
-                save.sessionGeneration = changed ? currentSave.sessionGeneration &+ 1 : currentSave.sessionGeneration
-                try resetRoot(with: save)
-                if changed {
-                    onExternalProgressChange?()
-                }
-            } else {
-                try saveGraph()
-            }
-            resetAffectsCloudProgress = state.activeAccountID != nil
-        } catch {
-            cloudDeviceState = previous
-            root.cloudStatePayload = try JSONEncoder().encode(previous)
-            throw error
-        }
-    }
-
-    func prepareLocalProduction() -> Bool {
-        guard let accountID = cloudDeviceState.activeAccountID else { return true }
-        var state = cloudDeviceState
-        state.archives[accountID] = CloudAccountArchive(snapshot: CloudSaveSnapshot(currentSave), state: state.account)
-        state.activeAccountID = nil
-        state.account = CloudAccountState()
-        do {
-            try commitCloudState(state)
-            return true
-        } catch {
-            return false
-        }
-    }
 }
 
 #if DEBUG
@@ -428,7 +368,29 @@ public extension PlayerSaveStore {
 }
 #endif
 
-private extension PlayerSaveStore {
+extension PlayerSaveStore {
+    func saveGraphWithRecovery() throws {
+        guard let pendingSaveRecovery else {
+            try savePrimaryGraph()
+            return
+        }
+        if try pendingSaveRecovery.persist(
+            save: root.toPlayerSave(), cloudState: root.cloudStatePayload,
+            memoryFallback: usesMemoryFallback, primaryWrite: savePrimaryGraph,
+        ) {
+            scheduleRecoveryRetry()
+        }
+    }
+
+    func scheduleRecoveryRetry() {
+        guard !usesMemoryFallback else { return }
+        pendingSaveRecovery?.retryInBackground { [weak self] in
+            guard let self else { return true }
+            do { try saveGraph() } catch { return false }
+            return pendingSaveRecovery?.hasPendingSave != true
+        }
+    }
+
     static func openSaveContainer(
         schema: Schema,
         configuration: ModelConfiguration,
@@ -473,34 +435,6 @@ private extension PlayerSaveStore {
         }
     }
 
-    func resetDurableStorage() throws {
-        guard let recoveryConfiguration else { throw Self.memoryFallbackError }
-        do {
-            PlayerSaveStoreConfiguration.cleanStoreFiles(at: recoveryConfiguration.url)
-            let replacement = try ModelContainer(for: PlayerSaveGraph.schema, configurations: recoveryConfiguration)
-            let replacementContext = ModelContext(replacement)
-            replacementContext.autosaveEnabled = false
-            try replacementContext.delete(model: PlayerSaveRoot.self)
-            var save = PlayerSaveSanitizer.sanitize(.fresh)
-            save.sessionGeneration = currentSave.sessionGeneration &+ 1
-            let replacementRoot = PlayerSaveRoot(save: save)
-            replacementRoot.cloudStatePayload = try JSONEncoder().encode(cloudDeviceState)
-            replacementContext.insert(replacementRoot)
-            try replacementContext.save()
-            clearPendingDeferredPersistence()
-            container = replacement
-            context = replacementContext
-            root = replacementRoot
-            usesMemoryFallback = false
-            isPersistenceDegraded = false
-            lastPersistenceError = nil
-            installObservedSave(save)
-        } catch {
-            lastPersistenceError = .writeFailed
-            throw PlayerSavePersistenceError.writeFailed
-        }
-    }
-
     func scheduleDeferredSave() {
         deferredSaveTask?.cancel()
         deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
@@ -538,6 +472,13 @@ private extension PlayerSaveStore {
     }
 
     func installObservedSave(_ save: PlayerSave, slices: PlayerSaveSlice = .all) {
+        if save.sessionGeneration != observedSave.sessionGeneration {
+            for task in saveActionRetries.values {
+                task.cancel()
+            }
+            saveActionRetries.removeAll()
+            isRetryingSaveAction = false
+        }
         if slices == .all {
             observedSave = save
             return

@@ -5,6 +5,7 @@ import SwiftUI
 public enum TrinketMotion: Sendable {
     public enum Interaction: Sendable {
         public static let artworkCardPressedScale: CGFloat = 0.99
+        public static let choiceCardPressedScale: CGFloat = 0.975
         public static let walletIncreaseScale: CGFloat = 1.025
         public static let walletIncreaseDelayStep: TimeInterval = 0.055
         public static let walletIncreaseMaximumDelay: TimeInterval = 0.30
@@ -24,6 +25,8 @@ public enum TrinketMotion: Sendable {
     }
 
     public enum Reward: Sendable {
+        public static let categoryEntranceScale: CGFloat = 0.97
+        public static let categoryEntranceStagger: TimeInterval = 0.06
         public static let collectionDuration: TimeInterval = 0.55
         public static let collectionLiftDuration: TimeInterval = 0.12
         public static let collectionWalletDelay: TimeInterval = 0.04

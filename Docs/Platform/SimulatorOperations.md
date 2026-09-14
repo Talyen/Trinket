@@ -25,19 +25,65 @@ a live owner’s lease; an ambiguous lease remains reserved for inspection.
 
 ## Inspection lease and capture
 
-For a launch followed by screenshots, video, or UI interaction, keep one Bash
-process alive for the whole inspection. From the repository root, set
-`TRINKET_ISOLATE=1`, source `Scripts/run-env.sh`, and call
-`trinket_run_env_init`. With no preselected slot or simulator overrides, this
-acquires an available agent slot and installs its release trap. Run
-`./Scripts/run-simulator.sh --isolate` as a child of that process so it inherits
-the lease. Keep the parent alive until inspection finishes; its exit releases
-the lease. A standalone launcher releases its lease when it exits.
+For interactive inspection, use one persistent terminal session:
 
-Resolve the capture UDID from the leased `TRINKET_SIMULATOR_NAME` using
-`Scripts/simctl_json.py udid-for-name`, and check that it resolved before issuing
-commands. An explicit `--agent N` binds a slot name; it does not acquire an unused
-slot and is appropriate only while you already hold that slot's lease.
+```bash
+./Scripts/run-simulator.sh --isolate --inspect
+```
+
+In Codex, call `exec_command` with `tty=true` and retain its session ID. The
+launcher acquires an available agent slot, builds, installs, launches, then
+prints `Inspection ready` with the simulator name, UDID, bundle ID, and product
+path. It keeps its lease until you send `stop\n` through `write_stdin`, close
+terminal input, or cancel the process. Confirm process exit after finishing.
+Do not wait for this command to exit before beginning Computer Use. Keep its
+session alive across tool calls; do not run another simulator job against its
+slot during inspection.
+
+For launch only, omit `--inspect`; the standalone launcher releases its lease
+when it exits. A booted device, printed UDID, or explicit `--agent N` selects a
+device but does not prove a live lease. Use `--agent N` only under an existing
+parent lease for that slot; otherwise let `--isolate` acquire an available slot.
+
+### Computer Use
+
+Use Computer Use (`mcp__cua_repl`) to view and operate Simulator. Start with
+`cua.getApp("com.apple.iphonesimulator")` and follow its returned documentation.
+Confirm the window's device name matches the launcher's leased simulator before
+interacting; use the Simulator window/device UI if another device is selected.
+Recheck the target after a window change. Device leases protect device ownership,
+but do not give each agent a separate Simulator.app foreground window.
+
+Observe the current screen, act, and inspect the resulting state before choosing
+the next action. Computer Use provides both screenshots and accessibility
+information; prefer available controls and use its screenshot-based coordinate
+clicks or drags when accessibility controls are absent or ineffective. Derive
+coordinates from the current Computer Use screenshot, not a simctl image with a
+different size or coordinate space. No separate screenshot utility or Accessibility
+Inspector is required for ordinary inspection.
+
+After an unsuccessful action, refresh the observation, check the target window,
+overlays, and control state, and try one relevant alternative supported by
+Computer Use. If the same obstacle remains, use existing focused XCTest coverage
+or report the limitation. Continue troubleshooting only when simulator tooling
+is itself the task or new evidence identifies a concrete remedy. Do not write a
+custom input driver. Inspection scope and stopping rules follow
+[Verification.md](Verification.md#choosing-ui-verification).
+If the tool cannot express a gesture's timing, use the existing gesture test or
+report the limitation rather than claiming its feel was verified.
+
+Accessibility Inspector is an optional diagnostic when investigating missing
+accessibility content. An empty tree alone does not establish an app regression.
+If needed, open the inspector through Computer Use, select the leased simulator,
+and verify a known app control; selecting all processes can preserve the inspection
+connection across app relaunches. A failed tap belongs to this interaction workflow;
+a failed build/test belongs to [CI diagnostics](../AgentContext/ci-diagnostics.md).
+
+### Optional evidence capture
+
+Computer Use observations are sufficient for routine inspection. Use simctl when
+you need a saved device screenshot or recording as an artifact. Set
+`SIMULATOR_UDID` to the UDID printed by the still-running inspection session.
 
 With `SIMULATOR_UDID` set to that leased device:
 
@@ -49,13 +95,6 @@ xcrun simctl io "$SIMULATOR_UDID" recordVideo /tmp/trinket-motion.mp4
 Stop recording with SIGINT to the recording process. Use the managed shutdown
 helper for recovery; it owns graceful guest-service teardown. A full pool means
 another run owns the capacity, not permission to take its device.
-
-Native accessibility inspection requires an active connection to the simulator.
-If a healthy app screenshot has an empty native accessibility tree, open Apple's
-Accessibility Inspector and select the leased simulator (not a human device).
-Selecting all processes on that simulator keeps inspection available across app
-relaunches. Verify a known app control before diagnosing missing accessibility
-content; an inactive inspection connection can otherwise resemble a UI regression.
 
 ## Optional mirror (isolated → human)
 
@@ -91,6 +130,13 @@ state. An opted-in handoff mirror does not launch by default. Agents use
 `./Scripts/run-simulator.sh --isolate` to foreground their leased build.
 
 ## Xcode IDE loop
+
+Scripted local Debug Simulator builds compile only the host architecture,
+including app launches and package/test builds. This avoids compiling Intel
+Simulator code on Apple silicon (and vice versa). CI (`CI=true` or
+`GITHUB_ACTIONS=true`), Release configurations, and device builds retain the
+SDK's standard architecture coverage. The shared build arguments own this
+selection; app signing, test selection, and per-slot caches are unchanged.
 
 To share build products with scripts, set Workspace Settings → Build Location to
 Custom, Relative to Workspace:

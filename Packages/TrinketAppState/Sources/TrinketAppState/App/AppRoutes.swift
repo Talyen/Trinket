@@ -34,6 +34,8 @@ public enum LaunchScreen: Equatable, Sendable {
     case options
     case battle
     case battleVictory
+    case battleDefeat
+    case battleDefeatSaveFailure
     case shop
     case mystery
     case labyrinth
@@ -50,6 +52,8 @@ public enum LaunchScreen: Equatable, Sendable {
         case "options": return .options
         case "battle": return .battle
         case "battle-victory": return .battleVictory
+        case "battle-defeat": return .battleDefeat
+        case "battle-defeat-save-failure": return .battleDefeatSaveFailure
         case "shop": return .shop
         case "mystery": return .mystery
         case "labyrinth": return .labyrinth

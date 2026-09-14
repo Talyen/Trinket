@@ -19,7 +19,7 @@ buttons and system toolbar styling.
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`, single `GlassButtonModifier`) |
 | `.trinketSecondaryActionButton()` | Secondary CTAs (`.glass`) |
 | `.trinketIconButton()` | Circular glass icon controls with stable accessibility identifiers |
-| `.trinketArtworkCardButtonStyle()` / `.trinketSelectionCardButtonStyle()` | Press-scale feedback for card buttons |
+| `.trinketArtworkCardButtonStyle()` / `.trinketSelectionCardButtonStyle()` | Press-scale feedback for card buttons; artwork style accepts optional `pressedScale` (default `0.99`), with `TrinketMotion.Interaction.choiceCardPressedScale` for talent choices |
 | `.trinketCardLabelSpace(_:)` | Reserved label height under cards |
 | `.trinketAccessibilityIdentifier(_:)` | Optional test identifier passthrough |
 | `.optionalMatchedTransitionSource(id:in:)` | Matched transitions with an optional namespace |

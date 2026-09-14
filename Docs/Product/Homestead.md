@@ -9,24 +9,40 @@ without a confirmation dialog.
 The overview keeps its full-bleed landscape hero, compact eight-resource wallet,
 and Play Mode–style category cards: Farming, Crafting, Alchemy, Training, Arcana.
 Cards show tier-sum constructed progress and push stable two-column portrait
-building galleries. Buildings retain their names and thin borders; affordable
+building galleries. Buildings have centered names beneath their portraits and centered, 132-point-wide
+upgrade segments between each portrait and name. Segment width is capped by the
+tile width; fills use saved progress and the catalog tier count, including empty
+segments for locked or unbuilt buildings. Buildings retain thin borders; affordable
 improvements get a soft stationary gold halo. Prerequisite-locked buildings
 remain inspectable. Galleries expose balances through Resources, without a
-persistent wallet or repeated category hero. Segmented progression appears only
-on building details.
+persistent wallet or repeated category hero. Returning from an upgrade refreshes
+gallery segments without replaying the detail celebration.
 
 Building details use full-screen portrait artwork, the building name, segmented
 progress, and native gold Back/Resources toolbar controls matching the gallery.
 Only building details hide the tab bar. Resources opens a compact expandable
 wallet sheet with a Close control.
 
-A compact native glass bottom panel shows exact current benefits with standard
-bold/color keywords and white values. Bonus and Production headings share a
-baseline, with top-aligned content in separate columns. Production sits on the
-right with large material artwork, its name, and a white daily rate in wallet
-style. Details and offers share this layout. Completed buildings keep benefits
-and omit Build/Improve. Progress uses the catalog's actual tier count; descriptions
-wrap and panel content scrolls as needed. No persistent completion banner,
+A compact native glass bottom panel shows exact current benefits. Each effect uses
+an equally sized, colored SF Symbol in a 28-point frame beside a secondary eyebrow
+and a body-sized effect line. Bonuses use a Bonus eyebrow; production uses the
+resource name and a daily rate, without separate section headers. Effect labels
+and bold white values stay tightly grouped; existing keyword formatting remains.
+Details and offers share this layout. Bonus-plus-production items use equal-width
+columns when both natural widths fit, otherwise full-width stacked items. Bonus-only
+buildings stack one full-width item per effect. Descriptions wrap without truncating
+values or comparisons, and panel content scrolls as needed. Completed buildings
+keep benefits and omit Build/Improve.
+
+Bonus symbols reuse keyword identities and colors: Health uses heart.fill; healing
+uses heart.circle.fill; damage uses its keyword symbol; damage resistance uses
+shield.fill tinted to its keyword. Party protection uses Block styling; companion
+damage uses pawprint.fill with Physical tint; Dodge uses wind; Astral finds uses
+sparkles with arcane tint; Gold finds uses circle.circle.fill with Gold tint.
+Production uses resource tints with carrot.fill (Food), leaf.fill (Herbs),
+diamond.fill (Crystal), square.stack.3d.up.fill (Hide), and circle.circle.fill (Gold).
+Wallets, collection, and purchase costs retain illustrated resource artwork.
+Progress uses the catalog's actual tier count. No persistent completion banner,
 checkmark, or Tier N label appears.
 
 ## Next-stage offers

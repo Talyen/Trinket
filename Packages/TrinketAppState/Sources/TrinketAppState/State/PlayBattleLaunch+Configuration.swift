@@ -41,7 +41,6 @@ struct BattlePreparationInputs: Equatable {
     let launch: BattleLaunchInput
     let party: PlayBattlePartySnapshot
     let rngSeed: UInt64
-    let defeatPrimaryAction: BattleDefeatPrimaryAction
     let hasProgressionRewards: Bool
     let musicStageID: String?
 }
@@ -95,14 +94,13 @@ extension PlayBattleLaunch {
         inventoryState: PlayerInventoryState,
         homesteadState: PlayerHomesteadState = .freshStart,
         worldSeed: UInt64 = 0,
-        defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
         hasProgressionRewards: Bool = false,
         musicStageID: String? = nil,
     ) -> BattleLaunchAssembly {
         assembleLaunch(BattlePreparationInputs(
             runKey: runKey, launch: input,
             party: PlayBattlePartySnapshot(roster: rosterState, inventory: inventoryState, homestead: homesteadState, worldSeed: worldSeed),
-            rngSeed: rngSeed, defeatPrimaryAction: defeatPrimaryAction,
+            rngSeed: rngSeed,
             hasProgressionRewards: hasProgressionRewards, musicStageID: musicStageID,
         ))
     }
@@ -163,7 +161,6 @@ extension PlayBattleLaunch {
             experienceBonusPercent: input.experienceBonusPercent,
             goldFindPercent: homesteadEffects.goldFindPercent,
             stageRewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
-            defeatPrimaryAction: inputs.defeatPrimaryAction,
             hasProgressionRewards: inputs.hasProgressionRewards,
             musicStageID: inputs.musicStageID,
             heroExperienceAward: VictoryRewardApplier.battleExperienceAward(

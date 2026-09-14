@@ -42,10 +42,12 @@ private struct BorderTimeline: View {
     let cornerRadius: CGFloat
     let lineWidth: CGFloat
     let isMotionActive: Bool
+    @Environment(\.isDecorativeMotionActive) private var isPresentationMotionActive
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let motionEnabled = isMotionActive && !reduceMotion
+        let motionEnabled = isMotionActive && isPresentationMotionActive && scenePhase == .active && !reduceMotion
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !motionEnabled)) { context in
             let angle = motionEnabled
                 ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360

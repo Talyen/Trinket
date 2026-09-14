@@ -250,52 +250,92 @@ public struct CardCastEffectsPrewarmView: View {
         count: BattleMotion.cardCastParticleCount,
     )
 
-    public var artworkName: String? = "ability_bash"
-    let onComplete: () -> Void
-
+    public var artworkName: String?
+    private let isRenderingEnabled: Bool
+    private let onComplete: () -> Void
     private let cardSize = CGSize(width: 168, height: 224)
 
-    @State private var startDate = Date()
+    @State private var startDate: Date?
+    @State private var preparedArtworkName: String?
+    @State private var areResourcesPrepared = false
 
     public init(
         artworkName: String? = "ability_bash",
+        isRenderingEnabled: Bool = true,
         onComplete: @escaping () -> Void,
     ) {
         self.artworkName = artworkName
+        self.isRenderingEnabled = isRenderingEnabled
         self.onComplete = onComplete
     }
 
     public var body: some View {
-        TimelineView(.animation) { timeline in
-            let progress = cardActivationProgress(
-                elapsed: timeline.date.timeIntervalSince(startDate),
-            )
-            CardDissolveEffect(
-                progress: progress,
-                keywords: [.physical],
-                size: cardSize,
-                particles: Self.prewarmParticles,
-            ) {
-                BattleAbilityCardFace(artworkName: artworkName)
+        Group {
+            if canRender, let startDate {
+                TimelineView(.animation) { timeline in
+                    CardDissolveEffect(
+                        progress: cardActivationProgress(elapsed: timeline.date.timeIntervalSince(startDate)),
+                        keywords: [.physical],
+                        size: cardSize,
+                        particles: Self.prewarmParticles,
+                    ) {
+                        BattleAbilityCardFace(artworkName: artworkName)
+                    }
+                }
+            } else {
+                Color.clear
             }
         }
         .opacity(0.001)
         .scaleEffect(0.01)
         .allowsHitTesting(false)
-        .task {
-            startDate = Date()
-            defer {
-                if let artworkName {
-                    PreparedArtworkCache.shared.releasePins(names: [artworkName])
-                }
-            }
+        .accessibilityHidden(true)
+        .task(id: artworkName) {
+            areResourcesPrepared = false
+            startDate = nil
+            releaseArtwork()
+            async let textures: Void = CardDissolveTexture.prepare()
             if let artworkName {
                 await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
+                guard !Task.isCancelled else {
+                    PreparedArtworkCache.shared.releasePins(names: [artworkName])
+                    return
+                }
+                preparedArtworkName = artworkName
             }
-            await CardDissolveTexture.prepare()
+            await textures
+            guard !Task.isCancelled else { return }
+            areResourcesPrepared = true
+        }
+        .task(id: renderKey) {
+            guard canRender else {
+                startDate = nil
+                return
+            }
+            startDate = .now
             try? await Task.sleep(for: .milliseconds(200))
             guard !Task.isCancelled else { return }
             onComplete()
+        }
+        .onDisappear {
+            areResourcesPrepared = false
+            startDate = nil
+            releaseArtwork()
+        }
+    }
+
+    private var canRender: Bool {
+        isRenderingEnabled && areResourcesPrepared && preparedArtworkName == artworkName
+    }
+
+    private var renderKey: String? {
+        canRender ? (artworkName ?? "") : nil
+    }
+
+    private func releaseArtwork() {
+        if let preparedArtworkName {
+            PreparedArtworkCache.shared.releasePins(names: [preparedArtworkName])
+            self.preparedArtworkName = nil
         }
     }
 }

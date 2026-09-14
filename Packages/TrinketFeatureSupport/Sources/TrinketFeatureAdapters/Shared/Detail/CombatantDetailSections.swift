@@ -112,7 +112,7 @@ struct CombatantTalentsSection: View {
                                 accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue),
                             )
                         }
-                        .trinketQuietTapButtonStyle()
+                        .trinketArtworkCardButtonStyle(pressedScale: TrinketMotion.Interaction.choiceCardPressedScale)
                     }
                 }
                 .padding(.vertical, TrinketDesign.Spacing.extraSmall)

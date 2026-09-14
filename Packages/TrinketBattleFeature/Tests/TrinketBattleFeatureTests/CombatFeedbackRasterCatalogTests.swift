@@ -7,6 +7,23 @@ import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackRasterCatalogTests {
+    @Test @MainActor func `invalidated raster work cannot repopulate the pool`() async {
+        let gate = RasterPublicationGate()
+        let pool = CombatFeedbackRasterPool { inputs in
+            let image = inputs.first.flatMap { CombatFeedbackChipComposer.render($0) }
+            await gate.pause()
+            return inputs.map { _ in image }
+        }
+        let preparation = Task { await pool.prewarmInfrastructureAndWait(displayScale: 1) }
+        await gate.waitForArrival()
+        pool.removeAll()
+        await gate.resume()
+        await preparation.value
+        #expect(pool.snapshot().entryCount == 0)
+        await pool.prewarmInfrastructureAndWait(displayScale: 1)
+        #expect(pool.snapshot().entryCount > 0)
+    }
+
     @Test func `every closed vocabulary live presentation maps to A warmed key`() {
         let date = Date(timeIntervalSince1970: 1)
         let layoutDirection = LayoutDirection.leftToRight
@@ -32,5 +49,31 @@ struct CombatFeedbackRasterCatalogTests {
                 "missing warmup for \(item.feedbackClass) \(item.label) \(item.keyword)",
             )
         }
+    }
+}
+
+private actor RasterPublicationGate {
+    private var isOpen = false
+    private var paused: CheckedContinuation<Void, Never>?
+    private var arrival: CheckedContinuation<Void, Never>?
+
+    func pause() async {
+        guard !isOpen else { return }
+        await withCheckedContinuation { continuation in
+            paused = continuation
+            arrival?.resume()
+            arrival = nil
+        }
+    }
+
+    func waitForArrival() async {
+        guard paused == nil else { return }
+        await withCheckedContinuation { arrival = $0 }
+    }
+
+    func resume() {
+        isOpen = true
+        paused?.resume()
+        paused = nil
     }
 }

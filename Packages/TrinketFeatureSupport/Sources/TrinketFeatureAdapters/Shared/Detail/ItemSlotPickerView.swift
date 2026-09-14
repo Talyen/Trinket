@@ -13,6 +13,10 @@ struct ItemSlotPickerView: View {
 
     @State private var model: ItemPickerItems
     @State private var filter = ItemPickerFilter()
+    @State private var searchText = ""
+    @State private var readyItem: InventoryItem?
+    @State private var detailArtworkLease: PreparedArtworkLease?
+    @State private var requestedItem: InventoryItem?
     @State private var selectedItem: InventoryItem?
 
     init(
@@ -35,58 +39,60 @@ struct ItemSlotPickerView: View {
         let displayItems = model.matching(filter)
         let siblingIDs = equippedInSiblingSlotIDs
 
-        ScrollViewReader { proxy in
-            VStack(spacing: 0) {
-                if filter.isActive {
-                    Text("\(displayItems.count) of \(model.eligible.count) items")
-                        .trinketTypography(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, TrinketDesign.Spacing.small)
-                }
-                if displayItems.isEmpty {
-                    emptyState
-                } else {
-                    OptionPickerGrid(
-                        items: displayItems,
-                        isSelected: { item in
-                            item.id == equipmentLoadout.itemID(for: slot)
-                        },
-                        onSelect: { selectedItem = $0 },
-                        accessibilityIdentifier: { item in
-                            AccessibilityID.LoadoutPicker.itemCandidate(item.id)
-                        },
-                        artworkNameProvider: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
-                        card: { item, isSelected in
-                            ItemCard(
-                                item: item,
-                                showsAffixCount: false,
-                                isSelected: isSelected,
-                                shine: isSelected ? .keywords(item.plasmaKeywords) : nil,
-                                shineLineWidth: isSelected ? 3 : 1.5,
-                            )
-                            .overlay(alignment: .topTrailing) {
-                                if siblingIDs.contains(item.id) {
-                                    Text("Equipped")
-                                        .trinketTypography(.caption)
-                                        .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-                                        .padding(.horizontal, TrinketDesign.Spacing.tight)
-                                        .padding(.vertical, 2)
-                                        .background(TrinketDesign.Colors.accent, in: Capsule())
-                                        .padding(TrinketDesign.Spacing.tight)
+        ItemPickerSearchScope(readyItem: $readyItem, onReady: presentReadyItem) {
+            ScrollViewReader { proxy in
+                VStack(spacing: 0) {
+                    if filter.isActive {
+                        Text("\(displayItems.count) of \(model.eligible.count) items")
+                            .trinketTypography(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.vertical, TrinketDesign.Spacing.small)
+                    }
+                    if displayItems.isEmpty {
+                        emptyState
+                    } else {
+                        OptionPickerGrid(
+                            items: displayItems,
+                            isSelected: { item in
+                                item.id == equipmentLoadout.itemID(for: slot)
+                            },
+                            onSelect: { requestedItem = $0 },
+                            accessibilityIdentifier: { item in
+                                AccessibilityID.LoadoutPicker.itemCandidate(item.id)
+                            },
+                            artworkNameProvider: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
+                            card: { item, isSelected in
+                                ItemCard(
+                                    item: item,
+                                    showsAffixCount: false,
+                                    isSelected: isSelected,
+                                    shine: isSelected ? .keywords(item.plasmaKeywords) : nil,
+                                    shineLineWidth: isSelected ? 3 : 1.5,
+                                )
+                                .overlay(alignment: .topTrailing) {
+                                    if siblingIDs.contains(item.id) {
+                                        Text("Equipped")
+                                            .trinketTypography(.caption)
+                                            .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
+                                            .padding(.horizontal, TrinketDesign.Spacing.tight)
+                                            .padding(.vertical, 2)
+                                            .background(TrinketDesign.Colors.accent, in: Capsule())
+                                            .padding(TrinketDesign.Spacing.tight)
+                                    }
                                 }
-                            }
-                        },
-                    )
-                    .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
+                            },
+                        )
+                        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
+                    }
                 }
-            }
-            .onChange(of: filter) { _, _ in
-                if let first = displayItems.first {
-                    proxy.scrollTo(first.id, anchor: .top)
+                .onChange(of: filter) { _, _ in
+                    if let first = displayItems.first {
+                        proxy.scrollTo(first.id, anchor: .top)
+                    }
                 }
             }
         }
-        .searchable(text: $filter.search, prompt: "Search equipment")
+        .searchable(text: $searchText, prompt: "Search equipment")
         .toolbar { filterToolbar }
         .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)
@@ -107,12 +113,52 @@ struct ItemSlotPickerView: View {
                 },
             )
         }
+        .task(id: requestedItem) {
+            guard let requestedItem else { return }
+            let lease = await PreparedArtworkLease(names: [
+                requestedItem.artReference?.imageName, requestedItem.artReference?.thumbnailImageName,
+            ].compactMap(\.self))
+            guard !Task.isCancelled, self.requestedItem == requestedItem else { return }
+            detailArtworkLease = lease
+            readyItem = requestedItem
+            self.requestedItem = nil
+        }
+        .onChange(of: searchText) { _, query in
+            if readyItem == nil, selectedItem == nil {
+                filter.search = query
+            }
+        }
+        .onChange(of: filter.search) { _, query in
+            if readyItem == nil, selectedItem == nil {
+                searchText = query
+            }
+        }
+        .onChange(of: selectedItem) { previous, current in
+            if previous != nil, current == nil {
+                searchText = filter.search
+                if readyItem == nil {
+                    detailArtworkLease = nil
+                }
+            }
+        }
+        .onDisappear {
+            if readyItem == nil, selectedItem == nil {
+                requestedItem = nil
+                detailArtworkLease = nil
+            }
+        }
         .onChange(of: inventoryItems, initial: true) { _, _ in
             model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
         }
         .onChange(of: equipmentLoadout) { _, _ in
             model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
         }
+    }
+
+    private func presentReadyItem() {
+        guard let readyItem else { return }
+        selectedItem = readyItem
+        self.readyItem = nil
     }
 
     @ViewBuilder
@@ -168,5 +214,28 @@ struct ItemSlotPickerView: View {
     private var equippedInSiblingSlotIDs: Set<String> {
         equipmentLoadout.itemIDs(inFamilyOf: slot)
             .subtracting([equipmentLoadout.itemID(for: slot)].compactMap(\.self))
+    }
+}
+
+private struct ItemPickerSearchScope<Content: View>: View {
+    @Environment(\.isSearching) private var isSearching
+    @Environment(\.dismissSearch) private var dismissSearch
+    @Binding var readyItem: InventoryItem?
+    let onReady: () -> Void
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        content()
+            .onChange(of: readyItem?.id, initial: true) { _, _ in advance() }
+            .onChange(of: isSearching) { _, _ in advance() }
+    }
+
+    private func advance() {
+        guard readyItem != nil else { return }
+        if isSearching {
+            dismissSearch()
+        } else {
+            onReady()
+        }
     }
 }

@@ -5,6 +5,29 @@ import TrinketCore
 import TrinketTestSupport
 
 struct BattleStateStartingHealthTests {
+    @Test(arguments: [false, true])
+    func `peak enemy depletion survives healing without observation`(tracksEvents: Bool) {
+        var state = BattleState(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100),
+            tracksLog: false, tracksEvents: tracksEvents, dealOpeningHand: false,
+        )
+        let initial = state
+        state.roster.mutateRuntime(for: state.enemy) { runtime in
+            _ = runtime.takeRawDamage(58)
+            _ = runtime.heal(58)
+        }
+        #expect(state.health(of: state.enemy) == 100)
+        #expect(state.defeatProgress.experienceAward(from: 100) == 29)
+        state.roster.mutateRuntime(for: state.enemy) { runtime in
+            _ = runtime.takeRawDamage(40)
+            _ = runtime.heal(40)
+        }
+        #expect(state.defeatProgress.experienceAward(from: 100) == 29)
+        #expect(initial.defeatProgress.experienceAward(from: 100) == 0)
+    }
+
     @Test func `battle state seeds party starting health`() {
         let state = BattleState(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50),

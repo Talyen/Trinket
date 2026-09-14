@@ -80,8 +80,27 @@ final class CombatFeedbackRasterPool {
         let task: Task<CombatFeedbackGlyphAtlas.PresentationKey?, Never>
     }
 
-    init(capacity: Int = defaultCapacity) {
+    private let rasterize: @Sendable ([CombatFeedbackChipComposer.RasterInputs]) async -> [CombatFeedbackChipComposer.ComposedRaster?]
+
+    init(
+        capacity: Int = defaultCapacity,
+        rasterize: @escaping @Sendable ([CombatFeedbackChipComposer.RasterInputs]) async
+            -> [CombatFeedbackChipComposer.ComposedRaster?] = CombatFeedbackRasterPool.rasterize,
+    ) {
         self.capacity = max(1, capacity)
+        self.rasterize = rasterize
+    }
+
+    @concurrent
+    nonisolated private static func rasterize(
+        _ requests: [CombatFeedbackChipComposer.RasterInputs],
+    ) async -> [CombatFeedbackChipComposer.ComposedRaster?] {
+        var prepared: [CombatFeedbackChipComposer.ComposedRaster?] = []
+        for request in requests {
+            guard !Task.isCancelled else { return prepared }
+            prepared.append(CombatFeedbackChipComposer.render(request))
+        }
+        return prepared
     }
 
     func cachedRaster(
@@ -193,20 +212,19 @@ final class CombatFeedbackRasterPool {
                 displayScale: displayScale,
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
-            let catalog = CombatFeedbackRasterCatalog.closedVocabularyChips()
-            let batchSize = 16
-            var index = 0
-            while index < catalog.count {
-                let end = min(index + batchSize, catalog.count)
-                for item in catalog[index ..< end] {
-                    _ = prepare(
-                        for: item,
-                        displayScale: displayScale,
-                    )
-                }
-                index = end
-                await Task.yield()
-                guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
+            let requests = rasterRequests(displayScale: displayScale)
+            let prepared = await rasterize(requests.map(\.1))
+            guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
+            guard prepared.count == requests.count, prepared.allSatisfy({ $0 != nil }) else { return nil }
+            for (request, image) in zip(requests, prepared) {
+                guard rasters[request.0] == nil, let image else { continue }
+                let raster = CombatFeedbackRaster(
+                    key: request.0, image: image.image,
+                    pointSize: image.pointSize, displayScale: displayScale,
+                )
+                buildCount += 1
+                rasterAllocationCount += 1
+                insert(raster, for: request.0)
             }
             preparedCatalogKey = key
             return key
@@ -216,6 +234,24 @@ final class CombatFeedbackRasterPool {
             task: task,
         )
         return task
+    }
+
+    private func rasterRequests(
+        displayScale: CGFloat,
+    ) -> [(CombatFeedbackRasterKey, CombatFeedbackChipComposer.RasterInputs)] {
+        CombatFeedbackRasterCatalog.closedVocabularyChips().compactMap { item -> (
+            CombatFeedbackRasterKey,
+            CombatFeedbackChipComposer.RasterInputs
+        )? in
+            let rasterKey = makeKey(for: item, layoutDirection: .leftToRight, displayScale: displayScale)
+            guard rasters[rasterKey] == nil,
+                  let inputs = CombatFeedbackChipComposer.prepareInputs(
+                      presentation: item.chipPresentation,
+                      feedbackClass: item.feedbackClass,
+                      displayScale: displayScale,
+                  ) else { return nil }
+            return (rasterKey, inputs)
+        }
     }
 
     func removeAll() {

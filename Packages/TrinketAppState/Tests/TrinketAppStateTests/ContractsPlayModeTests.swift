@@ -114,7 +114,8 @@ struct ContractsPlayModeTests {
         #expect(play.contracts.enter() == nil)
         let before = play.playerSave.currentSave
         play.playerSave.forcesNextSaveFailure = true
-        #expect(play.contracts.refresh() != nil)
+        #expect(play.contracts.refresh() == nil)
+        #expect(play.playerSave.isRetryingSaveAction)
         #expect(play.playerSave.currentSave == before)
         let easy = try #require(before.contracts.offer(for: .easy))
         #expect(play.contracts.startBattle(offerID: easy.id) == nil)

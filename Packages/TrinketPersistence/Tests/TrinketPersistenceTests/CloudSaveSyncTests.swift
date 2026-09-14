@@ -250,6 +250,8 @@ struct CloudSaveSyncTests {
         await transport.configure()
         #expect(await store.cloudSync?.synchronize() == true)
         #expect(store.roster.gold == 107)
+        let cloud = await transport.account()
+        #expect(cloud.head?.head.revision.snapshot.roster.gold == 107)
     }
 
     @Test @MainActor func `reset wins over returning offline progress and invalidates its claims`() async throws {

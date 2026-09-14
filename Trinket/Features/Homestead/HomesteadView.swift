@@ -8,6 +8,10 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadView: View {
+    @Environment(ShellSession.self) private var shellSession
+    @State private var requestedCategory: HomesteadNodeCategory?
+    @State private var categoryArtworkLease: PreparedArtworkLease?
+    @State private var showsCategoryProgress = false
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -16,7 +20,6 @@ struct HomesteadView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var depositGeometry = HomesteadDepositGeometry()
     @State private var collectionSuccessTrigger = 0
-    @State private var collectionErrorTrigger = 0
 
     private var homestead: PlayerHomesteadState {
         playerSave.homestead
@@ -75,7 +78,33 @@ struct HomesteadView: View {
         .task(id: depositEvent?.id) {
             await launchDeposit()
         }
-        .onDisappear { cancelDeposit() }
+        .task(id: requestedCategory) {
+            guard let requestedCategory else { return }
+            let definitions = GameContent.homesteadNodes.filter { $0.category == requestedCategory }
+            let lease = await PreparedArtworkLease(
+                names: HomesteadCategoryView.imminentHomesteadArtworkNames(for: definitions),
+            )
+            guard !Task.isCancelled, self.requestedCategory == requestedCategory else { return }
+            categoryArtworkLease = lease
+            shellSession.homesteadPath.append(.category(requestedCategory))
+            self.requestedCategory = nil
+        }
+        .task(id: requestedCategory) {
+            showsCategoryProgress = false
+            guard requestedCategory != nil else { return }
+            try? await Task.sleep(for: .seconds(TrinketMotion.Interaction.pendingIndicatorDelay))
+            guard !Task.isCancelled else { return }
+            showsCategoryProgress = true
+        }
+        .onChange(of: shellSession.homesteadPath.isEmpty) { _, isEmpty in
+            if isEmpty {
+                categoryArtworkLease = nil
+            }
+        }
+        .onDisappear {
+            requestedCategory = nil
+            cancelDeposit()
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
                 cancelDeposit()
@@ -87,16 +116,6 @@ struct HomesteadView: View {
             trigger: collectionSuccessTrigger,
             enabled: options.hapticsEnabled,
         )
-        .trinketSensoryFeedback(
-            .error,
-            trigger: collectionErrorTrigger,
-            enabled: options.hapticsEnabled,
-        )
-        .onChange(of: collection.error) { _, newError in
-            if newError == "Couldn't save collected materials. Try again." {
-                collectionErrorTrigger &+= 1
-            }
-        }
     }
 
     private var collectionSection: some View {
@@ -152,7 +171,17 @@ struct HomesteadView: View {
         guard depositEvent == nil, !collection.isPending else { return }
         collection.isPending = true
         Task {
-            let result = await playerSave.collectProduction(at: date)
+            guard let result = await playerSave.retryingTransientOperation({
+                await playerSave.collectProduction(at: date)
+            }, while: {
+                switch $0 {
+                case .persistFailed, .cloudUnavailable: true
+                default: false
+                }
+            }) else {
+                collection.isPending = false
+                return
+            }
             collection.complete(result, onSuccess: presentCollection)
         }
     }
@@ -243,13 +272,20 @@ struct HomesteadView: View {
 
     private func categoryCard(_ category: HomesteadNodeCategory) -> some View {
         let progress = HomesteadCategoryProgress(category: category, homestead: homestead)
-        return NavigationLink(value: HomesteadRoute.category(category)) {
+        return Button {
+            requestedCategory = category
+        } label: {
             HubArtworkCard(
                 title: category.rawValue,
                 subtitle: progress.subtitle,
                 icon: categoryIcon(category),
                 artID: category.artID,
             )
+            .overlay {
+                if showsCategoryProgress, requestedCategory == category {
+                    ProgressView()
+                }
+            }
         }
         .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))

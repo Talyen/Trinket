@@ -1,13 +1,14 @@
 import BattleEngine
 import Foundation
 import Observation
+import TrinketContent
 import TrinketFeatureSupport
 
 public enum BattleOutcomePresentation: Equatable {
     case battle
     case pendingVictory(BattleVictorySummary)
     case victory(BattleVictorySummary)
-    case defeat
+    case defeat(BattleRewardSettlement)
 
     var isOutcomePresented: Bool {
         switch self {

@@ -91,7 +91,7 @@ public final class LabyrinthPlayMode {
             return encounters.beginShopOrAutoComplete(
                 origin: .labyrinth(nodeID: nodeID),
                 identifier: nodeID,
-                onAutoComplete: { completeNodeOrPersistFailure(nodeID: nodeID) },
+                onAutoComplete: { self.completeNodeOrPersistFailure(nodeID: nodeID) },
             )
         case .mystery:
             return beginMysteryEncounter(nodeID: nodeID)
@@ -221,10 +221,10 @@ public final class LabyrinthPlayMode {
 
     func completeNodeOrPersistFailure(nodeID: String) -> StageMapMessage? {
         guard completeNode(nodeID: nodeID) else {
-            return StageMapMessage(
-                title: "Couldn't Save Progress",
-                message: "This path wasn't saved. Try again.",
-            )
+            playerSave.retrySaveAction(key: "node-\(nodeID)") { [weak self] in
+                _ = self?.completeNodeOrPersistFailure(nodeID: nodeID)
+            }
+            return nil
         }
         return nil
     }

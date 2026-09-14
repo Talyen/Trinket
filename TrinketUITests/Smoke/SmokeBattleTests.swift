@@ -15,16 +15,24 @@ final class SmokeBattleTests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForScreen("battle-victory"))
         let lootAll = button(AccessibilityID.Battle.continueButton)
         scrollUntilVisible(lootAll, swipingUp: true, requireHittable: true)
-        let ready = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "enabled == true"),
-            object: lootAll,
-        )
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: Self.defaultTimeout), .completed)
-
         tapWhenReady(lootAll)
 
         play.assertCampaignLoaded()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+    }
+
+    func testDefeatRetryStartsBattle() {
+        launchApp(arguments: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat"))
+        tapWhenReady(button(AccessibilityID.Battle.defeatPrimaryButton))
+        battle.assertActive(timeout: 8)
+    }
+
+    func testDefeatLeaveRecoversFromSaveFailureAndReturnsToCampaign() {
+        launchApp(arguments: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat-save-failure"))
+        tapWhenReady(button(AccessibilityID.Battle.defeatLeaveButton))
+        play.assertCampaignLoaded()
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
     }
 
     func testContractsBoardLaunchesBattleAndReturnsAfterRetreat() {

@@ -12,6 +12,62 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class BuildProcessTests(unittest.TestCase):
+    def test_architecture_selection_preserves_ci_release_and_device_defaults(self):
+        for host in ("arm64", "x86_64"):
+            for sdk, configuration, ci, github, narrowed in (
+                ("iphonesimulator", "Debug", "", "", True),
+                ("iphonesimulator", "Debug", "false", "false", True),
+                ("iphonesimulator", "Debug", "true", "", False),
+                ("iphonesimulator", "Debug", "", "true", False),
+                ("iphonesimulator", "Release", "", "", False),
+                ("iphoneos", "Debug", "", "", False),
+                ("iphoneos", "Release", "", "", False),
+            ):
+                with self.subTest(host=host, sdk=sdk, configuration=configuration, ci=ci, github=github):
+                    result = subprocess.run(
+                        ["bash", "-eu", "-c", '''
+source Scripts/lib/app-build.sh
+uname() { printf '%s\\n' "$TEST_HOST_ARCH"; }
+trinket_set_app_xcodebuild_args /tmp/build "$1" generic "$2"
+printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
+''', "_", sdk, configuration], cwd=ROOT, capture_output=True, text=True,
+                        env={**os.environ, "CI": ci, "GITHUB_ACTIONS": github, "TEST_HOST_ARCH": host},
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    args = result.stdout.splitlines()
+                    self.assertEqual([arg for arg in args if arg.startswith("ARCHS=")],
+                                     [f"ARCHS={host}"] if narrowed else [])
+                    self.assertEqual(args[args.index("-configuration") + 1], configuration)
+                    if sdk == "iphonesimulator":
+                        self.assertIn("CODE_SIGNING_ALLOWED=YES", args)
+                        self.assertIn("CODE_SIGN_IDENTITY=-", args)
+
+    def test_app_and_package_test_builds_share_local_architecture_policy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = self.fixture(root)
+            (scripts / "build-freshness.sh").write_text(
+                (ROOT / "Scripts/build-freshness.sh").read_text()
+                + '\nprepare_generated_inputs() { :; }\ntouch_build_stamp() { :; }\n'
+            )
+            (scripts / "ensure-simulator.sh").write_text('trinket_sim_slot_ensure() { :; }\n')
+            for entrypoint, flags in (
+                ("build-for-testing.sh", ["--app-only"]),
+                ("test-package.sh", ["--build-for-testing", "TrinketCore"]),
+            ):
+                for ci in ("", "true"):
+                    with self.subTest(entrypoint=entrypoint, ci=ci):
+                        result = subprocess.run(
+                            [str(scripts / entrypoint), *flags], capture_output=True, text=True,
+                            env={**os.environ, "CI": ci, "GITHUB_ACTIONS": ""},
+                        )
+                        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        args = (root / "arguments").read_text().splitlines()
+                        self.assertEqual(args[:2], ["xcodebuild", "build-for-testing"])
+                        self.assertEqual(args[args.index("-configuration") + 1], "Debug")
+                        self.assertEqual([arg for arg in args if arg.startswith("ARCHS=")],
+                                         [] if ci else [f"ARCHS={os.uname().machine}"])
+
     def fixture(self, root):
         scripts = root / "Scripts"
         shutil.copytree(ROOT / "Scripts", scripts)
@@ -25,7 +81,7 @@ class BuildProcessTests(unittest.TestCase):
             'touch_build_stamp() { echo unexpected-stamp; exit 91; }\n'
         )
         (scripts / "xcode-runner.sh").write_text(
-            'xcode_runner_prepare() { XCODE_RUNNER_LOG_PATH="$PWD/compiler.log"; '
+            'xcode_runner_prepare() { XCODE_RUNNER_INVOCATION_ID=fixture; XCODE_RUNNER_LOG_PATH="$PWD/compiler.log"; '
             'XCODE_RUNNER_REPORT_PREFIX="$PWD/report"; XCODE_RUNNER_RESULT_BUNDLE_PATH="$PWD/result.xcresult"; }\n'
             'xcode_runner_run() { while [[ "$1" != -- ]]; do shift; done; shift; '
             'printf "%s\\n" "$@" > "$PWD/arguments"; echo swiftc > "$PWD/compiler.log"; '

@@ -16,7 +16,17 @@ enum PlayerSaveStoreConfiguration {
         }
     }
 
-    static func cleanStoreFiles(at url: URL) {
+    static func cleanStoreFiles(at url: URL, includingRecovery: Bool = true) throws {
+        if includingRecovery {
+            let pending = PendingSaveRecovery.url(for: url)
+            if FileManager.default.fileExists(atPath: pending.path) {
+                try FileManager.default.removeItem(at: pending)
+            }
+            let previous = PendingSaveRecovery.previousURL(for: url)
+            if FileManager.default.fileExists(atPath: previous.path) {
+                try FileManager.default.removeItem(at: previous)
+            }
+        }
         let logger = Logger(
             subsystem: PlayerSaveDefaults.loggingSubsystem,
             category: "StoreCleanup",

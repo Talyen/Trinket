@@ -7,7 +7,6 @@ import TrinketPersistence
 
 public struct RosterCombatantDetailView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
-    @State private var persistenceFailure: String?
 
     let kind: CombatantDetailContext.Kind
     let combatantID: String
@@ -44,7 +43,13 @@ public struct RosterCombatantDetailView: View {
                 effectsVolume: effectsVolume,
                 hidesNavigationBar: hidesNavigationBar,
                 onEdit: { edit in
-                    reportSaveResult(edit.apply(to: playerSave, for: combatant))
+                    let saved = edit.apply(to: playerSave, for: combatant)
+                    if !saved {
+                        playerSave.retrySaveAction(key: "combatant-edit-\(combatant.id)") {
+                            _ = edit.apply(to: playerSave, for: combatant)
+                        }
+                    }
+                    return saved
                 },
                 onUnlockTalent: { node, tree in
                     let result = playerSave.unlockTalent(
@@ -53,12 +58,14 @@ public struct RosterCombatantDetailView: View {
                         for: combatant.id,
                     )
                     if result == .persistenceFailed {
-                        _ = reportSaveResult(false)
+                        playerSave.retrySaveAction(key: "combatant-talent-\(combatant.id)") {
+                            _ = playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: combatant.id)
+                        }
                     }
                     return result
                 },
             )
-            .trinketFailureAlert("Couldn't Save Changes", message: $persistenceFailure)
+            .disabled(playerSave.isRetryingSaveAction)
         } else {
             ContentUnavailableView(
                 kind == .hero ? "Hero Not Found" : "Companion Not Found",
@@ -66,13 +73,6 @@ public struct RosterCombatantDetailView: View {
             )
             .accessibilityIdentifier("Combatant Not Found")
         }
-    }
-
-    private func reportSaveResult(_ saved: Bool) -> Bool {
-        if !saved {
-            persistenceFailure = "Your changes weren't saved. Try again."
-        }
-        return saved
     }
 
     private func resolveCombatant() -> Combatant? {

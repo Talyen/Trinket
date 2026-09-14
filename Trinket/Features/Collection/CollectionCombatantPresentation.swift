@@ -1,21 +1,35 @@
 import SwiftUI
 import TrinketAppState
+import TrinketContent
 import TrinketFeatureAdapters
 import TrinketFeatureContracts
 import TrinketFeatureSupport
+import TrinketPersistence
 
 @MainActor
 struct CollectionCombatantDetailSheet: ViewModifier {
     @Environment(OptionsStore.self) private var options
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     @Binding var selection: CombatantDetailContext?
     let zoomNamespace: Namespace.ID
     var issuesSignposts = false
 
     func body(content: Content) -> some View {
-        content.sheet(item: $selection) { context in
+        content.preparedArtworkSheet(item: $selection, artworkNames: artworkNames) { context in
             presentation(context: context)
         }
+    }
+
+    private func artworkNames(for selection: CombatantDetailContext) -> [String] {
+        guard let base = GameContent.combatant(matching: selection.combatantID) else { return [] }
+        let combatant = playerSave.roster.configuredCombatant(base)
+        return CombatantDetailPane.artworkNames(
+            combatant: combatant,
+            loadout: playerSave.roster.loadout(for: combatant),
+            equipmentLoadout: playerSave.roster.equipmentLoadout(for: combatant),
+            inventoryItems: playerSave.inventory.items,
+        )
     }
 
     private func presentation(context: CombatantDetailContext) -> some View {

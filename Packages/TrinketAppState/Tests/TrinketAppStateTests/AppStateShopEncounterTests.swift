@@ -102,7 +102,7 @@ struct AppStateShopEncounterTests {
     }
 
     #if DEBUG
-    @Test func `finish shop encounter surfaces leave failure when persist fails`() throws {
+    @Test func `finish shop encounter retries silently when persist fails`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
@@ -111,10 +111,12 @@ struct AppStateShopEncounterTests {
 
         playerSave.forcesNextSaveFailure = true
         #expect(!state.encounters.finishActiveShopEncounter())
-        #expect(state.encounters.activeShopEncounter != nil)
-        #expect(session.persistFailureMessage != nil)
+        #expect(state.encounters.activeShopEncounter === session)
+        #expect(playerSave.isRetryingSaveAction)
 
-        #expect(state.encounters.finishActiveShopEncounter())
+        for _ in 0 ..< 300 where playerSave.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
         #expect(state.encounters.activeShopEncounter == nil)
     }
     #endif

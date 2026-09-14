@@ -7,14 +7,26 @@ import UIKit
 
 @MainActor
 enum CombatFeedbackChipComposer {
-    private static let horizontalPadding: CGFloat = 4
-    private static let verticalPadding: CGFloat = 5
-    private static let glyphSpacing: CGFloat = 8
-    private static let shadowOffsetY: CGFloat = 1.5
+    nonisolated private static let horizontalPadding: CGFloat = 4
+    nonisolated private static let verticalPadding: CGFloat = 5
+    nonisolated private static let glyphSpacing: CGFloat = 8
+    nonisolated private static let shadowOffsetY: CGFloat = 1.5
 
-    struct ComposedRaster {
+    /// Concurrency-Safety: immutable CGImage and dimensions cross from the raster worker to the main-actor pool.
+    struct ComposedRaster: @unchecked Sendable {
         let image: CGImage
         let pointSize: CGSize
+    }
+
+    /// Concurrency-Safety: glyph bitmaps and resolved CGColors are immutable; no atlas or SwiftUI state crosses isolation.
+    struct RasterInputs: @unchecked Sendable {
+        let leading: (CombatFeedbackGlyphAtlas.Glyph, CGColor)?
+        let trailing: (CombatFeedbackGlyphAtlas.Glyph, CGColor)
+        let textGlyphs: [CombatFeedbackGlyphAtlas.Glyph]
+        let textTint: CGColor
+        let shadow: CGColor
+        let layoutDirection: LayoutDirection
+        let displayScale: CGFloat
     }
 
     static func compose(
@@ -24,6 +36,20 @@ enum CombatFeedbackChipComposer {
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared,
     ) -> ComposedRaster? {
+        guard let inputs = prepareInputs(
+            presentation: presentation, feedbackClass: feedbackClass,
+            layoutDirection: layoutDirection, displayScale: displayScale, atlas: atlas,
+        ) else { return nil }
+        return render(inputs)
+    }
+
+    static func prepareInputs(
+        presentation: CombatFeedbackChipPresentation,
+        feedbackClass: CombatFeedbackClass,
+        layoutDirection: LayoutDirection = .leftToRight,
+        displayScale: CGFloat,
+        atlas: CombatFeedbackGlyphAtlas = .shared,
+    ) -> RasterInputs? {
         let recipe = CombatFeedbackChipStyle.forClass(feedbackClass)
         let scale = max(1, displayScale)
         let face = CombatFeedbackGlyphAtlas.Face(
@@ -67,31 +93,45 @@ enum CombatFeedbackChipComposer {
             renderedText = []
         }
 
-        return blit(
+        return RasterInputs(
             leading: leadingGlyph.map {
                 // UIStyleCheck: allow - CoreGraphics compose needs UIKit colors bridged from semantic roles.
                 (
                     $0,
-                    UIColor((presentation.leadingStyle ?? presentation.trailingStyle).visualStyle.color),
+                    UIColor((presentation.leadingStyle ?? presentation.trailingStyle).visualStyle.color).cgColor,
                 )
             },
             trailing: (
                 trailingGlyph,
                 // UIStyleCheck: allow - CoreGraphics compose needs UIKit colors bridged from semantic roles.
-                UIColor(trailingStyle.color),
+                UIColor(trailingStyle.color).cgColor,
             ),
             textGlyphs: renderedText,
-            textTint: UIColor(trailingStyle.color),
+            textTint: UIColor(trailingStyle.color).cgColor,
+            shadow: UIColor(TrinketDesign.Colors.Overlay.ink.opacity(0.95)).cgColor,
             layoutDirection: layoutDirection,
             displayScale: scale,
         )
     }
 
-    private static func blit(
+    nonisolated static func render(_ inputs: RasterInputs) -> ComposedRaster? {
+        blit(
+            leading: inputs.leading.map { ($0.0, resolvedColor($0.1)) },
+            trailing: (inputs.trailing.0, resolvedColor(inputs.trailing.1)),
+            textGlyphs: inputs.textGlyphs,
+            textTint: resolvedColor(inputs.textTint),
+            shadow: resolvedColor(inputs.shadow),
+            layoutDirection: inputs.layoutDirection,
+            displayScale: inputs.displayScale,
+        )
+    }
+
+    nonisolated private static func blit(
         leading: (CombatFeedbackGlyphAtlas.Glyph, UIColor)?,
         trailing: (CombatFeedbackGlyphAtlas.Glyph, UIColor),
         textGlyphs: [CombatFeedbackGlyphAtlas.Glyph],
         textTint: UIColor,
+        shadow: UIColor,
         layoutDirection: LayoutDirection,
         displayScale: CGFloat,
     ) -> ComposedRaster? {
@@ -113,8 +153,6 @@ enum CombatFeedbackChipComposer {
         format.scale = displayScale
         format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
-        // UIStyleCheck: allow - CoreGraphics compose needs UIKit colors bridged from semantic roles.
-        let shadow = UIColor(TrinketDesign.Colors.Overlay.ink.opacity(0.95))
         let image = renderer.image { _ in
             let contentOrigin = CGPoint(x: horizontalPadding, y: verticalPadding)
             let origins = horizontalOrigins(
@@ -164,7 +202,12 @@ enum CombatFeedbackChipComposer {
         return ComposedRaster(image: cgImage, pointSize: pointSize)
     }
 
-    private static func horizontalOrigins(
+    nonisolated private static func resolvedColor(_ color: CGColor) -> UIColor {
+        // UIStyleCheck: allow - Reconstruct the immutable semantic color resolved before leaving the main actor.
+        UIColor(cgColor: color)
+    }
+
+    nonisolated private static func horizontalOrigins(
         contentX: CGFloat,
         leadingWidth: CGFloat,
         textWidth: CGFloat,
@@ -220,7 +263,7 @@ enum CombatFeedbackChipComposer {
         return glyphs
     }
 
-    private static func draw(
+    nonisolated private static func draw(
         glyph: CombatFeedbackGlyphAtlas.Glyph,
         at origin: CGPoint,
         tint: UIColor,

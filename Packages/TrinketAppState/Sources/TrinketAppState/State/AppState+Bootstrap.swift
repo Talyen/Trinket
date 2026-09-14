@@ -76,7 +76,7 @@ extension AppState {
             return
         }
         switch environment.launchScreen {
-        case .battle, .battleVictory:
+        case .battle, .battleVictory, .battleDefeat, .battleDefeatSaveFailure:
             play.startLaunchBattle()
         case .shop:
             play.startLaunchShop()
@@ -158,7 +158,7 @@ private extension AppState {
             LaunchResolution(tab: .options, collection: nil, play: nil)
         case .labyrinth, .labyrinthMap:
             LaunchResolution(tab: .play, collection: nil, play: .labyrinthMap)
-        case .battle, .battleVictory, .shop, .mystery, .none:
+        case .battle, .battleVictory, .battleDefeat, .battleDefeatSaveFailure, .shop, .mystery, .none:
             LaunchResolution(tab: .play, collection: nil, play: nil)
         }
     }

@@ -28,7 +28,6 @@ struct HomesteadNodeDetailView: View {
     @State private var purchasePresentation: HomesteadPurchasePresentation?
     @State private var celebrationCount = 0
     @State private var celebrationGeneration = 0
-    @State private var buildErrorTrigger = 0
 
     let definition: HomesteadNodeDefinition
 
@@ -84,12 +83,6 @@ struct HomesteadNodeDetailView: View {
             )
         }
         .trinketSensoryFeedback(.success, trigger: build.upgradeEventCount, enabled: options.hapticsEnabled)
-        .trinketSensoryFeedback(.error, trigger: buildErrorTrigger, enabled: options.hapticsEnabled)
-        .onChange(of: build.error) { _, error in
-            if error == "Couldn't save homestead progress. Try again." {
-                buildErrorTrigger &+= 1
-            }
-        }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
                 cancelCelebration()
@@ -206,7 +199,21 @@ struct HomesteadNodeDetailView: View {
         let presentation = HomesteadPurchasePresentation(previousTier: status.currentStage, targetTier: nextTier)
         build.isPending = true
         Task {
-            let result = await playerSave.buildOrUpgradeNode(definition, targetTier: expectedTier)
+            guard let result = await playerSave.retryingTransientOperation({ () async -> HomesteadBuildResult in
+                let result = await playerSave.buildOrUpgradeNode(definition, targetTier: expectedTier)
+                if result == .notAvailable, status.currentTier >= expectedTier {
+                    return .success
+                }
+                return result
+            }, while: {
+                switch $0 {
+                case .persistFailed, .cloudUnavailable: true
+                default: false
+                }
+            }) else {
+                build.isPending = false
+                return
+            }
             build.complete(result) {
                 purchasePresentation = presentation
                 purchaseCommitted = true

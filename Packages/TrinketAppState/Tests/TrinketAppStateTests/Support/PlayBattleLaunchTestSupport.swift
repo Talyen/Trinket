@@ -67,7 +67,6 @@ enum PlayBattleLaunchTestSupport {
             rosterState: roster,
             inventoryState: inventory,
             homesteadState: homestead,
-            defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
             hasProgressionRewards: runKey != nil || origin != nil,
             musicStageID: origin?.musicStageID,
         ).configuration

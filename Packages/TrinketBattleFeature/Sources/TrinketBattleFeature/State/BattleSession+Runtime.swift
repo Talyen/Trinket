@@ -98,23 +98,6 @@ extension BattleSession {
         return preparedBattleRunsByKey.values.first
     }
 
-    func openingHandArtworkNames(for state: BattleState) -> [String] {
-        var preview = state
-        if preview.hand.cards.isEmpty {
-            preview.drawOpeningHand(rebuildLog: false)
-        }
-        return preview.hand.cards.compactMap { $0.ability.artReference?.imageName }
-    }
-
-    func openingHandArtworkNames(for preparedRun: PreparedBattleRun) -> [String] {
-        openingHandArtworkNames(for: preparedRun.state)
-    }
-
-    func activeOpeningHandArtworkNames() -> [String] {
-        guard let engineState else { return [] }
-        return openingHandArtworkNames(for: engineState)
-    }
-
     func mutateEngine<T>(_ work: (inout BattleState) -> T) -> T? {
         guard var engineState else { return nil }
         let result = work(&engineState)

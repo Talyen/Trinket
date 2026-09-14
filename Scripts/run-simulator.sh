@@ -7,8 +7,13 @@ source Scripts/lib/tools.sh
 trinket_prepend_pinned_tools
 
 AGENT_SLOT_ARG=""
+INSPECT=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --inspect)
+      INSPECT=1
+      shift
+      ;;
     --isolate)
       TRINKET_ISOLATE=1
       export TRINKET_ISOLATE
@@ -24,10 +29,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/run-simulator.sh [--isolate] [--agent N]
+Usage: ./Scripts/run-simulator.sh [--isolate] [--agent N] [--inspect]
 
 Builds Trinket and launches it. By default targets Trinket Run (human).
 Use --isolate for the current agent slot, or --agent N for Trinket Agent N.
+Use --inspect in a terminal to hold the lease after launch; type stop to release it.
 USAGE
       exit 0
       ;;
@@ -36,6 +42,11 @@ USAGE
     *) break ;;
   esac
 done
+
+if [[ "$INSPECT" == "1" && ! -t 0 ]]; then
+  echo "error: --inspect requires a terminal; agents use exec_command with tty=true." >&2
+  exit 1
+fi
 
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
@@ -179,4 +190,15 @@ else
   osascript -e 'tell application "Simulator" to activate' 2>/dev/null || true
   echo "Launched $BUNDLE_ID on $TRINKET_SIMULATOR_NAME ($SIMULATOR_UDID) — Simulator window should be frontmost."
   echo "  If no window is visible: open -a Simulator --args -CurrentDeviceUDID $SIMULATOR_UDID"
+fi
+
+if [[ "$INSPECT" == "1" ]]; then
+  printf 'Inspection ready: %s (%s)\nApp: %s\nProduct: %s\n' \
+    "$TRINKET_SIMULATOR_NAME" "$SIMULATOR_UDID" "$BUNDLE_ID" "$APP_PATH"
+  echo "Lease held by this process. Use computer use on this simulator; type stop here when finished."
+  while IFS= read -r inspection_command; do
+    [[ "$inspection_command" == "stop" ]] && break
+    echo "Inspection still active. Type stop to release the lease."
+  done
+  echo "Inspection finished; releasing this process's lease."
 fi

@@ -26,8 +26,6 @@ struct StarterRouletteScreen: View {
     @State private var scrollEntryID: String?
     @State private var selectionFeedbackTrigger = 0
     @State private var inspectedCombatant: Combatant?
-    @State private var persistError: String?
-    @State private var saveErrorTrigger = 0
 
     init(
         role: Combatant.Role,
@@ -97,16 +95,16 @@ struct StarterRouletteScreen: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled,
         )
-        .trinketSensoryFeedback(
-            .error,
-            trigger: saveErrorTrigger,
-            enabled: options.hapticsEnabled,
-        )
         .onChange(of: scrollEntryID) { _, _ in
             selectionFeedbackTrigger += 1
         }
-        .trinketFailureAlert("Couldn't Save Progress", message: $persistError)
-        .sheet(item: $inspectedCombatant) { combatant in
+        .disabled(playerSave.isRetryingSaveAction)
+        .preparedArtworkSheet(item: $inspectedCombatant, artworkNames: { combatant in
+            CombatantDetailPane.artworkNames(
+                combatant: combatant, loadout: combatant.abilityLoadout,
+                equipmentLoadout: .init(), inventoryItems: [],
+            )
+        }, content: { combatant in
             NavigationStack {
                 CombatantDetailPane(snapshot: CombatantCardDetail(combatant: combatant))
                     .accessibilityIdentifier(
@@ -114,7 +112,7 @@ struct StarterRouletteScreen: View {
                     )
             }
             .trinketDetailSheet()
-        }
+        })
     }
 
     private var header: some View {
@@ -258,8 +256,9 @@ struct StarterRouletteScreen: View {
             return
         }
         if !onConfirm(selectedCombatant.id) {
-            saveErrorTrigger += 1
-            persistError = "Your choice was not saved. Please try again."
+            playerSave.retrySaveAction(key: "starter-\(selectedCombatant.id)") {
+                _ = onConfirm(selectedCombatant.id)
+            }
         }
     }
 }

@@ -27,6 +27,15 @@ public struct BattleRewardPlan: Equatable, Sendable {
         self.items = items
     }
 
+    public func settleDefeat(progress: BattleDefeatProgress, inputs: RewardSettlementInputs) -> BattleRewardSettlement {
+        Self(
+            stageGold: 0, goldFindPercent: 0,
+            heroExperience: progress.experienceAward(from: heroExperience),
+            companionExperience: progress.experienceAward(from: companionExperience),
+            materials: [], items: [],
+        ).settle(battleGold: .init(), inputs: inputs)
+    }
+
     public func resolve(battleGold: BattleGoldFlow, materials: [ResourceAmount]? = nil) -> BattleRewardAward {
         let gained = max(0, CombatRounding.scaled(stageGold + battleGold.gained, byPercent: goldFindPercent))
         let stage = min(stageGold, gained)

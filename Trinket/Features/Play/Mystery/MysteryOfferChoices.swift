@@ -80,11 +80,13 @@ struct MysteryOfferChoices: View {
         HStack(spacing: TrinketDesign.Spacing.small) {
             switch reward {
             case let .gold(amount):
-                HomesteadResourceArtwork(resource: .gold)
-                    .frame(width: TrinketDesign.Spacing.extraLarge, height: TrinketDesign.Spacing.extraLarge)
-                Text("+\(amount) Gold")
-                    .trinketTypography(.statValue)
-                    .fixedSize(horizontal: false, vertical: true)
+                TrinketWalletResourcePill(
+                    title: "Gold",
+                    amount: amount,
+                    showsIncreasePrefix: true,
+                ) {
+                    HomesteadResourceArtwork(resource: .gold)
+                }
             case let .material(resource, amount):
                 TrinketWalletResourcePill(
                     title: resource.displayName,
@@ -104,7 +106,8 @@ struct MysteryOfferChoices: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(TrinketDesign.Spacing.small)
-        .trinketSurface(.secondary)
+        .padding(.horizontal, TrinketDesign.Spacing.extraLarge)
+        .padding(.vertical, TrinketDesign.Spacing.extraSmall)
+        .trinketMaterial(.bottomBar)
     }
 }

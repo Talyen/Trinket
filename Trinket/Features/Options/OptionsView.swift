@@ -16,8 +16,6 @@ struct OptionsView: View {
     @Environment(OptionsStore.self) private var optionsStore
     @Environment(\.scenePhase) private var scenePhase
     @State private var isResetConfirmationPresented = false
-    @State private var actionErrorMessage: String?
-    @State private var actionErrorTrigger = 0
 
     var body: some View {
         @Bindable var options = optionsStore
@@ -104,8 +102,9 @@ struct OptionsView: View {
         ) {
             Button("Reset Game Progress", role: .destructive) {
                 if !appState.resetGameplayProgress() {
-                    actionErrorMessage = "Couldn't reset progress. Try again."
-                    actionErrorTrigger &+= 1
+                    appState.playerSave.retrySaveAction(key: "reset-progress") {
+                        _ = appState.resetGameplayProgress()
+                    }
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -121,12 +120,7 @@ struct OptionsView: View {
                 """,
             )
         }
-        .trinketFailureAlert("Action Failed", message: $actionErrorMessage)
-        .trinketSensoryFeedback(
-            .error,
-            trigger: actionErrorTrigger,
-            enabled: optionsStore.hapticsEnabled,
-        )
+        .disabled(appState.playerSave.isRetryingSaveAction)
     }
 
     private var purchaseSection: some View {
@@ -183,8 +177,9 @@ struct OptionsView: View {
 
             Button("Unlock All") {
                 if !appState.unlockAllContent() {
-                    actionErrorMessage = "Couldn't unlock content. Try again."
-                    actionErrorTrigger &+= 1
+                    appState.playerSave.retrySaveAction(key: "unlock-content") {
+                        _ = appState.unlockAllContent()
+                    }
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Options.unlockAllButton)

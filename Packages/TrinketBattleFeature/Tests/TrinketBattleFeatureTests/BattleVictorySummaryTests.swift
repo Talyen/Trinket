@@ -172,7 +172,6 @@ struct BattleVictorySummaryTests {
             stageReward: StageReward(gold: 10, itemTemplateIDs: []),
             rewardItems: [pendingItem],
             experienceBonusPercent: 20,
-            defeatPrimaryAction: .retreat,
             hasProgressionRewards: true,
             heroExperienceAward: 4,
             companionExperienceAward: 4,

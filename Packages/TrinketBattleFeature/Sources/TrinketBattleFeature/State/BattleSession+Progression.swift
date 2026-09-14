@@ -8,6 +8,8 @@ import TrinketFeatureContracts
 struct BattleProgression {
     let presentation: (BattleRunConfiguration) -> BattlePresentationContext?
     let settleRewards: (BattleRunConfiguration, BattleGoldFlow) -> BattleRewardSettlement?
+    let settleDefeat: (BattleRunConfiguration) -> BattleRewardSettlement?
+    let completeDefeat: (BattleRunConfiguration, BattleRewardSettlement, BattleDefeatAction) -> BattleCompletionResult
     let finishPresentation: (UUID) -> Void
     let completeVictory: (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?, Bool) -> BattleCompletionResult
 }
@@ -17,12 +19,16 @@ public extension BattleSession {
         presentation: @escaping (BattleRunConfiguration) -> BattlePresentationContext?,
         settleRewards: @escaping (BattleRunConfiguration, BattleGoldFlow) -> BattleRewardSettlement?,
         completeVictory: @escaping (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?, Bool) -> BattleCompletionResult,
+        settleDefeat: @escaping (BattleRunConfiguration) -> BattleRewardSettlement?,
+        completeDefeat: @escaping (BattleRunConfiguration, BattleRewardSettlement, BattleDefeatAction) -> BattleCompletionResult,
         finishPresentation: @escaping (UUID) -> Void,
     ) {
         precondition(progression == nil)
         progression = BattleProgression(
             presentation: presentation,
             settleRewards: settleRewards,
+            settleDefeat: settleDefeat,
+            completeDefeat: completeDefeat,
             finishPresentation: finishPresentation,
             completeVictory: completeVictory,
         )
@@ -69,10 +75,6 @@ public extension BattleSession {
             presentVictoryChromeForPersistRetry()
         case .persistenceFailed:
             presentVictoryChromeForPersistRetry()
-            completionError = StageMapMessage(
-                title: "Couldn't Save Progress",
-                message: "Your victory was not saved. Stay on this screen and try Continue again.",
-            )
         }
     }
 }

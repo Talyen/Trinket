@@ -15,6 +15,15 @@ its reveal before another claim. Application uses the recorded production date s
 passive accrual cannot silently shrink a displayed award. Unprepared rewards use
 the same settlement path. Modes retain their existing one-time claim ownership.
 
+Defeat XP uses `BattleRewardPlan.settleDefeat` with the launch-baked XP for each
+recipient: floor(normal XP × peak enemy health depletion / 2). Depletion records
+the lowest Health percentage reached within combat resolution; healing never
+reduces that progress or rewards repeating the same range. There is no turn gate.
+Existing eligibility and XP caps remain; Gold overflow, loot, materials, and
+encounter completion never apply. Retreat grants nothing. `BattleExperienceReward`
+applies only the two XP awards in the same save transaction. The claim/navigation
+sequence is owned by [battle completion](battle-launch.md).
+
 `MysteryEncounterResolution` owns choice effects and progress together, including
 required item/unlock validation; a secondary reward cannot turn an unavailable
 headline reward into a successful choice. Deliberate leave is an explicit outcome.

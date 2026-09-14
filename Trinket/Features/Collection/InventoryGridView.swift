@@ -207,6 +207,13 @@ extension ItemDetailView {
                 case .ineligible:
                     return .itemNotFound
                 case nil:
+                    saveStore.retrySaveAction(key: "salvage-\(item.id)") { [weak saveStore] in
+                        guard let saveStore, let result = saveStore.salvageItem(id: item.id) else { return }
+                        switch result {
+                        case let .success(yields): onFinished(.success(yields: yields))
+                        case .itemNotFound, .ineligible: onFinished(.itemNotFound)
+                        }
+                    }
                     return .persistenceFailure
                 }
             },

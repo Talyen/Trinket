@@ -43,8 +43,8 @@ struct PlayerSaveStoreCleanupTests {
             try Data([0x1]).write(to: context.directoryURL.appendingPathComponent(name))
         }
 
-        PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL)
-        PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL)
+        try PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL)
+        try PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL)
 
         let remainingFiles = try FileManager.default.contentsOfDirectory(atPath: context.directoryURL.path)
         #expect(Set(remainingFiles) == Set(unrelatedFiles))

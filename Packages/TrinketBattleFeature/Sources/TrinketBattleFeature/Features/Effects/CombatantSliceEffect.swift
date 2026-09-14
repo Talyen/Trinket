@@ -39,16 +39,6 @@ struct CombatantSliceEffect<Content: View>: View {
             slice(size: geometry.size)
         }
         .allowsHitTesting(false)
-        .onAppear {
-            CardDissolveTexture.prewarm(
-                cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
-            )
-        }
-        .task {
-            await CardDissolveTexture.prepare(
-                cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
-            )
-        }
     }
 
     private var effectiveProgress: CGFloat {
@@ -206,7 +196,7 @@ struct BattleSliceArtwork<Content: View>: View {
     let content: Content
     private let config: CombatantSliceEffectConfig
 
-    @State private var startDate = Date()
+    @State private var startDate: Date? = CardDissolveTexture.isPrepared(cutAngleDegrees: CombatantSliceGeometry.angleDegrees) ? .now : nil
     @State private var isComplete = false
 
     init(
@@ -221,7 +211,7 @@ struct BattleSliceArtwork<Content: View>: View {
         Group {
             if isComplete {
                 Color.clear
-            } else {
+            } else if let startDate {
                 TimelineView(.animation) { timeline in
                     let progress = min(
                         max(
@@ -238,16 +228,20 @@ struct BattleSliceArtwork<Content: View>: View {
                         content
                     }
                 }
-                .onAppear {
-                    startDate = Date()
-                    isComplete = false
-                }
                 .task(id: startDate) {
                     try? await Task.sleep(for: .seconds(BattleMotion.combatantSliceDuration))
                     guard !Task.isCancelled else { return }
                     isComplete = true
                 }
+            } else {
+                content
             }
+        }
+        .task {
+            guard startDate == nil else { return }
+            await CardDissolveTexture.prepare(cutAngleDegrees: CombatantSliceGeometry.angleDegrees)
+            guard !Task.isCancelled else { return }
+            startDate = .now
         }
         .allowsHitTesting(false)
     }

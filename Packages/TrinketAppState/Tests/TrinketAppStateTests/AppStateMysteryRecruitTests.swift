@@ -129,7 +129,7 @@ struct AppStateMysteryRecruitTests {
     }
 
     #if DEBUG
-    @Test func `journey mystery pin failure does not open encounter`() throws {
+    @Test func `journey mystery pin failure does not open encounter`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(playerSave: playerSave)
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
@@ -137,9 +137,14 @@ struct AppStateMysteryRecruitTests {
 
         let message = state.journey.beginMysteryEncounter(for: stage)
 
-        #expect(message != nil)
+        #expect(message == nil)
+        #expect(playerSave.isRetryingSaveAction)
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == nil)
+        for _ in 0 ..< 300 where playerSave.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] != nil)
     }
     #endif
 
@@ -258,7 +263,7 @@ struct AppStateMysteryRecruitTests {
     }
 
     #if DEBUG
-    @Test func `resolve active mystery choice rolls back effects when persist fails`() throws {
+    @Test func `resolve active mystery choice retries silently after persist failure`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
@@ -269,10 +274,13 @@ struct AppStateMysteryRecruitTests {
         playerSave.forcesNextSaveFailure = true
         #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
         #expect(state.encounters.activeMysteryEncounter != nil)
-        #expect(state.encounters.activeMysteryEncounter?.persistFailureMessage != nil)
+        #expect(state.encounters.activeMysteryEncounter?.persistFailureMessage == nil)
+        #expect(playerSave.isRetryingSaveAction)
         #expect(state.playerSave.roster.gold == goldBefore)
 
-        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
+        for _ in 0 ..< 300 where playerSave.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
         #expect(state.encounters.activeMysteryEncounter?.phase == .reward)
         #expect(session.applyResult?.grantedItems == [shown.item])
         #expect(state.playerSave.journey.mysteryOfferPayloads[session.stage.id] == nil)
@@ -295,18 +303,21 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter === replacement)
     }
 
-    @Test func `recruit persist failure rolls back unlock and progress together`() throws {
+    @Test func `recruit retry preserves atomic unlock and progress without a prompt`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
 
         playerSave.forcesNextSaveFailure = true
-        #expect(state.journey.handleStagePrimaryAction(for: stage) != nil)
+        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
         #expect(!state.playerSave.roster.isCompanionUnlocked("bear"))
         #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
-        #expect(state.encounters.activeMysteryEncounter == nil)
+        #expect(state.encounters.activeMysteryEncounter != nil)
+        #expect(playerSave.isRetryingSaveAction)
 
-        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
+        for _ in 0 ..< 300 where playerSave.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
         #expect(state.encounters.finishActiveMysteryEncounter())
@@ -335,17 +346,6 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.playerSave.journey.completedStageIDs.contains(stage.id))
     }
 
-    @Test func `recruit auto resolve persist failure returns message`() throws {
-        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
-        let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
-        playerSave.forcesNextSaveFailure = true
-
-        let message = state.journey.handleStagePrimaryAction(for: stage)
-        #expect(message != nil)
-        #expect(state.encounters.activeMysteryEncounter == nil)
-        #expect(!state.playerSave.roster.isCompanionUnlocked("bear"))
-    }
     #endif
 
     private func attachPreparedMystery(event: MysteryEvent, to state: PlaySession) throws -> MysteryEncounterSession {

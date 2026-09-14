@@ -31,7 +31,6 @@ struct BattleClaimedVictoryTests {
         #expect(claimedVictories.count == 1)
         #expect(claimedVictories.first?.configurationID == configuration.id)
         #expect(claimedVictories.first?.earnedGold == earnedGold)
-        #expect((session.completionError != nil) == fails)
         #expect(session.spectacle.outcomePresentation.isVictoryPresented == fails)
     }
 

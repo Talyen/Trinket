@@ -135,7 +135,7 @@ public final class JourneyPlayMode {
             return encounters.beginShopOrAutoComplete(
                 origin: .journey(stage: resolvedStage),
                 identifier: resolvedStage.id,
-                onAutoComplete: { completeStageOrPersistFailure(resolvedStage) },
+                onAutoComplete: { self.completeStageOrPersistFailure(resolvedStage) },
             )
         }
     }
@@ -173,10 +173,10 @@ public final class JourneyPlayMode {
             hero: roster.activeHero,
             companion: roster.activeCompanion,
         ) else {
-            return StageMapMessage(
-                title: "Couldn't Save Progress",
-                message: "This stage wasn't saved. Try again.",
-            )
+            playerSave.retrySaveAction(key: "stage-\(stage.id)") { [weak self] in
+                _ = self?.completeStageOrPersistFailure(stage)
+            }
+            return nil
         }
         return nil
     }

@@ -11,7 +11,6 @@ public struct BattlePresentationContext: Sendable {
     public let goldOverflowExperience: Int
     public let rewardInputs: RewardSettlementInputs?
     public let stageRewardsAlreadyClaimed: Bool
-    public let defeatPrimaryAction: BattleDefeatPrimaryAction
     public let hasProgressionRewards: Bool
     public let musicStageID: String?
     public let heroExperienceAward: Int
@@ -39,7 +38,6 @@ public struct BattlePresentationContext: Sendable {
         experienceBonusPercent: Int,
         goldFindPercent: Int,
         stageRewardsAlreadyClaimed: Bool,
-        defeatPrimaryAction: BattleDefeatPrimaryAction,
         hasProgressionRewards: Bool,
         musicStageID: String?,
         heroExperienceAward: Int,
@@ -58,7 +56,6 @@ public struct BattlePresentationContext: Sendable {
         self.goldOverflowExperience = goldOverflowExperience
         self.rewardInputs = rewardInputs
         self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
-        self.defeatPrimaryAction = defeatPrimaryAction
         self.hasProgressionRewards = hasProgressionRewards
         self.musicStageID = musicStageID
         self.heroExperienceAward = heroExperienceAward
@@ -75,7 +72,6 @@ public struct BattlePresentationContext: Sendable {
         experienceBonusPercent: 0,
         goldFindPercent: 0,
         stageRewardsAlreadyClaimed: false,
-        defeatPrimaryAction: .restart,
         hasProgressionRewards: false,
         musicStageID: nil,
         heroExperienceAward: 0,

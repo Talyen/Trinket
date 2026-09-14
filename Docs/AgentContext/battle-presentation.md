@@ -17,6 +17,16 @@ and uses the session's preparation method, independently of the gameplay feature
 
 Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 
+Defeat shows its title and a short enemy subtitle above the same party portrait
+and animated XP section used by Victory. Both party rows remain visible at zero
+XP, with unchanged bars. Retry is primary and Leave secondary, stacked below the
+panel with a 16-point gap; both wait for XP reveal completion. There is no separate artwork, battle
+recap, loot section, or collection feedback. A refreshed defeat settlement resets
+XP presentation when recipient progression changes. Debug launch screens
+`battle-defeat` and `battle-defeat-save-failure` resolve a short simulated loss;
+the latter injects one total write failure to verify automatic recovery through
+the same claim path without an alert or another tap.
+
 ## Continuous card input
 
 [Card play](../Product/CardPlay.md) owns PD-024's approved behavior, including
@@ -55,9 +65,13 @@ because more results are present. Arrange results in presentation order and wrap
 at their peak size. The group shares pop, settling, rise, update pulse, and fade;
 keyword colors and critical emphasis remain specific to each result.
 
-Rise begins during pop settling and stays within the combatant artwork, allowing
-slight edge clipping. Retiring groups continue their own trajectory during the
-handoff fade; incoming results must not reposition outgoing feedback.
+After the 0.14-second pop settles, groups hold their size and position for 0.20
+seconds before rising and shrinking within the combatant artwork, allowing slight
+edge clipping. A new group on the same combatant immediately releases any remaining
+stationary hold, including during pop, while scale continues naturally. Already-rising
+groups keep their trajectory during the 0.15-second handoff fade; incoming results
+must not reposition outgoing feedback. Other combatants and same-action merge
+updates do not release or restart the hold. Unattended feedback lasts 0.95 seconds.
 
 ## Display work lifecycle
 

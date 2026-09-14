@@ -101,19 +101,24 @@ struct BattleFeedbackLaneTests {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date(timeIntervalSince1970: 1000)
+        lane.record([
+            makeEvent(id: 100, kind: .abilityDamage, amount: 2, keyword: .physical, targetID: "hero"),
+        ], at: start)
+        let hero = try #require(lane.activeItems.first)
         for id in 1 ... 10 {
             let date = start.addingTimeInterval(Double(id) * 0.01)
             lane.record([makeEvent(id: id, kind: .abilityDamage, amount: id, keyword: .burn, actionID: id)], at: date)
-            #expect(lane.activeItems.count <= 2)
+            #expect(lane.activeItems.count(where: { $0.targetID == "enemy" }) <= 2)
+            #expect(lane.activeItems.first { $0.targetID == "hero" } == hero)
             let latest = try #require(lane.activeItems.last)
             #expect(latest.availableAt == date)
             #expect(latest.label == .amount(-id))
             #expect(latest.retiringAt == nil)
         }
-        let older = try #require(lane.activeItems.first)
+        let older = try #require(lane.activeItems.first { $0.targetID == "enemy" })
         #expect(older.retiringAt == start.addingTimeInterval(0.1))
         lane.pruneExpired(at: start.addingTimeInterval(0.26))
-        #expect(lane.activeItems.map(\.id) == [10])
+        #expect(lane.activeItems.map(\.id) == [100, 10])
         #expect(lane.hitReactionsByTargetID["enemy"]?.id == 10)
     }
 

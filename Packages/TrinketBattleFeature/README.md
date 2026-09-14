@@ -28,7 +28,15 @@ scenario drivers and harnesses live in `Support/Performance/` within this target
 
 ## Prepared artwork
 
-BattleSession holds one balanced cache acquisition per prepared artwork name.
+BattleSession holds one balanced cache acquisition per prepared artwork name,
+including configured loadout cards and portraits for active and prepared runs.
+The census does not simulate an opening draw. Cast prewarm acquires artwork and
+textures before enabling its live renderer. Closed-vocabulary feedback rasters
+are composed off the main actor from resolved immutable inputs; the pool publishes
+only results belonging to its current preparation generation. Normal battle teardown
+retains shared immutable glyphs and dissolve textures for the next effect or battle;
+explicit memory trimming still releases them. Retired texture preparation writes
+only to its retired cache and cannot declare the replacement cache ready.
 Replacing or pruning encounters invalidates stale preparation and retains artwork
 still needed by the active battle or prepared siblings. Prepared activation keeps
 both committed pins and valid preparation in flight through the overlay handoff.

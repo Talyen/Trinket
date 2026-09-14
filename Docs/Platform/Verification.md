@@ -74,6 +74,9 @@ forced generation and comparison against committed output.
 
 ### Choosing UI verification
 
+Choose verification from the behavior changed, not merely the file or package
+touched. Logic-only changes do not require visual inspection.
+
 Ordinary `handoff.sh --isolate --paths <files...>` runs the selected source,
 package, compilation, and documentation checks. It does not run UI smoke unless
 `--smoke` is supplied; a green ordinary handoff is not UI interaction evidence.
@@ -86,6 +89,16 @@ to select an existing focused journey or justify a coverage change; report any
 remaining interaction gap rather than substituting the full suite. A visual-only
 change needs relevant visual inspection; it does not automatically require a new
 UI test. Test additions and retirement remain owned by [Testing.md](Testing.md).
+
+For a localized visual change, inspect the affected screen and changed states
+once. Stop when the requested result is demonstrated. Repeat only after a
+relevant implementation change, an observed defect, or inconclusive evidence;
+each additional check must answer a specific unresolved question. Evidence
+already obtained remains valid unless subsequent changes affect what it proves.
+Routine changes do not require a device matrix, recordings, before-and-after
+captures, or a general screen review. Expand inspection only when the request,
+changed behavior, or an observed defect justifies it. Report material gaps in
+verification of the requested change.
 
 Performance measurement belongs to performance investigations, not routine
 Battle or UI handoff. Use the [performance playbook](PerformanceInvestigationPlaybook.md)

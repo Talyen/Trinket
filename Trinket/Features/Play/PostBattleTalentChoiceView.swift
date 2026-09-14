@@ -54,8 +54,10 @@ private struct PostBattleTalentChoiceContent: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 
     @Environment(OptionsStore.self) private var options
+    @Environment(\.scenePhase) private var scenePhase
     @State private var navigationPath: [String] = []
-    @State private var showsSaveFailure = false
+    @State private var enteredTreeIDs: Set<String> = []
+    @State private var hasFinishedEntrance = false
     @State private var treeSelectionTrigger = 0
 
     let combatantID: String
@@ -77,16 +79,57 @@ private struct PostBattleTalentChoiceContent: View {
             }
         }
         .trinketPresentationVisibility(play.currentPostBattleTalentCombatantID == combatantID, opacity: 1)
-        .alert("Couldn't Save Talent", isPresented: $showsSaveFailure) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Your Talent choice was not saved. Please try again.")
+        .task(id: isEntranceActive) {
+            await revealCategories()
         }
+        .onChange(of: isEntranceActive) { _, active in
+            if !active {
+                settleCategories()
+            }
+        }
+        .onDisappear(perform: settleCategories)
+        .disabled(playerSave.isRetryingSaveAction)
+        .interactiveDismissDisabled(playerSave.isRetryingSaveAction)
         .trinketSensoryFeedback(
             .selection,
             trigger: treeSelectionTrigger,
             enabled: options.hapticsEnabled,
         )
+    }
+
+    private var isEntranceActive: Bool {
+        scenePhase == .active
+            && navigationPath.isEmpty
+            && play.currentPostBattleTalentCombatantID == combatantID
+    }
+
+    private func revealCategories() async {
+        guard isEntranceActive, !hasFinishedEntrance, let config else { return }
+        let eligibleTrees = config.trees.filter { !legalNodes(in: $0, combatantID: combatantID).isEmpty }
+        await Task.yield()
+        do {
+            for (index, tree) in eligibleTrees.enumerated() {
+                if index > 0 {
+                    try await Task.sleep(for: .seconds(TrinketMotion.Reward.categoryEntranceStagger))
+                }
+                try Task.checkCancellation()
+                guard isEntranceActive, !hasFinishedEntrance else { return }
+                withAnimation(TrinketMotion.Reward.reveal) {
+                    _ = enteredTreeIDs.insert(tree.id)
+                }
+            }
+            hasFinishedEntrance = true
+        } catch {
+            settleCategories()
+        }
+    }
+
+    private func settleCategories() {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            hasFinishedEntrance = true
+        }
     }
 
     private var combatant: Combatant? {
@@ -156,7 +199,11 @@ private struct PostBattleTalentChoiceContent: View {
                 accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id),
             )
         }
-        .trinketArtworkCardButtonStyle()
+        .trinketArtworkCardButtonStyle(pressedScale: TrinketMotion.Interaction.choiceCardPressedScale)
+        .scaleEffect(
+            nodes.isEmpty || hasFinishedEntrance || enteredTreeIDs.contains(tree.id)
+                ? 1 : TrinketMotion.Reward.categoryEntranceScale,
+        )
         .disabled(nodes.isEmpty)
     }
 
@@ -182,7 +229,9 @@ private struct PostBattleTalentChoiceContent: View {
         case .unavailable:
             navigationPath.removeAll()
         case .persistenceFailed:
-            showsSaveFailure = true
+            playerSave.retrySaveAction(key: "talent-\(combatantID)") {
+                _ = choose(node: node, tree: tree)
+            }
         }
         return result
     }

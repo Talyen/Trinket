@@ -226,7 +226,6 @@ public enum AccessibilityID {
         public static let encounterArt = "Shop Encounter Art"
         public static let goldBalance = "Shop Gold Balance"
         public static let leaveButton = "Shop Leave Button"
-        public static let leaveFailure = "Shop Leave Failure"
         public static let detailBuyButton = "Shop Detail Buy Button"
         public static let purchaseError = "Shop Purchase Error"
 
@@ -362,6 +361,7 @@ public enum AccessibilityID {
         public static let continueButton = "Continue Button"
         public static let battleAgainButton = "Battle Again Button"
         public static let defeatPrimaryButton = "Defeat Primary Button"
+        public static let defeatLeaveButton = "Defeat Leave Button"
         public static let abilityDetail = "Battle Ability Detail"
         public static let abilityDetailEffect = "Battle Ability Detail Effect"
 

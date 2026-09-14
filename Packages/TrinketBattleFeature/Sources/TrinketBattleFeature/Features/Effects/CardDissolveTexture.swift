@@ -65,7 +65,10 @@ enum CardDissolveTexture {
         progressSteps
     }
 
-    private static let cache = TextureCache()
+    private static var cache: TextureCache {
+        prewarmState.withLock { $0.cache }
+    }
+
     private static let prewarmState = Mutex(PrewarmState())
 
     static func progressStep(for progress: CGFloat) -> Int {
@@ -76,6 +79,7 @@ enum CardDissolveTexture {
     }
 
     private struct PrewarmState {
+        var cache = TextureCache()
         var tasks: [NoiseCacheKey: Task<Void, Never>] = [:]
         var prepared: Set<NoiseCacheKey> = []
     }
@@ -137,11 +141,11 @@ enum CardDissolveTexture {
                 return image
             }
         }
+    }
 
-        func removeAll() {
-            noiseCache.withLock { $0.removeAll(keepingCapacity: false) }
-            thresholdCache.withLock { $0.removeAll(keepingCapacity: false) }
-        }
+    static func isPrepared(cutAngleDegrees: CGFloat? = nil) -> Bool {
+        let key = noiseCacheKey(edgeDepthWeight: 0.86, noiseWeight: 0.18, cellSize: 1, cutAngleDegrees: cutAngleDegrees)
+        return prewarmState.withLock { $0.prepared.contains(key) }
     }
 
     static func clearCache() {
@@ -151,8 +155,8 @@ enum CardDissolveTexture {
             }
             state.tasks.removeAll()
             state.prepared.removeAll()
+            state.cache = TextureCache()
         }
-        cache.removeAll()
     }
 
     static func thresholdMaskImage(
@@ -164,6 +168,7 @@ enum CardDissolveTexture {
         thresholdContrast: CGFloat = 100,
         cutAngleDegrees: CGFloat? = nil,
     ) -> CGImage? {
+        let cache = cache
         let clampedCell = max(1, min(cellSize, 16))
         let noiseKey = noiseCacheKey(
             edgeDepthWeight: edgeDepthWeight,
@@ -182,6 +187,7 @@ enum CardDissolveTexture {
             return cached
         }
         return bakeThresholdMaskImage(
+            cache: cache,
             progress: progress,
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
@@ -192,7 +198,8 @@ enum CardDissolveTexture {
         )
     }
 
-    fileprivate static func bakeThresholdMaskImage(
+    private static func bakeThresholdMaskImage(
+        cache: TextureCache,
         progress: CGFloat,
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
@@ -215,7 +222,7 @@ enum CardDissolveTexture {
             thresholdMidpoint: quantize(thresholdMidpoint),
             thresholdContrast: Int(thresholdContrast.rounded()),
         )
-        let noise = noiseBytes(key: noiseKey)
+        let noise = noiseBytes(key: noiseKey, cache: cache)
         let steppedProgress = CGFloat(step) / CGFloat(progressSteps)
         return cache.thresholdImage(key: key) {
             makeThresholdImage(
@@ -247,13 +254,19 @@ enum CardDissolveTexture {
         cellSize: Int = 1,
         cutAngleDegrees: CGFloat? = nil,
     ) async {
-        guard let task = prewarmTask(
-            edgeDepthWeight: edgeDepthWeight,
-            noiseWeight: noiseWeight,
-            cellSize: cellSize,
-            cutAngleDegrees: cutAngleDegrees,
-        ) else { return }
-        await task.value
+        while !Task.isCancelled {
+            let preparingCache = cache
+            guard let task = prewarmTask(
+                edgeDepthWeight: edgeDepthWeight,
+                noiseWeight: noiseWeight,
+                cellSize: cellSize,
+                cutAngleDegrees: cutAngleDegrees,
+            ) else { return }
+            await task.value
+            if prewarmState.withLock({ $0.cache === preparingCache }) {
+                return
+            }
+        }
     }
 
     private static func prewarmTask(
@@ -275,12 +288,15 @@ enum CardDissolveTexture {
             if let task = state.tasks[key] {
                 return task
             }
+            let cache = state.cache
             let task = Task.detached(priority: .userInitiated) {
-                _ = noiseBytes(key: key)
+                _ = noiseBytes(key: key, cache: cache)
                 var preparedAllSteps = true
                 for step in 0 ... progressSteps {
+                    guard !Task.isCancelled else { return }
                     let progress = CGFloat(step) / CGFloat(progressSteps)
                     if bakeThresholdMaskImage(
+                        cache: cache,
                         progress: progress,
                         edgeDepthWeight: edgeDepthWeight,
                         noiseWeight: noiseWeight,
@@ -291,6 +307,7 @@ enum CardDissolveTexture {
                     }
                 }
                 prewarmState.withLock { state in
+                    guard state.cache === cache else { return }
                     state.tasks.removeValue(forKey: key)
                     if preparedAllSteps {
                         state.prepared.insert(key)
@@ -318,7 +335,7 @@ extension CardDissolveTexture {
         )
     }
 
-    private static func noiseBytes(key: NoiseCacheKey) -> [UInt8] {
+    private static func noiseBytes(key: NoiseCacheKey, cache: TextureCache) -> [UInt8] {
         cache.noiseBytes(key: key) {
             makeNoiseBytes(
                 edgeDepthWeight: dequantize(key.edgeDepthWeight),

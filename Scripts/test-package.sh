@@ -12,6 +12,7 @@ source "$SCRIPT_DIR/run-env.sh"
 source "$SCRIPT_DIR/build-freshness.sh"
 # shellcheck source=xcode-runner.sh
 source "$SCRIPT_DIR/xcode-runner.sh"
+source "$SCRIPT_DIR/lib/app-build.sh"
 
 ACTION="test"
 DESTINATION=""
@@ -275,6 +276,11 @@ run_one_package() {
     if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
       xcodebuild_args+=(-resultBundlePath "$result_bundle")
     fi
+  fi
+  trinket_set_local_simulator_architecture_args iphonesimulator Debug
+  xcodebuild_args+=(-configuration Debug)
+  if (( ${#TRINKET_LOCAL_SIMULATOR_ARCHITECTURE_ARGS[@]} )); then
+    xcodebuild_args+=("${TRINKET_LOCAL_SIMULATOR_ARCHITECTURE_ARGS[@]}")
   fi
   # Test filters only apply to test / test-without-building.
   if [[ "$ACTION" != "build-for-testing" && ${#package_test_filters[@]} -gt 0 ]]; then

@@ -6,6 +6,8 @@ public struct KeywordPlasmaBackground: View {
     let focalYOffset: CGFloat
     let isMotionActive: Bool
 
+    @Environment(\.isDecorativeMotionActive) private var isPresentationMotionActive
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var startDate = Date()
 
@@ -16,14 +18,14 @@ public struct KeywordPlasmaBackground: View {
     }
 
     private var isTimelinePaused: Bool {
-        !isMotionActive || reduceMotion
+        !isMotionActive || !isPresentationMotionActive || scenePhase != .active || reduceMotion
     }
 
     public var body: some View {
         Group {
             if !keywords.isEmpty {
                 let resolved = Self.colors(for: keywords)
-                if isTimelinePaused {
+                if reduceMotion {
                     LinearGradient(
                         colors: [
                             resolved.primary.opacity(0.28),
@@ -61,7 +63,7 @@ public struct KeywordPlasmaBackground: View {
     private func singleSourceBody(primary: Color, secondary: Color) -> some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: isTimelinePaused)) { timeline in
             GeometryReader { geometry in
-                let time = Float(timeline.date.timeIntervalSince(startDate))
+                let time: Float = isTimelinePaused ? 0 : Float(timeline.date.timeIntervalSince(startDate))
                 let focalCenter = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2 - focalYOffset)
                 singlePlasmaLayer(
                     primary: primary,

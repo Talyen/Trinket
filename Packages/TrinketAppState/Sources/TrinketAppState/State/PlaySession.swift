@@ -135,7 +135,8 @@ public final class PlaySession {
     }
 
     public func endBattleReturningToOrigin() {
-        let runKey = battle.activeBattle?.runKey
+        let configuration = battle.activeBattle
+        let runKey = configuration?.runKey
         let origin = route(for: runKey)?.origin
         if runKey != nil, origin == nil {
             appStateLogger.error("Missing route for active battle dismissal")
@@ -144,6 +145,12 @@ public final class PlaySession {
         shellSession.selectedTab = .play
         battle.endBattle()
         battleRunRegistry.removeAll()
+        if let configuration, !battleCompletion.deferredDefeatTalentProgressions.isEmpty {
+            queuePostBattleTalentChoices(
+                for: [configuration.hero.combatant, configuration.companion.combatant],
+                progressionsBefore: [:],
+            )
+        }
     }
 
     @discardableResult
@@ -160,7 +167,7 @@ public final class PlaySession {
                 (combatant.id, playerSave.roster.progression(for: combatant))
             },
         )
-        return battleCompletion.completeActiveBattle(
+        let result = battleCompletion.completeActiveBattle(
             configuration,
             battleGold: battleGold,
             materialRewards: materialRewards,
@@ -179,6 +186,13 @@ public final class PlaySession {
                 self?.restoreBattleOrigin(from: origin)
             },
         )
+        if result == .persistenceFailed {
+            playerSave.retrySaveAction(key: "victory-\(configuration.id)") { [weak self] in
+                guard let self, battle.activeBattle?.id == configuration.id else { return }
+                _ = completeActiveBattle(configuration, battleGold: battleGold, materialRewards: materialRewards)
+            }
+        }
+        return result
     }
 
     public func finishBattleRewardPresentation(configurationID: UUID) {
@@ -267,6 +281,8 @@ public final class PlaySession {
         for combatants: [Combatant],
         progressionsBefore: [String: CombatantProgression],
     ) {
+        let progressionsBefore = progressionsBefore.merging(battleCompletion.deferredDefeatTalentProgressions) { _, deferred in deferred }
+        battleCompletion.deferredDefeatTalentProgressions.removeAll()
         let roster = playerSave.roster
         postBattleTalentCombatantIDs = combatants.compactMap { combatant in
             guard let before = progressionsBefore[combatant.id] else { return nil }

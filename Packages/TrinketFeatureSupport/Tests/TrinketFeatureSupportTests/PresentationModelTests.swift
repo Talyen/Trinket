@@ -137,7 +137,6 @@ struct PresentationModelTests {
         let emptyBattleContext = BattlePresentationContext.empty
         #expect(emptyBattleContext.inventoryItems.isEmpty)
         #expect(emptyBattleContext.stageReward == nil)
-        #expect(emptyBattleContext.defeatPrimaryAction == .restart)
         #expect(emptyBattleContext.goldFindPercent == 0)
         #expect(emptyBattleContext.materialRewards.isEmpty)
     }

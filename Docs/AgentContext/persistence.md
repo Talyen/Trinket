@@ -10,8 +10,10 @@ Campaign reward and completion **domain write policies** also live here (`Battle
 storage failure. It shares candidate validation, slice reconciliation, and commit
 with `persistBatch` and `performBatchMutation`. Domain operations mutate a candidate
 save; rejection discards it without publishing or writing. Immediate writes publish
-the observed candidate only after storage succeeds. Storage failures use the existing
-compensation machinery. Observable sessions apply outcomes and navigation only after commit.
+the observed candidate only after the graph or durable recovery file accepts it.
+Total write failures use compensation and silent action retries, as described in
+[storage recovery](persistence-storage.md). Observable sessions apply outcomes and
+navigation only after commit; they do not show technical save-error alerts.
 Deferred mutation is an explicit `performBatchMutation(..., persistImmediately: false)`
 operation, with a debounced save and a synchronous lifecycle flush; there is no
 store-wide deferred-setter setting or `-defer-persistence` launch argument.

@@ -23,9 +23,15 @@ item artwork, `Encounters/` owns encounter tiles and reading presentation, and
 ## Artwork and rendering
 
 `PreparedArtworkCache` decodes off the main actor; publication and pin ownership
-stay on the main actor. Overlapping requests share cache-owned work: cancellation
+stay on the main actor. A cache-owned scheduler admits at most two decodes across
+all callers and at most one deferred decode, prioritizing imminent pins over
+viewport requests over deferred catalog work. Queued shared jobs inherit their
+most urgent caller. Overlapping requests share cache-owned work: cancellation
 stops a caller's queued work, while started decodes finish for all consumers.
-Pins live outside the evictable `NSCache` cost limit. `ArtworkViewportPrewarm`
+Pins live outside the evictable `NSCache` cost limit. `PreparedArtworkLease` balances a preparation acquisition over its owner's lifetime;
+category navigation acquires it before pushing. Shared artwork-prepared sheet and
+navigation modifiers also acquire a lease before exposing item/ability/combatant
+details, retaining the source during preparation and the pins through the visit. `ArtworkViewportPrewarm`
 owns scroll-driven prefetch. Launch retention follows
 [UI performance](../../Docs/AgentContext/ui-performance.md); memory budgets follow
 the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
@@ -76,6 +82,10 @@ save results control success feedback and navigation, never binding readback.
 Initial eligible thumbnails are prepared and pinned before navigation, owned by
 the picker visit; the lazy grid prewarms nearby artwork as results and visibility
 change. Existing detail and launch pins remain independent.
+Item inspection prepares its artwork, ends the active native search interaction,
+and waits for `isSearching` to acknowledge dismissal before pushing the detail.
+The logical filter query survives native search dismissal and is restored on Back.
+This keeps rapid search/inspect/back/equip sequences on the owning navigation stack.
 The requested slot highlights immediately and shows progress only when preparation
 outlasts the shared pending-indicator delay. A successful equipment edit highlights
 its changed slots when the detail becomes visible again; failed saves preserve the

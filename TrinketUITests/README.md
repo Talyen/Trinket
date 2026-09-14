@@ -53,7 +53,10 @@ Keep default launch args unless testing persistence. Prefer `AccessibilityID`
 selectors and assert with `assertExists`; use visible text only when it is the
 product contract. UI tests tap tab labels, not `AppTab` raw values.
 
-Normal control taps require existence, enablement, and hittability. Use explicit
+Normal control taps use the shared default timeout and require existence,
+enablement, a finite nonempty frame, and hittability. Check geometry before
+hittability because sheet transitions can temporarily expose invalid frames.
+Use explicit
 coordinate gestures only for gesture tests or a demonstrated automation limitation.
 The transparent frame-metrics reset control reports unhittable in XCUITest;
 its explicit coordinate tap must establish the `measuring` state before stimulus.

@@ -33,11 +33,11 @@ public extension BattleSession {
     }
 
     private var desiredPreparedArtworkNames: Set<String> {
-        var names = Set(preparedBattleRuns.flatMap { openingHandArtworkNames(for: $0) })
-        if activeBattle != nil {
-            names.formUnion(activeOpeningHandArtworkNames())
+        var configurations = preparedBattleRuns.map(\.configuration)
+        if let activeBattle {
+            configurations.append(activeBattle)
         }
-        return names
+        return Set(configurations.flatMap { BattleArtworkPreparation.artworkNames(for: $0) })
     }
 
     internal func installSimulationPresentation() {

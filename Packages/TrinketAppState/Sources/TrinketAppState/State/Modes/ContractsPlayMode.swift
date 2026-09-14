@@ -25,7 +25,10 @@ public final class ContractsPlayMode {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
         guard playerSave.persistBatch(logging: "Failed to open Contracts", { save in
             save.contracts.ensureBoard()
-        }) else { return saveFailureMessage }
+        }) else {
+            playerSave.retrySaveAction(key: "contracts-enter") { [weak self] in _ = self?.enter() }
+            return nil
+        }
         return nil
     }
 
@@ -34,7 +37,10 @@ public final class ContractsPlayMode {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
         guard playerSave.persistBatch(logging: "Failed to refresh Contracts", { save in
             save.contracts.refresh()
-        }) else { return saveFailureMessage }
+        }) else {
+            playerSave.retrySaveAction(key: "contracts-refresh") { [weak self] in _ = self?.refresh() }
+            return nil
+        }
         return nil
     }
 
@@ -103,9 +109,5 @@ public final class ContractsPlayMode {
 
     private enum CompletionFailure: Error {
         case unavailable
-    }
-
-    private var saveFailureMessage: StageMapMessage {
-        StageMapMessage(title: "Couldn't Save Contracts", message: "Your board was not changed. Try again.")
     }
 }

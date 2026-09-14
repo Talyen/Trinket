@@ -38,6 +38,12 @@ struct TrinketApp: App {
             if environment.launchScreen == .battleVictory {
                 (state.play.battle as? BattleSession)?.presentLaunchVictory()
             }
+            #if DEBUG
+            if environment.launchScreen == .battleDefeat || environment.launchScreen == .battleDefeatSaveFailure {
+                (state.play.battle as? BattleSession)?.presentLaunchDefeat()
+                state.playerSave.forcesNextSaveFailure = environment.launchScreen == .battleDefeatSaveFailure
+            }
+            #endif
             return state
         }
 
@@ -84,6 +90,12 @@ struct TrinketApp: App {
                     materialRewards: settlement?.award.materials, settlement: settlement,
                     defersPresentationExit: defersExit,
                 ) ?? .unavailable
+            },
+            settleDefeat: { [weak play] configuration in
+                play?.settleDefeatRewards(configuration)
+            },
+            completeDefeat: { [weak play] configuration, settlement, action in
+                play?.completeDefeat(configuration, settlement: settlement, action: action) ?? .unavailable
             },
             finishPresentation: { [weak play] id in
                 play?.finishBattleRewardPresentation(configurationID: id)
@@ -149,14 +161,14 @@ private struct PreparedAppRoot: View {
     }
 
     private var shouldWarmHiddenTabs: Bool {
-        isResourcePreparationComplete
+        shouldMountRoot
             && appState.playerSave.starterSelection.phase == .complete
             && !didWarmHiddenTabs
     }
 
     var body: some View {
         ZStack {
-            if isResourcePreparationComplete {
+            if shouldMountRoot {
                 ContentView {
                     didLayOutSelectedRoot = true
                 }
@@ -174,12 +186,13 @@ private struct PreparedAppRoot: View {
                 .accessibilityIdentifier(didCompleteLaunchPreparation ? "" : AccessibilityID.Screen.launchWarmup)
                 .accessibilityHidden(didCompleteLaunchPreparation)
                 if !areCastEffectsPrepared {
-                    CardCastEffectsPrewarmView {
+                    CardCastEffectsPrewarmView(isRenderingEnabled: areRootLayoutsPrepared) {
                         areCastEffectsPrepared = true
                     }
                 }
             }
         }
+        .trinketDecorativeMotion(didCompleteLaunchPreparation)
         .environment(\.isLaunchPresentationReady, didCompleteLaunchPreparation)
         .environment(appState)
         .environment(appState.shellSession)
@@ -225,6 +238,8 @@ private struct PreparedAppRoot: View {
                let stage = GameContent.stage(id: stageID) {
                 appState.play.journey.prepareBattle(for: stage)
             }
+            await battleSession.prepareBattlePresentationAssets(displayScale: displayScale)
+            guard !Task.isCancelled else { return }
             isResourcePreparationComplete = true
             artworkCache.reportMemorySnapshot(label: "interactiveRoot")
         }
@@ -252,11 +267,18 @@ private struct PreparedAppRoot: View {
         return nil
     }
 
-    private var isPreparationComplete: Bool {
-        isResourcePreparationComplete
+    private var shouldMountRoot: Bool {
+        isResourcePreparationComplete && isMinimumLoadingTimeComplete
+    }
+
+    private var areRootLayoutsPrepared: Bool {
+        shouldMountRoot
             && didLayOutSelectedRoot
             && (appState.playerSave.starterSelection.phase != .complete || didWarmHiddenTabs)
-            && isMinimumLoadingTimeComplete
+    }
+
+    private var isPreparationComplete: Bool {
+        areRootLayoutsPrepared
             && areCastEffectsPrepared
             && isPreparationDelayComplete
     }

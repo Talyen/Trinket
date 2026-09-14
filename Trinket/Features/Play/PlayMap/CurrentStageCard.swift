@@ -97,25 +97,11 @@ struct StageSelectActiveCard<
     }
 
     private var footerDock: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
-                titleBlock
-                    .fixedSize(horizontal: true, vertical: false)
+        HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
+            titleBlock
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer(minLength: TrinketDesign.Spacing.small)
-
-                actionControls
-            }
-
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                titleBlock
-
-                HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
-                    Spacer(minLength: 0)
-
-                    actionControls
-                }
-            }
+            actionControls
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
@@ -129,12 +115,13 @@ struct StageSelectActiveCard<
             Text(balanced: presentation.activeEyebrow.uppercased())
                 .trinketTypography(.eyebrow)
                 .foregroundStyle(.secondary)
-                .trinketFittedText()
+                .trinketSingleLineFittedText()
 
             Text(balanced: presentation.title)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
-                .trinketFittedText()
+                .trinketSingleLineFittedText()
+                .accessibilityLabel(presentation.title)
         }
     }
 
@@ -158,9 +145,12 @@ struct StageSelectActiveCard<
                 Text(presentation.primaryActionTitle)
             } icon: {
                 GameIconImage(presentation.icon)
+                    .scaleEffect(1.15)
             }
+            .trinketTypography(.button)
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)
+            .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         }
         .trinketPrimaryActionButton(
             controlSize: .regular,
@@ -183,6 +173,7 @@ struct StageSelectActiveCard<
             GameIconImage(.system("person.2.fill"))
                 .trinketTypography(.button)
                 .foregroundStyle(.primary)
+                .scaleEffect(1.15)
                 // UIStyleCheck: allow - Compact party icon beside the primary CTA without chip chrome.
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())

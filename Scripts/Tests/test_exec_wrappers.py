@@ -8,10 +8,12 @@ test-scripts.sh, and performance.sh without requiring Xcode or simulators.
 import json
 import os
 import plistlib
+import pty
 import shutil
 import tempfile
 import subprocess
 import signal
+import time
 import unittest
 from pathlib import Path
 
@@ -215,17 +217,19 @@ class ExecWrapperTests(unittest.TestCase):
                     self.assertIn("prepared inputs", result.stdout)
 
     def test_simulator_launcher_installs_resolved_product_and_rejects_missing_outputs(self) -> None:
-        for mode in ("valid", "missing-target", "missing-product", "missing-plist", "settings-failed"):
+        for mode in ("valid", "missing-target", "missing-product", "missing-plist", "settings-failed",
+                     "inspect-stop", "inspect-eof", "inspect-cancel", "inspect-no-terminal"):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 scripts = root / "Scripts"
                 shutil.copytree(ROOT / "Scripts", scripts)
                 (scripts / "lib/tools.sh").write_text('trinket_prepend_pinned_tools() { :; }\n')
-                (scripts / "run-env.sh").write_text(
-                    'trinket_run_env_init() { DERIVED_DATA_PATH="$PWD/agent-dd"; '
-                    'RESULTS_DIR="$PWD/results"; mkdir -p "$RESULTS_DIR"; }\n'
-                    'trinket_run_env_print() { :; }\n'
-                )
+                if not mode.startswith("inspect-"):
+                    (scripts / "run-env.sh").write_text(
+                        'trinket_run_env_init() { DERIVED_DATA_PATH="$PWD/agent-dd"; '
+                        'RESULTS_DIR="$PWD/results"; mkdir -p "$RESULTS_DIR"; }\n'
+                        'trinket_run_env_print() { :; }\n'
+                    )
                 (scripts / "build-freshness.sh").write_text('prepare_generated_inputs() { :; }\n')
                 (scripts / "ensure-simulator.sh").write_text(
                     'trinket_sim_slot_ensure() { :; }\n'
@@ -264,15 +268,64 @@ if '-showBuildSettings' in sys.argv:
 import json, pathlib, sys
 if sys.argv[1:3] == ['simctl', 'install']:
     pathlib.Path('install.json').write_text(json.dumps(sys.argv[3:]))
-    raise SystemExit(73)
+    if not pathlib.Path('mode').read_text().startswith('inspect-'):
+        raise SystemExit(73)
 if 'appearance' in sys.argv:
     print('dark')
 """,
                 }
+                if mode.startswith("inspect-"):
+                    commands.update({name: "#!/bin/sh\nexit 0\n" for name in ("open", "osascript", "pgrep")})
                 for name, source in commands.items():
                     binary = binaries / name
                     binary.write_text(source)
                     binary.chmod(0o755)
+                environment = {key: value for key, value in os.environ.items()
+                               if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
+                environment["PATH"] = str(binaries) + os.pathsep + os.environ["PATH"]
+                if mode.startswith("inspect-"):
+                    command = [str(scripts / "run-simulator.sh"), "--isolate", "--inspect"]
+                    if mode == "inspect-no-terminal":
+                        result = subprocess.run(command, env=environment, stdin=subprocess.DEVNULL,
+                                                capture_output=True, text=True)
+                        self.assertEqual(result.returncode, 1, result.stderr)
+                        self.assertFalse((root / ".DerivedData").exists())
+                        self.assertFalse((root / "build-args.jsonl").exists())
+                        continue
+                    master, slave = pty.openpty()
+                    try:
+                        with (root / "inspection.log").open("w+") as output:
+                            process = subprocess.Popen(command, env=environment, stdin=slave,
+                                                       stdout=output, stderr=output)
+                            try:
+                                deadline = time.monotonic() + 15
+                                while time.monotonic() < deadline:
+                                    output.seek(0)
+                                    transcript = output.read()
+                                    if "Inspection ready:" in transcript or process.poll() is not None:
+                                        break
+                                    time.sleep(0.02)
+                                self.assertIn("Inspection ready:", transcript)
+                                self.assertIn("Trinket Agent 1 (fixture)", transcript)
+                                self.assertIn(str(app), transcript)
+                                self.assertIsNone(process.poll())
+                                lease = root / ".DerivedData/.active-sim/1.slot"
+                                self.assertTrue(lease.exists())
+                                if mode == "inspect-cancel":
+                                    process.send_signal(signal.SIGTERM)
+                                else:
+                                    os.write(master, b"stop\n" if mode == "inspect-stop" else b"\x04")
+                                self.assertEqual(process.wait(timeout=10), 143 if mode == "inspect-cancel" else 0)
+                                self.assertFalse(lease.exists())
+                            finally:
+                                if process.poll() is None:
+                                    process.kill()
+                                    process.wait(timeout=5)
+                    finally:
+                        os.close(master)
+                        os.close(slave)
+                    self.assertEqual(json.loads((root / "install.json").read_text()), ["fixture", str(app)])
+                    continue
                 result = subprocess.run(
                     [str(scripts / "run-simulator.sh"), "--isolate"],
                     env={**os.environ, "PATH": str(binaries) + os.pathsep + os.environ["PATH"]},

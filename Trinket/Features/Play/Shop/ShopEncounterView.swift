@@ -21,7 +21,6 @@ struct ShopEncounterView: View {
     @State private var offersAppeared = false
     @State private var purchaseFeedbackTrigger = 0
     @State private var purchaseErrorFeedbackTrigger = 0
-    @State private var leaveErrorTrigger = 0
 
     private let columns = TrinketDesign.Layout.collectionGridItems
 
@@ -50,14 +49,6 @@ struct ShopEncounterView: View {
                                 .accessibilityIdentifier(AccessibilityID.Shop.purchaseError)
                                 .transition(.opacity)
                         }
-
-                        if let persistFailure = session.persistFailureMessage {
-                            Text(persistFailure)
-                                .trinketTypography(.badge)
-                                .foregroundStyle(TrinketDesign.Colors.warning)
-                                .accessibilityIdentifier(AccessibilityID.Shop.leaveFailure)
-                                .transition(.opacity)
-                        }
                     }
                 },
                 content: {
@@ -66,9 +57,7 @@ struct ShopEncounterView: View {
                         .offset(y: offersAppeared ? 0 : 10)
 
                     Button {
-                        if !onLeave() {
-                            leaveErrorTrigger &+= 1
-                        }
+                        _ = onLeave()
                     } label: {
                         Text("Leave Shop")
                             .frame(maxWidth: .infinity)
@@ -92,13 +81,14 @@ struct ShopEncounterView: View {
             }
         }
         .interactiveDismissDisabled()
+        .disabled(playerSave.isRetryingSaveAction)
         .sheet(item: $selectedOffer) { offer in
             NavigationStack {
                 ItemDetailView(
                     item: offer.item,
                     purchasePrice: offer.price,
                     canAfford: playerSave.roster.gold >= offer.price,
-                    isPurchaseDisabled: session.isPurchasing || !availability(offer).canPurchase,
+                    isPurchaseDisabled: playerSave.isRetryingSaveAction || session.isPurchasing || !availability(offer).canPurchase,
                     purchaseButtonTitleOverride: isSoldOut(offer) ? "Sold Out" : nil,
                     onPurchase: {
                         attemptPurchase(offerID: offer.id, dismissDetail: true)
@@ -123,11 +113,6 @@ struct ShopEncounterView: View {
         .trinketSensoryFeedback(
             .error,
             trigger: purchaseErrorFeedbackTrigger,
-            enabled: options.hapticsEnabled,
-        )
-        .trinketSensoryFeedback(
-            .error,
-            trigger: leaveErrorTrigger,
             enabled: options.hapticsEnabled,
         )
     }

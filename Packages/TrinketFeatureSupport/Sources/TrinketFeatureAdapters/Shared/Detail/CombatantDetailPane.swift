@@ -32,11 +32,11 @@ public struct CombatantDetailPane: View {
     @State private var selectedItemSlot: ItemSlot?
     @State private var requestedItemSlot: ItemSlot?
     @State private var loadingItemSlot: ItemSlot?
-    @State private var equipmentEditSucceeded = false
-    @State private var equipmentConfirmation: EquipmentSlotConfirmation?
     @State private var pickerItems = ItemPickerItems()
     @State private var pickerArtworkLease: ItemPickerArtworkLease?
     @State private var selectedAbilityTier: AbilityTier?
+    @State private var requestedAbility: Ability?
+    @State private var requestedItem: InventoryItem?
     @State private var viewingAbility: Ability?
     @State private var viewingItem: InventoryItem?
     @State private var selectedTalentTree: TalentTree?
@@ -128,17 +128,6 @@ public struct CombatantDetailPane: View {
             if phase != .active {
                 requestedItemSlot = nil
                 loadingItemSlot = nil
-                equipmentConfirmation = nil
-            }
-        }
-        .onChange(of: equipmentLoadout) { oldLoadout, newLoadout in
-            guard equipmentEditSucceeded else { return }
-            equipmentEditSucceeded = false
-            let changed = Set(combatant.role.equipmentSlots.filter {
-                oldLoadout.itemID(for: $0) != newLoadout.itemID(for: $0)
-            })
-            if !changed.isEmpty {
-                equipmentConfirmation = EquipmentSlotConfirmation(slots: changed)
             }
         }
         .onChange(of: selectedItemSlot) { _, slot in
@@ -159,8 +148,14 @@ public struct CombatantDetailPane: View {
         .navigationDestination(item: $viewingAbility) { ability in
             AbilityDetailView(ability: ability)
         }
+        .preparingArtwork(request: $requestedAbility, presentation: $viewingAbility) {
+            [$0.artReference?.imageName, $0.artReference?.thumbnailImageName].compactMap(\.self)
+        }
         .navigationDestination(item: $viewingItem) { item in
             ItemDetailView(item: item)
+        }
+        .preparingArtwork(request: $requestedItem, presentation: $viewingItem) {
+            [$0.artReference?.imageName, $0.artReference?.thumbnailImageName].compactMap(\.self)
         }
         .navigationDestination(item: $selectedTalentTree) { tree in
             CombatantTalentsView(
@@ -201,6 +196,18 @@ public struct CombatantDetailPane: View {
     }
 
     private func detailArtworkNames() -> [String] {
+        Self.artworkNames(
+            combatant: combatant, loadout: loadout,
+            equipmentLoadout: equipmentLoadout, inventoryItems: inventoryItems,
+        )
+    }
+
+    public static func artworkNames(
+        combatant: Combatant,
+        loadout: AbilityLoadout,
+        equipmentLoadout: EquipmentLoadout,
+        inventoryItems: [InventoryItem],
+    ) -> [String] {
         var names: [String] = []
         if let fullName = combatant.artReference?.imageName {
             names.append(fullName)
@@ -297,8 +304,8 @@ public struct CombatantDetailPane: View {
                 loadout: loadout,
                 allowsEditing: allowsEditing,
                 onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil,
-                onViewAbility: allowsEditing ? nil : { viewingAbility = $0 },
-                onInspectAbility: { viewingAbility = $0 },
+                onViewAbility: allowsEditing ? nil : { requestedAbility = $0 },
+                onInspectAbility: { requestedAbility = $0 },
             )
             .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         }
@@ -319,10 +326,9 @@ public struct CombatantDetailPane: View {
                     equipmentLoadout: equipmentLoadout,
                     inventoryItems: inventoryItems,
                     onSelect: allowsEditing ? { requestedItemSlot = $0 } : nil,
-                    onViewItem: allowsEditing ? nil : { viewingItem = $0 },
+                    onViewItem: allowsEditing ? nil : { requestedItem = $0 },
                     requestedSlot: requestedItemSlot,
                     loadingSlot: loadingItemSlot,
-                    confirmation: equipmentConfirmation,
                 )
                 .padding(.vertical, TrinketDesign.Spacing.extraSmall)
             }
@@ -341,7 +347,6 @@ public struct CombatantDetailPane: View {
             onEdit?(.equipItem(item, slot)) == true
         }
         guard saved else { return }
-        equipmentEditSucceeded = true
         playSFX(SFXID.uiEquip, effectsVolume)
         selectionFeedbackTrigger += 1
         selectedItemSlot = nil
@@ -349,7 +354,6 @@ public struct CombatantDetailPane: View {
 
     private func unequip(_ slot: ItemSlot) {
         guard onEdit?(.unequipItem(slot)) == true else { return }
-        equipmentEditSucceeded = true
         selectionFeedbackTrigger += 1
         selectedItemSlot = nil
     }

@@ -213,8 +213,7 @@ public enum VictoryRewardApplier {
         let award = settlement.award
         let now = settlement.inputs.productionDate
         save.applyGoldDelta(award.goldDelta, at: now)
-        save.roster.grantExperience(award.heroExperience, to: hero)
-        save.roster.grantExperience(award.companionExperience, to: companion)
+        BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save)
         save.grantMaterials(award.materials, at: now)
         for item in award.items {
             save.inventory.appendUniqueItem(item)

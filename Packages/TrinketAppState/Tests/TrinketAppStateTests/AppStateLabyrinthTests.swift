@@ -146,7 +146,6 @@ struct AppStateLabyrinthTests {
         let battle = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: battle.runKey))
         #expect(presentation.hasProgressionRewards)
-        #expect(presentation.defeatPrimaryAction == .restart)
         #expect(presentation.labyrinthModifiers == expectedModifiers)
         #expect(!presentation.labyrinthModifiers.isEmpty)
         #expect(battle.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
@@ -270,7 +269,7 @@ struct AppStateLabyrinthTests {
         playerSave.forcesNextSaveFailure = true
         #expect(!state.encounters.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter != nil)
-        #expect(state.encounters.activeShopEncounter?.persistFailureMessage != nil)
+        #expect(playerSave.isRetryingSaveAction)
         #expect(state.playerSave.labyrinth.nodes[shopNodeID]?.isCleared == false)
 
         #expect(state.encounters.finishActiveShopEncounter())

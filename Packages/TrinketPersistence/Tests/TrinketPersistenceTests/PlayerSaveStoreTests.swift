@@ -98,7 +98,8 @@ struct PlayerSaveStoreTests {
         #expect(store.lastPersistenceError != nil)
         store.grantGold(42)
         #expect(store.roster.gold == 42)
-        #expect(store.lastPersistenceError != nil)
+        #expect(store.lastPersistenceError == nil)
+        #expect(try context.makeReloadedStore().roster.gold == 42)
         #expect(try Data(contentsOf: storeURL) == originalData)
         let generation = store.currentSave.sessionGeneration
         try store.resetGameplayProgress()
@@ -112,14 +113,15 @@ struct PlayerSaveStoreTests {
         #expect(!reloaded.isPersistenceDegraded)
     }
 
-    @Test @MainActor func `failed recovery reset retains temporary progress and can retry`() throws {
+    @Test @MainActor func `unwritable recovery does not accept progress and reset can retry`() throws {
         let context = try PersistenceTestContext()
         let blockedDirectory = context.directoryURL.appending(path: "blocked")
         try Data("not-a-directory".utf8).write(to: blockedDirectory)
         let url = blockedDirectory.appending(path: "PlayerSave.sqlite")
         let store = try PlayerSaveStore(storeURL: url)
-        store.grantGold(17)
         let before = store.currentSave
+        #expect(!store.persistBatch(logging: "Blocked recovery fixture") { $0.roster.gold += 17 })
+        #expect(store.currentSave == before)
         #expect(throws: PlayerSavePersistenceError.writeFailed) { try store.resetGameplayProgress() }
         #expect(store.currentSave == before)
         #expect(store.isPersistenceDegraded)

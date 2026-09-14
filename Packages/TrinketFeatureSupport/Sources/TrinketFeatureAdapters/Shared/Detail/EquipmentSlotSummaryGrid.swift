@@ -4,11 +4,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-struct EquipmentSlotConfirmation {
-    let id = UUID()
-    let slots: Set<ItemSlot>
-}
-
 struct EquipmentSlotSummaryGrid: View {
     let role: Combatant.Role
     let equipmentLoadout: EquipmentLoadout
@@ -17,9 +12,6 @@ struct EquipmentSlotSummaryGrid: View {
     var onViewItem: ((InventoryItem) -> Void)?
     var requestedSlot: ItemSlot?
     var loadingSlot: ItemSlot?
-    var confirmation: EquipmentSlotConfirmation?
-    @State private var isVisible = false
-    @State private var presentedConfirmationID: UUID?
 
     var body: some View {
         let equippedItemIDs = Set(equipmentLoadout.itemIDsBySlot.values)
@@ -61,32 +53,8 @@ struct EquipmentSlotSummaryGrid: View {
                                     .opacity(requestedSlot == slot ? 0.7 : 0)
                                     .animation(TrinketMotion.Interaction.selection, value: requestedSlot)
                             }
-                            .overlay {
-                                TrinketDesign.cardShape
-                                    .strokeBorder(TrinketDesign.Colors.accent, lineWidth: 2)
-                                    .keyframeAnimator(
-                                        initialValue: 0.0,
-                                        trigger: presentedConfirmationID,
-                                    ) { content, opacity in
-                                        content.opacity(confirmation?.slots.contains(slot) == true ? opacity : 0)
-                                    } keyframes: { _ in
-                                        LinearKeyframe(0.8, duration: 0.08)
-                                        LinearKeyframe(0.8, duration: TrinketMotion.Interaction.confirmationDuration)
-                                        CubicKeyframe(0, duration: TrinketMotion.Content.fadeDuration)
-                                    }
-                            }
                     },
                 )
-            }
-        }
-        .onAppear {
-            isVisible = true
-            presentedConfirmationID = confirmation?.id
-        }
-        .onDisappear { isVisible = false }
-        .onChange(of: confirmation?.id) { _, id in
-            if isVisible {
-                presentedConfirmationID = id
             }
         }
     }

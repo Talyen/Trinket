@@ -27,10 +27,8 @@ struct HomesteadBuildControl {
             error = "This project isn't available to build or upgrade yet."
         case .cloudSyncUnsupported:
             error = "Homestead projects are unavailable while cloud sync is enabled."
-        case .cloudUnavailable:
-            error = "Couldn't reach iCloud to finish this project. Your progress is saved on this device. Try again when connected."
-        case .persistFailed:
-            error = "Couldn't save homestead progress. Try again."
+        case .cloudUnavailable, .persistFailed:
+            isPending = true
         }
     }
 }
@@ -52,10 +50,8 @@ struct HomesteadCollectionControl {
             break
         case .cloudSyncUnsupported:
             error = "Passive collection is unavailable while cloud sync is enabled."
-        case .cloudUnavailable:
-            error = "Couldn't reach iCloud to collect production. Your progress is saved on this device. Try again when connected."
-        case .persistFailed:
-            error = "Couldn't save collected materials. Try again."
+        case .cloudUnavailable, .persistFailed:
+            isPending = true
         }
     }
 }

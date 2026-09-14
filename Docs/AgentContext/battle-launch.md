@@ -34,12 +34,23 @@ settles the launch reward plan against final `BattleGoldFlow` and a save snapsho
 through `BattleSession.claimVictory(configurationID:summary:)` for validation and
 persistence. `BattleCompletionResult` distinguishes completion, stale settlement,
 unavailable runs, and storage failure. A stale settlement refreshes the reveal;
-storage failure keeps the award available for retry. Already-claimed victories use
+storage failure retains the award and retries the chosen completion internally. Already-claimed victories use
 the same completion capability without waiting for an overlay. BattleFeature never
 imports Persistence or AppState; these capabilities stay outside `BattleRuntime`.
 Capacity, reservations, and transaction rules live in
 [persistence context](persistence.md). Current combat content only grants Gold;
 it must not debit the battle wallet.
+
+Defeat Retry and Leave share one settled XP claim through the configured
+progression capability. Revalidate the active configuration, actual defeat, and
+settlement before saving; stale inputs refresh the reveal and storage failures
+retain the chosen action for an automatic retry without an error alert. A committed configuration retains its settlement
+until exit/replacement so a failed restart followed by either action cannot pay
+again. Retry rebuilds the encounter from updated saved progression. Leave restores
+the origin and exposes newly earned talent choices, including points deferred
+across Retry attempts. Neither completes the mode's
+encounter. Active battle claims are transient; no battle-resume schema is added.
+The [progression contract](persistence-progression.md) owns the reward formula.
 
 Loot All persists the settled award before its shared collection presentation.
 Interactive claims defer the exit for that presentation; automatic completion

@@ -20,6 +20,55 @@ struct RewardSettlementTests {
         )
     }
 
+    @Test(arguments: [(80, 10), (50, 25), (10, 45), (42, 29), (100, 0), (99, 0)])
+    func `defeat experience uses peak health and rounds down`(remaining: Int, expected: Int) {
+        let plan = BattleRewardPlan(
+            stageGold: 100, goldFindPercent: 100, goldOverflowExperience: 100,
+            heroExperience: 100, companionExperience: 51,
+            materials: [], items: [],
+        )
+        let settlement = plan.settleDefeat(
+            progress: .init(remainingHealth: remaining, maximumHealth: 100),
+            inputs: inputs(gold: 100),
+        )
+        #expect(settlement.award.heroExperience == expected)
+        #expect(settlement.award.companionExperience == 51 * (100 - remaining) / 200)
+        #expect(settlement.award.goldDelta == 0)
+        #expect(settlement.award.materials.isEmpty)
+        #expect(settlement.award.items.isEmpty)
+        #expect(settlement.replacementExperience == 0)
+    }
+
+    @Test func `defeat experience retains zero eligibility and progression caps`() {
+        let plan = BattleRewardPlan(
+            stageGold: 100, goldFindPercent: 0, goldOverflowExperience: 100,
+            heroExperience: 0, companionExperience: 100000, materials: [], items: [],
+        )
+        let settlement = plan.settleDefeat(
+            progress: .init(remainingHealth: 1, maximumHealth: 100),
+            inputs: inputs(heroLevel: 1, companionLevel: 1),
+        )
+        #expect(settlement.award.heroExperience == 0)
+        #expect(settlement.award.companionExperience == ExperienceScaling.cappedAward(49500, for: .at(level: 1)))
+    }
+
+    @Test func `defeat experience retains launch-baked bonuses`() {
+        let progress = BattleDefeatProgress(remainingHealth: 50, maximumHealth: 100)
+        let base = BattleRewardPlan(
+            stageGold: 0, goldFindPercent: 0,
+            heroExperience: 100, companionExperience: 100,
+            materials: [], items: [],
+        ).settleDefeat(progress: progress, inputs: inputs())
+        let bonused = BattleRewardPlan(
+            stageGold: 0, goldFindPercent: 0,
+            heroExperience: 150, companionExperience: 150,
+            materials: [], items: [],
+        ).settleDefeat(progress: progress, inputs: inputs())
+        #expect(base.award.heroExperience == 25)
+        #expect(bonused.award.heroExperience == 37)
+        #expect(bonused.award.companionExperience == 37)
+    }
+
     @Test func `resolve splits stage gold from battle gains`() {
         let plan = BattleRewardPlan(
             stageGold: 100,

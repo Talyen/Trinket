@@ -7,6 +7,7 @@ import TrinketFeatureSupport
 struct CombatFeedbackAnimationState: Equatable {
     var opacity = 1.0
     var scale = 1.0
+    var riseProgress = 0.0
 }
 
 enum CombatFeedbackMotionSampler {
@@ -15,6 +16,9 @@ enum CombatFeedbackMotionSampler {
         at date: Date,
     ) -> CombatFeedbackAnimationState {
         let elapsed = max(0, date.timeIntervalSince(item.firstScheduledAt))
+        let holdEnd = item.firstScheduledAt.addingTimeInterval(BattleMotion.chipHoldEndTime)
+        let riseStart = min(holdEnd, item.retiringAt ?? holdEnd)
+        let riseDuration = BattleMotion.chipDisplayDuration - BattleMotion.chipHoldEndTime
         let fadeDuration = item.retiringAt.map {
             max(TimeInterval.ulpOfOne, item.expiresAt.timeIntervalSince($0))
         } ?? BattleMotion.chipPopFadeDuration
@@ -24,6 +28,7 @@ enum CombatFeedbackMotionSampler {
         return CombatFeedbackAnimationState(
             opacity: BattleMotion.smoothProgress(opacity),
             scale: Double(BattleMotion.chipScale(elapsed: elapsed)) * updateScale,
+            riseProgress: BattleMotion.smoothProgress(date.timeIntervalSince(riseStart) / riseDuration),
         )
     }
 }

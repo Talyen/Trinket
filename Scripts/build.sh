@@ -30,8 +30,8 @@ prepare_generated_inputs "$RESULTS_DIR"
 trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 label=compile-app
 if [[ "$RELEASE_DEVICE" == true ]]; then
-  trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH/release-device" iphoneos 'generic/platform=iOS'
-  TRINKET_APP_XCODEBUILD_ARGS+=(-configuration Release CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO)
+  trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH/release-device" iphoneos 'generic/platform=iOS' Release
+  TRINKET_APP_XCODEBUILD_ARGS+=(CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO)
   label=compile-release-device
 fi
 xcode_runner_prepare "$label" "$RESULTS_DIR"

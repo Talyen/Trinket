@@ -189,8 +189,10 @@ public extension View {
         buttonStyle(.plain)
     }
 
-    func trinketArtworkCardButtonStyle() -> some View {
-        buttonStyle(TrinketPressButtonStyle(pressedScale: TrinketMotion.Interaction.artworkCardPressedScale))
+    func trinketArtworkCardButtonStyle(
+        pressedScale: CGFloat = TrinketMotion.Interaction.artworkCardPressedScale,
+    ) -> some View {
+        buttonStyle(TrinketPressButtonStyle(pressedScale: pressedScale))
     }
 
     func trinketSelectionCardButtonStyle() -> some View {

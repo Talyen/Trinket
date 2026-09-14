@@ -46,7 +46,6 @@ enum PreparedArtworkMemoryBudget {
 @Observable
 public final class PreparedArtworkCache {
     public static let shared = PreparedArtworkCache()
-    private static let maximumDecodeConcurrency = 2
 
     public private(set) var completedCount = 0
     public private(set) var totalCount = 1
@@ -61,7 +60,10 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var decodedCostsByName: [String: Int] = [:]
     @ObservationIgnored private var launchWarmupNames: [String] = []
-    @ObservationIgnored private var decodeTasksByName: [String: Task<Void, Never>] = [:]
+    @ObservationIgnored private lazy var decodeScheduler = ArtworkDecodeScheduler(decode: decodeHandler) { [weak self] prepared in
+        self?.publish(prepared)
+    }
+
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
     @ObservationIgnored private let decodeHandler: @Sendable (String) async -> PreparedArtwork
     @ObservationIgnored private let logger = Logger(
@@ -119,23 +121,28 @@ public final class PreparedArtworkCache {
 
     public func prepare(names: [String]) async {
         let unique = Array(Set(names)).sorted()
-        guard !unique.isEmpty else { return }
-        await decode(unique, countsTowardLaunch: false)
+        guard !Task.isCancelled, !unique.isEmpty else { return }
+        await decode(unique, priority: .viewport, countsTowardLaunch: false)
     }
 
     public func prepareAndPin(names: [String]) async {
+        _ = await acquirePinnedArtwork(names: names)
+    }
+
+    func acquirePinnedArtwork(names: [String]) async -> [String] {
         let unique = Array(Set(names)).sorted()
-        guard !unique.isEmpty else { return }
+        guard !unique.isEmpty else { return [] }
         for name in unique {
             pinCountsByName[name, default: 0] += 1
         }
-        await decode(unique, countsTowardLaunch: false)
+        await decode(unique, priority: .imminent, countsTowardLaunch: false)
         for name in unique {
             pinResidentImage(named: name)
         }
         for name in unique {
             balanceFailedPin(named: name)
         }
+        return unique.filter { pinnedImages[$0] != nil }
     }
 
     public func releasePins(names: [String]) {
@@ -196,7 +203,7 @@ public final class PreparedArtworkCache {
 
         let task = Task(priority: .userInitiated) { @MainActor [weak self] in
             guard let self else { return }
-            await decode(plan.priorityNames, countsTowardLaunch: true)
+            await decode(plan.priorityNames, priority: .imminent, countsTowardLaunch: true)
             for name in plan.priorityNames {
                 pinResidentImage(named: name)
             }
@@ -212,7 +219,7 @@ public final class PreparedArtworkCache {
 
         deferredWarmupTask = Task(priority: .utility) { @MainActor [weak self] in
             guard let self else { return }
-            await decode(plan.deferredNames, countsTowardLaunch: true)
+            await decode(plan.deferredNames, priority: .deferred, countsTowardLaunch: true)
             guard !Task.isCancelled else { return }
             isDeferredWarmupComplete = true
             completedCount = totalCount
@@ -232,83 +239,30 @@ public final class PreparedArtworkCache {
 
     private func decode(
         _ imageNames: [String],
+        priority: ArtworkDecodeScheduler.Priority,
         countsTowardLaunch: Bool,
     ) async {
         guard !Task.isCancelled else { return }
-        let namesToDecode = imageNames.filter { name in
-            pinnedImages[name] == nil
-                && images.object(forKey: name as NSString) == nil
-        }
+        let namesToDecode = imageNames.filter { image(named: $0) == nil }
         if countsTowardLaunch {
             completedCount += imageNames.count - namesToDecode.count
         }
-        guard !namesToDecode.isEmpty else { return }
-        await withTaskGroup(of: Void.self) { group in
-            var iterator = namesToDecode.makeIterator()
-
-            for _ in 0 ..< Self.maximumDecodeConcurrency {
-                guard let name = iterator.next() else { break }
-                group.addTask {
-                    await self.prepareArtwork(named: name)
-                }
-            }
-
-            while await group.next() != nil {
-                guard !Task.isCancelled else {
-                    group.cancelAll()
-                    return
-                }
-                if countsTowardLaunch {
-                    completedCount += 1
-                }
-
-                if let name = iterator.next() {
-                    group.addTask {
-                        await self.prepareArtwork(named: name)
-                    }
-                }
+        await decodeScheduler.prepare(namesToDecode, priority: priority) { [weak self] in
+            if countsTowardLaunch {
+                self?.completedCount += 1
             }
         }
     }
 
-    private func prepareArtwork(named name: String) async {
-        guard pinnedImages[name] == nil,
-              images.object(forKey: name as NSString) == nil
-        else {
-            return
+    private func publish(_ prepared: PreparedArtwork) {
+        guard let image = prepared.image else { return }
+        let name = prepared.name
+        let decodedCost = Self.decodedCost(of: image)
+        images.setObject(image, forKey: name as NSString, cost: decodedCost)
+        decodedCostsByName[name] = decodedCost
+        if pinCountsByName[name] != nil {
+            pinnedImages[name] = image
         }
-        if let task = decodeTasksByName[name] {
-            await task.value
-            return
-        }
-        guard !Task.isCancelled else { return }
-
-        let task = Task {
-            defer { decodeTasksByName.removeValue(forKey: name) }
-            let prepared = await decodeHandler(name)
-            if prepared.name != name {
-                assertionFailure("Artwork decode returned mismatched name for \(name)")
-            }
-            if let image = prepared.image {
-                let decodedCost = Self.decodedCost(of: image)
-                images.setObject(
-                    image,
-                    forKey: name as NSString,
-                    cost: decodedCost,
-                )
-                decodedCostsByName[name] = decodedCost
-                if pinCountsByName[name] != nil {
-                    pinnedImages[name] = image
-                }
-            } else {
-                assert(
-                    pinnedImages[name] == nil,
-                    "Failed decode must not have a pinned bitmap for \(name)",
-                )
-            }
-        }
-        decodeTasksByName[name] = task
-        await task.value
     }
 
     func snapshot() -> PreparedArtworkCacheSnapshot {

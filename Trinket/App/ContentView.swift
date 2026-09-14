@@ -13,7 +13,6 @@ struct ContentView: View {
     @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.scenePhase) private var scenePhase
-    @State private var didAcknowledgePersistenceRecovery = false
     @Namespace private var homesteadZoomNamespace
 
     var onFirstLayout: () -> Void = {}
@@ -50,29 +49,6 @@ struct ContentView: View {
             enabled: appState.options.hapticsEnabled,
         )
         .tint(TrinketDesign.Colors.accent)
-        .alert(
-            "Progress Storage Issue",
-            isPresented: Binding(
-                get: {
-                    appState.requiresPersistenceRecoveryAcknowledgement
-                        && !didAcknowledgePersistenceRecovery
-                },
-                set: { isPresented in
-                    if !isPresented {
-                        didAcknowledgePersistenceRecovery = true
-                    }
-                },
-            ),
-        ) {
-            Button("Continue") {
-                didAcknowledgePersistenceRecovery = true
-            }
-        } message: {
-            Text(
-                appState.persistenceStatusMessage
-                    ?? "Saved progress could not be opened normally. Check Options → Progress Status.",
-            )
-        }
         .onAppear {
             appState.reconcileShellState(.scenePhaseChanged, scenePhase: scenePhase)
         }
@@ -140,6 +116,7 @@ struct ContentView: View {
                         isSelected: shellSession.selectedTab == .play,
                         onLayout: onFirstLayout,
                     ))
+                    .trinketDecorativeMotion(shellSession.selectedTab == .play)
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
@@ -151,6 +128,7 @@ struct ContentView: View {
                         isSelected: shellSession.selectedTab == .collection,
                         onLayout: onFirstLayout,
                     ))
+                    .trinketDecorativeMotion(shellSession.selectedTab == .collection)
                 }
             }
 
@@ -160,6 +138,7 @@ struct ContentView: View {
                         isSelected: shellSession.selectedTab == .homestead,
                         onLayout: onFirstLayout,
                     ))
+                    .trinketDecorativeMotion(shellSession.selectedTab == .homestead)
             }
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
@@ -169,6 +148,7 @@ struct ContentView: View {
                             isSelected: shellSession.selectedTab == .options,
                             onLayout: onFirstLayout,
                         ))
+                        .trinketDecorativeMotion(shellSession.selectedTab == .options)
                 }
             }
         }

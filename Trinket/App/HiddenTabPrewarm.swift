@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 struct HiddenTabPrewarm: View {
     private enum Surface: CaseIterable, Hashable {
@@ -35,6 +36,7 @@ struct HiddenTabPrewarm: View {
                     }
             }
         }
+        .trinketDecorativeMotion(false)
         .opacity(0.001)
         .scaleEffect(0.01)
         .allowsHitTesting(false)

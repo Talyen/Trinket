@@ -76,6 +76,18 @@ enum BattleSessionTestSupport {
             completeVictory: { configuration, gold, settlement, _ in
                 completeVictory(configuration, gold, settlement)
             },
+            settleDefeat: { [weak session] configuration in
+                presentation.rewardPlan.settleDefeat(
+                    progress: session?.resolvedDefeatProgress ?? .init(remainingHealth: 1, maximumHealth: 1),
+                    inputs: RewardSettlementInputs(
+                        gold: 0, reservedGold: 0, goldLimit: Int.max,
+                        heroProgression: configuration.hero.progression,
+                        companionProgression: configuration.companion.progression,
+                        productionDate: .distantPast,
+                    ),
+                )
+            },
+            completeDefeat: { _, _, _ in .unavailable },
             finishPresentation: { _ in },
         )
     }

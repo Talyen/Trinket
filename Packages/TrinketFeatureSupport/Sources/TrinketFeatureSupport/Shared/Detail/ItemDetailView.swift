@@ -41,7 +41,6 @@ public struct ItemDetailView: View {
     private let action: Action
 
     @State private var isSalvageConfirmationPresented = false
-    @State private var salvageErrorMessage: String?
 
     public init(item: InventoryItem) {
         self.item = item
@@ -140,7 +139,6 @@ public struct ItemDetailView: View {
         } message: {
             Text(salvageConfirmationMessage)
         }
-        .trinketFailureAlert("Salvage Failed", message: $salvageErrorMessage)
     }
 
     @ViewBuilder
@@ -199,7 +197,6 @@ public struct ItemDetailView: View {
             dismiss()
         case .persistenceFailure:
             onSalvageFinished?(.persistenceFailure)
-            salvageErrorMessage = "Couldn't salvage this item. Try again."
         }
     }
 }

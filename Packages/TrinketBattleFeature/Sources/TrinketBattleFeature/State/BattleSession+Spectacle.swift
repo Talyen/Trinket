@@ -183,7 +183,21 @@ extension BattleSession {
             expected: .defeat,
             sfx: SFXID.defeat,
         ) { session in
-            session.spectacle.outcomePresentation = .defeat
+            guard let configuration = session.activeBattle else { return }
+            let settlement = session.makeDefeatSettlement(for: configuration) ?? BattleRewardPlan(
+                stageGold: 0, goldFindPercent: 0,
+                heroExperience: 0, companionExperience: 0,
+                materials: [], items: [],
+            ).settle(
+                battleGold: .init(),
+                inputs: RewardSettlementInputs(
+                    gold: 0, reservedGold: 0, goldLimit: Int.max,
+                    heroProgression: configuration.hero.progression,
+                    companionProgression: configuration.companion.progression,
+                    productionDate: .distantPast,
+                ),
+            )
+            session.spectacle.outcomePresentation = .defeat(settlement)
         }
     }
 
@@ -299,7 +313,6 @@ extension BattleSession {
     func resetRun(from configuration: BattleRunConfiguration) {
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
-        completionError = nil
         installSimulationPresentation()
         clearSharedPresentation(releaseCinematicPlayers: false)
         let preferred = Self.preferredAutoBattleEnabled(from: dependencies)
@@ -313,7 +326,6 @@ extension BattleSession {
         clearCardCues()
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
-        completionError = nil
         presentation = BattlePresentationState()
         spectacle.outcomeTask.invalidate()
         spectacle.celebrateTask.invalidate()
@@ -321,8 +333,6 @@ extension BattleSession {
         spectacle = BattleSpectacleState()
         clearSharedPresentation(releaseCinematicPlayers: true)
         feedback.release()
-        CombatFeedbackGlyphAtlas.shared.removeAll()
-        CardDissolveTexture.clearCache()
         presentationContext = nil
     }
 

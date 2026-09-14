@@ -118,6 +118,12 @@ final class AppTestContext {
                             defersPresentationExit: defersExit,
                         ) ?? .unavailable
                     },
+                    settleDefeat: { [weak play] configuration in
+                        play?.settleDefeatRewards(configuration)
+                    },
+                    completeDefeat: { [weak play] configuration, settlement, action in
+                        play?.completeDefeat(configuration, settlement: settlement, action: action) ?? .unavailable
+                    },
                     finishPresentation: { [weak play] id in
                         play?.finishBattleRewardPresentation(configurationID: id)
                     },

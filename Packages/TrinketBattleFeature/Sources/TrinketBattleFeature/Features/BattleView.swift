@@ -146,28 +146,22 @@ public struct BattleView: View {
                     ) : .immediate { completeVictoryPrimaryAction(summary: victorySummary) },
                 )
                 .transition(.opacity)
-            case .defeat:
-                switch presentationContext.defeatPrimaryAction {
-                case .retreat:
-                    DefeatView(
-                        enemyName: defeatEnemyName,
-                        primaryButtonTitle: "Return to Map",
-                        onPrimaryAction: {
-                            retreat()
-                            return true
-                        },
-                    )
-                    .transition(.opacity)
-                case .restart:
-                    DefeatView(
-                        enemyName: defeatEnemyName,
-                        onPrimaryAction: {
-                            restartBattle()
-                            return true
-                        },
-                    )
-                    .transition(.opacity)
+            case let .defeat(settlement):
+                DefeatView(configuration: configuration, settlement: settlement) { action in
+                    if battleSession.progression == nil {
+                        switch action {
+                        case .retry: restartBattle()
+                        case .leave: retreat()
+                        }
+                        return true
+                    }
+                    return battleSession.claimDefeat(configurationID: configuration.id, settlement: settlement, action: action)
                 }
+                .id([
+                    settlement.inputs.heroProgression, settlement.heroProgressionAfter,
+                    settlement.inputs.companionProgression, settlement.companionProgressionAfter,
+                ])
+                .transition(.opacity)
             case .battle, .pendingVictory:
                 BattleFieldLane(
                     configuration: configuration,
@@ -200,10 +194,6 @@ public struct BattleView: View {
             battleSession.playPresentationSFX(SFXID.uiBuySell)
         }
         return didPersist
-    }
-
-    private var defeatEnemyName: String {
-        configuration.enemy?.name ?? "Enemy"
     }
 
     private var debugPerformanceScenario: BattlePerformanceScenario? {

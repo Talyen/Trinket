@@ -94,18 +94,29 @@ struct MysteryEncounterView: View {
                 rewardFeedbackTrigger &+= 1
             }
         }
+        .disabled(playerSave.isRetryingSaveAction)
         .onChange(of: session.persistFailureMessage) { _, newMessage in
             if newMessage != nil {
                 mysteryPersistErrorTrigger &+= 1
             }
         }
-        .sheet(item: $selectedItem) { item in
+        .preparedArtworkSheet(item: $selectedItem, artworkNames: {
+            [$0.artReference?.imageName, $0.artReference?.thumbnailImageName].compactMap(\.self)
+        }, content: { item in
             NavigationStack {
                 ItemDetailView(item: item)
             }
             .trinketDetailSheet()
-        }
-        .sheet(item: $selectedDetail) { context in
+        })
+        .preparedArtworkSheet(item: $selectedDetail, artworkNames: { context in
+            guard let base = GameContent.combatant(matching: context.combatantID) else { return [] }
+            let combatant = playerSave.roster.configuredCombatant(base)
+            return CombatantDetailPane.artworkNames(
+                combatant: combatant, loadout: playerSave.roster.loadout(for: combatant),
+                equipmentLoadout: playerSave.roster.equipmentLoadout(for: combatant),
+                inventoryItems: playerSave.inventory.items,
+            )
+        }, content: { context in
             NavigationStack {
                 RosterCombatantDetailView(
                     kind: context.kind,
@@ -116,7 +127,7 @@ struct MysteryEncounterView: View {
                 )
             }
             .trinketDetailSheet()
-        }
+        })
     }
 
     private func presentCombatant(_ context: CombatantDetailContext) {

@@ -4,12 +4,21 @@ Use when changing launch covers, tab mounting, artwork loading/retention, or
 first-frame performance. Root guidance owns product approval constraints.
 
 The launch cover intentionally holds for at least two seconds while resources
-prepare. `LaunchWarmupView` owns that duration, its native timed progress bar,
-and the completion callback used by `PreparedAppRoot`. The bar fills from 0 to
+prepare. `LaunchWarmupView` owns that duration, its timed gold title fill,
+and the completion callback used by `PreparedAppRoot`. Status text keeps stable
+identity and stops rotating when the title is full. The title fills left to right from 0 to
 100% over those two seconds; it represents the intentional hold, not artwork
 decode counts. Do not reconnect it to `PreparedArtworkCache.progress` or add a
 separate dismissal timer. If required resources, cast effects, or applicable root
-layouts take longer, keep the cover visible with the bar full until they are ready.
+layouts take longer, keep the cover visible with the title fully gold until they are ready.
+The title pulses from 100% to 102% scale and back over 2.4 seconds while loading;
+its animation timeline pauses when the scene is inactive and stops when launch
+readiness completes, including retained encounter underlays.
+Resource decoding and texture/raster preparation start during the hold; root and
+hidden-tab layout start after it, and launch cast rendering starts after those
+layouts acknowledge readiness. Hidden cast warmups acquire their artwork and
+textures before constructing the live effect, then run their bounded rendering
+allowance. That allowance is not a GPU completion fence.
 Launch completion is latched so finishing starter selection does not reopen the
 cover. Deferred catalog decoding does not gate dismissal. Verify that fast
 preparation cannot dismiss early and slow preparation cannot expose unprepared
@@ -86,3 +95,27 @@ from battle; do not unmount the stack or add battle observation to its destinati
 The retained battle overlay root owns stable navigation geometry. Battle visibility
 switches immediately without fading its hand; keep the overlay mounted for prewarm
 and preserve its navigation inset until hidden.
+
+Artwork admission is shared across callers: at most two decodes run concurrently,
+with at most one deferred catalog decode. Launch/imminent pins precede viewport
+requests, which precede deferred work; queued requests promote when demand changes.
+Cancellation removes abandoned queued demand without cancelling shared started work.
+Preparation and pin publication remain distinct from presentation readiness.
+Collection category navigation and combatant sheets, plus Homestead category
+navigation, prepare their imminent artwork before publishing the destination and
+retain that acquisition for the visit. Nested item/ability navigation and battle
+detail sheets use the same acquisition-before-presentation contract. Preparation
+modifiers leave native navigation registrations with the owning screen so parent
+dismissal still unwinds nested details directly. The battle
+overlay constructs its first battlefield only after its resources prepare, then
+retains that mounted presentation through prepared activation. Battle pins cover its configured loadout
+and portraits, not just the opening hand. Closed-vocabulary combat raster composition
+runs off the main actor from immutable resolved inputs and publishes only for the
+current preparation generation.
+
+`trinketDecorativeMotion` parks shine and plasma clocks for hidden presentations,
+unselected tabs, and launch prewarm surfaces; nested scopes cannot re-enable an
+ancestor's parked clocks. Scene inactivity also pauses those clocks. A parked plasma timeline keeps its
+shader subtree mounted for first-render preparation; Reduced Motion retains its
+static-gradient accommodation. Finite gameplay
+effects keep their existing timing and lifecycle contracts.

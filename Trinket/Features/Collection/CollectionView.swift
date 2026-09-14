@@ -97,6 +97,12 @@ struct CollectionView: View {
                             title: category.rawValue,
                             linkAccessibilityIdentifier: category.accessibilityIdentifier,
                             totalCount: items.count,
+                            artworkNames: ArtworkViewportPrewarm.windowNames(
+                                orderedItems: items, visibleIDs: Set<String>(),
+                                thumbnailName: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
+                                prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
+                                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
+                            ),
                         ) {
                             InventoryGridView(category: category)
                         } content: {
@@ -197,6 +203,8 @@ struct CollectionView: View {
             title: title,
             linkAccessibilityIdentifier: accessibilityIdentifier,
             totalCount: totalCount,
+            artworkNames: (kind == .hero ? roster.collectionHeroes : roster.collectionCompanions)
+                .compactMap { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
         ) {
             CollectionCombatantGridView(kind: kind)
         } content: {

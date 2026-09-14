@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 
 public enum BattleLifecyclePhase: Equatable, Sendable {
     case idle
@@ -11,6 +12,7 @@ public protocol BattleRuntime: AnyObject {
     var activeBattle: BattleRunConfiguration? { get }
     var lifecyclePhase: BattleLifecyclePhase { get }
     var isSuspendedForScenePhase: Bool { get }
+    var resolvedDefeatProgress: BattleDefeatProgress? { get }
     var finalPartyHealthByCombatantID: [String: Int]? { get }
 
     @discardableResult

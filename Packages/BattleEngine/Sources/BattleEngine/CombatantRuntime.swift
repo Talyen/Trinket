@@ -3,37 +3,77 @@ import TrinketContent
 import TrinketCore
 
 public struct CombatantRuntime: Hashable {
-    private final class TalentStorage: Hashable {
+    private final class StateStorage: Hashable {
         var value: CombatantTalentState
+        var peakDepleted: Int
+        var referenceMaxHealth: Int
 
-        init(_ value: CombatantTalentState = CombatantTalentState()) {
+        init(
+            _ value: CombatantTalentState = CombatantTalentState(),
+            peakDepleted: Int = 0,
+            referenceMaxHealth: Int = 1,
+        ) {
             self.value = value
+            self.peakDepleted = peakDepleted
+            self.referenceMaxHealth = referenceMaxHealth
         }
 
-        static func == (lhs: TalentStorage, rhs: TalentStorage) -> Bool {
-            lhs === rhs || lhs.value == rhs.value
+        static func == (lhs: StateStorage, rhs: StateStorage) -> Bool {
+            lhs === rhs || (
+                lhs.value == rhs.value && lhs.peakDepleted == rhs.peakDepleted
+                    && lhs.referenceMaxHealth == rhs.referenceMaxHealth
+            )
         }
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(value)
+            hasher.combine(peakDepleted)
+            hasher.combine(referenceMaxHealth)
         }
     }
 
-    private var talentStateStorage = TalentStorage()
+    private var runtimeStateStorage = StateStorage()
 
     var talents: CombatantTalentState {
-        _read { yield talentStateStorage.value }
+        _read { yield runtimeStateStorage.value }
         _modify {
-            if !isKnownUniquelyReferenced(&talentStateStorage) {
-                talentStateStorage = TalentStorage(talentStateStorage.value)
+            if !isKnownUniquelyReferenced(&runtimeStateStorage) {
+                runtimeStateStorage = StateStorage(
+                    runtimeStateStorage.value,
+                    peakDepleted: runtimeStateStorage.peakDepleted,
+                    referenceMaxHealth: runtimeStateStorage.referenceMaxHealth,
+                )
             }
-            yield &talentStateStorage.value
+            yield &runtimeStateStorage.value
         }
     }
 
     public let combatant: Combatant
 
-    public package(set) var currentHealth: Int
+    public package(set) var currentHealth: Int {
+        didSet {
+            recordEnemyHealthProgress()
+        }
+    }
+
+    package var defeatProgress: BattleDefeatProgress {
+        BattleDefeatProgress(
+            remainingHealth: runtimeStateStorage.referenceMaxHealth - runtimeStateStorage.peakDepleted,
+            maximumHealth: runtimeStateStorage.referenceMaxHealth,
+        )
+    }
+
+    private mutating func recordEnemyHealthProgress() {
+        guard combatant.role == .enemy else { return }
+        let reference = max(1, runtimeStateStorage.referenceMaxHealth)
+        let depleted = max(0, reference - currentHealth)
+        guard depleted > runtimeStateStorage.peakDepleted else { return }
+        if !isKnownUniquelyReferenced(&runtimeStateStorage) {
+            runtimeStateStorage = StateStorage(runtimeStateStorage.value, peakDepleted: depleted, referenceMaxHealth: reference)
+        } else {
+            runtimeStateStorage.peakDepleted = depleted
+        }
+    }
 
     public package(set) var currentMana: Int
 
@@ -88,6 +128,8 @@ public struct CombatantRuntime: Hashable {
         currentMana = initialMana ?? CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus)
         activeEffects = initialActiveEffects
         actionCount = 0
+        runtimeStateStorage.referenceMaxHealth = max(1, CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus))
+        recordEnemyHealthProgress()
     }
 
     public var id: String {

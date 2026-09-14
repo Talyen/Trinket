@@ -268,7 +268,7 @@ public struct CardDissolveArtwork<Content: View>: View {
     let onFinished: (() -> Void)?
     let content: Content
 
-    @State private var startDate = Date()
+    @State private var startDate: Date? = CardDissolveTexture.isPrepared() ? .now : nil
     @State private var isComplete = false
     private let particles = CardDissolveParticles.standard
     private let keywords: [Keyword] = [.physical]
@@ -286,7 +286,7 @@ public struct CardDissolveArtwork<Content: View>: View {
         Group {
             if isComplete {
                 Color.clear
-            } else {
+            } else if let startDate {
                 TimelineView(.animation) { timeline in
                     GeometryReader { geometry in
                         let progress = cardActivationProgress(
@@ -304,17 +304,21 @@ public struct CardDissolveArtwork<Content: View>: View {
                         }
                     }
                 }
-                .onAppear {
-                    startDate = Date()
-                    isComplete = false
-                }
                 .task(id: startDate) {
                     try? await Task.sleep(for: .seconds(BattleMotion.cardActivationDuration))
                     guard !Task.isCancelled else { return }
                     isComplete = true
                     onFinished?()
                 }
+            } else {
+                content
             }
+        }
+        .task {
+            guard startDate == nil else { return }
+            await CardDissolveTexture.prepare()
+            guard !Task.isCancelled else { return }
+            startDate = .now
         }
         .allowsHitTesting(false)
     }

@@ -11,7 +11,6 @@ struct SalvageDetailState {
     private var selectedInventoryIndex: Int?
     var transmutationEvent: SalvageTransmutationEvent?
     var salvageSuccessCount = 0
-    var salvageErrorCount = 0
 
     mutating func select(_ item: InventoryItem, inventory: [InventoryItem]) {
         withAnimation(TrinketMotion.Reward.stateChange) {
@@ -40,9 +39,9 @@ struct SalvageDetailState {
                 inventoryIndex: selectedInventoryIndex,
             )
             salvageSuccessCount += 1
-        } else if case .persistenceFailure = result {
-            salvageErrorCount &+= 1
-            return
+            selectedItem = nil
+        } else if case .itemNotFound = result {
+            selectedItem = nil
         }
     }
 
@@ -73,6 +72,8 @@ struct SalvageItemDetailSheet: View {
             }
         }
         .trinketDetailSheet()
+        .disabled(playerSave.isRetryingSaveAction)
+        .interactiveDismissDisabled(playerSave.isRetryingSaveAction)
         .appFramePacingSignpost(
             AppFramePacingSignposts.Name.sheetPresent,
             isActive: true,

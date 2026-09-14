@@ -90,7 +90,6 @@ public final class BattleSession: BattleRuntime {
 
     @ObservationIgnored
     var progression: BattleProgression?
-    public var completionError: StageMapMessage?
     @ObservationIgnored
     var deliveredClaimedVictoryConfigurationID: UUID?
 

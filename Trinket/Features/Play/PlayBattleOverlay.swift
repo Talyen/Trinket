@@ -17,16 +17,15 @@ struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
     @Environment(\.displayScale) private var displayScale
-    @Environment(OptionsStore.self) private var options
     @Binding var stageMessage: StageMapMessage?
+    @State private var preparedOverlayID: UUID?
 
     var body: some View {
-        @Bindable var battle = battle
         let configuration = battle.overlayBattleConfiguration
         let isActive = battle.activeBattle != nil
         NavigationStack {
             Group {
-                if let configuration {
+                if let configuration, preparedOverlayID == configuration.id {
                     if let presentationContext = battlePresentationContext(for: configuration) {
                         BattleView(
                             configuration: configuration,
@@ -59,17 +58,15 @@ struct PlayBattleOverlay: View {
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
             .toolbarVisibility(.visible, for: .navigationBar)
         }
-        .trinketPresentationVisibility(isActive)
+        .trinketPresentationVisibility(isActive && preparedOverlayID == configuration?.id)
         .animation(nil, value: battle.activeBattle?.id)
         .task(id: battlePresentationTaskKey) {
+            let key = battlePresentationTaskKey
             await battle.prepareBattlePresentationAssets(displayScale: displayScale)
+            guard !Task.isCancelled, key == battlePresentationTaskKey else { return }
+            preparedOverlayID = key.overlayConfigurationID
         }
-        .trinketSensoryFeedback(
-            .error,
-            trigger: battle.completionError?.id,
-            enabled: options.hapticsEnabled,
-        )
-        .trinketMessageAlert($battle.completionError)
+        .disabled(play.playerSave.isRetryingSaveAction)
     }
 
     private var battlePresentationTaskKey: BattlePresentationTaskKey {
@@ -119,7 +116,12 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .sheet(item: $battle.overlayCombatantDetail, content: { detail in
+            .preparedArtworkSheet(item: $battle.overlayCombatantDetail, artworkNames: { detail in
+                CombatantDetailPane.artworkNames(
+                    combatant: detail.combatant, loadout: detail.combatant.abilityLoadout,
+                    equipmentLoadout: detail.equipmentLoadout, inventoryItems: detail.inventoryItems,
+                )
+            }, content: { detail in
                 NavigationStack {
                     CombatantDetailPane(snapshot: detail)
                 }
@@ -135,7 +137,9 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
                     )
                 }
             })
-            .sheet(item: $battle.overlayAbilityDetail, content: { ability in
+            .preparedArtworkSheet(item: $battle.overlayAbilityDetail, artworkNames: {
+                [$0.artReference?.imageName, $0.artReference?.thumbnailImageName].compactMap(\.self)
+            }, content: { ability in
                 NavigationStack {
                     AbilityDetailView(ability: ability)
                         .accessibilityIdentifier(AccessibilityID.Battle.abilityDetail)

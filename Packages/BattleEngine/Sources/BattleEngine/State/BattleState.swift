@@ -25,6 +25,10 @@ public struct TurnDrawState: Hashable, Sendable {
 
 // swiftlint:disable:next type_body_length - BattleState is intentional battle facade
 public struct BattleState {
+    public var defeatProgress: BattleDefeatProgress {
+        roster.enemy.defeatProgress
+    }
+
     var cardPlayRecording: BattleCardPlayRecording?
 
     public let rngSeed: UInt64

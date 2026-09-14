@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import TrinketFeatureSupport
 
@@ -17,6 +18,18 @@ final class BattleArtworkPreparation {
         self.warmup = warmup
         self.acquire = acquire
         releasePins = release
+    }
+
+    static func artworkNames(for configuration: BattleRunConfiguration) -> Set<String> {
+        let combatants = [configuration.hero.combatant, configuration.companion.combatant]
+            + [configuration.enemy].compactMap(\.self)
+        return Set(combatants.flatMap { combatant in
+            let portrait = combatant.artReference.map { [$0.imageName, $0.thumbnailImageName].compactMap(\.self) } ?? []
+            let abilities = combatant.abilityLoadout.abilities.flatMap { ability in
+                ability.artReference.map { [$0.imageName, $0.thumbnailImageName].compactMap(\.self) } ?? []
+            }
+            return portrait + abilities
+        })
     }
 
     func prepare(names desired: Set<String>, displayScale: CGFloat, warmLoadouts: () -> Void) async {

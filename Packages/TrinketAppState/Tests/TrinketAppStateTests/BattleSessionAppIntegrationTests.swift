@@ -57,7 +57,6 @@ struct BattleSessionAppIntegrationTests {
         try state.playerSave.performBatchMutation { save in save.roster.gold = 999 }
         #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: defersExit))
         #expect(!state.playerSave.journey.hasClaimedRewards(for: stage))
-        #expect(battle.completionError == nil)
         let refreshedSummary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
         let refreshed = refreshedSummary.settlement
         #expect(refreshed.award.goldGained == 0)
@@ -345,7 +344,7 @@ struct BattleSessionAppIntegrationTests {
 
     #if DEBUG
     @Test(arguments: [false, true])
-    func `victory persist failure preserves the award and retries through composition`(defersExit: Bool) throws {
+    func `victory persist failure retries without player intervention`(defersExit: Bool) async throws {
         let playerSave = try PlayerSaveStore(
             disableCloudSync: true,
             inMemoryOnly: true,
@@ -368,15 +367,16 @@ struct BattleSessionAppIntegrationTests {
         playerSave.forcesNextSaveFailure = true
         #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: defersExit))
         #expect(playerSave.currentSave == before)
-        #expect(battle.completionError != nil)
+        #expect(playerSave.isRetryingSaveAction)
         #expect(battle.spectacle.outcomePresentation.isVictoryPresented)
         #expect(battle.spectacle.outcomePresentation.victorySummaryIfAvailable == summary)
         #expect(state.battle.activeBattle != nil)
-        #expect(battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: defersExit))
+        for _ in 0 ..< 300 where state.battle.activeBattle != nil {
+            try await Task.sleep(for: .milliseconds(10))
+        }
         #expect(state.playerSave.journey.hasClaimedRewards(for: stage))
-        #expect((state.battle.activeBattle != nil) == defersExit)
-        battle.finishVictoryPresentation(configurationID: configuration.id)
         #expect(state.battle.activeBattle == nil)
+        #expect(!playerSave.isRetryingSaveAction)
     }
     #endif
 

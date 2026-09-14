@@ -7,8 +7,10 @@ description: Design or review Trinket SwiftUI layout, gestures, motion, typograp
 
 Start with the player's action and the state they need to understand. Reuse
 [TrinketDesignSystem](../../../Packages/TrinketDesignSystem/README.md) controls,
-roles, and motion recipes; inspect the existing screen before choosing new ones.
-A local UI fix can need design judgment without becoming a redesign.
+roles, and motion recipes. For a localized fix, apply only guidance relevant to
+the requested change. Existing screenshots or source context may be sufficient
+to understand the current design; a separate baseline simulator session is not
+mandatory. A local UI fix can need design judgment without becoming a redesign.
 
 Read only references relevant to the change:
 
@@ -25,7 +27,7 @@ platform and feature integration rules. [PD-014](../../../Docs/Product/Decisions
 owns accessibility scope; retain existing accommodation behavior and use explicit
 image semantics and stable test identifiers as specified by those owners.
 
-Check the requested interaction in its relevant states, including cancellation
-or repeated input when applicable. Use the simulator skill for visual inspection
-and [Testing.md](../../../Docs/Platform/Testing.md) to choose coverage. Report
-unobserved behavior as unverified; a static image does not prove gesture feel.
+Verification scope and completion follow
+[Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification).
+Use the simulator skill when visual inspection is needed and
+[Testing.md](../../../Docs/Platform/Testing.md) to choose test coverage.

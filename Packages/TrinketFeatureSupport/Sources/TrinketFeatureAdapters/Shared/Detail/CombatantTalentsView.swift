@@ -21,7 +21,6 @@ public struct CombatantTalentsView: View {
     @State private var selectedNodeID: String?
     @State private var selectionFeedbackTrigger = 0
     @State private var unlockSuccessTrigger = 0
-    @State private var unlockErrorTrigger = 0
     @State private var confirmedNodeID: String?
 
     public init(
@@ -119,18 +118,11 @@ public struct CombatantTalentsView: View {
             trigger: unlockSuccessTrigger,
             enabled: hapticsEnabled,
         )
-        .trinketSensoryFeedback(
-            .error,
-            trigger: unlockErrorTrigger,
-            enabled: hapticsEnabled,
-        )
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if showsReset, allowsEditing, hasTreeUnlocks, let onResetTalents {
                     Button("Reset All Talents") {
-                        if !onResetTalents() {
-                            unlockErrorTrigger &+= 1
-                        }
+                        _ = onResetTalents()
                     }
                     .trinketTypography(.footnote)
                     .fontWeight(.semibold)
@@ -181,9 +173,18 @@ public struct CombatantTalentsView: View {
         }
     }
 
+    private func canUnlock(_ node: TalentNode) -> Bool {
+        allowsEditing && tree.canUnlock(
+            node: node,
+            unlockedNodeIDs: unlockedTalents,
+            availablePoints: availablePoints,
+        )
+    }
+
     private func talentNodeCard(node: TalentNode, isRowLocked: Bool) -> some View {
         let isUnlocked = unlockedTalents.contains(node.id)
         let isSelected = selectedNodeID == node.id
+        let outlineOpacity = canUnlock(node) ? 0.6 : (isUnlocked ? 0.4 : 0)
         let style = node.keyword.visualStyle
         let icon = node.iconID.map(GameIcon.init(id:)) ?? style.icon
 
@@ -225,7 +226,7 @@ public struct CombatantTalentsView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
                     .stroke(
-                        isSelected ? .clear : (isUnlocked ? style.color.opacity(0.4) : .clear),
+                        isSelected ? .clear : style.color.opacity(outlineOpacity),
                         lineWidth: 1,
                     ),
             )
@@ -240,7 +241,7 @@ public struct CombatantTalentsView: View {
             )
             .overlay { unlockAccent(for: node) }
         }
-        .trinketArtworkCardButtonStyle()
+        .trinketArtworkCardButtonStyle(pressedScale: TrinketMotion.Interaction.choiceCardPressedScale)
         .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
         .accessibilityLabel(isRowLocked ? "\(node.name), locked" : node.name)
     }
@@ -268,11 +269,7 @@ public struct CombatantTalentsView: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             if let selectedNode {
                 let isUnlocked = unlockedTalents.contains(selectedNode.id)
-                let canUnlock = allowsEditing && tree.canUnlock(
-                    node: selectedNode,
-                    unlockedNodeIDs: unlockedTalents,
-                    availablePoints: availablePoints,
-                )
+                let canUnlock = canUnlock(selectedNode)
                 let style = selectedNode.keyword.visualStyle
                 let icon = selectedNode.iconID.map(GameIcon.init(id:)) ?? style.icon
 
@@ -317,7 +314,7 @@ public struct CombatantTalentsView: View {
                     confirmedNodeID = node.id
                     unlockSuccessTrigger &+= 1
                 case .persistenceFailed:
-                    unlockErrorTrigger &+= 1
+                    break
                 case .unavailable:
                     break
                 }

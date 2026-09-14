@@ -84,6 +84,7 @@ struct ContractsBoardView: View {
                 .accessibilityIdentifier(AccessibilityID.Play.contractsRefresh)
             }
         }
+        .disabled(playerSave.isRetryingSaveAction)
         .trinketMessageAlert($message)
         .trinketSensoryFeedback(.selection, trigger: feedbackTrigger, enabled: options.hapticsEnabled)
         .task {

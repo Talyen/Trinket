@@ -12,7 +12,7 @@ struct HomesteadProjectTile: View {
 
     var body: some View {
         NavigationLink(value: HomesteadRoute.node(definition.id)) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+            VStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
                 artwork
                     .aspectRatio(3.0 / 4.0, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card))
@@ -34,15 +34,22 @@ struct HomesteadProjectTile: View {
                         }
                     }
 
+                HomesteadTierProgress(currentTier: status.currentTier, totalTiers: definition.maxTier)
+                    .frame(maxWidth: 132)
+                    .accessibilityHidden(true)
+
                 Text(balanced: definition.title)
                     .trinketTypography(.cardTitle)
                     .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .contentShape(Rectangle())
             .matchedTransitionSource(id: definition.id, in: zoomNamespace)
         }
         .trinketArtworkCardButtonStyle()
+        .accessibilityValue("\(status.currentTier) of \(definition.maxTier) upgrades")
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 

@@ -2,15 +2,18 @@ import SwiftUI
 
 private struct ShineTextModifier: ViewModifier {
     let colors: [Color]
+    @Environment(\.isDecorativeMotionActive) private var isMotionActive
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
         if colors.isEmpty {
             content
         } else {
+            let paused = reduceMotion || !isMotionActive || scenePhase != .active
             let sweepStops = textShineStops(colors: colors)
-            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
-                let phase = reduceMotion
+            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: paused)) { context in
+                let phase = paused
                     ? 0
                     : context.date.timeIntervalSinceReferenceDate
                     .truncatingRemainder(dividingBy: TrinketMotion.Shine.textLoopPeriod)

@@ -57,16 +57,29 @@ public extension EncounterPlayMode {
             pinnedLabyrinthEventID: pinnedLabyrinthEventID,
             pinnedJourneyEventID: pinnedJourneyEventID,
         ) {
+            if playerSave.lastPersistenceError == .writeFailed {
+                retryOpeningMystery(origin: origin, forcedEventID: forcedEventID)
+                return nil
+            }
             return pinFailure
         }
 
         if !opened.session.event.isRecruit, !opened.session.isCorruptionAltar {
-            guard prepareMysteryOffers(opened.session) else { return Self.mysteryPinFailureMessage }
+            guard prepareMysteryOffers(opened.session) else {
+                if playerSave.lastPersistenceError == .writeFailed {
+                    retryOpeningMystery(origin: origin, forcedEventID: forcedEventID)
+                    return nil
+                }
+                return Self.mysteryPinFailureMessage
+            }
         }
         activeMysteryEncounter = opened.session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
         if opened.session.event.isRecruit {
             guard resolveActiveMysteryChoice(choiceID: nil) else {
+                if playerSave.lastPersistenceError == .writeFailed {
+                    return nil
+                }
                 let detail = opened.session.persistFailureMessage
                     ?? Self.mysteryPinFailureMessage.message
                 activeMysteryEncounter = nil
@@ -77,6 +90,12 @@ public extension EncounterPlayMode {
             }
         }
         return nil
+    }
+
+    private func retryOpeningMystery(origin: PlayEncounterOrigin, forcedEventID: String?) {
+        playerSave.retrySaveAction(key: "mystery-open") { [weak self] in
+            _ = self?.beginMysteryEncounter(origin: origin, forcedEventID: forcedEventID)
+        }
     }
 
     private func prepareMysteryOffers(_ session: MysteryEncounterSession) -> Bool {
@@ -173,7 +192,7 @@ public extension EncounterPlayMode {
     private func persistMysteryResolution(
         _ mysterySession: MysteryEncounterSession,
         logging: String,
-        mutate: (inout PlayerSave, inout SystemRandomNumberGenerator) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure>,
+        mutate: @escaping (inout PlayerSave, inout SystemRandomNumberGenerator) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure>,
     ) -> Bool {
         mysterySession.markChoiceStarted()
         switch playerSave.persistTransaction(logging: logging, { save in
@@ -186,7 +205,10 @@ public extension EncounterPlayMode {
             mysterySession.markChoiceUnavailable()
             return false
         case .persistFailed:
-            mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
+            playerSave.retrySaveAction(key: "mystery-resolution") { [weak self] in
+                guard let self, activeMysteryEncounter === mysterySession else { return }
+                _ = persistMysteryResolution(mysterySession, logging: logging, mutate: mutate)
+            }
             return false
         }
     }
@@ -315,7 +337,7 @@ public extension EncounterPlayMode {
     }
 
     private static let mysteryPinFailureMessage = StageMapMessage(
-        title: "Couldn't Save Progress",
-        message: "This event was not saved. Stay here and try again.",
+        title: "Event Unavailable",
+        message: "This event is no longer available.",
     )
 }

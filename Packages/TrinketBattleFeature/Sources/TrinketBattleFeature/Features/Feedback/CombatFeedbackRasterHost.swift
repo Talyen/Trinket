@@ -257,11 +257,8 @@ final class CombatFeedbackRasterUIView: UIView {
             for (groupIndex, group) in groups.enumerated() {
                 let representative = group.motionItem
                 let state = CombatFeedbackMotionSampler.state(for: representative, at: date)
-                let progress = BattleMotion.chipMotionProgress(
-                    elapsed: max(0, date.timeIntervalSince(representative.firstScheduledAt)),
-                )
                 let endY = max(bounds.height * 0.04, group.topRetention * BattleMotion.chipPopEndScale)
-                let centerY = bounds.midY - max(0, bounds.midY - endY) * progress
+                let centerY = bounds.midY - max(0, bounds.midY - endY) * state.riseProgress
                 for (index, chip) in group.layers.enumerated() {
                     let placement = group.placements[index]
                     let scale = placement.fitScale * state.scale

@@ -31,14 +31,15 @@ Hard), enemy artwork/name, and Battle. Cards use the same 16-point gap as Game
 Mode cards; Campaign and Spires retain their compact stage spacing. Enemy artwork
 opens standard catalog enemy details without a party-scaled encounter preview.
 Each card has a Party control beside Battle that opens the existing party picker
-for the shared active Hero and Companion. Rewards appear only on victory: no XP, item, currency, or reward-category
+for the shared active Hero and Companion. Rewards appear after battle: no XP, item, currency, or reward-category
 previews are shown on the board. Reuse Explore art and existing enemy portraits.
 
 ## Lifecycle
 
 Refresh is free, immediate, unlimited, and replaces all offers. Victory replaces
 only the completed offer; avoid immediately repeating its target when possible.
-Defeat and retreat retain the offer for free retries and award nothing. Each
+Defeat and retreat retain the offer for free retries. Defeat grants the shared
+[partial battle XP](../AgentContext/persistence-progression.md); retreat awards nothing. Each
 attempt starts with the existing fresh-battle state.
 
 The board persists between visits and app launches. Party changes and level-ups

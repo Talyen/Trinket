@@ -23,6 +23,13 @@ extension BattleSessionPreparationTests {
         #expect(pins.counts == ["shared": 1])
     }
 
+    @Test func `battle artwork includes later loadout cards before opening hand is drawn`() throws {
+        let configuration = artworkConfiguration(key: "complete-loadout", abilities: [.slash, .heal, .blizzard])
+        let names = BattleArtworkPreparation.artworkNames(for: configuration)
+        let ultimate = try #require(Ability.blizzard.artReference?.imageName)
+        #expect(names.contains(ultimate))
+    }
+
     @Test func `pruning prepared artwork releases only discarded runs`() async throws {
         let pins = ArtworkPinRecorder()
         let session = BattleSession()
@@ -30,9 +37,10 @@ extension BattleSessionPreparationTests {
         let first = artworkConfiguration(key: "first", abilities: [.slash])
         let second = artworkConfiguration(key: "second", abilities: [.heal])
         let firstKey = try #require(first.runKey)
-        let firstNames = try Set([#require(Ability.slash.artReference?.imageName)])
-        let secondNames = try Set([#require(Ability.heal.artReference?.imageName)])
-        #expect(firstNames.isDisjoint(with: secondNames))
+        let firstNames = BattleArtworkPreparation.artworkNames(for: first)
+        let secondNames = BattleArtworkPreparation.artworkNames(for: second)
+        #expect(!firstNames.isSubset(of: secondNames))
+        #expect(!secondNames.isSubset(of: firstNames))
         #expect(session.prepareBattleRun(first))
         await session.prepareBattlePresentationAssets(displayScale: 1)
         #expect(session.prepareBattleRun(second))

@@ -20,7 +20,7 @@ public struct PreviewLabView: View {
         let session = BattleSession(
             presentationEnvironment: PreviewLab.dependencies,
         )
-        _ = session.activate(configuration)
+        _ = session.activate(configuration, presentation: .empty)
         _labSession = State(initialValue: session)
         _configuration = State(initialValue: configuration)
         _selectedEnemyID = State(initialValue: enemyID)
@@ -135,7 +135,7 @@ public struct PreviewLabView: View {
             heroID: selectedHeroID,
             companionID: selectedCompanionID,
         )
-        _ = labSession.restart(configuration)
+        _ = labSession.restart(configuration, presentation: .empty)
         warmSelectedCinematics()
         Task { @MainActor in
             await warmArtwork()

@@ -24,10 +24,6 @@ public enum PlayBattleOrigin: Hashable, Sendable {
         }
     }
 
-    public var defeatPrimaryAction: BattleDefeatPrimaryAction {
-        .restart
-    }
-
     public var musicStageID: String? {
         if case let .journey(stageID) = self {
             return stageID

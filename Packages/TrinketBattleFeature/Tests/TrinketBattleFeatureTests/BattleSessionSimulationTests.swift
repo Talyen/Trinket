@@ -40,7 +40,13 @@ struct BattleSessionSimulationTests {
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(session.outcome == .defeat)
-        #expect(session.spectacle.outcomePresentation == .defeat)
+        guard case let .defeat(settlement) = session.spectacle.outcomePresentation else {
+            Issue.record("Expected defeat")
+            return
+        }
+        #expect(settlement.award.goldDelta == 0)
+        #expect(settlement.award.materials.isEmpty)
+        #expect(settlement.award.items.isEmpty)
         #expect(!session.canRetreat)
     }
 
@@ -163,7 +169,13 @@ struct BattleSessionSimulationTests {
         #expect((session.presentation.enemy?.health ?? initialEnemyHealth) <= initialEnemyHealth)
 
         let outgoingSpectacle = session.spectacle
-        outgoingSpectacle.outcomePresentation = .defeat
+        let retiredOutcome = BattleOutcomePresentation.defeat(BattleRewardPlan(
+            stageGold: 0, goldFindPercent: 0, heroExperience: 0, companionExperience: 0, materials: [], items: [],
+        ).settle(battleGold: .init(), inputs: RewardSettlementInputs(
+            gold: 0, reservedGold: 0, goldLimit: 100,
+            heroProgression: .at(level: 1), companionProgression: .at(level: 1), productionDate: .distantPast,
+        )))
+        outgoingSpectacle.outcomePresentation = retiredOutcome
         let outgoingPresentation = session.presentation
         let outgoingHero = outgoingPresentation.hero
         let outgoingCompanion = outgoingPresentation.companion
@@ -177,7 +189,7 @@ struct BattleSessionSimulationTests {
         #expect(session.presentation !== outgoingPresentation)
         #expect(session.spectacle !== outgoingSpectacle)
         #expect(session.spectacle.outcomePresentation == .battle)
-        #expect(outgoingSpectacle.outcomePresentation == .defeat)
+        #expect(outgoingSpectacle.outcomePresentation == retiredOutcome)
         #expect(session.presentation.configurationID == nil)
         #expect(session.presentation.hand.isEmpty)
         #expect(session.presentation.hero == nil)

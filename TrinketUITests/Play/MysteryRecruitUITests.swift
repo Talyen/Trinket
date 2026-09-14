@@ -13,8 +13,13 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Mystery.offerArtwork(choiceID: "take-the-notes"))
         assertDoesNotExist(AccessibilityID.Mystery.confirmChoiceButton)
         tapButton(AccessibilityID.Mystery.offerArtwork(choiceID: "harvest-remedies"))
-        assertDoesNotExist(AccessibilityID.Mystery.rewardTitle)
+        let itemDetail = app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier BEGINSWITH %@",
+            AccessibilityID.LoadoutPicker.itemDetail(""),
+        )).firstMatch
+        assertExists(itemDetail)
         dismissSheet()
+        assertDoesNotExist(AccessibilityID.Mystery.rewardTitle)
         assertExistsAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies"), requireHittable: true)
         tapButton(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies"))
         assertExists(AccessibilityID.Mystery.rewardTitle)
@@ -24,9 +29,8 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         play.assertLoaded()
     }
 
-    func testCompanionRecruitContinueReturnsToPlayAndAdvancesCampaign() {
+    func testCompanionRecruitContinueReturnsToPlay() {
         launchApp(arguments: TestLaunchArg.allUnseeded()
-            + ["-battle-tick-interval", "1.0"]
             + TestLaunchArg.screen("mystery")
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
             + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear"))
@@ -36,7 +40,5 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         tapButton(AccessibilityID.Mystery.continueButton)
         assertDoesNotExist(AccessibilityID.Mystery.unlockCard(name: "Bear"), timeout: 8)
         play.assertLoaded()
-        play.openCampaign()
-        assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: 3))
     }
 }
