@@ -65,16 +65,19 @@ final class ArtworkDecodeScheduler {
 
     private func startAvailableJobs() {
         while activeCount < 2 {
-            let next = jobs.filter { _, job in
-                job.startedPriority == nil
-                    && (priority(of: job) != .deferred || activeDeferredCount == 0)
-            }.min { lhs, rhs in
-                let left = priority(of: lhs.value)
-                let right = priority(of: rhs.value)
-                return left == right ? lhs.value.order < rhs.value.order : left.rawValue < right.rawValue
+            let candidates: [(name: String, job: Job, priority: Priority)] = jobs.compactMap { name, job in
+                guard job.startedPriority == nil else { return nil }
+                let jobPriority = priority(of: job)
+                guard jobPriority != .deferred || activeDeferredCount == 0 else { return nil }
+                return (name, job, jobPriority)
             }
-            guard let (name, job) = next else { return }
-            let priority = priority(of: job)
+            let next = candidates.min { lhs, rhs in
+                lhs.priority == rhs.priority ? lhs.job.order < rhs.job.order : lhs.priority.rawValue < rhs.priority.rawValue
+            }
+            guard let next else { return }
+            let name = next.name
+            let job = next.job
+            let priority = next.priority
             jobs[name]?.startedPriority = priority
             activeCount += 1
             if priority == .deferred {
