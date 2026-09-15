@@ -1183,12 +1183,6 @@
         "merge": "add"
       },
       {
-        "name": "absorbHeroDamageFlat",
-        "type": "Int",
-        "default": "0",
-        "merge": "add"
-      },
-      {
         "name": "frozenEnemyDamageReductionFlat",
         "type": "Int",
         "default": "0",

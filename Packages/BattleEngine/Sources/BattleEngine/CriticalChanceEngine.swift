@@ -29,7 +29,7 @@ package enum CriticalChanceEngine {
         defender: Combatant,
         abilityBonus: Double = 0,
         countsBleedingDefender: Bool = false,
-        in context: BattleState,
+        in context: borrowing BattleState,
     ) -> Double {
         guard let actor = context.roster.combatant(for: actorID) else { return 0 }
         if actor.role == .enemy {

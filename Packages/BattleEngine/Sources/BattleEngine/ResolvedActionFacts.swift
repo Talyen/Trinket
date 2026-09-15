@@ -15,7 +15,7 @@ final class ResolvedActionFacts: Sendable {
         resolved: Ability,
         action: BattleActionContext,
         origin: DamageOperation.AttackOrigin,
-        in context: BattleState,
+        in context: borrowing BattleState,
     ) {
         self.action = action
         self.origin = origin

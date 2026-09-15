@@ -8,7 +8,6 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     public var passivePhysicalMitigationFlat: Int = 0
     public var thornsPercent: Double = 0
     public var bleedResistance: Double = 0
-    public var absorbHeroDamageFlat: Int = 0
     public var frozenEnemyDamageReductionFlat: Int = 0
     public var bleedingEnemyDamageReductionFlat: Int = 0
     public var stunnedEnemyNextTurnDamageMultiplier: Double = 1
@@ -33,7 +32,6 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         passivePhysicalMitigationFlat: Int = 0,
         thornsPercent: Double = 0,
         bleedResistance: Double = 0,
-        absorbHeroDamageFlat: Int = 0,
         frozenEnemyDamageReductionFlat: Int = 0,
         bleedingEnemyDamageReductionFlat: Int = 0,
         stunnedEnemyNextTurnDamageMultiplier: Double = 1,
@@ -57,7 +55,6 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.passivePhysicalMitigationFlat = passivePhysicalMitigationFlat
         self.thornsPercent = thornsPercent
         self.bleedResistance = bleedResistance
-        self.absorbHeroDamageFlat = absorbHeroDamageFlat
         self.frozenEnemyDamageReductionFlat = frozenEnemyDamageReductionFlat
         self.bleedingEnemyDamageReductionFlat = bleedingEnemyDamageReductionFlat
         self.stunnedEnemyNextTurnDamageMultiplier = stunnedEnemyNextTurnDamageMultiplier
@@ -79,7 +76,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["passiveMitigationFlat", "passivePhysicalMitigationFlat", "thornsPercent", "bleedResistance", "absorbHeroDamageFlat", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat"]
+    public static let fieldNames: [String] = ["passiveMitigationFlat", "passivePhysicalMitigationFlat", "thornsPercent", "bleedResistance", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -88,7 +85,6 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         if self.passivePhysicalMitigationFlat != other.passivePhysicalMitigationFlat { names.append("passivePhysicalMitigationFlat") }
         if self.thornsPercent != other.thornsPercent { names.append("thornsPercent") }
         if self.bleedResistance != other.bleedResistance { names.append("bleedResistance") }
-        if self.absorbHeroDamageFlat != other.absorbHeroDamageFlat { names.append("absorbHeroDamageFlat") }
         if self.frozenEnemyDamageReductionFlat != other.frozenEnemyDamageReductionFlat { names.append("frozenEnemyDamageReductionFlat") }
         if self.bleedingEnemyDamageReductionFlat != other.bleedingEnemyDamageReductionFlat { names.append("bleedingEnemyDamageReductionFlat") }
         if self.stunnedEnemyNextTurnDamageMultiplier != other.stunnedEnemyNextTurnDamageMultiplier { names.append("stunnedEnemyNextTurnDamageMultiplier") }
@@ -117,7 +113,6 @@ extension MitigationTriggers {
         passivePhysicalMitigationFlat += other.passivePhysicalMitigationFlat
         thornsPercent += other.thornsPercent
         bleedResistance += other.bleedResistance
-        absorbHeroDamageFlat += other.absorbHeroDamageFlat
         frozenEnemyDamageReductionFlat += other.frozenEnemyDamageReductionFlat
         bleedingEnemyDamageReductionFlat += other.bleedingEnemyDamageReductionFlat
         stunnedEnemyNextTurnDamageMultiplier *= other.stunnedEnemyNextTurnDamageMultiplier
@@ -147,7 +142,6 @@ extension MitigationTriggers {
             passivePhysicalMitigationFlat: values.decode(Int.self, "passivePhysicalMitigationFlat", default: 0),
             thornsPercent: values.decode(Double.self, "thornsPercent", default: 0),
             bleedResistance: values.decode(Double.self, "bleedResistance", default: 0),
-            absorbHeroDamageFlat: values.decode(Int.self, "absorbHeroDamageFlat", default: 0),
             frozenEnemyDamageReductionFlat: values.decode(Int.self, "frozenEnemyDamageReductionFlat", default: 0),
             bleedingEnemyDamageReductionFlat: values.decode(Int.self, "bleedingEnemyDamageReductionFlat", default: 0),
             stunnedEnemyNextTurnDamageMultiplier: values.decode(Double.self, "stunnedEnemyNextTurnDamageMultiplier", default: 1),
@@ -174,7 +168,6 @@ extension MitigationTriggers {
         try container.encodeNonDefault(passivePhysicalMitigationFlat, "passivePhysicalMitigationFlat", default: 0)
         try container.encodeNonDefault(thornsPercent, "thornsPercent", default: 0)
         try container.encodeNonDefault(bleedResistance, "bleedResistance", default: 0)
-        try container.encodeNonDefault(absorbHeroDamageFlat, "absorbHeroDamageFlat", default: 0)
         try container.encodeNonDefault(frozenEnemyDamageReductionFlat, "frozenEnemyDamageReductionFlat", default: 0)
         try container.encodeNonDefault(bleedingEnemyDamageReductionFlat, "bleedingEnemyDamageReductionFlat", default: 0)
         try container.encodeNonDefault(stunnedEnemyNextTurnDamageMultiplier, "stunnedEnemyNextTurnDamageMultiplier", default: 1)

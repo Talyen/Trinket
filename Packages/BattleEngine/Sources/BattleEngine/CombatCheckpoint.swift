@@ -10,7 +10,7 @@ enum CombatCheckpoint {
 
     typealias Reaction = (inout BattleState) -> [ActionEvent]
 
-    func allowsContinuation(in context: BattleState) -> Bool {
+    func allowsContinuation(in context: borrowing BattleState) -> Bool {
         switch self {
         case let .preparedAction(actorID), let .cardCompletion(actorID):
             context.roster.combatant(for: actorID)?.isAlive == true

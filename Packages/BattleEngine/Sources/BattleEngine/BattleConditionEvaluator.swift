@@ -6,7 +6,7 @@ public enum BattleConditionEvaluator {
     public static func isMet(
         _ condition: DamageCondition,
         actor: Combatant,
-        in context: BattleState,
+        in context: borrowing BattleState,
     ) -> Bool {
         if let current = context.resolution.actionContext, current.actor.id == actor.id {
             return isMet(condition, action: current, in: context)
@@ -18,7 +18,7 @@ public enum BattleConditionEvaluator {
         _ condition: DamageCondition,
         actor: Combatant,
         abilityTarget: Combatant,
-        in context: BattleState,
+        in context: borrowing BattleState,
     ) -> Bool {
         isMet(condition, action: BattleActionContext(actor: actor, selectedTarget: abilityTarget), in: context)
     }
@@ -26,7 +26,7 @@ public enum BattleConditionEvaluator {
     public static func isMet(
         _ condition: DamageCondition,
         action: BattleActionContext,
-        in context: BattleState,
+        in context: borrowing BattleState,
     ) -> Bool {
         let enemy = action.selectedTarget
         switch condition {

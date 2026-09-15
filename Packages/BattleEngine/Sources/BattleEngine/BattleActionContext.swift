@@ -30,7 +30,7 @@ public struct BattleActionContext: Equatable, Sendable {
         participants = Participants(actor: actor, selectedTarget: selectedTarget)
     }
 
-    public init(actor: Combatant, in state: BattleState) {
+    public init(actor: Combatant, in state: borrowing BattleState) {
         self.init(actor: actor, selectedTarget: actor.role == .enemy ? state.talentAdjustedEnemyTarget : state.enemy)
     }
 
@@ -59,7 +59,7 @@ public struct BattleActionContext: Equatable, Sendable {
         }
     }
 
-    func canContinue(in state: BattleState) -> Bool {
+    func canContinue(in state: borrowing BattleState) -> Bool {
         state.health(of: actor) > 0
     }
 
