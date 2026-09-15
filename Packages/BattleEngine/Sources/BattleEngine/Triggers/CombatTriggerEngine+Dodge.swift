@@ -211,6 +211,13 @@ package extension CombatTriggerEngine {
               let ability = actor.abilityLoadout.basic,
               BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
         else { return [] }
+        // Defer while inside damage resolution, like UniqueCombatEngine's
+        // out-of-turn summons: a full Basic nested in the damage pipeline
+        // overflows small worker-thread stacks.
+        guard context.resolution.depth(.damage) == 0 else {
+            context.uniques.pendingCounterAttackActorIDs.append(actor.id)
+            return []
+        }
         return BattleTurnEngine.performAction(
             ability: ability,
             actor: actor,
@@ -218,6 +225,17 @@ package extension CombatTriggerEngine {
             origin: .counterattack,
             context: &context,
         )
+    }
+
+    static func drainPendingCounterAttacks(in context: inout BattleState) -> [ActionEvent] {
+        guard !context.uniques.pendingCounterAttackActorIDs.isEmpty else { return [] }
+        var events: [ActionEvent] = []
+        while !context.uniques.pendingCounterAttackActorIDs.isEmpty {
+            let actorID = context.uniques.pendingCounterAttackActorIDs.removeFirst()
+            guard let actor = context.roster.combatant(for: actorID)?.combatant else { continue }
+            events.append(contentsOf: counterWithBasicAttack(by: actor, in: &context))
+        }
+        return events
     }
 
     private static func drawPlayCascade(

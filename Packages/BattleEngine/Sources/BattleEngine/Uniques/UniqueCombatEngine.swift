@@ -109,6 +109,7 @@ package enum UniqueCombatEngine {
         }
         context.uniques.pendingCompanionSummons = 0
         context.uniques.pendingBlockAnswerOwners = []
+        context.uniques.pendingCounterAttackActorIDs = []
         return []
     }
 

@@ -320,18 +320,26 @@ enum CombatResolver {
             return .empty
         }
         context.resolution.enter(.damage)
-        defer { context.resolution.leave(.damage) }
         var state = DamageResolutionState(
             amount: request.amount, combatant: request.target, sourceActorID: request.sourceActorID,
             damageKeyword: request.keyword, options: request.options,
         )
         state.provenance = request.provenance
         DamagePipeline.run(state: &state, in: &context)
-        let outcome = CombatOutcome.fromDamage(state: state)
+        var outcome = CombatOutcome.fromDamage(state: state)
         if !request.options.isPeriodic, !request.options.isHealthCost, let impact = outcome.damageImpact {
             context.cardPlayRecording?.recordDamage(BattleResolvedDamage(
                 targetID: request.target.id, keyword: request.keyword ?? .physical, impact: impact, isCritical: outcome.isCritical,
             ))
+        }
+        context.resolution.leave(.damage)
+        // Drain deferred out-of-turn attacks once the outermost damage
+        // completes, so a full Basic never nests inside the damage pipeline
+        // on small worker-thread stacks. Queues always empty here even when
+        // the summons no-op, so nothing strands.
+        if context.resolution.depth(.damage) == 0 {
+            outcome.events.append(contentsOf: CombatTriggerEngine.drainPendingCounterAttacks(in: &context))
+            outcome.events.append(contentsOf: UniqueCombatEngine.drainPendingSummons(in: &context))
         }
         return outcome
     }

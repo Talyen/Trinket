@@ -92,16 +92,17 @@ current defenses; it does not roll or multiply Critical damage again. The Final
  the wearer's positive Bleed damage (including ongoing, once per player-turn
  cycle; claim before the Companion uses its equipped Basic Ability) with normal
  targeting, resource, control, and living restrictions; Companion attacks and
- reaction chains never recursively summon themselves. Summons owed by an
- in-progress action resolve right after that action completes rather than
- nesting inside its damage. The Patient Edge prepares
+ reaction chains never recursively summon themselves. Summons owed by
+ in-progress damage resolve right after that damage completes rather than
+ nesting inside its pipeline. The Patient Edge prepares
 the wearer's next ordinary attack to Critically Hit after Block actually absorbs
 attack damage (gaining Block alone and blocking ongoing damage never qualify;
 refresh not stack; persist until consumed or combat ends). The Knight's Answer
 uses full equipped Basic abilities, including utility effects, with normal
  targeting, resource requirements, and survival/control restrictions; they do
- not consume a deck card. Like Huntsmaster summons, answers owed by an
- in-progress action resolve right after that action completes.
+ not consume a deck card. Like Huntsmaster summons, answers owed by
+ in-progress damage resolve right after that damage completes. Snapping Jaws
+ counters behave the same way.
 
 ## Damage, status, and resource rules
 

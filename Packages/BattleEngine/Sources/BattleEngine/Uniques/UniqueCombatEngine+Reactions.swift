@@ -86,10 +86,11 @@ extension UniqueCombatEngine {
               context.uniques.owners[owner]?.calledCompanion != true
         else { return [] }
         context.uniques.owners[owner, default: .init()].calledCompanion = true
-        // Defer while nested inside an action: a full Basic nested in damage
-        // resolution overflows small worker-thread stacks. The claim above
-        // already spent the once-per-turn allowance.
-        guard context.resolution.actionContext == nil else {
+        // Defer while inside damage resolution: a full Basic nested in the
+        // damage pipeline overflows small worker-thread stacks. The claim
+        // above already spent the once-per-turn allowance; the outermost
+        // damage drains the queue on completion.
+        guard context.resolution.depth(.damage) == 0 else {
             context.uniques.pendingCompanionSummons += 1
             return []
         }
@@ -111,7 +112,7 @@ extension UniqueCombatEngine {
         context.uniques.owners[owner, default: .init()].answeredBlock = true
         // Same deferral as Huntsmaster's Call above: never nest a full Basic
         // inside damage resolution.
-        guard context.resolution.actionContext == nil else {
+        guard context.resolution.depth(.damage) == 0 else {
             if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
                 context.uniques.pendingBlockAnswerOwners.append(owner)
             }
@@ -140,17 +141,19 @@ extension UniqueCombatEngine {
     }
 
     static func drainPendingSummons(in context: inout BattleState) -> [ActionEvent] {
-        guard context.resolution.actionContext == nil,
-              context.uniques.pendingCompanionSummons > 0 || !context.uniques.pendingBlockAnswerOwners.isEmpty
-        else { return [] }
-        var events: [ActionEvent] = []
-        while context.uniques.pendingCompanionSummons > 0 {
-            context.uniques.pendingCompanionSummons -= 1
-            events.append(contentsOf: useBasic(owner: .companion, in: &context))
+        guard context.uniques.pendingCompanionSummons > 0 || !context.uniques.pendingBlockAnswerOwners.isEmpty else {
+            return []
         }
+        var events: [ActionEvent] = []
+        // Drain in pipeline phase order: block answers were recorded before
+        // companion summons within committed reactions.
         while !context.uniques.pendingBlockAnswerOwners.isEmpty {
             let owner = context.uniques.pendingBlockAnswerOwners.removeFirst()
             events.append(contentsOf: useBasic(owner: owner, in: &context))
+        }
+        while context.uniques.pendingCompanionSummons > 0 {
+            context.uniques.pendingCompanionSummons -= 1
+            events.append(contentsOf: useBasic(owner: .companion, in: &context))
         }
         return events
     }

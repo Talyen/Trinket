@@ -98,13 +98,13 @@ package enum BattleTurnEngine {
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         let actionID = context.resolution.beginAction(action, origin: origin)
+        defer { context.resolution.endAction() }
         var events: [ActionEvent] = []
         context.roster.mutateRuntime(for: actor) { $0.talents.beginAction() }
         guard BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context) else {
             if actor.role == .enemy {
                 recordAction(for: actor, context: &context)
             }
-            context.resolution.endAction()
             return ([], actor.role == .enemy)
         }
         let resolvedAbility = BattleAbilityRules.resolveOutcome(ability, actor: actor, in: &context)
@@ -112,10 +112,7 @@ package enum BattleTurnEngine {
         if entry == .enemyTurn {
             let interception = CombatTriggerEngine.beforeEnemyAttack(facts, in: &context)
             events.append(contentsOf: interception.events)
-            guard !interception.cancelled else {
-                context.resolution.endAction()
-                return (events, false)
-            }
+            guard !interception.cancelled else { return (events, false) }
         }
         context.cardPlayRecording?.beginAction(
             id: actionID, actorID: actor.id,
@@ -129,11 +126,6 @@ package enum BattleTurnEngine {
             checkpoint.perform(in: &context) { CombatTriggerEngine.captureHeroOutcome(facts, in: &$0) }
         }
         events.append(contentsOf: executePreparedAction(facts, context: &context))
-        context.resolution.endAction()
-        // Drain deferred out-of-turn summons once the action stack empties so a
-        // full Basic never nests inside damage resolution. Early returns above
-        // resolve no damage and therefore cannot hold pending summons.
-        events.append(contentsOf: UniqueCombatEngine.drainPendingSummons(in: &context))
         return (events, true)
     }
 
