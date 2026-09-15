@@ -115,10 +115,11 @@ the full suite. It is consumed by `test-scripts.sh`, not a separate gate.
 
 ## Toolchain ladder
 
-CI selects the exact `XCODE_VERSION` in `Scripts/tool-versions.env`. Local scripts
-honor `DEVELOPER_DIR`, otherwise inheriting the Mac's selected Xcode; they do not
-automatically enforce the CI pin. [Platform support](../Docs/Platform/ApplePlatformReference.md#platform-support)
-owns when that stable pin advances and how beta validation is used.
+CI selects the newest installed Xcode automatically (`setup-trinket` logs the
+exact version and build; `TRINKET_XCODE_VERSION` pins an older one only for
+bisection). Local scripts honor `DEVELOPER_DIR`, otherwise inheriting the Mac's
+selected Xcode. [Platform support](../Docs/Platform/ApplePlatformReference.md#platform-support)
+owns the supported OS window and how beta validation is used.
 
 Check [Apple's supported macOS range](https://developer.apple.com/xcode/system-requirements)
 as well as the Xcode version. An older Xcode command-line build can succeed even

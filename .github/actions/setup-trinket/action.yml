@@ -1,5 +1,5 @@
 name: Setup Trinket CI
-description: Select the validated Xcode version and pinned tooling for Trinket CI
+description: Select the newest installed Xcode and pinned tooling for Trinket CI
 
 runs:
   using: composite
@@ -7,29 +7,58 @@ runs:
     - name: Select Xcode Version
       shell: bash
       run: |
-        # DerivedData and generated project output depend on this exact toolchain.
-        # shellcheck source=../../Scripts/tool-versions.env
-        source Scripts/tool-versions.env
-        preferred_versions=("$XCODE_VERSION")
-        xcode_path=""
-        for version in "${preferred_versions[@]}"; do
-          for path in "/Applications/Xcode_${version}.app" "/Applications/Xcode_${version}"*.app; do
-            if [ -d "$path" ]; then
-              xcode_path="$path"
-              break 2
+        # Trinket always adopts the newest installed Xcode. Pin an older one
+        # only for bisection via TRINKET_XCODE_VERSION (exact marketing version).
+        best_path=""
+        best_version=""
+        best_build=""
+        for path in /Applications/Xcode*.app; do
+          [ -d "$path" ] || continue
+          plist="$path/Contents/Info.plist"
+          [ -f "$plist" ] || continue
+          version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist" 2>/dev/null || true)"
+          build="$(/usr/libexec/PlistBuddy -c 'Print :DTXcodeBuild' "$plist" 2>/dev/null || true)"
+          [ -n "$version" ] || continue
+          if [ -n "${TRINKET_XCODE_VERSION:-}" ]; then
+            if [ "$version" = "$TRINKET_XCODE_VERSION" ]; then
+              best_path="$path"
+              best_version="$version"
+              best_build="$build"
+              break
             fi
-          done
+            continue
+          fi
+          if [ -z "$best_path" ]; then
+            best_path="$path"
+            best_version="$version"
+            best_build="$build"
+          elif [ "$version" != "$best_version" ] \
+            && [ "$(printf '%s\n%s\n' "$best_version" "$version" | sort -V | tail -n 1)" = "$version" ]; then
+            best_path="$path"
+            best_version="$version"
+            best_build="$build"
+          elif [ "$version" = "$best_version" ] && [[ "$build" > "$best_build" ]]; then
+            best_path="$path"
+            best_version="$version"
+            best_build="$build"
+          fi
         done
-        if [ -z "$xcode_path" ]; then
-          echo "Xcode ${XCODE_VERSION} is required but was not found on this runner." >&2
+        if [ -z "$best_path" ]; then
+          if [ -n "${TRINKET_XCODE_VERSION:-}" ]; then
+            echo "TRINKET_XCODE_VERSION=${TRINKET_XCODE_VERSION} matches no installed Xcode." >&2
+          else
+            echo "No Xcode installation found on this runner." >&2
+          fi
           echo "Installed Xcode apps:" >&2
-          ls -1 /Applications/Xcode*.app 2>/dev/null || true
+          ls -1d /Applications/Xcode*.app 2>/dev/null || true
           exit 1
         fi
-        echo "Selecting Xcode: $xcode_path"
-        sudo xcode-select -s "$xcode_path/Contents/Developer"
+        echo "Selecting Xcode: $best_path ($best_version, build $best_build)"
+        sudo xcode-select -s "$best_path/Contents/Developer"
         xcodebuild -version
-        echo "XCODE_PATH=$xcode_path" >> "$GITHUB_ENV"
+        echo "XCODE_PATH=$best_path" >> "$GITHUB_ENV"
+        echo "XCODE_VERSION=$best_version" >> "$GITHUB_ENV"
+        echo "XCODE_BUILD=$best_build" >> "$GITHUB_ENV"
 
     - name: Cache pinned CI tools
       uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v4

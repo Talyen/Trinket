@@ -23,14 +23,13 @@ next verified app update, preserving saves and explaining the changed requiremen
 in player-facing release notes. Reconsider the window explicitly if support cost
 or a critical capability warrants an exception.
 
-Test new iOS/Xcode betas and release candidates before launch. Keep the release
-toolchain on a stable version until the new public release passes the
-[platform adoption checks](Verification.md#new-ios-release-readiness). Record exact
-tool versions for reproducibility in `Scripts/tool-versions.env`; advance those
-versions deliberately, never replace them with a floating `latest` selector.
-`SWIFT_VERSION` is language mode, not the compiler version; do not update it merely
-to match Xcode's bundled Swift compiler. Toolchain selection is documented in
-[Scripts](../../Scripts/Reference.md#toolchain-ladder).
+Test new iOS/Xcode betas and release candidates before launch. Trinket always
+adopts the newest installed Xcode for CI and local runs; `setup-trinket` selects
+it automatically and records the exact version and build in its logs. Record
+exact helper-tool versions for reproducibility in `Scripts/tool-versions.env`;
+`SWIFT_VERSION` is language mode, not the compiler version, so do not update it
+merely to match Xcode's bundled Swift compiler. Toolchain selection is
+documented in [Scripts](../../Scripts/Reference.md#toolchain-ladder).
 
 ## Design reference routing
 

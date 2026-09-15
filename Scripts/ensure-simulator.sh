@@ -77,8 +77,14 @@ ios_runtimes = [
 ]
 if not ios_runtimes:
     sys.exit(1)
-ios_runtimes.sort(key=lambda r: r.get("version", ""), reverse=True)
+# Sort newest-first by version, then build, so duplicate version entries
+# (parallel runtime trains sharing one identifier) resolve deterministically.
+ios_runtimes.sort(
+    key=lambda r: (r.get("version", ""), r.get("buildversion", "")),
+    reverse=True,
+)
 runtime_id = ios_runtimes[0]["identifier"]
+runtime_build = ios_runtimes[0].get("buildversion", "?")
 
 compatible_devices = devices_payload.get("devices", {}).get(runtime_id, [])
 compatible_types = {}
@@ -119,7 +125,7 @@ if not chosen_type_id:
 
 sim_name = sys.argv[1]
 udid = subprocess.check_output(["xcrun", "simctl", "create", sim_name, chosen_type_id, runtime_id], text=True).strip()
-print(f"{udid}\t{chosen_type_id}\t{runtime_id}")
+print(f"{udid}\t{chosen_type_id}\t{runtime_id}\t{runtime_build}")
 PY
 )"
 
@@ -129,11 +135,13 @@ PY
   fi
 
   SIMULATOR_UDID="${resolved%%$'\t'*}"
-  local dev_type_id="${resolved#*$'\t'}"
-  dev_type_id="${dev_type_id%%$'\t'*}"
-  local rt_id="${resolved##*$'\t'}"
+  local rest="${resolved#*$'\t'}"
+  local dev_type_id="${rest%%$'\t'*}"
+  rest="${rest#*$'\t'}"
+  local rt_id="${rest%%$'\t'*}"
+  local rt_build="${rest#*$'\t'}"
 
-  echo "Created simulator: $SIMULATOR_NAME ($SIMULATOR_UDID) using type $dev_type_id and runtime $rt_id"
+  echo "Created simulator: $SIMULATOR_NAME ($SIMULATOR_UDID) using type $dev_type_id and runtime $rt_id (build $rt_build)"
 }
 
 boot_simulator() {

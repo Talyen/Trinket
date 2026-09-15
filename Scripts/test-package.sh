@@ -41,6 +41,8 @@ It cannot be combined with --build-for-testing.
 and stamps package_<name> so later --no-build runs can reuse the products. BattleEngine
 balance-sweep tests are skipped by default; pass --include-balance-sweep-tests for a
 one-off balance-tool test run.
+TRINKET_SERIAL_TESTS=1 serializes test execution (diagnosing stack-pressure
+crashes); TRINKET_PACKAGE_TEST_JOBS=1 serializes across packages.
 
 Packages:
 USAGE
@@ -275,6 +277,12 @@ run_one_package() {
     # runs skip them to avoid writing bulky unused xcresults.
     if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
       xcodebuild_args+=(-resultBundlePath "$result_bundle")
+    fi
+    # Opt-in serial execution for diagnosing stack-pressure crashes on small
+    # worker-thread stacks; parallel remains the default.
+    if [[ "${TRINKET_SERIAL_TESTS:-0}" == "1" ]] \
+      && [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
+      xcodebuild_args+=(-parallel-testing-enabled NO)
     fi
   fi
   trinket_set_local_simulator_architecture_args iphonesimulator Debug

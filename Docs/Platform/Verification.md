@@ -61,12 +61,12 @@ observed outcomes so beta evidence is distinguishable from release evidence.
    fixtures and the owning integration routes. Check physical audio/haptics only
    on a device; use the [feedback reference](../../.agents/skills/apple-design/performance-and-feedback.md).
    Synthetic StoreKit/CloudKit results do not replace their release prerequisites.
-4. Once the public stable toolchain is available, update its exact CI pin and
-   verify runner availability, generation idempotence, app Release compilation,
-   and routed package/smoke checks. Exercise the retained previous-major runtime
-   as well as the newest one, including both branches of any new availability
-   checks. Confirm the leased simulator's runtime: a cached simulator name or
-   the build SDK alone is not runtime coverage.
+4. When CI first selects a new major toolchain (it always adopts the newest
+   installed Xcode), verify runner availability, generation idempotence, app
+   Release compilation, and routed package/smoke checks. Exercise the retained
+   previous-major runtime as well as the newest one, including both branches
+   of any new availability checks. Confirm the leased simulator's runtime: a
+   cached simulator name or the build SDK alone is not runtime coverage.
 5. Complete existing release verification and report missing runtime/device or
    service prerequisites as gaps. Platform readiness does not authorize publishing.
 

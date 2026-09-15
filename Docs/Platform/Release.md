@@ -33,8 +33,8 @@ touched paths at release time.
 
 Before adopting a new major iOS release, complete the
 [platform readiness checks](Verification.md#new-ios-release-readiness). Release
-artifacts use the validated stable Xcode recorded in `Scripts/tool-versions.env`;
-select it explicitly when the Mac's default is a beta. The
+artifacts use the newest installed Xcode, which CI selects automatically; pin an
+older one only for bisection via `TRINKET_XCODE_VERSION`. The
 [platform support policy](ApplePlatformReference.md#platform-support) owns the
 rolling support window; verify both supported majors before claiming readiness.
 
