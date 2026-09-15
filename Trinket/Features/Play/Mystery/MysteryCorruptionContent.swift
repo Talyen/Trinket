@@ -17,6 +17,7 @@ struct MysteryCorruptionRevealContent: View {
             header: { baseHeight in
                 DetailHeroHeader(
                     eyebrow: eyebrow(for: result.item),
+                    eyebrowIndicators: result.effects.filter { $0 == .upgradedRarity }.map(\.indicator),
                     title: result.item.displayName,
                     titleShine: result.item.displayShine,
                     titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptionRevealTitle,
@@ -27,29 +28,13 @@ struct MysteryCorruptionRevealContent: View {
             },
             bodyContent: {
                 VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionSpacing) {
-                    Text("The altar remade your \(result.item.displayName).")
-                        .trinketTypography(.body)
-                        .foregroundStyle(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                        .padding(.top, TrinketDesign.Layout.contentTopPadding)
-
-                    if !result.effects.isEmpty {
-                        DetailSection("What Changed") {
-                            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                                ForEach(Array(result.effects.enumerated()), id: \.offset) { _, effect in
-                                    changeRow(effect)
-                                }
-                            }
-                        }
-                    }
-
                     DetailSection("Traits") {
                         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                             ForEach(Array(result.item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
                                 DetailTraitRow(
                                     title: affix.title,
                                     description: affix.description,
+                                    indicators: result.effects.filter { $0.affects(affix) }.map(\.indicator),
                                     titleShine: result.item.affixShine(at: index, affix: affix),
                                     titlePrefix: affix.isCorrupted ? "Corrupted " : nil,
                                     titlePrefixShine: affix.isCorrupted ? .corruption : .none,
@@ -79,30 +64,31 @@ struct MysteryCorruptionRevealContent: View {
         let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
         return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
     }
-
-    private func changeRow(_ effect: CorruptionEffectSummary) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
-            GameIconImage(effect.icon)
-                // UIStyleCheck: allow - Game icon glyph sizing, not copy
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(effect.tintColor ?? TrinketDesign.Colors.accent)
-                .accessibilityHidden(true)
-            Text(effect.displayText)
-                .trinketTypography(.body)
-                .foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
 }
 
 private extension CorruptionEffectSummary {
-    var displayText: String {
+    func affects(_ affix: ItemAffix) -> Bool {
         switch self {
-        case let .addedAffix(title): "Gained \(title)"
-        case let .replacedAffix(from, to): "Remade \(from) into \(to)"
-        case let .bumpedUp(affixTitle): "Empowered \(affixTitle)"
-        case let .bumpedDown(affixTitle): "Weakened \(affixTitle)"
-        case .upgradedRarity: "Rose to Astral rarity"
+        case let .addedAffix(title), let .bumpedUp(title), let .bumpedDown(title):
+            affix.title == title
+        case let .replacedAffix(_, to):
+            affix.title == to
+        case .upgradedRarity:
+            false
+        }
+    }
+
+    var indicator: DetailChangeIndicator {
+        DetailChangeIndicator(icon: icon, tint: tintColor, accessibilityLabel: accessibilityLabel)
+    }
+
+    var accessibilityLabel: String {
+        switch self {
+        case let .addedAffix(title): "Added \(title)"
+        case let .replacedAffix(from, to): "Replaced \(from) with \(to)"
+        case let .bumpedUp(title): "Empowered \(title)"
+        case let .bumpedDown(title): "Weakened \(title)"
+        case .upgradedRarity: "Upgraded to Astral"
         }
     }
 
@@ -116,11 +102,11 @@ private extension CorruptionEffectSummary {
         }
     }
 
-    var tintColor: Color? {
+    var tintColor: Color {
         switch self {
         case .addedAffix, .bumpedUp, .upgradedRarity: TrinketDesign.Colors.success
         case .bumpedDown: TrinketDesign.Colors.destructive
-        case .replacedAffix: nil
+        case .replacedAffix: TrinketDesign.Colors.accent
         }
     }
 }

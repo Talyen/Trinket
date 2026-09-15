@@ -1,25 +1,22 @@
 import TrinketFeatureSupport
 import XCTest
 
-final class AppPerformanceUITests: TrinketUITestCase {
-    private static var measurementDuration: TimeInterval {
-        isQuick ? 3.2 : 10.5
-    }
-
-    private static let samplerWarmup: TimeInterval = 0.85
-
-    private static var isQuick: Bool {
-        ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1"
-    }
-
-    private var repetitionCount: Int {
-        let raw = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_REPETITIONS"] ?? "1"
-        return max(1, Int(raw) ?? 1)
+final class AppPerformanceUITests: PerformanceJourneyUITestCase {
+    @MainActor
+    func testLaunchAnimation() {
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance() + ["-frame-metrics-launch"], waitForPreparation: false)
+            waitForLaunchPreparation()
+            play.assertLoaded()
+            finishMeasurement("launch-animation", iteration: iteration)
+        }
     }
 
     @MainActor
     func test00ColdLaunchToPlay() {
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
+        let options = XCTMeasureOptions()
+        options.iterationCount = repetitionCount
+        measure(metrics: [XCTApplicationLaunchMetric()], options: options) {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
             play.assertLoaded(timeout: 8)
         }
@@ -35,7 +32,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
             let optionsTab = tabCoordinate(named: "Options")
             let playTab = tabCoordinate(named: "Play")
 
-            runOnce(scenario: "tab-round-trip", iteration: iteration) {
+            measured("tab-round-trip", iteration: iteration) {
                 collectionTab.tap()
                 collection.assertLoaded()
                 homesteadTab.tap()
@@ -43,6 +40,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
                 optionsTab.tap()
                 options.assertLoaded()
                 playTab.tap()
+                play.assertLoaded()
             }
             play.assertLoaded()
         }
@@ -59,10 +57,11 @@ final class AppPerformanceUITests: TrinketUITestCase {
             let dismissStart = sheetDismissDragStart
             let dismissEnd = sheetDismissDragEnd
 
-            runOnce(scenario: "collection-navigation", iteration: iteration) {
+            measured("collection-navigation", iteration: iteration) {
                 cardCoordinate.tap()
                 combatantDetail.assertLoaded(for: "Knight")
                 dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
+                assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             }
             assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Knight"))
             collection.assertLoaded()
@@ -79,8 +78,9 @@ final class AppPerformanceUITests: TrinketUITestCase {
             let node = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
             let nodeCoordinate = node.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
 
-            runOnce(scenario: "homestead-detail-transition", iteration: iteration) {
+            measured("homestead-detail-transition", iteration: iteration) {
                 nodeCoordinate.tap()
+                homestead.assertNodeDetail(named: "Wheat Field")
             }
             homestead.assertNodeDetail(named: "Wheat Field")
         }
@@ -94,8 +94,9 @@ final class AppPerformanceUITests: TrinketUITestCase {
             let campaignButton = app.buttons[AccessibilityID.Play.campaignModeCard]
             let campaignCoordinate = campaignButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
 
-            runOnce(scenario: "campaign-stage-select-transition", iteration: iteration) {
+            measured("campaign-stage-select-transition", iteration: iteration) {
                 campaignCoordinate.tap()
+                play.assertCampaignLoaded(number: 1)
             }
             play.assertCampaignLoaded(number: 1)
         }
@@ -113,10 +114,11 @@ final class AppPerformanceUITests: TrinketUITestCase {
             let dismissStart = sheetDismissDragStart
             let dismissEnd = sheetDismissDragEnd
 
-            runOnce(scenario: "stage-enemy-detail-transition", iteration: iteration) {
+            measured("stage-enemy-detail-transition", iteration: iteration) {
                 enemyCoordinate.tap()
                 assertExists(AccessibilityID.CombatantDetail.vitalBarsSection)
                 dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
+                assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             }
             assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             play.assertCampaignLoaded(number: 1)
@@ -139,10 +141,31 @@ final class AppPerformanceUITests: TrinketUITestCase {
                 withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5),
             )
 
-            runOnce(scenario: "stage-select-battle-transition", iteration: iteration) {
+            measured("stage-select-battle-transition", iteration: iteration) {
                 stageActionCoordinate.tap()
+                battle.assertActive(timeout: 8)
             }
             battle.assertActive(timeout: 8)
+        }
+    }
+
+    @MainActor
+    func testCampaignBrowsing() {
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance())
+            play.openCampaign()
+            let campaignScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            measured("campaign-scroll", iteration: iteration) { performScrollGestures(app.scrollViews.firstMatch) }
+            verifyScrollProbes(campaignScrollProbes, app.scrollViews.firstMatch)
+            scrollUntilVisible(button(AccessibilityID.Play.stagePartyControl), swipingUp: false, maxAttempts: 8, requireHittable: true)
+            measured("campaign-party-picker", iteration: iteration) {
+                tapButton(AccessibilityID.Play.stagePartyControl)
+                assertExists(AccessibilityID.Play.battlePartyDone)
+                exerciseScroll(horizontalScrollView, horizontal: true)
+                app.buttons[AccessibilityID.Play.battlePartyOption(for: "Hero", combatantID: "rogue")].tap()
+                tapButton(AccessibilityID.Play.battlePartyDone)
+                assertDoesNotExist(AccessibilityID.Play.battlePartyDone)
+            }
         }
     }
 
@@ -150,34 +173,5 @@ final class AppPerformanceUITests: TrinketUITestCase {
         let tab = app.tabBars.buttons[name]
         XCTAssertTrue(tab.trinketWaitForExistence(timeout: Self.defaultTimeout))
         return tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-    }
-
-    @MainActor
-    private func runOnce(scenario: String, iteration: Int, action: () -> Void) {
-        let reset = app.buttons[AccessibilityID.Debug.frameMetricsReset]
-        XCTAssertTrue(reset.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
-        XCTAssertTrue(metrics.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let resetAt = Date()
-        reset.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        let measuring = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "value == %@", "measuring"),
-            object: metrics,
-        )
-        XCTAssertEqual(XCTWaiter.wait(for: [measuring], timeout: 2), .completed)
-        RunLoop.current.run(until: Date().addingTimeInterval(Self.samplerWarmup))
-        action()
-        let remaining = Self.measurementDuration - Date().timeIntervalSince(resetAt)
-        if remaining > 0 {
-            RunLoop.current.run(until: Date().addingTimeInterval(remaining))
-        }
-
-        PerformanceReportRecorder.capture(
-            from: app,
-            scenario: scenario,
-            suite: "app",
-            iteration: iteration,
-            in: self,
-        )
     }
 }

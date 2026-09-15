@@ -3,6 +3,7 @@ import TrinketDesignSystem
 
 public struct DetailHeroHeader<Art: View, Footer: View>: View {
     let eyebrow: String?
+    let eyebrowIndicators: [DetailChangeIndicator]
     let title: String
     var titleShine: Shine
     var titleAccessibilityIdentifier: String?
@@ -15,6 +16,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
 
     public init(
         eyebrow: String? = nil,
+        eyebrowIndicators: [DetailChangeIndicator] = [],
         title: String,
         titleShine: Shine = .none,
         titleAccessibilityIdentifier: String? = nil,
@@ -26,6 +28,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         @ViewBuilder footer: @escaping () -> Footer,
     ) {
         self.eyebrow = eyebrow
+        self.eyebrowIndicators = eyebrowIndicators
         self.title = title
         self.titleShine = titleShine
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
@@ -72,11 +75,16 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-            if let eyebrow {
-                Text(balanced: eyebrow)
-                    .trinketTypography(.eyebrow)
-                    .trinketOnArtText(.eyebrow)
-                    .trinketFittedText()
+            if eyebrow != nil || !eyebrowIndicators.isEmpty {
+                HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.extraSmall) {
+                    DetailChangeIndicators(indicators: eyebrowIndicators)
+                    if let eyebrow {
+                        Text(balanced: eyebrow)
+                            .trinketOnArtText(.eyebrow)
+                            .trinketFittedText()
+                    }
+                }
+                .trinketTypography(.eyebrow)
             }
 
             titleText
@@ -109,6 +117,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
 public extension DetailHeroHeader where Footer == EmptyView {
     init(
         eyebrow: String? = nil,
+        eyebrowIndicators: [DetailChangeIndicator] = [],
         title: String,
         titleShine: Shine = .none,
         titleAccessibilityIdentifier: String? = nil,
@@ -119,6 +128,7 @@ public extension DetailHeroHeader where Footer == EmptyView {
         @ViewBuilder art: @escaping () -> Art,
     ) {
         self.eyebrow = eyebrow
+        self.eyebrowIndicators = eyebrowIndicators
         self.title = title
         self.titleShine = titleShine
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier

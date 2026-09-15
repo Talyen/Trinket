@@ -299,7 +299,7 @@ extension BattleSession {
     }
 
     private func makeBattleState(from configuration: BattleRunConfiguration) -> BattleState {
-        BattleState(
+        let state = BattleState(
             hero: configuration.hero.combatant,
             companion: configuration.companion.combatant,
             enemy: configuration.enemy,
@@ -313,5 +313,11 @@ extension BattleSession {
             tracksLog: false,
             dealOpeningHand: false,
         )
+        #if DEBUG
+        if configuration.runKey != nil {
+            return performanceFixtureState(state)
+        }
+        #endif
+        return state
     }
 }

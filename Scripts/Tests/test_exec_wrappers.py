@@ -362,7 +362,7 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 root = Path(directory)
                 scripts = root / "Scripts"
                 (scripts / "lib").mkdir(parents=True)
-                for name in ("performance.sh", "collect-performance-results.py", "compare-performance.py", "internal/performance/performance_model.py", "lib/lock.sh"):
+                for name in ("performance.sh", "performance-scenarios.py", "collect-performance-results.py", "compare-performance.py", "internal/performance/performance_model.py", "lib/lock.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "performance_environment.py").write_text(
@@ -372,8 +372,15 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 baseline.parent.mkdir(parents=True)
                 baseline.write_text(json.dumps({
                     "scenarios": ["navigation"], "mode": "observe",
+                    "coverage": {"navigation": {"group": "app", "test": "AppPerformanceUITests/testNavigation"}},
                     "goals": {"minimumAverageFPS": 59, "minimumOnePercentLowFPS": 59, "maximumSevereStallCount": 0},
                 }))
+                (root / "BattlePerformance.xctestplan").write_text(json.dumps({
+                    "testTargets": [{"selectedTests": ["AppPerformanceUITests"]}]
+                }))
+                tests = root / "TrinketUITests/Performance"
+                tests.mkdir(parents=True)
+                (tests / "AppPerformanceUITests.swift").write_text("func testNavigation() {}")
                 report = {
                     "scenario": "navigation", "schemaVersion": 5, "iteration": 1,
                     "averageFPS": 30, "onePercentLowFPS": 20, "p95FrameMs": 50,
@@ -383,6 +390,7 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 stub = scripts / "test.sh"
                 stub.write_text(
                     '#!/bin/bash\nmkdir -p "$RESULTS_DIR"\n'
+                    + 'echo "$TRINKET_XCODE_WALL_TIMEOUT_SECONDS" > "$RESULTS_DIR/wall-budget.txt"\n'
                     + 'cat > "$RESULTS_DIR/run.log" <<REPORT\n'
                     + "TRINKET_PERFORMANCE_REPORT " + json.dumps(report) + "\nREPORT\n"
                     + f"exit {test_status}\n"
@@ -394,6 +402,7 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 reports = list((root / ".DerivedData/PerformanceResults").glob("*/reports.json"))
                 self.assertEqual(len(reports), 1)
                 self.assertEqual(len(json.loads(reports[0].read_text())["reports"]), 1)
+                self.assertGreaterEqual(int((reports[0].parent / "TestResults/wall-budget.txt").read_text()), 1200)
                 self.assertFalse((root / ".DerivedData/.performance.lock").exists())
                 environment["TRINKET_PERFORMANCE_OUTPUT_DIR"] = str(reports[0].parent)
                 reused = subprocess.run([str(scripts / "performance.sh")], env=environment, capture_output=True, text=True)

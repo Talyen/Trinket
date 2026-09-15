@@ -195,10 +195,22 @@ if [[ "$MODE" == "smoke" ]]; then
   prepare_serial_test_sim
 elif [[ "$MODE" == "performance" ]]; then
   TEST_TARGET_FLAG=(-testPlan BattlePerformance)
+  if [[ ${#TARGETS[@]} -eq 0 ]]; then
+    export TRINKET_XCODE_WALL_TIMEOUT_SECONDS="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-3600}"
+  fi
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     append_ui_target_filters
   fi
   # Xcode only forwards TEST_RUNNER_* into the XCTest process (prefix stripped).
+  if [[ -n "${TRINKET_PERFORMANCE_SCREENSHOTS:-}" ]]; then
+    export TEST_RUNNER_TRINKET_PERFORMANCE_SCREENSHOTS="$TRINKET_PERFORMANCE_SCREENSHOTS"
+  fi
+  if [[ -n "${TRINKET_PERFORMANCE_TEST_SCENARIOS:-}" ]]; then
+    export TEST_RUNNER_TRINKET_PERFORMANCE_TEST_SCENARIOS="$TRINKET_PERFORMANCE_TEST_SCENARIOS"
+  fi
+  if [[ -n "${TRINKET_PERFORMANCE_SCENARIOS:-}" ]]; then
+    export TEST_RUNNER_TRINKET_PERFORMANCE_SCENARIOS="$TRINKET_PERFORMANCE_SCENARIOS"
+  fi
   if [[ -n "${TRINKET_PERFORMANCE_QUICK:-}" ]]; then
     export TEST_RUNNER_TRINKET_PERFORMANCE_QUICK="$TRINKET_PERFORMANCE_QUICK"
   fi
@@ -206,7 +218,7 @@ elif [[ "$MODE" == "performance" ]]; then
     export TEST_RUNNER_TRINKET_PERFORMANCE_REPETITIONS="$TRINKET_PERFORMANCE_REPETITIONS"
   fi
   if [[ "${TRINKET_PERFORMANCE_QUICK:-}" == "1" ]]; then
-    echo "Running the dedicated app performance scenario matrix (quick measure window)..."
+    echo "Running the dedicated app performance scenario matrix (short sampler preparation)..."
   else
     echo "Running the dedicated app performance scenario matrix..."
   fi

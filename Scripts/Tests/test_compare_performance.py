@@ -58,6 +58,13 @@ class ComparePerformanceTests(unittest.TestCase):
             "scenario": "navigation",
             "schemaVersion": 5,
             "iteration": 1,
+            "step": "navigation",
+            "completionStatus": "complete",
+            "captureStartedAt": 100.0,
+            "captureEndedAt": 102.0,
+            "measurementDuration": 2.0,
+            "sampleCount": 120,
+            "expectedFPS": 60.0,
             "averageFPS": 59.1,
             "onePercentLowFPS": 59.0,
             "p95FrameMs": 40.0,
@@ -69,6 +76,16 @@ class ComparePerformanceTests(unittest.TestCase):
         }
         report.update(overrides)
         return report
+
+    def test_interaction_boundaries_and_completion_are_required(self) -> None:
+        for overrides in (
+            {"completionStatus": "timeout"}, {"completionStatus": "overflow"},
+            {"sampleCount": 0}, {"expectedFPS": 120}, {"step": "wrong"}, {"captureEndedAt": 99},
+            {"measurementDuration": 1}, {"captureStartedAt": None},
+        ):
+            status, summary = self.run_comparison([self.report(schemaVersion=6, **overrides)])
+            self.assertEqual(status, 1)
+            self.assertIn("coverage failure", summary)
 
     def test_diagnostic_metrics_do_not_fail_gate(self) -> None:
         status, summary = self.run_comparison([self.report()])
@@ -162,7 +179,7 @@ class ComparePerformanceTests(unittest.TestCase):
         self.assertIn("above 2", rendered)
 
     def test_invalid_evidence_fails_even_in_observe_mode(self) -> None:
-        for reports in ([], [self.report(schemaVersion=4)], [self.report(iteration=True)],
+        for reports in ([], [self.report(schemaVersion="unknown")], [self.report(schemaVersion=4)], [self.report(iteration=True)],
                         [self.report(averageFPS=float("nan"))]):
             with self.subTest(reports=reports):
                 status, _ = self.run_comparison(reports, mode="observe")

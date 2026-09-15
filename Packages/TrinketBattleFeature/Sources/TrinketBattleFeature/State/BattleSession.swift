@@ -285,6 +285,14 @@ public final class BattleSession: BattleRuntime {
         activeBattle = configuration
         presentationContext = resolvedPresentation
         resetRun(from: configuration)
+        #if DEBUG
+        if configuration.runKey != nil,
+           ProcessInfo.processInfo.arguments.contains("-performance-outcome-victory")
+           || ProcessInfo.processInfo.arguments.contains("-performance-outcome-defeat")
+           || ProcessInfo.processInfo.arguments.contains("-performance-log") {
+            commandState.transition(to: .ready)
+        }
+        #endif
         return true
     }
 

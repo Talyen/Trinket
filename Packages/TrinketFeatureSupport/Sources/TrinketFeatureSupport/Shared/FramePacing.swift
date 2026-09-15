@@ -1,7 +1,11 @@
 import Foundation
 
 public struct FramePacingReport: Equatable, Sendable, Codable {
-    public static let schemaVersion = 5
+    public static let schemaVersion = 6
+
+    public var captureStartedAt: TimeInterval?
+    public var captureEndedAt: TimeInterval?
+    public var completionStatus: String?
 
     public var measurementDuration: TimeInterval?
     public var sampleCount: Int
@@ -21,15 +25,10 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
         return Double(sampleCount) / averageFPS
     }
 
-    public func coversMeasurement(seconds: TimeInterval) -> Bool {
-        guard sampleCount > 0, expectedFPS > 0, expectedFPS.isFinite,
-              seconds > 0, seconds.isFinite,
-              let measurementDuration, measurementDuration.isFinite
-        else { return false }
-        return measurementDuration >= seconds
-    }
-
     private enum CodingKeys: String, CodingKey {
+        case captureStartedAt
+        case captureEndedAt
+        case completionStatus
         case measurementDuration
         case sampleCount
         case expectedFPS
@@ -46,6 +45,9 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        captureStartedAt = try container.decodeIfPresent(TimeInterval.self, forKey: .captureStartedAt)
+        captureEndedAt = try container.decodeIfPresent(TimeInterval.self, forKey: .captureEndedAt)
+        completionStatus = try container.decodeIfPresent(String.self, forKey: .completionStatus)
         measurementDuration = try container.decodeIfPresent(TimeInterval.self, forKey: .measurementDuration)
         sampleCount = try container.decodeIfPresent(Int.self, forKey: .sampleCount) ?? 0
         expectedFPS = try container.decodeIfPresent(Double.self, forKey: .expectedFPS) ?? 0
@@ -62,6 +64,9 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(captureStartedAt, forKey: .captureStartedAt)
+        try container.encodeIfPresent(captureEndedAt, forKey: .captureEndedAt)
+        try container.encodeIfPresent(completionStatus, forKey: .completionStatus)
         try container.encodeIfPresent(measurementDuration, forKey: .measurementDuration)
         try container.encode(sampleCount, forKey: .sampleCount)
         try container.encode(expectedFPS, forKey: .expectedFPS)
@@ -156,7 +161,7 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
         }
         guard
             let schema = map["schema"].flatMap(Int.init),
-            schema == schemaVersion || schema == 4,
+            schema == schemaVersion || schema == 5 || schema == 4,
             let samples = map["samples"].flatMap(Int.init),
             let expectedFPS = map["expectedFPS"].flatMap(Double.init),
             let averageFPS = map["avgFPS"].flatMap(Double.init),

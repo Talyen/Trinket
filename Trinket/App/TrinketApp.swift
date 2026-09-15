@@ -39,6 +39,7 @@ struct TrinketApp: App {
                 (state.play.battle as? BattleSession)?.presentLaunchVictory()
             }
             #if DEBUG
+            PerformanceFixtures.install(in: state)
             if environment.launchScreen == .battleDefeat || environment.launchScreen == .battleDefeatSaveFailure {
                 (state.play.battle as? BattleSession)?.presentLaunchDefeat()
                 state.playerSave.forcesNextSaveFailure = environment.launchScreen == .battleDefeatSaveFailure

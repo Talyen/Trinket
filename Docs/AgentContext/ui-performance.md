@@ -63,6 +63,11 @@ source-linked sheet. Successful salvage retains only the outgoing item's positio
 and artwork through the native return and source-anchored dissolve; the saved item
 is already removed. The retiring card is noninteractive, and losing the source or
 leaving the flow ends its decorative presentation and releases the pins.
+After the native return, the source card hides immediately as its dissolve starts.
+Material rewards enter after 0.30 seconds while the fragments fade, begin their
+0.20-second fade at 0.90 seconds, and release the decorative item at 1.10 seconds
+so the grid can settle without an extra hold. Salvage owns these overlapping stage
+timings; the shared battle dissolve keeps its existing duration.
 
 Contracts retains the displayed board while replacement artwork prepares. Only
 the latest offer snapshot may publish, with actions bound to those same identities.

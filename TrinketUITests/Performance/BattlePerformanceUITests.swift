@@ -1,16 +1,7 @@
 import TrinketFeatureSupport
 import XCTest
 
-final class BattlePerformanceUITests: TrinketUITestCase {
-    private static var scenarioDuration: TimeInterval {
-        ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1" ? 3.2 : 10.5
-    }
-
-    private var repetitionCount: Int {
-        let raw = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_REPETITIONS"] ?? "1"
-        return max(1, Int(raw) ?? 1)
-    }
-
+final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
     func test01RealCardPlay() {
         run(scenario: "real-card-play")
@@ -43,6 +34,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
 
     @MainActor
     private func run(scenario: String) {
+        guard selected(scenario) else { return }
         for iteration in 1 ... repetitionCount {
             runOnce(scenario: scenario, iteration: iteration)
         }
@@ -67,22 +59,8 @@ final class BattlePerformanceUITests: TrinketUITestCase {
             "Scenario did not enter its measurement window: \(status.value ?? "missing")",
         )
         perform(gesture)
-        RunLoop.current.run(until: Date().addingTimeInterval(Self.scenarioDuration))
-
-        let scenarioStatus = status.value as? String ?? ""
-        XCTAssertTrue(
-            scenarioStatus.hasPrefix("complete:\(scenario):"),
-            "Scenario did not complete: \(scenarioStatus)",
-        )
         validate(gesture)
-        PerformanceReportRecorder.capture(
-            from: app,
-            scenario: scenario,
-            suite: "battle",
-            iteration: iteration,
-            metadata: ["scenarioStatus": scenarioStatus],
-            in: self,
-        )
+        finishMeasurement(scenario, iteration: iteration, settle: 3, suite: "battle")
     }
 
     private enum Gesture {

@@ -19,7 +19,7 @@ COUNT_METRICS = {"missedDeadlineCount", "severeStallCount"}
 NON_NEGATIVE_METRICS = set(METRICS) - {"missedDeadlineRatio"}
 REQUIRED_NUMERIC_FIELDS = METRICS
 REMOVED_FIELDS = ("p999FrameMs", "pointOnePercentLowFPS")
-REQUIRED_SCHEMA_VERSION = 5
+REQUIRED_SCHEMA_VERSION = 6
 
 
 def finite_number(report: dict[str, Any], key: str) -> float:
@@ -76,14 +76,36 @@ def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str, float, floa
     return scenarios, mode, minimum_average, minimum_low, maximum_severe
 
 
-def validate_report(report: dict[str, Any]) -> list[str]:
+def validate_report(report: dict[str, Any], baseline: dict[str, Any] | None = None) -> list[str]:
     scenario = report.get("scenario")
     failures = validate_report_domains(report)
-    if report.get("schemaVersion") != REQUIRED_SCHEMA_VERSION:
+    if report.get("schemaVersion") not in (5, REQUIRED_SCHEMA_VERSION):
         failures.append(f"{scenario}: expected frame report schema {REQUIRED_SCHEMA_VERSION}, found {report.get('schemaVersion')!r}")
     iteration = report.get("iteration")
     if isinstance(iteration, bool) or not isinstance(iteration, int) or iteration < 1:
         failures.append(f"{scenario}: iteration must be a positive integer")
+    if report.get("schemaVersion") == 6:
+        if report.get("completionStatus") != "complete":
+            failures.append(f"{scenario}: interaction capture is not complete")
+        if report.get("step") != scenario:
+            failures.append(f"{scenario}: missing or mismatched step identity")
+        try:
+            start = finite_number(report, "captureStartedAt")
+            end = finite_number(report, "captureEndedAt")
+            duration = finite_number(report, "measurementDuration")
+            samples = finite_number(report, "sampleCount")
+            expected_fps = finite_number(report, "expectedFPS")
+            if expected_fps <= 0 or not samples.is_integer():
+                failures.append(f"{scenario}: invalid cadence or sample count")
+            if baseline and abs(expected_fps - float(baseline.get("refreshTargetHz", 60))) > 1:
+                failures.append(f"{scenario}: incompatible observed refresh cadence")
+            if end <= start or duration <= 0 or duration >= 60 or abs(end - start - duration) > 0.01 or samples <= 0:
+                failures.append(f"{scenario}: invalid measurement boundaries or samples")
+        except ValueError as error:
+            failures.append(f"{scenario}: {error}")
+    version = report.get("schemaVersion")
+    if baseline and (not isinstance(version, int) or isinstance(version, bool) or version < baseline.get("minimumReportSchema", 5)):
+        failures.append(f"{scenario}: legacy report cannot establish interaction coverage")
     removed = [key for key in REMOVED_FIELDS if key in report]
     if removed:
         failures.append(f"{scenario}: removed metrics still present: {', '.join(removed)}")

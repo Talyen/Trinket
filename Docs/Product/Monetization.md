@@ -38,8 +38,12 @@ Use a native art-led full-screen modal: the **Keep Exploring** heading overlays 
 bottom-left of the triggering chapter, Spire, Labyrinth mode, hero, or companion
 artwork, with a **FULL GAME** eyebrow. Use the current mountain artwork for Options
 and when contextual artwork is unavailable. Prepare and pin the selected artwork
-before presenting the offer, then release it on dismissal. Preserve the square
-hero framing so character artwork is not cropped by a shorter header. Three
+before presenting the offer, then release it on dismissal. Keep the square hero
+header and use the artwork manifest's curated focal point to position the
+aspect-fill crop using the prepared image's actual proportions. Preserve complete
+heads, faces, and recognizable features, allowing lower-body cropping. Review
+premium character crops with the heading, fade, display cutout, and close control
+visible; keep the benefits and anchored purchase controls at their existing sizes. Three
 larger icon rows use gold icons, primary-color text, and selective semibold emphasis:
 
 - All **chapters & modes**

@@ -23,8 +23,8 @@ FAMILIES = (
     (
         {"Scripts/aggregate-performance-results.py", "Scripts/compare-performance.py",
          "Scripts/collect-performance-results.py", "Scripts/internal/performance/performance_model.py",
-         "Scripts/performance_environment.py"},
-        {"test_aggregate_performance", "test_compare_performance", "test_exec_wrappers"},
+         "Scripts/performance_environment.py", "Scripts/performance-scenarios.py"},
+        {"test_aggregate_performance", "test_compare_performance", "test_performance_scenarios", "test_exec_wrappers"},
     ),
     (
         {"Scripts/release-notes-user.py"},

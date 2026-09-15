@@ -14,12 +14,17 @@ struct ItemPickerFilter: Equatable {
 
 struct ItemPickerItems {
     private var inventory: [InventoryItem] = []
+    private var lastLoadout = EquipmentLoadout()
+    private var lastSlot: ItemSlot?
     private var searchText: [String: String] = [:]
     private var order: [String: Int] = [:]
     private(set) var eligible: [InventoryItem] = []
     private(set) var keywords: [Keyword] = []
 
     mutating func update(inventory: [InventoryItem], loadout: EquipmentLoadout, slot: ItemSlot) {
+        if self.inventory == inventory, lastLoadout == loadout, lastSlot == slot {
+            return
+        }
         if self.inventory != inventory {
             self.inventory = inventory
             searchText = Dictionary(uniqueKeysWithValues: inventory.map { item in
@@ -40,13 +45,18 @@ struct ItemPickerItems {
             }
             order = Dictionary(uniqueKeysWithValues: sorted.enumerated().map { ($0.element.id, $0.offset) })
         }
-        for item in candidates.sorted(by: Self.precedes) where order[item.id] == nil {
-            order[item.id] = order.count
+        let newItems = candidates.filter { order[$0.id] == nil }
+        if !newItems.isEmpty {
+            for item in newItems.sorted(by: Self.precedes) {
+                order[item.id] = order.count
+            }
         }
         eligible = candidates.sorted { order[$0.id, default: 0] < order[$1.id, default: 0] }
         keywords = Set(candidates.flatMap(\.keywords)).sorted {
             $0.rawValue.localizedStandardCompare($1.rawValue) == .orderedAscending
         }
+        lastLoadout = loadout
+        lastSlot = slot
     }
 
     func matching(_ filter: ItemPickerFilter) -> [InventoryItem] {

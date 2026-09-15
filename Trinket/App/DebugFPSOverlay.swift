@@ -31,15 +31,13 @@ struct DebugFPSOverlayModifier: ViewModifier {
 final class FramePacingMetricsProbe {
     static let shared = FramePacingMetricsProbe()
 
-    private static var measurementSnapshotDelay: Duration {
-        FramePacingMeasurementTiming.snapshotDelay
-    }
-
     private let monitor = FramePacingMonitor.measurementShared
     private var window: UIWindow?
     private var metricsLabel: UILabel?
     private var resetButton: UIButton?
     private var resetObserver: NSObjectProtocol?
+    private var beginObserver: NSObjectProtocol?
+    private var preparationTask: Task<Void, Never>?
     private var isInstalled = false
 
     func install() {
@@ -91,25 +89,52 @@ final class FramePacingMetricsProbe {
             self?.metricsLabel?.accessibilityValue = report.accessibilityValue
         }
 
+        if ProcessInfo.processInfo.arguments.contains("-frame-metrics-launch") {
+            metricsLabel?.accessibilityValue = "ready"
+            beginMeasurement()
+        }
         resetObserver = NotificationCenter.default.addObserver(
-            forName: FramePacingMeasurementControl.reset,
-            object: nil,
-            queue: .main,
+            forName: FramePacingMeasurementControl.reset, object: nil, queue: .main,
         ) { [weak self] _ in
-            Task { @MainActor in
-                self?.resetMeasurement()
-            }
+            MainActor.assumeIsolated { self?.prepareMeasurement() }
+        }
+        beginObserver = NotificationCenter.default.addObserver(
+            forName: FramePacingMeasurementControl.begin, object: nil, queue: .main,
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.beginMeasurement() }
         }
     }
 
     @objc private func handleResetTap() {
-        resetMeasurement()
+        switch metricsLabel?.accessibilityValue {
+        case "ready": beginMeasurement()
+        case "measuring": monitor.finishMeasurement()
+        default: prepareMeasurement()
+        }
     }
 
-    private func resetMeasurement() {
-        metricsLabel?.accessibilityValue = "measuring"
+    private func prepareMeasurement() {
+        preparationTask?.cancel()
+        metricsLabel?.accessibilityValue = "preparing"
         monitor.resetMeasurement()
-        monitor.scheduleSnapshot(after: Self.measurementSnapshotDelay)
+        preparationTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(FramePacingMeasurementTiming.monitorWarmupSeconds))
+            guard !Task.isCancelled else { return }
+            metricsLabel?.accessibilityValue = "ready"
+        }
+    }
+
+    private func beginMeasurement() {
+        guard metricsLabel?.accessibilityValue == "ready" else { return }
+        monitor.resetMeasurement()
+        metricsLabel?.accessibilityValue = "measuring"
+        monitor.scheduleSnapshot(after: .seconds(60))
+        if ProcessInfo.processInfo.arguments.contains("-frame-metrics-validation-stall") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                // Deliberate diagnostic stimulus verifies that a main-thread stall reaches the report.
+                Thread.sleep(forTimeInterval: 0.12)
+            }
+        }
     }
 
     private func makeWindow() -> PassThroughWindow? {
@@ -154,42 +179,19 @@ private final class PassThroughWindow: UIWindow {
 
 @MainActor
 final class FramePacingMonitor: NSObject {
-    static let measurementShared = FramePacingMonitor(windowSeconds: 30)
+    static let measurementShared = FramePacingMonitor()
 
-    private struct Sample {
-        let interval: CFTimeInterval
-        let expectedFrameDuration: CFTimeInterval
-    }
-
-    private static let maxRefreshRate: CFTimeInterval = 120
-    private static var warmupSeconds: CFTimeInterval {
-        FramePacingMeasurementTiming.monitorWarmupSeconds
-    }
-
-    private let windowSeconds: CFTimeInterval
-    private let capacity: Int
+    private var capture = FramePacingCapture()
     private var displayLink: CADisplayLink?
-    private var previousTimestamp: CFTimeInterval = 0
-    private var startTimestamp: CFTimeInterval = 0
-    private var measurementStartedAt: CFTimeInterval?
-    private var storage: [Sample?]
-    private var nextWriteIndex = 0
-    private var sampleCount = 0
+    private var finishRequested = false
     private var scheduledSnapshotTask: Task<Void, Never>?
     private var handler: ((FramePacingReport) -> Void)?
-
-    private init(windowSeconds: CFTimeInterval) {
-        self.windowSeconds = windowSeconds
-        capacity = max(1, Int((windowSeconds * Self.maxRefreshRate).rounded(.up)))
-        storage = Array(repeating: nil, count: capacity)
-    }
 
     func start(onUpdate: ((FramePacingReport) -> Void)? = nil) {
         if let onUpdate {
             handler = onUpdate
         }
         if let displayLink {
-            previousTimestamp = 0
             displayLink.isPaused = false
             return
         }
@@ -199,36 +201,23 @@ final class FramePacingMonitor: NSObject {
     }
 
     func resetMeasurement() {
-        measurementStartedAt = CACurrentMediaTime()
+        finishRequested = false
         scheduledSnapshotTask?.cancel()
         scheduledSnapshotTask = nil
         displayLink?.isPaused = false
-        previousTimestamp = 0
-        startTimestamp = 0
-        nextWriteIndex = 0
-        sampleCount = 0
-        storage = Array(repeating: nil, count: capacity)
+        capture.begin(at: CACurrentMediaTime())
+    }
+
+    func finishMeasurement() {
+        finishRequested = true
     }
 
     func snapshotMeasurement() {
-        let snapshotTimestamp = CACurrentMediaTime()
+        scheduledSnapshotTask?.cancel()
+        scheduledSnapshotTask = nil
         displayLink?.isPaused = true
-        let ordered: [Sample] = if sampleCount < capacity {
-            storage.prefix(sampleCount).compactMap(\.self)
-        } else {
-            (storage[nextWriteIndex...] + storage[..<nextWriteIndex]).compactMap(\.self)
-        }
-        let samples = Self.samples(inLast: windowSeconds, from: ordered)
-        var report = if samples.isEmpty {
-            FramePacingReport.empty
-        } else {
-            FramePacingAnalyzer.report(
-                intervals: samples.map(\.interval),
-                expectedFrameDurations: samples.map(\.expectedFrameDuration),
-            )
-        }
-        report.measurementDuration = measurementStartedAt.map { snapshotTimestamp - $0 }
-        handler?(report)
+        handler?(capture.finish(at: CACurrentMediaTime()))
+        NotificationCenter.default.post(name: FramePacingMeasurementControl.finished, object: nil)
     }
 
     func scheduleSnapshot(after delay: Duration) {
@@ -242,41 +231,11 @@ final class FramePacingMonitor: NSObject {
     }
 
     @objc private func step(_ link: CADisplayLink) {
-        let timestamp = link.timestamp
-        if previousTimestamp == 0 {
-            previousTimestamp = timestamp
-            startTimestamp = timestamp
-            return
+        capture.record(at: link.timestamp, expectedDuration: link.targetTimestamp - link.timestamp)
+        if finishRequested {
+            finishRequested = false
+            snapshotMeasurement()
         }
-
-        let interval = timestamp - previousTimestamp
-        let expectedFrameDuration = link.targetTimestamp - link.timestamp
-        previousTimestamp = timestamp
-        guard interval > 0, interval.isFinite,
-              expectedFrameDuration > 0, expectedFrameDuration.isFinite else { return }
-
-        if timestamp - startTimestamp >= Self.warmupSeconds {
-            storage[nextWriteIndex] = Sample(
-                interval: interval,
-                expectedFrameDuration: expectedFrameDuration,
-            )
-            nextWriteIndex = (nextWriteIndex + 1) % capacity
-            sampleCount = min(sampleCount + 1, capacity)
-        }
-    }
-
-    private static func samples(inLast windowSeconds: CFTimeInterval, from ordered: [Sample]) -> [Sample] {
-        guard windowSeconds > 0, !ordered.isEmpty else { return ordered }
-        var total: CFTimeInterval = 0
-        var count = 0
-        for sample in ordered.reversed() {
-            total += sample.interval
-            count += 1
-            if total >= windowSeconds {
-                break
-            }
-        }
-        return Array(ordered.suffix(count))
     }
 }
 

@@ -41,7 +41,7 @@ struct SalvageItemButton: View {
         .trinketArtworkCardButtonStyle()
         .disabled(isLocked)
         .trinketPresentationVisibility(!isRetiring, opacity: isTransmuting ? 0 : 1)
-        .animation(TrinketMotion.Interaction.stateChange, value: isTransmuting)
+        .animation(nil, value: isTransmuting)
         .accessibilityLabel(isLocked ? "\(item.displayName), locked" : item.displayName)
         .accessibilityIdentifier(AccessibilityID.Collection.itemCard(itemID: item.id))
     }
@@ -75,10 +75,12 @@ extension EnvironmentValues {
 }
 
 private struct SalvageTransmutationEffect: View {
+    private static let materialRevealDelay: TimeInterval = 0.30
+    private static let materialDisplayDuration: TimeInterval = 0.60
+
     let event: SalvageTransmutationEvent
     let onFinished: () -> Void
 
-    @State private var isDissolving = false
     @State private var showsMaterials = false
     @State private var materialsDeparted = false
 
@@ -126,43 +128,30 @@ private struct SalvageTransmutationEffect: View {
         }
     }
 
-    @ViewBuilder
     private var departingArtwork: some View {
-        let art = ItemArtwork(item: event.item, variant: .full)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipShape(TrinketDesign.cardShape)
-
-        Group {
-            if isDissolving {
-                CardDissolveArtwork {
-                    art
-                }
-            } else {
-                art
-            }
+        CardDissolveArtwork {
+            ItemArtwork(item: event.item, variant: .full)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipShape(TrinketDesign.cardShape)
         }
         .aspectRatio(3.0 / 4.0, contentMode: .fit)
     }
 
     @MainActor
     private func play() async {
-        try? await Task.sleep(for: .seconds(0.22))
-        guard !Task.isCancelled else { return }
-        isDissolving = true
-
-        try? await Task.sleep(for: .seconds(TrinketMotion.Content.cardDissolveDuration))
+        try? await Task.sleep(for: .seconds(Self.materialRevealDelay))
         guard !Task.isCancelled else { return }
         withAnimation(TrinketMotion.Reward.reveal) {
             showsMaterials = true
         }
-        try? await Task.sleep(for: .seconds(0.85))
+        try? await Task.sleep(for: .seconds(Self.materialDisplayDuration))
 
         guard !Task.isCancelled else { return }
         withAnimation(TrinketMotion.Content.fade) {
             materialsDeparted = true
         }
 
-        try? await Task.sleep(for: .seconds(0.35))
+        try? await Task.sleep(for: .seconds(TrinketMotion.Content.fadeDuration))
         guard !Task.isCancelled else { return }
         onFinished()
     }

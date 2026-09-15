@@ -9,33 +9,6 @@ struct FramePacingAnalyzerTests {
         #expect(report.sampledDuration == 0)
     }
 
-    @Test(arguments: [
-        (61, 0.15, 10.0, true),
-        (480, 1.0 / 60.0, 10.0, true),
-        (480, 1.0 / 60.0, 8.75, false),
-        (0, 1.0 / 60.0, 10.0, false),
-    ])
-    func `measurement coverage includes callback boundary gaps`(
-        sampleCount: Int,
-        interval: TimeInterval,
-        elapsed: TimeInterval,
-        isComplete: Bool,
-    ) throws {
-        var report = FramePacingAnalyzer.report(
-            intervals: Array(repeating: interval, count: sampleCount),
-            expectedFrameDurations: [1.0 / 60.0],
-        )
-        #expect(!report.coversMeasurement(seconds: 10))
-        report.measurementDuration = elapsed
-        let decoded = try #require(FramePacingReport.parseAccessibilityValue(report.accessibilityValue))
-        #expect(decoded.coversMeasurement(seconds: 10) == isComplete)
-        #expect(decoded.sampledDuration < 9.25)
-        if interval == 0.15 {
-            #expect(decoded.averageFPS < 7)
-            #expect(decoded.severeStallCount == sampleCount)
-        }
-    }
-
     @Test func `steady sixty hz has no deadline misses`() {
         let intervals = Array(repeating: 1.0 / 60.0, count: 1000)
         let report = FramePacingAnalyzer.report(
@@ -102,7 +75,7 @@ struct FramePacingAnalyzerTests {
         )
         let parsed = FramePacingReport.parseAccessibilityValue(report.accessibilityValue)
         #expect(parsed?.accessibilityValue == report.accessibilityValue)
-        let legacyValue = report.accessibilityValue.replacingOccurrences(of: "schema=5", with: "schema=4")
+        let legacyValue = report.accessibilityValue.replacingOccurrences(of: "schema=\(FramePacingReport.schemaVersion)", with: "schema=4")
         #expect(FramePacingReport.parseAccessibilityValue(legacyValue) != nil)
         #expect(FramePacingReport.parseAccessibilityValue("schema=3;samples=1") == nil)
         #expect(FramePacingReport.parseAccessibilityValue("idle") == nil)

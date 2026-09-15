@@ -28,10 +28,6 @@ public enum BattleFramePacingSignposts {
     }
 }
 
-public enum FramePacingMeasurementControl {
-    public static let reset = Notification.Name("Trinket.FramePacing.Reset")
-}
-
 extension View {
     func battleFramePacingSignpost(_ name: StaticString, isActive: Bool) -> some View {
         modifier(BattleFramePacingIntervalModifier(signposter: BattleFramePacingSignposts.signposter, name: name, isActive: isActive))

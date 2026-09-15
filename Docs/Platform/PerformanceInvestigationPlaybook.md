@@ -17,18 +17,29 @@ missing, malformed, duplicate, or incompatible reports always fail.
 
 `-enable-frame-metrics` is measurement-only. It must never remove, defer, shorten, reduce, or mute production work. The production `real-card-play` and `hand-drag-cancel` scenarios use normal XCUI gestures against the seeded hand; production views contain no forced-drag or scenario branch.
 
-Run the exclusive matrix:
+Run one exclusive, optimized pass:
 
 ```sh
 ./Scripts/performance.sh
+./Scripts/performance.sh --list
+./Scripts/performance.sh --group collection
+./Scripts/performance.sh --scenario real-card-play
 ```
 
-The runner takes the repository performance lock and uses isolated Simulator and
-DerivedData state. Formal comparisons use five measured runs per scenario:
+Scenario and group selectors can be combined. The runner snapshots the selected
+baseline and validates exactly that coverage. Test prerequisites still run, but
+unselected steps after the last requested measurement do not. Each invocation
+uses a new output directory: a clean rerun never erases an earlier finding.
+`TRINKET_PERFORMANCE_REPETITIONS=2` is an optional consistency check, not a
+prerequisite. Cold launch explicitly records the requested iteration count;
+XCTest additionally performs its unrecorded warmup invocation. The suite wall-time
+budget scales with selected tests and repetitions (at least 20 minutes), independently
+of each interaction's 60-second watchdog. An explicit
+`TRINKET_XCODE_WALL_TIMEOUT_SECONDS` override is preserved.
 
-```sh
-TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
-```
+Set `TRINKET_PERFORMANCE_SCREENSHOTS` to a comma-separated list of scenario IDs to
+retain completed-screen attachments for visual verification. Screenshots are taken
+after capture freezes, not during the measured interaction.
 
 The runner retains session-scoped results under `.DerivedData/PerformanceResults/`,
 including successful calibration runs. Set `TRINKET_PERFORMANCE_OUTPUT_DIR=<path>`
@@ -41,18 +52,47 @@ The current runtime does not reliably export `XCTHitchMetric`; the broken export
 
 ## Coverage inventory
 
-The checked-in baseline owns the complete scenario list. The local matrix does not
-model CloudKit/network variability, persistence recovery, long-session memory,
-thermal behavior, victory reward reveal, mystery encounter reveal, or production
-population trends; add those as separate
-deterministic scenarios instead of changing an existing scenario's production
-behavior.
+`Performance/Baselines/simulator-60.json` maps each measured step to its XCTest
+method and group. `performance-scenarios.py` checks test-plan registration, source
+methods, missing measured scenarios, and coverage of every `AppTab` and
+`PlayLaunchDestination` case. Add coverage when adding a shipping destination or
+materially different interaction; an unchanged shared view does not need a test
+for every catalog entry.
 
-Each app repetition relaunches and restores its starting screen before resetting
-measurement. The former victory/mystery reveal cases reset the sampler *after*
-the revealed screen appeared and then measured an empty action. They were removed
-because those numbers did not establish reveal performance. Reintroduce coverage
-only with a measurement window that starts before the production reveal trigger.
+| Area | Measured interaction families |
+|---|---|
+| Launch / starter selection | Launch animation and cover dismissal; horizontal carousel; Hero and Companion confirmation |
+| Shell / Campaign | Tab round trip; Campaign scrolling, enemy detail, party shelf/selection, Battle activation, chapter advancement, Full Game boundary |
+| Explore | Hub, Spires browsing/climb, Contracts scroll/refresh/party/Battle return, Labyrinth map/floor selection/inspector, Shop/Boss entry and return, floor advancement |
+| Collection | Vertical browse and horizontal shelves; every category grid; Hero/Companion details; ability selection; equipment scroll/search/rarity/equip/unequip; talents and salvage |
+| Battle | Real card play/cancel; engine/feedback/turn diagnostic cases; inspection; auto-battle; populated log scrolling; retreat |
+| Outcomes / encounters | Victory/defeat reveal, reward claim, retry/recovery, talent reward/choice; Shop scroll/purchase/return; Mystery item inspection/reward, recruit reveal/claim, corruption picker/reveal/return |
+| Homestead | Root/category/gallery browsing, build/upgrade, wallet presentation and detent resizing, material collection |
+| Options / Full Game | Form scroll, sliders/toggles, reset cancel/confirm, offer dismissal, local StoreKit purchase/restore, locked-content entry |
+
+Scroll scenarios perform a slow drag, a fast flick through newly exposed content,
+and a reverse flick, including deceleration. They assert movement using stable
+accessibility identities or labels rather than recyclable child indices. Fixtures
+must contain enough content to scroll. Short item details and the fixed resource
+wallet fit their viewport; they receive presentation/interaction coverage instead
+of claiming a successful content scroll. Shared long detail layouts are measured
+with populated combatant/equipment content.
+
+Fixtures only establish disposable prerequisites before measurement: isolated
+local saves, deterministic Labyrinth maps, pending talent progress, live Battle
+states near an outcome, and a populated combat log. Outcome fixtures stop before
+the terminal command; normal Battle commands, settlement, and reveal remain in
+the measurement path. Defeat reveal uses the existing turn-transition harness to issue the terminal
+production end-turn command; auto-battle controls are measured separately. Fixture flags are distinct from
+`-enable-frame-metrics`, which remains measurement-only. Audio and production
+artwork preparation remain enabled.
+
+Ultimate cinematics and their Options picker are currently inactive under
+`BattleFeatureFlags.ultimateCinematicAnimationsEnabled`; add an enabled cinematic
+scenario when that shipping flag changes. Labyrinth crafting identifiers have no
+reachable shipping view. Preview Lab, external web pages, real StoreKit/CloudKit
+services, thermal behavior, long-session memory, and production population trends
+are outside this Simulator matrix. Use separate device/service evidence for them.
 
 ## Battle scenario matrix
 
@@ -67,21 +107,42 @@ The Battle matrix is deliberately small:
 
 All use the deterministic Battle performance fixture. Component cases isolate ownership boundaries; they are not alternate product implementations. Removed face-only, mask-only, particle-only, retained-host, owner-option, and synthetic-stack cases must not be reintroduced unless a new trace demonstrates a specific need.
 
-For fast iteration, set `TRINKET_PERFORMANCE_QUICK=1`. Omit quick mode for formal artifacts. The display-link sampler discards its configured warmup after reset; deterministic stimulus begins only after the harness reports `measuring:`.
+`TRINKET_PERFORMANCE_QUICK=1` shortens sampler preparation only. It never shortens
+an action, reveal, animation tail, or gesture. Prefer scenario selection for fast
+iteration. Component diagnostics use the same explicit capture lifecycle and do
+not prime extra feedback before measurement.
 
 ## Signals
 
-The measurement probe publishes `idle`, then `measuring` after reset, and a
-completed `FramePacingReport` when the scheduled snapshot freezes sampling.
-Capture waits for that completed payload, not a minimum frame count: a slow
-scenario can legitimately deliver fewer callbacks during the fixed window.
-The recorder retains the report before checking coverage. Coverage uses monotonic
-reset-to-snapshot elapsed time (`measurementDuration`) against the full configured
-snapshot window. `sampledDuration` remains the sum of delivered callback intervals;
-first-callback latency, warmup, and a final gap before snapshot can make that sum
-shorter even when capture ran for the complete window. Missing timing, empty, or
-early captures fail explicitly; FPS and stall goals remain owned by the baseline
-and continue to report poor performance.
+The probe transitions through `preparing`, `ready`, and `measuring`, then publishes
+a frozen schema-6 report. The test starts measurement before the production
+trigger, asserts the destination/change, waits for the visible tail, and explicitly
+finishes. The finish request includes the next display callback so a final stall
+is retained. The 60-second watchdog and bounded accumulator report timeout or
+overflow rather than silently truncating evidence. Split longer journeys into
+separate steps.
+
+`FramePacingCapture` owns bounded interval accumulation below the app sampler.
+It retains first-callback latency and freezes completed evidence. Reports include
+monotonic `captureStartedAt`, `captureEndedAt`, `measurementDuration`, completion
+status, step identity, test name, and launch arguments. Empty, unstarted, timed-out,
+overflowed, legacy-only, and inconsistent reports cannot establish new interaction
+coverage. Older artifacts remain readable for historical comparisons.
+
+The summary distinguishes **coverage failure**, **performance finding**, and
+**clean observation**. Missing evidence always fails, even in observation mode.
+Every ordinary scenario reports missed deadlines and its worst interval; the
+existing stricter gesture goals remain in force. Passing functional assertions
+alone never establishes measured coverage.
+
+Run the deliberately negative detector validation separately:
+
+```sh
+./Scripts/performance.sh --group diagnostic
+```
+
+It injects a 120 ms main-thread stall and asserts that the sampler sees it. The
+result is an expected performance finding, excluded from the default matrix.
 
 The display-link report describes delivered callbacks:
 
@@ -148,7 +209,7 @@ budgets there.
    optimized build settings, seed, duration, Xcode, runtime, and target. For an
    interaction absent from the matrix, reproduce it directly under Instruments;
    passing unrelated scenarios does not establish its smoothness.
-2. Compare all five individual reports and their aggregate. A median must not hide a failing repetition.
+2. Inspect the individual step report. Rerun only the affected step when useful; if repetitions were requested, inspect each one as well as the aggregate. A median must not hide a failing repetition.
 3. On device, select the hitch interval in Animation Hitches, identify whether the delay is in app commit work or rendering, and correlate it with Time Profiler stacks and app signposts. Use Simulator Time Profiler for app CPU leads. App signposts in subsystem `com.trinket.framepacing` separately identify engine resolution, projection publication, feedback preparation, and return to the next display callback. None alone represents the full rendered frame.
 
    On Xcode 26.4–27.0, `xctrace record --device <simulator>` deadlocks the in-sim
@@ -194,6 +255,6 @@ MetricKit `MXAnimationMetric.hitchTimeRatio` remains production trend evidence. 
 
 ## Reporting
 
-Report the source revision/dirty state, Xcode, Simulator model/runtime, seed, optimized build settings, duration, all five individual results for formal comparisons, aggregate spread, affected scenarios, Instruments evidence when available, and functional verification. If any input or evidence is missing, record the limitation and do not claim an improvement.
+Report the source revision/dirty state, Xcode, Simulator model/runtime, seed, optimized build settings, duration, all requested individual results, aggregate spread when repeated, affected scenarios, Instruments evidence when available, and functional verification. If any input or evidence is missing, record the limitation and do not claim an improvement.
 
 Apple references: [Animation hitches](https://developer.apple.com/documentation/xcode/understanding-hitches-in-your-app), [Optimize for variable refresh-rate displays](https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays), and [MXAnimationMetric hitch time ratio](https://developer.apple.com/documentation/metrickit/mxanimationmetric/hitchtimeratio).

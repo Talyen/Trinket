@@ -7,7 +7,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct StageSelectScreen<HeroArt: View, Content: View>: View {
-    let eyebrow: String
+    let eyebrow: String?
     let title: String
     let subtitle: String?
     let titleAccessibilityIdentifier: String?

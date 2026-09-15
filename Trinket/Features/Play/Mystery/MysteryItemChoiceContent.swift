@@ -102,20 +102,24 @@ struct MysteryCorruptItemChoiceContent: View {
             },
             footer: {
                 HStack(spacing: TrinketDesign.Spacing.medium) {
-                    Button("Back") {
+                    Button {
                         onCancelCorruptSelection()
+                    } label: {
+                        Text("Back")
+                            .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
                     .trinketSecondaryActionButton(
                         accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton,
                     )
                     .disabled(session.isResolvingChoice)
 
-                    Button("Corrupt") {
+                    Button {
                         guard let selectedItemID else { return }
                         _ = onCorruptItem(selectedItemID)
+                    } label: {
+                        Text("Corrupt")
+                            .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
                     .trinketPrimaryActionButton(
                         tint: TrinketDesign.Colors.destructive,
                         accessibilityIdentifier: AccessibilityID.Mystery.corruptConfirmButton,

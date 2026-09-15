@@ -59,7 +59,9 @@ hittability because sheet transitions can temporarily expose invalid frames.
 Use explicit
 coordinate gestures only for gesture tests or a demonstrated automation limitation.
 The transparent frame-metrics reset control reports unhittable in XCUITest;
-its explicit coordinate tap must establish the `measuring` state before stimulus.
+its explicit coordinate taps prepare the sampler, wait for `ready`, then establish
+`measuring` before stimulus. A final tap freezes the report after the interaction
+and its animation tail; a watchdog result is invalid coverage.
 Assert a journey’s return destination before using helpers that navigate elsewhere.
 
 ## Speed
@@ -76,7 +78,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - Victory Continue navigation belongs to [SmokeBattleTests](Smoke/SmokeBattleTests.swift).
   Performance measurements use `BattlePerformance.xctestplan` under the
   [performance playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md);
-  that plan does not currently measure victory or Mystery reveals.
+  that plan measures explicit interaction windows, including victory and Mystery reveals.
+  `performance.sh --list` lists scenarios and groups; its default is one pass.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
   do not copy their numeric values into this guide.
 - Accessibility-setting audits remain outside PD-014. Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.

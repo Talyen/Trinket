@@ -8,12 +8,10 @@ public enum FramePacingMeasurementTiming {
     public static var monitorWarmupSeconds: TimeInterval {
         isQuick ? 0.35 : 0.75
     }
+}
 
-    public static var snapshotDelay: Duration {
-        .seconds(snapshotSeconds)
-    }
-
-    public static var snapshotSeconds: TimeInterval {
-        isQuick ? 3 : 10
-    }
+public enum FramePacingMeasurementControl {
+    public static let reset = Notification.Name("Trinket.FramePacing.Reset")
+    public static let finished = Notification.Name("Trinket.FramePacing.Finished")
+    public static let begin = Notification.Name("Trinket.FramePacing.Begin")
 }

@@ -51,7 +51,7 @@ def main() -> int:
             continue
 
         report = records[0]
-        failures.extend(validate_report(report))
+        failures.extend(validate_report(report, baseline))
         if report.get("iteration") != 1:
             failures.append(f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}")
         try:
@@ -68,7 +68,9 @@ def main() -> int:
 
         findings.extend(goal_findings(report, baseline))
 
+    status = "coverage failure" if failures else ("performance finding" if findings else "clean observation")
     lines = [
+        f"Status: **{status}**",
         "# App performance comparison",
         "",
         f"Mode: `{mode}`. Refresh target: `{baseline.get('refreshTargetHz', 'unknown')} Hz`.",

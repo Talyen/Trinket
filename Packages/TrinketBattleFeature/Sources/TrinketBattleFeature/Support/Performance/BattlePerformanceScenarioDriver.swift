@@ -76,44 +76,5 @@ struct BattlePerformanceScenarioDriver {
             battleSize: battleSize,
         )
     }
-
-    static func feedbackEvents(in session: BattleSession) -> [ActionEvent] {
-        guard let state = session.engineState else { return [] }
-        let targets = [state.enemy, state.hero, state.companion]
-        let keywords: [Keyword] = [.physical, .burn, .freeze, .holy, .poison, .block]
-        return (0 ..< 9).map { index in
-            let target = targets[index % targets.count]
-            return ActionEvent(
-                id: 90000 + index,
-                kind: index.isMultiple(of: 3) ? .effect : .abilityDamage,
-                effectKind: index.isMultiple(of: 3) ? .shieldApplied : nil,
-                actorID: state.hero.id,
-                actorName: state.hero.name,
-                abilityID: "performance-feedback",
-                abilityName: "Performance Feedback",
-                targetID: target.id,
-                targetName: target.name,
-                amount: 8 + index,
-                keyword: keywords[index % keywords.count],
-            )
-        }
-    }
-}
-
-@MainActor
-func battlePerformancePrimeChipHostPipeline(
-    scenario: BattlePerformanceScenario,
-    battleSession: BattleSession,
-) async {
-    guard scenario != .handDragCancel, scenario != .engineHand else { return }
-    let date = Date.now
-    battleSession.feedback.record(
-        BattlePerformanceScenarioDriver.feedbackEvents(in: battleSession),
-        at: date,
-    )
-    try? await Task.sleep(for: .milliseconds(200))
-    battleSession.feedback.clear()
-    CombatFeedbackChipBridge.publish(.reset)
-    try? await Task.sleep(for: .milliseconds(50))
 }
 #endif

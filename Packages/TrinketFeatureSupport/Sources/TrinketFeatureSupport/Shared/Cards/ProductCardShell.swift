@@ -71,14 +71,14 @@ public struct ProductCardShell<Art: View, Label: View>: View {
                     .clipShape(TrinketDesign.cardShape)
             }
         }
-        .trinketArtworkPickerSelectionBorder(
-            isSelected: isSelected,
-            lineWidth: 1.5,
-        )
         .shineBorder(
             shine,
             cornerRadius: TrinketDesign.Corners.card,
             lineWidth: shineLineWidth,
+        )
+        .trinketArtworkPickerSelectionBorder(
+            isSelected: isSelected,
+            lineWidth: 3,
         )
         .animation(TrinketMotion.Interaction.selection, value: isSelected)
     }

@@ -20,7 +20,7 @@ private struct FullGameOfferHost: ViewModifier {
             .environment(\.requestFullGameOffer, present)
             .fullScreenCover(item: $offer, onDismiss: releaseArtwork) { offer in
                 NavigationStack {
-                    FullGameOfferView(artworkName: offer.artworkName)
+                    FullGameOfferView(artwork: offer.artwork)
                 }
             }
             .onDisappear {
@@ -34,8 +34,8 @@ private struct FullGameOfferHost: ViewModifier {
     private func present(_ requested: FullGameOfferOrigin) {
         guard offer == nil, preparation == nil else { return }
         preparation = Task { @MainActor in
-            let artworkName = artworkName(for: requested)
-            let names = artworkName.map { [$0] } ?? []
+            let artwork = artwork(for: requested)
+            let names = artwork.map { [$0.imageName] } ?? []
             await PreparedArtworkCache.shared.prepareAndPin(names: names)
             guard !Task.isCancelled else {
                 PreparedArtworkCache.shared.releasePins(names: names)
@@ -43,25 +43,33 @@ private struct FullGameOfferHost: ViewModifier {
                 return
             }
             pinnedNames = names
-            offer = PreparedFullGameOffer(id: requested, artworkName: artworkName)
+            offer = PreparedFullGameOffer(id: requested, artwork: artwork)
             preparation = nil
         }
     }
 
-    private func artworkName(for origin: FullGameOfferOrigin) -> String? {
-        let contextualName: String? = switch origin {
+    private func artwork(for origin: FullGameOfferOrigin) -> FullGameOfferArtwork? {
+        let contextualArtwork: FullGameOfferArtwork? = switch origin {
         case let .campaign(chapter):
-            ArtCatalog.backgroundArtByID["chapter-\(chapter)"]?.imageName
+            backgroundArtwork(id: "chapter-\(chapter)")
         case let .spire(spire, _):
-            ArtCatalog.backgroundArtByID["spire-\(spire.rawValue)"]?.imageName
+            backgroundArtwork(id: "spire-\(spire.rawValue)")
         case .labyrinth:
-            ArtCatalog.backgroundArtByID["labyrinth"]?.imageName
+            backgroundArtwork(id: "gameModeLabyrinth")
         case let .combatant(id):
-            GameContent.combatant(matching: id)?.artReference?.imageName
+            GameContent.combatant(matching: id)?.artReference.map {
+                FullGameOfferArtwork(imageName: $0.imageName, focalPoint: $0.focalPoint)
+            }
         case .options:
             nil
         }
-        return contextualName ?? ArtCatalog.backgroundArtByID["chapter-4"]?.imageName
+        return contextualArtwork ?? backgroundArtwork(id: "chapter-4")
+    }
+
+    private func backgroundArtwork(id: String) -> FullGameOfferArtwork? {
+        ArtCatalog.backgroundArtByID[id].map {
+            FullGameOfferArtwork(imageName: $0.imageName, focalPoint: $0.focalPoint)
+        }
     }
 
     private func releaseArtwork() {
@@ -72,5 +80,5 @@ private struct FullGameOfferHost: ViewModifier {
 
 private struct PreparedFullGameOffer: Identifiable {
     let id: FullGameOfferOrigin
-    let artworkName: String?
+    let artwork: FullGameOfferArtwork?
 }

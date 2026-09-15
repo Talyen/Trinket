@@ -30,11 +30,24 @@ enum PerformanceReportRecorder {
             return
         }
 
-        record(report, scenario: scenario, suite: suite, iteration: iteration, metadata: metadata, in: testCase)
-        XCTAssertTrue(
-            report.coversMeasurement(seconds: FramePacingMeasurementTiming.snapshotSeconds),
-            "Incomplete frame measurement for \(scenario): duration=\(String(describing: report.measurementDuration)), samples=\(report.sampleCount)",
-        )
+        var context = metadata
+        let battleStatus = app.descendants(matching: .any)[AccessibilityID.Debug.battlePerformanceStatus]
+        if battleStatus.exists {
+            context["scenarioStatus"] = battleStatus.value as? String
+        }
+        context["test"] = testCase.name
+        context["launchArguments"] = app.launchArguments.joined(separator: " ")
+        record(report, scenario: scenario, suite: suite, iteration: iteration, metadata: context, in: testCase)
+        XCTAssertEqual(report.completionStatus, "complete", "Incomplete interaction: \(scenario)")
+        XCTAssertGreaterThan(report.sampleCount, 0, "No display callbacks: \(scenario)")
+        XCTAssertGreaterThan(report.measurementDuration ?? 0, 0)
+        let screenshots = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_SCREENSHOTS"] ?? ""
+        if screenshots.split(separator: ",").contains(Substring(scenario)) {
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = "completed-\(scenario)"
+            attachment.lifetime = .keepAlways
+            testCase.add(attachment)
+        }
     }
 
     static func record(
@@ -68,6 +81,10 @@ enum PerformanceReportRecorder {
             "severeStallCount": report.severeStallCount,
             "missedDeadlineRatio": report.missedDeadlineRatio,
         ]
+        object["completionStatus"] = report.completionStatus
+        object["captureStartedAt"] = report.captureStartedAt
+        object["captureEndedAt"] = report.captureEndedAt
+        object["step"] = scenario
         if let duration = report.measurementDuration {
             object["measurementDuration"] = duration
         }

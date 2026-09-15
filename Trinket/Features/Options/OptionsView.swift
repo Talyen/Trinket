@@ -108,6 +108,7 @@ struct OptionsView: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
+                .accessibilityIdentifier(AccessibilityID.Options.resetProgressCancel)
         } message: {
             Text(
                 appState.playerSave.resetAffectsCloudProgress ? """

@@ -25,7 +25,7 @@ def aggregate(values: list[float]) -> dict[str, float]:
     }
 
 
-def validate_report(report: object, expected_scenarios: set[str]) -> tuple[dict[str, Any] | None, list[str]]:
+def validate_report(report: object, expected_scenarios: set[str], baseline: dict[str, Any] | None = None) -> tuple[dict[str, Any] | None, list[str]]:
     if not isinstance(report, dict):
         return None, ["report is not an object"]
     scenario = report.get("scenario")
@@ -33,7 +33,7 @@ def validate_report(report: object, expected_scenarios: set[str]) -> tuple[dict[
     if not isinstance(scenario, str) or scenario not in expected_scenarios:
         failures.append(f"unexpected or missing scenario {scenario!r}")
         return None, failures
-    failures.extend(validate_frame_report(report))
+    failures.extend(validate_frame_report(report, baseline))
     return report, failures
 
 
@@ -61,7 +61,7 @@ def main() -> int:
 
     failures: list[str] = []
     for index, raw_report in enumerate(reports, 1):
-        report, report_failures = validate_report(raw_report, expected_scenarios)
+        report, report_failures = validate_report(raw_report, expected_scenarios, baseline)
         if report_failures:
             failures.extend(f"report {index}: {failure}" for failure in report_failures)
         if report is not None and not report_failures:
@@ -108,7 +108,9 @@ def main() -> int:
     }
     args.output.write_text(json.dumps(output, indent=2, sort_keys=True) + "\n")
 
+    status = "coverage failure" if failures else ("performance finding" if findings else "clean observation")
     lines = [
+        f"Status: **{status}**",
         "# Repeated performance summary",
         f"Mode: `{mode}`. Every repetition is evaluated against the baseline goals.",
         "",

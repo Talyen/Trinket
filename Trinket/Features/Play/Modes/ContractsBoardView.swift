@@ -24,7 +24,7 @@ struct ContractsBoardView: View {
 
     var body: some View {
         StageSelectScreen(
-            eyebrow: "Explore",
+            eyebrow: nil,
             title: "Contracts",
             subtitle: nil,
             titleAccessibilityIdentifier: nil,

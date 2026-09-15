@@ -38,6 +38,9 @@ struct BattlePerformanceScenarioHarness: View {
             BattleFramePacingSignposts.Name.performanceScenario,
             isActive: status.hasPrefix("measuring:"),
         )
+        .onReceive(NotificationCenter.default.publisher(for: FramePacingMeasurementControl.finished)) { _ in
+            markComplete()
+        }
         .onDisappear {
             task?.cancel()
             task = nil
@@ -45,7 +48,7 @@ struct BattlePerformanceScenarioHarness: View {
     }
 
     private func start() {
-        status = "priming:\(scenario.rawValue)"
+        status = "preparing:\(scenario.rawValue)"
         castPresentation.reset()
         battleSession.feedback.clear()
         battleSession.clearSpectacle()
@@ -58,32 +61,20 @@ struct BattlePerformanceScenarioHarness: View {
             castPresentation: castPresentation,
         )
         task = Task { @MainActor in
-            await battlePerformancePrimeChipHostPipeline(
-                scenario: scenario,
-                battleSession: battleSession,
-            )
             NotificationCenter.default.post(name: FramePacingMeasurementControl.reset, object: nil)
-            try? await Task.sleep(for: BattlePerformanceTiming.harnessWarmup)
+            try? await Task.sleep(for: .seconds(FramePacingMeasurementTiming.monitorWarmupSeconds + 0.15))
             guard !Task.isCancelled else { return }
+            NotificationCenter.default.post(name: FramePacingMeasurementControl.begin, object: nil)
 
             status = "measuring:\(scenario.rawValue)"
-            let clock = ContinuousClock()
-            let startedAt = clock.now
-            let failure = driver.perform()
-            let elapsed = startedAt.duration(to: clock.now)
-            if elapsed < BattlePerformanceTiming.harnessMeasure {
-                try? await Task.sleep(for: BattlePerformanceTiming.harnessMeasure - elapsed)
-            }
-            guard !Task.isCancelled else { return }
-            if let failure {
+            if let failure = driver.perform() {
                 status = "failed:\(scenario.rawValue):\(failure)"
-            } else {
-                markComplete()
             }
         }
     }
 
     private func markComplete() {
+        guard status.hasPrefix("measuring:") else { return }
         let raster = CombatFeedbackRasterPool.shared.snapshot()
         status = "complete:\(scenario.rawValue)"
             + ":scenarioSeed=\(battleSession.activeBattle?.rngSeed ?? 0)"
@@ -91,8 +82,7 @@ struct BattlePerformanceScenarioHarness: View {
             + ":rasterMisses=\(raster.missCount)"
             + ":rasterBuilds=\(raster.buildCount)"
             + ":numericRasterMisses=\(raster.numericMissCount)"
-            + ":unexpectedClosedVocabularyBuilds="
-            + "\(raster.unexpectedClosedVocabularyBuildCount)"
+            + ":unexpectedClosedVocabularyBuilds=\(raster.unexpectedClosedVocabularyBuildCount)"
     }
 }
 #endif

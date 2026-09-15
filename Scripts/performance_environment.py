@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -32,7 +34,17 @@ def main() -> None:
         "xcode": command("xcodebuild", "-version"),
         "gitCommit": command("git", "rev-parse", "HEAD"),
         "gitDirty": bool(command("git", "status", "--porcelain")),
+        "gitStatus": command("git", "status", "--short"),
+        "trackedDiffSHA256": hashlib.sha256(command("git", "diff", "HEAD").encode()).hexdigest(),
+        "untrackedSourceSHA256": {
+            name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
+            for name in command("git", "ls-files", "--others", "--exclude-standard").splitlines()
+            if Path(name).is_file() and Path(name).suffix in {".swift", ".py", ".sh", ".json", ".xctestplan"}
+        },
+        "configuration": "Debug with SWIFT_OPTIMIZATION_LEVEL=-O",
+        "quickSamplerPreparation": os.environ.get("TRINKET_PERFORMANCE_QUICK") == "1",
         "repetitionsPerScenario": repetitions,
+        "suiteWallTimeoutSeconds": int(os.environ.get("TRINKET_XCODE_WALL_TIMEOUT_SECONDS", "1200")),
     }
     output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 

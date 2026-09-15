@@ -8,6 +8,7 @@ public struct DetailTraitRow: View {
     var descriptionAccessibilityID: String?
     var leadingIconKeyword: Keyword?
     var leadingIcon: GameIcon?
+    var indicators: [DetailChangeIndicator]
     var titleColor: Color?
     var titleShine: Shine
     var titlePrefix: String?
@@ -19,6 +20,7 @@ public struct DetailTraitRow: View {
         descriptionAccessibilityID: String? = nil,
         leadingIconKeyword: Keyword? = nil,
         leadingIcon: GameIcon? = nil,
+        indicators: [DetailChangeIndicator] = [],
         titleColor: Color? = nil,
         titleShine: Shine = .none,
         titlePrefix: String? = nil,
@@ -29,6 +31,7 @@ public struct DetailTraitRow: View {
         self.descriptionAccessibilityID = descriptionAccessibilityID
         self.leadingIconKeyword = leadingIconKeyword
         self.leadingIcon = leadingIcon
+        self.indicators = indicators
         self.titleColor = titleColor
         self.titleShine = titleShine
         self.titlePrefix = titlePrefix
@@ -57,6 +60,8 @@ public struct DetailTraitRow: View {
                                 .accessibilityHidden(true)
                         }
                     }
+                    DetailChangeIndicators(indicators: indicators)
+                        .trinketTypography(.cardTitle)
                     titleText
                 }
             }

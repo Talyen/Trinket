@@ -77,7 +77,7 @@ public enum ArtCatalog {
         dict["warlock"] = CombatantArtReference(
             imageName: "hero_warlock_card",
             thumbnailImageName: "hero_warlock_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.00)
         )
         dict["wizard"] = CombatantArtReference(
             imageName: "hero_wizard_card",
@@ -92,12 +92,12 @@ public enum ArtCatalog {
         dict["druid"] = CombatantArtReference(
             imageName: "hero_druid_card",
             thumbnailImageName: "hero_druid_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.34)
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.00)
         )
         dict["wildcard"] = CombatantArtReference(
             imageName: "hero_wildcard_card",
             thumbnailImageName: "hero_wildcard_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.34)
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.00)
         )
         dict["wolf"] = CombatantArtReference(
             imageName: "companion_wolf_card",
@@ -117,7 +117,7 @@ public enum ArtCatalog {
         dict["lizard_scout"] = CombatantArtReference(
             imageName: "companion_lizard_scout_card",
             thumbnailImageName: "companion_lizard_scout_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.00)
         )
         dict["panther"] = CombatantArtReference(
             imageName: "companion_panther_card",
@@ -127,7 +127,7 @@ public enum ArtCatalog {
         dict["phoenix"] = CombatantArtReference(
             imageName: "companion_phoenix_card",
             thumbnailImageName: "companion_phoenix_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.00)
         )
         dict["golden_retriever"] = CombatantArtReference(
             imageName: "companion_golden_retriever_card",
@@ -142,12 +142,12 @@ public enum ArtCatalog {
         dict["risen_skeleton"] = CombatantArtReference(
             imageName: "companion_risen_skeleton_card",
             thumbnailImageName: "companion_risen_skeleton_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.15)
         )
         dict["mana_moth"] = CombatantArtReference(
             imageName: "companion_mana_moth_card",
             thumbnailImageName: "companion_mana_moth_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.00)
         )
         dict["fox"] = CombatantArtReference(
             imageName: "companion_fox_card",

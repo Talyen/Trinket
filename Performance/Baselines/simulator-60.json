@@ -2,26 +2,107 @@
   "goals": {
     "maximumSevereStallCount": 0,
     "minimumAverageFPS": 59.0,
-    "minimumOnePercentLowFPS": 59.0
+    "minimumOnePercentLowFPS": 59.0,
+    "maximumMissedDeadlineCount": 0
   },
   "mode": "observe",
   "refreshTargetHz": 60,
   "scenarios": [
+    "launch-animation",
     "tab-round-trip",
     "collection-navigation",
     "homestead-detail-transition",
     "campaign-stage-select-transition",
     "stage-enemy-detail-transition",
     "stage-select-battle-transition",
+    "campaign-scroll",
+    "campaign-party-picker",
+    "battle-inspection",
+    "battle-auto",
+    "battle-retreat",
+    "battle-log",
     "real-card-play",
     "hand-drag-cancel",
     "engine-hand",
     "engine-feedback",
     "turn-transition",
-    "combined-worst-case"
+    "combined-worst-case",
+    "companion-detail-navigation",
+    "combatant-detail-scroll",
+    "ability-picker",
+    "equipment-picker-scroll",
+    "equipment-search-filter",
+    "equipment-inspect-equip",
+    "equipment-unequip",
+    "collection-browse-scroll",
+    "collection-shelf-scroll",
+    "collection-category-Heroes",
+    "collection-category-Companions",
+    "collection-category-Basic Gear",
+    "collection-category-Astral Gear",
+    "collection-category-Unique Gear",
+    "collection-category-Trinkets",
+    "talent-tree-scroll",
+    "talent-unlock",
+    "talent-reset-return",
+    "explore-hub",
+    "spires-browse",
+    "spire-climb",
+    "labyrinth-floor-select",
+    "labyrinth-scroll",
+    "labyrinth-inspector",
+    "contracts-browse",
+    "contracts-refresh",
+    "contracts-party-picker",
+    "contracts-battle-return",
+    "locked-character-offer",
+    "campaign-full-game-boundary",
+    "full-game-offer",
+    "full-game-purchase",
+    "full-game-restore",
+    "homestead-build",
+    "homestead-root-scroll",
+    "homestead-category-browse",
+    "homestead-gallery-scroll",
+    "homestead-improvement",
+    "homestead-wallet-return",
+    "homestead-material-collection",
+    "labyrinth-shop-entry",
+    "labyrinth-shop-return",
+    "labyrinth-boss-entry",
+    "labyrinth-boss-retreat",
+    "labyrinth-floor-progression",
+    "recruit-map-reveal",
+    "recruit-map-return",
+    "mystery-offer-inspection",
+    "mystery-reward-reveal",
+    "mystery-reward-claim",
+    "recruit-claim-return",
+    "corruption-item-picker",
+    "corruption-reveal",
+    "corruption-return",
+    "campaign-chapter-progression",
+    "victory-reveal",
+    "defeat-reveal",
+    "victory-claim-return",
+    "defeat-retry",
+    "defeat-save-recovery",
+    "postbattle-talent-reveal",
+    "postbattle-talent-choice",
+    "starter-carousel",
+    "starter-hero-confirm",
+    "starter-companion-confirm",
+    "options-controls",
+    "options-reset-cancel",
+    "options-reset-confirm",
+    "salvage-return",
+    "diagnostic-stall",
+    "shop-scroll",
+    "shop-purchase",
+    "shop-return"
   ],
   "schemaVersion": 2,
-  "notes": "Ad hoc performance.sh collects and reports against these goals without blocking. Not a CI job. Promote to enforce only after Simulator runs consistently clear average FPS, 1% low, and zero severe stalls.",
+  "notes": "One pass by default. Every selected interaction must have complete evidence; performance findings remain observational.",
   "scenarioGoals": {
     "real-card-play": {
       "maximumMissedDeadlineCount": 0,
@@ -31,5 +112,421 @@
       "maximumMissedDeadlineCount": 0,
       "maximumFrameMs": 20
     }
-  }
+  },
+  "coverage": {
+    "launch-animation": {
+      "group": "app",
+      "test": "AppPerformanceUITests/testLaunchAnimation"
+    },
+    "tab-round-trip": {
+      "group": "app",
+      "test": "AppPerformanceUITests/test01TabRoundTrip"
+    },
+    "collection-navigation": {
+      "group": "app",
+      "test": "AppPerformanceUITests/test02CollectionNavigation"
+    },
+    "homestead-detail-transition": {
+      "group": "app",
+      "test": "AppPerformanceUITests/test03HomesteadDetailTransition"
+    },
+    "campaign-stage-select-transition": {
+      "group": "app",
+      "test": "AppPerformanceUITests/test04CampaignStageSelectTransition"
+    },
+    "stage-enemy-detail-transition": {
+      "group": "app",
+      "test": "AppPerformanceUITests/test05StageEnemyDetailTransition"
+    },
+    "stage-select-battle-transition": {
+      "group": "app",
+      "test": "AppPerformanceUITests/test06StageSelectBattleStart"
+    },
+    "campaign-scroll": {
+      "group": "app",
+      "test": "AppPerformanceUITests/testCampaignBrowsing"
+    },
+    "campaign-party-picker": {
+      "group": "app",
+      "test": "AppPerformanceUITests/testCampaignBrowsing"
+    },
+    "battle-inspection": {
+      "group": "battleinteraction",
+      "test": "BattleInteractionPerformanceUITests/testBattleControls"
+    },
+    "battle-auto": {
+      "group": "battleinteraction",
+      "test": "BattleInteractionPerformanceUITests/testBattleControls"
+    },
+    "battle-retreat": {
+      "group": "battleinteraction",
+      "test": "BattleInteractionPerformanceUITests/testBattleControls"
+    },
+    "battle-log": {
+      "group": "battleinteraction",
+      "test": "BattleInteractionPerformanceUITests/testBattleLog"
+    },
+    "real-card-play": {
+      "group": "battle",
+      "test": "BattlePerformanceUITests/test01RealCardPlay"
+    },
+    "hand-drag-cancel": {
+      "group": "battle",
+      "test": "BattlePerformanceUITests/test02HandDragCancel"
+    },
+    "engine-hand": {
+      "group": "battle",
+      "test": "BattlePerformanceUITests/test03EngineAndHand"
+    },
+    "engine-feedback": {
+      "group": "battle",
+      "test": "BattlePerformanceUITests/test04EngineAndFeedback"
+    },
+    "turn-transition": {
+      "group": "battle",
+      "test": "BattlePerformanceUITests/test05TurnTransition"
+    },
+    "combined-worst-case": {
+      "group": "battle",
+      "test": "BattlePerformanceUITests/test06CombinedProductionWorstCase"
+    },
+    "companion-detail-navigation": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCompanionDetail"
+    },
+    "combatant-detail-scroll": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testDetailAndAbility"
+    },
+    "ability-picker": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testDetailAndAbility"
+    },
+    "equipment-picker-scroll": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testEquipment"
+    },
+    "equipment-search-filter": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testEquipment"
+    },
+    "equipment-inspect-equip": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testEquipment"
+    },
+    "equipment-unequip": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testEquipment"
+    },
+    "collection-browse-scroll": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
+    },
+    "collection-shelf-scroll": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
+    },
+    "collection-category-Heroes": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
+    },
+    "collection-category-Companions": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
+    },
+    "collection-category-Basic Gear": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
+    },
+    "collection-category-Astral Gear": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
+    },
+    "collection-category-Unique Gear": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
+    },
+    "collection-category-Trinkets": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
+    },
+    "talent-tree-scroll": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testTalents"
+    },
+    "talent-unlock": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testTalents"
+    },
+    "talent-reset-return": {
+      "group": "collection",
+      "test": "CollectionPerformanceUITests/testTalents"
+    },
+    "explore-hub": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testSpires"
+    },
+    "spires-browse": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testSpires"
+    },
+    "spire-climb": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testSpires"
+    },
+    "labyrinth-floor-select": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testLabyrinth"
+    },
+    "labyrinth-scroll": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testLabyrinth"
+    },
+    "labyrinth-inspector": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testLabyrinth"
+    },
+    "contracts-browse": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testContracts"
+    },
+    "contracts-refresh": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testContracts"
+    },
+    "contracts-party-picker": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testContracts"
+    },
+    "contracts-battle-return": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testContracts"
+    },
+    "locked-character-offer": {
+      "group": "fullgame",
+      "test": "FullGamePerformanceUITests/testLockedCharacterAndBoundary"
+    },
+    "campaign-full-game-boundary": {
+      "group": "fullgame",
+      "test": "FullGamePerformanceUITests/testLockedCharacterAndBoundary"
+    },
+    "full-game-offer": {
+      "group": "fullgame",
+      "test": "FullGamePerformanceUITests/testOfferAndPurchase"
+    },
+    "full-game-purchase": {
+      "group": "fullgame",
+      "test": "FullGamePerformanceUITests/testOfferAndPurchase"
+    },
+    "full-game-restore": {
+      "group": "fullgame",
+      "test": "FullGamePerformanceUITests/testOfferAndPurchase"
+    },
+    "homestead-build": {
+      "group": "homestead",
+      "test": "HomesteadPerformanceUITests/testBuild"
+    },
+    "homestead-root-scroll": {
+      "group": "homestead",
+      "test": "HomesteadPerformanceUITests/testHomestead"
+    },
+    "homestead-category-browse": {
+      "group": "homestead",
+      "test": "HomesteadPerformanceUITests/testHomestead"
+    },
+    "homestead-gallery-scroll": {
+      "group": "homestead",
+      "test": "HomesteadPerformanceUITests/testHomestead"
+    },
+    "homestead-improvement": {
+      "group": "homestead",
+      "test": "HomesteadPerformanceUITests/testHomestead"
+    },
+    "homestead-wallet-return": {
+      "group": "homestead",
+      "test": "HomesteadPerformanceUITests/testHomestead"
+    },
+    "homestead-material-collection": {
+      "group": "homestead",
+      "test": "HomesteadPerformanceUITests/testCollection"
+    },
+    "labyrinth-shop-entry": {
+      "group": "labyrinthencounter",
+      "test": "LabyrinthEncounterPerformanceUITests/testShopEntryReturn"
+    },
+    "labyrinth-shop-return": {
+      "group": "labyrinthencounter",
+      "test": "LabyrinthEncounterPerformanceUITests/testShopEntryReturn"
+    },
+    "labyrinth-boss-entry": {
+      "group": "labyrinthencounter",
+      "test": "LabyrinthEncounterPerformanceUITests/testBossEntryReturn"
+    },
+    "labyrinth-boss-retreat": {
+      "group": "labyrinthencounter",
+      "test": "LabyrinthEncounterPerformanceUITests/testBossEntryReturn"
+    },
+    "labyrinth-floor-progression": {
+      "group": "labyrinthencounter",
+      "test": "LabyrinthEncounterPerformanceUITests/testFloorProgression"
+    },
+    "recruit-map-reveal": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testRecruitReveal"
+    },
+    "recruit-map-return": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testRecruitReveal"
+    },
+    "mystery-offer-inspection": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testReward"
+    },
+    "mystery-reward-reveal": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testReward"
+    },
+    "mystery-reward-claim": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testReward"
+    },
+    "recruit-claim-return": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testRecruitReturn"
+    },
+    "corruption-item-picker": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testCorruption"
+    },
+    "corruption-reveal": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testCorruption"
+    },
+    "corruption-return": {
+      "group": "mystery",
+      "test": "MysteryPerformanceUITests/testCorruption"
+    },
+    "campaign-chapter-progression": {
+      "group": "outcome",
+      "test": "OutcomePerformanceUITests/testChapterProgression"
+    },
+    "victory-reveal": {
+      "group": "outcome",
+      "test": "OutcomePerformanceUITests/testVictoryReveal"
+    },
+    "defeat-reveal": {
+      "group": "outcome",
+      "test": "OutcomePerformanceUITests/testDefeatReveal"
+    },
+    "victory-claim-return": {
+      "group": "outcome",
+      "test": "OutcomePerformanceUITests/testVictoryReturn"
+    },
+    "defeat-retry": {
+      "group": "outcome",
+      "test": "OutcomePerformanceUITests/testDefeatRetry"
+    },
+    "defeat-save-recovery": {
+      "group": "outcome",
+      "test": "OutcomePerformanceUITests/testDefeatRecovery"
+    },
+    "postbattle-talent-reveal": {
+      "group": "outcome",
+      "test": "OutcomePerformanceUITests/testTalentReward"
+    },
+    "postbattle-talent-choice": {
+      "group": "outcome",
+      "test": "OutcomePerformanceUITests/testTalentReward"
+    },
+    "starter-carousel": {
+      "group": "shell",
+      "test": "ShellPerformanceUITests/testStarter"
+    },
+    "starter-hero-confirm": {
+      "group": "shell",
+      "test": "ShellPerformanceUITests/testStarter"
+    },
+    "starter-companion-confirm": {
+      "group": "shell",
+      "test": "ShellPerformanceUITests/testStarter"
+    },
+    "options-controls": {
+      "group": "shell",
+      "test": "ShellPerformanceUITests/testOptions"
+    },
+    "options-reset-cancel": {
+      "group": "shell",
+      "test": "ShellPerformanceUITests/testOptions"
+    },
+    "options-reset-confirm": {
+      "group": "shell",
+      "test": "ShellPerformanceUITests/testOptions"
+    },
+    "salvage-return": {
+      "group": "shell",
+      "test": "ShellPerformanceUITests/testSalvage"
+    },
+    "diagnostic-stall": {
+      "group": "diagnostic",
+      "test": "ShellPerformanceUITests/testSamplerDetectsStall"
+    },
+    "shop-scroll": {
+      "group": "shop",
+      "test": "ShopPerformanceUITests/testShop"
+    },
+    "shop-purchase": {
+      "group": "shop",
+      "test": "ShopPerformanceUITests/testShop"
+    },
+    "shop-return": {
+      "group": "shop",
+      "test": "ShopPerformanceUITests/testShop"
+    }
+  },
+  "minimumReportSchema": 6,
+  "launchMetricTest": "AppPerformanceUITests/test00ColdLaunchToPlay",
+  "routeContracts": [
+    {
+      "source": "Packages/TrinketAppState/Sources/TrinketAppState/App/AppRoutes.swift",
+      "enum": "AppTab",
+      "routes": {
+        "play": [
+          "tab-round-trip"
+        ],
+        "collection": [
+          "collection-browse-scroll"
+        ],
+        "homestead": [
+          "homestead-root-scroll"
+        ],
+        "options": [
+          "options-controls"
+        ]
+      }
+    },
+    {
+      "source": "Packages/TrinketAppState/Sources/TrinketAppState/App/AppRoutes.swift",
+      "enum": "PlayLaunchDestination",
+      "routes": {
+        "campaign": [
+          "campaign-scroll"
+        ],
+        "explore": [
+          "explore-hub"
+        ],
+        "spiresHub": [
+          "spires-browse"
+        ],
+        "labyrinthMap": [
+          "labyrinth-scroll"
+        ],
+        "contracts": [
+          "contracts-browse"
+        ],
+        "spireClimb": [
+          "spire-climb"
+        ]
+      }
+    }
+  ]
 }

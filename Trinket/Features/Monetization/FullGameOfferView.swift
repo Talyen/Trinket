@@ -8,7 +8,7 @@ struct FullGameOfferView: View {
     @Environment(FullGameStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
-    let artworkName: String?
+    let artwork: FullGameOfferArtwork?
 
     var body: some View {
         DetailHeroScrollShell(title: "Full Game", heroHeightPolicy: .square) { height in
@@ -18,12 +18,7 @@ struct FullGameOfferView: View {
                 titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
                 baseHeight: height,
             ) {
-                if let artworkName {
-                    Image.preparedAsset(named: artworkName)
-                        .resizable()
-                        .scaledToFill()
-                        .decorativePreparedArtwork()
-                }
+                artwork
             } footer: {
                 EmptyView()
             }

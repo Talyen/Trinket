@@ -43,7 +43,9 @@ the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.
 
 `HeroHeaderLayout` and `DetailHeroScrollShell` share full-bleed 4:3 detail heroes,
 overscroll, and scrim blending. One geometry source drives header height and
-pinned-title opacity.
+pinned-title opacity. `DetailTraitRow` and `DetailHeroHeader` accept optional
+`DetailChangeIndicator` values for inline icons with explicit accessible meanings;
+features own the mapping from gameplay outcomes to those indicators.
 
 `Shine` owns text and border palettes; `ItemCard` falls back to rarity/Astral
 when no override is supplied. `displayTextShine` derives title colors
@@ -53,7 +55,9 @@ DesignSystem's `trinketShineText(colors:)`; source owns palette and motion tunin
 Apply `shineText` before fixed foreground fallbacks, including `trinketOnArtText`.
 Animated borders rasterize the static gradient before rotation and then mask it
 to the card outline. Keep the changing angle outside the drawing group to reuse
-the raster instead of redrawing an offscreen surface each frame.
+the raster instead of redrawing an offscreen surface each frame. Selected product
+cards draw a 3-point outline above the shine so selection remains distinct on
+Astral and corrupted gear.
 
 ## Frame diagnostics
 
@@ -63,11 +67,15 @@ the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.
 `FramePacingReport` retains tolerant decoding and the UI-test transport's supported
 schema compatibility.
 
-`FramePacingMeasurementTiming` shares snapshot and warmup timing between the app
-probe, Battle harness, and UI-test capture validation. `FramePacingReport.sampledDuration`
-derives the delivered interval total; optional `measurementDuration` carries
-monotonic reset-to-snapshot elapsed time for coverage validation. Older reports
-remain readable without that field but cannot establish measurement coverage.
+`FramePacingMeasurementTiming` owns sampler preparation timing; it never shortens
+production animations. `FramePacingMeasurementControl` connects the app probe and
+Battle harness without an upward package dependency. Interaction capture begins
+after readiness and finishes explicitly after the measured action and its visible
+tail. Schema 6 adds monotonic start/end boundaries and completion status; older
+reports remain readable but cannot establish complete interaction coverage.
+`sampledDuration` describes delivered intervals, while `measurementDuration`
+describes the entire capture window. The performance runner owns selection,
+coverage validation, and observation/enforcement policy.
 
 ## Equipment picker
 
