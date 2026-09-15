@@ -31,6 +31,37 @@ exact helper-tool versions for reproducibility in `Scripts/tool-versions.env`;
 merely to match Xcode's bundled Swift compiler. Toolchain selection is
 documented in [Scripts](../../Scripts/Reference.md#toolchain-ladder).
 
+## Apple skill references
+
+Two repository skills incorporate Apple's Xcode guidance:
+
+- [swiftui-specialist](../../.agents/skills/swiftui-specialist/SKILL.md): SwiftUI
+  implementation, observation, environment, identity, animation, and localization.
+- [swiftui-whats-new-27](../../.agents/skills/swiftui-whats-new-27/SKILL.md): SDK 27
+  migration diagnostics, new APIs, and their availability.
+
+The reference snapshot was exported with `xcrun agent skills export` from
+**Xcode 27.0, build 27A266a**, and incorporated on September 14, 2026. Entrypoints
+are adapted for Trinket. Technical references retain Apple's examples, with these
+local changes: `soft-deprecation.md` follows our existing change policy;
+`state-macro.md` replaces a generic preference question with preservation of wrapper
+behavior and corrects spelling; SDK 27 references use version numbers in place of
+upstream's inconsistent calendar-year labels. Imported Markdown whitespace is
+normalized.
+
+These are on-demand technical references, not additional product or workflow
+policy. [Documentation precedence](../README.md#policy-precedence), this page's
+platform choices, and the routed package contracts still apply. When a snapshot
+conflicts with the selected SDK, verify its public declarations and current Apple
+documentation before adopting a symbol or updating the reference.
+
+When refreshing for a new Xcode build, export to a temporary directory using
+`xcrun agent skills export --output-dir <temporary-directory>`. Compare only the
+two selected skills, review technical changes and local adaptations, then update
+the snapshot version here. Preserve the adapted entrypoints and migration scope;
+do not export directly over `.agents/skills/`. Validate skill frontmatter, local
+links, representative routing decisions, and the scoped documentation handoff.
+
 ## Design reference routing
 
 The September 14, 2026 review covered the design hub's main resource branches and

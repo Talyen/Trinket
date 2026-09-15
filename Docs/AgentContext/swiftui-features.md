@@ -8,6 +8,13 @@ support live in `Packages/TrinketFeatureSupport`. App and Play orchestration liv
 `Packages/TrinketAppState`; Battle owns its own context card and package. The app
 target composes these modules but packages never import the app.
 
+Use [swiftui-specialist](../../.agents/skills/swiftui-specialist/SKILL.md) for
+SwiftUI implementation correctness and update performance, and
+[swiftui-whats-new-27](../../.agents/skills/swiftui-whats-new-27/SKILL.md) for SDK 27
+migration or new APIs. Each routes to topic-specific Apple references; load only
+the relevant topic. [apple-design](../../.agents/skills/apple-design/SKILL.md)
+owns player-facing design procedure.
+
 Preserve first-screen artwork pins, launch prewarming, and mounted tab/battle
 surfaces. When changing artwork loading, launch covers, tab mounting, or first-frame
 performance, read [UI performance](ui-performance.md) before editing.

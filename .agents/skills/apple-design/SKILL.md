@@ -24,7 +24,11 @@ Read only references relevant to the change:
 | Screen critique or a new flow | [Foundations and process](foundations-and-process.md) |
 
 [SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md) owns
-feature integration rules. [Platform support](../../../Docs/Platform/ApplePlatformReference.md#platform-support)
+feature integration rules. Use [swiftui-specialist](../swiftui-specialist/SKILL.md)
+when the change involves SwiftUI state, identity, view structure, or update behavior;
+use [swiftui-whats-new-27](../swiftui-whats-new-27/SKILL.md) for SDK 27 migration
+or new APIs. Load only the technical reference relevant to the design change.
+[Platform support](../../../Docs/Platform/ApplePlatformReference.md#platform-support)
 owns adoption of current iOS APIs; the deployment target is a minimum, not a ceiling.
 [PD-014](../../../Docs/Product/Decisions.md)
 owns accessibility scope; retain existing accommodation behavior and use explicit
