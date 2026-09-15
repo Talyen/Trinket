@@ -182,6 +182,19 @@ extension UniqueCollectionTests {
         #expect(blockAmount(owner, in: context) == 7)
     }
 
+    @Test func `knights answer nested in an enemy action resolves after it`() throws {
+        let basic = Ability(id: "answer", name: "Answer", tier: .basic, effects: [.shield(.block, 3)])
+        var context = try battle(["the_knights_answer"], heroBasic: basic)
+        block(10, owner: .hero, in: &context)
+        let claw = Ability(id: "claw", name: "Claw", tier: .basic, directDamage: 5, damageKeyword: .physical)
+        let (events, performed) = BattleTurnEngine.performEnemyAction(
+            ability: claw, abilityTarget: context.hero, context: &context,
+        )
+        #expect(performed)
+        #expect(events.contains { $0.kind == .ability && $0.abilityID == "answer" })
+        #expect(context.uniques.pendingBlockAnswerOwners.isEmpty)
+    }
+
     @Test(arguments: [false, true])
     func `companion call skips unavailable companion`(defeated: Bool) throws {
         var context = try battle(["huntsmasters_call"])

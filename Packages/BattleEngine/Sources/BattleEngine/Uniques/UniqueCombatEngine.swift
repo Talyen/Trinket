@@ -107,6 +107,8 @@ package enum UniqueCombatEngine {
         for owner in [BattleParticipant.hero, .companion] {
             context.uniques.owners[owner, default: .init()].resetTurn()
         }
+        context.uniques.pendingCompanionSummons = 0
+        context.uniques.pendingBlockAnswerOwners = []
         return []
     }
 

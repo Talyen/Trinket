@@ -87,18 +87,21 @@ Everkeen retains one repeat per wearer per player turn but requires a Physical
 Critical Hit (earlier non-Physical Crits never spend the allowance). It reuses
 the triggering packet's outgoing magnitude and Critical multiplier against
 current defenses; it does not roll or multiply Critical damage again. The Final
-Spark repeats resolved damage components and their normal damage riders without
-another empowerment purchase or utility effects. Huntsmaster's Call triggers on
-the wearer's positive Bleed damage (including ongoing, once per player-turn
-cycle; claim before the Companion uses its equipped Basic Ability) with normal
-targeting, resource, control, and living restrictions; Companion attacks and
-reaction chains never recursively summon themselves. The Patient Edge prepares
+ Spark repeats resolved damage components and their normal damage riders without
+ another empowerment purchase or utility effects. Huntsmaster's Call triggers on
+ the wearer's positive Bleed damage (including ongoing, once per player-turn
+ cycle; claim before the Companion uses its equipped Basic Ability) with normal
+ targeting, resource, control, and living restrictions; Companion attacks and
+ reaction chains never recursively summon themselves. Summons owed by an
+ in-progress action resolve right after that action completes rather than
+ nesting inside its damage. The Patient Edge prepares
 the wearer's next ordinary attack to Critically Hit after Block actually absorbs
 attack damage (gaining Block alone and blocking ongoing damage never qualify;
 refresh not stack; persist until consumed or combat ends). The Knight's Answer
 uses full equipped Basic abilities, including utility effects, with normal
-targeting, resource requirements, and survival/control restrictions; they do
-not consume a deck card.
+ targeting, resource requirements, and survival/control restrictions; they do
+ not consume a deck card. Like Huntsmaster summons, answers owed by an
+ in-progress action resolve right after that action completes.
 
 ## Damage, status, and resource rules
 

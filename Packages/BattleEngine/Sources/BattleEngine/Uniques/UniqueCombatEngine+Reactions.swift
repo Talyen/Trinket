@@ -85,9 +85,16 @@ extension UniqueCombatEngine {
               context.modifiers(for: source.id).triggers.firstCriticalHitCompanionBasicPerTurn,
               context.uniques.owners[owner]?.calledCompanion != true
         else { return [] }
+        context.uniques.owners[owner, default: .init()].calledCompanion = true
+        // Defer while nested inside an action: a full Basic nested in damage
+        // resolution overflows small worker-thread stacks. The claim above
+        // already spent the once-per-turn allowance.
+        guard context.resolution.actionContext == nil else {
+            context.uniques.pendingCompanionSummons += 1
+            return []
+        }
         context.resolution.enter(.uniqueReaction)
         defer { context.resolution.leave(.uniqueReaction) }
-        context.uniques.owners[owner, default: .init()].calledCompanion = true
         return useBasic(owner: .companion, in: &context)
     }
 
@@ -102,6 +109,14 @@ extension UniqueCombatEngine {
               context.uniques.owners[owner]?.answeredBlock != true
         else { return [] }
         context.uniques.owners[owner, default: .init()].answeredBlock = true
+        // Same deferral as Huntsmaster's Call above: never nest a full Basic
+        // inside damage resolution.
+        guard context.resolution.actionContext == nil else {
+            if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
+                context.uniques.pendingBlockAnswerOwners.append(owner)
+            }
+            return []
+        }
         context.resolution.enter(.uniqueReaction)
         defer { context.resolution.leave(.uniqueReaction) }
         return useBasic(owner: owner, in: &context)
@@ -122,6 +137,22 @@ extension UniqueCombatEngine {
             origin: .counterattack,
             context: &context,
         )
+    }
+
+    static func drainPendingSummons(in context: inout BattleState) -> [ActionEvent] {
+        guard context.resolution.actionContext == nil,
+              context.uniques.pendingCompanionSummons > 0 || !context.uniques.pendingBlockAnswerOwners.isEmpty
+        else { return [] }
+        var events: [ActionEvent] = []
+        while context.uniques.pendingCompanionSummons > 0 {
+            context.uniques.pendingCompanionSummons -= 1
+            events.append(contentsOf: useBasic(owner: .companion, in: &context))
+        }
+        while !context.uniques.pendingBlockAnswerOwners.isEmpty {
+            let owner = context.uniques.pendingBlockAnswerOwners.removeFirst()
+            events.append(contentsOf: useBasic(owner: owner, in: &context))
+        }
+        return events
     }
 
     static func repeatHit(

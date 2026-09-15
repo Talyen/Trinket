@@ -50,4 +50,10 @@ package struct UniqueBattleState {
     var owners: [BattleParticipant: OwnerState] = [:]
     var card: CardPlay?
     var retainedStunByEffectID: [Int: Int] = [:]
+    // Out-of-turn summons owed by Huntsmaster's Call (always the Companion's
+    // Basic) and Knight's Answer defenses. Recorded during damage resolution
+    // and drained once the triggering action completes, so a full Basic never
+    // nests inside the damage pipeline on small worker-thread stacks.
+    var pendingCompanionSummons = 0
+    var pendingBlockAnswerOwners: [BattleParticipant] = []
 }

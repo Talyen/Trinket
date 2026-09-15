@@ -82,7 +82,30 @@ extension UniqueCollectionTests {
         }
         let next = try play(attack(keyword), critical: true, in: &context)
         #expect(!next.contains { $0.abilityName == "Everkeen" })
-        #expect(!next.contains { $0.kind == .ability && $0.actorID == context.companion.id })
+        if item == "everkeen" {
+            #expect(!next.contains { $0.kind == .ability && $0.actorID == context.companion.id })
+        } else {
+            // The first qualifying Bleed of the turn summons the Companion (the
+            // summon resolves after the triggering action completes).
+            #expect(next.contains { $0.kind == .ability && $0.actorID == context.companion.id })
+            // A further Bleed does not summon again (once per turn).
+            let third = try play(attack(keyword), critical: true, in: &context)
+            #expect(!third.contains { $0.kind == .ability && $0.actorID == context.companion.id })
+        }
+    }
+
+    @Test func `hunt call summons immediately outside actions`() throws {
+        var context = try battle(["huntsmasters_call"])
+        // Direct damage with no action on the stack resolves the summon inline.
+        let outcome = context.resolveDamage(DamageRequest(
+            amount: 5,
+            target: context.enemy,
+            keyword: .bleed,
+            sourceActorID: context.hero.id,
+            options: .attack(tier: .basic, scaling: .statsAndItems, accuracy: .unavoidable),
+        ))
+        #expect(outcome.events.contains { $0.kind == .ability && $0.actorID == context.companion.id })
+        #expect(context.uniques.pendingCompanionSummons == 0)
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])
