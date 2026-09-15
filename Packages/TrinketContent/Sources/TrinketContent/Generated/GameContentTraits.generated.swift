@@ -16,9 +16,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "mimic_trait",
             name: "Mimic",
-            description: "Deals double damage on the first attack.",
+            description: "Its first attack deals 2 additional Bleed damage.",
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(firstHitDoubleDamage: true))
+            triggers: CombatTraitTriggers(damage: DamageTriggers(firstAttackBleedBonus: 2))
         ))
         list.append(CombatantTraitDefinition(
             id: "mud_elemental_trait",

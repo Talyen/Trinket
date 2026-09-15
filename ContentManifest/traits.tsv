@@ -1,6 +1,6 @@
 id	name	description	modifiers	triggers
 living_armor_trait	Living Armor	Gains 1 Block each turn. Reduce Bleed damage taken by 30%.	damage_taken_percent:bleed:0.30	block_per_turn:1
-mimic_trait	Mimic	Deals double damage on the first attack.		first_hit_double_damage:1
+mimic_trait	Mimic	Its first attack deals 2 additional Bleed damage.		firstAttackBleedBonus:2
 mud_elemental_trait	Mud Elemental	Physical and Poison damage taken reduced by 20%.	damage_taken_percent:physical:0.20|damage_taken_percent:poison:0.20	
 necromancer_trait	Necromancer	10% chance to Leech. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	leech_chance:0.10
 plague_doctor_trait	Plague Doctor	Poison damage taken reduced by 30%.	damage_taken_percent:poison:0.30	

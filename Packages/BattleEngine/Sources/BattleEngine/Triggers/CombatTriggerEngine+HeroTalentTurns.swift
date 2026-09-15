@@ -37,11 +37,6 @@ extension CombatTriggerEngine {
 
     static func afterHeroTalentEnemyTurn(in context: inout BattleState) -> [ActionEvent] {
         context.heroTalents.enemyTurnActive = false
-        let companion = context.roster.companion
-        if companion.isAlive, context.companionModifiers.triggers.shadowCamouflage,
-           !context.heroTalents.attackedDuringEnemyTurn.contains(companion.id) {
-            context.roster.mutateRuntime(for: companion.combatant) { $0.talents.pending.shadowCamouflageBonus = 1 }
-        }
         let actor = context.roster.hero.combatant
         guard context.heroModifiers.triggers.quietGrove,
               !context.heroTalents.healthLostDuringEnemyTurn.contains(actor.id) else { return [] }

@@ -35,19 +35,19 @@ identifiers use underscores.
 |---|---|---|
 | Double Axe | The Unclosing Wound | Your Bleed continues after its normal duration, halving in potency each additional turn. |
 | Maul | Kingbreaker | Your Stun damage ignores enemy Block and gains damage equal to that Block. |
-| Greatsword | Everkeen | Once per turn, your first Critical Hit strikes again. |
+| Greatsword | Everkeen | Your first Physical Critical Hit each turn strikes again. |
 | Hatchet | Red Harvest | Once per turn, an attack card you play against a Bleeding enemy returns to your hand. |
 | Longsword | Oathkeeper | Your Physical damage bonuses also strengthen Holy damage. |
-| Shortsword | The Patient Edge | Your first attack each turn deals +2 damage if your partner has already played a card. |
+| Shortsword | The Patient Edge | Blocking an attack makes your next attack Critically Hit. |
 | Dagger | Viper’s Courtesy | After Dodging, your next hit deals additional Poison and Bleed damage, each equal to half its damage. |
 | Mace | The Lingering Bell | Stunning an enemy preserves a quarter of the Stun buildup that triggered it. |
-| Longbow | Huntsmaster’s Call | Your first Critical Hit each turn makes your Companion use its Basic Ability. |
+| Longbow | Huntsmaster’s Call | Your Bleed damage triggers your Companion's Basic Ability once per turn. |
 | Shortbow | Wrenflight | Playing your second card each turn draws a card and grants 10% Dodge until your next turn. |
-| Recurve Bow | The Returning Gale | The third card you play each turn returns to your hand after resolving. |
+| Recurve Bow | The Returning Gale | Dodging returns the last card you played to your hand. |
 | Wand | The Final Spark | Once per turn, spending your last Mana to empower a Burn or Freeze card repeats its damage. |
 | Leather Buckler | Laughing Guard | Keep Block between turns. Dodging spends half your Block to deal that much Physical damage. |
 | Kite Shield | The Knight’s Answer | The first time each turn your Block absorbs attack damage, immediately use your Basic ability. |
-| Quiver | The Returning Flight | At turn start, recover your last attack card from the previous turn, if it remains in your deck. |
+| Quiver | The Returning Flight | Your first Physical card each turn returns to your hand. |
 | Spellbook | Threefold Grace | Your first Burn, Freeze, and Holy card each turn each draw a card. |
 | Ruby Amulet | Bloodember Pendant | Burn and Bleed share their damage bonuses. |
 | Sapphire Ring | Winter’s Credit | When empowering a Freeze card, spend 3 Block per missing Mana. |
@@ -67,24 +67,38 @@ end. Once-per-turn allowances reset for each wearer at the next player turn.
 Card returns move abilities instead of creating deck copies. Finish the played
 card's effects and on-play draws before returning it. The existing visible hand
 and FIFO buffer both accept returned cards. Red Harvest checks Bleed at the
-start of the play. The Returning Flight recovers from the wearer's deck before
-normal turn draws and does nothing if the card is already held or absent.
-The Patient Edge checks whether the partner has played an ordinary card before
-the wearer's first attack that turn. Attacking first forfeits that turn's bonus;
-non-attacking cards do not consume the opportunity. It adds damage to one
-original enemy-directed hit, with normal mitigation and critical multiplication,
-and does not add the bonus to repeated hits. Auto Battle plays count; triggered
-abilities do not. Existing saved signatures resolve to the new rule while
-preserving their magnitude. Threefold Grace grants one draw for each new
-matching elemental allowance, including multiple draws for a mixed card.
+start of the play. The Returning Flight returns the wearer's first played
+Physical card each player turn after effects and on-play draws (count Physical
+via shared card identity; claim before returning so replaying cannot return
+again; move the actual card, never cycle into the deck). The Returning Gale
+tracks the wearer's last ordinary card play (including non-damaging; automatic
+abilities never replace it) through the enemy turn. On the wearer's Dodge, move
+that exact ability from its deck back to hand via normal card-return rules (do
+nothing if already held/buffered, absent, or unavailable; repeated Dodges create
+no copies). The hand survives into the next player turn (visible or buffered,
+FIFO preserved) through normal turn-start draws. The two card-return signatures
+work together without duplicating the same ability. Existing saved signatures
+resolve to the new rules (Patient Edge held-card/partner-damage fields migrate
+to Block-prepares-Crit; Loyal Companion per-turn fields migrate to heal-draw).
+Threefold Grace grants one draw for each new matching elemental allowance,
+including multiple draws for a mixed card.
 
-Everkeen reuses the triggering packet's outgoing magnitude and Critical
-multiplier against current defenses; it does not roll or multiply Critical
-damage again. The Final Spark repeats resolved damage components and their
-normal damage riders without another empowerment purchase or utility effects.
-Huntsmaster's Call and The Knight's Answer use full equipped Basic abilities,
-including utility effects, with normal targeting, resource requirements, and
-survival/control restrictions; they do not consume a deck card.
+Everkeen retains one repeat per wearer per player turn but requires a Physical
+Critical Hit (earlier non-Physical Crits never spend the allowance). It reuses
+the triggering packet's outgoing magnitude and Critical multiplier against
+current defenses; it does not roll or multiply Critical damage again. The Final
+Spark repeats resolved damage components and their normal damage riders without
+another empowerment purchase or utility effects. Huntsmaster's Call triggers on
+the wearer's positive Bleed damage (including ongoing, once per player-turn
+cycle; claim before the Companion uses its equipped Basic Ability) with normal
+targeting, resource, control, and living restrictions; Companion attacks and
+reaction chains never recursively summon themselves. The Patient Edge prepares
+the wearer's next ordinary attack to Critically Hit after Block actually absorbs
+attack damage (gaining Block alone and blocking ongoing damage never qualify;
+refresh not stack; persist until consumed or combat ends). The Knight's Answer
+uses full equipped Basic abilities, including utility effects, with normal
+targeting, resource requirements, and survival/control restrictions; they do
+not consume a deck card.
 
 ## Damage, status, and resource rules
 

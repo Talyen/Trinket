@@ -71,6 +71,7 @@ package extension DamagePipeline {
     ) {
         if let sourceID = state.sourceActorID, let source = context.roster.combatant(for: sourceID) {
             applyAdditionalHolyDamage(state.additionalHolyDamage, to: &state, source: source.combatant, in: &context)
+            applyAdditionalPhysicalDamage(state.additionalPhysicalDamage, to: &state, source: source.combatant, in: &context)
         }
         guard let sourceRuntime = state.partySource(in: context),
               let keyword = state.damageKeyword
@@ -426,6 +427,17 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
+        if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunDamage > 0,
+           state.options.isAttackHit, !state.options.isRetaliation, targetAlive,
+           BattleChance.succeeds(probability: triggers.dazingSwipeChancePercent, using: &context.rng) {
+            state.damageEvents.append(contentsOf: resolveRetaliation(
+                amount: triggers.dazingSwipeStunDamage,
+                keyword: .stun,
+                target: target,
+                sourceActorID: sourceActorID,
+                in: &context,
+            ).events)
+        }
         if triggers.attackApplyBleed > 0, state.options.qualifiesForAmbush, targetAlive {
             state.damageEvents.append(contentsOf: appendBleed(
                 potency: triggers.attackApplyBleed,
@@ -472,6 +484,27 @@ package extension DamagePipeline {
             source: source.combatant,
             in: &context,
         ))
+        // Man's Best Friend: damaging Hero Critical Hits restore Health to each living ally.
+        if source.combatant.role == .hero,
+           context.roster.companion.isAlive,
+           context.companionModifiers.triggers.heroCritHealPartyFlat > 0 {
+            let amount = context.companionModifiers.triggers.heroCritHealPartyFlat
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                guard member.isAlive else { continue }
+                state.damageEvents.append(contentsOf: context.healEmitting(
+                    amount: amount,
+                    target: member.combatant,
+                    source: source.combatant,
+                    abilityName: CombatTriggerEngine.triggerAbilityName(
+                        "heroCritHealPartyFlat",
+                        for: context.roster.companion.combatant,
+                        fallback: "Man's Best Friend",
+                        in: context,
+                    ),
+                ))
+            }
+        }
     }
 
     static func applyHolyStunReactions(

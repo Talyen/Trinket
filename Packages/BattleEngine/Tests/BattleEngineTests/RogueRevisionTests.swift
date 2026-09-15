@@ -24,7 +24,7 @@ struct RogueRevisionTests {
         return battle
     }
 
-    @Test func `sap arrow grants gold against a stunned enemy`() throws {
+    @Test func `bandits arrow steals gold unconditionally`() throws {
         var battle = battleWithHandCard(
             .sapArrow,
             activeEnemyEffects: [
@@ -35,22 +35,22 @@ struct RogueRevisionTests {
                 ),
             ],
         )
-        _ = try BattleTestFixtures.playCardNamed("Sap Arrow", owner: .hero, on: &battle)
+        _ = try BattleTestFixtures.playCardNamed("Bandit's Arrow", owner: .hero, on: &battle)
         try #expect(battle.gold == 2)
     }
 
-    @Test func `sap arrow grants gold when it stuns the enemy itself`() throws {
+    @Test func `bandits arrow steals gold when it stuns the enemy itself`() throws {
         var battle = battleWithHandCard(.sapArrow, enemyMaxHealth: 10)
-        _ = try BattleTestFixtures.playCardNamed("Sap Arrow", owner: .hero, on: &battle)
+        _ = try BattleTestFixtures.playCardNamed("Bandit's Arrow", owner: .hero, on: &battle)
         try #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
         try #expect(battle.gold == 2)
     }
 
-    @Test func `sap arrow grants no gold when the enemy stays unstunned`() throws {
+    @Test func `bandits arrow steals gold even when the enemy stays unstunned`() throws {
         var battle = battleWithHandCard(.sapArrow)
-        _ = try BattleTestFixtures.playCardNamed("Sap Arrow", owner: .hero, on: &battle)
+        _ = try BattleTestFixtures.playCardNamed("Bandit's Arrow", owner: .hero, on: &battle)
         try #expect(!(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun)))
-        try #expect(battle.gold == 0)
+        try #expect(battle.gold == 2)
     }
 
     @Test func `coinmail converts combat gold into block`() throws {

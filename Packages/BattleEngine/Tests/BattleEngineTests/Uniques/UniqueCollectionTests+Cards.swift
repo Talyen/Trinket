@@ -21,8 +21,8 @@ extension UniqueCollectionTests {
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])
-    func `wrenflight and gale count only wearers ordinary cards`(owner: BattleParticipant) throws {
-        var context = try battle(["wrenflight", "the_returning_gale"], owner: owner)
+    func `wrenflight counts only wearers ordinary cards`(owner: BattleParticipant) throws {
+        var context = try battle(["wrenflight"], owner: owner)
         let other: BattleParticipant = owner == .hero ? .companion : .hero
         let draw = attack(id: "drawn")
         if owner == .hero {
@@ -38,15 +38,13 @@ extension UniqueCollectionTests {
         _ = try context.withAutomaticPlay { context in
             try play(attack(id: "automatic"), owner: owner, in: &context)
         }
-        let third = try play(attack(.holy, id: "third"), owner: owner, in: &context)
-        #expect(third.contains { $0.abilityName == "The Returning Gale" })
-        #expect(context.hand.cards.contains { $0.ability.id == "third" })
-        let fourth = try play(attack(id: "fourth"), owner: owner, in: &context)
-        #expect(!fourth.contains { $0.abilityName == "The Returning Gale" })
-        #expect(context.uniques.owners[owner]?.cardsPlayed == 4)
+        // Automatic plays do not advance the wearer's ordinary card count.
+        try #expect(context.uniques.owners[owner]?.cardsPlayed == 2)
         _ = UniqueCombatEngine.startTurn(in: &context)
         #expect(context.uniques.owners[owner]?.wrenflightDodge == 0)
         #expect(context.uniques.owners[owner]?.cardsPlayed == 0)
+        // The Returning Gale third-card rule is retired; Dodge-triggered returns are covered
+        // by ReturningGaleRegressionTests (ordinary vs automatic, non-damaging, FIFO, no duplicates).
     }
 
     @Test func `card return uses buffer after draws without deck copy`() throws {
@@ -65,97 +63,14 @@ extension UniqueCollectionTests {
         #expect(context.heroDeck.isEmpty)
     }
 
-    @Test func `returning flight recovers before ordinary turn draws`() throws {
-        var context = try battle(["the_returning_flight"])
-        let strike = attack(id: "last")
-        context.heroDeck = CombatDeck(abilities: [attack(id: "ordinary")])
-        try play(strike, in: &context)
-        let events = BattleCardCombatEngine.endTurnWithoutDraw(context: &context)
-        #expect(events.contains { $0.abilityName == "The Returning Flight" })
-        #expect(context.hand.cards.map(\.ability.id) == ["last"])
-        #expect(context.heroDeck.abilities.map(\.id) == ["ordinary"])
-        #expect(BattleCardCombatEngine.drawNextTurnStartCard(context: &context))
-        #expect(context.hand.cards.map(\.ability.id) == ["last", "ordinary"])
-        _ = BattleCardCombatEngine.finalizeTurnStart(context: &context)
-        #expect(context.uniques.owners[.hero]?.lastAttack == nil)
-    }
+    // The Returning Flight turn-start recovery rule is retired (replaced by immediate
+    // first-Physical return). Coverage survives in ReturningGaleRegressionTests
+    // (`flight returns first physical once and moves without deck cycle`,
+    // `gale and flight together do not duplicate`).
 
-    @Test func `returning flight does not duplicate harvest return or missing card`() throws {
-        for inHand in [true, false] {
-            var context = try battle(["the_returning_flight", "red_harvest"])
-            context.appendEffect(.bleed(1), to: context.roster.enemy.combatant, sourceID: context.roster.hero.id, remainingTurns: 2)
-            try play(attack(id: "last"), in: &context)
-            if !inHand {
-                context.hand = BattleHand()
-            }
-            let count = context.hand.totalCount
-            let events = UniqueCombatEngine.startTurn(in: &context)
-            #expect(events.isEmpty)
-            #expect(context.hand.totalCount == count)
-        }
-    }
-
-    @Test(arguments: [BattleParticipant.hero, .companion])
-    func `patient edge rewards partner first on only one original hit`(owner: BattleParticipant) throws {
-        var context = try battle(["the_patient_edge"], owner: owner)
-        let partner: BattleParticipant = owner == .hero ? .companion : .hero
-        let setup = Ability(id: "setup", name: "Setup", tier: .skill, effects: [.shield(.block, 1)])
-        try play(setup, owner: owner, in: &context)
-        try play(setup, owner: partner, in: &context)
-        let ability = Ability(
-            id: "two",
-            name: "two",
-            tier: .basic,
-            damageComponents: [DamageComponent(10, keyword: .holy), DamageComponent(10, keyword: .physical)],
-            criticalChanceBonus: -1,
-        )
-        let before = context.roster.enemy.currentHealth
-        try play(ability, owner: owner, in: &context)
-        #expect(before - context.roster.enemy.currentHealth == 22)
-        try play(attack(), owner: owner, in: &context)
-        #expect(before - context.roster.enemy.currentHealth == 32)
-    }
-
-    @Test func `patient edge forfeits early attack and resets next turn`() throws {
-        var context = try battle(["the_patient_edge"])
-        let before = context.roster.enemy.currentHealth
-        try play(attack(), in: &context)
-        try play(attack(), owner: .companion, in: &context)
-        try play(attack(), in: &context)
-        #expect(before - context.roster.enemy.currentHealth == 30)
-        _ = UniqueCombatEngine.startTurn(in: &context)
-        try play(attack(), owner: .companion, in: &context)
-        try play(attack(), in: &context)
-        #expect(before - context.roster.enemy.currentHealth == 52)
-    }
-
-    @Test func `patient edge ignores automatic partner actions and wearer attacks`() throws {
-        var context = try battle(["the_patient_edge"])
-        _ = try context.withAutomaticPlay { context in
-            try play(attack(), owner: .companion, in: &context)
-            return try play(attack(), in: &context)
-        }
-        #expect(context.uniques.owners[.hero]?.hasAttacked != true)
-        let before = context.roster.enemy.currentHealth
-        try play(attack(), in: &context)
-        #expect(before - context.roster.enemy.currentHealth == 10)
-    }
-
-    @Test func `patient edge bonus is not copied by a critical repeat`() throws {
-        var extra = CombatModifierProfile.zero
-        extra.triggers.firstCriticalHitRepeatsPerTurn = true
-        var context = try battle(["the_patient_edge"], extra: extra)
-        try play(attack(), owner: .companion, in: &context)
-        let before = context.roster.enemy.currentHealth
-        try play(attack(), critical: true, in: &context)
-        let withEdge = before - context.roster.enemy.currentHealth
-        var control = try battle([], extra: extra)
-        try play(attack(), owner: .companion, in: &control)
-        let controlBefore = control.roster.enemy.currentHealth
-        try play(attack(), critical: true, in: &control)
-        let criticalBonus = CombatRounding.scaled(2, multiplier: 2)
-        #expect(withEdge - (controlBefore - control.roster.enemy.currentHealth) == criticalBonus)
-    }
+    // The Patient Edge partner-damage rule is retired (replaced by Block-prepares-Crit).
+    // Coverage survives in KeywordCohesionMechanicsTests
+    // (`patient edge block prepares crit and refreshes`).
 
     @Test func `threefold grace uses each matching element once without drawing resolving card`() throws {
         var context = try battle(["threefold_grace"])
@@ -224,8 +139,10 @@ extension UniqueCollectionTests {
             : AbilityOutcomeBranch(effects: [.instantHeal(.health, 1)])
         let ability = Ability(id: "random", name: "Random", tier: .basic, outcomeBranches: [branch])
         try play(ability, in: &context)
+        // Red Harvest returns damaging attacks vs Bleeding immediately (any damage, including Holy).
+        // The Returning Flight returns only Physical cards (Holy does not qualify).
         #expect(context.hand.cards.contains { $0.ability.id == "random" } == dealsDamage)
-        #expect((context.uniques.owners[.hero]?.lastAttack?.id == "random") == dealsDamage)
+        #expect((context.uniques.owners[.hero]?.returnedFlightThisTurn ?? false) == false)
     }
 
     @Test(arguments: ["red_harvest", "the_returning_flight"])
@@ -235,10 +152,13 @@ extension UniqueCollectionTests {
         let card = Ability.blizzard
         try play(card, in: &context)
         if itemID == "the_returning_flight" {
+            // The Returning Flight returns only Physical cards; Blizzard (Freeze) cycles to the deck.
             #expect(context.hand.isEmpty)
-            _ = UniqueCombatEngine.startTurn(in: &context)
+            #expect(context.heroDeck.abilities.map(\.id) == [card.id])
+        } else {
+            // Red Harvest returns damaging attacks vs Bleeding (including Freeze damage effects) immediately.
+            #expect(context.hand.cards.map(\.ability.id) == [card.id])
+            #expect(context.heroDeck.isEmpty)
         }
-        #expect(context.hand.cards.map(\.ability.id) == [card.id])
-        #expect(context.heroDeck.isEmpty)
     }
 }

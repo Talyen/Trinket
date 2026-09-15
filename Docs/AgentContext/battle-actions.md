@@ -55,7 +55,8 @@ unable to play, or has no card to draw. Other draw-and-play effects retain their
 own target and alternating-deck rules.
 
 Unique card returns move the played ability to hand instead of also cycling it
-into the deck; turn-start recovery runs before normal draws. Ordinary card plays
+into the deck; Dodge-triggered Gale returns move the tracked ability from deck
+to hand (hand/buffer FIFO preserved across the turn change). Ordinary card plays
 own Unique allowances, while automatic abilities and damage repeats cannot
 consume them. Full item and interaction rules live in
 [Unique equipment](../Product/UniqueItems.md).

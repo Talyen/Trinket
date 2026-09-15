@@ -24,8 +24,32 @@ struct UniqueCatalogTests {
     }
 
     @Test func `unique affix keywords stay within base affinities`() {
+        // Thematic Keyword Cohesion signatures use Bleed, Block, and Dodge for
+        // hunting, patient defense, and evasive movement, even when the base
+        // weapon affinities do not include Block or Dodge. Supports remain
+        // within base affinities; only the bespoke signatures below are exempt.
+        // Beastbond's affinity moves from Health to Physical per the plan, while
+        // Wildheart's Favor keeps beastbond as a supporting power on an
+        // Emerald Amulet (health,poison) base.
+        let signatureExceptions: [String: Set<Keyword>] = [
+            "the_patient_edge": [.block],
+            "the_returning_gale": [.dodge],
+        ]
+        let supportExceptions: [String: Set<String>] = [
+            "wildhearts_favor": ["beastbond"],
+        ]
         for item in GameContent.uniqueItems {
             for affix in item.affixes {
+                if affix.id == item.id, let allowed = signatureExceptions[item.id] {
+                    #expect(
+                        affix.keywords.isSubset(of: item.baseType.keywordAffinities.union(allowed)),
+                        "\(item.id): \(affix.id) keywords outside \(item.baseType.id) affinities",
+                    )
+                    continue
+                }
+                if let allowedAffixes = supportExceptions[item.id], allowedAffixes.contains(affix.id) {
+                    continue
+                }
                 #expect(
                     affix.keywords.isSubset(of: item.baseType.keywordAffinities),
                     "\(item.id): \(affix.id) keywords outside \(item.baseType.id) affinities",

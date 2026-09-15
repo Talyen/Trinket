@@ -52,7 +52,7 @@ wizard_mana_t1_2	Mana Shield	sf:shield.fill	At the end of your turn, gain 1 Bloc
 wizard_mana_t2_1	Overcharge	sf:bolt.fill	When you spend 3 Mana to empower a card, your next card deals 35% more damage.		spendManaEmpowerNextCardThreshold:3|nextCardEmpowerPercent:0.35
 wizard_mana_t2_2	Arcane Cleansing	sf:sparkles	Spending Mana removes equal Burn or Poison from you.		spendManaRemovesAfflictions:true
 wizard_mana_t3_1	Arcane Surge	sf:wand.and.stars	Starting your turn at full Mana draws 2 cards.		startTurnFullManaDrawCards:2
-wizard_mana_t3_2	Spell Echo	sf:repeat	Skills you empower play twice.		empoweredSkillEchoes:true
+wizard_mana_t3_2	Spell Echo	sf:repeat	Skills empowered with Mana play twice.		empoweredSkillEchoes:true
 ranger_poison_t1_1	Venomous Arrows	sf:figure.archery	Basic attacks deal 2 Poison damage.		attacksApplyPoison:2
 ranger_poison_t1_2	Paralytic Poison	sf:tortoise.fill	Poisoned enemies have a 15% chance to miss their attacks.		poisonedEnemyMissChancePercent:0.15
 ranger_poison_t2_1	Prey on the Weak	sf:pawprint.fill	Companion attacks against Poisoned enemies deal 2 additional damage.		companionDamageVsPoisonedBonus:2
@@ -89,11 +89,11 @@ warlock_mana_t2_1	Eldritch Shield	sf:shield.lefthalf.filled	Spending Mana grants
 warlock_mana_t2_2	Hexing Rune	sf:atom	Spending Mana deals 1 Bleed, Burn, or Poison damage to a random enemy.		onHeroSpendManaApplyRandomAffliction:true
 warlock_mana_t3_1	Chaos Rift	sf:burst.fill	Spending Mana deals equal damage across two random elements.		spendManaRandomElementDamage:true
 warlock_mana_t3_2	Life Tap	sf:heart.fill	Gaining Mana restores 2 Health.		onGainManaHealFlat:2
-bear_block_t1_1	Thick Hide	sf:shield.fill	Take 2 less damage from all hits.		passiveMitigationFlat:2
+bear_block_t1_1	Thick Hide	sf:shield.fill	Take 2 less Physical damage from each hit.		passivePhysicalMitigationFlat:2
 bear_block_t1_2	Hibernation	sf:moon.fill	Restore 2 Health if you end your turn with Block.		endTurnWithBlockHealFlat:2
 bear_block_t2_1	Grizzly Guard	sf:shield.lefthalf.filled	When Bear takes damage, grant 2 Block to the Hero.		onCompanionTakeDamageGrantHeroBlock:2
 bear_block_t2_2	Tough Pelt	sf:checkmark.shield.fill	Bear takes 50% less Bleed damage.		bleedResistance:0.5
-bear_block_t3_1	Ironhide	sf:lock.shield.fill	Bear cannot take more than 12 damage in a single hit.		maxDamagePerHitCap:12
+bear_block_t3_1	Ironhide	sf:lock.shield.fill	Lose at most 12 Health per hit.		maxDamagePerHitCap:12
 bear_block_t3_2	Vital Armor	sf:heart.fill	Gain 1 Max Health for every 5 Block gained in combat (up to +10 Max Health).		blockGainedMaxHealthEvery:5
 bear_physical_t1_1	Shield Breaker	sf:shield.slash.fill	Physical attacks deal double damage to enemy Block.		physicalBlockBreakMultiplier:2
 bear_physical_t1_2	Primal Rage	sf:flame.fill	Deal 1 additional damage for every 10 missing Health.		damagePerMissingHealthEvery:10
@@ -102,7 +102,7 @@ bear_physical_t2_2	Heavy Impact	sf:hammer.fill	Physical attacks ignore half of e
 bear_physical_t3_1	Enrage	sf:flame.fill	While Bear is below half Health, party attacks deal 3 additional damage.		partyAllStatsBonusBelowHealthThreshold:0.5|partyAllStatsBonusBelowHealthAmount:3
 bear_physical_t3_2	Pulverize	sf:hammer.fill	The first Physical attack each turn deals 1 Bleed and 1 Stun damage.		firstPhysicalBleedStunPerTurn:true
 bear_stun_t1_1	Ground Slam	sf:hammer.fill	Physical attacks deal 1 Stun damage.		physicalAttackFlatStunBuildup:1
-bear_stun_t1_2	Dazing Swipe	sf:pawprint.fill	Attacks have a 25% chance to delay the enemy's turn.		attackDelayEnemyTurnChancePercent:0.25
+bear_stun_t1_2	Dazing Swipe	sf:pawprint.fill	Attacks have a 25% chance to deal 3 Stun damage.		dazingSwipeChancePercent:0.25|dazingSwipeStunDamage:3
 bear_stun_t2_1	Shockwave	sf:waveform	Stunning an enemy deals 3 Physical damage to them.		stunDealPhysicalFlat:3
 bear_stun_t2_2	Deep Stun	sf:hourglass.bottomhalf.filled	Stun has a 20% chance to last an additional turn.		stun_extend_chance_percent:0.20
 bear_stun_t3_1	Exposed Prey	sf:scope	Stunned enemies take 50% additional damage from Hero cards.		heroDamageVsStunnedMultiplier:1.5
@@ -155,11 +155,11 @@ panther_leech_t2_1	Vitality Infusion	sf:heart.fill	Leeching Health restores 1 Ma
 panther_leech_t2_2	Sanguine Growth	sf:leaf.fill	Excess Health restored from Leech grants a +1 damage bonus for combat (up to +4).		leechOverhealDamageBonus:1
 panther_leech_t3_1	Frenzied Feeding	sf:eyedropper	Leeching from Poisoned or Bleeding enemies doubles the Health restored.		leechHealingVsAfflictedMultiplier:2
 panther_leech_t3_2	Pack Bloodlust	sf:pawprint.fill	While Panther is above 80% Health, party gains +10% Critical Hit chance.		partyCritChanceWhileCompanionAboveHealthThreshold:0.8|partyCritChanceWhileCompanionAboveHealthBonus:0.10
-panther_dodge_t1_1	Surprise Strike	sf:burst.fill	Gain +15% Critical Hit chance.		criticalChanceBonus:0.15
+panther_dodge_t1_1	Surprise Strike	sf:burst.fill	Your first Physical attack each combat always Critically Hits.		firstPhysicalAttackGuaranteedCritical:true
 panther_dodge_t1_2	Counter Pounce	sf:pawprint.fill	Dodging an attack counters immediately for 3 damage.		onDodgeCounterDamage:3
 panther_dodge_t2_1	Survival Instinct	sf:wind	Gain +25% Dodge chance while below 30% Health.		dodgeChanceBelowHealthPercentThreshold:0.3|dodgeChanceBelowHealthPercentBonus:0.25
 panther_dodge_t2_2	Stalker's Precision	sf:scope	Each Dodge increases your Critical Hit damage by half, up to double.		critMultiplierPerDodge:0.5
-panther_dodge_t3_1	Shadow Camouflage	sf:eye.slash.fill	If Panther isn’t attacked during the enemy turn, its next attack deals 1 additional damage.		shadowCamouflage:true
+panther_dodge_t3_1	Shadow Camouflage	sf:eye.slash.fill	Playing a non-damaging card makes you Dodge the next attack.		shadowCamouflage:true
 panther_dodge_t3_2	Vanish	sf:eye.slash.fill	After Dodging, your next attack is a guaranteed Critical Hit.		onDodgeNextAttackGuaranteedCritical:true
 phoenix_burn_t1_1	Blazing Feathers	sf:bird.fill	Attackers take 2 Burn damage when hitting Phoenix.		onHitAttackerBurn:2
 phoenix_burn_t1_2	Ignition Spark	sf:sparkles	Burn has a 25% chance to increase instead of decrease.		burnIncreaseChancePercent:0.25
@@ -203,16 +203,16 @@ golden_retriever_gold_t2_1	Haggler	sf:circle.circle.fill	All Gold you gain in co
 golden_retriever_gold_t2_2	Golden Guard	sf:shield.fill	While carrying 10 or more Gold, gain 2 Block at the start of each round.		blockWhileGoldThreshold:10|blockWhileGoldAmount:2
 golden_retriever_gold_t3_1	Fetch!	sf:dog.fill	Gain 2 Gold when an enemy plays an ability.		onEnemyAbilityGold:2
 golden_retriever_gold_t3_2	Treasure Hoard	sf:circle.circle.fill	While you have 50 or more Gold, the party gains +10% Critical Hit chance.		partyCritChanceWhileGoldAbove:50|partyCritChanceWhileGoldAboveBonus:0.10
-golden_retriever_block_t1_1	Guardian	sf:shield.fill	Absorb 2 damage whenever the Hero is attacked.		absorbHeroDamageFlat:2
+golden_retriever_block_t1_1	Guardian	sf:shield.fill	Grant the Hero 2 Block before they are attacked.		guardianHeroBlockFlat:2
 golden_retriever_block_t1_2	Watchful Eye	sf:eye.fill	Start each battle with 3 Block.		startBattleBlock:3
 golden_retriever_block_t2_1	Shield Bond	sf:link	Whenever Retriever gains Block, the Hero gains equal Block.		companionBlockSharesToHeroPercent:1
-golden_retriever_block_t2_2	Warning Bark	sf:waveform	Negate the first enemy attack of each combat.		negateFirstEnemyAttack:true
+golden_retriever_block_t2_2	Warning Bark	sf:waveform	Your party Dodges the first enemy attack each combat.		negateFirstEnemyAttack:true
 golden_retriever_block_t3_1	Sacrificial Guard	sf:heart.fill	When the Hero would die, Retriever takes that hit instead and gains 10 Block.		companionFatalDamageRedirectBlock:10
 golden_retriever_block_t3_2	Steadfast	sf:lock.shield.fill	While holding Block, Stun and Freeze on Retriever are halved, and Burn damage taken is halved.		blockedControlBurnResistance:0.5
 golden_retriever_health_t1_1	Cheer Up	sf:face.smiling.fill	Restore 1 Health to the lowest Health ally at end of turn.		endOfTurnHealLowestAlly:1
 golden_retriever_health_t1_2	Playful Energy	sf:bolt.fill	Playing 3 cards in a turn restores 2 Health to the party.		cardsPlayedHealPartyThreshold:3|cardsPlayedHealPartyAmount:2
 golden_retriever_health_t2_1	Campfire Comfort	sf:flame.fill	At the end of each turn, restore 2 Health to each party member.		partyRegenPerRound:2
-golden_retriever_health_t2_2	Man's Best Friend	sf:dog.fill	Hero gains +15% Critical Hit chance while Retriever is alive.		heroCritChanceWhileCompanionAlive:0.15
+golden_retriever_health_t2_2	Man's Best Friend	sf:dog.fill	The Hero's Critical Hits restore 1 Health to each ally.		heroCritHealPartyFlat:1
 golden_retriever_health_t3_1	Inspirational Vigor	sf:dumbbell.fill	While Retriever is below half Health, party attacks deal 2 additional damage.		partyAllStatsBonusBelowHealthThreshold:0.5|partyAllStatsBonusBelowHealthAmount:2
 golden_retriever_health_t3_2	Protective Lick	sf:heart.fill	When an ally takes damage, restore 1 Health to them.		onAllyDamageHeal:1
 library_owl_holy_t1_1	Revealed Flaw	sf:eye.fill	Holy attacks make the next hit deal 2 additional damage.		holyDamageNextHitBonus:2
@@ -236,7 +236,7 @@ library_owl_health_t3_2	Font of Magic	sf:wand.and.stars	Restoring Health to an a
 risen_skeleton_physical_t1_1	Bone Shield	sf:shield.fill	Gain 2 Block whenever you deal Physical damage.		onPhysicalDamageGainBlock:2
 risen_skeleton_physical_t1_2	Bone Burst	sf:burst.fill	Attacks have a 25% chance to deal 3 extra damage and grant 2 Block.		attackBurstChancePercent:0.25|attackBurstDamage:3|attackBurstBlock:2
 risen_skeleton_physical_t2_1	Brittle Strike	sf:shield.slash.fill	Physical attacks ignore all Block on Stunned or Frozen enemies.		physicalIgnoresBlockVsStunnedOrFrozen:true
-risen_skeleton_physical_t2_2	Dense Bones	sf:shield.fill	Take 1 less damage from each hit (up to 4).		toughnessOnHit:1|toughnessOnHitCap:4
+risen_skeleton_physical_t2_2	Dense Bones	sf:shield.fill	Your Block absorbs twice as much Physical damage.		doublePhysicalBlockAbsorption:true
 risen_skeleton_physical_t3_1	Cleaving Bones	sf:burst.fill	Physical attacks deal 1 additional Bleed damage to the enemy.		physicalAttackApplyBleed:1
 risen_skeleton_physical_t3_2	Bone Armor	sf:shield.fill	Whenever you take Health damage, gain 1 Block.		onSelfHealthLossGainBlock:1
 risen_skeleton_leech_t1_1	Weaken Soul	sf:heart.slash.fill	Leech reduces the target's damage by 2 for 2 turns.		onLeechReduceEnemyStrength:2|onLeechReduceEnemyStrengthTurns:2
@@ -274,7 +274,7 @@ pixie_cleanse_t1_2	Dispel Magic	sf:wand.and.stars	Cleanse effects also Purge 1 p
 pixie_cleanse_t2_1	Fae Swiftness	sf:wind	Cleansing an ally grants them +10% Dodge chance for 2 turns.		cleanseDodgeChanceBonus:0.10|cleanseDodgeChanceBonusTurns:2
 pixie_cleanse_t2_2	Cleansing Ward	sf:shield.fill	Cleansing an ally also grants the party 2 Block.		cleansePartyBlock:2
 pixie_cleanse_t3_1	Fae Ward	sf:shield.lefthalf.filled	Your Cleanse cards grant 1 Block per effect removed.		cleanseBlockPerStack:1
-pixie_cleanse_t3_2	Purifying Aura	sf:sun.max.fill	Negative effects on all party members expire twice as fast.		partyDebuffDurationHalved:true
+pixie_cleanse_t3_2	Purifying Aura	sf:sun.max.fill	Cleanse 1 negative effect from each ally every other turn.		purifyingAura:true
 pixie_health_t1_1	Sprite Touch	sf:heart.fill	Restore 2 Health each turn for the first 3 turns of battle.		healthRegenFirstTurnsAmount:2|healthRegenFirstTurnsDuration:3
 pixie_health_t1_2	Emergency Mend	sf:cross.fill	Health restored to allies below 30% Health is doubled.		healingBelowHealthPercentThreshold:0.30|healingBelowHealthPercentMultiplier:2
 pixie_health_t2_1	Lingering Blessing	sf:hourglass.bottomhalf.filled	Restoring Health to an ally applies a 3-turn effect that restores 1 Health over time.		healOverTimeOnHealTurns:3|healOverTimeOnHealAmount:1

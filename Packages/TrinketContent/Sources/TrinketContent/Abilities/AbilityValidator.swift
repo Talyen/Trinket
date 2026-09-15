@@ -16,6 +16,7 @@ enum AbilityValidator {
         "bash",
         "blessed-aegis",
         "bounty-shot",
+        "cinderbloom",
         "cold-snap",
         "combustion",
         "dark-pact",
@@ -26,6 +27,7 @@ enum AbilityValidator {
         "ice-shot",
         "kindling",
         "luck-potion",
+        "maul",
         "pack-tactics",
         "panacea-potion",
         "poison-dagger",
@@ -36,9 +38,11 @@ enum AbilityValidator {
         "shadowstep",
         "slash",
         "smite",
+        "sniff-out",
         "stab",
         "sunburst",
         "thorn-mail",
+        "tithe",
     ]
 
     static func validate(_ ability: Ability) -> [Issue] {

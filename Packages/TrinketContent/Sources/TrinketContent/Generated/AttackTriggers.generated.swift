@@ -8,6 +8,8 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var returnAttackAgainstBleedingOncePerTurn: Bool = false
     public var heldCardNextAttackDamage: Int = 0
     public var partnerFirstAttackDamage: Int = 0
+    public var dazingSwipeChancePercent: Double = 0
+    public var dazingSwipeStunDamage: Int = 0
     public var firstCriticalHitCompanionBasicPerTurn: Bool = false
     public var secondCardDrawAndDodgePercent: Double = 0
     public var thirdCardReturnsToHand: Bool = false
@@ -67,6 +69,8 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         returnAttackAgainstBleedingOncePerTurn: Bool = false,
         heldCardNextAttackDamage: Int = 0,
         partnerFirstAttackDamage: Int = 0,
+        dazingSwipeChancePercent: Double = 0,
+        dazingSwipeStunDamage: Int = 0,
         firstCriticalHitCompanionBasicPerTurn: Bool = false,
         secondCardDrawAndDodgePercent: Double = 0,
         thirdCardReturnsToHand: Bool = false,
@@ -125,6 +129,8 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn
         self.heldCardNextAttackDamage = heldCardNextAttackDamage
         self.partnerFirstAttackDamage = partnerFirstAttackDamage
+        self.dazingSwipeChancePercent = dazingSwipeChancePercent
+        self.dazingSwipeStunDamage = dazingSwipeStunDamage
         self.firstCriticalHitCompanionBasicPerTurn = firstCriticalHitCompanionBasicPerTurn
         self.secondCardDrawAndDodgePercent = secondCardDrawAndDodgePercent
         self.thirdCardReturnsToHand = thirdCardReturnsToHand
@@ -181,7 +187,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "prismaticEdge", "improvisedAssault", "cleanCut", "crackedGuard", "coldRead", "feignedMiss", "paidInFull", "physicalVsStunnedStunBuildup", "firstPhysicalBleedStunPerTurn", "attackStunBuildupBelowHealthThreshold", "attackStunBuildupBelowHealthBonus"]
+    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "prismaticEdge", "improvisedAssault", "cleanCut", "crackedGuard", "coldRead", "feignedMiss", "paidInFull", "physicalVsStunnedStunBuildup", "firstPhysicalBleedStunPerTurn", "attackStunBuildupBelowHealthThreshold", "attackStunBuildupBelowHealthBonus"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -190,6 +196,8 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.returnAttackAgainstBleedingOncePerTurn != other.returnAttackAgainstBleedingOncePerTurn { names.append("returnAttackAgainstBleedingOncePerTurn") }
         if self.heldCardNextAttackDamage != other.heldCardNextAttackDamage { names.append("heldCardNextAttackDamage") }
         if self.partnerFirstAttackDamage != other.partnerFirstAttackDamage { names.append("partnerFirstAttackDamage") }
+        if self.dazingSwipeChancePercent != other.dazingSwipeChancePercent { names.append("dazingSwipeChancePercent") }
+        if self.dazingSwipeStunDamage != other.dazingSwipeStunDamage { names.append("dazingSwipeStunDamage") }
         if self.firstCriticalHitCompanionBasicPerTurn != other.firstCriticalHitCompanionBasicPerTurn { names.append("firstCriticalHitCompanionBasicPerTurn") }
         if self.secondCardDrawAndDodgePercent != other.secondCardDrawAndDodgePercent { names.append("secondCardDrawAndDodgePercent") }
         if self.thirdCardReturnsToHand != other.thirdCardReturnsToHand { names.append("thirdCardReturnsToHand") }
@@ -253,6 +261,8 @@ extension AttackTriggers {
         returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn || other.returnAttackAgainstBleedingOncePerTurn
         heldCardNextAttackDamage = max(heldCardNextAttackDamage, other.heldCardNextAttackDamage)
         partnerFirstAttackDamage = max(partnerFirstAttackDamage, other.partnerFirstAttackDamage)
+        dazingSwipeChancePercent += other.dazingSwipeChancePercent
+        dazingSwipeStunDamage += other.dazingSwipeStunDamage
         firstCriticalHitCompanionBasicPerTurn = firstCriticalHitCompanionBasicPerTurn || other.firstCriticalHitCompanionBasicPerTurn
         secondCardDrawAndDodgePercent = max(secondCardDrawAndDodgePercent, other.secondCardDrawAndDodgePercent)
         thirdCardReturnsToHand = thirdCardReturnsToHand || other.thirdCardReturnsToHand
@@ -317,6 +327,8 @@ extension AttackTriggers {
             returnAttackAgainstBleedingOncePerTurn: values.decode(Bool.self, "returnAttackAgainstBleedingOncePerTurn", default: false),
             heldCardNextAttackDamage: values.decode(Int.self, "heldCardNextAttackDamage", default: 0),
             partnerFirstAttackDamage: values.decode(Int.self, "partnerFirstAttackDamage", default: 0),
+            dazingSwipeChancePercent: values.decode(Double.self, "dazingSwipeChancePercent", default: 0),
+            dazingSwipeStunDamage: values.decode(Int.self, "dazingSwipeStunDamage", default: 0),
             firstCriticalHitCompanionBasicPerTurn: values.decode(Bool.self, "firstCriticalHitCompanionBasicPerTurn", default: false),
             secondCardDrawAndDodgePercent: values.decode(Double.self, "secondCardDrawAndDodgePercent", default: 0),
             thirdCardReturnsToHand: values.decode(Bool.self, "thirdCardReturnsToHand", default: false),
@@ -378,6 +390,8 @@ extension AttackTriggers {
         try container.encodeNonDefault(returnAttackAgainstBleedingOncePerTurn, "returnAttackAgainstBleedingOncePerTurn", default: false)
         try container.encodeNonDefault(heldCardNextAttackDamage, "heldCardNextAttackDamage", default: 0)
         try container.encodeNonDefault(partnerFirstAttackDamage, "partnerFirstAttackDamage", default: 0)
+        try container.encodeNonDefault(dazingSwipeChancePercent, "dazingSwipeChancePercent", default: 0)
+        try container.encodeNonDefault(dazingSwipeStunDamage, "dazingSwipeStunDamage", default: 0)
         try container.encodeNonDefault(firstCriticalHitCompanionBasicPerTurn, "firstCriticalHitCompanionBasicPerTurn", default: false)
         try container.encodeNonDefault(secondCardDrawAndDodgePercent, "secondCardDrawAndDodgePercent", default: 0)
         try container.encodeNonDefault(thirdCardReturnsToHand, "thirdCardReturnsToHand", default: false)

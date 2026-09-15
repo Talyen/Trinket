@@ -3,6 +3,39 @@ import TrinketContent
 import TrinketCore
 
 package enum EnemyTraitEngine {
+    static func firstAttackBleedBonus(from state: DamageResolutionState, context: inout BattleState) -> [ActionEvent] {
+        guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role == .enemy,
+              context.roster.health(for: source.combatant) > 0,
+              context.roster.health(for: state.combatant) > 0
+        else { return [] }
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        guard triggers.firstAttackBleedBonus > 0,
+              let runtime = context.roster.runtime(for: source.combatant),
+              !runtime.hasTriggeredFirstHitBonus
+        else { return [] }
+        context.roster.mutateRuntime(for: source.combatant) { $0.hasTriggeredFirstHitBonus = true }
+        var events: [ActionEvent] = []
+        let amount = triggers.firstAttackBleedBonus
+        events.append(contentsOf: context.resolveDamage(DamageRequest(
+            amount: amount,
+            target: state.combatant,
+            keyword: .bleed,
+            sourceActorID: sourceActorID,
+            options: .reaction(),
+        )).events)
+        events.append(contentsOf: DoTApplicator.applyBleed(
+            potency: amount,
+            to: state.combatant,
+            sourceActorID: sourceActorID,
+            application: .afterHit,
+            in: &context,
+        ))
+        return events
+    }
+
     static func basicFreezeDamage(from state: DamageResolutionState, context: inout BattleState) -> [ActionEvent] {
         guard state.sourceActorID == context.enemy.id, state.combatant.role != .enemy,
               context.health(of: state.combatant) > 0, context.roster.enemy.isAlive else { return [] }

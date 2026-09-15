@@ -200,6 +200,13 @@ package extension DamagePipeline {
            context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
             guaranteed = true
         }
+        if state.options.isAttackHit,
+           actor.role != .enemy,
+           state.damageKeyword == .physical,
+           context.modifiers(for: sourceActorID).triggers.firstPhysicalAttackGuaranteedCritical,
+           context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
+            guaranteed = true
+        }
         if actor.role != .enemy, state.options.isAttackHit {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]

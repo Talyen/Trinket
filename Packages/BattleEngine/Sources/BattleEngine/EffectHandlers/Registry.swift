@@ -60,6 +60,14 @@ package enum EffectHandlers {
             keyword: .physical,
             summaryText: EffectKind.requiredBattleSummaryPhrase(for: .nextStrikeCritical),
         ),
+        .nextStrikeLeech: FlagEffectHandler(
+            flag: .nextStrikeLeech,
+            appliedEffectKind: .leechApplied,
+            amount: 0,
+            keyword: .leech,
+            summaryText: EffectKind.requiredBattleSummaryPhrase(for: .nextStrikeLeech),
+        ),
+        .partyPhysicalBonus: PartyPhysicalBonusHandler(),
         .freezeNextAttacker: FlagEffectHandler(
             flag: .freezeNextAttacker,
             appliedEffectKind: .controlApplied,

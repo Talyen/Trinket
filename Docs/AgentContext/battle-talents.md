@@ -12,10 +12,19 @@ reuse the ordinary damage, healing, control, and resource pipelines.
 - First Bloom rewards the selected Poison card outcome without requiring a later
   Mana-restoring card. Grove Reserve divides unspent Mana by six before ordinary
   Block bonuses; a zero base amount grants no Block.
-- Shadow Camouflage prepares one generic damage on Panther’s next attack after
-  an enemy turn without an attack against Panther. Dodged and fully Blocked attacks
-  count; ongoing damage and aura pulses do not. Skipped enemy turns qualify.
-  The preparation refreshes instead of stacking and survives until consumed.
+- Loyal Companion draws from the Companion's deck when the wearer actually
+  restores the Companion's Health (overhealing alone does not qualify), at most
+  once per player turn. Claim the allowance before attempting the draw, even if
+  no card is available. Normal hand limits, buffering, and control restrictions
+  apply; healing/draw loops are prevented by the once-per-turn claim.
+- Forbidden Knowledge pays 1 Health (ordinary Health-cost, no hidden nonlethal
+  floor, cost before drawing) and draws 2 from the wearer's deck on the existing
+  alternate-turn cadence beginning on player turn 1. A defeated owner cannot
+  continue; unavailable draws still spend the Health cost.
+- Purifying Aura performs one ordinary random Cleanse per living ally every other
+  player turn beginning on turn 1, through the shared Cleanse pipeline (normal
+  Cleanse reactions, reaches Burn and Poison). Living owners only; Cleansed
+  allies must be living (no revive).
 - Toxiphage and Cold Hunger roll typed Leech chances through the shared Leech
   pipeline, including ongoing damage. Generic and matching typed chances add up
   to 100%; damage already granting Leech skips the roll and never Leeches twice.
@@ -26,6 +35,19 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 
 ## Damage and control
 
+- Thick Hide retains flat reduction 2, restricted to Physical damage.
+- Dazing Swipe rolls 25% per qualifying attack to deal 3 Stun damage through
+  normal control buildup (ordinary Stun damage and application). The reaction
+  triggers only on attack hits (not retaliation/periodic) and never recursively
+  triggers itself.
+- Surprise Strike guarantees the wearer's first qualifying Physical attack each
+  combat Critically Hits; preceding non-Physical attacks neither Crit nor spend
+  the combat allowance.
+- Mimic deals one additional 2 Bleed damage hit (ordinary Bleed damage and
+  application) on its first attack only, through the normal damage pipeline;
+  subsequent hits and ongoing ticks do not repeat the bonus.
+- Beastbond restricts its Companion damage bonus to Physical damage (no separate
+  Physical attack added to non-Physical attacks).
 - Damage conversions consume their stored effect before resolving the bonus.
   Noxious Reaction spends Poison up to actual Bleed Health damage without
   reapplying it. Serrated Blades ticks existing Bleeds with their original
@@ -57,10 +79,22 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 - Next-card preparations are captured before a card resolves, refresh instead
   of accumulating, and cannot be consumed by the card that created them, even
   when it repeats. Typed damage bonuses strengthen an existing unconditional hit
-  of that type when present, avoiding duplicate equipment bonuses. Gilded Claws
+  of that type when present, avoiding duplicate equipment bonuses. Sniff Out
+  shares one party preparation (next ordinary party attack gains 3 Physical on
+  one original enemy-directed hit; support cards do not reserve; typed Physical,
+  not a conversion; repeated hits and equipment do not multiply). Predator's
+  Focus prepares the caster's next attack to Critically Hit and Leech through
+  the ordinary critical and Leech pipelines (attacks already granting Leech do
+  not receive duplicate base Leech). Gilded Claws
   instead accumulates actual Gold stolen until the next attack. Authored
-  `Ability.stealsGold` identifies theft from Steal,
-  Bounty Shot, Blackjack, and Tithe, and survives outcome resolution and empowerment.
+  `Ability.stealsGold` identifies theft from Steal, Bounty Shot, Blackjack,
+  Tithe, and Bandit's Arrow, and survives outcome resolution and empowerment.
+- Shadow Camouflage grants Panther's normal next-attack Dodge preparation
+  (evade, refresh not stack, ordinary Dodge reactions on consume) after Panther
+  plays a non-damaging ordinary card (Sniff Out and Predator's Focus qualify).
+  Use shared resolved-action classification (Block-absorbed attacks remain
+  damaging; zero Health loss does not make support; preparing future damage is
+  not current damage). Automatic abilities and reactions never recursively grant.
 - Sleight of Coin rolls the owner's Critical Hit chance once per Gold card and
   doubles its resolved Gold gains, including theft; these are not attack
   Critical Hits. Full House carries its set of card types across turns, clears
@@ -83,6 +117,9 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 
 ## Healing and overflow
 
+- Man's Best Friend restores 1 Health to each living ally (no revive) on a
+  damaging Hero Critical Hit (enemy target, actual Health loss). Healing
+  Critical Hits target allies (not enemies) and never recursively activate.
 - Elemental Leech uses the standard Leech rate, including damage-over-time
   ticks; it does not add a second base Leech contribution to an already-Leeching
   hit. Overhealing keeps its emitted reactions even when no Health is restored.
@@ -100,6 +137,18 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 
 ## Removal, protection, and Block
 
+- Guardian grants the Hero 2 Block before an incoming Hero-targeted attack
+  resolves, once per incoming attack (claimed per action, not per multi-hit
+  component; ongoing damage never qualifies).
+- Warning Bark preserves one enemy attack per combat (including multi-hit),
+  routed through Dodge feedback and ordinary Dodge reactions for the protected
+  target. Claim the combat allowance before resolving reactions.
+- Dense Bones doubles Block absorption capacity against Physical damage only
+  (other types normal). Use existing combat rounding for partial/odd amounts;
+  never halve unrelated Health damage.
+- Shredding restricts mitigation penetration to Physical damage, preserving
+  separation from Block penetration. Retaliatory remains Physical damage based
+  on actual Health lost (despite the internal Thorns trigger name).
 - Lightning Rod and Avalanche Guard add the existing Block amount without
   reapplying outgoing Block bonuses or pacing.
 - Lesson Learned protects each cleansed keyword until the next party turn.

@@ -41,6 +41,8 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var cardsPlayedManaFlat: Int = 0
     public var onBurnDamageRestoreManaFlat: Int = 0
     public var drawEveryOtherTurn: Int = 0
+    public var healCompanionDrawsCompanionCard: Bool = false
+    public var forbiddenKnowledge: Bool = false
     public var drawOnHealthLoss: Int = 0
     public var companionCardsEveryOtherTurn: Int = 0
     public var companionCardsPerTurn: Int = 0
@@ -99,6 +101,8 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         cardsPlayedManaFlat: Int = 0,
         onBurnDamageRestoreManaFlat: Int = 0,
         drawEveryOtherTurn: Int = 0,
+        healCompanionDrawsCompanionCard: Bool = false,
+        forbiddenKnowledge: Bool = false,
         drawOnHealthLoss: Int = 0,
         companionCardsEveryOtherTurn: Int = 0,
         companionCardsPerTurn: Int = 0,
@@ -156,6 +160,8 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.cardsPlayedManaFlat = cardsPlayedManaFlat
         self.onBurnDamageRestoreManaFlat = onBurnDamageRestoreManaFlat
         self.drawEveryOtherTurn = drawEveryOtherTurn
+        self.healCompanionDrawsCompanionCard = healCompanionDrawsCompanionCard
+        self.forbiddenKnowledge = forbiddenKnowledge
         self.drawOnHealthLoss = drawOnHealthLoss
         self.companionCardsEveryOtherTurn = companionCardsEveryOtherTurn
         self.companionCardsPerTurn = companionCardsPerTurn
@@ -178,7 +184,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["dragonPatronage", "prismaticScales", "freezeEmpowermentBlockPerMana", "lastManaEmpowermentRepeatsDamage", "spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaRemovesAfflictions", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "onReachZeroManaRestoreMana", "spendManaRandomElementDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaGrantsEqualBlock", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "firstBloom", "barkweave", "groveReserve", "livingConduit", "sharedCurrent", "deepRoots", "groveAccord", "onEmpowerBurnRestoreMana", "empowerFreezeDamageBonus", "empoweredSkillEchoes", "spendLastManaStunDamage"]
+    public static let fieldNames: [String] = ["dragonPatronage", "prismaticScales", "freezeEmpowermentBlockPerMana", "lastManaEmpowermentRepeatsDamage", "spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaRemovesAfflictions", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "onReachZeroManaRestoreMana", "spendManaRandomElementDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaGrantsEqualBlock", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "healCompanionDrawsCompanionCard", "forbiddenKnowledge", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "firstBloom", "barkweave", "groveReserve", "livingConduit", "sharedCurrent", "deepRoots", "groveAccord", "onEmpowerBurnRestoreMana", "empowerFreezeDamageBonus", "empoweredSkillEchoes", "spendLastManaStunDamage"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -220,6 +226,8 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         if self.cardsPlayedManaFlat != other.cardsPlayedManaFlat { names.append("cardsPlayedManaFlat") }
         if self.onBurnDamageRestoreManaFlat != other.onBurnDamageRestoreManaFlat { names.append("onBurnDamageRestoreManaFlat") }
         if self.drawEveryOtherTurn != other.drawEveryOtherTurn { names.append("drawEveryOtherTurn") }
+        if self.healCompanionDrawsCompanionCard != other.healCompanionDrawsCompanionCard { names.append("healCompanionDrawsCompanionCard") }
+        if self.forbiddenKnowledge != other.forbiddenKnowledge { names.append("forbiddenKnowledge") }
         if self.drawOnHealthLoss != other.drawOnHealthLoss { names.append("drawOnHealthLoss") }
         if self.companionCardsEveryOtherTurn != other.companionCardsEveryOtherTurn { names.append("companionCardsEveryOtherTurn") }
         if self.companionCardsPerTurn != other.companionCardsPerTurn { names.append("companionCardsPerTurn") }
@@ -284,6 +292,8 @@ extension ManaTriggers {
         cardsPlayedManaFlat += other.cardsPlayedManaFlat
         onBurnDamageRestoreManaFlat += other.onBurnDamageRestoreManaFlat
         drawEveryOtherTurn += other.drawEveryOtherTurn
+        healCompanionDrawsCompanionCard = healCompanionDrawsCompanionCard || other.healCompanionDrawsCompanionCard
+        forbiddenKnowledge = forbiddenKnowledge || other.forbiddenKnowledge
         drawOnHealthLoss += other.drawOnHealthLoss
         companionCardsEveryOtherTurn += other.companionCardsEveryOtherTurn
         companionCardsPerTurn += other.companionCardsPerTurn
@@ -347,6 +357,8 @@ extension ManaTriggers {
             cardsPlayedManaFlat: values.decode(Int.self, "cardsPlayedManaFlat", default: 0),
             onBurnDamageRestoreManaFlat: values.decode(Int.self, "onBurnDamageRestoreManaFlat", default: 0),
             drawEveryOtherTurn: values.decode(Int.self, "drawEveryOtherTurn", default: 0),
+            healCompanionDrawsCompanionCard: values.decode(Bool.self, "healCompanionDrawsCompanionCard", default: false),
+            forbiddenKnowledge: values.decode(Bool.self, "forbiddenKnowledge", default: false),
             drawOnHealthLoss: values.decode(Int.self, "drawOnHealthLoss", default: 0),
             companionCardsEveryOtherTurn: values.decode(Int.self, "companionCardsEveryOtherTurn", default: 0),
             companionCardsPerTurn: values.decode(Int.self, "companionCardsPerTurn", default: 0),
@@ -407,6 +419,8 @@ extension ManaTriggers {
         try container.encodeNonDefault(cardsPlayedManaFlat, "cardsPlayedManaFlat", default: 0)
         try container.encodeNonDefault(onBurnDamageRestoreManaFlat, "onBurnDamageRestoreManaFlat", default: 0)
         try container.encodeNonDefault(drawEveryOtherTurn, "drawEveryOtherTurn", default: 0)
+        try container.encodeNonDefault(healCompanionDrawsCompanionCard, "healCompanionDrawsCompanionCard", default: false)
+        try container.encodeNonDefault(forbiddenKnowledge, "forbiddenKnowledge", default: false)
         try container.encodeNonDefault(drawOnHealthLoss, "drawOnHealthLoss", default: 0)
         try container.encodeNonDefault(companionCardsEveryOtherTurn, "companionCardsEveryOtherTurn", default: 0)
         try container.encodeNonDefault(companionCardsPerTurn, "companionCardsPerTurn", default: 0)

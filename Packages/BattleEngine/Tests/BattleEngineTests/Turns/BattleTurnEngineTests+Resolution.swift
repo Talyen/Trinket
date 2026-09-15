@@ -34,29 +34,23 @@ extension BattleTurnEngineTests {
         #expect(context.roster.companion.activeEffects.isEmpty)
     }
 
-    @Test(arguments: [0, 1], [false, true])
-    func `bounty shot grants both outcomes against a marked enemy`(branchIndex: Int, marked: Bool) throws {
-        let branches = try #require(Ability.bountyShot.outcomeBranches)
-        let ability = Ability(
-            id: Ability.bountyShot.id, name: Ability.bountyShot.name, tier: .skill,
-            outcomeBranches: [branches[branchIndex]], stealsGold: true,
-        )
+    @Test func `bounty shot deals fixed damage and gold without mark`() throws {
+        let ability = Ability.bountyShot
+        try #expect(ability.outcomeBranches == nil)
+        try #expect(ability.summary == "Deal 3 Physical damage and Steal 2 Gold.")
         var context = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(),
             companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
         )
         context.appliesFightPacing = false
-        if marked {
-            context.appendEffect(.marked(1, 1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 2)
-        }
         let initialHealth = context.roster.enemy.currentHealth
 
         _ = BattleTurnEngine.performAction(
             ability: ability, actor: context.hero, abilityTarget: context.enemy, context: &context,
         )
 
-        #expect(context.gold == (marked || branchIndex == 1 ? 3 : 0))
-        #expect((context.roster.enemy.currentHealth < initialHealth) == (marked || branchIndex == 0))
+        #expect(context.gold == 2)
+        #expect(context.roster.enemy.currentHealth < initialHealth)
     }
 }

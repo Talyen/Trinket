@@ -7,6 +7,7 @@ extension BattleState {
         let pending = runtime.talents.pending.effectSummaries(
             criticalAppliesToParty: modifiers(for: combatant.id).triggers.onDodgeNextPartyHitGuaranteedCritical,
             partyCardDamageBonus: resolution.pendingPartyCardDamage(from: combatant.id),
+            partyPhysicalBonus: resolution.pendingPartyPhysicalDamage(from: combatant.id),
         )
         return pending + timedEffectSummaries(runtime.talents)
             + preparedEffectSummaries(heroTalents.history[combatant.id])
@@ -58,7 +59,7 @@ extension BattleState {
 }
 
 private extension CombatantTalentState.Pending {
-    func effectSummaries(criticalAppliesToParty: Bool, partyCardDamageBonus: Int) -> [EffectSummary] {
+    func effectSummaries(criticalAppliesToParty: Bool, partyCardDamageBonus: Int, partyPhysicalBonus: Int = 0) -> [EffectSummary] {
         let criticalTarget = criticalAppliesToParty ? "party hit" : "attack"
         let prepared: [(Bool, Keyword, String)] = [
             (doubleDamageAfterDodge, .physical, "Prepared Strike: Your next attack deals double damage."),
@@ -67,13 +68,17 @@ private extension CombatantTalentState.Pending {
             (damageAfterDodge > 0, .physical, "Prepared Strike: Your next attack deals \(damageAfterDodge) additional damage."),
             (bleedAfterDodge > 0, .bleed, "Prepared Bleed: Your next attack deals \(bleedAfterDodge) additional Bleed damage."),
             (partyCardDamageBonus > 0, .physical, "Feint Strike: The party’s next card deals \(partyCardDamageBonus) additional damage."),
+            (
+                partyPhysicalBonus > 0,
+                .physical,
+                "Sniff Out: Your party’s next attack deals \(partyPhysicalBonus) additional Physical damage.",
+            ),
             (cardDamageBonus > 0, .physical, "Prepared Damage: Your next attack deals \(cardDamageBonus) additional damage."),
             (
                 cardDamagePercent > 0,
                 .physical,
                 "Prepared Damage: Your next attack deals \(Int((cardDamagePercent * 100).rounded()))% more damage.",
             ),
-            (shadowCamouflageBonus > 0, .physical, "Shadow Camouflage: Your next attack deals 1 additional damage."),
             (nextHitBonus > 0, .physical, "Prepared Hit: Your next attack deals \(nextHitBonus) additional damage."),
             (nextAttackHolyBonus > 0, .holy, "Holy Infusion: Your next attack deals \(nextAttackHolyBonus) additional Holy damage."),
             (

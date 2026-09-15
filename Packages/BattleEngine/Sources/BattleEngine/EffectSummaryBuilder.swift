@@ -10,7 +10,7 @@ public enum EffectSummaryBuilder {
         .shield,
         .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
         .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
-        .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .maximumManaBonus,
+        .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage, .maximumManaBonus,
         .recurringDamage, .avatar,
         .damageReductionPercent, .damageReductionFlat, .healingReductionPercent,
         .controlMeter,

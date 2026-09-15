@@ -25,6 +25,18 @@ package extension CombatTriggerEngine {
         let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
         context.turnCadence.cardsPlayed[owner] = count
 
+        if triggers.shadowCamouflage,
+           facts.origin == .ordinaryCard,
+           facts.damageKeywords.isEmpty {
+            ActiveEffectMutation.removeMatching(from: actor, in: &context) {
+                if case .evadeNextHit = $0 {
+                    return true
+                }
+                return false
+            }
+            context.prependEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
+        }
+
         guard context.roster[owner].isAlive else { return events }
         if !keywords.isEmpty, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
            BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {

@@ -3,7 +3,7 @@ import Testing
 import TrinketContent
 
 struct ItemAffixCatalogTests {
-    @Test func `saved loyal companion power uses new cadence without losing other rolls`() throws {
+    @Test func `saved loyal companion power migrates to heal draw without losing other rolls`() throws {
         let definition = try #require(GameContent.itemAffixDefinition(matching: "companions_collar"))
         let old = ItemAffixPower(
             description: "Draw an additional Companion card each turn.", modifiers: [],
@@ -15,12 +15,14 @@ struct ItemAffixCatalogTests {
         )
         let power = try #require(item.resolvedPower(at: 0))
         #expect(power.triggers.companionCardsPerTurn == 0)
-        #expect(power.triggers.companionCardsEveryOtherTurn == 1)
+        #expect(power.triggers.companionCardsEveryOtherTurn == 0)
+        #expect(power.triggers.healCompanionDrawsCompanionCard)
         #expect(power.triggers.spendManaBlockFlat == 2)
-        #expect(item.displayedAffixes.first?.description == definition.basic.description)
+        #expect(power.description == "Once per turn, healing your Companion draws a Companion card.")
+        #expect(item.displayedAffixes.first?.description == "Once per turn, healing your Companion draws a Companion card.")
     }
 
-    @Test func `saved patient edge power uses partner damage without losing rolls`() throws {
+    @Test func `saved patient edge power migrates to block crit without losing rolls`() throws {
         let catalog = try #require(GameContent.unique(matching: "the_patient_edge"))
         try #require(catalog.affixes.first?.id == "the_patient_edge")
         let old = ItemAffixPower(
@@ -39,8 +41,9 @@ struct ItemAffixCatalogTests {
         )
         let power = try #require(item.resolvedPower(at: 0))
         #expect(power.triggers.heldCardNextAttackDamage == 0)
-        #expect(power.triggers.partnerFirstAttackDamage == 3)
-        #expect(power.description.contains("+3 damage"))
+        #expect(power.triggers.partnerFirstAttackDamage == 0)
+        #expect(power.triggers.blockPreparesCritical)
+        #expect(power.description == "Blocking an attack makes your next attack Critically Hit.")
     }
 
     @Test func `combat reaction affix I ds resolve to catalog titles`() throws {

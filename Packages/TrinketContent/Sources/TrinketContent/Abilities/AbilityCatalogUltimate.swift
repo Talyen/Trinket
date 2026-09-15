@@ -5,7 +5,7 @@ enum AbilityCatalogUltimate {
     static let avatarOfJustice = Ability(
         id: "avatar-of-justice", name: "Avatar", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.avatar(holyDamage: 7, blockPerTurn: 2, turns: 2)),
+            TargetedEffect(.avatar(holyDamage: 6, blockPerTurn: 0, turns: 2)),
         ],
     )
 
@@ -68,13 +68,10 @@ enum AbilityCatalogUltimate {
 
     static let goldenPlate = Ability(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
-        description: "Gain 3 Block, Gold, and Thorns. Your Hero and Companion each dodge the next attack.",
+        description: "Gain 8 Block and 5 Gold.",
         targetedEffects: [
-            TargetedEffect(.shield(.block, 3)),
-            TargetedEffect(.resourceGain(.gold, 3)),
-            TargetedEffect(.thorns(3)),
-            TargetedEffect(.evadeNextHit, target: .hero),
-            TargetedEffect(.evadeNextHit, target: .companion),
+            TargetedEffect(.shield(.block, 8)),
+            TargetedEffect(.resourceGain(.gold, 5)),
         ],
     )
 
@@ -148,9 +145,12 @@ enum AbilityCatalogUltimate {
 
     static let sunburst = Ability(
         id: "sunburst", name: "Sunburst", tier: .ultimate,
-        description: "Deal 6 Holy damage and Restore 6 Health.",
+        description: "Deal 6 Holy damage. Restore 3 Health to each ally.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
-        targetedEffects: [TargetedEffect(.instantHeal(.health, 6), target: .lowestHealthAlly)],
+        targetedEffects: [
+            TargetedEffect(.instantHeal(.health, 3), target: .hero),
+            TargetedEffect(.instantHeal(.health, 3), target: .companion),
+        ],
     )
 
     static let thornMail = Ability(

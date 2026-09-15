@@ -67,15 +67,20 @@ extension UniqueCollectionTests {
     func `critical hit rewards trigger when block absorbs the whole hit`(item: String) throws {
         var context = try battle([item])
         block(20, owner: .enemy, in: &context)
-        let events = try play(attack(), critical: true, in: &context)
+        // Everkeen (Physical Crit) still repeats when Block absorbs (Crit, no healthLost requirement).
+        // Huntsmaster's Call now requires positive Bleed damage (healthLost>0), so a fully Blocked
+        // Bleed Crit (healthLost 0) does not summon the Companion.
+        let keyword: Keyword = item == "everkeen" ? .physical : .bleed
+        let events = try play(attack(keyword), critical: true, in: &context)
         #expect(blockAmount(.enemy, in: context) == 0)
-        #expect(context.roster.enemy.currentHealth < 2000)
         if item == "everkeen" {
+            #expect(context.roster.enemy.currentHealth < 2000)
             #expect(events.contains { $0.abilityName == "Everkeen" && $0.amount == 20 })
         } else {
-            #expect(events.contains { $0.kind == .ability && $0.abilityID == context.companion.abilityLoadout.basic?.id })
+            #expect(context.roster.enemy.currentHealth == 2000)
+            #expect(!events.contains { $0.kind == .ability && $0.abilityID == context.companion.abilityLoadout.basic?.id })
         }
-        let next = try play(attack(), critical: true, in: &context)
+        let next = try play(attack(keyword), critical: true, in: &context)
         #expect(!next.contains { $0.abilityName == "Everkeen" })
         #expect(!next.contains { $0.kind == .ability && $0.actorID == context.companion.id })
     }
@@ -212,12 +217,14 @@ extension UniqueCollectionTests {
         let before = context.roster.enemy.currentHealth
         let card = try #require(context.hand.cards.first { $0.ability.id == "venom" })
         let events = try context.playCard(cardID: card.id)
-        #expect(before - context.roster.enemy.currentHealth == 22)
+        // Wildheart guarantees Crit for Poison (all damage Crit, 4*2+3*2=14). Everkeen now requires
+        // Physical Critical Hits, so Poison+Bleed Crit does not repeat (no Everkeen).
+        #expect(before - context.roster.enemy.currentHealth == 14)
         let originalHits = events.filter { $0.kind == .abilityDamage && $0.abilityID == "venom" }
         let allCritical = originalHits.allSatisfy(\.isCritical)
         #expect(allCritical)
         #expect(context.uniques.owners[.hero]?.wildheartReady == false)
-        #expect(events.count(where: { $0.abilityName == "Everkeen" }) == 1)
+        #expect(events.count(where: { $0.abilityName == "Everkeen" }) == 0)
     }
 
     @Test func `serpent checks poison before each packet and retains other mitigation`() throws {

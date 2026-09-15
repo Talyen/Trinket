@@ -30,6 +30,7 @@ extension UniqueCombatEngine {
     static func afterDamage(_ damage: DamageResolutionState, in context: inout BattleState) -> [ActionEvent] {
         guard context.resolution.depth(.uniqueReaction) == 0 else { return [] }
         var events = answerBlockedAttack(damage, in: &context)
+        events.append(contentsOf: huntBleedFollowUp(damage, in: &context))
         guard damage.options.isOrdinaryUniqueCardDamage,
               damage.amount > 0,
               damage.combatant.role == .enemy,
@@ -52,7 +53,7 @@ extension UniqueCombatEngine {
                 ))
             }
         }
-        guard damage.isCritical else { return events }
+        guard damage.isCritical, damage.damageKeyword == .physical else { return events }
         if triggers.firstCriticalHitRepeatsPerTurn, context.uniques.owners[owner]?.repeatedCritical != true {
             context.uniques.owners[owner, default: .init()].repeatedCritical = true
             let options = damage.options.repeated(origin: .criticalRepeat, scaling: .resolved, guaranteedCritical: true)
@@ -69,11 +70,25 @@ extension UniqueCombatEngine {
                 in: &context,
             ))
         }
-        if triggers.firstCriticalHitCompanionBasicPerTurn, context.uniques.owners[owner]?.calledCompanion != true {
-            context.uniques.owners[owner, default: .init()].calledCompanion = true
-            events.append(contentsOf: useBasic(owner: .companion, in: &context))
-        }
         return events
+    }
+
+    private static func huntBleedFollowUp(
+        _ damage: DamageResolutionState,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard damage.damageKeyword == .bleed,
+              damage.healthLost > 0,
+              damage.combatant.role == .enemy,
+              let source = damage.partySource(in: context), source.isAlive,
+              let owner = context.roster.participant(for: source.combatant),
+              context.modifiers(for: source.id).triggers.firstCriticalHitCompanionBasicPerTurn,
+              context.uniques.owners[owner]?.calledCompanion != true
+        else { return [] }
+        context.resolution.enter(.uniqueReaction)
+        defer { context.resolution.leave(.uniqueReaction) }
+        context.uniques.owners[owner, default: .init()].calledCompanion = true
+        return useBasic(owner: .companion, in: &context)
     }
 
     private static func answerBlockedAttack(
@@ -139,11 +154,12 @@ extension UniqueCombatEngine {
               let owner = context.roster.participant(for: actor), owner.isPartyMember,
               context.roster[owner].isAlive
         else { return [] }
+        var events: [ActionEvent] = []
+        events.append(contentsOf: galeDodgeReturn(by: actor, owner: owner, in: &context))
         let triggers = context.modifiers(for: actor.id).triggers
         if triggers.dodgeNextHitPoisonAndBleedPercent > 0 {
             context.uniques.owners[owner, default: .init()].viperReady = true
         }
-        var events: [ActionEvent] = []
         if triggers.dodgeDrawPoisonAndReadyCritical {
             context.uniques.owners[owner, default: .init()].wildheartReady = true
             if BattleCardCombatEngine.drawFirstCard(matching: .poison, for: owner, context: &context) != nil {
@@ -188,6 +204,43 @@ extension UniqueCombatEngine {
             in: &context,
         ))
         return events
+    }
+
+    private static func galeDodgeReturn(
+        by actor: Combatant,
+        owner: BattleParticipant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard context.modifiers(for: actor.id).triggers.thirdCardReturnsToHand,
+              let tracked = context.uniques.owners[owner]?.lastOrdinaryAbility,
+              !context.isBattleOver,
+              BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context)
+        else { return [] }
+        // Do nothing if already held or buffered, absent from the deck, or unavailable.
+        if (context.hand.cards + context.hand.buffer).contains(where: {
+            $0.owner == owner && $0.ability.id == tracked.id
+        }) {
+            return []
+        }
+        let recovered: Ability? = switch owner {
+        case .hero:
+            context.heroDeck.drawFirst { $0.id == tracked.id }
+        case .companion:
+            context.companionDeck.drawFirst { $0.id == tracked.id }
+        case .enemy:
+            nil
+        }
+        guard let recovered else { return [] }
+        _ = BattleCardCombatEngine.deal(recovered, owner: owner, context: &context)
+        return [context.nextEvent(
+            kind: .effect,
+            effectKind: .cardsDrawn,
+            actorName: actor.name,
+            abilityName: "The Returning Gale",
+            target: actor,
+            amount: 1,
+            keyword: .dodge,
+        )]
     }
 
     static func retainStun(

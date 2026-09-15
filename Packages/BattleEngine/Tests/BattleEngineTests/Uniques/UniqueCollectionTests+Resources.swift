@@ -126,10 +126,11 @@ extension UniqueCollectionTests {
     @Test func `final spark and everkeen do not recursively repeat`() throws {
         var context = try battle(["the_final_spark", "everkeen"])
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentMana = 3 }
-        let events = try play(attack(.freeze), critical: true, in: &context)
+        // Everkeen requires Physical Crits while Final Spark requires empowered Burn/Freeze,
+        // so a Physical Crit repeats once via Everkeen without triggering Final Spark.
+        let events = try play(attack(.physical), critical: true, in: &context)
         #expect(events.count(where: { $0.abilityName == "Everkeen" }) == 1)
-        #expect(events.count(where: { $0.abilityName == "The Final Spark" }) == 1)
-        #expect(context.roster.hero.currentMana == 0)
+        #expect(events.count(where: { $0.abilityName == "The Final Spark" }) == 0)
         #expect(context.resolution.depth(.uniqueReaction) == 0)
     }
 

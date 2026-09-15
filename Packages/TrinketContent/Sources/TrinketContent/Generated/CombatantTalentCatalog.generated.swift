@@ -576,7 +576,7 @@ public extension CombatantTalentCatalog {
             "wizard_mana_t3_2": CombatantTalentEffect(
                 name: "Spell Echo",
                 iconID: "sf:repeat",
-                description: "Skills you empower play twice.",
+                description: "Skills empowered with Mana play twice.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(empoweredSkillEchoes: true))
             ),
@@ -1371,9 +1371,9 @@ public extension CombatantTalentCatalog {
             "bear_block_t1_1": CombatantTalentEffect(
                 name: "Thick Hide",
                 iconID: "sf:shield.fill",
-                description: "Take 2 less damage from all hits.",
+                description: "Take 2 less Physical damage from each hit.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(passiveMitigationFlat: 2))
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(passivePhysicalMitigationFlat: 2))
             ),
             "bear_block_t1_2": CombatantTalentEffect(
                 name: "Hibernation",
@@ -1399,7 +1399,7 @@ public extension CombatantTalentCatalog {
             "bear_block_t3_1": CombatantTalentEffect(
                 name: "Ironhide",
                 iconID: "sf:lock.shield.fill",
-                description: "Bear cannot take more than 12 damage in a single hit.",
+                description: "Lose at most 12 Health per hit.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(block: BlockTriggers(maxDamagePerHitCap: 12))
             ),
@@ -1462,9 +1462,9 @@ public extension CombatantTalentCatalog {
             "bear_stun_t1_2": CombatantTalentEffect(
                 name: "Dazing Swipe",
                 iconID: "sf:pawprint.fill",
-                description: "Attacks have a 25% chance to delay the enemy's turn.",
+                description: "Attacks have a 25% chance to deal 3 Stun damage.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(attackDelayEnemyTurnChancePercent: 0.25))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(dazingSwipeChancePercent: 0.25, dazingSwipeStunDamage: 3))
             ),
             "bear_stun_t2_1": CombatantTalentEffect(
                 name: "Shockwave",
@@ -1912,9 +1912,9 @@ public extension CombatantTalentCatalog {
             "panther_dodge_t1_1": CombatantTalentEffect(
                 name: "Surprise Strike",
                 iconID: "sf:burst.fill",
-                description: "Gain +15% Critical Hit chance.",
+                description: "Your first Physical attack each combat always Critically Hits.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: 0.15))
+                triggers: CombatTraitTriggers(damage: DamageTriggers(firstPhysicalAttackGuaranteedCritical: true))
             ),
             "panther_dodge_t1_2": CombatantTalentEffect(
                 name: "Counter Pounce",
@@ -1940,7 +1940,7 @@ public extension CombatantTalentCatalog {
             "panther_dodge_t3_1": CombatantTalentEffect(
                 name: "Shadow Camouflage",
                 iconID: "sf:eye.slash.fill",
-                description: "If Panther isn’t attacked during the enemy turn, its next attack deals 1 additional damage.",
+                description: "Playing a non-damaging card makes you Dodge the next attack.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(shadowCamouflage: true))
             ),
@@ -2177,9 +2177,9 @@ public extension CombatantTalentCatalog {
             "golden_retriever_block_t1_1": CombatantTalentEffect(
                 name: "Guardian",
                 iconID: "sf:shield.fill",
-                description: "Absorb 2 damage whenever the Hero is attacked.",
+                description: "Grant the Hero 2 Block before they are attacked.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(absorbHeroDamageFlat: 2))
+                triggers: CombatTraitTriggers(block: BlockTriggers(guardianHeroBlockFlat: 2))
             ),
             "golden_retriever_block_t1_2": CombatantTalentEffect(
                 name: "Watchful Eye",
@@ -2198,7 +2198,7 @@ public extension CombatantTalentCatalog {
             "golden_retriever_block_t2_2": CombatantTalentEffect(
                 name: "Warning Bark",
                 iconID: "sf:waveform",
-                description: "Negate the first enemy attack of each combat.",
+                description: "Your party Dodges the first enemy attack each combat.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(negateFirstEnemyAttack: true))
             ),
@@ -2240,9 +2240,9 @@ public extension CombatantTalentCatalog {
             "golden_retriever_health_t2_2": CombatantTalentEffect(
                 name: "Man's Best Friend",
                 iconID: "sf:dog.fill",
-                description: "Hero gains +15% Critical Hit chance while Retriever is alive.",
+                description: "The Hero's Critical Hits restore 1 Health to each ally.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(heroCritChanceWhileCompanionAlive: 0.15))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(heroCritHealPartyFlat: 1))
             ),
             "golden_retriever_health_t3_1": CombatantTalentEffect(
                 name: "Inspirational Vigor",
@@ -2456,9 +2456,9 @@ public extension CombatantTalentCatalog {
             "risen_skeleton_physical_t2_2": CombatantTalentEffect(
                 name: "Dense Bones",
                 iconID: "sf:shield.fill",
-                description: "Take 1 less damage from each hit (up to 4).",
+                description: "Your Block absorbs twice as much Physical damage.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(toughnessOnHit: 1, toughnessOnHitCap: 4))
+                triggers: CombatTraitTriggers(block: BlockTriggers(doublePhysicalBlockAbsorption: true))
             ),
             "risen_skeleton_physical_t3_1": CombatantTalentEffect(
                 name: "Cleaving Bones",
@@ -2777,9 +2777,9 @@ public extension CombatantTalentCatalog {
             "pixie_cleanse_t3_2": CombatantTalentEffect(
                 name: "Purifying Aura",
                 iconID: "sf:sun.max.fill",
-                description: "Negative effects on all party members expire twice as fast.",
+                description: "Cleanse 1 negative effect from each ally every other turn.",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(partyDebuffDurationHalved: true))
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(purifyingAura: true))
             ),
             "pixie_health_t1_1": CombatantTalentEffect(
                 name: "Sprite Touch",

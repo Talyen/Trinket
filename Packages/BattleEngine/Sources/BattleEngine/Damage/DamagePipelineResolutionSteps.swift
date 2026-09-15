@@ -20,6 +20,7 @@ package extension DamagePipeline {
         }
         if state.amount > 0 {
             state.remaining += context.resolution.consumePartyCardDamage(from: state.provenance)
+            applyPartyPhysicalBonus(to: &state, in: &context)
         }
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
@@ -258,6 +259,20 @@ package extension DamagePipeline {
         }
     }
 
+    private static func applyPartyPhysicalBonus(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.amount > 0 else { return }
+        let bonus = context.resolution.consumePartyPhysicalDamage(from: state.provenance)
+        guard bonus > 0 else { return }
+        if state.damageKeyword == .physical {
+            state.remaining += bonus
+        } else {
+            state.additionalPhysicalDamage += bonus
+        }
+    }
+
     static func reserveAttackEmpowers(to state: inout DamageResolutionState, in context: inout BattleState) {
         guard state.options.isAttackHit, let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID) else { return }
@@ -340,6 +355,9 @@ package extension DamagePipeline {
         }
         if sourceActorID == context.roster.companion.id {
             bonus += context.heroModifiers.companionDamageDealtBonus + profile.companionDamageDealtBonus
+            if keyword == .physical || sharedKeyword == .physical {
+                bonus += context.heroModifiers.companionPhysicalDamageDealtBonus + profile.companionPhysicalDamageDealtBonus
+            }
             if keyword == .bleed || sharedKeyword == .bleed {
                 bonus += context.heroModifiers.companionBleedDamageDealtBonus
             }
@@ -449,29 +467,15 @@ package extension DamagePipeline {
             CombatRounding.scaled(amount, multiplier: multiplier)
         }
         var remaining = state.remaining
-        if defenderTriggers.passiveMitigationFlat > 0 {
-            remaining = max(0, remaining - effectiveReduction(defenderTriggers.passiveMitigationFlat))
-        }
-
-        if state.damageKeyword != .physical,
-           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0,
-           defenderTriggers.spellDamageTakenReductionWhileBlocked > 0 {
-            remaining = max(0, remaining - effectiveReduction(defenderTriggers.spellDamageTakenReductionWhileBlocked))
-        }
-
-        if state.combatant.role == .hero,
-           context.roster.companion.isAlive,
-           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: context.roster.companion.combatant)) > 0 {
-            let protection = min(1, max(0, context.companionModifiers.triggers.companionBlockProtectsHeroPercent))
-            if protection > 0 {
-                remaining = CombatRounding.scaled(remaining, multiplier: 1 - protection * multiplier)
-            }
-        }
-        if state.combatant.role == .hero,
-           context.roster.companion.isAlive,
-           context.companionModifiers.triggers.absorbHeroDamageFlat > 0 {
-            remaining = max(0, remaining - effectiveReduction(context.companionModifiers.triggers.absorbHeroDamageFlat))
-        }
+        remaining = applyPassiveMitigations(
+            remaining, defenderTriggers: defenderTriggers,
+            damageKeyword: state.damageKeyword, effectiveReduction: effectiveReduction,
+        )
+        remaining = applySpellBlockReduction(
+            remaining, state: state, defenderTriggers: defenderTriggers,
+            effectiveReduction: effectiveReduction, in: &context,
+        )
+        applyGuardianBlock(to: &state, in: &context)
         if defenderTriggers.damageReductionPerUnspentManaEvery > 0,
            let runtime = context.roster.runtime(for: state.combatant),
            runtime.maxMana > 0,
@@ -532,5 +536,72 @@ package extension DamagePipeline {
             to: state.combatant,
             in: &context,
         ))
+    }
+
+    private static func applyPassiveMitigations(
+        _ remaining: Int,
+        defenderTriggers: CombatTraitTriggers,
+        damageKeyword: Keyword?,
+        effectiveReduction: (Int) -> Int,
+    ) -> Int {
+        var remaining = remaining
+        if defenderTriggers.passiveMitigationFlat > 0 {
+            remaining = max(0, remaining - effectiveReduction(defenderTriggers.passiveMitigationFlat))
+        }
+        if damageKeyword == .physical, defenderTriggers.passivePhysicalMitigationFlat > 0 {
+            remaining = max(0, remaining - effectiveReduction(defenderTriggers.passivePhysicalMitigationFlat))
+        }
+        return remaining
+    }
+
+    private static func applySpellBlockReduction(
+        _ remaining: Int,
+        state: DamageResolutionState,
+        defenderTriggers: CombatTraitTriggers,
+        effectiveReduction: (Int) -> Int,
+        in context: inout BattleState,
+    ) -> Int {
+        var remaining = remaining
+        if state.damageKeyword != .physical,
+           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0,
+           defenderTriggers.spellDamageTakenReductionWhileBlocked > 0 {
+            remaining = max(0, remaining - effectiveReduction(defenderTriggers.spellDamageTakenReductionWhileBlocked))
+        }
+        if state.combatant.role == .hero,
+           context.roster.companion.isAlive,
+           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: context.roster.companion.combatant)) > 0 {
+            let protection = min(1, max(0, context.companionModifiers.triggers.companionBlockProtectsHeroPercent))
+            if protection > 0 {
+                let multiplier = DamageDefensePolicy.mitigationMultiplier(state: state, context: context)
+                remaining = CombatRounding.scaled(remaining, multiplier: 1 - protection * multiplier)
+            }
+        }
+        return remaining
+    }
+
+    private static func applyGuardianBlock(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.combatant.role == .hero,
+              context.roster.companion.isAlive,
+              context.companionModifiers.triggers.guardianHeroBlockFlat > 0,
+              state.options.isAttackHit, !state.options.isRetaliation,
+              let actionID = context.resolution.actionID,
+              context.resolution.claim(
+                  .heroTalent("guardian"),
+                  actorID: context.roster.companion.id,
+                  cadence: .action(actionID),
+              )
+        else { return }
+        let block = context.companionModifiers.triggers.guardianHeroBlockFlat
+        let granted = context.applyBlockGain(
+            block,
+            to: state.combatant,
+            source: context.roster.companion.combatant,
+            abilityName: "Guardian",
+            origin: .automatic,
+        )
+        state.damageEvents.append(contentsOf: granted.events)
     }
 }

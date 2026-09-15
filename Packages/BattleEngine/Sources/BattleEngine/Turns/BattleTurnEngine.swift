@@ -277,6 +277,9 @@ extension BattleTurnEngine {
             let shouldConsumeNextStrikeCritical = amount > 0
                 && !isSelfHealthCost
                 && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeCritical }
+            let shouldConsumeNextStrikeLeech = amount > 0
+                && !isSelfHealthCost
+                && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeLeech }
             let nextBurnBonus = amount > 0 && !isSelfHealthCost && damageKeyword == .burn
                 ? activeNextBurnBonus(for: actor, in: context)
                 : 0
@@ -292,6 +295,7 @@ extension BattleTurnEngine {
                 shouldConsumeNextHolyStrike ? EffectKind.nextHolyStrike : nil,
                 shouldConsumeNextStrikeDouble ? EffectKind.nextStrikeDouble : nil,
                 shouldConsumeNextStrikeCritical ? EffectKind.nextStrikeCritical : nil,
+                shouldConsumeNextStrikeLeech ? EffectKind.nextStrikeLeech : nil,
                 nextBurnBonus > 0 ? EffectKind.nextBurnBonus : nil,
             ].compactMap(\.self))
             ActiveEffectMutation.removeMatching(from: actor, in: &context) { consumedKinds.contains($0.kind) }
@@ -303,7 +307,7 @@ extension BattleTurnEngine {
                     abilityCriticalChanceBonus: ability.criticalChanceBonus,
                     guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
                     guaranteedCritical: shouldConsumeNextStrikeCritical,
-                    abilityHasLeech: ability.hasLeech,
+                    abilityHasLeech: ability.hasLeech || shouldConsumeNextStrikeLeech,
                 )
             var request = DamageRequest(
                 amount: amount,

@@ -56,6 +56,7 @@ package struct DamageResolutionState {
     var heroCardBlockIgnore = 0
     var heroCardBlockBroken = false
     var additionalHolyDamage = 0
+    var additionalPhysicalDamage = 0
     var pendingAttackBonus = 0
     var pendingHolyBonus = 0
     var didLeech = false

@@ -29,7 +29,7 @@ extension UniqueCatalog {
             name: "The Returning Flight",
             base: "quiver",
             keywords: [.physical],
-            description: "At turn start, recover your last attack card from the previous turn, if it remains in your deck.",
+            description: "Your first Physical card each turn returns to your hand.",
             triggers: CombatTraitTriggers(attack: AttackTriggers(recoverLastAttackCardEachTurn: true)),
             supports: ["keen", "envenomed", "infected"],
         ),

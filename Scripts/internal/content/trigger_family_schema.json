@@ -85,6 +85,24 @@
         "merge": "or"
       },
       {
+        "name": "firstPhysicalAttackGuaranteedCritical",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "firstAttackBleedBonus",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "physicalIgnoreMitigationPercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
         "name": "turnRandomDamageAllEnemiesKeywordA",
         "type": "Keyword?",
         "default": "nil",
@@ -431,6 +449,18 @@
         "type": "Int",
         "default": "0",
         "merge": "max"
+      },
+      {
+        "name": "dazingSwipeChancePercent",
+        "type": "Double",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "dazingSwipeStunDamage",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
       },
       {
         "name": "firstCriticalHitCompanionBasicPerTurn",
@@ -847,6 +877,24 @@
         "merge": "max"
       },
       {
+        "name": "guardianHeroBlockFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "doublePhysicalBlockAbsorption",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "blockPreparesCritical",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "blockGainedMaxHealthEvery",
         "type": "Int",
         "default": "0",
@@ -1112,6 +1160,12 @@
     "fields": [
       {
         "name": "passiveMitigationFlat",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "passivePhysicalMitigationFlat",
         "type": "Int",
         "default": "0",
         "merge": "add"
@@ -2371,6 +2425,18 @@
         "merge": "add"
       },
       {
+        "name": "healCompanionDrawsCompanionCard",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "forbiddenKnowledge",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
         "name": "drawOnHealthLoss",
         "type": "Int",
         "default": "0",
@@ -2762,6 +2828,12 @@
       },
       {
         "name": "healthPerTurn",
+        "type": "Int",
+        "default": "0",
+        "merge": "add"
+      },
+      {
+        "name": "heroCritHealPartyFlat",
         "type": "Int",
         "default": "0",
         "merge": "add"
@@ -3296,6 +3368,12 @@
       },
       {
         "name": "partyDebuffDurationHalved",
+        "type": "Bool",
+        "default": "false",
+        "merge": "or"
+      },
+      {
+        "name": "purifyingAura",
         "type": "Bool",
         "default": "false",
         "merge": "or"

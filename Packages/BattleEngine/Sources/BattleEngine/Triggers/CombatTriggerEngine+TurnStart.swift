@@ -107,38 +107,101 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
         events.append(contentsOf: startOfTurnRegen(runtime: runtime, actor: actor, triggers: triggers, in: &context))
-        if context.isPlayerTurn(every: 2, startingAt: 1), triggers.drawEveryOtherTurn > 0 {
-            events.append(contentsOf: drawCards(
-                triggers.drawEveryOtherTurn,
-                for: owner,
-                actor: actor,
-                abilityName: triggerAbilityName("drawEveryOtherTurn", for: actor, fallback: "Tattered Pages", in: context),
-                in: &context,
-            ))
-        }
-        let companionCards = triggers.companionCardsPerTurn
-            + (context.isPlayerTurn(every: 2, startingAt: 1) ? triggers.companionCardsEveryOtherTurn : 0)
-        if companionCards > 0 {
-            events.append(contentsOf: drawCards(
-                companionCards,
-                for: .companion,
-                actor: actor,
-                abilityName: triggerAbilityName(
-                    triggers.companionCardsEveryOtherTurn > 0
-                        ? "companionCardsEveryOtherTurn" : "companionCardsPerTurn",
-                    for: actor,
-                    fallback: "Companion's Collar",
-                    in: context,
-                ),
-                in: &context,
-            ))
-        }
-
+        events.append(contentsOf: forbiddenKnowledgeIfNeeded(for: owner, actor: actor, triggers: triggers, in: &context))
+        events.append(contentsOf: companionCardsIfNeeded(for: owner, actor: actor, triggers: triggers, in: &context))
+        events.append(contentsOf: purifyingAuraIfNeeded(actor: actor, triggers: triggers, in: &context))
         events.append(contentsOf: startOfTurnAfflictionCadence(for: owner, actor: actor, triggers: triggers, in: &context))
         events.append(contentsOf: startOfTurnResourceCadence(for: owner, actor: actor, triggers: triggers, in: &context))
         events.append(contentsOf: startOfTurnDrawCadence(for: owner, actor: actor, triggers: triggers, in: &context))
         events.append(contentsOf: battleStartBonuses(for: owner, actor: actor, triggers: triggers, in: &context))
         applyDamageRamp(for: actor, triggers: triggers, in: &context)
+        return events
+    }
+
+    private static func forbiddenKnowledgeIfNeeded(
+        for owner: BattleParticipant,
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard context.isPlayerTurn(every: 2, startingAt: 1), triggers.forbiddenKnowledge else { return [] }
+        // Resolve the Health cost before drawing; ordinary Health-cost rules apply
+        // with no hidden nonlethal floor. A defeated owner cannot continue.
+        var events = context.resolveDamage(DamageRequest(
+            amount: 1,
+            target: actor,
+            keyword: nil,
+            sourceActorID: actor.id,
+            options: .healthCost,
+        )).events
+        guard context.roster.health(for: actor) > 0 else { return events }
+        events.append(contentsOf: drawCards(
+            2,
+            for: owner,
+            actor: actor,
+            abilityName: triggerAbilityName("forbiddenKnowledge", for: actor, fallback: "Forbidden Knowledge", in: context),
+            in: &context,
+        ))
+        return events
+    }
+
+    private static func companionCardsIfNeeded(
+        for owner: BattleParticipant,
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        if context.isPlayerTurn(every: 2, startingAt: 1), triggers.drawEveryOtherTurn > 0 {
+            return drawCards(
+                triggers.drawEveryOtherTurn,
+                for: owner,
+                actor: actor,
+                abilityName: triggerAbilityName("drawEveryOtherTurn", for: actor, fallback: "Tattered Pages", in: context),
+                in: &context,
+            )
+        }
+        let companionCards = triggers.companionCardsPerTurn
+            + (context.isPlayerTurn(every: 2, startingAt: 1) ? triggers.companionCardsEveryOtherTurn : 0)
+        guard companionCards > 0 else { return [] }
+        return drawCards(
+            companionCards,
+            for: .companion,
+            actor: actor,
+            abilityName: triggerAbilityName(
+                triggers.companionCardsEveryOtherTurn > 0
+                    ? "companionCardsEveryOtherTurn" : "companionCardsPerTurn",
+                for: actor,
+                fallback: "Companion's Collar",
+                in: context,
+            ),
+            in: &context,
+        )
+    }
+
+    private static func purifyingAuraIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard context.isPlayerTurn(every: 2, startingAt: 1), triggers.purifyingAura else { return [] }
+        let abilityName = triggerAbilityName(
+            "purifyingAura",
+            for: actor,
+            fallback: "Purifying Aura",
+            in: context,
+        )
+        var events: [ActionEvent] = []
+        for targetOwner in [BattleParticipant.hero, .companion] {
+            let target = context.roster[targetOwner]
+            guard target.isAlive else { continue }
+            events.append(contentsOf: performRandomCleanses(
+                source: actor,
+                target: target.combatant,
+                count: 1,
+                abilityName: abilityName,
+                in: &context,
+            ))
+        }
         return events
     }
 

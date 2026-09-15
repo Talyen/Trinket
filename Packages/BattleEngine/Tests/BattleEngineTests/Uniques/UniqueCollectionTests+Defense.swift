@@ -154,19 +154,14 @@ extension UniqueCollectionTests {
         everkeen.triggers.apply(to: &companion)
         var context = try battle(["huntsmasters_call"], other: companion, companionBasic: basic)
         context.roster.mutateRuntime(for: context.roster.companion.combatant) { $0.currentHealth = 100 }
-        context.appendEffect(
-            .nextStrikeCritical,
-            to: context.roster.companion.combatant,
-            sourceID: context.roster.companion.id,
-            remainingTurns: 0,
-        )
-        let first = try play(attack(), critical: true, in: &context)
+        // Huntsmaster's Call now triggers on Bleed damage (not Critical Hits), once per turn.
+        let first = try play(attack(.bleed), in: &context)
         #expect(context.roster.companion.currentHealth > 100)
         #expect(blockAmount(.companion, in: context) == 3)
         #expect(first.count(where: { $0.kind == .ability && $0.abilityID == basic.id }) == 1)
         #expect(!first.contains { $0.abilityName == "Everkeen" })
         #expect(context.uniques.owners[.companion]?.repeatedCritical != true)
-        let next = try play(attack(), critical: true, in: &context)
+        let next = try play(attack(.bleed), in: &context)
         #expect(!next.contains { $0.kind == .ability && $0.abilityID == basic.id })
     }
 

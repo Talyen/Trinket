@@ -29,7 +29,7 @@ public enum CombatantBuffAura: Sendable {
         switch effect {
         case .nextStrikeDouble, .evadeNextHit:
             .shadowstep
-        case .nextStrikeCritical:
+        case .nextStrikeCritical, .nextStrikeLeech:
             .predatorsFocus
         case .freezeNextAttacker, .onHitDamage(.freeze, _):
             .glacialWard

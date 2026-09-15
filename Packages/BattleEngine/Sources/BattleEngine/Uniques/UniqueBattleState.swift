@@ -11,6 +11,8 @@ package struct UniqueBattleState {
         var usedFinalSpark = false
         var usedElements: Set<Keyword> = []
         var lastAttack: Ability?
+        var lastOrdinaryAbility: Ability?
+        var returnedFlightThisTurn = false
         var hasAttacked = false
         var viperReady = false
         var wildheartReady = false
@@ -27,6 +29,8 @@ package struct UniqueBattleState {
             usedFinalSpark = false
             usedElements = []
             lastAttack = nil
+            lastOrdinaryAbility = nil
+            returnedFlightThisTurn = false
             wrenflightDodge = 0
         }
     }

@@ -339,9 +339,15 @@ struct AvatarHandler: BattleEffectHandler {
         guard let active = stacks.first,
               case let .avatar(holyDamage, blockPerTurn, _) = active.effect
         else { return nil }
+        if blockPerTurn > 0 {
+            return EffectSummary(
+                keyword: keyword,
+                text: "Avatar: Deals \(holyDamage) Holy damage and gains \(blockPerTurn) Block each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
+            )
+        }
         return EffectSummary(
             keyword: keyword,
-            text: "Avatar: Deals \(holyDamage) Holy damage and gains \(blockPerTurn) Block each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
+            text: "Avatar: Deals \(holyDamage) Holy damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
         )
     }
 
@@ -353,7 +359,7 @@ struct AvatarHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .avatar(holyDamage, blockPerTurn, turns) = effect,
-              holyDamage > 0, blockPerTurn > 0, turns > 0
+              holyDamage > 0, blockPerTurn >= 0, turns > 0
         else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -418,12 +424,14 @@ struct AvatarHandler: BattleEffectHandler {
             provenance: provenance,
             in: &context,
         ).events
-        events.append(contentsOf: context.applyBlock(
-            blockPerTurn,
-            to: caster,
-            source: caster,
-            abilityName: "Avatar",
-        ))
+        if blockPerTurn > 0 {
+            events.append(contentsOf: context.applyBlock(
+                blockPerTurn,
+                to: caster,
+                source: caster,
+                abilityName: "Avatar",
+            ))
+        }
         return events
     }
 }

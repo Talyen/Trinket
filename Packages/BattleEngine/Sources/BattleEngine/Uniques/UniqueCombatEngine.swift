@@ -17,17 +17,17 @@ package enum UniqueCombatEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.uniques.owners[card.owner, default: .init()]
         owner.cardsPlayed += 1
-        var play = UniqueBattleState.CardPlay(
+        let play = UniqueBattleState.CardPlay(
             owner: card.owner,
             originalAbility: card.ability,
             targetWasBleeding: context.roster.hasAffliction(.bleed, on: context.roster.enemy.combatant),
         )
-        if triggers.thirdCardReturnsToHand, owner.cardsPlayed == 3 {
-            play.returnName = "The Returning Gale"
-        }
         if triggers.secondCardDrawAndDodgePercent > 0, owner.cardsPlayed == 2 {
             owner.wrenflightDodge = triggers.secondCardDrawAndDodgePercent
-            play.draws.append("Wrenflight")
+            var mutablePlay = play
+            mutablePlay.draws.append("Wrenflight")
+            context.uniques.owners[card.owner] = owner
+            return mutablePlay
         }
         context.uniques.owners[card.owner] = owner
         return play
@@ -42,6 +42,10 @@ package enum UniqueCombatEngine {
             context.uniques.owners[play.owner] = owner
             context.uniques.card = play
         }
+        // The Returning Gale tracks the last ordinary card play, including non-damaging cards.
+        if triggers.thirdCardReturnsToHand {
+            owner.lastOrdinaryAbility = play.originalAbility
+        }
         if triggers.firstElementCardsDraw {
             for keyword in [Keyword.burn, .freeze, .holy]
                 where facts.damageKeywords.contains(keyword) && owner.usedElements.insert(keyword).inserted {
@@ -53,15 +57,19 @@ package enum UniqueCombatEngine {
             play.guaranteedCritical = true
             owner.wildheartReady = false
         }
+        // The Returning Flight returns the first Physical card each turn.
+        if triggers.recoverLastAttackCardEachTurn,
+           !owner.returnedFlightThisTurn,
+           facts.damageKeywords.contains(.physical) {
+            owner.returnedFlightThisTurn = true
+            play.returnName = play.returnName ?? "The Returning Flight"
+        }
         guard !facts.damageKeywords.isEmpty else { return }
         let partner: BattleParticipant = play.owner == .hero ? .companion : .hero
         if !owner.hasAttacked, context.uniques.owners[partner, default: .init()].cardsPlayed > 0 {
             play.attackBonus = triggers.partnerFirstAttackDamage
         }
         owner.hasAttacked = true
-        if triggers.recoverLastAttackCardEachTurn {
-            owner.lastAttack = play.originalAbility
-        }
         if triggers.returnAttackAgainstBleedingOncePerTurn, !owner.returnedHarvest, play.targetWasBleeding {
             owner.returnedHarvest = true
             play.returnName = play.returnName ?? "Red Harvest"
@@ -96,26 +104,10 @@ package enum UniqueCombatEngine {
     static func startTurn(in context: inout BattleState) -> [ActionEvent] {
         let activeIDs = Set(BattleParticipant.allCases.flatMap { context.roster[$0].activeEffects.map(\.id) })
         context.uniques.retainedStunByEffectID = context.uniques.retainedStunByEffectID.filter { activeIDs.contains($0.key) }
-        var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
-            let lastAttack = context.uniques.owners[owner]?.lastAttack
             context.uniques.owners[owner, default: .init()].resetTurn()
-            guard let lastAttack,
-                  BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context),
-                  !(context.hand.cards + context.hand.buffer).contains(where: {
-                      $0.owner == owner && $0.ability.id == lastAttack.id
-                  })
-            else { continue }
-            let recovered: Ability? = switch owner {
-            case .hero: context.heroDeck.drawFirst { $0.id == lastAttack.id }
-            case .companion: context.companionDeck.drawFirst { $0.id == lastAttack.id }
-            case .enemy: nil
-            }
-            guard let recovered else { continue }
-            _ = BattleCardCombatEngine.deal(recovered, owner: owner, context: &context)
-            events.append(cardReturnEvent(owner: owner, name: "The Returning Flight", in: &context))
         }
-        return events
+        return []
     }
 
     private static func cardReturnEvent(

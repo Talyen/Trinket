@@ -19,6 +19,13 @@ enum DamageDefensePolicy {
             return 0
         }
         guard state.combatant.role == .enemy else { return 1 }
+        if state.damageKeyword == .physical {
+            let physical = max(
+                sourceProfile.triggers.physicalIgnoreMitigationPercent,
+                sourceProfile.triggers.ignoreEnemyMitigationPercent,
+            )
+            return 1 - min(1, max(0, physical))
+        }
         return 1 - min(1, max(0, sourceProfile.triggers.ignoreEnemyMitigationPercent))
     }
 

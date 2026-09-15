@@ -232,12 +232,15 @@ struct AbilityCatalogTests {
         try #expect(Ability.stab.criticalChanceBonus == 0.25)
     }
 
-    @Test func `sap arrow takes gold from stunned enemies`() throws {
-        try #expect(Ability.sapArrow.summary == "Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.")
+    @Test func `bandits arrow steals gold unconditionally`() throws {
+        try #expect(Ability.sapArrow.id == "sap-arrow")
+        try #expect(Ability.sapArrow.name == "Bandit's Arrow")
+        try #expect(Ability.sapArrow.summary == "Deal 3 Stun damage and steal 2 Gold.")
         try #expect(Ability.sapArrow.damageComponents == [DamageComponent(3, keyword: .stun)])
         try #expect(Ability.sapArrow.targetedEffects == [
-            TargetedEffect(.resourceGain(.gold, 2), condition: .enemyStunned),
+            TargetedEffect(.resourceGain(.gold, 2)),
         ])
+        try #expect(Ability.sapArrow.stealsGold)
     }
 
     @Test func `variable damage branches resolve within locked ranges`() throws {

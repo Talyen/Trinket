@@ -141,6 +141,8 @@ struct EffectModelTests {
         case .shieldFromGold: .shieldFromGold(goldPerBlock: 5)
         case .maximumManaBonus: .maximumManaBonus(2)
         case .nextStrikeCritical: .nextStrikeCritical
+        case .nextStrikeLeech: .nextStrikeLeech
+        case .partyPhysicalBonus: .partyPhysicalBonus(3)
         case .freezeNextAttacker: .freezeNextAttacker
         case .onHitDamage: .onHitDamage(.holy, 3)
         case .multiplyDoT: .multiplyDoT(.burn, 2)
@@ -182,7 +184,10 @@ struct EffectModelTests {
     }
 
     @Test func `flag effect summary phrases are registered`() {
-        for kind in [EffectKind.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical, .freezeNextAttacker] {
+        for kind in [
+            EffectKind.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical,
+            .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker,
+        ] {
             #expect(!EffectKind.requiredBattleSummaryPhrase(for: kind).isEmpty)
             #expect(EffectKind.battleSummaryPhrase(for: kind) != nil)
         }

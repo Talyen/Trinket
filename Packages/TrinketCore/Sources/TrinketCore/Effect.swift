@@ -90,6 +90,8 @@ public enum Effect: Hashable, Sendable {
     case shieldFromGold(goldPerBlock: Int)
     case maximumManaBonus(Int)
     case nextStrikeCritical
+    case nextStrikeLeech
+    case partyPhysicalBonus(Int)
     case freezeNextAttacker
     case onHitDamage(Keyword, Int)
     case cleanseHealPerDebuff(Int)
@@ -145,6 +147,8 @@ public enum Effect: Hashable, Sendable {
         case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: .block
         case .maximumManaBonus: .mana
         case .nextStrikeCritical: .physical
+        case .nextStrikeLeech: .leech
+        case .partyPhysicalBonus: .physical
         case .freezeNextAttacker: .freeze
         case let .onHitDamage(k, _): k
         case let .multiplyDoT(k, _): k
@@ -208,7 +212,8 @@ public enum Effect: Hashable, Sendable {
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .detonateDoT, .revive,
+             .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .detonateDoT,
+             .revive,
              .cleanseHealPerDebuff, .panacea, .blessedAegis, .hemorrhage:
             0
         }
@@ -253,7 +258,7 @@ public enum Effect: Hashable, Sendable {
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage, .avatar, .blessedAegis:
+             .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage, .avatar, .blessedAegis:
             .actor
         }
     }

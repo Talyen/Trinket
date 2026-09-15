@@ -28,7 +28,7 @@ bloodstone	Bloodstone	accessory	leech,health	8	Leech restores 1 additional Healt
 rime	Rime	accessory	freeze	8	Increase Freeze damage by 1.	Increase Freeze damage by 2.	damage_dealt:freeze:1	damage_dealt:freeze:2
 stunning	Stunning	accessory	stun	8	Increase Stun damage by 1.	Increase Stun damage by 2.	damage_dealt:stun:1	damage_dealt:stun:2
 manabound	Manabound	accessory	mana,burn,freeze	8	Increase Maximum Mana by 4.	Increase Maximum Mana by 8.	maximum_mana:4	maximum_mana:8
-beastbond	Beastbond	accessory	health	8	Your Companion deals 1 additional damage.	Your Companion deals 2 additional damage.	companion_damage_dealt:1	companion_damage_dealt:2
+beastbond	Beastbond	accessory	physical	8	Increase your Companion's Physical damage by 1.	Increase your Companion's Physical damage by 2.	companion_physical_damage_dealt:1	companion_physical_damage_dealt:2
 biting	Biting	accessory	bleed,leech	8	Bleed lasts 1 additional turn.	Bleed lasts 2 additional turns.	bleed_duration:1	bleed_duration:2
 infected	Infected	weapon	bleed,poison	8	Dealing Bleed damage has a 35% chance to deal 1 Poison damage.	Dealing Bleed damage has a 35% chance to deal 2 Poison damage.			on_bleed_apply_poison:1|on_bleed_deal_poison_chance_percent:0.35	on_bleed_apply_poison:2|on_bleed_deal_poison_chance_percent:0.35
 ashen_wake	Ashen Wake	weapon	burn,poison	8	Dealing Burn damage has a 35% chance to deal 1 Poison damage.	Dealing Burn damage has a 35% chance to deal 2 Poison damage.			on_burn_apply_poison:1|on_burn_deal_poison_chance_percent:0.35	on_burn_apply_poison:2|on_burn_deal_poison_chance_percent:0.35
@@ -50,8 +50,8 @@ beacon	Beacon	accessory	holy,health	8	Restore 1 Health when you deal Holy damage
 windfall	Windfall	accessory	gold	8	Restore 1 Health when you gain Gold.	Restore 2 Health when you gain Gold.			on_gain_gold_heal:1	on_gain_gold_heal:2
 payday	Payday	accessory	gold,dodge	8	Gain 1 Gold when you Dodge.	Gain 2 Gold when you Dodge.			on_dodge_gold:1	on_dodge_gold:2
 hardened	Hardened	armor	physical	10	Take 10% less Physical damage.	Take 25% less Physical damage.	damage_taken_percent:physical:0.10	damage_taken_percent:physical:0.25
-retaliatory	Retaliatory	armor	physical	8	Reflect 10% of damage taken.	Reflect 20% of damage taken.			thorns_percent:0.10	thorns_percent:0.20
-shredding	Shredding	accessory	physical	8	Ignore 10% of enemy mitigation.	Ignore 25% of enemy mitigation.			ignore_enemy_mitigation_percent:0.10	ignore_enemy_mitigation_percent:0.25
+retaliatory	Retaliatory	armor	physical	8	Reflect 10% of Health lost as Physical damage.	Reflect 20% of Health lost as Physical damage.			thorns_percent:0.10	thorns_percent:0.20
+shredding	Shredding	accessory	physical	8	Your Physical damage ignores 10% of enemy damage reduction.	Your Physical damage ignores 25% of enemy damage reduction.			physical_ignore_mitigation_percent:0.10	physical_ignore_mitigation_percent:0.25
 knockout	Knockout	accessory	stun	8	Deal 3 Physical damage when you Stun the enemy.	Deal 5 Physical damage when you Stun the enemy.			on_stun_deal_physical:3	on_stun_deal_physical:5
 dazed	Dazed	weapon	stun	8	Deal 2 additional damage while the enemy is Stunned.	Deal 4 additional damage while the enemy is Stunned.			damage_while_target_stunned:2	damage_while_target_stunned:4
 branding	Branding	accessory	stun	8	Mark the enemy when they are Stunned.	Mark the enemy when they are Stunned.			on_enemy_stunned_apply_marked:true	on_enemy_stunned_apply_marked:true
@@ -69,7 +69,7 @@ sidestep	Sidestep	armor	dodge,health	8	Restore 1 Health when you Dodge.	Restore 
 blur	Blur	accessory	dodge,health	8	Gain 15% Dodge chance while below 50% Health.	Gain 30% Dodge chance while below 50% Health.			dodge_chance_below_health_percent:0.50:0.15	dodge_chance_below_health_percent:0.50:0.30
 bone_charm	Blood Omen	trinket	health	1	Draw a card the first time you lose Health each turn.	Draw a card the first time you lose Health each turn.			draw_on_health_loss:1	draw_on_health_loss:1
 brass_censer	Toxic Incense	trinket	holy,poison	1	Deal 1 Poison damage when you deal Holy damage.	Deal 1 Poison damage when you deal Holy damage.			on_holy_damage_poison:1	on_holy_damage_poison:1
-companions_collar	Loyal Companion	trinket	health,physical	1	Draw an extra Companion card every other turn.	Draw an extra Companion card every other turn.			companionCardsEveryOtherTurn:1	companionCardsEveryOtherTurn:1
+companions_collar	Loyal Companion	trinket	health,physical	1	Once per turn, healing your Companion draws a Companion card.	Once per turn, healing your Companion draws a Companion card.			healCompanionDrawsCompanionCard:true	healCompanionDrawsCompanionCard:true
 cutpurse_knife	Blood Money	trinket	bleed,gold	1	Gain 1 Gold when you deal Bleed damage.	Gain 1 Gold when you deal Bleed damage.			on_bleed_damage_gold:1	on_bleed_damage_gold:1
 frozen_pocketwatch	Deep Freeze	trinket	freeze	1	Freeze has a 20% chance to last an additional turn.	Freeze has a 20% chance to last an additional turn.			freeze_extend_chance_percent:0.20	freeze_extend_chance_percent:0.20
 stunned_pocketwatch	Concussive Pocketwatch	trinket	stun	1	Stun has a 20% chance to last an additional turn.	Stun has a 20% chance to last an additional turn.			stun_extend_chance_percent:0.20	stun_extend_chance_percent:0.20
@@ -88,7 +88,7 @@ runic_quill	Arcane Script	trinket	mana	1	Draw a card the first time you spend Ma
 sin_eaters_lantern	Absolution	trinket	holy,health	1	Restore 3 Health when you remove a harmful status effect.	Restore 3 Health when you remove a harmful status effect.			on_cleanse_self_heal:3	on_cleanse_self_heal:3
 smugglers_map	Hidden Cache	trinket	gold	1	Gain 4 additional Gold on victory.	Gain 4 additional Gold on victory.			victory_gold_flat:4	victory_gold_flat:4
 sundering_charm	Shatterguard	trinket	physical,block	1	Physical and Stun damage remove twice as much Block.	Physical and Stun damage remove twice as much Block.			sundering_block_multiplier:1.00	sundering_block_multiplier:1.00
-tattered_pages	Forbidden Knowledge	trinket	mana	1	Draw an additional card every other turn.	Draw an additional card every other turn.			draw_every_other_turn:1	draw_every_other_turn:1
+tattered_pages	Forbidden Knowledge	trinket	mana	1	Every other turn, lose 1 Health and draw 2 cards.	Every other turn, lose 1 Health and draw 2 cards.			forbiddenKnowledge:true	forbiddenKnowledge:true
 thunderstone	Stormbreak	trinket	physical,stun	1	Deal double damage to Stunned enemies.	Deal double damage to Stunned enemies.			stunned_damage_multiplier:2.00	stunned_damage_multiplier:2.00
 vanguards_crest	Martial Guard	trinket	physical,block	1	Gain Block equal to half your Physical damage.	Gain Block equal to half your Physical damage.			physical_damage_block_percent:0.50	physical_damage_block_percent:0.50
 wishing_well_coin	Fickle Fortune	trinket	gold	1	On victory, gain 7 Gold or gain 3 Gold.	On victory, gain 7 Gold or gain 3 Gold.			victory_gold_coin:true	victory_gold_coin:true

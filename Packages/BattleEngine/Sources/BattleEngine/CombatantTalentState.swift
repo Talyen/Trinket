@@ -44,16 +44,14 @@ struct CombatantTalentState: Hashable, Sendable {
         var cardDamageBonus = 0
         var cardDamagePercent = 0.0
         var nextHitBonus = 0
-        var shadowCamouflageBonus = 0
         var nextAttackHolyBonus = 0
         var basicGuaranteedCritical = false
         var basicCriticalBonus = 0.0
         var attackBonusOnFullHealth = 0
 
         mutating func reserveAttackBonuses() -> (damage: Int, holy: Int) {
-            let bonuses = (nextHitBonus + attackBonusOnFullHealth + shadowCamouflageBonus, nextAttackHolyBonus)
+            let bonuses = (nextHitBonus + attackBonusOnFullHealth, nextAttackHolyBonus)
             nextHitBonus = 0
-            shadowCamouflageBonus = 0
             attackBonusOnFullHealth = 0
             nextAttackHolyBonus = 0
             return bonuses

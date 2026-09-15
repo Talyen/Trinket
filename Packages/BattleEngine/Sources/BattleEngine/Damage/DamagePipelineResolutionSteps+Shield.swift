@@ -36,26 +36,34 @@ package extension DamagePipeline {
         let sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         let targetIsStunned = state.targetStatus.isStunned
-        let targetIsFrozen = state.targetStatus.isFrozen
 
         let effectiveBuffer = max(0, CombatRounding.scaled(buffer, multiplier: blockMultiplier) - state.heroCardBlockIgnore)
         guard effectiveBuffer > 0, state.remaining > 0 else {
             return
         }
 
+        let doublesPhysical = defenderTriggers.doublePhysicalBlockAbsorption && state.damageKeyword == .physical
+        let absorptionBuffer = doublesPhysical ? effectiveBuffer * 2 : effectiveBuffer
+
         let absorption = applyAbsorption(
             to: &state,
             keyword: keyword,
             buffer: buffer,
-            effectiveBuffer: effectiveBuffer,
+            effectiveBuffer: absorptionBuffer,
             sourceTriggers: sourceTriggers,
             targetIsStunned: targetIsStunned,
             in: &context,
         )
 
+        let blockRemoval: Int = if doublesPhysical {
+            CombatRounding.scaled(absorption.absorbed, multiplier: 0.5) + max(0, absorption.extraRemoved)
+        } else {
+            absorption.absorbed + absorption.extraRemoved
+        }
+
         var blockBroken = false
         if let reduced = DefensePoolEngine.reduce(
-            absorption.absorbed + absorption.extraRemoved,
+            blockRemoval,
             in: effects,
         ) {
             effects = reduced.effects
@@ -63,6 +71,25 @@ package extension DamagePipeline {
         }
         state.heroCardBlockBroken = blockBroken
         context.roster.setActiveEffects(effects, for: state.combatant)
+
+        // The Patient Edge: actual attack damage absorbed by Block prepares a Critical Hit.
+        if absorption.absorbed > 0,
+           state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
+           defenderTriggers.blockPreparesCritical {
+            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
+                if case .nextStrikeCritical = $0 {
+                    return true
+                }
+                return false
+            }
+            _ = context.insertEffect(
+                .nextStrikeCritical,
+                to: state.combatant,
+                sourceID: state.combatant.id,
+                remainingTurns: 0,
+                replacing: { $0 == .nextStrikeCritical },
+            )
+        }
 
         state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(
             absorbed: absorption.absorbed,

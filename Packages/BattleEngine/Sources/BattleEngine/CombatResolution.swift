@@ -45,6 +45,7 @@ struct CombatResolution {
 
     private struct Card {
         var partyDamageBonus = 0
+        var partyPhysicalBonus = 0
         let id: Int
         let actorID: String
         var outcome: ResolvedActionFacts?
@@ -61,6 +62,7 @@ struct CombatResolution {
     private var nextActionID = 0
     private var cards: [Card] = []
     private var partyCardDamageBySource: [String: Int] = [:]
+    private var partyPhysicalDamageBySource: [String: Int] = [:]
     private(set) var nextCardID = 0
     private var claims: Set<ClaimKey> = []
 
@@ -119,21 +121,45 @@ struct CombatResolution {
         partyCardDamageBySource[actorID, default: 0]
     }
 
+    func pendingPartyPhysicalDamage(from actorID: String) -> Int {
+        partyPhysicalDamageBySource[actorID, default: 0]
+    }
+
     mutating func preparePartyCardDamage(_ amount: Int, sourceID: String) {
         partyCardDamageBySource[sourceID] = amount
+    }
+
+    mutating func preparePartyPhysicalDamage(_ amount: Int, sourceID: String) {
+        partyPhysicalDamageBySource[sourceID] = amount
     }
 
     mutating func reservePartyCardDamage(livingSourceIDs: [String]) -> Int {
         livingSourceIDs.reduce(0) { $0 + (partyCardDamageBySource.removeValue(forKey: $1) ?? 0) }
     }
 
-    mutating func beginCard(actorID: String, tier: AbilityTier, previousDamageKeywords: Set<Keyword>, partyDamageBonus: Int = 0) -> Int {
+    mutating func reservePartyPhysicalDamage(livingSourceIDs: [String]) -> Int {
+        livingSourceIDs.reduce(0) { $0 + (partyPhysicalDamageBySource.removeValue(forKey: $1) ?? 0) }
+    }
+
+    mutating func beginCard(
+        actorID: String,
+        tier: AbilityTier,
+        previousDamageKeywords: Set<Keyword>,
+        partyDamageBonus: Int = 0,
+        partyPhysicalBonus: Int = 0,
+    ) -> Int {
         let id = nextCardID
         nextCardID += 1
         var talents = HeroTalentCardFacts(actorID: actorID, tier: tier)
         talents.playSerial = id
         talents.previousDamageKeywords = previousDamageKeywords
-        cards.append(Card(partyDamageBonus: partyDamageBonus, id: id, actorID: actorID, talents: talents))
+        cards.append(Card(
+            partyDamageBonus: partyDamageBonus,
+            partyPhysicalBonus: partyPhysicalBonus,
+            id: id,
+            actorID: actorID,
+            talents: talents,
+        ))
         return id
     }
 
@@ -149,6 +175,22 @@ struct CombatResolution {
         let amount = cards[index].partyDamageBonus
         cards[index].partyDamageBonus = 0
         return amount
+    }
+
+    mutating func consumePartyPhysicalDamage(from provenance: DamageProvenance?) -> Int {
+        guard let provenance, let cardID = provenance.cardID,
+              let index = cards.indices.last, cards[index].id == cardID,
+              currentAction?.id == provenance.actionID else { return 0 }
+        let amount = cards[index].partyPhysicalBonus
+        cards[index].partyPhysicalBonus = 0
+        return amount
+    }
+
+    func peekPartyPhysicalDamage(from provenance: DamageProvenance?) -> Int {
+        guard let provenance, let cardID = provenance.cardID,
+              let index = cards.indices.last, cards[index].id == cardID,
+              currentAction?.id == provenance.actionID else { return 0 }
+        return cards[index].partyPhysicalBonus
     }
 
     mutating func mutateCardTalents(_ body: (inout HeroTalentCardFacts) -> Void) {

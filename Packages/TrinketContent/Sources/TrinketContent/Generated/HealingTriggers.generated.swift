@@ -16,6 +16,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var burnDamageHealFlat: Int = 0
     public var healthRestoredPoisonPercent: Double = 0
     public var healthPerTurn: Int = 0
+    public var heroCritHealPartyFlat: Int = 0
     public var overhealConvertsToBlock: Bool = false
     public var overhealConvertsToMaxHealth: Bool = false
     public var overhealConvertsToMaxHealthCap: Int = 0
@@ -87,6 +88,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         burnDamageHealFlat: Int = 0,
         healthRestoredPoisonPercent: Double = 0,
         healthPerTurn: Int = 0,
+        heroCritHealPartyFlat: Int = 0,
         overhealConvertsToBlock: Bool = false,
         overhealConvertsToMaxHealth: Bool = false,
         overhealConvertsToMaxHealthCap: Int = 0,
@@ -157,6 +159,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.burnDamageHealFlat = burnDamageHealFlat
         self.healthRestoredPoisonPercent = healthRestoredPoisonPercent
         self.healthPerTurn = healthPerTurn
+        self.heroCritHealPartyFlat = heroCritHealPartyFlat
         self.overhealConvertsToBlock = overhealConvertsToBlock
         self.overhealConvertsToMaxHealth = overhealConvertsToMaxHealth
         self.overhealConvertsToMaxHealthCap = overhealConvertsToMaxHealthCap
@@ -217,7 +220,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "measuredDose", "coolingSalve", "sharedPrescription", "restorativeFumes", "masterworkMixture", "springSap", "pruningTouch", "quietGrove", "shelterSeed", "cleansingDew", "sharedRoots", "verdantShelter", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly"]
+    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "heroCritHealPartyFlat", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "measuredDose", "coolingSalve", "sharedPrescription", "restorativeFumes", "masterworkMixture", "springSap", "pruningTouch", "quietGrove", "shelterSeed", "cleansingDew", "sharedRoots", "verdantShelter", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -234,6 +237,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.burnDamageHealFlat != other.burnDamageHealFlat { names.append("burnDamageHealFlat") }
         if self.healthRestoredPoisonPercent != other.healthRestoredPoisonPercent { names.append("healthRestoredPoisonPercent") }
         if self.healthPerTurn != other.healthPerTurn { names.append("healthPerTurn") }
+        if self.heroCritHealPartyFlat != other.heroCritHealPartyFlat { names.append("heroCritHealPartyFlat") }
         if self.overhealConvertsToBlock != other.overhealConvertsToBlock { names.append("overhealConvertsToBlock") }
         if self.overhealConvertsToMaxHealth != other.overhealConvertsToMaxHealth { names.append("overhealConvertsToMaxHealth") }
         if self.overhealConvertsToMaxHealthCap != other.overhealConvertsToMaxHealthCap { names.append("overhealConvertsToMaxHealthCap") }
@@ -309,6 +313,7 @@ extension HealingTriggers {
         burnDamageHealFlat += other.burnDamageHealFlat
         healthRestoredPoisonPercent += other.healthRestoredPoisonPercent
         healthPerTurn += other.healthPerTurn
+        heroCritHealPartyFlat += other.heroCritHealPartyFlat
         overhealConvertsToBlock = overhealConvertsToBlock || other.overhealConvertsToBlock
         overhealConvertsToMaxHealth = overhealConvertsToMaxHealth || other.overhealConvertsToMaxHealth
         overhealConvertsToMaxHealthCap = max(overhealConvertsToMaxHealthCap, other.overhealConvertsToMaxHealthCap)
@@ -385,6 +390,7 @@ extension HealingTriggers {
             burnDamageHealFlat: values.decode(Int.self, "burnDamageHealFlat", default: 0),
             healthRestoredPoisonPercent: values.decode(Double.self, "healthRestoredPoisonPercent", default: 0),
             healthPerTurn: values.decode(Int.self, "healthPerTurn", default: 0),
+            heroCritHealPartyFlat: values.decode(Int.self, "heroCritHealPartyFlat", default: 0),
             overhealConvertsToBlock: values.decode(Bool.self, "overhealConvertsToBlock", default: false),
             overhealConvertsToMaxHealth: values.decode(Bool.self, "overhealConvertsToMaxHealth", default: false),
             overhealConvertsToMaxHealthCap: values.decode(Int.self, "overhealConvertsToMaxHealthCap", default: 0),
@@ -458,6 +464,7 @@ extension HealingTriggers {
         try container.encodeNonDefault(burnDamageHealFlat, "burnDamageHealFlat", default: 0)
         try container.encodeNonDefault(healthRestoredPoisonPercent, "healthRestoredPoisonPercent", default: 0)
         try container.encodeNonDefault(healthPerTurn, "healthPerTurn", default: 0)
+        try container.encodeNonDefault(heroCritHealPartyFlat, "heroCritHealPartyFlat", default: 0)
         try container.encodeNonDefault(overhealConvertsToBlock, "overhealConvertsToBlock", default: false)
         try container.encodeNonDefault(overhealConvertsToMaxHealth, "overhealConvertsToMaxHealth", default: false)
         try container.encodeNonDefault(overhealConvertsToMaxHealthCap, "overhealConvertsToMaxHealthCap", default: 0)

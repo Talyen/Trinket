@@ -353,3 +353,27 @@ struct NextBurnBonusHandler: BattleEffectHandler {
         )
     }
 }
+
+struct PartyPhysicalBonusHandler: BattleEffectHandler {
+    let kind: EffectKind = .partyPhysicalBonus
+
+    func summary(for _: [ActiveEffect], keyword _: Keyword) -> EffectSummary? {
+        nil
+    }
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard case let .partyPhysicalBonus(amount) = effect, amount > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        context.resolution.preparePartyPhysicalDamage(amount, sourceID: source.id)
+        _ = target
+        _ = ability
+        return EffectApplyOutcome(events: [], didApply: true)
+    }
+}

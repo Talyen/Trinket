@@ -20,19 +20,9 @@ enum AbilityCatalogSkill {
 
     static let bountyShot = Ability(
         id: "bounty-shot", name: "Bounty Shot", tier: .skill,
-        description: "Deal 3 Physical damage or steal 3 Gold. If the enemy is Marked, gain both.",
-        outcomeBranches: [
-            AbilityOutcomeBranch(
-                damageComponents: [DamageComponent(3, keyword: .physical)],
-                targetedEffects: [TargetedEffect(.resourceGain(.gold, 3), condition: .enemyMarked)],
-            ),
-            AbilityOutcomeBranch(
-                damageComponents: [
-                    DamageComponent(0, keyword: .physical, bonusAmount: 3, condition: .enemyMarked),
-                ],
-                targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))],
-            ),
-        ],
+        description: "Deal 3 Physical damage and Steal 2 Gold.",
+        damageComponents: [DamageComponent(3, keyword: .physical)],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
         stealsGold: true,
     )
 
@@ -46,6 +36,7 @@ enum AbilityCatalogSkill {
 
     static let cinderbloom = Ability(
         id: "cinderbloom", name: "Cinderbloom", tier: .skill,
+        description: "Deal 3 Burn or Poison damage at random.",
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)]),
@@ -126,7 +117,7 @@ enum AbilityCatalogSkill {
 
     static let pounce = Ability(
         id: "pounce", name: "Pounce", tier: .skill,
-        description: "Deal 3 Stun damage. Doubled if played on the first turn.",
+        description: "Deal 3 Stun damage, doubled on the first combat turn.",
         damageComponents: [
             DamageComponent(3, keyword: .stun, bonusAmount: 3, condition: .firstTurn),
         ],
@@ -134,18 +125,19 @@ enum AbilityCatalogSkill {
 
     static let predatorsFocus = Ability(
         id: "predators-focus", name: "Predator's Focus", tier: .skill,
-        description: "Mark the enemy. Your next attack is a guaranteed Critical Hit.",
+        description: "Your next attack is guaranteed to Critically Hit and Leech.",
         targetedEffects: [
-            TargetedEffect(.marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration), target: .enemy),
             TargetedEffect(.nextStrikeCritical, target: .actor),
+            TargetedEffect(.nextStrikeLeech, target: .actor),
         ],
     )
 
-    static let sapArrow = AbilityBuilder.directHit(
-        id: "sap-arrow", name: "Sap Arrow", tier: .skill,
-        amount: 3, keyword: .stun,
-        description: "Deal 3 Stun damage. If the enemy is Stunned, gain 2 Gold.",
-        extras: [TargetedEffect(.resourceGain(.gold, 2), condition: .enemyStunned)],
+    static let sapArrow = Ability(
+        id: "sap-arrow", name: "Bandit's Arrow", tier: .skill,
+        description: "Deal 3 Stun damage and steal 2 Gold.",
+        damageComponents: [DamageComponent(3, keyword: .stun)],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
+        stealsGold: true,
     )
 
     static let serratedEdge = Ability(
@@ -195,10 +187,9 @@ enum AbilityCatalogSkill {
 
     static let tithe = Ability(
         id: "tithe", name: "Tithe", tier: .skill,
-        outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .holy)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)]),
-        ],
+        description: "Deal 2 Holy damage and Steal 2 Gold.",
+        damageComponents: [DamageComponent(2, keyword: .holy)],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
         stealsGold: true,
     )
 

@@ -77,24 +77,41 @@ package extension CombatTriggerEngine {
         let companion = context.roster.companion
         guard companion.isAlive else { return nil }
         let companionTriggers = context.companionModifiers.triggers
-        if companionTriggers.negateFirstEnemyAttack, !companion.talents.battle.negatedFirstEnemyAttack {
-            context.roster.mutateRuntime(for: companion.combatant) { $0.talents.battle.negatedFirstEnemyAttack = true }
-            return ([context.nextEvent(
+        guard companionTriggers.negateFirstEnemyAttack, !companion.talents.battle.negatedFirstEnemyAttack else {
+            return nil
+        }
+        // Claim the combat allowance before resolving reactions.
+        context.roster.mutateRuntime(for: companion.combatant) { $0.talents.battle.negatedFirstEnemyAttack = true }
+        let protected = context.talentAdjustedEnemyTarget
+        var events: [ActionEvent] = [
+            context.nextEvent(
                 kind: .effect,
                 effectKind: .dodgeApplied,
-                actorName: companion.name,
+                actorName: protected.name,
                 abilityName: triggerAbilityName(
                     "negateFirstEnemyAttack",
                     for: companion.combatant,
                     fallback: "Warning Bark",
                     in: context,
                 ),
-                target: context.roster.enemy.combatant,
+                target: protected,
                 amount: 0,
                 keyword: .dodge,
-            )], true)
-        }
-        return nil
+            ),
+        ]
+        events.append(contentsOf: UniqueCombatEngine.afterUniqueDodge(
+            by: protected,
+            attackerID: context.roster.enemy.id,
+            in: &context,
+        ))
+        events.append(contentsOf: Self.afterHeroTalentDodge(by: protected, in: &context))
+        events.append(contentsOf: Self.afterDodge(
+            by: protected,
+            attackerID: context.roster.enemy.id,
+            allowsCounterattacks: true,
+            in: &context,
+        ))
+        return (events, true)
     }
 
     static func consumeEnemyActionDelay(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {

@@ -18,6 +18,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageTakenFlat: [Keyword: Int]
     public var damageTakenVulnerability: [Keyword: Double]
     public var companionDamageDealtBonus: Int
+    public var companionPhysicalDamageDealtBonus: Int
     public var companionBleedDamageDealtBonus: Int
     public var outgoingDamagePercent: Double
     public var incomingDamageReductionPercent: Double
@@ -43,6 +44,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageTakenFlat: [Keyword: Int] = [:],
         damageTakenVulnerability: [Keyword: Double] = [:],
         companionDamageDealtBonus: Int = 0,
+        companionPhysicalDamageDealtBonus: Int = 0,
         companionBleedDamageDealtBonus: Int = 0,
         outgoingDamagePercent: Double = 0,
         incomingDamageReductionPercent: Double = 0,
@@ -65,6 +67,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.damageTakenFlat = damageTakenFlat
         self.damageTakenVulnerability = damageTakenVulnerability
         self.companionDamageDealtBonus = companionDamageDealtBonus
+        self.companionPhysicalDamageDealtBonus = companionPhysicalDamageDealtBonus
         self.companionBleedDamageDealtBonus = companionBleedDamageDealtBonus
         self.outgoingDamagePercent = outgoingDamagePercent
         self.incomingDamageReductionPercent = incomingDamageReductionPercent
@@ -108,6 +111,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             damageTakenVulnerability[keyword, default: 0] += amount
         }
         companionDamageDealtBonus += other.companionDamageDealtBonus
+        companionPhysicalDamageDealtBonus += other.companionPhysicalDamageDealtBonus
         companionBleedDamageDealtBonus += other.companionBleedDamageDealtBonus
         outgoingDamagePercent += other.outgoingDamagePercent
         incomingDamageReductionPercent += other.incomingDamageReductionPercent
@@ -172,6 +176,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             damageTakenVulnerability[keyword, default: 0] += amount
         case let .companionDamageDealt(amount):
             companionDamageDealtBonus += amount
+        case let .companionPhysicalDamageDealt(amount):
+            companionPhysicalDamageDealtBonus += amount
         case let .companionBleedDamageDealt(amount):
             companionBleedDamageDealtBonus += amount
         case let .outgoingDamagePercent(amount):

@@ -287,10 +287,10 @@ enum ItemAffixCatalogGenerated {
             id: "beastbond",
             title: "Beastbond",
             slot: .accessory,
-            keywords: [.health],
+            keywords: [.physical],
             weight: 8,
-            basic: ItemAffixPower(description: "Your Companion deals 1 additional damage.", modifiers: [.companionDamageDealt(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Your Companion deals 2 additional damage.", modifiers: [.companionDamageDealt(2)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increase your Companion's Physical damage by 1.", modifiers: [.companionPhysicalDamageDealt(1)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increase your Companion's Physical damage by 2.", modifiers: [.companionPhysicalDamageDealt(2)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalog.affix(
             id: "biting",
@@ -497,8 +497,8 @@ enum ItemAffixCatalogGenerated {
             slot: .armor,
             keywords: [.physical],
             weight: 8,
-            basic: ItemAffixPower(description: "Reflect 10% of damage taken.", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.10))),
-            astral: ItemAffixPower(description: "Reflect 20% of damage taken.", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.20)))
+            basic: ItemAffixPower(description: "Reflect 10% of Health lost as Physical damage.", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.10))),
+            astral: ItemAffixPower(description: "Reflect 20% of Health lost as Physical damage.", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.20)))
         ),
         ItemAffixCatalog.affix(
             id: "shredding",
@@ -506,8 +506,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.physical],
             weight: 8,
-            basic: ItemAffixPower(description: "Ignore 10% of enemy mitigation.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(ignoreEnemyMitigationPercent: 0.10))),
-            astral: ItemAffixPower(description: "Ignore 25% of enemy mitigation.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(ignoreEnemyMitigationPercent: 0.25)))
+            basic: ItemAffixPower(description: "Your Physical damage ignores 10% of enemy damage reduction.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(physicalIgnoreMitigationPercent: 0.10))),
+            astral: ItemAffixPower(description: "Your Physical damage ignores 25% of enemy damage reduction.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(physicalIgnoreMitigationPercent: 0.25)))
         ),
         ItemAffixCatalog.affix(
             id: "knockout",
@@ -673,8 +673,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.health, .physical],
             weight: 1,
-            basic: ItemAffixPower(description: "Draw an extra Companion card every other turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(companionCardsEveryOtherTurn: 1))),
-            astral: ItemAffixPower(description: "Draw an extra Companion card every other turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(companionCardsEveryOtherTurn: 1)))
+            basic: ItemAffixPower(description: "Once per turn, healing your Companion draws a Companion card.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(healCompanionDrawsCompanionCard: true))),
+            astral: ItemAffixPower(description: "Once per turn, healing your Companion draws a Companion card.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(healCompanionDrawsCompanionCard: true)))
         ),
         ItemAffixCatalog.affix(
             id: "cutpurse_knife",
@@ -849,8 +849,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.mana],
             weight: 1,
-            basic: ItemAffixPower(description: "Draw an additional card every other turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(drawEveryOtherTurn: 1))),
-            astral: ItemAffixPower(description: "Draw an additional card every other turn.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(drawEveryOtherTurn: 1)))
+            basic: ItemAffixPower(description: "Every other turn, lose 1 Health and draw 2 cards.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true))),
+            astral: ItemAffixPower(description: "Every other turn, lose 1 Health and draw 2 cards.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)))
         ),
         ItemAffixCatalog.affix(
             id: "thunderstone",

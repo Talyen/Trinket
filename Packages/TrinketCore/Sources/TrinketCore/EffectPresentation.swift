@@ -13,11 +13,13 @@ public enum EffectPresentation {
         case let .hemorrhage(amount):
             "the next time they attack, they take \(amount) Bleed damage"
         case let .recurringDamage(keyword, amount, turns):
-            "deal \(amount) \(keyword.rawValue) damage now and each turn \(durationPhrase(turns: turns))"
+            "deal \(amount) \(keyword.rawValue) damage now and \(moreTurnsPhrase(turns: turns))"
         case let .blessedAegis(block, holyDamage):
             "each ally gains \(block) Block and deals \(holyDamage) Holy damage the next time they’re hit"
         case let .avatar(holyDamage, blockPerTurn, turns):
-            "deal \(holyDamage) Holy damage and gain \(blockPerTurn) Block now and each turn \(durationPhrase(turns: turns))"
+            blockPerTurn > 0
+                ? "deal \(holyDamage) Holy damage and gain \(blockPerTurn) Block now and \(moreTurnsPhrase(turns: turns))"
+                : "deal \(holyDamage) Holy damage now and \(moreTurnsPhrase(turns: turns))"
         case let .multiplyDoT(keyword, factor):
             factor == 2
                 ? "double the enemy's \(keyword.rawValue)"
@@ -46,6 +48,10 @@ public enum EffectPresentation {
             "your next Burn attack deals +\(bonus) damage"
         case .nextStrikeCritical:
             "your next attack is a guaranteed Critical Hit"
+        case .nextStrikeLeech:
+            "your next attack Leeches"
+        case let .partyPhysicalBonus(amount):
+            "your party's next attack deals \(amount) additional Physical damage"
         case .evadeNextHit:
             "dodge the next attack"
         case .convertManaToBlock:
@@ -117,6 +123,10 @@ public enum EffectPresentation {
 
     private static func durationPhrase(turns: Int) -> String {
         turns == 1 ? "for 1 turn" : "for \(turns) turns"
+    }
+
+    private static func moreTurnsPhrase(turns: Int) -> String {
+        turns == 1 ? "for 1 more turn" : "for \(turns) more turns"
     }
 
     private static func statusPhrase(for keyword: Keyword, amount: Int) -> String {

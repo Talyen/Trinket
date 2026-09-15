@@ -33,6 +33,8 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case shieldFromGold
     case maximumManaBonus
     case nextStrikeCritical
+    case nextStrikeLeech
+    case partyPhysicalBonus
     case freezeNextAttacker
     case onHitDamage
     case multiplyDoT
@@ -98,7 +100,7 @@ public extension EffectKind {
         case .deathsDoor:
             (false, false, true, false, false, false)
         case .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
-             .nextStrikeCritical, .freezeNextAttacker, .onHitDamage:
+             .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage:
             (false, true, false, false, false, false)
         case .maximumManaBonus:
             (false, true, false, true, false, false)
@@ -129,6 +131,10 @@ public extension EffectKind {
             "Evasion: Dodges the next attack."
         case .nextStrikeCritical:
             "Critical Focus: Next attack is a guaranteed Critical Hit."
+        case .nextStrikeLeech:
+            "Leech Focus: Next attack Leeches."
+        case .partyPhysicalBonus:
+            "Sniff Out: Party's next attack deals additional Physical damage."
         case .freezeNextAttacker:
             "Glacial Ward: Freezes the next attacker."
         default:
@@ -172,6 +178,8 @@ public extension Effect {
         case .shieldFromGold: .shieldFromGold
         case .maximumManaBonus: .maximumManaBonus
         case .nextStrikeCritical: .nextStrikeCritical
+        case .nextStrikeLeech: .nextStrikeLeech
+        case .partyPhysicalBonus: .partyPhysicalBonus
         case .freezeNextAttacker: .freezeNextAttacker
         case .onHitDamage: .onHitDamage
         case .multiplyDoT: .multiplyDoT

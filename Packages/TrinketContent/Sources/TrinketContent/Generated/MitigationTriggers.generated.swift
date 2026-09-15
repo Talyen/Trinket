@@ -5,6 +5,7 @@ import TrinketCore
 /// The `mitigation` trigger family of `CombatTraitTriggers`.
 public struct MitigationTriggers: Equatable, Hashable, Sendable {
     public var passiveMitigationFlat: Int = 0
+    public var passivePhysicalMitigationFlat: Int = 0
     public var thornsPercent: Double = 0
     public var bleedResistance: Double = 0
     public var absorbHeroDamageFlat: Int = 0
@@ -29,6 +30,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
 
     public init(
         passiveMitigationFlat: Int = 0,
+        passivePhysicalMitigationFlat: Int = 0,
         thornsPercent: Double = 0,
         bleedResistance: Double = 0,
         absorbHeroDamageFlat: Int = 0,
@@ -52,6 +54,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         burningEnemyDamageReductionFlat: Int = 0
     ) {
         self.passiveMitigationFlat = passiveMitigationFlat
+        self.passivePhysicalMitigationFlat = passivePhysicalMitigationFlat
         self.thornsPercent = thornsPercent
         self.bleedResistance = bleedResistance
         self.absorbHeroDamageFlat = absorbHeroDamageFlat
@@ -76,12 +79,13 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["passiveMitigationFlat", "thornsPercent", "bleedResistance", "absorbHeroDamageFlat", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat"]
+    public static let fieldNames: [String] = ["passiveMitigationFlat", "passivePhysicalMitigationFlat", "thornsPercent", "bleedResistance", "absorbHeroDamageFlat", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
         if self.passiveMitigationFlat != other.passiveMitigationFlat { names.append("passiveMitigationFlat") }
+        if self.passivePhysicalMitigationFlat != other.passivePhysicalMitigationFlat { names.append("passivePhysicalMitigationFlat") }
         if self.thornsPercent != other.thornsPercent { names.append("thornsPercent") }
         if self.bleedResistance != other.bleedResistance { names.append("bleedResistance") }
         if self.absorbHeroDamageFlat != other.absorbHeroDamageFlat { names.append("absorbHeroDamageFlat") }
@@ -110,6 +114,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
 extension MitigationTriggers {
     mutating func merge(_ other: Self) {
         passiveMitigationFlat += other.passiveMitigationFlat
+        passivePhysicalMitigationFlat += other.passivePhysicalMitigationFlat
         thornsPercent += other.thornsPercent
         bleedResistance += other.bleedResistance
         absorbHeroDamageFlat += other.absorbHeroDamageFlat
@@ -139,6 +144,7 @@ extension MitigationTriggers {
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
             passiveMitigationFlat: values.decode(Int.self, "passiveMitigationFlat", default: 0),
+            passivePhysicalMitigationFlat: values.decode(Int.self, "passivePhysicalMitigationFlat", default: 0),
             thornsPercent: values.decode(Double.self, "thornsPercent", default: 0),
             bleedResistance: values.decode(Double.self, "bleedResistance", default: 0),
             absorbHeroDamageFlat: values.decode(Int.self, "absorbHeroDamageFlat", default: 0),
@@ -165,6 +171,7 @@ extension MitigationTriggers {
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
         try container.encodeNonDefault(passiveMitigationFlat, "passiveMitigationFlat", default: 0)
+        try container.encodeNonDefault(passivePhysicalMitigationFlat, "passivePhysicalMitigationFlat", default: 0)
         try container.encodeNonDefault(thornsPercent, "thornsPercent", default: 0)
         try container.encodeNonDefault(bleedResistance, "bleedResistance", default: 0)
         try container.encodeNonDefault(absorbHeroDamageFlat, "absorbHeroDamageFlat", default: 0)

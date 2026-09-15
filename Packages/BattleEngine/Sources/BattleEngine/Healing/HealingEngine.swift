@@ -163,6 +163,31 @@ package enum HealingEngine {
                     keyword: .holy, sourceActorID: sourceID, options: .reaction(),
                 )).events)
             }
+            // Loyal Companion: healing the Companion draws a Companion card once per turn.
+            if request.target.id == context.roster.companion.id,
+               context.roster.companion.isAlive,
+               let sourceID = request.sourceActorID,
+               let source = context.roster.combatant(for: sourceID),
+               source.isAlive, source.role != .enemy,
+               context.modifiers(for: sourceID).triggers.healCompanionDrawsCompanionCard,
+               context.resolution.claim(
+                   .heroTalent("loyalCompanion"),
+                   actorID: sourceID,
+                   cadence: .turn(context.turnCount),
+               ) {
+                events.append(contentsOf: CombatTriggerEngine.drawCards(
+                    1,
+                    for: .companion,
+                    actor: source.combatant,
+                    abilityName: CombatTriggerEngine.triggerAbilityName(
+                        "healCompanionDrawsCompanionCard",
+                        for: source.combatant,
+                        fallback: "Loyal Companion",
+                        in: context,
+                    ),
+                    in: &context,
+                ))
+            }
         }
 
         return HealingResult(

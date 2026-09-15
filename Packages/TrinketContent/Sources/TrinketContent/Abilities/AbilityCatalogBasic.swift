@@ -77,6 +77,7 @@ enum AbilityCatalogBasic {
 
     static let maul = Ability(
         id: "maul", name: "Maul", tier: .basic,
+        description: "Deal 2 Stun or Bleed damage at random.",
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .stun)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .bleed)]),
@@ -116,7 +117,8 @@ enum AbilityCatalogBasic {
 
     static let sniffOut = Ability(
         id: "sniff-out", name: "Sniff Out", tier: .basic,
-        targetedEffects: [TargetedEffect(.marked(3, 3))],
+        description: "Your party's next attack deals 3 additional Physical damage.",
+        targetedEffects: [TargetedEffect(.partyPhysicalBonus(3))],
     )
 
     static let stab = Ability(

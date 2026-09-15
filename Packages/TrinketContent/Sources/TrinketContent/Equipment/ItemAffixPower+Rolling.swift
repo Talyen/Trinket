@@ -413,6 +413,7 @@ private extension CombatTraitTriggers {
         .int(\.holyDamageHealFlat),
         .int(\.dodgeGoldFlat),
         .percent(\.ignoreEnemyMitigationPercent),
+        .percent(\.physicalIgnoreMitigationPercent),
         .int(\.stunDealPhysicalFlat),
         .int(\.damageWhileTargetStunnedBonus),
         .int(\.dodgeBlockFlat),

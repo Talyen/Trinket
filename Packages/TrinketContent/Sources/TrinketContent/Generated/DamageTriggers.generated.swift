@@ -17,6 +17,9 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var ignoreEnemyMitigationPercent: Double = 0
     public var leechIgnoresMitigation: Bool = false
     public var firstHitDoubleDamage: Bool = false
+    public var firstPhysicalAttackGuaranteedCritical: Bool = false
+    public var firstAttackBleedBonus: Int = 0
+    public var physicalIgnoreMitigationPercent: Double = 0
     public var turnRandomDamageAllEnemiesKeywordA: Keyword? = nil
     public var turnRandomDamageAllEnemiesKeywordB: Keyword? = nil
     public var turnRandomDamageAllEnemiesAmount: Int = 0
@@ -85,6 +88,9 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         ignoreEnemyMitigationPercent: Double = 0,
         leechIgnoresMitigation: Bool = false,
         firstHitDoubleDamage: Bool = false,
+        firstPhysicalAttackGuaranteedCritical: Bool = false,
+        firstAttackBleedBonus: Int = 0,
+        physicalIgnoreMitigationPercent: Double = 0,
         turnRandomDamageAllEnemiesKeywordA: Keyword? = nil,
         turnRandomDamageAllEnemiesKeywordB: Keyword? = nil,
         turnRandomDamageAllEnemiesAmount: Int = 0,
@@ -152,6 +158,9 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         self.ignoreEnemyMitigationPercent = ignoreEnemyMitigationPercent
         self.leechIgnoresMitigation = leechIgnoresMitigation
         self.firstHitDoubleDamage = firstHitDoubleDamage
+        self.firstPhysicalAttackGuaranteedCritical = firstPhysicalAttackGuaranteedCritical
+        self.firstAttackBleedBonus = firstAttackBleedBonus
+        self.physicalIgnoreMitigationPercent = physicalIgnoreMitigationPercent
         self.turnRandomDamageAllEnemiesKeywordA = turnRandomDamageAllEnemiesKeywordA
         self.turnRandomDamageAllEnemiesKeywordB = turnRandomDamageAllEnemiesKeywordB
         self.turnRandomDamageAllEnemiesAmount = turnRandomDamageAllEnemiesAmount
@@ -208,7 +217,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "gildedClaws", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox", "burnDoubleVsFrozenChancePercent", "companionDamageVsBurningMultiplier", "physicalDamageVsBlockedBonus"]
+    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "firstPhysicalAttackGuaranteedCritical", "firstAttackBleedBonus", "physicalIgnoreMitigationPercent", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "gildedClaws", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "batteringRam", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "toxicComa", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox", "burnDoubleVsFrozenChancePercent", "companionDamageVsBurningMultiplier", "physicalDamageVsBlockedBonus"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -226,6 +235,9 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         if self.ignoreEnemyMitigationPercent != other.ignoreEnemyMitigationPercent { names.append("ignoreEnemyMitigationPercent") }
         if self.leechIgnoresMitigation != other.leechIgnoresMitigation { names.append("leechIgnoresMitigation") }
         if self.firstHitDoubleDamage != other.firstHitDoubleDamage { names.append("firstHitDoubleDamage") }
+        if self.firstPhysicalAttackGuaranteedCritical != other.firstPhysicalAttackGuaranteedCritical { names.append("firstPhysicalAttackGuaranteedCritical") }
+        if self.firstAttackBleedBonus != other.firstAttackBleedBonus { names.append("firstAttackBleedBonus") }
+        if self.physicalIgnoreMitigationPercent != other.physicalIgnoreMitigationPercent { names.append("physicalIgnoreMitigationPercent") }
         if self.turnRandomDamageAllEnemiesKeywordA != other.turnRandomDamageAllEnemiesKeywordA { names.append("turnRandomDamageAllEnemiesKeywordA") }
         if self.turnRandomDamageAllEnemiesKeywordB != other.turnRandomDamageAllEnemiesKeywordB { names.append("turnRandomDamageAllEnemiesKeywordB") }
         if self.turnRandomDamageAllEnemiesAmount != other.turnRandomDamageAllEnemiesAmount { names.append("turnRandomDamageAllEnemiesAmount") }
@@ -298,6 +310,9 @@ extension DamageTriggers {
         ignoreEnemyMitigationPercent += other.ignoreEnemyMitigationPercent
         leechIgnoresMitigation = leechIgnoresMitigation || other.leechIgnoresMitigation
         firstHitDoubleDamage = firstHitDoubleDamage || other.firstHitDoubleDamage
+        firstPhysicalAttackGuaranteedCritical = firstPhysicalAttackGuaranteedCritical || other.firstPhysicalAttackGuaranteedCritical
+        firstAttackBleedBonus += other.firstAttackBleedBonus
+        physicalIgnoreMitigationPercent += other.physicalIgnoreMitigationPercent
         turnRandomDamageAllEnemiesKeywordA = other.turnRandomDamageAllEnemiesKeywordA ?? turnRandomDamageAllEnemiesKeywordA
         turnRandomDamageAllEnemiesKeywordB = other.turnRandomDamageAllEnemiesKeywordB ?? turnRandomDamageAllEnemiesKeywordB
         turnRandomDamageAllEnemiesAmount += other.turnRandomDamageAllEnemiesAmount
@@ -371,6 +386,9 @@ extension DamageTriggers {
             ignoreEnemyMitigationPercent: values.decode(Double.self, "ignoreEnemyMitigationPercent", default: 0),
             leechIgnoresMitigation: values.decode(Bool.self, "leechIgnoresMitigation", default: false),
             firstHitDoubleDamage: values.decode(Bool.self, "firstHitDoubleDamage", default: false),
+            firstPhysicalAttackGuaranteedCritical: values.decode(Bool.self, "firstPhysicalAttackGuaranteedCritical", default: false),
+            firstAttackBleedBonus: values.decode(Int.self, "firstAttackBleedBonus", default: 0),
+            physicalIgnoreMitigationPercent: values.decode(Double.self, "physicalIgnoreMitigationPercent", default: 0),
             turnRandomDamageAllEnemiesKeywordA: values.decode(Keyword?.self, "turnRandomDamageAllEnemiesKeywordA", default: nil),
             turnRandomDamageAllEnemiesKeywordB: values.decode(Keyword?.self, "turnRandomDamageAllEnemiesKeywordB", default: nil),
             turnRandomDamageAllEnemiesAmount: values.decode(Int.self, "turnRandomDamageAllEnemiesAmount", default: 0),
@@ -441,6 +459,9 @@ extension DamageTriggers {
         try container.encodeNonDefault(ignoreEnemyMitigationPercent, "ignoreEnemyMitigationPercent", default: 0)
         try container.encodeNonDefault(leechIgnoresMitigation, "leechIgnoresMitigation", default: false)
         try container.encodeNonDefault(firstHitDoubleDamage, "firstHitDoubleDamage", default: false)
+        try container.encodeNonDefault(firstPhysicalAttackGuaranteedCritical, "firstPhysicalAttackGuaranteedCritical", default: false)
+        try container.encodeNonDefault(firstAttackBleedBonus, "firstAttackBleedBonus", default: 0)
+        try container.encodeNonDefault(physicalIgnoreMitigationPercent, "physicalIgnoreMitigationPercent", default: 0)
         try container.encodeNonDefault(turnRandomDamageAllEnemiesKeywordA, "turnRandomDamageAllEnemiesKeywordA", default: nil)
         try container.encodeNonDefault(turnRandomDamageAllEnemiesKeywordB, "turnRandomDamageAllEnemiesKeywordB", default: nil)
         try container.encodeNonDefault(turnRandomDamageAllEnemiesAmount, "turnRandomDamageAllEnemiesAmount", default: 0)
