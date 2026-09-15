@@ -110,13 +110,8 @@ public enum BalanceFindingsReporter {
             findings.append(contentsOf: identityFindings(tier: tier, records: report.records))
             findings.append(contentsOf: stallFindings(tier: tier, records: report.records))
         }
-        for (kind, rows) in [
-            ("ability", report.abilityContrasts),
-            ("affix", report.affixContrasts),
-            ("talent", report.talentContrasts),
-            ("talent kit", report.talentKitContrasts),
-        ] {
-            findings.append(contentsOf: contrastFindings(rows, kind: kind))
+        for section in report.contrastSections {
+            findings.append(contentsOf: contrastFindings(section.rows, kind: section.kind))
         }
         findings.append(contentsOf: progressionFindings(report.progressionHotspots))
         findings.append(contentsOf: crossTierFindings(tiers: tiers))

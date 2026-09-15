@@ -31,11 +31,11 @@ extension UniqueCombatEngine {
               let sourceID = damage.sourceActorID,
               context.modifiers(for: sourceID).triggers.stunDamageAddsEnemyBlock
         else { return }
-        damage.uniqueEnemyBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: damage.combatant))
+        damage.unique.enemyBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: damage.combatant))
     }
 
     static func applyStoredDamage(to damage: inout DamageResolutionState, in context: inout BattleState) {
-        damage.remaining += damage.uniqueEnemyBlock
+        damage.remaining += damage.unique.enemyBlock
         damage.remaining += damage.options.partnerFirstAttackBonus
         guard damage.options.isOrdinaryUniqueCardDamage, damage.damageKeyword == .holy,
               let source = damage.partySource(in: context),

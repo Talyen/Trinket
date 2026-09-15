@@ -268,7 +268,6 @@ public final class AppState {
         MusicRoute.resolve(
             selectedTab: selectedTab,
             activeBattle: play.battle.activeBattle,
-            battleStageID: play.battlePresentation(for: play.battle.activeBattle?.runKey)?.musicStageID,
             sceneIsActive: scenePhase == .active,
             musicVolume: musicVolume,
         )

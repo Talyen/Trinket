@@ -28,13 +28,15 @@ def main() -> None:
     except ValueError:
         raise SystemExit("repetitions must be an integer") from None
     output = Path(sys.argv[1])
+    # --porcelain is the stable spelling of --short: one status run feeds both.
+    git_status = command("git", "status", "--porcelain")
     payload = {
         "capturedAt": datetime.now(timezone.utc).isoformat(),
         "host": platform.platform(),
         "xcode": command("xcodebuild", "-version"),
         "gitCommit": command("git", "rev-parse", "HEAD"),
-        "gitDirty": bool(command("git", "status", "--porcelain")),
-        "gitStatus": command("git", "status", "--short"),
+        "gitDirty": bool(git_status),
+        "gitStatus": git_status,
         "trackedDiffSHA256": hashlib.sha256(command("git", "diff", "HEAD").encode()).hexdigest(),
         "untrackedSourceSHA256": {
             name: hashlib.sha256(Path(name).read_bytes()).hexdigest()

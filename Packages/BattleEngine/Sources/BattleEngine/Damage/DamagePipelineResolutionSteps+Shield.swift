@@ -222,22 +222,24 @@ package extension DamagePipeline {
             context.storedBlockedDamageByActorID[defender.id, default: 0] += absorbed
         }
         if hasSeismicReversal(in: context, defender: defender) {
-            events.append(contentsOf: dealTalentDamage(
-                absorbed,
+            events.append(contentsOf: resolveNestedDamage(
+                amount: absorbed,
                 keyword: .stun,
                 target: attacker.combatant,
-                source: defender,
+                sourceActorID: defender.id,
+                requireTargetAlive: true,
                 in: &context,
-            ))
+            ).events)
         }
         if hasGlacialReprieve(in: context, defender: defender) {
-            events.append(contentsOf: dealTalentDamage(
-                absorbed,
+            events.append(contentsOf: resolveNestedDamage(
+                amount: absorbed,
                 keyword: .freeze,
                 target: attacker.combatant,
-                source: defender,
+                sourceActorID: defender.id,
+                requireTargetAlive: true,
                 in: &context,
-            ))
+            ).events)
         }
         return events
     }
@@ -261,24 +263,6 @@ package extension DamagePipeline {
 
     private static func hasGlacialReprieve(in context: BattleState, defender: Combatant) -> Bool {
         partyTrigger(\.glacialReprieve, defender: defender, in: context)
-    }
-
-    private static func dealTalentDamage(
-        _ amount: Int,
-        keyword: Keyword,
-        target: Combatant,
-        source: Combatant,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard amount > 0, context.roster.health(for: target) > 0 else { return [] }
-        return resolveRetaliation(
-            amount: amount,
-            keyword: keyword,
-            target: target,
-            sourceActorID: source.id,
-
-            in: &context,
-        ).events
     }
 
     private static func extraBlockRemoval(
@@ -321,11 +305,12 @@ package extension DamagePipeline {
            context.roster.health(for: attacker.combatant) > 0 {
             let reflection = defenderTriggers.onBlockHitDealHoly
             if reflection > 0 {
-                events.append(contentsOf: resolveRetaliation(
+                events.append(contentsOf: resolveNestedDamage(
                     amount: reflection,
                     keyword: .holy,
                     target: attacker.combatant,
                     sourceActorID: state.combatant.id,
+                    requireTargetAlive: true,
                     in: &context,
                 ).events)
             }
@@ -346,11 +331,12 @@ package extension DamagePipeline {
            let sourceTriggers, sourceTriggers.onEnemyBlockBrokenDealPhysical > 0,
            let attackerID = state.sourceActorID,
            context.roster.health(for: state.combatant) > 0 {
-            events.append(contentsOf: resolveRetaliation(
+            events.append(contentsOf: resolveNestedDamage(
                 amount: sourceTriggers.onEnemyBlockBrokenDealPhysical,
                 keyword: .physical,
                 target: state.combatant,
                 sourceActorID: attackerID,
+                requireTargetAlive: true,
                 in: &context,
             ).events)
         }

@@ -315,7 +315,7 @@ struct CombatResolution {
 enum CombatResolver {
     static func damage(_ request: DamageRequest, in context: inout BattleState) -> CombatOutcome {
         guard request.amount > 0 else { return .empty }
-        guard context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth else {
+        guard context.resolution.depth(.damage) < ReactionScope.maxDepth else {
             ReactionScope.capHit(site: "damage", depth: context.resolution.depth(.damage))
             return .empty
         }
@@ -336,10 +336,20 @@ enum CombatResolver {
         // Drain deferred out-of-turn attacks once the outermost damage
         // completes, so a full Basic never nests inside the damage pipeline
         // on small worker-thread stacks. Queues always empty here even when
-        // the summons no-op, so nothing strands.
-        if context.resolution.depth(.damage) == 0 {
-            outcome.events.append(contentsOf: CombatTriggerEngine.drainPendingCounterAttacks(in: &context))
-            outcome.events.append(contentsOf: UniqueCombatEngine.drainPendingSummons(in: &context))
+        // the summons no-op, so nothing strands. The guard keeps the drain
+        // iterative: nested damage during a drain only enqueues, and the
+        // outer loop picks it up instead of recursing drain -> Basic ->
+        // damage -> drain. Loop across both queues since counter Basics can
+        // enqueue summons and vice versa.
+        if context.resolution.depth(.damage) == 0, !context.uniques.isDrainingOutOfTurnAttacks {
+            context.uniques.isDrainingOutOfTurnAttacks = true
+            while !context.uniques.pendingCounterAttackActorIDs.isEmpty
+                || context.uniques.pendingCompanionSummons > 0
+                || !context.uniques.pendingBlockAnswerOwners.isEmpty {
+                outcome.events.append(contentsOf: CombatTriggerEngine.drainPendingCounterAttacks(in: &context))
+                outcome.events.append(contentsOf: UniqueCombatEngine.drainPendingSummons(in: &context))
+            }
+            context.uniques.isDrainingOutOfTurnAttacks = false
         }
         return outcome
     }

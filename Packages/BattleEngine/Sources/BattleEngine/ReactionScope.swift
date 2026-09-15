@@ -2,10 +2,9 @@ import Foundation
 import os
 
 package enum ReactionScope {
+    /// Single shared recursion budget for damage, DoT, and draw-and-play
+    /// nesting. Only the DoT mirror chain keeps a tighter bound below.
     package static let maxDepth = 10
-    package static let maxTalentReactionDepth = maxDepth
-    package static let maxDotRecursionDepth = maxDepth
-    package static let maxDrawAndPlayDepth = maxDepth
     package static let maxDoTMirrorChainDepth = 5
 
     package static let logger = Logger(subsystem: "com.trinket.battle", category: "ReactionScope")

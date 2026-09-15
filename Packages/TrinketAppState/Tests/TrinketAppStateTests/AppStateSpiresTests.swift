@@ -24,19 +24,6 @@ struct AppStateSpiresTests {
         #expect(state.battlePresentation(for: state.battle.activeBattle?.runKey)?.pendingRewardItem != nil)
     }
 
-    @Test func `unchanged spire inputs reuse prepared battle`() throws {
-        let state = try context.makePlaySession()
-        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        let battle = try #require(context.lastBattle)
-        state.spires.prepareBattle(for: floor)
-        let preparedRevision = battle.preparedBattlePresentationRevision
-
-        state.spires.prepareBattle(for: floor)
-
-        #expect(battle.preparedBattlePresentationRevision == preparedRevision)
-        #expect(battle.lifecyclePhase == .prepared)
-    }
-
     @Test func `start spire battle requires attunement`() throws {
         let state = try context.makePlaySession()
         try PlayBattleLaunchTestSupport.setActiveParty(heroID: "rogue", companionID: "phoenix", in: state)

@@ -7,6 +7,12 @@ cd "$(dirname "$0")/.."
 # shellcheck source=lib/rg-check.sh
 source Scripts/lib/rg-check.sh
 
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: ./Scripts/check-api-bans.sh"
+  echo "Fail on banned legacy observation/navigation APIs and XCTest imports outside UITests."
+  exit 0
+fi
+
 policy_matches="$(python3 Scripts/internal/swift_policy.py api-bans Trinket TrinketUITests Packages)"
 while IFS= read -r match; do
   [[ -z "$match" ]] && continue

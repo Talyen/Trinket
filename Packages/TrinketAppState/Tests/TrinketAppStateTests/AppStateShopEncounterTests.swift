@@ -101,6 +101,16 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.activeShopEncounter != nil)
     }
 
+    @Test func `shop encounter completes journey origin from encounter owner`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+
+        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
+        #expect(state.encounters.activeShopEncounter?.origin == .journey(stage: stage))
+        #expect(state.encounters.finishActiveShopEncounter())
+        #expect(state.encounters.activeShopEncounter == nil)
+    }
+
     #if DEBUG
     @Test func `finish shop encounter retries silently when persist fails`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)

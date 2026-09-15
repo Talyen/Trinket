@@ -118,20 +118,18 @@ public final class LabyrinthPlayMode {
         if let restriction = playerSave.accessRestriction(for: .labyrinth(nodeID: nodeID)) {
             return restriction
         }
-        guard canBeginTransientEncounter else { return nil }
-        let labyrinth = playerSave.labyrinth
-        guard let node = labyrinth.node(id: nodeID), node.type.isCombat else {
-            return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
-        }
-        let effects = labyrinth.effects(for: nodeID)
-        guard let encounter = resolvedEncounter(for: node) else {
-            return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
-        }
-
-        let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
-        return battleLaunch.activateRequest(request) {
-            preparationTracker.invalidate()
-        }
+        return battleLaunch.startBattle(
+            origin: .labyrinth(nodeID: nodeID),
+            encounters: encounters,
+            resolve: {
+                let labyrinth = playerSave.labyrinth
+                guard let node = labyrinth.node(id: nodeID), node.type.isCombat,
+                      let encounter = resolvedEncounter(for: node) else { return nil }
+                let effects = labyrinth.effects(for: nodeID)
+                return combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
+            },
+            onActivated: { preparationTracker.invalidate() },
+        )
     }
 
     public func previewMysteryEvent(for node: LabyrinthNode) -> MysteryEvent? {
@@ -184,7 +182,12 @@ public final class LabyrinthPlayMode {
                 preparedAll = false
             }
         }
-        battleLaunch.keepPreparedRuns(preparedKeys)
+        battleLaunch.keepPreparedRuns(preparedKeys, preservingWhere: { origin in
+            if case .labyrinth = origin {
+                return false
+            }
+            return true
+        })
         if preparedAll {
             preparationTracker.notePrepared(inputs)
         }
@@ -315,14 +318,17 @@ extension LabyrinthPlayMode {
         for node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
         encounterLevel: Int,
-    ) -> BattleLootResult? {
-        LabyrinthCompletion.resolveCombatLoot(
-            for: node,
-            effects: labyrinth.effects(for: node.id),
+    ) -> BattleLootResult {
+        let effects = labyrinth.effects(for: node.id)
+        return VictoryRewardApplier.resolveLoot(
+            .labyrinth(node: node, effects: effects),
             encounterLevel: encounterLevel,
+            enemyIsBoss: VictoryRewardApplier.isBoss(enemyID: node.enemyID),
             worldSeed: playerSave.worldSeed,
-            ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-            ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
+            ownership: RewardOwnership(
+                ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
+                ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
+            ),
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
         )
     }

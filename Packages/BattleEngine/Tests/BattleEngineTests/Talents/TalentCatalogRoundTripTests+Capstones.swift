@@ -166,7 +166,7 @@ extension TalentCatalogRoundTripTests {
         expectedRNG = battle.rng
         let expectedWithoutHero = BattleChance.succeeds(probability: companionChance, using: &expectedRNG)
         #expect(CriticalChanceEngine.rollSucceeds(
-            keyword: .health, actorID: battle.companion.id, defender: battle.companion,
+            actorID: battle.companion.id, defender: battle.companion,
             usePartyMaximum: true, in: &battle,
         ) == expectedWithoutHero)
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fast local gate matching CI's Generate and style job (no unit/smoke).
+# Full local gate matching CI's generate, style, script, and cheap-slice jobs (no unit/smoke).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -18,10 +18,10 @@ while [[ $# -gt 0 ]]; do
 Usage: ./Scripts/ci-gate.sh [--fast] [--skip-cheap]
 
 Full gate (default): generation, style, module boundaries, script regressions,
-Swift Testing policy, release-note validation, and artwork budget.
+API-ban policy (incl. XCTest migration), release-note validation, and artwork budget.
 
 --fast skips generation and style (already covered by handoff/push) and runs
-only the cheap full-tree slices: module boundaries, Swift Testing migration,
+only the cheap full-tree slices: module boundaries, API-ban policy,
 release-note validation, and artwork budget.
 --skip-cheap skips the closing cheap slices when the same tree just passed
 handoff (which already ran them). Combining --fast with --skip-cheap is
@@ -45,8 +45,8 @@ fi
 if [[ "$FAST" == true ]]; then
   # shellcheck source=lib/cheap-slices.sh
   source Scripts/lib/cheap-slices.sh
-  echo "=== Cheap slices (boundaries, Swift Testing, release notes, artwork-budget) ==="
-  trinket_run_cheap_slices
+  echo "=== Cheap slices (boundaries, API bans, release notes, artwork-budget) ==="
+  trinket_run_gate_slices
   echo "=== Fast gate checks passed ==="
   exit 0
 fi
@@ -73,7 +73,7 @@ if ! ./Scripts/assert-generated-output.sh; then
   exit 1
 fi
 
-# Order: style → boundaries → script checks → Swift Testing → release notes → artwork budget
+# Order: style → boundaries → script checks → API bans → release notes → artwork budget
 # (CI gate.yml calls this script).
 echo "=== Style check ==="
 ./Scripts/test.sh style
@@ -82,10 +82,10 @@ echo "=== Script checks ==="
 ./Scripts/test-scripts.sh
 
 if [[ "$SKIP_CHEAP" != true ]]; then
-  echo "=== Cheap slices (boundaries, Swift Testing, release notes, artwork-budget) ==="
+  echo "=== Cheap slices (boundaries, API bans, release notes, artwork-budget) ==="
   # shellcheck source=lib/cheap-slices.sh
   source Scripts/lib/cheap-slices.sh
-  trinket_run_cheap_slices --after-style
+  trinket_run_gate_slices --style-checked
 fi
 
 echo "=== Gate checks passed ==="

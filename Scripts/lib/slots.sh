@@ -4,9 +4,8 @@ trinket_slot_owner_token() {
   printf '%s' "${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
 }
 
-trinket_lock_claim_file() {
-  ( set -o noclobber; printf '%s\n' "$2" > "$1" ) 2>/dev/null
-}
+# trinket_lock_claim_file lives in lib/lock.sh next to the other file-lock
+# primitives; run-env.sh sources lock.sh before this file.
 
 trinket_slot_entry_is_stale() {
   local slot="$1"

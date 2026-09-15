@@ -19,6 +19,8 @@ package extension DamagePipeline {
             context.lastEnemyDefeatWasCritical = state.isCritical
             if state.targetStatus.isBleeding || state.damageKeyword == .bleed,
                let source = state.partySource(in: context) {
+                // Snapshot affliction OR bleed-typed damage: a bleed hit can
+                // defeat before its own stack attaches, so both disjuncts matter.
                 let gold = context.modifiers(for: source.id).triggers.defeatBleedingEnemyGold
                 if gold > 0 {
                     state.damageEvents.append(contentsOf: context.grantGoldEvent(
@@ -110,9 +112,7 @@ package extension DamagePipeline {
             }
         }
         if defender.role == .enemy, isAttackHit, !isRetaliation {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive else { continue }
+            for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
                 let amount = context.modifiers(for: member.id).triggers.onAnyHealthLossGainBlock
                 if amount > 0 {
                     events.append(contentsOf: context.applyBlock(
@@ -133,9 +133,8 @@ package extension DamagePipeline {
             ))
         }
         if defender.role != .enemy {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive, member.id != defender.id else { continue }
+            for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
+                guard member.id != defender.id else { continue }
                 let amount = context.modifiers(for: member.id).triggers.onAllyDamageHeal
                 if amount > 0 {
                     events.append(contentsOf: HealingEngine.resolveHeal(

@@ -54,10 +54,11 @@ package extension DamagePipeline {
         else { return }
         let potency = runtime.talents.pending.bleedAfterDodge
         context.roster.mutateRuntime(for: attacker.combatant) { $0.talents.pending.bleedAfterDodge = 0 }
-        state.damageEvents.append(contentsOf: appendBleed(
+        state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
             potency: potency,
             to: state.combatant,
             sourceActorID: sourceActorID,
+            application: .attached,
             in: &context,
         ))
     }
@@ -96,10 +97,11 @@ package extension DamagePipeline {
             ))
         }
         if defenderTriggers.onHitAttackerBleedPotency > 0, context.roster.health(for: attacker.combatant) > 0 {
-            state.damageEvents.append(contentsOf: appendBleed(
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
                 potency: defenderTriggers.onHitAttackerBleedPotency,
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
+                application: .attached,
                 durationTurns: defenderTriggers.onHitAttackerBleedTurns > 0
                     ? defenderTriggers.onHitAttackerBleedTurns
                     : nil,
@@ -216,7 +218,7 @@ package extension DamagePipeline {
             return false
         }
         let threshold = ControlMeterEngine.threshold(for: attacker.combatant, in: context)
-        state.damageEvents.append(contentsOf: appendMeterCharge(
+        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             threshold,
             keyword: .freeze,
             to: attacker.combatant,
@@ -271,12 +273,11 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard amount > 0 else { return }
-        let outcome = resolveRetaliation(
+        let outcome = resolveNestedDamage(
             amount: amount,
             keyword: keyword,
             target: attacker.combatant,
             sourceActorID: state.combatant.id,
-
             in: &context,
         )
         var retaliationEvents = outcome.events

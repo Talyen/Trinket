@@ -6,9 +6,14 @@ enum DamageDefensePolicy {
         cap > 0 && !operation.isHealthCost ? min(amount, cap) : amount
     }
 
+    private static func clamped01(_ value: Double) -> Double {
+        min(1, max(0, value))
+    }
+
     static func mitigationMultiplier(state: DamageResolutionState, context: BattleState) -> Double {
         guard let sourceActorID = state.sourceActorID else { return 1 }
         let sourceProfile = context.modifiers(for: sourceActorID)
+        // Full-mitigation bypasses: each keyword owns its own trigger flag.
         if state.options.abilityHasLeech, sourceProfile.triggers.leechIgnoresMitigation {
             return 0
         }
@@ -24,9 +29,9 @@ enum DamageDefensePolicy {
                 sourceProfile.triggers.physicalIgnoreMitigationPercent,
                 sourceProfile.triggers.ignoreEnemyMitigationPercent,
             )
-            return 1 - min(1, max(0, physical))
+            return 1 - clamped01(physical)
         }
-        return 1 - min(1, max(0, sourceProfile.triggers.ignoreEnemyMitigationPercent))
+        return 1 - clamped01(sourceProfile.triggers.ignoreEnemyMitigationPercent)
     }
 
     static func blockMultiplier(state: DamageResolutionState, in context: BattleState) -> Double {
@@ -45,7 +50,7 @@ enum DamageDefensePolicy {
         if triggers.physicalIgnoresBlockVsStunnedOrFrozen, state.targetStatus.isStunned || state.targetStatus.isFrozen {
             return 0
         }
-        return 1 - min(1, max(0, triggers.physicalBlockIgnorePercent))
+        return 1 - clamped01(triggers.physicalBlockIgnorePercent)
     }
 
     private static func keywordIgnoresBlock(

@@ -21,6 +21,8 @@ fi
 source Scripts/change-classification.sh
 # shellcheck source=Scripts/build-inputs.env
 source Scripts/build-inputs.env
+# shellcheck source=Scripts/lib/cheap-slices.sh
+source Scripts/lib/cheap-slices.sh
 
 DRY_RUN=false
 ISOLATE=false
@@ -127,12 +129,10 @@ trinket_scripts_run_covers_docs() {
 }
 
 run_cheap_ci_slices() {
-  # shellcheck source=Scripts/lib/cheap-slices.sh
-  source Scripts/lib/cheap-slices.sh
   if [[ "$STYLE_CHECKED" == true ]]; then
-    trinket_run_cheap_slices --after-style
+    trinket_run_gate_slices --style-checked
   else
-    trinket_run_cheap_slices
+    trinket_run_gate_slices
   fi
 }
 
@@ -161,9 +161,10 @@ while [[ $# -gt 0 ]]; do
 Usage: ./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--smoke] [--mirror] [--final] [--keep-plan] [--paths <file> ...]
 
 Classifies task-scoped changes with --paths, or all working-tree changes with
-the explicit --working-tree option. It runs generation, style, touched-package tests, and
-an app build for unresolved or feature/UI Swift — sequentially and headlessly
-by default.
+the explicit --working-tree option. It runs generation, style, touched-package tests,
+script regressions, documentation checks, generated-output idempotence, cheap CI
+slices, and an app build for unresolved or feature/UI Swift — sequentially and
+headlessly by default.
 
 --smoke opts into the targeted simulator UI smoke canary for touched feature flows.
 --mirror opts into auto-mirroring the built app into Trinket Run on success.
@@ -225,8 +226,6 @@ trinket_classify_paths
 trinket_build_verification_plan
 
 if [[ "$DRY_RUN" == true ]]; then
-  # shellcheck source=Scripts/lib/cheap-slices.sh
-  source Scripts/lib/cheap-slices.sh
   echo "Planned checks:"
   declare -a _dry_commands=()
   if [[ "$FINAL" == true ]]; then
@@ -246,14 +245,18 @@ if [[ "$DRY_RUN" == true ]]; then
       _dry_commands+=("$display")
     fi
   done
-  _cheap_args=(--dry-run)
+  _cheap_style=false
   for i in "${!TRINKET_VERIFICATION_KINDS[@]}"; do
     if [[ "${TRINKET_VERIFICATION_KINDS[$i]}" == test && "${TRINKET_VERIFICATION_ARGS[$i]}" == style* ]]; then
-      _cheap_args+=(--after-style)
+      _cheap_style=true
       break
     fi
   done
-  _cheap_preview="$(trinket_run_cheap_slices "${_cheap_args[@]}")" || exit $?
+  if [[ "$_cheap_style" == true ]]; then
+    _cheap_preview="$(trinket_run_gate_slices --style-checked --dry-run)" || exit $?
+  else
+    _cheap_preview="$(trinket_run_gate_slices --dry-run)" || exit $?
+  fi
   while IFS= read -r _slice; do
     [[ -n "$_slice" ]] && _dry_commands+=("$_slice")
   done <<< "$_cheap_preview"
@@ -300,7 +303,7 @@ fi
 
 if [[ "$QUIET" != true ]]; then
   echo ""
-  echo "=== Cheap CI slices (boundaries, Swift Testing, release notes, artwork budget) ==="
+  echo "=== Cheap CI slices (boundaries, API bans, release notes, artwork budget) ==="
 fi
 if run_cheap_ci_slices; then
   :
@@ -315,7 +318,7 @@ if [[ "$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE" == true ]]; then
   exit 2
 fi
 
-if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${TRINKET_ISOLATE:-}" == "1" && "${ISOLATE}" == true ]]; then
+if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${ISOLATE}" == true ]]; then
   _mirror_needs_build=false
   if [[ "$TRINKET_NEEDS_APP_BUILD" == true || "$TRINKET_HAS_FEATURE" == true || "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]] || (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     _mirror_needs_build=true

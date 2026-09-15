@@ -69,10 +69,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        if let sourceID = state.sourceActorID, let source = context.roster.combatant(for: sourceID) {
-            applyAdditionalHolyDamage(state.additionalHolyDamage, to: &state, source: source.combatant, in: &context)
-            applyAdditionalPhysicalDamage(state.additionalPhysicalDamage, to: &state, source: source.combatant, in: &context)
-        }
+        applyStoredAdditionalDamage(to: &state, in: &context)
         guard let sourceRuntime = state.partySource(in: context),
               let keyword = state.damageKeyword
         else { return }
@@ -128,6 +125,29 @@ package extension DamagePipeline {
         )
     }
 
+    private static func applyStoredAdditionalDamage(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard let sourceID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceID)
+        else { return }
+        for (bonus, keyword) in [
+            (state.additionalHolyDamage, Keyword.holy),
+            (state.additionalPhysicalDamage, Keyword.physical),
+        ] {
+            state.damageEvents.append(contentsOf: resolveNestedDamage(
+                amount: bonus,
+                keyword: keyword,
+                target: state.combatant,
+                sourceActorID: sourceID,
+                requireTargetAlive: true,
+                requireSourceAlive: source.combatant,
+                in: &context,
+            ).events)
+        }
+    }
+
     private static func applyPhysicalAttackReactions(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -141,11 +161,14 @@ package extension DamagePipeline {
                 state.buildupDamage,
                 multiplier: triggers.physicalStunBuildupPercent,
             )
-            state.damageEvents.append(contentsOf: appendMeterCharge(
+            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                 buildup,
                 keyword: .stun,
                 to: state.combatant,
                 sourceActorID: sourceActorID,
+                // Pacing already applied upstream in the damage pipeline;
+                // the forwarder this replaced defaulted to false.
+                applyFightPacing: false,
                 in: &context,
             ))
         }
@@ -233,25 +256,28 @@ package extension DamagePipeline {
             ))
         }
         if triggers.physicalAttackApplyBleed > 0, keyword == .physical, targetAlive {
-            state.damageEvents.append(contentsOf: appendBleed(
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
                 potency: triggers.physicalAttackApplyBleed,
                 to: target,
                 sourceActorID: sourceActorID,
+                application: .attached,
                 in: &context,
             ))
         }
         if triggers.physicalAttackApplyBleedAndStun > 0, keyword == .physical, targetAlive {
-            state.damageEvents.append(contentsOf: appendBleed(
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
                 potency: triggers.physicalAttackApplyBleedAndStun,
                 to: target,
                 sourceActorID: sourceActorID,
+                application: .attached,
                 in: &context,
             ))
-            state.damageEvents.append(contentsOf: appendMeterCharge(
+            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                 triggers.physicalAttackApplyBleedAndStun,
                 keyword: .stun,
                 to: target,
                 sourceActorID: sourceActorID,
+                applyFightPacing: false,
                 in: &context,
             ))
         }
@@ -290,11 +316,12 @@ package extension DamagePipeline {
             sourceActorID: sourceActorID,
             application: .attached,
         ))
-        state.damageEvents.append(contentsOf: appendMeterCharge(
+        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             triggers.holyAttackApplyBurnAndStunBuildup,
             keyword: .stun,
             to: target,
             sourceActorID: sourceActorID,
+            applyFightPacing: false,
             in: &context,
         ))
     }
@@ -311,13 +338,22 @@ package extension DamagePipeline {
         if state.damageKeyword != .holy {
             let holyBonus = CombatTriggerEngine.livingAllyModifiers(in: context)
                 .reduce(0) { $0 + $1.triggers.partyBasicAttackHolyBonus }
-            applyAdditionalHolyDamage(holyBonus, to: &state, source: source, in: &context)
+            state.damageEvents.append(contentsOf: resolveNestedDamage(
+                amount: holyBonus,
+                keyword: .holy,
+                target: target,
+                sourceActorID: sourceActorID,
+                requireTargetAlive: true,
+                requireSourceAlive: source,
+                in: &context,
+            ).events)
         }
         if triggers.basicAttackApplyBleed > 0 {
-            state.damageEvents.append(contentsOf: appendBleed(
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
                 potency: triggers.basicAttackApplyBleed,
                 to: target,
                 sourceActorID: sourceActorID,
+                application: .attached,
                 in: &context,
             ))
         }
@@ -420,10 +456,11 @@ package extension DamagePipeline {
     ) {
         if triggers.directHitBleedChancePercent > 0, targetAlive,
            BattleChance.succeeds(probability: triggers.directHitBleedChancePercent, using: &context.rng) {
-            state.damageEvents.append(contentsOf: appendBleed(
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
                 potency: 1,
                 to: target,
                 sourceActorID: sourceActorID,
+                application: .attached,
                 in: &context,
             ))
         }
@@ -438,11 +475,12 @@ package extension DamagePipeline {
                 in: &context,
             ).events)
         }
-        if triggers.attackApplyBleed > 0, state.options.qualifiesForAmbush, targetAlive {
-            state.damageEvents.append(contentsOf: appendBleed(
+        if triggers.attackApplyBleed > 0, state.options.isAttackHit, targetAlive {
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
                 potency: triggers.attackApplyBleed,
                 to: target,
                 sourceActorID: sourceActorID,
+                application: .attached,
                 in: &context,
             ))
         }
@@ -489,9 +527,7 @@ package extension DamagePipeline {
            context.roster.companion.isAlive,
            context.companionModifiers.triggers.heroCritHealPartyFlat > 0 {
             let amount = context.companionModifiers.triggers.heroCritHealPartyFlat
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive else { continue }
+            for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
                 state.damageEvents.append(contentsOf: context.healEmitting(
                     amount: amount,
                     target: member.combatant,
@@ -519,11 +555,12 @@ package extension DamagePipeline {
             state.buildupDamage,
             multiplier: triggers.holyStunBuildupPercent,
         )
-        let stunEvents = appendMeterCharge(
+        let stunEvents = ControlMeterEngine.applyMeterCharge(
             buildup,
             keyword: .stun,
             to: state.combatant,
             sourceActorID: sourceActorID,
+            applyFightPacing: false,
             in: &context,
         )
         state.damageEvents.append(contentsOf: stunEvents)
@@ -554,11 +591,12 @@ package extension DamagePipeline {
               context.roster.health(for: state.combatant) > 0
         else { return }
         let wasControlled = context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
-        state.damageEvents.append(contentsOf: appendMeterCharge(
+        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             state.buildupDamage,
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,
+            applyFightPacing: false,
             in: &context,
         ))
         state.didTriggerControl = !wasControlled && context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)

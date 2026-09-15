@@ -47,15 +47,9 @@ enum BalanceAffixContrastRunner {
     }
 
     static func workCount(config: BalanceSweepConfig) -> Int {
-        let roster = config.resolvedRoster
-        return BalanceContrastSupport.workCount(
-            fociCount: foci(
-                heroes: roster.heroes,
-                companions: roster.companions,
-                focusIDs: config.focusIDs,
-            ).count,
-            config: config,
-        )
+        BalanceContrastSupport.rosterFociWorkCount(config: config) {
+            foci(heroes: $0, companions: $1, focusIDs: $2).count
+        }
     }
 
     static func run(
@@ -102,24 +96,16 @@ enum BalanceAffixContrastRunner {
         context: BalanceContrastContext,
         pairSeed: UInt64,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        var rng = SeededRandomNumberGenerator(seed: pairSeed)
-        let partner = BalanceContrastSupport.pickPartner(
-            for: focus.owner,
-            from: context,
-            using: &rng,
-        )
-        let enemy = BalanceContrastSupport.roundRobinEnemy(
-            enemies: context.enemies,
+        let base = BalanceContrastSupport.sampleBasePair(
+            owner: focus.owner,
             pairIndex: pairIndex,
+            context: context,
+            pairSeed: pairSeed,
         )
-        let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: focus.owner,
-            using: &rng,
-        )
-        let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: partner,
-            using: &rng,
-        )
+        let partner = base.partner
+        let enemy = base.enemy
+        let ownerLoadout = base.ownerLoadout
+        let partnerLoadout = base.partnerLoadout
         let gears = makeAffixGearPair(
             focus: focus,
             tier: tier,

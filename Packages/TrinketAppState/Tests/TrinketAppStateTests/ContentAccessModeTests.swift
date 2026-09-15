@@ -8,9 +8,8 @@ struct ContentAccessModeTests {
     @Test @MainActor
     func `campaign and spire preparation cannot bypass payment`() throws {
         let context = try AppTestContext()
-        let state = try context.makeAppState()
+        let state = try context.makeAppState(contentAccess: .free)
         let store = state.playerSave
-        store.contentAccess = .free
         let stage = try #require(GameContent.stage(id: "chapter-4-stage-1"))
         #expect(state.play.journey.handleStagePrimaryAction(for: stage)?.fullGameOffer == .campaign(chapter: 4))
         state.play.journey.prepareBattle(for: stage)

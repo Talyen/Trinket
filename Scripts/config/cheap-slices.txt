@@ -1,7 +1,10 @@
 # Canonical cheap CI slices: one command per line, ordered.
 # Single registry — sourced by Scripts/lib/cheap-slices.sh, previewed by
 # handoff.sh --dry-run, and documented in Docs/Platform/Verification.md.
+# A trailing "# skip-when-style-checked" marker skips that slice once the
+# style gate already enforced it (check-api-bans.sh keeps its historic
+# default skip even without the marker).
 ./Scripts/check-module-boundaries.sh
-./Scripts/check-api-bans.sh
+./Scripts/check-api-bans.sh  # skip-when-style-checked
 ./Scripts/release-notes.sh validate
 ./Scripts/check-artwork-budget.sh

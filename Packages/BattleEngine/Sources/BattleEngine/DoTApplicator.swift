@@ -2,6 +2,28 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+/// How a DoT attach behaves, as a two-flag matrix:
+/// - `.ability`: immediate damage + application reactions (card/ability play)
+/// - `.reaction`: immediate damage, no reactions (mirrors, retaliation)
+/// - `.afterHit`: reactions, no immediate damage (post-hit riders)
+/// - `.attached`: neither (silent attach: wards, setup)
+/// - `.reflection`: neither, and skips bleed tick-existing bonuses
+package enum DoTApplication: Equatable {
+    case ability
+    case reaction
+    case afterHit
+    case attached
+    case reflection
+
+    var dealsImmediateDamage: Bool {
+        self == .ability || self == .reaction
+    }
+
+    var triggersApplicationReactions: Bool {
+        self == .ability || self == .afterHit
+    }
+}
+
 package enum DoTApplicator {
     package static func applyDecayingDoT(
         keyword: Keyword,
@@ -14,17 +36,11 @@ package enum DoTApplicator {
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        var collected: [ActionEvent] = []
-        if application.dealsImmediateDamage {
-            collected.append(contentsOf: DoTDamage.resolveDamage(
-                basePotency: potency,
-                keyword: keyword,
-                target: effectTarget,
-                sourceActorID: sourceActorID,
-                provenance: provenance,
-                in: &context,
-            ).events)
-        }
+        var collected = immediateDamage(
+            keyword: keyword, potency: potency, target: effectTarget,
+            sourceActorID: sourceActorID, application: application,
+            provenance: provenance, in: &context,
+        )
 
         var currentEffects = context.roster.activeEffects(for: effectTarget)
         let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: potency)
@@ -66,17 +82,11 @@ package enum DoTApplicator {
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        var collected: [ActionEvent] = []
-        if application.dealsImmediateDamage {
-            collected.append(contentsOf: DoTDamage.resolveDamage(
-                basePotency: potency,
-                keyword: .bleed,
-                target: effectTarget,
-                sourceActorID: sourceActorID,
-                provenance: provenance,
-                in: &context,
-            ).events)
-        }
+        var collected = immediateDamage(
+            keyword: .bleed, potency: potency, target: effectTarget,
+            sourceActorID: sourceActorID, application: application,
+            provenance: provenance, in: &context,
+        )
 
         guard !context.interceptDebuff(.bleed(potency), on: effectTarget) else { return collected }
         let alreadyBleeding = context.roster.activeEffects(for: effectTarget).contains(where: \.effect.isBleed)
@@ -124,6 +134,29 @@ package enum DoTApplicator {
         return collected
     }
 
+    private static func immediateDamage(
+        keyword: Keyword,
+        potency: Int,
+        target: Combatant,
+        sourceActorID: String,
+        application: DoTApplication,
+        provenance: DamageProvenance?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard application.dealsImmediateDamage else { return [] }
+        return DoTDamage.resolveDamage(
+            basePotency: potency,
+            keyword: keyword,
+            target: target,
+            sourceActorID: sourceActorID,
+            provenance: provenance,
+            in: &context,
+        ).events
+    }
+
+    /// Drains decaying stacks without dealing damage. Stays on the applicator
+    /// (not the turn handlers): detonation bonuses in the damage pipeline are
+    /// the callers.
     static func consume(
         _ keyword: Keyword,
         upTo amount: Int = .max,

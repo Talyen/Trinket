@@ -187,9 +187,15 @@ public final class PlaySession {
             },
         )
         if result == .persistenceFailed {
+            // Retry the same settlement so a stale award refreshes instead of
+            // paying out unchecked. The retry exits immediately rather than
+            // re-deferring: recovery must converge without another tap.
             playerSave.retrySaveAction(key: "victory-\(configuration.id)") { [weak self] in
                 guard let self, battle.activeBattle?.id == configuration.id else { return }
-                _ = completeActiveBattle(configuration, battleGold: battleGold, materialRewards: materialRewards)
+                _ = completeActiveBattle(
+                    configuration, battleGold: battleGold, materialRewards: materialRewards,
+                    settlement: settlement,
+                )
             }
         }
         return result
@@ -314,6 +320,14 @@ final class PlayBattleRunRegistry {
     func registration(for runKey: BattleRunKey?) -> PlayBattleRunRegistration? {
         guard let runKey else { return nil }
         return battleRuns[runKey]
+    }
+
+    func runKeys() -> Set<BattleRunKey> {
+        Set(battleRuns.keys)
+    }
+
+    func origin(for runKey: BattleRunKey) -> PlayBattleOrigin? {
+        battleRuns[runKey]?.route.origin
     }
 
     func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {

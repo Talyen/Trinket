@@ -37,8 +37,18 @@ public struct RewardOwnership: Equatable, Sendable {
     }
 
     public init(_ inventory: PlayerInventoryState) {
-        ownedTrinketIDs = inventory.ownedTrinketIDs
-        ownedUniqueIDs = inventory.ownedUniqueIDs
+        var trinkets = Set<String>()
+        var uniques = Set<String>()
+        for item in inventory.items {
+            if item.isTrinket {
+                trinkets.insert(item.templateID)
+            }
+            if item.rarity == .unique {
+                uniques.insert(item.templateID)
+            }
+        }
+        ownedTrinketIDs = trinkets
+        ownedUniqueIDs = uniques
     }
 
     public init(_ save: PlayerSave) {

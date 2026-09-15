@@ -167,7 +167,6 @@ package extension DamagePipeline {
             return
         }
         guard CriticalChanceEngine.rollSucceeds(
-            keyword: damageKeyword,
             actorID: sourceActorID,
             defender: state.combatant,
             abilityBonus: abilityBonus,
@@ -208,9 +207,8 @@ package extension DamagePipeline {
             guaranteed = true
         }
         if actor.role != .enemy, state.options.isAttackHit {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive, member.talents.pending.guaranteedCriticalAfterDodge,
+            for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
+                guard member.talents.pending.guaranteedCriticalAfterDodge,
                       member.id == sourceActorID
                         || context.modifiers(for: member.id).triggers.onDodgeNextPartyHitGuaranteedCritical
                 else { continue }

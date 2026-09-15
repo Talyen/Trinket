@@ -4,6 +4,12 @@ set -euo pipefail
 # shellcheck source=Scripts/lib/rg-check.sh
 source "$(dirname "$0")/lib/rg-check.sh"
 
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: ./Scripts/check-module-boundaries.sh"
+  echo "Fail when packages import outside the enforced package DAG."
+  exit 0
+fi
+
 check_no_import() {
   local folder="$1"
   local pattern="$2"

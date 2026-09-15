@@ -75,15 +75,15 @@ public final class JourneyPlayMode {
         if let restriction = playerSave.accessRestriction(for: .journey(stageID: stage.id)) {
             return restriction
         }
-        guard encounters.canBeginTransientEncounter else { return nil }
-
-        guard let encounter = resolvedEncounter(for: stage) else {
-            return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
-        }
-
-        return battleLaunch.activateRequest(combatRequest(for: stage, encounter: encounter)) {
-            preparationTracker.invalidate()
-        }
+        return battleLaunch.startBattle(
+            origin: .journey(stageID: stage.id),
+            encounters: encounters,
+            resolve: {
+                guard let encounter = resolvedEncounter(for: stage) else { return nil }
+                return combatRequest(for: stage, encounter: encounter)
+            },
+            onActivated: { preparationTracker.invalidate() },
+        )
     }
 
     public func prepareBattle(for stage: Stage) {
@@ -240,9 +240,8 @@ extension JourneyPlayMode {
     private func battleLoot(
         for stage: Stage,
         encounter: (combatant: Combatant, level: Int),
-    ) -> BattleLootResult? {
-        guard stage.encounter.isCombat else { return nil }
-        return VictoryRewardApplier.resolveLoot(
+    ) -> BattleLootResult {
+        VictoryRewardApplier.resolveLoot(
             .journey(stage: stage),
             encounterLevel: encounter.level,
             enemyIsBoss: GameContent.enemy(matching: encounter.combatant.id)?.isBoss == true,
@@ -281,7 +280,7 @@ extension JourneyPlayMode {
         return PlayCombatRequest(
             origin: .journey(stageID: stage.id),
             encounter: encounter,
-            route: battleRoute(stageID: stage.id),
+            route: battleRoute(stage: stage),
             loot: battleLoot(for: stage, encounter: encounter),
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: [],
@@ -289,10 +288,10 @@ extension JourneyPlayMode {
         )
     }
 
-    func battleRoute(stageID: String) -> PlayBattleRoute {
-        let origin = PlayBattleOrigin.journey(stageID: stageID)
+    func battleRoute(stage: Stage) -> PlayBattleRoute {
+        let origin = PlayBattleOrigin.journey(stageID: stage.id)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
-            guard let self, let stage = GameContent.stage(id: stageID) else { return .unavailable }
+            guard let self else { return .unavailable }
             return completeStage(
                 stage,
                 hero: configuration.hero.combatant,

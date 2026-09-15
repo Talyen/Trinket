@@ -61,8 +61,9 @@ public final class OptionsStore {
     static let effectsVolumeKey = "options.effectsVolume"
     static let hapticsEnabledKey = "options.hapticsEnabled"
     static let rememberAutoBattlePreferenceKey = "options.rememberAutoBattlePreference"
-    static let autoBattleEnabledKey = "battle.autoBattleEnabled"
+    static let autoBattleEnabledKey = "options.autoBattleEnabled"
     static let ultimateCinematicShowPolicyKey = "options.ultimateCinematicShowPolicy"
+    private static let legacyAutoBattleEnabledKey = "battle.autoBattleEnabled"
 
     static func clearDefaults(from defaults: UserDefaults) {
         defaults.removeObject(forKey: musicVolumeKey)
@@ -70,6 +71,7 @@ public final class OptionsStore {
         defaults.removeObject(forKey: hapticsEnabledKey)
         defaults.removeObject(forKey: rememberAutoBattlePreferenceKey)
         defaults.removeObject(forKey: autoBattleEnabledKey)
+        defaults.removeObject(forKey: legacyAutoBattleEnabledKey)
         defaults.removeObject(forKey: ultimateCinematicShowPolicyKey)
     }
 
@@ -77,7 +79,7 @@ public final class OptionsStore {
         self.defaults = defaults
 
         let rememberAutoValue = Self.readBool(from: defaults, key: Self.rememberAutoBattlePreferenceKey, default: false)
-        let autoBattleValue = rememberAutoValue && Self.readBool(from: defaults, key: Self.autoBattleEnabledKey, default: false)
+        let autoBattleValue = rememberAutoValue && Self.readAutoBattleEnabled(from: defaults)
 
         musicVolume = Self.readDouble(from: defaults, key: Self.musicVolumeKey, default: Self.defaultMusicVolume)
         effectsVolume = Self.readDouble(from: defaults, key: Self.effectsVolumeKey, default: Self.defaultEffectsVolume)
@@ -89,6 +91,12 @@ public final class OptionsStore {
         if !rememberAutoValue {
             defaults.set(false, forKey: Self.autoBattleEnabledKey)
         }
+        // One-time convergence onto the options.* key.
+        if defaults.object(forKey: Self.legacyAutoBattleEnabledKey) != nil,
+           defaults.object(forKey: Self.autoBattleEnabledKey) == nil {
+            defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
+        }
+        defaults.removeObject(forKey: Self.legacyAutoBattleEnabledKey)
     }
 
     public func shouldAutoSkipUltimateCinematic(
@@ -118,6 +126,14 @@ public final class OptionsStore {
 
     private static func readBool(from defaults: UserDefaults, key: String, default defaultValue: Bool) -> Bool {
         defaults.object(forKey: key) != nil ? defaults.bool(forKey: key) : defaultValue
+    }
+
+    private static func readAutoBattleEnabled(from defaults: UserDefaults) -> Bool {
+        if defaults.object(forKey: autoBattleEnabledKey) != nil {
+            return defaults.bool(forKey: autoBattleEnabledKey)
+        }
+        // Legacy key predating the options.* convention.
+        return defaults.bool(forKey: legacyAutoBattleEnabledKey)
     }
 
     private static let defaultEffectsVolume = 0.85

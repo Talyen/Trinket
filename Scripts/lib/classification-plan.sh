@@ -38,19 +38,13 @@ trinket_build_verification_plan() {
         style_swift+=("$authored")
       fi
     done
+    # Config/tooling edits and any Scripts/.github change force full-tree style.
     local style_scope_needs_full_tree=false
-    for authored in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}"; do
+    for authored in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}" "${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}"; do
       case "$authored" in
-        .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/format-dirs.env|Scripts/build-inputs.env) style_scope_needs_full_tree=true; break ;;
+        .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/format-dirs.env|Scripts/build-inputs.env|Scripts/*|.github/*) style_scope_needs_full_tree=true; break ;;
       esac
     done
-    if [[ "$style_scope_needs_full_tree" == false ]]; then
-      for authored in "${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}"; do
-        case "$authored" in
-          Scripts/*|.github/*) style_scope_needs_full_tree=true; break ;;
-        esac
-      done
-    fi
     if [[ "$style_scope_needs_full_tree" == true ]]; then
       trinket_add_verification test style "./Scripts/test.sh style"
     elif (( ${#style_swift[@]} > 0 )); then
@@ -74,16 +68,11 @@ trinket_build_verification_plan() {
     trinket_add_verification package "${TRINKET_PACKAGES[*]}" "./Scripts/test-package.sh ${TRINKET_PACKAGES[*]}"
   fi
   # App compile proof: feature/shared Swift diffs get a fast headless compile
-  # proof when smoke is not enabled or when no smoke owner is resolved.
-  if [[ "$TRINKET_HAS_FEATURE" == true && "$TRINKET_NEEDS_APP_BUILD" != true ]] \
-    && { (( ${#TRINKET_SMOKE_TARGETS[@]} == 0 )) || [[ "${TRINKET_ENABLE_SMOKE:-false}" != "true" ]]; }; then
-    if command -v xcodebuild >/dev/null 2>&1; then
-      trinket_add_verification build app "SKIP_GENERATE=1 ./Scripts/build.sh"
-    else
-      TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=true
-    fi
-  fi
-  if [[ "$TRINKET_NEEDS_APP_BUILD" == true ]]; then
+  # proof when smoke is not enabled or when no smoke owner is resolved, and any
+  # explicit app-build need gets the same proof.
+  if [[ "$TRINKET_NEEDS_APP_BUILD" == true ]] \
+    || { [[ "$TRINKET_HAS_FEATURE" == true ]] \
+      && { (( ${#TRINKET_SMOKE_TARGETS[@]} == 0 )) || [[ "${TRINKET_ENABLE_SMOKE:-false}" != "true" ]]; }; }; then
     if command -v xcodebuild >/dev/null 2>&1; then
       trinket_add_verification build app "SKIP_GENERATE=1 ./Scripts/build.sh"
     else

@@ -105,17 +105,30 @@ private extension PlaySession {
     }
 
     func startLaunchBattle() {
-        guard let stage = GameContent.stage(id: AppState.launchBattleStageID) else { return }
+        guard let stage = GameContent.stage(id: AppState.launchBattleStageID) else {
+            appStateLogger.error("Missing launch battle stage \(AppState.launchBattleStageID, privacy: .public)")
+            return
+        }
         _ = journey.startBattle(for: stage)
     }
 
     func startLaunchShop() {
-        guard let stage = GameContent.stage(id: AppState.launchShopStageID) else { return }
-        _ = encounters.beginShopEncounter(origin: .journey(stage: stage))
+        guard let stage = GameContent.stage(id: AppState.launchShopStageID) else {
+            appStateLogger.error("Missing launch shop stage \(AppState.launchShopStageID, privacy: .public)")
+            return
+        }
+        _ = encounters.beginShopOrAutoComplete(
+            origin: .journey(stage: stage),
+            identifier: stage.id,
+            onAutoComplete: { self.journey.completeStageOrPersistFailure(stage) },
+        )
     }
 
     func startLaunchMystery(recruitEventID: String?) {
-        guard let stage = GameContent.stage(id: AppState.launchMysteryStageID) else { return }
+        guard let stage = GameContent.stage(id: AppState.launchMysteryStageID) else {
+            appStateLogger.error("Missing launch mystery stage \(AppState.launchMysteryStageID, privacy: .public)")
+            return
+        }
         _ = journey.beginMysteryEncounter(
             for: stage,
             forcedEventID: recruitEventID,

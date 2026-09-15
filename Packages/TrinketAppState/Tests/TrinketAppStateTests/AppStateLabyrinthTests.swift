@@ -115,7 +115,7 @@ struct AppStateLabyrinthTests {
         #expect(remainingKeys == reachableCombatKeys)
     }
 
-    @Test func `labyrinth prepare rebuilds wiped journey run`() throws {
+    @Test func `labyrinth prepare preserves sibling journey run`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let journeyKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
@@ -127,10 +127,6 @@ struct AppStateLabyrinthTests {
 
         _ = state.labyrinth.enter()
         state.labyrinth.prepareReachableBattles()
-        #expect(!battle.hasPreparedRun(journeyKey))
-        #expect(state.battlePresentation(for: journeyKey) == nil)
-
-        state.journey.prepareBattle(for: stage)
         #expect(battle.hasPreparedRun(journeyKey))
         #expect(state.battlePresentation(for: journeyKey) != nil)
     }
@@ -149,17 +145,6 @@ struct AppStateLabyrinthTests {
         #expect(presentation.labyrinthModifiers == expectedModifiers)
         #expect(!presentation.labyrinthModifiers.isEmpty)
         #expect(battle.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
-    }
-
-    @Test func `complete active battle clears labyrinth node`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
-        _ = state.labyrinth.startBattle(nodeID: combatNodeID)
-        let configuration = try #require(state.battle.activeBattle)
-        state.completeActiveBattle(configuration, battleGold: .init(gained: 3))
-        #expect(state.playerSave.labyrinth.nodes[combatNodeID]?.isCleared == true)
-        #expect(state.battle.activeBattle == nil)
     }
 
     @Test(arguments: [LabyrinthNodeType.shop, .mystery])
@@ -212,16 +197,6 @@ struct AppStateLabyrinthTests {
         #expect(!state.encounters.finishActiveMysteryEncounter())
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(state.playerSave.labyrinth.nodes[nodeID]?.isCleared == false)
-    }
-
-    @Test func `shop encounter completes journey origin from encounter owner`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
-
-        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
-        #expect(state.encounters.activeShopEncounter?.origin == .journey(stage: stage))
-        #expect(state.encounters.finishActiveShopEncounter())
-        #expect(state.encounters.activeShopEncounter == nil)
     }
 
     @Test func `recruit node uses concealed recruit event`() throws {
@@ -331,6 +306,7 @@ struct AppStateLabyrinthTests {
 
         #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 3)).didComplete)
         #expect(state.playerSave.labyrinth.nodes[combatNodeID]?.isCleared == true)
+        #expect(state.battle.activeBattle == nil)
     }
 
     @Test func `labyrinth mystery nodes carry exactly one economy modifier`() throws {

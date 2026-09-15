@@ -9,11 +9,13 @@ enum PlayerSaveStoreConfiguration {
     }
 
     static func resolveStoreURL(storeName: String?, storeURL: URL?) -> URL {
-        if let storeName {
-            URL.applicationSupportDirectory.appending(path: "\(storeName).store")
-        } else {
-            storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
+        if let storeURL {
+            return storeURL
         }
+        if let storeName {
+            return URL.applicationSupportDirectory.appending(path: "\(storeName).store")
+        }
+        return URL.applicationSupportDirectory.appending(path: "default.store")
     }
 
     static func cleanStoreFiles(at url: URL, includingRecovery: Bool = true) throws {

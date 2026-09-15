@@ -113,7 +113,6 @@ struct PlayBattleLaunchTests {
             inventoryState: .testSeed,
             homesteadState: homestead,
             hasProgressionRewards: true,
-            musicStageID: stage.id,
         )
 
         #expect(launch.presentation.goldFindPercent == homestead.effects.goldFindPercent)
@@ -146,7 +145,6 @@ struct PlayBattleLaunchTests {
             rosterState: .testSeed,
             inventoryState: .testSeed,
             hasProgressionRewards: true,
-            musicStageID: stage.id,
         ).configuration
 
         let enemy = try #require(configuration.enemy)

@@ -25,7 +25,7 @@ EOF
 
   if [[ -x "$real_bin" && -f "$marker" ]] \
     && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$XCODEGEN_SHA256" ]] \
-    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$real_bin")" ]] \
+    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(trinket_tool_sha256_file "$real_bin")" ]] \
     && [[ "$("$real_bin" --version 2>/dev/null | awk '{print $NF}' || true)" == "$XCODEGEN_VERSION" ]]; then
     write_xcodegen_wrapper
     return 0
@@ -50,5 +50,5 @@ EOF
     echo "XcodeGen version mismatch after install: expected $XCODEGEN_VERSION, found $actual" >&2
     exit 1
   fi
-  printf 'archive=%s\nbinary=%s\n' "$XCODEGEN_SHA256" "$(sha256_file "$real_bin")" > "$marker"
+  printf 'archive=%s\nbinary=%s\n' "$XCODEGEN_SHA256" "$(trinket_tool_sha256_file "$real_bin")" > "$marker"
 }

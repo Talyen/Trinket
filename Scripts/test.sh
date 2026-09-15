@@ -72,7 +72,7 @@ USAGE
     *)
       if [[ "$1" == -* ]]; then
         echo "Unknown option: $1" >&2
-        echo "Usage: $0 [unit | ui | style | smoke | performance] [--no-build] [--app-only] [TestClass[/testMethod]|SwiftPath ...]" >&2
+        echo "Usage: $0 [unit | ui | style | smoke | performance] [--no-build] [--app-only] [--quiet] [--verbose] [TestClass[/testMethod]|SwiftPath ...]" >&2
       echo "       bare 'ui' (full suite) locally requires TRINKET_ALLOW_FULL_UI=1; CI and targeted runs do not." >&2
         exit 1
       fi

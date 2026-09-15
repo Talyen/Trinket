@@ -38,6 +38,31 @@ struct PlayBattleLaunch {
         return nil
     }
 
+    /// Single paywall → busy → resolve → activate gate for mode battle entry.
+    /// Modes pre-check access first when they need a specific message to take
+    /// precedence; this re-check keeps the gate single-owned. A busy battle
+    /// returns `busyMessage`: map taps (Journey/Labyrinth) pass nil and swallow
+    /// the tap, while explicit board/floor taps (Spires/Contracts) surface the
+    /// failure. A busy transient encounter is always a silent ignore.
+    @discardableResult
+    func startBattle(
+        origin: PlayBattleOrigin,
+        encounters: EncounterPlayMode,
+        busyMessage: StageMapMessage? = nil,
+        resolve: () -> PlayCombatRequest?,
+        onActivated: () -> Void = {},
+    ) -> StageMapMessage? {
+        if let restriction = playerSave.accessRestriction(for: origin) {
+            return restriction
+        }
+        guard battle.lifecyclePhase != .active else { return busyMessage }
+        guard encounters.canBeginTransientEncounter else { return nil }
+        guard let request = resolve() else {
+            return StageMapMessage(title: "Encounter Missing", message: "This battle is not ready yet.")
+        }
+        return activateRequest(request, onActivated: onActivated)
+    }
+
     @discardableResult
     func prepareCombat(_ request: PlayCombatRequest) -> Bool {
         guard playerSave.accessRestriction(for: request.origin) == nil else { return false }
@@ -64,6 +89,24 @@ struct PlayBattleLaunch {
         guard battle.lifecyclePhase != .active else { return }
         battle.keepPreparedRuns(keys)
         runRegistry.keep(keys)
+    }
+
+    /// Prunes prepared runs to `keys` while preserving runs owned by other modes.
+    /// Callers pass the survivor set for keys they own; `preserve` returns true
+    /// for origins the caller must not evict. One mode's pruning must never
+    /// destroy a sibling mode's warms.
+    func keepPreparedRuns(
+        _ keys: Set<BattleRunKey>,
+        preservingWhere preserve: (PlayBattleOrigin) -> Bool,
+    ) {
+        guard battle.lifecyclePhase != .active else { return }
+        let preserved = runRegistry.runKeys().filter { key in
+            guard !keys.contains(key), let origin = runRegistry.origin(for: key) else { return false }
+            return preserve(origin)
+        }
+        let survivors = keys.union(preserved)
+        battle.keepPreparedRuns(survivors)
+        runRegistry.keep(survivors)
     }
 
     func prepareIfNeeded<Input: Equatable>(
@@ -122,6 +165,7 @@ struct PlayBattleLaunch {
             else { return false }
         } else {
             guard battle.activate(launch.configuration) else { return false }
+            battle.keepPreparedRuns([])
             runRegistry.removeAll()
         }
         shellSession.selectedTab = .play
@@ -130,35 +174,35 @@ struct PlayBattleLaunch {
 
     private func makeLaunchInput(for request: PlayCombatRequest) -> BattleLaunchInput {
         let roster = playerSave.roster
-        if request.loot == nil {
-            assertionFailure("Combat launched without pre-rolled loot; Victory screen will not match granted rewards.")
-        }
         return BattleLaunchInput(
             origin: request.origin,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: request.encounter.combatant,
             enemyEncounterLevel: request.encounter.level,
-            stageReward: request.loot?.asStageReward ?? .empty,
+            stageReward: request.loot.asStageReward,
             experienceBonusPercent: LabyrinthModifierEffects.combining(request.labyrinthModifiers).experienceEarnedPercent,
-            pendingRewardItem: request.loot?.item,
+            pendingRewardItem: request.loot.item,
             stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
             universalModifiers: request.universalModifiers,
             labyrinthModifiers: request.labyrinthModifiers,
         )
     }
 
-    func makeBattleLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {
-        let rngSeed = battlePerformanceScenario == nil
+    private func freshRngSeed() -> UInt64 {
+        battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
             : BattlePerformanceFixture.seed
-        return Self.assembleLaunch(preparationInputs(input, rngSeed: rngSeed))
+    }
+
+    func makeBattleLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {
+        Self.assembleLaunch(preparationInputs(input, rngSeed: freshRngSeed()))
     }
 
     private func preparationInputs(_ input: BattleLaunchInput, rngSeed: UInt64) -> BattlePreparationInputs {
         BattlePreparationInputs(
             runKey: input.origin?.runKey, launch: input, party: PlayBattlePartySnapshot(playerSave: playerSave), rngSeed: rngSeed,
-            hasProgressionRewards: input.origin != nil, musicStageID: input.origin?.musicStageID,
+            hasProgressionRewards: input.origin != nil,
         )
     }
 

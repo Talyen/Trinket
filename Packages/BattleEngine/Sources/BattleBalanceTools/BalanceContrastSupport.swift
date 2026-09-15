@@ -127,6 +127,39 @@ enum BalanceContrastSupport {
             .sorted(by: BalanceContrastFlags.summarySort)
     }
 
+    static func rosterFociWorkCount(
+        config: BalanceSweepConfig,
+        fociCount: (_ heroes: [Combatant], _ companions: [Combatant], _ focusIDs: [String]) -> Int,
+    ) -> Int {
+        let roster = config.resolvedRoster
+        return workCount(
+            fociCount: fociCount(roster.heroes, roster.companions, config.focusIDs),
+            config: config,
+        )
+    }
+
+    /// Shared pair-setup preamble: partner pick, round-robin enemy, and both
+    /// loadouts, sampled from `pairSeed` in this exact order. Keep the order:
+    /// reseeds change every contrast sample downstream.
+    static func sampleBasePair(
+        owner: Combatant,
+        pairIndex: Int,
+        context: BalanceContrastContext,
+        pairSeed: UInt64,
+    ) -> (
+        partner: Combatant,
+        enemy: Enemy,
+        ownerLoadout: AbilityLoadout,
+        partnerLoadout: AbilityLoadout,
+    ) {
+        var rng = SeededRandomNumberGenerator(seed: pairSeed)
+        let partner = pickPartner(for: owner, from: context, using: &rng)
+        let enemy = roundRobinEnemy(enemies: context.enemies, pairIndex: pairIndex)
+        let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(for: owner, using: &rng)
+        let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(for: partner, using: &rng)
+        return (partner, enemy, ownerLoadout, partnerLoadout)
+    }
+
     static func stableHash64(_ string: String) -> UInt64 {
         var hash: UInt64 = 5381
         for byte in string.utf8 {

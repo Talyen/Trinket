@@ -17,12 +17,15 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     public mutating func ensureBoard() {
         self = sanitized()
         var rng = SystemRandomNumberGenerator()
+        var excludedEnemyIDs = Set(offers.map(\.enemyID))
         for difficulty in ContractDifficulty.allCases where offer(for: difficulty) == nil {
-            offers.append(ContractGenerator.makeOffer(
+            let newOffer = ContractGenerator.makeOffer(
                 difficulty: difficulty,
-                excludingEnemyIDs: Set(offers.map(\.enemyID)),
+                excludingEnemyIDs: excludedEnemyIDs,
                 using: &rng,
-            ))
+            )
+            excludedEnemyIDs.insert(newOffer.enemyID)
+            offers.append(newOffer)
         }
         offers = ContractDifficulty.allCases.compactMap { offer(for: $0) }
     }
@@ -31,16 +34,19 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         let previous = offers
         offers = []
         var rng = SystemRandomNumberGenerator()
+        var excludedEnemyIDs = Set<String>()
         for difficulty in ContractDifficulty.allCases {
-            var excluded = Set(offers.map(\.enemyID))
+            var excluded = excludedEnemyIDs
             if let prior = previous.first(where: { $0.difficulty == difficulty }) {
                 excluded.insert(prior.enemyID)
             }
-            offers.append(ContractGenerator.makeOffer(
+            let newOffer = ContractGenerator.makeOffer(
                 difficulty: difficulty,
                 excludingEnemyIDs: excluded,
                 using: &rng,
-            ))
+            )
+            excludedEnemyIDs.insert(newOffer.enemyID)
+            offers.append(newOffer)
         }
     }
 

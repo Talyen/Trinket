@@ -1,7 +1,7 @@
 import TrinketContent
 import TrinketCore
 
-extension BattleState {
+package extension BattleState {
     func talentEffectSummaries(of combatant: Combatant) -> [EffectSummary] {
         guard let runtime = roster.runtime(for: combatant), runtime.isAlive else { return [] }
         let pending = runtime.talents.pending.effectSummaries(

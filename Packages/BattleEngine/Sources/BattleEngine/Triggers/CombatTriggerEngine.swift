@@ -18,6 +18,18 @@ package enum CombatTriggerEngine {
         context.modifiers(for: combatant.id).triggerAbilityName(key, fallback: fallback)
     }
 
+    /// Living party runtimes with their participants, for fan-out reactions.
+    /// Prefer this over hand-rolled hero/companion loops with alive guards.
+    static func livingPartyMembers(in context: BattleState) -> [(
+        owner: BattleParticipant,
+        member: CombatantRuntime,
+    )] {
+        [BattleParticipant.hero, .companion].compactMap { owner in
+            let member = context.roster[owner]
+            return member.isAlive ? (owner, member) : nil
+        }
+    }
+
     static func livingAllies(
         in context: BattleState,
     ) -> [(combatant: Combatant, profile: CombatModifierProfile)] {
@@ -113,7 +125,7 @@ package enum CombatTriggerEngine {
         context: inout BattleState,
         perform: (inout BattleState) -> [ActionEvent],
     ) -> [ActionEvent] {
-        guard context.resolution.depth(.dot) < ReactionScope.maxDotRecursionDepth else {
+        guard context.resolution.depth(.dot) < ReactionScope.maxDepth else {
             ReactionScope.capHit(site: site, depth: context.resolution.depth(.dot))
             return []
         }

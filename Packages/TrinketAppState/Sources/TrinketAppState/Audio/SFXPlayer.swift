@@ -202,7 +202,6 @@ private actor SFXPlayback {
         let missing = ids.filter { preparedVoicesByID[$0] == nil && !failedBufferIDs.contains($0) }
         if !missing.isEmpty {
             warm(missing)
-            return engineIsRunning
         }
         configureSessionIfNeeded()
         guard ensureEngineRunning() else { return false }

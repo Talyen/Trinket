@@ -3,6 +3,9 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    /// Reactions to a bleed stack being attached (may convert to poison/burn).
+    /// Contrast `DoT.afterBleedDamage` (reactions to bleed damage ticks) and
+    /// `afterDecayingDoTApplied` (decaying-DoT attach reactions).
     static func afterBleedApplied(
         to target: Combatant,
         sourceActorID: String,
@@ -453,9 +456,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         detonateBleedAndPoison(on: target, sourceActorID: sourceActorID, includePoison: false, in: &context)
     }
-}
 
-package extension CombatTriggerEngine {
     static func companionSpitPoison(
         to target: Combatant,
         in context: inout BattleState,

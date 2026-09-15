@@ -11,6 +11,9 @@ set -euo pipefail
 #   ./Scripts/balance-sweep.sh --mode ability-contrast --samples 200 --tiers early
 #   ./Scripts/balance-sweep.sh --mode talent-contrast --samples 8 --tiers early
 #   ./Scripts/balance-sweep.sh --mode all --samples 1000
+#   ./Scripts/balance-sweep.sh --no-build --mode identity --samples 4  # reuse cached binary
+#
+# --no-build skips `swift run`'s rebuild and execs the last-built binary.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -23,9 +26,14 @@ fi
 OUTPUT_DIR="${BALANCE_SWEEP_OUTPUT_DIR:-BalanceSweepReports}"
 ARGS=()
 HAS_OUTPUT=0
+NO_BUILD=0
 for arg in "$@"; do
   if [[ "$arg" == "--output-dir" ]]; then
     HAS_OUTPUT=1
+  fi
+  if [[ "$arg" == "--no-build" ]]; then
+    NO_BUILD=1
+    continue
   fi
   ARGS+=("$arg")
 done
@@ -37,5 +45,14 @@ fi
 mkdir -p "$OUTPUT_DIR"
 
 CONFIGURATION="${BALANCE_SWEEP_CONFIGURATION:-release}"
+if [[ "$NO_BUILD" -eq 1 ]]; then
+  BIN="$ROOT/Packages/BattleEngine/.build/$CONFIGURATION/BalanceSweepCLI"
+  if [[ ! -x "$BIN" ]]; then
+    echo "error: --no-build given but $BIN is missing; run once without it." >&2
+    exit 1
+  fi
+  echo "BalanceSweepCLI via cached binary ($CONFIGURATION) …" >&2
+  exec "$BIN" "${ARGS[@]}"
+fi
 echo "BalanceSweepCLI via Packages/BattleEngine ($CONFIGURATION) …" >&2
 swift run -c "$CONFIGURATION" --package-path Packages/BattleEngine BalanceSweepCLI "${ARGS[@]}"

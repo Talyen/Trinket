@@ -82,6 +82,54 @@ fi
 trinket_classify_paths
 trinket_build_verification_plan
 
+# Presentation taxonomy for the briefing below (sole consumer): behavior cards
+# are read for relevant sections while ownership cards carry applicable
+# constraints. Kept here, next to the split/trigger/search-root rendering,
+# instead of the shared router so classification stays routing-only.
+TRINKET_BEHAVIOR_CARDS=(
+  Docs/AgentContext/battle-damage.md
+  Docs/AgentContext/battle-actions.md
+  Docs/AgentContext/battle-healing.md
+  Docs/AgentContext/battle-talents.md
+  Docs/AgentContext/battle-balance.md
+  Docs/AgentContext/battle-launch.md
+  Docs/AgentContext/battle-presentation.md
+  Docs/AgentContext/persistence-storage.md
+  Docs/AgentContext/persistence-progression.md
+  Docs/AgentContext/ui-performance.md
+)
+
+trinket_is_behavior_card() {
+  local card="$1" candidate
+  for candidate in "${TRINKET_BEHAVIOR_CARDS[@]}"; do
+    [[ "$candidate" == "$card" ]] && return 0
+  done
+  return 1
+}
+
+trinket_skill_trigger_for() {
+  case "$1" in
+    */apple-design/*) printf 'visual or interaction changes' ;;
+    */architect/*) printf 'public type, protocol, schema, or package boundary changes' ;;
+    */doc-budget/*) printf 'checker directives or suppression failures' ;;
+    *) printf 'see skill description' ;;
+  esac
+}
+
+# Prints the discovery search root for a changed path; returns 1 when the path
+# has no scoped root.
+trinket_search_root_for_path() {
+  local path="$1" package
+  case "$path" in
+    Packages/*)
+      package="${path#Packages/}"; package="${package%%/*}"
+      printf 'Packages/%s' "$package" ;;
+    Scripts/*) printf 'Scripts' ;;
+    Trinket/*|TrinketUITests/*) printf 'Trinket' ;;
+    *) return 1 ;;
+  esac
+}
+
 print_agent() {
   if [[ "$PATH_MODE" == explicit ]]; then
     printf 'Agent context (explicit paths, %d):\n' "${#TRINKET_CHANGED_PATHS[@]}"

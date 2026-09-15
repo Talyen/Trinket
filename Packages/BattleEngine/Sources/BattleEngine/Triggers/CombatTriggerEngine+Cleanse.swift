@@ -105,9 +105,7 @@ package extension CombatTriggerEngine {
             ))
         }
         guard allowPartyBlock, triggers.cleansePartyBlock > 0 else { return events }
-        for owner in [BattleParticipant.hero, .companion] {
-            let member = context.roster[owner]
-            guard member.isAlive else { continue }
+        for (_, member) in livingPartyMembers(in: context) {
             events.append(contentsOf: context.applyBlock(
                 triggers.cleansePartyBlock,
                 to: member.combatant,

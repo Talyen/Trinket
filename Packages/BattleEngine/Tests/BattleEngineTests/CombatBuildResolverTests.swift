@@ -72,6 +72,56 @@ struct CombatBuildResolverTests {
         #expect(outcome.healthLost == 11)
     }
 
+    @Test func `leech armor pierce bypasses mitigation only for leech abilities`() {
+        func makeBattle(leechPierce: Bool) -> BattleState {
+            var battle = BattleStateTestFactory.makeMinimalBattle(
+                hero: CombatantFixtures.passiveHero(),
+                companion: CombatantFixtures.passiveCompanion(),
+                enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
+                heroModifiers: .init(triggers: CombatTraitTriggers(
+                    damage: DamageTriggers(leechIgnoresMitigation: leechPierce),
+                )),
+                enemyModifiers: .init(incomingDamageReductionPercent: 0.8),
+            )
+            battle.appliesFightPacing = false
+            return battle
+        }
+        func dealDamage(leechAbility: Bool, in battle: inout BattleState) -> Int {
+            var options: DamageOperation = .reaction()
+            options.abilityHasLeech = leechAbility
+            return battle.resolveDamage(DamageRequest(
+                amount: 100, target: battle.enemy, keyword: .physical,
+                sourceActorID: battle.hero.id, options: options,
+            )).healthLost
+        }
+        var bypass = makeBattle(leechPierce: true)
+        #expect(dealDamage(leechAbility: true, in: &bypass) == 100)
+        var noLeechFlag = makeBattle(leechPierce: true)
+        #expect(dealDamage(leechAbility: false, in: &noLeechFlag) == CombatRounding.scaled(100, multiplier: 0.2))
+        var noTrigger = makeBattle(leechPierce: false)
+        #expect(dealDamage(leechAbility: true, in: &noTrigger) == CombatRounding.scaled(100, multiplier: 0.2))
+    }
+
+    @Test func `outermost damage drains every out-of-turn queue`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
+        )
+        battle.appliesFightPacing = false
+        battle.uniques.pendingCounterAttackActorIDs = [battle.hero.id]
+        battle.uniques.pendingCompanionSummons = 1
+        battle.uniques.pendingBlockAnswerOwners = [.hero]
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 10, target: battle.enemy, keyword: .physical,
+            sourceActorID: battle.hero.id, options: .reaction(),
+        ))
+        #expect(battle.uniques.pendingCounterAttackActorIDs.isEmpty)
+        #expect(battle.uniques.pendingCompanionSummons == 0)
+        #expect(battle.uniques.pendingBlockAnswerOwners.isEmpty)
+        #expect(battle.uniques.isDrainingOutOfTurnAttacks == false)
+    }
+
     @Test(arguments: [41, 60, 100, 250, 1000], [false, true])
     func `enemy build keeps growing past forty`(level: Int, isBoss: Bool) throws {
         let enemy = try #require(GameContent.enemies.first { $0.isBoss == isBoss })

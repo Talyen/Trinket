@@ -39,13 +39,9 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-sha256_file() {
-  shasum -a 256 "$1" | awk '{print $1}'
-}
-
 verify_archive() {
   local archive="$1" expected="$2" label="$3" actual
-  actual="$(sha256_file "$archive")"
+  actual="$(trinket_tool_sha256_file "$archive")"
   if [[ "$actual" != "$expected" ]]; then
     echo "$label checksum mismatch: expected $expected, found $actual" >&2
     return 1
@@ -106,14 +102,11 @@ install_zip_tool() {
   shift 4
   local -a candidates=("$@")
   local bin="$TOOLS_DIR/$name"
-  local marker="$TOOLS_DIR/.$name.sha256"
 
   zip_tool_archive "$name"
   local archive_checksum="$ARCHIVE_CHECKSUM"
 
-  if [[ -x "$bin" && -f "$marker" ]] \
-    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$archive_checksum" ]] \
-    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$bin")" ]] \
+  if trinket_tool_marker_fresh "$name" "$bin" "$archive_checksum" \
     && [[ "$("$bin" $version_flag 2>/dev/null || true)" == "$version" ]]; then
     return 0
   fi
@@ -143,7 +136,7 @@ install_zip_tool() {
   fi
   install -m 755 "$candidate" "$bin.tmp"
   mv -f "$bin.tmp" "$bin"
-  printf 'archive=%s\nbinary=%s\n' "$archive_checksum" "$(sha256_file "$bin")" > "$marker"
+  trinket_tool_write_marker "$name" "$bin" "$archive_checksum"
   rm -rf "$extract"
 
   local actual
@@ -252,7 +245,7 @@ check_checksum_metadata() {
   fi
   local recorded_binary
   recorded_binary="$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")"
-  if [[ -z "$recorded_binary" || ! -f "$bin" || "$recorded_binary" != "$(sha256_file "$bin")" ]]; then
+  if [[ -z "$recorded_binary" || ! -f "$bin" || "$recorded_binary" != "$(trinket_tool_sha256_file "$bin")" ]]; then
     echo "$name binary checksum metadata does not match the installed binary" >&2
     return 1
   fi

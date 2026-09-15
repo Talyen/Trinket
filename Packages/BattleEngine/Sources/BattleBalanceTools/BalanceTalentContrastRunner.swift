@@ -63,27 +63,15 @@ enum BalanceTalentContrastRunner {
     }
 
     static func siblingWorkCount(config: BalanceSweepConfig) -> Int {
-        let roster = config.resolvedRoster
-        return BalanceContrastSupport.workCount(
-            fociCount: siblingFoci(
-                heroes: roster.heroes,
-                companions: roster.companions,
-                focusIDs: config.focusIDs,
-            ).count,
-            config: config,
-        )
+        BalanceContrastSupport.rosterFociWorkCount(config: config) {
+            siblingFoci(heroes: $0, companions: $1, focusIDs: $2).count
+        }
     }
 
     static func kitWorkCount(config: BalanceSweepConfig) -> Int {
-        let roster = config.resolvedRoster
-        return BalanceContrastSupport.workCount(
-            fociCount: kitFoci(
-                heroes: roster.heroes,
-                companions: roster.companions,
-                focusIDs: config.focusIDs,
-            ).count,
-            config: config,
-        )
+        BalanceContrastSupport.rosterFociWorkCount(config: config) {
+            kitFoci(heroes: $0, companions: $1, focusIDs: $2).count
+        }
     }
 
     static func run(
@@ -223,24 +211,16 @@ enum BalanceTalentContrastRunner {
         context: BalanceContrastContext,
         pairSeed: UInt64,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        var rng = SeededRandomNumberGenerator(seed: pairSeed)
-        let partner = BalanceContrastSupport.pickPartner(
-            for: owner,
-            from: context,
-            using: &rng,
-        )
-        let enemy = BalanceContrastSupport.roundRobinEnemy(
-            enemies: context.enemies,
+        let base = BalanceContrastSupport.sampleBasePair(
+            owner: owner,
             pairIndex: pairIndex,
+            context: context,
+            pairSeed: pairSeed,
         )
-        let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: owner,
-            using: &rng,
-        )
-        let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: partner,
-            using: &rng,
-        )
+        let partner = base.partner
+        let enemy = base.enemy
+        let ownerLoadout = base.ownerLoadout
+        let partnerLoadout = base.partnerLoadout
         let gears = BalanceContrastSupport.sharedGear(
             owner: owner,
             partner: partner,

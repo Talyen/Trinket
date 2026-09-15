@@ -43,15 +43,10 @@ public enum BalanceMarkdownReporter {
             }
         }
 
-        for (title, rows) in [
-            ("Ability Contrasts (paired lift vs sibling choice)", report.abilityContrasts),
-            ("Affix Contrasts (empty-slot and replacement-affix baselines)", report.affixContrasts),
-            ("Talent Contrasts (paired lift vs sibling in the same row)", report.talentContrasts),
-            ("Talent Kit Contrasts (full kit vs none, legal point budget only)", report.talentKitContrasts),
-        ] where !rows.isEmpty {
+        for section in report.contrastSections where !section.rows.isEmpty {
             BalanceMarkdownTables.appendContrasts(
-                title: title,
-                summaries: rows,
+                title: section.title,
+                summaries: section.rows,
                 into: &lines,
             )
         }

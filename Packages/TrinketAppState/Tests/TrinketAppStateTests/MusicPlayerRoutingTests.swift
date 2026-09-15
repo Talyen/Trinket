@@ -44,7 +44,6 @@ struct MusicPlayerRoutingTests {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             activeBattle: battle,
-            battleStageID: stageID,
             sceneIsActive: true,
             musicVolume: 0.75,
         )
@@ -55,9 +54,43 @@ struct MusicPlayerRoutingTests {
         if let expectedTrackID {
             #expect(request.track.id == expectedTrackID)
         } else {
-            #expect(request.resumeKey.stageID == stageID)
+            #expect(request.resumeKey.stageID == nil)
             #expect(request.resumeKey.enemyID == enemyID)
         }
+    }
+
+    @Test func `non boss battle track is stable across modes`() throws {
+        let enemy = try #require(GameContent.enemy(matching: "skeleton")?.combatant)
+        let journeyBattle = PlayBattleLaunchTestSupport.make(
+            origin: .journey(stageID: "chapter-1-stage-1"),
+            rngSeed: 0,
+            hero: GameContent.heroes[0],
+            companion: GameContent.companions[0],
+            enemy: enemy,
+        )
+        let spireBattle = PlayBattleLaunchTestSupport.make(
+            origin: .spire(spireID: .ironVein, floor: 1),
+            rngSeed: 0,
+            hero: GameContent.heroes[0],
+            companion: GameContent.companions[0],
+            enemy: enemy,
+        )
+
+        let journeyRequest = try trackRequest(from: MusicRoute.resolve(
+            selectedTab: .play,
+            activeBattle: journeyBattle,
+            sceneIsActive: true,
+            musicVolume: 0.75,
+        ))
+        let spireRequest = try trackRequest(from: MusicRoute.resolve(
+            selectedTab: .play,
+            activeBattle: spireBattle,
+            sceneIsActive: true,
+            musicVolume: 0.75,
+        ))
+
+        #expect(journeyRequest.track.kind == .battle)
+        #expect(spireRequest.track.id == journeyRequest.track.id)
     }
 
     @Test func `leaving play returns to menu even with active battle`() throws {
@@ -72,7 +105,6 @@ struct MusicPlayerRoutingTests {
         let route = MusicRoute.resolve(
             selectedTab: .collection,
             activeBattle: battle,
-            battleStageID: "chapter-1-stage-10",
             sceneIsActive: true,
             musicVolume: 0.75,
         )

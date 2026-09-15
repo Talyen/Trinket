@@ -151,7 +151,7 @@ enum PlayerSaveSanitizer {
                 || GameContent.recruitEvent(matching: eventID) != nil
         }
         sanitized.shopPayloads = journey.shopPayloads.filter { stageID, _ in
-            validStageIDs.contains(stageID)
+            validStageIDs.contains(stageID) && !sanitized.completedStageIDs.contains(stageID)
         }
         sanitized.mysteryOfferPayloads = journey.mysteryOfferPayloads.filter { stageID, _ in
             validStageIDs.contains(stageID) && !sanitized.completedStageIDs.contains(stageID)

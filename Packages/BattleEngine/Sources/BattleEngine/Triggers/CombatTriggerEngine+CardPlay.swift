@@ -154,7 +154,7 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
+        guard context.resolution.depth(.damage) < ReactionScope.maxDepth,
               !context.resolution.isAutomaticPlay else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         if keywords.contains(.burn) {
@@ -175,7 +175,7 @@ package extension CombatTriggerEngine {
         abilityTarget: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
+        guard context.resolution.depth(.damage) < ReactionScope.maxDepth,
               !context.resolution.isAutomaticPlay
         else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
@@ -272,5 +272,32 @@ package extension CombatTriggerEngine {
             amount: drawn,
             keyword: .physical,
         )]
+    }
+}
+
+// MARK: - Party cards
+
+package extension CombatTriggerEngine {
+    static func afterPartyCardPlayed(in context: inout BattleState) -> [ActionEvent] {
+        let count = context.turnCadence.cardsPlayed.values.reduce(0, +)
+        var events: [ActionEvent] = []
+        for (_, actor) in livingPartyMembers(in: context) {
+            let triggers = context.modifiers(for: actor.id).triggers
+            guard triggers.cardsPlayedHealPartyThreshold > 0,
+                  count == triggers.cardsPlayedHealPartyThreshold,
+                  context.resolution.claim(.heroTalent("playfulEnergy"), actorID: actor.id, cadence: .turn(context.turnCount))
+            else { continue }
+            for (_, target) in livingPartyMembers(in: context) {
+                events.append(contentsOf: context.healEmitting(
+                    amount: triggers.cardsPlayedHealPartyAmount,
+                    target: target.combatant,
+                    source: actor.combatant,
+                    abilityName: triggerAbilityName(
+                        "cardsPlayedHealPartyThreshold", for: actor.combatant, fallback: "Playful Energy", in: context,
+                    ),
+                ))
+            }
+        }
+        return events
     }
 }

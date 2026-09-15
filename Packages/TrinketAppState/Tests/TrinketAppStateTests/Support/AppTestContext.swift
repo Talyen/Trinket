@@ -1,6 +1,7 @@
 import BattleEngine
 import Foundation
 import TrinketBattleFeature
+import TrinketContent
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketPersistenceTestSupport
@@ -52,6 +53,7 @@ final class AppTestContext {
         environment: [String: String] = [:],
         playerSave: PlayerSaveStore? = nil,
         battleRuntime: (any BattleRuntime)? = nil,
+        contentAccess: ContentAccessPolicy = .fullGame,
     ) throws -> AppState {
         let parsed = AppEnvironment.parse(
             arguments: Self.defaultTestArguments + arguments,
@@ -59,7 +61,7 @@ final class AppTestContext {
         )
         let battle = battleRuntime ?? BattleSession(presentationEnvironment: .silent)
         let resolvedSave = try playerSave ?? sharedPlayerSave(resetState: parsed.resetState)
-        return try buildAppState(environment: parsed, playerSave: resolvedSave, battle: battle)
+        return try buildAppState(environment: parsed, playerSave: resolvedSave, battle: battle, contentAccess: contentAccess)
     }
 
     @MainActor
@@ -77,12 +79,14 @@ final class AppTestContext {
         environment: [String: String] = [:],
         playerSave: PlayerSaveStore? = nil,
         battleRuntime: (any BattleRuntime)? = nil,
+        contentAccess: ContentAccessPolicy = .fullGame,
     ) throws -> PlaySession {
         try makeAppState(
             arguments: arguments,
             environment: environment,
             playerSave: playerSave,
             battleRuntime: battleRuntime,
+            contentAccess: contentAccess,
         ).play
     }
 
@@ -96,6 +100,7 @@ final class AppTestContext {
         environment: AppEnvironment,
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
+        contentAccess: ContentAccessPolicy = .fullGame,
     ) throws -> AppState {
         let state = try AppState(
             environment: environment,
@@ -130,7 +135,7 @@ final class AppTestContext {
                 )
             },
         )
-        state.playerSave.contentAccess = .fullGame
+        state.playerSave.contentAccess = contentAccess
         lastBattle = battle as? BattleSession
         return state
     }

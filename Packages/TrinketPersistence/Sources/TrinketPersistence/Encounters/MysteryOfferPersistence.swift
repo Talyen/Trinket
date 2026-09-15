@@ -97,7 +97,7 @@ public enum MysteryOfferPersistence {
         return result
     }
 
-    private static func clear(stageID: String, labyrinthNodeID: String?, save: inout PlayerSave) {
+    static func clear(stageID: String, labyrinthNodeID: String?, save: inout PlayerSave) {
         setPayload(nil, stageID: stageID, labyrinthNodeID: labyrinthNodeID, save: &save)
     }
 

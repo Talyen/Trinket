@@ -58,4 +58,8 @@ package struct UniqueBattleState {
     var pendingCompanionSummons = 0
     var pendingBlockAnswerOwners: [BattleParticipant] = []
     var pendingCounterAttackActorIDs: [String] = []
+    // Reentrancy guard for the outermost-damage drain below. Nested damage
+    // during a drain only enqueues; the outer loop picks it up iteratively
+    // instead of recursing drain -> Basic -> damage -> drain.
+    var isDrainingOutOfTurnAttacks = false
 }

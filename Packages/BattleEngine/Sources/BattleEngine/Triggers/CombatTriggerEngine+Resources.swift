@@ -158,28 +158,21 @@ package extension CombatTriggerEngine {
            let owner = context.roster.participant(for: combatant),
            owner.isPartyMember,
            context.resolution.claim(.heroTalent("goldenOpportunity"), actorID: combatant.id, cadence: .turn(context.turnCount)) {
-            let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
-            if drawn > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .cardsDrawn,
-                    actorName: combatant.name,
-                    abilityName: triggerAbilityName(
-                        "gainGoldDrawThreshold",
-                        for: combatant,
-                        fallback: "Golden Opportunity",
-                        in: context,
-                    ),
-                    target: combatant,
-                    amount: drawn,
-                    keyword: .physical,
-                ))
-            }
+            events.append(contentsOf: drawCards(
+                1,
+                for: owner,
+                actor: combatant,
+                abilityName: triggerAbilityName(
+                    "gainGoldDrawThreshold",
+                    for: combatant,
+                    fallback: "Golden Opportunity",
+                    in: context,
+                ),
+                in: &context,
+            ))
         }
         if restoresParty {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive else { continue }
+            for (_, member) in livingPartyMembers(in: context) {
                 events.append(contentsOf: context.healEmitting(
                     amount: triggers.onGainGoldHealParty,
                     target: member.combatant,
@@ -194,9 +187,7 @@ package extension CombatTriggerEngine {
             }
         }
         if granted > 0 {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive else { continue }
+            for (_, member) in livingPartyMembers(in: context) {
                 let percent = context.modifiers(for: member.id).triggers.goldGainBlockPercent
                 if percent > 0 {
                     let block = Int((Double(granted) * percent).rounded(.down))
@@ -233,6 +224,69 @@ package extension CombatTriggerEngine {
                 }
             }
         }
+        return events
+    }
+}
+
+// MARK: - Leech
+
+package extension CombatTriggerEngine {
+    static func afterLeech(
+        by actor: Combatant,
+        target: Combatant?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let profile = context.modifiers(for: actor.id)
+        let triggers = profile.triggers
+        var events: [ActionEvent] = []
+
+        if triggers.leechRestoreManaFlat > 0 {
+            events.append(contentsOf: context.restoreManaEmitting(
+                context.paced(triggers.leechRestoreManaFlat, sourceActorID: actor.id),
+                to: actor,
+                abilityName: triggerAbilityName("leechRestoreManaFlat", for: actor, fallback: "Siphoning", in: context),
+            ))
+        }
+
+        if triggers.leechGoldFlat > 0 {
+            events.append(contentsOf: context.grantGoldEvent(
+                triggers.leechGoldFlat,
+                to: actor,
+                abilityName: triggerAbilityName("leechGoldFlat", for: actor, fallback: "Blood Price", in: context),
+            ))
+        }
+
+        guard let target, target.role == .enemy, context.roster.health(for: target) > 0 else { return events }
+        if triggers.onLeechApplyPoison > 0 {
+            events.append(contentsOf: applyDoT(
+                keyword: .poison,
+                potency: triggers.onLeechApplyPoison,
+                to: target,
+                sourceActorID: actor.id,
+                in: &context,
+            ))
+        }
+        if triggers.onLeechApplyBleed > 0 {
+            events.append(contentsOf: applyDoT(
+                keyword: .bleed,
+                potency: triggers.onLeechApplyBleed,
+                to: target,
+                sourceActorID: actor.id,
+                in: &context,
+            ))
+        }
+        if triggers.onLeechReduceEnemyStrength > 0 {
+            context.appendEffect(
+                .damageReductionFlat(
+                    triggers.onLeechReduceEnemyStrength,
+                    triggers.onLeechReduceEnemyStrengthTurns,
+                ),
+                to: target,
+                sourceID: actor.id,
+                remainingTurns: triggers.onLeechReduceEnemyStrengthTurns,
+            )
+        }
+
         return events
     }
 }

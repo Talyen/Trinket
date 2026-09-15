@@ -29,8 +29,9 @@ a caller already ran the docs gate (for example handoff --final).
 local loop; CI runs the full suite. Failed logs are retained under RESULTS_DIR
 or .DerivedData/ScriptTestResults; terminal excerpts are bounded.
 --paths selects registered leaf-script regression families. Shared/unknown script
-paths and unscoped invocations run all suites. Syntax and cache alignment stay
-full-tree. CI uses the unscoped full suite. --paths consumes remaining arguments.
+paths and unscoped invocations run all suites. Syntax is scoped to --paths;
+cache alignment stays full-tree (cheap static guard). CI uses the unscoped
+full suite. --paths consumes remaining arguments.
 USAGE
       exit 0
       ;;
@@ -88,25 +89,54 @@ run_logged() {
 
 echo "=== Script syntax ==="
 syntax_started=$SECONDS
-while IFS= read -r script; do
-  case "$script" in
-    *.py) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" python3 -c 'import pathlib, sys; compile(pathlib.Path(sys.argv[1]).read_bytes(), sys.argv[1], "exec")' "$script" ;;
-    *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
-    Scripts/bin/*) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" sh -n "$script" ;;
-    *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
-  esac
-done < <(rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g 'Scripts/bin/*' | LC_ALL=C sort)
+if (( ${#requested_paths[@]} > 0 )); then
+  syntax_list=()
+  for candidate in "${requested_paths[@]}"; do
+    case "$candidate" in
+      Scripts/*.sh|Scripts/*.env|Scripts/*.py|Scripts/*.mjs|Scripts/bin/*)
+        [[ -f "$candidate" ]] || continue
+        syntax_list+=("$candidate") ;;
+    esac
+  done
+  if (( ${#syntax_list[@]} == 0 )); then
+    echo "(no syntax-checkable paths selected)"
+  else
+    printf '%s\n' "${syntax_list[@]}" | LC_ALL=C sort | while IFS= read -r script; do
+      case "$script" in
+        *.py) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" python3 -c 'import pathlib, sys; compile(pathlib.Path(sys.argv[1]).read_bytes(), sys.argv[1], "exec")' "$script" ;;
+        *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
+        Scripts/bin/*) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" sh -n "$script" ;;
+        *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
+      esac
+    done
+  fi
+else
+  while IFS= read -r script; do
+    case "$script" in
+      *.py) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" python3 -c 'import pathlib, sys; compile(pathlib.Path(sys.argv[1]).read_bytes(), sys.argv[1], "exec")' "$script" ;;
+      *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
+      Scripts/bin/*) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" sh -n "$script" ;;
+      *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
+    esac
+  done < <(rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g 'Scripts/bin/*' | LC_ALL=C sort)
+fi
 printf 'Script syntax passed (%ds).\n' "$((SECONDS - syntax_started))"
 
 echo "=== Python script regressions ==="
-python_log="$TEST_LOG_DIR/python.log"
 python_started=$SECONDS
 if (( ${#python_modules[@]} == 0 )); then
   echo "(no Python regressions selected)"
-elif PYTHONPATH=Scripts/Tests python3 -m unittest -b "${python_modules[@]}" >"$python_log" 2>&1; then
-  printf 'Python script regressions passed (%ds).\n' "$((SECONDS - python_started))"
 else
-  report_failure "Python script regressions" "$python_log" "$?"
+  for module in "${python_modules[@]}"; do
+    module_log="$TEST_LOG_DIR/python-$module.log"
+    module_started=$SECONDS
+    if PYTHONPATH=Scripts/Tests python3 -m unittest -b "$module" >"$module_log" 2>&1; then
+      printf '%s passed (%ds).\n' "$module" "$((SECONDS - module_started))"
+    else
+      report_failure "Python script regressions: $module" "$module_log" "$?"
+    fi
+  done
+  printf 'Python script regressions passed (%ds).\n' "$((SECONDS - python_started))"
 fi
 
 echo "=== Shell script regressions ==="

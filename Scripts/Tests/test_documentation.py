@@ -47,7 +47,7 @@ class DocumentationTests(ScriptRegressionTestCase):
         handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
         self.assertIn("run_cheap_ci_slices", handoff)
         self.assertIn("source Scripts/lib/cheap-slices.sh", handoff)
-        self.assertIn("trinket_run_cheap_slices", handoff)
+        self.assertIn("trinket_run_gate_slices", handoff)
         self.assertIn('if [[ "$FINAL" == true ]]; then', handoff)
         self.assertIn("./Scripts/test-scripts.sh --skip-docs", handoff)
         self.assertIn('kind" == docs && "$FINAL" == true', handoff)
@@ -258,6 +258,35 @@ class DocumentationTests(ScriptRegressionTestCase):
                 self.assertEqual(select(["Scripts/agent-search.py", shared]), all_tests)
         with self.assertRaises(ValueError):
             select(["Scripts"])
+
+    def test_script_families_cover_expanded_leaves_without_full_fallback(self) -> None:
+        select = load_script("script_test_selection", "script_test_selection.py").select_tests
+        all_tests = select([])
+        cases = {
+            "Scripts/handoff.sh": {"Scripts/Tests/test_ci_verification_scripts.py",
+                                   "Scripts/Tests/test_documentation.py",
+                                   "Scripts/Tests/test_exec_wrappers.py"},
+            "Scripts/check-unused-assets.py": {"Scripts/Tests/test_check_unused_assets.py"},
+            "Scripts/ci-path-filter.py": {"Scripts/Tests/test_ci_path_filter.py"},
+            "Scripts/balance-sweep.sh": {"Scripts/Tests/test_balance_report_retention.py"},
+            "Scripts/test-timing.py": {"Scripts/Tests/test_test_timing.py",
+                                       "Scripts/Tests/test_ci_verification_scripts.py"},
+            "Scripts/run-env.sh": {"Scripts/Tests/test_exec_wrappers.py",
+                                   "Scripts/Tests/test-run-env.sh"},
+            "Scripts/lib/media-assets.sh": {"Scripts/Tests/test_media_asset_scripts.py",
+                                            "Scripts/Tests/test_ci_verification_scripts.py",
+                                            "Scripts/Tests/test-asset-hash-sort-locale.sh"},
+            "Scripts/Tests/test_agent_search.py": {"Scripts/Tests/test_agent_search.py"},
+        }
+        for path, expected in cases.items():
+            with self.subTest(path=path):
+                selected = select([path])
+                self.assertEqual(set(selected), expected)
+                self.assertLess(len(selected), len(all_tests))
+        # Residual unknowns still run everything (safe default).
+        for unknown in ("Scripts/lint.sh", "Scripts/format.sh"):
+            with self.subTest(unknown=unknown):
+                self.assertEqual(select([unknown]), all_tests)
 
     def test_handoff_dry_run_and_execution_share_cheap_slice_registry(self) -> None:
         config = (ROOT / "Scripts" / "config" / "cheap-slices.txt").read_text(encoding="utf-8")

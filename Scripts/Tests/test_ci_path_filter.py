@@ -1,35 +1,21 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import importlib.util
 import io
 import json
 import re
-import sys
 import subprocess
 import unittest
 from unittest.mock import patch
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-
-
-def load_filter():
-    spec = importlib.util.spec_from_file_location(
-        "ci_path_filter", ROOT / "Scripts" / "ci-path-filter.py"
-    )
-    if spec is None or spec.loader is None:
-        raise RuntimeError("Unable to load ci-path-filter.py")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["ci_path_filter"] = module
-    spec.loader.exec_module(module)
-    return module
+from script_test_support import ROOT, load_script
 
 
 class CIPathFilterTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.filter = load_filter()
+        cls.filter = load_script("ci_path_filter", "ci-path-filter.py")
 
     def test_compare_includes_rename_source_and_fails_closed_at_file_limit(self) -> None:
         cases = [

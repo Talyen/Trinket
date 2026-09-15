@@ -17,6 +17,16 @@ public extension LabyrinthMapPresentation {
 
     static func state(
         for node: LabyrinthNode,
+        reachableNodeIDs: Set<String>,
+    ) -> LabyrinthMapNodeState {
+        if node.isCleared {
+            return .cleared
+        }
+        return reachableNodeIDs.contains(node.id) ? .reachable : .locked
+    }
+
+    static func state(
+        for node: LabyrinthNode,
         in labyrinth: PlayerLabyrinthState,
     ) -> LabyrinthMapNodeState {
         if node.isCleared {

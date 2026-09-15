@@ -101,9 +101,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if profile.triggers.onHolyDamagePartyBlock > 0 {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive else { continue }
+            for (_, member) in livingPartyMembers(in: context) {
                 events.append(contentsOf: context.applyBlock(
                     profile.triggers.onHolyDamagePartyBlock,
                     to: member.combatant,

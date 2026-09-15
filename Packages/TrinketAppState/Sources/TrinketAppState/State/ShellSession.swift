@@ -20,11 +20,9 @@ public final class ShellSession {
         switch tab {
         case .play:
             playPath.removeAll()
-        case .collection:
-            break
         case .homestead:
             homesteadPath.removeAll()
-        case .options:
+        case .collection, .options:
             break
         }
     }

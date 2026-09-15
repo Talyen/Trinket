@@ -40,7 +40,7 @@ public final class SpiresPlayMode {
         )
     }
 
-    private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootResult? {
+    private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootResult {
         SpireCompletion.resolveLoot(
             for: floor,
             encounterLevel: encounterLevel,
@@ -51,14 +51,12 @@ public final class SpiresPlayMode {
         )
     }
 
-    func battleRoute(spireID: SpireID, floor: Int) -> PlayBattleRoute {
-        let origin = PlayBattleOrigin.spire(spireID: spireID, floor: floor)
+    func battleRoute(floor: SpireFloor) -> PlayBattleRoute {
+        let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
-            guard let self,
-                  let resolvedFloor = GameContent.spireFloor(spireID: spireID, floor: floor)
-            else { return .unavailable }
+            guard let self else { return .unavailable }
             return completeFloor(
-                resolvedFloor,
+                floor,
                 hero: configuration.hero.combatant,
                 companion: configuration.companion.combatant,
                 battleGold: award.award.goldFlow,
@@ -76,8 +74,6 @@ public final class SpiresPlayMode {
         if let restriction = playerSave.accessRestriction(for: .spire(spireID: floor.spireID, floor: floor.floor)) {
             return restriction
         }
-        guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
-        guard encounters.canBeginTransientEncounter else { return nil }
         guard let spire = GameContent.spire(id: floor.spireID) else {
             return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
         }
@@ -112,13 +108,17 @@ public final class SpiresPlayMode {
         }
 
         guard let encounter = resolvedEncounter(for: floor) else {
-            return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
+            return StageMapMessage(title: "Encounter Missing", message: "This battle is not ready yet.")
         }
 
         let request = combatRequest(for: floor, encounter: encounter)
-        return battleLaunch.activateRequest(request) {
-            preparationTracker.invalidate()
-        }
+        return battleLaunch.startBattle(
+            origin: .spire(spireID: floor.spireID, floor: floor.floor),
+            encounters: encounters,
+            busyMessage: PlayBattleLaunch.activationFailureMessage,
+            resolve: { request },
+            onActivated: { preparationTracker.invalidate() },
+        )
     }
 
     public func prepareBattle(for floor: SpireFloor) {
@@ -164,7 +164,7 @@ public final class SpiresPlayMode {
         PlayCombatRequest(
             origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounter: encounter,
-            route: battleRoute(spireID: floor.spireID, floor: floor.floor),
+            route: battleRoute(floor: floor),
             loot: battleLoot(for: floor, encounterLevel: encounter.level),
             stageRewardsAlreadyClaimed: false,
             universalModifiers: [],

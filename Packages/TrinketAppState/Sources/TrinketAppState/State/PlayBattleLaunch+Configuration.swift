@@ -42,7 +42,6 @@ struct BattlePreparationInputs: Equatable {
     let party: PlayBattlePartySnapshot
     let rngSeed: UInt64
     let hasProgressionRewards: Bool
-    let musicStageID: String?
 }
 
 struct BattleLaunchInput: Equatable {
@@ -95,13 +94,12 @@ extension PlayBattleLaunch {
         homesteadState: PlayerHomesteadState = .freshStart,
         worldSeed: UInt64 = 0,
         hasProgressionRewards: Bool = false,
-        musicStageID: String? = nil,
     ) -> BattleLaunchAssembly {
         assembleLaunch(BattlePreparationInputs(
             runKey: runKey, launch: input,
             party: PlayBattlePartySnapshot(roster: rosterState, inventory: inventoryState, homestead: homesteadState, worldSeed: worldSeed),
             rngSeed: rngSeed,
-            hasProgressionRewards: hasProgressionRewards, musicStageID: musicStageID,
+            hasProgressionRewards: hasProgressionRewards,
         ))
     }
 
@@ -162,7 +160,7 @@ extension PlayBattleLaunch {
             goldFindPercent: homesteadEffects.goldFindPercent,
             stageRewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
             hasProgressionRewards: inputs.hasProgressionRewards,
-            musicStageID: inputs.musicStageID,
+            musicStageID: nil,
             heroExperienceAward: VictoryRewardApplier.battleExperienceAward(
                 playerLevel: heroMember.progression.level,
                 enemyLevel: enemyLevel,

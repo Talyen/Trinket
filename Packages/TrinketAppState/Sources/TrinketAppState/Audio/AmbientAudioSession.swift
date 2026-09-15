@@ -14,11 +14,11 @@ enum AmbientAudioSession {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
+            configured = true
         } catch {
             logger.error(
                 "Unable to configure audio session: \(error.localizedDescription, privacy: .public)",
             )
         }
-        configured = true
     }
 }

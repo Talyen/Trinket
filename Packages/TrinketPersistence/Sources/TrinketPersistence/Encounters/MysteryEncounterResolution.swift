@@ -134,6 +134,7 @@ public enum MysteryEncounterResolution {
     }
 
     private static func complete(_ request: MysteryEncounterRequest, save: inout PlayerSave) {
+        MysteryOfferPersistence.clear(stageID: request.stage.id, labyrinthNodeID: request.encounter.labyrinthNodeID, save: &save)
         if request.event.id == GameContent.corruptionAltarEventID || request.event.choices
             .contains(where: { $0.effects.contains(.corruptItem) }) {
             ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)

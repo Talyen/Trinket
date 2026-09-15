@@ -243,7 +243,6 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
     public var baselineTimeouts: Int
     public var lift: Double
     public var meanDeltaPartyHP: Double
-    public var meanDeltaEnemyHP: Double
     public var meanDeltaRounds: Double
     public var flagged: Bool
     public var flagReason: String?
@@ -273,7 +272,6 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
         baselineTimeouts: Int = 0,
         lift: Double,
         meanDeltaPartyHP: Double = 0,
-        meanDeltaEnemyHP: Double = 0,
         meanDeltaRounds: Double = 0,
         flagged: Bool,
         flagReason: String? = nil,
@@ -294,7 +292,6 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
         self.baselineTimeouts = baselineTimeouts
         self.lift = lift
         self.meanDeltaPartyHP = meanDeltaPartyHP
-        self.meanDeltaEnemyHP = meanDeltaEnemyHP
         self.meanDeltaRounds = meanDeltaRounds
         self.flagged = flagged
         self.flagReason = flagReason
@@ -317,6 +314,18 @@ public struct BalanceSweepReport: Codable, Sendable {
     public var progressionPlayerStates: [PlayerProgressionState]
     public var progressionTruncatedRuns: Int
     public var elapsedSeconds: Double
+
+    /// The four contrast sections in canonical order. Both the markdown tables
+    /// and the findings brief iterate this so a new contrast kind cannot be
+    /// added to one and forgotten in the other.
+    public var contrastSections: [(title: String, kind: String, rows: [PairedContrastSummary])] {
+        [
+            ("Ability Contrasts (paired lift vs sibling choice)", "ability", abilityContrasts),
+            ("Affix Contrasts (empty-slot and replacement-affix baselines)", "affix", affixContrasts),
+            ("Talent Contrasts (paired lift vs sibling in the same row)", "talent", talentContrasts),
+            ("Talent Kit Contrasts (full kit vs none, legal point budget only)", "talent kit", talentKitContrasts),
+        ]
+    }
 
     public init(
         config: BalanceSweepConfig,

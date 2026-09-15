@@ -74,9 +74,7 @@ package extension CombatTriggerEngine {
         }
 
         if triggers.onDodgePartyMana > 0 {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                guard member.isAlive else { continue }
+            for (_, member) in livingPartyMembers(in: context) {
                 events.append(contentsOf: context.restoreManaEmitting(
                     triggers.onDodgePartyMana,
                     to: member.combatant,
@@ -180,8 +178,8 @@ package extension CombatTriggerEngine {
         }
 
         if allowsCounterattacks, triggers.phantomCounter,
-           context.resolution.depth(.damage) < ReactionScope.maxTalentReactionDepth,
-           context.resolution.depth(.dot) < ReactionScope.maxDotRecursionDepth,
+           context.resolution.depth(.damage) < ReactionScope.maxDepth,
+           context.resolution.depth(.dot) < ReactionScope.maxDepth,
            context.resolution.depth(.draw) < BattleState.maxDrawAndPlayDepth,
            !context.resolution.isAutomaticPlay,
            let owner = context.roster.participant(for: combatant),

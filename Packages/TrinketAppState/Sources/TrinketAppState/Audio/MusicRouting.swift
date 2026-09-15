@@ -38,7 +38,6 @@ enum MusicRoute: Equatable {
     static func resolve(
         selectedTab: AppTab,
         activeBattle: BattleRunConfiguration?,
-        battleStageID: String? = nil,
         sceneIsActive: Bool,
         musicVolume: Double,
     ) -> Self {
@@ -51,12 +50,14 @@ enum MusicRoute: Equatable {
         }
 
         if let activeBattle, let enemyID = activeBattle.enemy?.id {
-            return encounter(stageID: battleStageID, enemyID: enemyID)
+            return encounter(enemyID: enemyID)
         }
 
         return menuTrack()
     }
 
+    /// Menu always uses the first catalog track; the remaining menuTrackIDs are
+    /// alternates the router never selects.
     private static func menuTrack() -> Self {
         guard let trackID = MusicCatalog.menuTrackIDs.first,
               let track = MusicCatalog.track(matching: trackID)
@@ -74,20 +75,22 @@ enum MusicRoute: Equatable {
         )
     }
 
-    private static func encounter(stageID: String?, enemyID: String) -> Self {
+    /// Only boss fights get a specific track. Every other battle resolves to the
+    /// same stable battle track for a given enemy, regardless of mode.
+    private static func encounter(enemyID: String) -> Self {
         if let bossTrackID = MusicCatalog.bossTrackIDByEnemyID[enemyID],
            let bossTrack = MusicCatalog.track(matching: bossTrackID) {
             return .track(
                 MusicPlaybackRequest.resumable(
                     track: bossTrack,
                     contextKind: .boss,
-                    stageID: stageID,
+                    stageID: nil,
                     enemyID: enemyID,
                 ),
             )
         }
 
-        guard let track = normalBattleTrack(stageID: stageID, enemyID: enemyID) else {
+        guard let track = normalBattleTrack(enemyID: enemyID) else {
             return menuTrack()
         }
 
@@ -95,21 +98,22 @@ enum MusicRoute: Equatable {
             MusicPlaybackRequest.resumable(
                 track: track,
                 contextKind: .battle,
-                stageID: stageID,
+                stageID: nil,
                 enemyID: enemyID,
             ),
         )
     }
 
-    private static func normalBattleTrack(stageID: String?, enemyID: String) -> MusicTrack? {
+    private static func normalBattleTrack(enemyID: String) -> MusicTrack? {
         guard !MusicCatalog.battleTrackIDs.isEmpty else { return nil }
 
-        let seed = [stageID, enemyID].compactMap(\.self).joined(separator: ":")
-        let index = stableIndex(for: seed, count: MusicCatalog.battleTrackIDs.count)
+        let index = stableIndex(for: enemyID, count: MusicCatalog.battleTrackIDs.count)
         let trackID = MusicCatalog.battleTrackIDs[index]
         return MusicCatalog.track(matching: trackID)
     }
 
+    /// Hand-rolled DJB2 because Swift.Hasher is per-launch randomized; the same
+    /// enemy must resolve to the same battle track across launches.
     private static func stableIndex(for seed: String, count: Int) -> Int {
         guard count > 0 else { return 0 }
 

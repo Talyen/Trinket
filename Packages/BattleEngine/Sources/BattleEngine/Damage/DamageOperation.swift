@@ -109,10 +109,6 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         kind == .reaction(.dodge)
     }
 
-    var qualifiesForAmbush: Bool {
-        isAttackHit
-    }
-
     var isRetaliation: Bool {
         switch kind {
         case .reaction, .periodic, .attack(_, .counterattack), .attack(_, .cardRepeat), .attack(_, .criticalRepeat): true
@@ -148,6 +144,9 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         return false
     }
 
+    /// Re-keys an attack operation to a repeat origin, preserving tier/scaling.
+    /// Non-attack operations pass through unchanged: repeat paths (e.g. Final
+    /// Spark replays of stored card requests) may carry effect operations.
     func repeated(
         origin: AttackOrigin = .repeatedAttack,
         scaling: Scaling? = nil,

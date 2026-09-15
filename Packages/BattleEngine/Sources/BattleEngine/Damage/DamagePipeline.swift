@@ -107,17 +107,26 @@ package enum DamagePipeline {
         }
     }
 
+    /// Freezes a 50% preview of the avoided hit back at the attacker. Runs on
+    /// a discarded copy: modifier profiles share storage (CoW), so the copy
+    /// is cheap, and preview mutations (empower reservations, claims, burn
+    /// consumption) must not leak into the real resolution.
     static func applyWinterWake(to state: inout DamageResolutionState, in context: inout BattleState) {
         guard !state.options.causedByDodge, state.options.isAttackHit,
               context.modifiers(for: state.combatant.id).triggers.wintersWake,
               let attackerID = state.sourceActorID,
               let attacker = context.roster.combatant(for: attackerID), attacker.isAlive else { return }
-        var preview = context
-        var avoided = state
-        avoided.targetStatus = DamageTargetStatus(for: state.combatant, in: preview)
-        applyOutgoingDamage(to: &avoided, in: &preview)
-        applyTakenFlatAdjustments(to: &avoided, in: &preview)
-        let amount = CombatRounding.scaled(avoided.remaining, multiplier: 0.5)
+        // Scope the preview copy so it is destroyed before the nested
+        // resolveDamage below; holding a full BattleState across nested
+        // damage needlessly peaks worker-thread stacks.
+        let amount: Int = {
+            var preview = context
+            var avoided = state
+            avoided.targetStatus = DamageTargetStatus(for: state.combatant, in: preview)
+            applyOutgoingDamage(to: &avoided, in: &preview)
+            applyTakenFlatAdjustments(to: &avoided, in: &preview)
+            return CombatRounding.scaled(avoided.remaining, multiplier: 0.5)
+        }()
         guard amount > 0 else { return }
         let options = DamageOperation.reaction(cause: .dodge, scaling: .resolved, accuracy: .normal)
         let outcome = context.resolveDamage(DamageRequest(
@@ -150,7 +159,7 @@ package enum DamagePipeline {
             applyFightPacing(to: &state, in: &context)
             applyMarkedBonus(to: &state, in: &context)
             UniqueCombatEngine.applyStoredDamage(to: &state, in: &context)
-            state.uniqueOutgoingDamage = CombatRounding.scaled(
+            state.unique.outgoingDamage = CombatRounding.scaled(
                 state.remaining - state.options.partnerFirstAttackBonus,
                 multiplier: state.isCritical ? criticalMultiplier(for: state.sourceActorID, in: context) : 1,
             )
@@ -164,7 +173,7 @@ package enum DamagePipeline {
             let bonus = CombatTriggerEngine.heroCardDamageBonus(keyword: state.damageKeyword, sourceID: state.sourceActorID, in: &context)
             state.remaining += bonus
             state.buildupDamage += bonus
-            state.uniqueOutgoingDamage += bonus
+            state.unique.outgoingDamage += bonus
             state.heroCardBlockIgnore = CombatTriggerEngine.heroCardBlockIgnore(
                 keyword: state.damageKeyword,
                 sourceID: state.sourceActorID,
@@ -181,48 +190,44 @@ package enum DamagePipeline {
 
         in context: inout BattleState,
     ) -> CombatOutcome {
-        context.resolveDamage(DamageRequest(
+        resolveNestedDamage(
+            amount: amount,
+            keyword: keyword,
+            target: target,
+            sourceActorID: sourceActorID,
+            in: &context,
+        )
+    }
+
+    /// Single choke point for nested reaction damage (retaliation, wards,
+    /// talent strikes, blocked-damage answers). Callers that need the
+    /// `.thornsTriggered` decorator use `appendRetaliationDamage`; DoT-typed
+    /// mirrors branch to the applicator before reaching this helper.
+    static func resolveNestedDamage(
+        amount: Int,
+        keyword: Keyword,
+        target: Combatant,
+        sourceActorID: String?,
+        requireTargetAlive: Bool = false,
+        requireSourceAlive source: Combatant? = nil,
+        in context: inout BattleState,
+    ) -> CombatOutcome {
+        guard amount > 0 else {
+            return .empty
+        }
+        if requireTargetAlive, context.roster.health(for: target) == 0 {
+            return .empty
+        }
+        if let source, context.roster.health(for: source) == 0 {
+            return .empty
+        }
+        return context.resolveDamage(DamageRequest(
             amount: amount,
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
             options: .reaction(),
         ))
-    }
-
-    static func appendBleed(
-        potency: Int,
-        to target: Combatant,
-        sourceActorID: String,
-        durationTurns: Int? = nil,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        DoTApplicator.applyBleed(
-            potency: potency,
-            to: target,
-            sourceActorID: sourceActorID,
-            application: .attached,
-            durationTurns: durationTurns,
-            in: &context,
-        )
-    }
-
-    static func appendMeterCharge(
-        _ amount: Int,
-        keyword: Keyword,
-        to combatant: Combatant,
-        sourceActorID: String?,
-        applyFightPacing: Bool = false,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        ControlMeterEngine.applyMeterCharge(
-            amount,
-            keyword: keyword,
-            to: combatant,
-            sourceActorID: sourceActorID,
-            applyFightPacing: applyFightPacing,
-            in: &context,
-        )
     }
 
     static func appendAbsorption(

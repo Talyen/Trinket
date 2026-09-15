@@ -3,8 +3,10 @@ import TrinketContent
 import TrinketCore
 
 package enum CriticalChanceEngine {
+    /// Callers check `Keyword.allowsCriticalHits` before rolling; the keyword
+    /// itself never influences the chance. `usePartyMaximum` is heal-only
+    /// (Contagious Joy) — the damage path always rolls the actor's own chance.
     package static func rollSucceeds(
-        keyword _: Keyword,
         actorID: String,
         defender: Combatant,
         abilityBonus: Double = 0,

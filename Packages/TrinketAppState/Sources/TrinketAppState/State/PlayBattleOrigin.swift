@@ -23,13 +23,6 @@ public enum PlayBattleOrigin: Hashable, Sendable {
             BattleRunKey("contract|\(offerID)")
         }
     }
-
-    public var musicStageID: String? {
-        if case let .journey(stageID) = self {
-            return stageID
-        }
-        return nil
-    }
 }
 
 @MainActor

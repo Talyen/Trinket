@@ -10,7 +10,7 @@ package extension DamagePipeline {
         let burn = DoTApplicator.consume(.burn, on: state.combatant, in: &context)
         state.remaining += burn
         state.buildupDamage += burn
-        state.uniqueOutgoingDamage += burn
+        state.unique.outgoingDamage += burn
     }
 
     static func applyTalentMirroredReactions(
@@ -190,13 +190,13 @@ package extension DamagePipeline {
                 in: &context,
             )
         default:
-            return context.resolveDamage(DamageRequest(
+            return resolveNestedDamage(
                 amount: amount,
-                target: target,
                 keyword: keyword,
+                target: target,
                 sourceActorID: source.id,
-                options: .reaction(),
-            )).events
+                in: &context,
+            ).events
         }
     }
 

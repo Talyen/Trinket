@@ -93,3 +93,9 @@ trinket_dir_lock_release() {
     fi
   fi
 }
+
+# Atomic single-file claim via noclobber; 0 when this caller created the file.
+# Used by slot allocation (slots.sh) and sim lease prep (simctl.sh).
+trinket_lock_claim_file() {
+  ( set -o noclobber; printf '%s\n' "$2" > "$1" ) 2>/dev/null
+}

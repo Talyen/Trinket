@@ -134,53 +134,11 @@ trinket_add_verification() {
 }
 trinket_add_smoke_target() { trinket_add_unique TRINKET_SMOKE_TARGETS "$1"; }
 
-# Presentation taxonomy shared with agent-context.sh so the briefing's
-# ownership/behavior split, skill triggers, and search roots cannot drift from
-# classification. Behavior cards are read for relevant sections; ownership
-# cards carry applicable constraints.
-TRINKET_BEHAVIOR_CARDS=(
-  Docs/AgentContext/battle-damage.md
-  Docs/AgentContext/battle-actions.md
-  Docs/AgentContext/battle-healing.md
-  Docs/AgentContext/battle-talents.md
-  Docs/AgentContext/battle-balance.md
-  Docs/AgentContext/battle-launch.md
-  Docs/AgentContext/battle-presentation.md
-  Docs/AgentContext/persistence-storage.md
-  Docs/AgentContext/persistence-progression.md
-  Docs/AgentContext/ui-performance.md
-)
-
-trinket_is_behavior_card() {
-  local card="$1" candidate
-  for candidate in "${TRINKET_BEHAVIOR_CARDS[@]}"; do
-    [[ "$candidate" == "$card" ]] && return 0
-  done
-  return 1
-}
-
-trinket_skill_trigger_for() {
-  case "$1" in
-    */apple-design/*) printf 'visual or interaction changes' ;;
-    */architect/*) printf 'public type, protocol, schema, or package boundary changes' ;;
-    */doc-budget/*) printf 'checker directives or suppression failures' ;;
-    *) printf 'see skill description' ;;
-  esac
-}
-
-# Prints the discovery search root for a changed path; returns 1 when the path
-# has no scoped root.
-trinket_search_root_for_path() {
-  local path="$1" package
-  case "$path" in
-    Packages/*)
-      package="${path#Packages/}"; package="${package%%/*}"
-      printf 'Packages/%s' "$package" ;;
-    Scripts/*) printf 'Scripts' ;;
-    Trinket/*|TrinketUITests/*) printf 'Trinket' ;;
-    *) return 1 ;;
-  esac
-}
+# Presentation taxonomy (behavior-card split, skill triggers, discovery search
+# roots) lives in Scripts/agent-context.sh, its sole consumer. Card coverage
+# here stays enforced: Scripts/check-docs.py greps this file for every
+# Docs/AgentContext/*.md reference, and each behavior card is also emitted by
+# a trinket_add_context_card call below.
 
 trinket_classify_package_swift_path() {
   local path="$1"

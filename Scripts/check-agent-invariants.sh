@@ -17,6 +17,12 @@ source "$(dirname "$0")/lib/rg-check.sh"
 # shellcheck source=format-dirs.env
 source ./Scripts/format-dirs.env
 
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: ./Scripts/check-agent-invariants.sh"
+  echo "Fail on skipped mechanical invariants (entropy, test sleep, persistence try?, concurrency escapes)."
+  exit 0
+fi
+
 TRINKET_RG_BULLET="  "
 
 has_nearby_allow() {

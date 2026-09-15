@@ -3,34 +3,6 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    static func applyAdditionalHolyDamage(
-        _ amount: Int,
-        to state: inout DamageResolutionState,
-        source: Combatant,
-        in context: inout BattleState,
-    ) {
-        guard amount > 0, context.roster.health(for: source) > 0,
-              context.roster.health(for: state.combatant) > 0 else { return }
-        state.damageEvents.append(contentsOf: resolveRetaliation(
-            amount: amount, keyword: .holy, target: state.combatant,
-            sourceActorID: source.id, in: &context,
-        ).events)
-    }
-
-    static func applyAdditionalPhysicalDamage(
-        _ amount: Int,
-        to state: inout DamageResolutionState,
-        source: Combatant,
-        in context: inout BattleState,
-    ) {
-        guard amount > 0, context.roster.health(for: source) > 0,
-              context.roster.health(for: state.combatant) > 0 else { return }
-        state.damageEvents.append(contentsOf: resolveRetaliation(
-            amount: amount, keyword: .physical, target: state.combatant,
-            sourceActorID: source.id, in: &context,
-        ).events)
-    }
-
     static func applyBelowHealthStunBuildup(
         to state: inout DamageResolutionState,
         source: Combatant,

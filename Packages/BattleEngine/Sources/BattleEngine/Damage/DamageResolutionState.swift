@@ -10,6 +10,9 @@ package struct DamageTargetStatus {
 
     init() {}
 
+    /// Pre-damage snapshot for defense gates (dodge, Block, mitigation).
+    /// Post-commit reactions must live-query the roster instead: reactions
+    /// running inside `applyCommittedDamageReactions` can change effects.
     init(for combatant: Combatant, in context: BattleState) {
         isBurning = context.roster.hasAffliction(.burn, on: combatant)
         isPoisoned = context.roster.hasAffliction(.poison, on: combatant)
@@ -22,6 +25,11 @@ package struct DamageTargetStatus {
             }
         }
     }
+}
+
+package struct UniqueDamageScratch {
+    var outgoingDamage = 0
+    var enemyBlock = 0
 }
 
 package struct DamageResolutionState {
@@ -61,8 +69,11 @@ package struct DamageResolutionState {
     var pendingHolyBonus = 0
     var didLeech = false
     var didTriggerControl = false
-    var uniqueOutgoingDamage = 0
-    var uniqueEnemyBlock = 0
+    /// Scratch owned by Unique equipment rules (capture/apply/store), not by
+    /// the generic pipeline. Only `UniqueCombatEngine`, burn-detonation folding,
+    /// and the outgoing-damage step that folds stored values into `remaining`
+    /// may touch it.
+    var unique = UniqueDamageScratch()
     public var blockedAmount: Int = 0
 
     public var targetStatus = DamageTargetStatus()

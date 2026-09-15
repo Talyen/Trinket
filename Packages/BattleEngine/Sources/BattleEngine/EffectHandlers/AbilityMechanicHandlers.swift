@@ -2,6 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+private func isDetonatableDoT(_ effect: Effect, keyword: Keyword) -> Bool {
+    effect.keyword == keyword && (effect.isDecayingDoT || effect.isBleed)
+}
+
 struct ShieldFromResourceHandler: BattleEffectHandler {
     enum Mode {
         case convertManaToBlock
@@ -140,7 +144,7 @@ struct MultiplyDoTHandler: BattleEffectHandler {
         }
         var effects = context.roster.activeEffects(for: target)
         guard let index = effects.firstIndex(where: {
-            $0.effect.keyword == keyword && ($0.effect.isDecayingDoT || $0.effect.isBleed)
+            isDetonatableDoT($0.effect, keyword: keyword)
         }) else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -190,13 +194,13 @@ struct DetonateDoTHandler: BattleEffectHandler {
         defer { context.resolution.leave(.detonation) }
         var effects = context.roster.activeEffects(for: target)
         let matching = effects.filter {
-            $0.effect.keyword == keyword && ($0.effect.isDecayingDoT || $0.effect.isBleed)
+            isDetonatableDoT($0.effect, keyword: keyword)
         }
         guard !matching.isEmpty else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         effects.removeAll {
-            $0.effect.keyword == keyword && ($0.effect.isDecayingDoT || $0.effect.isBleed)
+            isDetonatableDoT($0.effect, keyword: keyword)
         }
         context.roster.setActiveEffects(effects, for: target)
         var events: [ActionEvent] = []

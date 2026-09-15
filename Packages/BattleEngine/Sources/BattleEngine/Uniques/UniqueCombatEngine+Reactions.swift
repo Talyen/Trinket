@@ -59,7 +59,7 @@ extension UniqueCombatEngine {
             let options = damage.options.repeated(origin: .criticalRepeat, scaling: .resolved, guaranteedCritical: true)
             events.append(contentsOf: repeatHit(
                 DamageRequest(
-                    amount: damage.uniqueOutgoingDamage,
+                    amount: damage.unique.outgoingDamage,
                     target: damage.combatant,
                     keyword: damage.damageKeyword,
                     sourceActorID: source.id,

@@ -114,7 +114,7 @@ public struct BattleState {
 
     public package(set) var additionalControlSkipsByCombatantID: [String: Int]
     public package(set) var isEchoingSkill: Bool
-    public static let maxDrawAndPlayDepth = ReactionScope.maxDrawAndPlayDepth
+    public static let maxDrawAndPlayDepth = ReactionScope.maxDepth
     public let enemyFaction: EnemyFaction
     public package(set) var storedBlockedDamageByActorID: [String: Int] = [:]
     public package(set) var primedRepeatKeywords: Set<Keyword> = []

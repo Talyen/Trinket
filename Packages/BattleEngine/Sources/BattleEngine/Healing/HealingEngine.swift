@@ -269,7 +269,6 @@ package enum HealingEngine {
         guard critKeyword.allowsCriticalHits else { return nil }
 
         guard CriticalChanceEngine.rollSucceeds(
-            keyword: critKeyword,
             actorID: sourceActorID,
             defender: request.target,
             usePartyMaximum: context.modifiers(for: sourceActorID).triggers.contagiousJoy,

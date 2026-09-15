@@ -331,27 +331,18 @@ package extension CombatTriggerEngine {
            let runtime = context.roster.runtime(for: actor),
            runtime.maxMana > 0,
            runtime.currentMana >= runtime.maxMana {
-            let drawn = BattleCardCombatEngine.drawCards(
-                count: triggers.startTurnFullManaDrawCards,
+            events.append(contentsOf: drawCards(
+                triggers.startTurnFullManaDrawCards,
                 for: owner,
-                context: &context,
-            )
-            if drawn > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .cardsDrawn,
-                    actorName: actor.name,
-                    abilityName: triggerAbilityName(
-                        "startTurnFullManaDrawCards",
-                        for: actor,
-                        fallback: "Arcane Surge",
-                        in: context,
-                    ),
-                    target: actor,
-                    amount: drawn,
-                    keyword: .physical,
-                ))
-            }
+                actor: actor,
+                abilityName: triggerAbilityName(
+                    "startTurnFullManaDrawCards",
+                    for: actor,
+                    fallback: "Arcane Surge",
+                    in: context,
+                ),
+                in: &context,
+            ))
         }
         if triggers.bonusManaOnTurns.contains(context.playerTurnNumber) {
             events.append(contentsOf: context.restoreManaEmitting(
@@ -372,46 +363,36 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if triggers.extraCardDrawWhileEnemyBleeding, context.roster.enemy.isAlive,
            context.roster.hasAffliction(.bleed, on: context.enemy) {
-            let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
-            if drawn > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .cardsDrawn,
-                    actorName: actor.name,
-                    abilityName: triggerAbilityName(
-                        "extraCardDrawWhileEnemyBleeding",
-                        for: actor,
-                        fallback: "Frenzied Tail",
-                        in: context,
-                    ),
-                    target: actor,
-                    amount: drawn,
-                    keyword: .physical,
-                ))
-            }
+            events.append(contentsOf: drawCards(
+                1,
+                for: owner,
+                actor: actor,
+                abilityName: triggerAbilityName(
+                    "extraCardDrawWhileEnemyBleeding",
+                    for: actor,
+                    fallback: "Frenzied Tail",
+                    in: context,
+                ),
+                in: &context,
+            ))
         }
         if triggers.extraCardDrawBelowEnemyHealthPercent > 0, context.roster.enemy.isAlive,
            context.roster.maxHealth(for: context.roster.enemy.combatant) > 0,
            Double(context.roster.health(for: context.roster.enemy.combatant))
            / Double(context.roster.maxHealth(for: context.roster.enemy.combatant))
            < triggers.extraCardDrawBelowEnemyHealthPercent {
-            let drawn = BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context)
-            if drawn > 0 {
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .cardsDrawn,
-                    actorName: actor.name,
-                    abilityName: triggerAbilityName(
-                        "extraCardDrawBelowEnemyHealthPercent",
-                        for: actor,
-                        fallback: "Feral Frenzy",
-                        in: context,
-                    ),
-                    target: actor,
-                    amount: drawn,
-                    keyword: .physical,
-                ))
-            }
+            events.append(contentsOf: drawCards(
+                1,
+                for: owner,
+                actor: actor,
+                abilityName: triggerAbilityName(
+                    "extraCardDrawBelowEnemyHealthPercent",
+                    for: actor,
+                    fallback: "Feral Frenzy",
+                    in: context,
+                ),
+                in: &context,
+            ))
         }
         return events
     }

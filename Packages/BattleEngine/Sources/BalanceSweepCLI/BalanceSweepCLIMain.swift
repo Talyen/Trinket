@@ -35,6 +35,12 @@ enum BalanceSweepCLI {
                     "warning: samples < \(BalanceSweepConfig.contrastFlagMinPairs); contrast flags are disabled.\n".utf8,
                 ))
             }
+            if !parsed.config.focusIDs.isEmpty,
+               parsed.config.mode == .identity || parsed.config.mode == .modeProgression {
+                FileHandle.standardError.write(Data(
+                    "warning: --focus is ignored in \(parsed.config.mode.rawValue) mode.\n".utf8,
+                ))
+            }
 
             let report: BalanceSweepReport
             #if os(macOS)
@@ -95,6 +101,9 @@ enum BalanceSweepCLI {
           --companion <ids>        Comma companion ids (default: all)
           --enemy <ids>            Comma enemy ids (default: all)
           --focus <ids>            Restrict contrast foci to these ability/affix/talent ids
+                                    (contrast modes only; ignored by identity/mode-progression)
+          --work-offset <n>        Internal chunking: skip the first n work items (default: 0)
+          --work-limit <n>         Internal chunking: run at most n work items
           --full-markdown          Also write the verbose table dump as *-full.md
           --help                   Show this help
 

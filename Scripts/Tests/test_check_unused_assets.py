@@ -1,31 +1,17 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import importlib.util
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-
-
-def load_checker():
-    spec = importlib.util.spec_from_file_location(
-        "check_unused_assets", ROOT / "Scripts" / "check-unused-assets.py"
-    )
-    if spec is None or spec.loader is None:
-        raise RuntimeError("Unable to load check-unused-assets.py")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["check_unused_assets"] = module
-    spec.loader.exec_module(module)
-    return module
+from script_test_support import ROOT, load_script
 
 
 class CheckUnusedAssetsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.checker = load_checker()
+        cls.checker = load_script("check_unused_assets", "check-unused-assets.py")
 
     def test_live_repository_assets_have_no_missing_or_orphans(self) -> None:
         missing, orphans = self.checker.check_assets()

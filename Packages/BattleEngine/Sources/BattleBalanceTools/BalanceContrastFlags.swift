@@ -18,7 +18,6 @@ enum BalanceContrastFlags {
         var entityTimeouts = 0
         var baselineTimeouts = 0
         var deltaPartyHP = 0.0
-        var deltaEnemyHP = 0.0
         var deltaRounds = 0.0
 
         mutating func accumulate(entity: BattleSimResult, baseline: BattleSimResult) {
@@ -32,7 +31,6 @@ enum BalanceContrastFlags {
             guard entity.isDecided, baseline.isDecided else { return }
             decidedPairs += 1
             deltaPartyHP += entity.partyHPRemainingFraction - baseline.partyHPRemainingFraction
-            deltaEnemyHP += entity.enemyHPRemainingFraction - baseline.enemyHPRemainingFraction
             deltaRounds += Double(entity.rounds - baseline.rounds)
             let entityWon = entity.isVictory
             let baselineWon = baseline.isVictory
@@ -61,7 +59,6 @@ enum BalanceContrastFlags {
             entityTimeouts += row.entityTimeouts
             baselineTimeouts += row.baselineTimeouts
             deltaPartyHP += row.meanDeltaPartyHP * n
-            deltaEnemyHP += row.meanDeltaEnemyHP * n
             deltaRounds += row.meanDeltaRounds * n
         }
     }
@@ -82,7 +79,6 @@ enum BalanceContrastFlags {
         let lift = entityRate - baselineRate
         let decidedCount = Double(max(acc.decidedPairs, 1))
         let meanDeltaPartyHP = acc.deltaPartyHP / decidedCount
-        let meanDeltaEnemyHP = acc.deltaEnemyHP / decidedCount
         let meanDeltaRounds = acc.deltaRounds / decidedCount
         let discordant = acc.entityOnlyWins + acc.baselineOnlyWins
         let wrFlag = !acc.nonCombat
@@ -97,7 +93,6 @@ enum BalanceContrastFlags {
             )
         let means = ContrastMeans(
             partyHP: acc.decidedPairs == 0 ? 0 : meanDeltaPartyHP,
-            enemyHP: acc.decidedPairs == 0 ? 0 : meanDeltaEnemyHP,
             rounds: acc.decidedPairs == 0 ? 0 : meanDeltaRounds,
         )
         let flags = contrastFlags(
@@ -124,7 +119,6 @@ enum BalanceContrastFlags {
             baselineTimeouts: acc.baselineTimeouts,
             lift: lift,
             meanDeltaPartyHP: means.partyHP,
-            meanDeltaEnemyHP: means.enemyHP,
             meanDeltaRounds: means.rounds,
             flagged: flags.flagged,
             flagReason: flags.reason,
@@ -134,7 +128,6 @@ enum BalanceContrastFlags {
 
     private struct ContrastMeans {
         var partyHP: Double
-        var enemyHP: Double
         var rounds: Double
     }
 

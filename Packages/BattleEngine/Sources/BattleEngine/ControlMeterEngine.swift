@@ -150,7 +150,7 @@ package enum ControlMeterEngine {
         if keyword == .freeze || keyword == .stun,
            let owner = context.roster.participant(for: combatant),
            owner.isPartyMember {
-            BattleCardCombatEngine.purgeControlledOwnerCards(for: owner, context: &context)
+            BattleCardCombatEngine.recycleControlledOwnerCards(for: owner, context: &context)
         }
         if keyword == .freeze, let sourceActorID {
             let chance = context.modifiers(for: sourceActorID).triggers.freezeExtendChancePercent

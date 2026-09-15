@@ -154,9 +154,8 @@ package extension CombatTriggerEngine {
     }
 
     static func afterEnemyFreezeRecover(in context: inout BattleState) {
-        for owner in [BattleParticipant.hero, .companion] {
-            let runtime = context.roster[owner]
-            guard runtime.isAlive, context.modifiers(for: runtime.id).triggers.subzeroMist else { continue }
+        for (_, runtime) in livingPartyMembers(in: context) {
+            guard context.modifiers(for: runtime.id).triggers.subzeroMist else { continue }
             context.roster.mutateRuntime(for: runtime.combatant) { $0.talents.turn.subzeroMistActive = true }
         }
     }
@@ -217,9 +216,7 @@ package extension CombatTriggerEngine {
     static func afterEnemyStunRecover(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
         let enemy = context.roster.enemy.combatant
-        for owner in [BattleParticipant.hero, .companion] {
-            let member = context.roster[owner]
-            guard member.isAlive else { continue }
+        for (owner, member) in livingPartyMembers(in: context) {
             let triggers = context.modifiers(for: member.id).triggers
             if triggers.onEnemyStunRecoverDrawCard > 0 {
                 events.append(contentsOf: drawCards(

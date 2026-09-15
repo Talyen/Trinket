@@ -43,8 +43,9 @@ struct LabyrinthFloorMap: View {
         let mapHeight = CGFloat(lastRow) * metrics.verticalStep
             + metrics.height
             + metrics.hitExpansion * 2
+        let reachableNodeIDs = state.reachableNodeIDSet()
         let displayNodes = nodes.map { node in
-            let visualState = LabyrinthMapPresentation.state(for: node, in: state)
+            let visualState = LabyrinthMapPresentation.state(for: node, reachableNodeIDs: reachableNodeIDs)
             return LabyrinthMapNodePresentation(
                 node: node,
                 visualState: visualState,

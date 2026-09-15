@@ -16,6 +16,12 @@ source "$(dirname "$0")/lib/rg-check.sh"
 
 # shellcheck source=format-dirs.env
 source ./Scripts/format-dirs.env
+
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: ./Scripts/check-exclusivity-footguns.sh"
+  echo "Fail on exclusivity footguns (inout of stored self state alongside other self access)."
+  exit 0
+fi
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
 TRINKET_RG_BULLET="  "

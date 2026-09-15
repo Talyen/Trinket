@@ -4,9 +4,7 @@ import TrinketCore
 package extension CombatTriggerEngine {
     static func atPlayerEndTurn(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        for owner in [BattleParticipant.hero, .companion] {
-            let runtime = context.roster[owner]
-            guard runtime.isAlive else { continue }
+        for (_, runtime) in livingPartyMembers(in: context) {
             let actor = runtime.combatant
             let triggers = context.modifiers(for: actor.id).triggers
 
@@ -99,9 +97,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard triggers.partyRegenPerRound > 0 else { return [] }
         var events: [ActionEvent] = []
-        for memberOwner in [BattleParticipant.hero, .companion] {
-            let member = context.roster[memberOwner]
-            guard member.isAlive else { continue }
+        for (_, member) in livingPartyMembers(in: context) {
             events.append(contentsOf: context.healEmitting(
                 amount: triggers.partyRegenPerRound,
                 target: member.combatant,

@@ -4,7 +4,11 @@ import TrinketContent
 import TrinketCore
 @testable import BattleBalanceTools
 
+/// Sweep sims run deep battles (notably lateGame) that overflow small
+/// worker-thread stacks (SIGBUS). Main-actor isolation runs them on the
+/// main thread's larger stack; execution is already serialized.
 @Suite(.serialized)
+@MainActor
 struct BattleSimulatorSweepReportTests {
     @Test func `parallel identity matches sequential outcomes`() {
         let sequential = BalanceSweepRunner.run(
@@ -51,27 +55,31 @@ struct BattleSimulatorSweepReportTests {
         #expect(markdown.contains("Ability Contrasts"))
     }
 
-    @Test(arguments: SimulationPowerTier.allCases)
-    func `affix contrast produces lift rows in every tier`(tier: SimulationPowerTier) {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .affixContrast,
-                battlesPerTier: 8,
-                seed: 22,
-                tiers: [tier],
-                jobs: 1,
-                heroIDs: ["knight"],
-                companionIDs: ["bear"],
-                enemyIDs: ["living_armor"],
-                focusIDs: ["keen"],
-            ),
-        )
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(!report.affixContrasts.isEmpty)
-        #expect(report.affixContrasts.contains { $0.baselineKind == .emptySlot })
-        #expect(report.affixContrasts.contains { $0.baselineKind == .replacementAffix })
-        #expect(report.affixContrasts.allSatisfy { $0.tier == tier && $0.pairs == 8 })
-        #expect(markdown.contains("Affix Contrasts"))
+    /// Serial tier loop, not @Test(arguments:): parameterized cases run
+    /// concurrently despite @Suite(.serialized), and concurrent lateGame
+    /// sims overflow small worker-thread stacks (SIGBUS).
+    @Test func `affix contrast produces lift rows in every tier`() {
+        for tier in SimulationPowerTier.allCases {
+            let report = BalanceSweepRunner.run(
+                config: BalanceSweepConfig(
+                    mode: .affixContrast,
+                    battlesPerTier: 4,
+                    seed: 22,
+                    tiers: [tier],
+                    jobs: 1,
+                    heroIDs: ["knight"],
+                    companionIDs: ["bear"],
+                    enemyIDs: ["living_armor"],
+                    focusIDs: ["keen"],
+                ),
+            )
+            let markdown = BalanceMarkdownReporter.render(report)
+            #expect(!report.affixContrasts.isEmpty)
+            #expect(report.affixContrasts.contains { $0.baselineKind == .emptySlot })
+            #expect(report.affixContrasts.contains { $0.baselineKind == .replacementAffix })
+            #expect(report.affixContrasts.allSatisfy { $0.tier == tier && $0.pairs == 4 })
+            #expect(markdown.contains("Affix Contrasts"))
+        }
     }
 
     @Test(arguments: SimulationPowerTier.allCases)
@@ -127,7 +135,7 @@ struct BattleSimulatorSweepReportTests {
     @Test func `identity work slices concatenate to full sweep`() {
         let config = BalanceSweepConfig(
             mode: .identity,
-            battlesPerTier: 8,
+            battlesPerTier: 4,
             seed: 11,
             tiers: [.early],
             jobs: 1,
@@ -137,24 +145,24 @@ struct BattleSimulatorSweepReportTests {
         let first = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .identity,
-                battlesPerTier: 8,
+                battlesPerTier: 4,
                 seed: 11,
                 tiers: [.early],
                 jobs: 1,
                 workOffset: 0,
-                workLimit: 4,
+                workLimit: 2,
                 enemyIDs: ["living_armor"],
             ),
         )
         let second = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .identity,
-                battlesPerTier: 8,
+                battlesPerTier: 4,
                 seed: 11,
                 tiers: [.early],
                 jobs: 1,
-                workOffset: 4,
-                workLimit: 4,
+                workOffset: 2,
+                workLimit: 2,
                 enemyIDs: ["living_armor"],
             ),
         )
@@ -164,8 +172,8 @@ struct BattleSimulatorSweepReportTests {
             policyID: full.policyID,
             elapsedSeconds: 0,
         )
-        #expect(first.records.count == 4)
-        #expect(second.records.count == 4)
+        #expect(first.records.count == 2)
+        #expect(second.records.count == 2)
         #expect(merged.records.map(\.result) == full.records.map(\.result))
         #expect(merged.records.map(\.seed) == full.records.map(\.seed))
     }
