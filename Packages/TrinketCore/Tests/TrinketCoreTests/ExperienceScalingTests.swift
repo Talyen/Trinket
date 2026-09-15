@@ -67,6 +67,7 @@ struct ExperienceScalingTests {
         #expect(ExperienceScaling.cappedAward(1000, for: progression) == 30)
         #expect(ExperienceScaling.cappedAward(0, for: progression) == 0)
         #expect(ExperienceScaling.cappedAward(-5, for: progression) == 0)
+        #expect(ExperienceScaling.cappedAward(Int.max, requiredXP: Int.max) == Int.max)
     }
 
     @Test func `catch up multiplier covers baseline growth and caps`() {

@@ -2,7 +2,7 @@ import Foundation
 
 /// Bonus-damage predicates. Evaluation lives in
 /// `BattleEngine.BattleConditionEvaluator`; keep new cases in sync with its switch.
-public enum DamageCondition: Hashable, Sendable {
+public enum DamageCondition: CaseIterable, Hashable, Sendable {
     case enemyBleeding
     case enemyBurning
     case enemyNotBurning

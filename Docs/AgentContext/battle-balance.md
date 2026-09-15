@@ -45,7 +45,7 @@ The CLI writes a findings brief and JSON sidecar under the gitignored
 `BalanceSweepReports/` directory. Runs retain reports for comparison; remove
 completed investigation artifacts explicitly when they are no longer needed. The runner owns process isolation,
 sampling, pacing, policy, and report schemas; documentation should not mirror those
-defaults. Requires Xcode 26+.
+defaults. Requires the current pinned Xcode (see [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder)).
 
 ### Reading sweep evidence
 

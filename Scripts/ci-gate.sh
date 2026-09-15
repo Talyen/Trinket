@@ -7,13 +7,15 @@ cd "$(dirname "$0")/.."
 source Scripts/lib/tools.sh
 
 FAST=false
+SKIP_CHEAP=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --fast) FAST=true ;;
+    --skip-cheap) SKIP_CHEAP=true ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/ci-gate.sh [--fast]
+Usage: ./Scripts/ci-gate.sh [--fast] [--skip-cheap]
 
 Full gate (default): generation, style, module boundaries, script regressions,
 Swift Testing policy, release-note validation, and artwork budget.
@@ -21,6 +23,9 @@ Swift Testing policy, release-note validation, and artwork budget.
 --fast skips generation and style (already covered by handoff/push) and runs
 only the cheap full-tree slices: module boundaries, Swift Testing migration,
 release-note validation, and artwork budget.
+--skip-cheap skips the closing cheap slices when the same tree just passed
+handoff (which already ran them). Combining --fast with --skip-cheap is
+rejected: fast is only the cheap slices.
 USAGE
       exit 0
       ;;
@@ -31,6 +36,11 @@ USAGE
   esac
   shift
 done
+
+if [[ "$FAST" == true && "$SKIP_CHEAP" == true ]]; then
+  echo "--fast runs only the cheap slices; --skip-cheap has nothing left to run." >&2
+  exit 2
+fi
 
 if [[ "$FAST" == true ]]; then
   # shellcheck source=lib/cheap-slices.sh
@@ -71,9 +81,11 @@ echo "=== Style check ==="
 echo "=== Script checks ==="
 ./Scripts/test-scripts.sh
 
-echo "=== Cheap slices (boundaries, Swift Testing, release notes, artwork-budget) ==="
-# shellcheck source=lib/cheap-slices.sh
-source Scripts/lib/cheap-slices.sh
-trinket_run_cheap_slices --after-style
+if [[ "$SKIP_CHEAP" != true ]]; then
+  echo "=== Cheap slices (boundaries, Swift Testing, release notes, artwork-budget) ==="
+  # shellcheck source=lib/cheap-slices.sh
+  source Scripts/lib/cheap-slices.sh
+  trinket_run_cheap_slices --after-style
+fi
 
 echo "=== Gate checks passed ==="

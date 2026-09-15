@@ -8,15 +8,18 @@
 #
 # This is a deterministic router: given the changed paths it flags which
 # generation/style/package/app/unit/smoke checks apply, and which feature/UI
-# path owns a targeted smoke canary. It performs no demotions and runs no
-# heuristics — a path simply has an owner or it does not. Unowned feature/UI
+# path owns a targeted smoke canary. It performs no demotions. Path ownership
+# is exact-match on location, with three narrow diff-content exceptions:
+# doc-budget routing (checker directives added in the diff), architect routing
+# (public/schema/boundary symbols declared in the diff), and the visual-UI
+# glob for smoke-gap detection. Unowned feature/UI
 # diffs fall back to the app-compile gap-fill (trinket_build_verification_plan).
 
 TRINKET_CHANGE_CLASSIFICATION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/smoke-classes.sh
 source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/smoke-classes.sh"
-# shellcheck source=swift-source-dirs.env
-source "$TRINKET_CHANGE_CLASSIFICATION_DIR/swift-source-dirs.env"
+# shellcheck source=build-inputs.env
+source "$TRINKET_CHANGE_CLASSIFICATION_DIR/build-inputs.env"
 # shellcheck source=lib/classification-plan.sh
 source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/classification-plan.sh"
 
@@ -113,7 +116,6 @@ trinket_add_agent_guide() { trinket_add_unique TRINKET_AGENT_GUIDES "$1"; }
 # Every card in Docs/AgentContext/ must be emitted above or declared here as
 # lookup-only; Scripts/check-docs.py enforces this. Lazy cards load on demand:
 # lookup-only: Docs/AgentContext/ci-diagnostics.md
-# lookup-only: Docs/AgentContext/battle-talents.md
 trinket_add_boundary_warning() { trinket_add_unique TRINKET_BOUNDARY_WARNINGS "$1"; }
 trinket_add_generated_warning() { trinket_add_unique TRINKET_GENERATED_WARNINGS "$1"; }
 trinket_add_verification() {
@@ -132,13 +134,61 @@ trinket_add_verification() {
 }
 trinket_add_smoke_target() { trinket_add_unique TRINKET_SMOKE_TARGETS "$1"; }
 
+# Presentation taxonomy shared with agent-context.sh so the briefing's
+# ownership/behavior split, skill triggers, and search roots cannot drift from
+# classification. Behavior cards are read for relevant sections; ownership
+# cards carry applicable constraints.
+TRINKET_BEHAVIOR_CARDS=(
+  Docs/AgentContext/battle-damage.md
+  Docs/AgentContext/battle-actions.md
+  Docs/AgentContext/battle-healing.md
+  Docs/AgentContext/battle-talents.md
+  Docs/AgentContext/battle-balance.md
+  Docs/AgentContext/battle-launch.md
+  Docs/AgentContext/battle-presentation.md
+  Docs/AgentContext/persistence-storage.md
+  Docs/AgentContext/persistence-progression.md
+  Docs/AgentContext/ui-performance.md
+)
+
+trinket_is_behavior_card() {
+  local card="$1" candidate
+  for candidate in "${TRINKET_BEHAVIOR_CARDS[@]}"; do
+    [[ "$candidate" == "$card" ]] && return 0
+  done
+  return 1
+}
+
+trinket_skill_trigger_for() {
+  case "$1" in
+    */apple-design/*) printf 'visual or interaction changes' ;;
+    */architect/*) printf 'public type, protocol, schema, or package boundary changes' ;;
+    */doc-budget/*) printf 'checker directives or suppression failures' ;;
+    *) printf 'see skill description' ;;
+  esac
+}
+
+# Prints the discovery search root for a changed path; returns 1 when the path
+# has no scoped root.
+trinket_search_root_for_path() {
+  local path="$1" package
+  case "$path" in
+    Packages/*)
+      package="${path#Packages/}"; package="${package%%/*}"
+      printf 'Packages/%s' "$package" ;;
+    Scripts/*) printf 'Scripts' ;;
+    Trinket/*|TrinketUITests/*) printf 'Trinket' ;;
+    *) return 1 ;;
+  esac
+}
+
 trinket_classify_package_swift_path() {
   local path="$1"
   local package="${path#Packages/}"
   package="${package%%/*}"
 
   # Membership gate reads the package registry in Scripts/build-inputs.env
-  # (via swift-source-dirs.env above), not a second hardcoded list.
+  # (sourced above), not a second hardcoded list.
   local candidate
   local known=false
   for candidate in "${TRINKET_TEST_PACKAGES[@]}" "${TRINKET_COMPILE_ONLY_PACKAGES[@]}"; do
@@ -463,6 +513,60 @@ trinket_path_matches_inputs() {
   return 1
 }
 
+# Generated/processed-output detection. The registry Scripts/config/generated-paths.tsv
+# is the owner (agent-search.py reads it too); this matches its content|asset
+# entries exactly or beneath, so newly registered outputs classify without a
+# second hardcoded list. project| entries keep their dedicated routing below.
+# Unregistered generator outputs still match the fallback globs; check-links.py
+# separately skips Generated path parts for link scoping. Content cache, not
+# classification state: it is intentionally not reset per run.
+TRINKET_GENERATED_REGISTRY=()
+trinket_load_generated_registry() {
+  if [[ ${#TRINKET_GENERATED_REGISTRY[@]+x} ]] && ((${#TRINKET_GENERATED_REGISTRY[@]} > 0)); then
+    return 0
+  fi
+  local line entry registry="$TRINKET_CHANGE_CLASSIFICATION_DIR/config/generated-paths.tsv"
+  # Sparse fixture checkouts may lack the registry; fallbacks below still apply.
+  [[ -f "$registry" ]] || return 0
+  while IFS= read -r line; do
+    case "$line" in ''|\#*) continue ;; esac
+    case "$line" in content\|*|asset\|*) ;; *) continue ;; esac
+    entry="${line#*|}"
+    [[ -n "$entry" ]] && TRINKET_GENERATED_REGISTRY+=("${entry%/}")
+  done < "$registry"
+}
+
+trinket_is_generated_output() {
+  local path="$1" entry
+  trinket_load_generated_registry
+  for entry in ${TRINKET_GENERATED_REGISTRY[@]+"${TRINKET_GENERATED_REGISTRY[@]}"}; do
+    if [[ "$path" == "$entry" || "$path" == "$entry"/* ]]; then
+      return 0
+    fi
+  done
+  case "$path" in
+    */Generated/*|*.generated.*|Trinket/Assets.xcassets/*|Trinket/Media/*) return 0 ;;
+  esac
+  return 1
+}
+
+trinket_add_package_boundary_warnings_for_path() {
+  case "$1" in
+    Packages/TrinketDesignSystem/*)
+      trinket_add_boundary_warning "TrinketDesignSystem may depend on TrinketCore only; keep app, BattleEngine, and TrinketContent imports out."
+      ;;
+    Packages/TrinketFeatureSupport/*)
+      trinket_add_boundary_warning "TrinketFeatureSupport must stay below TrinketBattleFeature and TrinketAppState in the package DAG."
+      ;;
+    Packages/TrinketBattleFeature/*)
+      trinket_add_boundary_warning "TrinketBattleFeature must not import or depend on TrinketAppState."
+      ;;
+    Packages/*)
+      trinket_add_boundary_warning "Packages must not import the Trinket app; keep dependencies within the enforced package DAG."
+      ;;
+  esac
+}
+
 trinket_classify_path() {
   local path="$1"
 
@@ -488,32 +592,37 @@ trinket_classify_path() {
   fi
 
   case "$path" in
-    .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/swift-source-dirs.env)
+    .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/format-dirs.env|Scripts/build-inputs.env)
       TRINKET_NEEDS_STYLE=true
       TRINKET_AUTHORED_PATHS+=("$path")
       return 0
       ;;
   esac
 
+  # Generated/processed outputs route to regeneration, never to authored checks.
+  # Boundary warnings still apply, so they live in one shared helper below.
+  if trinket_is_generated_output "$path"; then
+    TRINKET_GENERATED_PATHS+=("$path")
+    if [[ "$path" == Packages/*/Generated/* ]]; then
+      case "$path" in
+        Packages/*/Generated/*SourceHashes.generated.tsv)
+          TRINKET_NEEDS_ASSET_GENERATION=true
+          trinket_add_generated_warning "Generated asset hash state detected; edit the manifest/raw asset source and run ./Scripts/generate.sh --assets."
+          ;;
+        *)
+          TRINKET_NEEDS_CONTENT_GENERATION=true
+          trinket_add_generated_warning "Generated package output detected; edit the authored source and run ./Scripts/generate.sh."
+          ;;
+      esac
+    else
+      TRINKET_NEEDS_ASSET_GENERATION=true
+      trinket_add_generated_warning "Processed app output detected; edit the manifest/raw asset source and run the appropriate generation command."
+    fi
+    trinket_add_package_boundary_warnings_for_path "$path"
+    return 0
+  fi
+
   case "$path" in
-    Packages/*/Generated/*|Trinket/Assets.xcassets/*|Trinket/Media/Music/*|Trinket/Media/SFX/*|Trinket/Media/Cinematics/*)
-      TRINKET_GENERATED_PATHS+=("$path")
-      if [[ "$path" == Packages/*/Generated/* ]]; then
-        case "$path" in
-          Packages/*/Generated/*SourceHashes.generated.tsv)
-            TRINKET_NEEDS_ASSET_GENERATION=true
-            trinket_add_generated_warning "Generated asset hash state detected; edit the manifest/raw asset source and run ./Scripts/generate.sh --assets."
-            ;;
-          *)
-            TRINKET_NEEDS_CONTENT_GENERATION=true
-            trinket_add_generated_warning "Generated package output detected; edit the authored source and run ./Scripts/generate.sh."
-            ;;
-        esac
-      else
-        TRINKET_NEEDS_ASSET_GENERATION=true
-        trinket_add_generated_warning "Processed app output detected; edit the manifest/raw asset source and run the appropriate generation command."
-      fi
-      ;;
     Packages/TrinketContent/Sources/TrinketContent/Abilities/*.swift)
       TRINKET_HAS_CONTENT=true
       TRINKET_NEEDS_CONTENT_GENERATION=true
@@ -556,7 +665,8 @@ trinket_classify_path() {
       TRINKET_NEEDS_SCRIPT_TESTS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Docs/*|*.md)
+    # Non-Markdown files under Docs/ (all *.md returns early above).
+    Docs/*)
       TRINKET_NEEDS_DOCS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
@@ -582,20 +692,7 @@ trinket_classify_path() {
       ;;
   esac
 
-  case "$path" in
-    Packages/TrinketDesignSystem/*)
-      trinket_add_boundary_warning "TrinketDesignSystem may depend on TrinketCore only; keep app, BattleEngine, and TrinketContent imports out."
-      ;;
-    Packages/TrinketFeatureSupport/*)
-      trinket_add_boundary_warning "TrinketFeatureSupport must stay below TrinketBattleFeature and TrinketAppState in the package DAG."
-      ;;
-    Packages/TrinketBattleFeature/*)
-      trinket_add_boundary_warning "TrinketBattleFeature must not import or depend on TrinketAppState."
-      ;;
-    Packages/*)
-      trinket_add_boundary_warning "Packages must not import the Trinket app; keep dependencies within the enforced package DAG."
-      ;;
-  esac
+  trinket_add_package_boundary_warnings_for_path "$path"
 }
 
 trinket_classify_paths() {
@@ -638,16 +735,7 @@ trinket_classify_paths() {
     esac
   done
   if [[ "$TRINKET_HAS_PROJECT" == true ]]; then
-    trinket_add_context_card Docs/AgentContext/ci-and-project-generation.md
-  else
-    for path in ${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}; do
-      case "$path" in
-        Scripts/*|.github/*)
-          trinket_add_context_card Docs/AgentContext/ci-and-project-generation.md
-          break
-          ;;
-      esac
-    done
+    trinket_add_context_card Docs/AgentContext/content-and-manifests.md
   fi
 
   if [[ ${#TRINKET_CHANGED_PATHS[@]+x} ]] && (( ${#TRINKET_CHANGED_PATHS[@]} > 0 )); then

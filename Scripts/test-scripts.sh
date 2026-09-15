@@ -77,7 +77,9 @@ report_failure() {
 run_logged() {
   local suite="$1" log="$2"
   shift 2
-  if "$@" >"$log" 2>&1; then
+  # Append: TEST_LOG_DIR is fresh per run, and shared logs (syntax) must keep
+  # every failure's context instead of only the last one.
+  if "$@" >>"$log" 2>&1; then
     return 0
   else
     report_failure "$suite" "$log" "$?"
@@ -85,6 +87,7 @@ run_logged() {
 }
 
 echo "=== Script syntax ==="
+syntax_started=$SECONDS
 while IFS= read -r script; do
   case "$script" in
     *.py) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" python3 -c 'import pathlib, sys; compile(pathlib.Path(sys.argv[1]).read_bytes(), sys.argv[1], "exec")' "$script" ;;
@@ -93,13 +96,15 @@ while IFS= read -r script; do
     *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
   esac
 done < <(rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g 'Scripts/bin/*' | LC_ALL=C sort)
+printf 'Script syntax passed (%ds).\n' "$((SECONDS - syntax_started))"
 
 echo "=== Python script regressions ==="
 python_log="$TEST_LOG_DIR/python.log"
+python_started=$SECONDS
 if (( ${#python_modules[@]} == 0 )); then
   echo "(no Python regressions selected)"
 elif PYTHONPATH=Scripts/Tests python3 -m unittest -b "${python_modules[@]}" >"$python_log" 2>&1; then
-  echo "Python script regressions passed."
+  printf 'Python script regressions passed (%ds).\n' "$((SECONDS - python_started))"
 else
   report_failure "Python script regressions" "$python_log" "$?"
 fi
@@ -111,8 +116,9 @@ else
 for test_script in ${shell_suites[@]+"${shell_suites[@]}"}; do
   test_name="$(basename "$test_script")"
   test_log="$TEST_LOG_DIR/$test_name.log"
+  suite_started=$SECONDS
   if bash "$test_script" >"$test_log" 2>&1; then
-    echo "$test_name passed."
+    printf '%s passed (%ds).\n' "$test_name" "$((SECONDS - suite_started))"
   else
     report_failure "$test_name" "$test_log" "$?"
   fi

@@ -26,8 +26,8 @@ is listed below; test authoring and tier ownership follow [Testing.md](Testing.m
 Path-scoped commands normalize in-repository absolute paths to repository-relative
 files and reject directories or paths outside the repository.
 
-Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
-are known. Use `--working-tree` only for an intentional whole-tree scope. The
+Run `./Scripts/agent-context.sh --agent --status --paths <files...>` after touched paths
+are known. Use `--working-tree --allow-broad-scope` only for an intentional whole-tree scope. The
 briefing separates ownership constraints from behavior references and prints the handoff
 route; rerun it when requested work or an encountered fix crosses into another
 owner. The final path list is the union of requested work and every explicitly
@@ -52,7 +52,7 @@ observed outcomes so beta evidence is distinguishable from release evidence.
 
 1. During betas, compile with the candidate SDK and run existing focused journeys
    on its runtime. Review relevant release notes, deprecations, native component
-   changes, and useful new APIs. New symbols require OS availability checks too.
+   changes, and useful new APIs.
 2. Inspect Play, Collection, Homestead, Options, a detail sheet, and a battle on
    the new runtime: safe areas, floating chrome, legibility, hit targets, card
    input, dismissal, and meaningful feedback. Check icon appearances through the
@@ -61,7 +61,7 @@ observed outcomes so beta evidence is distinguishable from release evidence.
    fixtures and the owning integration routes. Check physical audio/haptics only
    on a device; use the [feedback reference](../../.agents/skills/apple-design/performance-and-feedback.md).
    Synthetic StoreKit/CloudKit results do not replace their release prerequisites.
-4. When CI first selects a new major toolchain (selection: [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder)),
+4. When CI first selects a new major toolchain,
    verify runner availability, generation idempotence, app
    Release compilation, and routed package/smoke checks. Exercise the retained
    previous-major runtime as well as the newest one, including both branches
@@ -77,27 +77,19 @@ unavailable, report it; do not claim the support window has been verified.
 ## Generated project consistency
 
 `./Scripts/generate.sh` runs XcodeGen through the pinned wrapper with a fresh
-cache location on every invocation. `--force-xcodegen` remains an explicit name
-for that default; `--skip-xcodegen` still selects content/asset generation only.
-When changed paths select generation, handoff regenerates, then forces a second
-generation to check idempotence.
-Changes to the spec, tool pins, or wrapper route project verification; ordinary
-code edits in synchronized source folders do not add project generation.
-Content, asset, and project generation inputs live in `Scripts/build-inputs.env`.
-Local freshness records let unchanged uncommitted inputs skip regeneration;
-edits or deletions invalidate them. These inputs also drive CI filtering; build orchestration changes exercise the build jobs.
+cache location on every invocation. Command flags live in
+[verification commands](../../Scripts/Reference.md#development), generation
+inputs in `Scripts/build-inputs.env`, and the content/asset workflow in
+[content and manifests](../AgentContext/content-and-manifests.md). When changed
+paths select generation, handoff regenerates, then forces a second generation
+to check idempotence.
 
-With hooks enabled, pre-commit checks either staged project-generation inputs or
-staged `Trinket.xcodeproj/project.pbxproj`. It exports an index snapshot and
-compares its regenerated project with the staged project. Partially staged
-project inputs are supported; partially staged tool or hook changes are rejected
-before tool installation because tooling runs from the primary checkout. The
-check preserves the index and working files, including unrelated edits.
-
-When the staged project is stale, edit the authored inputs, run
-`./Scripts/generate.sh`, review the project diff, and stage the canonical output
-with its inputs. Do not hand-edit the project. Pre-push and CI retain their
-forced generation and comparison against committed output.
+Edit the authored inputs, never the generated project or processed outputs.
+When the staged project is stale, run `./Scripts/generate.sh`, review the
+project diff, and stage the canonical output with its inputs. Staged-project
+validation and push safeguards follow
+[Release.md](Release.md#local-hooks-and-push-discipline); pre-push and CI retain
+their forced generation and comparison against committed output.
 
 ## Local simulator budget
 
@@ -144,8 +136,8 @@ Their gate roles are listed below. Locally:
 - Bare full-suite UI is refused locally unless `TRINKET_ALLOW_FULL_UI=1`; routine development never sets it.
 - The full local UI run belongs to pre-release deploy verification (`release.sh` / `test-deploy.sh`).
 
-After a green isolated rebuild, `--no-build` is appropriate for mid-task smoke
-reruns in the same slot. Routine handoff is headless by default. Exact flags
+After a green isolated rebuild, `test.sh smoke --no-build <Class>` (or `test.sh ui --no-build <Class>`)
+is appropriate for mid-task smoke reruns in the same slot. Routine handoff is headless by default. Exact flags
 (`--smoke`, `--mirror`, `--dry-run`, `--final`) live in
 [verification commands](../../Scripts/Reference.md#verification) and each script's usage text.
 
@@ -154,7 +146,7 @@ reruns in the same slot. Routine handoff is headless by default. Exact flags
 | Gate | Composition |
 |---|---|
 | `handoff.sh` | Path-selected generation, style, package, app compilation, documentation, and idempotence checks, plus cheap slices; targeted smoke only with `--smoke` |
-| `ci-gate.sh` | Generate/assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, Swift Testing policy, release-note validation, artwork budget |
+| `ci-gate.sh` | Generate/assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, Swift Testing policy, release-note validation, artwork budget (`--skip-cheap` omits the closing cheap slices when handoff just ran them) |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then additional UI journeys (FullUI), or the optional smoke canary |
@@ -234,7 +226,7 @@ not accompanying test-file edits for every production change.
 Read structured invocation reports before raw build logs. Use
 `./Scripts/ci-diagnostics.sh <results-dir>` to aggregate them and follow
 [CI diagnostics](../AgentContext/ci-diagnostics.md) for classification and
-escalation. Never kill foreign Xcode or Simulator processes.
+escalation. Process safety follows [AGENTS.md](../../AGENTS.md#protect-the-workspace).
 
 The push gate may print an advisory change-budget report. Counts can prompt
 investigation but do not require a justification for every threshold crossing.

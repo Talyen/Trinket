@@ -18,8 +18,24 @@ struct CoreValueTypesTests {
         #expect(ItemSlot.secondaryWeapon.displayName == ItemSlot.weapon.rawValue)
         #expect(ItemSlot.secondaryWeapon.accessibilityIdentifier != ItemSlot.weapon.accessibilityIdentifier)
         #expect(ItemSlot.secondaryWeapon.accepts(.weapon))
+        #expect(ItemSlot.secondaryWeapon.accepts(.secondaryWeapon))
         #expect(!ItemSlot.secondaryWeapon.accepts(.armor))
         #expect(ItemSlot.weapon.accepts(.weapon))
+        #expect(ItemSlot.weapon.accepts(.secondaryWeapon))
+    }
+
+    @Test func `collection safe subscript retrieves element or nil out of bounds`() {
+        let items = [10, 20, 30]
+        #expect(items[safe: 0] == 10)
+        #expect(items[safe: 1] == 20)
+        #expect(items[safe: 2] == 30)
+        #expect(items[safe: -1] == nil)
+        #expect(items[safe: 3] == nil)
+        #expect(items[safe: 100] == nil)
+
+        let empty: [Int] = []
+        #expect(empty[safe: 0] == nil)
+        #expect(empty[safe: -1] == nil)
     }
 
     @Test func `active effect awaits skip only at zero remaining turns`() {
@@ -40,5 +56,19 @@ struct CoreValueTypesTests {
         #expect(HomesteadNodeID.wheatField.rawValue == "wheatField")
         #expect(HomesteadNodeID.allCases.count == 14)
         #expect(ResourceAmount(.gold, 5).id == .gold)
+    }
+
+    @Test func `damage conditions have non empty unique sentence fragments`() {
+        let conditions = DamageCondition.allCases
+        #expect(!conditions.isEmpty)
+        #expect(conditions.count == Set(conditions).count)
+
+        for condition in conditions {
+            #expect(!condition.sentenceFragment.isEmpty, "\(condition) should have a sentence fragment")
+            #expect(!condition.sentenceFragment.hasSuffix("."), "\(condition) fragment should omit trailing period")
+        }
+
+        let fragments = conditions.map(\.sentenceFragment)
+        #expect(fragments.count == Set(fragments).count)
     }
 }

@@ -14,8 +14,8 @@ set -euo pipefail
 # shellcheck source=Scripts/lib/rg-check.sh
 source "$(dirname "$0")/lib/rg-check.sh"
 
-# shellcheck source=swift-source-dirs.env
-source ./Scripts/swift-source-dirs.env
+# shellcheck source=format-dirs.env
+source ./Scripts/format-dirs.env
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
 TRINKET_RG_BULLET="  "

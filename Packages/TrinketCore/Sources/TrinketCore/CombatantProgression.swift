@@ -6,8 +6,16 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
     public let requiredXP: Int
 
     public static func requiredXP(forLevel level: Int) -> Int {
-        let steps = max(level - 1, 0)
-        return 10 + (5 * steps) + ((steps * steps) / 2)
+        guard level > 1 else { return 10 }
+        let steps = level - 1
+        let (fiveSteps, overflow1) = steps.multipliedReportingOverflow(by: 5)
+        guard !overflow1 else { return Int.max }
+        let (square, overflow2) = steps.multipliedReportingOverflow(by: steps)
+        guard !overflow2 else { return Int.max }
+        let (base, overflow3) = 10.addingReportingOverflow(fiveSteps)
+        guard !overflow3 else { return Int.max }
+        let (total, overflow4) = base.addingReportingOverflow(square / 2)
+        return overflow4 ? Int.max : total
     }
 
     public static let initial = Self(
@@ -40,11 +48,13 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         guard amount > 0 else { return self }
 
         var nextLevel = level
-        var nextXP = currentXP + amount
+        let (addedXP, overflow) = currentXP.addingReportingOverflow(amount)
+        var nextXP = overflow ? Int.max : addedXP
         var nextRequiredXP = requiredXP
 
         while nextRequiredXP > 0, nextXP >= nextRequiredXP {
             nextXP -= nextRequiredXP
+            guard nextLevel < Int.max else { break }
             nextLevel += 1
             nextRequiredXP = Self.requiredXP(forLevel: nextLevel)
         }

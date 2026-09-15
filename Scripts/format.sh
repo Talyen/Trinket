@@ -8,8 +8,8 @@ trinket_prepend_pinned_tools
 
 # shellcheck source=tool-versions.env
 source Scripts/tool-versions.env
-# shellcheck source=swift-source-dirs.env
-source Scripts/swift-source-dirs.env
+# shellcheck source=format-dirs.env
+source Scripts/format-dirs.env
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
 trinket_require_pinned_version swiftformat "$SWIFTFORMAT_VERSION" --version

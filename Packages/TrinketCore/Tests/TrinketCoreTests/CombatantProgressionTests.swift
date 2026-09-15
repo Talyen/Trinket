@@ -9,7 +9,16 @@ struct CombatantProgressionTests {
 
     @Test func `required XP defaults to the level one curve`() {
         #expect(CombatantProgression.requiredXP(forLevel: 0) == 10)
+        #expect(CombatantProgression.requiredXP(forLevel: -100) == 10)
+        #expect(CombatantProgression.requiredXP(forLevel: Int.min) == 10)
         #expect(CombatantProgression.initial.requiredXP == 10)
+    }
+
+    @Test func `adding extreme experience saturates without trapping`() {
+        let progression = CombatantProgression.at(level: 1)
+        let leveled = progression.addingExperience(Int.max)
+        #expect(leveled.level > 1)
+        #expect(leveled.currentXP >= 0)
     }
 
     @Test func `adding experience handles single and multiple level ups`() {

@@ -80,7 +80,8 @@ public enum ExperienceScaling {
     /// is the call-site convenience used by reward code.
     public static func cappedAward(_ amount: Int, requiredXP: Int) -> Int {
         guard amount > 0 else { return 0 }
-        let ceiling = max(0, requiredXP) * maxGrantLevelsEquivalent
+        let (multiplied, overflow) = max(0, requiredXP).multipliedReportingOverflow(by: maxGrantLevelsEquivalent)
+        let ceiling = overflow ? Int.max : multiplied
         return min(amount, ceiling)
     }
 

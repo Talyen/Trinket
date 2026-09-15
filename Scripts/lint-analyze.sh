@@ -17,8 +17,8 @@ source Scripts/lib/tools.sh
 trinket_prepend_pinned_tools
 # shellcheck source=tool-versions.env
 source Scripts/tool-versions.env
-# shellcheck source=swift-source-dirs.env
-source Scripts/swift-source-dirs.env
+# shellcheck source=format-dirs.env
+source Scripts/format-dirs.env
 analysis_paths=("${SWIFT_SOURCE_DIRS[@]}")
 if [[ $# -gt 0 ]]; then analysis_paths=("$@"); fi
 absolute_paths="$(python3 -c 'from pathlib import Path; import sys; print("\n".join(str(Path(p).resolve()) for p in sys.argv[1:]))' "${analysis_paths[@]}")"

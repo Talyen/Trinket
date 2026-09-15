@@ -97,11 +97,11 @@ print_agent() {
     local -a ownership_cards=() behavior_cards=()
     local card
     for card in "${TRINKET_CONTEXT_CARDS[@]}"; do
-      case "$card" in
-        */battle-damage.md|*/battle-actions.md|*/battle-healing.md|*/battle-talents.md|*/battle-balance.md|*/battle-launch.md|*/battle-presentation.md|*/persistence-storage.md|*/persistence-progression.md|*/ui-performance.md)
-          behavior_cards+=("$card") ;;
-        *) ownership_cards+=("$card") ;;
-      esac
+      if trinket_is_behavior_card "$card"; then
+        behavior_cards+=("$card")
+      else
+        ownership_cards+=("$card")
+      fi
     done
     if (( ${#ownership_cards[@]} > 0 )); then
       printf 'Ownership and integration (read applicable constraints):\n'
@@ -120,12 +120,7 @@ print_agent() {
   if (( ${#TRINKET_SKILLS[@]} > 0 )); then
     printf 'Skills (load only when the trigger applies):\n'
     for skill in "${TRINKET_SKILLS[@]}"; do
-      case "$skill" in
-        */apple-design/*) trigger='visual or interaction changes' ;;
-        */architect/*) trigger='public type, protocol, schema, or package boundary changes' ;;
-        */doc-budget/*) trigger='checker directives or suppression failures' ;;
-        *) trigger='see skill description' ;;
-      esac
+      trigger="$(trinket_skill_trigger_for "$skill")"
       printf '  %s — %s\n' "$skill" "$trigger"
     done
   fi
@@ -134,18 +129,12 @@ print_agent() {
     printf '  %s\n' "${TRINKET_KNOWLEDGE[@]}"
   fi
 
-  local search_root package path
+  local search_root path
   local -a search_roots=()
   for path in "${TRINKET_CHANGED_PATHS[@]}"; do
-    case "$path" in
-      Packages/*)
-        package="${path#Packages/}"; package="${package%%/*}"
-        search_root="Packages/$package" ;;
-      Scripts/*) search_root="Scripts" ;;
-      Trinket/*|TrinketUITests/*) search_root="Trinket" ;;
-      *) continue ;;
-    esac
-    trinket_add_unique search_roots "$search_root"
+    if search_root="$(trinket_search_root_for_path "$path")"; then
+      trinket_add_unique search_roots "$search_root"
+    fi
   done
   if (( ${#search_roots[@]} > 0 )); then
     printf 'Discovery: scoped rg, direct reads, or python3 Scripts/agent-search.py <pattern> --scope <root> (add --mode tests or --excerpts)\n'

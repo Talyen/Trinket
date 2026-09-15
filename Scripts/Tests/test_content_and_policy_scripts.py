@@ -430,8 +430,8 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
     def test_comment_rationale_preserves_suppression_and_concurrency_checks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for name in ("check-agent-invariants.sh", "lib/rg-check.sh", "swift-source-dirs.env",
-                         "format-dirs.env", "build-inputs.env", "internal/swift_policy.py", "tool-versions.env"):
+            for name in ("check-agent-invariants.sh", "lib/rg-check.sh",
+                          "format-dirs.env", "build-inputs.env", "internal/swift_policy.py", "tool-versions.env"):
                 target = root / "Scripts" / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, target)

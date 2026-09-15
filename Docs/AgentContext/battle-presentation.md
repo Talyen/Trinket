@@ -4,6 +4,7 @@ Use with the [common runtime contract](battle-runtime.md) for display lifetime, 
 
 ## Display lifetime
 
+(Battle-side view; Play side: [ui-performance.md](ui-performance.md).)
 `BattleView` captures its combat projection and spectacle references when composed.
 Ending Battle cancels their work and gives the session fresh display objects instead
 of clearing the objects held by outgoing views. The runtime is empty immediately,

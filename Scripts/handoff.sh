@@ -19,8 +19,8 @@ fi
 # Keep source routing aligned with agent-context.sh and agent-push-gate.sh.
 # shellcheck source=Scripts/change-classification.sh
 source Scripts/change-classification.sh
-# shellcheck source=Scripts/swift-source-dirs.env
-source Scripts/swift-source-dirs.env
+# shellcheck source=Scripts/build-inputs.env
+source Scripts/build-inputs.env
 
 DRY_RUN=false
 ISOLATE=false
@@ -91,9 +91,7 @@ run_check() {
       ;;
     scripts)
       [[ "$argument" == all ]] || { echo "Unknown script check: $argument" >&2; return 2; }
-      if [[ "$FINAL" == true ]]; then
-        ./Scripts/test-scripts.sh --skip-docs --paths "${TRINKET_CHANGED_PATHS[@]}"
-      elif [[ "$TRINKET_NEEDS_DOCS" == true ]]; then
+      if trinket_scripts_run_covers_docs; then
         ./Scripts/test-scripts.sh --skip-docs --paths "${TRINKET_CHANGED_PATHS[@]}"
       else
         ./Scripts/test-scripts.sh --paths "${TRINKET_CHANGED_PATHS[@]}"
@@ -107,6 +105,25 @@ run_check() {
       echo "Unknown verification kind: $kind" >&2; return 2
       ;;
   esac
+}
+
+# trinket_scripts_run_covers_docs reports whether the scripts check must skip
+# its embedded docs validation because docs are checked separately: either the
+# plan holds a docs node or --final already ran check-docs.py up front. The
+# plan emits a docs node exactly when TRINKET_NEEDS_DOCS is set, so execution
+# and --dry-run preview share this one predicate instead of each restating the
+# condition.
+trinket_scripts_run_covers_docs() {
+  if [[ "$FINAL" == true ]]; then
+    return 0
+  fi
+  local kind
+  for kind in "${TRINKET_VERIFICATION_KINDS[@]-}"; do
+    if [[ "$kind" == docs ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 run_cheap_ci_slices() {
@@ -217,17 +234,13 @@ if [[ "$DRY_RUN" == true ]]; then
     _final_docs="${_final_docs% }"
     _dry_commands+=("$_final_docs")
   fi
-  _has_docs_in_plan=false
-  for _k in "${TRINKET_VERIFICATION_KINDS[@]-}"; do
-    [[ "$_k" == docs ]] && _has_docs_in_plan=true && break
-  done
   for i in "${!TRINKET_VERIFICATION_COMMANDS[@]}"; do
     kind="${TRINKET_VERIFICATION_KINDS[$i]:-}"
     display="${TRINKET_VERIFICATION_COMMANDS[$i]}"
     if [[ "$kind" == docs && "$FINAL" == true ]]; then
       continue
     fi
-    if [[ "$kind" == scripts && ( "$FINAL" == true || "$_has_docs_in_plan" == true ) ]]; then
+    if [[ "$kind" == scripts ]] && trinket_scripts_run_covers_docs; then
       _dry_commands+=("${display/ --paths/ --skip-docs --paths}")
     else
       _dry_commands+=("$display")

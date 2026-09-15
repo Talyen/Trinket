@@ -34,7 +34,7 @@ are known. Read root/local safeguards and applicable ownership constraints; use 
 routed cards to find relevant behavior contracts. Load skills when their triggers apply.
 Reuse unchanged guidance already present in context; reread when changed or no
 longer available. Reroute when scope crosses owners and read newly applicable
-material. Use `--working-tree` only for intentional whole-tree work.
+material. Use `--working-tree --allow-broad-scope` only for intentional whole-tree work.
 
 Choose scoped `rg`, filename discovery, direct reads, or
 `python3 Scripts/agent-search.py <pattern> --scope <owner>` for the question.

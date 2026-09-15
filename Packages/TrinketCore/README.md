@@ -15,7 +15,7 @@ Module map: `Keyword.swift` (matching, rules), `Effect.swift` (`Effect`,
 (shared mid/late thresholds live on `EnemyPowerCurve`), `TalentModels.swift`,
 `HomesteadTypes.swift`, `ItemSlot.swift` with `ProgressionEnums.swift`,
 `CombatPowerSnapshot.swift`, `SeededRandomNumberGenerator.swift`,
-`BattleGoldFlow.swift`, `ActiveEffect.swift`, `DamageCondition.swift`
+`BattleGoldFlow.swift`, `ActiveEffect.swift`, `Collection+Safe.swift`, `DamageCondition.swift`
 (evaluation lives in `BattleEngine.BattleConditionEvaluator`).
 
 Contracts: keyword matching runs through one case-insensitive pattern

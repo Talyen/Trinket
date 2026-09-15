@@ -182,8 +182,8 @@ printf cached > "$cache"
         for relative in ('.githooks/pre-push', 'Scripts/agent-push-gate.sh',
                          'Scripts/assert-generated-output.sh', 'Scripts/change-classification.sh',
                          'Scripts/lib/classification-plan.sh', 'Scripts/lib/smoke-classes.sh',
-                         'Scripts/config/smoke-classes.txt', 'Scripts/swift-source-dirs.env',
-                         'Scripts/build-inputs.env', 'Scripts/format-dirs.env'):
+                         'Scripts/config/smoke-classes.txt',
+                          'Scripts/build-inputs.env', 'Scripts/format-dirs.env'):
             target = self.root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / relative, target)

@@ -61,71 +61,72 @@ public extension EffectKind {
     /// - `.blessedAegis` is instant with neither buff nor debuff flag, unlike the
     ///   otherwise similar `thorns`/`onHitDamage` wards.
     var isRemovableDebuff: Bool {
-        behavior.isRemovableDebuff
+        behavior.contains(.removableDebuff)
     }
 
     var isRemovableBuff: Bool {
-        behavior.isRemovableBuff
+        behavior.contains(.removableBuff)
     }
 
     var advancesEachTurn: Bool {
-        behavior.advancesEachTurn
+        behavior.contains(.advancesEachTurn)
     }
 
     var isInstant: Bool {
-        behavior.isInstant
+        behavior.contains(.instant)
     }
 
     var isDecayingDoT: Bool {
-        behavior.isDecayingDoT
+        behavior.contains(.decayingDoT)
     }
 
     var isBleed: Bool {
-        behavior.isBleed
+        behavior.contains(.bleed)
     }
 
-    /// Flag bundle for one effect kind. Members default to false so each case below
-    /// names only the flags it sets; the single exhaustive switch keeps the compiler
-    /// checking newly added kinds.
-    private struct Behavior {
-        var isRemovableDebuff = false
-        var isRemovableBuff = false
-        var advancesEachTurn = false
-        var isInstant = false
-        var isDecayingDoT = false
-        var isBleed = false
+    /// Bitmask flag bundle for one effect kind. The single exhaustive switch keeps
+    /// the compiler checking newly added kinds while queries compile down to bitwise operations.
+    private struct Behavior: OptionSet {
+        let rawValue: UInt8
+
+        static let removableDebuff = Self(rawValue: 1 << 0)
+        static let removableBuff = Self(rawValue: 1 << 1)
+        static let advancesEachTurn = Self(rawValue: 1 << 2)
+        static let instant = Self(rawValue: 1 << 3)
+        static let decayingDoT = Self(rawValue: 1 << 4)
+        static let bleed = Self(rawValue: 1 << 5)
     }
 
     private var behavior: Behavior {
         switch self {
         case .burn, .poison:
-            Behavior(isRemovableDebuff: true, advancesEachTurn: true, isDecayingDoT: true)
+            [.removableDebuff, .advancesEachTurn, .decayingDoT]
         case .bleed:
-            Behavior(isRemovableDebuff: true, advancesEachTurn: true, isBleed: true)
+            [.removableDebuff, .advancesEachTurn, .bleed]
         case .controlMeter:
-            Behavior(isRemovableDebuff: true, advancesEachTurn: true)
+            [.removableDebuff, .advancesEachTurn]
         case .shield:
-            Behavior(isRemovableBuff: true)
+            [.removableBuff]
         case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards,
              .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom,
              .purge, .purgeRandom, .halveShield,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
              .multiplyDoT, .detonateDoT, .revive, .blessedAegis:
-            Behavior(isInstant: true)
+            [.instant]
         case .deathsDoor:
-            Behavior(advancesEachTurn: true)
+            [.advancesEachTurn]
         case .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage:
-            Behavior(isRemovableBuff: true)
+            [.removableBuff]
         case .maximumManaBonus:
-            Behavior(isRemovableBuff: true, isInstant: true)
+            [.removableBuff, .instant]
         case .marked, .recurringDamage, .damageReductionPercent,
              .damageReductionFlat, .healingReductionPercent:
-            Behavior(isRemovableDebuff: true, advancesEachTurn: true)
+            [.removableDebuff, .advancesEachTurn]
         case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride, .avatar:
-            Behavior(isRemovableBuff: true, advancesEachTurn: true)
+            [.removableBuff, .advancesEachTurn]
         case .hemorrhage:
-            Behavior(isRemovableDebuff: true)
+            [.removableDebuff]
         }
     }
 

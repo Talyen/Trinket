@@ -39,9 +39,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         }
     }
 
-    public static var damageTypes: [Self] {
-        allCases.filter { $0.category == .damageType }
-    }
+    public static let damageTypes: [Self] = allCases.filter { $0.category == .damageType }
 
     /// Damage types plus Health and Leech roll crits (healing crits exist);
     /// resources and utility keywords never do.
@@ -83,9 +81,10 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         }
     }
 
-    public static let styledTerms: [(term: String, keyword: Self)] = {
-        var terms: [(String, Self)] = allCases.map { ($0.rawValue, $0) }
+    static let styledTerms: [(term: String, keyword: Self)] = {
+        var terms: [(String, Self)] = []
         for keyword in allCases {
+            terms.append((keyword.rawValue, keyword))
             if let alias = keyword.statusAlias {
                 terms.append((alias, keyword))
             }
@@ -97,8 +96,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         var unique: [(String, Self)] = []
         for (term, keyword) in terms {
             let lower = term.lowercased()
-            if !seen.contains(lower) {
-                seen.insert(lower)
+            if seen.insert(lower).inserted {
                 unique.append((term, keyword))
             }
         }
@@ -130,21 +128,14 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         }
         let nsText = text as NSString
         let fullRange = NSRange(location: 0, length: nsText.length)
-        var keywordFirstIndices: [Self: Int] = [:]
+        var seen = Set<Self>()
+        var result: [Self] = []
         for match in regex.matches(in: text, options: [], range: fullRange) {
             let matched = nsText.substring(with: match.range).lowercased()
-            guard let keyword = termLookup[matched] else { continue }
-            if let existing = keywordFirstIndices[keyword] {
-                if match.range.location < existing {
-                    keywordFirstIndices[keyword] = match.range.location
-                }
-            } else {
-                keywordFirstIndices[keyword] = match.range.location
-            }
+            guard let keyword = termLookup[matched], seen.insert(keyword).inserted else { continue }
+            result.append(keyword)
         }
-        return keywordFirstIndices
-            .sorted { $0.value < $1.value }
-            .map(\.key)
+        return result
     }
 
     public var rulesText: String {

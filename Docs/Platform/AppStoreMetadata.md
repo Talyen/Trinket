@@ -49,7 +49,7 @@ rpg,turn based,cards,strategy,deck,heroes,companions,fantasy,adventure,dungeon,o
 
 Trinket does not require an in-app account or sign-in. The current build stores progress locally and supports offline gameplay. iCloud progress sync remains disabled in distributed builds.
 
-To inspect the Full Game offer, open Options → Full Game. The non-consumable product identifier is com.ryanmcintire.Trinket.fullgame. It unlocks content access; recruitment, items, levels, and upgrades remain earned through gameplay. Options → Restore Purchases restores eligible verified ownership. Reset Game Progress does not remove Full Game ownership.
+To inspect the Full Game offer, open Options → Full Game. The non-consumable product identifier, ownership, and reset rules live in [Purchases.md](Purchases.md). Options → Restore Purchases restores eligible verified ownership.
 
 ## Owner checks before submission
 

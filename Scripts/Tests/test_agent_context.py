@@ -371,10 +371,6 @@ class AgentContextTests(ScriptRegressionTestCase):
                 "ContentManifest/abilities.tsv",
                 "Docs/AgentContext/content-and-manifests.md",
             ),
-            (
-                "Scripts/check-docs.py",
-                "Docs/AgentContext/ci-and-project-generation.md",
-            ),
         )
         for path, expected_card in cases:
             with self.subTest(path=path):
@@ -396,6 +392,38 @@ class AgentContextTests(ScriptRegressionTestCase):
                     if other_card != expected_card:
                         self.assertNotIn(other_card, result.stdout)
                 self.assertNotIn("Route metadata", result.stdout)
+
+    def test_agent_context_routes_project_spec_to_generate_workflow(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "project.yml",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Docs/AgentContext/content-and-manifests.md", result.stdout)
+
+    def test_agent_context_omits_ownership_card_for_plain_tooling(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Scripts/check-docs.py",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("Ownership and integration", result.stdout)
 
     def test_agent_context_does_not_attach_design_skill_to_ui_tests(self) -> None:
         result = subprocess.run(

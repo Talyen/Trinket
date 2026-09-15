@@ -91,7 +91,8 @@ navigation destinations) under the cover — those views are destroyed on pop,
 and a leftover path lands the player off the mode hub.
 
 
-While the retained battle overlay is active, `PlayBrowsingStack` removes its root
+While the retained battle overlay is active (Play-side view; Battle side:
+[battle-presentation.md](battle-presentation.md#display-lifetime)), `PlayBrowsingStack` removes its root
 and destination content from touch and accessibility exposure with the shared
 visibility modifier. Apply the modifier to the hosted screen content, not just the
 outer `NavigationStack`: native navigation hosting can retain accessible children

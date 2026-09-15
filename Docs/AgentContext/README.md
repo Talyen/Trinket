@@ -42,7 +42,6 @@ Verification: ./Scripts/handoff.sh --isolate --paths <files...>
 | [swiftui-features.md](swiftui-features.md) | visual UI paths under `Trinket/Features`, feature packages, `TrinketUITests` |
 | [ui-performance.md](ui-performance.md) | Launch/tab mounting, Collection retention, prepared artwork; other UI tasks load it when touching those concerns |
 | [audio.md](audio.md) | `TrinketAppState` audio paths |
-| [ci-and-project-generation.md](ci-and-project-generation.md) | `Scripts/`, `.github/`, `project.yml` |
 | [ci-diagnostics.md](ci-diagnostics.md) | **Lazy:** load only after a test/CI failure |
 
 Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.

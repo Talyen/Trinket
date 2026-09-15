@@ -23,11 +23,8 @@ next verified app update, preserving saves and explaining the changed requiremen
 in player-facing release notes. Reconsider the window explicitly if support cost
 or a critical capability warrants an exception.
 
-Test new iOS/Xcode betas and release candidates before launch. Toolchain selection,
-including which Xcode CI and local runs use, is documented in
-[Scripts](../../Scripts/Reference.md#toolchain-ladder); `setup-trinket` records
-the exact version and build in its logs. Record
-exact helper-tool versions for reproducibility in `Scripts/tool-versions.env`.
+Test new iOS/Xcode betas and release candidates before launch. [Toolchain selection](../../Scripts/Reference.md#toolchain-ladder)
+owns which Xcode CI and local runs use, including version/build logging and helper-tool pins.
 `SWIFT_VERSION` is the Swift language mode declared in `project.yml` and each
 `Package.swift`, not the compiler version, so do not update it
 merely to match Xcode's bundled Swift compiler.

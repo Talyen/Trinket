@@ -23,6 +23,12 @@ One fact has one owner. Link instead of copying policy.
 | Module DAG and hub containment | [Platform/Architecture.md](Platform/Architecture.md) (`check-module-boundaries.sh`) |
 | Player-facing locked choices | [Product/Decisions.md](Product/Decisions.md) |
 | iOS support window and native API adoption | [Platform/ApplePlatformReference.md](Platform/ApplePlatformReference.md) |
+| Current vs banned SwiftUI/observation APIs | [Platform/ApplePlatformReference.md](Platform/ApplePlatformReference.md#current-vs-banned-swiftui) (enforced by `check-api-bans.sh`) |
+| Style and boundary checker split | [Platform/Verification.md](Platform/Verification.md#style-and-boundary-ownership) |
+| AccessibilityID rubric vs launch details | Rubric [Platform/Testing.md](Platform/Testing.md#ui-keep-drop-rubric); launch/helpers `TrinketUITests/README.md`; placement in `swiftui-features.md` |
+| Artwork pin lifecycle vs numbers | Lifecycle [AgentContext/ui-performance.md](AgentContext/ui-performance.md); numbers in Playbook Artwork Budgets |
+| Balance numbers | [AgentContext/battle-balance.md](AgentContext/battle-balance.md) (defers to Decisions PD-016–021 and prior audit verdicts first) |
+| Audio routing and playback behavior | `Packages/TrinketAppState/README.md` (routed via [AgentContext/audio.md](AgentContext/audio.md)) |
 | Game surfaces and modes | [Product/Overview.md](Product/Overview.md) |
 | Art direction and delivery constraints | [Product/ArtworkStyleGuide.md](Product/ArtworkStyleGuide.md) |
 | Cross-package battle / persistence / content | matching [AgentContext](AgentContext/) card |

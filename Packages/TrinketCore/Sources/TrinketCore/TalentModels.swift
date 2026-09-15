@@ -136,7 +136,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
     public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {
         guard budget > 0 else { return [] }
         var kept: Set<String> = []
-        let rows = Set(trees.flatMap(\.rows)).sorted()
+        let rows = Set(trees.flatMap { $0.nodes.map(\.row) }).sorted()
         let maps = trees.map { Dictionary(grouping: $0.nodes, by: \.row) }
         for row in rows {
             for (tree, map) in zip(trees, maps) {

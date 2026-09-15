@@ -45,15 +45,14 @@ outcomes in the [persistence contracts](../AgentContext/persistence.md) before
 implementing the unresolved choices:
 
 - [ ] Verify first-sync and concurrent-play reconciliation against the approved
-  [complete-save selection policy](../AgentContext/persistence-storage.md#cloudkit-preparation):
-  prefer shared-history continuation, Campaign progress, then recency and a stable
-  tie-breaker; preserve the other save as a recovery backup before replacement.
-  Players receive no save-conflict choices. Preserve the existing TestFlight save;
+  [complete-save selection policy](../AgentContext/persistence-storage.md#cloudkit-preparation)
+  (no player conflict prompts; losing save archived as a recovery backup before
+  replacement). Preserve the existing TestFlight save;
   never replace it with a fresh root during enablement.
-- [ ] Keep the selected save's currency/materials, reward claims, inventory/equipment,
-  recruitment/talents, Campaign, Spires, Labyrinth, Contracts, and Homestead consistent
-  together. Independent field merging and balance addition do not implement this
-  policy. Implement complete-save exchange, backup durability, and replay-safe
+- [ ] Keep the selected save coherent across its wallet, claims, inventory,
+  recruitment, and world progress per the [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation):
+  complete-save exchange only, no independent field merging or balance addition.
+  Implement complete-save exchange, backup durability, and replay-safe
   production authority before enabling cloud play.
 - [ ] Implement and verify the approved reset/account policy in the
   [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation):
@@ -67,8 +66,8 @@ unapproved merge algorithm.
 
 - [ ] Prove upgrade and rollback against a populated beta save. SwiftData always
   opens the existing local URL with mirroring disabled. The optional
-  `PlayerSaveRoot.cloudStatePayload` adds local outbox/account metadata; value schema
-  18 is unchanged. Store-open errors preserve the original files. Disabling sync
+  `PlayerSaveRoot.cloudStatePayload` adds local outbox/account metadata; the
+  current value schema (`PlayerSave.currentSchemaVersion`) is unchanged. Store-open errors preserve the original files. Disabling sync
   must retain both current progress and metadata at that same URL.
 - [ ] Verify complete-save reconciliation and atomic conflict backups. The explicit
   service implements the approved selection policy and rejects stale reset epochs

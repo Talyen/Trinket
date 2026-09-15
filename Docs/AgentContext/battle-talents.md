@@ -2,7 +2,16 @@
 
 Authored talents and their short descriptions live in
 [the talent manifest](../../ContentManifest/talents.tsv). Talent rule changes
-reuse the ordinary damage, healing, control, and resource pipelines.
+reuse the ordinary damage, healing, control, and resource pipelines. Look up the
+named talent only:
+
+- [Balance cadence](#balance-cadence)
+- [Damage and control](#damage-and-control)
+- [Card preparation and rewards](#card-preparation-and-rewards)
+- [Mana and empowerment](#mana-and-empowerment)
+- [Healing and overflow](#healing-and-overflow)
+- [Removal, protection, and Block](#removal-protection-and-block)
+- [Storage ownership](#storage-ownership)
 
 ## Balance cadence
 

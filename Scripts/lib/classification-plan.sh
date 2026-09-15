@@ -41,7 +41,7 @@ trinket_build_verification_plan() {
     local style_scope_needs_full_tree=false
     for authored in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}"; do
       case "$authored" in
-        .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/swift-source-dirs.env) style_scope_needs_full_tree=true; break ;;
+        .swiftlint.yml|.swiftformat|Scripts/tool-versions.env|Scripts/format-dirs.env|Scripts/build-inputs.env) style_scope_needs_full_tree=true; break ;;
       esac
     done
     if [[ "$style_scope_needs_full_tree" == false ]]; then
