@@ -264,13 +264,9 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
         (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift").write_text(
             "", encoding="utf-8"
         )
-        (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift").write_text(
+        (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift").write_text(
             'id: "slash"\n', encoding="utf-8"
         )
-        for name in ("AbilityCatalogSkill.swift", "AbilityCatalogUltimate.swift"):
-            (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities" / name).write_text(
-                "", encoding="utf-8"
-            )
         (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift").write_text(
             'id: "longsword"\n', encoding="utf-8"
         )
@@ -443,8 +439,8 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
                 "knight\tKnight\thero\t100\t0\tslash\tslash\tavatarOfJustice\n",
                 encoding="utf-8",
             )
-            (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogUltimate.swift").write_text(
-                'id: "avatar-of-justice"\n', encoding="utf-8"
+            (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift").write_text(
+                '// MARK: - Ultimate\nid: "avatar-of-justice"\n', encoding="utf-8"
             )
             avconvert = root / "bin/avconvert"
             avconvert.write_text(

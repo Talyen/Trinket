@@ -9,6 +9,42 @@ trinket_asset_escape_swift_string() {
   printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
 
+# Single home for manifest/source presence checks.
+trinket_asset_require_manifest() {
+  local manifest="$1"
+  if [[ ! -f "$manifest" ]]; then
+    echo "Missing manifest: $manifest" >&2
+    return 1
+  fi
+}
+
+trinket_asset_require_source_file() {
+  local id="$1"
+  local source_path="$2"
+  if [[ ! -f "$source_path" ]]; then
+    echo "Missing source file for '$id': $source_path" >&2
+    return 1
+  fi
+}
+
+# Single home for the art thumb rule. prepare-art-assets.sh and
+# check-unused-assets.py must agree: resource / slot_background ship
+# full-only, every other art kind ships full + thumb.
+trinket_asset_needs_thumb() {
+  case "$1" in
+    resource|slot_background) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+trinket_asset_validate_volume_gain() {
+  local id="$1" volume_gain="$2"
+  if [[ ! "$volume_gain" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    echo "Volume gain for '$id' must be numeric." >&2
+    return 1
+  fi
+}
+
 trinket_asset_validate_identifier() {
   local label="$1" value="$2"
   if [[ ! "$value" =~ ^[A-Za-z0-9_][A-Za-z0-9_-]*$ ]]; then
@@ -161,6 +197,49 @@ trinket_audio_encode_row() {
     mv -f "$tmp_output" "$output_file"
   fi
   printf '%s\t%s\t%s\n' "$asset_name" "$source_hash" "$encode_profile" >> "$state_temp"
+}
+
+# HEVC cinematic encode for one row. Shared so the avconvert + hvc1/hev1
+# assertion lives in one place instead of per-script bespoke blocks.
+# ISO BMFF sample entries use hvc1 (or hev1) for HEVC. Prefer this over mdls
+# so CI does not depend on Spotlight indexing freshly written files.
+trinket_asset_assert_hevc_mp4() {
+  local file="$1"
+  if ! grep -a -q -E 'hvc1|hev1' "$file"; then
+    echo "Expected HEVC (hvc1/hev1) in '$file'." >&2
+    return 1
+  fi
+}
+
+trinket_cinematic_encode_row() {
+  local source_path="$1"
+  local dest="$2"
+  local preset="$3"
+  local label="$4"
+  local resources_dir
+  resources_dir="$(dirname "$dest")"
+  local tmp_dest="$resources_dir/.$(basename "$dest").tmp.$$"
+  rm -f "$tmp_dest"
+  if ! avconvert \
+    --source "$source_path" \
+    --preset "$preset" \
+    --output "$tmp_dest" \
+    --replace \
+    >/dev/null \
+    || [[ ! -s "$tmp_dest" ]] \
+    || ! trinket_asset_assert_hevc_mp4 "$tmp_dest"; then
+    rm -f "$tmp_dest"
+    echo "Failed to encode cinematic asset for '$label' with preset '$preset'." >&2
+    return 1
+  fi
+  mv -f "$tmp_dest" "$dest"
+}
+
+trinket_asset_require_avconvert() {
+  if ! command -v avconvert >/dev/null 2>&1; then
+    echo "Missing required tool: avconvert" >&2
+    return 1
+  fi
 }
 
 TRINKET_ASSET_STATE_FILE=""

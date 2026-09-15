@@ -27,18 +27,20 @@ enum RosterHydration {
         catalog.first { unlockedIDs.contains($0.id) }?.id
     }
 
+    /// Sanitizer path: unknown/missing ability IDs fall back to catalog
+    /// defaults so the roster stays playable. The model/cloud read path uses
+    /// `rawAbilityLoadouts` (exact match, unknown → nil) to preserve stored
+    /// IDs verbatim; sanitize upgrades them later. The divergence is
+    /// intentional: read preserves, sanitize heals.
     static func resolveAbilityLoadouts(
         from loadouts: [String: AbilityLoadout],
     ) -> [String: AbilityLoadout] {
         resolvedAbilities(loadouts.mapValues(rawIDs(of:)))
     }
 
-    static func resolveAbilityLoadouts(
-        from ids: [String: AbilityLoadoutIDs],
-    ) -> [String: AbilityLoadout] {
-        resolvedAbilities(ids)
-    }
-
+    /// Model/cloud read path: exact match only. Unknown combatants are
+    /// dropped; unknown ability IDs become nil (not defaults) so a later
+    /// sanitize can distinguish "stored unknown" from "stored missing".
     static func rawAbilityLoadouts(
         from ids: [String: AbilityLoadoutIDs],
     ) -> [String: AbilityLoadout] {
@@ -133,6 +135,10 @@ enum RosterHydration {
         var resolved: [String: EquipmentLoadout] = [:]
         for (combatantID, loadout) in loadouts {
             let combatant = GameContent.combatant(matching: combatantID)
+            // Unknown-combatant drop is active only when inventory items are
+            // supplied (sanitizer path). Model/cloud read paths build
+            // equipment directly from stored rows and leave dangling refs for
+            // sanitize to strip, so a raw round trip never loses data here.
             if inventoryItems != nil, combatant == nil {
                 continue
             }
@@ -147,15 +153,8 @@ enum RosterHydration {
     }
 
     static func deduplicateWithinLoadout(_ loadout: EquipmentLoadout) -> EquipmentLoadout {
-        var unique = EquipmentLoadout()
         var claimedItemIDs = Set<String>()
-        for slot in ItemSlot.allCases {
-            guard let itemID = loadout.itemID(for: slot), claimedItemIDs.insert(itemID).inserted else {
-                continue
-            }
-            unique.itemIDsBySlot[slot] = itemID
-        }
-        return unique
+        return EquipmentLoadout(itemIDsBySlot: deduplicatedSlots(in: loadout, claimedItemIDs: &claimedItemIDs))
     }
 
     static func enforceUniqueEquippedItems(
@@ -165,15 +164,27 @@ enum RosterHydration {
         var unique: [String: EquipmentLoadout] = [:]
         for combatantID in loadouts.keys.sorted() {
             guard let loadout = loadouts[combatantID] else { continue }
-            var cleaned = EquipmentLoadout()
-            for slot in ItemSlot.allCases {
-                guard let itemID = loadout.itemID(for: slot) else { continue }
-                guard claimedItemIDs.insert(itemID).inserted else { continue }
-                cleaned.itemIDsBySlot[slot] = itemID
-            }
-            unique[combatantID] = cleaned
+            unique[combatantID] = EquipmentLoadout(
+                itemIDsBySlot: deduplicatedSlots(in: loadout, claimedItemIDs: &claimedItemIDs),
+            )
         }
         return unique
+    }
+
+    /// Single slot-dedup core shared by within-loadout and cross-loadout
+    /// passes. Iterates `ItemSlot.allCases` in order, keeping the first
+    /// occurrence of each item ID and skipping the rest.
+    private static func deduplicatedSlots(
+        in loadout: EquipmentLoadout,
+        claimedItemIDs: inout Set<String>,
+    ) -> [ItemSlot: String] {
+        var cleaned: [ItemSlot: String] = [:]
+        for slot in ItemSlot.allCases {
+            guard let itemID = loadout.itemID(for: slot) else { continue }
+            guard claimedItemIDs.insert(itemID).inserted else { continue }
+            cleaned[slot] = itemID
+        }
+        return cleaned
     }
 
     static func applyLoadout(

@@ -140,10 +140,6 @@ enum AbilityValidator {
         switch abilityID {
         case "luck-potion":
             (1 ... 12).contains(total)
-        case "blood-offering":
-            total == 4
-        case "smite":
-            total == 4
         case "bash":
             total == 4
         case "ice-shot":
@@ -173,29 +169,15 @@ enum AbilityValidator {
     }
 
     private static func rendersCondition(_ condition: DamageCondition, for component: DamageComponent) -> Bool {
+        // Structural check: the formatted card text must contain the shared
+        // sentence fragment for the condition. Both sides read DamageCondition
+        // so copy changes stay in sync instead of drifting across two tables.
         let generated = AbilityDescriptionFormatter.format(Ability(
             id: "preview",
             name: "preview",
             tier: .basic,
             damageComponents: [component],
         ))
-        return generated.contains(conditionPreview(condition))
-    }
-
-    private static func conditionPreview(_ condition: DamageCondition) -> String {
-        switch condition {
-        case .enemyBleeding: "Bleeding"
-        case .enemyBurning: "Burning"
-        case .enemyNotBurning: "not Burning"
-        case .enemyPoisoned: "Poisoned"
-        case .enemyFrozen: "Frozen"
-        case .enemyStunned: "Stunned"
-        case .enemyStunnedOrFrozen: "Stunned or Frozen"
-        case .enemyMarked: "Marked"
-        case .enemyLowerHealthThanActor: "less Health"
-        case .allyBelowHalfHealth: "half Health"
-        case .enemyHasBuff: "buff"
-        case .firstTurn: "first turn"
-        }
+        return generated.contains(condition.sentenceFragment)
     }
 }

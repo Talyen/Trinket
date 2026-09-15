@@ -131,13 +131,10 @@ public struct ThemedGearGenerator: Sendable {
             }
         }
         guard !candidates.isEmpty else { return nil }
-
-        let ranked = candidates.map { baseType -> (ItemBaseType, Int) in
-            let overlap = baseType.keywordAffinities.intersection(keywordBias).count
-            return (baseType, overlap)
-        }
-        let maxOverlap = ranked.map(\.1).max() ?? 0
-        let topCandidates = ranked.filter { $0.1 == maxOverlap }.map(\.0)
-        return topCandidates.randomElement(using: &randomNumberGenerator)
+        return ItemBasePolicy.maxAffinityBase(
+            from: candidates,
+            keywordBias: keywordBias,
+            using: &randomNumberGenerator,
+        )
     }
 }

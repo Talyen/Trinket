@@ -3,6 +3,32 @@ import os
 import TrinketContent
 import TrinketCore
 
+/// Single logger for the inventory item codec (encode + decode).
+let inventoryMappingLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "InventoryMapping",
+)
+
+/// Inventory item codec: `applyAffixPowers` (encode) lives beside
+/// `restoredItem` (decode) so the drop-vs-fallback-vs-overwrite policy table
+/// stays in one place. See `restoredItem` for the read policy.
+extension InventoryItemModel {
+    func applyAffixPowers(from item: InventoryItem) {
+        if let powers = item.affixPowers {
+            do {
+                affixPowersJSON = try ItemAffixPowerCoding.encode(powers)
+            } catch {
+                inventoryMappingLogger.error(
+                    "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)",
+                )
+                affixPowersJSON = nil
+            }
+        } else {
+            affixPowersJSON = nil
+        }
+    }
+}
+
 extension InventoryModel {
     func toPlayerInventoryState() -> PlayerInventoryState {
         PlayerInventoryState(items: (items ?? [])

@@ -31,6 +31,11 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
         corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
     }
 
+    /// Restores a sanitized, validated save. `sessionGeneration` is excluded
+    /// from cloud coding by design (local coordination only); every install
+    /// path must re-stamp it via `commitCloudState` (which bumps on external
+    /// change) or `PendingSaveRecovery.Record.restoredSave`. Never install a
+    /// raw `restored()` result without stamping.
     func restored() throws -> PlayerSave {
         guard schemaVersion == PlayerSave.currentSchemaVersion, modifiedAt.timeIntervalSince1970.isFinite else {
             throw CloudSaveError.unsupportedSave
@@ -55,12 +60,16 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
         return sanitized
     }
 
+    /// Fresh-install tie-break input: whether either side holds real player
+    /// progress. Contracts offers are excluded deliberately (regenerable
+    /// board state, not progress); talents are included (spent points).
     var hasProgress: Bool {
         starterSelection.phase != .chooseHero
             || !journey.completedStageIDs.isEmpty
             || !inventory.isEmpty
             || !homestead.nodeTiers.isEmpty
             || roster.gold > 0
+            || !roster.unlockedTalents.isEmpty
             || labyrinth.hasEntered
             || !spires.highestClearedFloorBySpireID.isEmpty
     }

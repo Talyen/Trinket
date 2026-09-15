@@ -35,6 +35,9 @@ SFX_DIR = MEDIA_DIR / "SFX"
 CINEMATICS_DIR = MEDIA_DIR / "Cinematics"
 
 KINDS_REQUIRING_THUMB = {
+    # Must match trinket_asset_needs_thumb in Scripts/lib/media-assets.sh:
+    # resource / slot_background ship full-only, every other art kind ships
+    # full + thumb. Edit both places together.
     "combatant",
     "ability",
     "item",

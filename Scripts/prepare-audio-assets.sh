@@ -66,8 +66,7 @@ prepare_music() {
   local bitrate="${MUSIC_AAC_BITRATE:-96000}"
   local encode_profile="container=m4af;codec=aac;bitrate=$bitrate;soundcheck=true"
 
-  if [[ ! -f "$manifest" ]]; then
-    echo "Missing manifest: $manifest" >&2
+  if ! trinket_asset_require_manifest "$manifest"; then
     exit 1
   fi
   trinket_asset_require_afconvert
@@ -109,8 +108,7 @@ prepare_music() {
     trinket_asset_assert_unique "$seen_ids_temp" "music track id" "$id"
     trinket_asset_assert_unique "$seen_assets_temp" "music asset name" "$asset_name"
 
-    if [[ ! -f "$source_path" ]]; then
-      echo "Missing source file for '$id': $source_path" >&2
+    if ! trinket_asset_require_source_file "$id" "$source_path"; then
       exit 1
     fi
 
@@ -122,10 +120,7 @@ prepare_music() {
         ;;
     esac
 
-    if [[ ! "$volume_gain" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-      echo "Volume gain for '$id' must be numeric." >&2
-      exit 1
-    fi
+    trinket_asset_validate_volume_gain "$id" "$volume_gain"
 
     if [[ "$kind_col" == "boss" ]]; then
       if [[ -z "$boss_enemy_id" ]]; then
@@ -231,8 +226,7 @@ prepare_sfx() {
   local bitrate="${SFX_AAC_BITRATE:-64000}"
   local encode_profile="container=m4af;codec=aac;bitrate=$bitrate;soundcheck=true"
 
-  if [[ ! -f "$manifest" ]]; then
-    echo "Missing manifest: $manifest" >&2
+  if ! trinket_asset_require_manifest "$manifest"; then
     exit 1
   fi
   trinket_asset_require_afconvert
@@ -268,15 +262,11 @@ prepare_sfx() {
     trinket_asset_assert_unique "$seen_symbols_temp" "SFX Swift symbol" "$swift_symbol"
     trinket_asset_assert_unique "$seen_sfx_assets_temp" "SFX asset name" "$asset_name"
 
-    if [[ ! -f "$source_path" ]]; then
-      echo "Missing source file for '$id': $source_path" >&2
+    if ! trinket_asset_require_source_file "$id" "$source_path"; then
       exit 1
     fi
 
-    if [[ ! "$volume_gain" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-      echo "Volume gain for '$id' must be numeric." >&2
-      exit 1
-    fi
+    trinket_asset_validate_volume_gain "$id" "$volume_gain"
 
     printf '%s\n' "$asset_name.m4a" >> "$active_clips_temp"
 

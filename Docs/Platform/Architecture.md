@@ -25,7 +25,7 @@ Packages/
     Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
   TrinketAppState/          App/Play orchestration, encounter sessions, options, and audio
-  TrinketTestSupport/       Shared combat/content fixtures (CombatantFixtures, battle parties)
+  TrinketTestSupport/       Shared battle-party fixtures (re-exports combat/content fixtures)
 
 ContentManifest/            affixes.tsv, item_bases.tsv, stages.tsv, combatants.tsv, …
 ArtManifest/                curated-assets.tsv
@@ -70,49 +70,19 @@ Play → Collection → Homestead → Options
 
 ## Generate
 
-Single entry point: `./Scripts/generate.sh` (add `--assets` for art, music, SFX, and cinematics). Operational steps, authored vs generated inputs, and ability catalogs: [content-and-manifests.md](../AgentContext/content-and-manifests.md). CI/pre-push asserts generated output matches HEAD. Path-scoped `handoff` runs `assert-generated-output.sh --idempotent` when generation inputs change; use `./Scripts/assert-generated-output.sh --idempotent` for a standalone check.
+Single entry point: `./Scripts/generate.sh` (add `--assets` for art, music, SFX, and cinematics). Operational steps, authored vs generated inputs, and consistency checks: [content-and-manifests.md](../AgentContext/content-and-manifests.md).
 
 ## Dependency rules
 
-This diagram highlights production ownership boundaries; it omits some direct
-dependencies on lower-level modules. Arrows mean “may depend on.” Reverse edges
-are forbidden. `project.yml` and each `Package.swift` enumerate the actual target
-dependencies; `check-module-boundaries.sh` enforces the production restrictions.
-`TrinketFeatureSupport`, `TrinketFeatureContracts`, and
-`TrinketFeatureAdapters` below are products/targets hosted by the single
-`Packages/TrinketFeatureSupport` package.
-
-```text
-Trinket app
-  ├── TrinketAppState
-  │     ├── BattleEngine (BattleRuntime contract)
-  │     ├── TrinketPersistence
-  │     └── TrinketFeatureContracts
-  ├── TrinketBattleFeature
-  ├── TrinketFeatureSupport
-  └── TrinketFeatureAdapters
-
-TrinketBattleFeature ───→ TrinketFeatureSupport
-TrinketBattleFeature ───→ TrinketFeatureContracts
-TrinketBattleFeature ───→ BattleEngine
-
-BattleEngine ───────────→ TrinketContent ──→ TrinketCore
-
-TrinketFeatureAdapters ──→ TrinketFeatureSupport
-        │                   BattleEngine
-        │                   TrinketPersistence
-        │                   TrinketContent
-        │                   TrinketDesignSystem
-        └─────────────────→ TrinketCore
-
-TrinketFeatureSupport ───→ TrinketContent ──→ TrinketCore
-        └───────────────→ TrinketDesignSystem ──→ TrinketCore
-
-TrinketFeatureContracts ──→ TrinketContent ──→ TrinketCore
-
-TrinketPersistence ─────→ TrinketContent ──→ TrinketCore
-TrinketDesignSystem ───────────────────────→ TrinketCore
-```
+`project.yml` and each `Package.swift` enumerate the actual target
+dependencies; `./Scripts/check-module-boundaries.sh` enforces the production
+restrictions below, and reverse edges are forbidden. `TrinketFeatureSupport`,
+`TrinketFeatureContracts`, and `TrinketFeatureAdapters` are products/targets
+hosted by the single `Packages/TrinketFeatureSupport` package. The app target
+composes `TrinketAppState`, `TrinketBattleFeature`, `TrinketFeatureSupport`,
+and `TrinketFeatureAdapters`; lower-level layering is `BattleEngine` /
+`TrinketFeatureSupport` / `TrinketFeatureContracts` / `TrinketPersistence` →
+`TrinketContent` → `TrinketCore`, with `TrinketDesignSystem` → `TrinketCore`.
 
 `BattleEngine` and `TrinketPersistence` remain siblings and never import one another.
 `TrinketFeatureSupport` is persistence- and battle-engine-free reusable presentation.

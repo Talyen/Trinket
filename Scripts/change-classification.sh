@@ -82,14 +82,22 @@ trinket_package_has_tests() {
   return 1
 }
 
+# Consumers that pin shared fixture behavior; fixture source changes fan out
+# to all of them (see Scripts/Tests/test_ci_verification_scripts.py).
+TRINKET_SHARED_FIXTURE_CONSUMERS=(BattleEngine TrinketAppState TrinketBattleFeature TrinketFeatureSupport)
+
+trinket_route_shared_fixture_verification() {
+  local consumer
+  for consumer in "${TRINKET_SHARED_FIXTURE_CONSUMERS[@]}"; do
+    trinket_add_package "$consumer"
+  done
+}
+
 # Route touched package diffs to package tests or app compile proof.
 trinket_route_package_verification() {
   local package="$1"
   if [[ "$package" == TrinketTestSupport ]]; then
-    local consumer
-    for consumer in BattleEngine TrinketAppState TrinketBattleFeature TrinketFeatureSupport; do
-      trinket_add_package "$consumer"
-    done
+    trinket_route_shared_fixture_verification
   elif trinket_package_has_tests "$package"; then
     trinket_add_package "$package"
   else
@@ -430,7 +438,7 @@ trinket_add_persistence_contracts_for_path() {
 trinket_add_knowledge_for_path() {
   local path="$1"
   case "$path" in
-    *PreparedArtwork*|Trinket/App/TrinketApp.swift|*PerformanceInvestigationPlaybook.md|*MemoryAndEnergyInvestigation.md|Scripts/check-artwork-budget.sh|Scripts/check-agent-invariants.sh|Scripts/prepare-art-assets.sh|ArtManifest/*|Raw\ Assets/*)
+    *PreparedArtwork*|Trinket/App/TrinketApp.swift|*PerformanceInvestigationPlaybook.md|Scripts/check-artwork-budget.sh|Scripts/check-agent-invariants.sh|Scripts/prepare-art-assets.sh|ArtManifest/*|Raw\ Assets/*)
       trinket_add_knowledge .agents/knowledge/patterns/artwork-working-set.md
       ;;
   esac
@@ -516,6 +524,12 @@ trinket_classify_path() {
     project.yml)
       TRINKET_HAS_PROJECT=true
       TRINKET_NEEDS_PROJECT_GENERATION=true
+      TRINKET_AUTHORED_PATHS+=("$path")
+      ;;
+    Packages/TrinketContent/Sources/TrinketContentTestSupport/*)
+      TRINKET_NEEDS_STYLE=true
+      trinket_add_package TrinketContent
+      trinket_route_shared_fixture_verification
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Packages/TrinketContent/*.swift)

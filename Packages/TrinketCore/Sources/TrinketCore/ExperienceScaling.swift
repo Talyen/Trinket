@@ -5,6 +5,7 @@ enum ProgressionBracket: Equatable {
     case mid
     case late
 
+    /// Boundaries come from `EnemyPowerCurve.midLevel/lateLevel`; change both together.
     static func forLevel(_ level: Int) -> Self {
         if level < EnemyPowerCurve.midLevel {
             return .early
@@ -75,6 +76,8 @@ public enum ExperienceScaling {
         cappedAward(amount, requiredXP: progression.requiredXP)
     }
 
+    /// Core cap keyed by XP requirement; the `CombatantProgression` overload above
+    /// is the call-site convenience used by reward code.
     public static func cappedAward(_ amount: Int, requiredXP: Int) -> Int {
         guard amount > 0 else { return 0 }
         let ceiling = max(0, requiredXP) * maxGrantLevelsEquivalent
@@ -91,6 +94,8 @@ public enum ExperienceScaling {
         return CombatRounding.scaled(baseExperience, multiplier: multiplier)
     }
 
+    /// Catch-up bonus for underleveled party members. `maxMultiplier` caps the
+    /// bonus (default 2.5x); growth decays exponentially with the level gap.
     public static func catchUpMultiplier(
         for combatantLevel: Int,
         highestLevel: Int,

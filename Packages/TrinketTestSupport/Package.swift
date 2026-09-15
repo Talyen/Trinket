@@ -24,6 +24,7 @@ let package = Package(
             dependencies: [
                 "TrinketCore",
                 "TrinketContent",
+                .product(name: "TrinketContentTestSupport", package: "TrinketContent"),
             ],
         ),
     ],

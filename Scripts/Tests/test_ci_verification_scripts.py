@@ -791,21 +791,22 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("test-package.sh BattleEngine", plan)
 
     def test_shared_fixture_verification_routes(self) -> None:
-        root = "Packages/TrinketTestSupport"
-        fixtures = [
-            f"{root}/Sources/TrinketTestSupport/{name}.swift"
-            for name in ("CombatantFixtures", "BattlePartyFixtures", "ItemFixtures")
-        ]
+        support_root = "Packages/TrinketTestSupport"
+        content_support = "Packages/TrinketContent/Sources/TrinketContentTestSupport"
+        combatant = f"{content_support}/CombatantFixtures.swift"
+        item = f"{content_support}/ItemFixtures.swift"
+        party = f"{support_root}/Sources/TrinketTestSupport/BattlePartyFixtures.swift"
         consumers = {"BattleEngine", "TrinketAppState", "TrinketBattleFeature", "TrinketFeatureSupport"}
         cases = [
-            *[(name, [path], consumers, False, False) for name, path in zip(
-                ("combatant", "party", "item"), fixtures
-            )],
-            ("manifest", [f"{root}/Package.swift"], consumers, False, True),
-            ("deleted", [f"{root}/Sources/TrinketTestSupport/DeletedFixture.swift"], consumers, False, False),
-            ("deduplicated", fixtures + ["Packages/BattleEngine/Tests/BattleEngineTests/BattleStateTests.swift"], consumers, False, False),
-            ("mixed-app", [fixtures[0], "Trinket/App/TrinketApp.swift"], consumers, True, False),
-            ("docs", [f"{root}/README.md"], set(), False, False),
+            ("combatant", [combatant], consumers | {"TrinketContent"}, False, False),
+            ("item", [item], consumers | {"TrinketContent"}, False, False),
+            ("party", [party], consumers, False, False),
+            ("manifest", [f"{support_root}/Package.swift"], consumers, False, True),
+            ("content-manifest", ["Packages/TrinketContent/Package.swift"], {"TrinketContent"}, False, True),
+            ("deleted", [f"{content_support}/DeletedFixture.swift"], consumers | {"TrinketContent"}, False, False),
+            ("deduplicated", [combatant, item, party, "Packages/BattleEngine/Tests/BattleEngineTests/BattleStateTests.swift"], consumers | {"TrinketContent"}, False, False),
+            ("mixed-app", [party, "Trinket/App/TrinketApp.swift"], consumers, True, False),
+            ("docs", [f"{support_root}/README.md"], set(), False, False),
         ]
         for name, paths, expected_packages, app_build, generation in cases:
             with self.subTest(case=name):
@@ -908,8 +909,8 @@ prepare_generated_inputs results
             ("Trinket.xcodeproj/project.pbxproj", ""),
             ("Scripts/internal/content/content_codegen_modifiers.py", "--skip-xcodegen"),
             ("Scripts/internal/content/content_codegen_triggers.py", "--skip-xcodegen"),
-            ("Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift", "--skip-xcodegen"),
-            ("Packages/TrinketContent/Sources/TrinketContent/Encounters/MysteryEventPool+Wilds.swift", "--skip-xcodegen"),
+            ("Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift", "--skip-xcodegen"),
+            ("Packages/TrinketContent/Sources/TrinketContent/Encounters/MysteryEventPool+Events.swift", "--skip-xcodegen"),
             ("Packages/TrinketContent/Sources/TrinketContent/Encounters/RecruitEventPool.swift", "--skip-xcodegen"),
             ("Scripts/lib/media-assets.sh", "--assets"),
             ("Scripts/prepare-assets.sh", "--assets"),

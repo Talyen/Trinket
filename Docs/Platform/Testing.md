@@ -30,8 +30,9 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 Prefer [TrinketTestSupport](../../Packages/TrinketTestSupport/README.md) for shared
 combat and content fixtures. Save harnesses belong to `TrinketPersistence`'s
 `TrinketPersistenceTestSupport` target so shared combat fixtures stay Persistence-free.
-`TrinketContentTests` carries a mirrored `ItemFixtures` copy to avoid a package
-cycle; keep the two signatures in sync. Package-specific construction, RNG, and
+The fixture implementations live in `TrinketContent`'s `TrinketContentTestSupport`
+target so `TrinketContentTests` can use them without a package cycle; that
+package's README owns the fixture contract. Package-specific construction, RNG, and
 dispatch conventions belong in the owning test guide, including
 [BattleEngine](../../Packages/BattleEngine/Tests/README.md#conventions) and
 [Persistence](../../Packages/TrinketPersistence/Tests/README.md).

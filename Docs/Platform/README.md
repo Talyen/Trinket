@@ -12,7 +12,6 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | [Release.md](Release.md) | Versions, release notes, tags, and App Store handoff |
 | [ApplePlatformReference.md](ApplePlatformReference.md) | iOS support, adoption, and Apple design/API choices |
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Human CloudKit / App Store enablement checklist |
-| [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) | Frame-pacing investigation only — do not run unless the task is performance |
-| [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) | Device-led memory/energy investigation only |
+| [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) | Frame-pacing + device memory/energy investigation only — do not run unless the task is performance |
 
 Related: [Audits](../Audits/README.md), [Identity](../Product/Identity.md), [Product](../Product/README.md).

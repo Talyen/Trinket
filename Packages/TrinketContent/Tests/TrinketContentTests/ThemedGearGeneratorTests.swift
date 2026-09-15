@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 
 struct ThemedGearGeneratorTests {

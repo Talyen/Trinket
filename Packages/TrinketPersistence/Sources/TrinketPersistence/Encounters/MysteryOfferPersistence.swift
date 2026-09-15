@@ -78,16 +78,22 @@ public enum MysteryOfferPersistence {
         }
         guard saved.contains(offer) else { return MysteryEffectResult() }
         let grantDate = save.homestead.lastProductionAt
-        let result = MysteryEffectApplier.apply(offer, save: &save, at: grantDate)
+        // Candidate-commit: item grant + bonus + markCleared + payload clear
+        // apply atomically. `apply` is item-first (duplicate item grants
+        // nothing, including no bonus), so the failure path discards the
+        // candidate with no partial gold/material/XP mutation.
+        var candidate = save
+        let result = MysteryEffectApplier.apply(offer, save: &candidate, at: grantDate)
         guard result.grantedItems.count == 1 else { return result }
         if let labyrinthNodeID {
-            save.labyrinth.markCleared(nodeID: labyrinthNodeID, eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs)
+            candidate.labyrinth.markCleared(nodeID: labyrinthNodeID, eligibleRecruitEventIDs: candidate.roster.eligibleRecruitEventIDs)
         } else {
-            save.journey.markRewardsClaimed(for: stage)
-            save.journey.complete(stage, in: GameContent.chapters)
+            candidate.journey.markRewardsClaimed(for: stage)
+            candidate.journey.complete(stage, in: GameContent.chapters)
         }
-        ItemCorruptionApplier.noteMysteryCompleted(save: &save)
-        clear(stageID: stage.id, labyrinthNodeID: labyrinthNodeID, save: &save)
+        ItemCorruptionApplier.noteMysteryCompleted(save: &candidate)
+        clear(stageID: stage.id, labyrinthNodeID: labyrinthNodeID, save: &candidate)
+        save = candidate
         return result
     }
 

@@ -50,6 +50,16 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
 }
 
 public extension EffectKind {
+    /// Lifecycle matrix: `Effect.durationTurns == 0` covers both instant effects
+    /// (resolved immediately, never stored) and indefinite effects (stored until
+    /// removed or consumed). Disambiguate with `isInstant`, `advancesEachTurn`,
+    /// and the removability flags below.
+    ///
+    /// Known quirks, documented here rather than reclassified, pending battle-owner review:
+    /// - `.hemorrhage` is a removable debuff with zero duration that never advances.
+    /// - `.maximumManaBonus` is both instant and a removable buff.
+    /// - `.blessedAegis` is instant with neither buff nor debuff flag, unlike the
+    ///   otherwise similar `thorns`/`onHitDamage` wards.
     var isRemovableDebuff: Bool {
         behavior.isRemovableDebuff
     }
@@ -74,43 +84,48 @@ public extension EffectKind {
         behavior.isBleed
     }
 
-    private var behavior: (
-        isRemovableDebuff: Bool,
-        isRemovableBuff: Bool,
-        advancesEachTurn: Bool,
-        isInstant: Bool,
-        isDecayingDoT: Bool,
-        isBleed: Bool,
-    ) {
+    /// Flag bundle for one effect kind. Members default to false so each case below
+    /// names only the flags it sets; the single exhaustive switch keeps the compiler
+    /// checking newly added kinds.
+    private struct Behavior {
+        var isRemovableDebuff = false
+        var isRemovableBuff = false
+        var advancesEachTurn = false
+        var isInstant = false
+        var isDecayingDoT = false
+        var isBleed = false
+    }
+
+    private var behavior: Behavior {
         switch self {
         case .burn, .poison:
-            (true, false, true, false, true, false)
+            Behavior(isRemovableDebuff: true, advancesEachTurn: true, isDecayingDoT: true)
         case .bleed:
-            (true, false, true, false, false, true)
+            Behavior(isRemovableDebuff: true, advancesEachTurn: true, isBleed: true)
         case .controlMeter:
-            (true, false, true, false, false, false)
+            Behavior(isRemovableDebuff: true, advancesEachTurn: true)
         case .shield:
-            (false, true, false, false, false, false)
+            Behavior(isRemovableBuff: true)
         case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards,
              .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom,
              .purge, .purgeRandom, .halveShield,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
              .multiplyDoT, .detonateDoT, .revive, .blessedAegis:
-            (false, false, false, true, false, false)
+            Behavior(isInstant: true)
         case .deathsDoor:
-            (false, false, true, false, false, false)
+            Behavior(advancesEachTurn: true)
         case .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage:
-            (false, true, false, false, false, false)
+            Behavior(isRemovableBuff: true)
         case .maximumManaBonus:
-            (false, true, false, true, false, false)
+            Behavior(isRemovableBuff: true, isInstant: true)
         case .marked, .recurringDamage, .damageReductionPercent,
              .damageReductionFlat, .healingReductionPercent:
-            (true, false, true, false, false, false)
+            Behavior(isRemovableDebuff: true, advancesEachTurn: true)
         case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride, .avatar:
-            (false, true, true, false, false, false)
+            Behavior(isRemovableBuff: true, advancesEachTurn: true)
         case .hemorrhage:
-            (true, false, false, false, false, false)
+            Behavior(isRemovableDebuff: true)
         }
     }
 

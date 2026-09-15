@@ -98,7 +98,7 @@ The default full-catalog ceiling is 1024 MiB. Override it while investigating wi
 when the generated catalog exceeds the configured ceiling. This is a full-catalog
 sizing check, not a measurement of launch decoding or simultaneous residency;
 resident/process diagnostic thresholds and device verification:
-[MemoryAndEnergyInvestigation.md](../Docs/Platform/MemoryAndEnergyInvestigation.md).
+[Memory and energy](../Docs/Platform/PerformanceInvestigationPlaybook.md#memory-and-energy).
 
 ## Adding Art
 

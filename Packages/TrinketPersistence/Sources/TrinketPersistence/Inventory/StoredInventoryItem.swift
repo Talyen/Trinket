@@ -1,6 +1,11 @@
 import TrinketContent
 import TrinketCore
 
+/// Codable snapshot of an inventory item embedded in offer-payload blobs
+/// (shop stock, mystery offers). Distinct from the normalized SwiftData
+/// `InventoryItemModel` rows (durable store) and `CloudItemSnapshot` (cloud
+/// wire): payloads must round-trip verbatim (rarity/powers preserved, unknown
+/// base throws) so a saved offer resolves identically on claim.
 struct StoredInventoryItem: Codable {
     let id: String
     let templateID: String

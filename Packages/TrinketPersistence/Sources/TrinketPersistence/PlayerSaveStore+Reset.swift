@@ -1,7 +1,10 @@
 import Foundation
 import SwiftData
 
+@MainActor
 extension PlayerSaveStore {
+    /// Cloud-install path: preserves the incoming candidate in the pending
+    /// recovery file before the primary write (via `applyCandidate`).
     func resetRoot(with save: PlayerSave) throws {
         let snapshot = currentSave
         let sanitized = PlayerSaveSanitizer.sanitize(save)
@@ -9,18 +12,19 @@ extension PlayerSaveStore {
         try applyCandidate(sanitized, replacing: snapshot, slices: .all)
     }
 
+    /// Local-reset path: writes the primary graph first and only replaces the
+    /// pending record when the fresh reset is durable, so a failed reset
+    /// retains prior recoverable progress.
     func resetRootDurably(with save: PlayerSave) throws {
         let snapshot = currentSave
         let sanitized = PlayerSaveSanitizer.sanitize(save)
         try PlayerSaveSanitizer.validate(sanitized)
         root.apply(sanitized, slices: .all, context: context)
         do {
-            if !preservesUnreadableCloudState {
-                root.cloudStatePayload = try JSONEncoder().encode(cloudDeviceState)
-            }
+            try encodeCloudStateForSave()
             try savePrimaryGraph()
         } catch {
-            compensate(snapshot: snapshot, slices: .all)
+            restoreSnapshot(snapshot, slices: .all)
             lastPersistenceError = .writeFailed
             throw PlayerSavePersistenceError.writeFailed
         }
@@ -72,7 +76,11 @@ extension PlayerSaveStore {
     }
 
     func resetDurableStorage() throws {
-        guard let recoveryConfiguration else { throw Self.memoryFallbackError }
+        guard let recoveryConfiguration else {
+            throw PlayerSavePersistenceError.storeUnavailable(
+                "Couldn't reset saved progress on this device.",
+            )
+        }
         let previous = (container: container, context: context, root: root)
         // PersistenceCheck: allow - backup is best-effort; missing backup clears a partial reset record
         let pendingBackup = try? pendingSaveRecovery?.pendingData()
@@ -112,6 +120,10 @@ extension PlayerSaveStore {
 
     func savePrimaryGraph() throws {
         #if DEBUG
+        // Mirrors the total-failure check in saveGraph for paths that bypass
+        // it (durable resets). Normal commits throw before the pending write;
+        // resets throw here, after root.apply but before any file mutation,
+        // so prior recoverable progress is preserved.
         if forcesNextSaveFailure {
             forcesNextSaveFailure = false
             throw NSError(domain: "PlayerSaveStoreTests", code: 1)
@@ -122,10 +134,6 @@ extension PlayerSaveStore {
         }
         #endif
         try context.save()
-    }
-
-    func compensate(snapshot: PlayerSave, slices: PlayerSaveSlice) {
-        restoreSnapshot(snapshot, slices: slices)
     }
 
     private func resetWithIncrementedSessionGeneration(_ base: PlayerSave) throws {

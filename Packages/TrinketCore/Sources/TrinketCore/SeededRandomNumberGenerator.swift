@@ -1,3 +1,6 @@
+/// Deterministic LCG for replays and tests. Synthesized `Equatable` intentionally
+/// includes draw progress (`state`), so a used generator never equals a fresh one
+/// with the same seed.
 public struct SeededRandomNumberGenerator: RandomNumberGenerator, Equatable, Sendable {
     public let seed: UInt64
 

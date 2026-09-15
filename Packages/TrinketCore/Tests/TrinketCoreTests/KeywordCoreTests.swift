@@ -75,4 +75,20 @@ struct KeywordCoreTests {
     @Test func `bleed rules text matches turn count`() {
         #expect(Keyword.bleed.rulesText.contains("\(Effect.bleedDoTTurnCount) round"))
     }
+
+    @Test func `highlight pattern compiles`() {
+        #expect(Keyword.highlightRegex != nil)
+        #expect(!Keyword.highlightPattern.isEmpty)
+        #expect(!Keyword.termLookup.isEmpty)
+    }
+
+    @Test func `mana rules text matches empowerment tuning`() {
+        #expect(Keyword.mana.rulesText.contains("3 Mana"))
+        #expect(Keyword.mana.rulesText.contains("+1 Burn"))
+    }
+
+    @Test func `referenced text without keywords is empty`() {
+        #expect(Keyword.referenced(in: "").isEmpty)
+        #expect(Keyword.referenced(in: "Draw a card.").isEmpty)
+    }
 }

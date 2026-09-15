@@ -58,17 +58,12 @@ public extension GameContent {
         if let authored {
             return authored
         }
-        if let pinnedEventID,
-           let pinned = mysteryEvent(matching: pinnedEventID) ?? recruitEvent(matching: pinnedEventID) {
+        if let pinned = pinnedMysteryEvent(pinnedEventID: pinnedEventID) {
             return pinned
         }
-        var randomNumberGenerator = SeededRandomNumberGenerator(
+        return seededMysteryEvent(
             seed: encounterSeed(worldSeed, salt: "journey-mystery-\(stageID)"),
-        )
-        return resolveMysteryEncounterEvent(
-            authored: nil,
             context: context,
-            using: &randomNumberGenerator,
         )
     }
 
@@ -99,17 +94,12 @@ public extension GameContent {
            let forced = mysteryEvent(matching: forcedEventID) ?? recruitEvent(matching: forcedEventID) {
             return forced
         }
-        if let pinnedEventID,
-           let pinned = mysteryEvent(matching: pinnedEventID) ?? recruitEvent(matching: pinnedEventID) {
+        if let pinned = pinnedMysteryEvent(pinnedEventID: pinnedEventID) {
             return pinned
         }
-        var randomNumberGenerator = SeededRandomNumberGenerator(
+        return seededMysteryEvent(
             seed: encounterSeed(worldSeed, salt: "labyrinth-mystery-\(nodeID)"),
-        )
-        return resolveMysteryEncounterEvent(
-            authored: nil,
             context: context,
-            using: &randomNumberGenerator,
         )
     }
 
@@ -145,6 +135,25 @@ public extension GameContent {
             return .recruit(recruit)
         }
         return .mystery(pickMysteryEvent(using: &randomNumberGenerator))
+    }
+
+    /// Shared pinned-event lookup for journey/labyrinth resolution.
+    private static func pinnedMysteryEvent(pinnedEventID: String?) -> MysteryEvent? {
+        guard let pinnedEventID else { return nil }
+        return mysteryEvent(matching: pinnedEventID) ?? recruitEvent(matching: pinnedEventID)
+    }
+
+    /// Shared seeded fallback for journey/labyrinth resolution.
+    private static func seededMysteryEvent(
+        seed: UInt64,
+        context: MysteryEventPickContext,
+    ) -> MysteryEvent {
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+        return resolveMysteryEncounterEvent(
+            authored: nil,
+            context: context,
+            using: &randomNumberGenerator,
+        )
     }
 
     static func resolveRecruitStage(

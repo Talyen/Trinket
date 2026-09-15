@@ -7,7 +7,7 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 
 ## Structure
 
-- **Abilities/** — Ability models, builders, validation, and authored `AbilityCatalog{Basic,Skill,Ultimate}.swift` catalogs.
+- **Abilities/** — Ability models, validation, and the authored `AbilityCatalog.swift` catalog (tiers grouped by `// MARK:` sections).
 - **Equipment/** — Item and affix models, Unique catalogs, and loot generation.
 - **Encounters/** — Journey, Labyrinth, Spire, Contracts, Mysteries, shops, and reward settlement.
 - **Roster/** — Combatant models, equipment/keyword projections, and talent/trait lookup.
@@ -16,8 +16,11 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 - **Generated/** — Auto-generated catalogs from manifests, ability shorthand, talent dictionaries, and trigger-family structs (do not edit directly)
 
 The source root holds `GameContent`, shared access policy, and trigger coding.
-Domain-specific `GameContent` extensions live beside their models and catalogs;
-all folders remain in the same target.
+Domain-specific `GameContent` extensions live beside their models and catalogs.
+`Sources/TrinketContentTestSupport/` is the one additional target: shared
+combat/content test fixtures (`CombatantFixtures`, `ItemFixtures`) that
+`TrinketContentTests` and `TrinketTestSupport` both consume without a package
+cycle. All other folders remain in the main target.
 
 ## Manifest sources
 

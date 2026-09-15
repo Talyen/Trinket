@@ -77,6 +77,16 @@ public extension LootRequest {
             materialsFoundPercent: effects.materialsFoundPercent,
         )
     }
+
+    /// Fourth loot-request factory, co-located with the other three so a
+    /// seed/level change touches one extension instead of four call sites.
+    static func contract(offerID: String, encounterLevel: Int) -> LootRequest {
+        LootRequest(
+            rewardLevel: encounterLevel,
+            seedSalt: "battle-loot-contract-\(offerID)",
+            itemID: "contract-\(offerID)-loot",
+        )
+    }
 }
 
 public enum VictoryRewardApplier {

@@ -49,6 +49,12 @@ final class PendingSaveRecovery {
         url.deletingPathExtension().appendingPathExtension("previous.json")
     }
 
+    /// Atomic sidecar write shared by pending/previous/restore paths.
+    private func writeDataAtomically(_ data: Data, to destination: URL) throws {
+        try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: destination, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+    }
+
     func pendingData() throws -> Data? {
         guard hasPendingSave else { return nil }
         return try Data(contentsOf: url)
@@ -56,8 +62,7 @@ final class PendingSaveRecovery {
 
     func restorePendingData(_ data: Data?) throws {
         if let data {
-            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+            try writeDataAtomically(data, to: url)
             hasPendingSave = true
         } else {
             try clear()
@@ -111,18 +116,13 @@ final class PendingSaveRecovery {
 
     func write(save: PlayerSave, cloudState: Data?) throws {
         let data = try JSONEncoder().encode(Record(save: save, cloudState: cloudState))
-        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        try writeDataAtomically(data, to: url)
         hasPendingSave = true
     }
 
     func preservePrevious(save: PlayerSave, cloudState: Data?) throws {
         let data = try JSONEncoder().encode(Record(save: save, cloudState: cloudState))
-        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try data.write(
-            to: previousFileURL,
-            options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication],
-        )
+        try writeDataAtomically(data, to: previousFileURL)
     }
 
     func clear() throws {
@@ -137,14 +137,14 @@ final class PendingSaveRecovery {
     func retryInBackground(_ attempt: @escaping @MainActor () -> Bool) {
         guard retryTask == nil else { return }
         retryTask = Task { @MainActor [weak self] in
-            var delay = 0.25
+            var delay = SaveRetryPolicy.initialDelay
             while !Task.isCancelled {
                 do { try await Task.sleep(for: .seconds(delay)) } catch { break }
                 guard self != nil else { return }
                 if attempt() {
                     break
                 }
-                delay = min(delay * 2, 30)
+                delay = SaveRetryPolicy.nextDelay(after: delay)
             }
             self?.retryTask = nil
         }

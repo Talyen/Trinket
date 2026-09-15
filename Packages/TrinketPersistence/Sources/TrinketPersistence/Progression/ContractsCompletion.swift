@@ -8,11 +8,7 @@ public enum ContractsCompletion {
         save: PlayerSave,
     ) -> BattleLootResult {
         VictoryRewardApplier.resolveLoot(
-            LootRequest(
-                rewardLevel: encounterLevel,
-                seedSalt: "battle-loot-contract-\(offer.id)",
-                itemID: rewardItemID(offerID: offer.id),
-            ),
+            .contract(offerID: offer.id, encounterLevel: encounterLevel),
             encounterLevel: encounterLevel,
             enemyIsBoss: VictoryRewardApplier.isBoss(enemyID: offer.enemyID),
             worldSeed: save.worldSeed,
@@ -45,9 +41,5 @@ public enum ContractsCompletion {
             save: &save,
         )
         return true
-    }
-
-    private static func rewardItemID(offerID: String) -> String {
-        "contract-\(offerID)-loot"
     }
 }

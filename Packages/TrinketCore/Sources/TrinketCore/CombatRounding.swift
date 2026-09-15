@@ -1,11 +1,14 @@
 import Foundation
 
 public enum CombatRounding {
+    /// Scales a non-positive base to zero; saturates at `Int.max` instead of trapping.
     public static func scaled(_ value: Int, multiplier: Double) -> Int {
         guard value > 0 else { return 0 }
         return rounded(Double(value) * multiplier)
     }
 
+    /// Clamps negatives and non-finite inputs to zero; saturates at `Int.max`.
+    /// Uses banker's rounding, so exact .5 ties round to even.
     public static func rounded(_ value: Double) -> Int {
         guard value.isFinite else { return 0 }
         let rounded = value.rounded()

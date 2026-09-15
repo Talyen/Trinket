@@ -46,7 +46,8 @@ enum BattleCardCueRecipes {
              .recurringDamage, .healingReductionPercent, .hemorrhage:
             .attack
         case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride, .nextHolyStrike,
-             .nextStrikeDouble, .nextBurnBonus, .maximumManaBonus, .nextStrikeCritical, .avatar:
+             .nextStrikeDouble, .nextBurnBonus, .maximumManaBonus, .nextStrikeCritical, .nextStrikeLeech,
+             .partyPhysicalBonus, .avatar:
             .prepare
         case .drawCards, .drawAndPlayCards, .resourceGain:
             .gain

@@ -90,6 +90,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case let .damageTakenPercent(keyword, _), let .damageTakenFlat(keyword, _), let .damageTakenVulnerability(keyword, _):
             "\(keyword.rawValue) damage taken"
         case .companionDamageDealt: "Companion damage"
+        case .companionPhysicalDamageDealt: "Companion Physical damage"
         case .companionBleedDamageDealt: "Companion Bleed damage"
         case .outgoingDamagePercent: "Party damage"
         case .incomingDamageReductionPercent: "Party damage taken"

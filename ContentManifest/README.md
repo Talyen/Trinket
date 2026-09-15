@@ -70,12 +70,10 @@ id	name	description	modifiers	triggers
 Abilities are authored only in:
 
 ```text
-Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift
-Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogSkill.swift
-Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogUltimate.swift
+Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift
 ```
 
-- Prefer `AbilityBuilder.directHit` / `buffOnly` / `multiDamage` for repeated shapes; use `Ability(...)` when you need custom targeting, mana, conditionals, or other knobs builders do not cover.
+- Author abilities with `Ability(...)` directly; use the `directDamage:` convenience for single-hit cards and `effects:` for effect-only cards.
 - After editing, run `./Scripts/generate.sh` to refresh `AbilityShorthand.generated.swift` and `AbilityInventory.generated.tsv`.
 - **List / understand all abilities:** read `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary`) or `AbilityCatalog.all` — not a ContentManifest TSV.
 

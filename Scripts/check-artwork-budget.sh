@@ -2,6 +2,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Scope: runtime cache constants only, not media-pipeline output sizes.
+# Despite the name, this never touches Trinket/Assets.xcassets or Trinket/Media;
+# see Scripts/check-unused-assets.py for pipeline orphan/missing coverage.
+
 violations=()
 
 # Enforce 6 GB typical budgets. Do not lower to re-target 4 GB without product approval.

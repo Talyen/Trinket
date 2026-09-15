@@ -48,7 +48,7 @@ struct HomesteadEffectStyle {
             self.init(keyword: .block)
         case .outgoingDamagePercent:
             self.init(keyword: .physical)
-        case .companionDamageDealt:
+        case .companionDamageDealt, .companionPhysicalDamageDealt:
             self.init(keyword: .physical, symbol: "pawprint.fill")
         case .dodgeChanceBonus:
             self.init(keyword: .dodge)

@@ -89,19 +89,45 @@ VALID_KEYWORDS: frozenset[str] = frozenset(
 
 
 def _validate_int_amount(token: str, amount: str) -> None:
-    try:
-        int(amount.strip())
-    except ValueError as error:
-        raise ValueError(f"Modifier amount for {token!r} must be an integer") from error
+    parse_typed_int(amount, token)
 
 
 def _validate_double_amount(token: str, amount: str) -> None:
+    parse_typed_double(amount, token)
+
+
+def parse_typed_int(raw: str, label: str) -> int:
+    """Single home for integer trigger/modifier values. Accepts surrounding
+    whitespace and explicit +/- signs; rejects non-integers and infinities."""
     try:
-        value = float(amount.strip())
+        return int(raw.strip())
     except ValueError as error:
-        raise ValueError(f"Modifier amount for {token!r} must be a number") from error
+        raise ValueError(f"Integer value for {label} must be an integer, got {raw!r}") from error
+
+
+def parse_typed_double(raw: str, label: str) -> float:
+    """Single home for floating trigger/modifier values. Finite only."""
+    try:
+        value = float(raw.strip())
+    except ValueError as error:
+        raise ValueError(f"Numeric value for {label} must be a number, got {raw!r}") from error
     if not math.isfinite(value):
-        raise ValueError(f"Modifier amount for {token!r} must be a finite number")
+        raise ValueError(f"Numeric value for {label} must be a finite number, got {raw!r}")
+    return value
+
+
+def parse_typed_bool(raw: str, label: str) -> bool:
+    """Single home for boolean trigger values. Accepts true/false/1 (any case
+    for the words); anything else must be dropped at the call site."""
+    normalized = raw.strip().lower()
+    if normalized in ("true", "1"):
+        return True
+    if normalized == "false":
+        return False
+    raise ValueError(
+        f"Trigger value for {label} must be true or false, "
+        f"got {raw!r}; drop the token for false"
+    )
 
 
 def _validate_modifier_amount(prefix: str, token: str, amount: str) -> None:

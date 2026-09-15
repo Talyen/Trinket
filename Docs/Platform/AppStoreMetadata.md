@@ -1,9 +1,11 @@
 # App Store submission draft
 
-Use for the existing App Store Connect app **Trinket: Heroes & Companions**
-(`6811284921`). These fields describe the current local-only beta. Review them
-against the selected release build before submission, especially iCloud behavior.
-Release prerequisites and commands remain in [Release.md](Release.md).
+Data draft for the existing App Store Connect app **Trinket: Heroes & Companions**
+(`6811284921`), not standing policy. These fields describe the current local-only
+beta. Review them against the selected release build before submission, especially
+iCloud behavior. Product facts (identifier, pricing, Family Sharing) live in
+[Purchases.md](Purchases.md); release prerequisites and commands remain in
+[Release.md](Release.md).
 
 | Field | Draft |
 |---|---|
@@ -61,13 +63,11 @@ To inspect the Full Game offer, open Options → Full Game. The non-consumable p
 
 ## Full Game purchase draft
 
-App Store Connect product `6811501717` uses the existing identifier
-`com.ryanmcintire.Trinket.fullgame`. The draft is a non-consumable named **Full Game**,
-with English description **Unlock all chapters and game modes permanently.** and a
-US base price of **$4.99**. Creation/localization/pricing do not submit the product
-for review. Family Sharing was enabled after explicit owner confirmation.
-Availability is configured for the United States for the owner's internal test.
-The review screenshot remains unfinished. Paid Apps Agreement activation is pending
+App Store Connect product `6811501717` uses the existing identifier from
+[Purchases.md](Purchases.md), with English description **Unlock all chapters and
+game modes permanently.** Creation/localization/pricing do not submit the product
+for review. Availability is configured for the United States for the owner's
+internal test. The review screenshot remains unfinished. Paid Apps Agreement activation is pending
 the owner's bank account and W-9; live sandbox purchase and restore verification
 remain outstanding. No app review was requested.
 

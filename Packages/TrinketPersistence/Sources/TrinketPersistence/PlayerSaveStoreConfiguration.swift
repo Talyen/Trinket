@@ -99,6 +99,9 @@ enum PlayerSaveStoreConfiguration {
                 "Failed to drop duplicate player save roots: \(error.localizedDescription, privacy: .public)",
             )
             context.rollback()
+            // Intentional: proceed with the keeper. Duplicates remain on disk
+            // and are retried on the next open; failing the open would strand
+            // readable progress behind a best-effort cleanup.
         }
         return keeper
     }

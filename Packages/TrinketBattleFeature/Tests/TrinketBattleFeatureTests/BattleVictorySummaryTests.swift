@@ -44,7 +44,7 @@ struct BattleVictorySummaryTests {
         #expect(session.presentationContext?.stageRewardsAlreadyClaimed == true)
 
         let second = BattleRunConfigurationTestSupport.make(
-            rngSeed: CombatantFixtures.deterministicBattleSeed &+ 1,
+            rngSeed: CombatantFixtures.deterministicBattleSeedVariant(1),
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,

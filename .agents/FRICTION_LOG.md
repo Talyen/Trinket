@@ -13,6 +13,7 @@ Centralized intake for agent pain points, confusion, and struggle while working 
 
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
+| 2026-09-14 | review | Dirty-file-scoped review missed downstream exhaustive-switch breaks from committed enum cases; full handoff caught them (FeatureSupport, BattleFeature, app). Fixed in-tree; consider a dirty-tree-wide exhaustive-switch/build check earlier in review. |
 
 ## Archive
 

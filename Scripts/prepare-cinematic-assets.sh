@@ -13,15 +13,11 @@ state_file="$generated_dir/UltimateCinematicSourceHashes.generated.tsv"
 combatants_tsv="ContentManifest/combatants.tsv"
 hevc_preset="${CINEMATIC_HEVC_PRESET:-PresetHEVCHighestQuality}"
 
-if [[ ! -f "$manifest" ]]; then
-  echo "Missing manifest: $manifest" >&2
+if ! trinket_asset_require_manifest "$manifest"; then
   exit 1
 fi
 
-if ! command -v avconvert >/dev/null 2>&1; then
-  echo "Missing required tool: avconvert" >&2
-  exit 1
-fi
+trinket_asset_require_avconvert
 
 mkdir -p "$resources_dir" "$generated_dir"
 
@@ -41,17 +37,7 @@ trap cleanup EXIT
 
 trinket_asset_begin_state_lookup "$state_file"
 
-# ISO BMFF sample entries use hvc1 (or hev1) for HEVC. Prefer this over mdls so CI
-# does not depend on Spotlight indexing freshly written files.
-assert_hevc_mp4() {
-  local file="$1"
-  if ! grep -a -q -E 'hvc1|hev1' "$file"; then
-    echo "Expected HEVC (hvc1/hev1) in '$file'." >&2
-    return 1
-  fi
-}
-
-# Catalog ability ids are kebab-case; combatant ultimates columns use Swift symbols.
+# kebab_to_camel maps catalog ability ids to combatant ultimate symbols.
 kebab_to_camel() {
   local kebab="$1"
   local result=""
@@ -92,8 +78,8 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
     exit 1
   fi
 
-  if ! rg -Fq "id: \"$ability_id\"" \
-    Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogUltimate.swift; then
+  if ! awk '/MARK: - Ultimate/{flag=1} flag' \
+    Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift | rg -Fq "id: \"$ability_id\""; then
     echo "Cinematic ability id '$ability_id' is not an Ultimate in the authored ability catalog." >&2
     exit 1
   fi
@@ -112,8 +98,7 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
       ;;
   esac
 
-  if [[ ! -f "$source_path" ]]; then
-    echo "Missing source file for '$actor_id' / '$ability_id': $source_path" >&2
+  if ! trinket_asset_require_source_file "$actor_id / $ability_id" "$source_path"; then
     exit 1
   fi
 
@@ -130,21 +115,9 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
   trinket_asset_read_recorded_state recorded_hash recorded_profile "$asset_name"
 
   if trinket_asset_needs_reencode "$recorded_hash" "$source_hash" "$recorded_profile" "$hevc_preset" "$dest"; then
-    tmp_dest="$resources_dir/.${asset_name}.tmp.$$.mp4"
-    rm -f "$tmp_dest"
-    if ! avconvert \
-      --source "$source_path" \
-      --preset "$hevc_preset" \
-      --output "$tmp_dest" \
-      --replace \
-      >/dev/null \
-      || [[ ! -s "$tmp_dest" ]] \
-      || ! assert_hevc_mp4 "$tmp_dest"; then
-      rm -f "$tmp_dest"
-      echo "Failed to encode cinematic asset for '$actor_id' / '$ability_id' with preset '$hevc_preset'." >&2
+    if ! trinket_cinematic_encode_row "$source_path" "$dest" "$hevc_preset" "$actor_id / $ability_id"; then
       exit 1
     fi
-    mv -f "$tmp_dest" "$dest"
   fi
   printf '%s\t%s\t%s\n' "$asset_name" "$source_hash" "$hevc_preset" >> "$state_temp"
   printf '%s\n' "${asset_name}.mp4" >> "$active_assets_temp"

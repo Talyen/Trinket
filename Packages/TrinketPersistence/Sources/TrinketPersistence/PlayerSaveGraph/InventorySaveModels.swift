@@ -30,24 +30,12 @@ public final class InventoryItemModel {
 
     public init() {}
 
+    /// Detached convenience init for encoding outside a `ModelContext`.
+    /// Passes `context: nil` because a fresh model has no orphans to delete;
+    /// `reconcileModels` with `existing: []` only appends.
     public convenience init(item: InventoryItem) {
         self.init()
         update(from: item, context: nil)
-    }
-
-    func applyAffixPowers(from item: InventoryItem) {
-        if let powers = item.affixPowers {
-            do {
-                affixPowersJSON = try ItemAffixPowerCoding.encode(powers)
-            } catch {
-                inventoryMappingLogger.error(
-                    "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)",
-                )
-                affixPowersJSON = nil
-            }
-        } else {
-            affixPowersJSON = nil
-        }
     }
 }
 

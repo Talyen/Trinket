@@ -36,6 +36,9 @@ enum CloudSaveReconciler {
         head.revision.clock.merge(request.revision.clock, uniquingKeysWith: max)
 
         if request.action == .reset, sameEpoch {
+            // Reset keeps the request's game content (gold/inventory included:
+            // reset means fresh game, not wiped wallet) but zeroes the
+            // production clock so no pre-reset pending production survives.
             var resetSave = try request.revision.snapshot.restored()
             resetSave.homestead.lastProductionAt = server.serverTime
             resetSave.homestead.pendingProduction = [:]
@@ -98,6 +101,9 @@ enum CloudSaveReconciler {
             ))
         }
         var selected = useIncoming ? try incoming.snapshot.restored() : settledSave
+        // Server production cursor is authoritative: the winner adopts the
+        // settled clock/pending so a branch predating a committed claim or
+        // upgrade can never undo that operation via Campaign rank.
         selected.homestead.lastProductionAt = settledSave.homestead.lastProductionAt
         selected.homestead.pendingProduction = settledSave.homestead.pendingProduction
         head.revision.snapshot = CloudSaveSnapshot(selected)
@@ -146,6 +152,9 @@ enum CloudSaveReconciler {
             outcome = .upgraded
             head.authoritySequence += 1
         case .upload, .reset:
+            // Unreachable: uploads resolve in reconcileUpload, resets throw
+            // conflict above. Defensive default keeps the switch exhaustive
+            // if a new action is added.
             outcome = .notAvailable
         }
         head.revision.snapshot = CloudSaveSnapshot(save)

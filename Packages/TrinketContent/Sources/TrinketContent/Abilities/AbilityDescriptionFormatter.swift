@@ -110,20 +110,7 @@ enum AbilityDescriptionFormatter {
     }
 
     private static func conditionPhrase(_ condition: DamageCondition) -> String {
-        switch condition {
-        case .enemyBleeding: "the enemy is Bleeding"
-        case .enemyBurning: "the enemy is Burning"
-        case .enemyNotBurning: "the enemy is not Burning"
-        case .enemyPoisoned: "the enemy is Poisoned"
-        case .enemyFrozen: "the enemy is Frozen"
-        case .enemyStunned: "the enemy is Stunned"
-        case .enemyStunnedOrFrozen: "the enemy is Stunned or Frozen"
-        case .enemyMarked: "the enemy is Marked"
-        case .enemyLowerHealthThanActor: "the enemy has less Health than you"
-        case .allyBelowHalfHealth: "your Hero or Companion is below half Health"
-        case .enemyHasBuff: "the enemy has a buff"
-        case .firstTurn: "played on the first turn"
-        }
+        condition.sentenceFragment
     }
 
     private static func joinOr(_ clauses: [String]) -> String {

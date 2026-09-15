@@ -14,6 +14,10 @@ let package = Package(
             name: "TrinketContent",
             targets: ["TrinketContent"],
         ),
+        .library(
+            name: "TrinketContentTestSupport",
+            targets: ["TrinketContentTestSupport"],
+        ),
         .executable(
             name: "AbilityInventoryDump",
             targets: ["AbilityInventoryDump"],
@@ -36,13 +40,17 @@ let package = Package(
                 "Generated/UltimateCinematicSourceHashes.generated.tsv",
             ],
         ),
+        .target(
+            name: "TrinketContentTestSupport",
+            dependencies: ["TrinketContent", "TrinketCore"],
+        ),
         .executableTarget(
             name: "AbilityInventoryDump",
             dependencies: ["TrinketContent"],
         ),
         .testTarget(
             name: "TrinketContentTests",
-            dependencies: ["TrinketContent", "TrinketCore"],
+            dependencies: ["TrinketContent", "TrinketCore", "TrinketContentTestSupport"],
         ),
     ],
 )

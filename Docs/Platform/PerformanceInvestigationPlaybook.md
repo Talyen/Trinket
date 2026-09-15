@@ -1,9 +1,9 @@
 # Frame-Pacing Investigation Playbook
 
 Use this for measured frame-pacing regressions. Static review can identify leads; it
-cannot prove that a SwiftUI surface is slow or that a change improved it. Memory and
-energy investigation are summarized separately in
-[MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md).
+cannot prove that a SwiftUI surface is slow or that a change improved it. Memory,
+battery, thermal, and lifecycle regressions use [Memory and energy](#memory-and-energy)
+below; Simulator-only observations there are leads, not shipping evidence.
 
 ## Frame-pacing contract
 
@@ -173,13 +173,10 @@ A failing engine/hand scenario is a lead, not proof of engine cost: confirm the 
 Do not freeze slots, delay card removal, add placeholders, split user-visible work across frames, reduce feedback richness, lower asset resolution, reduce particle counts, or add another presentation framework to win a metric. Hand movement is gameplay feedback.
 
 Do not drop launch or imminent artwork pins, replace `PreparedArtworkCache`
-hits with on-demand `Image(name)`, or lower `PreparedArtworkMemoryBudget` /
-`NSCache.totalCostLimit` to re-target 4 GB, to reduce memory. A smaller
-footprint that re-decodes on the presentation frame is a hitch regression.
-Pins are the eviction defense; `NSCache` alone is not. Budgets are tuned for
+hits with on-demand `Image(name)`, or lower the budgets below to reduce memory;
+see [Memory and energy](#memory-and-energy). Pins are the eviction defense;
+`NSCache` alone is not. Budgets are tuned for
 the current supported working set; their enforced values are listed once below.
-See [MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md) for the
-device-led validation workflow.
 
 ### Artwork Budgets
 
@@ -212,13 +209,13 @@ budgets there.
 2. Inspect the individual step report. Rerun only the affected step when useful; if repetitions were requested, inspect each one as well as the aggregate. A median must not hide a failing repetition.
 3. On device, select the hitch interval in Animation Hitches, identify whether the delay is in app commit work or rendering, and correlate it with Time Profiler stacks and app signposts. Use Simulator Time Profiler for app CPU leads. App signposts in subsystem `com.trinket.framepacing` separately identify engine resolution, projection publication, feedback preparation, and return to the next display callback. None alone represents the full rendered frame.
 
-   On Xcode 26.4–27.0, `xctrace record --device <simulator>` deadlocks the in-sim
-   DTServiceHub handshake and ignores `--time-limit`, so the recording never
-   ends. Record on the host and attach to Trinket (Simulator apps are ordinary
-   host processes). Do not use host `--all-processes` unless you need every
-   PID: it kperf-samples the whole Mac and then symbolicates every process
-   into a deferred `.trace`, which is why a 5s capture can take tens of
-   seconds to save.
+   Do not record with `xctrace --device` against a Simulator; record on the host
+   and attach to Trinket (Simulator apps are ordinary host processes). Do not
+   use host `--all-processes` unless you need every PID: it kperf-samples the
+   whole Mac and then symbolicates every process into a deferred `.trace`,
+   which is why a 5s capture can take tens of seconds to save. The wrapper
+   script owns version-specific workarounds; see
+   `Scripts/record-time-profiler.sh` (`--help` and header comments).
 
    ```sh
    ./Scripts/record-time-profiler.sh --output .DerivedData/PerformanceResults/tp.trace --time-limit 8s
@@ -252,6 +249,41 @@ Prefer direct stored-state mutation, one projection publication, narrow observat
 Simulator evidence does not establish physical-device performance. Before claiming ProMotion performance, pin a supported iPhone/OS, derive cadence from the display link, capture Instruments traces on-device, and record thermal state and Low Power Mode.
 
 MetricKit `MXAnimationMetric.hitchTimeRatio` remains production trend evidence. It complements—and does not replace—reproducible local scenarios and Instruments traces.
+
+## Memory and energy
+
+Use measured device evidence for memory, battery, thermal, and lifecycle regressions.
+Simulator-only observations can identify leads but cannot establish a shipping
+budget or improvement.
+
+Reproduce on a named device/OS/build configuration from a cold launch. Record
+process footprint at launch, after visiting the affected surfaces, after
+returning to Play, and after a representative extended session. Use Instruments
+Allocations and Leaks plus Xcode Memory Graph to distinguish live caches,
+retained view/session graphs, leaked objects, and transient decode peaks.
+Repeat the same journey after the change and compare peaks and settled
+footprint. Verify cache eviction and scene background/foreground behavior; a
+lower peak that produces repeated decode churn is not automatically an
+improvement. Launch and imminent-destination artwork pins are hitch prevention
+— do not release the first-interactive working set after warmup to lower the
+peak.
+
+For art inputs, `./Scripts/report-art-memory.sh` estimates full-catalog RGBA
+decode cost. It is a catalog-sizing signal, not expected simultaneous
+residency. The [art pipeline](../../ArtManifest/README.md#decoded-memory-report)
+owns the catalog estimate ceiling and optional enforcement; runtime budgets
+stay in [Artwork Budgets](#artwork-budgets) above.
+
+For energy and thermal regressions, reproduce on device with Low Power Mode and
+thermal state recorded. Capture Instruments Energy Log and Time Profiler for
+the same fixed-duration journey. Inspect idle clocks, timers, display-link
+work, audio/video playback, background tasks, persistence churn, and repeated
+image decode. Confirm that backgrounding parks or cancels work and foregrounding
+restores one owner without duplicate timers or playback. Compare CPU, wakeups,
+network, GPU activity, and thermal behavior before and after. Report thermal
+and Low Power Mode state with the revision, device, and evidence required in
+[Reporting](#reporting). Do not claim a production improvement when device
+evidence is missing.
 
 ## Reporting
 

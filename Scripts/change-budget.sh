@@ -64,7 +64,7 @@ LC_ALL=C awk \
   function category(p) {
     if (p ~ /(\/Generated\/|\.generated\.swift$|^Trinket\.xcodeproj\/|^\.DerivedData\/|^\.tools\/|^Raw Assets\/)/) return "generated"
     if (p ~ /(^TrinketUITests\/|\/Tests\/|^Scripts\/Tests\/)/) return "test"
-    if (p ~ /(^Packages\/TrinketTestSupport\/|^Packages\/TrinketPersistence\/Sources\/TrinketPersistenceTestSupport\/)/) return "support"
+    if (p ~ /(^Packages\/TrinketTestSupport\/|^Packages\/TrinketContent\/Sources\/TrinketContentTestSupport\/|^Packages\/TrinketPersistence\/Sources\/TrinketPersistenceTestSupport\/)/) return "support"
     return p ~ /\.swift$/ ? "production" : "docs"
   }
   function declarations(text, copy, count) {

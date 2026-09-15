@@ -5,7 +5,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct UniqueItemRuleTests {
-    @Test @MainActor func `saved patient edge upgrades its signature without losing ownership or magnitude`() throws {
+    @Test @MainActor func `saved patient edge upgrades its signature without losing ownership`() throws {
         let item = try #require(GameContent.unique(matching: "the_patient_edge"))
         var powers = try #require(item.affixPowers)
         powers[0] = ItemAffixPower(
@@ -27,8 +27,10 @@ struct UniqueItemRuleTests {
         let reloaded = try PlayerSaveStore(storeURL: context.storeURL(), disableCloudSync: true)
         let restored = try #require(reloaded.inventory.items.first)
         let signature = try #require(restored.resolvedPower(at: 0))
-        #expect(signature.triggers.partnerFirstAttackDamage == 3)
+        #expect(signature.triggers.blockPreparesCritical)
         #expect(signature.triggers.heldCardNextAttackDamage == 0)
+        #expect(signature.triggers.partnerFirstAttackDamage == 0)
+        #expect(signature.description == "Blocking an attack makes your next attack Critically Hit.")
         #expect(restored.affixPowers?.dropFirst() == powers.dropFirst())
         #expect(reloaded.inventory.ownedUniqueIDs.contains(item.templateID))
         #expect(reloaded.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == item.id)

@@ -64,14 +64,25 @@ struct ItemLootPolicyTests {
         #expect(abs(actual[1] / actual[0] - 24 / 60) < 1e-12)
     }
 
-    @Test func `opening random draws reach all four fractional bands`() {
+    @Test func `opening draws can reach every tier`() {
+        // Level-1 weights are all nonzero, so every tier is reachable; roll
+        // maps concentrated distributions deterministically for any draw.
+        #expect(probabilities(level: 1).allSatisfy { $0 > 0 })
         var rng = SeededRandomNumberGenerator(seed: 42)
-        var tiers: Set<ItemDropTier> = []
-        let chances = probabilities(level: 1)
+        #expect(ItemLootPolicy.roll(probabilities: [1, 0, 0, 0], using: &rng) == .basic)
+        #expect(ItemLootPolicy.roll(probabilities: [0, 1, 0, 0], using: &rng) == .astral)
+        #expect(ItemLootPolicy.roll(probabilities: [0, 0, 1, 0], using: &rng) == .trinket)
+        #expect(ItemLootPolicy.roll(probabilities: [0, 0, 0, 1], using: &rng) == .unique)
+    }
+
+    @Test func `seeded sweep reaches every tier through roll`() {
+        var rng = SeededRandomNumberGenerator(seed: 1234)
+        let probs = probabilities(level: 1)
+        var seen = Set<ItemDropTier>()
         for _ in 0 ..< 10000 {
-            tiers.insert(ItemLootPolicy.roll(probabilities: chances, using: &rng))
+            seen.insert(ItemLootPolicy.roll(probabilities: probs, using: &rng))
         }
-        #expect(tiers == Set(ItemDropTier.allCases))
+        #expect(seen == Set(ItemDropTier.allCases))
     }
 
     private func probabilities(level: Int, boss: Bool = false, bonus: Int = 0) -> [Double] {

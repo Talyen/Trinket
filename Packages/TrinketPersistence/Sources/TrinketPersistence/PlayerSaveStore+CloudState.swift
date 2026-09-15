@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 extension PlayerSaveStore {
     func commitCloudState(
         _ state: CloudDeviceState,

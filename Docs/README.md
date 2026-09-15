@@ -30,6 +30,10 @@ One fact has one owner. Link instead of copying policy.
 | Package public types / how to extend | that package README |
 | Agent workflow and safety hard stops | root and nested `AGENTS.md` |
 | Artwork memory budgets (numbers) | [Platform/PerformanceInvestigationPlaybook.md](Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets (enforced by `check-artwork-budget.sh`; `AGENTS.md` holds the one-line hard stop only) |
+| Simulator isolation and leases | [Platform/SimulatorOperations.md](Platform/SimulatorOperations.md) (leases and recovery); interaction technique in the [ios-simulator skill](../.agents/skills/ios-simulator/SKILL.md) |
+| StoreKit purchase prerequisites | [Platform/Purchases.md](Platform/Purchases.md) (infra checklist; product rules in `Product/Monetization.md`) |
+| App Store metadata draft (data, not policy) | [Platform/AppStoreMetadata.md](Platform/AppStoreMetadata.md) (field drafts; procedure in `Platform/Release.md`) |
+| CloudKit enablement gates | [Platform/CloudKitPreShipChecklist.md](Platform/CloudKitPreShipChecklist.md) (ordered gates; save contracts in `AgentContext/persistence-storage.md`) |
 | Commit format, hooks, and push preconditions | [Platform/Release.md](Platform/Release.md) |
 | Audit procedure | [Audits/README.md](Audits/README.md) plus the cited audit file |
 

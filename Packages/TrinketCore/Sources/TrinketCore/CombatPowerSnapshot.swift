@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CombatPowerSnapshot: Equatable, Sendable {
+public struct CombatPowerSnapshot: Equatable, Hashable, Sendable {
     public let level: Int
     public let maxHealth: Int
     public let rawDamagePercent: Double

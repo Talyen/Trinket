@@ -51,7 +51,12 @@ public final class PlayerSaveStore {
     )
 
     #if DEBUG
+    /// Total-write failure: throws before any durable write (no pending file,
+    /// no primary write). Tests `persistBatch == false` / `retrySaveAction`.
     public var forcesNextSaveFailure = false
+    /// Primary-only failure: `context.save()` throws, but the pending recovery
+    /// file still preserves the candidate (`persistBatch == true`, degraded).
+    /// Tests recovery, relaunch survival, and background retry.
     public var forcesNextDatabaseSaveFailure = false
     #endif
 
@@ -254,12 +259,19 @@ public final class PlayerSaveStore {
             try commitCandidate(candidate)
             return true
         } catch {
-            lastPersistenceError = (error as? PlayerSavePersistenceError) ?? .writeFailed
-            logger.error(
-                "\(message, privacy: .public): \(String(describing: error), privacy: .public)",
-            )
+            notePersistenceFailure(error, logging: message)
             return false
         }
+    }
+
+    /// Single mapping from commit errors to `lastPersistenceError` + log.
+    /// All persist spellings (`persistBatch`, `persistTransaction`) share this so
+    /// failures stay diagnosable in one place.
+    private func notePersistenceFailure(_ error: Error, logging message: String) {
+        lastPersistenceError = (error as? PlayerSavePersistenceError) ?? .writeFailed
+        logger.error(
+            "\(message, privacy: .public): \(String(describing: error), privacy: .public)",
+        )
     }
 
     public func flushPendingPersistence() {
@@ -280,9 +292,7 @@ public final class PlayerSaveStore {
             Self.performanceSignposter.endInterval("ModelContextSave", interval)
         }
         do {
-            if !preservesUnreadableCloudState {
-                root.cloudStatePayload = try JSONEncoder().encode(cloudDeviceState)
-            }
+            try encodeCloudStateForSave()
             #if DEBUG
             if forcesNextSaveFailure {
                 forcesNextSaveFailure = false
@@ -296,6 +306,14 @@ public final class PlayerSaveStore {
             lastPersistenceError = .writeFailed
             logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
             throw PlayerSavePersistenceError.writeFailed
+        }
+    }
+
+    /// Encodes local cloud metadata onto the graph before a durable write.
+    /// Shared by normal commits and durable resets.
+    func encodeCloudStateForSave() throws {
+        if !preservesUnreadableCloudState {
+            root.cloudStatePayload = try JSONEncoder().encode(cloudDeviceState)
         }
     }
 
@@ -315,9 +333,15 @@ public final class PlayerSaveStore {
         if persistImmediately {
             do {
                 try saveGraph()
+                // Immediate success persists the whole graph, including any
+                // earlier deferred rows, so the deferred rollback is done.
                 clearPendingDeferredPersistence()
             } catch {
-                compensate(snapshot: snapshot, slices: slices)
+                // Immediate total failure preserves earlier deferred changes
+                // per the storage contract: compensate only this attempt's
+                // slices, leaving deferred increments published for their own
+                // flush/rollback.
+                restoreSnapshot(snapshot, slices: slices)
                 throw PlayerSavePersistenceError.writeFailed
             }
         } else {

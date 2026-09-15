@@ -30,6 +30,12 @@ public struct ItemGenerator: Sendable {
         let guaranteedDefinitions = guaranteedAffixIDs.compactMap { affixID in
             eligibleAffixes.first { $0.id == affixID }
         }
+        let droppedGuaranteedIDs = guaranteedAffixIDs.filter { affixID in
+            !eligibleAffixes.contains { $0.id == affixID }
+        }
+        if !droppedGuaranteedIDs.isEmpty {
+            assertionFailure("Guaranteed affixes dropped for \(id): unknown or slot-ineligible IDs \(droppedGuaranteedIDs).")
+        }
 
         let rolledCount = fixedAffixCount ?? Self.affixCount(for: rarity, using: &randomNumberGenerator)
         let affixCount = max(rolledCount, guaranteedDefinitions.count)
@@ -67,9 +73,9 @@ public struct ItemGenerator: Sendable {
 
         switch rarity {
         case .basic:
-            return roll <= 80 ? 1 : 2
+            return roll <= LootTuning.basicSingleAffixPercent ? LootTuning.basicAffixCounts.single : LootTuning.basicAffixCounts.double
         case .astral:
-            return roll <= 75 ? 3 : 4
+            return roll <= LootTuning.astralTripleAffixPercent ? LootTuning.astralAffixCounts.triple : LootTuning.astralAffixCounts.quad
         case .unique:
             preconditionFailure("Unique affix counts are authored in the catalog.")
         }
@@ -115,7 +121,7 @@ public struct ItemGenerator: Sendable {
         guard baseWeight > 0, !keywordBias.isEmpty else { return baseWeight }
         let overlap = definition.keywords.intersection(keywordBias).count
         guard overlap > 0 else { return baseWeight }
-        return baseWeight * (2 + overlap)
+        return baseWeight * (LootTuning.biasWeightBase + overlap)
     }
 }
 
@@ -174,6 +180,14 @@ public enum ItemRewardGenerator {
         if fallbackBaseType == nil, !baseTypes.contains(where: { $0.slot != .trinket }) {
             available.subtract([.basic, .astral])
         }
+        if available.isEmpty {
+            // Degrade to basic gear instead of trapping: live callers
+            // (BattleLoot, ShopOfferGenerator, MysteryEffectApplier via
+            // fallbackBaseType) all keep a gear path, so this only fires for
+            // exhausted trinket-only pools that previously crashed in
+            // ItemLootPolicy.probabilities.
+            available = [.basic]
+        }
         let probabilities = ItemLootPolicy.probabilities(
             level: rewardLevel,
             bossContent: bossContent,
@@ -198,14 +212,18 @@ public enum ItemRewardGenerator {
         context: RewardContext,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
-        let normalBases = context.fallbackBaseType.map { [$0] }
-            ?? context.baseTypes.filter { $0.slot != .trinket }
-        precondition(!normalBases.isEmpty, "Item rewards require at least one non-Trinket base type.")
-        let biasedBases = context.keywordBias.isEmpty
-            ? normalBases
-            : normalBases.filter { !$0.keywordAffinities.isDisjoint(with: context.keywordBias) }
-        let pool = biasedBases.isEmpty ? normalBases : biasedBases
-        let baseType = pool.randomElement(using: &randomNumberGenerator) ?? pool[0]
+        // Degraded basic-gear fallback must not trap when the caller passed
+        // trinket-only baseTypes with no fallback: use the default gear pool
+        // for base selection so the degrade path stays total.
+        let effectiveBases = context.baseTypes.contains(where: { $0.slot != .trinket })
+            || context.fallbackBaseType != nil
+            ? context.baseTypes : GameContent.itemBaseTypes
+        let baseType = ItemBasePolicy.uniformFallbackBase(
+            from: effectiveBases,
+            keywordBias: context.keywordBias,
+            fallback: context.fallbackBaseType,
+            using: &randomNumberGenerator,
+        )
         return context.itemGenerator.generate(
             id: id,
             templateID: "\(baseType.id)-\(rarity.rawValue)",

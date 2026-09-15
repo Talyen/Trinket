@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import functools
 import json
-import math
 import re
 from pathlib import Path
 
@@ -15,10 +14,25 @@ TRIGGER_FAMILY_SCHEMA = Path(__file__).resolve().parent / "trigger_family_schema
 @functools.cache
 def _trigger_families() -> list:
     payload = json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8"))
-    return payload["families"]
+    families = payload["families"]
+    valid_types = {"Int", "Bool", "Double", "Keyword?", "[Int]"}
+    valid_merges = {"add", "or", "max", "mul", "add_excess", "coalesce", "union"}
+    for family in families:
+        for field in family["fields"]:
+            if field["type"] not in valid_types:
+                raise ValueError(f"Unknown trigger type {field['type']!r} for {field['name']!r}")
+            if field["merge"] not in valid_merges:
+                raise ValueError(f"Unknown merge op {field['merge']!r} for {field['name']!r}")
+    return families
 
 
-from .content_codegen_modifiers import VALID_KEYWORDS, parse_modifier_tokens as parse_trigger_tokens
+from .content_codegen_modifiers import (
+    VALID_KEYWORDS,
+    parse_modifier_tokens as parse_trigger_tokens,
+    parse_typed_bool,
+    parse_typed_double,
+    parse_typed_int,
+)
 
 
 _TRIGGER_SIMPLE_MAP: dict[str, str] = {
@@ -102,15 +116,21 @@ _FLAG_TRIGGERS: dict[str, str] = {
 
 
 def _apply_simple_trigger(token: str, values: dict[str, str]) -> bool:
-    for prefix, field in _TRIGGER_SIMPLE_MAP.items():
+    # Longest prefix first so shadow pairs (foo vs foo_all) route correctly.
+    for prefix, field in sorted(_TRIGGER_SIMPLE_MAP.items(), key=lambda kv: -len(kv[0])):
         if token.startswith(prefix + ":"):
             values[field] = token.split(":", 1)[1]
             return True
-    for prefix, field in _FLAG_TRIGGERS.items():
+    for prefix, field in sorted(_FLAG_TRIGGERS.items(), key=lambda kv: -len(kv[0])):
         if token == prefix or token.startswith(prefix + ":"):
             if ":" in token:
                 remainder = token.split(":", 1)[1].strip()
-                values[field] = "true" if not remainder or remainder.lower() in ("true", "1") else remainder
+                if not remainder:
+                    values[field] = "true"
+                else:
+                    # Normalize true/1 (any case) to true; anything else
+                    # flows to Bool validation for a clear error.
+                    values[field] = "true" if remainder.lower() in ("true", "1") else remainder
             else:
                 values[field] = "true"
             return True
@@ -173,7 +193,7 @@ _BESPOKE_TRIGGER_SPECS: dict[str, tuple[str, dict[int, tuple[tuple[str, bool], .
 
 
 def _apply_bespoke_trigger(token: str, values: dict[str, str]) -> bool:
-    for prefix, (usage, arities) in _BESPOKE_TRIGGER_SPECS.items():
+    for prefix, (usage, arities) in sorted(_BESPOKE_TRIGGER_SPECS.items(), key=lambda kv: -len(kv[0])):
         if not token.startswith(prefix + ":"):
             continue
         args = token.split(":")[1:]
@@ -218,29 +238,11 @@ def _validate_trigger_value(field: str, raw_value: str, row_id: str) -> None:
         raise ValueError(f"Unknown trigger field: {field}")
     value = raw_value.strip()
     if field_type == "Int":
-        try:
-            int(value)
-        except ValueError as error:
-            raise ValueError(
-                f"Trigger value for {field} for {row_id} must be an integer, got {raw_value!r}"
-            ) from error
+        parse_typed_int(value, f"{field} for {row_id}")
     elif field_type == "Double":
-        try:
-            parsed = float(value)
-        except ValueError as error:
-            raise ValueError(
-                f"Trigger value for {field} for {row_id} must be a number, got {raw_value!r}"
-            ) from error
-        if not math.isfinite(parsed):
-            raise ValueError(
-                f"Trigger value for {field} for {row_id} must be a finite number"
-            )
+        parse_typed_double(value, f"{field} for {row_id}")
     elif field_type == "Bool":
-        if value not in ("true", "false"):
-            raise ValueError(
-                f"Trigger value for {field} for {row_id} must be true or false, "
-                f"got {raw_value!r}; drop the token for false"
-            )
+        parse_typed_bool(value, f"{field} for {row_id}")
     elif field_type == "Keyword?":
         if not value.startswith(".") or value[1:] not in VALID_KEYWORDS:
             raise ValueError(
@@ -280,6 +282,8 @@ def triggers_swift(raw: str, row_id: str = "") -> str:
                 raise ValueError(f"Unknown trigger token: {token}")
             if "_" in field:
                 parts = field.split("_")
+                if any(not part for part in parts):
+                    raise ValueError(f"Malformed trigger token {token!r}: empty snake_case segment")
                 field = parts[0] + "".join(part.title() for part in parts[1:])
             if field not in known_fields:
                 raise ValueError(f"Unknown trigger token: {token}")

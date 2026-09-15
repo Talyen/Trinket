@@ -32,10 +32,10 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/test.sh smoke` | Run the checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
-| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate (headless by default); `--smoke` runs targeted UI smoke; `--mirror` mirrors to Trinket Run; `--dry-run` shows the full ordered plan including cheap CI slices |
-| `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, Swift Testing policy, release-note validation, and artwork budget |
+| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate (headless by default); composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` runs targeted UI smoke, `--mirror` installs on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure |
+| `./Scripts/ci-gate.sh` | Full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
 | `./Scripts/ci-gate.sh --fast` | Run only the ordered commands in [the cheap-slice registry](config/cheap-slices.txt); skips generation and style |
-| `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions; handoff passes its scope to select leaf families; unknown/shared scripts and unscoped CI run all suites. Runs docs unless already checked by the caller; `--fast` skips docs, media audio fixtures and shell regressions |
+| `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan] [--paths <file> …]` | Check links and structure globally; `--paths` scopes final active-plan closure only. Plan expiration is advisory; `check-plans.py` accepts the same flags |
 | `./Scripts/check-api-bans.sh` | Banned legacy observation/navigation APIs plus XCTest-outside-UITests migration |
 

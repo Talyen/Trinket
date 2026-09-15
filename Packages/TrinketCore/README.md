@@ -15,7 +15,8 @@ Module map: `Keyword.swift` (matching, rules), `Effect.swift` (`Effect`,
 (shared mid/late thresholds live on `EnemyPowerCurve`), `TalentModels.swift`,
 `HomesteadTypes.swift`, `ItemSlot.swift` with `ProgressionEnums.swift`,
 `CombatPowerSnapshot.swift`, `SeededRandomNumberGenerator.swift`,
-`Collection+Safe.swift`, `ActiveEffect.swift`, `DamageCondition.swift`.
+`BattleGoldFlow.swift`, `ActiveEffect.swift`, `DamageCondition.swift`
+(evaluation lives in `BattleEngine.BattleConditionEvaluator`).
 
 Contracts: keyword matching runs through one case-insensitive pattern
 (`Keyword.highlightPattern` with `Keyword.termLookup`); `Keyword.referenced(in:)`
@@ -23,7 +24,12 @@ and keyword highlighting share it. `SeededRandomNumberGenerator` is deterministi
 per seed with a fixed non-zero fallback state; equality includes draw progress.
 `Effect.durationTurns == 0` covers both instant effects and indefinite buffs;
 `EffectKind` flags (`isInstant`, `advancesEachTurn`, removable buff/debuff) are
-the source of truth for lifecycle, locked by `EffectModelTests`.
+the source of truth for lifecycle, locked by `EffectModelTests`. Documented
+quirks pending battle-owner review: `hemorrhage` never advances,
+`maximumManaBonus` is both instant and a buff, `blessedAegis` is instant with
+neither buff nor debuff flag. `BattleGoldFlow` clamps negatives and saturates
+instead of trapping; `CombatRounding` maps non-positive bases to zero and
+saturates at `Int.max`.
 
 Talent eligibility resolves each node's row from its owning tree. `cappedUnlocks`
 repairs selected IDs at every point budget, keeping only prerequisite-complete

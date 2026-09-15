@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 
 struct ItemGeneratorTests {
@@ -121,6 +122,38 @@ struct ItemGeneratorTests {
             using: &degradedGenerator,
         )
         try #expect(degraded.rarity == .basic)
+    }
+
+    @Test func `exhausted trinket only pool degrades to basic gear`() throws {
+        let allOwned = Set(GameContent.trinketItems.map(\.templateID))
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
+        let degraded = ItemRewardGenerator.generate(
+            id: "degraded-trinket",
+            rewardLevel: 1,
+            allowedTiers: [.trinket],
+            ownedTrinketIDs: allOwned,
+            ownedUniqueIDs: [],
+            using: &randomNumberGenerator,
+        )
+        try #expect(degraded.rarity == .basic)
+    }
+
+    @Test func `exhausted trinket pool with trinket only bases degrades without trapping`() throws {
+        let trinketBases = GameContent.itemBaseTypes.filter { $0.slot == .trinket }
+        try #require(!trinketBases.isEmpty)
+        let allOwned = Set(GameContent.trinketItems.map(\.templateID))
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
+        let degraded = ItemRewardGenerator.generate(
+            id: "degraded-trinket-only-bases",
+            rewardLevel: 1,
+            allowedTiers: [.trinket],
+            ownedTrinketIDs: allOwned,
+            ownedUniqueIDs: [],
+            baseTypes: trinketBases,
+            using: &randomNumberGenerator,
+        )
+        try #expect(degraded.rarity == .basic)
+        try #expect(degraded.baseType.slot != .trinket)
     }
 
     @Test func `astral rewards exclude owned and keyword ineligible trinkets`() throws {

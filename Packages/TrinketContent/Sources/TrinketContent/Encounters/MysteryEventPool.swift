@@ -61,6 +61,19 @@ enum MysteryEventPool {
 
     static let corruptionAltarID = "corruption-altar"
 
+    /// Special-cased by nonAltarEvents and the pick gate below; defined here
+    /// instead of the shared events file so the altar lives next to its ID.
+    static let corruptionAltar = makeEvent(
+        id: corruptionAltarID,
+        title: "Corruption Altar",
+        narrative: "A violet altar remakes gear forever, offering corruption or escape.",
+        artID: "destination-corruption-altar",
+        choices: [
+            ("corrupt-item", "Corrupt an Item", [.corruptItem]),
+            ("leave", "Leave", [.leave]),
+        ],
+    )
+
     private static let eventsByID: [String: MysteryEvent] = Dictionary(
         uniqueKeysWithValues: all.map { ($0.id, $0) },
     )

@@ -23,13 +23,14 @@ next verified app update, preserving saves and explaining the changed requiremen
 in player-facing release notes. Reconsider the window explicitly if support cost
 or a critical capability warrants an exception.
 
-Test new iOS/Xcode betas and release candidates before launch. Trinket always
-adopts the newest installed Xcode for CI and local runs; `setup-trinket` selects
-it automatically and records the exact version and build in its logs. Record
-exact helper-tool versions for reproducibility in `Scripts/tool-versions.env`;
-`SWIFT_VERSION` is language mode, not the compiler version, so do not update it
-merely to match Xcode's bundled Swift compiler. Toolchain selection is
-documented in [Scripts](../../Scripts/Reference.md#toolchain-ladder).
+Test new iOS/Xcode betas and release candidates before launch. Toolchain selection,
+including which Xcode CI and local runs use, is documented in
+[Scripts](../../Scripts/Reference.md#toolchain-ladder); `setup-trinket` records
+the exact version and build in its logs. Record
+exact helper-tool versions for reproducibility in `Scripts/tool-versions.env`.
+`SWIFT_VERSION` is the Swift language mode declared in `project.yml` and each
+`Package.swift`, not the compiler version, so do not update it
+merely to match Xcode's bundled Swift compiler.
 
 ## Apple skill references
 
@@ -40,49 +41,30 @@ Two repository skills incorporate Apple's Xcode guidance:
 - [swiftui-whats-new-27](../../.agents/skills/swiftui-whats-new-27/SKILL.md): SDK 27
   migration diagnostics, new APIs, and their availability.
 
-The reference snapshot was exported with `xcrun agent skills export` from
-**Xcode 27.0, build 27A266a**, and incorporated on September 14, 2026. Entrypoints
-are adapted for Trinket. Technical references retain Apple's examples, with these
-local changes: `soft-deprecation.md` follows our existing change policy;
-`state-macro.md` replaces a generic preference question with preservation of wrapper
-behavior and corrects spelling; SDK 27 references use version numbers in place of
-upstream's inconsistent calendar-year labels. Imported Markdown whitespace is
-normalized.
-
+The reference snapshot was exported from **Xcode 27.0, build 27A266a** and
+incorporated on September 14, 2026, with entrypoints adapted for Trinket.
 These are on-demand technical references, not additional product or workflow
 policy. [Documentation precedence](../README.md#policy-precedence), this page's
 platform choices, and the routed package contracts still apply. When a snapshot
 conflicts with the selected SDK, verify its public declarations and current Apple
 documentation before adopting a symbol or updating the reference.
 
-When refreshing for a new Xcode build, export to a temporary directory using
-`xcrun agent skills export --output-dir <temporary-directory>`. Compare only the
-two selected skills, review technical changes and local adaptations, then update
-the snapshot version here. Preserve the adapted entrypoints and migration scope;
-do not export directly over `.agents/skills/`. Validate skill frontmatter, local
-links, representative routing decisions, and the scoped documentation handoff.
+When refreshing for a new Xcode build, export to a temporary directory, compare
+only the two selected skills while preserving the adapted entrypoints, then
+update the snapshot version here; do not export directly over `.agents/skills/`.
+Validate skill frontmatter, local links, and the scoped documentation handoff.
 
 ## Design reference routing
 
-The September 14, 2026 review covered the design hub's main resource branches and
-iPhone/game-relevant HIG and WWDC sections, not every recursive link in the video
-archive or global site navigation. Revisit relevant sources when changing the
-behavior or adopting a new SDK; a reviewed date does not certify runtime behavior.
-
-| Apple source | Trinket application / owner |
-|---|---|
-| [Designing for games](https://developer.apple.com/design/human-interface-guidelines/designing-for-games), [Gestures](https://developer.apple.com/design/human-interface-guidelines/gestures) | Touch reach, hit regions, and discoverable actions: [motion and gestures](../../.agents/skills/apple-design/motion-and-gestures.md) |
-| [Brand identity on iOS](https://developer.apple.com/videos/play/wwdc2026/251/), [Design principles](https://developer.apple.com/design/human-interface-guidelines/design-principles) | Native utility controls with distinctive fantasy content: [foundations](../../.agents/skills/apple-design/foundations-and-process.md) |
-| [Materials](https://developer.apple.com/design/human-interface-guidelines/materials), [Scroll views](https://developer.apple.com/design/human-interface-guidelines/scroll-views) | Material hierarchy and scroll edges: [materials and depth](../../.agents/skills/apple-design/materials-and-depth.md) |
-| [Writing](https://developer.apple.com/design/human-interface-guidelines/writing), [Offering help](https://developer.apple.com/design/human-interface-guidelines/offering-help) | Labels, recovery copy, and contextual teaching: [writing and help](../../.agents/skills/apple-design/writing-and-help.md) |
-| [Playing audio](https://developer.apple.com/design/human-interface-guidelines/playing-audio), [Playing haptics](https://developer.apple.com/design/human-interface-guidelines/playing-haptics) | Event meaning and device checks: [performance and feedback](../../.agents/skills/apple-design/performance-and-feedback.md) |
-| [SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols), [Typography](https://developer.apple.com/design/human-interface-guidelines/typography) | Semantic symbols and text roles: [visual roles](../../Packages/TrinketDesignSystem/Documentation/VisualRoles.md) |
-| [Design with SwiftUI](https://developer.apple.com/videos/play/wwdc2023/10115/), [Apple Design Resources](https://developer.apple.com/design/resources/) | Use shipping SwiftUI components in prototypes; official templates are optional references, not a second token system |
-| [Design Awards](https://developer.apple.com/design/awards/), [Is This Seat Taken?](https://developer.apple.com/news/?id=z12xq8fa) | Inspiration for purposeful feedback and playtesting, not mandates to copy another game's systems |
+Apple HIG and WWDC material informs the [apple-design skill](../../.agents/skills/apple-design/SKILL.md)
+topic files (gestures, foundations, materials, writing, feedback); that skill
+owns the Trinket application of each source. Revisit the relevant Apple source
+when changing the behavior or adopting a new SDK; a reviewed date does not
+certify runtime behavior.
 
 Broader accessibility remains governed by PD-014. iPad/macOS expansion, controllers,
-Wallet/Pass Designer, Reality Composer Pro, and new account or AI features need a
-product use case; appearing on Apple's design site does not add them to Trinket.
+and new account or AI features need a product use case; appearing on Apple's
+design site does not add them to Trinket.
 New iOS APIs and symbols are evaluated for value and availability, not deferred
 solely because they postdate the minimum supported OS.
 

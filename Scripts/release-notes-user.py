@@ -111,6 +111,8 @@ def is_infra_path(path: str) -> bool:
         return True
     if path.endswith("Package.swift") or "TrinketTestSupport" in path:
         return True
+    if "TrinketContentTestSupport" in path:
+        return True
     if "/Tests/" in path or path.endswith("Tests.swift"):
         return True
     return path.startswith(INFRA_PREFIXES)

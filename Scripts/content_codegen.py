@@ -258,7 +258,7 @@ def _read_encounter_source(name: str) -> str:
 @functools.cache
 def collect_mystery_event_ids() -> set[str]:
     ids: set[str] = set()
-    for name in ("MysteryEventPool+Wilds.swift", "MysteryEventPool+Relics.swift"):
+    for name in ("MysteryEventPool+Events.swift",):
         ids.update(re.findall(r'makeEvent\(\s*id:\s*"([^"]+)"', _read_encounter_source(name)))
     if not ids:
         raise ValueError("mystery event id scrape found no ids; update collect_mystery_event_ids")
@@ -488,16 +488,12 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
     write_generated_file(GENERATED_DIR / "ItemAffixCatalog.generated.swift", body)
 
 
-ABILITY_DECL_BUILDERS = r"(?:Ability\(|AbilityBuilder\.(?:directHit|buffOnly|multiDamage)\()"
+ABILITY_DECL_BUILDERS = r"(?:Ability\()"
 
 
 @functools.cache
-def _read_ability_source(tier: str) -> str:
-    return (ABILITY_DIR / f"AbilityCatalog{tier}.swift").read_text()
-
-
-def ability_symbols_in_source(source: str) -> list[str]:
-    return re.findall(rf"static let (\w+) = {ABILITY_DECL_BUILDERS}", source)
+def _read_ability_source() -> str:
+    return (ABILITY_DIR / "AbilityCatalog.swift").read_text()
 
 
 def collect_ability_symbols() -> set[str]:
@@ -506,14 +502,15 @@ def collect_ability_symbols() -> set[str]:
 
 def collect_ability_tiers() -> dict[str, str]:
     tiers: dict[str, str] = {}
-    for tier in ("Basic", "Skill", "Ultimate"):
-        tier_name = tier.lower()
-        for symbol in ability_symbols_in_source(_read_ability_source(tier)):
-            previous = tiers.setdefault(symbol, tier_name)
-            if previous != tier_name:
-                raise ValueError(
-                    f"Ability symbol '{symbol}' appears in both {previous} and {tier_name} catalogs"
-                )
+    for match in re.finditer(
+        rf"static let (\w+) = {ABILITY_DECL_BUILDERS}\s*"
+        r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)',
+        _read_ability_source(),
+    ):
+        symbol, _, _, tier = match.groups()
+        if symbol in tiers:
+            raise ValueError(f"Ability symbol '{symbol}' appears twice in AbilityCatalog.swift")
+        tiers[symbol] = tier
     return tiers
 
 
@@ -1738,9 +1735,12 @@ def validate_manifests() -> tuple[
 
 def generate_ability_shorthand() -> None:
     entries: list[tuple[str, str]] = []
-    for tier in ("Basic", "Skill", "Ultimate"):
-        for symbol in ability_symbols_in_source(_read_ability_source(tier)):
-            entries.append((symbol, f"AbilityCatalog{tier}.{symbol}"))
+    for match in re.finditer(
+        rf"static let (\w+) = {ABILITY_DECL_BUILDERS}",
+        _read_ability_source(),
+    ):
+        symbol = match.group(1)
+        entries.append((symbol, f"AbilityCatalog.{symbol}"))
 
     entries.sort(key=lambda item: item[0])
     lines = [f"    static let {symbol} = {target}" for symbol, target in entries]
@@ -1749,25 +1749,15 @@ def generate_ability_shorthand() -> None:
 
 
 def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
-    """Regex-extract id/name/tier from hand ability catalogs (cross-check only)."""
+    """Regex-extract id/name/tier from the ability catalog (cross-check only)."""
     rows: list[tuple[str, str, str]] = []
-    for tier_label, tier_enum in (
-        ("basic", "Basic"),
-        ("skill", "Skill"),
-        ("ultimate", "Ultimate"),
+    for match in re.finditer(
+        rf"static let \w+ = {ABILITY_DECL_BUILDERS}\s*"
+        r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)',
+        _read_ability_source(),
     ):
-        source = _read_ability_source(tier_enum)
-        for match in re.finditer(
-            rf"static let \w+ = {ABILITY_DECL_BUILDERS}\s*"
-            r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)',
-            source,
-        ):
-            ability_id, name, tier = match.groups()
-            if tier != tier_label:
-                raise ValueError(
-                    f"Ability {ability_id} tier .{tier} does not match file AbilityCatalog{tier_enum}"
-                )
-            rows.append((ability_id, name, tier))
+        ability_id, name, tier = match.groups()
+        rows.append((ability_id, name, tier))
     tier_rank = {"basic": 0, "skill": 1, "ultimate": 2}
     rows.sort(key=lambda item: (tier_rank[item[2]], item[1].lower()))
     return rows

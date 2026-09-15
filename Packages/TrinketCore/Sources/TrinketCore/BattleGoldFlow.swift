@@ -1,11 +1,12 @@
+/// Battle gold ledger. Negative inputs clamp to zero; totals saturate at
+/// `Int.max` instead of trapping on overflow.
 public struct BattleGoldFlow: Equatable, Hashable, Sendable {
     public private(set) var gained: Int
     public private(set) var spent: Int
 
     public init(gained: Int = 0, spent: Int = 0) {
-        precondition(gained >= 0 && spent >= 0)
-        self.gained = gained
-        self.spent = spent
+        self.gained = max(0, gained)
+        self.spent = max(0, spent)
     }
 
     public var net: Int {
@@ -14,9 +15,11 @@ public struct BattleGoldFlow: Equatable, Hashable, Sendable {
 
     public mutating func record(delta: Int) {
         if delta >= 0 {
-            gained += delta
+            let (next, overflow) = gained.addingReportingOverflow(delta)
+            gained = overflow ? Int.max : next
         } else {
-            spent -= delta
+            let (next, overflow) = spent.subtractingReportingOverflow(delta)
+            spent = overflow ? Int.max : next
         }
     }
 }

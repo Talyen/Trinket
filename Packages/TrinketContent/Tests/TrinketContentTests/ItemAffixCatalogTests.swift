@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 
 struct ItemAffixCatalogTests {
     @Test func `saved loyal companion power migrates to heal draw without losing other rolls`() throws {

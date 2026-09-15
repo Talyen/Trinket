@@ -9,6 +9,8 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
     public let description: String
 
     private enum CodingKeys: String, CodingKey {
+        // symbolName is the persisted key; iconID is the in-memory name.
+        // Never rename without a save migration.
         case id, name, keyword, row, description
         case iconID = "symbolName"
     }
@@ -31,6 +33,8 @@ public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
 }
 
 public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
+    /// Derived from name and keyword; renaming a tree changes its identity.
+    /// Trees are tiny (single-digit nodes), so the linear scans below are intentional.
     public var id: String {
         "\(name)_\(keyword.rawValue)"
     }
@@ -57,7 +61,13 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
         guard availablePoints > 0 else { return false }
         guard let node = self.node(matching: node.id) else { return false }
         guard !unlockedNodeIDs.contains(node.id) else { return false }
-        guard node.row > 1 else { return node.row == 1 }
+        // Eligibility resolves the row from the owning tree, not the supplied node.
+        if node.row == 1 {
+            return true
+        }
+        guard node.row > 1 else {
+            return false
+        }
         return isRowComplete(node.row - 1, unlockedNodeIDs: unlockedNodeIDs)
     }
 
@@ -118,6 +128,11 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
         }
     }
 
+    /// Repairs an over-budget or prerequisite-incomplete selection to the legal
+    /// prefix: keeps prerequisite-complete selections in row, tree, then node order
+    /// until the budget is spent. Removed selections leave their points available;
+    /// valid selections within budget are unchanged. Gapped rows (missing prior row
+    /// in the tree) stay locked, so chains through them are dropped.
     public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {
         guard budget > 0 else { return [] }
         var kept: Set<String> = []

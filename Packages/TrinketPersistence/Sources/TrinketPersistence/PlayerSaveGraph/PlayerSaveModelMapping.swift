@@ -9,10 +9,6 @@ private let labyrinthMapLogger = Logger(
     category: "LabyrinthMapPayload",
 )
 
-let inventoryMappingLogger = Logger(
-    subsystem: PlayerSaveDefaults.loggingSubsystem,
-    category: "InventoryMapping",
-)
 private struct UnlockedCombatantValue {
     static let heroRole = "hero"
     static let companionRole = "companion"
@@ -21,7 +17,7 @@ private struct UnlockedCombatantValue {
     let role: String
 
     var key: String {
-        "\(role):\(combatantID)"
+        UnlockedCombatantModel.key(role: role, combatantID: combatantID)
     }
 }
 
@@ -268,6 +264,10 @@ extension RosterModel {
 }
 
 extension InventoryModel {
+    /// ID upsert only. Trinket/unique-template uniqueness is enforced upstream
+    /// by `PlayerSaveSanitizer` (`InventoryDuplicatePolicy.deduplicated`) and
+    /// detected on load by `repairSlices`; reconcile must not drop rows with
+    /// distinct IDs or a sanitize-then-write round trip would diverge.
     func update(from inventory: PlayerInventoryState, context: ModelContext?) {
         let values = inventory.items.enumerated().map { (index: $0.offset, item: $0.element) }
         items = reconcileModels(

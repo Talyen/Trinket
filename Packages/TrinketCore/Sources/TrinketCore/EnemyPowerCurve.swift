@@ -1,6 +1,8 @@
 import Foundation
 
 public enum EnemyPowerCurve {
+    /// Bracket boundaries shared with `ProgressionBracket` in ExperienceScaling.swift;
+    /// change both together.
     public static let midLevel = 20
     public static let lateLevel = 40
 
@@ -69,7 +71,9 @@ public enum EnemyPowerCurve {
         return last.value
     }
 
-    package static func progressionSmoothstep(_ value: Double) -> Double {
+    /// Shared easing for curve interpolation and XP falloff. Module-internal:
+    /// both callers live in TrinketCore.
+    static func progressionSmoothstep(_ value: Double) -> Double {
         let clamped = min(max(value, 0), 1)
         return clamped * clamped * (3 - (2 * clamped))
     }

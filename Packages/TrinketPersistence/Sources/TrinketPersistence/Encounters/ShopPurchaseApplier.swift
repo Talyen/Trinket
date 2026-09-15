@@ -55,9 +55,17 @@ public enum ShopPurchaseApplier {
             guard let offer = stock.offers.first(where: { $0.id == offerID }) else { return .failure(.invalidOffer) }
             stock.purchasedOfferIDs.insert(offerID)
             let payload = try ShopStockPersistence.encode(stock, encounter: encounter)
-            save.applyGoldDelta(-offer.price)
-            save.inventory.appendUniqueItem(offer.item)
-            ShopStockPersistence.setPayload(payload, encounter: encounter, save: &save)
+            // Candidate-commit: gold spend + item append + payload store apply
+            // atomically. The availability pre-check already rules out
+            // duplicates/insufficient gold on this thread; the candidate
+            // guarantees no partial mutation (gold spent without item) if a
+            // future append path ever dedupes silently.
+            var candidate = save
+            candidate.applyGoldDelta(-offer.price)
+            candidate.inventory.appendUniqueItem(offer.item)
+            guard candidate.inventory.item(matching: offer.item.id) != nil else { return .failure(.alreadyOwned) }
+            ShopStockPersistence.setPayload(payload, encounter: encounter, save: &candidate)
+            save = candidate
             return .success(offer.item)
         } catch {
             return .failure(.invalidOffer)

@@ -27,24 +27,24 @@ struct AbilityCatalogTests {
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
-    @Test func `direct hit builder does not add targeted do T`() throws {
-        let ability = AbilityBuilder.directHit(
+    @Test func `direct damage init does not add targeted do T`() throws {
+        let ability = Ability(
             id: "burn-hit",
             name: "Burn Hit",
             tier: .skill,
-            amount: 3,
-            keyword: .burn,
+            directDamage: 3,
+            damageKeyword: .burn,
         )
         try #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
         try #expect(ability.targetedEffects.isEmpty)
         try #expect(ability.summary == "Deal 3 Burn damage.")
 
-        let bleedHit = AbilityBuilder.directHit(
+        let bleedHit = Ability(
             id: "bleed-hit",
             name: "Bleed Hit",
             tier: .basic,
-            amount: 2,
-            keyword: .bleed,
+            directDamage: 2,
+            damageKeyword: .bleed,
         )
         try #expect(bleedHit.damageComponents == [DamageComponent(2, keyword: .bleed)])
         try #expect(bleedHit.targetedEffects.isEmpty)
@@ -66,8 +66,8 @@ struct AbilityCatalogTests {
         )
     }
 
-    @Test func `buff only builder produces generated description`() throws {
-        let ability = AbilityBuilder.buffOnly(
+    @Test func `effects init produces generated description`() throws {
+        let ability = Ability(
             id: "block",
             name: "Block",
             tier: .basic,
@@ -76,8 +76,8 @@ struct AbilityCatalogTests {
         try #expect(ability.summary == "Gain 2 Block.")
     }
 
-    @Test func `multi damage builder formats summary`() throws {
-        let ability = AbilityBuilder.multiDamage(
+    @Test func `damage components init formats summary`() throws {
+        let ability = Ability(
             id: "bloodthorn",
             name: "Bloodthorn",
             tier: .ultimate,

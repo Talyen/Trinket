@@ -26,6 +26,9 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
         }
     }
 
+    /// Secondary slots share their base slot's display name ("Secondary Weapon"
+    /// shows as "Weapon"); `accessibilityIdentifier` keeps the full name so
+    /// overlapping slots stay distinguishable to assistive tech.
     public var displayName: String {
         switch self {
         case .secondaryWeapon:
@@ -43,7 +46,7 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
         "\(rawValue) item slot"
     }
 
-    public func accepts(_ baseTypeSlot: Self) -> Bool {
-        baseTypeSlot == baseItemSlot
+    public func accepts(_ slot: Self) -> Bool {
+        slot == baseItemSlot
     }
 }

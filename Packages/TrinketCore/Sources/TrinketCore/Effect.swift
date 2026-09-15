@@ -198,6 +198,10 @@ public enum Effect: Hashable, Sendable {
         }
     }
 
+    /// Zero covers two lifecycles by design: instant effects (resolved immediately,
+    /// never stored) and indefinite effects (stored until removed or consumed).
+    /// Disambiguate with `isInstant`, `advancesEachTurn`, and the removability
+    /// flags on `EffectKind`.
     public var durationTurns: Int {
         switch self {
         case .bleed: Self.bleedDoTTurnCount

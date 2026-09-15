@@ -61,8 +61,8 @@ observed outcomes so beta evidence is distinguishable from release evidence.
    fixtures and the owning integration routes. Check physical audio/haptics only
    on a device; use the [feedback reference](../../.agents/skills/apple-design/performance-and-feedback.md).
    Synthetic StoreKit/CloudKit results do not replace their release prerequisites.
-4. When CI first selects a new major toolchain (it always adopts the newest
-   installed Xcode), verify runner availability, generation idempotence, app
+4. When CI first selects a new major toolchain (selection: [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder)),
+   verify runner availability, generation idempotence, app
    Release compilation, and routed package/smoke checks. Exercise the retained
    previous-major runtime as well as the newest one, including both branches
    of any new availability checks. Confirm the leased simulator's runtime: a
@@ -84,11 +84,8 @@ generation to check idempotence.
 Changes to the spec, tool pins, or wrapper route project verification; ordinary
 code edits in synchronized source folders do not add project generation.
 Content, asset, and project generation inputs live in `Scripts/build-inputs.env`.
-Local freshness records file membership, sizes, and modification/change times
-after successful generation, so unchanged uncommitted inputs can be reused and
+Local freshness records let unchanged uncommitted inputs skip regeneration;
 edits or deletions invalidate them. These inputs also drive CI filtering; build orchestration changes exercise the build jobs.
-The ability inventory hashes its Swift dependencies; consistency regeneration
-bypasses its reuse stamp to verify the actual output.
 
 With hooks enabled, pre-commit checks either staged project-generation inputs or
 staged `Trinket.xcodeproj/project.pbxproj`. It exports an index snapshot and
@@ -201,22 +198,13 @@ package runner; per-package timing records own its diagnostic evidence.
 | `check-accessibility-ids.py` | Unique `AccessibilityID` constants; UITests must query `AccessibilityID.*` |
 | `check-module-boundaries.sh` | Package layering and imports |
 
-API bans and SwiftLint suppression reasons use the pinned SwiftFormat token
-export through `Scripts/internal/swift_policy.py`, with all transformations
-disabled. The scripts are their sole enforcement owners on macOS and Linux;
-SwiftLint has no custom-rule mirrors. Candidate search and tokenizer failures
-fail the gate. Comments and string literals are not API usage; code inside
-string interpolation is. A suppression requires a nonblank ` - <reason>` in
-its actual line comment, including when that directive follows code.
-
-SwiftFormat owns the duplicated formatting and rewrite checks disabled in
-`.swiftlint.yml`; retain SwiftLint checks that provide additional diagnostics,
-such as `async_without_await` and `unneeded_throws_rethrows`. Persisted string
-identifiers may keep a reasoned `swiftformat:disable redundantRawValues`.
-SwiftLint complexity counts branches and loops within switch cases, not the
-cases themselves; its file-size limit excludes comment-only lines. UI tests
-retain XCTest assertion checks, without single-class or paired-lifecycle rules
-that conflict with shared test bases.
+API bans and SwiftLint suppression reasons are enforced by the scripts in the
+table above (pinned SwiftFormat token export through
+`Scripts/internal/swift_policy.py`); SwiftLint has no custom-rule mirrors.
+Comments and string literals are not API usage; code inside string
+interpolation is. A suppression requires a nonblank ` - <reason>` in its
+actual line comment, including when that directive follows code. Flag and
+syntax details live in each script's usage text.
 
 `Color.primary`, `.secondary`, and `.clear` remain valid adaptive primitives.
 Feature-specific product colors and visual effects go through the design system.

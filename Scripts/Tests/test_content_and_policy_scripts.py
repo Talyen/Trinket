@@ -499,7 +499,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
-                "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift",
+                "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
             ],
             cwd=ROOT,
             capture_output=True,
@@ -513,7 +513,7 @@ class ContentAndPolicyScriptTests(ScriptRegressionTestCase):
             [
                 "./Scripts/generate.sh",
                 "./Scripts/assert-generated-output.sh --idempotent",
-                "./Scripts/test.sh style Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalogBasic.swift",
+                "./Scripts/test.sh style Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
                 "./Scripts/test-package.sh TrinketContent",
             ],
         )

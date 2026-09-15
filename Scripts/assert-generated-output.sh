@@ -131,6 +131,10 @@ done
 trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" true
 
 run_generate() {
+  # Force the AbilityInventoryDump subprocess so idempotence covers the
+  # ability inventory even when its stamp digest is fresh. Normal generate.sh
+  # skips that subprocess via .DerivedData/AbilityInventory.stamp.
+  # --force-xcodegen explicitly requests the default uncached generation.
   export TRINKET_FORCE_ABILITY_DUMP=1
   if [[ "$INCLUDE_ASSETS" == true ]]; then
     ./Scripts/generate.sh --assets --force-xcodegen
@@ -150,6 +154,8 @@ snapshot_tracked() {
 
 # Asset idempotence without hashing entire binary media trees. Per-asset hash TSVs
 # are the correctness signal; catalogs must stay aligned with manifests.
+# Local handoff trusts TSVs+catalogs; pass --strict-assets (CI assets gate) to
+# fingerprint full binary trees.
 snapshot_tracked_asset_catalogs() {
   local path
   for path in "${TRACKED_PATHS[@]}"; do

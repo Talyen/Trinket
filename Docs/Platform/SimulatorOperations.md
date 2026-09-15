@@ -48,57 +48,20 @@ parent lease for that slot; otherwise let `--isolate` acquire an available slot.
 
 ### Computer Use
 
-Use Computer Use (`mcp__cua_repl`) to view and operate the device UI. Start with
-`cua.getApp(...)` using the launcher's printed device UI path and follow its returned
-documentation. Xcode 27 ships Device Hub (`com.apple.dt.Devices`) under
-`Contents/Applications/DeviceHub.app`; the old Simulator path may no longer exist.
-The launcher resolves the UI from the selected Xcode to avoid stale registrations.
-Confirm the window's device name matches the launcher's leased simulator before
-interacting; select the leased device in Device Hub's sidebar (or Simulator) if
-another device is selected. An opened app alone does not prove device selection.
-Recheck the target after a window change. Device leases protect device ownership,
-but do not give each agent a separate device UI foreground window.
-
-Observe the current screen, act, and inspect the resulting state before choosing
-the next action. Computer Use provides both screenshots and accessibility
-information; prefer available controls and use its screenshot-based coordinate
-clicks or drags when accessibility controls are absent or ineffective. Derive
-coordinates from the current Computer Use screenshot, not a simctl image with a
-different size or coordinate space. No separate screenshot utility or Accessibility
-Inspector is required for ordinary inspection.
-
-After an unsuccessful action, refresh the observation, check the target window,
-overlays, and control state, and try one relevant alternative supported by
-Computer Use. If the same obstacle remains, use existing focused XCTest coverage
-or report the limitation. Continue troubleshooting only when simulator tooling
-is itself the task or new evidence identifies a concrete remedy. Do not write a
-custom input driver. Inspection scope and stopping rules follow
+Interaction technique — viewing and operating the device window, coordinate
+clicks and drags, observation discipline, and recovery from unsuccessful
+actions — lives in the [ios-simulator skill](../../.agents/skills/ios-simulator/SKILL.md).
+Inspection scope and stopping rules follow
 [Verification.md](Verification.md#choosing-ui-verification).
 If the tool cannot express a gesture's timing, use the existing gesture test or
 report the limitation rather than claiming its feel was verified.
 
-Accessibility Inspector is an optional diagnostic when investigating missing
-accessibility content. An empty tree alone does not establish an app regression.
-If needed, open the inspector through Computer Use, select the leased simulator,
-and verify a known app control; selecting all processes can preserve the inspection
-connection across app relaunches. A failed tap belongs to this interaction workflow;
-a failed build/test belongs to [CI diagnostics](../AgentContext/ci-diagnostics.md).
-
 ### Optional evidence capture
 
-Computer Use observations are sufficient for routine inspection. Use simctl when
-you need a saved device screenshot or recording as an artifact. Set
-`SIMULATOR_UDID` to the UDID printed by the still-running inspection session.
-
-With `SIMULATOR_UDID` set to that leased device:
-
-```bash
-xcrun simctl io "$SIMULATOR_UDID" screenshot /tmp/trinket-screen.png --type=png --mask=ignored
-xcrun simctl io "$SIMULATOR_UDID" recordVideo /tmp/trinket-motion.mp4
-```
-
-Stop recording with SIGINT to the recording process. Use the managed shutdown
-helper for recovery; it owns graceful guest-service teardown. A full pool means
+Computer Use observations are sufficient for routine inspection. When a saved
+screenshot or recording is needed as an artifact, the
+[ios-simulator skill](../../.agents/skills/ios-simulator/SKILL.md#evidence-capture)
+owns the exact simctl capture commands against the leased device. A full pool means
 another run owns the capacity, not permission to take its device.
 
 ## Optional mirror (isolated → human)
@@ -127,7 +90,7 @@ iCloud entitlements.
 `./Scripts/run-simulator.sh` (the `run` alias) builds, installs, opens the selected
 Xcode's device UI, and launches the app on the leased device. Opening Device Hub
 or Simulator does not guarantee that the target screen is visible; confirm the
-device selection through the [Computer Use workflow](#computer-use). Legacy
+device selection through the [ios-simulator skill](../../.agents/skills/ios-simulator/SKILL.md). Legacy
 Simulator's `-CurrentDeviceUDID` argument only affects a fresh launch. The launcher
 reports UI-open failures separately from app-launch failures, so a successful
 headless launch is not visual verification. An opted-in handoff mirror does not

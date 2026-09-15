@@ -30,6 +30,7 @@ public struct ResourceAmount: Codable, Hashable, Identifiable, Sendable {
 }
 
 // swiftformat:disable redundantRawValues - persisted node identifiers must remain explicit
+// Node IDs are stored in saves; never rename a raw value without a migration.
 public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiable, Sendable {
     case wheatField = "wheatField"
     case herbGarden = "herbGarden"

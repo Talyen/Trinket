@@ -24,7 +24,8 @@ Use an imperative subject, preferably:
 ```
 
 Supported types are `feat`, `fix`, `perf`, `refactor`, `content`, `style`,
-`test`, `ci`, `chore`, and `docs`. Plain imperative subjects remain supported.
+`test`, `ci`, `chore`, `build`, and `docs` (`build` and `chore` are excluded
+from release notes). Plain imperative subjects remain supported.
 Prefer `feat` or `fix` when a change is player-visible; use `refactor` for
 internal reshaping. Player-facing notes are inferred from commit type and
 touched paths at release time.
@@ -33,8 +34,8 @@ touched paths at release time.
 
 Before adopting a new major iOS release, complete the
 [platform readiness checks](Verification.md#new-ios-release-readiness). Release
-artifacts use the newest installed Xcode, which CI selects automatically; pin an
-older one only for bisection via `TRINKET_XCODE_VERSION`. The
+artifacts use the newest installed Xcode; [toolchain selection](../../Scripts/Reference.md#toolchain-ladder)
+owns command setup and bisection. The
 [platform support policy](ApplePlatformReference.md#platform-support) owns the
 rolling support window; verify both supported majors before claiming readiness.
 
@@ -47,11 +48,10 @@ produce verified release artifacts; they do not provision these external service
 
 ### Prepare while the beta is running
 
-The app record needed for TestFlight is already recorded in the
-[CloudKit setup baseline](CloudKitPreShipChecklist.md#setup-baseline). Complete its
-public listing using the [metadata draft](AppStoreMetadata.md) in that existing
-App Store Connect record; do not create another
-app or change the bundle ID to match the display name.
+Use the existing App Store Connect record for TestFlight (provisioning:
+[CloudKit setup baseline](CloudKitPreShipChecklist.md#setup-baseline)).
+Complete its public listing using the [metadata draft](AppStoreMetadata.md);
+do not create another app or change the bundle ID to match the display name.
 
 1. In **Apps → Trinket: Heroes & Companions → App Information**, prepare the
    subtitle, Games category/subcategories, content rights, and age-rating answers
@@ -99,7 +99,7 @@ or App Store distribution. Useful exceptions include
 
 A pushed `v*` tag triggers the GitHub release workflow. It confirms that the
 tagged commit is on `main` with green CI, then creates a GitHub Release whose
-body is `ReleaseNotes/en-US.txt` and uploads that file as an artifact. It does
+body is `ReleaseNotes/en-US.txt` plus a pointer to `CHANGELOG.md` and uploads that file as an artifact. It does
 not repeat the full suite already run by the release command and main CI.
 
 Apple's What's New field is required for updates after the first version, is

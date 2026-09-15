@@ -59,6 +59,9 @@ public enum SaveTestSupport {
         )
     }
 
+    /// Lightweight fixture: fresh roster/inventory plus explicit gold.
+    /// For the full seeded roster use the overload below (defaults
+    /// `roster: .testSeed`).
     public static func makeSave(modifiedAt: Date, gold: Int = 0) -> PlayerSave {
         makeSave(
             modifiedAt: modifiedAt,

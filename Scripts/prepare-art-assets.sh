@@ -26,8 +26,7 @@ encounter_dimension="${ART_ENCOUNTER_DIMENSION:-${max_dimension_override:-1320}}
 resource_dimension="${ART_RESOURCE_DIMENSION:-${max_dimension_override:-256}}"
 talent_dimension="${ART_TALENT_DIMENSION:-${max_dimension_override:-960}}"
 
-if [[ ! -f "$manifest" ]]; then
-  echo "Missing manifest: $manifest" >&2
+if ! trinket_asset_require_manifest "$manifest"; then
   exit 1
 fi
 
@@ -62,9 +61,7 @@ trinket_asset_extract_swift_quoted_ids "$scratch/combatant_ids" \
   "$generated_dir/GameContentRoster.generated.swift" \
   "$generated_dir/GameContentEnemies.generated.swift"
 trinket_asset_extract_swift_quoted_ids "$scratch/ability_ids" \
-  "$content_dir/AbilityCatalogBasic.swift" \
-  "$content_dir/AbilityCatalogSkill.swift" \
-  "$content_dir/AbilityCatalogUltimate.swift"
+  "$content_dir/AbilityCatalog.swift"
 trinket_asset_extract_swift_quoted_ids "$scratch/item_ids" \
   "$generated_dir/GameContentItemBases.generated.swift"
 
@@ -158,15 +155,14 @@ JSON
   rm -rf "$backup"
 }
 
-# Catalog usage drives which variants we ship:
+# Catalog usage drives which variants we ship (single home for this rule is
+# trinket_asset_needs_thumb in lib/media-assets.sh; check-unused-assets.py
+# KINDS_REQUIRING_THUMB must match it):
 # - every kind emits a full-size image
 # - resource / slot_background: full only
 # - combatant / ability / item / encounter / background: full + thumb
 emit_thumb_for_kind() {
-  case "$1" in
-    resource|slot_background) return 1 ;;
-    *) return 0 ;;
-  esac
+  trinket_asset_needs_thumb "$1"
 }
 
 full_dimension_for_kind() {
@@ -246,8 +242,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
   fi
 
   source_file="$source_path"
-  if [[ ! -f "$source_file" ]]; then
-    echo "Missing source file for '$id': $source_path" >&2
+  if ! trinket_asset_require_source_file "$id" "$source_file"; then
     exit 1
   fi
 

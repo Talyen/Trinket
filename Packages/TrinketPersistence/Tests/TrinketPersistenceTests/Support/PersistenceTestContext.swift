@@ -29,11 +29,11 @@ final class PersistenceTestContext {
         )
     }
 
+    /// Single construction path: a reload is just a default open of the same
+    /// URL, so it forwards through `makeSaveStore` instead of constructing
+    /// `PlayerSaveStore` directly.
     func makeReloadedStore() throws -> PlayerSaveStore {
-        try PlayerSaveStore(
-            storeURL: storeURL(),
-            disableCloudSync: true,
-        )
+        try makeSaveStore()
     }
 
     func seedAndReload(_ save: PlayerSave) throws -> PlayerSaveStore {

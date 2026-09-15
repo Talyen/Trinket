@@ -43,6 +43,8 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         allCases.filter { $0.category == .damageType }
     }
 
+    /// Damage types plus Health and Leech roll crits (healing crits exist);
+    /// resources and utility keywords never do.
     public var allowsCriticalHits: Bool {
         switch self {
         case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .health, .leech, .thorns:
@@ -122,7 +124,10 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
     )
 
     public static func referenced(in text: String) -> [Self] {
-        guard let regex = highlightRegex else { return [] }
+        guard let regex = highlightRegex else {
+            assertionFailure("Keyword.highlightPattern failed to compile")
+            return []
+        }
         let nsText = text as NSString
         let fullRange = NSRange(location: 0, length: nsText.length)
         var keywordFirstIndices: [Self: Int] = [:]
@@ -173,6 +178,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .cleanse:
             "Cleanse removes a negative effect from a party member"
         case .mana:
+            // Cost/bonus mirror BattleTurnEngine.manaEmpowermentCost/Bonus; update together.
             "Mana regenerates +1 each round. Spend 3 Mana to add +1 Burn or Freeze on a card"
         case .deathsDoor:
             "Death's Door survives a fatal blow at 1 Health and is immune to fatal blows while it lasts"

@@ -11,35 +11,22 @@ Do not check boxes into git as durable state — leave items unchecked in the co
 **Apple Developer Program:** A paid membership is required to create the CloudKit container, fill production entitlements, and verify multi-device sync. Local SwiftData, privacy-manifest prep, and `-disable-cloud-sync` testing do **not** require an account.
 
 **Current ship posture:** Ordinary builds default to **local-only** progress.
-Explicitly enabled internal TestFlight builds use CloudKit Production for controlled
-testing; wider distribution remains subject to the readiness gates below.
-`-enable-cloud-sync` opts a Debug installation in and retains that preference
-for later launches; `-disable-cloud-sync` clears it. The pure environment parser
-and test/reset overrides remain credential-free.
-`CLOUDKIT_SYNC_ENABLED` in `project.yml` defaults to `NO`. A build made with `YES`
-requests automatic sync, including Release; Release ignores the Debug opt-in
-argument and saved preference. Tests, `-disable-cloud-sync`,
-`-reset-state`, and `-seed-test-progress` force local storage. The save-store
-initializer also defaults to local storage.
-SwiftData stays local in every configuration. An explicit CloudKit service handles
-complete-save exchange. `project.yml` generates the iCloud/Push entitlements and
-background modes for controlled Development verification; provisioning alone does
-not establish readiness. Change the distributed default and player-facing sync
-copy only after the gates below pass.
+Explicitly enabled internal TestFlight builds use CloudKit Production for
+controlled testing; wider distribution remains subject to the readiness gates
+below. Build-flag, launch-argument, and storage-isolation mechanics live in the
+[storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
+Change the distributed default and player-facing sync copy only after the gates
+below pass.
 
 **Identity:** Cross-device progress uses this CloudKit private container — not Sign in with Apple / Google. Guest-first, no login UI. See [Identity.md](../Product/Identity.md).
 
 ## Setup baseline
 
-Verified during Apple account setup on September 11, 2026; recheck provisioning
-when preparing a cloud-enabled build. These facts do not check off the release gates.
-
-| Area | Established |
-|---|---|
-| Membership/signing | Paid developer team `Y968D69P94` is active and recognized by Xcode. |
-| App ID | `com.ryanmcintire.Trinket` is registered with iCloud and Push Notifications enabled. |
-| Container | `iCloud.com.ryanmcintire.Trinket` exists and is assigned to the app ID. |
-| Distribution | App Store Connect record **Trinket: Heroes & Companions** (`6811284921`) exists. Internal TestFlight `0.1.0 (1)` was installed and launched successfully, as reported by the owner. |
+Recheck provisioning in App Store Connect and Xcode when preparing a
+cloud-enabled build; these identifiers do not check off the release gates.
+Container `iCloud.com.ryanmcintire.Trinket` serves app ID
+`com.ryanmcintire.Trinket` (iCloud and Push Notifications enabled); the App
+Store Connect record is **Trinket: Heroes & Companions**.
 
 Banking/tax completion and Full Game purchase testing are separate StoreKit work
 and do not block CloudKit development. See [Purchases.md](Purchases.md).
@@ -170,13 +157,13 @@ entitlements; passing a Debug launch argument does not enable TestFlight.
 
 After the Development gates pass, the remaining activation sequence is:
 
-1. In CloudKit Console, select `iCloud.com.ryanmcintire.Trinket`, review the
-   Development-to-Production schema changes, and deploy the three explicit record
-   types above. This promotes structure, not Development player records.
-2. Choose the next internal beta build number in `project.yml`, regenerate, and
-   archive scheme `Trinket` in Release with `CLOUDKIT_SYNC_ENABLED=YES`. Keep the
-   existing bundle ID and verify Production entitlements when exporting for
-   App Store Connect. Leave the checked-in default `NO` until adoption is verified.
+1. In CloudKit Console, deploy the Development schema for
+   `iCloud.com.ryanmcintire.Trinket` to Production (structure only, not
+   Development player records).
+2. Archive scheme `Trinket` in Release with `CLOUDKIT_SYNC_ENABLED=YES` at the
+   next internal beta build number. Keep the existing bundle ID, verify
+   Production entitlements on export, and leave the checked-in default `NO`
+   until adoption is verified.
 3. Upload only to internal TestFlight, attach the prepared cloud beta notes from
    [AppStoreMetadata.md](AppStoreMetadata.md#cloud-enabled-beta-copy), and run the
    critical two-device/restart/reset/production-claim checks in Production. This
@@ -190,16 +177,7 @@ If a rollback is needed, distribute a higher build number with
 The tested account/production detachment policy remains in the
 [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
 
-## Optional post-launch follow-ups
-
-These do not gate CloudKit enablement:
-
-- Quiet Options sync status, only if useful; follow [Identity](../Product/Identity.md).
-- CloudKit Dashboard telemetry review for errors and throttling.
-
 ## Apple references
 
-- [CloudKit model setup](https://developer.apple.com/documentation/coredata/setting-up-core-data-with-cloudkit)
-- [Remote import handling](https://developer.apple.com/documentation/coredata/syncing-a-core-data-store-with-cloudkit)
 - [Schema deployment](https://developer.apple.com/documentation/cloudkit/deploying-an-icloud-container-s-schema)
 - [Development and TestFlight testing](https://developer.apple.com/library/archive/documentation/DataManagement/Conceptual/CloudKitQuickStart/TestingYourApp/TestingYourApp.html)
