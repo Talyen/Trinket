@@ -27,13 +27,14 @@ package extension DamagePipeline {
         if state.options.isAttackHit {
             let freeze = context.modifiers(for: state.combatant.id).triggers.onHitAttackerFreezeBuildup
             if freeze > 0 {
-                appendRetaliationDamage(
+                appendNestedDamage(
                     amount: freeze,
                     keyword: .freeze,
                     abilityName: CombatTriggerEngine.triggerAbilityName(
                         "onHitAttackerFreezeBuildup", for: state.combatant, fallback: "Chilling Scales", in: context,
                     ),
-                    attacker: attacker,
+                    target: attacker.combatant,
+                    defender: state.combatant,
                     to: &state,
                     in: &context,
                 )
@@ -168,7 +169,7 @@ package extension DamagePipeline {
 
         let holyDamage = context.modifiers(for: state.combatant.id).triggers.onHitAttackerHoly
         if holyDamage > 0, context.roster.health(for: attacker.combatant) > 0 {
-            state.damageEvents.append(contentsOf: resolveRetaliation(
+            state.damageEvents.append(contentsOf: resolveNestedDamage(
                 amount: holyDamage,
                 keyword: .holy,
                 target: attacker.combatant,
@@ -200,11 +201,12 @@ package extension DamagePipeline {
                 }
                 return false
             }
-            appendRetaliationDamage(
+            appendNestedDamage(
                 amount: amount,
                 keyword: keyword,
                 abilityName: keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward",
-                attacker: attacker,
+                target: attacker.combatant,
+                defender: state.combatant,
                 to: &state,
                 in: &context,
             )
@@ -248,11 +250,12 @@ package extension DamagePipeline {
         } else {
             .physical
         }
-        appendRetaliationDamage(
+        appendNestedDamage(
             amount: amount,
             keyword: keyword,
             abilityName: "Thorns",
-            attacker: attacker,
+            target: attacker.combatant,
+            defender: state.combatant,
             to: &state,
             in: &context,
         )
@@ -262,36 +265,5 @@ package extension DamagePipeline {
                 sourceActorID: state.combatant.id, application: .attached,
             ))
         }
-    }
-
-    private static func appendRetaliationDamage(
-        amount: Int,
-        keyword: Keyword,
-        abilityName: String,
-        attacker: CombatantRuntime,
-        to state: inout DamageResolutionState,
-        in context: inout BattleState,
-    ) {
-        guard amount > 0 else { return }
-        let outcome = resolveNestedDamage(
-            amount: amount,
-            keyword: keyword,
-            target: attacker.combatant,
-            sourceActorID: state.combatant.id,
-            in: &context,
-        )
-        var retaliationEvents = outcome.events
-        if outcome.healthLost > 0 {
-            retaliationEvents.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .thornsTriggered,
-                actorName: state.combatant.name,
-                abilityName: abilityName,
-                target: attacker.combatant,
-                amount: outcome.healthLost,
-                keyword: keyword,
-            ))
-        }
-        state.damageEvents.append(contentsOf: retaliationEvents)
     }
 }

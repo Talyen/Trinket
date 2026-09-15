@@ -30,6 +30,23 @@ enum SweepWorkerPool {
         }
         group.wait()
     }
+
+    /// Collecting variant: each index is computed exactly once and results
+    /// keep work order. Centralizes the disjoint-index buffer so callers do
+    /// not repeat the `nonisolated(unsafe)` collection dance.
+    static func map<T>(
+        count: Int,
+        jobs: Int,
+        work: @escaping @Sendable (Int) -> T?,
+    ) -> [T] {
+        guard count > 0 else { return [] }
+        // Concurrency-Safety: disjoint indices written by pool workers, no overlap
+        nonisolated(unsafe) var tmp = [T?](repeating: nil, count: count)
+        forEach(count: count, jobs: jobs) { index in
+            tmp[index] = work(index)
+        }
+        return tmp.compactMap(\.self)
+    }
 }
 
 // Concurrency-Safety: all mutable state behind NSLock; claim hands each index to one worker.

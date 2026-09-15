@@ -245,7 +245,7 @@ package extension CombatTriggerEngine {
         guard damage > 0 else { return [] }
         context.resolution.enter(.talentReaction)
         defer { context.resolution.leave(.talentReaction) }
-        return DamagePipeline.resolveRetaliation(
+        return DamagePipeline.resolveNestedDamage(
             amount: damage,
             keyword: .poison,
             target: context.roster.enemy.combatant,

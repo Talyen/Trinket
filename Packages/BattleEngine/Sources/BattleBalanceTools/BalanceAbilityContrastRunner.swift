@@ -43,13 +43,14 @@ enum BalanceAbilityContrastRunner {
         context: BalanceContrastContext,
         policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
-        BalanceContrastSupport.runContrast(
+        BalanceContrastSupport.runSweep(
             context: context,
             foci: foci(
                 heroes: context.heroes,
                 companions: context.companions,
                 focusIDs: context.config.focusIDs,
             ),
+            tiers: context.config.tiers,
             summarize: {
                 (
                     entityID: $0.focus.id,

@@ -98,23 +98,13 @@ enum BalanceTalentContrastRunner {
             companions: context.companions,
             focusIDs: context.config.focusIDs,
         )
-        guard !foci.isEmpty else { return [] }
-        guard let sliced = context.config.withLocalSlice(
-            regionStart: 0,
-            regionCount: BalanceContrastSupport.workCount(
+        return BalanceContrastSupport.runSlicedContrast(
+            context: context,
+            foci: foci,
+            region: 0 ..< BalanceContrastSupport.workCount(
                 fociCount: foci.count,
                 config: context.config,
             ),
-        ) else { return [] }
-        let slicedContext = BalanceContrastContext(
-            config: sliced,
-            heroes: context.heroes,
-            companions: context.companions,
-            enemies: context.enemies,
-        )
-        return BalanceContrastSupport.runContrast(
-            context: slicedContext,
-            foci: foci,
             summarize: {
                 (
                     entityID: $0.focusID,
@@ -133,7 +123,7 @@ enum BalanceTalentContrastRunner {
                     baselineTalents: focus.prefix.union([focus.siblingID].compactMap(\.self)),
                     tier: tier,
                     pairIndex: pairIndex,
-                    context: slicedContext,
+                    context: context,
                     pairSeed: seed,
                 )
             },
@@ -159,23 +149,14 @@ enum BalanceTalentContrastRunner {
             companions: context.companions,
             focusIDs: context.config.focusIDs,
         )
-        guard !foci.isEmpty else { return [] }
-        guard let sliced = context.config.withLocalSlice(
-            regionStart: siblingRegionCount,
-            regionCount: BalanceContrastSupport.workCount(
-                fociCount: foci.count,
-                config: context.config,
-            ),
-        ) else { return [] }
-        let slicedContext = BalanceContrastContext(
-            config: sliced,
-            heroes: context.heroes,
-            companions: context.companions,
-            enemies: context.enemies,
+        let kitRegionCount = BalanceContrastSupport.workCount(
+            fociCount: foci.count,
+            config: context.config,
         )
-        return BalanceContrastSupport.runContrast(
-            context: slicedContext,
+        return BalanceContrastSupport.runSlicedContrast(
+            context: context,
             foci: foci,
+            region: siblingRegionCount ..< siblingRegionCount + kitRegionCount,
             summarize: {
                 (
                     entityID: "full-kit",
@@ -194,7 +175,7 @@ enum BalanceTalentContrastRunner {
                     baselineTalents: [],
                     tier: tier,
                     pairIndex: pairIndex,
-                    context: slicedContext,
+                    context: context,
                     pairSeed: seed,
                 )
             },

@@ -115,26 +115,6 @@ enum BattleTestFixtures {
         battle.endTurn()
     }
 
-    @discardableResult
-    static func endTurns(_ count: Int, on battle: inout BattleState) -> [ActionEvent] {
-        var allEvents: [ActionEvent] = []
-        for _ in 0 ..< count {
-            guard !battle.isBattleOver else { break }
-            allEvents.append(contentsOf: endTurn(on: &battle))
-        }
-        return allEvents
-    }
-
-    @discardableResult
-    static func playHeroCardAndEndTurn(on battle: inout BattleState) throws -> [ActionEvent] {
-        var events: [ActionEvent] = []
-        if let playEvents = try playFirstPlayableCard(owner: .hero, on: &battle) {
-            events.append(contentsOf: playEvents)
-        }
-        events.append(contentsOf: battle.endTurn())
-        return events
-    }
-
     static func playUntilAbility(
         _ abilityName: String,
         owner: BattleParticipant = .hero,
@@ -155,10 +135,6 @@ enum BattleTestFixtures {
             }
         }
         return nil
-    }
-
-    static func firstAbilityEvent(in events: [ActionEvent]) -> ActionEvent? {
-        events.first { $0.kind == .ability }
     }
 }
 
@@ -213,15 +189,6 @@ extension BattleTestFixtures {
         }
     }
 
-    static func poisonPotency(on combatant: Combatant, in context: BattleState) -> Int {
-        context.roster.activeEffects(for: combatant).reduce(0) { sum, active in
-            if case let .poison(potency) = active.effect {
-                return sum + potency
-            }
-            return sum
-        }
-    }
-
     static func burnPotency(on battle: BattleState) -> Int? {
         battle.activeEffects(of: battle.enemy).first { $0.effect.isDecayingDoT && $0.keyword == .burn }?.effect.potency
     }
@@ -240,31 +207,12 @@ extension BattleState {
     func hasHeroEffect(matching predicate: (Effect) -> Bool) -> Bool {
         activeEffects(of: hero).contains { predicate($0.effect) }
     }
-
-    func hasEnemyEffect(matching predicate: (Effect) -> Bool) -> Bool {
-        activeEffects(of: enemy).contains { predicate($0.effect) }
-    }
-
-    func firstEnemyEffect(matching predicate: (Effect) -> Bool) -> ActiveEffect? {
-        activeEffects(of: enemy).first { predicate($0.effect) }
-    }
 }
 
 extension [ActionEvent] {
     func contains(effectKind: ActionEvent.EffectOutcome, keyword: Keyword? = nil) -> Bool {
         contains { event in
             event.effectKind == effectKind && (keyword == nil || event.keyword == keyword)
-        }
-    }
-}
-
-extension ActiveEffect {
-    static func isDebuff(_ activeEffect: ActiveEffect) -> Bool {
-        switch activeEffect.effect {
-        case .burn, .poison, .bleed, .controlMeter:
-            true
-        default:
-            false
         }
     }
 }

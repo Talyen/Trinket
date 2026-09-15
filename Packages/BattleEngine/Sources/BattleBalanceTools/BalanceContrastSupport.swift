@@ -326,4 +326,8 @@ enum BalanceContrastSupport {
             ),
         )
     }
+
+    static func workCount(fociCount: Int, config: BalanceSweepConfig) -> Int {
+        fociCount * config.tiers.count * config.battlesPerTier
+    }
 }

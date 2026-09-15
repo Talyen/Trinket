@@ -25,6 +25,9 @@ enum PurgeOperation {
         in context: inout BattleState,
     ) -> Outcome {
         var effects = context.roster.activeEffects(for: target)
+        // Purge-only by design: sealedSarcophagus guards .shield Block, which
+        // is always a removable buff. Cleanse strips debuffs, so the flag
+        // would be meaningless on that path.
         let preservingBlock = context.modifiers(for: target.id).triggers.sealedSarcophagus
         let removed: [ActiveEffect] = switch selection {
         case let .all(keyword):

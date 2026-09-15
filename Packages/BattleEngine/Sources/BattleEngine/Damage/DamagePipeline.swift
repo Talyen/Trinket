@@ -182,27 +182,14 @@ package enum DamagePipeline {
         }
     }
 
-    static func resolveRetaliation(
-        amount: Int,
-        keyword: Keyword,
-        target: Combatant,
-        sourceActorID: String?,
-
-        in context: inout BattleState,
-    ) -> CombatOutcome {
-        resolveNestedDamage(
-            amount: amount,
-            keyword: keyword,
-            target: target,
-            sourceActorID: sourceActorID,
-            in: &context,
-        )
-    }
-
     /// Single choke point for nested reaction damage (retaliation, wards,
-    /// talent strikes, blocked-damage answers). Callers that need the
-    /// `.thornsTriggered` decorator use `appendRetaliationDamage`; DoT-typed
-    /// mirrors branch to the applicator before reaching this helper.
+    /// talent strikes, blocked-damage answers). DoT-typed mirrors branch to
+    /// the applicator before reaching this helper.
+    ///
+    /// The `.thornsTriggered` decorator is never added here. Ward paths that
+    /// need it must call `appendNestedDamage`, which makes the decorator
+    /// explicit at the call site; every other nested-damage caller uses this
+    /// function directly so no decorator fires.
     static func resolveNestedDamage(
         amount: Int,
         keyword: Keyword,
@@ -228,6 +215,43 @@ package enum DamagePipeline {
             sourceActorID: sourceActorID,
             options: .reaction(),
         ))
+    }
+
+    /// Ward-only sibling of `resolveNestedDamage`: resolves nested damage and
+    /// appends the `.thornsTriggered` decorator when damage lands. Call sites
+    /// are limited to defender-ward retaliation (freeze wards, typed wards,
+    /// thorns); talent strikes, reflections, and other nested damage must call
+    /// `resolveNestedDamage` directly so the decorator stays off.
+    static func appendNestedDamage(
+        amount: Int,
+        keyword: Keyword,
+        abilityName: String,
+        target: Combatant,
+        defender: Combatant,
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard amount > 0 else { return }
+        let outcome = resolveNestedDamage(
+            amount: amount,
+            keyword: keyword,
+            target: target,
+            sourceActorID: defender.id,
+            in: &context,
+        )
+        var retaliationEvents = outcome.events
+        if outcome.healthLost > 0 {
+            retaliationEvents.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .thornsTriggered,
+                actorName: defender.name,
+                abilityName: abilityName,
+                target: target,
+                amount: outcome.healthLost,
+                keyword: keyword,
+            ))
+        }
+        state.damageEvents.append(contentsOf: retaliationEvents)
     }
 
     static func appendAbsorption(

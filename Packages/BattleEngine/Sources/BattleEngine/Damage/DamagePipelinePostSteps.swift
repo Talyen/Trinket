@@ -358,12 +358,11 @@ package extension DamagePipeline {
             ))
         }
         if triggers.basicAttackFreezeBuildup > 0 {
-            state.damageEvents.append(contentsOf: resolveRetaliation(
+            state.damageEvents.append(contentsOf: resolveNestedDamage(
                 amount: triggers.basicAttackFreezeBuildup,
                 keyword: .freeze,
                 target: target,
                 sourceActorID: sourceActorID,
-
                 in: &context,
             ).events)
         }
@@ -467,7 +466,7 @@ package extension DamagePipeline {
         if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunDamage > 0,
            state.options.isAttackHit, !state.options.isRetaliation, targetAlive,
            BattleChance.succeeds(probability: triggers.dazingSwipeChancePercent, using: &context.rng) {
-            state.damageEvents.append(contentsOf: resolveRetaliation(
+            state.damageEvents.append(contentsOf: resolveNestedDamage(
                 amount: triggers.dazingSwipeStunDamage,
                 keyword: .stun,
                 target: target,
@@ -488,7 +487,7 @@ package extension DamagePipeline {
            BattleChance.succeeds(probability: triggers.attackBurstChancePercent, using: &context.rng) {
             let burstDamage = max(0, triggers.attackBurstDamage)
             if burstDamage > 0 {
-                state.damageEvents.append(contentsOf: resolveRetaliation(
+                state.damageEvents.append(contentsOf: resolveNestedDamage(
                     amount: burstDamage,
                     keyword: .physical,
                     target: target,

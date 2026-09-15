@@ -24,18 +24,6 @@ extension TalentCatalogRoundTripTests {
         #expect(outcome.events.count { $0.abilityName == "Icebound Exchange" && $0.amount == 3 } == 2)
     }
 
-    func capstoneBattle(hero: [String] = [], companion: [String] = []) -> BattleState {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroMaxHealth: 40, companionMaxHealth: 40, enemyMaxHealth: 200,
-            heroMaxMana: 10, companionMaxMana: 10,
-            heroModifiers: CombatantTalentCatalog.profile(for: Set(hero)),
-            companionModifiers: CombatantTalentCatalog.profile(for: Set(companion)),
-            dealOpeningHand: false,
-        )
-        battle.appliesFightPacing = false
-        return battle
-    }
-
     @Test func `living archive echoes card healing once on its original recipient`() throws {
         var battle = capstoneBattle(companion: ["library_owl_health_t4_1"])
         battle.roster.hero.currentHealth = 1

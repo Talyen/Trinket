@@ -13,6 +13,9 @@ struct DeathsDoorHandler: BattleEffectHandler {
         )
     }
 
+    /// Intentionally inert: Death's Door is granted and processed by
+    /// DeathsDoorEngine and the damage pipeline, never applied as a card
+    /// effect. This handler owns the battle summary and turn expiry.
     func apply(
         _ effect: Effect,
         ability: Ability,

@@ -108,6 +108,10 @@ enum BalanceSweepProcessOrchestrator {
             "--policy", parent.policyID,
             "--work-offset", "\(job.offset)",
             "--work-limit", "\(job.limit)",
+            "--peer-delta", "\(parent.peerDeltaFlagThreshold)",
+            "--duration-flag-rate", "\(parent.durationFlagRate)",
+            "--comfort-hp", "\(parent.comfortHPThreshold)",
+            "--comfort-rounds", "\(parent.comfortRoundThreshold)",
             "--output-file", outputFile,
         ]
         if parent.comparePolicies {

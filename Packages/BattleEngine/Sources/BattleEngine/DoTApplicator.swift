@@ -25,6 +25,47 @@ package enum DoTApplication: Equatable {
 }
 
 package enum DoTApplicator {
+    /// Single switch for keyword-typed DoT application: burn/poison attach
+    /// decaying stacks, bleed attaches bleed stacks. Returns nil for non-DoT
+    /// keywords so the caller can fall through to its own handling (usually
+    /// nested damage). `durationTurns` applies to bleed only; decaying DoTs
+    /// always attach with remainingTurns 0 and ignore it.
+    package static func applyDoT(
+        keyword: Keyword,
+        potency: Int,
+        to effectTarget: Combatant,
+        sourceActorID: String,
+        application: DoTApplication,
+        durationTurns: Int? = nil,
+        provenance: DamageProvenance? = nil,
+        in context: inout BattleState,
+    ) -> [ActionEvent]? {
+        switch keyword {
+        case .bleed:
+            applyBleed(
+                potency: potency,
+                to: effectTarget,
+                sourceActorID: sourceActorID,
+                application: application,
+                durationTurns: durationTurns,
+                provenance: provenance,
+                in: &context,
+            )
+        case .burn, .poison:
+            applyDecayingDoT(
+                keyword: keyword,
+                potency: potency,
+                to: effectTarget,
+                sourceActorID: sourceActorID,
+                application: application,
+                provenance: provenance,
+                in: &context,
+            )
+        default:
+            nil
+        }
+    }
+
     package static func applyDecayingDoT(
         keyword: Keyword,
         potency: Int,

@@ -19,18 +19,33 @@ struct BlessedAegisHandler: BattleEffectHandler {
         var didApply = false
         for ally in allies where context.health(of: ally) > 0 {
             guard context.health(of: source) > 0 else { break }
-            let shield = BlockBuffHandler().apply(.shield(.block, block), ability: ability, source: source, target: ally, in: &context)
+            // Route through the registry so BlessedAegis always composes the
+            // canonical handlers for these kinds rather than a private copy.
+            let shield = applyViaRegistry(
+                .shield, .shield(.block, block), ability: ability, source: source, target: ally, in: &context,
+            )
             events.append(contentsOf: shield.events)
-            let ward = OnHitDamageHandler().apply(
-                .onHitDamage(.holy, holyDamage),
-                ability: ability,
-                source: source,
-                target: ally,
-                in: &context,
+            let ward = applyViaRegistry(
+                .onHitDamage, .onHitDamage(.holy, holyDamage),
+                ability: ability, source: source, target: ally, in: &context,
             )
             events.append(contentsOf: ward.events)
             didApply = didApply || shield.didApply || ward.didApply
         }
         return EffectApplyOutcome(events: events, didApply: didApply)
+    }
+
+    private func applyViaRegistry(
+        _ kind: EffectKind,
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard let handler = EffectHandlers.handler(for: kind) else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        return handler.apply(effect, ability: ability, source: source, target: target, in: &context)
     }
 }

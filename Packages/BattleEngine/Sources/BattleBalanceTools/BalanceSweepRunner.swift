@@ -140,11 +140,9 @@ public enum BalanceSweepRunner {
             },
         )
         let jobs = config.resolvedJobs
-        // Concurrency-Safety: disjoint indices written by pool workers, no overlap
-        nonisolated(unsafe) var results = [BalanceBattleRecord?](repeating: nil, count: work.count)
-        SweepWorkerPool.forEach(count: work.count, jobs: jobs) { index in
+        return SweepWorkerPool.map(count: work.count, jobs: jobs) { index -> BalanceBattleRecord? in
             let entry = work[index]
-            let record = simulateIdentityBattle(
+            return simulateIdentityBattle(
                 IdentityBattleWork(
                     config: config,
                     policy: policy,
@@ -156,9 +154,7 @@ public enum BalanceSweepRunner {
                     sampleIndex: entry.2,
                 ),
             )
-            results[index] = record
         }
-        return results.compactMap(\.self)
     }
 
     private struct IdentityBattleWork {

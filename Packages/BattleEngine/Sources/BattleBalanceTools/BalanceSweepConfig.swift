@@ -358,4 +358,44 @@ public struct BalanceSweepReport: Codable, Sendable {
         self.progressionTruncatedRuns = max(0, progressionTruncatedRuns)
         self.elapsedSeconds = elapsedSeconds
     }
+
+    /// Merges per-worker slice reports back into one report. Contrast
+    /// summaries re-bucket through the parent config so worker-local flag
+    /// thresholds cannot leak into the merged output.
+    public static func merged(
+        _ slices: [Self],
+        config: BalanceSweepConfig,
+        policyID: String,
+        elapsedSeconds: Double,
+    ) -> Self {
+        let progressionRecords = slices.flatMap(\.progressionRecords)
+        return Self(
+            config: config,
+            policyID: policyID,
+            records: slices.flatMap(\.records),
+            comparedPolicyID: slices.first(where: { $0.comparedPolicyID != nil })?.comparedPolicyID,
+            comparedRecords: slices.flatMap(\.comparedRecords),
+            abilityContrasts: BalanceContrastSupport.mergeSummaries(
+                slices.flatMap(\.abilityContrasts),
+                config: config,
+            ),
+            affixContrasts: BalanceContrastSupport.mergeSummaries(
+                slices.flatMap(\.affixContrasts),
+                config: config,
+            ),
+            talentContrasts: BalanceContrastSupport.mergeSummaries(
+                slices.flatMap(\.talentContrasts),
+                config: config,
+            ),
+            talentKitContrasts: BalanceContrastSupport.mergeSummaries(
+                slices.flatMap(\.talentKitContrasts),
+                config: config,
+            ),
+            progressionHotspots: HotspotAnalyzer.analyze(records: progressionRecords),
+            progressionRecords: progressionRecords,
+            progressionPlayerStates: slices.flatMap(\.progressionPlayerStates),
+            progressionTruncatedRuns: slices.reduce(0) { $0 + $1.progressionTruncatedRuns },
+            elapsedSeconds: elapsedSeconds,
+        )
+    }
 }

@@ -45,24 +45,4 @@ extension BattleState {
         )
         return (outcome.healthLost, outcome.events)
     }
-
-    mutating func applyTestHeal(_ amount: Int, to target: Combatant, sourceActorID: String? = nil) {
-        _ = resolveHeal(HealRequest(amount: amount, target: target, sourceActorID: sourceActorID))
-    }
-
-    @discardableResult
-    mutating func applyTestDoTDamage(
-        _ amount: Int,
-        keyword: Keyword,
-        to target: Combatant,
-        sourceActorID: String?,
-    ) -> (healthLost: Int, events: [ActionEvent]) {
-        let outcome = resolveDoTTick(
-            basePotency: amount,
-            keyword: keyword,
-            target: target,
-            sourceActorID: sourceActorID,
-        )
-        return (outcome.healthLost, outcome.events)
-    }
 }

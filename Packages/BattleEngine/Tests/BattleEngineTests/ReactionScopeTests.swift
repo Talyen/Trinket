@@ -83,4 +83,51 @@ struct ReactionScopeTests {
         #expect(outcome.healthLost == 0)
         #expect(state.roster.health(for: target) == 100)
     }
+
+    @Test func `ward retaliation emits thorns decorator`() {
+        var state = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 100),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroEffects: [ActiveEffect(id: 1, effect: .thorns(4), remainingTurns: 2)],
+        )
+        let outcome = state.resolveDamage(DamageRequest(
+            amount: 10,
+            target: state.roster.hero.combatant,
+            keyword: .physical,
+            sourceActorID: state.roster.enemy.combatant.id,
+            options: DamageOperation.attack(
+                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+            ),
+        ))
+        #expect(outcome.healthLost == 10)
+        #expect(state.roster.health(for: state.roster.enemy.combatant) == 96)
+        #expect(outcome.events.contains {
+            $0.effectKind == .thornsTriggered && $0.abilityName == "Thorns"
+                && $0.keyword == .physical && $0.amount == 4
+        })
+    }
+
+    @Test func `talent strike nested damage emits no thorns decorator`() {
+        var heroProfile = CombatModifierProfile.zero
+        heroProfile.triggers.basicAttackFreezeBuildup = 3
+        var state = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 100),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroModifiers: heroProfile,
+        )
+        let outcome = state.resolveDamage(DamageRequest(
+            amount: 10,
+            target: state.roster.enemy.combatant,
+            keyword: .physical,
+            sourceActorID: state.roster.hero.combatant.id,
+            options: DamageOperation.attack(
+                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+            ),
+        ))
+        #expect(outcome.healthLost == 10)
+        #expect(state.roster.health(for: state.roster.enemy.combatant) == 87)
+        #expect(!outcome.events.contains { $0.effectKind == .thornsTriggered })
+    }
 }

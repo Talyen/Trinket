@@ -150,15 +150,11 @@ enum ActiveEffectMutation {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         switch active.effect {
-        case let .burn(potency), let .poison(potency):
-            return context.applyDecayingDoT(
+        case let .burn(potency), let .poison(potency), let .bleed(potency):
+            return DoTApplicator.applyDoT(
                 keyword: active.keyword, potency: potency, to: target, sourceActorID: source.id, application: .reflection,
-            )
-        case let .bleed(potency):
-            return DoTApplicator.applyBleed(
-                potency: potency, to: target, sourceActorID: source.id, application: .reflection,
                 durationTurns: active.remainingTurns, in: &context,
-            )
+            ) ?? []
         case let .controlMeter(keyword, amount, _):
             return ControlMeterEngine.applyMeterCharge(
                 amount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false, in: &context,
