@@ -23,10 +23,12 @@ DEFER_TERMINAL_OUTPUT=false
 REPORT_PREFIX=""
 INCLUDE_BALANCE_SWEEP_TESTS=false
 DID_ENSURE_SIMULATOR=false
+ITERATIONS=""
+RUN_UNTIL_FAILURE=false
 
 usage() {
   cat <<'USAGE'
-Usage: ./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] <Package> [Package...]
+Usage: ./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] [--iterations COUNT] [--run-tests-until-failure] <Package> [Package...]
 
 Runs Swift package test schemes from inside their package directories, allocating
 a unique result bundle for each invocation so repeated runs do not collide.
@@ -41,6 +43,8 @@ It cannot be combined with --build-for-testing.
 and stamps package_<name> so later --no-build runs can reuse the products. BattleEngine
 balance-sweep tests are skipped by default; pass --include-balance-sweep-tests for a
 one-off balance-tool test run.
+--iterations repeats test execution COUNT times (e.g. for reproducibility).
+--run-tests-until-failure repeats tests until a failure occurs (defaults to 10 iterations when --iterations is omitted).
 TRINKET_SERIAL_TESTS=1 serializes test execution (diagnosing stack-pressure
 crashes); TRINKET_PACKAGE_TEST_JOBS=1 serializes across packages.
 
@@ -94,6 +98,19 @@ while [[ $# -gt 0 ]]; do
       INCLUDE_BALANCE_SWEEP_TESTS=true
       shift
       ;;
+    --iterations)
+      if [[ $# -lt 2 || ! "$2" =~ ^[1-9][0-9]*$ ]]; then
+        echo "--iterations requires a positive integer." >&2
+        usage >&2
+        exit 1
+      fi
+      ITERATIONS="$2"
+      shift 2
+      ;;
+    --run-tests-until-failure)
+      RUN_UNTIL_FAILURE=true
+      shift
+      ;;
     --help|-h)
       usage
       exit 0
@@ -133,6 +150,17 @@ for package in "${PACKAGES[@]}"; do
   done
   validated_packages+=("$package")
 done
+
+if [[ "$ACTION" == "build-for-testing" ]]; then
+  if [[ -n "$ITERATIONS" || "$RUN_UNTIL_FAILURE" == "true" ]]; then
+    echo "Repetition options cannot be combined with --build-for-testing." >&2
+    exit 1
+  fi
+fi
+
+if [[ "$RUN_UNTIL_FAILURE" == "true" && -z "$ITERATIONS" ]]; then
+  ITERATIONS=10
+fi
 
 if [[ -n "$DESTINATION" ]]; then
   if [[ "$ACTION" == "build-for-testing" ]]; then
@@ -277,6 +305,12 @@ run_one_package() {
     # runs skip them to avoid writing bulky unused xcresults.
     if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
       xcodebuild_args+=(-resultBundlePath "$result_bundle")
+      if [[ -n "$ITERATIONS" ]]; then
+        xcodebuild_args+=(-test-iterations "$ITERATIONS")
+      fi
+      if [[ "$RUN_UNTIL_FAILURE" == "true" ]]; then
+        xcodebuild_args+=(-run-tests-until-failure)
+      fi
     fi
     # Opt-in serial execution for diagnosing stack-pressure crashes on small
     # worker-thread stacks; parallel remains the default.
@@ -385,6 +419,8 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$jobs" -I{} bash -c '
   output_root="$8"
   derived_data_path="$9"
   results_dir="${10}"
+  iterations="${11}"
+  run_until_failure="${12}"
 
   export DERIVED_DATA_PATH="$derived_data_path"
   export RESULTS_DIR="$results_dir"
@@ -411,12 +447,18 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$jobs" -I{} bash -c '
   if [[ "$include_balance" == "true" ]]; then
     package_args+=(--include-balance-sweep-tests)
   fi
+  if [[ -n "$iterations" ]]; then
+    package_args+=(--iterations "$iterations")
+  fi
+  if [[ "$run_until_failure" == "true" ]]; then
+    package_args+=(--run-tests-until-failure)
+  fi
 
   status=0
   ./Scripts/test-package.sh "${package_args[@]}" >"$output_root/$package.stdout" 2>&1 || status=$?
   printf "%s\n" "$status" >"$output_root/$package.status"
   exit "$status"
-' _ {} "$DESTINATION" "$ACTION" "$QUIET" "$VERBOSE" "$REPORT_PREFIX" "$INCLUDE_BALANCE_SWEEP_TESTS" "$package_output_root" "$DERIVED_DATA_PATH" "$RESULTS_DIR" || failed=1
+' _ {} "$DESTINATION" "$ACTION" "$QUIET" "$VERBOSE" "$REPORT_PREFIX" "$INCLUDE_BALANCE_SWEEP_TESTS" "$package_output_root" "$DERIVED_DATA_PATH" "$RESULTS_DIR" "$ITERATIONS" "$RUN_UNTIL_FAILURE" || failed=1
 
 # Emit deferred output in declaration order after all workers finish.
 for package in "${PACKAGES[@]}"; do

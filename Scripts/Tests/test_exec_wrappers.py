@@ -184,6 +184,10 @@ class ExecWrapperTests(unittest.TestCase):
                 ("test-package.sh", ["--destination", "", "BattleEngine"], 1, "requires a value"),
                 ("test-package.sh", ["--destination", "platform=iOS,name=Phone", "BattleEngine"], 1, "only platform=iOS Simulator"),
                 ("test-package.sh", ["--build-for-testing", "--destination", "id=fixture", "BattleEngine"], 1, "cannot be combined"),
+                ("test-package.sh", ["--iterations", "0", "BattleEngine"], 1, "--iterations requires a positive integer"),
+                ("test-package.sh", ["--iterations", "abc", "BattleEngine"], 1, "--iterations requires a positive integer"),
+                ("test-package.sh", ["--build-for-testing", "--iterations", "2", "BattleEngine"], 1, "Repetition options cannot be combined"),
+                ("test-package.sh", ["--build-for-testing", "--run-tests-until-failure", "BattleEngine"], 1, "Repetition options cannot be combined"),
             ]
             for name, args, status, message in cases:
                 with self.subTest(name=name, args=args):

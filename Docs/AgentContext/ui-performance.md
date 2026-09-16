@@ -11,8 +11,7 @@ identity and stops rotating when the title is full. The title fills left to righ
 decode counts. Do not reconnect it to `PreparedArtworkCache.progress` or add a
 separate dismissal timer. If required resources, cast effects, or applicable root
 layouts take longer, keep the cover visible with the title fully gold until they are ready.
-The title pulses from 100% to 102% scale and back over 2.4 seconds while loading;
-its animation timeline pauses when the scene is inactive and stops when launch
+The title animation timeline pauses when the scene is inactive and stops when launch
 readiness completes, including retained encounter underlays.
 Resource decoding and texture/raster preparation start during the hold; root and
 hidden-tab layout start after it, and launch cast rendering starts after those

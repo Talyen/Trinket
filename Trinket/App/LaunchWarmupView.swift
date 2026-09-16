@@ -37,7 +37,6 @@ struct LaunchWarmupView: View {
         )) { context in
             let elapsed = loadingStartDate.map { max(0, context.date.timeIntervalSince($0)) } ?? 0
             let fill = isMinimumLoadingTimeComplete ? 1 : min(1, elapsed / Self.minimumLoadingDuration)
-            let scale = isLaunchPresentationReady ? 1 : 1 + 0.01 * (1 - cos(elapsed * .pi * 2 / 2.4))
 
             Text("TRINKET")
                 .foregroundStyle(.secondary)
@@ -53,7 +52,6 @@ struct LaunchWarmupView: View {
                         .accessibilityHidden(true)
                 }
                 .trinketTypography(.screenDisplay)
-                .scaleEffect(scale)
                 .accessibilityLabel("Loading Trinket")
         }
     }

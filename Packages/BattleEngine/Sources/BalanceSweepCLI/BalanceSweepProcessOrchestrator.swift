@@ -59,6 +59,12 @@ enum BalanceSweepProcessOrchestrator {
     ) throws -> [BalanceSweepReport] {
         var launched: [(process: Process, output: URL)] = []
         launched.reserveCapacity(jobs.count)
+        defer {
+            for item in launched where item.process.isRunning {
+                item.process.terminate()
+                item.process.waitUntilExit()
+            }
+        }
         for job in jobs {
             let output = tempRoot.appendingPathComponent("chunk-\(chunkIndex).json")
             chunkIndex += 1

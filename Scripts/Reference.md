@@ -27,7 +27,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/assert-generated-output.sh --idempotent` | Confirm regeneration produces no diff |
 | `./Scripts/build-for-testing.sh` | Rebuild app and package schemes for `test.sh … --no-build` runs against CI build artifacts |
 | `./Scripts/build-for-testing.sh --app-only` | Build the app and UI test bundles, skipping package test schemes (CI shared build) |
-| `./Scripts/test-package.sh <Package>` | Run one package's tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing` |
+| `./Scripts/test-package.sh <Package>` | Run one package's tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition |
 | `./Scripts/test.sh unit` | Run all package unit suites via the parallel `test-package.sh` owner |
 | `./Scripts/test.sh smoke` | Run the checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |

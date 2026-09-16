@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Headless balance sweep. Writes findings markdown under BalanceSweepReports/ (gitignored).
-# Requires Swift toolchain (Xcode 26+ / Swift 6.2) with macOS package support.
+# Requires Swift toolchain (Xcode 27+ / Swift 6.4) with macOS package support.
 # Builds release by default so combat runs in optimized worker processes.
 #
 # Examples:
