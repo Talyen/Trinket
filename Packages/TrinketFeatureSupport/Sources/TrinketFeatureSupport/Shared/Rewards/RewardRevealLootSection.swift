@@ -71,7 +71,7 @@ public struct RewardRevealLootSection: View {
                     } label: {
                         RewardItemRevealCard(item: item)
                     }
-                    .trinketQuietTapButtonStyle()
+                    .buttonStyle(.plain)
                     .containerRelativeFrame(.horizontal)
                     .id(item.id)
                     .accessibilityIdentifier(itemAccessibilityID(item.id))

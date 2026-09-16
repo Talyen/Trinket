@@ -97,10 +97,6 @@ struct PlayBrowsingStack: View {
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {
         guard let encounter = journey.resolvedEncounter(for: stage) else { return nil }
-
-        return CombatantCardDetail(
-            combatant: encounter.combatant,
-            progression: .at(level: encounter.level),
-        )
+        return makePlayEnemyDetail(combatant: encounter.combatant, level: encounter.level)
     }
 }

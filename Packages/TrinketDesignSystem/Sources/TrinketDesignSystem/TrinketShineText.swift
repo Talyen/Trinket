@@ -12,12 +12,13 @@ private struct ShineTextModifier: ViewModifier {
         } else {
             let paused = reduceMotion || !isMotionActive || scenePhase != .active
             let sweepStops = textShineStops(colors: colors)
-            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: paused)) { context in
+            TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: paused)) { context in
                 let phase = paused
                     ? 0
-                    : context.date.timeIntervalSinceReferenceDate
-                    .truncatingRemainder(dividingBy: TrinketMotion.Shine.textLoopPeriod)
-                    / TrinketMotion.Shine.textLoopPeriod
+                    : TrinketMotion.Shine.phase(
+                        at: context.date.timeIntervalSinceReferenceDate,
+                        period: TrinketMotion.Shine.textLoopPeriod,
+                    )
                 content
                     .foregroundStyle(
                         LinearGradient(

@@ -128,8 +128,16 @@ public extension View {
         }
     }
 
-    func trinketCardSurface(cornerRadius: CGFloat = TrinketDesign.Corners.card) -> some View {
-        trinketSurface(.card, cornerRadiusOverride: cornerRadius)
+    @ViewBuilder
+    func trinketCardSurface(cornerRadius: CGFloat = TrinketDesign.Corners.card, showsStroke: Bool = false) -> some View {
+        if showsStroke {
+            let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            trinketSurface(.card, cornerRadiusOverride: cornerRadius)
+                .clipShape(shape)
+                .overlay { shape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1) }
+        } else {
+            trinketSurface(.card, cornerRadiusOverride: cornerRadius)
+        }
     }
 
     func trinketLockedCardEffect(isLocked: Bool, cornerRadius: CGFloat = TrinketDesign.Corners.card) -> some View {
@@ -186,18 +194,10 @@ public extension View {
             ))
     }
 
-    func trinketQuietTapButtonStyle() -> some View {
-        buttonStyle(.plain)
-    }
-
     func trinketArtworkCardButtonStyle(
         pressedScale: CGFloat = TrinketMotion.Interaction.artworkCardPressedScale,
     ) -> some View {
         buttonStyle(TrinketPressButtonStyle(pressedScale: pressedScale))
-    }
-
-    func trinketSelectionCardButtonStyle() -> some View {
-        trinketArtworkCardButtonStyle()
     }
 
     func trinketSensoryFeedback(_ feedback: SensoryFeedback, trigger: some Equatable, enabled: Bool) -> some View {

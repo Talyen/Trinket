@@ -100,6 +100,7 @@ struct HomesteadNodeDetailView: View {
         }
     }
 
+    @MainActor
     @ViewBuilder
     private var portrait: some View {
         if let art = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {

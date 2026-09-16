@@ -6,36 +6,18 @@ public struct PlaceholderArtwork: View {
     private let icon: GameIcon
     @ScaledMetric private var iconSize: CGFloat
 
-    public init(_ style: TrinketDesign.CardPlaceholderStyle) {
-        self.init(
-            color: style.color,
-            icon: style.icon,
-            iconPointSize: TrinketDesign.Layout.cardPlaceholderIconPointSize,
-            relativeTo: .title,
-        )
-    }
-
     public init(
         _ style: TrinketDesign.CardPlaceholderStyle,
-        iconPointSize: CGFloat,
-        relativeTo textStyle: Font.TextStyle,
+        iconPointSize: CGFloat = TrinketDesign.Layout.cardPlaceholderIconPointSize,
+        relativeTo textStyle: Font.TextStyle = .title,
     ) {
         self.init(color: style.color, icon: style.icon, iconPointSize: iconPointSize, relativeTo: textStyle)
     }
 
-    public init(_ style: Keyword.VisualStyle) {
-        self.init(
-            color: style.color,
-            icon: style.icon,
-            iconPointSize: TrinketDesign.Layout.cardPlaceholderIconPointSize,
-            relativeTo: .title,
-        )
-    }
-
     public init(
         _ style: Keyword.VisualStyle,
-        iconPointSize: CGFloat,
-        relativeTo textStyle: Font.TextStyle,
+        iconPointSize: CGFloat = TrinketDesign.Layout.cardPlaceholderIconPointSize,
+        relativeTo textStyle: Font.TextStyle = .title,
     ) {
         self.init(color: style.color, icon: style.icon, iconPointSize: iconPointSize, relativeTo: textStyle)
     }
@@ -55,12 +37,10 @@ public struct PlaceholderArtwork: View {
         ZStack {
             color.opacity(TrinketDesign.Opacity.placeholderWash)
 
-            GameIconImage(icon)
+            GameIconImage(icon, renderingMode: .hierarchical)
                 // UIStyleCheck: allow - Game icon glyph sizing, not copy
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundStyle(color)
-                .symbolRenderingMode(.hierarchical)
-                .accessibilityHidden(true)
         }
     }
 }

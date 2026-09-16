@@ -69,7 +69,7 @@ struct BattleCombatantPane: View {
                 .animation(BattleMotion.scrim, value: isDefeated)
             }
         }
-        .trinketQuietTapButtonStyle()
+        .buttonStyle(.plain)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketPresentationVisibility(!isDefeated, opacity: 1)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.battleCard(name: combatant.name))

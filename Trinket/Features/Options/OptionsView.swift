@@ -161,6 +161,7 @@ struct OptionsView: View {
         }
     }
 
+    @MainActor
     @ViewBuilder
     private var gameDataSection: some View {
         Section("Game Data") {

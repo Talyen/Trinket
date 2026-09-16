@@ -9,7 +9,7 @@ struct CombatantBuffAuraBorder: View {
     var isMotionActive: Bool = true
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !isMotionActive)) { context in
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !isMotionActive)) { context in
             CombatantBuffAuraStroke(
                 kind: kind,
                 angle: isMotionActive

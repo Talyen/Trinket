@@ -282,7 +282,7 @@ public extension View {
         modifier(GlassChipModifier(role: role))
     }
 
-    func collectionShelfCardWidth() -> some View {
+    func trinketCollectionShelfCardWidth() -> some View {
         containerRelativeFrame(.horizontal) { length, _ in
             let margin = TrinketDesign.Layout.collectionShelfHorizontalMargin
             let spacing = TrinketDesign.Layout.collectionShelfCardSpacing

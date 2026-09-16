@@ -73,7 +73,7 @@ struct MysteryUnlockContent: View {
                             recruitPortrait(combatant: combatant)
                         }
                         // UIStyleCheck: allow - Unlock art is the tap target for combatant detail; no button chrome.
-                        .trinketQuietTapButtonStyle()
+                        .buttonStyle(.plain)
                         .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
                         .scaleEffect(ceremony.artScale)
                         .frame(maxWidth: 430)

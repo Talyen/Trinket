@@ -414,26 +414,44 @@ class TrinketUITestCase: XCTestCase {
 
 extension XCUIElement {
     func trinketTapWhenReady(file: StaticString = #file, line: UInt = #line) {
+        func isReady(_ element: XCUIElement) -> Bool {
+            guard element.exists, element.isEnabled else { return false }
+            let bounds = element.frame
+            guard !bounds.isEmpty,
+                  bounds.minX.isFinite, bounds.minY.isFinite,
+                  bounds.maxX.isFinite, bounds.maxY.isFinite
+            else { return false }
+            return element.isHittable
+        }
         let ready = XCTNSPredicateExpectation(
-            predicate: NSPredicate { [self] _, _ in
-                guard exists, isEnabled else { return false }
-                let bounds = frame
-                guard !bounds.isEmpty,
-                      bounds.minX.isFinite, bounds.minY.isFinite,
-                      bounds.maxX.isFinite, bounds.maxY.isFinite
-                else { return false }
-                return isHittable
-            },
+            predicate: NSPredicate { [self] _, _ in isReady(self) },
             object: self,
         )
         guard ready.predicate.evaluate(with: self)
             || XCTWaiter.wait(for: [ready], timeout: TrinketUITestCase.defaultTimeout) == .completed else {
             XCTFail(
-                "Control '\(identifier)' not ready: exists=\(exists), enabled=\(isEnabled), frame=\(frame)",
+                "Control '\(identifier)' not ready: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable), frame=\(frame)",
                 file: file,
                 line: line,
             )
             return
+        }
+        // Animations can flip hittability between predicate fulfillment and
+        // tap ("Activation point invalid"); re-validate once without growing
+        // the happy-path budget, settling briefly only on a detected race.
+        if !isReady(self) {
+            let settled = XCTNSPredicateExpectation(
+                predicate: NSPredicate { [self] _, _ in isReady(self) },
+                object: self,
+            )
+            guard XCTWaiter.wait(for: [settled], timeout: 2) == .completed else {
+                XCTFail(
+                    "Control '\(identifier)' not stable: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable), frame=\(frame)",
+                    file: file,
+                    line: line,
+                )
+                return
+            }
         }
         tap()
     }

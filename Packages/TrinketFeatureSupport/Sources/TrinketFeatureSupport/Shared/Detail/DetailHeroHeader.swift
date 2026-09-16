@@ -52,7 +52,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                 .backgroundExtensionEffect()
                 .allowsHitTesting(false)
                 .clipped()
-                .trinketArtworkBlend(.bottom(into: .canvas))
+                .trinketBottomArtworkBlend()
                 .visualEffect { content, proxy in
                     let overscroll = max(proxy.frame(in: .scrollView(axis: .vertical)).minY, 0)
                     let stretch = baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1

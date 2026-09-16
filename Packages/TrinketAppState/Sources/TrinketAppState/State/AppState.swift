@@ -197,6 +197,15 @@ public final class AppState {
         applyIdleTimerPolicy(scenePhase: scenePhase)
     }
 
+    /// Single entry for shell settle points that need both purchase
+    /// reconciliation and shell reconciliation (battle ended, foreground).
+    /// Purchase sync is deferred while gameplay is active, so calling this
+    /// from encounter-exit paths is safe but may no-op until play settles.
+    public func shellDidSettle(_ trigger: ShellReconcileTrigger, scenePhase: ScenePhase) {
+        synchronizePurchaseAccess()
+        reconcileShellState(trigger, scenePhase: scenePhase)
+    }
+
     private func applyIdleTimerPolicy(scenePhase: ScenePhase) {
         UIApplication.shared.isIdleTimerDisabled = (scenePhase == .active)
     }

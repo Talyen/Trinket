@@ -48,8 +48,8 @@ public enum TrinketMotion: Sendable {
         static let textLoopPeriod: TimeInterval = 14.4
 
         @inlinable
-        public static func phase(at elapsed: TimeInterval) -> Double {
-            elapsed.truncatingRemainder(dividingBy: loopPeriod) / loopPeriod
+        public static func phase(at elapsed: TimeInterval, period: TimeInterval = loopPeriod) -> Double {
+            elapsed.truncatingRemainder(dividingBy: period) / period
         }
     }
 

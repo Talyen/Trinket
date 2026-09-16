@@ -29,6 +29,7 @@ struct HomesteadDetailSheetView: View {
             .homesteadBuildErrorAlert(build: $build)
     }
 
+    @MainActor
     @ViewBuilder
     private var root: some View {
         switch kind {
@@ -109,32 +110,28 @@ struct HomesteadDetailSheetView: View {
     }
 }
 
-struct HomesteadWalletSheetContent: View {
+struct HomesteadWalletSheet: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 
-    var body: some View {
-        ScrollView {
-            HomesteadResourceWallet(homestead: playerSave.homestead, roster: playerSave.roster)
-                .padding(TrinketDesign.Layout.contentMargin)
-        }
-        .navigationTitle("Resources")
-    }
-}
-
-struct HomesteadWalletSheet: View {
     let onClose: () -> Void
 
     var body: some View {
         NavigationStack {
-            HomesteadWalletSheetContent()
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { onClose() } label: { Label("Close", systemImage: "xmark") }
-                            .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
-                    }
+            ScrollView {
+                HomesteadResourceWallet(homestead: playerSave.homestead, roster: playerSave.roster)
+                    .padding(TrinketDesign.Layout.contentMargin)
+            }
+            .navigationTitle("Resources")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { onClose() } label: { Label("Close", systemImage: "xmark") }
+                        .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
                 }
+            }
         }
         .presentationDetents([.height(260), .large])
+        .presentationDragIndicator(.visible)
+        .presentationBackground(TrinketDesign.Colors.surface)
     }
 }

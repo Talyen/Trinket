@@ -22,7 +22,6 @@ public enum TrinketDesign {
         public static let battleHealth = health.opacity(Opacity.battleHealth)
         public static let battleHealthTrack = Overlay.ink.opacity(Opacity.glow)
         public static let battleHealthTrailingDamage = health.opacity(Opacity.trailingDamage)
-        public static let healthTrailingDamage = battleHealthTrailingDamage
         public static let battleSliceCrack = DesignAssetColors.named("BattleSliceCrack")
         public static let battleSliceSpark = DesignAssetColors.named("BattleSliceSpark")
 

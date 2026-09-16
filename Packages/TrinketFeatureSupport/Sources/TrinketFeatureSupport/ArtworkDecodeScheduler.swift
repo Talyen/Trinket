@@ -60,7 +60,7 @@ final class ArtworkDecodeScheduler {
     }
 
     private func priority(of job: Job) -> Priority {
-        job.requests.compactMap { requests[$0]?.priority }.min { $0.rawValue < $1.rawValue } ?? .deferred
+        job.requests.compactMap { requests[$0]?.priority }.min { $0.rawValue < $1.rawValue } ?? Priority.deferred
     }
 
     private func startAvailableJobs() {
@@ -68,8 +68,8 @@ final class ArtworkDecodeScheduler {
             var candidates: [(name: String, job: Job, priority: Priority)] = []
             for (name, job) in jobs {
                 guard job.startedPriority == nil else { continue }
-                let jobPriority = priority(of: job)
-                guard jobPriority != .deferred || activeDeferredCount == 0 else { continue }
+                let jobPriority: Priority = priority(of: job)
+                guard jobPriority != Priority.deferred || activeDeferredCount == 0 else { continue }
                 candidates.append((name, job, jobPriority))
             }
             guard var next = candidates.first else { return }
@@ -85,10 +85,10 @@ final class ArtworkDecodeScheduler {
             let priority = next.priority
             jobs[name]?.startedPriority = priority
             activeCount += 1
-            if priority == .deferred {
+            if priority == Priority.deferred {
                 activeDeferredCount += 1
             }
-            Task(priority: priority == .deferred ? .utility : .userInitiated) {
+            Task(priority: priority == Priority.deferred ? .utility : .userInitiated) {
                 let prepared = await decode(name)
                 assert(prepared.name == name, "Artwork decode returned mismatched name")
                 publish(prepared)
@@ -100,7 +100,7 @@ final class ArtworkDecodeScheduler {
     private func finish(_ name: String) {
         guard let job = jobs.removeValue(forKey: name) else { return }
         activeCount -= 1
-        if job.startedPriority == .deferred {
+        if job.startedPriority == Priority.deferred {
             activeDeferredCount -= 1
         }
         for id in job.requests {

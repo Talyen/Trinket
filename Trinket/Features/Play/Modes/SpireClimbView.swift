@@ -140,12 +140,10 @@ struct SpireClimbView: View {
 
     private func showEnemyDetails(for floor: SpireFloor) {
         guard let encounter = spires.resolvedEncounter(for: floor) else { return }
-        presentPlayCombatantDetail(
-            CombatantCardDetail(
-                combatant: encounter.combatant,
-                progression: .at(level: encounter.level),
-            ),
-        )
+        presentPlayCombatantDetail(makePlayEnemyDetail(
+            combatant: encounter.combatant,
+            level: encounter.level,
+        ))
     }
 
     private func prepareActiveFloorBattle() {

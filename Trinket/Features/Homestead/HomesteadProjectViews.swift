@@ -53,6 +53,7 @@ struct HomesteadProjectTile: View {
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 
+    @MainActor
     @ViewBuilder
     private var artwork: some View {
         if let art = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {

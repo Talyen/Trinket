@@ -7,7 +7,7 @@ struct LaunchWarmupView: View {
     @State private var isVisible = false
     @State private var loadingStartDate: Date?
     @State private var currentTermIndex = 0
-    @State private var isMinimumTimeComplete = false
+    @State private var isMinimumLoadingTimeComplete = false
 
     let onMinimumLoadingTimeComplete: () -> Void
 
@@ -33,11 +33,11 @@ struct LaunchWarmupView: View {
 
     private var loadingTitle: some View {
         TimelineView(.animation(
-            minimumInterval: 1.0 / 30.0,
+            minimumInterval: 1.0 / 60.0,
             paused: !isVisible || loadingStartDate == nil || scenePhase != .active || isLaunchPresentationReady,
         )) { context in
             let elapsed = loadingStartDate.map { max(0, context.date.timeIntervalSince($0)) } ?? 0
-            let fill = isMinimumTimeComplete ? 1 : min(1, elapsed / Self.minimumLoadingDuration)
+            let fill = isMinimumLoadingTimeComplete ? 1 : min(1, elapsed / Self.minimumLoadingDuration)
             let scale = isLaunchPresentationReady ? 1 : 1 + 0.01 * (1 - cos(elapsed * .pi * 2 / 2.4))
 
             Text("TRINKET")
@@ -78,7 +78,7 @@ struct LaunchWarmupView: View {
         .onDisappear {
             isVisible = false
             loadingStartDate = nil
-            isMinimumTimeComplete = false
+            isMinimumLoadingTimeComplete = false
         }
         .task(id: isVisible) {
             guard isVisible else { return }
@@ -90,14 +90,14 @@ struct LaunchWarmupView: View {
             guard loadingStartDate != nil else { return }
             try? await Task.sleep(for: .seconds(Self.minimumLoadingDuration))
             guard !Task.isCancelled else { return }
-            isMinimumTimeComplete = true
+            isMinimumLoadingTimeComplete = true
             onMinimumLoadingTimeComplete()
         }
         .task(id: loadingStartDate) {
             guard loadingStartDate != nil else { return }
-            while !Task.isCancelled, !isMinimumTimeComplete {
+            while !Task.isCancelled, !isMinimumLoadingTimeComplete {
                 try? await Task.sleep(for: .milliseconds(750))
-                guard !Task.isCancelled, !isMinimumTimeComplete else { break }
+                guard !Task.isCancelled, !isMinimumLoadingTimeComplete else { break }
                 withAnimation(TrinketMotion.Content.fade) {
                     currentTermIndex = (currentTermIndex + 1) % Self.loadingTerms.count
                 }

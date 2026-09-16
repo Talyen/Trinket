@@ -45,7 +45,7 @@ struct MysterySpecialChoiceCard: View {
                 y: 2,
             )
         }
-        .trinketSelectionCardButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .animation(TrinketMotion.Interaction.selection, value: isSelected)
         .accessibilityIdentifier(AccessibilityID.Mystery.choiceButton(choiceID: choice.id))
         .disabled(isDisabled)

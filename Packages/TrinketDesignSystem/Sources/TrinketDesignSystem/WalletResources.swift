@@ -1,7 +1,7 @@
 import SwiftUI
 import TrinketCore
 
-enum WalletFormatting {
+enum TrinketWalletFormatting {
     nonisolated static func displayString(for amount: Int) -> String {
         amount >= 100000 ? amount.formatted(.number.notation(.compactName)) : amount.formatted()
     }
@@ -14,7 +14,7 @@ private enum WalletBumpPhase: CaseIterable {
 }
 
 extension View {
-    func walletIncreaseBump(trigger: Int, delay: TimeInterval = 0) -> some View {
+    func trinketWalletIncreaseBump(trigger: Int, delay: TimeInterval = 0) -> some View {
         phaseAnimator(WalletBumpPhase.allCases, trigger: trigger) { content, phase in
             content.scaleEffect(phase == .increased ? TrinketMotion.Interaction.walletIncreaseScale : 1)
         } animation: { phase in
@@ -63,7 +63,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         if let formattedValue {
             return formattedValue
         }
-        let value = WalletFormatting.displayString(for: amount)
+        let value = TrinketWalletFormatting.displayString(for: amount)
         return showsIncreasePrefix ? "+\(value)" : value
     }
 
@@ -89,6 +89,10 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         self.valueColor = valueColor
     }
 
+    private var animatesAmountChanges: Bool {
+        formattedValue == nil
+    }
+
     public var body: some View {
         HStack(spacing: TrinketDesign.Spacing.small) {
             artwork.frame(width: TrinketDesign.Layout.walletResourceArtworkSize, height: TrinketDesign.Layout.walletResourceArtworkSize)
@@ -102,9 +106,9 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             }
         }
         .frame(minHeight: TrinketDesign.Layout.walletResourceRowMinHeight, alignment: .leading)
-        .animation(TrinketMotion.Interaction.walletIncrease, value: amount)
-        .walletIncreaseBump(
-            trigger: keepsArtworkStationary ? 0 : increaseAnimationTrigger,
+        .animation(animatesAmountChanges ? TrinketMotion.Interaction.walletIncrease : nil, value: amount)
+        .trinketWalletIncreaseBump(
+            trigger: animatesAmountChanges && !keepsArtworkStationary ? increaseAnimationTrigger : 0,
             delay: increaseAnimationDelay,
         )
         .onChange(of: amount) { oldAmount, newAmount in
@@ -121,7 +125,12 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
     private let artwork: Artwork
 
     public init(amount: Int, tint: Color, animationTrigger: Int = 0, @ViewBuilder artwork: () -> Artwork) {
-        self.init(value: WalletFormatting.displayString(for: amount), tint: tint, animationTrigger: animationTrigger, artwork: artwork)
+        self.init(
+            value: TrinketWalletFormatting.displayString(for: amount),
+            tint: tint,
+            animationTrigger: animationTrigger,
+            artwork: artwork,
+        )
     }
 
     public init(value: String, tint: Color, animationTrigger: Int = 0, @ViewBuilder artwork: () -> Artwork) {
@@ -135,7 +144,7 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
         HStack(spacing: TrinketDesign.Spacing.small) {
             artwork
                 .frame(width: TrinketDesign.Layout.compactResourceArtworkSize, height: TrinketDesign.Layout.compactResourceArtworkSize)
-                .walletIncreaseBump(trigger: animationTrigger)
+                .trinketWalletIncreaseBump(trigger: animationTrigger)
 
             Text(value).monospacedDigit().fixedSize().contentTransition(.numericText())
         }

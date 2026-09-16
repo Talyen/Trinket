@@ -15,7 +15,17 @@ final class TabNavigationUITests: TrinketUITestCase {
             let cardID = AccessibilityID.Collection.itemCard(itemID: itemID)
             assertExists(cardID)
             let card = app.descendants(matching: .any)[cardID].firstMatch
-            XCTAssertFalse(card.isEnabled)
+            // Lock state resolves asynchronously after the grid loads; poll
+            // within the standard budget instead of asserting immediately.
+            let locked = XCTNSPredicateExpectation(
+                predicate: NSPredicate { _, _ in !card.isEnabled },
+                object: nil,
+            )
+            XCTAssertEqual(
+                XCTWaiter.wait(for: [locked], timeout: TrinketUITestCase.defaultTimeout),
+                .completed,
+                "Locked item '\(itemID)' reported enabled",
+            )
             card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail(itemID))
             assertExists(cardID)

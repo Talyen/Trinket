@@ -48,11 +48,13 @@ struct TrinketApp: App {
             return state
         }
 
+        // Resolve state first (with in-memory fallback), then compute the
+        // launch artwork census once from the resolved state.
+        let resolvedState: AppState?
         do {
             let state = try makeState(nil)
             cloudNotifications.store = state.playerSave
-            _appState = State(initialValue: state)
-            _launchPriorityImageNames = State(initialValue: LaunchArtworkCensus.priorityImageNames(for: state))
+            resolvedState = state
         } catch {
             trinketAppLogger.error(
                 "AppState bootstrap failed: \(String(describing: error), privacy: .public)",
@@ -60,18 +62,25 @@ struct TrinketApp: App {
             do {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
                 let state = try makeState(fallbackSave)
-                _appState = State(initialValue: state)
-                _launchPriorityImageNames = State(initialValue: LaunchArtworkCensus.priorityImageNames(for: state))
+                cloudNotifications.store = state.playerSave
+                resolvedState = state
             } catch {
                 trinketAppLogger.fault(
                     "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)",
                 )
-                _appState = State(initialValue: nil)
+                resolvedState = nil
                 _bootstrapFailureMessage = State(
                     initialValue: "Progress storage could not be started on this device. Try freeing space or reinstalling, then launch again.",
                 )
             }
         }
+        if let resolvedState {
+            _appState = State(initialValue: resolvedState)
+            _launchPriorityImageNames = State(initialValue: LaunchArtworkCensus.priorityImageNames(for: resolvedState))
+        } else {
+            _appState = State(initialValue: nil)
+        }
+        MetricKitSubscriber.shared.start()
     }
 
     private static func configureBattleProgression(_ runtime: any BattleRuntime, play: PlaySession) {
@@ -142,17 +151,18 @@ private struct AppBootstrapFailureView: View {
 private struct PreparedAppRoot: View {
     @Environment(\.displayScale) private var displayScale
     private let artworkCache = PreparedArtworkCache.shared
-    @State private var isResourcePreparationComplete = false
-    @State private var isMinimumLoadingTimeComplete = false
-    @State private var areCastEffectsPrepared = false
-    @State private var didWarmHiddenTabs = false
-    @State private var didLayOutSelectedRoot = false
-    @State private var didCompleteLaunchPreparation = false
-    @State private var retainedLaunchEncounterID: ObjectIdentifier?
-    @State private var isPreparationDelayComplete = AppEnvironment.shared.launchPreparationDelay == 0
+    @State private var preparation: LaunchPreparation
 
     let appState: AppState
     let priorityImageNames: [String]
+
+    init(appState: AppState, priorityImageNames: [String]) {
+        self.appState = appState
+        self.priorityImageNames = priorityImageNames
+        _preparation = State(initialValue: LaunchPreparation(
+            isPreparationDelayComplete: AppEnvironment.shared.launchPreparationDelay == 0,
+        ))
+    }
 
     private var battleSession: BattleSession {
         guard let session = appState.play.battle as? BattleSession else {
@@ -161,40 +171,44 @@ private struct PreparedAppRoot: View {
         return session
     }
 
+    private var starterSelectionComplete: Bool {
+        appState.playerSave.starterSelection.phase == .complete
+    }
+
     private var shouldWarmHiddenTabs: Bool {
-        shouldMountRoot
-            && appState.playerSave.starterSelection.phase == .complete
-            && !didWarmHiddenTabs
+        preparation.shouldMountRoot
+            && starterSelectionComplete
+            && !preparation.didWarmHiddenTabs
     }
 
     var body: some View {
         ZStack {
-            if shouldMountRoot {
+            if preparation.shouldMountRoot {
                 ContentView {
-                    didLayOutSelectedRoot = true
+                    preparation.acknowledge(.selectedRootLaidOut)
                 }
             }
             if shouldWarmHiddenTabs {
                 HiddenTabPrewarm {
-                    didWarmHiddenTabs = true
+                    preparation.acknowledge(.hiddenTabsWarmed)
                 }
             }
-            if !didCompleteLaunchPreparation || retainedLaunchEncounterID != nil {
+            if !preparation.didCompleteLaunchPreparation || preparation.retainedLaunchEncounterID != nil {
                 LaunchWarmupView {
-                    isMinimumLoadingTimeComplete = true
+                    preparation.acknowledge(.minimumLoadingTimeComplete)
                 }
                 .allowsHitTesting(true)
-                .accessibilityIdentifier(didCompleteLaunchPreparation ? "" : AccessibilityID.Screen.launchWarmup)
-                .accessibilityHidden(didCompleteLaunchPreparation)
-                if !areCastEffectsPrepared {
+                .accessibilityIdentifier(preparation.didCompleteLaunchPreparation ? "" : AccessibilityID.Screen.launchWarmup)
+                .accessibilityHidden(preparation.didCompleteLaunchPreparation)
+                if !preparation.areCastEffectsPrepared {
                     CardCastEffectsPrewarmView(isRenderingEnabled: areRootLayoutsPrepared) {
-                        areCastEffectsPrepared = true
+                        preparation.acknowledge(.castEffectsPrepared)
                     }
                 }
             }
         }
-        .trinketDecorativeMotion(didCompleteLaunchPreparation)
-        .environment(\.isLaunchPresentationReady, didCompleteLaunchPreparation)
+        .trinketDecorativeMotion(preparation.didCompleteLaunchPreparation)
+        .environment(\.isLaunchPresentationReady, preparation.didCompleteLaunchPreparation)
         .environment(appState)
         .environment(appState.shellSession)
         .environment(appState.play)
@@ -221,14 +235,13 @@ private struct PreparedAppRoot: View {
             appState.synchronizePurchaseAccess()
         }
         .task {
-            guard !isPreparationDelayComplete else { return }
+            guard !preparation.isPreparationDelayComplete else { return }
             try? await Task.sleep(for: .seconds(AppEnvironment.shared.launchPreparationDelay))
             guard !Task.isCancelled else { return }
-            isPreparationDelayComplete = true
+            preparation.acknowledge(.preparationDelayComplete)
         }
         .task {
-            MetricKitSubscriber.shared.start()
-            guard !isResourcePreparationComplete else { return }
+            guard !preparation.isResourcePreparationComplete else { return }
             appState.prepareLaunchPerformanceResources()
             async let battleTextures: Void = BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
             async let launchArtwork: Void = artworkCache.prepareAll(priorityImageNames: priorityImageNames)
@@ -241,19 +254,19 @@ private struct PreparedAppRoot: View {
             }
             await battleSession.prepareBattlePresentationAssets(displayScale: displayScale)
             guard !Task.isCancelled else { return }
-            isResourcePreparationComplete = true
+            preparation.acknowledge(.resourcesReady)
             artworkCache.reportMemorySnapshot(label: "interactiveRoot")
         }
         .onChange(of: isPreparationComplete, initial: true) { _, isComplete in
-            guard isComplete, !didCompleteLaunchPreparation else { return }
+            guard isComplete, !preparation.didCompleteLaunchPreparation else { return }
             if appState.shellSession.selectedTab == .play {
-                retainedLaunchEncounterID = activeEncounterID
+                preparation.retainedLaunchEncounterID = activeEncounterID
             }
-            didCompleteLaunchPreparation = true
+            preparation.didCompleteLaunchPreparation = true
         }
         .onChange(of: activeEncounterID) { _, encounterID in
-            if retainedLaunchEncounterID != encounterID {
-                retainedLaunchEncounterID = nil
+            if preparation.retainedLaunchEncounterID != encounterID {
+                preparation.retainedLaunchEncounterID = nil
             }
         }
     }
@@ -268,19 +281,11 @@ private struct PreparedAppRoot: View {
         return nil
     }
 
-    private var shouldMountRoot: Bool {
-        isResourcePreparationComplete && isMinimumLoadingTimeComplete
-    }
-
     private var areRootLayoutsPrepared: Bool {
-        shouldMountRoot
-            && didLayOutSelectedRoot
-            && (appState.playerSave.starterSelection.phase != .complete || didWarmHiddenTabs)
+        preparation.areRootLayoutsPrepared(starterSelectionComplete: starterSelectionComplete)
     }
 
     private var isPreparationComplete: Bool {
-        areRootLayoutsPrepared
-            && areCastEffectsPrepared
-            && isPreparationDelayComplete
+        preparation.isPreparationComplete(starterSelectionComplete: starterSelectionComplete)
     }
 }

@@ -3,6 +3,7 @@ import MetricKit
 import os
 import TrinketAppState
 import TrinketFeatureSupport
+import TrinketPersistence
 
 struct MetricKitDiagnosticSnapshot: Sendable {
     enum Kind: Sendable {
@@ -21,7 +22,7 @@ struct MetricKitDiagnosticSnapshot: Sendable {
 final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     static let shared = MetricKitSubscriber()
 
-    private let logger = Logger(subsystem: "com.trinket.diagnostics", category: "MetricKit")
+    private let logger = Logger(subsystem: PlayerSaveDefaults.loggingSubsystem, category: "MetricKit")
     private var isSubscribed = false
 
     func start() {

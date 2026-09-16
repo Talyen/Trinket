@@ -341,7 +341,7 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
     ) -> some View {
         TimelineView(
             .animation(
-                minimumInterval: 1.0 / 30.0,
+                minimumInterval: 1.0 / 60.0,
                 paused: battleSession.lifecyclePhase != .active
                     || battleSession.isSuspendedForScenePhase,
             ),

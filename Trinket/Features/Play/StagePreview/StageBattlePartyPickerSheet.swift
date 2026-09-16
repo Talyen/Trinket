@@ -71,6 +71,38 @@ enum BattlePartySlot: String {
         }
         return [selected] + eligibleAlternatives
     }
+
+    /// Resolves a captured selected-first ID ordering against the live roster.
+    /// Both the shelf and the grid share the ordering captured once per
+    /// presentation so selection changes animate emphasis without reordering.
+    func resolveCombatants(ids: [String], in roster: PlayerRosterState) -> [Combatant] {
+        let current = Dictionary(uniqueKeysWithValues: combatants(in: roster).map { ($0.id, $0) })
+        return ids.compactMap { current[$0] }
+    }
+}
+
+/// Shared persist path for shelf and grid selection. Guards, roster mutation,
+/// retry registration, and feedback use one ordering so the two surfaces
+/// cannot diverge on eligibility or save-failure handling.
+@MainActor
+private func attemptPartySelection(
+    _ combatant: Combatant,
+    for slot: BattlePartySlot,
+    spire: SpireDefinition?,
+    playerSave: PlayerSaveStore,
+    onPersistFailed: @escaping @MainActor () -> Void,
+    onSelected: () -> Void,
+) {
+    guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
+    guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
+    let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
+        slot.select(combatant, in: &$0)
+    }
+    guard didPersist else {
+        playerSave.retrySaveAction(key: "party-\(slot.title)", action: onPersistFailed)
+        return
+    }
+    onSelected()
 }
 
 struct StageBattlePartyPickerSheet: View {
@@ -172,7 +204,7 @@ private struct StageBattlePartyPickerContent: View {
                 showsName: false,
                 isSelected: selected,
             )
-            .collectionShelfCardWidth()
+            .trinketCollectionShelfCardWidth()
         }
         .trinketArtworkCardButtonStyle()
         .disabled(!eligible)
@@ -187,23 +219,18 @@ private struct StageBattlePartyPickerContent: View {
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
-        guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
-        guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
-        let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
-            slot.select(combatant, in: &$0)
-        }
-        guard didPersist else {
-            playerSave.retrySaveAction(key: "party-\(slot.title)") {
-                select(combatant, for: slot)
-            }
-            return
-        }
-        selectionFeedbackTrigger += 1
+        attemptPartySelection(
+            combatant,
+            for: slot,
+            spire: spire,
+            playerSave: playerSave,
+            onPersistFailed: { select(combatant, for: slot) },
+            onSelected: { selectionFeedbackTrigger += 1 },
+        )
     }
 
     private func orderedCombatants(for slot: BattlePartySlot) -> [Combatant] {
-        let current = Dictionary(uniqueKeysWithValues: slot.combatants(in: playerSave.roster).map { ($0.id, $0) })
-        return (combatantOrder[slot] ?? []).compactMap { current[$0] }
+        slot.resolveCombatants(ids: combatantOrder[slot] ?? [], in: playerSave.roster)
     }
 
     private var partyPickerAccessibilityID: String {
@@ -259,22 +286,17 @@ private struct BattlePartySlotGridView: View {
     }
 
     private var orderedCombatants: [Combatant] {
-        let current = Dictionary(uniqueKeysWithValues: slot.combatants(in: playerSave.roster).map { ($0.id, $0) })
-        return combatantIDs.compactMap { current[$0] }
+        slot.resolveCombatants(ids: combatantIDs, in: playerSave.roster)
     }
 
     private func select(_ combatant: Combatant) {
-        guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
-        guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
-        let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
-            slot.select(combatant, in: &$0)
-        }
-        guard didPersist else {
-            playerSave.retrySaveAction(key: "party-\(slot.title)") {
-                select(combatant)
-            }
-            return
-        }
-        selectionFeedbackTrigger += 1
+        attemptPartySelection(
+            combatant,
+            for: slot,
+            spire: spire,
+            playerSave: playerSave,
+            onPersistFailed: { select(combatant) },
+            onSelected: { selectionFeedbackTrigger += 1 },
+        )
     }
 }

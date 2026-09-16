@@ -69,9 +69,9 @@ struct LabyrinthNodeInspector: View {
         guard let encounter = labyrinth.resolvedEncounter(for: node) else {
             return nil
         }
-        return CombatantCardDetail(
+        return makePlayEnemyDetail(
             combatant: encounter.combatant,
-            progression: .at(level: encounter.level),
+            level: encounter.level,
             labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs),
         )
     }

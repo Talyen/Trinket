@@ -65,15 +65,14 @@ struct ContentView: View {
             )
         }
         .onChange(of: battle.activeBattle?.id) { _, newValue in
-            if newValue == nil {
-                appState.synchronizePurchaseAccess()
-            }
-            appState.reconcileShellState(
+            appState.shellDidSettle(
                 .activeBattleChanged(started: newValue != nil),
                 scenePhase: scenePhase,
             )
         }
         .onChange(of: appState.play.isGameplayActive) { _, active in
+            // Covers Mystery/Shop/talent exits where the battle ID is already
+            // nil. Separate from the battle-ID path above by intent.
             if !active {
                 appState.synchronizePurchaseAccess()
             }
@@ -198,8 +197,4 @@ private struct SelectedTabLayoutAcknowledgement: ViewModifier {
                 }
             }
     }
-}
-
-extension EnvironmentValues {
-    @Entry var isLaunchPresentationReady = true
 }

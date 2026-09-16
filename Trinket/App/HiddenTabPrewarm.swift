@@ -2,6 +2,9 @@ import SwiftUI
 import TrinketDesignSystem
 
 struct HiddenTabPrewarm: View {
+    /// Failsafe so one surface that never lays out cannot stall launch.
+    private static let layoutTimeout: Duration = .seconds(5)
+
     private enum Surface: CaseIterable, Hashable {
         case collection, homestead, options
     }
@@ -10,6 +13,10 @@ struct HiddenTabPrewarm: View {
     var onFirstLayout: () -> Void = {}
 
     var body: some View {
+        // Intentionally mounts root surfaces only: the same NavigationStack
+        // shape as the real tabs warms first layout without triggering
+        // navigation-bound side effects (e.g. consuming the pending
+        // Collection presentation, which only the visible tab performs).
         ZStack {
             NavigationStack {
                 CollectionView()
@@ -41,6 +48,16 @@ struct HiddenTabPrewarm: View {
         .scaleEffect(0.01)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+        .task {
+            try? await Task.sleep(for: Self.layoutTimeout)
+            guard !Task.isCancelled else { return }
+            acknowledgeTimeout()
+        }
+    }
+
+    private func acknowledgeTimeout() {
+        guard laidOutSurfaces.count != Surface.allCases.count else { return }
+        onFirstLayout()
     }
 
     private func acknowledgeLayout(_ surface: Surface, hasLayout: Bool) {

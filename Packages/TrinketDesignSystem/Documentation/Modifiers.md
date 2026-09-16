@@ -11,7 +11,7 @@ buttons and system toolbar styling.
 | `.trinketMaterial(_:)` | `.bottomBar` / `.homesteadFooter`: regular glass; `.rewardReveal`: accent-tinted regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke |
 | `.trinketGlassChip(_:)` | Regular-glass capsules; `.standard` / `.emphasis` select shared padding and emphasis stroke |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
-| `.trinketCardSurface()` | 3:4 card identity tiles |
+| `.trinketCardSurface(showsStroke:)` | Card identity tiles (`showsStroke` adds the artwork clip + subtle stroke) |
 | `.trinketArtworkPickerSelectionBorder(isSelected:color:lineWidth:)` | Selection border around artwork picker cards |
 | `.trinketLockedCardEffect(isLocked:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
 | `TrinketDesign.Layout.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids (via `Spacing`) |
@@ -19,19 +19,17 @@ buttons and system toolbar styling.
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`, single `GlassButtonModifier`) |
 | `.trinketSecondaryActionButton()` | Secondary CTAs (`.glass`) |
 | `.trinketIconButton()` | Circular glass icon controls with stable accessibility identifiers |
-| `.trinketArtworkCardButtonStyle()` / `.trinketSelectionCardButtonStyle()` | Press-scale feedback for card buttons; artwork style accepts optional `pressedScale` (default `0.99`), with `TrinketMotion.Interaction.choiceCardPressedScale` for talent choices |
+| `.trinketArtworkCardButtonStyle()` | Press-scale feedback for card buttons; accepts optional `pressedScale` (default `0.99`), with `TrinketMotion.Interaction.choiceCardPressedScale` for talent choices |
 | `.trinketCardLabelSpace(_:)` | Reserved label height under cards |
 | `.trinketAccessibilityIdentifier(_:)` | Optional test identifier passthrough |
 | `.optionalMatchedTransitionSource(id:in:)` | Matched transitions with an optional namespace |
-| `.cardArtworkSurface()` | Card clipping + stroke (`TrinketDesign.cardShape` single source) |
-| `collectionShelfCardWidth()` | Peek-shelf card width |
+| `.trinketCollectionShelfCardWidth()` | Peek-shelf card width |
 | `.trinketFittedText()` / `.trinketSingleLineFittedText()` | Native text shrinking/wrapping |
 | `Text(balanced:)` | Widow-proof titles |
 | `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
-| `.trinketQuietTapButtonStyle()` | Compatibility alias for `.buttonStyle(.plain)`; prefer the native style directly |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
-| `.trinketArtworkBlend(_:)` | Optional `.bottom` blend into a semantic destination surface; defaults to `.none` |
+| `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (defaults to canvas) |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 
 Native toolbar buttons use the system-provided container without custom glass
@@ -39,7 +37,7 @@ button styling. Reserve `.trinketIconButton()` for controls outside native toolb
 
 Glass chrome routes through `.glassEffect` inside this package only.
 
-Artwork blends provide a transition into destination surfaces. Use `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
+Artwork blends transition full-bleed art into the surface below. Use `.trinketBottomArtworkBlend()` where art meets a lower surface. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
 Platform API notes: [Apple platform reference](../../../Docs/Platform/ApplePlatformReference.md). Fluid motion: [apple-design skill](../../../.agents/skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../../Docs/Platform/Architecture.md).
 

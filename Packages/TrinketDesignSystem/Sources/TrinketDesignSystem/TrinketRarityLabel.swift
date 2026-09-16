@@ -50,6 +50,6 @@ public struct TrinketRarityLabel: View {
     }
 
     private var displayLabel: String {
-        (labelOverride ?? rarity.label).uppercased()
+        (labelOverride ?? rarity.label).uppercased(with: .current)
     }
 }

@@ -164,6 +164,10 @@ struct ContractsBoardView: View {
         do {
             try await Task.sleep(for: .seconds(TrinketMotion.Screen.crossfadeDuration))
             try Task.checkCancellation()
+            // Superseded generations must not release pins: the newer
+            // prepareBoard owns the outgoing set now. Releasing here would
+            // double-release pins the new board still references.
+            guard offers == playerSave.contracts.offers else { return }
             let outgoing = Set(pinnedArtwork).subtracting(names)
             PreparedArtworkCache.shared.releasePins(names: Array(outgoing))
             pinnedArtwork.removeAll { outgoing.contains($0) }
@@ -173,9 +177,9 @@ struct ContractsBoardView: View {
     private func inspect(_ offer: ContractOffer) {
         guard isBoardInteractive, displayedOffers.contains(offer),
               let encounter = contracts.resolvedEncounter(for: offer) else { return }
-        presentPlayCombatantDetail(CombatantCardDetail(
+        presentPlayCombatantDetail(makePlayEnemyDetail(
             combatant: encounter.combatant,
-            progression: .at(level: encounter.level),
+            level: encounter.level,
         ))
     }
 

@@ -118,7 +118,7 @@ struct CollectionView: View {
                                 ) {
                                     salvageDetail.select(item, inventory: inventoryState.items)
                                 }
-                                .collectionShelfCardWidth()
+                                .trinketCollectionShelfCardWidth()
                             }
                         }
                     }
@@ -218,7 +218,7 @@ struct CollectionView: View {
                     presentCombatant(CombatantDetailContext(kind: kind, combatantID: combatant.id))
                 }
                 .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
-                .collectionShelfCardWidth()
+                .trinketCollectionShelfCardWidth()
             }
         }
     }

@@ -169,6 +169,46 @@ struct HomesteadPresentationTests {
         #expect(effects[0].id != effects[1].id)
     }
 
+    @Test func `every affix modifier renders a labeled effect line`() {
+        // Pins HomesteadEffectLine.label(for:) coverage: adding an
+        // AffixModifier case without a label must fail here, not in CI.
+        let modifiers: [AffixModifier] = [
+            .maximumHealth(5),
+            .maximumMana(3),
+            .damageDealt(.physical, 2),
+            .poisonDamageDealtPercent(15),
+            .healthRestored(4),
+            .leechGainedPercent(10),
+            .leechHealing(3),
+            .goldGained(10),
+            .goldGainedPercent(5),
+            .blockGained(6),
+            .bleedDuration(2),
+            .damageTakenPercent(.burn, 10),
+            .damageTakenFlat(.burn, 2),
+            .damageTakenVulnerability(.burn, 5),
+            .companionDamageDealt(3),
+            .companionPhysicalDamageDealt(2),
+            .companionBleedDamageDealt(2),
+            .outgoingDamagePercent(8),
+            .incomingDamageReductionPercent(12),
+            .dodgeChanceBonus(5),
+        ]
+        let tier = HomesteadNodeTier(
+            tier: 1,
+            stageName: "Stage 1",
+            cost: [],
+            bonus: .init(title: "Test", description: "Test"),
+            combatBonus: .init(heroModifiers: modifiers),
+        )
+        let effects = HomesteadEffectLine.lines(for: tier)
+        #expect(effects.count == modifiers.count)
+        for effect in effects {
+            #expect(!effect.label.isEmpty)
+            #expect(effect.displayValue.hasPrefix("+") || effect.displayValue.hasPrefix("−"))
+        }
+    }
+
     private func makeStatus(
         definition: HomesteadNodeDefinition,
         homestead: PlayerHomesteadState,

@@ -1,7 +1,9 @@
 import SwiftUI
 import TrinketAppState
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -84,5 +86,51 @@ struct SalvageItemDetailSheet: View {
                 detail: "collectionItem=\(item.id)",
             )
         }
+    }
+}
+
+extension ItemDetailView {
+    @MainActor
+    static func inventorySalvageDetail(
+        item: InventoryItem,
+        saveStore: PlayerSaveStore,
+        onFinished: @escaping (ItemSalvageActionResult) -> Void,
+    ) -> Self {
+        let isOwned = saveStore.inventory.items.contains { $0.id == item.id }
+        guard isOwned else {
+            return Self(item: item)
+        }
+        guard ItemSalvage.isEligible(item) else {
+            return Self(item: item)
+        }
+        let yields = ItemSalvage.yields(for: item)
+        return Self(
+            item: item,
+            salvageYields: yields,
+            equippedByName: saveStore.roster.equippedCombatantName(for: item.id),
+            onSalvage: { () -> ItemSalvageActionResult in
+                let result = withAnimation(TrinketMotion.Reward.stateChange) {
+                    saveStore.salvageItem(id: item.id)
+                }
+                switch result {
+                case let .success(yields):
+                    return .success(yields: yields)
+                case .itemNotFound:
+                    return .itemNotFound
+                case .ineligible:
+                    return .itemNotFound
+                case nil:
+                    saveStore.retrySaveAction(key: "salvage-\(item.id)") { [weak saveStore] in
+                        guard let saveStore, let result = saveStore.salvageItem(id: item.id) else { return }
+                        switch result {
+                        case let .success(yields): onFinished(.success(yields: yields))
+                        case .itemNotFound, .ineligible: onFinished(.itemNotFound)
+                        }
+                    }
+                    return .persistenceFailure
+                }
+            },
+            onSalvageFinished: onFinished,
+        )
     }
 }

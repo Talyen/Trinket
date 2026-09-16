@@ -176,7 +176,7 @@ struct StarterRouletteScreen: View {
                 .frame(width: layout.cardWidth, height: layout.cardHeight)
             },
         )
-        .trinketSelectionCardButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .scrollTransition(.interactive, axis: .horizontal) { content, transitionPhase in
             let distance = min(abs(transitionPhase.value), 1)
             return content

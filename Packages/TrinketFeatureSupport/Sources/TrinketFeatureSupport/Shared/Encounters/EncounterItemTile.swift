@@ -51,7 +51,7 @@ public struct EncounterItemTile: View {
                 }
             }
         }
-        .trinketQuietTapButtonStyle()
+        .buttonStyle(.plain)
         .disabled(isDisabled)
         .trinketAccessibilityIdentifier(accessibilityID)
     }

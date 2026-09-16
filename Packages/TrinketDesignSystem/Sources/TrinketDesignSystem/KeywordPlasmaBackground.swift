@@ -65,7 +65,7 @@ public struct KeywordPlasmaBackground: View {
     }
 
     private func singleSourceBody(primary: Color, secondary: Color) -> some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: isTimelinePaused)) { timeline in
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: isTimelinePaused)) { timeline in
             GeometryReader { geometry in
                 let time = Float(clock.elapsed(at: timeline.date))
                 let focalCenter = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2 - focalYOffset)
