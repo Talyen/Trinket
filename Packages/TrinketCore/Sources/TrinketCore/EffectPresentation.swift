@@ -109,7 +109,7 @@ public enum EffectPresentation {
         case let .restoreManaOnHit(amount, _):
             "restore \(amount) Mana when you take damage"
         case let .damageKeywordOverride(keyword, bonus, durationTurns):
-            "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(turns: durationTurns))"
+            "your attacks become \(keyword.rawValue) damage and deal +\(bonus) damage \(durationPhrase(turns: durationTurns))"
         case let .damageReductionPercent(percent, durationTurns):
             "reduces damage dealt by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
         case let .healingReductionPercent(percent, durationTurns):

@@ -69,7 +69,6 @@ public final class SFXPlayer {
 }
 
 private actor SFXPlayback {
-    private var hasConfiguredSession = false
     private var engineIsRunning = false
     private var preparedVoicesArePlaying = false
     private lazy var engine = AVAudioEngine()
@@ -257,7 +256,7 @@ private actor SFXPlayback {
     }
 
     private nonisolated static func resourceURL(for clip: SFXClip) -> URL? {
-        AudioResourceLocator.url(
+        MediaResourceLocator.url(
             resourceName: clip.resourceName,
             fileExtension: clip.fileExtension,
             subdirectory: "SFX",
@@ -265,7 +264,7 @@ private actor SFXPlayback {
     }
 
     private func configureSessionIfNeeded() {
-        AmbientAudioSession.configureIfNeeded(configured: &hasConfiguredSession, logger: logger)
+        AudioSession.configureIfNeeded(logger: logger)
     }
 
     private func ensureEngineRunning() -> Bool {

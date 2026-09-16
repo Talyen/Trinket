@@ -413,60 +413,9 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
 
     def test_cinematic_fixture_converts_once_and_stays_stable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for relative in (
-                "Scripts/lib",
-                "CinematicManifest",
-                "ContentManifest",
-                "Raw Assets/Animations",
-                "Trinket/Media/Cinematics",
-                "Packages/TrinketContent/Sources/TrinketContent/Generated",
-                "Packages/TrinketContent/Sources/TrinketContent/Abilities",
-                "bin",
-            ):
-                (root / relative).mkdir(parents=True, exist_ok=True)
-            for relative in ("Scripts/prepare-cinematic-assets.sh", "Scripts/lib/media-assets.sh"):
-                destination = root / relative
-                destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
-                destination.chmod(0o755)
-            (root / "Raw Assets/Animations/slash.mp4").write_bytes(b"master")
-            (root / "CinematicManifest/cinematics.tsv").write_text(
-                "knight\tavatar-of-justice\tknight_avatar\tRaw Assets/Animations/slash.mp4\ttrue\n",
-                encoding="utf-8",
-            )
-            (root / "ContentManifest/combatants.tsv").write_text(
-                "id\tname\trole\tmax_health\tmax_mana\tbasics\tskills\tultimates\n"
-                "knight\tKnight\thero\t100\t0\tslash\tslash\tavatarOfJustice\n",
-                encoding="utf-8",
-            )
-            (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift").write_text(
-                '// MARK: - Ultimate\nid: "avatar-of-justice"\n', encoding="utf-8"
-            )
-            avconvert = root / "bin/avconvert"
-            avconvert.write_text(
-                "#!/usr/bin/env python3\n"
-                "import os, pathlib, re, sys\n"
-                "args = sys.argv[1:]\n"
-                "out = pathlib.Path(args[args.index('--output') + 1])\n"
-                "src = pathlib.Path(args[args.index('--source') + 1])\n"
-                "out.write_bytes(src.read_bytes() + b'hvc1')\n"
-                "name = out.name.lstrip('.')\n"
-                "name = re.sub(r'\\.tmp\\.\\d+', '', name)\n"
-                "with open(os.environ['AVCONVERT_LOG'], 'a') as log:\n"
-                "    log.write(name + '\\n')\n",
-                encoding="utf-8",
-            )
-            avconvert.chmod(0o755)
-            log = root / "conversions.log"
-            log.write_text("", encoding="utf-8")
-            environment = {
-                **os.environ,
-                "PATH": f"{root / 'bin'}:{os.environ['PATH']}",
-                "AVCONVERT_LOG": str(log),
-            }
-            command = ["bash", "Scripts/prepare-cinematic-assets.sh"]
+            root, environment, log = self.make_cinematic_fixture(directory)
 
-            first = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
+            first = self.run_cinematic_fixture(root, environment)
             self.assertEqual(first.returncode, 0, first.stderr)
             self.assertEqual(log.read_text().splitlines(), ["knight_avatar.mp4"])
             catalog = (
@@ -475,7 +424,7 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
             ).read_text(encoding="utf-8")
             self.assertIn('"knight|avatar-of-justice"', catalog)
 
-            second = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
+            second = self.run_cinematic_fixture(root, environment)
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertEqual(log.read_text().splitlines(), ["knight_avatar.mp4"])
             self.assertEqual(
@@ -484,6 +433,43 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
                 ),
                 catalog,
             )
+
+    def test_cinematic_rejects_non_ultimate_ability(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, _ = self.make_cinematic_fixture(directory)
+            (root / "CinematicManifest/cinematics.tsv").write_text(
+                "knight\tbash\tknight_bash\tRaw Assets/Animations/slash.mp4\ttrue\n",
+                encoding="utf-8",
+            )
+            rejected = self.run_cinematic_fixture(root, environment)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("not an Ultimate", rejected.stderr)
+
+    def test_cinematic_rejects_invalid_has_audio(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, _ = self.make_cinematic_fixture(directory)
+            (root / "CinematicManifest/cinematics.tsv").write_text(
+                "knight\tavatar-of-justice\tknight_avatar\tRaw Assets/Animations/slash.mp4\tyes\n",
+                encoding="utf-8",
+            )
+            rejected = self.run_cinematic_fixture(root, environment)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("must be true or false", rejected.stderr)
+
+    def test_sfx_volume_gain_accepts_leading_dot_decimal(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, _ = self.make_sfx_fixture(directory)
+            (root / "SoundManifest/sfx.tsv").write_text(
+                "test_clip\ttestClip\tsfx_test_clip\tRaw Assets/Sound Effects/clip.wav\t.5\n",
+                encoding="utf-8",
+            )
+            result = self.run_sfx_fixture(root, environment)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            generated = (
+                root
+                / "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
+            ).read_text(encoding="utf-8")
+            self.assertIn("volumeGain: .5", generated)
 
     def test_app_icon_fixture_installs_once_and_stays_stable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

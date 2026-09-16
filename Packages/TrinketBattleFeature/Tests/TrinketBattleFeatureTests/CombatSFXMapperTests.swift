@@ -144,6 +144,41 @@ struct CombatSFXMapperTests {
         )
     }
 
+    @Test func `mapper outputs resolve in catalog and are prewarmed`() {
+        let prewarmed = Set(CombatSFXMapper.battlePrewarmIDs)
+        #expect(!prewarmed.isEmpty)
+        for keyword in Keyword.allCases {
+            var probes: [(CombatFeedbackClass, CombatFeedbackChipLabel)] = [
+                (.directDamage, .amount(-1)),
+                (.critical, .amount(-1)),
+                (.dot, .amount(-1)),
+                (.heal, .amount(1)),
+                (.control, .word(.triggered(keyword))),
+                (.buff, .amount(1)),
+                (.buff, .word(.cleanse(keyword))),
+                (.buff, .word(.purge(keyword))),
+            ]
+            if keyword == .deathsDoor {
+                probes.append((.deathsDoor, .word(.plain(.deathsDoor))))
+            }
+            for (feedbackClass, label) in probes {
+                let item = feedbackItem(feedbackClass: feedbackClass, keyword: keyword, label: label)
+                guard let clipID = CombatSFXMapper.clipID(for: item) else { continue }
+                #expect(
+                    SFXCatalog.clipsByID[clipID] != nil,
+                    "Mapper output \(clipID) for \(feedbackClass) / \(keyword) missing from SFXCatalog",
+                )
+                #expect(
+                    prewarmed.contains(clipID),
+                    "Mapper output \(clipID) for \(feedbackClass) / \(keyword) not in battlePrewarmIDs",
+                )
+            }
+        }
+        for id in prewarmed {
+            #expect(SFXCatalog.clipsByID[id] != nil, "Prewarm id \(id) missing from SFXCatalog")
+        }
+    }
+
     private func feedbackItem(
         id: Int = 1,
         targetID: String = "target",

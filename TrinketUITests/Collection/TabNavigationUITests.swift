@@ -29,9 +29,7 @@ final class TabNavigationUITests: TrinketUITestCase {
             card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail(itemID))
             assertExists(cardID)
-            let attachment = XCTAttachment(screenshot: app.screenshot())
-            attachment.lifetime = .keepAlways
-            add(attachment)
+            attachSuccessScreenshot(named: "Locked item \(itemID)")
             goBack()
         }
     }

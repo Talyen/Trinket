@@ -54,6 +54,8 @@ public enum BattleLogReducer {
             "\(event.targetName) is on Death's Door."
         case .deathsDoorExpired:
             "\(event.targetName)'s Death's Door fades."
+        case .controlTriggered:
+            "\(event.targetName) is \(event.keyword.statusAlias ?? event.keyword.rawValue)."
         case .shieldApplied where event.amount > 0 && !event.abilityName.isEmpty:
             "\(event.targetName) gains \(event.amount) Block (\(event.abilityName))."
         case .instantHeal where event.amount > 0 && !event.abilityName.isEmpty:

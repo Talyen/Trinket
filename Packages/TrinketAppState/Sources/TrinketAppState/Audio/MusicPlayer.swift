@@ -17,8 +17,8 @@ final class MusicPlayer {
     private var inFlightRequest: MusicPlaybackRequest?
     private var pendingStartVolume: Float?
     private var resumePositions: [MusicResumeKey: TimeInterval] = [:]
+    private static let maxResumePositions = 32
     private var canSaveCurrentPosition = true
-    private var hasConfiguredSession = false
     private let logger = AudioSupport.logger()
 
     init(isDisabled: Bool, fadeDuration: TimeInterval = 0.9) {
@@ -92,10 +92,9 @@ final class MusicPlayer {
         }
     }
 
-    /// Stops playback while preserving the resume position, so the next `play`
-    /// of the same request resumes. Despite the name this is a suspend, not a
-    /// reset; use `silenceImmediately(preservingPosition: false)` to drop it.
-    func stop() {
+    /// Suspends playback while preserving the resume position, so the next `play`
+    /// of the same request resumes. Use `silenceImmediately(preservingPosition: false)` to drop it.
+    func suspendPreservingPosition() {
         silenceImmediately(preservingPosition: true)
     }
 
@@ -226,15 +225,16 @@ final class MusicPlayer {
             return
         }
 
-        if currentPlayer != nil {
-            loaded.player.stop()
-            return
-        }
+        // No start volume: hold the decode for a later unmute instead of
+        // throwing it away, whether or not something is currently playing.
+        storePrepared(loaded.player, request: request)
+    }
 
-        applyResumePosition(loaded.player, request: request)
-        loaded.player.numberOfLoops = request.track.isLooping ? -1 : 0
-        loaded.player.volume = 0
-        preparedPlayer = loaded.player
+    private func storePrepared(_ player: AVAudioPlayer, request: MusicPlaybackRequest) {
+        applyResumePosition(player, request: request)
+        player.numberOfLoops = request.track.isLooping ? -1 : 0
+        player.volume = 0
+        preparedPlayer = player
         preparedRequest = request
     }
 
@@ -374,7 +374,7 @@ final class MusicPlayer {
     }
 
     private func resourceURL(for track: TrinketContent.MusicTrack) -> URL? {
-        AudioResourceLocator.url(
+        MediaResourceLocator.url(
             resourceName: track.resourceName,
             fileExtension: track.fileExtension,
             subdirectory: "Music",
@@ -384,6 +384,15 @@ final class MusicPlayer {
     private func saveCurrentPosition() {
         guard canSaveCurrentPosition, let currentRequest, let currentPlayer else { return }
         resumePositions[currentRequest.resumeKey] = currentPlayer.currentTime
+        if resumePositions.count > Self.maxResumePositions {
+            // Resume keys fan out per enemy; evict a non-menu entry first so
+            // menu resume stays sticky.
+            if let evictable = resumePositions.keys.first(where: { $0.contextKind != .menu }) {
+                resumePositions.removeValue(forKey: evictable)
+            } else if let any = resumePositions.keys.first {
+                resumePositions.removeValue(forKey: any)
+            }
+        }
     }
 
     private func targetVolume(for request: MusicPlaybackRequest, appVolume: Float) -> Float {
@@ -391,7 +400,7 @@ final class MusicPlayer {
     }
 
     private func configureSessionIfNeeded() {
-        AmbientAudioSession.configureIfNeeded(configured: &hasConfiguredSession, logger: logger)
+        AudioSession.configureIfNeeded(logger: logger)
     }
 }
 

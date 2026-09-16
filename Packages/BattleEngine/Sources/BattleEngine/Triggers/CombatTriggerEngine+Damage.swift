@@ -269,6 +269,7 @@ package extension CombatTriggerEngine {
     static func afterBurnDamageDealt(
         to _: Combatant,
         source: Combatant,
+        healthLost: Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
@@ -282,6 +283,14 @@ package extension CombatTriggerEngine {
             ))
         }
         events.append(contentsOf: emberShieldIfNeeded(source: source, in: &context))
+        if triggers.onBurnDamageRestoreManaFlat > 0,
+           healthLost >= triggers.burnDamageManaRestoreThreshold {
+            events.append(contentsOf: restoreManaFromBurnDamage(
+                sourceActorID: source.id,
+                sourceTriggers: triggers,
+                in: &context,
+            ))
+        }
         return events
     }
 

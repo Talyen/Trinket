@@ -15,13 +15,3 @@ public struct MusicTrack: Identifiable, Hashable, Sendable {
     public let isLooping: Bool
     public let volumeGain: Double
 }
-
-public extension MusicCatalog {
-    static var tracksByID: [String: MusicTrack] {
-        Dictionary(uniqueKeysWithValues: allTracks.map { ($0.id, $0) })
-    }
-
-    static func track(matching id: String) -> MusicTrack? {
-        tracksByID[id]
-    }
-}

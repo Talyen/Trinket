@@ -183,6 +183,17 @@ struct EffectModelTests {
         )
     }
 
+    @Test func `damage keyword override names bonus damage and duration`() {
+        #expect(
+            EffectPresentation.applyPhrase(for: .damageKeywordOverride(.holy, 2, 2))
+                == "your attacks become Holy damage and deal +2 damage for 2 turns",
+        )
+        #expect(
+            EffectPresentation.applyPhrase(for: .damageKeywordOverride(.holy, 1, 1))
+                == "your attacks become Holy damage and deal +1 damage for 1 turn",
+        )
+    }
+
     @Test func `flag effect summary phrases are registered`() {
         for kind in [
             EffectKind.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical,

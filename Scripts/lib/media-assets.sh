@@ -39,10 +39,51 @@ trinket_asset_needs_thumb() {
 
 trinket_asset_validate_volume_gain() {
   local id="$1" volume_gain="$2"
-  if [[ ! "$volume_gain" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  if [[ ! "$volume_gain" =~ ^([0-9]+(\.[0-9]*)?|\.[0-9]+)$ ]]; then
     echo "Volume gain for '$id' must be numeric." >&2
     return 1
   fi
+}
+
+trinket_asset_validate_bool() {
+  local label="$1" id="$2" value="$3"
+  case "$value" in
+    true|false) ;;
+    *)
+      echo "$label for '$id' must be true or false." >&2
+      return 1
+      ;;
+  esac
+}
+
+# Tracked temp files: every path created through trinket_asset_track_mktemp is
+# removed by trinket_asset_cleanup_tracked (including sort-state suffixes), so
+# callers need one trap instead of one variable per temp file.
+TRINKET_ASSET_TEMPS=""
+
+trinket_asset_track_mktemp() {
+  local _var="$1" _tmp
+  _tmp="$(mktemp)" || return 1
+  TRINKET_ASSET_TEMPS="$TRINKET_ASSET_TEMPS $_tmp"
+  printf -v "$_var" '%s' "$_tmp"
+}
+
+trinket_asset_cleanup_tracked() {
+  local _tmp
+  # shellcheck disable=SC2086
+  for _tmp in $TRINKET_ASSET_TEMPS; do
+    rm -f "$_tmp" "$_tmp.next" "$_tmp.sorted"
+  done
+  TRINKET_ASSET_TEMPS=""
+}
+
+# Single home for the cinematic Ultimate gate: the generated ability inventory
+# (tier column) instead of MARK-grepping authored Swift, so section renames in
+# AbilityCatalog.swift cannot silently break cinematic validation.
+trinket_content_assert_ultimate_ability() {
+  local ability_id="$1"
+  awk -F$'\t' -v id="$ability_id" 'NR > 1 && $1 == id && $3 == "ultimate" { found=1 } END { exit found ? 0 : 1 }' \
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv"
 }
 
 trinket_asset_validate_identifier() {

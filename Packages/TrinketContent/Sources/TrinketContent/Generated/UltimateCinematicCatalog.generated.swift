@@ -42,10 +42,8 @@ public enum UltimateCinematicCatalog {
     public static func videoURL(for actorID: String, abilityID: String) -> URL? {
         let reference = reference(for: actorID, abilityID: abilityID)
         guard let videoName = reference.videoName else { return nil }
-        return Bundle.main.url(forResource: videoName, withExtension: "mp4")
-            ?? Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Cinematics")
-            ?? Bundle.main.url(forResource: videoName, withExtension: nil)
-            ?? Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Cinematics")
+        return MediaResourceLocator.url(resourceName: videoName, fileExtension: "mp4", subdirectory: "Cinematics")
+            ?? MediaResourceLocator.url(resourceName: videoName, fileExtension: nil, subdirectory: "Cinematics")
     }
 
     public static let allReferences: [UltimateCinematicReference] = Array(

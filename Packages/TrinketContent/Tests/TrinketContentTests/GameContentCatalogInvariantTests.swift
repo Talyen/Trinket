@@ -18,9 +18,10 @@ struct GameContentCatalogInvariantTests {
         }
     }
 
-    @Test func `battle prewarm SFX resolve in catalog`() throws {
-        for id in SFXID.battlePrewarmIDs {
-            _ = try #require(SFXCatalog.clipsByID[id], "Missing prewarm SFX id \(id)")
+    @Test func `sfx catalog index matches clips`() throws {
+        try #expect(SFXCatalog.clipsByID.count == SFXCatalog.clips.count)
+        for clip in SFXCatalog.clips {
+            try #expect(SFXCatalog.clipsByID[clip.id] == clip, "Missing SFX catalog index entry \(clip.id)")
         }
     }
 

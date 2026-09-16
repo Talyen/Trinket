@@ -310,17 +310,24 @@ struct BattleSessionSimulationTests {
 
     @Test func `auto end turn fires only when hand is exhausted`() async throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        session.isAutoBattleEnabled = false
         #expect(session.hasPlayableCard)
 
+        var playedCount = 0
         while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
             let resolution = session.playCard(
                 cardID: card.id,
             )
             if resolution == .rejected || session.outcome != nil {
+                Issue.record("Setup exhausted the battle before the auto-end assertion")
                 return
             }
+            playedCount += 1
         }
 
+        #expect(playedCount > 0)
+        #expect(session.outcome == nil)
         #expect(session.canEndTurn)
         #expect(!session.hasPlayableCard)
         let tickBefore = try #require(session.engineState?.turnCount)
@@ -467,5 +474,144 @@ extension BattleSessionSimulationTests {
         #expect(try await BattleSessionTestSupport.waitUntil { !animated.transitionTask.hasPendingTask })
         #expect(animated.hand == immediate.hand)
         #expect(animated.canEndTurn)
+    }
+}
+
+extension BattleSessionSimulationTests {
+    @Test(arguments: ["battleLog", "abilityDetail", "combatantDetail"])
+    func `auto end turn resumes after blocking overlay is dismissed`(overlayKind: String) async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        session.isAutoBattleEnabled = false
+
+        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
+            let resolution = session.playCard(cardID: card.id)
+            if resolution == .rejected || session.outcome != nil {
+                Issue.record("Setup exhausted the battle before the overlay assertion")
+                return
+            }
+        }
+
+        #expect(!session.hasPlayableCard)
+        #expect(session.outcome == nil)
+        #expect(session.canEndTurn)
+        let tickBefore = try #require(session.engineState?.turnCount)
+        #expect(session.hasPendingAutoEnd)
+
+        switch overlayKind {
+        case "battleLog":
+            session.presentBattleLog()
+        case "abilityDetail":
+            session.presentAbilityDetail(.slash)
+        case "combatantDetail":
+            session.presentCombatantDetail(CombatantCardDetail(combatant: CombatantFixtures.passiveHero()))
+        default:
+            Issue.record("Unknown overlay kind")
+            return
+        }
+        #expect(!session.canEndTurn)
+
+        let timerCleared = try await BattleSessionTestSupport.waitUntil { !session.hasPendingAutoEnd }
+        #expect(timerCleared)
+        #expect(session.engineState?.turnCount == tickBefore)
+
+        switch overlayKind {
+        case "battleLog":
+            session.clearBattleLog()
+        case "abilityDetail":
+            session.overlayAbilityDetail = nil
+        case "combatantDetail":
+            session.overlayCombatantDetail = nil
+        default:
+            break
+        }
+
+        try await waitForAutoEndTurn(session, after: tickBefore)
+        #expect(session.engineState?.turnCount == tickBefore + 1)
+    }
+
+    @Test func `auto end turn waits while a second overlay remains open`() async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        session.isAutoBattleEnabled = false
+
+        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
+            let resolution = session.playCard(cardID: card.id)
+            if resolution == .rejected || session.outcome != nil {
+                Issue.record("Setup exhausted the battle before the overlay assertion")
+                return
+            }
+        }
+
+        #expect(!session.hasPlayableCard)
+        #expect(session.outcome == nil)
+        let tickBefore = try #require(session.engineState?.turnCount)
+
+        session.presentAbilityDetail(.slash)
+        session.presentBattleLog()
+        session.overlayAbilityDetail = nil
+
+        #expect(!session.canEndTurn)
+        #expect(!session.hasPendingAutoEnd)
+        #expect(session.engineState?.turnCount == tickBefore)
+
+        session.clearBattleLog()
+
+        try await waitForAutoEndTurn(session, after: tickBefore)
+        #expect(session.engineState?.turnCount == tickBefore + 1)
+    }
+
+    @Test func `overlay dismissal with playable cards schedules no auto end`() {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        session.isAutoBattleEnabled = false
+        #expect(session.hasPlayableCard)
+
+        session.presentBattleLog()
+        session.clearBattleLog()
+
+        #expect(session.hasPlayableCard)
+        #expect(session.canEndTurn)
+        #expect(!session.hasPendingAutoEnd)
+    }
+
+    @Test func `overlay dismissal while suspended waits for resume`() async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        session.isAutoBattleEnabled = false
+
+        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
+            let resolution = session.playCard(cardID: card.id)
+            if resolution == .rejected || session.outcome != nil {
+                Issue.record("Setup exhausted the battle before the suspension assertion")
+                return
+            }
+        }
+
+        #expect(!session.hasPlayableCard)
+        #expect(session.outcome == nil)
+        let tickBefore = try #require(session.engineState?.turnCount)
+
+        session.setSuspendedForScenePhase(true)
+        session.presentBattleLog()
+        session.clearBattleLog()
+
+        #expect(!session.hasPendingAutoEnd)
+        #expect(session.engineState?.turnCount == tickBefore)
+
+        session.setSuspendedForScenePhase(false)
+
+        try await waitForAutoEndTurn(session, after: tickBefore)
+        #expect(session.engineState?.turnCount == tickBefore + 1)
+    }
+
+    @Test func `ending battle with overlay open schedules nothing`() {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        session.isAutoBattleEnabled = false
+        session.presentBattleLog()
+        session.endBattle()
+        session.clearBattleLog()
+        #expect(session.activeBattle == nil)
+        #expect(!session.hasPendingAutoEnd)
     }
 }

@@ -67,7 +67,7 @@ Assert a journey’s return destination before using helpers that navigate elsew
 ## Speed
 
 - Prefer `-launch-screen` / `-selectedTab` deep links; do not re-navigate a screen launch args already opened.
-- Prefer one launch per test. `SeededSmokeUITestCase` launches in per-test setup; use explicit launches when methods need different args so setup does not launch an app that the test immediately replaces. Relaunch only when the journey must verify persistence.
+- Prefer one launch per test with explicit per-test args. Relaunch only when the journey must verify persistence.
 - Prefer one launch + `TabBar` for round-trips that must exercise the tab bar itself.
 - Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
@@ -84,3 +84,4 @@ Assert a journey’s return destination before using helpers that navigate elsew
   do not copy their numeric values into this guide.
 - Accessibility-setting audits remain outside PD-014. Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.
 - UI tests run serially on a single simulator by default. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.
+- Success-path screenshots are opt-in (`TRINKET_UI_SUCCESS_SCREENSHOTS=1`); failure screenshots stay unconditional.

@@ -6,7 +6,10 @@ import TrinketPersistence
 
 extension AppState {
     public func prepareLaunchPerformanceResources() {
-        sfxPlayer.warmAllCatalog(concurrentPlayerCount: 2)
+        // One voice per clip at launch; battle preparation tops the hot
+        // battlePrewarmIDs set up to two voices, so first-hit polyphony is
+        // unchanged while launch holds half the player nodes.
+        sfxPlayer.warmAllCatalog(concurrentPlayerCount: 1)
     }
 
     struct BootstrapDependencies {

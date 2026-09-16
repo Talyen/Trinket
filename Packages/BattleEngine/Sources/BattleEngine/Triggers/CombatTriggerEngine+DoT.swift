@@ -75,9 +75,14 @@ package extension CombatTriggerEngine {
                     in: &context,
                 ))
             }
+            // Periodic ticks bypass the pipeline's keyword reactions
+            // (DamageOperation.isRetaliation covers .periodic), so the
+            // mana restore runs here for ticks and in
+            // afterBurnDamageDealt for direct hits. The two paths are
+            // disjoint, keeping each damage instance exactly-once.
             if sourceTriggers.onBurnDamageRestoreManaFlat > 0,
                healthLost >= sourceTriggers.burnDamageManaRestoreThreshold {
-                events.append(contentsOf: restoreManaFromBurnTick(
+                events.append(contentsOf: restoreManaFromBurnDamage(
                     sourceActorID: sourceActorID,
                     sourceTriggers: sourceTriggers,
                     in: &context,
@@ -126,7 +131,7 @@ package extension CombatTriggerEngine {
         )
     }
 
-    private static func restoreManaFromBurnTick(
+    static func restoreManaFromBurnDamage(
         sourceActorID: String,
         sourceTriggers: CombatTraitTriggers,
         in context: inout BattleState,

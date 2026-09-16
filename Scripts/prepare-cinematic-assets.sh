@@ -21,19 +21,21 @@ trinket_asset_require_avconvert
 
 mkdir -p "$resources_dir" "$generated_dir"
 
-entries_temp=$(mktemp)
-seen_ids_temp=$(mktemp)
-seen_assets_temp=$(mktemp)
-active_assets_temp=$(mktemp)
-processed_count=0
 trinket_asset_begin_state_file "$state_file" "Scripts/prepare-cinematic-assets.sh"
 state_temp="$TRINKET_ASSET_STATE_TEMP"
 generated_temp="$generated_swift.tmp.$$"
 cleanup() {
-  rm -f "$entries_temp" "$seen_ids_temp" "$seen_assets_temp" "$active_assets_temp" "$state_temp" "$state_temp.next" "$state_temp.sorted" "$generated_temp"
+  trinket_asset_cleanup_tracked
+  rm -f "$state_temp" "$state_temp.next" "$state_temp.sorted" "$generated_temp"
   rm -f "$resources_dir"/.*.tmp.$$.* 2>/dev/null || true
 }
 trap cleanup EXIT
+
+trinket_asset_track_mktemp entries_temp
+trinket_asset_track_mktemp seen_ids_temp
+trinket_asset_track_mktemp seen_assets_temp
+trinket_asset_track_mktemp active_assets_temp
+processed_count=0
 
 trinket_asset_begin_state_lookup "$state_file"
 
@@ -78,9 +80,8 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
     exit 1
   fi
 
-  if ! awk '/MARK: - Ultimate/{flag=1} flag' \
-    Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift | rg -Fq "id: \"$ability_id\""; then
-    echo "Cinematic ability id '$ability_id' is not an Ultimate in the authored ability catalog." >&2
+  if ! trinket_content_assert_ultimate_ability "$ability_id"; then
+    echo "Cinematic ability id '$ability_id' is not an Ultimate in the ability inventory." >&2
     exit 1
   fi
 
@@ -102,13 +103,9 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
     exit 1
   fi
 
-  case "$has_audio" in
-    true|false) ;;
-    *)
-      echo "has_audio for '$actor_id' / '$ability_id' must be true or false." >&2
-      exit 1
-      ;;
-  esac
+  if ! trinket_asset_validate_bool "has_audio" "$actor_id / $ability_id" "$has_audio"; then
+    exit 1
+  fi
 
   dest="$resources_dir/${asset_name}.mp4"
   source_hash="$(shasum -a 256 "$source_path" | awk '{print $1}')"
@@ -182,10 +179,8 @@ cat >> "$generated_temp" <<'SWIFT'
     public static func videoURL(for actorID: String, abilityID: String) -> URL? {
         let reference = reference(for: actorID, abilityID: abilityID)
         guard let videoName = reference.videoName else { return nil }
-        return Bundle.main.url(forResource: videoName, withExtension: "mp4")
-            ?? Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Cinematics")
-            ?? Bundle.main.url(forResource: videoName, withExtension: nil)
-            ?? Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Cinematics")
+        return MediaResourceLocator.url(resourceName: videoName, fileExtension: "mp4", subdirectory: "Cinematics")
+            ?? MediaResourceLocator.url(resourceName: videoName, fileExtension: nil, subdirectory: "Cinematics")
     }
 
     public static let allReferences: [UltimateCinematicReference] = Array(
@@ -205,7 +200,6 @@ private extension UltimateCinematicReference {
 SWIFT
 
 trinket_asset_commit_generated "$generated_temp" "$generated_swift"
-rm -f "$entries_temp" "$seen_ids_temp" "$seen_assets_temp" "$active_assets_temp"
 trinket_asset_sort_state "$state_temp" "$state_file"
 
 echo "Prepared $processed_count cinematic asset(s)."

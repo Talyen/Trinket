@@ -27,14 +27,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
             tapWhenReady(enterButton)
         }
         assertExists(AccessibilityID.Play.labyrinthMap, timeout: 20)
-        let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
-        if !entryNode.trinketWaitForExistence(timeout: 10) {
-            assertExists(AccessibilityID.Play.labyrinthMap, timeout: 5)
-            app.swipeUp()
-            app.swipeDown()
-            _ = entryNode.trinketWaitForExistence(timeout: 5)
-        }
-        assertExists(entryNode, timeout: 20)
+        let entryNode = waitForLabyrinthEntryNode()
         tapWhenReady(entryNode)
         assertExists(AccessibilityID.Play.labyrinthNodeInspector, timeout: 15)
         let inspectorAction = app.descendants(matching: .any).matching(
@@ -42,9 +35,34 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         ).firstMatch
         assertExists(inspectorAction, timeout: 10)
 
-        let lockedNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1LockedNode]
+        let lockedNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1LockedNode].firstMatch
         assertExists(lockedNode)
-        tapWhenReady(lockedNode)
+        // Locked seals are inert: tapping one must neither open details nor
+        // clear the selection. Guard the premise first: the seal must report
+        // locked, so seed drift fails loudly instead of testing the wrong node.
+        XCTAssertTrue(
+            lockedNode.label.contains(", locked"),
+            "Expected a locked labyrinth node, found '\(lockedNode.label)'",
+        )
+        lockedNode.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        assertExists(inspectorAction, timeout: 10)
+
+        // Dismissal belongs to the background dismiss control, not to node taps.
+        app.descendants(matching: .any)[AccessibilityID.Play.labyrinthDismissSelection]
+            .coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.05))
+            .tap()
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
+    }
+
+    private func waitForLabyrinthEntryNode() -> XCUIElement {
+        let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
+        if entryNode.trinketWaitForExistence(timeout: 10) {
+            return entryNode
+        }
+        // Map tiles lay out asynchronously; one recovery scroll before the final bounded wait.
+        app.swipeUp()
+        app.swipeDown()
+        assertExists(entryNode, timeout: 10)
+        return entryNode
     }
 }

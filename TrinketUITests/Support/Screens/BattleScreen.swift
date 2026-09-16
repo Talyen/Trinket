@@ -12,7 +12,7 @@ struct BattleScreen {
 
     var handCards: XCUIElementQuery {
         app.descendants(matching: .any).matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card "),
+            NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Battle.handCardPrefix),
         )
     }
 
@@ -49,10 +49,10 @@ struct BattleScreen {
     }
 
     func openCombatantCard(named name: String) {
-        app.buttons[AccessibilityID.CombatantDetail.battleCard(name: name)].tap()
+        app.buttons[AccessibilityID.CombatantDetail.battleCard(name: name)].trinketTapWhenReady()
     }
 
     func openActions() {
-        actionsMenu.tap()
+        actionsMenu.trinketTapWhenReady()
     }
 }

@@ -114,6 +114,14 @@ public enum MusicCatalog {
         ),
     ]
 
+    public static let tracksByID: [String: MusicTrack] = {
+        Dictionary(uniqueKeysWithValues: allTracks.map { ($0.id, $0) })
+    }()
+
+    public static func track(matching id: String) -> MusicTrack? {
+        tracksByID[id]
+    }
+
     public static let menuTrackIDs: [String] = [
         "menu_1",
         "menu_2",

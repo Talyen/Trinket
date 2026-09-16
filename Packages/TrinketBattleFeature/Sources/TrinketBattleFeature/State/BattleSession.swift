@@ -67,9 +67,23 @@ public final class BattleSession: BattleRuntime {
         }
     }
 
-    public var overlayCombatantDetail: CombatantCardDetail?
-    public var overlayAbilityDetail: Ability?
-    public var isShowingBattleLog = false
+    public var overlayCombatantDetail: CombatantCardDetail? {
+        didSet {
+            overlayPresentationChanged(wasPresented: oldValue != nil, isPresented: overlayCombatantDetail != nil)
+        }
+    }
+
+    public var overlayAbilityDetail: Ability? {
+        didSet {
+            overlayPresentationChanged(wasPresented: oldValue != nil, isPresented: overlayAbilityDetail != nil)
+        }
+    }
+
+    public var isShowingBattleLog = false {
+        didSet {
+            overlayPresentationChanged(wasPresented: oldValue, isPresented: isShowingBattleLog)
+        }
+    }
 
     public internal(set) var activeBattle: BattleRunConfiguration?
     public internal(set) var presentationContext: BattlePresentationContext?
@@ -163,17 +177,30 @@ public final class BattleSession: BattleRuntime {
         presentation.hand
     }
 
+    private var hasBlockingOverlay: Bool {
+        isShowingBattleLog || overlayCombatantDetail != nil || overlayAbilityDetail != nil
+    }
+
+    private func overlayPresentationChanged(wasPresented: Bool, isPresented: Bool) {
+        guard wasPresented != isPresented else { return }
+        guard !hasBlockingOverlay else {
+            cancelPendingAutoEnd()
+            return
+        }
+        scheduleAutoEndIfNeeded()
+    }
+
     var canAcceptBattleCommands: Bool {
         commandState.acceptsCommands && activeBattle != nil
             && engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
             && spectacle.outcomePresentation == .battle
-            && !isShowingBattleLog && overlayCombatantDetail == nil && overlayAbilityDetail == nil
+            && !hasBlockingOverlay
     }
 
     var canInteractWithHand: Bool {
         activeBattle != nil && !isSuspendedForScenePhase
             && !spectacle.outcomePresentation.isOutcomePresented
-            && !isShowingBattleLog && overlayCombatantDetail == nil && overlayAbilityDetail == nil
+            && !hasBlockingOverlay
             && (canAcceptBattleCommands || commandState.phase == .outcome)
     }
 
@@ -320,7 +347,7 @@ public final class BattleSession: BattleRuntime {
         companionActorID: String?,
         companionUltimateID: String?,
     ) {
-        dependencies.warmSFX(SFXID.battlePrewarmIDs, 2)
+        dependencies.warmSFX(CombatSFXMapper.battlePrewarmIDs, 2)
         spectacle.cinematics.isEnabled = areUltimateCinematicAnimationsEnabled
         guard areUltimateCinematicAnimationsEnabled else { return }
         spectacle.cinematics.warmLoadout(

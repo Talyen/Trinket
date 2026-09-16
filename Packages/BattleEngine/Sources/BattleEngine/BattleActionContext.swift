@@ -56,6 +56,17 @@ public struct BattleActionContext: Equatable, Sendable {
             Self.lowestHealth(in: allies(in: state), state: state)
         case .defeatedAlly:
             allies(in: state).reversed().first { state.health(of: $0) <= 0 } ?? allies(in: state)[0]
+        case .eachAlly:
+            targets(target, in: state).first ?? actor
+        }
+    }
+
+    public func targets(_ target: EffectTarget, in state: BattleState) -> [Combatant] {
+        switch target {
+        case .eachAlly:
+            allies(in: state)
+        default:
+            [self.target(target, in: state)]
         }
     }
 

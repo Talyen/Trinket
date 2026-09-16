@@ -489,8 +489,7 @@ public enum AbilityCatalog {
         description: "Deal 6 Holy damage. Restore 3 Health to each ally.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [
-            TargetedEffect(.instantHeal(.health, 3), target: .hero),
-            TargetedEffect(.instantHeal(.health, 3), target: .companion),
+            TargetedEffect(.instantHeal(.health, 3), target: .eachAlly),
         ],
     )
 

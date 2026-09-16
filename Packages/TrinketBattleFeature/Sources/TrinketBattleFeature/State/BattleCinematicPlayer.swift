@@ -16,9 +16,7 @@ final class BattleCinematicPlayer {
     var isEnabled: Bool = BattleFeatureFlags.ultimateCinematicAnimationsEnabled
 
     private var playersByCastKey: [CinematicCastKey: AVPlayer] = [:]
-    private var warmedCastKeys: Set<CinematicCastKey> = []
-    private var endObserversByCastKey: [CinematicCastKey: NSObjectProtocol] = [:]
-    private var failureObserversByCastKey: [CinematicCastKey: NSObjectProtocol] = [:]
+    private var observersByCastKey: [CinematicCastKey: CinematicPlaybackObservers] = [:]
 
     isolated deinit {
         releaseAll()
@@ -42,7 +40,6 @@ final class BattleCinematicPlayer {
     func warm(actorID: String, abilityID: String) {
         guard isEnabled else { return }
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
-        warmedCastKeys.insert(key)
         guard playersByCastKey[key] == nil else { return }
         guard let url = UltimateCinematicCatalog.videoURL(for: actorID, abilityID: abilityID) else { return }
 
@@ -119,7 +116,7 @@ final class BattleCinematicPlayer {
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
         guard let player = player(for: actorID, abilityID: abilityID) else { return }
         applyVolume(effectsVolume: effectsVolume, to: player, actorID: actorID, abilityID: abilityID)
-        clearEndObserver(for: actorID, abilityID: abilityID)
+        clearObservers(for: actorID, abilityID: abilityID)
         if let item = player.currentItem {
             let endObserver = NotificationCenter.default.addObserver(
                 forName: .AVPlayerItemDidPlayToEndTime,
@@ -127,7 +124,7 @@ final class BattleCinematicPlayer {
                 queue: .main,
             ) { [weak self] _ in
                 MainActor.assumeIsolated {
-                    self?.clearEndObserver(for: actorID, abilityID: abilityID)
+                    self?.clearObservers(for: actorID, abilityID: abilityID)
                     onEnded()
                 }
             }
@@ -137,12 +134,14 @@ final class BattleCinematicPlayer {
                 queue: .main,
             ) { [weak self] _ in
                 MainActor.assumeIsolated {
-                    self?.clearEndObserver(for: actorID, abilityID: abilityID)
+                    self?.clearObservers(for: actorID, abilityID: abilityID)
                     onEnded()
                 }
             }
-            endObserversByCastKey[key] = endObserver
-            failureObserversByCastKey[key] = failObserver
+            observersByCastKey[key] = CinematicPlaybackObservers(
+                endObserver: endObserver,
+                failureObserver: failObserver,
+            )
         }
         player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         player.play()
@@ -150,23 +149,24 @@ final class BattleCinematicPlayer {
     }
 
     func pause(actorID: String, abilityID: String) {
-        clearEndObserver(for: actorID, abilityID: abilityID)
+        clearObservers(for: actorID, abilityID: abilityID)
         playersByCastKey[CinematicCastKey(actorID: actorID, abilityID: abilityID)]?.pause()
     }
 
     func releaseAll() {
-        let observerKeys = Set(endObserversByCastKey.keys).union(failureObserversByCastKey.keys)
-        for key in observerKeys {
-            clearEndObserver(for: key.actorID, abilityID: key.abilityID)
+        for key in observersByCastKey.keys {
+            clearObservers(for: key.actorID, abilityID: key.abilityID)
         }
         for player in playersByCastKey.values {
             player.pause()
             player.replaceCurrentItem(with: nil)
         }
         playersByCastKey.removeAll()
-        warmedCastKeys.removeAll()
     }
 
+    /// Clamps to the 0...1 app-volume range shared with music/SFX volume math.
+    /// `hasAudio == false` masters stay muted regardless of volume; the per-player
+    /// clamp lives here because BattleFeature cannot import TrinketAppState.
     private func applyVolume(effectsVolume: Double, to player: AVPlayer, actorID: String, abilityID: String) {
         let reference = UltimateCinematicCatalog.reference(for: actorID, abilityID: abilityID)
         let clamped = max(0, min(effectsVolume, 1))
@@ -179,13 +179,15 @@ final class BattleCinematicPlayer {
         }
     }
 
-    private func clearEndObserver(for actorID: String, abilityID: String) {
+    private func clearObservers(for actorID: String, abilityID: String) {
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
-        if let observer = endObserversByCastKey.removeValue(forKey: key) {
-            NotificationCenter.default.removeObserver(observer)
-        }
-        if let observer = failureObserversByCastKey.removeValue(forKey: key) {
-            NotificationCenter.default.removeObserver(observer)
-        }
+        guard let observers = observersByCastKey.removeValue(forKey: key) else { return }
+        NotificationCenter.default.removeObserver(observers.endObserver)
+        NotificationCenter.default.removeObserver(observers.failureObserver)
     }
+}
+
+private struct CinematicPlaybackObservers {
+    let endObserver: NSObjectProtocol
+    let failureObserver: NSObjectProtocol
 }

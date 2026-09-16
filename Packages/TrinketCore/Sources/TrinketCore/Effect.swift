@@ -8,6 +8,7 @@ public enum EffectTarget: Hashable, Sendable {
     case companion
     case lowestHealthAlly
     case defeatedAlly
+    case eachAlly
 }
 
 public struct DamageComponent: Hashable, Sendable {

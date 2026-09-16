@@ -4,6 +4,25 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 enum CombatSFXMapper {
+    /// Battle-warm set: every mapper output plus battle-flow stingers.
+    /// Owned here — not in TrinketContent — because battle event interpretation
+    /// is BattleFeature's concern; TrinketContent only owns the clip catalog.
+    static let battlePrewarmIDs = [
+        SFXID.abilityDraw,
+        SFXID.hit,
+        SFXID.hitBurn,
+        SFXID.hitFreeze,
+        SFXID.heal,
+        SFXID.buff,
+        SFXID.block,
+        SFXID.controlFreeze,
+        SFXID.controlStun,
+        SFXID.purge,
+        SFXID.deathsDoor,
+        SFXID.victory,
+        SFXID.defeat,
+    ]
+
     private static let typedHitClipIDs: Set<String> = [
         SFXID.hitBurn,
         SFXID.hitFreeze,
@@ -71,12 +90,18 @@ enum CombatSFXMapper {
             SFXID.controlFreeze
         case .stun:
             SFXID.controlStun
-        default:
+        case .physical, .burn, .holy, .poison, .bleed, .leech, .thorns, .health,
+             .gold, .block, .dodge, .purge, .cleanse, .mana, .deathsDoor:
+            // No dedicated stinger: fall back to the generic control hit so a
+            // control event is never silent. Exhaustive so a new Keyword forces
+            // an explicit choice here instead of silently taking this branch.
             SFXID.controlStun
         }
     }
 
     private static func buffFamilyClipID(for item: CombatFeedbackItem) -> String {
+        // Label wins over keyword: a cleanse/purge word describes the event
+        // even when the underlying keyword is something else (e.g. block).
         if case .word(.cleanse) = item.label {
             return SFXID.heal
         }
@@ -101,9 +126,9 @@ enum CombatSFXMapper {
             SFXID.hitFreeze
         case .stun:
             SFXID.controlStun
-        case .physical, .holy, .poison, .bleed, .leech:
-            SFXID.hit
-        default:
+        case .physical, .holy, .poison, .bleed, .leech, .thorns, .health, .gold,
+             .block, .dodge, .purge, .cleanse, .mana, .deathsDoor:
+            // Exhaustive so a new Keyword forces an explicit choice here.
             SFXID.hit
         }
     }

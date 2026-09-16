@@ -2,12 +2,8 @@ import TrinketFeatureSupport
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
-    func testCardInspectionPlayAutoBattleHandDragSafetyAndRetreatRestoresPlay() {
-        launchApp(arguments: TestLaunchArg.allForMidBattle())
-        play.openCampaign()
-        play.startBattle(chapter: 1, stage: 1)
-
-        battle.assertActive()
+    func testHandCardInspectTapAndDragPlay() {
+        launchMidBattleAndStart()
 
         let cards = battle.handCards
         let inspectedCard = cards.firstMatch
@@ -38,13 +34,18 @@ final class BattleFlowUITests: TrinketUITestCase {
         )
 
         let autoCountBefore = cards.count
-        battle.autoBattleToggle.tap()
+        tapWhenReady(battle.autoBattleToggle)
         XCTAssertTrue(
             waitForCardCountBelow(cards, autoCountBefore),
             "Auto Battle must reduce the hand",
         )
-        battle.autoBattleToggle.tap()
+        tapWhenReady(battle.autoBattleToggle)
+    }
 
+    func testHandDragSafetyDetailAndRetreatRestoresPlay() {
+        launchMidBattleAndStart()
+
+        let cards = battle.handCards
         let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Knight")]
         assertExists(hero)
 
@@ -64,15 +65,23 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.Battle.actionsMenu)
         battle.openActions()
         assertButtonExists(AccessibilityID.Battle.retreat)
-        battle.retreatAction.tap()
+        tapWhenReady(battle.retreatAction)
         assertButtonExists(AccessibilityID.Battle.retreatConfirm)
-        battle.retreatConfirmAction.tap()
+        tapWhenReady(battle.retreatConfirmAction)
 
         XCTAssertTrue(
             app.tabBars.buttons[AccessibilityID.Tab.play].trinketWaitForExistence(timeout: Self.defaultTimeout),
             "Tab bar should return after retreat",
         )
         play.assertCampaignLoaded(number: 1)
+    }
+
+    private func launchMidBattleAndStart() {
+        launchApp(arguments: TestLaunchArg.allForMidBattle())
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
+
+        battle.assertActive()
     }
 
     private func assertCancelledDrag(from origin: XCUICoordinate, cards: XCUIElementQuery) {

@@ -37,9 +37,8 @@ release prerequisites.
 Only Boss fights resolve to a specific track. Every other battle resolves to the
 same stable battle track for a given enemy, regardless of mode. `MusicRoute.resolve`
 selects menu music when no battle is active or the selected tab is outside Play.
-Browsing a stage preview does not itself start battle music. Menu always uses the
-first catalog track; the remaining menu track IDs are alternates the router never
-selects.
+Browsing a stage preview does not itself start battle music. Menu rotates through
+the catalog once per calendar day (stable within the day).
 
 `MusicPlayer` preserves track position across route changes, so returning to the
 same battle resumes it. Inactive scenes and muted volume route to silence with

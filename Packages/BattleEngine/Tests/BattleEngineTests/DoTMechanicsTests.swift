@@ -477,3 +477,66 @@ extension DoTMechanicsTests {
         #expect(!battle.roster.hasAffliction(.poison, on: battle.enemy))
     }
 }
+
+extension DoTMechanicsTests {
+    private static func makeBurnManaBattle(
+        threshold: Int = 0,
+        perTurnCap: Int = 0,
+    ) -> BattleState {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 100,
+            heroMaxMana: 5,
+            heroMana: 0,
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                damage: DamageTriggers(criticalChanceBonus: -1),
+                dot: DotTriggers(
+                    burnDamageManaRestoreThreshold: threshold,
+                    onBurnDamageRestoreManaPerTurnCap: perTurnCap,
+                ),
+                mana: ManaTriggers(onBurnDamageRestoreManaFlat: 1),
+            )),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        return battle
+    }
+
+    @Test func `direct burn damage restores mana up to the per-turn cap`() {
+        var battle = Self.makeBurnManaBattle(perTurnCap: 2)
+        let hero = battle.roster.hero.combatant
+        let enemy = battle.roster.enemy.combatant
+        for expected in [1, 2, 2] {
+            let outcome = battle.resolveDamage(DamageRequest(
+                amount: 3, target: enemy, keyword: .burn,
+                sourceActorID: hero.id, options: .attack(),
+            ))
+            #expect(outcome.healthLost == 3)
+            #expect(battle.roster.hero.currentMana == expected)
+        }
+        #expect(battle.turnCadence.burnManaRestored[.hero] == 2)
+    }
+
+    @Test(arguments: [(3, 0), (5, 1)])
+    func `direct burn damage honors the mana restore threshold`(damage: Int, expectedMana: Int) {
+        var battle = Self.makeBurnManaBattle(threshold: 4)
+        let hero = battle.roster.hero.combatant
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: damage, target: battle.roster.enemy.combatant, keyword: .burn,
+            sourceActorID: hero.id, options: .attack(),
+        ))
+        #expect(outcome.healthLost == damage)
+        #expect(battle.roster.hero.currentMana == expectedMana)
+    }
+
+    @Test func `burn tick restores mana exactly once`() throws {
+        var battle = Self.makeBurnManaBattle(perTurnCap: 2)
+        let hero = battle.roster.hero.combatant
+        let enemy = battle.roster.enemy.combatant
+        let active = ActiveEffect(id: 100, effect: .burn(4), remainingTurns: 0, sourceActorID: hero.id)
+        battle.roster.setActiveEffects([active], for: enemy)
+        let handler = try #require(EffectHandlers.all[.burn])
+        _ = handler.advanceTurn(active, on: enemy, in: &battle)
+        #expect(battle.roster.hero.currentMana == 1)
+        #expect(battle.turnCadence.burnManaRestored[.hero] == 1)
+    }
+}

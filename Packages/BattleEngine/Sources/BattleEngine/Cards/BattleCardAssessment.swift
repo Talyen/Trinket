@@ -90,6 +90,12 @@ private extension BattleState {
                 }
                 continue
             }
+            if targeted.target == .eachAlly {
+                for ally in BattleActionContext(actor: actor, in: self).allies(in: self) where health(of: ally) > 0 {
+                    targets.append(.init(combatantID: ally.id, intent: .effect(targeted.effect)))
+                }
+                continue
+            }
             if case let .panacea(baseHeal, _) = targeted.effect {
                 guard !recipientCanChange else { continue }
                 let cleanseTarget = BattleConditionEvaluator.mostDebuffedAlly(in: self)

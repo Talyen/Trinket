@@ -43,13 +43,16 @@ Delivery is **SDR only**. Battle overlays do not need HDR. If a master is HDR
 (PQ / HLG / Dolby Vision, or Transfer Function tagged as such), export an SDR Rec.709
 master into `Raw Assets/Animations/` before listing it in the manifest.
 
-Quick check on a candidate source:
+Quick checks on a candidate source:
 
 ```sh
+grep -a -E 'hvc1|hev1' "Raw Assets/Animations/YourFile.mp4" >/dev/null && echo "HEVC OK"
 mdls -name kMDItemCodecs -name kMDItemProfileName "Raw Assets/Animations/YourFile.mp4"
 ```
 
-Look for PQ, HLG, or HDR in the profile/codecs — those need an SDR re-export first.
+The encode gate requires an `hvc1`/`hev1` sample entry (grep, not Spotlight, so freshly
+written files check reliably in CI). Look for PQ, HLG, or HDR in the profile/codecs —
+those need an SDR re-export first.
 
 ## Generate Cinematic Assets
 

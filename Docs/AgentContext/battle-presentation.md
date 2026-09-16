@@ -111,7 +111,10 @@ invalidates its startup generation and clears owned cast work without clearing
 the retiring view's final hand or combatants. Callbacks retain their original
 presentation owner and cannot affect a later run. The outcome deadline includes
 already-queued real impacts and their feedback lifetime; finishing taps cannot
-extend it.
+extend it. Blocking overlays (battle log, combatant detail, ability detail)
+cancel pending automatic turn advancement while presented; closing the last
+overlay re-evaluates eligibility and starts a fresh grace period when no cards
+are playable.
 
 ## Card visibility
 

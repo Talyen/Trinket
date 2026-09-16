@@ -6,7 +6,7 @@ struct ShopScreen {
 
     var offerCards: XCUIElementQuery {
         app.buttons.matching(
-            NSPredicate(format: "identifier ENDSWITH %@", " shop offer"),
+            NSPredicate(format: "identifier ENDSWITH %@", AccessibilityID.Shop.offerCardSuffix),
         )
     }
 

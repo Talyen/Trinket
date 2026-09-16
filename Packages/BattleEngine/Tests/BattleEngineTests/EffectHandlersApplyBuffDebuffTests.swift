@@ -29,6 +29,22 @@ struct EffectHandlersApplyBuffDebuffTests {
         #expect(summary.text.contains(expected))
     }
 
+    @Test func `indefinite buff summaries omit zero-turn duration`() {
+        let stacks = [
+            ActiveEffect(id: 1, effect: .criticalChanceBonus(0.25, 0), remainingTurns: 0),
+            ActiveEffect(id: 2, effect: .restoreManaOnHit(1, 0), remainingTurns: 0),
+            ActiveEffect(id: 3, effect: .damageKeywordOverride(.holy, 2, 0), remainingTurns: 0),
+        ]
+        let texts = EffectSummaryBuilder.build(for: stacks).map(\.text)
+        #expect(texts.count == 3)
+        #expect(!texts.joined(separator: " ").contains("0 turns left"))
+    }
+
+    @Test func `timed buff summaries keep remaining duration`() {
+        let stacks = [ActiveEffect(id: 1, effect: .criticalChanceBonus(0.25, 2), remainingTurns: 2)]
+        #expect(EffectSummaryBuilder.build(for: stacks).first?.text.contains("2 turns left") == true)
+    }
+
     @Test(arguments: [Effect.purge(nil), .purgeRandom])
     func `purging maximum mana clamps remaining mana`(_ purge: Effect) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroMaxMana: 8)

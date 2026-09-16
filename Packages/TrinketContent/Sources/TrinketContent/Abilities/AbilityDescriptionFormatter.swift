@@ -59,7 +59,7 @@ enum AbilityDescriptionFormatter {
             clauses.append("Lose \(component.amount) Health")
         }
 
-        let enemyDamage = ability.damageComponents.filter { $0.target == .abilityTarget }
+        let enemyDamage = ability.damageComponents.filter { $0.target == .abilityTarget || $0.target == .enemy }
         if !enemyDamage.isEmpty {
             clauses.append(contentsOf: formatEnemyDamage(enemyDamage))
         }

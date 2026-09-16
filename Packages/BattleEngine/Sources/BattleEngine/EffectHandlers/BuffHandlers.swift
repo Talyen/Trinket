@@ -158,9 +158,15 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             }
             return nil
         }
+        if maxTicks > 0 {
+            return EffectSummary(
+                keyword: keyword,
+                text: "Focused: Increases Critical chance by +\(Int(percent * 100))%, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
+            )
+        }
         return EffectSummary(
             keyword: keyword,
-            text: "Focused: Increases Critical chance by +\(Int(percent * 100))%, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
+            text: "Focused: Increases Critical chance by +\(Int(percent * 100))%.",
         )
     }
 
@@ -203,9 +209,15 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
             }
             return nil
         }
+        if maxTicks > 0 {
+            return EffectSummary(
+                keyword: keyword,
+                text: "Mana Shield: Restores \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
+            )
+        }
         return EffectSummary(
             keyword: keyword,
-            text: "Mana Shield: Restores \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
+            text: "Mana Shield: Restores \(amount) Mana when hit.",
         )
     }
 
@@ -247,9 +259,15 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
             }
             return nil
         }
+        if maxTicks > 0 {
+            return EffectSummary(
+                keyword: keyword,
+                text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus)), \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
+            )
+        }
         return EffectSummary(
             keyword: keyword,
-            text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus)), \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
+            text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus)).",
         )
     }
 

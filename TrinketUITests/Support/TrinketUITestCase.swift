@@ -345,9 +345,15 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func goBack() {
-        let navBackButton = app.navigationBars.buttons.firstMatch
-        guard waitForExistence(navBackButton, timeout: 2) else { return }
-        tapWhenReady(navBackButton)
+        // Prefer an explicit back control; fall back to the first nav-bar
+        // button to preserve sheet-dismiss behavior where only Close exists.
+        let candidates = app.navigationBars.buttons
+        let back = candidates.matching(
+            NSPredicate(format: "identifier CONTAINS[c] %@ OR label CONTAINS[c] %@", "Back", "Back"),
+        ).firstMatch
+        let target = back.exists ? back : candidates.firstMatch
+        guard waitForExistence(target, timeout: 2) else { return }
+        tapWhenReady(target)
     }
 
     func scrollUntilVisible(
@@ -402,6 +408,17 @@ class TrinketUITestCase: XCTestCase {
     func fail(_ message: String, file: StaticString = #file, line: UInt = #line) {
         attachScreenshotOnFailure()
         XCTFail(message, file: file, line: line)
+    }
+
+    /// Success-path screenshots bloat result bundles; capture them only with
+    /// `TRINKET_UI_SUCCESS_SCREENSHOTS=1`. Failure screenshots via `fail()` are unaffected.
+    func attachSuccessScreenshot(named name: String) {
+        guard ProcessInfo.processInfo.environment["TRINKET_UI_SUCCESS_SCREENSHOTS"] == "1",
+              let app else { return }
+        let preview = XCTAttachment(screenshot: app.screenshot())
+        preview.name = name
+        preview.lifetime = .keepAlways
+        add(preview)
     }
 
     private func attachScreenshotOnFailure() {

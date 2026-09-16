@@ -35,6 +35,8 @@ The script validates manifest rows, converts source files with macOS `afconvert`
 SFX_AAC_BITRATE=96000 ./Scripts/prepare-audio-assets.sh sfx
 ```
 
+Set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
+
 ## Runtime Routing
 
 `SFXCatalog.clipsByID` looks up clips by stable `id`. Playback is owned by `Packages/TrinketAppState/.../Audio/SFXPlayer.swift`, which applies `OptionsStore.effectsVolume` × `volumeGain`.

@@ -129,6 +129,29 @@ struct KeywordCohesionMechanicsTests {
         try #expect(battle.roster.health(for: battle.companion) <= 0)
         try #expect(battle.roster.enemy.currentHealth == 94)
     }
+}
+
+extension KeywordCohesionMechanicsTests {
+    @Test func `enemy sunburst heals only the enemy`() throws {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 20), companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+        )
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 10 }
+        battle.roster.mutateRuntime(for: battle.enemy) { $0.currentHealth = 50 }
+        let (events, performed) = BattleTurnEngine.performEnemyAction(
+            ability: .sunburst, abilityTarget: battle.hero, context: &battle,
+        )
+        try #require(performed)
+        // The 6 Holy damage lands on the hero; no heal reaches the party.
+        try #expect(battle.roster.health(for: battle.hero) == 4)
+        try #expect(battle.roster.health(for: battle.companion) == 10)
+        try #expect(battle.roster.health(for: battle.enemy) == 53)
+        try #expect(events.contains { $0.effectKind == .instantHeal && $0.targetID == battle.enemy.id })
+        try #expect(!events.contains { $0.effectKind == .instantHeal && $0.targetID != battle.enemy.id })
+    }
 
     @Test func `thick hide reduces only physical`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mitigation: MitigationTriggers(passivePhysicalMitigationFlat: 2)))

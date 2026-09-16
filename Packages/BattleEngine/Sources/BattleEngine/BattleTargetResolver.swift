@@ -14,4 +14,13 @@ public enum BattleTargetResolver {
     ) -> Combatant {
         BattleActionContext(actor: actor, selectedTarget: abilityTarget).target(target, in: context)
     }
+
+    public static func effectTargets(
+        _ target: EffectTarget,
+        actor: Combatant,
+        abilityTarget: Combatant,
+        in context: BattleState,
+    ) -> [Combatant] {
+        BattleActionContext(actor: actor, selectedTarget: abilityTarget).targets(target, in: context)
+    }
 }

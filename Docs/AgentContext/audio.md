@@ -4,8 +4,10 @@ Use for music routing, SFX mapping, playback behavior, and audio content.
 
 Authored track and SFX metadata belongs in `MusicManifest/` and `SoundManifest/`; run
 the asset-generation workflow in `content-and-manifests.md` for input changes.
-Playback and routing live in `Packages/TrinketAppState/Sources/TrinketAppState/Audio`; the current music
-player intentionally uses ambient `AVAudioPlayer`. Battle feedback mappings live in
+Playback and routing live in `Packages/TrinketAppState/Sources/TrinketAppState/Audio`: music
+intentionally uses ambient `AVAudioPlayer`, SFX use a prestarted `AVAudioEngine`, and
+Ultimate cinematics use `AVPlayer` in `TrinketBattleFeature/State/BattleCinematicPlayer.swift`.
+Shared bundle lookup lives in `TrinketContent.MediaResourceLocator`. Battle feedback mappings live in
 `TrinketBattleFeature`, not content catalogs.
 
 Keep audio ownership layered: catalog metadata in `TrinketContent`, player

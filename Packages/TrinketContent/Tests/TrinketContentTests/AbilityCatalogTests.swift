@@ -169,6 +169,16 @@ struct AbilityCatalogTests {
         try #expect(iceShot.identityKeywords == [.freeze])
     }
 
+    @Test func `enemy-targeted damage appears in card text`() {
+        let ability = Ability(
+            id: "enemy-aimed-test",
+            name: "Enemy Aimed",
+            tier: .skill,
+            damageComponents: [DamageComponent(3, keyword: .physical, target: .enemy)],
+        )
+        #expect(ability.generatedDescription == "Deal 3 Physical damage.")
+    }
+
     @Test func `serrated edge weakens enemy healing`() throws {
         try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage. Reduces the Health restored to enemies by 25% for 3 turns.")
         try #expect(!Ability.serratedEdge.keywords.contains(.health))

@@ -230,9 +230,11 @@ public enum AccessibilityID {
         public static let leaveButton = "Shop Leave Button"
         public static let detailBuyButton = "Shop Detail Buy Button"
         public static let purchaseError = "Shop Purchase Error"
+        /// Suffix shared with the `ShopScreen` query so a copy change cannot silently empty it.
+        public static let offerCardSuffix = " shop offer"
 
         public static func offerCard(offerID: String) -> String {
-            "\(offerID) shop offer"
+            "\(offerID)\(offerCardSuffix)"
         }
 
         public static func buyButton(offerID: String) -> String {
@@ -366,9 +368,10 @@ public enum AccessibilityID {
         public static let defeatLeaveButton = "Defeat Leave Button"
         public static let abilityDetail = "Battle Ability Detail"
         public static let abilityDetailEffect = "Battle Ability Detail Effect"
+        public static let handCardPrefix = "Battle Hand Card "
 
         public static func handCard(_ abilityID: String) -> String {
-            "Battle Hand Card \(abilityID)"
+            "\(handCardPrefix)\(abilityID)"
         }
 
         public static func rewardItem(_ itemID: String) -> String {
@@ -385,6 +388,7 @@ public enum AccessibilityID {
         public static let itemFilter = "Loadout Item Filter"
         public static let itemRarityFilter = "Loadout Item Rarity Filter"
         public static let itemKeywordFilter = "Loadout Item Keyword Filter"
+
         public static let clearItemFilters = "Clear Loadout Item Filters"
         public static let itemsNoResults = "Loadout Items No Results"
 

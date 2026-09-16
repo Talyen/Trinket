@@ -135,6 +135,34 @@ struct BattleLogReducerTests {
         try #expect(BattleLogReducer.line(for: expired) == "Hero's Death's Door fades.")
     }
 
+    @Test func `control trigger log lines`() {
+        let stunned = ActionEvent(
+            id: 1,
+            kind: .effect,
+            effectKind: .controlTriggered,
+            actorName: "Hero",
+            abilityName: "Stunned",
+            targetID: "enemy",
+            targetName: "Enemy",
+            amount: 0,
+            keyword: .stun,
+        )
+        #expect(BattleLogReducer.line(for: stunned) == "Enemy is Stunned.")
+
+        let frozen = ActionEvent(
+            id: 2,
+            kind: .effect,
+            effectKind: .controlTriggered,
+            actorName: "Hero",
+            abilityName: "Frozen",
+            targetID: "enemy",
+            targetName: "Enemy",
+            amount: 0,
+            keyword: .freeze,
+        )
+        #expect(BattleLogReducer.line(for: frozen) == "Enemy is Frozen.")
+    }
+
     @Test func `passive talent attribution log lines`() {
         let blockEvent = ActionEvent(
             id: 1,

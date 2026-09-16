@@ -519,31 +519,35 @@ extension BattleTurnEngine {
             }
 
             let effect = targetedEffect.effect
-            let effectTarget = BattleTargetResolver.effectTarget(
+            let effectTargets = BattleTargetResolver.effectTargets(
                 targetedEffect.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
                 in: context,
             )
 
-            if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context)
-                || CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context) {
-                continue
-            }
-
             guard let handler = EffectHandlers.all[effect.kind] else {
                 logger.error("Missing effect handler for \(String(describing: effect.kind), privacy: .public)")
                 continue
             }
-            let outcome = handler.apply(
-                effect,
-                ability: ability,
-                source: actor,
-                target: effectTarget,
-                in: &context,
-            )
-            events.append(contentsOf: outcome.events)
-            if outcome.didApply {
+            var didApply = false
+            for effectTarget in effectTargets {
+                guard action.canContinue(in: context) else { break }
+                if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context)
+                    || CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context) {
+                    continue
+                }
+                let outcome = handler.apply(
+                    effect,
+                    ability: ability,
+                    source: actor,
+                    target: effectTarget,
+                    in: &context,
+                )
+                events.append(contentsOf: outcome.events)
+                didApply = didApply || outcome.didApply
+            }
+            if didApply {
                 appliedEffectLogs.append(effect.summary)
             }
         }

@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 @testable import TrinketAppState
@@ -127,6 +128,33 @@ struct MusicPlayerRoutingTests {
         )
 
         #expect(route == .silence(preservingPosition: true))
+    }
+
+    @Test func `menu track is stable within a day and rotates across days`() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        let day = try #require(calendar.date(from: DateComponents(year: 2026, month: 9, day: 16, hour: 12)))
+
+        func menuTrackID(at date: Date) throws -> String {
+            let route = MusicRoute.resolve(
+                selectedTab: .collection,
+                activeBattle: nil,
+                sceneIsActive: true,
+                musicVolume: 0.75,
+                currentDate: date,
+            )
+            return try trackRequest(from: route).track.id
+        }
+
+        let first = try menuTrackID(at: day)
+        let second = try menuTrackID(at: day)
+        #expect(first == second)
+        let ids = try Set((0 ..< 60).map { offset in
+            let date = try #require(calendar.date(byAdding: .day, value: offset, to: day))
+            return try menuTrackID(at: date)
+        })
+        #expect(ids.count > 1)
+        #expect(ids.isSubset(of: Set(MusicCatalog.menuTrackIDs)))
     }
 
     private func trackRequest(from route: MusicRoute) throws -> MusicPlaybackRequest {

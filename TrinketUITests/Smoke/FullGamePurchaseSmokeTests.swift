@@ -22,26 +22,28 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         try super.tearDownWithError()
     }
 
-    func testOfferDismissalPurchaseAndGameplayReset() throws {
-        try XCTSkipIf(
-            ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 26
-                && ProcessInfo.processInfo.operatingSystemVersion.minorVersion == 5,
-            "StoreKit purchase UI automation is unavailable under iOS 26.5 xcodebuild tests.",
-        )
+    func testOfferDismissalAndReopen() throws {
+        try throwIfStoreKitPurchaseUnavailable()
+        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
+        assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
+        tapButton(AccessibilityID.FullGame.options)
+        assertExists(AccessibilityID.FullGame.offer)
+        assertPurchaseProductLoaded()
+        attachSuccessScreenshot(named: "Full Game offer")
+        tapButton(AccessibilityID.FullGame.close)
+        XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
+        tapButton(AccessibilityID.FullGame.options)
+        assertPurchaseProductLoaded()
+    }
+
+    func testAskToBuyPurchaseRestoreAndRepurchase() throws {
+        try throwIfStoreKitPurchaseUnavailable()
         launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
         let session = try XCTUnwrap(storeSession)
         session.askToBuyEnabled = true
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
         tapButton(AccessibilityID.FullGame.options)
         assertExists(AccessibilityID.FullGame.offer)
-        assertPurchaseProductLoaded()
-        let preview = XCTAttachment(screenshot: app.screenshot())
-        preview.name = "Full Game offer"
-        preview.lifetime = .keepAlways
-        add(preview)
-        tapButton(AccessibilityID.FullGame.close)
-        XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
-        tapButton(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         assertExists(AccessibilityID.FullGame.status, timeout: 20)
@@ -62,12 +64,24 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 20))
+        let transactionCount = session.allTransactions().count
+        XCTAssertEqual(transactionCount, 2)
+    }
+
+    func testGameplayResetReturnsToOnboarding() {
+        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
         assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
         tapButton(AccessibilityID.Options.resetProgressButton)
         app.alerts.buttons[AccessibilityID.Options.resetProgressConfirmation].tap()
         assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 20)
-        let transactionCount = session.allTransactions().count
-        XCTAssertEqual(transactionCount, 2)
+    }
+
+    private func throwIfStoreKitPurchaseUnavailable() throws {
+        try XCTSkipIf(
+            ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 26
+                && ProcessInfo.processInfo.operatingSystemVersion.minorVersion == 5,
+            "StoreKit purchase UI automation is unavailable under iOS 26.5 xcodebuild tests.",
+        )
     }
 
     private func assertPurchaseProductLoaded(
@@ -106,10 +120,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
             tapButton(card)
             assertExists(AccessibilityID.FullGame.offer)
             XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.CombatantDetail.header(name: name)].exists)
-            let preview = XCTAttachment(screenshot: app.screenshot())
-            preview.name = "Full Game offer - \(name)"
-            preview.lifetime = .keepAlways
-            add(preview)
+            attachSuccessScreenshot(named: "Full Game offer - \(name)")
             tapButton(AccessibilityID.FullGame.close)
             XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
             assertExists(card)

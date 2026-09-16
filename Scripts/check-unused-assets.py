@@ -95,65 +95,41 @@ def check_assets(verbose: bool = False) -> tuple[list[str], list[str]]:
                 if item.is_dir() and item.name not in {"AccentColor.colorset", "AppIcon.appiconset"}:
                     orphans.append(f"Assets.xcassets: unmanaged asset folder '{item.name}'")
 
-    # 2. Sound Manifest -> Media/SFX
-    sfx_rows = read_tsv_rows(SFX_MANIFEST)
-    registered_sfx: set[str] = set()
+    # 2-4. Manifest-driven media pipelines share one shape: manifest
+    # asset_name -> Trinket/Media/<dir>/<asset>.<ext>. Orphan pruning in the
+    # prepare-*-assets.sh scripts must agree with this table.
+    media_pipelines = (
+        (SFX_MANIFEST, SFX_DIR, "m4a", "SoundManifest", "Media/SFX", "SFX audio file", "SFX file"),
+        (MUSIC_MANIFEST, MUSIC_DIR, "m4a", "MusicManifest", "Media/Music", "music audio file", "music file"),
+        (
+            CINEMATICS_MANIFEST,
+            CINEMATICS_DIR,
+            "mp4",
+            "CinematicManifest",
+            "Media/Cinematics",
+            "cinematic video file",
+            "cinematic file",
+        ),
+    )
 
-    for row in sfx_rows:
-        asset_name = row.get("asset_name")
-        if not asset_name:
-            continue
-        filename = f"{asset_name}.m4a"
-        registered_sfx.add(filename)
-        sfx_path = SFX_DIR / filename
-        if not sfx_path.is_file():
-            missing.append(f"SoundManifest: missing SFX audio file '{filename}' ({sfx_path.relative_to(ROOT)})")
+    for manifest_path, media_dir, extension, manifest_label, media_label, missing_label, orphan_label in media_pipelines:
+        registered_media: set[str] = set()
 
-    if SFX_DIR.is_dir():
-        for item in sorted(SFX_DIR.iterdir()):
-            if item.is_file() and not item.name.startswith(".") and item.name.endswith(".m4a"):
-                if item.name not in registered_sfx:
-                    orphans.append(f"Media/SFX: orphaned SFX file '{item.name}' not found in SoundManifest")
+        for row in read_tsv_rows(manifest_path):
+            asset_name = row.get("asset_name")
+            if not asset_name:
+                continue
+            filename = f"{asset_name}.{extension}"
+            registered_media.add(filename)
+            asset_path = media_dir / filename
+            if not asset_path.is_file():
+                missing.append(f"{manifest_label}: missing {missing_label} '{filename}' ({asset_path.relative_to(ROOT)})")
 
-    # 3. Music Manifest -> Media/Music
-    music_rows = read_tsv_rows(MUSIC_MANIFEST)
-    registered_music: set[str] = set()
-
-    for row in music_rows:
-        asset_name = row.get("asset_name")
-        if not asset_name:
-            continue
-        filename = f"{asset_name}.m4a"
-        registered_music.add(filename)
-        music_path = MUSIC_DIR / filename
-        if not music_path.is_file():
-            missing.append(f"MusicManifest: missing music audio file '{filename}' ({music_path.relative_to(ROOT)})")
-
-    if MUSIC_DIR.is_dir():
-        for item in sorted(MUSIC_DIR.iterdir()):
-            if item.is_file() and not item.name.startswith(".") and item.name.endswith(".m4a"):
-                if item.name not in registered_music:
-                    orphans.append(f"Media/Music: orphaned music file '{item.name}' not found in MusicManifest")
-
-    # 4. Cinematic Manifest -> Media/Cinematics
-    cinematic_rows = read_tsv_rows(CINEMATICS_MANIFEST)
-    registered_cinematics: set[str] = set()
-
-    for row in cinematic_rows:
-        asset_name = row.get("asset_name")
-        if not asset_name:
-            continue
-        filename = f"{asset_name}.mp4"
-        registered_cinematics.add(filename)
-        cinematic_path = CINEMATICS_DIR / filename
-        if not cinematic_path.is_file():
-            missing.append(f"CinematicManifest: missing cinematic video file '{filename}' ({cinematic_path.relative_to(ROOT)})")
-
-    if CINEMATICS_DIR.is_dir():
-        for item in sorted(CINEMATICS_DIR.iterdir()):
-            if item.is_file() and not item.name.startswith(".") and item.name.endswith(".mp4"):
-                if item.name not in registered_cinematics:
-                    orphans.append(f"Media/Cinematics: orphaned cinematic file '{item.name}' not found in CinematicManifest")
+        if media_dir.is_dir():
+            for item in sorted(media_dir.iterdir()):
+                if item.is_file() and not item.name.startswith(".") and item.name.endswith(f".{extension}"):
+                    if item.name not in registered_media:
+                        orphans.append(f"{media_label}: orphaned {orphan_label} '{item.name}' not found in {manifest_label}")
 
     return missing, orphans
 

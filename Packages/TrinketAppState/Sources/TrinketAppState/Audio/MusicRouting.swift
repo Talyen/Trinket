@@ -40,28 +40,33 @@ enum MusicRoute: Equatable {
         activeBattle: BattleRunConfiguration?,
         sceneIsActive: Bool,
         musicVolume: Double,
+        currentDate: Date = Date(),
     ) -> Self {
         guard sceneIsActive, musicVolume > 0 else {
             return .silence(preservingPosition: true)
         }
 
         guard selectedTab == .play else {
-            return menuTrack()
+            return menuTrack(currentDate: currentDate)
         }
 
         if let activeBattle, let enemyID = activeBattle.enemy?.id {
-            return encounter(enemyID: enemyID)
+            return encounter(enemyID: enemyID, currentDate: currentDate)
         }
 
-        return menuTrack()
+        return menuTrack(currentDate: currentDate)
     }
 
-    /// Menu always uses the first catalog track; the remaining menuTrackIDs are
-    /// alternates the router never selects.
-    private static func menuTrack() -> Self {
-        guard let trackID = MusicCatalog.menuTrackIDs.first,
-              let track = MusicCatalog.track(matching: trackID)
-        else {
+    /// Menu rotates through the catalog once per calendar day so the curated
+    /// alternates are actually heard; the pick is stable within the day.
+    private static func menuTrack(currentDate: Date) -> Self {
+        guard !MusicCatalog.menuTrackIDs.isEmpty else {
+            return .silence(preservingPosition: false)
+        }
+        let day = Calendar.current.dateComponents([.year, .month, .day], from: currentDate)
+        let seed = "\(day.year ?? 0)-\(day.month ?? 0)-\(day.day ?? 0)"
+        let trackID = MusicCatalog.menuTrackIDs[stableIndex(for: seed, count: MusicCatalog.menuTrackIDs.count)]
+        guard let track = MusicCatalog.track(matching: trackID) else {
             return .silence(preservingPosition: false)
         }
 
@@ -77,7 +82,7 @@ enum MusicRoute: Equatable {
 
     /// Only boss fights get a specific track. Every other battle resolves to the
     /// same stable battle track for a given enemy, regardless of mode.
-    private static func encounter(enemyID: String) -> Self {
+    private static func encounter(enemyID: String, currentDate: Date) -> Self {
         if let bossTrackID = MusicCatalog.bossTrackIDByEnemyID[enemyID],
            let bossTrack = MusicCatalog.track(matching: bossTrackID) {
             return .track(
@@ -91,7 +96,7 @@ enum MusicRoute: Equatable {
         }
 
         guard let track = normalBattleTrack(enemyID: enemyID) else {
-            return menuTrack()
+            return menuTrack(currentDate: currentDate)
         }
 
         return .track(

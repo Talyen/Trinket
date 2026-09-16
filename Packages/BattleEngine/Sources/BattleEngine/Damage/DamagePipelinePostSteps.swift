@@ -51,6 +51,7 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
+                healthLost: state.healthLost,
                 in: &context,
             ))
         case .freeze:
