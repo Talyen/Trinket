@@ -25,8 +25,8 @@ or a critical capability warrants an exception.
 
 Test new iOS/Xcode betas and release candidates before launch. [Toolchain selection](../../Scripts/Reference.md#toolchain-ladder)
 owns which Xcode CI and local runs use, including version/build logging and helper-tool pins.
-Trinket requires Swift 6.4 or newer (Xcode 27 or newer for Apple-platform builds).
-Each `Package.swift` declares this minimum with `swift-tools-version: 6.4`;
+Trinket requires Swift 6.2 or newer (Xcode 26 or newer for Apple-platform builds).
+Each `Package.swift` declares this minimum with `swift-tools-version: 6.2`;
 `.swiftformat` targets the same syntax version. Packages use Swift 6 language mode
 by default, and `project.yml` declares that mode with `SWIFT_VERSION: "6.0"`.
 The language mode is distinct from the compiler and package tools versions:
