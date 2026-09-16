@@ -50,6 +50,31 @@ struct CombatFeedbackRasterCatalogTests {
             )
         }
     }
+
+    @Test func `closed vocabulary static sources are strictly unique by appearance`() {
+        let sources = CombatFeedbackClosedVocabulary.enumerateSources()
+        let appearances = sources.map {
+            CombatFeedbackRasterKey(
+                item: CombatFeedbackItem(
+                    id: 1,
+                    sourceEventIDs: [1],
+                    actionGroupID: 1,
+                    presentationIndex: 0,
+                    targetID: "test",
+                    feedbackClass: $0.feedbackClass,
+                    keyword: $0.keyword,
+                    visualRole: $0.visualRole,
+                    label: $0.label,
+                    availableAt: .distantPast,
+                    expiresAt: .distantFuture,
+                    reactionKind: .none,
+                ),
+                layoutDirection: .leftToRight,
+                displayScale: 3,
+            )
+        }
+        #expect(Set(appearances).count == sources.count)
+    }
 }
 
 private actor RasterPublicationGate {

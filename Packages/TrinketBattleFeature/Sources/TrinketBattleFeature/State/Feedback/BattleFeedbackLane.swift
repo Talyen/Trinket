@@ -270,11 +270,21 @@ final class BattleFeedbackLane {
     }
 
     func updatePruneDate() {
-        let chipExpiry = activeItems.lazy.map(\.expiresAt).min()
-        let celebrationExpiry = celebrateReactionExpiresAt.values.min()
-        let expiry = [chipExpiry, celebrationExpiry, recordedHitExpirations.values.map(\.date).min()].compactMap(\.self).min()?
-            .addingTimeInterval(0.02)
-        nextPruneAt = [expiry, scheduledActions.map(\.nextDate).min()].compactMap(\.self).min()
+        var expiry = activeItems.lazy.map(\.expiresAt).min()
+        if let celebration = celebrateReactionExpiresAt.values.min() {
+            expiry = expiry.map { min($0, celebration) } ?? celebration
+        }
+        if let hit = recordedHitExpirations.values.lazy.map(\.date).min() {
+            expiry = expiry.map { min($0, hit) } ?? hit
+        }
+        let paddedExpiry = expiry?.addingTimeInterval(0.02)
+        let actionNext = scheduledActions.lazy.map(\.nextDate).min()
+        nextPruneAt = switch (paddedExpiry, actionNext) {
+        case let (.some(a), .some(b)): min(a, b)
+        case let (.some(a), .none): a
+        case let (.none, .some(b)): b
+        case (.none, .none): nil
+        }
         guard suspendedAt == nil else { return }
         if let nextPruneAt {
             resolvedScheduler().schedule(at: nextPruneAt)

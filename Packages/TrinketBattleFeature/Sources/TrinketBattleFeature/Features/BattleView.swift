@@ -440,15 +440,14 @@ private struct BattleFeedbackBridgeLane: View {
 }
 
 private struct BattleCastPrewarmKey: Equatable {
-    let configurationID: UUID?
-    let artworkNames: [String]
+    let configurationID: UUID
+    let artworkName: String
 }
 
 private struct BattleCastPrewarmLane: View {
     let presentation: BattlePresentationState
     @State private var artworkName: String?
     @State private var preparedConfigurationID: UUID?
-    @State private var preparedArtworkNames: [String] = []
 
     var body: some View {
         if let artworkName {
@@ -460,39 +459,29 @@ private struct BattleCastPrewarmLane: View {
             .frame(width: 0, height: 0)
             .accessibilityHidden(true)
             .task(id: prewarmKey) {
-                guard let configurationID = prewarmKey.configurationID,
-                      preparedConfigurationID != configurationID,
-                      !prewarmKey.artworkNames.isEmpty
+                guard let prewarmKey,
+                      preparedConfigurationID != prewarmKey.configurationID
                 else { return }
 
-                let names = prewarmKey.artworkNames
-                await PreparedArtworkCache.shared.prepareAndPin(names: names)
-                guard !Task.isCancelled,
-                      presentation.configurationID == configurationID
-                else {
-                    PreparedArtworkCache.shared.releasePins(names: names)
-                    return
-                }
-                if !preparedArtworkNames.isEmpty {
-                    PreparedArtworkCache.shared.releasePins(names: preparedArtworkNames)
-                }
-                preparedConfigurationID = configurationID
-                preparedArtworkNames = names
-                artworkName = names.first
+                preparedConfigurationID = prewarmKey.configurationID
+                artworkName = prewarmKey.artworkName
             }
-            .onDisappear {
-                if !preparedArtworkNames.isEmpty {
-                    PreparedArtworkCache.shared.releasePins(names: preparedArtworkNames)
-                    preparedArtworkNames = []
+            .onChange(of: presentation.configurationID) { _, newID in
+                if newID != preparedConfigurationID {
                     preparedConfigurationID = nil
+                    artworkName = nil
                 }
             }
     }
 
-    private var prewarmKey: BattleCastPrewarmKey {
-        BattleCastPrewarmKey(
-            configurationID: presentation.configurationID,
-            artworkNames: presentation.hand.compactMap(\.ability.artReference?.imageName).sorted(),
+    private var prewarmKey: BattleCastPrewarmKey? {
+        guard let configurationID = presentation.configurationID,
+              preparedConfigurationID != configurationID,
+              let artworkName = presentation.hand.lazy.compactMap(\.ability.artReference?.imageName).first
+        else { return nil }
+        return BattleCastPrewarmKey(
+            configurationID: configurationID,
+            artworkName: artworkName,
         )
     }
 }

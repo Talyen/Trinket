@@ -1,5 +1,7 @@
 import BattleEngine
 import Foundation
+import TrinketContent
+import TrinketCore
 import TrinketFeatureSupport
 
 @MainActor
@@ -21,15 +23,28 @@ final class BattleArtworkPreparation {
     }
 
     static func artworkNames(for configuration: BattleRunConfiguration) -> Set<String> {
-        let combatants = [configuration.hero.combatant, configuration.companion.combatant]
-            + [configuration.enemy].compactMap(\.self)
-        return Set(combatants.flatMap { combatant in
-            let portrait = combatant.artReference.map { [$0.imageName, $0.thumbnailImageName].compactMap(\.self) } ?? []
-            let abilities = combatant.abilityLoadout.abilities.flatMap { ability in
-                ability.artReference.map { [$0.imageName, $0.thumbnailImageName].compactMap(\.self) } ?? []
+        var names: Set<String> = []
+        func insert(_ imageName: String, _ thumbnail: String?) {
+            names.insert(imageName)
+            if let thumbnail {
+                names.insert(thumbnail)
             }
-            return portrait + abilities
-        })
+        }
+        func insertCombatant(_ combatant: Combatant?) {
+            guard let combatant else { return }
+            if let ref = combatant.artReference {
+                insert(ref.imageName, ref.thumbnailImageName)
+            }
+            for ability in combatant.abilityLoadout.abilities {
+                if let ref = ability.artReference {
+                    insert(ref.imageName, ref.thumbnailImageName)
+                }
+            }
+        }
+        insertCombatant(configuration.hero.combatant)
+        insertCombatant(configuration.companion.combatant)
+        insertCombatant(configuration.enemy)
+        return names
     }
 
     func prepare(names desired: Set<String>, displayScale: CGFloat, warmLoadouts: () -> Void) async {

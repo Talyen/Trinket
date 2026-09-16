@@ -342,7 +342,9 @@ extension BattleSession {
         spectacle.celebrateTask.invalidate()
         cancelUltimateHighlightWatchdogs()
         spectacle = BattleSpectacleState()
-        clearSharedPresentation(releaseCinematicPlayers: true)
+        feedback.clear()
+        resetFeedbackRasterDiagnostics()
+        resetEphemeralOverlays()
         feedback.release()
         presentationContext = nil
     }

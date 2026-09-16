@@ -136,7 +136,7 @@ enum CombatFeedbackChipComposer {
         displayScale: CGFloat,
     ) -> ComposedRaster? {
         let textWidth = textGlyphs.reduce(CGFloat(0)) { $0 + $1.width }
-        let textHeight = textGlyphs.map(\.height).max() ?? 0
+        let textHeight = textGlyphs.lazy.map(\.height).max() ?? 0
         let leadingWidth = leading?.0.width ?? 0
         let trailingWidth = trailing.0.width
         let symbolCount = (leading == nil ? 0 : 1) + 1

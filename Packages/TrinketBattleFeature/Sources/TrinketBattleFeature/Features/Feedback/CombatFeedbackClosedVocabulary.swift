@@ -20,12 +20,12 @@ enum CombatFeedbackClosedVocabulary {
 
     private static func generateSources() -> [Source] {
         var sources: [Source] = []
+        var seenAppearances: Set<ResolvedAppearance> = []
         for outcome in ActionEvent.EffectOutcome.allCases {
             let descriptor = CombatFeedbackEffectPresentation.descriptor(for: outcome)
             guard descriptor.shouldDisplay(amount: 1), isClosedVocabulary(descriptor) else {
                 continue
             }
-            var seenAppearances: Set<ResolvedAppearance> = []
             for keyword in Keyword.allCases {
                 let event = catalogEvent(outcome: outcome, keyword: keyword)
                 for item in CombatFeedbackPresenter.makeItems(
@@ -53,31 +53,23 @@ enum CombatFeedbackClosedVocabulary {
 
     static func enumerateItems(at date: Date = .now) -> [CombatFeedbackItem] {
         let expiresAt = date.addingTimeInterval(1)
-        var items: [CombatFeedbackItem] = []
-        var appearances: Set<ResolvedAppearance> = []
-        for source in staticSources {
-            let item = catalogItem(
+        return staticSources.enumerated().map { index, source in
+            catalogItem(
                 from: source,
-                id: items.count + 1,
+                id: index + 1,
                 availableAt: date,
                 expiresAt: expiresAt,
             )
-            let appearance = ResolvedAppearance(
-                typography: item.feedbackClass.typographyTier,
-                presentation: item.chipPresentation,
-            )
-            guard appearances.insert(appearance).inserted else { continue }
-            items.append(item)
         }
-        return items
     }
 
     static func enumerateWordChips(at date: Date = .now) -> [CombatFeedbackItem] {
         enumerateItems(at: date).filter {
             if case .word = $0.label {
-                return true
+                true
+            } else {
+                false
             }
-            return false
         }
     }
 

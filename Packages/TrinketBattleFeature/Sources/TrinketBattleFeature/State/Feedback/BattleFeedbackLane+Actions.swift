@@ -53,7 +53,7 @@ extension BattleFeedbackLane {
             if let actorID {
                 previewActors.remove(actorID)
             }
-            let previousImpact = scheduledActions.filter { $0.stage <= 2 }.map(\.impactAt).max()
+            let previousImpact = scheduledActions.lazy.filter { $0.stage <= 2 }.map(\.impactAt).max()
             let isBurst = actorID.map { actorID in
                 attackOwners[actorID] != nil || scheduledActions.contains { $0.actorID == actorID && $0.stage <= 2 }
             } == true
@@ -88,7 +88,7 @@ extension BattleFeedbackLane {
             }
         }
         for card in automaticCards {
-            let start = max(date, scheduledActions.map(\.impactAt).max() ?? date)
+            let start = max(date, scheduledActions.lazy.map(\.impactAt).max() ?? date)
             cardPlayback.append(card, at: start, activationAt: start.addingTimeInterval(BattleMotion.automaticCardRevealDuration))
         }
         advance(to: date)
