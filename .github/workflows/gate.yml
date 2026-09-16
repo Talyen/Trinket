@@ -6,7 +6,7 @@ on:
 jobs:
   gate:
     name: Generate and style
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5

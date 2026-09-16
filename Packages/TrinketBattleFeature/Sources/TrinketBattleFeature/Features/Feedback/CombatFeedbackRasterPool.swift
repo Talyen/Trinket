@@ -241,7 +241,7 @@ final class CombatFeedbackRasterPool {
     ) -> [(CombatFeedbackRasterKey, CombatFeedbackChipComposer.RasterInputs)] {
         CombatFeedbackRasterCatalog.closedVocabularyChips().compactMap { item -> (
             CombatFeedbackRasterKey,
-            CombatFeedbackChipComposer.RasterInputs
+            CombatFeedbackChipComposer.RasterInputs,
         )? in
             let rasterKey = makeKey(for: item, layoutDirection: .leftToRight, displayScale: displayScale)
             guard rasters[rasterKey] == nil,

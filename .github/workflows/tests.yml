@@ -33,7 +33,7 @@ jobs:
     name: Asset codegen
     needs: [changes]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -46,7 +46,7 @@ jobs:
     name: Build for testing
     needs: [changes]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 30
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
@@ -106,7 +106,7 @@ jobs:
             packages: TrinketCore TrinketPersistence TrinketAppState
           - name: Features
             packages: TrinketContent TrinketDesignSystem TrinketFeatureSupport TrinketBattleFeature
-    runs-on: macos-26
+    runs-on: xcode-27
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
     # Sharded 3-way (Engine/State/Features) for faster push feedback.
@@ -157,7 +157,7 @@ jobs:
             target: SmokeShellTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests
           - name: Play
             target: SmokeBattleTests SmokeShopTests
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -214,7 +214,7 @@ jobs:
             target: HomesteadNodeDetailUITests
           - name: Play
             target: PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
