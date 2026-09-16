@@ -114,7 +114,13 @@ public struct BattleState {
 
     public package(set) var additionalControlSkipsByCombatantID: [String: Int]
     public package(set) var isEchoingSkill: Bool
-    public static let maxDrawAndPlayDepth = ReactionScope.maxDepth
+    /// Cap for nested draw-and-play resolution. Each nesting level costs on
+    /// the order of 70KB of stack in Debug, and this path runs on 512KB
+    /// worker-thread stacks (tests, sweep workers) where the shared
+    /// damage/DoT budget of 10 overflows the stack guard. Chains this deep
+    /// are pathological Pack-Tactics mirrors (played cards recycle to deck
+    /// bottoms); ordinary play nests one or two levels.
+    public static let maxDrawAndPlayDepth = 4
     public let enemyFaction: EnemyFaction
     public package(set) var storedBlockedDamageByActorID: [String: Int] = [:]
     public package(set) var primedRepeatKeywords: Set<Keyword> = []
