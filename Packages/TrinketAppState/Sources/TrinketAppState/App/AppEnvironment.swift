@@ -120,10 +120,12 @@ public struct AppEnvironment: Sendable {
             mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),
             storeName: argumentValue(after: "-store-name", in: arguments),
             battleTickInterval: argumentValue(after: "-battle-tick-interval", in: arguments)
-                .flatMap(TimeInterval.init),
+                .flatMap(TimeInterval.init)
+                .flatMap { $0.isFinite && $0 > 0 ? $0 : nil },
             launchPreparationDelay: launchPreparationDelay,
             startingGold: argumentValue(after: "-starting-gold", in: arguments)
-                .flatMap(Int.init),
+                .flatMap(Int.init)
+                .flatMap { $0 >= 0 ? $0 : nil },
             enableFrameMetrics: arguments.contains("-enable-frame-metrics"),
             battlePerformanceScenario: battlePerformanceScenario,
         )
@@ -146,7 +148,7 @@ public struct AppEnvironment: Sendable {
         guard let raw = argumentValue(after: "-completed-stages", in: arguments) else { return [] }
         return raw
             .split(separator: ",")
-            .map(String.init)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
     }
 

@@ -1,9 +1,8 @@
 import TrinketContent
 import TrinketCore
 
-/// Plain extension on purpose: `mutateHeroCard` takes internal
-/// `HeroTalentCardFacts`, so these members cannot be package-visible.
-extension BattleState {
+/// Claim and cadence guards over `CombatResolution` for hero-talent reactions.
+package extension BattleState {
     var allowsHeroTalentReaction: Bool {
         resolution.depth(.heroReaction) == 0
     }

@@ -18,7 +18,20 @@ struct HomesteadDepositGeometry: Equatable {
     var viewport: CGRect = .zero
 
     func hasSameDestinations(as other: Self) -> Bool {
-        viewport == other.viewport && destinations == other.destinations
+        guard rectsApproximatelyEqual(viewport, other.viewport),
+              destinations.count == other.destinations.count else { return false }
+        for (resource, rect) in destinations {
+            guard let otherRect = other.destinations[resource],
+                  rectsApproximatelyEqual(rect, otherRect) else { return false }
+        }
+        return true
+    }
+
+    private func rectsApproximatelyEqual(_ a: CGRect, _ b: CGRect, tolerance: CGFloat = 0.5) -> Bool {
+        abs(a.origin.x - b.origin.x) <= tolerance
+            && abs(a.origin.y - b.origin.y) <= tolerance
+            && abs(a.size.width - b.size.width) <= tolerance
+            && abs(a.size.height - b.size.height) <= tolerance
     }
 
     func supports(_ amounts: [ResourceAmount]) -> Bool {

@@ -120,7 +120,7 @@ struct ContractsBoardView: View {
 
     @ViewBuilder
     private var heroArtwork: some View {
-        if let art = ArtCatalog.backgroundArtByID["gameModeContracts"], pinnedArtwork.contains(art.imageName) {
+        if let art = ArtCatalog.backgroundArtByID[EncounterArtIDs.contractsHeroID], pinnedArtwork.contains(art.imageName) {
             FocalBackgroundArtwork(art: art)
         } else {
             TrinketDesign.Colors.canvas
@@ -130,7 +130,8 @@ struct ContractsBoardView: View {
     @ViewBuilder
     private func contractArtwork(for offer: ContractOffer) -> some View {
         if isArtworkReady(for: offer), let art = GameContent.enemy(matching: offer.enemyID)?.combatant.artReference {
-            MapTileArtwork(art: art)
+            // 74pt rows render compact; match Spires by preferring thumbnails.
+            MapTileArtwork(art: art, prefersThumbnail: true)
         } else {
             MapTilePlaceholder(tint: TrinketDesign.Colors.encounterBattle, icon: .system("scroll.fill"))
         }
@@ -138,9 +139,9 @@ struct ContractsBoardView: View {
 
     private func artworkNames(for offers: [ContractOffer]) -> [String] {
         let enemies = offers.compactMap {
-            GameContent.enemy(matching: $0.enemyID)?.combatant.artReference?.imageName
-        }
-        return Array(Set(enemies + [ArtCatalog.backgroundArtByID["gameModeContracts"]?.imageName].compactMap(\.self))).sorted()
+            GameContent.enemy(matching: $0.enemyID)?.combatant.artReference
+        }.flatMap { [$0.imageName, $0.thumbnailImageName].compactMap(\.self) }
+        return Array(Set(enemies + [ArtCatalog.backgroundArtByID[EncounterArtIDs.contractsHeroID]?.imageName].compactMap(\.self))).sorted()
     }
 
     private func isArtworkReady(for offer: ContractOffer) -> Bool {
@@ -148,6 +149,11 @@ struct ContractsBoardView: View {
         return pinnedArtwork.contains(name)
     }
 
+    /// Intentionally bespoke instead of ArtworkPinSet.refresh: outgoing pins
+    /// must survive the board crossfade (see ui-performance Contracts rules),
+    /// so release is deferred until after the crossfade sleep with a
+    /// superseded-generation guard. Sharing the helper would release outgoing
+    /// pins at publish time, risking eviction mid-crossfade.
     private func prepareBoard(offers: [ContractOffer]) async {
         let names = artworkNames(for: offers)
         let added = Array(Set(names).subtracting(pinnedArtwork))

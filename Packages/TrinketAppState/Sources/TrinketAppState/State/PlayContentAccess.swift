@@ -4,6 +4,9 @@ import TrinketPersistence
 
 @MainActor
 extension PlayerSaveStore {
+    /// Battle paywall for a battle origin. Also re-checked inside
+    /// `PlayBattleLaunch.activateBattle`, so modes pre-check only when they
+    /// need a specific message to take precedence.
     func accessRestriction(for origin: PlayBattleOrigin?) -> StageMapMessage? {
         switch origin {
         case let .journey(stageID):
@@ -33,6 +36,11 @@ extension PlayerSaveStore {
         return nil
     }
 
+    /// Encounter paywall. `PlayBattleOrigin` (battle runs: journey/spire/
+    /// labyrinth/contract) and `PlayEncounterOrigin` (transient encounters:
+    /// journey/labyrinth) stay separate because battles and encounters key
+    /// differently (run key vs encounter identity); this forwards the shared
+    /// journey/labyrinth cases rather than duplicating their rules.
     func encounterAccessRestriction(for origin: PlayEncounterOrigin) -> StageMapMessage? {
         switch origin {
         case let .journey(stage): accessRestriction(for: .journey(stageID: stage.id))

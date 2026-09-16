@@ -29,7 +29,7 @@ struct SpiresHubView: View {
             title: spire.title,
             subtitle: subtitle(for: spire, isLocked: isLocked),
             artID: "spire-\(spire.id.rawValue)",
-            fallbackArtID: "gameModeExplore",
+            fallbackArtID: EncounterArtIDs.explorePlayModeID,
             isLocked: isLocked,
             accessibilityIdentifier: AccessibilityID.Play.spireRow(spire.id.rawValue),
         )

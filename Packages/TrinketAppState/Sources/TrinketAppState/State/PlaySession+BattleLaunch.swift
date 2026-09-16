@@ -79,8 +79,14 @@ struct PlayBattleLaunch {
         let prepared = battle.prepareBattleRun(launch.configuration)
         if prepared {
             registerRunIfNeeded(launch, route: route)
-        } else if let runKey = launch.configuration.runKey, !battle.hasPreparedRun(runKey), battle.activeBattle == nil {
-            runRegistry.remove(runKey)
+        } else if let runKey = launch.configuration.runKey, battle.activeBattle == nil {
+            // Evict the failed key so the next attempt prepares fresh instead
+            // of failing closed on a stale registration. Only this key goes;
+            // sibling modes' warms are preserved.
+            var survivors = runRegistry.runKeys()
+            survivors.remove(runKey)
+            battle.keepPreparedRuns(survivors)
+            runRegistry.keep(survivors)
         }
         return prepared
     }

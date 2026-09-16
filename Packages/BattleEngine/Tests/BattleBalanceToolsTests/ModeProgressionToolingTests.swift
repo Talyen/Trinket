@@ -6,9 +6,9 @@ import TrinketCore
 
 struct ModeProgressionToolingTests {
     @Test func `mode progression trackers build non empty steps`() {
-        let campaign = CampaignProgressionTracker()
-        let spire = SpireProgressionTracker()
-        let labyrinth = LabyrinthProgressionTracker()
+        let campaign = ModeProgressionTracker.campaign()
+        let spire = ModeProgressionTracker.spire()
+        let labyrinth = ModeProgressionTracker.labyrinth()
 
         #expect(!(campaign.steps.isEmpty))
         #expect(!(spire.steps.isEmpty))
@@ -141,8 +141,8 @@ struct ModeProgressionToolingTests {
             isBoss: true,
         )
         let matchup = controller.makeMatchup(for: step, seed: 11)
-        #expect(controller.simulatedHeroLevel(for: step) == 20)
-        #expect(controller.simulatedCompanionLevel(for: step) == 20)
+        #expect(controller.simulatedHeroLevel() == 20)
+        #expect(controller.simulatedCompanionLevel() == 20)
         let budget = CombatantProgression.at(level: 20).totalTalentPoints
         #expect(matchup.context.heroTalentIDs.count == budget)
         #expect(matchup.context.companionTalentIDs.count == budget)

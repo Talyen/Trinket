@@ -172,17 +172,19 @@ public enum SimulationMatchupBuilder {
         return GearOverride(gear)
     }
 
-    public static func generateStarterGear(
+    public static func generateStarterGearIfNeeded(
         for combatant: Combatant,
         loadout: AbilityLoadout,
-        level: Int,
+        tier: SimulationPowerTier,
+        level: Int? = nil,
         idPrefix: String,
         gearKeywordBias: Set<Keyword>? = nil,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator(includeTrinkets: true),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
+        guard tier.usesStarterGear else { return nil }
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
-        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: level)
+        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: level ?? tier.level)
         let bias = gearKeywordBias ?? Set(scaled.abilities.flatMap(\.keywords))
         let build = gearGenerator.generateSinglePiece(
             for: scaled,
@@ -195,28 +197,6 @@ public enum SimulationMatchupBuilder {
         )
         guard !build.inventory.isEmpty else { return nil }
         return GearOverride(build)
-    }
-
-    public static func generateStarterGearIfNeeded(
-        for combatant: Combatant,
-        loadout: AbilityLoadout,
-        tier: SimulationPowerTier,
-        level: Int? = nil,
-        idPrefix: String,
-        gearKeywordBias: Set<Keyword>? = nil,
-        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(includeTrinkets: true),
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> GearOverride? {
-        guard tier.usesStarterGear else { return nil }
-        return generateStarterGear(
-            for: combatant,
-            loadout: loadout,
-            level: level ?? tier.level,
-            idPrefix: idPrefix,
-            gearKeywordBias: gearKeywordBias,
-            gearGenerator: gearGenerator,
-            using: &randomNumberGenerator,
-        )
     }
 
     public static func legalTalentKit(

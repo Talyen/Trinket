@@ -54,7 +54,7 @@ public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiab
 
 // swiftformat:enable redundantRawValues
 
-public enum HomesteadNodeCategory: String, CaseIterable, Hashable, Identifiable, Sendable {
+public enum HomesteadNodeCategory: String, CaseIterable, Hashable, Identifiable, Codable, Sendable {
     case farming = "Farming"
     case crafting = "Crafting"
     case alchemy = "Alchemy"

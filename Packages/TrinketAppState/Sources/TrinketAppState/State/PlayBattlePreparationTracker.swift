@@ -1,4 +1,5 @@
-@MainActor
+/// Pure value cache for battle preparation. Intentionally nonisolated so
+/// preparation decisions can move off the main actor; owners hold it.
 struct PlayBattlePreparationTracker<Input: Equatable> {
     private var cached: Input?
 

@@ -15,11 +15,8 @@ enum EffectHandlersTestSupport {
         target: Combatant,
         battle: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard let handler = EffectHandlers.handler(for: effect.kind) else {
-            preconditionFailure("Missing handler for \(effect.kind)")
-        }
-        return battle.withEngineContext { context in
-            handler.apply(
+        battle.withEngineContext { context in
+            BattleTestFixtures.apply(
                 effect,
                 ability: ability,
                 source: source,

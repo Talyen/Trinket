@@ -2,6 +2,9 @@ import Dispatch
 import Foundation
 
 enum SweepWorkerPool {
+    /// - Parameter jobs: resolved worker count (`BalanceSweepConfig.resolvedJobs`
+    ///   owns the 0-means-CPU default). The `<= 0` fallback here is a safety net
+    ///   for direct callers only.
     static func forEach(
         count: Int,
         jobs: Int,

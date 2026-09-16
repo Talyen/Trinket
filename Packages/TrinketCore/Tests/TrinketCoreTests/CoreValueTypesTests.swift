@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketCore
 
@@ -36,6 +37,12 @@ struct CoreValueTypesTests {
         let empty: [Int] = []
         #expect(empty[safe: 0] == nil)
         #expect(empty[safe: -1] == nil)
+
+        let slice = items[1 ... 2]
+        #expect(slice[safe: 0] == nil)
+        #expect(slice[safe: 1] == 20)
+        #expect(slice[safe: 2] == 30)
+        #expect(slice[safe: 3] == nil)
     }
 
     @Test func `active effect awaits skip only at zero remaining turns`() {
@@ -70,5 +77,25 @@ struct CoreValueTypesTests {
 
         let fragments = conditions.map(\.sentenceFragment)
         #expect(fragments.count == Set(fragments).count)
+    }
+
+    @Test func `core domain enums encode and decode correctly`() throws {
+        for slot in ItemSlot.allCases {
+            let data = try JSONEncoder().encode(slot)
+            let decoded = try JSONDecoder().decode(ItemSlot.self, from: data)
+            #expect(decoded == slot)
+        }
+
+        for faction in EnemyFaction.allCases {
+            let data = try JSONEncoder().encode(faction)
+            let decoded = try JSONDecoder().decode(EnemyFaction.self, from: data)
+            #expect(decoded == faction)
+        }
+
+        for category in HomesteadNodeCategory.allCases {
+            let data = try JSONEncoder().encode(category)
+            let decoded = try JSONDecoder().decode(HomesteadNodeCategory.self, from: data)
+            #expect(decoded == category)
+        }
     }
 }

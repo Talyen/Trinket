@@ -31,20 +31,46 @@ struct HomesteadBenefitsView: View {
 
     var previousTier: HomesteadNodeTier?
 
+    private var lines: [HomesteadEffectLine] {
+        HomesteadEffectLine.lines(for: tier)
+    }
+
     var body: some View {
-        HomesteadBenefitsLayout(allowsColumns: tier.production != nil) {
-            ForEach(HomesteadEffectLine.lines(for: tier)) { effect in
-                HomesteadBenefitItem(
-                    effect: effect,
-                    previousEffect: previousTier.flatMap { previous in
-                        HomesteadEffectLine.lines(for: previous).first { $0.id == effect.id }
-                    },
-                    isHighlighted: effect.resource == nil ? highlightedEffects.contains(effect.id) : highlightsProduction,
-                )
+        Group {
+            if tier.production != nil, lines.count == 2 {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .top, spacing: TrinketDesign.Spacing.medium) {
+                        item(lines[0])
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        item(lines[1])
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    stackedItems
+                }
+            } else {
+                stackedItems
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(effectsIdentifier)
+    }
+
+    private var stackedItems: some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
+            ForEach(lines) { effect in
+                item(effect)
+            }
+        }
+    }
+
+    private func item(_ effect: HomesteadEffectLine) -> some View {
+        HomesteadBenefitItem(
+            effect: effect,
+            previousEffect: previousTier.flatMap { previous in
+                HomesteadEffectLine.lines(for: previous).first { $0.id == effect.id }
+            },
+            isHighlighted: effect.resource == nil ? highlightedEffects.contains(effect.id) : highlightsProduction,
+        )
     }
 }
 
@@ -95,41 +121,6 @@ private struct HomesteadBenefitItem: View {
             }
         }
         .accessibilityElement(children: .combine)
-    }
-}
-
-private struct HomesteadBenefitsLayout: Layout {
-    let allowsColumns: Bool
-    private let spacing = TrinketDesign.Spacing.medium
-
-    private func columnWidth(for width: CGFloat, subviews: Subviews) -> CGFloat? {
-        guard allowsColumns, subviews.count == 2 else { return nil }
-        let column = max(0, (width - spacing) / 2)
-        return subviews.allSatisfy { $0.sizeThatFits(.unspecified).width <= column } ? column : nil
-    }
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
-        let width = proposal.width ?? subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0
-        let column = columnWidth(for: width, subviews: subviews)
-        let heights = subviews.map { $0.sizeThatFits(.init(width: column ?? width, height: nil)).height }
-        let height = column == nil
-            ? heights.reduce(0, +) + CGFloat(max(0, subviews.count - 1)) * spacing
-            : heights.max() ?? 0
-        return CGSize(width: width, height: height)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
-        let column = columnWidth(for: bounds.width, subviews: subviews)
-        let childProposal = ProposedViewSize(width: column ?? bounds.width, height: nil)
-        var origin = bounds.origin
-        for subview in subviews {
-            subview.place(at: origin, anchor: .topLeading, proposal: childProposal)
-            if let column {
-                origin.x += column + spacing
-            } else {
-                origin.y += subview.sizeThatFits(childProposal).height + spacing
-            }
-        }
     }
 }
 
@@ -202,7 +193,7 @@ private struct HomesteadEffectStyle {
         case .goldFind:
             self.init(keyword: .gold)
         case let .production(resource):
-            self.init(symbol: Self.symbol(for: resource), tint: resource.tint)
+            self.init(symbol: resource.icon.symbolName, tint: resource.tint)
         }
     }
 
@@ -243,19 +234,6 @@ private struct HomesteadEffectStyle {
             self.init(keyword: .gold)
         case .bleedDuration, .companionBleedDamageDealt:
             self.init(keyword: .bleed)
-        }
-    }
-
-    private static func symbol(for resource: HomesteadResource) -> String {
-        switch resource {
-        case .food: "carrot.fill"
-        case .herbs: "leaf.fill"
-        case .crystal: "diamond.fill"
-        case .hide: "square.stack.3d.up.fill"
-        case .gold: "circle.circle.fill"
-        case .wood: "tree.fill"
-        case .stone: "mountain.2.fill"
-        case .iron: "anvil.fill"
         }
     }
 }

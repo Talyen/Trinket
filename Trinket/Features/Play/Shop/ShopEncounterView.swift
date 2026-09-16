@@ -82,7 +82,9 @@ struct ShopEncounterView: View {
         }
         .interactiveDismissDisabled()
         .disabled(playerSave.isRetryingSaveAction)
-        .sheet(item: $selectedOffer) { offer in
+        .preparedArtworkSheet(item: $selectedOffer, artworkNames: { offer in
+            [offer.item.artReference?.imageName, offer.item.artReference?.thumbnailImageName].compactMap(\.self)
+        }, content: { offer in
             NavigationStack {
                 ItemDetailView(
                     item: offer.item,
@@ -97,7 +99,7 @@ struct ShopEncounterView: View {
             }
             .trinketDetailSheet()
             .trinketFailureAlert("Purchase Failed", message: $detailPurchaseError)
-        }
+        })
         .task {
             await EncounterReadingEntrance.present(
                 artAppeared: $artAppeared,

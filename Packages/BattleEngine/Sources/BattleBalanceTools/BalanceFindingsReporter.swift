@@ -46,6 +46,11 @@ public enum BalanceFindingsReporter {
 
     private static func appendSnapshot(_ report: BalanceSweepReport, into lines: inout [String]) {
         let tiers = BalanceStatsAggregator.summarize(report: report)
+        let comparedTiers: [BalanceTierStats] = if report.comparedPolicyID != nil, !report.comparedRecords.isEmpty {
+            BalanceStatsAggregator.summarize(report: report, records: report.comparedRecords)
+        } else {
+            []
+        }
         let identityTiers = tiers.filter { $0.battles > 0 }
         if !identityTiers.isEmpty {
             lines.append("## Snapshot")
@@ -60,11 +65,7 @@ public enum BalanceFindingsReporter {
                     tier.timeouts,
                     tier.averageRounds,
                 )
-                if let comparedID = report.comparedPolicyID, !report.comparedRecords.isEmpty {
-                    let comparedTiers = BalanceStatsAggregator.summarize(
-                        report: report,
-                        records: report.comparedRecords,
-                    )
+                if let comparedID = report.comparedPolicyID {
                     if let compared = comparedTiers.first(where: { $0.tier == tier.tier }) {
                         let comparedPct = BalanceStatsAggregator.winPercent(wins: compared.wins, decided: compared.decidedBattles)
                         line += String(

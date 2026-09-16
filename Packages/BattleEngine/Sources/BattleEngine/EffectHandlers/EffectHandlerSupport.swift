@@ -87,6 +87,23 @@ enum TimedBuffSummary {
             return active.remainingTurns > 0 ? active.remainingTurns : baseDuration
         }.min() ?? 0
     }
+
+    static func durationSuffix(in stacks: [ActiveEffect], duration: (Effect) -> Int?) -> String {
+        let turns = minRemainingTurns(in: stacks, duration: duration)
+        return turns > 0 ? ", \(BattleTiming.remainingDurationLabel(turns: turns))" : ""
+    }
+
+    static func summedAmount(in stacks: [ActiveEffect], amount: (Effect) -> Int?) -> Int {
+        stacks.reduce(0) { sum, active in sum + (amount(active.effect) ?? 0) }
+    }
+
+    static func maxAmount(in stacks: [ActiveEffect], amount: (Effect) -> Int?) -> Int {
+        stacks.reduce(0) { maxAmount, active in max(maxAmount, amount(active.effect) ?? 0) }
+    }
+
+    static func maxPercent(in stacks: [ActiveEffect], percent: (Effect) -> Double?) -> Double {
+        stacks.reduce(0.0) { maxPercent, active in max(maxPercent, percent(active.effect) ?? 0) }
+    }
 }
 
 enum ActiveEffectMutation {

@@ -7,9 +7,8 @@ struct LaunchWarmupView: View {
     @State private var isVisible = false
     @State private var loadingStartDate: Date?
     @State private var currentTermIndex = 0
-    @State private var isMinimumLoadingTimeComplete = false
-
-    let onMinimumLoadingTimeComplete: () -> Void
+    let isMinimumLoadingTimeComplete: Bool
+    let onMinimumLoadingTimeComplete: @MainActor () -> Void
 
     private static let minimumLoadingDuration: TimeInterval = 2
 
@@ -74,27 +73,22 @@ struct LaunchWarmupView: View {
         .trinketScreenBackground()
         .onAppear {
             isVisible = true
+            if loadingStartDate == nil {
+                loadingStartDate = Date.now
+            }
         }
         .onDisappear {
             isVisible = false
             loadingStartDate = nil
-            isMinimumLoadingTimeComplete = false
-        }
-        .task(id: isVisible) {
-            guard isVisible else { return }
-            await Task.yield()
-            guard !Task.isCancelled, isVisible, loadingStartDate == nil else { return }
-            loadingStartDate = Date.now
         }
         .task(id: loadingStartDate) {
-            guard loadingStartDate != nil else { return }
+            guard loadingStartDate != nil, !isMinimumLoadingTimeComplete else { return }
             try? await Task.sleep(for: .seconds(Self.minimumLoadingDuration))
             guard !Task.isCancelled else { return }
-            isMinimumLoadingTimeComplete = true
             onMinimumLoadingTimeComplete()
         }
         .task(id: loadingStartDate) {
-            guard loadingStartDate != nil else { return }
+            guard loadingStartDate != nil, !isMinimumLoadingTimeComplete else { return }
             while !Task.isCancelled, !isMinimumLoadingTimeComplete {
                 try? await Task.sleep(for: .milliseconds(750))
                 guard !Task.isCancelled, !isMinimumLoadingTimeComplete else { break }

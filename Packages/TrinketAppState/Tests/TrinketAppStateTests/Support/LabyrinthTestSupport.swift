@@ -5,6 +5,9 @@ import TrinketPersistence
 
 @MainActor
 enum LabyrinthTestSupport {
+    /// Bounds the mutating reachable-node search below. Each step completes a
+    /// reachable node (persisting to the real save) to advance the map, so a
+    /// call can rewrite up to this many nodes; prefer `-reset-state` maps.
     private static let maximumAdvanceCount = 24
 
     static func remade(
@@ -71,6 +74,10 @@ enum LabyrinthTestSupport {
         )
     }
 
+    /// Finds a reachable node of `type`, rewriting the first eligible
+    /// reachable node when none exists (combat falls back to `goblin_scout`).
+    /// Prefer the strict `firstReachableCombatNodeID` lookup when the test
+    /// needs the authored map; use this only to forge a node kind.
     static func firstReachableNodeID(
         of type: LabyrinthNodeType,
         in state: PlaySession,

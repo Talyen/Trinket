@@ -53,7 +53,10 @@ final class PlayBattleCompletion {
         onFinished: @escaping () -> Void,
         restoreOrigin: @escaping (PlayBattleOrigin?) -> Void,
     ) -> BattleCompletionResult {
-        guard pendingExit?.configurationID != configuration.id else { return .unavailable }
+        // Fail closed while any presentation exit is pending. Same-ID calls
+        // are duplicate claims; a different ID would overwrite the pending
+        // onFinished/restoreOrigin and leak the first battle's exit.
+        guard pendingExit == nil else { return .unavailable }
         guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id else { return .unavailable }
 
         guard PlayBattleRoute.matches(

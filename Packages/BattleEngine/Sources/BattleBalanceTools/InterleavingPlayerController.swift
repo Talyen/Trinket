@@ -37,9 +37,9 @@ public struct PlayerProgressionState: Equatable, Codable, Sendable {
 public final class InterleavingPlayerController {
     public let hero: Combatant
     public let companion: Combatant
-    public let campaignTracker: CampaignProgressionTracker
-    public let spireTracker: SpireProgressionTracker
-    public let labyrinthTracker: LabyrinthProgressionTracker
+    public let campaignTracker: ModeProgressionTracker
+    public let spireTracker: ModeProgressionTracker
+    public let labyrinthTracker: ModeProgressionTracker
 
     public private(set) var state: PlayerProgressionState
     public private(set) var campaignIndex = 0
@@ -52,9 +52,9 @@ public final class InterleavingPlayerController {
     public init(
         hero: Combatant = GameContent.heroes[0],
         companion: Combatant = GameContent.companions[0],
-        campaignTracker: CampaignProgressionTracker = CampaignProgressionTracker(),
-        spireTracker: SpireProgressionTracker = SpireProgressionTracker(),
-        labyrinthTracker: LabyrinthProgressionTracker = LabyrinthProgressionTracker(),
+        campaignTracker: ModeProgressionTracker = ModeProgressionTracker.campaign(),
+        spireTracker: ModeProgressionTracker = ModeProgressionTracker.spire(),
+        labyrinthTracker: ModeProgressionTracker = ModeProgressionTracker.labyrinth(),
         initialState: PlayerProgressionState = PlayerProgressionState(),
     ) {
         self.hero = hero
@@ -210,8 +210,8 @@ public final class InterleavingPlayerController {
             companion: companion,
             using: &rng,
         )
-        let heroLevel = simulatedHeroLevel(for: step)
-        let companionLevel = simulatedCompanionLevel(for: step)
+        let heroLevel = simulatedHeroLevel()
+        let companionLevel = simulatedCompanionLevel()
         let powerTier = SimulationPowerTier.band(forLevel: heroLevel)
         let enemyLevel = encounterLevel(for: step)
         let keywordBias = step.keywordBias.map { Set([$0]) }
@@ -248,6 +248,7 @@ public final class InterleavingPlayerController {
     }
 
     func encounterLevel(for step: ModeProgressionStep) -> Int {
+        // Floored party mean in integer arithmetic (exact for level ranges).
         let partyAverage = state.heroLevel / 2 + state.companionLevel / 2
             + (state.heroLevel % 2 + state.companionLevel % 2) / 2
         switch step.mode {
@@ -260,11 +261,11 @@ public final class InterleavingPlayerController {
         }
     }
 
-    public func simulatedHeroLevel(for _: ModeProgressionStep) -> Int {
+    public func simulatedHeroLevel() -> Int {
         state.heroLevel
     }
 
-    public func simulatedCompanionLevel(for _: ModeProgressionStep) -> Int {
+    public func simulatedCompanionLevel() -> Int {
         state.companionLevel
     }
 }

@@ -22,7 +22,7 @@ public extension HomesteadResource {
         case .iron: .system("hammer.fill")
         case .food: .system("carrot.fill")
         case .herbs: .system("leaf.fill")
-        case .hide: .system("pawprint.fill")
+        case .hide: .system("square.stack.3d.up.fill")
         case .crystal: .system("diamond.fill")
         case .gold: Keyword.gold.visualStyle.icon
         }
@@ -30,6 +30,28 @@ public extension HomesteadResource {
 
     var walletAnimationID: String {
         "Homestead Wallet Resource \(rawValue)"
+    }
+}
+
+public extension HomesteadNodeCategory {
+    var artID: String {
+        switch self {
+        case .farming: "wheatField"
+        case .crafting: "blacksmithForge"
+        case .alchemy: "alchemyLab"
+        case .training: "hunterLodge"
+        case .arcana: "moonlitSanctum"
+        }
+    }
+
+    var icon: GameIcon {
+        switch self {
+        case .farming: .system("leaf.fill")
+        case .crafting: .system("hammer.fill")
+        case .alchemy: .system("flask.fill")
+        case .training: .system("target")
+        case .arcana: .system("moon.stars.fill")
+        }
     }
 }
 

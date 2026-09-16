@@ -8,7 +8,7 @@ import TrinketPersistence
 @MainActor
 struct PlayCombatRequest {
     let origin: PlayBattleOrigin
-    let encounter: (combatant: Combatant, level: Int)
+    let encounter: ScaledEncounter
     let route: PlayBattleRoute
     let loot: BattleLootResult
     let stageRewardsAlreadyClaimed: Bool
@@ -17,7 +17,7 @@ struct PlayCombatRequest {
 
     init(
         origin: PlayBattleOrigin,
-        encounter: (combatant: Combatant, level: Int),
+        encounter: ScaledEncounter,
         route: PlayBattleRoute,
         loot: BattleLootResult,
         stageRewardsAlreadyClaimed: Bool = false,

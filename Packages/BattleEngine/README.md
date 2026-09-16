@@ -17,7 +17,17 @@ play resolution, and hand maintenance; `Turns/` owns turn cadence and processing
 `Healing/` groups healing allocation, leech, overflow, and results. These folders
 belong to the same target. `State/` keeps `BattleState` and its extensions together;
 `Uniques/` owns Unique equipment state and reactions. Runtime contracts remain at
-the target root.
+the target root. One-type-per-file holds even for tiny value types
+(`CombatGain`, `BattleChance`, `ManaPayment`); do not merge them into grab-bags.
+
+On-hit work is intentionally split across two channels (see
+`Docs/AgentContext/battle-engine.md`): `DamagePipeline` applies talent on-hit
+applications during damage resolution, while `CombatTriggerEngine` owns post-hit
+cadence. Do not fold one into the other. Unconditional hero/companion loops
+(stored-damage drain, healing-echo drain) must visit dead members too; the
+`livingPartyMembers`/`livingAllies` helpers are only for living-only passes.
+`CleanseOperation` and `PurgeOperation` each own their removal plus consequences;
+share handler dispatch, not the operations.
 
 Enemy abilities resolve offensive effect targets and opponent conditions against
 the selected party member. Conditions keep that target throughout the action,
@@ -26,6 +36,12 @@ reactions also run for enemy traits, with healing and Block awarded to the sourc
 side; party-wide talent bonuses remain restricted to the party.
 
 ## Key types
+
+Naming convention: `Battle` marks the public session API (`BattleState`,
+`BattleActionContext`, `DamageRequest`/`HealRequest`/`CombatOutcome`);
+`Combat` marks internal resolution (`CombatResolution`, `CombatCheckpoint`).
+New engine code defaults to `package` access; `public` is reserved for the
+integration surface above.
 
 | Type | Target | Role |
 |------|--------|------|

@@ -74,8 +74,13 @@ public struct HomesteadCategoryProgress {
     }
 
     public init(category: HomesteadNodeCategory, homestead: PlayerHomesteadState) {
-        let definitions = GameContent.homesteadNodes.filter { $0.category == category }
-        builtTiers = definitions.reduce(0) { $0 + homestead.tier(for: $1.id) }
-        totalTiers = definitions.reduce(0) { $0 + $1.maxTier }
+        var built = 0
+        var total = 0
+        for definition in GameContent.homesteadNodes where definition.category == category {
+            built += homestead.tier(for: definition.id)
+            total += definition.maxTier
+        }
+        builtTiers = built
+        totalTiers = total
     }
 }

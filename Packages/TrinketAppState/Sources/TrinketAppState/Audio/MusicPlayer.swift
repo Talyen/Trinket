@@ -19,10 +19,7 @@ final class MusicPlayer {
     private var resumePositions: [MusicResumeKey: TimeInterval] = [:]
     private var canSaveCurrentPosition = true
     private var hasConfiguredSession = false
-    private let logger = Logger(
-        subsystem: AudioLogging.subsystem,
-        category: "Audio",
-    )
+    private let logger = AudioSupport.logger()
 
     init(isDisabled: Bool, fadeDuration: TimeInterval = 0.9) {
         self.isDisabled = isDisabled
@@ -42,7 +39,7 @@ final class MusicPlayer {
     func update(route: MusicRoute, volume: Double, immediate: Bool = false) {
         guard !isDisabled else { return }
 
-        let resolvedVolume = Float(max(0, min(volume, 1)))
+        let resolvedVolume = AudioSupport.clampedVolume(volume)
 
         switch route {
         case let .silence(preservingPosition):
@@ -72,7 +69,7 @@ final class MusicPlayer {
 
     func setVolume(_ volume: Double) {
         guard !isDisabled else { return }
-        let resolvedVolume = Float(max(0, min(volume, 1)))
+        let resolvedVolume = AudioSupport.clampedVolume(volume)
 
         if inFlightRequest != nil {
             pendingStartVolume = resolvedVolume
@@ -95,6 +92,9 @@ final class MusicPlayer {
         }
     }
 
+    /// Stops playback while preserving the resume position, so the next `play`
+    /// of the same request resumes. Despite the name this is a suspend, not a
+    /// reset; use `silenceImmediately(preservingPosition: false)` to drop it.
     func stop() {
         silenceImmediately(preservingPosition: true)
     }
@@ -346,7 +346,14 @@ final class MusicPlayer {
     }
 
     private func applyResumePosition(_ player: AVAudioPlayer, request: MusicPlaybackRequest) {
-        player.currentTime = resumePositions[request.resumeKey, default: 0]
+        let saved = resumePositions[request.resumeKey, default: 0]
+        guard player.duration > 0.05 else {
+            player.currentTime = 0
+            return
+        }
+        // Clamp stale positions (e.g. from a replaced asset) inside the track
+        // so a seek past the end cannot start — or leave — silence.
+        player.currentTime = max(0, min(saved, player.duration - 0.05))
     }
 
     private static func loadPlayer(url: URL) async -> LoadedMusicPlayer? {
@@ -380,7 +387,7 @@ final class MusicPlayer {
     }
 
     private func targetVolume(for request: MusicPlaybackRequest, appVolume: Float) -> Float {
-        min(appVolume * Float(max(0, request.track.volumeGain)), 1)
+        AudioSupport.targetVolume(appVolume: appVolume, gain: request.track.volumeGain)
     }
 
     private func configureSessionIfNeeded() {

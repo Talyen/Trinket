@@ -16,10 +16,16 @@ struct CombatRoundingTests {
 
     @Test func `rounded clamps negative results to zero`() {
         #expect(CombatRounding.rounded(-0.4) == 0)
+        #expect(CombatRounding.rounded(0.0) == 0)
+        #expect(CombatRounding.rounded(-100.0) == 0)
+        #expect(CombatRounding.rounded(-Double.infinity) == 0)
+        #expect(CombatRounding.rounded(Double.infinity) == 0)
+        #expect(CombatRounding.rounded(Double.nan) == 0)
     }
 
     @Test func `rounding at integer limit saturates without trapping`() {
         #expect(CombatRounding.rounded(Double(Int.max)) == Int.max)
+        #expect(CombatRounding.rounded(Double(Int.max) * 2) == Int.max)
         #expect(CombatRounding.scaled(Int.max, multiplier: 2) == Int.max)
     }
 

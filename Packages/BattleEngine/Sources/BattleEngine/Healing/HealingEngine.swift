@@ -7,7 +7,6 @@ package enum HealingEngine {
         resolveHealing(request, in: &context).combatOutcome
     }
 
-    // swiftlint:disable:next function_body_length - healing resolution is one atomic pipeline
     static func resolveHealing(
         _ request: HealRequest,
         in context: inout BattleState,
@@ -22,6 +21,52 @@ package enum HealingEngine {
 
         let preHealth = context.roster.health(for: request.target)
         let maxHealth = context.roster.maxHealth(for: request.target)
+        let restored = applyDirectRestoration(amount: amount, request: request, sourceTriggers: sourceTriggers, in: &context)
+
+        var events: [ActionEvent] = []
+        let targetTriggers = context.modifiers(for: request.target.id).triggers
+
+        applyFullHealthBonus(preHealth: preHealth, maxHealth: maxHealth, request: request, targetTriggers: targetTriggers, in: &context)
+
+        var allocation = HealingAllocation(resolvedAmount: amount, directRestoration: restored)
+        let overflow = allocation.overflow
+        events.append(contentsOf: applyShelterSeed(
+            preHealth: preHealth, maxHealth: maxHealth, restored: restored,
+            request: request, sourceTriggers: sourceTriggers, in: &context,
+        ))
+        let cardTransfer = transferCardOverheal(overflow, request: request, in: &context)
+        allocation.allocate(cardTransfer.healthRestored, to: .transfer)
+        events.append(contentsOf: cardTransfer.events)
+        events.append(contentsOf: CombatTriggerEngine.afterHeroCardHeal(
+            request: request, restored: restored, in: &context,
+        ))
+        events.append(contentsOf: applyCleanSlate(overflow: overflow, request: request, in: &context))
+        events.append(contentsOf: applyOverhealConversion(
+            allocation: &allocation,
+            request: request,
+            sourceTriggers: sourceTriggers,
+            targetTriggers: targetTriggers,
+            in: &context,
+        ))
+        events.append(contentsOf: applyOnHealGrants(restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context))
+
+        appendHealLog(request: request, restored: restored, flags: flags, events: &events, in: &context)
+        events.append(contentsOf: applyRestoredReactions(
+            restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context,
+        ))
+
+        return HealingResult(
+            allocation: allocation,
+            isLeech: request.origin == .leech, isCritical: flags.contains(.critical), events: events,
+        )
+    }
+
+    private static func applyDirectRestoration(
+        amount: Int,
+        request: HealRequest,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> Int {
         var restored = 0
         context.roster.mutateRuntime(for: request.target) { restored = $0.heal(amount) }
         if request.isDirectCardHeal, sourceTriggers?.livingArchive == true,
@@ -32,10 +77,16 @@ package enum HealingEngine {
                 context.roster.mutateRuntime(for: request.target) { $0.talents.pending.healingEchoes.append(echo) }
             }
         }
+        return restored
+    }
 
-        var events: [ActionEvent] = []
-        let targetTriggers = context.modifiers(for: request.target.id).triggers
-
+    private static func applyFullHealthBonus(
+        preHealth: Int,
+        maxHealth: Int,
+        request: HealRequest,
+        targetTriggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) {
         if targetTriggers.nextAttackBonusOnFullHealth > 0,
            preHealth < maxHealth,
            context.roster.health(for: request.target) >= maxHealth {
@@ -43,22 +94,32 @@ package enum HealingEngine {
                 $0.talents.pending.attackBonusOnFullHealth += targetTriggers.nextAttackBonusOnFullHealth
             }
         }
+    }
 
-        var allocation = HealingAllocation(resolvedAmount: amount, directRestoration: restored)
-        let overflow = allocation.overflow
+    private static func applyShelterSeed(
+        preHealth: Int,
+        maxHealth: Int,
+        restored: Int,
+        request: HealRequest,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
         if restored > 0, preHealth * 2 < maxHealth, request.target.role != .enemy,
            sourceTriggers?.shelterSeed == true, let sourceID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceID), source.isAlive {
-            events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
+            CombatTriggerEngine.heroTalentThorns(
                 to: request.target, source: source.combatant, amount: restored, name: "Shelter Seed", in: &context,
-            ))
+            )
+        } else {
+            []
         }
-        let cardTransfer = transferCardOverheal(overflow, request: request, in: &context)
-        allocation.allocate(cardTransfer.healthRestored, to: .transfer)
-        events.append(contentsOf: cardTransfer.events)
-        events.append(contentsOf: CombatTriggerEngine.afterHeroCardHeal(
-            request: request, restored: restored, in: &context,
-        ))
+    }
+
+    private static func applyCleanSlate(
+        overflow: Int,
+        request: HealRequest,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
         if overflow > 0,
            let srcID = request.sourceActorID,
            let src = context.roster.combatant(for: srcID),
@@ -66,22 +127,25 @@ package enum HealingEngine {
            request.target.role != .enemy,
            CombatTriggerEngine.hasLivingPartyTrigger(\.cleanSlate, in: context),
            context.claimTurnGuard(.cleanSlate, actorID: srcID) {
-            events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
+            CombatTriggerEngine.performRandomCleanses(
                 source: src.combatant,
                 target: request.target,
                 count: 1,
                 abilityName: "Clean Slate",
                 in: &context,
-            ))
+            )
+        } else {
+            []
         }
-        events.append(contentsOf: applyOverhealConversion(
-            allocation: &allocation,
-            request: request,
-            sourceTriggers: sourceTriggers,
-            targetTriggers: targetTriggers,
-            in: &context,
-        ))
+    }
 
+    private static func applyOnHealGrants(
+        restored: Int,
+        request: HealRequest,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
         if let sourceTriggers, sourceTriggers.onHealGrantBlock > 0, restored > 0,
            let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID) {
             let abilityName = context.modifiers(for: sourceID).triggerAbilityName("onHealGrantBlock", fallback: "Warded Roost")
@@ -129,7 +193,16 @@ package enum HealingEngine {
                 abilityName: "Font of Magic",
             ))
         }
+        return events
+    }
 
+    private static func appendHealLog(
+        request: HealRequest,
+        restored: Int,
+        flags: Set<CombatFlag>,
+        events: inout [ActionEvent],
+        in context: inout BattleState,
+    ) {
         switch request.logAs {
         case .silent:
             break
@@ -148,52 +221,55 @@ package enum HealingEngine {
                 ),
             )
         }
-        if restored > 0 {
-            events.append(contentsOf: CombatTriggerEngine.afterHealthRestored(
-                restored,
-                to: request.target,
+    }
+
+    private static func applyRestoredReactions(
+        restored: Int,
+        request: HealRequest,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard restored > 0 else { return [] }
+        var events = CombatTriggerEngine.afterHealthRestored(
+            restored,
+            to: request.target,
+            in: &context,
+        )
+        if let sourceTriggers, sourceTriggers.onHealDealHoly > 0,
+           let sourceID = request.sourceActorID,
+           let source = context.roster.combatant(for: sourceID), source.isAlive,
+           source.role != .enemy, request.target.role != .enemy, context.roster.enemy.isAlive {
+            events.append(contentsOf: context.resolveDamage(DamageRequest(
+                amount: sourceTriggers.onHealDealHoly, target: context.enemy,
+                keyword: .holy, sourceActorID: sourceID, options: .reaction(),
+            )).events)
+        }
+        // Loyal Companion: healing the Companion draws a Companion card once per turn.
+        if request.target.id == context.roster.companion.id,
+           context.roster.companion.isAlive,
+           let sourceID = request.sourceActorID,
+           let source = context.roster.combatant(for: sourceID),
+           source.isAlive, source.role != .enemy,
+           context.modifiers(for: sourceID).triggers.healCompanionDrawsCompanionCard,
+           context.resolution.claim(
+               .heroTalent("loyalCompanion"),
+               actorID: sourceID,
+               cadence: .turn(context.turnCount),
+           ) {
+            events.append(contentsOf: CombatTriggerEngine.drawCards(
+                1,
+                for: .companion,
+                actor: source.combatant,
+                abilityName: CombatTriggerEngine.triggerAbilityName(
+                    "healCompanionDrawsCompanionCard",
+                    for: source.combatant,
+                    fallback: "Loyal Companion",
+                    in: context,
+                ),
                 in: &context,
             ))
-            if let sourceTriggers, sourceTriggers.onHealDealHoly > 0,
-               let sourceID = request.sourceActorID,
-               let source = context.roster.combatant(for: sourceID), source.isAlive,
-               source.role != .enemy, request.target.role != .enemy, context.roster.enemy.isAlive {
-                events.append(contentsOf: context.resolveDamage(DamageRequest(
-                    amount: sourceTriggers.onHealDealHoly, target: context.enemy,
-                    keyword: .holy, sourceActorID: sourceID, options: .reaction(),
-                )).events)
-            }
-            // Loyal Companion: healing the Companion draws a Companion card once per turn.
-            if request.target.id == context.roster.companion.id,
-               context.roster.companion.isAlive,
-               let sourceID = request.sourceActorID,
-               let source = context.roster.combatant(for: sourceID),
-               source.isAlive, source.role != .enemy,
-               context.modifiers(for: sourceID).triggers.healCompanionDrawsCompanionCard,
-               context.resolution.claim(
-                   .heroTalent("loyalCompanion"),
-                   actorID: sourceID,
-                   cadence: .turn(context.turnCount),
-               ) {
-                events.append(contentsOf: CombatTriggerEngine.drawCards(
-                    1,
-                    for: .companion,
-                    actor: source.combatant,
-                    abilityName: CombatTriggerEngine.triggerAbilityName(
-                        "healCompanionDrawsCompanionCard",
-                        for: source.combatant,
-                        fallback: "Loyal Companion",
-                        in: context,
-                    ),
-                    in: &context,
-                ))
-            }
         }
-
-        return HealingResult(
-            allocation: allocation,
-            isLeech: request.origin == .leech, isCritical: flags.contains(.critical), events: events,
-        )
+        return events
     }
 
     private static func resolvedAmount(

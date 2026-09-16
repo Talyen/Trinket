@@ -209,6 +209,40 @@ struct HomesteadPresentationTests {
         }
     }
 
+    @Test func `category presentation models expose valid artwork and icons`() {
+        for category in HomesteadNodeCategory.allCases {
+            #expect(!category.artID.isEmpty)
+            #expect(!category.icon.symbolName.isEmpty)
+        }
+    }
+
+    @Test func `resource icons match canonical Homestead specifications`() {
+        let expectedSymbols: [HomesteadResource: String] = [
+            .wood: "tree.fill",
+            .stone: "mountain.2.fill",
+            .iron: "hammer.fill",
+            .food: "carrot.fill",
+            .herbs: "leaf.fill",
+            .hide: "square.stack.3d.up.fill",
+            .crystal: "diamond.fill",
+            .gold: "circle.circle.fill",
+        ]
+        for (resource, symbol) in expectedSymbols {
+            #expect(resource.icon.symbolName == symbol)
+        }
+    }
+
+    @Test func `category progress accumulates built and total tiers in a single pass`() {
+        let homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wheatField: 2, .chickenCoop: 1],
+        )
+        let progress = HomesteadCategoryProgress(category: .farming, homestead: homestead)
+        #expect(progress.builtTiers == 3)
+        #expect(progress.totalTiers > progress.builtTiers)
+        #expect(progress.subtitle == "3 / \(progress.totalTiers)")
+    }
+
     private func makeStatus(
         definition: HomesteadNodeDefinition,
         homestead: PlayerHomesteadState,

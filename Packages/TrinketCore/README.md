@@ -19,7 +19,8 @@ Module map: `Keyword.swift` (matching, rules), `Effect.swift` (`Effect`,
 (evaluation lives in `BattleEngine.BattleConditionEvaluator`).
 
 Contracts: keyword matching runs through one case-insensitive pattern
-(`Keyword.highlightPattern` with `Keyword.termLookup`); `Keyword.referenced(in:)`
+(`Keyword.highlightPattern` with `Keyword.termLookup`), normalizing both straight (`'`)
+and typographic curly (`’`) apostrophes; `Keyword.referenced(in:)`
 and keyword highlighting share it. `SeededRandomNumberGenerator` is deterministic
 per seed with a fixed non-zero fallback state; equality includes draw progress.
 `Effect.durationTurns == 0` covers both instant effects and indefinite buffs;

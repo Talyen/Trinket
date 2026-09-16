@@ -99,20 +99,23 @@ struct StarterRouletteScreen: View {
             selectionFeedbackTrigger += 1
         }
         .disabled(playerSave.isRetryingSaveAction)
-        .preparedArtworkSheet(item: $inspectedCombatant, artworkNames: { combatant in
-            CombatantDetailPane.artworkNames(
-                combatant: combatant, loadout: combatant.abilityLoadout,
-                equipmentLoadout: .init(), inventoryItems: [],
-            )
-        }, content: { combatant in
-            NavigationStack {
+        .modifier(CombatantDetailSheet(
+            selection: $inspectedCombatant,
+            artworkNames: { combatant in
+                // Starter candidates have no roster progression yet; resolve
+                // from the catalog combatant with empty equipment/inventory.
+                CombatantDetailPane.artworkNames(
+                    combatant: combatant, loadout: combatant.abilityLoadout,
+                    equipmentLoadout: .init(), inventoryItems: [],
+                )
+            },
+            detailContent: { combatant in
                 CombatantDetailPane(snapshot: CombatantCardDetail(combatant: combatant))
                     .accessibilityIdentifier(
                         AccessibilityID.Onboarding.detail(combatantID: combatant.id),
                     )
-            }
-            .trinketDetailSheet()
-        })
+            },
+        ))
     }
 
     private var header: some View {

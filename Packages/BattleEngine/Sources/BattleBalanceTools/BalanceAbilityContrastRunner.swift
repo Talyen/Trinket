@@ -93,6 +93,9 @@ enum BalanceAbilityContrastRunner {
         let partnerLoadout = base.partnerLoadout
         let focusLoadout = ownerBase.selecting(focus.focus)
         let siblingLoadout = ownerBase.selecting(focus.sibling)
+        // Gear stays aligned to the focus loadout, matching historical
+        // sampling: both sides of the pair wear the same gear so only the
+        // loadout choice varies.
         let gears = BalanceContrastSupport.sharedGear(
             owner: focus.owner,
             partner: partner,

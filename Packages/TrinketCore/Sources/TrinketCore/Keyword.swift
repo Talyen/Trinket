@@ -99,6 +99,17 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
             if seen.insert(lower).inserted {
                 unique.append((term, keyword))
             }
+            if term.contains("'") {
+                let curly = term.replacingOccurrences(of: "'", with: "’")
+                if seen.insert(curly.lowercased()).inserted {
+                    unique.append((curly, keyword))
+                }
+            } else if term.contains("’") {
+                let straight = term.replacingOccurrences(of: "’", with: "'")
+                if seen.insert(straight.lowercased()).inserted {
+                    unique.append((straight, keyword))
+                }
+            }
         }
         return unique.sorted { $0.0.count > $1.0.count }
     }()
@@ -147,7 +158,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .stun:
             "Stun builds a meter; filling it makes the enemy lose an action"
         case .block:
-            "Block prevents Health damage. Remaining Block halves after the enemy’s turn for your party, and before the enemy’s turn for enemies"
+            "Block prevents Health damage. Remaining Block halves after the enemy's turn for your party, and before the enemy's turn for enemies"
         case .health:
             "Health keeps you alive"
         case .gold:

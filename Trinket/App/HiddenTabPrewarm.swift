@@ -1,5 +1,12 @@
+import os
 import SwiftUI
 import TrinketDesignSystem
+import TrinketPersistence
+
+private let hiddenTabPrewarmLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "HiddenTabPrewarm",
+)
 
 struct HiddenTabPrewarm: View {
     /// Failsafe so one surface that never lays out cannot stall launch.
@@ -13,33 +20,29 @@ struct HiddenTabPrewarm: View {
     var onFirstLayout: () -> Void = {}
 
     var body: some View {
-        // Intentionally mounts root surfaces only: the same NavigationStack
-        // shape as the real tabs warms first layout without triggering
+        // Intentionally mounts root surfaces only (not the full navigation
+        // state of the real tabs): this warms first layout without triggering
         // navigation-bound side effects (e.g. consuming the pending
         // Collection presentation, which only the visible tab performs).
+        // First-run players skip prewarm entirely; only mounted after starter
+        // selection completes (see PreparedAppRoot.shouldWarmHiddenTabs).
         ZStack {
             NavigationStack {
                 CollectionView()
-                    .onGeometryChange(for: Bool.self) { geometry in
-                        geometry.size.width > 0 && geometry.size.height > 0
-                    } action: { hasLayout in
-                        acknowledgeLayout(.collection, hasLayout: hasLayout)
+                    .onFirstNonzeroLayout {
+                        acknowledgeLayout(.collection)
                     }
             }
             NavigationStack {
                 HomesteadView()
-                    .onGeometryChange(for: Bool.self) { geometry in
-                        geometry.size.width > 0 && geometry.size.height > 0
-                    } action: { hasLayout in
-                        acknowledgeLayout(.homestead, hasLayout: hasLayout)
+                    .onFirstNonzeroLayout {
+                        acknowledgeLayout(.homestead)
                     }
             }
             NavigationStack {
                 OptionsView()
-                    .onGeometryChange(for: Bool.self) { geometry in
-                        geometry.size.width > 0 && geometry.size.height > 0
-                    } action: { hasLayout in
-                        acknowledgeLayout(.options, hasLayout: hasLayout)
+                    .onFirstNonzeroLayout {
+                        acknowledgeLayout(.options)
                     }
             }
         }
@@ -49,6 +52,7 @@ struct HiddenTabPrewarm: View {
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .task {
+            // Cancelled automatically when early success unmounts this view.
             try? await Task.sleep(for: Self.layoutTimeout)
             guard !Task.isCancelled else { return }
             acknowledgeTimeout()
@@ -57,11 +61,14 @@ struct HiddenTabPrewarm: View {
 
     private func acknowledgeTimeout() {
         guard laidOutSurfaces.count != Surface.allCases.count else { return }
+        hiddenTabPrewarmLogger.error(
+            "Hidden tab prewarm timed out with \(laidOutSurfaces.count, privacy: .public) of 3 surfaces laid out; releasing launch gate anyway.",
+        )
         onFirstLayout()
     }
 
-    private func acknowledgeLayout(_ surface: Surface, hasLayout: Bool) {
-        guard hasLayout, laidOutSurfaces.insert(surface).inserted else { return }
+    private func acknowledgeLayout(_ surface: Surface) {
+        guard laidOutSurfaces.insert(surface).inserted else { return }
         if laidOutSurfaces.count == Surface.allCases.count {
             onFirstLayout()
         }

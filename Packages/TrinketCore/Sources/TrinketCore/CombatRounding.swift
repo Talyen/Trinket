@@ -10,12 +10,10 @@ public enum CombatRounding {
     /// Clamps negatives and non-finite inputs to zero; saturates at `Int.max`.
     /// Uses banker's rounding, so exact .5 ties round to even.
     public static func rounded(_ value: Double) -> Int {
-        guard value.isFinite else { return 0 }
+        guard value.isFinite, value > 0 else { return 0 }
         let rounded = value.rounded()
-        guard rounded >= Double(Int.min), rounded < Double(Int.max) else {
-            return rounded > 0 ? Int.max : 0
-        }
-        return max(0, Int(rounded))
+        guard rounded < Double(Int.max) else { return Int.max }
+        return Int(rounded)
     }
 
     public static func scaled(_ value: Int, byPercent percent: Int) -> Int {

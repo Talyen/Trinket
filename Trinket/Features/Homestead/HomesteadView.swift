@@ -21,6 +21,9 @@ struct HomesteadView: View {
     @State private var depositGeometry = HomesteadDepositGeometry()
     @State private var collectionSuccessTrigger = 0
 
+    private static let immediateWalletDelays: [HomesteadResource: TimeInterval] =
+        Dictionary(uniqueKeysWithValues: HomesteadResource.allCases.map { ($0, 0) })
+
     private var homestead: PlayerHomesteadState {
         playerSave.homestead
     }
@@ -40,7 +43,7 @@ struct HomesteadView: View {
                 horizontalPadding: TrinketDesign.Layout.contentMargin,
                 bottomPadding: TrinketDesign.Spacing.large,
             ) {
-                if let art = ArtCatalog.backgroundArtByID["homestead"]
+                if let art = ArtCatalog.backgroundArtByID[EncounterArtIDs.homesteadHeroID]
                     ?? ArtCatalog.backgroundArtByID["wheatField"] {
                     FocalBackgroundArtwork(art: art)
                 } else {
@@ -53,7 +56,7 @@ struct HomesteadView: View {
                     homestead: homestead,
                     roster: roster,
                     displayedBalances: displayedBalances,
-                    increaseAnimationDelays: Dictionary(uniqueKeysWithValues: HomesteadResource.allCases.map { ($0, 0) }),
+                    increaseAnimationDelays: Self.immediateWalletDelays,
                     keepsArtworkStationary: true,
                 )
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
@@ -110,7 +113,7 @@ struct HomesteadView: View {
                 cancelDeposit()
             }
         }
-        .homesteadCollectionErrorAlert(collection: $collection)
+        .trinketFailureAlert("Collection Failed", message: $collection.error)
         .trinketSensoryFeedback(
             .success,
             trigger: collectionSuccessTrigger,
@@ -217,6 +220,14 @@ struct HomesteadView: View {
                     try await Task.sleep(for: .seconds(HomesteadMotion.depositStagger))
                 }
             }
+            try await Task.sleep(
+                for: .seconds(HomesteadMotion.depositFlightDuration + HomesteadMotion.depositSettleDuration + 0.1),
+            )
+            if depositEvent?.id == event.id {
+                withAnimation(HomesteadMotion.depositSettle) {
+                    depositEvent = nil
+                }
+            }
         } catch {
             if depositEvent?.id == event.id {
                 cancelDeposit()
@@ -260,16 +271,6 @@ struct HomesteadView: View {
         withTransaction(transaction) { depositEvent = nil }
     }
 
-    private func categoryIcon(_ category: HomesteadNodeCategory) -> GameIcon {
-        switch category {
-        case .farming: .system("leaf.fill")
-        case .crafting: .system("hammer.fill")
-        case .alchemy: .system("flask.fill")
-        case .training: .system("target")
-        case .arcana: .system("moon.stars.fill")
-        }
-    }
-
     private func categoryCard(_ category: HomesteadNodeCategory) -> some View {
         let progress = HomesteadCategoryProgress(category: category, homestead: homestead)
         return Button {
@@ -278,7 +279,7 @@ struct HomesteadView: View {
             HubArtworkCard(
                 title: category.rawValue,
                 subtitle: progress.subtitle,
-                icon: categoryIcon(category),
+                icon: category.icon,
                 artID: category.artID,
             )
             .overlay {

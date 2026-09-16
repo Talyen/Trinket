@@ -67,7 +67,7 @@ public extension PlaySession {
         let result = battleCompletion.claimDefeat(configuration, presentation: presentation, settlement: settlement)
         guard result.didComplete else {
             if result == .persistenceFailed {
-                playerSave.retrySaveAction(key: "defeat-\(configuration.id)") { [weak self] in
+                playerSave.retrySaveAction(key: SaveRetryKey.defeat(configuration.id)) { [weak self] in
                     guard let self, battle.activeBattle?.id == configuration.id,
                           let refreshed = settleDefeatRewards(configuration) else { return }
                     _ = completeDefeat(configuration, settlement: refreshed, action: action)

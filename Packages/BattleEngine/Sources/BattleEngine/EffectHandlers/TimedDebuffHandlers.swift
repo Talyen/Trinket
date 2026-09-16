@@ -17,10 +17,9 @@ struct TimedDebuffHandler: BattleEffectHandler {
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
+        let durationSuffix = TimedBuffSummary.durationSuffix(in: stacks) { effect in
             effect.durationTurns > 0 ? effect.durationTurns : nil
         }
-        let durationSuffix = maxTicks > 0 ? ", \(BattleTiming.remainingDurationLabel(turns: maxTicks))" : ""
         switch active.effect {
         case .damageReductionPercent:
             let multiplier = stacks.reduce(1.0) { result, active in

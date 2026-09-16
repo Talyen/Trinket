@@ -9,6 +9,8 @@ import UIKit
 #if DEBUG
 
 struct DebugFPSOverlayModifier: ViewModifier {
+    @Environment(\.scenePhase) private var scenePhase
+
     private var enableFrameMetrics: Bool {
         AppEnvironment.shared.enableFrameMetrics
     }
@@ -21,6 +23,11 @@ struct DebugFPSOverlayModifier: ViewModifier {
                         .frame(width: 0, height: 0)
                         .onAppear {
                             FramePacingMetricsProbe.shared.install()
+                        }
+                        .onChange(of: scenePhase) { _, newPhase in
+                            if newPhase == .active {
+                                FramePacingMetricsProbe.shared.install()
+                            }
                         }
                 }
             }
@@ -39,6 +46,8 @@ final class FramePacingMetricsProbe {
     private var beginObserver: NSObjectProtocol?
     private var preparationTask: Task<Void, Never>?
     private var isInstalled = false
+    // No deinit: this probe is a process-lifetime DEBUG singleton, so its two
+    // NotificationCenter observers intentionally live until termination.
 
     func install() {
         guard !isInstalled else {
@@ -191,11 +200,13 @@ final class FramePacingMonitor: NSObject {
         if let onUpdate {
             handler = onUpdate
         }
-        if let displayLink {
-            displayLink.isPaused = false
+        if displayLink != nil {
             return
         }
         let link = CADisplayLink(target: self, selector: #selector(step(_:)))
+        // Stay paused until a measurement begins; an idle link would tax the
+        // DEBUG runs this tool exists to measure. resetMeasurement unpauses.
+        link.isPaused = true
         link.add(to: .main, forMode: .common)
         displayLink = link
     }

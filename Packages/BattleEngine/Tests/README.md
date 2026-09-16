@@ -7,8 +7,10 @@ Extend the suite that already owns a concern; add a new suite only for a
 genuinely new concern. Apply [Testing.md](../../../Docs/Platform/Testing.md) to
 additions and retirement: prefer representative behavior families and targeted
 interaction regressions over per-mechanic or combinatorial matrices.
-The authoritative suite inventory is the
-`Tests/BattleEngineTests/` directory; this guide names stable families.
+The authoritative suite inventory is the `Tests/` directory: `BattleEngineTests/`
+plus `BattleBalanceToolsTests/` (`BattleSimulator*`, `Balance*`,
+`ModeProgressionToolingTests`, `SweepWorkerPoolTests`), which is excluded from
+the default package command. This guide names stable families.
 
 Card, turn, trigger, talent, and Unique suites are grouped under `Cards/`,
 `Turns/`, `Triggers/`, `Talents/`, and `Uniques/` within `BattleEngineTests/`.
@@ -23,8 +25,11 @@ helpers live in `Support/`. All remain in the same test target.
 | Damage pipeline steps, DoT math | `DoT*Tests`, `BattleMechanicsTests`, `ReactionScopeTests` |
 | Engine cadence, fight pacing, control states | `BattleTurnEngineTests`, `FightPacingTests`, `ControlMeter*Tests`, `DeathsDoorEngineTests` |
 | Cross-boundary card combat | `BattleCardCombatTests` plus `*IntegrationTests` |
-| Builds, triggers, talents, traits, affixes, items, trinkets | `CombatBuildResolverTests`, `TalentCatalogRoundTripTests`, `CombatTriggerFieldCoverageTests`, `CombatTriggerTalent*Tests`, `TrinketEffectTests`, `*BattleTests` |
-| Catalog ability combos | `AbilityEffectIntegrationTests` |
+| Builds, triggers, talents, traits, affixes, items, trinkets | `CombatBuildResolverTests`, `TalentCatalogRoundTripTests` (+`Damage`/`Capstone*`/`Hero*` splits), `TalentMigrationTests` (legacy trait-trigger side), `CombatTriggerFieldCoverageTests`, `CombatTriggerTalent*Tests` (`Damage`+`Cadence`+`ResourceInteractions`, standalone `Control`), `TrinketEffectTests`, `*BattleTests` |
+| Uniques | `UniqueCollectionTests` (+`Cards`/`Damage`/`Defense`/`Resources`; base file holds helpers only) plus `ReturningGaleRegressionTests` |
+| Cards, opening hand, assessment, Auto Battle | `BattleCardCombatTests` (+`Buffer`/`BlockTiming`/`Feedback`), `BattleOpeningHandTests`, `BattleCardAssessmentTests`, `PlayPolicyTests` |
+| Single-concern mechanics | `BattleChanceTests`, `BattleConditionEvaluatorTests`, `BattleRosterTests`, `BattleStateTests`, `BattleStateStartingHealthTests`, `BattleOutcomeBranchTests`, `CleanseIntegrationTests`, `CombatantBorderAccentTests`, `CombatantBuffAuraTests`, `FaeWardTests`, `HealingReductionTests`, `KeywordCohesionMechanicsTests`, `ManaEmpowermentTests`, `RestorationIntegrationTests`, `RogueRevisionTests` |
+| Catalog ability combos | `AbilityEffectIntegrationTests` (including `+Balance`, which stays in this default target despite the name) |
 | Outcome, log, event formatting | `BattleOutcomeResolverTests`, `BattleLogReducerTests` |
 | Balance simulator and sweep tooling | `BattleBalanceToolsTests` (`BattleSimulator*`, `Balance*`, `ModeProgressionToolingTests`); `PlayPolicyTests` stays in `BattleEngineTests` (Auto Battle) |
 
@@ -33,7 +38,13 @@ helpers live in `Support/`. All remain in the same test target.
 - Use `BattleStateTestFactory.makeBattle(...)` with its factory default seed
   (`CombatantFixtures.deterministicBattleSeed`) for deterministic RNG. Use
   explicit seeds only for RNG edge cases; seed `0` can invalidate
-  dodge-sensitive assertions. Do not re-alias the seed under local names.
+  dodge-sensitive assertions, so `seed: 0` sites must be dodge-insensitive
+  (block decay, pacing, evaluator) to keep the exception. Wrapper parameters
+  named `seed` that forward to `rngSeed` are the ergonomic convention, not a
+  re-alias violation; do not introduce unrelated local `let seed = ...`
+  constants.
+- `BattlePerformance.xctestplan` covers UI tests only; `BattlePerformanceScenario`
+  has no unit-test participation.
 - Build combatants with `CombatantFixtures`. `BattleStateTestFactory` centralizes
   `BattleState` construction; `BattleTestFixtures` composes it for combat scenarios
   and provides play, catalog-build, effect-dispatch, and assertion helpers.

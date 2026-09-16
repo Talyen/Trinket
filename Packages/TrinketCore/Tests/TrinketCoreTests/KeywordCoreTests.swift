@@ -91,4 +91,10 @@ struct KeywordCoreTests {
         #expect(Keyword.referenced(in: "").isEmpty)
         #expect(Keyword.referenced(in: "Draw a card.").isEmpty)
     }
+
+    @Test func `referenced keywords matches terms with straight and curly apostrophes`() {
+        #expect(Keyword.referenced(in: "Survive while on Death's Door.") == [.deathsDoor])
+        #expect(Keyword.referenced(in: "Survive while on Death’s Door.") == [.deathsDoor])
+        #expect(Keyword.referenced(in: "death's door or death’s door") == [.deathsDoor])
+    }
 }

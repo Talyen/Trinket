@@ -30,6 +30,11 @@ public enum BalanceMarkdownReporter {
 
     private static func renderIdentityOrContrast(_ report: BalanceSweepReport) -> String {
         let tiers = BalanceStatsAggregator.summarize(report: report)
+        let comparedTiers: [BalanceTierStats] = if report.comparedRecords.isEmpty {
+            []
+        } else {
+            BalanceStatsAggregator.summarize(report: report, records: report.comparedRecords)
+        }
         var lines: [String] = []
         appendReportHeader(report, into: &lines)
 
@@ -37,7 +42,7 @@ public enum BalanceMarkdownReporter {
             for tierStats in tiers where tierStats.battles > 0 {
                 BalanceMarkdownTables.appendIdentityTier(
                     tierStats,
-                    compared: comparedStats(report, tier: tierStats.tier),
+                    compared: comparedTiers.first { $0.tier == tierStats.tier },
                     into: &lines,
                 )
             }
@@ -54,12 +59,6 @@ public enum BalanceMarkdownReporter {
         BalanceMarkdownTables.appendUnderNAppendix(tiers: tiers, report: report, into: &lines)
         appendReportNotes(report: report, into: &lines)
         return lines.joined(separator: "\n")
-    }
-
-    private static func comparedStats(_ report: BalanceSweepReport, tier: SimulationPowerTier) -> BalanceTierStats? {
-        guard !report.comparedRecords.isEmpty else { return nil }
-        return BalanceStatsAggregator.summarize(report: report, records: report.comparedRecords)
-            .first { $0.tier == tier }
     }
 
     private static func appendReportHeader(_ report: BalanceSweepReport, into lines: inout [String]) {

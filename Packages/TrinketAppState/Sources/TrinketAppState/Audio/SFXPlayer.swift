@@ -7,7 +7,7 @@ import TrinketContent
 public final class SFXPlayer {
     private let isDisabled: Bool
     private let playback = SFXPlayback()
-    private let continuation: AsyncStream<@Sendable (isolated SFXPlayback) -> Void>.Continuation?
+    private let continuation: AsyncStream<@Sendable (isolated SFXPlayback) async -> Void>.Continuation?
     private var workerTask: Task<Void, Never>?
 
     public init(isDisabled: Bool) {
@@ -16,8 +16,8 @@ public final class SFXPlayer {
             continuation = nil
             workerTask = nil
         } else {
-            var streamContinuation: AsyncStream<@Sendable (isolated SFXPlayback) -> Void>.Continuation?
-            let stream = AsyncStream<@Sendable (isolated SFXPlayback) -> Void> { cont in
+            var streamContinuation: AsyncStream<@Sendable (isolated SFXPlayback) async -> Void>.Continuation?
+            let stream = AsyncStream<@Sendable (isolated SFXPlayback) async -> Void> { cont in
                 streamContinuation = cont
             }
             continuation = streamContinuation
@@ -42,12 +42,12 @@ public final class SFXPlayer {
 
     public func playAll(_ ids: [String], volume: Double) {
         guard !isDisabled, volume > 0, !ids.isEmpty else { return }
-        enqueue { $0.playAll(ids, volume: volume) }
+        enqueue { await $0.playAll(ids, volume: volume) }
     }
 
     public func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
         guard !isDisabled else { return }
-        enqueue { $0.warm(ids, concurrentPlayerCount: concurrentPlayerCount) }
+        enqueue { await $0.warm(ids, concurrentPlayerCount: concurrentPlayerCount) }
     }
 
     public func warmAllCatalog(concurrentPlayerCount: Int = 2) {
@@ -63,7 +63,7 @@ public final class SFXPlayer {
         enqueue { $0.releaseResources() }
     }
 
-    private func enqueue(_ operation: @escaping @Sendable (isolated SFXPlayback) -> Void) {
+    private func enqueue(_ operation: @escaping @Sendable (isolated SFXPlayback) async -> Void) {
         continuation?.yield(operation)
     }
 }
@@ -78,23 +78,19 @@ private actor SFXPlayback {
     private var failedBufferIDs: Set<String> = []
     private var nextVoiceIndexByID: [String: Int] = [:]
     private var catalogWarmTask: Task<Void, Never>?
-    private let logger = Logger(
-        subsystem: AudioLogging.subsystem,
-        category: "Audio",
-    )
+    private let logger = AudioSupport.logger()
 
     isolated deinit {
         catalogWarmTask?.cancel()
     }
 
-    func playAll(_ ids: [String], volume: Double) {
+    func playAll(_ ids: [String], volume: Double) async {
         guard volume > 0 else { return }
         guard !ids.isEmpty else { return }
 
-        if !ensureReady(for: ids) {
+        guard await ensureReady(for: ids) else {
             return
         }
-        let gain = max(0, volume)
         for id in ids {
             guard let clip = SFXCatalog.clipsByID[id],
                   let voices = preparedVoicesByID[id],
@@ -102,12 +98,12 @@ private actor SFXPlayback {
             let voiceIndex = (nextVoiceIndexByID[id] ?? 0) % voices.count
             nextVoiceIndexByID[id] = (voiceIndex + 1) % voices.count
             let voice = voices[voiceIndex]
-            voice.node.volume = min(Float(gain * max(0, clip.volumeGain)), 1)
-            voice.node.scheduleBuffer(voice.buffer, at: nil, options: .interrupts)
+            voice.node.volume = AudioSupport.targetVolume(appVolume: Float(max(0, volume)), gain: clip.volumeGain)
+            voice.node.scheduleBuffer(voice.buffer, at: nil, options: .interrupts, completionHandler: nil)
         }
     }
 
-    func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
+    func warm(_ ids: [String], concurrentPlayerCount: Int = 1) async {
         let desiredCount = max(1, concurrentPlayerCount)
         let idsNeedingWork = ids.filter { id in
             (preparedVoicesByID[id]?.count ?? 0) < desiredCount
@@ -123,7 +119,7 @@ private actor SFXPlayback {
 
         for id in idsNeedingWork {
             guard let clip = SFXCatalog.clipsByID[id] else { continue }
-            guard let buffer = preparedBuffer(for: clip) else { continue }
+            guard let buffer = await preparedBuffer(for: clip) else { continue }
             var voices = preparedVoicesByID[id, default: []]
             while voices.count < desiredCount {
                 let node = AVAudioPlayerNode()
@@ -163,10 +159,13 @@ private actor SFXPlayback {
         _ decoded: [String: AVAudioPCMBuffer],
         ids: [String],
         concurrentPlayerCount: Int,
-    ) {
+    ) async {
+        // Task identity is preserved across the actor hop: this still refers to
+        // the detached decode task, so a cancel-after-decode still discards the
+        // stale batch here before it can install voices.
         guard !Task.isCancelled else { return }
         buffersByID.merge(decoded) { existing, _ in existing }
-        warm(ids, concurrentPlayerCount: concurrentPlayerCount)
+        await warm(ids, concurrentPlayerCount: concurrentPlayerCount)
     }
 
     func stopAll() {
@@ -198,10 +197,10 @@ private actor SFXPlayback {
         engine.reset()
     }
 
-    private func ensureReady(for ids: [String]) -> Bool {
+    private func ensureReady(for ids: [String]) async -> Bool {
         let missing = ids.filter { preparedVoicesByID[$0] == nil && !failedBufferIDs.contains($0) }
         if !missing.isEmpty {
-            warm(missing)
+            await warm(missing)
         }
         configureSessionIfNeeded()
         guard ensureEngineRunning() else { return false }
@@ -209,7 +208,9 @@ private actor SFXPlayback {
         return true
     }
 
-    private func preparedBuffer(for clip: SFXClip) -> AVAudioPCMBuffer? {
+    /// Returns the cached buffer, decoding off-actor on a miss so file I/O
+    /// never blocks already-warmed clips sharing this actor.
+    private func preparedBuffer(for clip: SFXClip) async -> AVAudioPCMBuffer? {
         if let buffer = buffersByID[clip.id] {
             return buffer
         }
@@ -223,7 +224,9 @@ private actor SFXPlayback {
             )
             return nil
         }
-        guard let buffer = Self.decodePCMBuffer(at: url) else {
+        guard let buffer = await Task.detached(priority: .utility, operation: {
+            SendableAudioBuffer(value: Self.decodePCMBuffer(at: url))
+        }).value.value else {
             failedBufferIDs.insert(clip.id)
             return nil
         }
@@ -231,10 +234,7 @@ private actor SFXPlayback {
         return buffer
     }
 
-    private nonisolated static let decodeLogger = Logger(
-        subsystem: AudioLogging.subsystem,
-        category: "Audio",
-    )
+    private nonisolated static let decodeLogger = AudioSupport.logger()
 
     private nonisolated static func decodePCMBuffer(at url: URL) -> AVAudioPCMBuffer? {
         do {
@@ -304,4 +304,12 @@ private actor SFXPlayback {
 private struct PreparedSFXVoice {
     let node: AVAudioPlayerNode
     let buffer: AVAudioPCMBuffer
+}
+
+/// `AVAudioPCMBuffer` is not `Sendable`; decoding happens off-actor and the
+/// result crosses back here. Transfers are serialized through the playback
+/// actor's queue, so the unchecked box is confined after handoff.
+/// Concurrency-Safety: confined to the playback actor after the await handoff.
+private struct SendableAudioBuffer: @unchecked Sendable {
+    let value: AVAudioPCMBuffer?
 }

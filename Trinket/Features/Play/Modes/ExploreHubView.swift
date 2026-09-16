@@ -18,7 +18,7 @@ struct ExploreHubView: View {
                 title: "The Spires",
                 subtitle: spiresProgressSubtitle,
                 artID: "gameModeSpires",
-                fallbackArtID: "gameModeExplore",
+                fallbackArtID: EncounterArtIDs.explorePlayModeID,
                 accessibilityIdentifier: AccessibilityID.Play.spiresModeCard,
             )
 
@@ -27,7 +27,7 @@ struct ExploreHubView: View {
                 title: "Labyrinth",
                 subtitle: "Floor \(max(1, playerSave.labyrinth.currentFloorNumber))",
                 artID: "gameModeLabyrinth",
-                fallbackArtID: "gameModeExplore",
+                fallbackArtID: EncounterArtIDs.explorePlayModeID,
                 accessibilityIdentifier: AccessibilityID.Play.labyrinthModeCard,
             )
 
@@ -35,7 +35,7 @@ struct ExploreHubView: View {
                 destination: PlayLaunchDestination.contracts,
                 title: "Contracts",
                 subtitle: nil,
-                artID: "gameModeContracts",
+                artID: EncounterArtIDs.contractsHeroID,
                 accessibilityIdentifier: AccessibilityID.Play.contractsModeCard,
             )
         }

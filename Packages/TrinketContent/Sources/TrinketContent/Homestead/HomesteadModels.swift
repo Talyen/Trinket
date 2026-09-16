@@ -95,7 +95,7 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
     }
 
     public var maxTier: Int {
-        tiers.map(\.tier).max() ?? 0
+        tiers.last?.tier ?? 0
     }
 
     public func tier(_ value: Int) -> HomesteadNodeTier? {

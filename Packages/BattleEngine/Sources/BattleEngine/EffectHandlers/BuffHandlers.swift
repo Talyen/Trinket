@@ -6,11 +6,11 @@ struct ThornsHandler: BattleEffectHandler {
     let kind: EffectKind = .thorns
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let total = stacks.reduce(0) { sum, active in
-            if case let .thorns(amount) = active.effect {
-                return sum + amount
+        let total = TimedBuffSummary.summedAmount(in: stacks) { effect in
+            if case let .thorns(amount) = effect {
+                return amount
             }
-            return sum
+            return nil
         }
         guard total > 0 else { return nil }
         return EffectSummary(keyword: keyword, text: "Thorns: Deals \(total) Thorns damage to the next attacker.")
@@ -26,11 +26,11 @@ struct ThornsHandler: BattleEffectHandler {
         guard case let .thorns(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let existing = context.roster.activeEffects(for: target).reduce(0) { sum, active in
-            if case let .thorns(stacks) = active.effect {
-                return sum + stacks
+        let existing = TimedBuffSummary.summedAmount(in: context.roster.activeEffects(for: target)) { effect in
+            if case let .thorns(stacks) = effect {
+                return stacks
             }
-            return sum
+            return nil
         }
         let total = existing + amount
         return ActiveEffectMutation.replaceAndEmit(
@@ -49,11 +49,11 @@ struct OnHitDamageHandler: BattleEffectHandler {
     let kind: EffectKind = .onHitDamage
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let amount = stacks.reduce(0) { maxAmount, active in
-            if case let .onHitDamage(_, value) = active.effect {
-                return max(maxAmount, value)
+        let amount = TimedBuffSummary.maxAmount(in: stacks) { effect in
+            if case let .onHitDamage(_, value) = effect {
+                return value
             }
-            return maxAmount
+            return nil
         }
         guard amount > 0 else { return nil }
         let label = keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward"
@@ -92,11 +92,11 @@ struct MarkedHandler: BattleEffectHandler {
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard !stacks.isEmpty else { return nil }
-        let bonus = stacks.reduce(0) { maxBonus, item in
-            if case let .marked(value, _) = item.effect {
-                return max(maxBonus, value)
+        let bonus = TimedBuffSummary.maxAmount(in: stacks) { effect in
+            if case let .marked(value, _) = effect {
+                return value
             }
-            return maxBonus
+            return nil
         }
         let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
             if case let .marked(_, duration) = effect {
@@ -145,11 +145,11 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
     let kind: EffectKind = .criticalChanceBonus
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let percent = stacks.reduce(0.0) { maxPercent, active in
-            if case let .criticalChanceBonus(value, _) = active.effect {
-                return max(maxPercent, value)
+        let percent = TimedBuffSummary.maxPercent(in: stacks) { effect in
+            if case let .criticalChanceBonus(value, _) = effect {
+                return value
             }
-            return maxPercent
+            return nil
         }
         guard percent > 0 else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
@@ -190,11 +190,11 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
     let kind: EffectKind = .restoreManaOnHit
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let amount = stacks.reduce(0) { sum, active in
-            if case let .restoreManaOnHit(value, _) = active.effect {
-                return sum + value
+        let amount = TimedBuffSummary.summedAmount(in: stacks) { effect in
+            if case let .restoreManaOnHit(value, _) = effect {
+                return value
             }
-            return sum
+            return nil
         }
         guard amount > 0 else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
@@ -279,11 +279,11 @@ struct HemorrhageHandler: BattleEffectHandler {
     let kind: EffectKind = .hemorrhage
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let amount = stacks.reduce(0) { maxAmount, active in
-            if case let .hemorrhage(value) = active.effect {
-                return max(maxAmount, value)
+        let amount = TimedBuffSummary.maxAmount(in: stacks) { effect in
+            if case let .hemorrhage(value) = effect {
+                return value
             }
-            return maxAmount
+            return nil
         }
         guard amount > 0 else { return nil }
         return EffectSummary(keyword: keyword, text: "Hemorrhage: Takes \(amount) Bleed damage on next attack.")
@@ -315,11 +315,11 @@ struct NextBurnBonusHandler: BattleEffectHandler {
     let kind: EffectKind = .nextBurnBonus
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let total = stacks.reduce(0) { sum, active in
-            if case let .nextBurnBonus(amount) = active.effect {
-                return sum + amount
+        let total = TimedBuffSummary.summedAmount(in: stacks) { effect in
+            if case let .nextBurnBonus(amount) = effect {
+                return amount
             }
-            return sum
+            return nil
         }
         guard total > 0 else { return nil }
         return EffectSummary(keyword: keyword, text: "Kindled: Next Burn attack deals +\(total) damage.")
@@ -335,11 +335,11 @@ struct NextBurnBonusHandler: BattleEffectHandler {
         guard case let .nextBurnBonus(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let existing = context.roster.activeEffects(for: target).reduce(0) { sum, active in
-            if case let .nextBurnBonus(stacks) = active.effect {
-                return sum + stacks
+        let existing = TimedBuffSummary.summedAmount(in: context.roster.activeEffects(for: target)) { effect in
+            if case let .nextBurnBonus(stacks) = effect {
+                return stacks
             }
-            return sum
+            return nil
         }
         let total = existing + amount
         return ActiveEffectMutation.replaceAndEmit(

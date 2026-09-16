@@ -327,7 +327,7 @@ struct LabyrinthNodeArtwork: View {
         } else if let event = resolvedMysteryEvent, !event.isRecruit {
             MysteryEventHeroArtwork(
                 event: event,
-                chapterID: "labyrinth",
+                chapterID: EncounterArtIDs.labyrinthChapterID,
                 prefersThumbnail: prefersThumbnail,
             )
         } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
@@ -360,7 +360,7 @@ struct LabyrinthNodeArtwork: View {
 
     @ViewBuilder
     private func hexMysteryFocalContent(for event: MysteryEvent) -> some View {
-        if let resolved = MysteryEventArtwork.focalContent(event: event, chapterID: "labyrinth") {
+        if let resolved = MysteryEventArtwork.focalContent(event: event, chapterID: EncounterArtIDs.labyrinthChapterID) {
             encounterFocal(
                 imageName: resolved.imageName,
                 thumbnailName: resolved.thumbnailName,

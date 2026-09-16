@@ -190,7 +190,7 @@ public final class PlaySession {
             // Retry the same settlement so a stale award refreshes instead of
             // paying out unchecked. The retry exits immediately rather than
             // re-deferring: recovery must converge without another tap.
-            playerSave.retrySaveAction(key: "victory-\(configuration.id)") { [weak self] in
+            playerSave.retrySaveAction(key: SaveRetryKey.victory(configuration.id)) { [weak self] in
                 guard let self, battle.activeBattle?.id == configuration.id else { return }
                 _ = completeActiveBattle(
                     configuration, battleGold: battleGold, materialRewards: materialRewards,

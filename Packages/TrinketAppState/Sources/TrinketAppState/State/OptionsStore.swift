@@ -88,13 +88,16 @@ public final class OptionsStore {
         autoBattleEnabled = autoBattleValue
         ultimateCinematicShowPolicy = Self.resolveShowPolicy(from: defaults)
 
+        // Converge the legacy key onto options.* once: persist the migrated value
+        // before dropping the legacy key, so a carried-over preference survives
+        // a relaunch even if the user never toggles it again.
+        if rememberAutoValue,
+           defaults.object(forKey: Self.autoBattleEnabledKey) == nil,
+           defaults.object(forKey: Self.legacyAutoBattleEnabledKey) != nil {
+            defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
+        }
         if !rememberAutoValue {
             defaults.set(false, forKey: Self.autoBattleEnabledKey)
-        }
-        // One-time convergence onto the options.* key.
-        if defaults.object(forKey: Self.legacyAutoBattleEnabledKey) != nil,
-           defaults.object(forKey: Self.autoBattleEnabledKey) == nil {
-            defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
         }
         defaults.removeObject(forKey: Self.legacyAutoBattleEnabledKey)
     }

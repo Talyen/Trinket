@@ -104,7 +104,7 @@ struct ChapterStageSelectView: View {
             ),
         ) {
             if let art = ArtCatalog.backgroundArtByID[chapter.id]
-                ?? ArtCatalog.backgroundArtByID["chapter-1"] {
+                ?? ArtCatalog.backgroundArtByID[EncounterArtIDs.fallbackChapterID] {
                 FocalBackgroundArtwork(art: art)
             } else {
                 chapter.theme.tint

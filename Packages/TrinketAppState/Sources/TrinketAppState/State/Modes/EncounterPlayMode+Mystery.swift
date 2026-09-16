@@ -93,7 +93,7 @@ public extension EncounterPlayMode {
     }
 
     private func retryOpeningMystery(origin: PlayEncounterOrigin, forcedEventID: String?) {
-        playerSave.retrySaveAction(key: "mystery-open") { [weak self] in
+        playerSave.retrySaveAction(key: SaveRetryKey.mysteryOpen) { [weak self] in
             _ = self?.beginMysteryEncounter(origin: origin, forcedEventID: forcedEventID)
         }
     }
@@ -205,7 +205,9 @@ public extension EncounterPlayMode {
             mysterySession.markChoiceUnavailable()
             return false
         case .persistFailed:
-            playerSave.retrySaveAction(key: "mystery-resolution") { [weak self] in
+            // Transient write failure: silent retry while the encounter stays
+            // open; only rejection surfaces "unavailable".
+            playerSave.retrySaveAction(key: SaveRetryKey.mysteryResolution) { [weak self] in
                 guard let self, activeMysteryEncounter === mysterySession else { return }
                 _ = persistMysteryResolution(mysterySession, logging: logging, mutate: mutate)
             }

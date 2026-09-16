@@ -17,7 +17,7 @@ public final class FullGameStore {
         }
     }
 
-    public static let productID = "com.ryanmcintire.Trinket.fullgame"
+    public nonisolated static let productID = "com.ryanmcintire.Trinket.fullgame"
     public private(set) var ownership: Ownership = .checking
     public private(set) var product: Product?
     public private(set) var isLoading = false
@@ -61,6 +61,18 @@ public final class FullGameStore {
 
     public func refreshOwnership() async {
         let startedAt = revision
+        // Entitlement enumeration can block on I/O; resolve off the main actor
+        // and hop back only to publish.
+        let resolved = await Self.resolveCurrentOwnership()
+        guard revision == startedAt, !Task.isCancelled else { return }
+        ownership = resolved
+        if resolved == .unverified {
+            message = "Couldn't verify Full Game. Try Restore Purchases."
+        }
+    }
+
+    /// Reads the current entitlement set off the main actor.
+    private nonisolated static func resolveCurrentOwnership() async -> Ownership {
         var resolved = Ownership.free
         for await result in Transaction.currentEntitlements {
             switch result {
@@ -74,11 +86,7 @@ public final class FullGameStore {
                 break
             }
         }
-        guard revision == startedAt, !Task.isCancelled else { return }
-        ownership = resolved
-        if resolved == .unverified {
-            message = "Couldn't verify Full Game. Try Restore Purchases."
-        }
+        return resolved
     }
 
     public func purchaseStarted() {

@@ -106,7 +106,7 @@ public final class LabyrinthPlayMode {
         }
     }
 
-    public func resolvedEncounter(for node: LabyrinthNode) -> (combatant: Combatant, level: Int)? {
+    public func resolvedEncounter(for node: LabyrinthNode) -> ScaledEncounter? {
         Self.resolvedEncounter(
             for: node,
             partyAverageLevel: playerSave.roster.activePartyAverageLevel,
@@ -171,15 +171,12 @@ public final class LabyrinthPlayMode {
             hasPreparedRun: !missingPreparedRun,
         ) else { return }
 
-        var preparedAll = true
         var preparedKeys: Set<BattleRunKey> = []
         for nodeID in labyrinth.reachableNodeIDs() {
             guard playerSave.accessRestriction(for: .labyrinth(nodeID: nodeID)) == nil else { continue }
             guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { continue }
             if prepareBattle(node: node, labyrinth: labyrinth) {
                 preparedKeys.insert(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
-            } else {
-                preparedAll = false
             }
         }
         battleLaunch.keepPreparedRuns(preparedKeys, preservingWhere: { origin in
@@ -188,9 +185,10 @@ public final class LabyrinthPlayMode {
             }
             return true
         })
-        if preparedAll {
-            preparationTracker.notePrepared(inputs)
-        }
+        // Always cache: correctness rides on the hasPreparedRun leg above, so
+        // a transient failure still retries via missingPreparedRun instead of
+        // re-warming on every appear.
+        preparationTracker.notePrepared(inputs)
     }
 
     private func preparationInputs(labyrinth: PlayerLabyrinthState) -> PreparationInputs {
@@ -224,7 +222,7 @@ public final class LabyrinthPlayMode {
 
     func completeNodeOrPersistFailure(nodeID: String) -> StageMapMessage? {
         guard completeNode(nodeID: nodeID) else {
-            playerSave.retrySaveAction(key: "node-\(nodeID)") { [weak self] in
+            playerSave.retrySaveAction(key: SaveRetryKey.labyrinthNode(nodeID)) { [weak self] in
                 _ = self?.completeNodeOrPersistFailure(nodeID: nodeID)
             }
             return nil
@@ -269,7 +267,7 @@ extension LabyrinthPlayMode {
     static func resolvedEncounter(
         for node: LabyrinthNode,
         partyAverageLevel: Int,
-    ) -> (combatant: Combatant, level: Int)? {
+    ) -> ScaledEncounter? {
         PlayBattlePreparation.scaledEncounter(
             enemyID: node.enemyID,
             level: EncounterLevelResolver.labyrinthAdjusted(
@@ -300,7 +298,7 @@ extension LabyrinthPlayMode {
     private func combatRequest(
         node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
-        encounter: (combatant: Combatant, level: Int),
+        encounter: ScaledEncounter,
         effects: LabyrinthModifierEffects,
     ) -> PlayCombatRequest {
         PlayCombatRequest(

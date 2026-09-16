@@ -1,6 +1,6 @@
 import Foundation
 
-public enum EnemyFaction: String, CaseIterable, Identifiable, Hashable, Sendable {
+public enum EnemyFaction: String, CaseIterable, Identifiable, Hashable, Codable, Sendable {
     case mortal
     case beast
     case elemental

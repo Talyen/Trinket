@@ -9,6 +9,14 @@ import TrinketTestSupport
 @testable import TrinketAppState
 
 final class AppTestContext {
+    /// Shared fixture: temp directory + `UserDefaults` suite (torn down with
+    /// the context). Every state defaults to `-disable-cloud-sync
+    /// -disable-audio -skip-starter-selection`, full-game access, and a silent
+    /// battle runtime wired with the production progression closures.
+    /// `makeOnboardingEnvironment` is the same minus `-skip-starter-selection`.
+    /// Saves are cached per context and reused unless `-reset-state` is passed;
+    /// `lastBattle` is the injected runtime, invalid when a custom
+    /// `battleRuntime` is supplied.
     let directoryURL: URL
     let suiteName: String
     let userDefaults: UserDefaults

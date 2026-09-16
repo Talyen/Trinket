@@ -39,7 +39,12 @@ struct PostBattleTalentChoiceView: View {
                 finishConfirmation()
             }
         }
-        .onDisappear(perform: finishConfirmation)
+        .onDisappear {
+            finishConfirmation()
+            // Cleared after the exit transition so the next presentation never
+            // renders one frame of this combatant's tree first.
+            retainedCombatantID = nil
+        }
     }
 
     private func finishConfirmation() {

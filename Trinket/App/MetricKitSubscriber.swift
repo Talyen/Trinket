@@ -1,8 +1,6 @@
 import Foundation
 import MetricKit
 import os
-import TrinketAppState
-import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MetricKitDiagnosticSnapshot: Sendable {
@@ -32,10 +30,12 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     }
 
     nonisolated func didReceive(_ payloads: [MXMetricPayload]) {
-        for payload in payloads {
-            guard let animation = payload.animationMetrics else { continue }
-            let hitchRatio = animation.hitchTimeRatio
-            Task { @MainActor in
+        // Collect first so the MainActor hop happens once per batch, not once
+        // per payload; MetricKit delivers these off the main thread.
+        let hitchRatios = payloads.compactMap { $0.animationMetrics?.hitchTimeRatio }
+        guard !hitchRatios.isEmpty else { return }
+        Task { @MainActor in
+            for hitchRatio in hitchRatios {
                 self.logger.info(
                     "MXAnimationMetric hitchTimeRatio=\(String(describing: hitchRatio), privacy: .public)",
                 )
@@ -59,8 +59,9 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
         let periodStart = payload.timeStampBegin.timeIntervalSince1970
         let periodEnd = payload.timeStampEnd.timeIntervalSince1970
 
-        let crashes = (payload.crashDiagnostics ?? []).map { diagnostic in
-            makeSnapshot(
+        var snapshots: [MetricKitDiagnosticSnapshot] = []
+        for diagnostic in payload.crashDiagnostics ?? [] {
+            snapshots.append(MetricKitDiagnosticSnapshot(
                 kind: .crash(
                     signal: diagnostic.signal?.intValue,
                     terminationReason: diagnostic.terminationReason,
@@ -68,43 +69,29 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
                 applicationVersion: diagnostic.applicationVersion,
                 periodStart: periodStart,
                 periodEnd: periodEnd,
-            )
+            ))
         }
-        let hangs = (payload.hangDiagnostics ?? []).map { diagnostic in
-            makeSnapshot(
+        for diagnostic in payload.hangDiagnostics ?? [] {
+            snapshots.append(MetricKitDiagnosticSnapshot(
                 kind: .hang(
                     durationSeconds: diagnostic.hangDuration.converted(to: .seconds).value,
                 ),
                 applicationVersion: diagnostic.applicationVersion,
                 periodStart: periodStart,
                 periodEnd: periodEnd,
-            )
+            ))
         }
-        let diskWrites = (payload.diskWriteExceptionDiagnostics ?? []).map { diagnostic in
-            makeSnapshot(
+        for diagnostic in payload.diskWriteExceptionDiagnostics ?? [] {
+            snapshots.append(MetricKitDiagnosticSnapshot(
                 kind: .diskWrite(
                     totalMegabytes: diagnostic.totalWritesCaused.converted(to: .megabytes).value,
                 ),
                 applicationVersion: diagnostic.applicationVersion,
                 periodStart: periodStart,
                 periodEnd: periodEnd,
-            )
+            ))
         }
-        return crashes + hangs + diskWrites
-    }
-
-    private nonisolated static func makeSnapshot(
-        kind: MetricKitDiagnosticSnapshot.Kind,
-        applicationVersion: String,
-        periodStart: TimeInterval,
-        periodEnd: TimeInterval,
-    ) -> MetricKitDiagnosticSnapshot {
-        MetricKitDiagnosticSnapshot(
-            kind: kind,
-            applicationVersion: applicationVersion,
-            periodStart: periodStart,
-            periodEnd: periodEnd,
-        )
+        return snapshots
     }
 
     private func log(_ snapshot: MetricKitDiagnosticSnapshot) {

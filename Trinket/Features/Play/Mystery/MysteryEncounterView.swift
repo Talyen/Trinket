@@ -108,16 +108,12 @@ struct MysteryEncounterView: View {
             }
             .trinketDetailSheet()
         })
-        .preparedArtworkSheet(item: $selectedDetail, artworkNames: { context in
-            guard let base = GameContent.combatant(matching: context.combatantID) else { return [] }
-            let combatant = playerSave.roster.configuredCombatant(base)
-            return CombatantDetailPane.artworkNames(
-                combatant: combatant, loadout: playerSave.roster.loadout(for: combatant),
-                equipmentLoadout: playerSave.roster.equipmentLoadout(for: combatant),
-                inventoryItems: playerSave.inventory.items,
-            )
-        }, content: { context in
-            NavigationStack {
+        .modifier(CombatantDetailSheet(
+            selection: $selectedDetail,
+            artworkNames: {
+                CombatantDetailArtwork.rosterArtworkNames(for: $0.combatantID, playerSave: playerSave)
+            },
+            detailContent: { context in
                 RosterCombatantDetailView(
                     kind: context.kind,
                     combatantID: context.combatantID,
@@ -125,9 +121,8 @@ struct MysteryEncounterView: View {
                     effectsVolume: options.effectsVolume,
                     hidesNavigationBar: false,
                 )
-            }
-            .trinketDetailSheet()
-        })
+            },
+        ))
     }
 
     private func presentCombatant(_ context: CombatantDetailContext) {

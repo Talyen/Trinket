@@ -4,6 +4,20 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
+/// Single owner for hardcoded encounter artwork IDs. Campaign, labyrinth, and
+/// launch census all fall back to these when stage-specific art is missing;
+/// keeping them here prevents magic-string drift across map surfaces.
+enum EncounterArtIDs {
+    /// Fallback chapter hero when the active chapter has no dedicated art.
+    static let fallbackChapterID = "chapter-1"
+    /// Mystery-event chapter fallback for labyrinth nodes (no campaign chapter).
+    static let labyrinthChapterID = "labyrinth"
+    static let homesteadHeroID = "homestead"
+    static let contractsHeroID = "gameModeContracts"
+    static let campaignPlayModeID = "gameModeCampaign"
+    static let explorePlayModeID = "gameModeExplore"
+}
+
 struct EncounterArtwork: View {
     let stage: Stage
     var resolvedMysteryEvent: MysteryEvent?

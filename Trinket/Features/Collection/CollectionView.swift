@@ -52,10 +52,22 @@ struct CollectionView: View {
                 hapticsEnabled: options.hapticsEnabled,
             )
             .modifier(
-                CollectionCombatantDetailSheet(
+                CombatantDetailSheet(
                     selection: $selectedCombatant,
+                    zoomSourceID: { $0.combatantID },
                     zoomNamespace: zoomNamespace,
-                    issuesSignposts: true,
+                    signpostDetail: { "collectionCombatant=\($0.combatantID)" },
+                    artworkNames: {
+                        CombatantDetailArtwork.rosterArtworkNames(for: $0.combatantID, playerSave: playerSave)
+                    },
+                    detailContent: { context in
+                        RosterCombatantDetailView(
+                            kind: context.kind,
+                            combatantID: context.combatantID,
+                            hapticsEnabled: options.hapticsEnabled,
+                            effectsVolume: options.effectsVolume,
+                        )
+                    },
                 ),
             )
     }

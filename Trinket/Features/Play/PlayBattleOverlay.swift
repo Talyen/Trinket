@@ -116,27 +116,19 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .preparedArtworkSheet(item: $battle.overlayCombatantDetail, artworkNames: { detail in
-                CombatantDetailPane.artworkNames(
-                    combatant: detail.combatant, loadout: detail.combatant.abilityLoadout,
-                    equipmentLoadout: detail.equipmentLoadout, inventoryItems: detail.inventoryItems,
-                )
-            }, content: { detail in
-                NavigationStack {
-                    CombatantDetailPane(snapshot: detail)
-                }
-                .trinketDetailSheet()
-                .appFramePacingSignpost(
-                    AppFramePacingSignposts.Name.sheetPresent,
-                    isActive: true,
-                )
-                .onAppear {
-                    AppFramePacingSignposts.event(
-                        AppFramePacingSignposts.Name.sheetPresent,
-                        detail: "enemyDetail=\(detail.id)",
+            .modifier(CombatantDetailSheet(
+                selection: $battle.overlayCombatantDetail,
+                signpostDetail: { "enemyDetail=\($0.id)" },
+                artworkNames: { detail in
+                    CombatantDetailPane.artworkNames(
+                        combatant: detail.combatant, loadout: detail.combatant.abilityLoadout,
+                        equipmentLoadout: detail.equipmentLoadout, inventoryItems: detail.inventoryItems,
                     )
-                }
-            })
+                },
+                detailContent: { detail in
+                    CombatantDetailPane(snapshot: detail)
+                },
+            ))
             .preparedArtworkSheet(item: $battle.overlayAbilityDetail, artworkNames: {
                 [$0.artReference?.imageName, $0.artReference?.thumbnailImageName].compactMap(\.self)
             }, content: { ability in

@@ -1,3 +1,4 @@
+import os
 import SwiftUI
 import TrinketAppState
 import TrinketContent
@@ -5,6 +6,11 @@ import TrinketDesignSystem
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
+
+private let playBrowsingLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "PlayBrowsing",
+)
 
 struct PlayBrowsingStack: View {
     @Environment(PlaySession.self) private var play
@@ -38,7 +44,14 @@ struct PlayBrowsingStack: View {
         Binding(
             get: { navigationPath },
             set: { newPath in
-                guard isBrowsingInteractive else { return }
+                // Drops writes while battle/mystery/shop own the screen so a
+                // swipe-back during activation cannot desync the path; the
+                // binding stays source of truth so the UI snaps back. Logged
+                // for the same diagnosability reason as the tab guard.
+                guard isBrowsingInteractive else {
+                    playBrowsingLogger.info("Dropping browsing path write during encounter/battle.")
+                    return
+                }
                 if navigationPath.isEmpty, !newPath.isEmpty {
                     modeSelectionTrigger &+= 1
                 }

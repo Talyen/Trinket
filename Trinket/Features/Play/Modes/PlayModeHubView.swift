@@ -19,8 +19,8 @@ struct PlayModeHubView: View {
                 title: "Campaign",
                 subtitle: campaignSubtitle,
                 icon: .system("map.fill"),
-                artID: "gameModeCampaign",
-                fallbackArtID: "chapter-1",
+                artID: EncounterArtIDs.campaignPlayModeID,
+                fallbackArtID: EncounterArtIDs.fallbackChapterID,
                 accessibilityIdentifier: AccessibilityID.Play.campaignModeCard,
             )
 
@@ -28,8 +28,8 @@ struct PlayModeHubView: View {
                 destination: PlayLaunchDestination.explore,
                 title: "Explore",
                 subtitle: nil,
-                artID: "gameModeExplore",
-                fallbackArtID: "homestead",
+                artID: EncounterArtIDs.explorePlayModeID,
+                fallbackArtID: EncounterArtIDs.homesteadHeroID,
                 accessibilityIdentifier: AccessibilityID.Play.exploreModeCard,
             )
         }

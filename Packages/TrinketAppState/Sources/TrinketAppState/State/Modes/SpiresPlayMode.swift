@@ -9,17 +9,11 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class SpiresPlayMode {
-    private struct PreparationInputs: Equatable {
-        let spireID: SpireID
-        let floor: Int
-        let party: PlayBattlePartySnapshot
-    }
-
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var preparationTracker = PlayBattlePreparationTracker<PreparationInputs>()
+    private var preparationTracker = PlayBattlePreparationTracker<SingleBattlePreparationInputs>()
 
     init(
         playerSave: PlayerSaveStore,
@@ -33,7 +27,7 @@ public final class SpiresPlayMode {
         self.encounters = encounters
     }
 
-    public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
+    public func resolvedEncounter(for floor: SpireFloor) -> ScaledEncounter? {
         PlayBattlePreparation.scaledEncounter(
             enemyID: floor.enemyID,
             level: EncounterLevelResolver.spireEnemyLevel(for: floor),
@@ -149,17 +143,17 @@ public final class SpiresPlayMode {
         ) { combatRequest(for: floor, encounter: encounter) }
     }
 
-    private func preparationInputs(for floor: SpireFloor) -> PreparationInputs {
-        PreparationInputs(
-            spireID: floor.spireID,
-            floor: floor.floor,
+    private func preparationInputs(for floor: SpireFloor) -> SingleBattlePreparationInputs {
+        SingleBattlePreparationInputs(
+            runKey: PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor).runKey,
             party: PlayBattlePartySnapshot(playerSave: playerSave),
+            stageRewardsAlreadyClaimed: false,
         )
     }
 
     private func combatRequest(
         for floor: SpireFloor,
-        encounter: (combatant: Combatant, level: Int),
+        encounter: ScaledEncounter,
     ) -> PlayCombatRequest {
         PlayCombatRequest(
             origin: .spire(spireID: floor.spireID, floor: floor.floor),

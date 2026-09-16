@@ -185,9 +185,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private var artworkPinKey: [String] {
-        let landscape = ArtCatalog.backgroundArtByID[definition.id.rawValue]
-        let portrait = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue]
-        return [portrait?.imageName, landscape?.imageName, landscape?.thumbnailImageName].compactMap(\.self)
+        [ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue]?.imageName].compactMap(\.self)
     }
 
     private func refreshArtworkPins() async {

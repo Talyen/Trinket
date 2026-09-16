@@ -15,7 +15,7 @@ struct TalentActionFacts {
     var blindingReduction = 0
 }
 
-struct HeroTalentCardFacts {
+package struct HeroTalentCardFacts {
     var actorID: String
     var tier: AbilityTier
     var playSerial = 0

@@ -18,7 +18,10 @@ struct TrinketApp: App {
     @UIApplicationDelegateAdaptor(CloudNotificationDelegate.self) private var cloudNotifications
     @State private var appState: AppState?
     @State private var bootstrapFailureMessage: String?
-    @State private var launchPriorityImageNames: [String] = []
+    /// Computed once from the resolved state during init; never mutated after.
+    private let launchPriorityImageNames: [String]
+
+    static let battleRuntimeTypeMessage = "AppState battle runtime must be BattleSession"
 
     init() {
         let environment = AppEnvironment.shared
@@ -49,43 +52,57 @@ struct TrinketApp: App {
         }
 
         // Resolve state first (with in-memory fallback), then compute the
-        // launch artwork census once from the resolved state.
-        let resolvedState: AppState?
-        do {
-            let state = try makeState(nil)
+        // launch artwork census once from the resolved state. Bootstrap is a
+        // pure static step so init assigns every property (including the
+        // launch census let) before touching self.
+        let bootstrap = Self.bootstrapState(makeState: makeState)
+        if let state = bootstrap.state {
+            launchPriorityImageNames = LaunchArtworkCensus.priorityImageNames(for: state)
+            _appState = State(initialValue: state)
             cloudNotifications.store = state.playerSave
-            resolvedState = state
+        } else {
+            launchPriorityImageNames = []
+            _appState = State(initialValue: nil)
+            _bootstrapFailureMessage = State(initialValue: bootstrap.failureMessage)
+        }
+        MetricKitSubscriber.shared.start()
+    }
+
+    private struct BootstrapResult {
+        var state: AppState?
+        var failureMessage = "Progress storage could not be started on this device."
+    }
+
+    /// Bootstrap with in-memory fallback. Extracted so the primary and fallback
+    /// paths share one logging shape instead of a nested do/catch. Takes no
+    /// self state so init can assign properties (including lets) afterwards.
+    private static func bootstrapState(
+        makeState: (PlayerSaveStore?) throws -> AppState,
+    ) -> BootstrapResult {
+        do {
+            return try BootstrapResult(state: makeState(nil))
         } catch {
             trinketAppLogger.error(
                 "AppState bootstrap failed: \(String(describing: error), privacy: .public)",
             )
             do {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
-                let state = try makeState(fallbackSave)
-                cloudNotifications.store = state.playerSave
-                resolvedState = state
+                return try BootstrapResult(state: makeState(fallbackSave))
             } catch {
                 trinketAppLogger.fault(
                     "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)",
                 )
-                resolvedState = nil
-                _bootstrapFailureMessage = State(
-                    initialValue: "Progress storage could not be started on this device. Try freeing space or reinstalling, then launch again.",
+                return BootstrapResult(
+                    state: nil,
+                    failureMessage: "Progress storage could not be started on this device. Try freeing space or reinstalling, then launch again.",
                 )
             }
         }
-        if let resolvedState {
-            _appState = State(initialValue: resolvedState)
-            _launchPriorityImageNames = State(initialValue: LaunchArtworkCensus.priorityImageNames(for: resolvedState))
-        } else {
-            _appState = State(initialValue: nil)
-        }
-        MetricKitSubscriber.shared.start()
     }
 
     private static func configureBattleProgression(_ runtime: any BattleRuntime, play: PlaySession) {
         guard let battle = runtime as? BattleSession else {
-            preconditionFailure("AppState battle runtime must be BattleSession")
+            preconditionFailure(battleRuntimeTypeMessage)
         }
         battle.configureProgression(
             presentation: { [weak play] configuration in
@@ -121,6 +138,9 @@ struct TrinketApp: App {
                         appState: appState,
                         priorityImageNames: launchPriorityImageNames,
                     )
+                    // Intentional: Trinket hides scroll indicators app-wide as an
+                    // art-forward choice; individual screens must not re-enable
+                    // them without product approval.
                     .scrollIndicators(.never)
                 } else {
                     AppBootstrapFailureView(
@@ -131,6 +151,8 @@ struct TrinketApp: App {
             }
             .preferredColorScheme(.dark)
         }
+        // Intentional: game screens manage their own chrome; system overlays
+        // stay hidden app-wide unless product approves a scoped exception.
         .persistentSystemOverlays(.hidden)
     }
 }
@@ -166,7 +188,7 @@ private struct PreparedAppRoot: View {
 
     private var battleSession: BattleSession {
         guard let session = appState.play.battle as? BattleSession else {
-            preconditionFailure("AppState battle runtime must be BattleSession")
+            preconditionFailure(TrinketApp.battleRuntimeTypeMessage)
         }
         return session
     }
@@ -193,13 +215,9 @@ private struct PreparedAppRoot: View {
                     preparation.acknowledge(.hiddenTabsWarmed)
                 }
             }
-            if !preparation.didCompleteLaunchPreparation || preparation.retainedLaunchEncounterID != nil {
-                LaunchWarmupView {
-                    preparation.acknowledge(.minimumLoadingTimeComplete)
-                }
-                .allowsHitTesting(true)
-                .accessibilityIdentifier(preparation.didCompleteLaunchPreparation ? "" : AccessibilityID.Screen.launchWarmup)
-                .accessibilityHidden(preparation.didCompleteLaunchPreparation)
+            if !preparation.didCompleteLaunchPreparation || preparation.launchEncounterToken != nil {
+                launchCover
+                    .allowsHitTesting(true)
                 if !preparation.areCastEffectsPrepared {
                     CardCastEffectsPrewarmView(isRenderingEnabled: areRootLayoutsPrepared) {
                         preparation.acknowledge(.castEffectsPrepared)
@@ -228,47 +246,82 @@ private struct PreparedAppRoot: View {
         .debugFPSOverlay()
         #endif
         .task {
-            await appState.fullGame.start()
-            appState.synchronizePurchaseAccess()
+            await runPurchaseSync()
         }
         .onChange(of: appState.fullGame.ownership) { _, _ in
             appState.synchronizePurchaseAccess()
         }
         .task {
-            guard !preparation.isPreparationDelayComplete else { return }
-            try? await Task.sleep(for: .seconds(AppEnvironment.shared.launchPreparationDelay))
-            guard !Task.isCancelled else { return }
-            preparation.acknowledge(.preparationDelayComplete)
+            await runPreparationDelay()
         }
         .task {
-            guard !preparation.isResourcePreparationComplete else { return }
-            appState.prepareLaunchPerformanceResources()
-            async let battleTextures: Void = BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
-            async let launchArtwork: Void = artworkCache.prepareAll(priorityImageNames: priorityImageNames)
-            await battleTextures
-            await launchArtwork
-            guard !Task.isCancelled else { return }
-            if let stageID = appState.playerSave.journey.activeStageID,
-               let stage = GameContent.stage(id: stageID) {
-                appState.play.journey.prepareBattle(for: stage)
-            }
-            await battleSession.prepareBattlePresentationAssets(displayScale: displayScale)
-            guard !Task.isCancelled else { return }
-            preparation.acknowledge(.resourcesReady)
-            artworkCache.reportMemorySnapshot(label: "interactiveRoot")
+            await runResourcePreparation()
         }
-        .onChange(of: isPreparationComplete, initial: true) { _, isComplete in
+        .onChange(of: isPreparationComplete, initial: false) { _, isComplete in
             guard isComplete, !preparation.didCompleteLaunchPreparation else { return }
-            if appState.shellSession.selectedTab == .play {
-                preparation.retainedLaunchEncounterID = activeEncounterID
-            }
-            preparation.didCompleteLaunchPreparation = true
+            // Capture the encounter identity once so later encounters cannot
+            // reopen the cover; the retained underlay is decorative only.
+            preparation.acknowledge(.launchEncounterTokenChanged(
+                appState.shellSession.selectedTab == .play ? activeEncounterID : nil,
+            ))
+            preparation.acknowledge(.launchPreparationComplete)
         }
         .onChange(of: activeEncounterID) { _, encounterID in
-            if preparation.retainedLaunchEncounterID != encounterID {
-                preparation.retainedLaunchEncounterID = nil
+            if preparation.launchEncounterToken != encounterID {
+                preparation.acknowledge(.launchEncounterTokenChanged(nil))
             }
         }
+    }
+
+    /// Launch cover with stable view identity: before readiness it carries
+    /// the loading identifier UITests wait on; after readiness the retained
+    /// underlay becomes decorative, switches identifier, and is hidden from accessibility.
+    private var launchCover: some View {
+        LaunchWarmupView(
+            isMinimumLoadingTimeComplete: preparation.isMinimumLoadingTimeComplete,
+        ) {
+            preparation.acknowledge(.minimumLoadingTimeComplete)
+        }
+        .accessibilityIdentifier(
+            preparation.didCompleteLaunchPreparation
+                ? "Launch Warmup Decorative"
+                : AccessibilityID.Screen.launchWarmup,
+        )
+        .accessibilityHidden(preparation.didCompleteLaunchPreparation)
+    }
+
+    private func runPurchaseSync() async {
+        await appState.fullGame.start()
+        appState.synchronizePurchaseAccess()
+    }
+
+    private func runPreparationDelay() async {
+        guard !preparation.isPreparationDelayComplete else { return }
+        try? await Task.sleep(for: .seconds(AppEnvironment.shared.launchPreparationDelay))
+        guard !Task.isCancelled else { return }
+        preparation.acknowledge(.preparationDelayComplete)
+    }
+
+    /// Resource phase ordering is intentional: synchronous performance resources
+    /// first, then parallel battle textures + launch artwork, then journey prep
+    /// and battle presentation assets. Do not serialize the parallel pair or
+    /// move battle-asset prep before them without measuring first frame.
+    private func runResourcePreparation() async {
+        guard !preparation.isResourcePreparationComplete else { return }
+        appState.prepareLaunchPerformanceResources()
+        async let battleTextures: Void = BattlePresentationWarmup.prepareAndWait(displayScale: displayScale)
+        async let launchArtwork: Void = artworkCache.prepareAll(priorityImageNames: priorityImageNames)
+        await battleTextures
+        await launchArtwork
+        guard !Task.isCancelled else { return }
+        if let stageID = appState.playerSave.journey.activeStageID,
+           let stage = GameContent.stage(id: stageID) {
+            appState.play.journey.prepareBattle(for: stage)
+        }
+        await battleSession.prepareBattlePresentationAssets(displayScale: displayScale)
+        guard !Task.isCancelled else { return }
+        preparation.acknowledge(.resourcesReady)
+        artworkCache.reportMemorySnapshot(label: "interactiveRoot")
     }
 
     private var activeEncounterID: ObjectIdentifier? {

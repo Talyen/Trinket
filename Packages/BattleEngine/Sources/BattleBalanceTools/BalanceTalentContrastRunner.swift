@@ -83,21 +83,25 @@ enum BalanceTalentContrastRunner {
               !context.enemies.isEmpty
         else { return ([], []) }
 
+        // Compute sibling foci once: the kit sub-sweep needs only the sibling
+        // region size for its slice offset, not a second roster scan.
+        let siblingFoci = siblingFoci(
+            heroes: context.heroes,
+            companions: context.companions,
+            focusIDs: context.config.focusIDs,
+        )
         return (
-            runSiblingSweep(context: context, policy: policy),
-            runKitSweep(context: context, policy: policy),
+            runSiblingSweep(context: context, siblingFoci: siblingFoci, policy: policy),
+            runKitSweep(context: context, siblingFociCount: siblingFoci.count, policy: policy),
         )
     }
 
     private static func runSiblingSweep(
         context: BalanceContrastContext,
+        siblingFoci: [SiblingFocus],
         policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
-        let foci = siblingFoci(
-            heroes: context.heroes,
-            companions: context.companions,
-            focusIDs: context.config.focusIDs,
-        )
+        let foci = siblingFoci
         return BalanceContrastSupport.runSlicedContrast(
             context: context,
             foci: foci,
@@ -133,13 +137,9 @@ enum BalanceTalentContrastRunner {
 
     private static func runKitSweep(
         context: BalanceContrastContext,
+        siblingFociCount: Int,
         policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
-        let siblingFociCount = siblingFoci(
-            heroes: context.heroes,
-            companions: context.companions,
-            focusIDs: context.config.focusIDs,
-        ).count
         let siblingRegionCount = BalanceContrastSupport.workCount(
             fociCount: siblingFociCount,
             config: context.config,
@@ -192,8 +192,9 @@ enum BalanceTalentContrastRunner {
         context: BalanceContrastContext,
         pairSeed: UInt64,
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        let base = BalanceContrastSupport.sampleBasePair(
+        let base = BalanceContrastSupport.isolatedPairBase(
             owner: owner,
+            tier: tier,
             pairIndex: pairIndex,
             context: context,
             pairSeed: pairSeed,
@@ -202,22 +203,14 @@ enum BalanceTalentContrastRunner {
         let enemy = base.enemy
         let ownerLoadout = base.ownerLoadout
         let partnerLoadout = base.partnerLoadout
-        let gears = BalanceContrastSupport.sharedGear(
-            owner: owner,
-            partner: partner,
-            ownerLoadout: ownerLoadout,
-            partnerLoadout: partnerLoadout,
-            tier: tier,
-            pairSeed: pairSeed,
-        )
         return BalanceContrastSupport.buildOwnerPair(
             base: .init(
                 owner: owner,
                 partner: partner,
                 ownerLoadout: ownerLoadout,
                 partnerLoadout: partnerLoadout,
-                ownerGear: gears.owner,
-                partnerGear: gears.partner,
+                ownerGear: base.ownerGear,
+                partnerGear: base.partnerGear,
                 enemy: enemy,
                 tier: tier,
                 seed: pairSeed,

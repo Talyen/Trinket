@@ -53,10 +53,14 @@ public struct ModeProgressionStep: Identifiable, Equatable, Hashable, Codable, S
     }
 }
 
-public struct CampaignProgressionTracker: Sendable {
+public struct ModeProgressionTracker: Sendable {
     public let steps: [ModeProgressionStep]
 
-    public init(chapters: [Chapter] = GameContent.chapters) {
+    public init(steps: [ModeProgressionStep]) {
+        self.steps = steps
+    }
+
+    public static func campaign(chapters: [Chapter] = GameContent.chapters) -> Self {
         var result: [ModeProgressionStep] = []
         for chapter in chapters {
             let battleStages = chapter.stages.filter(\.encounter.isCombat)
@@ -80,14 +84,10 @@ public struct CampaignProgressionTracker: Sendable {
                 result.append(step)
             }
         }
-        steps = result
+        return Self(steps: result)
     }
-}
 
-public struct SpireProgressionTracker: Sendable {
-    public let steps: [ModeProgressionStep]
-
-    public init(spires: [SpireDefinition] = GameContent.spires) {
+    public static func spire(spires: [SpireDefinition] = GameContent.spires) -> Self {
         var result: [ModeProgressionStep] = []
         for spire in spires {
             let floors = GameContent.spireFloors(for: spire.id)
@@ -109,20 +109,15 @@ public struct SpireProgressionTracker: Sendable {
                 result.append(step)
             }
         }
-        steps = result
+        return Self(steps: result)
     }
-}
 
-public struct LabyrinthProgressionTracker: Sendable {
-    public let steps: [ModeProgressionStep]
-
-    public init(maxDepth: Int = 10) {
+    public static func labyrinth(maxDepth: Int = 10) -> Self {
         var result: [ModeProgressionStep] = []
         let trashPool = LabyrinthCatalog.trashEnemyIDs
         let bossPool = LabyrinthCatalog.bossEnemyIDs
         guard !trashPool.isEmpty, !bossPool.isEmpty else {
-            steps = []
-            return
+            return Self(steps: [])
         }
         for depth in 1 ... maxDepth {
             let isBoss = depth == maxDepth
@@ -142,6 +137,6 @@ public struct LabyrinthProgressionTracker: Sendable {
             )
             result.append(step)
         }
-        steps = result
+        return Self(steps: result)
     }
 }

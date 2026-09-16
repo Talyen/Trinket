@@ -13,7 +13,7 @@ enum ShopEncounterOpenResult {
 
 @MainActor
 @Observable
-public final class ShopEncounterSession: Identifiable {
+public final class ShopEncounterSession: Identifiable, EncounterSession {
     public nonisolated var id: String {
         stage.id
     }

@@ -26,7 +26,7 @@ public final class ContractsPlayMode {
         guard playerSave.persistBatch(logging: "Failed to open Contracts", { save in
             save.contracts.ensureBoard()
         }) else {
-            playerSave.retrySaveAction(key: "contracts-enter") { [weak self] in _ = self?.enter() }
+            playerSave.retrySaveAction(key: SaveRetryKey.contractsEnter) { [weak self] in _ = self?.enter() }
             return nil
         }
         return nil
@@ -38,13 +38,13 @@ public final class ContractsPlayMode {
         guard playerSave.persistBatch(logging: "Failed to refresh Contracts", { save in
             save.contracts.refresh()
         }) else {
-            playerSave.retrySaveAction(key: "contracts-refresh") { [weak self] in _ = self?.refresh() }
+            playerSave.retrySaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] in _ = self?.refresh() }
             return nil
         }
         return nil
     }
 
-    public func resolvedEncounter(for offer: ContractOffer) -> (combatant: Combatant, level: Int)? {
+    public func resolvedEncounter(for offer: ContractOffer) -> ScaledEncounter? {
         PlayBattlePreparation.scaledEncounter(
             enemyID: offer.enemyID,
             level: EncounterLevelResolver.contractEnemyLevel(
@@ -72,7 +72,7 @@ public final class ContractsPlayMode {
 
     private func combatRequest(
         for offer: ContractOffer,
-        encounter: (combatant: Combatant, level: Int),
+        encounter: ScaledEncounter,
     ) -> PlayCombatRequest {
         PlayCombatRequest(
             origin: .contract(offerID: offer.id),

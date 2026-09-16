@@ -1,3 +1,4 @@
+import os
 import SwiftUI
 import TrinketAppState
 import TrinketBattleFeature
@@ -6,6 +7,11 @@ import TrinketDesignSystem
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
+
+private let contentViewLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "ContentView",
+)
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
@@ -28,12 +34,8 @@ struct ContentView: View {
                     confirmCompanion: appState.completeStarterSelection,
                 )
                 .id(playerSave.currentSave.sessionGeneration)
-                .onGeometryChange(for: Bool.self) { geometry in
-                    geometry.size.width > 0 && geometry.size.height > 0
-                } action: { hasLayout in
-                    if hasLayout {
-                        onFirstLayout()
-                    }
+                .onFirstNonzeroLayout {
+                    onFirstLayout()
                 }
                 .transition(.opacity)
             } else {
@@ -53,9 +55,11 @@ struct ContentView: View {
             appState.reconcileShellState(.scenePhaseChanged, scenePhase: scenePhase)
         }
         .task(id: scenePhase) {
-            if scenePhase == .active {
-                await appState.runCloudSynchronization()
-            }
+            guard scenePhase == .active else { return }
+            async let cloudSync: Void = appState.runCloudSynchronization()
+            await appState.fullGame.refreshOwnership()
+            appState.synchronizePurchaseAccess()
+            await cloudSync
         }
         .onChange(of: shellSession.selectedTab) { _, newTab in
             appState.refreshMusic(scenePhase: scenePhase)
@@ -81,12 +85,6 @@ struct ContentView: View {
             appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                Task {
-                    await appState.fullGame.refreshOwnership()
-                    appState.synchronizePurchaseAccess()
-                }
-            }
             appState.reconcileShellState(.scenePhaseChanged, scenePhase: newPhase)
         }
     }
@@ -96,8 +94,17 @@ struct ContentView: View {
         let intercepting = Binding<AppTab>(
             get: { selection.wrappedValue },
             set: { newTab in
+                // Encounter covers are fullscreen and non-dismissable, so the
+                // tab bar is unreachable while one is up; this guard covers
+                // transition windows and programmatic selection. The drop is
+                // logged so a stuck tab is diagnosable instead of silent.
                 guard appState.play.encounters.activeMysteryEncounter == nil,
-                      appState.play.encounters.activeShopEncounter == nil else { return }
+                      appState.play.encounters.activeShopEncounter == nil else {
+                    contentViewLogger.info(
+                        "Ignoring tab switch to \(newTab.rawValue, privacy: .public) during active encounter.",
+                    )
+                    return
+                }
                 let oldTab = selection.wrappedValue
                 if newTab == oldTab {
                     guard newTab != .play || battle.lifecyclePhase != .active else { return }
@@ -189,12 +196,8 @@ private struct SelectedTabLayoutAcknowledgement: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .onGeometryChange(for: Bool.self) { geometry in
-                isSelected && geometry.size.width > 0 && geometry.size.height > 0
-            } action: { hasLayout in
-                if hasLayout {
-                    onLayout()
-                }
+            .onFirstNonzeroLayout(when: isSelected) {
+                onLayout()
             }
     }
 }

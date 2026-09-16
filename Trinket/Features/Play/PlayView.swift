@@ -13,6 +13,7 @@ struct PlayView: View {
     @Environment(PlaySession.self) private var play
     @Environment(ShellSession.self) private var shellSession
     @Environment(BattleSession.self) private var battle
+    @Environment(EncounterPlayMode.self) private var encounters
     @State private var stageMessage: StageMapMessage?
     let restoresPendingDestination: Bool
 
@@ -50,6 +51,9 @@ struct PlayView: View {
     private func restorePlayDestinationIfNeeded() {
         guard restoresPendingDestination else { return }
         guard battle.lifecyclePhase != .active else { return }
+        // Never overwrite the browsing path under an encounter cover; the
+        // pending destination stays queued until the encounter clears.
+        guard encounters.activeMysteryEncounter == nil, encounters.activeShopEncounter == nil else { return }
 
         if let destination = play.consumePendingDestination() {
             shellSession.playPath = destination.navigationPath

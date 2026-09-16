@@ -28,7 +28,7 @@ public enum PlayBattleOrigin: Hashable, Sendable {
 @MainActor
 struct PlayBattleRoute {
     let origin: PlayBattleOrigin
-    let complete: @MainActor (
+    let complete: (
         BattleRunConfiguration,
         BattlePresentationContext?,
         BattleRewardSettlement,

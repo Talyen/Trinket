@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketAppState
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
@@ -28,7 +29,10 @@ struct HomesteadCategoryView: View {
 
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: TrinketDesign.Spacing.large) {
+            // Shared collection grid spec (adaptive 150–190): renders the same
+            // two columns as the previous hardcoded pair on every portrait
+            // iPhone, and stays in sync with Collection when the spec changes.
+            LazyVGrid(columns: TrinketDesign.Layout.collectionGridItems, spacing: TrinketDesign.Spacing.large) {
                 ForEach(definitions) { definition in
                     HomesteadProjectTile(
                         definition: definition,
@@ -78,18 +82,6 @@ struct HomesteadCategoryView: View {
                     names.append(thumbnail)
                 }
             }
-            if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
-                names.append(art.imageName)
-                if let thumb = art.thumbnailImageName {
-                    names.append(thumb)
-                }
-            }
-        }
-        if let hero = ArtCatalog.backgroundArtByID[definitions.first?.category.artID ?? ""] {
-            names.append(hero.imageName)
-            if let thumb = hero.thumbnailImageName {
-                names.append(thumb)
-            }
         }
         return names
     }
@@ -102,14 +94,62 @@ struct HomesteadCategoryView: View {
     }
 }
 
-extension HomesteadNodeCategory {
-    var artID: String {
-        switch self {
-        case .farming: "wheatField"
-        case .crafting: "blacksmithForge"
-        case .alchemy: "alchemyLab"
-        case .training: "hunterLodge"
-        case .arcana: "moonlitSanctum"
+struct HomesteadProjectTile: View {
+    let definition: HomesteadNodeDefinition
+    let status: HomesteadProjectStatus
+    var zoomNamespace: Namespace.ID
+
+    var body: some View {
+        NavigationLink(value: HomesteadRoute.node(definition.id)) {
+            VStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
+                artwork
+                    .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: TrinketDesign.Corners.card)
+                            .strokeBorder(
+                                TrinketDesign.Colors.subtleStroke,
+                                lineWidth: 1,
+                            )
+                    }
+                    .shadow(color: TrinketDesign.Colors.accent.opacity(status.canBuildOrUpgrade ? 0.4 : 0), radius: 8)
+                    .overlay(alignment: .bottomTrailing) {
+                        if !status.isUnlocked {
+                            Image(systemName: "lock.fill")
+                                .trinketTypography(.body)
+                                .trinketOnArtText()
+                                .padding(TrinketDesign.Spacing.medium)
+                                .accessibilityHidden(true)
+                        }
+                    }
+
+                HomesteadTierProgress(currentTier: status.currentTier, totalTiers: definition.maxTier)
+                    .frame(maxWidth: 132)
+                    .accessibilityHidden(true)
+
+                Text(balanced: definition.title)
+                    .trinketTypography(.cardTitle)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .contentShape(Rectangle())
+            .matchedTransitionSource(id: definition.id, in: zoomNamespace)
+        }
+        .trinketArtworkCardButtonStyle()
+        .accessibilityValue("\(status.currentTier) of \(definition.maxTier) upgrades")
+        .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
+    }
+
+    @MainActor
+    @ViewBuilder
+    private var artwork: some View {
+        if let art = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {
+            FocalBackgroundArtwork(art: art, displaySize: .compact)
+                .saturation(status.isUnlocked ? 1 : 0.35)
+        } else {
+            TrinketDesign.Colors.surface
         }
     }
 }

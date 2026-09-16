@@ -155,6 +155,28 @@ extension BattleTestFixtures {
         )
     }
 
+    /// In-context effect dispatch core. Callers must already hold an open
+    /// engine context (`withEngineContext`); see `EffectHandlersTestSupport.dispatch`
+    /// for the wrapping entry point used outside one.
+    static func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard let handler = EffectHandlers.handler(for: effect.kind) else {
+            preconditionFailure("Missing handler for \(effect.kind)")
+        }
+        return handler.apply(
+            effect,
+            ability: ability,
+            source: source,
+            target: target,
+            in: &context,
+        )
+    }
+
     static func apply(
         _ effect: Effect,
         abilityName: String,
@@ -168,16 +190,7 @@ extension BattleTestFixtures {
             tier: .basic,
             targetedEffects: [TargetedEffect(effect)],
         )
-        guard let handler = EffectHandlers.handler(for: effect.kind) else {
-            preconditionFailure("Missing handler for \(effect.kind)")
-        }
-        return handler.apply(
-            effect,
-            ability: ability,
-            source: source,
-            target: target,
-            in: &context,
-        )
+        return apply(effect, ability: ability, source: source, target: target, in: &context)
     }
 
     static func shieldPoints(for combatant: Combatant, in context: BattleState) -> Int {

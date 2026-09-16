@@ -1,11 +1,13 @@
 import Foundation
-import SwiftUI
 import TrinketAppState
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
 import TrinketPersistence
 
+/// Transient build/upgrade attempt state. Stays separate from
+/// `HomesteadCollectionControl` below: the result types and success payloads
+/// differ (tier celebration vs granted amounts), and sharing an abstraction
+/// would couple the two flows for ~20 saved lines.
 struct HomesteadBuildControl {
     var error: String?
     var upgradeEventCount = 0
@@ -53,15 +55,5 @@ struct HomesteadCollectionControl {
         case .cloudUnavailable, .persistFailed:
             isPending = true
         }
-    }
-}
-
-extension View {
-    func homesteadBuildErrorAlert(build: Binding<HomesteadBuildControl>) -> some View {
-        trinketFailureAlert("Build Failed", message: build.error)
-    }
-
-    func homesteadCollectionErrorAlert(collection: Binding<HomesteadCollectionControl>) -> some View {
-        trinketFailureAlert("Collection Failed", message: collection.error)
     }
 }

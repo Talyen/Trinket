@@ -23,10 +23,13 @@ struct HomesteadDetailSheetView: View {
     }
 
     var body: some View {
+        // Chrome lives with each sheet kind: improvement configures its own
+        // measured detents + surface below, while HomesteadWalletSheet owns
+        // its fixed detents and chrome internally. A single trigger is not
+        // possible: the detail flow presents wallet through its purchase
+        // orchestration sheet, while the gallery presents it standalone.
         root
-            .presentationDragIndicator(.visible)
-            .presentationBackground(TrinketDesign.Colors.surface)
-            .homesteadBuildErrorAlert(build: $build)
+            .trinketFailureAlert("Build Failed", message: $build.error)
     }
 
     @MainActor
@@ -36,9 +39,12 @@ struct HomesteadDetailSheetView: View {
         case let .improvement(number):
             if let tier = definition.tier(number) {
                 improvement(tier)
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(TrinketDesign.Colors.surface)
+                    .interactiveDismissDisabled(build.isPending || purchaseCommitted)
             }
         case .wallet:
-            HomesteadWalletSheet(onClose: { dismiss() })
+            HomesteadWalletSheet()
         }
     }
 
@@ -112,8 +118,9 @@ struct HomesteadDetailSheetView: View {
 
 struct HomesteadWalletSheet: View {
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.dismiss) private var dismiss
 
-    let onClose: () -> Void
+    var onClose: (() -> Void)?
 
     var body: some View {
         NavigationStack {
@@ -125,7 +132,13 @@ struct HomesteadWalletSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { onClose() } label: { Label("Close", systemImage: "xmark") }
+                    Button {
+                        if let onClose {
+                            onClose()
+                        } else {
+                            dismiss()
+                        }
+                    } label: { Label("Close", systemImage: "xmark") }
                         .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
                 }
             }

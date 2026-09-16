@@ -9,17 +9,11 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class JourneyPlayMode {
-    private struct PreparationInputs: Equatable {
-        let stageID: String
-        let party: PlayBattlePartySnapshot
-        let stageRewardsAlreadyClaimed: Bool
-    }
-
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var preparationTracker = PlayBattlePreparationTracker<PreparationInputs>()
+    private var preparationTracker = PlayBattlePreparationTracker<SingleBattlePreparationInputs>()
 
     init(
         playerSave: PlayerSaveStore,
@@ -62,7 +56,7 @@ public final class JourneyPlayMode {
         )
     }
 
-    public func resolvedEncounter(for stage: Stage) -> (combatant: Combatant, level: Int)? {
+    public func resolvedEncounter(for stage: Stage) -> ScaledEncounter? {
         Self.resolvedEncounter(
             for: stage,
             worldSeed: playerSave.worldSeed,
@@ -173,7 +167,7 @@ public final class JourneyPlayMode {
             hero: roster.activeHero,
             companion: roster.activeCompanion,
         ) else {
-            playerSave.retrySaveAction(key: "stage-\(stage.id)") { [weak self] in
+            playerSave.retrySaveAction(key: SaveRetryKey.stage(stage.id)) { [weak self] in
                 _ = self?.completeStageOrPersistFailure(stage)
             }
             return nil
@@ -225,7 +219,7 @@ extension JourneyPlayMode {
         for stage: Stage,
         worldSeed: UInt64,
         partyAverageLevel: Int,
-    ) -> (combatant: Combatant, level: Int)? {
+    ) -> ScaledEncounter? {
         guard let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
         return PlayBattlePreparation.scaledEncounter(
@@ -239,7 +233,7 @@ extension JourneyPlayMode {
 
     private func battleLoot(
         for stage: Stage,
-        encounter: (combatant: Combatant, level: Int),
+        encounter: ScaledEncounter,
     ) -> BattleLootResult {
         VictoryRewardApplier.resolveLoot(
             .journey(stage: stage),
@@ -261,9 +255,9 @@ extension JourneyPlayMode {
     private func preparationInputs(
         for stage: Stage,
         stageRewardsAlreadyClaimed: Bool,
-    ) -> PreparationInputs {
-        PreparationInputs(
-            stageID: stage.id,
+    ) -> SingleBattlePreparationInputs {
+        SingleBattlePreparationInputs(
+            runKey: PlayBattleOrigin.journey(stageID: stage.id).runKey,
             party: PlayBattlePartySnapshot(playerSave: playerSave),
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
         )
@@ -271,7 +265,7 @@ extension JourneyPlayMode {
 
     private func combatRequest(
         for stage: Stage,
-        encounter: (combatant: Combatant, level: Int),
+        encounter: ScaledEncounter,
     ) -> PlayCombatRequest {
         let stageRewardsAlreadyClaimed = Self.stageRewardsAlreadyClaimed(
             for: stage,

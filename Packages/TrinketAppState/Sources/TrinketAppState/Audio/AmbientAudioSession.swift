@@ -1,24 +1,16 @@
-import AVFoundation
 import Foundation
 import os
-import TrinketPersistence
 
 enum AudioLogging {
-    static let subsystem = PlayerSaveDefaults.loggingSubsystem
+    static let subsystem = AudioSupport.subsystem
 }
 
 enum AmbientAudioSession {
     static func configureIfNeeded(configured: inout Bool, logger: Logger) {
         guard !configured else { return }
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true)
-            configured = true
-        } catch {
-            logger.error(
-                "Unable to configure audio session: \(error.localizedDescription, privacy: .public)",
-            )
-        }
+        AudioSession.configureIfNeeded(logger: logger)
+        // Mirror the legacy per-player flag so existing call sites keep their
+        // shape; the process-wide flag inside AudioSession owns retry semantics.
+        configured = true
     }
 }

@@ -10,9 +10,21 @@ import TrinketTestSupport
 
 @MainActor
 enum PlayBattleLaunchTestSupport {
+    /// First stage of the first campaign chapter. Prefer this over indexing
+    /// `GameContent.chapters[0].stages.first` so content-order assumptions live
+    /// in one place.
+    static func firstJourneyStage() throws -> Stage {
+        try #require(GameContent.chapters.first?.stages.first)
+    }
+
+    /// Unlocks and activates a hero + companion pair.
+    /// Levels default to nil (leave progression untouched); pass explicit
+    /// levels for difficulty/award math tests (e.g. contracts).
     static func setActiveParty(
         heroID: String,
         companionID: String,
+        heroLevel: Int? = nil,
+        companionLevel: Int? = nil,
         in state: PlaySession,
     ) throws {
         var roster = state.playerSave.roster
@@ -22,6 +34,12 @@ enum PlayBattleLaunchTestSupport {
         roster.unlock(companion)
         roster.setActiveHero(hero)
         roster.setActiveCompanion(companion)
+        if let heroLevel {
+            roster.progressions[roster.activeHeroID] = .at(level: heroLevel)
+        }
+        if let companionLevel {
+            roster.progressions[roster.activeCompanionID] = .at(level: companionLevel)
+        }
         #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
     }
 
@@ -67,6 +85,8 @@ enum PlayBattleLaunchTestSupport {
             rosterState: roster,
             inventoryState: inventory,
             homesteadState: homestead,
+            // Launches with a mode origin (or explicit run key) carry
+            // progression rewards; bare launches without either do not.
             hasProgressionRewards: runKey != nil || origin != nil,
         ).configuration
     }

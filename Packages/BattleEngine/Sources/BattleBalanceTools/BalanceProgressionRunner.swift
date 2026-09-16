@@ -60,8 +60,8 @@ public enum BalanceProgressionRunner {
 
             let recordedPlayerLevel = Int(
                 ((
-                    Double(controller.simulatedHeroLevel(for: step))
-                        + Double(controller.simulatedCompanionLevel(for: step))
+                    Double(controller.simulatedHeroLevel())
+                        + Double(controller.simulatedCompanionLevel())
                 ) / 2.0).rounded(),
             )
             let record = ProgressionBattleRecord(

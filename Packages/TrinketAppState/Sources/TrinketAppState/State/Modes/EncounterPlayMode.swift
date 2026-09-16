@@ -55,7 +55,9 @@ public final class EncounterPlayMode {
         case .rejected:
             return .failed(StageMapMessage(title: "Shop Unavailable", message: "The shop could not be opened. Your progress is preserved."))
         case .persistFailed:
-            playerSave.retrySaveAction(key: "shop-open") { [weak self] in
+            // Transient write failure: silent retry; the session opens late via
+            // observation instead of surfacing an error for a passing blip.
+            playerSave.retrySaveAction(key: SaveRetryKey.shopOpen) { [weak self] in
                 guard let self else { return }
                 if case .autoCompleted = beginShopEncounter(origin: origin, onAutoComplete: onAutoComplete) {
                     _ = onAutoComplete()
@@ -83,7 +85,7 @@ public final class EncounterPlayMode {
             return false
         case .persistFailed:
             shopSession.markPurchaseFinished()
-            playerSave.retrySaveAction(key: "shop-purchase-\(offerID)") { [weak self] in
+            playerSave.retrySaveAction(key: SaveRetryKey.shopPurchase(offerID)) { [weak self] in
                 guard let self, activeShopEncounter === shopSession else { return }
                 _ = purchaseActiveShopOffer(offerID: offerID)
             }
@@ -102,7 +104,7 @@ public final class EncounterPlayMode {
             if let failure = onAutoComplete() {
                 return failure
             }
-            return emptyShopClosedMessage(identifier: identifier)
+            return Self.emptyShopClosedMessage(identifier: identifier)
         case .opened, .unavailable:
             return nil
         case let .failed(message):
@@ -128,7 +130,7 @@ public final class EncounterPlayMode {
                 save: &save,
             )
         }) else {
-            playerSave.retrySaveAction(key: "shop-leave") { [weak self] in
+            playerSave.retrySaveAction(key: SaveRetryKey.shopLeave) { [weak self] in
                 guard let self, activeShopEncounter === shopSession else { return }
                 _ = finishActiveShopEncounter()
             }
@@ -138,15 +140,13 @@ public final class EncounterPlayMode {
         return true
     }
 
-    static let emptyShopClosedMessage = StageMapMessage(
-        title: "Shop Closed",
-        message: "The merchant has nothing left to sell. You continue on.",
-    )
-
-    func emptyShopClosedMessage(identifier: String) -> StageMapMessage {
+    static func emptyShopClosedMessage(identifier: String) -> StageMapMessage {
         appStateLogger.error(
             "Shop \(identifier, privacy: .public) produced no offers; completing encounter.",
         )
-        return Self.emptyShopClosedMessage
+        return StageMapMessage(
+            title: "Shop Closed",
+            message: "The merchant has nothing left to sell. You continue on.",
+        )
     }
 }
