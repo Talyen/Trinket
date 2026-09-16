@@ -60,6 +60,21 @@ runs:
         echo "XCODE_VERSION=$best_version" >> "$GITHUB_ENV"
         echo "XCODE_BUILD=$best_build" >> "$GITHUB_ENV"
 
+    - name: Ensure Metal toolchain
+      shell: bash
+      run: |
+        # Slim preview images (e.g. xcode-27 beta) omit the Metal toolchain,
+        # which fails app/package test builds with "cannot execute tool
+        # 'metal'". Download on demand; no-op when already installed.
+        set -euo pipefail
+        if xcodebuild -showComponent MetalToolchain 2>/dev/null | grep -q '^Status: installed'; then
+          echo "Metal toolchain already installed."
+        else
+          echo "Downloading Metal toolchain..."
+          sudo xcodebuild -downloadComponent MetalToolchain
+          xcodebuild -showComponent MetalToolchain
+        fi
+
     - name: Cache pinned CI tools
       uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v4
       with:
