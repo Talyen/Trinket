@@ -5,7 +5,7 @@ import TrinketCore
 public struct LootRequest: Equatable, Sendable {
     /// Content-tier curve for item generation (ItemLootPolicy probabilities).
     /// Always the authored level (Journey chapter math, Spire floor x2,
-    /// Labyrinth depth, Contract party-derived level) — never party-adjusted —
+    /// Labyrinth depth, Contracts campaign anchor) — never party-adjusted —
     /// so under-leveled parties keep fair item tiers. Fight-relative scaling
     /// (XP, gold, materials) uses the separate `encounterLevel` passed to
     /// `resolveLoot`.
@@ -85,9 +85,9 @@ public extension LootRequest {
 
     /// Fourth loot-request factory, co-located with the other three so a
     /// seed/level change touches one extension instead of four call sites.
-    static func contract(offerID: String, encounterLevel: Int) -> LootRequest {
+    static func contract(offerID: String, rewardLevel: Int) -> LootRequest {
         LootRequest(
-            rewardLevel: encounterLevel,
+            rewardLevel: rewardLevel,
             seedSalt: "battle-loot-contract-\(offerID)",
             itemID: "contract-\(offerID)-loot",
         )
@@ -98,6 +98,16 @@ public enum VictoryRewardApplier {
     public static func isBoss(enemyID: String?) -> Bool {
         guard let enemyID else { return false }
         return GameContent.enemy(matching: enemyID)?.isBoss == true
+    }
+
+    /// Single party-adjusted level truth. Authored levels stay fixed for item
+    /// tiers (`LootRequest.rewardLevel`); fight-relative scaling (XP/gold/
+    /// materials) adjusts by party average. Replaces the four per-mode copies.
+    public static func partyAdjustedEncounterLevel(authoredLevel: Int, save: PlayerSave) -> Int {
+        EncounterLevelResolver.campaignAdjusted(
+            authoredLevel,
+            partyAverageLevel: save.roster.activePartyAverageLevel,
+        )
     }
 
     public static func resolvedGoldReward(
@@ -188,6 +198,10 @@ public enum VictoryRewardApplier {
     /// just ran wins by design: it snapshots homestead production at battle
     /// end, and re-settling at completion would accrue production a second
     /// time. Callers without a battle pass nil to settle fresh.
+    ///
+    /// A duplicate headline item (owned trinket/unique) converts to
+    /// level-scaled consolation gold instead of granting nothing: the
+    /// encounter still marks complete, so the claim must still pay something.
     static func grantVictoryRewards(
         hero: Combatant,
         companion: Combatant,
@@ -201,8 +215,16 @@ public enum VictoryRewardApplier {
         item: InventoryItem?,
         save: inout PlayerSave,
     ) {
+        var payableItem = item
+        var consolationGold = 0
+        if let candidate = item,
+           InventoryDuplicatePolicy.containsDuplicate(of: candidate, in: save.inventory.items) {
+            payableItem = nil
+            let range = BattleLoot.quantityRange(forLevel: encounterLevel)
+            consolationGold = (range.lowerBound + range.upperBound) / 2
+        }
         let resolved = award ?? BattleRewardPlan(
-            stageGold: stageGold,
+            stageGold: stageGold + consolationGold,
             goldFindPercent: save.homestead.effects.goldFindPercent,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(
                 encounterLevel: encounterLevel, roster: save.roster, percent: experienceEarnedPercent,
@@ -215,7 +237,7 @@ public enum VictoryRewardApplier {
                 playerLevel: save.roster.progression(for: companion).level, enemyLevel: encounterLevel,
                 highestLevel: save.roster.highestCompanionLevel, experienceEarnedPercent: experienceEarnedPercent,
             ) : 0,
-            materials: materialRewards, items: item.map { [$0] } ?? [],
+            materials: materialRewards, items: payableItem.map { [$0] } ?? [],
         ).settle(
             battleGold: battleGold,
             inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
@@ -223,6 +245,10 @@ public enum VictoryRewardApplier {
         apply(resolved, hero: hero, companion: companion, save: &save)
     }
 
+    /// Applies a settled award verbatim. Dupe conversion happens at plan
+    /// construction in `grantVictoryRewards` (nil-award path); battle-end
+    /// awards carry launch-filtered items, so direct `apply` callers must
+    /// filter duplicates first.
     public static func apply(
         _ settlement: BattleRewardSettlement,
         hero: Combatant,

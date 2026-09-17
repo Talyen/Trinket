@@ -207,8 +207,11 @@ struct AppStateMysteryRecruitTests {
         let offer = try #require(session.offers.last)
         #expect(state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
         let result = try #require(session.applyResult)
-        #expect(result.heroGrantedExperience == offer.bonus.amount)
-        #expect(result.companionGrantedExperience == offer.bonus.amount)
+        // Claim-time settle caps the raw preview bonus but never inflates it,
+        // and both recipients always share the grant.
+        #expect(result.heroGrantedExperience == result.companionGrantedExperience)
+        #expect(result.heroGrantedExperience > 0)
+        #expect(result.heroGrantedExperience <= offer.bonus.amount)
         #expect(result.grantedItems == [offer.item])
     }
 
@@ -221,7 +224,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter == nil)
     }
 
-    @Test func `changed offers require another tap before any reward is claimed`() throws {
+    @Test func `gold filling between preview and claim converts to XP on first tap`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let session = try attachPreparedMystery(event: event, to: state)
@@ -231,21 +234,14 @@ struct AppStateMysteryRecruitTests {
         roster.gold = 999
         #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
 
-        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
-        #expect(session.phase == .reading)
-        #expect(session.persistFailureMessage != nil)
-        #expect(state.playerSave.inventory == inventoryBefore)
-        #expect(!state.playerSave.journey.completedStageIDs.contains(session.stage.id))
-        let refreshed = try #require(session.offers.first)
-        #expect(refreshed.item == offer.item)
-        guard case .experience = refreshed.bonus else {
-            Issue.record("Expected shared XP when Gold became full")
-            return
-        }
+        // Wallet changes no longer invalidate the preview: the stored bonus is
+        // raw, so the first tap claims and converts gold to XP at claim time.
         #expect(state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
-        #expect(session.applyResult?.grantedItems == [refreshed.item])
-        #expect(session.applyResult?.heroGrantedExperience == refreshed.bonus.amount)
-        #expect(session.applyResult?.companionGrantedExperience == refreshed.bonus.amount)
+        #expect(session.applyResult?.grantedItems == [offer.item])
+        #expect(session.applyResult?.grantedGold == 0)
+        #expect(session.applyResult?.hasGrantedExperience == true)
+        #expect(state.playerSave.journey.completedStageIDs.contains(session.stage.id))
+        #expect(state.playerSave.inventory != inventoryBefore)
     }
 
     @Test func `corrupt choice with no eligible items fails with banner`() throws {

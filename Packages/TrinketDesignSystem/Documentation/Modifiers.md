@@ -29,17 +29,23 @@ buttons and system toolbar styling.
 | `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
-| `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (defaults to canvas) |
+| `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (defaults to canvas; pass the surface below the art — surface, panel, or a section fill) |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
+| `.trinketDecorativeMotion(_:)` | Park decorative clocks (shine, plasma, aura) for a subtree; AND-composed so descendants cannot re-enable under a suppressed ancestor |
+| `.trinketPresentationVisibility(_:opacity:)` | Retained/reveal visibility owning opacity, hit testing, and accessibility together without unmounting prewarmed surfaces |
+| `.trinketWalletIncreaseBump(trigger:delay:)` | Wallet increase bump (entrance via `TrinketMotion.Interaction.walletBump`, settle via `press`) |
 
 Native toolbar buttons use the system-provided container without custom glass
 button styling. Reserve `.trinketIconButton()` for controls outside native toolbars.
 
-Glass chrome routes through `.glassEffect` inside this package only.
+Glass chips and bar materials route through `.glassEffect` inside this package
+only. Glass buttons intentionally use `.buttonStyle(.glass/.glassProminent)`,
+which is the button-system equivalent; feature views must not call either
+directly — use the `trinket*` modifiers above.
 
 Artwork blends transition full-bleed art into the surface below. Use `.trinketBottomArtworkBlend()` where art meets a lower surface. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
-Platform API notes: [Apple platform reference](../../../Docs/Platform/ApplePlatformReference.md). Fluid motion: [apple-design skill](../../../.agents/skills/apple-design/SKILL.md) (`TrinketMotion`). Standing stack rules: [Architecture.md](../../../Docs/Platform/Architecture.md).
+Platform API notes: [Apple platform reference](../../../Docs/Platform/ApplePlatformReference.md). Fluid motion: [apple-design skill](../../../.agents/skills/apple-design/SKILL.md) (`TrinketMotion`, families `Interaction`/`Reward`/`Shine`/`Content`/`Screen` — animations plus scales, staggers, delays, and durations; prefer these tokens over inline curves). Standing stack rules: [Architecture.md](../../../Docs/Platform/Architecture.md).
 
 Wallet resource pills accept either a numerical balance or a formatted value for
 production rates and comparisons. Amounts default to the primary text color;

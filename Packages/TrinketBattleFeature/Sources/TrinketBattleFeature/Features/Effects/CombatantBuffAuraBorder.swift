@@ -7,12 +7,17 @@ import TrinketFeatureSupport
 struct CombatantBuffAuraBorder: View {
     let kind: CombatantBuffAuraKind
     var isMotionActive: Bool = true
+    @Environment(\.isDecorativeMotionActive) private var isPresentationMotionActive
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !isMotionActive)) { context in
+        let motionEnabled = isMotionActive && isPresentationMotionActive && scenePhase == .active && !reduceMotion
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !motionEnabled)) { context in
             CombatantBuffAuraStroke(
                 kind: kind,
-                angle: isMotionActive
+                motionEnabled: motionEnabled,
+                angle: motionEnabled
                     ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
                     : 0,
             )
@@ -23,6 +28,7 @@ struct CombatantBuffAuraBorder: View {
 
 private struct CombatantBuffAuraStroke: View {
     let kind: CombatantBuffAuraKind
+    let motionEnabled: Bool
     let angle: Double
 
     var body: some View {
@@ -31,7 +37,7 @@ private struct CombatantBuffAuraStroke: View {
             TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.panel, lineWidth: 2)
             TrinketDesign.cardShape.strokeBorder(
                 AngularGradient(
-                    gradient: Gradient(stops: Shine.stops(for: base, motionEnabled: true)),
+                    gradient: Gradient(stops: Shine.stops(for: base, motionEnabled: motionEnabled)),
                     center: .center,
                     angle: .degrees(angle),
                 ),

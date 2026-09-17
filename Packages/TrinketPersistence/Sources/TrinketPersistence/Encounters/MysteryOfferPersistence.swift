@@ -3,12 +3,36 @@ import TrinketContent
 import TrinketCore
 
 public enum MysteryOfferPersistence {
+    struct MysteryLevelInputs {
+        let rewardLevel: Int
+        let encounterLevel: Int
+        let bonuses: LabyrinthModifierEffects
+    }
+
+    static func levelInputs(
+        stage: Stage,
+        labyrinthNodeID: String?,
+        save: PlayerSave,
+    ) -> MysteryLevelInputs? {
+        let location: EncounterIdentity.Location = labyrinthNodeID.map { .labyrinth(nodeID: $0) }
+            ?? .journey(stageID: stage.id)
+        guard let rewardLevel = EncounterIdentity(location: location, save: save).rewardLevel(in: save) else {
+            return nil
+        }
+        let encounterLevel = MysteryEffectApplier.resolvedEncounterLevel(
+            stage: stage, labyrinthNodeID: labyrinthNodeID, save: save,
+        )
+        let bonuses = labyrinthNodeID.map { save.labyrinth.effects(for: $0) } ?? .zero
+        return MysteryLevelInputs(rewardLevel: rewardLevel, encounterLevel: encounterLevel, bonuses: bonuses)
+    }
+
     public static func prepare(
         event: MysteryEvent,
         stage: Stage,
         labyrinthNodeID: String?,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
+        at date: Date = Date(),
     ) throws -> [MysteryOffer] {
         guard event.choices.contains(where: { $0.itemPool != nil }) else { return [] }
         guard isPlayable(stage: stage, labyrinthNodeID: labyrinthNodeID, save: save) else {
@@ -21,33 +45,28 @@ public enum MysteryOfferPersistence {
         } else {
             [MysteryOffer]()
         }
-        let location: EncounterIdentity.Location = labyrinthNodeID.map { .labyrinth(nodeID: $0) }
-            ?? .journey(stageID: stage.id)
-        guard let rewardLevel = EncounterIdentity(location: location, save: save).rewardLevel(in: save) else {
+        guard let inputs = levelInputs(stage: stage, labyrinthNodeID: labyrinthNodeID, save: save) else {
             throw MysteryOfferError.unavailableEncounter
         }
-        let level = MysteryEffectApplier.resolvedEncounterLevel(stage: stage, labyrinthNodeID: labyrinthNodeID, save: save)
-        let bonuses = labyrinthNodeID.map { save.labyrinth.effects(for: $0) } ?? .zero
-        save.homestead.settleProduction(at: Date(), roster: save.roster)
-        let offers = event.choices.map { choice in
+        let rewardLevel = inputs.rewardLevel
+        let level = inputs.encounterLevel
+        let bonuses = inputs.bonuses
+        save.homestead.settleProduction(at: date, roster: save.roster)
+        // Non-pool choices (leave, corrupt-only, unlock-only) resolve through
+        // the direct-effects path, so only pooled choices produce offers.
+        let offers: [MysteryOffer] = event.choices.compactMap { choice in
             let saved = previous.first { $0.choiceID == choice.id }
-            let offer: MysteryOffer = if let saved, MysteryEffectApplier.isAvailable(saved.item, in: save.inventory) {
-                saved
-            } else {
-                MysteryEffectApplier.resolveOffer(
-                    choice: choice,
-                    encounterID: stage.id,
-                    encounterLevel: level,
-                    rewardLevel: rewardLevel,
-                    save: save,
-                    bonuses: bonuses,
-                    using: &randomNumberGenerator,
-                )
+            if let saved, MysteryEffectApplier.isAvailable(saved.item, in: save.inventory) {
+                return saved
             }
-            return MysteryOffer(
-                choiceID: choice.id,
-                item: offer.item,
-                bonus: boundedBonus(offer.bonus, level: level, experiencePercent: bonuses.experienceEarnedPercent, save: save),
+            return MysteryEffectApplier.resolveOffer(
+                choice: choice,
+                encounterID: stage.id,
+                encounterLevel: level,
+                rewardLevel: rewardLevel,
+                save: save,
+                bonuses: bonuses,
+                using: &randomNumberGenerator,
             )
         }
         if offers != previous {
@@ -64,6 +83,7 @@ public enum MysteryOfferPersistence {
         stage: Stage,
         labyrinthNodeID: String?,
         save: inout PlayerSave,
+        at date: Date = Date(),
     ) -> MysteryEffectResult {
         guard isPlayable(stage: stage, labyrinthNodeID: labyrinthNodeID, save: save) else { return MysteryEffectResult() }
         guard let payload = payload(stageID: stage.id, labyrinthNodeID: labyrinthNodeID, save: save) else {
@@ -77,13 +97,34 @@ public enum MysteryOfferPersistence {
             return MysteryEffectResult()
         }
         guard saved.contains(offer) else { return MysteryEffectResult() }
-        let grantDate = save.homestead.lastProductionAt
+        // Settle against the tap-time clock (default now) so the grant matches
+        // wallet state at claim, not preview-time production.
+        let grantDate = date
         // Candidate-commit: item grant + bonus + markCleared + payload clear
         // apply atomically. `apply` is item-first (duplicate item grants
         // nothing, including no bonus), so the failure path discards the
         // candidate with no partial gold/material/XP mutation.
+        // The stored bonus is raw; settle it against wallet caps now so the
+        // grant matches wallet state at tap time rather than preview time.
         var candidate = save
-        let result = MysteryEffectApplier.apply(offer, save: &candidate, at: grantDate)
+        candidate.homestead.settleProduction(at: grantDate, roster: candidate.roster)
+        guard let inputs = levelInputs(stage: stage, labyrinthNodeID: labyrinthNodeID, save: candidate) else {
+            return MysteryEffectResult()
+        }
+        let level = inputs.encounterLevel
+        let bonuses = inputs.bonuses
+        let settledOffer = MysteryOffer(
+            choiceID: offer.choiceID,
+            item: offer.item,
+            bonus: MysteryEffectApplier.settledBonus(
+                offer.bonus,
+                encounterLevel: level,
+                save: candidate,
+                experiencePercent: bonuses.experienceEarnedPercent,
+                at: grantDate,
+            ),
+        )
+        let result = MysteryEffectApplier.apply(settledOffer, save: &candidate, at: grantDate)
         guard result.grantedItems.count == 1 else { return result }
         if let labyrinthNodeID {
             candidate.labyrinth.markCleared(nodeID: labyrinthNodeID, eligibleRecruitEventIDs: candidate.roster.eligibleRecruitEventIDs)
@@ -120,27 +161,5 @@ public enum MysteryOfferPersistence {
         } else {
             save.journey.mysteryOfferPayloads[stageID] = data
         }
-    }
-
-    private static func boundedBonus(
-        _ bonus: MysteryRewardBonus,
-        level: Int,
-        experiencePercent: Int,
-        save: PlayerSave,
-    ) -> MysteryRewardBonus {
-        RewardSettlementPolicy.settle(
-            bonus,
-            inputs: RewardSettlementInputs(
-                save: save,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                at: save.homestead.lastProductionAt,
-            ),
-            replacementExperience: RewardExperiencePolicy.encounterAward(
-                encounterLevel: level,
-                roster: save.roster,
-                percent: experiencePercent,
-            ),
-        )
     }
 }

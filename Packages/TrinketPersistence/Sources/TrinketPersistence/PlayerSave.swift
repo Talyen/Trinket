@@ -60,7 +60,7 @@ public struct PlayerSave: Equatable, Sendable {
         roster.gold = 900
 
         var journey = JourneyProgressState.initial
-        journey.completeChapter("chapter-1")
+        journey.markChapterCompleteWithoutRewards("chapter-1")
 
         return Self(
             schemaVersion: currentSchemaVersion,

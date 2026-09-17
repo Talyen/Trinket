@@ -123,6 +123,12 @@ public enum TrinketDesign {
 
     public static let cardShape = RoundedRectangle(cornerRadius: Corners.card, style: .continuous)
 
+    /// Canonical card shape for any corner radius; prefer this over building
+    /// `RoundedRectangle` inline so corner style stays uniform.
+    public static func shape(cornerRadius: CGFloat = Corners.card) -> RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+    }
+
     public struct CardPlaceholderStyle: Sendable {
         public let color: Color
         public let icon: GameIcon

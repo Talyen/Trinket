@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
@@ -27,6 +28,20 @@ final class PersistenceTestContext {
             resetState: resetState,
             inMemoryOnly: inMemoryOnly,
         )
+    }
+
+    /// In-memory store without touching the temp directory on disk.
+    func makeInMemoryStore() throws -> PlayerSaveStore {
+        try PlayerSaveStore(disableCloudSync: true, inMemoryOnly: true)
+    }
+
+    /// Test-side graph inspection without reopening the store.
+    nonisolated func makeSideContext() throws -> ModelContext {
+        try SaveTestSupport.makeSideContext(storeURL: storeURL())
+    }
+
+    nonisolated func makeContainer() throws -> ModelContainer {
+        try SaveTestSupport.makeContainer(storeURL: storeURL())
     }
 
     /// Single construction path: a reload is just a default open of the same

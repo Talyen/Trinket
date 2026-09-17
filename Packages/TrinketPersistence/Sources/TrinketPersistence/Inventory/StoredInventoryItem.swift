@@ -16,6 +16,10 @@ struct StoredInventoryItem: Codable {
     let affixes: [StoredAffix]
     let powers: [ItemAffixPower]?
 
+    private enum CodingKeys: String, CodingKey {
+        case id, templateID, baseTypeID, rarity, displayName, isCorrupted, affixes, powers
+    }
+
     init(_ item: InventoryItem) {
         id = item.id
         templateID = item.templateID
@@ -25,6 +29,22 @@ struct StoredInventoryItem: Codable {
         isCorrupted = item.isCorrupted
         affixes = item.affixes.map(StoredAffix.init)
         powers = item.affixPowers
+    }
+
+    /// Lossy rarity decode matching the documented `ItemResolution` policy:
+    /// an unknown rarity string falls back to `.basic` instead of failing
+    /// the whole shop/mystery payload.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        templateID = try container.decode(String.self, forKey: .templateID)
+        baseTypeID = try container.decode(String.self, forKey: .baseTypeID)
+        let rarityRawValue = try container.decode(String.self, forKey: .rarity)
+        rarity = ItemResolution.rarity(matching: rarityRawValue)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        isCorrupted = try container.decode(Bool.self, forKey: .isCorrupted)
+        affixes = try container.decode([StoredAffix].self, forKey: .affixes)
+        powers = try container.decodeIfPresent([ItemAffixPower].self, forKey: .powers)
     }
 
     /// Non-throwing by design: an unknown base drops the item (nil + log)

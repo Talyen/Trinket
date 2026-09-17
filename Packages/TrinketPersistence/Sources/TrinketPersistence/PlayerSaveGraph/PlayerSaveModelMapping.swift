@@ -4,6 +4,12 @@ import SwiftData
 import TrinketContent
 import TrinketCore
 
+// Per-slice graph read/write (`toPlayer*State` / `update(from:)`).
+// Slice diffing and repair live in `PlayerSaveRoot+Mapping.swift`; value
+// rules live in `PlayerSaveSanitizer.swift`. Writes reconcile child rows by
+// ID and delete orphans, so repair only needs to *detect* dangling rows
+// (see `hasDanglingRosterChildren`) for the next write to heal them.
+
 private let labyrinthMapLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
     category: "LabyrinthMapPayload",
@@ -41,7 +47,7 @@ extension RosterModel {
             values: slots,
             existingKey: \.slotID,
             valueKey: { $0.slotID },
-            make: { EquipmentSlotModel(slotID: $0.slotID, itemID: $0.itemID) },
+            make: { _ in EquipmentSlotModel() },
             update: { slotModel, slot in
                 slotModel.slotID = slot.slotID
                 slotModel.itemID = slot.itemID
@@ -67,7 +73,7 @@ extension InventoryItemModel {
             values: values,
             existingKey: \.id,
             valueKey: { $0.affix.id },
-            make: { ItemAffixModel(affix: $0.affix) },
+            make: { _ in ItemAffixModel() },
             update: { model, value in
                 model.id = value.affix.id
                 model.title = value.affix.title
@@ -105,7 +111,7 @@ extension RosterModel {
             values: unlockedValues,
             existingKey: \UnlockedCombatantModel.compositeKey,
             valueKey: { $0.key },
-            make: { UnlockedCombatantModel(combatantID: $0.combatantID, role: $0.role) },
+            make: { _ in UnlockedCombatantModel() },
             update: { model, value in
                 model.combatantID = value.combatantID
                 model.role = value.role
@@ -122,7 +128,7 @@ extension RosterModel {
             values: progressionValues,
             existingKey: \.combatantID,
             valueKey: { $0.key },
-            make: { CombatantProgressionModel(combatantID: $0.key, progression: $0.value) },
+            make: { _ in CombatantProgressionModel() },
             update: { model, value in
                 model.combatantID = value.key
                 model.level = value.value.level
@@ -141,7 +147,7 @@ extension RosterModel {
             values: abilityValues,
             existingKey: \.combatantID,
             valueKey: { $0.key },
-            make: { AbilityLoadoutModel(combatantID: $0.key, loadout: $0.value) },
+            make: { _ in AbilityLoadoutModel() },
             update: { model, value in
                 model.combatantID = value.key
                 model.basicID = value.value.basic?.id
@@ -162,7 +168,7 @@ extension RosterModel {
             values: talentValues,
             existingKey: \.combatantID,
             valueKey: { $0.combatantID },
-            make: { TalentLoadoutModel(combatantID: $0.combatantID) },
+            make: { _ in TalentLoadoutModel() },
             update: { model, value in
                 self.updateTalentLoadout(model, from: value, context: context)
             },
@@ -182,7 +188,7 @@ extension RosterModel {
             values: value.nodeIDs,
             existingKey: \.nodeID,
             valueKey: { $0 },
-            make: { TalentNodeUnlockModel(nodeID: $0) },
+            make: { _ in TalentNodeUnlockModel() },
             update: { unlockModel, nodeID in
                 unlockModel.nodeID = nodeID
             },
@@ -200,7 +206,7 @@ extension RosterModel {
             values: equipmentValues,
             existingKey: \.combatantID,
             valueKey: { $0.combatantID },
-            make: { EquipmentLoadoutModel(combatantID: $0.combatantID) },
+            make: { _ in EquipmentLoadoutModel() },
             update: { model, value in
                 self.updateEquipmentLoadout(model, from: value, context: context)
             },
@@ -211,6 +217,32 @@ extension RosterModel {
 }
 
 extension RosterModel {
+    /// Graph rows the value read drops silently and value-level `changed()`
+    /// therefore never sees: ability loadouts for unknown combatants
+    /// (`rawAbilityLoadouts` filters them), unlocked rows with invalid roles,
+    /// and equipment slots with invalid slot IDs. Repair must detect them
+    /// here; the next `update(from:)` reconcile deletes the orphans.
+    /// Unknown combatants in progressions/talents/equipment stay visible at
+    /// value level (sanitize strips them), so they need no graph check.
+    var hasDanglingRosterChildren: Bool {
+        if let unlocked = unlockedCombatants, unlocked.contains(where: {
+            $0.role != UnlockedCombatantValue.heroRole && $0.role != UnlockedCombatantValue.companionRole
+        }) {
+            return true
+        }
+        if let abilities = abilityLoadouts, abilities.contains(where: {
+            GameContent.combatant(matching: $0.combatantID) == nil
+        }) {
+            return true
+        }
+        for loadout in equipmentLoadouts ?? [] {
+            if let slots = loadout.slots, slots.contains(where: { ItemSlot(rawValue: $0.slotID) == nil }) {
+                return true
+            }
+        }
+        return false
+    }
+
     func toPlayerRosterState() -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
         let heroIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.heroRole }.map(\.combatantID))
@@ -295,7 +327,9 @@ extension HomesteadModel {
         }
         var resolvedPendingProduction: [HomesteadResource: Double] = [:]
         for pending in pendingProduction ?? [] {
-            guard let resource = HomesteadResource.resolving(resourceID: pending.resourceID) else { continue }
+            guard let resource = HomesteadResource.resolving(resourceID: pending.resourceID),
+                  pending.quantity.isFinite, pending.quantity > 0
+            else { continue }
             resolvedPendingProduction[resource] = pending.quantity
         }
         var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]
@@ -322,7 +356,7 @@ extension HomesteadModel {
             values: resourceValues,
             existingKey: \.resourceID,
             valueKey: { $0.resourceID },
-            make: { HomesteadResourceBalanceModel(resourceID: $0.resourceID, quantity: $0.quantity) },
+            make: { _ in HomesteadResourceBalanceModel() },
             update: { model, value in
                 model.resourceID = value.resourceID
                 model.quantity = value.quantity
@@ -331,8 +365,7 @@ extension HomesteadModel {
             context: context,
         )
 
-        let pendingValues = homestead.pendingProduction
-            .filter { $0.value.isFinite && $0.value > 0 }
+        let pendingValues = homestead.validPendingProduction
             .map { (resourceID: $0.key.rawValue, quantity: $0.value) }
             .sorted { $0.resourceID < $1.resourceID }
         pendingProduction = reconcileModels(
@@ -340,7 +373,7 @@ extension HomesteadModel {
             values: pendingValues,
             existingKey: \.resourceID,
             valueKey: { $0.resourceID },
-            make: { HomesteadPendingProductionModel(resourceID: $0.resourceID, quantity: $0.quantity) },
+            make: { _ in HomesteadPendingProductionModel() },
             update: { model, value in
                 model.resourceID = value.resourceID
                 model.quantity = value.quantity
@@ -357,7 +390,7 @@ extension HomesteadModel {
             values: tierValues,
             existingKey: \.nodeID,
             valueKey: { $0.nodeID },
-            make: { HomesteadNodeTierModel(nodeID: $0.nodeID, tier: $0.tier) },
+            make: { _ in HomesteadNodeTierModel() },
             update: { model, value in
                 model.nodeID = value.nodeID
                 model.tier = value.tier
@@ -385,7 +418,7 @@ extension SpiresProgressModel {
             values: values,
             existingKey: \.spireID,
             valueKey: { $0.key },
-            make: { SpireFloorProgressModel(spireID: $0.key, highestClearedFloor: max(0, $0.value)) },
+            make: { _ in SpireFloorProgressModel() },
             update: { model, value in
                 model.spireID = value.key
                 model.highestClearedFloor = max(0, value.value)
@@ -430,7 +463,7 @@ extension LabyrinthProgressModel {
         }
     }
 
-    func update(from state: PlayerLabyrinthState) {
+    func update(from state: PlayerLabyrinthState, context _: ModelContext? = nil) {
         worldSeed = state.worldSeed
         mapVersion = state.mapVersion
         hasEntered = state.hasEntered

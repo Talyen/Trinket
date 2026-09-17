@@ -21,7 +21,7 @@ Defer the sensitive portion while continuing independent authorized work.
 
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
-| Performance playbook | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` (`let snapshot = currentSave`) | High-risk rewrite; measure Instruments first | 2026-08-19 |
+| Performance playbook | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` (`PlayerSaveStore.swift`, not the `PlayerSaveStore+Reset.swift` reset snapshots) | High-risk rewrite; measure Instruments first | 2026-08-19 |
 
 The snapshot proposal is a measurement-led investigation under the
 [performance playbook](../Platform/PerformanceInvestigationPlaybook.md), not evidence

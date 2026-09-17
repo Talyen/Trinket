@@ -26,20 +26,18 @@ public extension PlayerSaveStore {
         targetTier: Int,
         at date: Date = Date(),
     ) async -> HomesteadBuildResult {
-        if isCloudSyncEnabled {
-            guard let cloudSync else { return .cloudSyncUnsupported }
-            let ready = await cloudSync.synchronize()
-            if cloudSync.requiresAuthority {
-                guard ready, let outcome = await cloudSync.perform(.upgrade(definition.id, targetTier)) else {
-                    return .cloudUnavailable
-                }
-                switch outcome {
-                case .upgraded: return .success
-                case .insufficientResources: return .insufficientResources
-                case .notAvailable, .progressChanged: return .notAvailable
-                default: return .cloudUnavailable
-                }
+        switch await homesteadAuthorityGate(upgradeRequest: .upgrade(definition.id, targetTier)) {
+        case .local: break
+        case .cloudSyncUnsupported: return .cloudSyncUnsupported
+        case .cloudUnavailable: return .cloudUnavailable
+        case let .cloudUpgrade(outcome):
+            switch outcome {
+            case .upgraded: return .success
+            case .insufficientResources: return .insufficientResources
+            case .notAvailable, .progressChanged: return .notAvailable
+            default: return .cloudUnavailable
             }
+        case .cloudCollected: return .cloudUnavailable
         }
         guard prepareLocalProduction() else { return .persistFailed }
         let result = persistTransaction(logging: "Failed to build or upgrade homestead node") { save -> Result<
@@ -57,17 +55,15 @@ public extension PlayerSaveStore {
     }
 
     func collectProduction(at date: Date = Date()) async -> HomesteadCollectionResult {
-        if isCloudSyncEnabled {
-            guard let cloudSync else { return .cloudSyncUnsupported }
-            let ready = await cloudSync.synchronize()
-            if cloudSync.requiresAuthority {
-                guard ready, case let .collected(values) = await cloudSync.perform(.collect) else {
-                    return .cloudUnavailable
-                }
-                let amounts = values.map { ResourceAmount($0.key, $0.value) }
-                    .sorted { $0.resource.rawValue < $1.resource.rawValue }
-                return amounts.isEmpty ? .noProduction : .success(amounts)
-            }
+        switch await homesteadAuthorityGate() {
+        case .local: break
+        case .cloudSyncUnsupported: return .cloudSyncUnsupported
+        case .cloudUnavailable: return .cloudUnavailable
+        case let .cloudCollected(values):
+            let amounts = values.map { ResourceAmount($0.key, $0.value) }
+                .sorted { $0.resource.rawValue < $1.resource.rawValue }
+            return amounts.isEmpty ? .noProduction : .success(amounts)
+        case .cloudUpgrade: return .cloudUnavailable
         }
         guard prepareLocalProduction() else { return .persistFailed }
         var collected: [ResourceAmount] = []
@@ -83,6 +79,41 @@ public extension PlayerSaveStore {
 enum HomesteadBuildFailure: Error {
     case notAvailable
     case insufficientResources
+}
+
+enum HomesteadAuthorityGate {
+    case local
+    case cloudSyncUnsupported
+    case cloudUnavailable
+    case cloudCollected([HomesteadResource: Int])
+    case cloudUpgrade(CloudSaveReceipt.Outcome)
+}
+
+@MainActor
+extension PlayerSaveStore {
+    /// Shared cloud-authority gate for homestead writes. Returns `.local`
+    /// when the caller should run the local transaction, otherwise the
+    /// cloud outcome to return directly.
+    func homesteadAuthorityGate(
+        upgradeRequest: CloudSaveRequest.Action? = nil,
+    ) async -> HomesteadAuthorityGate {
+        guard isCloudSyncEnabled else { return .local }
+        guard let cloudSync else { return .cloudSyncUnsupported }
+        let ready = await cloudSync.synchronize()
+        guard cloudSync.requiresAuthority else { return .local }
+        if let upgradeRequest {
+            guard ready, let outcome = await cloudSync.perform(upgradeRequest) else {
+                return .cloudUnavailable
+            }
+            return .cloudUpgrade(outcome)
+        }
+        guard ready, case let .collected(values) = await cloudSync.perform(.collect) else {
+            // Collect path only; upgrade callers pass their own request.
+            // A non-collect outcome here means the cloud call failed.
+            return .cloudUnavailable
+        }
+        return .cloudCollected(values)
+    }
 }
 
 enum HomesteadBuildMutation {

@@ -1,4 +1,4 @@
-# 17. Unit Test Portfolio Audit
+# 17. Unit Test Value, Runtime, Redundancy & Ownership Audit
 
 **Goal:** Improve the unit/package portfolio's trustworthy coverage of consequential
 behavior while reducing avoidable runtime, redundancy, and fixture maintenance.
@@ -45,5 +45,5 @@ setup/executed work, clearer ownership, or repaired nondeterminism.
   judge the consequential contract rather than the implementation category.
 - Do not force shared fixtures across package boundaries or introduce production
   testability APIs without a consequential gap and a justified owner.
-- UI portfolio quality belongs to [10](10_E2ETestQualityAudit.md); production-only
-  maintenance cost belongs to [02](02_MaintenanceSurfaceLocalityAudit.md).
+- UI portfolio quality and production-only maintenance cost route through the
+  shared confusable-pairs table.

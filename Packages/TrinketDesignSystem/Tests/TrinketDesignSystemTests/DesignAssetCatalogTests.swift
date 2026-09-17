@@ -4,13 +4,29 @@ import UIKit
 @testable import TrinketDesignSystem
 
 struct DesignAssetCatalogTests {
-    @Test func `legacy icon identifiers resolve to available system symbols`() throws {
-        for (legacyName, symbolName) in GameIcon.legacySymbols {
-            let icon = GameIcon(id: "lucide:\(legacyName)")
-            #expect(icon == .system(symbolName))
-            _ = try #require(UIImage(systemName: symbolName), "Missing \(icon.id)")
-        }
+    @Test func `icon identifiers resolve to available system symbols`() throws {
         #expect(GameIcon(id: "sf:leaf.fill") == GameIcon(id: "leaf.fill"))
+        #expect(GameIcon(id: "sf:leaf.fill").id == "sf:leaf.fill")
+        _ = try #require(UIImage(systemName: GameIcon(id: "sf:leaf.fill").symbolName))
+    }
+
+    @Test func `catalog asset list matches colorsets on disk`() throws {
+        let testsDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        let catalogDirectory = testsDirectory
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/TrinketDesignSystem/Resources/DesignColors.xcassets", isDirectory: true)
+        let contents = try #require(
+            try? FileManager.default.contentsOfDirectory(atPath: catalogDirectory.path),
+            "DesignColors.xcassets missing at \(catalogDirectory.path)",
+        )
+        let onDisk = Set(contents.filter { $0.hasSuffix(".colorset") }.map { String($0.dropLast(".colorset".count)) })
+        try #expect(!onDisk.isEmpty, "No colorsets found at \(catalogDirectory.path)")
+        let declared = Set(DesignAssetColors.allCatalogAssetNames)
+        #expect(
+            declared == onDisk,
+            "Catalog drift — undeclared: \(onDisk.subtracting(declared).sorted()), orphaned: \(declared.subtracting(onDisk).sorted())",
+        )
     }
 
     @Test(arguments: DesignAssetColors.allCatalogAssetNames)

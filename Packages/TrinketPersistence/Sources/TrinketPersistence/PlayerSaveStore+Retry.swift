@@ -38,7 +38,7 @@ public extension PlayerSaveStore {
                 delay = SaveRetryPolicy.nextDelay(after: delay)
             }
             self?.saveActionRetries[key] = nil
-            self?.isRetryingSaveAction = self?.saveActionRetries.isEmpty == false
+            self?.isRetryingSaveAction = !(self?.saveActionRetries.isEmpty ?? true)
         }
     }
 

@@ -81,7 +81,5 @@ SF selections and symbol animations.
 
 Authored content uses `sf:` strings; UI presentation carries `GameIcon`.
 `TalentNode.iconID` retains the serialized `symbolName` key. Unqualified SF names
-still resolve, and previously shipped `lucide:` values translate to SF Symbols
-through the design system's legacy mapping. The legacy mapping is a context-free
-fallback; current authored talent selections carry the more specific meanings.
-Talent IDs, unlock progression, effect data, and saves are unchanged by icon selection.
+still resolve identically. Saves persist talent node IDs rather than icon strings,
+so icon selection never affects unlock progression, effect data, or saves.

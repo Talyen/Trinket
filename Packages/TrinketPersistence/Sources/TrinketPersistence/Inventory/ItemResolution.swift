@@ -18,6 +18,10 @@ import TrinketCore
 /// - Stored affixes otherwise round-trip verbatim (title/description kept),
 ///   including bespoke unique signatures which live outside the generic
 ///   affix catalog and must never be stripped by a catalog lookup.
+/// - Trinket catalog hits are authoritative: base/rarity/display/affixes come
+///   from the catalog and stored affix powers are dropped (powers are
+///   index-aligned with affixes, so keeping stored powers would describe the
+///   wrong affixes). Offer/cloud codecs intentionally stay verbatim.
 enum ItemResolution {
     static func baseType(matching id: String, itemID: String) -> ItemBaseType? {
         guard let base = GameContent.itemBaseType(matching: id) else {
@@ -62,5 +66,28 @@ enum ItemResolution {
     static func decodeKeywordSet(_ decoder: Decoder) throws -> Set<Keyword> {
         let values = try [FailableKeyword](from: decoder)
         return Set(values.compactMap(\.value))
+    }
+
+    /// Trinket-authoritative overwrite for the SwiftData codec. Returns the
+    /// catalog item (preserving stored corruption) with powers dropped when
+    /// the affix list is replaced, or nil when no overwrite applies.
+    static func trinketAuthoritativeItem(
+        persisted: InventoryItem,
+        baseSlot: ItemSlot,
+        templateID: String,
+    ) -> InventoryItem? {
+        guard baseSlot == .trinket,
+              let authored = GameContent.itemTemplate(matching: templateID)
+        else { return nil }
+        return InventoryItem(
+            id: persisted.id,
+            templateID: authored.templateID,
+            baseType: authored.baseType,
+            rarity: authored.rarity,
+            displayName: authored.displayName,
+            affixes: authored.affixes,
+            isCorrupted: persisted.isCorrupted,
+            affixPowers: nil,
+        )
     }
 }

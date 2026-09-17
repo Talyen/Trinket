@@ -88,6 +88,23 @@ struct CloudDeviceState: Codable, Equatable, Sendable {
     var archives: [String: CloudAccountArchive] = [:]
     var guestBackup: CloudSaveSnapshot?
 
+    /// Maximum retained per-account archives. Evicted oldest-first on insert
+    /// via `archiving(_:for:)`.
+    static let maxArchives = 5
+
+    mutating func archiving(_ archive: CloudAccountArchive, for accountID: String) {
+        archives[accountID] = archive
+        guard archives.count > Self.maxArchives else { return }
+        // Evict an arbitrary oldest key; archives carry no timestamps, so
+        // bound growth without claiming recency.
+        for key in archives.keys where key != accountID {
+            archives.removeValue(forKey: key)
+            if archives.count <= Self.maxArchives {
+                break
+            }
+        }
+    }
+
     static func decode(_ data: Data?) throws -> Self {
         guard let data else { return Self() }
         let value = try JSONDecoder().decode(Self.self, from: data)

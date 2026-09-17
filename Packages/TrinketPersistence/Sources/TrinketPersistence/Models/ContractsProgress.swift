@@ -95,6 +95,9 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         do {
             return try JSONDecoder().decode(Self.self, from: data)
         } catch {
+            // The board is regenerable state, not progress (see
+            // `CloudSaveSnapshot.hasProgress`): a corrupt payload resets to a
+            // fresh board instead of rejecting the whole save.
             return .freshStart
         }
     }

@@ -139,7 +139,7 @@ struct MysteryEventPinTests {
                 choice: event.choices[0], encounterID: stage.id, encounterLevel: 16, rewardLevel: 16,
                 save: SaveTestSupport.makeSave(), using: &rng,
             )
-            return offer.item.rarity == .unique
+            return offer?.item.rarity == .unique
         }
         var rng = try SeededRandomNumberGenerator(seed: #require(matchingSeed))
         var save = SaveTestSupport.makeSave()
@@ -162,13 +162,14 @@ struct MysteryEventPinTests {
             var rng = SeededRandomNumberGenerator(seed: 3)
             let offers = try MysteryOfferPersistence.prepare(event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng)
             let offer = offers[0]
+            // Prepare stores the raw bonus; wallet-cap replacement happens at claim.
+            guard case .gold = offer.bonus else { Issue.record("Expected raw gold bonus at prepare time"); continue }
             let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save)
             #expect(result.grantedItems == [offer.item])
-            guard case .experience = offer.bonus else { Issue.record("Expected XP for a near-cap Gold wallet"); continue }
-            #expect(offer.bonus.amount > 0)
             #expect(result.grantedGold == 0)
-            #expect(result.heroGrantedExperience == offer.bonus.amount)
-            #expect(result.companionGrantedExperience == offer.bonus.amount)
+            #expect(result.hasGrantedExperience)
+            #expect(result.heroGrantedExperience > 0)
+            #expect(result.heroGrantedExperience == result.companionGrantedExperience)
         }
     }
 
@@ -209,5 +210,56 @@ struct MysteryEventPinTests {
             context.hasEligibleCorruptTarget
                 == !ItemCorruption.eligibleTargets(in: inventory).isEmpty,
         )
+    }
+
+    @Test func `prepare skips non-pool choices in mixed events`() throws {
+        let pool = MysteryItemPool(baseTypeID: "sapphire_amulet")
+        let event = MysteryEvent(
+            id: "mixed-test",
+            title: "Mixed",
+            narrative: "{A} or {B}",
+            artID: nil,
+            choices: [
+                MysteryChoice(id: "take", label: "Take", effects: [.gainItem(pool), .gainGold(10)]),
+                MysteryChoice(id: "walk-away", label: "Leave", effects: [.leave]),
+            ],
+        )
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        var save = SaveTestSupport.makeSave()
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        let offers = try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
+        )
+        #expect(offers.count == 1)
+        #expect(offers[0].choiceID == "take")
+        var rng2 = SeededRandomNumberGenerator(seed: 7)
+        #expect(MysteryEffectApplier.resolveOffer(
+            choice: event.choices[1], encounterID: stage.id, encounterLevel: 1, rewardLevel: 1,
+            save: save, using: &rng2,
+        ) == nil)
+    }
+
+    @Test func `mystery bonus settles at claim against wallet state`() throws {
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        // Prepare while the wallet is empty: the stored bonus stays raw.
+        var save = SaveTestSupport.makeSave(gold: 0)
+        save.homestead.pendingProduction = [:]
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        let offers = try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
+        )
+        let offer = try #require(offers.first)
+        guard case .gold = offer.bonus else {
+            Issue.record("Expected a raw gold bonus at prepare time")
+            return
+        }
+        // Fill the wallet before claiming: the grant must replace gold with
+        // XP instead of truncating, using claim-time wallet state.
+        save.roster.gold = PlayerRosterState.maxGoldBalance
+        let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save)
+        #expect(result.grantedItems == [offer.item])
+        #expect(result.grantedGold == 0)
+        #expect(result.hasGrantedExperience)
     }
 }

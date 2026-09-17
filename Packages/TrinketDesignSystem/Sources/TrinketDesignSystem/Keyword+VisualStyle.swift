@@ -85,6 +85,8 @@ public extension Keyword {
             color: DesignAssetColors.named("KeywordPhysical"),
             icon: .system("asterisk"),
         )
+        /// Feedback-owned values sharing the VisualStyle currency; not Keyword
+        /// cases and unreachable from `visualStyle` below.
         public static let beneficialStatus = Self(
             color: TrinketDesign.Colors.success,
             icon: .system("arrowshape.up.fill"),

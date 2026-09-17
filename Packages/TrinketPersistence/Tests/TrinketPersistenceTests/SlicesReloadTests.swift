@@ -6,7 +6,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct SlicesReloadTests {
-    @Test @MainActor func `spires floor clamp survives reload`() throws {
+    @Test @MainActor func `sanitize clamps survive reload`() throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         let spire = try #require(GameContent.spires.first)
@@ -14,14 +14,6 @@ struct SlicesReloadTests {
         spires.highestClearedFloorBySpireID[spire.id.rawValue] = 9999
         #expect(firstStore.persistBatch(logging: "Test setup") { $0.spires = spires })
 
-        let reloaded = try context.makeReloadedStore()
-
-        try #expect(reloaded.spires.highestClearedFloor(for: spire.id.rawValue) == spire.floorCount)
-    }
-
-    @Test @MainActor func `custom ability loadout survives reload`() throws {
-        let context = try PersistenceTestContext()
-        let firstStore = try context.makeSaveStore()
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var loadout = knight.abilityLoadout
         let thirdChoiceBasic = try #require(knight.abilityChoices.abilities(for: .basic).dropFirst(2).first)
@@ -36,6 +28,7 @@ struct SlicesReloadTests {
 
         let reloaded = try context.makeReloadedStore()
 
+        try #expect(reloaded.spires.highestClearedFloor(for: spire.id.rawValue) == spire.floorCount)
         let persistedLoadout = try #require(reloaded.roster.abilityLoadouts["knight"])
         try #expect(persistedLoadout == loadout)
     }
@@ -65,10 +58,12 @@ struct SlicesReloadTests {
         )
     }
 
-    @Test @MainActor func `tower floor clear survives reload`() throws {
+    @Test @MainActor func `completion XP survives reload`() throws {
         let context = try PersistenceTestContext()
         let spire = try #require(GameContent.spire(id: .ironVein))
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        let chapter = try #require(GameContent.chapters.first)
+        let stage = try #require(chapter.stages.first)
         let save = SaveTestSupport.makeSave(worldSeed: PlayerSave.testWorldSeed)
         let firstStore = try context.seedAndReload(save)
         var draft = firstStore.currentSave
@@ -78,23 +73,6 @@ struct SlicesReloadTests {
             companion: draft.roster.activeCompanion,
             save: &draft,
         )
-        let clearedXP = draft.roster.progression(for: draft.roster.activeHero).currentXP
-        try firstStore.performBatchMutation { $0 = draft }
-
-        let reloaded = try context.makeReloadedStore()
-
-        try #expect(reloaded.spires.isFloorCleared(1, spireID: spire.id.rawValue))
-        try #expect(reloaded.roster.progression(for: reloaded.roster.activeHero).currentXP == clearedXP)
-        try #expect(clearedXP > 0)
-    }
-
-    @Test @MainActor func `claimed journey XP survives reload`() throws {
-        let context = try PersistenceTestContext()
-        let chapter = try #require(GameContent.chapters.first)
-        let stage = try #require(chapter.stages.first)
-        let save = SaveTestSupport.makeSave(worldSeed: PlayerSave.testWorldSeed)
-        let firstStore = try context.seedAndReload(save)
-        var draft = firstStore.currentSave
         StageCompletion.complete(
             stage,
             hero: draft.roster.activeHero,
@@ -102,13 +80,14 @@ struct SlicesReloadTests {
             in: GameContent.chapters,
             save: &draft,
         )
-        let heroXP = draft.roster.progression(for: draft.roster.activeHero).currentXP
+        let clearedXP = draft.roster.progression(for: draft.roster.activeHero).currentXP
         try firstStore.performBatchMutation { $0 = draft }
 
         let reloaded = try context.makeReloadedStore()
 
+        try #expect(reloaded.spires.isFloorCleared(1, spireID: spire.id.rawValue))
         try #expect(reloaded.journey.hasClaimedRewards(for: stage))
-        try #expect(reloaded.roster.progression(for: reloaded.roster.activeHero).currentXP == heroXP)
-        try #expect(heroXP > 0)
+        try #expect(reloaded.roster.progression(for: reloaded.roster.activeHero).currentXP == clearedXP)
+        try #expect(clearedXP > 0)
     }
 }

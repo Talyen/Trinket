@@ -4,6 +4,7 @@ Re-runnable guides for coding agents to improve codebase quality and fix issues.
 Run the audits the user requests; uncited guides are not a standing backlog.
 Reviewing these instructions does not itself request a product-code audit.
 Numbers and filenames are stable identifiers; retired numbers 05, 08, and 11 stay retired.
+Retired concerns route to their successors: 05 to 02, and 08 and 11 to 06.
 
 ## Shared contract
 

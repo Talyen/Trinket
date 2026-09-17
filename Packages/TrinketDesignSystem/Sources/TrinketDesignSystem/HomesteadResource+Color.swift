@@ -1,6 +1,8 @@
 import SwiftUI
 import TrinketCore
 
+/// Resource tint. The matching icon and display name live alongside the domain
+/// in `TrinketFeatureSupport/Models/Homestead.swift`; keep the two together.
 public extension HomesteadResource {
     var tint: Color {
         switch self {

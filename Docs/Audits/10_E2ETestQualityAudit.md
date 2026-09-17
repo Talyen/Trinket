@@ -1,4 +1,4 @@
-# 10. UI Test Reliability & Signal Audit
+# 10. UI, Smoke & Exhaustive Test Quality Audit
 
 **Goal:** Make UI tests provide trustworthy evidence of shipping outcomes with
 appropriate isolation, tier placement, and execution cost.
@@ -40,6 +40,6 @@ alone does not explain a flaky failure or establish its cause is fixed.
   [Verification](../Platform/Verification.md)'s limits. Do not invent suite budgets
   or run full UI merely because this audit reviews its portfolio.
 - Accessibility-setting UI tests remain outside [PD-014](../Product/Decisions.md).
-  Stable identifiers required by an owned journey are in scope; broader shipping
-  interaction defects belong to [16](16_UIInteractionFeedbackAudit.md).
-- Unit/package test quality belongs to [17](17_UnitTestAudit.md).
+  Stable identifiers required by an owned journey are in scope. Broader shipping
+  interaction defects, unit/package test quality, and other overlaps route through
+  the shared confusable-pairs table.

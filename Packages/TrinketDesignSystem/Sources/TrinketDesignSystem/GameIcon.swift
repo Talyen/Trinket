@@ -9,11 +9,9 @@ public struct GameIcon: Hashable, Sendable {
         Self(symbolName: name)
     }
 
+    /// Authored content uses `sf:` identifiers; bare SF names resolve identically.
     public init(id: String) {
-        if id.hasPrefix("lucide:") {
-            let name = String(id.dropFirst(7))
-            self = .system(Self.legacySymbols[name] ?? name)
-        } else if id.hasPrefix("sf:") {
+        if id.hasPrefix("sf:") {
             self = .system(String(id.dropFirst(3)))
         } else {
             self = .system(id)

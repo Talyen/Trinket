@@ -55,7 +55,7 @@ struct ContractBoardTests {
         #expect(ContractsCompletion.complete(
             offerID: offer.id, hero: hero, companion: companion, encounterLevel: level,
             loot: loot, battleGold: .init(gained: 5), save: &save,
-        ))
+        ) == .completed)
         #expect(save.roster == expected.roster)
         #expect(save.inventory == expected.inventory)
         #expect(save.homestead.resources == expected.homestead.resources)
@@ -70,10 +70,10 @@ struct ContractBoardTests {
             == before.contracts.offers.filter { $0.difficulty != difficulty })
 
         let claimed = save
-        #expect(!ContractsCompletion.complete(
+        #expect(ContractsCompletion.complete(
             offerID: offer.id, hero: hero, companion: companion, encounterLevel: level,
             loot: loot, battleGold: .init(gained: 5), save: &save,
-        ))
+        ) == .alreadyCompleted)
         #expect(save == claimed)
     }
 
@@ -88,7 +88,7 @@ struct ContractBoardTests {
         #expect(ContractsCompletion.complete(
             offerID: hard.id, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
             encounterLevel: 5, loot: loot, save: &save,
-        ))
+        ) == .completed)
         #expect(save.inventory.item(matching: item.id) == item)
     }
 }
@@ -133,7 +133,7 @@ struct ContractsPersistenceTests {
         let before = store.currentSave
         store.forcesNextSaveFailure = true
         let failed = store.persistBatch(logging: "Contracts test") { save in
-            ContractsCompletion.complete(
+            _ = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, encounterLevel: level, loot: loot, save: &save,
             )
         }
@@ -142,20 +142,20 @@ struct ContractsPersistenceTests {
         let failedReload = try context.makeReloadedStore()
         #expect(failedReload.currentSave == before)
         #expect(failedReload.persistBatch(logging: "Contracts test") { save in
-            ContractsCompletion.complete(
+            _ = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, encounterLevel: level, loot: loot, save: &save,
             )
         })
         let claimed = failedReload.currentSave
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.currentSave == claimed)
-        var applied = true
+        var applied = EncounterCompletion.completed
         #expect(reloaded.persistBatch(logging: "Contracts test") { save in
             applied = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, encounterLevel: level, loot: loot, save: &save,
             )
         })
-        #expect(!applied)
+        #expect(applied == .alreadyCompleted)
         #expect(reloaded.currentSave == claimed)
     }
     #endif

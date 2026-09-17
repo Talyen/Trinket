@@ -301,7 +301,7 @@ class AgentContextTests(ScriptRegressionTestCase):
                 str(ROOT / "Scripts" / "agent-context.sh"),
                 "--agent",
                 "--paths",
-                "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Modifiers.swift",
+                "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/GlassButtons.swift",
             ],
             cwd=ROOT,
             capture_output=True,

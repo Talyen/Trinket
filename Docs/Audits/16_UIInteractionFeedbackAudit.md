@@ -1,4 +1,4 @@
-# 16. UI Interaction Audit
+# 16. Usable Interaction, Feedback & Accessibility Semantics Audit
 
 **Goal:** Repair interaction and feedback defects that prevent players from completing
 or understanding a flow.
@@ -48,6 +48,5 @@ Verify affected entry, action, completion, and recovery conditions as appropriat
 Reuse coverage under [Testing](../Platform/Testing.md), including its identifier
 change requirements; do not create UI tests merely to inventory controls.
 
-Layout/typography migrations belong to [01](01_AppleNativeUIAudit.md); test-harness
-quality belongs to [10](10_E2ETestQualityAudit.md). Use the shared table for durable
-transaction failures and other overlaps.
+Layout/typography defects, test-harness quality, durable transaction failures,
+and other overlaps route through the shared confusable-pairs table.

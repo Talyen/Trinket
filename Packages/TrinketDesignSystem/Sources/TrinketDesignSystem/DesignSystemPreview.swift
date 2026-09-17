@@ -4,7 +4,14 @@ import SwiftUI
 private struct DesignSystemGallery: View {
     @State private var actionsEnabled = true
 
+    /// Curated, not exhaustive: token coverage is pinned by
+    /// DesignTokenInvariantTests and the catalog tests, not by this gallery.
     private let semanticColors: [(String, Color)] = [
+        ("Canvas", TrinketDesign.Colors.canvas),
+        ("Surface", TrinketDesign.Colors.surface),
+        ("Panel", TrinketDesign.Colors.panel),
+        ("Elevated", TrinketDesign.Colors.elevated),
+        ("Subtle Stroke", TrinketDesign.Colors.subtleStroke),
         ("Antique Gold", TrinketDesign.Colors.accent),
         ("Highlight Gold", TrinketDesign.Colors.accentEmphasized),
         ("Pressed Gold", TrinketDesign.Colors.accentPressed),
@@ -15,6 +22,8 @@ private struct DesignSystemGallery: View {
         ("Arcane", TrinketDesign.Colors.arcane),
         ("Health", TrinketDesign.Colors.health),
         ("Health Restore", TrinketDesign.Colors.healthRestore),
+        ("Overlay Paper", TrinketDesign.Colors.Overlay.paper),
+        ("Overlay Ink", TrinketDesign.Colors.Overlay.ink),
     ]
 
     var body: some View {
@@ -134,6 +143,11 @@ private struct DesignSystemGallery: View {
 #Preview("Compact iPhone", traits: .fixedLayout(width: 375, height: 812)) {
     DesignSystemGallery()
         .preferredColorScheme(.dark)
+}
+
+#Preview("Compact iPhone Light", traits: .fixedLayout(width: 375, height: 812)) {
+    DesignSystemGallery()
+        .preferredColorScheme(.light)
 }
 
 #Preview("Wide iPhone", traits: .fixedLayout(width: 430, height: 932)) {

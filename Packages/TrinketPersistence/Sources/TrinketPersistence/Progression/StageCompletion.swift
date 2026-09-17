@@ -2,6 +2,15 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+/// Outcome of an encounter completion call. Completions are idempotent:
+/// duplicate deliveries (double-tap, silent retry, deferred flush) report
+/// `.alreadyCompleted` and grant nothing further instead of paying twice.
+public enum EncounterCompletion: Equatable, Sendable {
+    case completed
+    case alreadyCompleted
+    case unavailable
+}
+
 public enum StageCompletion {
     public static func resolvedMaterialRewards(
         stageReward: StageReward,
@@ -53,6 +62,7 @@ public enum StageCompletion {
         )
     }
 
+    @discardableResult
     public static func complete(
         _ stage: Stage,
         hero: Combatant,
@@ -65,8 +75,8 @@ public enum StageCompletion {
         enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
         save: inout PlayerSave,
-    ) {
-        claimRewardsIfNeeded(
+    ) -> EncounterCompletion {
+        let claim = claimRewardsIfNeeded(
             for: stage,
             hero: hero,
             companion: companion,
@@ -78,11 +88,14 @@ public enum StageCompletion {
             enemyEncounterLevel: enemyEncounterLevel,
             save: &save,
         )
-        if !save.journey.isCompleted(stage) {
-            save.journey.complete(stage, in: chapters)
+        guard !save.journey.isCompleted(stage) else {
+            return claim
         }
+        save.journey.complete(stage, in: chapters)
+        return .completed
     }
 
+    @discardableResult
     public static func completeEncounter(
         stage: Stage,
         labyrinthNodeID: String?,
@@ -96,9 +109,9 @@ public enum StageCompletion {
         enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
         save: inout PlayerSave,
-    ) {
+    ) -> EncounterCompletion {
         if let labyrinthNodeID {
-            LabyrinthCompletion.complete(
+            return LabyrinthCompletion.complete(
                 nodeID: labyrinthNodeID,
                 hero: hero,
                 companion: companion,
@@ -110,9 +123,8 @@ public enum StageCompletion {
                 enemyEncounterLevel: enemyEncounterLevel,
                 save: &save,
             )
-            return
         }
-        complete(
+        return complete(
             stage,
             hero: hero,
             companion: companion,
@@ -127,6 +139,7 @@ public enum StageCompletion {
         )
     }
 
+    @discardableResult
     public static func claimRewardsIfNeeded(
         for stage: Stage,
         hero: Combatant,
@@ -138,9 +151,9 @@ public enum StageCompletion {
         loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
-    ) {
+    ) -> EncounterCompletion {
         guard !save.journey.hasClaimedRewards(for: stage) else {
-            return
+            return .alreadyCompleted
         }
 
         let encounterLevel = enemyEncounterLevel
@@ -165,7 +178,19 @@ public enum StageCompletion {
             )
         }()
 
-        let stageGold = resolvedLoot?.gold ?? stage.rewards.gold
+        let stageGold: Int
+        let materialFallback: [ResourceAmount]
+        if stage.encounter.isCombat {
+            // Combat payouts come entirely from the seeded loot roll; authored
+            // stage rewards never stack on top (all shipped stages author
+            // `.empty` — see JourneyCatalogTests). Non-combat stages have no
+            // loot roll, so their authored rewards apply directly.
+            stageGold = resolvedLoot?.gold ?? 0
+            materialFallback = []
+        } else {
+            stageGold = stage.rewards.gold
+            materialFallback = resolvedMaterialRewards(stageReward: stage.rewards)
+        }
         let item = VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot)
         VictoryRewardApplier.grantVictoryRewards(
             hero: hero,
@@ -178,7 +203,7 @@ public enum StageCompletion {
             materialRewards: VictoryRewardApplier.grantedMaterials(
                 override: materialRewards,
                 loot: resolvedLoot,
-                fallback: resolvedMaterialRewards(stageReward: stage.rewards),
+                fallback: materialFallback,
             ),
             item: item,
             save: &save,
@@ -188,6 +213,7 @@ public enum StageCompletion {
         }
 
         save.journey.markRewardsClaimed(for: stage)
+        return .completed
     }
 
     private static func grantAuthoredItems(for stage: Stage, inventory: inout PlayerInventoryState) {

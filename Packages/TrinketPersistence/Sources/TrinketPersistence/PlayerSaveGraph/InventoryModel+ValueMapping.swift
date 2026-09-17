@@ -83,20 +83,10 @@ extension InventoryModel {
             isCorrupted: item.isCorrupted,
             affixPowers: affixPowers,
         )
-        guard baseType.slot == .trinket,
-              let authored = GameContent.itemTemplate(matching: item.templateID)
-        else {
-            return persistedItem
-        }
-        return InventoryItem(
-            id: persistedItem.id,
-            templateID: authored.templateID,
-            baseType: authored.baseType,
-            rarity: .astral,
-            displayName: authored.displayName,
-            affixes: authored.affixes,
-            isCorrupted: persistedItem.isCorrupted,
-            affixPowers: persistedItem.affixPowers,
-        )
+        return ItemResolution.trinketAuthoritativeItem(
+            persisted: persistedItem,
+            baseSlot: baseType.slot,
+            templateID: item.templateID,
+        ) ?? persistedItem
     }
 }

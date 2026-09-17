@@ -62,9 +62,9 @@ struct JourneyProgressTests {
         try #expect(progress.activeChapterID == "chapter-2")
     }
 
-    @Test func `complete chapter marks only that chapter done`() throws {
+    @Test func `mark chapter complete without rewards marks only that chapter done`() throws {
         var progress = JourneyProgressState.initial
-        progress.completeChapter("chapter-1")
+        progress.markChapterCompleteWithoutRewards("chapter-1")
 
         let chapter1 = try #require(GameContent.chapters.first { $0.id == "chapter-1" })
         let chapter1StageIDs = Set(chapter1.stages.map(\.id))

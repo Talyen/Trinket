@@ -99,6 +99,9 @@ public enum MysteryEffectApplier {
         )
     }
 
+    /// Failable by design: choices without an item pool or secondary
+    /// reward (leave, corrupt-only, unlock-only) have no offer to resolve.
+    /// Callers skip nils instead of trapping so mixed events stay openable.
     public static func resolveOffer(
         choice: MysteryChoice,
         encounterID: String,
@@ -107,7 +110,7 @@ public enum MysteryEffectApplier {
         save: PlayerSave,
         bonuses: LabyrinthModifierEffects = .zero,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> MysteryOffer {
+    ) -> MysteryOffer? {
         guard let pool = choice.itemPool,
               let bonusEffect = choice.effects.first(where: { effect in
                   switch effect {
@@ -124,7 +127,7 @@ public enum MysteryEffectApplier {
                   materialsPercent: bonuses.materialsFoundPercent,
               )
         else {
-            preconditionFailure("Ordinary Mystery choices require an item pool and a secondary reward")
+            return nil
         }
         return MysteryOffer(
             choiceID: choice.id,
@@ -138,6 +141,9 @@ public enum MysteryEffectApplier {
         )
     }
 
+    /// Applies a prepared offer. The bonus is applied as stored: the claim
+    /// path settles it against wallet caps just before calling, so previews
+    /// stay estimates and grants always match wallet state at tap time.
     public static func apply(_ offer: MysteryOffer, save: inout PlayerSave, at date: Date = Date()) -> MysteryEffectResult {
         guard isAvailable(offer.item, in: save.inventory) else { return MysteryEffectResult() }
         var result = MysteryEffectResult()
@@ -185,7 +191,14 @@ public enum MysteryEffectApplier {
                     experiencePercent: experienceEarnedPercent,
                     materialsPercent: materialsFoundPercent,
                 ) {
-                    apply(bonus, save: &save, result: &result, at: grantDate)
+                    let settled = settledBonus(
+                        bonus,
+                        encounterLevel: encounterLevel,
+                        save: save,
+                        experiencePercent: experienceEarnedPercent,
+                        at: grantDate,
+                    )
+                    apply(settled, save: &save, result: &result, at: grantDate)
                 }
             case .corruptItem, .leave:
                 break
@@ -229,7 +242,7 @@ public enum MysteryEffectApplier {
         experiencePercent: Int,
         materialsPercent: Int,
     ) -> MysteryRewardBonus? {
-        let bonus: MysteryRewardBonus? = switch effect {
+        switch effect {
         case let .gainGold(amount):
             .gold(CombatRounding.scaled(amount, byPercent: goldPercent + save.homestead.effects.goldFindPercent))
         case let .gainMaterial(resource):
@@ -243,22 +256,32 @@ public enum MysteryEffectApplier {
         default:
             nil
         }
-        return bonus.map {
-            RewardSettlementPolicy.settle(
-                $0,
-                inputs: RewardSettlementInputs(
-                    save: save,
-                    hero: save.roster.activeHero,
-                    companion: save.roster.activeCompanion,
-                    at: save.homestead.lastProductionAt,
-                ),
-                replacementExperience: RewardExperiencePolicy.encounterAward(
-                    encounterLevel: encounterLevel,
-                    roster: save.roster,
-                    percent: experiencePercent,
-                ),
-            )
-        }
+    }
+
+    /// Single settle point for mystery bonuses: wallet-cap gold→XP replacement
+    /// plus shared-XP capping, computed against wallet state at grant time.
+    /// Offers store the raw bonus; claim settles just before applying.
+    static func settledBonus(
+        _ bonus: MysteryRewardBonus,
+        encounterLevel: Int,
+        save: PlayerSave,
+        experiencePercent: Int = 0,
+        at date: Date,
+    ) -> MysteryRewardBonus {
+        RewardSettlementPolicy.settle(
+            bonus,
+            inputs: RewardSettlementInputs(
+                save: save,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                at: date,
+            ),
+            replacementExperience: RewardExperiencePolicy.encounterAward(
+                encounterLevel: encounterLevel,
+                roster: save.roster,
+                percent: experiencePercent,
+            ),
+        )
     }
 
     private static func append(_ item: InventoryItem, save: inout PlayerSave, result: inout MysteryEffectResult) {

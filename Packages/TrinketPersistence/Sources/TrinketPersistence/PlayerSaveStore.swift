@@ -43,6 +43,17 @@ public final class PlayerSaveStore {
     public private(set) var isCloudSyncEnabled: Bool
     public internal(set) var resetAffectsCloudProgress = false
     public private(set) var cloudSync: PlayerSaveCloudSync?
+    var cloudSyncRequested = false
+
+    /// Re-enables cloud after durable recovery. Init disables cloud on memory
+    /// fallback; call once durable storage is back and a transport was requested.
+    func enableCloudAfterDurableRecovery(transport: any CloudSaveTransport) {
+        isCloudSyncEnabled = true
+        if cloudSync == nil {
+            cloudSync = PlayerSaveCloudSync(store: self, transport: transport)
+        }
+    }
+
     @ObservationIgnored public var onExternalProgressChange: (@MainActor () -> Void)?
     @ObservationIgnored var cloudDeviceState = CloudDeviceState()
     var preservesUnreadableCloudState = false
@@ -158,6 +169,7 @@ public final class PlayerSaveStore {
         container = openResult.container
         usesMemoryFallback = openResult.usedInMemoryFallback
         isCloudSyncEnabled = cloudSyncEnabled && !openResult.usedInMemoryFallback
+        cloudSyncRequested = cloudSyncEnabled
         if openResult.usedInMemoryFallback {
             isPersistenceDegraded = true
             lastPersistenceError = Self.memoryFallbackError
@@ -240,10 +252,14 @@ public final class PlayerSaveStore {
         _ update: (inout PlayerSave) -> Void,
         persistImmediately: Bool = true,
     ) throws {
-        try commitCandidate(proposedSave(by: update), persistImmediately: persistImmediately)
+        try commit(proposedSave(by: update), persistImmediately: persistImmediately)
     }
 
-    private func commitCandidate(_ proposed: PlayerSave, persistImmediately: Bool = true) throws {
+    /// Single commit path shared by `performBatchMutation` (throws),
+    /// `persistBatch` (Bool), and `persistTransaction` (tri-state): sanitize,
+    /// diff slices, reconcile, write. The public spellings differ only in how
+    /// they report failure.
+    func commit(_ proposed: PlayerSave, persistImmediately: Bool = true) throws {
         let mutationInterval = Self.performanceSignposter.beginInterval("PlayerSaveMutation")
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
@@ -258,7 +274,13 @@ public final class PlayerSaveStore {
         logging message: String,
         _ mutation: (inout PlayerSave) -> Void,
     ) -> Bool {
-        persistCandidate(proposedSave(by: mutation), logging: message)
+        do {
+            try commit(proposedSave(by: mutation))
+            return true
+        } catch {
+            notePersistenceFailure(error, logging: message)
+            return false
+        }
     }
 
     private func proposedSave(by mutation: (inout PlayerSave) -> Void) -> PlayerSave {
@@ -267,21 +289,19 @@ public final class PlayerSaveStore {
         return candidate
     }
 
-    func persistCandidate(_ candidate: PlayerSave, logging message: String) -> Bool {
-        do {
-            try commitCandidate(candidate)
-            return true
-        } catch {
-            notePersistenceFailure(error, logging: message)
-            return false
-        }
+    func proposedSave<Value, Failure: Error>(
+        by mutation: (inout PlayerSave) -> Result<Value, Failure>,
+    ) -> (candidate: PlayerSave, result: Result<Value, Failure>) {
+        var candidate = currentSave
+        let result = mutation(&candidate)
+        return (candidate, result)
     }
 
     /// Single mapping from commit errors to `lastPersistenceError` + log.
     /// All persist spellings (`persistBatch`, `persistTransaction`) share this so
     /// failures stay diagnosable in one place. Typed errors pass through;
     /// see `PlayerSavePersistenceError.mapped`.
-    private func notePersistenceFailure(_ error: Error, logging message: String) {
+    func notePersistenceFailure(_ error: Error, logging message: String) {
         lastPersistenceError = PlayerSavePersistenceError.mapped(error)
         logger.error(
             "\(message, privacy: .public): \(String(describing: error), privacy: .public)",
@@ -318,24 +338,28 @@ public final class PlayerSaveStore {
             isPersistenceDegraded = usesMemoryFallback || pendingSaveRecovery?.hasPendingSave == true
             lastPersistenceError = nil
         } catch {
-            let mapped = PlayerSavePersistenceError.mapped(error)
-            lastPersistenceError = mapped
-            logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
-            throw mapped
+            notePersistenceFailure(error, logging: "Failed to save SwiftData player graph")
+            throw PlayerSavePersistenceError.mapped(error)
         }
     }
 
     /// Encodes local cloud metadata onto the graph before a durable write.
     /// Shared by normal commits and durable resets.
     func encodeCloudStateForSave() throws {
+        try setCloudDeviceState(cloudDeviceState)
+    }
+
+    /// Single writer for `root.cloudStatePayload` outside recovery restore.
+    /// Keeps unreadable payloads opaque when `preservesUnreadableCloudState`.
+    func setCloudDeviceState(_ state: CloudDeviceState) throws {
+        cloudDeviceState = state
         if !preservesUnreadableCloudState {
-            root.cloudStatePayload = try JSONEncoder().encode(cloudDeviceState)
+            root.cloudStatePayload = try JSONEncoder().encode(state)
         }
     }
 
     func restoreCloudMetadata(_ state: CloudDeviceState) throws {
-        cloudDeviceState = state
-        root.cloudStatePayload = try JSONEncoder().encode(state)
+        try setCloudDeviceState(state)
     }
 
     func applyCandidate(
@@ -424,7 +448,7 @@ extension PlayerSaveStore {
 
     func scheduleRecoveryRetry() {
         guard !usesMemoryFallback else { return }
-        pendingSaveRecovery?.scheduleRetry { [weak self] in
+        pendingSaveRecovery?.retryInBackground { [weak self] in
             guard let self else { return true }
             do { try saveGraph() } catch { return false }
             return pendingSaveRecovery?.hasPendingSave != true
@@ -488,6 +512,7 @@ extension PlayerSaveStore {
                 try saveGraph()
                 clearPendingDeferredPersistence()
             } catch {
+                notePersistenceFailure(error, logging: "Failed deferred player progress save")
                 rollbackPendingMutationIfNeeded()
             }
         }

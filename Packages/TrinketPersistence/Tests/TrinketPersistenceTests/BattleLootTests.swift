@@ -142,21 +142,27 @@ struct BattleLootTests {
         }
     }
 
-    @Test func `contracts use the resolved encounter level for item rewards`() throws {
+    @Test func `contracts anchor item tiers to campaign progress`() throws {
         var save = SaveTestSupport.makeSave()
         save.contracts.ensureBoard()
         let offer = try #require(save.contracts.offer(for: .standard))
+        #expect(ContractsCompletion.campaignRewardLevel(in: save) == 1)
         let actual = ContractsCompletion.resolveLoot(for: offer, encounterLevel: 20, save: save)
         var rng = SeededRandomNumberGenerator(
             seed: GameContent.encounterSeed(save.worldSeed, salt: "battle-loot-contract-\(offer.id)"),
         )
         let expected = BattleLoot.resolve(
-            encounterLevel: 20, rewardLevel: 20, enemyIsBoss: false,
+            encounterLevel: 20, rewardLevel: 1, enemyIsBoss: false,
             itemID: "contract-\(offer.id)-loot",
             ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
             using: &rng,
         )
         #expect(actual == expected)
+
+        for stage in GameContent.chapters[0].stages {
+            save.journey.complete(stage, in: GameContent.chapters)
+        }
+        #expect(ContractsCompletion.campaignRewardLevel(in: save) > 1)
     }
 
     @Test func `authored astral rewards remain the requested template`() throws {
@@ -176,5 +182,28 @@ struct BattleLootTests {
             #expect(save.inventory.items.last?.templateID == template.templateID)
             #expect(save.inventory.items.last?.isTrinket == false)
         }
+    }
+
+    @Test func `duplicate headline item converts to consolation gold`() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        var save = SaveTestSupport.makeSave()
+        let trinket = try #require(GameContent.trinketItems.first)
+        save.inventory.appendUniqueItem(trinket)
+        let goldBefore = save.roster.gold
+
+        VictoryRewardApplier.grantVictoryRewards(
+            hero: hero,
+            companion: companion,
+            encounterLevel: 10,
+            stageGold: 0,
+            materialRewards: [],
+            item: trinket,
+            save: &save,
+        )
+
+        let range = BattleLoot.quantityRange(forLevel: 10)
+        #expect(save.roster.gold - goldBefore == (range.lowerBound + range.upperBound) / 2)
+        #expect(save.inventory.items.count(where: { $0.templateID == trinket.templateID }) == 1)
     }
 }

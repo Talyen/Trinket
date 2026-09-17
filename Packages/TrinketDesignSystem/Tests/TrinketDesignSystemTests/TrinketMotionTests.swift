@@ -10,4 +10,13 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Shine.phase(at: period) == 0)
         #expect(abs(TrinketMotion.Shine.phase(at: period * 1.25) - 0.25) < 0.001)
     }
+
+    @Test func `derived motion intervals stay consistent`() {
+        #expect(TrinketMotion.Content.secondEntranceDelay == TrinketMotion.Content.entranceStagger * 2)
+        #expect(abs(TrinketMotion.Shine.textLoopPeriod - TrinketMotion.Shine.loopPeriod * 3) < 0.001)
+    }
+
+    @Test func `surface press scale differs from card press scale`() {
+        #expect(TrinketMotion.Interaction.surfacePressedScale != TrinketMotion.Interaction.artworkCardPressedScale)
+    }
 }

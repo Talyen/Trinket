@@ -29,7 +29,8 @@ DESIGN_SYSTEM_SOURCES = "Packages/TrinketDesignSystem/Sources/"
 
 DESIGN_HELPERS = {
     "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/TrinketDesign.swift",
-    "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Modifiers.swift",
+    "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/CardModifiers.swift",
+    "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/GlassButtons.swift",
     "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift",
 }
 
@@ -115,6 +116,13 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 
 FRAME_RE = re.compile(r"\.frame\((width|height|minWidth|minHeight):")
 BUTTON_RE = re.compile(r"Button")
+
+# Advisory only: inline animation constructors in files that never reference
+# TrinketMotion. Hints never fail the gate; motion owners with their own tuned
+# recipes (battle/Homestead/ceremony motion) may intentionally stay listed.
+MOTION_HINT_RE = re.compile(
+    r"\.(spring|easeOut|easeInOut|smooth)\(|withAnimation\(|phaseAnimator\(|timingCurve\(|TimelineView\("
+)
 
 # Broad ripgrep net — derive it from the same patterns the classifier uses so
 # a new guard cannot be added to Python without also being candidate-searchable.
@@ -294,6 +302,50 @@ def fallback_list_swift_files(scan_paths: list[str]) -> list[Path]:
     return files
 
 
+def motion_hint_files(scan_paths: list[str]) -> list[str]:
+    """Files using inline animation constructors without referencing TrinketMotion."""
+    candidates: list[Path] = []
+    cmd = [
+        "rg",
+        "-l",
+        "--no-heading",
+        "--with-filename",
+        "-g",
+        "*.swift",
+        MOTION_HINT_RE.pattern,
+        *scan_paths,
+    ]
+    try:
+        result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False)
+    except FileNotFoundError:
+        candidates = [
+            path
+            for path in fallback_list_swift_files(scan_paths)
+            if MOTION_HINT_RE.search(path.read_text(encoding="utf-8", errors="replace"))
+        ]
+    else:
+        if result.returncode not in (0, 1):
+            return []
+        for line in result.stdout.splitlines():
+            path = Path(line.strip())
+            if not path.is_absolute():
+                path = ROOT / path
+            candidates.append(path)
+    hints: list[str] = []
+    for path in sorted(set(candidates), key=str):
+        try:
+            rel = path.resolve().relative_to(ROOT).as_posix()
+        except ValueError:
+            rel = path.as_posix()
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if "TrinketMotion" not in text:
+            hints.append(f"{rel}: inline animation without TrinketMotion reference")
+    return hints
+
+
 def main(argv: list[str]) -> int:
     os.chdir(ROOT)
     scan_paths = resolve_scan_paths(argv[1:] or None)
@@ -333,6 +385,12 @@ def main(argv: list[str]) -> int:
             "exceptions and explain the reason nearby."
         )
         return 1
+
+    for hint in motion_hint_files(scan_paths):
+        print(f"motion hint: {hint} (prefer a TrinketMotion recipe when the motion is shared)")
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            file, message = hint.split(":", 1)
+            print(f"::warning file={file.strip()},title=Motion Hint::{message.strip()}")
 
     print("UI style guardrail passed.")
     return 0

@@ -48,6 +48,7 @@ public enum LabyrinthCompletion {
         )
     }
 
+    @discardableResult
     public static func complete(
         nodeID: String,
         hero: Combatant,
@@ -60,13 +61,14 @@ public enum LabyrinthCompletion {
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
         access: ContentAccessPolicy = .fullGame,
-    ) {
+    ) -> EncounterCompletion {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs(access: access)
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
         )
-        guard let node = save.labyrinth.node(id: nodeID), !node.isCleared else { return }
+        guard let node = save.labyrinth.node(id: nodeID) else { return .unavailable }
+        guard !node.isCleared else { return .alreadyCompleted }
 
         let effects = save.labyrinth.effects(for: nodeID)
         let encounterLevel = enemyEncounterLevel
@@ -119,5 +121,6 @@ public enum LabyrinthCompletion {
             nodeID: nodeID,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
         )
+        return .completed
     }
 }

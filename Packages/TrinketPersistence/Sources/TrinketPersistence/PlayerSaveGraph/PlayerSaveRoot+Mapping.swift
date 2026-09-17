@@ -1,9 +1,19 @@
 import Foundation
 import SwiftData
+import TrinketContent
 import TrinketCore
 
+/// Slice hub: `changed`, sanitize/persist targets, `prepareCandidate`, and
+/// root apply/repair live here. Per-slice read/write lives beside it in
+/// `PlayerSaveModelMapping.swift` and the `*SaveModels.swift` rows; value
+/// rules live in `PlayerSaveSanitizer.swift`.
+///
+/// `cloudStatePayload` is intentionally outside the slice set: it is local
+/// sync metadata committed with the graph transaction, never uploaded
+/// wholesale (see `PlayerSaveStore`). Adding a slice requires updating
+/// `changed`, `apply`, `installObservedSave`, and `applyRootFields` together.
 struct PlayerSaveSlice: OptionSet {
-    let rawValue: UInt8
+    let rawValue: UInt16
 
     static let root = Self(rawValue: 1 << 0)
     static let journey = Self(rawValue: 1 << 1)
@@ -106,7 +116,7 @@ public extension PlayerSaveRoot {
             sessionGeneration: sessionGeneration,
             worldSeed: worldSeed,
             starterSelection: mappedStarterSelection,
-            journey: journey?.toJourneyProgressState() ?? .initial,
+            journey: journey?.toPlayerJourneyState() ?? .initial,
             roster: roster?.toPlayerRosterState() ?? .freshStart,
             inventory: inventoryState,
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
@@ -125,20 +135,24 @@ extension PlayerSaveRoot {
         if journey == nil || hasDuplicateKeys(journey?.stages ?? [], key: \.stageID) {
             slices.insert(.journey)
         }
-        if roster == nil || rosterHasDuplicateChildren {
+        if roster == nil || rosterHasDuplicateChildren || roster?.hasDanglingRosterChildren == true {
             slices.insert(.roster)
         }
-        if inventory == nil || inventoryHasDuplicateChildren {
+        if inventory == nil || inventoryHasDuplicateChildren || hasDanglingInventoryChildren {
             slices.insert(.inventory)
         }
-        if homestead == nil || homesteadHasDuplicateChildren {
+        if homestead == nil || homesteadHasDuplicateChildren || hasDanglingHomesteadChildren {
             slices.insert(.homestead)
         }
-        if spires == nil || hasDuplicateKeys(spires?.floors ?? [], key: \.spireID) {
+        if spires == nil || hasDuplicateKeys(spires?.floors ?? [], key: \.spireID)
+            || (spires?.floors ?? []).contains(where: \.spireID.isEmpty) {
             slices.insert(.spires)
         }
         if labyrinth == nil {
             slices.insert(.labyrinth)
+        }
+        if StarterSelectionPhase(rawValue: starterSelectionPhaseRawValue) == nil {
+            slices.insert(.root)
         }
         if let payload = contractsPayload,
            payload != sanitizedSave.contracts.encodedPayload,
@@ -176,6 +190,36 @@ extension PlayerSaveRoot {
         return hasDuplicateKeys(homestead.resources ?? [], key: \.resourceID)
             || hasDuplicateKeys(homestead.pendingProduction ?? [], key: \.resourceID)
             || hasDuplicateKeys(homestead.nodeTiers ?? [], key: \.nodeID)
+    }
+
+    /// Rows the value read drops silently: unknown inventory base types
+    /// (`restoredItem` returns nil) and unknown/`.gold` homestead rows.
+    /// Value-level `changed()` never sees them, so repair must force the
+    /// slice rewrite; the next `update(from:)` reconcile deletes orphans.
+    private var hasDanglingInventoryChildren: Bool {
+        guard let items = inventory?.items else { return false }
+        return items.contains { GameContent.itemBaseType(matching: $0.baseTypeID) == nil }
+    }
+
+    private var hasDanglingHomesteadChildren: Bool {
+        guard let homestead else { return false }
+        if (homestead.resources ?? []).contains(where: {
+            $0.resourceID == HomesteadResource.gold.rawValue
+                || HomesteadResource.resolving(resourceID: $0.resourceID) == nil
+        }) {
+            return true
+        }
+        if (homestead.pendingProduction ?? []).contains(where: {
+            HomesteadResource.resolving(resourceID: $0.resourceID) == nil
+        }) {
+            return true
+        }
+        if (homestead.nodeTiers ?? []).contains(where: {
+            HomesteadNodeID.resolving(nodeID: $0.nodeID) == nil
+        }) {
+            return true
+        }
+        return false
     }
 
     func update(from save: PlayerSave, context: ModelContext? = nil) {
@@ -230,7 +274,7 @@ extension PlayerSaveRoot {
 
         if slices.contains(.labyrinth) {
             let model = labyrinth ?? LabyrinthProgressModel()
-            model.update(from: save.labyrinth)
+            model.update(from: save.labyrinth, context: context)
             labyrinth = model
             model.root = self
         }

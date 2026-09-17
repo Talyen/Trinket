@@ -1,6 +1,8 @@
 import TrinketCore
 import TrinketDesignSystem
 
+/// Display name and icon; the matching tint lives with the color tokens in
+/// `TrinketDesignSystem/HomesteadResource+Color.swift`.
 public extension HomesteadResource {
     var displayName: String {
         switch self {

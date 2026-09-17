@@ -87,6 +87,11 @@ public extension PlayerSaveStore {
                 for: combatantID,
             )
         }
-        return persisted ? .unlocked : .persistenceFailed
+        guard persisted else { return .persistenceFailed }
+        // Sanitize runs after the mutation and can clamp/drop over-budget
+        // talents; verify the commit actually kept the node instead of
+        // reporting success for a dropped unlock.
+        guard roster.unlockedTalents(for: combatantID).contains(nodeID) else { return .unavailable }
+        return .unlocked
     }
 }

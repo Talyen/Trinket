@@ -40,9 +40,23 @@ Offer resolvers drop homeless options and keep surviving offers.
 
 Naming: `*Completion` finishes a game mode (Journey stage, Spire floor,
 Labyrinth node, Contract); `*Applier` mutates the save; `*Persistence`
-owns a payload codec. Value→graph is `init(save:)`, graph→value is
-`toPlayerSave()`/`toPlayerRosterState()` and friends, CloudKit-only is
-`restored()`, content-ID lookups are `resolve()`.
+owns a payload codec. Completions return `EncounterCompletion`
+(`completed` / `alreadyCompleted` / `unavailable`) and are idempotent:
+duplicate deliveries grant nothing further. Value→graph is `init(save:)`,
+graph→value is `toPlayerSave()`/`toPlayerRosterState()` and friends,
+CloudKit-only is `restored()`, content-ID lookups are `resolve()`.
+
+Combat payouts come entirely from the seeded loot roll (`BattleLoot`);
+authored stage rewards apply to non-combat stages only. Loot `rewardLevel`
+(item tiers) is always authored — Journey chapter math, Spire floor x2,
+Labyrinth depth, Contracts campaign anchor — while `encounterLevel`
+(XP/gold/materials) is party-adjusted; Spire battles themselves launch at
+raw authored levels. A duplicate headline item converts to level-scaled
+consolation gold instead of consuming the encounter for nothing. Mystery
+offers store the raw bonus and settle wallet caps at claim, so previews are
+estimates and grants match wallet state at tap time. The commit path is a
+single `commit`: `performBatchMutation` throws, `persistBatch` returns Bool,
+`persistTransaction` returns tri-state.
 
 Tests use `SaveTestSupport` with `disableCloudSync: true`. The
 `-disable-cloud-sync` launch argument belongs to app / UI tests through

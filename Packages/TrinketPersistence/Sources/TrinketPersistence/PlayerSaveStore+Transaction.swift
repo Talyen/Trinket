@@ -6,16 +6,23 @@ public enum SaveTransactionResult<Value, Failure: Error> {
 
 @MainActor
 public extension PlayerSaveStore {
+    /// Transactional commit spelling. Transactions are always immediate;
+    /// deferred writes use `performBatchMutation(persistImmediately: false)`.
     func persistTransaction<Value, Failure: Error>(
         logging message: String,
         _ mutation: (inout PlayerSave) -> Result<Value, Failure>,
     ) -> SaveTransactionResult<Value, Failure> {
-        var candidate = currentSave
-        switch mutation(&candidate) {
+        let (candidate, result) = proposedSave(by: mutation)
+        switch result {
         case let .failure(error):
             return .rejected(error)
         case let .success(value):
-            guard persistCandidate(candidate, logging: message) else { return .persistFailed }
+            do {
+                try commit(candidate)
+            } catch {
+                notePersistenceFailure(error, logging: message)
+                return .persistFailed
+            }
             return .committed(value)
         }
     }

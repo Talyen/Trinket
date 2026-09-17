@@ -94,6 +94,58 @@ def proposal_evidence_failures() -> list[str]:
     return failures
 
 
+AUDIT_GUIDE_PATTERN = re.compile(r"^(\d{2})_[A-Za-z0-9]+\.md$")
+AUDIT_RETIRED_NUMBERS = {"05", "08", "11"}
+
+
+def audit_inventory_failures() -> list[str]:
+    """Keep the audit ownership table, guide files, and retired numbers consistent."""
+    audits_dir = ROOT / "Docs" / "Audits"
+    failures: list[str] = []
+    guides: dict[str, str] = {}
+    if audits_dir.is_dir():
+        for path in sorted(audits_dir.glob("[0-9][0-9]_*.md")):
+            match = AUDIT_GUIDE_PATTERN.match(path.name)
+            if match:
+                guides[path.name] = match.group(1)
+    linked: set[str] = set()
+    readme = audits_dir / "README.md"
+    if readme.is_file():
+        in_ownership = False
+        for line in readme.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                if stripped == "## Ownership":
+                    in_ownership = True
+                elif in_ownership:
+                    break
+                continue
+            if not in_ownership:
+                continue
+            for raw in LINK.findall(line):
+                target = raw.strip().split(maxsplit=1)[0].strip("<>")
+                if "/" not in target and AUDIT_GUIDE_PATTERN.match(Path(target).name):
+                    linked.add(Path(target).name)
+    for name in sorted(set(guides) - linked):
+        failures.append(
+            f"Docs/Audits/{name}: guide is not listed in the Docs/Audits/README.md ownership table"
+        )
+    for name in sorted(linked - set(guides)):
+        failures.append(
+            f"Docs/Audits/README.md: ownership table links {name}, which does not exist"
+        )
+    for name, number in sorted(guides.items()):
+        if number in AUDIT_RETIRED_NUMBERS:
+            failures.append(f"Docs/Audits/{name}: reuses retired audit number {number}")
+        lines = (audits_dir / name).read_text(encoding="utf-8").splitlines()
+        heading = next((line for line in lines if line.startswith("# ")), "")
+        if not heading.startswith(f"# {number}."):
+            failures.append(
+                f"Docs/Audits/{name}: top heading does not start with '# {number}.'"
+            )
+    return failures
+
+
 def script_index_failures() -> list[str]:
     """Keep the exhaustive command inventory out of the everyday entry page."""
     reference = ROOT / "Scripts" / "Reference.md"
@@ -166,6 +218,7 @@ def structural_checks(
     failures.extend(_check_plans.plan_failures(files, final=final, keep_plan=keep_plan, paths=paths))
     DOC_WARNINGS.extend(_check_plans.DOC_WARNINGS)
     failures.extend(proposal_evidence_failures())
+    failures.extend(audit_inventory_failures())
     return failures
 
 

@@ -272,7 +272,7 @@ struct PlayerSaveStoreTests {
 
     @Test @MainActor func `noop batch mutation does not bump modified at`() throws {
         let context = try PersistenceTestContext()
-        let store = try context.makeSaveStore()
+        let store = try context.makeSaveStore(inMemoryOnly: true)
         let before = store.currentSave.modifiedAt
 
         try store.performBatchMutation { _ in }
@@ -327,7 +327,7 @@ struct PlayerSaveStoreTests {
 
     @Test @MainActor func `perform batch mutation preserves state when validation fails`() throws {
         let context = try PersistenceTestContext()
-        let store = try context.makeSaveStore()
+        let store = try context.makeSaveStore(inMemoryOnly: true)
         store.grantGold(25)
         let snapshot = store.currentSave
 

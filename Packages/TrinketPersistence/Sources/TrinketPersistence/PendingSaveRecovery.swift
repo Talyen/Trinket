@@ -48,21 +48,21 @@ final class PendingSaveRecovery {
         case .pending:
             return pending
         case .previous:
-            return pending.deletingPathExtension().appendingPathExtension("previous.json")
+            return previousURL(forPendingURL: pending)
         }
     }
 
-    /// Back-compat alias used by store configuration cleanup.
-    nonisolated static func previousURL(for storeURL: URL) -> URL {
-        url(for: storeURL, kind: .previous)
+    nonisolated static func previousURL(forPendingURL pending: URL) -> URL {
+        pending.deletingPathExtension().appendingPathExtension("previous.json")
     }
 
     var previousFileURL: URL {
-        url.deletingPathExtension().appendingPathExtension("previous.json")
+        Self.previousURL(forPendingURL: url)
     }
 
     /// Versioned corrupt-sample URL so a second corrupt launch archives
-    /// beside the first instead of destroying forensics.
+    /// beside the first instead of destroying forensics. Capped at 5 samples;
+    /// older samples are pruned on write via `pruneCorruptSamples`.
     var nextCorruptFileURL: URL {
         let base = url.appendingPathExtension("unreadable")
         let manager = FileManager.default
@@ -74,16 +74,35 @@ final class PendingSaveRecovery {
         return base.appendingPathExtension("\(index)")
     }
 
+    /// Keeps at most 5 `.unreadable` samples; evicts oldest first.
+    nonisolated static func pruneCorruptSamples(forPendingURL pending: URL, keeping maxSamples: Int = 5) {
+        let manager = FileManager.default
+        let base = pending.appendingPathExtension("unreadable")
+        var samples: [(URL, Date)] = []
+        var candidates = [base]
+        for index in 2 ... (maxSamples + 10) {
+            candidates.append(base.appendingPathExtension("\(index)"))
+        }
+        for url in candidates {
+            // PersistenceCheck: allow - missing/unreadable sample metadata means skip, not fail
+            guard let values = try? url.resourceValues(forKeys: [.contentModificationDateKey]),
+                  manager.fileExists(atPath: url.path)
+            else { continue }
+            samples.append((url, values.contentModificationDate ?? .distantPast))
+        }
+        guard samples.count > maxSamples else { return }
+        for (url, _) in samples.sorted(by: { $0.1 < $1.1 }).prefix(samples.count - maxSamples) {
+            // PersistenceCheck: allow - eviction is best-effort; failed deletes retry next prune
+            try? manager.removeItem(at: url)
+        }
+    }
+
     /// Atomic sidecar write shared by pending/previous/restore paths.
     /// Pure file helper (nonisolated) so future callers can move sidecar I/O
     /// off the store's actor without restructuring call sites.
     nonisolated static func writeDataAtomically(_ data: Data, to destination: URL) throws {
         try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
         try data.write(to: destination, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
-    }
-
-    private func writeDataAtomically(_ data: Data, to destination: URL) throws {
-        try Self.writeDataAtomically(data, to: destination)
     }
 
     /// Record encode/decode without actor state, for the same future use.
@@ -113,7 +132,7 @@ final class PendingSaveRecovery {
 
     func restorePendingData(_ data: Data?) throws {
         if let data {
-            try writeDataAtomically(data, to: url)
+            try Self.writeDataAtomically(data, to: url)
             hasPendingSave = true
         } else {
             try clear()
@@ -125,6 +144,7 @@ final class PendingSaveRecovery {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try FileManager.default.moveItem(at: url, to: nextCorruptFileURL)
         hasPendingSave = false
+        Self.pruneCorruptSamples(forPendingURL: url)
     }
 
     func read() throws -> Record? {
@@ -146,7 +166,9 @@ final class PendingSaveRecovery {
             try preservePrevious(save: root.toPlayerSave(), cloudState: root.cloudStatePayload)
         }
         root.apply(recovered, slices: .all, context: context)
-        root.cloudStatePayload = record.cloudState
+        if let cloudState = record.cloudState {
+            root.cloudStatePayload = cloudState
+        }
     }
 
     /// Result of a recovery-file write attempt: whether the primary write
@@ -174,7 +196,7 @@ final class PendingSaveRecovery {
 
     func write(save: PlayerSave, cloudState: Data?) throws {
         do {
-            try writeDataAtomically(Self.encodedRecord(save: save, cloudState: cloudState), to: url)
+            try Self.writeDataAtomically(Self.encodedRecord(save: save, cloudState: cloudState), to: url)
         } catch {
             if Self.isFileProtectionError(error) {
                 throw PlayerSavePersistenceError.storeUnavailable("Device locked; retry after first unlock.")
@@ -186,7 +208,7 @@ final class PendingSaveRecovery {
 
     func preservePrevious(save: PlayerSave, cloudState: Data?) throws {
         let data = try Self.encodedRecord(save: save, cloudState: cloudState)
-        try writeDataAtomically(data, to: previousFileURL)
+        try Self.writeDataAtomically(data, to: previousFileURL)
     }
 
     /// Clears only the pending record. Forensics (`previous.json`,
@@ -209,10 +231,6 @@ final class PendingSaveRecovery {
     /// Schedules a bounded-backoff retry of a durable write while the app
     /// runs. Misnamed historically — the work stays on the store's actor;
     /// "background" means outside the triggering call, not off-thread.
-    func scheduleRetry(_ attempt: @escaping @MainActor () -> Bool) {
-        retryInBackground(attempt)
-    }
-
     func retryInBackground(_ attempt: @escaping @MainActor () -> Bool) {
         guard retryTask == nil else { return }
         retryTask = Task { @MainActor [weak self] in

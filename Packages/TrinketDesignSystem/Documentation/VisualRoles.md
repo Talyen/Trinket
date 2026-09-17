@@ -25,7 +25,7 @@ On-art text styling uses `.trinketOnArtText(_:)`.
 
 ## Typography
 
-Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)` for copy. Symbol/glyph sizing (placeholder art, lock glyphs) is the exception: it uses explicit sizes with a `UIStyleCheck: allow` carve-out, since it sizes artwork rather than styling copy.
+Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)` for copy. Symbol/glyph sizing (placeholder art, lock glyphs) is the exception: it uses explicit sizes since it sizes artwork rather than styling copy — placeholder art carries a narrow `UIStyleCheck: allow`, and the lock glyph sits inside the design-system helpers allowlisted in `check-ui-style.py`.
 
 | Role family | Typeface | Use for |
 |---|---|---|
@@ -79,7 +79,5 @@ Floating combat feedback consumes the same `Keyword.visualStyle.icon` identities
 its rasterization and motion remain owned by
 [BattleFeature](../../TrinketBattleFeature/README.md#uikit-feedback-island).
 
-Authored content uses `sf:` identifiers. `GameIcon.init(id:)` also accepts legacy
-unqualified SF names and translates the previously shipped `lucide:` names through
-`GameIcon+Legacy.swift`. This read compatibility does not require Lucide assets or
-a second renderer. Do not add new entries to the legacy provider vocabulary.
+Authored content uses `sf:` identifiers. `GameIcon.init(id:)` also accepts bare
+(unqualified) SF names, which resolve identically.

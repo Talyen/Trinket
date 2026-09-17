@@ -8,6 +8,13 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     public var pendingProduction: [HomesteadResource: Double]
     public var lastProductionAt: Date
 
+    /// Valid pending entries: finite, positive amounts. Single filter truth
+    /// shared by sanitize, graph write, and graph read, so the three can
+    /// never disagree on what persists.
+    public var validPendingProduction: [HomesteadResource: Double] {
+        pendingProduction.filter { $0.value.isFinite && $0.value > 0 }
+    }
+
     public static let secondsPerDay: TimeInterval = 86400.0
     private static let deterministicSeedProductionDate = Date(timeIntervalSince1970: 2000000000)
 

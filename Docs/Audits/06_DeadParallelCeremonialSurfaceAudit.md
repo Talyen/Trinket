@@ -37,5 +37,5 @@ keeping a useful single-use boundary is valid.
   elapsed time alone is insufficient. Preserve intentional seams under
   [Architecture](../Platform/Architecture.md) and relevant [proposal memory](Proposals.md).
 - Do not rewrite battle math, save wire formats, or meaningful tests for brevity.
-- Misplaced responsibilities belong to [13](13_StateGravityOwnershipAudit.md);
-  mixed-job maintenance cost belongs to [02](02_MaintenanceSurfaceLocalityAudit.md).
+- Misplaced responsibilities and mixed-job/context cost without a dead,
+  parallel, or ceremonial root route through the shared confusable-pairs table.

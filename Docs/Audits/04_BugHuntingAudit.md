@@ -1,4 +1,4 @@
-# 04. Strategic Bug Hunting Audit
+# 04. Risk-Led Correctness Audit
 
 **Goal:** Find and fix consequential wrong behavior through risk-led investigation.
 
@@ -23,7 +23,7 @@ that cannot return to a usable state. Syntax alone does not prove any of them.
 Preserve intended balance, copy, and product composition. Do not bundle unrelated
 renaming, styling, refactoring, or speculative hardening with a correctness fix.
 
-Use this audit for correctness findings without a more specific owner. Persistence
-transaction defects route to [03](03_BehaviorHardeningAudit.md); maintenance-only
-surface findings route to [06](06_DeadParallelCeremonialSurfaceAudit.md). Consult the
-shared table for other overlaps without launching sibling inventories.
+Use this audit for correctness findings without a more specific owner. Route
+confirmed defects through the shared confusable-pairs table (durable
+transaction/recovery failures, dead/parallel/ceremonial surface, and other
+overlaps each have an owner there) without launching sibling inventories.

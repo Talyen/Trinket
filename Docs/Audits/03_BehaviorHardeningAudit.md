@@ -1,4 +1,4 @@
-# 03. Persistence, Synchronization & Transition Integrity Audit
+# 03. Durable Progress, Transactions, Recovery & Synchronization Audit
 
 **Goal:** Preserve player progress and coherent transactions across mutation,
 persistence, recovery, synchronization, and lifecycle transitions.
@@ -40,6 +40,6 @@ Establish a reachable violating transition, source-proven silent loss, or reprod
 of corruption, duplicate application, ordering failure, or misleading recovery.
 Verify reload/retry where it establishes the repaired transaction's invariant.
 
-Audio handling belongs to [12](12_SideEffectSurfaceAudit.md); isolation hazards
-belong to [14](14_SwiftConcurrencyDataRaceAudit.md). Necessary cross-owner repairs
-remain part of one root-cause finding.
+Route audio handling, isolation hazards, and other overlaps through the shared
+confusable-pairs table. Necessary cross-owner repairs remain part of one
+root-cause finding.

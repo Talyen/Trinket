@@ -1,4 +1,4 @@
-# 01. Native UI Layout, Typography & Adaptation Audit
+# 01. Native Layout, Typography & Adaptation Audit
 
 **Goal:** Improve native layout, typography, and adaptation while preserving
 Trinket's intentional game UI.
@@ -33,9 +33,8 @@ rather than treating the minimum deployment target as the only supported runtime
   symbols already using scaled metrics can be intentional.
 - Preserve existing accommodation behavior; do not add bespoke accessibility modes
   or setting-specific layout branches under PD-014.
-- Repeated product scaffolding with demonstrated co-maintenance belongs to
-  [09](09_DuplicateFeatureSurfaceAudit.md); unusable gestures/actions belong to
-  [16](16_UIInteractionFeedbackAudit.md).
+- Repeated product scaffolding or unusable gestures/actions route through the
+  shared confusable-pairs table.
 
 ## Evidence and success
 

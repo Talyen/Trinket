@@ -38,7 +38,7 @@ public final class JourneyStageProgressModel {
 }
 
 extension JourneyProgressModel {
-    func toJourneyProgressState() -> JourneyProgressState {
+    func toPlayerJourneyState() -> JourneyProgressState {
         let stageModels = stages ?? []
         let pinned = Dictionary(
             stageModels.compactMap { model -> (String, String)? in
@@ -79,7 +79,7 @@ extension JourneyProgressModel {
             values: allStageIDs.sorted(),
             existingKey: \.stageID,
             valueKey: { $0 },
-            make: { JourneyStageProgressModel(stageID: $0) },
+            make: { _ in JourneyStageProgressModel() },
             update: { model, stageID in
                 model.stageID = stageID
                 model.isCompleted = state.completedStageIDs.contains(stageID)

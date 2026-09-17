@@ -205,14 +205,14 @@ struct MysteryEffectApplierTests {
         var save = SaveTestSupport.makeSave()
         let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
         var rng = SeededRandomNumberGenerator(seed: 42)
-        let offer = MysteryEffectApplier.resolveOffer(
+        let offer = try #require(MysteryEffectApplier.resolveOffer(
             choice: event.choices[0],
             encounterID: "spring",
             encounterLevel: 6,
             rewardLevel: 6,
             save: save,
             using: &rng,
-        )
+        ))
         let result = MysteryEffectApplier.apply(offer, save: &save)
         #expect(result.grantedItems == [offer.item])
         #expect(save.inventory.items.contains(offer.item))
@@ -227,9 +227,9 @@ struct MysteryEffectApplierTests {
         var save = SaveTestSupport.makeSave()
         var rng = SeededRandomNumberGenerator(seed: 42)
         for _ in 0 ..< 100 {
-            let offer = MysteryEffectApplier.resolveOffer(
+            let offer = try #require(MysteryEffectApplier.resolveOffer(
                 choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, save: save, using: &rng,
-            )
+            ))
             if offer.item.isTrinket || offer.item.rarity == .unique {
                 #expect(["icy_heart", "rimeheart_locket"].contains(offer.item.templateID))
                 seen.insert(offer.item.templateID)
@@ -242,9 +242,9 @@ struct MysteryEffectApplierTests {
             try save.inventory.appendUniqueItem(#require(GameContent.itemTemplate(matching: id) ?? GameContent.unique(matching: id)))
         }
         for _ in 0 ..< 20 {
-            let offer = MysteryEffectApplier.resolveOffer(
+            let offer = try #require(MysteryEffectApplier.resolveOffer(
                 choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, save: save, using: &rng,
-            )
+            ))
             #expect(!offer.item.isTrinket && offer.item.rarity != .unique)
             #expect(offer.item.baseType.id == "sapphire_amulet")
         }

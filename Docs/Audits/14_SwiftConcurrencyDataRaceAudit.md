@@ -43,5 +43,5 @@ cancellation machinery simply to modernize syntax. Preserve battle's main-actor
 ownership unless Architecture changes; do not introduce blocking sleeps or semaphore
 waits in cooperative contexts.
 
-Transaction integrity belongs to [03](03_BehaviorHardeningAudit.md); non-concurrent
-effect placement and initiation belong to [12](12_SideEffectSurfaceAudit.md).
+Transaction integrity, non-concurrent effect placement, and other overlaps route
+through the shared confusable-pairs table.

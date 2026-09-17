@@ -91,7 +91,7 @@ struct SurfaceModifier: ViewModifier {
             .background(style.fill, in: style.shape)
             .overlay { style.shape.stroke(style.stroke, lineWidth: style.strokeWidth) }
             .modifier(SurfaceShadowModifier(shadow: style.shadow))
-            .scaleEffect(isPressed ? 0.98 : 1)
+            .scaleEffect(isPressed ? TrinketMotion.Interaction.surfacePressedScale : 1)
     }
 }
 
@@ -125,7 +125,7 @@ private struct SurfaceStyle {
     }
 
     var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        TrinketDesign.shape(cornerRadius: cornerRadius)
     }
 
     private struct Spec {
@@ -237,11 +237,7 @@ public extension View {
         _ role: MaterialRole,
         cornerRadius: CGFloat = TrinketDesign.Corners.card,
     ) -> some View {
-        let shape = cornerRadius == TrinketDesign.Corners.card ? TrinketDesign.cardShape : RoundedRectangle(
-            cornerRadius: cornerRadius,
-            style: .continuous,
-        )
-        return modifier(MaterialRoleModifier(role: role, shape: shape))
+        modifier(MaterialRoleModifier(role: role, shape: TrinketDesign.shape(cornerRadius: cornerRadius)))
     }
 
     func trinketTypography(_ role: TypographyRole) -> some View {

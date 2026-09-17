@@ -74,6 +74,48 @@ struct ItemResolutionTests {
         #expect(StoredInventoryItem(Self.storedItem()).resolved() != nil)
     }
 
+    @Test func `offer codec falls back to basic on unknown rarity`() throws {
+        let encoded = try JSONEncoder().encode(StoredInventoryItem(Self.storedItem()))
+        var object = try #require(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["rarity"] = "mythic"
+        let tampered = try JSONSerialization.data(withJSONObject: object)
+        let decoded = try JSONDecoder().decode(StoredInventoryItem.self, from: tampered)
+        #expect(decoded.rarity == .basic)
+        #expect(decoded.resolved() != nil)
+    }
+
+    @Test func `cloud codec falls back to basic on unknown rarity`() throws {
+        let encoded = try JSONEncoder().encode(CloudItemSnapshot(Self.storedItem()))
+        var object = try #require(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["rarity"] = "mythic"
+        let tampered = try JSONSerialization.data(withJSONObject: object)
+        let decoded = try JSONDecoder().decode(CloudItemSnapshot.self, from: tampered)
+        #expect(decoded.rarity == .basic)
+        #expect(decoded.restored() != nil)
+    }
+
+    @Test func `trinket overwrite drops stored powers`() throws {
+        let template = try #require(GameContent.trinketItems.first)
+        let stored = InventoryItem(
+            id: "trinket-1",
+            templateID: template.templateID,
+            baseType: template.baseType,
+            rarity: .basic,
+            displayName: "Stale",
+            affixes: [ItemAffix(id: "stale", title: "Stale", description: "Stale", keywords: [])],
+            affixPowers: [ItemAffixPower(description: "stale", modifiers: [])],
+        )
+        let resolved = ItemResolution.trinketAuthoritativeItem(
+            persisted: stored,
+            baseSlot: template.baseType.slot,
+            templateID: template.templateID,
+        )
+        let authoritative = try #require(resolved)
+        #expect(authoritative.affixes == template.affixes)
+        #expect(authoritative.affixPowers == nil)
+        #expect(authoritative.rarity == template.rarity)
+    }
+
     @Test func `shop codec resolves even when purchased offer is homeless`() throws {
         let validItem = Self.storedItem(baseTypeID: "longsword")
         let homelessItem = Self.storedItem(baseTypeID: "removed-family")

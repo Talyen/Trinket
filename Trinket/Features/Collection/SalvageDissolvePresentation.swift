@@ -114,7 +114,7 @@ private struct SalvageTransmutationEffect: View {
                     .opacity(showsMaterials && !materialsDeparted ? 1 : 0)
                     .animation(
                         TrinketMotion.Reward.reveal.delay(
-                            Double(index) * TrinketMotion.Reward.resourceStagger,
+                            Double(index) * TrinketMotion.Reward.entranceStagger,
                         ),
                         value: showsMaterials,
                     )

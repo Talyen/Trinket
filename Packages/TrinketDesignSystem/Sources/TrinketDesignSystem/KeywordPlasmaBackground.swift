@@ -84,6 +84,8 @@ public struct KeywordPlasmaBackground: View {
         .animation(reduceMotion ? nil : TrinketMotion.Content.fade, value: keywords)
     }
 
+    /// First two keywords win; longer lists drop the tail. A lone keyword
+    /// falls back to its style's secondary color.
     nonisolated static func colors(for keywords: [Keyword]) -> (primary: Color, secondary: Color) {
         let firstStyle = keywords.first?.visualStyle
         let primary = firstStyle?.color ?? TrinketDesign.Colors.accent

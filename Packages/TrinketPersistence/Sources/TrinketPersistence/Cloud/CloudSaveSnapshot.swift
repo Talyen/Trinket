@@ -135,6 +135,10 @@ struct CloudItemSnapshot: Codable, Equatable, Sendable {
     let isCorrupted: Bool
     let affixPowers: [ItemAffixPower]?
 
+    private enum CodingKeys: String, CodingKey {
+        case id, templateID, baseTypeID, rarity, displayName, affixes, isCorrupted, affixPowers
+    }
+
     struct Affix: Codable, Equatable, Sendable {
         let id: String
         let title: String
@@ -183,6 +187,21 @@ struct CloudItemSnapshot: Codable, Equatable, Sendable {
         }
         isCorrupted = item.isCorrupted
         affixPowers = item.affixPowers
+    }
+
+    /// Lossy rarity decode matching `ItemResolution`: an unknown rarity string
+    /// falls back to `.basic` instead of failing the whole cloud snapshot.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        templateID = try container.decode(String.self, forKey: .templateID)
+        baseTypeID = try container.decode(String.self, forKey: .baseTypeID)
+        let rarityRawValue = try container.decode(String.self, forKey: .rarity)
+        rarity = ItemResolution.rarity(matching: rarityRawValue)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        affixes = try container.decode([Affix].self, forKey: .affixes)
+        isCorrupted = try container.decode(Bool.self, forKey: .isCorrupted)
+        affixPowers = try container.decodeIfPresent([ItemAffixPower].self, forKey: .affixPowers)
     }
 
     /// Non-throwing by design: an unknown base drops the item (nil + log),

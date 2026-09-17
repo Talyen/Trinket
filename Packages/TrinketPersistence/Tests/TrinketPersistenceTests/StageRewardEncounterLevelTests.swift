@@ -46,6 +46,35 @@ struct StageRewardEncounterLevelTests {
         #expect(fallback.roster.gold == pinnedGold)
     }
 
+    @Test func `duplicate stage completion grants nothing further`() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let stage = try deepJourneyStage()
+        var save = SaveTestSupport.makeSave()
+
+        let first = StageCompletion.complete(
+            stage,
+            hero: hero,
+            companion: companion,
+            battleGold: .init(gained: 5),
+            in: GameContent.chapters,
+            save: &save,
+        )
+        #expect(first == .completed)
+        let goldAfterFirst = save.roster.gold
+
+        let second = StageCompletion.complete(
+            stage,
+            hero: hero,
+            companion: companion,
+            battleGold: .init(gained: 5),
+            in: GameContent.chapters,
+            save: &save,
+        )
+        #expect(second == .alreadyCompleted)
+        #expect(save.roster.gold == goldAfterFirst)
+    }
+
     @Test func `combat loot resolves at provided encounter level instead of node depth`() throws {
         let node = LabyrinthNode(
             id: "level-override-node",
@@ -172,7 +201,7 @@ struct StageRewardEncounterLevelTests {
             return StageCompletion.partyAdjustedEncounterLevel(for: deepStage, save: save)
         case .spire:
             let topFloor = try ironVeinTopFloor()
-            return EncounterLevelResolver.spireEnemyLevel(for: topFloor)
+            return SpireCompletion.partyAdjustedEncounterLevel(for: topFloor, save: save)
         }
     }
 
@@ -183,7 +212,10 @@ struct StageRewardEncounterLevelTests {
             #expect(level == StageCompletion.resolvedEncounterLevel(for: stage, in: GameContent.chapters) - 3)
         case .spire:
             let topFloor = try ironVeinTopFloor()
-            #expect(level == EncounterLevelResolver.spireEnemyLevel(for: topFloor))
+            #expect(level == EncounterLevelResolver.campaignAdjusted(
+                EncounterLevelResolver.spireEnemyLevel(for: topFloor),
+                partyAverageLevel: 2,
+            ))
         }
     }
 

@@ -90,7 +90,7 @@ public final class ContractsPlayMode {
         PlayBattleRoute(origin: .contract(offerID: offerID)) { [weak self] configuration, _, award, _, loot in
             guard let self, let loot, let level = configuration.enemyEncounterLevel else { return .unavailable }
             let result = playerSave.persistTransaction(logging: "Failed to complete contract") { save -> Result<Void, CompletionFailure> in
-                let completed = ContractsCompletion.complete(
+                switch ContractsCompletion.complete(
                     offerID: offerID,
                     hero: configuration.hero.combatant,
                     companion: configuration.companion.combatant,
@@ -99,8 +99,10 @@ public final class ContractsPlayMode {
                     battleGold: award.award.goldFlow,
                     award: award,
                     save: &save,
-                )
-                return completed ? .success(()) : .failure(.unavailable)
+                ) {
+                case .completed: return .success(())
+                case .alreadyCompleted, .unavailable: return .failure(.unavailable)
+                }
             }
             switch result {
             case .committed: return .completed

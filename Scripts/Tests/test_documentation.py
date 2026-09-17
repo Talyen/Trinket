@@ -194,6 +194,35 @@ class DocumentationTests(ScriptRegressionTestCase):
         missing = "RemovedProposal" + "EvidenceSymbol"
         self.assertFalse(self.check_docs.source_contains_identifier(missing))
 
+    def test_audit_inventory_matches_ownership_table(self) -> None:
+        self.assertEqual(self.check_docs.audit_inventory_failures(), [])
+
+    def test_audit_inventory_catches_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            audits = root / "Docs/Audits"
+            audits.mkdir(parents=True)
+            (audits / "README.md").write_text(
+                "# Audits\n\n"
+                "## Ownership\n\n"
+                "| 01 | [01_PresentAudit.md](01_PresentAudit.md) | Present |\n"
+                "| 03 | [03_MissingAudit.md](03_MissingAudit.md) | Missing |\n"
+                "| 05 | [05_RetiredAudit.md](05_RetiredAudit.md) | Retired |\n"
+                "\n"
+                "### Confusable pairs\n\n"
+                "| Unlisted elsewhere | [02_UnlistedAudit.md](02_UnlistedAudit.md) |\n"
+            )
+            (audits / "01_PresentAudit.md").write_text("# 01. Present Audit\n")
+            (audits / "02_UnlistedAudit.md").write_text("# Wrong heading\n")
+            (audits / "05_RetiredAudit.md").write_text("# 05. Retired Audit\n")
+            with patch.object(self.check_docs, "ROOT", root):
+                failures = self.check_docs.audit_inventory_failures()
+            joined = "\n".join(failures)
+            self.assertIn("02_UnlistedAudit.md: guide is not listed", joined)
+            self.assertIn("03_MissingAudit.md, which does not exist", joined)
+            self.assertIn("reuses retired audit number 05", joined)
+            self.assertIn("does not start with '# 02.'", joined)
+
     def test_document_heading_cache_reuses_parsed_targets(self) -> None:
         from unittest.mock import patch
         links = load_script("review_links", "check-links.py")

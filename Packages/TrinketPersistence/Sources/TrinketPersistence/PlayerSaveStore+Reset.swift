@@ -3,20 +3,41 @@ import SwiftData
 
 @MainActor
 extension PlayerSaveStore {
+    enum ResetOrdering {
+        /// Cloud-install: preserves the incoming candidate in the pending
+        /// recovery file before the primary write.
+        case preserveCandidateFirst
+        /// Local reset: writes the primary graph first and only replaces the
+        /// pending record when the fresh reset is durable.
+        case preservePriorOnFailure
+    }
+
     /// Cloud-install path: preserves the incoming candidate in the pending
     /// recovery file before the primary write (via `applyCandidate`).
     func resetRoot(with save: PlayerSave) throws {
+        try resetRoot(with: save, ordering: .preserveCandidateFirst)
+    }
+
+    func resetRoot(with save: PlayerSave, ordering: ResetOrdering) throws {
         let snapshot = currentSave
         let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
-        try applyCandidate(sanitized, replacing: snapshot, slices: .all)
+        switch ordering {
+        case .preserveCandidateFirst:
+            try applyCandidate(sanitized, replacing: snapshot, slices: .all)
+        case .preservePriorOnFailure:
+            try resetRootDurably(with: sanitized, alreadySanitized: true, snapshot: snapshot)
+        }
     }
 
     /// Local-reset path: writes the primary graph first and only replaces the
     /// pending record when the fresh reset is durable, so a failed reset
     /// retains prior recoverable progress.
     func resetRootDurably(with save: PlayerSave) throws {
-        let snapshot = currentSave
-        let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
+        try resetRootDurably(with: save, alreadySanitized: false, snapshot: currentSave)
+    }
+
+    private func resetRootDurably(with save: PlayerSave, alreadySanitized: Bool, snapshot: PlayerSave) throws {
+        let sanitized = alreadySanitized ? save : try PlayerSaveSanitizer.sanitizeAndValidate(save)
         root.apply(sanitized, slices: .all, context: context)
         do {
             try encodeCloudStateForSave()
@@ -60,7 +81,8 @@ extension PlayerSaveStore {
         } catch {
             cloudDeviceState = previous
             if !preservesUnreadableCloudState {
-                root.cloudStatePayload = try JSONEncoder().encode(previous)
+                // PersistenceCheck: allow - rollback is best-effort; original error is rethrown
+                try? setCloudDeviceState(previous)
             }
             throw error
         }
@@ -95,12 +117,20 @@ extension PlayerSaveStore {
             var save = PlayerSaveSanitizer.sanitize(.fresh)
             save.sessionGeneration = currentSave.sessionGeneration &+ 1
             let replacementRoot = PlayerSaveRoot(save: save)
-            replacementRoot.cloudStatePayload = try JSONEncoder().encode(cloudDeviceState)
             replacementContext.insert(replacementRoot)
             container = replacement
             context = replacementContext
             root = replacementRoot
             usesMemoryFallback = false
+            // Recompute cloud enablement now that durable storage is back;
+            // init disables cloud on memory fallback, so re-enable when a
+            // cloud transport was requested.
+            if cloudSyncRequested {
+                enableCloudAfterDurableRecovery(
+                    transport: CloudKitSaveTransport(containerIdentifier: Self.cloudKitContainerIdentifier),
+                )
+            }
+            try setCloudDeviceState(cloudDeviceState)
             try saveGraph()
             clearPendingDeferredPersistence()
             installObservedSave(save)

@@ -31,6 +31,5 @@ that the old repeated responsibility has actually been removed.
 
 Do not unify unrelated interactions such as the battle hand and collection grid
 merely because both display cards. Preserve mystery/shop rules and each Play mode's
-progression. Single-path ceremony belongs to
-[06](06_DeadParallelCeremonialSurfaceAudit.md); native layout/adaptation defects
-belong to [01](01_AppleNativeUIAudit.md).
+progression. Single-path ceremony, native layout/adaptation defects, and other
+overlaps route through the shared confusable-pairs table.

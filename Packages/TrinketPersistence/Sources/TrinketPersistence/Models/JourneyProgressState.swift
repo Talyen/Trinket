@@ -68,7 +68,11 @@ public extension JourneyProgressState {
         }
     }
 
-    mutating func completeChapter(
+    /// Seed-only shortcut: marks a whole chapter claimed and completed while
+    /// granting nothing. Production completion must go through
+    /// `StageCompletion`, which pays rewards; calling this from game code
+    /// would forfeit a chapter of player rewards.
+    mutating func markChapterCompleteWithoutRewards(
         _ chapterID: String,
         in chapters: [Chapter] = GameContent.chapters,
     ) {

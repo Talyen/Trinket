@@ -8,8 +8,8 @@ description: Execute named Trinket audits or all audits in Docs/Audits, confirm 
 Read [the audit policy](../../../Docs/Audits/README.md),
 [proposal memory](../../../Docs/Audits/Proposals.md), and each selected audit before
 investigating its scope. Read large audit sets incrementally. “All audits” selects
-the audit Markdown files directly under `Docs/Audits/`, excluding `README.md` and
-`Proposals.md`; linked platform playbooks are separate tasks.
+the numbered guides in [the ownership table](../../../Docs/Audits/README.md#ownership),
+not `README.md`, `Proposals.md`, or the linked playbook row.
 
 ## Coordinate the pass
 

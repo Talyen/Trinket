@@ -35,6 +35,5 @@ replaced behavior remains active.
   without the relevant architectural decision and evidence.
 - Repair straightforward import-gate failures directly rather than inflating them
   into a hub rewrite.
-- Correct-owner redundant paths belong to
-  [06](06_DeadParallelCeremonialSurfaceAudit.md); mixed-job/context cost without
-  misplaced responsibility belongs to [02](02_MaintenanceSurfaceLocalityAudit.md).
+- Correct-owner redundant paths and mixed-job/context cost without misplaced
+  responsibility route through the shared confusable-pairs table.

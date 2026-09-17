@@ -115,7 +115,7 @@ private struct PostBattleTalentChoiceContent: View {
         do {
             for (index, tree) in eligibleTrees.enumerated() {
                 if index > 0 {
-                    try await Task.sleep(for: .seconds(TrinketMotion.Reward.categoryEntranceStagger))
+                    try await Task.sleep(for: .seconds(TrinketMotion.Reward.entranceStagger))
                 }
                 try Task.checkCancellation()
                 guard isEntranceActive, !hasFinishedEntrance else { return }

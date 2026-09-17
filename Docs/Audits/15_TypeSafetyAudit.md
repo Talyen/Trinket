@@ -35,6 +35,6 @@ and suppression rules. Report enforced violations distinctly and resolve them un
 that policy; banned syntax is not automatically a critical player-facing defect.
 
 Success is an established invariant and appropriate boundary failure behavior,
-verified with source proof and the relevant existing checks. Persistence transaction
-outcomes belong to [03](03_BehaviorHardeningAudit.md); concurrent isolation escapes
-belong to [14](14_SwiftConcurrencyDataRaceAudit.md).
+verified with source proof and the relevant existing checks. Persistence
+transaction outcomes, concurrent isolation escapes, and other overlaps route
+through the shared confusable-pairs table.

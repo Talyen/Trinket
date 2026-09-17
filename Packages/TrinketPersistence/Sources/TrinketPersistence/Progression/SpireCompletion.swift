@@ -8,7 +8,7 @@ public enum SpireCompletion {
         encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
+        ownedUniqueIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0,
     ) -> BattleLootResult {
         let level = encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
@@ -26,6 +26,14 @@ public enum SpireCompletion {
         )
     }
 
+    public static func partyAdjustedEncounterLevel(for floor: SpireFloor, save: PlayerSave) -> Int {
+        VictoryRewardApplier.partyAdjustedEncounterLevel(
+            authoredLevel: EncounterLevelResolver.spireEnemyLevel(for: floor),
+            save: save,
+        )
+    }
+
+    @discardableResult
     public static func complete(
         floor: SpireFloor,
         hero: Combatant,
@@ -37,24 +45,24 @@ public enum SpireCompletion {
         loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
-    ) {
+    ) -> EncounterCompletion {
         let spireID = floor.spireID.rawValue
         guard let spire = GameContent.spire(id: floor.spireID) else {
-            return
+            return .unavailable
         }
         guard !save.spires.isFloorCleared(floor.floor, spireID: spireID) else {
-            return
+            return .alreadyCompleted
         }
         guard save.spires.isFloorStartable(
             floor.floor,
             spireID: spireID,
             floorCount: spire.floorCount,
         ) else {
-            return
+            return .unavailable
         }
 
         let encounterLevel = enemyEncounterLevel
-            ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
+            ?? partyAdjustedEncounterLevel(for: floor, save: save)
         let resolvedLoot = loot ?? resolveLoot(
             for: floor,
             encounterLevel: encounterLevel,
@@ -79,5 +87,6 @@ public enum SpireCompletion {
         )
 
         save.spires.markFloorCleared(floor.floor, spireID: spireID)
+        return .completed
     }
 }

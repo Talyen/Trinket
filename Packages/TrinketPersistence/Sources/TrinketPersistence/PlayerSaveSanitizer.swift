@@ -203,8 +203,7 @@ enum PlayerSaveSanitizer {
         var sanitized = homestead
         let beforePending = homestead.pendingProduction.count
         sanitized.pendingProduction = Dictionary(
-            uniqueKeysWithValues: homestead.pendingProduction.compactMap { resource, quantity in
-                guard quantity.isFinite, quantity > 0 else { return nil }
+            uniqueKeysWithValues: homestead.validPendingProduction.map { resource, quantity in
                 if resource == .gold {
                     return (resource, PlayerRosterState.cappedPendingGold(quantity))
                 }

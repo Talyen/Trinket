@@ -33,6 +33,5 @@ Do not narrow checks or suppress diagnostics without dependency and behavior evi
   persistence, codegen, and measured presentation boundaries.
 - Do not introduce routing frameworks or reorganize owners just to improve counts.
   [The documentation map](../README.md) owns policy locality and precedence.
-- Unnecessary live/dead paths belong to [06](06_DeadParallelCeremonialSurfaceAudit.md);
-  misplaced semantic responsibility belongs to [13](13_StateGravityOwnershipAudit.md).
-  Other overlap follows the shared ownership table.
+- Unnecessary live/dead paths and misplaced semantic responsibility route
+  through the shared confusable-pairs table. Other overlap follows that table.

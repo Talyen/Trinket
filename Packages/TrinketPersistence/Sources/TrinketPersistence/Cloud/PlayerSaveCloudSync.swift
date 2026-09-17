@@ -52,6 +52,10 @@ public final class PlayerSaveCloudSync {
         requiresAuthority = true
     }
 
+    /// Production actions only (`.collect`, `.upgrade`): the sync loop
+    /// enqueues `.upload`/`.reset` itself, and receipts are only retained
+    /// for production actions, so `perform(.upload/.reset)` always returns
+    /// nil. Callers are the Homestead claim/upgrade commands.
     func perform(_ action: CloudSaveRequest.Action) async -> CloudSaveReceipt.Outcome? {
         for _ in 0 ..< 2 {
             guard let store else { return nil }
@@ -143,6 +147,10 @@ public final class PlayerSaveCloudSync {
         throw CloudSaveError.unavailable
     }
 
+    /// Server-conflict backoff, intentionally separate from `SaveRetryPolicy`:
+    /// conflicts are server-facing (short, jittered, capped low so competing
+    /// devices converge quickly), while local write retries back off to 30s.
+    /// Do not unify the two without CloudKit contention evidence.
     private func waitBeforeRetry(after attempt: Int) async throws {
         guard attempt < 7 else { return }
         let ceiling = min(2000, 100 << attempt)
@@ -230,7 +238,7 @@ public final class PlayerSaveCloudSync {
         guard state.activeAccountID != accountID else { return }
         let local = CloudSaveSnapshot(store.currentSave)
         if let previous = state.activeAccountID {
-            state.archives[previous] = CloudAccountArchive(snapshot: local, state: state.account)
+            state.archiving(CloudAccountArchive(snapshot: local, state: state.account), for: previous)
         }
         let replacement: PlayerSave?
         if let accountID {

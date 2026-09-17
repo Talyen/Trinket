@@ -39,6 +39,5 @@ or failure-handling defect. Where an existing legitimate seam is missing from
 guidance, repair its documentation rather than inventing another allowlist here.
 
 Restore the effect's contract and verify relevant observable behavior. Transaction
-outcomes belong to [03](03_BehaviorHardeningAudit.md); actor/executor, reentrancy,
-and concurrent task-lifetime hazards belong to
-[14](14_SwiftConcurrencyDataRaceAudit.md). Keep one finding per root cause.
+outcomes, concurrent isolation hazards, and other overlaps route through the
+shared confusable-pairs table. Keep one finding per root cause.

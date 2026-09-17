@@ -196,15 +196,23 @@ enum RosterHydration {
         let newlyEquipped = Set(resolved.itemIDsBySlot.values)
         var updated = loadouts
         for (otherID, otherLoadout) in loadouts where otherID != combatantID {
-            var cleaned = otherLoadout
-            for slot in ItemSlot.allCases {
-                if let itemID = cleaned.itemID(for: slot), newlyEquipped.contains(itemID) {
-                    cleaned.unequip(slot)
-                }
-            }
-            updated[otherID] = cleaned
+            updated[otherID] = loadoutRemoving(otherLoadout, itemIDs: newlyEquipped)
         }
         updated[combatantID] = resolved
-        return updated
+        // Final canonical pass: the edited entry already won (others were
+        // stripped of its items), so this only heals pre-existing dupes
+        // among untouched loadouts, matching sanitize.
+        return enforceUniqueEquippedItems(updated)
+    }
+
+    /// Removes every slot holding one of the given items.
+    private static func loadoutRemoving(_ loadout: EquipmentLoadout, itemIDs: Set<String>) -> EquipmentLoadout {
+        var cleaned = loadout
+        for slot in ItemSlot.allCases {
+            if let itemID = cleaned.itemID(for: slot), itemIDs.contains(itemID) {
+                cleaned.unequip(slot)
+            }
+        }
+        return cleaned
     }
 }

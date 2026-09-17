@@ -22,7 +22,8 @@ extension PlayerSaveStore {
             }
             resetAffectsCloudProgress = state.activeAccountID != nil
         } catch {
-            try restoreCloudMetadata(previous)
+            // PersistenceCheck: allow - rollback is best-effort; original error is rethrown
+            try? restoreCloudMetadata(previous)
             throw error
         }
     }
@@ -30,7 +31,10 @@ extension PlayerSaveStore {
     func prepareLocalProduction() -> Bool {
         guard let accountID = cloudDeviceState.activeAccountID else { return true }
         var state = cloudDeviceState
-        state.archives[accountID] = CloudAccountArchive(snapshot: CloudSaveSnapshot(currentSave), state: state.account)
+        state.archiving(
+            CloudAccountArchive(snapshot: CloudSaveSnapshot(currentSave), state: state.account),
+            for: accountID,
+        )
         state.activeAccountID = nil
         state.account = CloudAccountState()
         do {
