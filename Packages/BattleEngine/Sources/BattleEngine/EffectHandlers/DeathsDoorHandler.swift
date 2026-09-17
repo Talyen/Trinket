@@ -17,14 +17,13 @@ struct DeathsDoorHandler: BattleEffectHandler {
     /// DeathsDoorEngine and the damage pipeline, never applied as a card
     /// effect. This handler owns the battle summary and turn expiry.
     func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
+        _: Effect,
+        ability _: Ability,
+        source _: Combatant,
+        target _: Combatant,
         in _: inout BattleState,
     ) -> EffectApplyOutcome {
-        _ = effect; _ = ability; _ = source; _ = target
-        return EffectApplyOutcome(events: [], didApply: false)
+        EffectApplyOutcome(events: [], didApply: false)
     }
 
     func advanceTurn(

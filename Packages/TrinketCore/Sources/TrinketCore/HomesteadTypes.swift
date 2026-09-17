@@ -73,6 +73,12 @@ public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiab
     case agilityTraining = "agilityTraining"
     case moonlitSanctum = "moonlitSanctum"
     case wishingWell = "wishingWell"
+    case transmutationCrucible = "transmutationCrucible"
+    case mycologyCellar = "mycologyCellar"
+    case sparringGrounds = "sparringGrounds"
+    case archeryRange = "archeryRange"
+    case scriptorium = "scriptorium"
+    case leylineEnergy = "leylineEnergy"
 
     public var id: String {
         rawValue

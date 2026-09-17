@@ -69,3 +69,74 @@ struct FlagEffectHandler: BattleEffectHandler {
         )
     }
 }
+
+struct ShieldFromResourceHandler: BattleEffectHandler {
+    enum Mode {
+        case convertManaToBlock
+        case shieldFromMana
+        case shieldFromHalfMana
+        case shieldFromGold
+    }
+
+    let mode: Mode
+    let kind: EffectKind
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard effect.kind == kind else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+
+        let block: Int
+        var payment: ManaPayment?
+        switch mode {
+        case .convertManaToBlock:
+            let mana = context.mana(of: target)
+            guard mana > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            payment = context.payMana(mana, for: target)
+            block = mana
+        case .shieldFromMana:
+            let mana = context.mana(of: target)
+            guard mana > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            block = mana
+        case .shieldFromHalfMana:
+            let half = context.mana(of: target) / 2
+            guard half > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            block = half
+        case .shieldFromGold:
+            guard case let .shieldFromGold(goldPerBlock) = effect, goldPerBlock > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            let fromGold = context.gold / goldPerBlock
+            guard fromGold > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            block = fromGold
+        }
+
+        let applied = context.applyBlockGain(
+            block,
+            to: target,
+            source: source,
+            abilityName: ability.name,
+            origin: .direct,
+        )
+        var events: [ActionEvent] = []
+        if let payment {
+            events = CombatTriggerEngine.afterSpendMana(payment, in: &context)
+        }
+        events.append(contentsOf: applied.events)
+        return EffectApplyOutcome(events: events, didApply: applied.applied > 0)
+    }
+}

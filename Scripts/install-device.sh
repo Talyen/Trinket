@@ -38,7 +38,7 @@ USAGE
       exit 0
       ;;
     --) shift; break ;;
-    -*) echo "Unknown option: $1" >&2; exit 1 ;;
+    -*) echo "Unknown argument: $1" >&2; exit 1 ;;
     *) break ;;
   esac
 done
@@ -65,6 +65,13 @@ fi
 
 DERIVED_DATA="$PWD/.DerivedData/Device"
 mkdir -p "$DERIVED_DATA"
+
+# Join the shared run tenant (diagnostics session, lock/result defaults) like
+# every other build entry point; device products stay in DERIVED_DATA above.
+# shellcheck source=run-env.sh
+source ./Scripts/run-env.sh
+trinket_run_env_init
+trinket_run_env_print
 
 # shellcheck source=build-freshness.sh
 source ./Scripts/build-freshness.sh

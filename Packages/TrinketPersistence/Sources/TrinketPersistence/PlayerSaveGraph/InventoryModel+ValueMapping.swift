@@ -42,10 +42,7 @@ extension InventoryModel {
     }
 
     private static func restoredItem(from item: InventoryItemModel) -> InventoryItem? {
-        guard let baseType = GameContent.itemBaseType(matching: item.baseTypeID) else {
-            inventoryMappingLogger.error(
-                "Dropping inventory item \(item.id, privacy: .public) with unknown base type \(item.baseTypeID, privacy: .public)",
-            )
+        guard let baseType = ItemResolution.baseType(matching: item.baseTypeID, itemID: item.id) else {
             return nil
         }
         let affixes = (item.affixes ?? [])
@@ -80,7 +77,7 @@ extension InventoryModel {
             id: item.id,
             templateID: item.templateID,
             baseType: baseType,
-            rarity: Rarity(rawValue: item.rarityID) ?? .basic,
+            rarity: ItemResolution.rarity(matching: item.rarityID),
             displayName: item.displayName,
             affixes: affixes,
             isCorrupted: item.isCorrupted,

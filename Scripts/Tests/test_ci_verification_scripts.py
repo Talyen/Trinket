@@ -104,7 +104,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
     def test_ci_gate_fast_skips_generation_and_style(self) -> None:
         text = (ROOT / "Scripts" / "ci-gate.sh").read_text(encoding="utf-8")
         self.assertIn("--fast", text)
-        self.assertIn("=== Fast gate checks passed ===", text)
+        self.assertIn('trinket_log_section "Fast gate checks passed"', text)
         self.assertIn("cheap-slices", text)
         cheap = (ROOT / "Scripts" / "config" / "cheap-slices.txt").read_text(encoding="utf-8")
         self.assertIn("check-module-boundaries.sh", cheap)
@@ -431,12 +431,15 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
     def test_orchestrations_establish_inheritable_session(self) -> None:
         for script in ("handoff.sh", "test-deploy.sh"):
             text = (ROOT / "Scripts" / script).read_text(encoding="utf-8")
-            self.assertIn("TRINKET_DIAGNOSTICS_SESSION_ID", text, script)
-            self.assertIn("export TRINKET_DIAGNOSTICS_SESSION_ID", text, script)
+            self.assertIn("trinket_ensure_diagnostics_session", text, script)
+        # Single implementation mints and exports the session id.
+        helper = (ROOT / "Scripts" / "lib" / "args.sh").read_text(encoding="utf-8")
+        self.assertIn("TRINKET_DIAGNOSTICS_SESSION_ID", helper)
+        self.assertIn("export TRINKET_DIAGNOSTICS_SESSION_ID", helper)
         # Nested package commands inherit via run-env preservation, not a fresh id.
         run_env = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
         self.assertIn(
-            'if [[ -n "${TRINKET_DIAGNOSTICS_SESSION_ID:-}" ]]; then',
+            "trinket_run_env_ensure_diagnostics_session",
             run_env,
         )
 
@@ -849,7 +852,7 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
                     'trinket_run_env_init() { export RESULTS_DIR="$PWD/results"; }\n'
                 )
                 generate = root / "Scripts/generate.sh"
-                generate.write_text('#!/bin/bash\n[[ "$*" == "--force-xcodegen" && "$TRINKET_FORCE_ABILITY_DUMP" == 1 ]] || exit 9\nprintf called >> calls\n' + generator + "\n")
+                generate.write_text('#!/bin/bash\n[[ ("$*" == "" || "$*" == "--assets") && "$TRINKET_FORCE_ABILITY_DUMP" == 1 ]] || exit 9\nprintf called >> calls\n' + generator + "\n")
                 generate.chmod(0o755)
                 identifier = "A" * 24
                 (root / "Trinket.xcodeproj/project.pbxproj").write_text(
@@ -946,6 +949,8 @@ prepare_generated_inputs results
             root = Path(directory)
             (root / "Scripts").mkdir()
             shutil.copy2(ROOT / "Scripts/prepare-assets.sh", root / "Scripts/prepare-assets.sh")
+            (root / "Scripts/lib").mkdir()
+            shutil.copy2(ROOT / "Scripts/lib/args.sh", root / "Scripts/lib/args.sh")
             for kind in ("art", "cinematic", "audio", "app-icon"):
                 pipeline = root / "Scripts" / f"prepare-{kind}-assets.sh"
                 if kind == "app-icon":
@@ -985,15 +990,21 @@ prepare_generated_inputs results
         self.assertIn("xargs -P", text)
         self.assertIn("package test schemes in parallel", text)
         self.assertIn("per-package DerivedData tenants", text)
-        self.assertIn('SYMROOT=$(package_symroot "$package_dd")', text)
-        self.assertIn('OBJROOT=$(package_objroot "$package_dd")', text)
-        self.assertIn(
-            'SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")', text
-        )
+        # Tenant pins live in one helper so the build-for-testing and test
+        # branches cannot drift; test-package.sh only selects the action.
+        self.assertIn('trinket_set_package_scheme_args "$scheme"', text)
+        self.assertIn('"${TRINKET_PACKAGE_SCHEME_ARGS[@]}"', text)
+        self.assertNotIn('SYMROOT=$(package_symroot "$package_dd")', text)
         stamp = (ROOT / "Scripts" / "build-freshness.sh").read_text(encoding="utf-8")
         self.assertIn("package_symroot()", stamp)
         self.assertIn("package_objroot()", stamp)
         self.assertIn("package_shared_precomps_dir()", stamp)
+        self.assertIn("trinket_set_package_scheme_args()", stamp)
+        self.assertIn("TRINKET_PACKAGE_SCHEME_ARGS", stamp)
+        # Both branches share one invocation base: parallel targets and
+        # hermetic package resolution live in the helper, not per-branch.
+        self.assertIn("-parallelizeTargets", stamp)
+        self.assertIn("-disableAutomaticPackageResolution", stamp)
         self.assertIn("Packages/.DerivedData", stamp)
         # build-for-testing.sh delegates package builds to the single parallel
         # owner instead of re-implementing the xargs/tenant protocol.

@@ -2,6 +2,9 @@ import Testing
 @testable import TrinketContent
 
 struct GameContentCatalogInvariantTests {
+    /// Committed-output guard mirroring codegen validation. Runtime coverage
+    /// stays because hand-authored Swift pools (MysteryEventPool,
+    /// RecruitEventPool) only get regex-scraped by codegen, not validated.
     @Test func `item base I ds are unique`() throws {
         let ids = GameContent.itemBaseTypes.map(\.id)
         try #expect(ids.count == Set(ids).count)

@@ -70,7 +70,6 @@ Runs manifest validation, content codegen, optional asset pipelines, and XcodeGe
 Options:
   --assets          Also run art, music, SFX, cinematic, and app-icon asset pipelines (slow; for manifest edits)
   --kind <kind>     With --assets, prepare only one asset kind (art|cinematic|music|sfx|app-icon|all, default all)
-  --force-xcodegen  Explicitly request the default uncached XcodeGen generation
   --skip-xcodegen   Skip XcodeGen (content/asset codegen only)
   -h, --help        Show this help
 
@@ -97,10 +96,6 @@ while [[ $# -gt 0 ]]; do
       ASSET_KIND="$2"
       KIND_EXPLICIT=true
       shift 2
-      ;;
-    --force-xcodegen)
-      # Accepted alias: XcodeGen already runs uncached on every invocation.
-      shift
       ;;
     --skip-xcodegen)
       SKIP_XCODEGEN=true
@@ -134,18 +129,18 @@ if [[ "$KIND_EXPLICIT" == true && "$INCLUDE_ASSETS" != true ]]; then
 fi
 
 # content_codegen validates manifests before writing generated catalogs.
-echo "=== Generating content catalogs ==="
+trinket_log_section "Generating content catalogs"
 python3 Scripts/content_codegen.py
 
 if [[ "$INCLUDE_ASSETS" == true ]]; then
-  echo "=== Preparing media assets ==="
+  trinket_log_section "Preparing media assets"
   ./Scripts/prepare-assets.sh --kind "$ASSET_KIND"
 fi
 
 if [[ "$SKIP_XCODEGEN" == false ]]; then
-  echo "=== Generating Xcode project ==="
+  trinket_log_section "Generating Xcode project"
   source Scripts/lib/project-generation.sh
   trinket_generate_project "$PWD" "$PWD"
 fi
 
-echo "=== Generate complete ==="
+trinket_log_section "Generate complete"

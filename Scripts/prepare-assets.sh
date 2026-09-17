@@ -5,9 +5,11 @@ set -euo pipefail
 # head -n 2 and tail -n +3 in lib/media-assets.sh; unchanged outputs use cmp -s.
 
 cd "$(dirname "$0")/.."
+# shellcheck source=Scripts/lib/args.sh
+source Scripts/lib/args.sh
 
 kind="all"
-if [[ $# -ge 1 ]]; then
+while [[ $# -gt 0 ]]; do
   case "$1" in
     --kind)
       if [[ -z "${2:-}" ]]; then
@@ -22,23 +24,18 @@ if [[ $# -ge 1 ]]; then
       exit 0
       ;;
     *)
-      echo "Unknown arg '$1' (expected --kind art|cinematic|music|sfx|app-icon|all)" >&2
+      echo "Unknown argument: $1 (expected --kind art|cinematic|music|sfx|app-icon|all)" >&2
       exit 1
       ;;
   esac
-fi
-
-if [[ $# -gt 0 ]]; then
-  echo "Unexpected argument: $1" >&2
-  exit 2
-fi
+done
 case "$kind" in
   art|cinematic|music|sfx|app-icon|all) ;;
   *) echo "Unknown asset kind: $kind" >&2; exit 2 ;;
 esac
 
 run_kind() {
-  echo "=== Preparing $1 ==="
+  trinket_log_section "Preparing $1"
   case "$1" in
     art) Scripts/prepare-art-assets.sh ;;
     cinematic) Scripts/prepare-cinematic-assets.sh ;;

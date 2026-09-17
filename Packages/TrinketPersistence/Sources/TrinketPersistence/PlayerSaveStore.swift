@@ -181,7 +181,7 @@ public final class PlayerSaveStore {
             )
         } catch {
             // PersistenceCheck: allow - record is preserved aside when possible; retry persists newer progress
-            try? pendingSaveRecovery?.moveCorruptAside()
+            archivePendingSaveIfCorrupt(error)
             logger.error(
                 "Pending save could not be read; continuing with readable progress: \(String(describing: error), privacy: .public)",
             )
@@ -199,6 +199,9 @@ public final class PlayerSaveStore {
         guard rawSave.schemaVersion == PlayerSave.currentSchemaVersion else {
             throw PlayerSavePersistenceError.invalidSave("Unsupported save schema version.")
         }
+        // Doctrine: heal-locally — open sanitizes without validating so a
+        // locally readable save always loads; commit/reset/cloud paths use
+        // `sanitizeAndValidate` to reject what repair cannot heal.
         var sanitized = PlayerSaveSanitizer.sanitize(rawSave)
         sanitized.schemaVersion = PlayerSave.currentSchemaVersion
         installObservedSave(sanitized)
@@ -221,6 +224,16 @@ public final class PlayerSaveStore {
         for task in saveActionRetries.values {
             task.cancel()
         }
+    }
+
+    /// Archives an unreadable pending record without destroying device-locked
+    /// progress: a locked read stays for retry after first unlock.
+    private func archivePendingSaveIfCorrupt(_ error: Error) {
+        if let saveError = error as? PlayerSavePersistenceError, case .storeUnavailable = saveError {
+            return
+        }
+        // PersistenceCheck: allow - corrupt record is preserved aside; retry persists newer progress
+        try? pendingSaveRecovery?.moveCorruptAside()
     }
 
     public func performBatchMutation(
@@ -266,9 +279,10 @@ public final class PlayerSaveStore {
 
     /// Single mapping from commit errors to `lastPersistenceError` + log.
     /// All persist spellings (`persistBatch`, `persistTransaction`) share this so
-    /// failures stay diagnosable in one place.
+    /// failures stay diagnosable in one place. Typed errors pass through;
+    /// see `PlayerSavePersistenceError.mapped`.
     private func notePersistenceFailure(_ error: Error, logging message: String) {
-        lastPersistenceError = (error as? PlayerSavePersistenceError) ?? .writeFailed
+        lastPersistenceError = PlayerSavePersistenceError.mapped(error)
         logger.error(
             "\(message, privacy: .public): \(String(describing: error), privacy: .public)",
         )
@@ -282,6 +296,7 @@ public final class PlayerSaveStore {
             try saveGraph()
             clearPendingDeferredPersistence()
         } catch {
+            notePersistenceFailure(error, logging: "Failed to flush deferred player progress")
             rollbackPendingMutationIfNeeded()
         }
     }
@@ -303,9 +318,10 @@ public final class PlayerSaveStore {
             isPersistenceDegraded = usesMemoryFallback || pendingSaveRecovery?.hasPendingSave == true
             lastPersistenceError = nil
         } catch {
-            lastPersistenceError = .writeFailed
+            let mapped = PlayerSavePersistenceError.mapped(error)
+            lastPersistenceError = mapped
             logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
-            throw PlayerSavePersistenceError.writeFailed
+            throw mapped
         }
     }
 
@@ -342,7 +358,7 @@ public final class PlayerSaveStore {
                 // slices, leaving deferred increments published for their own
                 // flush/rollback.
                 restoreSnapshot(snapshot, slices: slices)
-                throw PlayerSavePersistenceError.writeFailed
+                throw PlayerSavePersistenceError.mapped(error)
             }
         } else {
             if pendingRollbackSnapshot == nil {
@@ -372,7 +388,7 @@ public final class PlayerSaveStore {
             try applyCandidate(save, replacing: observedSave, slices: repairSlices)
         } catch {
             logger.error("Failed to repair player save graph: \(String(describing: error), privacy: .public)")
-            lastPersistenceError = .writeFailed
+            lastPersistenceError = PlayerSavePersistenceError.mapped(error)
         }
     }
 }
@@ -408,7 +424,7 @@ extension PlayerSaveStore {
 
     func scheduleRecoveryRetry() {
         guard !usesMemoryFallback else { return }
-        pendingSaveRecovery?.retryInBackground { [weak self] in
+        pendingSaveRecovery?.scheduleRetry { [weak self] in
             guard let self else { return true }
             do { try saveGraph() } catch { return false }
             return pendingSaveRecovery?.hasPendingSave != true

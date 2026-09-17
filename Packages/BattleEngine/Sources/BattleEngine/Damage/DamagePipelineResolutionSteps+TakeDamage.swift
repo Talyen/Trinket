@@ -37,7 +37,7 @@ package extension DamagePipeline {
                 target: state.combatant,
                 in: &context,
             ))
-            state.damageEvents.append(contentsOf: applyTalentDamageReactions(
+            state.damageEvents.append(contentsOf: applyDefenderOnTakenReactions(
                 defender: state.combatant,
                 isRetaliation: state.options.isRetaliation,
                 isAttackHit: state.options.isAttackHit,
@@ -86,7 +86,7 @@ package extension DamagePipeline {
         return true
     }
 
-    private static func applyTalentDamageReactions(
+    private static func applyDefenderOnTakenReactions(
         defender: Combatant,
         isRetaliation: Bool,
         isAttackHit: Bool,

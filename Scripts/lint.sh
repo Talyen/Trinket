@@ -12,8 +12,6 @@ source Scripts/tool-versions.env
 source Scripts/format-dirs.env
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
-trinket_require_pinned_version swiftlint "$SWIFTLINT_VERSION" version
-
 extra_args=()
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
   # Dual reporters: `xcode` keeps rule/file/line in job logs (agent-watch-ci
@@ -25,6 +23,11 @@ LINT_TARGETS=("${SOURCE_DIRS[@]}")
 PATHS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --help|-h)
+      echo "Usage: $0 [-- path...]"
+      echo "Run SwiftLint over package/app sources (path-scoped runs bypass excluded:)."
+      exit 0
+      ;;
     --)
       shift
       PATHS+=("$@")
@@ -86,6 +89,8 @@ PY
     exit 0
   fi
 fi
+
+trinket_require_pinned_version swiftlint "$SWIFTLINT_VERSION" version
 
 mkdir -p .DerivedData/swiftlint-cache
 

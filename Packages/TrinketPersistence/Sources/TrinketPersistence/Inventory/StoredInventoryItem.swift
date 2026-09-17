@@ -5,7 +5,7 @@ import TrinketCore
 /// (shop stock, mystery offers). Distinct from the normalized SwiftData
 /// `InventoryItemModel` rows (durable store) and `CloudItemSnapshot` (cloud
 /// wire): payloads must round-trip verbatim (rarity/powers preserved, unknown
-/// base throws) so a saved offer resolves identically on claim.
+/// base drops the offer) so a saved offer resolves identically on claim.
 struct StoredInventoryItem: Codable {
     let id: String
     let templateID: String
@@ -27,8 +27,11 @@ struct StoredInventoryItem: Codable {
         powers = item.affixPowers
     }
 
-    func resolve() throws -> InventoryItem {
-        guard let base = GameContent.itemBaseType(matching: baseTypeID) else { throw StoredItemError.unknownBaseType }
+    /// Non-throwing by design: an unknown base drops the item (nil + log)
+    /// instead of failing the enclosing shop/mystery payload. Callers filter
+    /// homeless options and keep the surviving offers.
+    func resolved() -> InventoryItem? {
+        guard let base = ItemResolution.baseType(matching: baseTypeID, itemID: id) else { return nil }
         return InventoryItem(
             id: id, templateID: templateID, baseType: base, rarity: rarity, displayName: displayName,
             affixes: affixes.map(\.resolved), isCorrupted: isCorrupted, affixPowers: powers,
@@ -50,12 +53,23 @@ struct StoredInventoryItem: Codable {
             isCorrupted = affix.isCorrupted
         }
 
+        private enum CodingKeys: String, CodingKey {
+            case id, title, description, keywords, isCorrupted
+        }
+
+        /// Lossy keyword decode: removed keywords are stripped instead of
+        /// failing the whole offer payload (see `ItemResolution`).
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(String.self, forKey: .id)
+            title = try container.decode(String.self, forKey: .title)
+            description = try container.decode(String.self, forKey: .description)
+            keywords = try ItemResolution.decodeKeywordSet(from: container, forKey: .keywords)
+            isCorrupted = try container.decode(Bool.self, forKey: .isCorrupted)
+        }
+
         var resolved: ItemAffix {
             ItemAffix(id: id, title: title, description: description, keywords: keywords, isCorrupted: isCorrupted)
         }
     }
-}
-
-enum StoredItemError: Error {
-    case unknownBaseType
 }

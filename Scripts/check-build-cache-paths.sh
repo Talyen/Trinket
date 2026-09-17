@@ -17,6 +17,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: $0"
+  echo "Verify shared build roots appear in both local --no-build freshness and CI cache keys."
+  exit 0
+fi
+
 BUILD_INPUTS="$ROOT/Scripts/build-freshness.sh"
 CACHE_KEY_ACTION="$ROOT/.github/actions/build-cache-key/action.yml"
 # shellcheck source=build-freshness.sh

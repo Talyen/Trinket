@@ -134,12 +134,11 @@ run_generate() {
   # Force the AbilityInventoryDump subprocess so idempotence covers the
   # ability inventory even when its stamp digest is fresh. Normal generate.sh
   # skips that subprocess via .DerivedData/AbilityInventory.stamp.
-  # --force-xcodegen explicitly requests the default uncached generation.
   export TRINKET_FORCE_ABILITY_DUMP=1
   if [[ "$INCLUDE_ASSETS" == true ]]; then
-    ./Scripts/generate.sh --assets --force-xcodegen
+    ./Scripts/generate.sh --assets
   else
-    ./Scripts/generate.sh --force-xcodegen
+    ./Scripts/generate.sh
   fi
 }
 

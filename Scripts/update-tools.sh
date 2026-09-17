@@ -16,6 +16,10 @@ source "$ENV_FILE"
 APPLY=false
 if [[ "${1:-}" == "--apply" ]]; then
   APPLY=true
+elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "Usage: $0 [--apply]"
+  echo "Report newer SwiftFormat/SwiftLint releases; --apply bumps the pins in tool-versions.env."
+  exit 0
 elif [[ -n "${1:-}" ]]; then
   echo "Usage: $0 [--apply]" >&2
   exit 1

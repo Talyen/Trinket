@@ -266,39 +266,26 @@ extension BattleTurnEngine {
                 }
             }
 
-            let shouldConsumeNextHolyStrike = amount > 0
-                && !isSelfHealthCost
-                && damageKeyword == .holy
-                && hasActiveEffect(for: actor, in: context) { $0 == .nextHolyStrike }
-            let shouldConsumeNextStrikeDouble = amount > 0
-                && !isSelfHealthCost
-                && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeDouble }
-                && !shouldConsumeNextHolyStrike
-            let shouldConsumeNextStrikeCritical = amount > 0
-                && !isSelfHealthCost
-                && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeCritical }
-            let shouldConsumeNextStrikeLeech = amount > 0
-                && !isSelfHealthCost
-                && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeLeech }
             let nextBurnBonus = amount > 0 && !isSelfHealthCost && damageKeyword == .burn
                 ? activeNextBurnBonus(for: actor, in: context)
                 : 0
+            let nextStrike = nextStrikeConsumption(
+                amount: amount,
+                damageKeyword: damageKeyword,
+                isSelfHealthCost: isSelfHealthCost,
+                actor: actor,
+                nextBurnBonus: nextBurnBonus,
+                in: context,
+            )
             if nextBurnBonus > 0 {
                 amount += nextBurnBonus
             }
             let holyStrikeBurnPotency = amount
-            if shouldConsumeNextHolyStrike || shouldConsumeNextStrikeDouble {
+            if nextStrike.contains(.holyStrike) || nextStrike.contains(.double) {
                 amount *= 2
             }
 
-            let consumedKinds = Set([
-                shouldConsumeNextHolyStrike ? EffectKind.nextHolyStrike : nil,
-                shouldConsumeNextStrikeDouble ? EffectKind.nextStrikeDouble : nil,
-                shouldConsumeNextStrikeCritical ? EffectKind.nextStrikeCritical : nil,
-                shouldConsumeNextStrikeLeech ? EffectKind.nextStrikeLeech : nil,
-                nextBurnBonus > 0 ? EffectKind.nextBurnBonus : nil,
-            ].compactMap(\.self))
-            ActiveEffectMutation.removeMatching(from: actor, in: &context) { consumedKinds.contains($0.kind) }
+            ActiveEffectMutation.removeMatching(from: actor, in: &context) { nextStrike.consumedKinds.contains($0.kind) }
             let options: DamageOperation = isSelfHealthCost
                 ? .healthCost
                 : .attack(
@@ -306,8 +293,8 @@ extension BattleTurnEngine {
                     origin: context.resolution.attackOrigin,
                     abilityCriticalChanceBonus: ability.criticalChanceBonus,
                     guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
-                    guaranteedCritical: shouldConsumeNextStrikeCritical,
-                    abilityHasLeech: ability.hasLeech || shouldConsumeNextStrikeLeech,
+                    guaranteedCritical: nextStrike.contains(.critical),
+                    abilityHasLeech: ability.hasLeech || nextStrike.contains(.leech),
                 )
             var request = DamageRequest(
                 amount: amount,
@@ -347,7 +334,7 @@ extension BattleTurnEngine {
             ))
 
             if case .landed = damageOutcome.damageImpact {
-                if shouldConsumeNextHolyStrike {
+                if nextStrike.contains(.holyStrike) {
                     events.append(contentsOf: context.applyDecayingDoT(
                         keyword: .burn, potency: holyStrikeBurnPotency, to: damageTarget,
                         sourceActorID: actor.id, application: .ability,
@@ -414,6 +401,36 @@ extension BattleTurnEngine {
         where matches: (Effect) -> Bool,
     ) -> Bool {
         context.roster.activeEffects(for: actor).contains { matches($0.effect) }
+    }
+
+    private static func nextStrikeConsumption(
+        amount: Int,
+        damageKeyword: Keyword?,
+        isSelfHealthCost: Bool,
+        actor: Combatant,
+        nextBurnBonus: Int,
+        in context: BattleState,
+    ) -> NextStrikeConsumption {
+        guard amount > 0, !isSelfHealthCost else { return [] }
+        var consumption: NextStrikeConsumption = []
+        let holyStrike = damageKeyword == .holy
+            && hasActiveEffect(for: actor, in: context) { $0 == .nextHolyStrike }
+        if holyStrike {
+            consumption.insert(.holyStrike)
+        }
+        if hasActiveEffect(for: actor, in: context, where: { $0 == .nextStrikeDouble }), !holyStrike {
+            consumption.insert(.double)
+        }
+        if hasActiveEffect(for: actor, in: context, where: { $0 == .nextStrikeCritical }) {
+            consumption.insert(.critical)
+        }
+        if hasActiveEffect(for: actor, in: context, where: { $0 == .nextStrikeLeech }) {
+            consumption.insert(.leech)
+        }
+        if nextBurnBonus > 0 {
+            consumption.insert(.burnBonus)
+        }
+        return consumption
     }
 
     private static func activeNextBurnBonus(
@@ -526,7 +543,7 @@ extension BattleTurnEngine {
                 in: context,
             )
 
-            guard let handler = EffectHandlers.all[effect.kind] else {
+            guard let handler = EffectHandlers.handler(for: effect.kind) else {
                 logger.error("Missing effect handler for \(String(describing: effect.kind), privacy: .public)")
                 continue
             }

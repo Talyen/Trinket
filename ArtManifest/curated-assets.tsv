@@ -229,6 +229,12 @@ background	hunterLodge	bg_homestead_hunter_lodge	Raw Assets/Homestead/Hunter's L
 background	agilityTraining	bg_homestead_agility_training	Raw Assets/Homestead/Agility Training.jpeg	0.50	0.50
 background	moonlitSanctum	bg_homestead_moonlit_sanctum	Raw Assets/Homestead/Moonlit Sanctum.jpeg	0.50	0.50
 background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Wishing Well.jpeg	0.50	0.50
+background	transmutationCrucible	bg_homestead_transmutation_crucible	Raw Assets/Homestead/Transmutation Crucible.jpeg	0.50	0.50
+background	mycologyCellar	bg_homestead_mycology_cellar	Raw Assets/Homestead/Mycology Cellar.jpeg	0.50	0.50
+background	sparringGrounds	bg_homestead_sparring_grounds	Raw Assets/Homestead/Sparring Grounds.jpeg	0.50	0.50
+background	archeryRange	bg_homestead_archery_range	Raw Assets/Homestead/Archery Range.jpeg	0.50	0.50
+background	scriptorium	bg_homestead_scriptorium	Raw Assets/Homestead/Scriptorium.jpeg	0.50	0.50
+background	leylineEnergy	bg_homestead_leyline_energy	Raw Assets/Homestead/Leyline Energy.jpeg	0.50	0.50
 portrait_background	wheatField	bg_homestead_wheat_field_portrait	Raw Assets/Homestead/Wheat Field (Portrait).jpeg	0.72	0.50
 portrait_background	herbGarden	bg_homestead_herb_garden_portrait	Raw Assets/Homestead/Herb Garden (Portrait).jpeg	0.50	0.50
 portrait_background	chickenCoop	bg_homestead_chicken_coop_portrait	Raw Assets/Homestead/Chicken Coop (Portrait).jpeg	0.50	0.50
@@ -243,6 +249,12 @@ portrait_background	hunterLodge	bg_homestead_hunter_lodge_portrait	Raw Assets/Ho
 portrait_background	agilityTraining	bg_homestead_agility_training_portrait	Raw Assets/Homestead/Agility Training (Portrait).jpeg	0.50	0.50
 portrait_background	moonlitSanctum	bg_homestead_moonlit_sanctum_portrait	Raw Assets/Homestead/Moonlit Sanctum (Portrait).jpeg	0.50	0.50
 portrait_background	wishingWell	bg_homestead_wishing_well_portrait	Raw Assets/Homestead/Wishing Well (Portrait).jpeg	0.50	0.50
+portrait_background	transmutationCrucible	bg_homestead_transmutation_crucible_portrait	Raw Assets/Homestead/Transmutation Crucible (Portrait).jpeg	0.50	0.50
+portrait_background	mycologyCellar	bg_homestead_mycology_cellar_portrait	Raw Assets/Homestead/Mycology Cellar (Portrait).jpeg	0.50	0.50
+portrait_background	sparringGrounds	bg_homestead_sparring_grounds_portrait	Raw Assets/Homestead/Sparring Grounds (Portrait).jpeg	0.50	0.50
+portrait_background	archeryRange	bg_homestead_archery_range_portrait	Raw Assets/Homestead/Archery Range (Portrait).jpeg	0.50	0.50
+portrait_background	scriptorium	bg_homestead_scriptorium_portrait	Raw Assets/Homestead/Scriptorium (Portrait).jpeg	0.50	0.50
+portrait_background	leylineEnergy	bg_homestead_leyline_energy_portrait	Raw Assets/Homestead/Leyline Energy (Portrait).jpeg	0.50	0.50
 resource	wood	resource_homestead_wood	Raw Assets/Homestead/Resources/wood.png	0.50	0.50
 resource	stone	resource_homestead_stone	Raw Assets/Homestead/Resources/stone.png	0.50	0.50
 resource	iron	resource_homestead_iron	Raw Assets/Homestead/Resources/iron.png	0.50	0.50

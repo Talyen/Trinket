@@ -16,7 +16,10 @@ from pathlib import Path
 def command(*args: str) -> str:
     try:
         return subprocess.check_output(args, text=True, stderr=subprocess.DEVNULL).strip()
-    except (OSError, subprocess.CalledProcessError):
+    except (OSError, subprocess.CalledProcessError) as error:
+        # Provenance matters here: name the failed command so "unknown"
+        # fields can be told apart from genuinely empty ones.
+        print(f"performance_environment.py: {' '.join(args)} failed ({error}); recording unknown", file=sys.stderr)
         return "unknown"
 
 

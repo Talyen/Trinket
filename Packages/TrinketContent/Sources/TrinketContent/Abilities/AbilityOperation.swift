@@ -30,16 +30,7 @@ public enum AbilityOperation: Hashable, Sendable {
         case let .damage(component):
             component.target != .actor && component.amount + component.bonusAmount > 0 ? component.keyword : nil
         case let .effect(targeted):
-            switch targeted.effect {
-            case .burn, .poison, .bleed, .recurringDamage, .avatar:
-                (targeted.effect.potency ?? 0) > 0 ? targeted.effect.keyword : nil
-            case let .multiplyDoT(keyword, multiplier):
-                multiplier > 1 ? keyword : nil
-            case let .detonateDoT(keyword, amount):
-                amount > 0 ? keyword : nil
-            default:
-                nil
-            }
+            targeted.effect.damageKeywordWhenActive
         }
     }
 

@@ -22,7 +22,7 @@ public enum EffectSummaryBuilder {
         summaries.reserveCapacity(grouped.count)
         for kind in priorityOrder {
             guard let kindEffects = grouped[kind], !kindEffects.isEmpty else { continue }
-            guard let handler = EffectHandlers.all[kind] else { continue }
+            guard let handler = EffectHandlers.handler(for: kind) else { continue }
             let groupedByKeyword = Dictionary(grouping: kindEffects, by: \.keyword)
             for (keyword, stacks) in groupedByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
                 if let summary = handler.summary(for: stacks, keyword: keyword) {

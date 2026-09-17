@@ -2,8 +2,8 @@
 type: execution-plan
 status: active
 created: 2026-09-01
-updated: 2026-09-11
-expires: 2026-09-15
+updated: 2026-09-16
+expires: 2026-09-30
 ---
 
 # Simplification follow-up

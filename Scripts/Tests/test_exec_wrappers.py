@@ -172,11 +172,11 @@ class ExecWrapperTests(unittest.TestCase):
                 (name, ["--help"], 0, "Usage:")
                 for name in ("test.sh", "test-package.sh", "build-for-testing.sh", "generate.sh")
             ] + [
-                ("generate.sh", ["--force-xcodegen", "--help"], 0, "Usage:"),
+                ("generate.sh", ["--force-xcodegen"], 1, "Unknown argument"),
                 ("generate.sh", ["--bad-option"], 1, "Unknown argument"),
                 ("test.sh", ["style"], 0, "style checked"),
                 ("build-for-testing.sh", ["--bad-option"], 1, "Unknown argument"),
-                ("test-package.sh", ["--bad-option"], 1, "Unknown option"),
+                ("test-package.sh", ["--bad-option"], 1, "Unknown argument"),
                 ("test-package.sh", ["MissingPackage"], 1, "Unknown package"),
                 ("test-package.sh", ["BattleEngine", "BattleEngine"], 1, "Duplicate package"),
                 ("test-package.sh", ["--destination", "platform=macOS", "BattleEngine"], 1, "only platform=iOS Simulator"),
@@ -366,7 +366,7 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 root = Path(directory)
                 scripts = root / "Scripts"
                 (scripts / "lib").mkdir(parents=True)
-                for name in ("performance.sh", "performance-scenarios.py", "collect-performance-results.py", "compare-performance.py", "internal/performance/performance_model.py", "lib/lock.sh"):
+                for name in ("performance.sh", "performance-scenarios.py", "collect-performance-results.py", "compare-performance.py", "internal/cli.py", "internal/performance/performance_model.py", "lib/lock.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "performance_environment.py").write_text(
@@ -452,7 +452,7 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 scripts = root / "Scripts"
                 for relative in ("lib", "config", "Tests"):
                     (scripts / relative).mkdir(parents=True)
-                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env"):
+                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "check-build-cache-paths.sh").write_text("#!/bin/bash\nexit 0\n")
@@ -496,20 +496,79 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 if case == "python":
                     self.assertIn("Traceback", result.stderr)
 
+    # Every directly-invokable entry point documents --help; sourced libs,
+    # hooks, and CI-internal shims stay out and are pinned below so a new
+    # script must pick a side.
+    HELP_SCRIPTS = (
+        "agent-context.sh",
+        "agent-push-gate.sh",
+        "agent-watch-ci.sh",
+        "assert-generated-output.sh",
+        "balance-sweep.sh",
+        "build-for-testing.sh",
+        "build.sh",
+        "change-budget.sh",
+        "check-agent-invariants.sh",
+        "check-api-bans.sh",
+        "check-artwork-budget.sh",
+        "check-build-cache-paths.sh",
+        "check-exclusivity-footguns.sh",
+        "check-module-boundaries.sh",
+        "ci-assets-gate.sh",
+        "ci-diagnostics.sh",
+        "ci-gate.sh",
+        "ci-infra-rerun.sh",
+        "ensure-ci-tools.sh",
+        "format.sh",
+        "generate.sh",
+        "handoff.sh",
+        "install-device.sh",
+        "lint-analyze.sh",
+        "lint.sh",
+        "new-plan.sh",
+        "performance.sh",
+        "prepare-assets.sh",
+        "prepare-audio-assets.sh",
+        "promote.sh",
+        "prune-derived-data-cache.sh",
+        "record-time-profiler.sh",
+        "release-notes.sh",
+        "release.sh",
+        "report-art-memory.sh",
+        "run-simulator.sh",
+        "test-deploy.sh",
+        "test-package.sh",
+        "test-scripts.sh",
+        "test.sh",
+        "update-tools.sh",
+    )
+    NO_HELP_SCRIPTS = (
+        # Sourced by entry points, never executed directly.
+        "build-freshness.sh",
+        "change-classification.sh",
+        "run-env.sh",
+        "xcode-runner.sh",
+        # Invoked by hooks/CI/generate with fixed args.
+        "check-staged-project.sh",
+        "ensure-git-cliff.sh",
+        "ensure-simulator.sh",
+        "prepare-app-icon.sh",
+        "prepare-art-assets.sh",
+        "prepare-cinematic-assets.sh",
+        "stage-ci-test-artifact.sh",
+        "validate-commit-msg.sh",
+    )
+
     def test_help_exits_zero(self) -> None:
-        for script, extra in (
-            ("test.sh", []),
-            ("build-for-testing.sh", []),
-            ("test-scripts.sh", []),
-            ("performance.sh", []),
-        ):
-            # performance.sh has no --help; it validates env first, so only
-            # assert the wrappers that document --help here.
-            if script == "performance.sh":
-                continue
-            result = run_script(script, "--help")
-            self.assertEqual(result.returncode, 0, script + result.stderr)
-            self.assertIn("Usage:", result.stdout, script)
+        for script in self.HELP_SCRIPTS:
+            with self.subTest(script=script):
+                result = run_script(script, "--help")
+                self.assertEqual(result.returncode, 0, script + result.stderr)
+                self.assertIn("Usage:", result.stdout, script)
+
+    def test_help_surface_is_complete(self) -> None:
+        actual = sorted(path.name for path in (ROOT / "Scripts").glob("*.sh"))
+        self.assertEqual(sorted(self.HELP_SCRIPTS + self.NO_HELP_SCRIPTS), actual)
 
     def test_unknown_arg_fails(self) -> None:
         for script in ("build-for-testing.sh", "test-scripts.sh"):
@@ -517,10 +576,10 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
             self.assertNotEqual(result.returncode, 0, script)
             self.assertIn("Unknown argument", result.stderr, script)
 
-    def test_test_sh_unknown_option_fails(self) -> None:
+    def test_test_sh_unknown_argument_fails(self) -> None:
         result = run_script("test.sh", "--definitely-not-a-flag")
         self.assertNotEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Unknown option", result.stderr)
+        self.assertIn("Unknown argument", result.stderr)
 
     def test_simulator_names_single_sourced(self) -> None:
         config = (ROOT / "Scripts" / "config" / "simulator-names.env").read_text()

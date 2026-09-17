@@ -5,7 +5,7 @@ import TrinketCore
 enum GameContentHomesteadGenerated {
     static let homesteadNodes: [HomesteadNodeDefinition] = {
         var list = [HomesteadNodeDefinition]()
-        list.reserveCapacity(14)
+        list.reserveCapacity(20)
         list.append(HomesteadNodeDefinition(
             id: .wheatField,
             title: "Wheat Field",
@@ -377,6 +377,56 @@ enum GameContentHomesteadGenerated {
             ]
         ))
         list.append(HomesteadNodeDefinition(
+            id: .runesmithWorkshop,
+            title: "Runesmith",
+            summary: "A careful workshop where metalwork and crystal study meet.",
+            iconID: "sf:wand.and.stars",
+            category: .crafting,
+            prerequisites: [HomesteadNodeRequirement(.blacksmithForge, tier: 2), HomesteadNodeRequirement(.crystalGarden)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    stageName: "Inscription Table",
+                    cost: [ResourceAmount(.iron, 8), ResourceAmount(.gems, 2)],
+                    bonus: HomesteadBonus(
+                        title: "Freeze & Holy damage",
+                        description: "Increase Freeze and Holy damage dealt by 1"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.freeze, 1), .damageDealt(.holy, 1)], companionModifiers: [.damageDealt(.freeze, 1), .damageDealt(.holy, 1)])
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    stageName: "Engraving Bench",
+                    cost: [ResourceAmount(.iron, 16), ResourceAmount(.gems, 4)],
+                    bonus: HomesteadBonus(
+                        title: "Freeze & Holy damage",
+                        description: "Increase Freeze and Holy damage dealt by 2"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.freeze, 2), .damageDealt(.holy, 2)], companionModifiers: [.damageDealt(.freeze, 2), .damageDealt(.holy, 2)])
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    stageName: "Rune Forge",
+                    cost: [ResourceAmount(.iron, 32), ResourceAmount(.gems, 8)],
+                    bonus: HomesteadBonus(
+                        title: "Freeze & Holy damage",
+                        description: "Increase Freeze and Holy damage dealt by 3"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.freeze, 3), .damageDealt(.holy, 3)], companionModifiers: [.damageDealt(.freeze, 3), .damageDealt(.holy, 3)])
+                ),
+                HomesteadNodeTier(
+                    tier: 4,
+                    stageName: "Expanded Workshop",
+                    cost: [ResourceAmount(.iron, 64), ResourceAmount(.gems, 16)],
+                    bonus: HomesteadBonus(
+                        title: "Freeze & Holy damage",
+                        description: "Increase Freeze and Holy damage dealt by 4"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.freeze, 4), .damageDealt(.holy, 4)], companionModifiers: [.damageDealt(.freeze, 4), .damageDealt(.holy, 4)])
+                )
+            ]
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .alchemyLab,
             title: "Alchemy Lab",
             summary: "A precise workspace for reagents, tonics, and restorative experiments.",
@@ -389,40 +439,40 @@ enum GameContentHomesteadGenerated {
                     stageName: "Workbench",
                     cost: [ResourceAmount(.stone, 6), ResourceAmount(.herbs, 4)],
                     bonus: HomesteadBonus(
-                        title: "Poison offense & resistance",
-                        description: "Increase Poison damage dealt by 5%\nDecrease Poison damage taken by 10%"
+                        title: "Poison offense",
+                        description: "Increase Poison damage dealt by 5%"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.05), .damageTakenPercent(.poison, 0.10)], companionModifiers: [.poisonDamageDealtPercent(0.05), .damageTakenPercent(.poison, 0.10)])
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.05)], companionModifiers: [.poisonDamageDealtPercent(0.05)])
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     stageName: "Laboratory Shelves",
                     cost: [ResourceAmount(.stone, 12), ResourceAmount(.herbs, 8)],
                     bonus: HomesteadBonus(
-                        title: "Poison offense & resistance",
-                        description: "Increase Poison damage dealt by 10%\nDecrease Poison damage taken by 20%"
+                        title: "Poison offense",
+                        description: "Increase Poison damage dealt by 10%"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.10), .damageTakenPercent(.poison, 0.20)], companionModifiers: [.poisonDamageDealtPercent(0.10), .damageTakenPercent(.poison, 0.20)])
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.10)], companionModifiers: [.poisonDamageDealtPercent(0.10)])
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     stageName: "Distilling Station",
                     cost: [ResourceAmount(.stone, 24), ResourceAmount(.herbs, 16)],
                     bonus: HomesteadBonus(
-                        title: "Poison offense & resistance",
-                        description: "Increase Poison damage dealt by 15%\nDecrease Poison damage taken by 30%"
+                        title: "Poison offense",
+                        description: "Increase Poison damage dealt by 15%"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.15), .damageTakenPercent(.poison, 0.30)], companionModifiers: [.poisonDamageDealtPercent(0.15), .damageTakenPercent(.poison, 0.30)])
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.15)], companionModifiers: [.poisonDamageDealtPercent(0.15)])
                 ),
                 HomesteadNodeTier(
                     tier: 4,
                     stageName: "Sealed Laboratory",
                     cost: [ResourceAmount(.stone, 48), ResourceAmount(.herbs, 32)],
                     bonus: HomesteadBonus(
-                        title: "Poison offense & resistance",
-                        description: "Increase Poison damage dealt by 20%\nDecrease Poison damage taken by 40%"
+                        title: "Poison offense",
+                        description: "Increase Poison damage dealt by 20%"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.20), .damageTakenPercent(.poison, 0.40)], companionModifiers: [.poisonDamageDealtPercent(0.20), .damageTakenPercent(.poison, 0.40)])
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.poisonDamageDealtPercent(0.20)], companionModifiers: [.poisonDamageDealtPercent(0.20)])
                 )
             ]
         ))
@@ -481,52 +531,110 @@ enum GameContentHomesteadGenerated {
             ]
         ))
         list.append(HomesteadNodeDefinition(
-            id: .runesmithWorkshop,
-            title: "Runesmith",
-            summary: "A careful workshop where metalwork and crystal study meet.",
-            iconID: "sf:wand.and.stars",
-            category: .crafting,
-            prerequisites: [HomesteadNodeRequirement(.blacksmithForge, tier: 2), HomesteadNodeRequirement(.crystalGarden)],
+            id: .transmutationCrucible,
+            title: "Transmutation Crucible",
+            summary: "An alchemical blast furnace catalyzing raw ore into refined metals.",
+            iconID: "sf:flame.fill",
+            category: .alchemy,
+            prerequisites: [HomesteadNodeRequirement(.alchemyLab), HomesteadNodeRequirement(.blacksmithForge)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    stageName: "Inscription Table",
-                    cost: [ResourceAmount(.iron, 8), ResourceAmount(.gems, 2)],
+                    stageName: "Smelting Kiln",
+                    cost: [ResourceAmount(.stone, 6), ResourceAmount(.iron, 4)],
                     bonus: HomesteadBonus(
-                        title: "Burn, Freeze & Holy damage",
-                        description: "Increase Burn, Freeze, and Holy damage dealt by 1"
+                        title: "Burn damage & production",
+                        description: "Increase Burn damage dealt by 1\nProduces 1 Iron per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 1), .damageDealt(.freeze, 1), .damageDealt(.holy, 1)], companionModifiers: [.damageDealt(.burn, 1), .damageDealt(.freeze, 1), .damageDealt(.holy, 1)])
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 1)], companionModifiers: [.damageDealt(.burn, 1)]),
+                    production: ResourceAmount(.iron, 1)
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    stageName: "Engraving Bench",
-                    cost: [ResourceAmount(.iron, 16), ResourceAmount(.gems, 4)],
+                    stageName: "Bellows Crucible",
+                    cost: [ResourceAmount(.stone, 12), ResourceAmount(.iron, 8)],
                     bonus: HomesteadBonus(
-                        title: "Burn, Freeze & Holy damage",
-                        description: "Increase Burn, Freeze, and Holy damage dealt by 2"
+                        title: "Burn damage & production",
+                        description: "Increase Burn damage dealt by 2\nProduces 2 Iron per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 2), .damageDealt(.freeze, 2), .damageDealt(.holy, 2)], companionModifiers: [.damageDealt(.burn, 2), .damageDealt(.freeze, 2), .damageDealt(.holy, 2)])
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 2)], companionModifiers: [.damageDealt(.burn, 2)]),
+                    production: ResourceAmount(.iron, 2)
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    stageName: "Rune Forge",
-                    cost: [ResourceAmount(.iron, 32), ResourceAmount(.gems, 8)],
+                    stageName: "Sealed Converter",
+                    cost: [ResourceAmount(.stone, 24), ResourceAmount(.iron, 16)],
                     bonus: HomesteadBonus(
-                        title: "Burn, Freeze & Holy damage",
-                        description: "Increase Burn, Freeze, and Holy damage dealt by 3"
+                        title: "Burn damage & production",
+                        description: "Increase Burn damage dealt by 3\nProduces 3 Iron per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 3), .damageDealt(.freeze, 3), .damageDealt(.holy, 3)], companionModifiers: [.damageDealt(.burn, 3), .damageDealt(.freeze, 3), .damageDealt(.holy, 3)])
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 3)], companionModifiers: [.damageDealt(.burn, 3)]),
+                    production: ResourceAmount(.iron, 3)
                 ),
                 HomesteadNodeTier(
                     tier: 4,
-                    stageName: "Expanded Workshop",
-                    cost: [ResourceAmount(.iron, 64), ResourceAmount(.gems, 16)],
+                    stageName: "Transmutation Foundry",
+                    cost: [ResourceAmount(.stone, 48), ResourceAmount(.iron, 32)],
                     bonus: HomesteadBonus(
-                        title: "Burn, Freeze & Holy damage",
-                        description: "Increase Burn, Freeze, and Holy damage dealt by 4"
+                        title: "Burn damage & production",
+                        description: "Increase Burn damage dealt by 4\nProduces 4 Iron per day"
                     ),
-                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 4), .damageDealt(.freeze, 4), .damageDealt(.holy, 4)], companionModifiers: [.damageDealt(.burn, 4), .damageDealt(.freeze, 4), .damageDealt(.holy, 4)])
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.burn, 4)], companionModifiers: [.damageDealt(.burn, 4)]),
+                    production: ResourceAmount(.iron, 4)
+                )
+            ]
+        ))
+        list.append(HomesteadNodeDefinition(
+            id: .mycologyCellar,
+            title: "Mycology Cellar",
+            summary: "A subterranean vault cultivating medicinal mushrooms and anti-toxins.",
+            iconID: "sf:cross.vial.fill",
+            category: .alchemy,
+            prerequisites: [HomesteadNodeRequirement(.herbGarden, tier: 2), HomesteadNodeRequirement(.alchemyLab)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    stageName: "Spore Bed",
+                    cost: [ResourceAmount(.stone, 6), ResourceAmount(.herbs, 4)],
+                    bonus: HomesteadBonus(
+                        title: "Poison resistance & production",
+                        description: "Reduce Poison damage taken by 10%\nProduces 1 Herbs per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.poison, 0.10)], companionModifiers: [.damageTakenPercent(.poison, 0.10)]),
+                    production: ResourceAmount(.herbs, 1)
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    stageName: "Mushroom Rack",
+                    cost: [ResourceAmount(.stone, 12), ResourceAmount(.herbs, 8)],
+                    bonus: HomesteadBonus(
+                        title: "Poison resistance & production",
+                        description: "Reduce Poison damage taken by 20%\nProduces 2 Herbs per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.poison, 0.20)], companionModifiers: [.damageTakenPercent(.poison, 0.20)]),
+                    production: ResourceAmount(.herbs, 2)
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    stageName: "Spore Incubator",
+                    cost: [ResourceAmount(.stone, 24), ResourceAmount(.herbs, 16)],
+                    bonus: HomesteadBonus(
+                        title: "Poison resistance & production",
+                        description: "Reduce Poison damage taken by 30%\nProduces 3 Herbs per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.poison, 0.30)], companionModifiers: [.damageTakenPercent(.poison, 0.30)]),
+                    production: ResourceAmount(.herbs, 3)
+                ),
+                HomesteadNodeTier(
+                    tier: 4,
+                    stageName: "Fungal Sanctum",
+                    cost: [ResourceAmount(.stone, 48), ResourceAmount(.herbs, 32)],
+                    bonus: HomesteadBonus(
+                        title: "Poison resistance & production",
+                        description: "Reduce Poison damage taken by 40%\nProduces 4 Herbs per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageTakenPercent(.poison, 0.40)], companionModifiers: [.damageTakenPercent(.poison, 0.40)]),
+                    production: ResourceAmount(.herbs, 4)
                 )
             ]
         ))
@@ -635,6 +743,110 @@ enum GameContentHomesteadGenerated {
             ]
         ))
         list.append(HomesteadNodeDefinition(
+            id: .sparringGrounds,
+            title: "Sparring Grounds",
+            summary: "A sandy martial yard for close-quarters parrying and shield drills.",
+            iconID: "sf:shield.checkered",
+            category: .training,
+            prerequisites: [HomesteadNodeRequirement(.hunterLodge)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    stageName: "Chalk Circle",
+                    cost: [ResourceAmount(.wood, 6), ResourceAmount(.stone, 4)],
+                    bonus: HomesteadBonus(
+                        title: "Shield defense",
+                        description: "Increase Block gained by 1"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.blockGained(1)], companionModifiers: [.blockGained(1)])
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    stageName: "Padded Stakes",
+                    cost: [ResourceAmount(.wood, 12), ResourceAmount(.stone, 8)],
+                    bonus: HomesteadBonus(
+                        title: "Shield defense",
+                        description: "Increase Block gained by 2"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.blockGained(2)], companionModifiers: [.blockGained(2)])
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    stageName: "Timber Ring",
+                    cost: [ResourceAmount(.wood, 24), ResourceAmount(.stone, 16)],
+                    bonus: HomesteadBonus(
+                        title: "Shield defense",
+                        description: "Increase Block gained by 3"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.blockGained(3)], companionModifiers: [.blockGained(3)])
+                ),
+                HomesteadNodeTier(
+                    tier: 4,
+                    stageName: "Champion's Circle",
+                    cost: [ResourceAmount(.wood, 48), ResourceAmount(.stone, 32)],
+                    bonus: HomesteadBonus(
+                        title: "Shield defense",
+                        description: "Increase Block gained by 4"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.blockGained(4)], companionModifiers: [.blockGained(4)])
+                )
+            ]
+        ))
+        list.append(HomesteadNodeDefinition(
+            id: .archeryRange,
+            title: "Archery Range",
+            summary: "Distance butts and fletching benches for long-range marksmanship.",
+            iconID: "sf:figure.archery",
+            category: .training,
+            prerequisites: [HomesteadNodeRequirement(.hunterLodge)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    stageName: "Target Bale",
+                    cost: [ResourceAmount(.wood, 6), ResourceAmount(.hide, 4)],
+                    bonus: HomesteadBonus(
+                        title: "Ranged damage & production",
+                        description: "+1 Bow and Crossbow Damage\nProduces 1 Wood per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.rangedDamageDealt(1)], companionModifiers: [.rangedDamageDealt(1)]),
+                    production: ResourceAmount(.wood, 1)
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    stageName: "Shooting Line",
+                    cost: [ResourceAmount(.wood, 12), ResourceAmount(.hide, 8)],
+                    bonus: HomesteadBonus(
+                        title: "Ranged damage & production",
+                        description: "+2 Bow and Crossbow Damage\nProduces 2 Wood per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.rangedDamageDealt(2)], companionModifiers: [.rangedDamageDealt(2)]),
+                    production: ResourceAmount(.wood, 2)
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    stageName: "Wind-Flag Range",
+                    cost: [ResourceAmount(.wood, 24), ResourceAmount(.hide, 16)],
+                    bonus: HomesteadBonus(
+                        title: "Ranged damage & production",
+                        description: "+3 Bow and Crossbow Damage\nProduces 3 Wood per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.rangedDamageDealt(3)], companionModifiers: [.rangedDamageDealt(3)]),
+                    production: ResourceAmount(.wood, 3)
+                ),
+                HomesteadNodeTier(
+                    tier: 4,
+                    stageName: "Master Archery Butt",
+                    cost: [ResourceAmount(.wood, 48), ResourceAmount(.hide, 32)],
+                    bonus: HomesteadBonus(
+                        title: "Ranged damage & production",
+                        description: "+4 Bow and Crossbow Damage\nProduces 4 Wood per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.rangedDamageDealt(4)], companionModifiers: [.rangedDamageDealt(4)]),
+                    production: ResourceAmount(.wood, 4)
+                )
+            ]
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .moonlitSanctum,
             title: "Moonlit Sanctum",
             summary: "A quiet sanctum for sensing rare finds and unnatural threats.",
@@ -735,6 +947,110 @@ enum GameContentHomesteadGenerated {
                     ),
                     combatBonus: HomesteadTierCombatBonus(goldFindPercent: 20),
                     production: ResourceAmount(.gold, 4)
+                )
+            ]
+        ))
+        list.append(HomesteadNodeDefinition(
+            id: .scriptorium,
+            title: "Scriptorium",
+            summary: "A vaulted library of floating illuminated grimoires and runic scrolls.",
+            iconID: "sf:books.vertical.fill",
+            category: .arcana,
+            prerequisites: [HomesteadNodeRequirement(.crystalGarden)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    stageName: "Scribe Desk",
+                    cost: [ResourceAmount(.wood, 6), ResourceAmount(.gems, 4)],
+                    bonus: HomesteadBonus(
+                        title: "Esoteric vitality",
+                        description: "+5% Leech Gained"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.leechGainedPercent(0.05)], companionModifiers: [.leechGainedPercent(0.05)])
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    stageName: "Scroll Archive",
+                    cost: [ResourceAmount(.wood, 12), ResourceAmount(.gems, 8)],
+                    bonus: HomesteadBonus(
+                        title: "Esoteric vitality",
+                        description: "+10% Leech Gained"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.leechGainedPercent(0.10)], companionModifiers: [.leechGainedPercent(0.10)])
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    stageName: "Illuminated Vault",
+                    cost: [ResourceAmount(.wood, 24), ResourceAmount(.gems, 16)],
+                    bonus: HomesteadBonus(
+                        title: "Esoteric vitality",
+                        description: "+15% Leech Gained"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.leechGainedPercent(0.15)], companionModifiers: [.leechGainedPercent(0.15)])
+                ),
+                HomesteadNodeTier(
+                    tier: 4,
+                    stageName: "Grand Scriptorium",
+                    cost: [ResourceAmount(.wood, 48), ResourceAmount(.gems, 32)],
+                    bonus: HomesteadBonus(
+                        title: "Esoteric vitality",
+                        description: "+20% Leech Gained"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.leechGainedPercent(0.20)], companionModifiers: [.leechGainedPercent(0.20)])
+                )
+            ]
+        ))
+        list.append(HomesteadNodeDefinition(
+            id: .leylineEnergy,
+            title: "Leyline Energy",
+            summary: "Resonant obsidian monoliths channeling raw subterranean planar magic.",
+            iconID: "sf:bolt.fill",
+            category: .arcana,
+            prerequisites: [HomesteadNodeRequirement(.crystalGarden, tier: 2)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    stageName: "Grounding Pylon",
+                    cost: [ResourceAmount(.stone, 6), ResourceAmount(.gems, 4)],
+                    bonus: HomesteadBonus(
+                        title: "Mana capacity & production",
+                        description: "+5% Maximum Mana\nProduces 1 Gem per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumManaPercent(0.05)], companionModifiers: [.maximumManaPercent(0.05)]),
+                    production: ResourceAmount(.gems, 1)
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    stageName: "Resonant Conduit",
+                    cost: [ResourceAmount(.stone, 12), ResourceAmount(.gems, 8)],
+                    bonus: HomesteadBonus(
+                        title: "Mana capacity & production",
+                        description: "+10% Maximum Mana\nProduces 2 Gems per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumManaPercent(0.10)], companionModifiers: [.maximumManaPercent(0.10)]),
+                    production: ResourceAmount(.gems, 2)
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    stageName: "Harmonic Spire",
+                    cost: [ResourceAmount(.stone, 24), ResourceAmount(.gems, 16)],
+                    bonus: HomesteadBonus(
+                        title: "Mana capacity & production",
+                        description: "+15% Maximum Mana\nProduces 3 Gems per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumManaPercent(0.15)], companionModifiers: [.maximumManaPercent(0.15)]),
+                    production: ResourceAmount(.gems, 3)
+                ),
+                HomesteadNodeTier(
+                    tier: 4,
+                    stageName: "Planar Nexus",
+                    cost: [ResourceAmount(.stone, 48), ResourceAmount(.gems, 32)],
+                    bonus: HomesteadBonus(
+                        title: "Mana capacity & production",
+                        description: "+20% Maximum Mana\nProduces 4 Gems per day"
+                    ),
+                    combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumManaPercent(0.20)], companionModifiers: [.maximumManaPercent(0.20)]),
+                    production: ResourceAmount(.gems, 4)
                 )
             ]
         ))

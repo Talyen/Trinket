@@ -21,8 +21,9 @@ Usage: ./Scripts/agent-push-gate.sh [--paths <file> ...]
 Internal pre-push component: ensures generated catalogs/assets/project.pbxproj
 match what CI will regenerate when the commit scope can affect them:
   1. ./Scripts/ensure-ci-tools.sh (pinned SwiftFormat/SwiftLint/XcodeGen)
-  2. ./Scripts/generate.sh [--assets] --force-xcodegen (skipped when classification
-     reports no content, project, or asset generation)
+  2. ./Scripts/generate.sh [--assets] (skipped when classification
+     reports no content, project, or asset generation; XcodeGen always
+     runs uncached when generation runs)
   3. ./Scripts/assert-generated-output.sh [--assets]
 
 Without --paths, unions working-tree paths with local commits not present on a
@@ -173,11 +174,11 @@ fi
 
 echo "=== Agent push gate: generate (pinned XcodeGen, force rewrite) ==="
 if [[ "$INCLUDE_ASSETS" == true ]]; then
-  ./Scripts/generate.sh --assets --force-xcodegen
+  ./Scripts/generate.sh --assets
   echo "=== Agent push gate: assert generated output (including assets) ==="
   ./Scripts/assert-generated-output.sh --assets
 else
-  ./Scripts/generate.sh --force-xcodegen
+  ./Scripts/generate.sh
   echo "=== Agent push gate: assert generated output ==="
   ./Scripts/assert-generated-output.sh
 fi

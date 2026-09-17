@@ -23,6 +23,27 @@ Store methods are `@MainActor`; pure reward/sanitize math (`BattleLoot`,
 `save: inout` so app sessions decide when to apply. Mutations reconcile changed
 slices while preserving retained child-row identities.
 
+## Doctrine
+
+Heal-locally / reject-remotely: store open sanitizes without validating so a
+locally readable save always loads; commit, reset, and cloud-restore share
+`PlayerSaveSanitizer.sanitizeAndValidate`, and cloud restores additionally
+refuse unreadable Labyrinth maps so corrupt snapshots never propagate.
+`PlayerSavePersistenceError.mapped` preserves typed causes end to end, and
+`isRetryable` gates silent retries (validation rejections never retry).
+
+Item degradation is per-field, shared by the SwiftData, offer-blob, and cloud
+codecs via `ItemResolution`: unknown bases drop the item, unknown keywords are
+stripped, unknown rarities fall back to basic, stored affixes round-trip
+verbatim (bespoke unique signatures live outside the generic affix catalog).
+Offer resolvers drop homeless options and keep surviving offers.
+
+Naming: `*Completion` finishes a game mode (Journey stage, Spire floor,
+Labyrinth node, Contract); `*Applier` mutates the save; `*Persistence`
+owns a payload codec. Value→graph is `init(save:)`, graph→value is
+`toPlayerSave()`/`toPlayerRosterState()` and friends, CloudKit-only is
+`restored()`, content-ID lookups are `resolve()`.
+
 Tests use `SaveTestSupport` with `disableCloudSync: true`. The
 `-disable-cloud-sync` launch argument belongs to app / UI tests through
 `AppEnvironment`, not package unit tests.

@@ -28,6 +28,9 @@ a caller already ran the docs gate (for example handoff --final).
 --fast skips docs, media audio fixtures, and shell regressions for a quick
 local loop; CI runs the full suite. Failed logs are retained under RESULTS_DIR
 or .DerivedData/ScriptTestResults; terminal excerpts are bounded.
+Suites run in parallel (TRINKET_SCRIPT_TEST_JOBS caps workers, default ncpu)
+and report in selection order; every selected suite is attempted and the
+first failure exits.
 --paths selects registered leaf-script regression families. Shared/unknown script
 paths and unscoped invocations run all suites. Syntax is scoped to --paths;
 cache alignment stays full-tree (cheap static guard). CI uses the unscoped
@@ -91,11 +94,14 @@ echo "=== Script syntax ==="
 syntax_started=$SECONDS
 if (( ${#requested_paths[@]} > 0 )); then
   syntax_list=()
+  syntax_skipped=()
   for candidate in "${requested_paths[@]}"; do
     case "$candidate" in
       Scripts/*.sh|Scripts/*.env|Scripts/*.py|Scripts/*.mjs|Scripts/bin/*)
         [[ -f "$candidate" ]] || continue
         syntax_list+=("$candidate") ;;
+      *)
+        syntax_skipped+=("$candidate") ;;
     esac
   done
   if (( ${#syntax_list[@]} == 0 )); then
@@ -109,6 +115,9 @@ if (( ${#requested_paths[@]} > 0 )); then
         *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
       esac
     done
+  fi
+  if (( ${#syntax_skipped[@]} > 0 )); then
+    printf 'Syntax scope note: %d selected path(s) live outside Scripts/ and are covered by their own owners, not script syntax.\n' "${#syntax_skipped[@]}" >&2
   fi
 else
   while IFS= read -r script; do
@@ -127,13 +136,30 @@ python_started=$SECONDS
 if (( ${#python_modules[@]} == 0 )); then
   echo "(no Python regressions selected)"
 else
+  # Suites are independent unittest modules with isolated logs: run them in
+  # parallel (same xargs -P shape as test-package.sh) and report in selection
+  # order afterwards so output stays deterministic. Unlike the old sequential
+  # loop, every selected suite is attempted; the first failure still exits.
+  cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
+  suite_jobs="${TRINKET_SCRIPT_TEST_JOBS:-$cpu_count}"
+  [[ "$suite_jobs" =~ ^[0-9]+$ ]] && (( suite_jobs >= 1 )) || suite_jobs=1
+  if [[ "$suite_jobs" -gt ${#python_modules[@]} ]]; then suite_jobs=${#python_modules[@]}; fi
+  printf '%s\n' "${python_modules[@]}" | TRINKET_TEST_LOG_DIR="$TEST_LOG_DIR" xargs -P "$suite_jobs" -I{} bash -c '
+    module="$1"
+    log="$TRINKET_TEST_LOG_DIR/python-$module.log"
+    started=$SECONDS
+    if PYTHONPATH=Scripts/Tests python3 -m unittest -b "$module" >"$log" 2>&1; then
+      printf "%s passed (%ds).\n" "$module" "$((SECONDS - started))" >"$log.status"
+    else
+      printf "%s" "$?" >"$log.failed"
+    fi
+  ' _ {} || true
   for module in "${python_modules[@]}"; do
     module_log="$TEST_LOG_DIR/python-$module.log"
-    module_started=$SECONDS
-    if PYTHONPATH=Scripts/Tests python3 -m unittest -b "$module" >"$module_log" 2>&1; then
-      printf '%s passed (%ds).\n' "$module" "$((SECONDS - module_started))"
+    if [[ -f "$module_log.failed" ]]; then
+      report_failure "Python script regressions: $module" "$module_log" "$(cat "$module_log.failed")"
     else
-      report_failure "Python script regressions: $module" "$module_log" "$?"
+      cat "$module_log.status"
     fi
   done
   printf 'Python script regressions passed (%ds).\n' "$((SECONDS - python_started))"
@@ -142,15 +168,32 @@ fi
 echo "=== Shell script regressions ==="
 if [[ "$FAST" == true ]]; then
   echo "(fast: shell regressions skipped; full run covers test-*.sh)"
+elif (( ${#shell_suites[@]} == 0 )); then
+  echo "(no shell regressions selected)"
 else
-for test_script in ${shell_suites[@]+"${shell_suites[@]}"}; do
+for test_script in "${shell_suites[@]}"; do
   test_name="$(basename "$test_script")"
   test_log="$TEST_LOG_DIR/$test_name.log"
-  suite_started=$SECONDS
-  if bash "$test_script" >"$test_log" 2>&1; then
-    printf '%s passed (%ds).\n' "$test_name" "$((SECONDS - suite_started))"
+  TRINKET_TEST_LOG_DIR="$TEST_LOG_DIR" test_script="$test_script" test_log="$test_log" bash -c '
+    # Subshells inherit the EXIT trap that cleans TEST_LOG_DIR on success;
+    # workers must not run it (the parent owns log retention).
+    trap - EXIT
+    started=$SECONDS
+    if bash "$test_script" >"$test_log" 2>&1; then
+      printf "%s passed (%ds).\n" "$(basename "$test_script")" "$((SECONDS - started))" >"$test_log.status"
+    else
+      printf "%s" "$?" >"$test_log.failed"
+    fi
+  ' &
+done
+wait || true
+for test_script in "${shell_suites[@]}"; do
+  test_name="$(basename "$test_script")"
+  test_log="$TEST_LOG_DIR/$test_name.log"
+  if [[ -f "$test_log.failed" ]]; then
+    report_failure "$test_name" "$test_log" "$(cat "$test_log.failed")"
   else
-    report_failure "$test_name" "$test_log" "$?"
+    cat "$test_log.status"
   fi
 done
 fi

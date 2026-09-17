@@ -11,7 +11,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from internal.cli import ROOT
 TEXT_SUFFIXES = {
     ".swift", ".metal", ".sh", ".py", ".mjs", ".js", ".ts", ".tsx",
     ".env", ".json", ".yml", ".yaml", ".tsv", ".toml", ".pbxproj",

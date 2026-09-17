@@ -144,6 +144,9 @@ trinket_sim_cleanup_lock_try_acquire() {
 
   if [[ -e "$lock_path" ]]; then
     read -r lock_pid _ < "$lock_path" || true
+    # Deliberately fail-open (unlike trinket_lock_pid_is_stale): an
+    # unparseable pid here means hygiene already lost track of its owner,
+    # so reclaim the cleanup lock instead of stalling simulator hygiene.
     if [[ ! "$lock_pid" =~ ^[0-9]+$ ]] || ! kill -0 "$lock_pid" 2>/dev/null; then
       rm -f "$lock_path"
     else

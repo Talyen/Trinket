@@ -36,8 +36,8 @@ struct KeywordCohesionTests {
         try #expect(Ability.tithe.summary == "Deal 2 Holy damage and Steal 2 Gold.")
         try #expect(Ability.bountyShot.summary == "Deal 3 Physical damage and Steal 2 Gold.")
         try #expect(Ability.avatarOfJustice.summary == "Deal 6 Holy damage now and for 2 more turns.")
-        try #expect(Ability.sapArrow.id == "sap-arrow")
-        try #expect(Ability.sapArrow.name == "Bandit's Arrow")
+        // sapArrow identity (id/name) is locked in AbilityCatalogTests; only
+        // mechanics live here so wording tweaks break one suite.
         try #expect(Ability.tithe.damageComponents == [DamageComponent(2, keyword: .holy)])
         try #expect(Ability.bountyShot.damageComponents == [DamageComponent(3, keyword: .physical)])
         try #expect(Ability.avatarOfJustice.targetedEffects == [

@@ -7,11 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from .diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, MAX_LINES, bounded_lines, bounded_text
-
-
-def _bounded_lines(lines: list[str], limit: int = MAX_LINES) -> list[str]:
-    return bounded_lines(lines, limit)
+from .diagnostic_model import DiagnosticIssue, DiagnosticReport, MAX_ISSUES, bounded_lines, bounded_text
 
 
 def _escape_annotation(value: str) -> str:
@@ -62,7 +58,7 @@ def render_markdown(report: DiagnosticReport) -> str:
         lines.extend(f"- `{attachment}`" for attachment in report.attachments)
     if report.raw_log_path:
         lines.extend(["", f"Raw log: `{report.raw_log_path}`"])
-    return "\n".join(_bounded_lines(lines)) + "\n"
+    return "\n".join(bounded_lines(lines)) + "\n"
 
 
 def render_terminal(report: DiagnosticReport) -> list[str]:
@@ -88,7 +84,7 @@ def render_terminal(report: DiagnosticReport) -> list[str]:
         lines.append(f"Unassigned attachments: {', '.join(report.attachments)}")
     if report.raw_log_path:
         lines.append(f"Raw log: {report.raw_log_path}")
-    return _bounded_lines(lines)
+    return bounded_lines(lines)
 
 
 def output_stem(value: str) -> Path:

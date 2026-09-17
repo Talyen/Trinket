@@ -50,27 +50,21 @@ their own temporary acquisitions. Shared cache and budget policy remain owned by
 Cards remain artwork-only. Manual taps commit on release; dragging and Auto
 Battle use the begin/commit/cancel cue lifecycle. The approved
 [continuous input contract](../../Docs/AgentContext/battle-presentation.md#continuous-card-input)
-owns draw/cast overlap and intentional visual-only finishing taps. Recipient cues
-use small motions and established keyword colors: contracting attack light,
-rising restoration, a protective brace, an outward cleanse, gathered preparation,
-and a gain/draw lift. Combined effects use one motion per recipient, preferring
-cleanse, restoration, protection, attack, preparation, then gain.
+owns draw/cast overlap and intentional visual-only finishing taps. Dragging a card
+shows no portrait recipient light; lifted cards keep the attacker's wind-up
+telegraph and the resource-cost highlight only.
 
 Auto Battle begins its cue synchronously with the play request, before the hand
 renders the lift. A delayed rendering callback cannot prevent a valid play or
 restart an already active cue.
 
 `BattleCardCueState` owns transient cue identity and cleanup separately from
-combat projection. `BattleState.assessCard(_:)` supplies rules-derived intent;
-random outcomes show only common recipients. Health and Mana costs highlight
+combat projection. `BattleState.assessCard(_:)` supplies the rules-derived
+resource quote; Health and Mana costs highlight
 the consumed segment of the existing bar without changing its value. Uncertain
-costs use a non-quantitative highlight; Block-for-Mana substitution emphasizes
-the payer's protection. When no stronger recipient cue applies, the payer also
-receives a resource-colored preparation cue so a lifted card cannot hide all
-spending feedback. Normal combat feedback owns actual results.
+costs use a non-quantitative highlight. Normal combat feedback owns actual results.
 
-Denied Health costs pulse the owner's Health bar, control emphasizes the owner's
-status, and defeat emphasizes the dimmed portrait. Stale or unavailable battle
+Denied Health costs pulse the owner's Health bar. Stale or unavailable battle
 state never claims a resource problem. Inspection, backgrounding, battle changes,
 and cancellation clear previews; a late cancellation cannot erase a newer cue.
 

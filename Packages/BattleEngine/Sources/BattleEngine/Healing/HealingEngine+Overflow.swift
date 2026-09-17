@@ -106,6 +106,11 @@ extension HealingEngine {
         target: CombatTraitTriggers,
         request: HealRequest,
     ) -> CombatTraitTriggers {
+        // One overflow, one conversion: the recipient's body decides what excess
+        // healing becomes, except self-heals where source and recipient coincide.
+        // Callers apply only the first matching branch (Block, then
+        // once-per-turn Block, then capped Block), so stacked overflow talents
+        // cannot triple-spend the same excess.
         let isSelfHeal = request.sourceActorID == request.target.id
         if isSelfHeal {
             if let source,

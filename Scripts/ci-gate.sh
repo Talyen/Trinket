@@ -7,15 +7,13 @@ cd "$(dirname "$0")/.."
 source Scripts/lib/tools.sh
 
 FAST=false
-SKIP_CHEAP=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --fast) FAST=true ;;
-    --skip-cheap) SKIP_CHEAP=true ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/ci-gate.sh [--fast] [--skip-cheap]
+Usage: ./Scripts/ci-gate.sh [--fast]
 
 Full gate (default): generation, style, module boundaries, script regressions,
 API-ban policy (incl. XCTest migration), release-note validation, and artwork budget.
@@ -23,9 +21,6 @@ API-ban policy (incl. XCTest migration), release-note validation, and artwork bu
 --fast skips generation and style (already covered by handoff/push) and runs
 only the cheap full-tree slices: module boundaries, API-ban policy,
 release-note validation, and artwork budget.
---skip-cheap skips the closing cheap slices when the same tree just passed
-handoff (which already ran them). Combining --fast with --skip-cheap is
-rejected: fast is only the cheap slices.
 USAGE
       exit 0
       ;;
@@ -37,25 +32,19 @@ USAGE
   shift
 done
 
-if [[ "$FAST" == true && "$SKIP_CHEAP" == true ]]; then
-  echo "--fast runs only the cheap slices; --skip-cheap has nothing left to run." >&2
-  exit 2
-fi
-
 if [[ "$FAST" == true ]]; then
   # shellcheck source=lib/cheap-slices.sh
   source Scripts/lib/cheap-slices.sh
-  echo "=== Cheap slices (boundaries, API bans, release notes, artwork-budget) ==="
+  trinket_log_section "Cheap slices (boundaries, API bans, release notes, artwork-budget)"
   trinket_run_gate_slices
-  echo "=== Fast gate checks passed ==="
+  trinket_log_section "Fast gate checks passed"
   exit 0
 fi
 
-echo "=== Ensure pinned tools ==="
-trinket_require_pinned_tools
+trinket_gate_ensure_tools
 
-echo "=== Generating Xcode project / catalogs ==="
-./Scripts/generate.sh --force-xcodegen
+trinket_log_section "Generating Xcode project / catalogs"
+./Scripts/generate.sh
 
 # Align with build.sh / test.sh stamp so subsequent test.sh skips a second generate.
 # shellcheck source=run-env.sh
@@ -65,7 +54,7 @@ trinket_run_env_init
 source ./Scripts/build-freshness.sh
 touch_generate_stamp "$RESULTS_DIR"
 
-echo "=== Assert generated output is committed ==="
+trinket_log_section "Assert generated output is committed"
 if ! ./Scripts/assert-generated-output.sh; then
   if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
     echo "::error::Generated output drifted. Run ./Scripts/generate.sh and commit Trinket.xcodeproj + Generated catalogs."
@@ -75,17 +64,15 @@ fi
 
 # Order: style → boundaries → script checks → API bans → release notes → artwork budget
 # (CI gate.yml calls this script).
-echo "=== Style check ==="
+trinket_log_section "Style check"
 ./Scripts/test.sh style
 
-echo "=== Script checks ==="
+trinket_log_section "Script checks"
 ./Scripts/test-scripts.sh
 
-if [[ "$SKIP_CHEAP" != true ]]; then
-  echo "=== Cheap slices (boundaries, API bans, release notes, artwork-budget) ==="
-  # shellcheck source=lib/cheap-slices.sh
-  source Scripts/lib/cheap-slices.sh
-  trinket_run_gate_slices --style-checked
-fi
+trinket_log_section "Cheap slices (boundaries, API bans, release notes, artwork-budget)"
+# shellcheck source=lib/cheap-slices.sh
+source Scripts/lib/cheap-slices.sh
+trinket_run_gate_slices --style-checked
 
-echo "=== Gate checks passed ==="
+trinket_log_section "Gate checks passed"

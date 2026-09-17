@@ -13,7 +13,7 @@ package extension DamagePipeline {
         state.unique.outgoingDamage += burn
     }
 
-    static func applyTalentMirroredReactions(
+    static func applyAttackerMirroredReactions(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {

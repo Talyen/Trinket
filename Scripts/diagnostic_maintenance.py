@@ -17,13 +17,15 @@ def require_results_dir(value: str) -> Path:
     return root
 
 
-def remove(path: Path, count: list[int]) -> None:
+def remove(path: Path) -> bool:
+    """Remove one artifact path; True when something was actually deleted."""
     if path.is_dir():
         shutil.rmtree(path)
-        count[0] += 1
-    elif path.is_file():
+        return True
+    if path.is_file():
         path.unlink()
-        count[0] += 1
+        return True
+    return False
 
 
 def reset(root: Path) -> None:
@@ -116,7 +118,7 @@ def cleanup(root: Path, keep: bool) -> None:
     if keep:
         print(f"Keeping diagnostic artifacts in {root} (--keep)")
         return
-    removed = [0]
+    removed = 0
     for manifest_path in root.glob("*-invocation.json"):
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -132,10 +134,13 @@ def cleanup(root: Path, keep: bool) -> None:
             except ValueError:
                 result = None
         if result is not None:
-            remove(result, removed)
+            if remove(result):
+                removed += 1
             stem = result.name.removesuffix(".xcresult")
-            remove(root / "raw" / f"{stem}.log", removed)
-            remove(root / f"{stem}-diagnostics.attachments", removed)
+            if remove(root / "raw" / f"{stem}.log"):
+                removed += 1
+            if remove(root / f"{stem}-diagnostics.attachments"):
+                removed += 1
         report_value = manifest.get("diagnostics_json")
         report = Path(report_value).expanduser().resolve() if isinstance(report_value, str) and report_value else None
         if report is not None:
@@ -145,15 +150,21 @@ def cleanup(root: Path, keep: bool) -> None:
                 report = None
         if report is not None:
             stem = report.name.removesuffix(".json")
-            remove(report, removed)
-            remove(report.with_suffix(".md"), removed)
-            remove(report.with_suffix(".annotations"), removed)
-            remove(report.with_name(f"{stem}.attachments"), removed)
-        remove(manifest_path, removed)
+            if remove(report):
+                removed += 1
+            if remove(report.with_suffix(".md")):
+                removed += 1
+            if remove(report.with_suffix(".annotations")):
+                removed += 1
+            if remove(report.with_name(f"{stem}.attachments")):
+                removed += 1
+        if remove(manifest_path):
+            removed += 1
     if not list(root.glob("*-invocation.json")):
-        remove(root / "ci-diagnostics.json", removed)
+        if remove(root / "ci-diagnostics.json"):
+            removed += 1
     sweep_orphans_count = sweep_orphans(root)
-    cleaned = removed[0]
+    cleaned = removed
     if sweep_orphans_count:
         print(f"Cleaned {cleaned} successful diagnostic artifact(s) and {sweep_orphans_count} crashed-run orphan(s) from {root}")
     else:

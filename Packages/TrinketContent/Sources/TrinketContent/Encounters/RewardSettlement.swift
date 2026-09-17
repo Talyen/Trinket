@@ -49,7 +49,7 @@ public enum RewardSettlementPolicy {
     ) -> MysteryRewardBonus {
         switch bonus {
         case let .gold(amount):
-            replacesGold(gains: amount, capacity: inputs.goldCapacity) ? .experience(replacementExperience) : bonus
+            replacesGold(gains: amount, spending: 0, capacity: inputs.goldCapacity) ? .experience(replacementExperience) : bonus
         case let .experience(amount):
             .experience(RewardExperiencePolicy.sharedAward(amount, hero: inputs.heroProgression, companion: inputs.companionProgression))
         case .material:
@@ -57,7 +57,7 @@ public enum RewardSettlementPolicy {
         }
     }
 
-    public static func replacesGold(gains: Int, spending: Int = 0, capacity: Int) -> Bool {
+    public static func replacesGold(gains: Int, spending: Int, capacity: Int) -> Bool {
         gains - spending > max(0, capacity)
     }
 }

@@ -3,6 +3,14 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
+enum BattleCardCueMotion {
+    static let arrival = Animation.easeOut(duration: 0.09)
+    static let cancellation = Animation.easeOut(duration: 0.16)
+    static let completion = Animation.easeOut(duration: 0.22)
+    static let deniedBlinkCount = 2
+    static let deniedBlinkInterval: Duration = .milliseconds(90)
+}
+
 struct BattleResourceCueOverlay: View {
     @Environment(BattleSession.self) private var battleSession
     let combatantID: String
@@ -38,12 +46,15 @@ struct BattleResourceCueOverlay: View {
 
     private func adopt(_ cue: BattleCardCue?) async {
         guard let cue else {
+            isDenied = false
+            use = nil
             withAnimation(BattleCardCueMotion.cancellation) { strength = 0 }
             return
         }
         if cue.phase == .denied,
-           keyword == .health, cue.recipients[combatantID]?.kind == .deniedHealth {
+           keyword == .health, cue.denial == .insufficientHealth, cue.actorID == combatantID {
             isDenied = true
+            use = nil
             for _ in 0 ..< BattleCardCueMotion.deniedBlinkCount {
                 withAnimation(BattleCardCueMotion.arrival) { strength = 1 }
                 try? await Task.sleep(for: BattleCardCueMotion.deniedBlinkInterval)
@@ -55,6 +66,7 @@ struct BattleResourceCueOverlay: View {
             return
         }
         guard let next = cue.resources.first(where: { $0.combatantID == combatantID && $0.keyword == keyword }) else {
+            isDenied = false
             withAnimation(BattleCardCueMotion.cancellation) { strength = 0 }
             return
         }

@@ -29,6 +29,8 @@ _MODIFIER_SIMPLE: dict[str, str] = {
     "outgoing_damage_percent": ".outgoingDamagePercent",
     "incoming_damage_reduction_percent": ".incomingDamageReductionPercent",
     "dodge_chance_bonus": ".dodgeChanceBonus",
+    "ranged_damage_dealt": ".rangedDamageDealt",
+    "maximum_mana_percent": ".maximumManaPercent",
 }
 
 
@@ -45,6 +47,7 @@ _MODIFIER_INT_PREFIXES = frozenset(
         "maximum_mana",
         "companion_bleed_damage_dealt",
         "damage_dealt",
+        "ranged_damage_dealt",
     }
 )
 
@@ -56,6 +59,7 @@ _MODIFIER_DOUBLE_PREFIXES = frozenset(
         "outgoing_damage_percent",
         "incoming_damage_reduction_percent",
         "dodge_chance_bonus",
+        "maximum_mana_percent",
         "damage_taken_percent",
         "damage_taken_vulnerability",
     }

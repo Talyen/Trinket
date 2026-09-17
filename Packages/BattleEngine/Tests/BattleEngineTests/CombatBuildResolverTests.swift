@@ -133,4 +133,42 @@ struct CombatBuildResolverTests {
         #expect(current.modifiers.outgoingDamagePercent > previous.modifiers.outgoingDamagePercent)
         #expect(current.combatant.abilityChoices == enemy.combatant.abilityChoices)
     }
+
+    @Test func `ranged damage dealt bonus requires equipped ranged weapon`() throws {
+        let rangedWeapon = try ItemFixtures.makeBareItem("shortbow")
+        let meleeWeapon = try ItemFixtures.makeBareItem("longsword")
+        let hero = CombatantFixtures.passiveHero()
+
+        let rangedBonus = [AffixModifier.rangedDamageDealt(3)]
+
+        let rangedBuild = CombatBuildResolver.build(
+            combatant: hero,
+            equipmentLoadout: EquipmentLoadout(itemIDsBySlot: [.weapon: rangedWeapon.id]),
+            inventory: [rangedWeapon],
+            additionalModifiers: rangedBonus,
+        )
+        #expect(rangedBuild.modifiers.damageDealtBonus[.physical] == 3)
+
+        let meleeBuild = CombatBuildResolver.build(
+            combatant: hero,
+            equipmentLoadout: EquipmentLoadout(itemIDsBySlot: [.weapon: meleeWeapon.id]),
+            inventory: [meleeWeapon],
+            additionalModifiers: rangedBonus,
+        )
+        #expect(meleeBuild.modifiers.damageDealtBonus[.physical] == nil)
+    }
+
+    @Test func `maximum mana percent scales combatants with mana and leaves zero mana unchanged`() {
+        let heroWithMana = CombatantFixtures.passiveHero(maxMana: 20)
+        #expect(heroWithMana.hasMana)
+
+        let modifiers = CombatModifierProfile(maximumManaPercentBonus: 0.20)
+        let scaledMana = CombatantMaxValues.maxMana(for: heroWithMana, modifiers: modifiers)
+        #expect(scaledMana == 24)
+
+        let heroNoMana = CombatantFixtures.passiveHero(maxMana: 0)
+        #expect(!heroNoMana.hasMana)
+        let zeroMana = CombatantMaxValues.maxMana(for: heroNoMana, modifiers: modifiers)
+        #expect(zeroMana == 0)
+    }
 }

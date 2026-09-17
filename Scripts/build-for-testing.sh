@@ -26,11 +26,11 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help|-h)
-      echo "Usage: $0 [--verbose] [--app-only]"
+      echo "Usage: $0 [--quiet|--verbose] [--app-only]"
       exit 0
       ;;
     *)
-      trinket_args_unknown "$1" "Usage: $0 [--verbose] [--app-only]" >&2
+      trinket_args_unknown "$1" "Usage: $0 [--quiet|--verbose] [--app-only]" >&2
       exit 1
       ;;
   esac

@@ -22,6 +22,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var companionBleedDamageDealtBonus: Int
     public var outgoingDamagePercent: Double
     public var incomingDamageReductionPercent: Double
+    /// Augments physical damage dealt while any equipped weapon has a ranged base type (e.g. bows and crossbows).
+    public var rangedDamageDealtBonus: Int
+    public var maximumManaPercentBonus: Double
     public var triggers: CombatTraitTriggers
     public var traitDisplayName: String?
     public var triggerAbilityNames: [String: String]
@@ -48,6 +51,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         companionBleedDamageDealtBonus: Int = 0,
         outgoingDamagePercent: Double = 0,
         incomingDamageReductionPercent: Double = 0,
+        rangedDamageDealtBonus: Int = 0,
+        maximumManaPercentBonus: Double = 0,
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
         traitDisplayName: String? = nil,
         triggerAbilityNames: [String: String] = [:],
@@ -71,6 +76,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.companionBleedDamageDealtBonus = companionBleedDamageDealtBonus
         self.outgoingDamagePercent = outgoingDamagePercent
         self.incomingDamageReductionPercent = incomingDamageReductionPercent
+        self.rangedDamageDealtBonus = rangedDamageDealtBonus
+        self.maximumManaPercentBonus = maximumManaPercentBonus
         self.triggers = triggers
         self.traitDisplayName = traitDisplayName
         self.triggerAbilityNames = triggerAbilityNames
@@ -115,6 +122,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         companionBleedDamageDealtBonus += other.companionBleedDamageDealtBonus
         outgoingDamagePercent += other.outgoingDamagePercent
         incomingDamageReductionPercent += other.incomingDamageReductionPercent
+        rangedDamageDealtBonus += other.rangedDamageDealtBonus
+        maximumManaPercentBonus += other.maximumManaPercentBonus
         triggers.merge(other.triggers)
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
@@ -186,6 +195,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             incomingDamageReductionPercent += amount
         case let .dodgeChanceBonus(amount):
             triggers.dodgeChanceBonus += amount
+        case let .rangedDamageDealt(amount):
+            rangedDamageDealtBonus += amount
+        case let .maximumManaPercent(amount):
+            maximumManaPercentBonus += amount
         default:
             return false
         }
@@ -256,7 +269,9 @@ public enum CombatantMaxValues {
 
     public static func maxMana(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {
         guard combatant.hasMana else { return 0 }
-        return combatant.maxMana + modifiers.maximumManaBonus
+        let baseWithFlat = combatant.maxMana + modifiers.maximumManaBonus
+        let multiplier = max(0, 1.0 + modifiers.maximumManaPercentBonus)
+        return max(0, Int((Double(baseWithFlat) * multiplier).rounded()))
     }
 
     public static func maxHealth(for combatant: Combatant, flatBonus: Int, talentBonus: Int = 0) -> Int {

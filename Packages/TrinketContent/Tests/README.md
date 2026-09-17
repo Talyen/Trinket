@@ -9,7 +9,7 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 | Art catalog cross-references | `ArtCatalogIntegrationTests` | Manifest IDs resolve to expected content owners |
 | Combatant catalog graph | `CombatantCatalogTests` | Hero/companion loadouts, health/mana |
 | Homestead node catalog | `HomesteadCatalogTests` | Node IDs, tiers, unlock graph, tier effects |
-| Contracts | `ContractsTests` | Offer identity per enemy |
+| Contracts | `ContractGeneratorTests` | Offer identity per enemy |
 | Content access policy | `ContentAccessPolicyTests` | Free/full chapter/labyrinth/spire gates |
 | Unique catalog | `UniqueCatalogTests` | Counts, slots, pinned powers, save decode |
 | Combatant talent trees | `CombatantTalentCatalogTests` | Three trees with at least seven nodes each, affinities, authored IDs, no placeholders |

@@ -40,9 +40,15 @@ MANAGED_SHARED_NAMES, AGENT_NAME_PATTERN = _managed_names()
 def payload() -> dict:
     try:
         value = json.load(sys.stdin)
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError) as error:
+        # Callers treat {} as "no devices"; say so on stderr so corrupt
+        # input is distinguishable from a genuinely empty device list.
+        print(f"simctl_json.py: unreadable simctl JSON on stdin ({error}); treating as no devices", file=sys.stderr)
         return {}
-    return value if isinstance(value, dict) else {}
+    if not isinstance(value, dict):
+        print("simctl_json.py: simctl JSON is not an object; treating as no devices", file=sys.stderr)
+        return {}
+    return value
 
 
 def devices(data: dict):

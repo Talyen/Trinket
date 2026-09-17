@@ -51,4 +51,15 @@ struct PlayerSaveWorldSeedTests {
         #expect(!sanitized.labyrinth.isMapPayloadUnreadable)
         #expect(sanitized.labyrinth.hasMap)
     }
+
+    @Test func `labyrinth-only sanitize keeps map seed when root seed is missing`() {
+        var save = PlayerSave.fresh
+        save.worldSeed = 0
+        save.labyrinth.ensureMap(seed: 77)
+
+        let sanitized = PlayerSaveSanitizer.sanitize(save, changedSlices: [.labyrinth])
+
+        #expect(sanitized.labyrinth.worldSeed == 77)
+        #expect(sanitized.labyrinth.hasMap)
+    }
 }

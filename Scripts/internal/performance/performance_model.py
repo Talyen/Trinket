@@ -76,6 +76,28 @@ def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str, float, floa
     return scenarios, mode, minimum_average, minimum_low, maximum_severe
 
 
+def group_reports_by_scenario(
+    reports: list, scenarios: list[str]
+) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
+    """Group raw reports by maintained scenario; unknown/malformed entries fail.
+
+    Single source for the grouping both aggregate (repeated runs) and compare
+    (single report) used to copy-paste with different non-dict messages.
+    """
+    grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios}
+    failures: list[str] = []
+    for index, raw_report in enumerate(reports, 1):
+        if not isinstance(raw_report, dict):
+            failures.append(f"report {index}: expected an object")
+            continue
+        scenario = raw_report.get("scenario")
+        if not isinstance(scenario, str) or scenario not in grouped:
+            failures.append(f"report {index}: unexpected or missing scenario {scenario!r}")
+            continue
+        grouped[scenario].append(raw_report)
+    return grouped, failures
+
+
 def validate_report(report: dict[str, Any], baseline: dict[str, Any] | None = None) -> list[str]:
     scenario = report.get("scenario")
     failures = validate_report_domains(report)

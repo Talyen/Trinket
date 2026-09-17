@@ -28,7 +28,7 @@ def _trigger_families() -> list:
 
 from .content_codegen_modifiers import (
     VALID_KEYWORDS,
-    parse_modifier_tokens as parse_trigger_tokens,
+    parse_modifier_tokens,
     parse_typed_bool,
     parse_typed_double,
     parse_typed_int,
@@ -274,7 +274,7 @@ def triggers_swift(raw: str, row_id: str = "") -> str:
     label = row_id or "triggers"
     seen_fields: dict[str, str] = {}
     values: dict[str, str] = {}
-    for token in parse_trigger_tokens(raw):
+    for token in parse_modifier_tokens(raw):
         resolved: dict[str, str] = {}
         if not (_apply_simple_trigger(token, resolved) or _apply_bespoke_trigger(token, resolved)):
             field, separator, value = token.partition(":")

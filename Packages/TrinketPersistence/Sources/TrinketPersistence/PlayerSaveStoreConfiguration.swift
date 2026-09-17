@@ -116,7 +116,7 @@ enum PlayerSaveStoreConfiguration {
             logger.error(
                 "Failed to clear player save during reset: \(error.localizedDescription, privacy: .public)",
             )
-            throw PlayerSavePersistenceError.writeFailed
+            throw PlayerSavePersistenceError.mapped(error)
         }
     }
 }

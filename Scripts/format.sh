@@ -12,8 +12,6 @@ source Scripts/tool-versions.env
 source Scripts/format-dirs.env
 SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
-trinket_require_pinned_version swiftformat "$SWIFTFORMAT_VERSION" --version
-
 MODE="apply"
 PATHS=()
 while [[ $# -gt 0 ]]; do
@@ -22,14 +20,19 @@ while [[ $# -gt 0 ]]; do
       MODE="lint"
       shift
       ;;
+    --help|-h)
+      echo "Usage: $0 [--lint] [-- path...]"
+      echo "Apply SwiftFormat to package/app sources (or --lint to check only)."
+      exit 0
+      ;;
     --)
       shift
       PATHS+=("$@")
       break
       ;;
     -*)
-      echo "Unknown option: $1"
-      echo "Usage: $0 [--lint] [-- path...]"
+      echo "Unknown argument: $1" >&2
+      echo "Usage: $0 [--lint] [-- path...]" >&2
       exit 1
       ;;
     *)
@@ -43,6 +46,8 @@ FORMAT_TARGETS=("${SOURCE_DIRS[@]}")
 if (( ${#PATHS[@]} > 0 )); then
   FORMAT_TARGETS=("${PATHS[@]}")
 fi
+
+trinket_require_pinned_version swiftformat "$SWIFTFORMAT_VERSION" --version
 
 if [[ "$MODE" == "lint" ]]; then
   swiftformat "${FORMAT_TARGETS[@]}" --lint

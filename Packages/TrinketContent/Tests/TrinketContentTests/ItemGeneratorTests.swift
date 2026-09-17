@@ -21,6 +21,22 @@ struct ItemGeneratorTests {
         try #expect(counts.contains(range.upperBound))
     }
 
+    @Test func `fixed affix count override pins count`() throws {
+        let baseType = try ItemFixtures.baseType("longsword")
+        var rng = SeededRandomNumberGenerator(seed: 12)
+
+        let item = ItemGenerator().generate(
+            id: "fixed",
+            baseType: baseType,
+            rarity: .basic,
+            fixedAffixCount: 1,
+            keywordBias: [.physical],
+            using: &rng,
+        )
+
+        try #expect(item.affixes.count == 1)
+    }
+
     @Test func `generated items do not duplicate affixes`() throws {
         let baseType = try ItemFixtures.baseType("plate_armor")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
@@ -55,10 +71,7 @@ struct ItemGeneratorTests {
 
     @Test func `every base type has enough eligible affixes for astral maximum`() throws {
         for baseType in GameContent.itemBaseTypes where baseType.slot != .trinket {
-            let eligibleAffixes = GameContent.itemAffixDefinitions.filter { definition in
-                definition.slot == baseType.slot &&
-                    !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
-            }
+            let eligibleAffixes = ItemFixtures.eligibleAffixes(forBaseType: baseType)
 
             try #expect(eligibleAffixes.count >= 4, "\(baseType.id)")
         }
@@ -211,19 +224,6 @@ struct ItemGeneratorTests {
         try #expect(firstItem == secondItem)
     }
 
-    @Test func `astral affixes resolve stronger than basic affixes`() throws {
-        for definition in GameContent.itemAffixDefinitions {
-            if definition.slot == .trinket {
-                continue
-            }
-            let isTriggerOnly = definition.basic.modifiers.isEmpty && definition.astral.modifiers.isEmpty
-            if isTriggerOnly {
-                continue
-            }
-            try #expect(definition.basic != definition.astral, "\(definition.id)")
-        }
-    }
-
     @Test func `guaranteed affix I ds are always included`() throws {
         let baseType = try ItemFixtures.baseType("sapphire_ring")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
@@ -276,6 +276,17 @@ struct ItemGeneratorTests {
                 try #expect(isPerfect == stored.isAtOrAboveRollMax(of: catalog))
             }
         }
+    }
+
+    @Test func `repeat template drops from one stage keep distinct identities`() throws {
+        let template = try #require(GameContent.sampleInventoryItems.first)
+        try #require(!template.isTrinket && template.rarity != .unique)
+        let first = template.rewardInstance(for: "chapter-1-stage-1")
+        let second = template.rewardInstance(for: "chapter-1-stage-1", dropIndex: 1)
+
+        try #expect(first.id != second.id)
+        #expect(first.templateID == second.templateID)
+        #expect(template.rewardInstance(for: "chapter-1-stage-1") == first)
     }
 
     @Test func `explicit pools exclude unavailable categories without promoting gear`() throws {

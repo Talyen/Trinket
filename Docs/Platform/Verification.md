@@ -146,7 +146,7 @@ is appropriate for mid-task smoke reruns in the same slot. Routine handoff is he
 | Gate | Composition |
 |---|---|
 | `handoff.sh` | Path-selected generation, style, package, app compilation, documentation, and idempotence checks, plus cheap slices; targeted smoke only with `--smoke` |
-| `ci-gate.sh` | Generate/assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget (`--skip-cheap` omits the closing cheap slices when handoff just ran them) |
+| `ci-gate.sh` | Pinned-tool ensure, generate/stamp alignment, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then additional UI journeys (FullUI), or the optional smoke canary |
@@ -157,6 +157,12 @@ is appropriate for mid-task smoke reruns in the same slot. Routine handoff is he
 `Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Default deploy verification
 runs FullUI; main CI supplies smoke coverage separately. The release workflow
 requires green main CI. Use `--mode smoke` for the optional local smoke canary.
+
+Generation is intentionally uncached: each gate invokes `generate.sh` directly,
+so a handoff → gate → deploy chain can regenerate up to four times (handoff's
+plan, the idempotence proof, the gate, the deploy gate). Only the
+`prepare_generated_inputs` freshness path inside build/test wrappers skips
+generation, and only when content, project, and asset inputs are all unchanged.
 
 The shared build job produces app test products for smoke and exhaustive UI
 fan-out, while package unit tests compile their own schemes in parallel. Exact

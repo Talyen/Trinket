@@ -28,7 +28,7 @@ Schemas and input/output ownership live in
 [`ContentManifest/README.md`](../../ContentManifest/README.md) and the matching
 media-manifest READMEs. `Generated/` is the output of `./Scripts/generate.sh`;
 do not maintain a second generated-file inventory here. Abilities remain
-authored in `Abilities/AbilityCatalog{Basic,Skill,Ultimate}.swift`; trigger-family
+authored in `Abilities/AbilityCatalog.swift`; trigger-family
 schema remains in `Scripts/internal/content/trigger_family_schema.json`.
 
 ## Adding content
@@ -81,7 +81,7 @@ From the repository root, produce the exact balance report with:
 swift run --package-path Packages/TrinketContent LootBalanceReport
 ```
 
-The report covers levels 1–20, both profiles, all Sanctum bonuses, category
+The report covers levels 1–40, both profiles, all Sanctum bonuses, category
 exhaustion, shops, and guaranteed Astral rewards. Its cumulative chances assume
 unchanged inputs and pool availability across the displayed reward count.
 

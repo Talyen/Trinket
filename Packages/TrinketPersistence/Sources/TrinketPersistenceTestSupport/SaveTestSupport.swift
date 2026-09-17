@@ -33,16 +33,7 @@ public enum SaveTestSupport {
     }
 
     public static func makeSideContext(storeURL: URL) throws -> ModelContext {
-        let schema = PlayerSaveGraph.schema
-        let container = try ModelContainer(
-            for: schema,
-            configurations: ModelConfiguration(
-                schema: schema,
-                url: storeURL,
-                cloudKitDatabase: .none,
-            ),
-        )
-        return ModelContext(container)
+        try ModelContext(makeContainer(storeURL: storeURL))
     }
 
     @MainActor
@@ -59,9 +50,28 @@ public enum SaveTestSupport {
         )
     }
 
+    /// Single container-construction truth shared by `makeSideContext` and
+    /// `writeRoot` so test harness stays on the production store shape
+    /// (same schema, file URL, no CloudKit mirroring).
+    public static func makeContainer(
+        storeURL: URL,
+        schema: Schema = PlayerSaveGraph.schema,
+    ) throws -> ModelContainer {
+        try ModelContainer(
+            for: schema,
+            configurations: ModelConfiguration(
+                schema: schema,
+                url: storeURL,
+                cloudKitDatabase: .none,
+            ),
+        )
+    }
+
     /// Lightweight fixture: fresh roster/inventory plus explicit gold.
     /// For the full seeded roster use the overload below (defaults
-    /// `roster: .testSeed`).
+    /// `roster: .testSeed`, `inventory: []`). The overloads intentionally
+    /// differ: this one isolates gold-cap behavior from catalog content,
+    /// the full one exercises realistic roster/inventory shapes.
     public static func makeSave(modifiedAt: Date, gold: Int = 0) -> PlayerSave {
         makeSave(
             modifiedAt: modifiedAt,
@@ -108,15 +118,7 @@ public enum SaveTestSupport {
         schema: Schema = PlayerSaveGraph.schema,
         additionalInserts: ((ModelContext) throws -> Void)? = nil,
     ) throws {
-        let container = try ModelContainer(
-            for: schema,
-            configurations: ModelConfiguration(
-                schema: schema,
-                url: storeURL,
-                cloudKitDatabase: .none,
-            ),
-        )
-        let context = ModelContext(container)
+        let context = try ModelContext(makeContainer(storeURL: storeURL, schema: schema))
         context.insert(PlayerSaveRoot(save: save))
         try additionalInserts?(context)
         try context.save()

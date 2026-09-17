@@ -6,15 +6,20 @@ cd "$(dirname "$0")/.."
 # shellcheck source=lib/tools.sh
 source Scripts/lib/tools.sh
 
-echo "=== Ensure pinned tools ==="
-trinket_require_pinned_tools
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: $0"
+  echo "Asset codegen gate matching CI's assets-gate job (locale-stable regenerate)."
+  exit 0
+fi
 
-echo "=== Generating assets ==="
+trinket_gate_ensure_tools
+
+trinket_log_section "Generating assets"
 ./Scripts/generate.sh --assets
 
 assert_assets_committed() {
   local label="$1"
-  echo "=== Assert generated assets are committed ($label) ==="
+  trinket_log_section "Assert generated assets are committed ($label)"
   if ./Scripts/assert-generated-output.sh --assets; then
     return 0
   fi
@@ -27,13 +32,13 @@ assert_assets_committed() {
 assert_assets_committed "C"
 
 # generate.sh exports LC_ALL=C; re-run under en_US.UTF-8 to catch collation drift.
-echo "=== Locale-stable asset regenerate (en_US.UTF-8) ==="
+trinket_log_section "Locale-stable asset regenerate (en_US.UTF-8)"
 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 ./Scripts/generate.sh --assets
 assert_assets_committed "en_US.UTF-8"
 
-echo "=== Checking asset and manifest bi-directional integrity ==="
+trinket_log_section "Checking asset and manifest bi-directional integrity"
 python3 ./Scripts/check-unused-assets.py
 
-echo "=== Asset gate checks passed ==="
+trinket_log_section "Asset gate checks passed"
 
 

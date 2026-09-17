@@ -78,9 +78,26 @@ struct HomesteadCatalogTests {
         let alchemy = HomesteadEffects.from(nodeTiers: [.alchemyLab: 1])
         #expect(alchemy.heroModifiers == [
             .poisonDamageDealtPercent(0.05),
-            .damageTakenPercent(.poison, 0.10),
         ])
         #expect(alchemy.companionModifiers == alchemy.heroModifiers)
+
+        let transmutation = HomesteadEffects.from(nodeTiers: [.transmutationCrucible: 1])
+        #expect(transmutation.heroModifiers == [.damageDealt(.burn, 1)])
+
+        let mycology = HomesteadEffects.from(nodeTiers: [.mycologyCellar: 1])
+        #expect(mycology.heroModifiers == [.damageTakenPercent(.poison, 0.10)])
+
+        let sparring = HomesteadEffects.from(nodeTiers: [.sparringGrounds: 1])
+        #expect(sparring.heroModifiers == [.blockGained(1)])
+
+        let archery = HomesteadEffects.from(nodeTiers: [.archeryRange: 1])
+        #expect(archery.heroModifiers == [.rangedDamageDealt(1)])
+
+        let script = HomesteadEffects.from(nodeTiers: [.scriptorium: 1])
+        #expect(script.heroModifiers == [.leechGainedPercent(0.05)])
+
+        let leyline = HomesteadEffects.from(nodeTiers: [.leylineEnergy: 1])
+        #expect(leyline.heroModifiers == [.maximumManaPercent(0.05)])
 
         let lodge = HomesteadEffects.from(nodeTiers: [.hunterLodge: 4])
         #expect(lodge.heroModifiers.isEmpty)

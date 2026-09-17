@@ -30,6 +30,11 @@ enum BattleLoot {
         return minQty ... maxQty
     }
 
+    /// - Parameters:
+    ///   - encounterLevel: fight-relative level driving gold/material
+    ///     quantities (usually party-adjusted).
+    ///   - rewardLevel: authored content level driving item tier chances
+    ///     (never party-adjusted; see LootRequest).
     static func resolve(
         encounterLevel: Int,
         rewardLevel: Int,

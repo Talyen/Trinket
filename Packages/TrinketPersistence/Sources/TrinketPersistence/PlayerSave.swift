@@ -116,6 +116,24 @@ public struct PlayerSave: Equatable, Sendable {
         corruptionAltarCooldownRemaining = max(0, other.corruptionAltarCooldownRemaining)
     }
 
+    /// Domain equality ignoring `modifiedAt`/`sessionGeneration` bookkeeping.
+    /// Recovery uses this to decide whether a pending record genuinely
+    /// diverges (worth a `previous.json` forensic copy) versus merely being
+    /// newer by clock alone.
+    public func hasDomainDifference(from other: Self) -> Bool {
+        schemaVersion != other.schemaVersion
+            || worldSeed != other.worldSeed
+            || starterSelection != other.starterSelection
+            || journey != other.journey
+            || roster != other.roster
+            || inventory != other.inventory
+            || homestead != other.homestead
+            || spires != other.spires
+            || labyrinth != other.labyrinth
+            || contracts != other.contracts
+            || corruptionAltarCooldownRemaining != other.corruptionAltarCooldownRemaining
+    }
+
     public static func makeWorldSeed() -> UInt64 {
         var seed: UInt64
         repeat {

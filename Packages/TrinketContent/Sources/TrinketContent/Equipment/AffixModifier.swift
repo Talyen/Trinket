@@ -22,6 +22,8 @@ public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
     case outgoingDamagePercent(Double)
     case incomingDamageReductionPercent(Double)
     case dodgeChanceBonus(Double)
+    case rangedDamageDealt(Int)
+    case maximumManaPercent(Double)
 }
 
 public extension AffixModifier {
@@ -34,7 +36,8 @@ public extension AffixModifier {
              .damageTakenVulnerability,
              .outgoingDamagePercent,
              .incomingDamageReductionPercent,
-             .dodgeChanceBonus:
+             .dodgeChanceBonus,
+             .maximumManaPercent:
             true
         default:
             false
@@ -54,7 +57,8 @@ public extension AffixModifier {
              let .damageTakenFlat(_, v),
              let .companionDamageDealt(v),
              let .companionPhysicalDamageDealt(v),
-             let .companionBleedDamageDealt(v):
+             let .companionBleedDamageDealt(v),
+             let .rangedDamageDealt(v):
             Double(v)
         case let .poisonDamageDealtPercent(v),
              let .leechGainedPercent(v),
@@ -63,7 +67,8 @@ public extension AffixModifier {
              let .damageTakenVulnerability(_, v),
              let .outgoingDamagePercent(v),
              let .incomingDamageReductionPercent(v),
-             let .dodgeChanceBonus(v):
+             let .dodgeChanceBonus(v),
+             let .maximumManaPercent(v):
             v
         }
     }
@@ -82,6 +87,7 @@ public extension AffixModifier {
         case let .companionDamageDealt(v): .companionDamageDealt(transform(v))
         case let .companionPhysicalDamageDealt(v): .companionPhysicalDamageDealt(transform(v))
         case let .companionBleedDamageDealt(v): .companionBleedDamageDealt(transform(v))
+        case let .rangedDamageDealt(v): .rangedDamageDealt(transform(v))
         default: self
         }
     }
@@ -96,6 +102,7 @@ public extension AffixModifier {
         case let .outgoingDamagePercent(v): .outgoingDamagePercent(transform(v))
         case let .incomingDamageReductionPercent(v): .incomingDamageReductionPercent(transform(v))
         case let .dodgeChanceBonus(v): .dodgeChanceBonus(transform(v))
+        case let .maximumManaPercent(v): .maximumManaPercent(transform(v))
         default: self
         }
     }

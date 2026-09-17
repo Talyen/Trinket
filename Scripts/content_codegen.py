@@ -5,16 +5,17 @@ from __future__ import annotations
 
 import functools
 import csv
+import hashlib
 import json
 import os
 import re
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
+from internal.cli import ROOT
 from internal.content.content_codegen_modifiers import (
     VALID_KEYWORDS,
     modifier_field_key,
@@ -28,7 +29,6 @@ from internal.content.content_codegen_triggers import (
     triggers_swift,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_DIR = ROOT / "ContentManifest"
 GENERATED_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Generated"
 ABILITY_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Abilities"
@@ -59,13 +59,19 @@ HOMESTEAD_NODE_ORDER = (
     "culinaryArts",
     "blacksmithForge",
     "woolTailoring",
+    "runesmithWorkshop",
     "alchemyLab",
     "crystalGarden",
-    "runesmithWorkshop",
+    "transmutationCrucible",
+    "mycologyCellar",
     "hunterLodge",
     "agilityTraining",
+    "sparringGrounds",
+    "archeryRange",
     "moonlitSanctum",
     "wishingWell",
+    "scriptorium",
+    "leylineEnergy",
 )
 VALID_HOMESTEAD_NODE_IDS = frozenset(HOMESTEAD_NODE_ORDER)
 SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -1216,17 +1222,6 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
     write_if_changed(out, text)
 
 
-def generate_ability_index() -> None:
-    body = (
-        "enum AbilityCatalogIndexGenerated {\n"
-        "    static let abilitiesByID: [String: Ability] = Dictionary(\n"
-        "        uniqueKeysWithValues: AbilityCatalog.all.map { ($0.id, $0) }\n"
-        "    )\n"
-        "}\n"
-    )
-    write_generated_file(GENERATED_DIR / "AbilityCatalogIndex.generated.swift", body)
-
-
 def parse_homestead_combat_tokens(
     raw: str,
 ) -> tuple[list[str], list[str], int, int]:
@@ -1764,8 +1759,6 @@ def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
 
 
 def _ability_inventory_digest() -> str:
-    import hashlib
-
     inputs = [ROOT / "Scripts/content_codegen.py", ROOT / "Scripts/tool-versions.env"]
     for package in (TRINKET_CONTENT_PACKAGE, ROOT / "Packages/TrinketCore"):
         inputs.append(package / "Package.swift")
@@ -1788,8 +1781,6 @@ def generate_ability_inventory() -> None:
     if not force and out.is_file() and ABILITY_INVENTORY_STAMP.is_file():
         if ABILITY_INVENTORY_STAMP.read_text(encoding="utf-8").strip() == current_digest:
             return
-
-    import tempfile
 
     with tempfile.TemporaryDirectory() as directory:
         dump_path = Path(directory) / "AbilityInventory.tsv"
@@ -1927,7 +1918,6 @@ def main() -> int:
     generate_talent_catalog(talent_rows, [row.id for row in combatant_rows])
     generate_ability_shorthand()
     generate_ability_inventory()
-    generate_ability_index()
     ability_count = len(collect_ability_symbols())
     trigger_family_count = len(_trigger_families())
     print(

@@ -1,22 +1,38 @@
 import Foundation
 
 public extension ItemAffixPower {
+    /// Single traversal behind scaled/rolled/rolledMax: maps every nonzero
+    /// modifier magnitude and reports each change for description patching.
+    /// Unchanged values skip patching (patching X to X is identity).
+    private func mapModifierMagnitudes(
+        percent: (Double) -> Double,
+        int: (Int) -> Int,
+        record: (Double, Double, Bool) -> Void,
+    ) -> [AffixModifier] {
+        modifiers.map { modifier in
+            if modifier.isPercent {
+                let old = modifier.numericValue
+                guard old != 0 else { return modifier }
+                let new = percent(old)
+                if new != old {
+                    record(old, new, true)
+                }
+                return modifier.mapPercent { _ in new }
+            }
+            let old = Int(modifier.numericValue.rounded())
+            guard old != 0 else { return modifier }
+            let new = int(old)
+            if new != old {
+                record(Double(old), Double(new), false)
+            }
+            return modifier.mapInt { _ in new }
+        }
+    }
+
     func scaled(by multiplier: Int) -> Self {
         guard multiplier != 1 else { return self }
         var description = description
-        let scaledModifiers = modifiers.map { modifier in
-            let scaled = modifier.isPercent
-                ? modifier.mapPercent { $0 * Double(multiplier) }
-                : modifier.mapInt { $0 * multiplier }
-            description = Self.replacingMagnitude(
-                in: description,
-                from: modifier.numericValue,
-                to: scaled.numericValue,
-                isPercent: modifier.isPercent,
-            )
-            return scaled
-        }
-        let scaledTriggers = triggers.scalingAffixMagnitudes(by: multiplier) { old, new, isPercent in
+        let record: (Double, Double, Bool) -> Void = { old, new, isPercent in
             description = Self.replacingMagnitude(
                 in: description,
                 from: old,
@@ -24,6 +40,12 @@ public extension ItemAffixPower {
                 isPercent: isPercent,
             )
         }
+        let scaledModifiers = mapModifierMagnitudes(
+            percent: { $0 * Double(multiplier) },
+            int: { $0 * multiplier },
+            record: record,
+        )
+        let scaledTriggers = triggers.scalingAffixMagnitudes(by: multiplier, record: record)
         return Self(description: description, modifiers: scaledModifiers, triggers: scaledTriggers)
     }
 
@@ -34,34 +56,7 @@ public extension ItemAffixPower {
     func rolled(using randomNumberGenerator: inout some RandomNumberGenerator) -> Self {
         guard hasRollableMagnitudes else { return self }
         var description = description
-        let rolledModifiers = modifiers.map { modifier -> AffixModifier in
-            guard modifier.numericValue != 0 else { return modifier }
-            if modifier.isPercent {
-                let newValue = ItemAffixMagnitudeRoll.percentValues(around: modifier.numericValue)
-                    .randomElement(using: &randomNumberGenerator)
-                    ?? modifier.numericValue
-                description = Self.replacingMagnitude(
-                    in: description,
-                    from: modifier.numericValue,
-                    to: newValue,
-                    isPercent: true,
-                )
-                return modifier.mapPercent { _ in newValue }
-            }
-            let old = Int(modifier.numericValue.rounded())
-            let newValue = Int.random(
-                in: ItemAffixMagnitudeRoll.integerRange(around: old),
-                using: &randomNumberGenerator,
-            )
-            description = Self.replacingMagnitude(
-                in: description,
-                from: Double(old),
-                to: Double(newValue),
-                isPercent: false,
-            )
-            return modifier.mapInt { _ in newValue }
-        }
-        let rolledTriggers = triggers.rollingAffixMagnitudes(using: &randomNumberGenerator) { old, new, isPercent in
+        let record: (Double, Double, Bool) -> Void = { old, new, isPercent in
             description = Self.replacingMagnitude(
                 in: description,
                 from: old,
@@ -69,36 +64,27 @@ public extension ItemAffixPower {
                 isPercent: isPercent,
             )
         }
+        let rolledModifiers = mapModifierMagnitudes(
+            percent: {
+                ItemAffixMagnitudeRoll.percentValues(around: $0)
+                    .randomElement(using: &randomNumberGenerator) ?? $0
+            },
+            int: {
+                Int.random(
+                    in: ItemAffixMagnitudeRoll.integerRange(around: $0),
+                    using: &randomNumberGenerator,
+                )
+            },
+            record: record,
+        )
+        let rolledTriggers = triggers.rollingAffixMagnitudes(using: &randomNumberGenerator, record: record)
         return Self(description: description, modifiers: rolledModifiers, triggers: rolledTriggers)
     }
 
     func rolledMax() -> Self {
         guard hasRollableMagnitudes else { return self }
         var description = description
-        let maxedModifiers = modifiers.map { modifier -> AffixModifier in
-            guard modifier.numericValue != 0 else { return modifier }
-            if modifier.isPercent {
-                let maximum = ItemAffixMagnitudeRoll.percentValues(around: modifier.numericValue).max()
-                    ?? modifier.numericValue
-                description = Self.replacingMagnitude(
-                    in: description,
-                    from: modifier.numericValue,
-                    to: maximum,
-                    isPercent: true,
-                )
-                return modifier.mapPercent { _ in maximum }
-            }
-            let old = Int(modifier.numericValue.rounded())
-            let maximum = ItemAffixMagnitudeRoll.integerRange(around: old).upperBound
-            description = Self.replacingMagnitude(
-                in: description,
-                from: Double(old),
-                to: Double(maximum),
-                isPercent: false,
-            )
-            return modifier.mapInt { _ in maximum }
-        }
-        let maxedTriggers = triggers.maxRolledAffixMagnitudes { old, new, isPercent in
+        let record: (Double, Double, Bool) -> Void = { old, new, isPercent in
             description = Self.replacingMagnitude(
                 in: description,
                 from: old,
@@ -106,6 +92,12 @@ public extension ItemAffixPower {
                 isPercent: isPercent,
             )
         }
+        let maxedModifiers = mapModifierMagnitudes(
+            percent: { ItemAffixMagnitudeRoll.percentValues(around: $0).max() ?? $0 },
+            int: { ItemAffixMagnitudeRoll.integerRange(around: $0).upperBound },
+            record: record,
+        )
+        let maxedTriggers = triggers.maxRolledAffixMagnitudes(record: record)
         return Self(description: description, modifiers: maxedModifiers, triggers: maxedTriggers)
     }
 
@@ -312,9 +304,9 @@ private extension CombatTraitTriggers {
     var hasRollableAffixMagnitudes: Bool {
         Self.affixMagnitudeFields.contains { field in
             switch field {
-            case let .int(keyPath):
+            case let .int(keyPath, _):
                 self[keyPath: keyPath] != 0
-            case let .percent(keyPath):
+            case let .percent(keyPath, _):
                 self[keyPath: keyPath] != 0
             }
         }
@@ -327,9 +319,9 @@ private extension CombatTraitTriggers {
         var scaled = self
         for field in Self.affixMagnitudeFields {
             switch field {
-            case let .int(keyPath):
+            case let .int(keyPath, _):
                 scaled.scale(keyPath, by: multiplier, record: record)
-            case let .percent(keyPath):
+            case let .percent(keyPath, _):
                 scaled.scale(keyPath, by: multiplier, record: record)
             }
         }
@@ -343,7 +335,7 @@ private extension CombatTraitTriggers {
         var rolled = self
         for field in Self.affixMagnitudeFields {
             switch field {
-            case let .int(keyPath):
+            case let .int(keyPath, _):
                 let old = rolled[keyPath: keyPath]
                 guard old != 0 else { continue }
                 let new = Int.random(
@@ -352,7 +344,7 @@ private extension CombatTraitTriggers {
                 )
                 rolled[keyPath: keyPath] = new
                 record(Double(old), Double(new), false)
-            case let .percent(keyPath):
+            case let .percent(keyPath, _):
                 let old = rolled[keyPath: keyPath]
                 guard old != 0 else { continue }
                 let new = ItemAffixMagnitudeRoll.percentValues(around: old)
@@ -371,14 +363,14 @@ private extension CombatTraitTriggers {
         var maxed = self
         for field in Self.affixMagnitudeFields {
             switch field {
-            case let .int(keyPath):
+            case let .int(keyPath, _):
                 let old = maxed[keyPath: keyPath]
                 guard old != 0 else { continue }
                 let new = ItemAffixMagnitudeRoll.integerRange(around: old).upperBound
                 guard new != old else { continue }
                 maxed[keyPath: keyPath] = new
                 record(Double(old), Double(new), false)
-            case let .percent(keyPath):
+            case let .percent(keyPath, _):
                 let old = maxed[keyPath: keyPath]
                 guard old != 0 else { continue }
                 let new = ItemAffixMagnitudeRoll.percentValues(around: old).max() ?? old
@@ -399,14 +391,14 @@ private extension CombatTraitTriggers {
     func affixMagnitudesAreAtOrAboveRollMax(of catalog: Self) -> Bool {
         for field in Self.affixMagnitudeFields {
             switch field {
-            case let .int(keyPath):
+            case let .int(keyPath, _):
                 let catalogValue = catalog[keyPath: keyPath]
                 guard catalogValue != 0 else { continue }
                 let maximum = ItemAffixMagnitudeRoll.integerRange(around: catalogValue).upperBound
                 if self[keyPath: keyPath] < maximum {
                     return false
                 }
-            case let .percent(keyPath):
+            case let .percent(keyPath, _):
                 let catalogValue = catalog[keyPath: keyPath]
                 guard catalogValue != 0 else { continue }
                 let maximum = ItemAffixMagnitudeRoll.percentValues(around: catalogValue).max() ?? catalogValue
@@ -418,16 +410,23 @@ private extension CombatTraitTriggers {
         return true
     }
 
-    enum AffixMagnitudeField {
-        case int(WritableKeyPath<CombatTraitTriggers, Int> & Sendable)
-        case percent(WritableKeyPath<CombatTraitTriggers, Double> & Sendable)
+    enum AffixMagnitudeField: Sendable {
+        case int(WritableKeyPath<CombatTraitTriggers, Int> & Sendable, name: String)
+        case percent(WritableKeyPath<CombatTraitTriggers, Double> & Sendable, name: String)
+
+        var fieldName: String {
+            switch self {
+            case let .int(_, name), let .percent(_, name):
+                name
+            }
+        }
 
         func canBump(in triggers: CombatTraitTriggers, direction: ItemAffixPowerBumpDirection) -> Bool {
             switch self {
-            case let .int(keyPath):
+            case let .int(keyPath, _):
                 let value = triggers[keyPath: keyPath]
                 return value > 0 && (direction == .up || value > 1)
-            case let .percent(keyPath):
+            case let .percent(keyPath, _):
                 let value = triggers[keyPath: keyPath]
                 return value > 0 && (direction == .up || value > 0.01 + 1e-9)
             }
@@ -439,12 +438,12 @@ private extension CombatTraitTriggers {
             record: (Double, Double, Bool) -> Void,
         ) {
             switch self {
-            case let .int(keyPath):
+            case let .int(keyPath, _):
                 let old = triggers[keyPath: keyPath]
                 let new = old + direction.intDelta
                 triggers[keyPath: keyPath] = new
                 record(Double(old), Double(new), false)
-            case let .percent(keyPath):
+            case let .percent(keyPath, _):
                 let old = triggers[keyPath: keyPath]
                 let new = old + direction.percentDelta
                 triggers[keyPath: keyPath] = new
@@ -454,59 +453,74 @@ private extension CombatTraitTriggers {
     }
 
     static let affixMagnitudeFields: [AffixMagnitudeField] = [
-        .int(\.cleanseSelfHeal),
-        .int(\.gainGoldBonusHealSelf),
-        .percent(\.thornsPercent),
-        .int(\.onBleedApplyPoison),
-        .int(\.onBurnApplyPoison),
-        .int(\.onBleedDealBurnDamage),
-        .percent(\.poisonDecayIncreaseChance),
-        .int(\.freezeDamageWhileBurningBonus),
-        .int(\.damageWhileTargetFrozenBonus),
-        .int(\.damageBelowHealthPercentBonus),
-        .int(\.damageAfterDodgeBonus),
-        .int(\.blockBrokenBlockFlat),
-        .percent(\.companionLeechSharePercent),
-        .int(\.onceBelowHealthPercentHeal),
-        .int(\.blockOnDeathsDoor),
-        .int(\.spendManaBlockFlat),
-        .int(\.holyDamageBlockFlat),
-        .int(\.holyDamageCleanseCount),
-        .int(\.holyDamageHealFlat),
-        .int(\.dodgeGoldFlat),
-        .percent(\.ignoreEnemyMitigationPercent),
-        .percent(\.physicalIgnoreMitigationPercent),
-        .int(\.stunDealPhysicalFlat),
-        .int(\.damageWhileTargetStunnedBonus),
-        .int(\.dodgeBlockFlat),
-        .int(\.holyDamagePurgeCount),
-        .int(\.enemyStunnedPurgeCount),
-        .int(\.criticalPurgeCount),
-        .int(\.criticalActionGoldFlat),
-        .int(\.leechRestoreManaFlat),
-        .int(\.gainManaBlockFlat),
-        .int(\.defeatEnemyGoldFlat),
-        .int(\.leechGoldFlat),
-        .int(\.dodgeHealFlat),
-        .percent(\.dodgeChanceBelowHealthPercentBonus),
-        .int(\.dodgeDealStunFlat),
-        .percent(\.dodgeChanceBonus),
-        .int(\.holyDamagePoisonFlat),
-        .int(\.drawEveryOtherTurn),
-        .int(\.drawOnHealthLoss),
-        .percent(\.physicalStunBuildupPercent),
-        .percent(\.blockGainThornsPercent),
-        .int(\.drawOnSpendMana),
-        .percent(\.physicalDamageBlockPercent),
-        .int(\.bleedDamageGoldFlat),
-        .int(\.goldPerTurn),
-        .percent(\.healthRestoredPoisonPercent),
-        .percent(\.sunderingBlockMultiplier),
-        .int(\.cardsPlayedManaFlat),
-        .int(\.victoryGoldFlat),
-        .int(\.healthPerTurn),
-        .int(\.companionCardsPerTurn),
-        .int(\.freezeExtraActionSkips),
-        .percent(\.criticalChanceBonus),
+        .int(\.cleanseSelfHeal, name: "cleanseSelfHeal"),
+        .int(\.gainGoldBonusHealSelf, name: "gainGoldBonusHealSelf"),
+        .percent(\.thornsPercent, name: "thornsPercent"),
+        .int(\.onBleedApplyPoison, name: "onBleedApplyPoison"),
+        .int(\.onBurnApplyPoison, name: "onBurnApplyPoison"),
+        .int(\.onBleedDealBurnDamage, name: "onBleedDealBurnDamage"),
+        .percent(\.poisonDecayIncreaseChance, name: "poisonDecayIncreaseChance"),
+        .int(\.freezeDamageWhileBurningBonus, name: "freezeDamageWhileBurningBonus"),
+        .int(\.damageWhileTargetFrozenBonus, name: "damageWhileTargetFrozenBonus"),
+        .int(\.damageBelowHealthPercentBonus, name: "damageBelowHealthPercentBonus"),
+        .int(\.damageAfterDodgeBonus, name: "damageAfterDodgeBonus"),
+        .int(\.blockBrokenBlockFlat, name: "blockBrokenBlockFlat"),
+        .percent(\.companionLeechSharePercent, name: "companionLeechSharePercent"),
+        .int(\.onceBelowHealthPercentHeal, name: "onceBelowHealthPercentHeal"),
+        .int(\.blockOnDeathsDoor, name: "blockOnDeathsDoor"),
+        .int(\.spendManaBlockFlat, name: "spendManaBlockFlat"),
+        .int(\.holyDamageBlockFlat, name: "holyDamageBlockFlat"),
+        .int(\.holyDamageCleanseCount, name: "holyDamageCleanseCount"),
+        .int(\.holyDamageHealFlat, name: "holyDamageHealFlat"),
+        .int(\.dodgeGoldFlat, name: "dodgeGoldFlat"),
+        .percent(\.ignoreEnemyMitigationPercent, name: "ignoreEnemyMitigationPercent"),
+        .percent(\.physicalIgnoreMitigationPercent, name: "physicalIgnoreMitigationPercent"),
+        .int(\.stunDealPhysicalFlat, name: "stunDealPhysicalFlat"),
+        .int(\.damageWhileTargetStunnedBonus, name: "damageWhileTargetStunnedBonus"),
+        .int(\.dodgeBlockFlat, name: "dodgeBlockFlat"),
+        .int(\.holyDamagePurgeCount, name: "holyDamagePurgeCount"),
+        .int(\.enemyStunnedPurgeCount, name: "enemyStunnedPurgeCount"),
+        .int(\.criticalPurgeCount, name: "criticalPurgeCount"),
+        .int(\.criticalActionGoldFlat, name: "criticalActionGoldFlat"),
+        .int(\.leechRestoreManaFlat, name: "leechRestoreManaFlat"),
+        .int(\.gainManaBlockFlat, name: "gainManaBlockFlat"),
+        .int(\.defeatEnemyGoldFlat, name: "defeatEnemyGoldFlat"),
+        .int(\.leechGoldFlat, name: "leechGoldFlat"),
+        .int(\.dodgeHealFlat, name: "dodgeHealFlat"),
+        .percent(\.dodgeChanceBelowHealthPercentBonus, name: "dodgeChanceBelowHealthPercentBonus"),
+        .int(\.dodgeDealStunFlat, name: "dodgeDealStunFlat"),
+        .percent(\.dodgeChanceBonus, name: "dodgeChanceBonus"),
+        .int(\.holyDamagePoisonFlat, name: "holyDamagePoisonFlat"),
+        .int(\.drawEveryOtherTurn, name: "drawEveryOtherTurn"),
+        .int(\.drawOnHealthLoss, name: "drawOnHealthLoss"),
+        .percent(\.physicalStunBuildupPercent, name: "physicalStunBuildupPercent"),
+        .percent(\.blockGainThornsPercent, name: "blockGainThornsPercent"),
+        .int(\.drawOnSpendMana, name: "drawOnSpendMana"),
+        .percent(\.physicalDamageBlockPercent, name: "physicalDamageBlockPercent"),
+        .int(\.bleedDamageGoldFlat, name: "bleedDamageGoldFlat"),
+        .int(\.goldPerTurn, name: "goldPerTurn"),
+        .percent(\.healthRestoredPoisonPercent, name: "healthRestoredPoisonPercent"),
+        .int(\.cardsPlayedManaFlat, name: "cardsPlayedManaFlat"),
+        .int(\.victoryGoldFlat, name: "victoryGoldFlat"),
+        .int(\.healthPerTurn, name: "healthPerTurn"),
+        .int(\.companionCardsPerTurn, name: "companionCardsPerTurn"),
+        .int(\.freezeExtraActionSkips, name: "freezeExtraActionSkips"),
+        .percent(\.criticalChanceBonus, name: "criticalChanceBonus"),
+        // BumpTarget.trigger indexes this array ephemerally during a single roll.
+        .percent(\.onBleedDealPoisonChancePercent, name: "onBleedDealPoisonChancePercent"),
+        .percent(\.onBurnDealPoisonChancePercent, name: "onBurnDealPoisonChancePercent"),
+        .percent(\.onBleedDealBurnChancePercent, name: "onBleedDealBurnChancePercent"),
+        .percent(\.stunExtendChancePercent, name: "stunExtendChancePercent"),
+        .percent(\.freezeExtendChancePercent, name: "freezeExtendChancePercent"),
+        .percent(\.freezeDamageLeechChancePercent, name: "freezeDamageLeechChancePercent"),
     ]
+}
+
+public extension CombatTraitTriggers {
+    /// Names of rollable trigger magnitudes. Pair with the excused-fields set
+    /// in ItemAffixRollCoverageTests for the full contract: every populated
+    /// affix trigger field must be rollable or explicitly excused.
+    static var affixMagnitudeFieldNames: Set<String> {
+        Set(affixMagnitudeFields.map(\.fieldName))
+    }
 }

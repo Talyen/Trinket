@@ -6,10 +6,14 @@ public enum BalanceFindingsReporter {
     public static let pairingCap = 3
 
     public static func render(_ report: BalanceSweepReport) -> String {
+        render(report, snapshots: BalanceTierSnapshots(report: report))
+    }
+
+    public static func render(_ report: BalanceSweepReport, snapshots: BalanceTierSnapshots) -> String {
         var lines: [String] = []
         appendHeader(report, into: &lines)
-        appendSnapshot(report, into: &lines)
-        let findings = collectFindings(report)
+        appendSnapshot(report, snapshots: snapshots, into: &lines)
+        let findings = collectFindings(report, snapshots: snapshots)
         appendFindings(findings, into: &lines)
         lines.append(
             "Win rates are under `\(report.policyID)` autoplay; "
@@ -44,13 +48,13 @@ public enum BalanceFindingsReporter {
         lines.append("")
     }
 
-    private static func appendSnapshot(_ report: BalanceSweepReport, into lines: inout [String]) {
-        let tiers = BalanceStatsAggregator.summarize(report: report)
-        let comparedTiers: [BalanceTierStats] = if report.comparedPolicyID != nil, !report.comparedRecords.isEmpty {
-            BalanceStatsAggregator.summarize(report: report, records: report.comparedRecords)
-        } else {
-            []
-        }
+    private static func appendSnapshot(
+        _ report: BalanceSweepReport,
+        snapshots: BalanceTierSnapshots,
+        into lines: inout [String],
+    ) {
+        let tiers = snapshots.tiers
+        let comparedTiers = snapshots.comparedTiers
         let identityTiers = tiers.filter { $0.battles > 0 }
         if !identityTiers.isEmpty {
             lines.append("## Snapshot")
@@ -104,9 +108,9 @@ public enum BalanceFindingsReporter {
         lines.append("")
     }
 
-    private static func collectFindings(_ report: BalanceSweepReport) -> [Finding] {
+    private static func collectFindings(_ report: BalanceSweepReport, snapshots: BalanceTierSnapshots) -> [Finding] {
         var findings: [Finding] = []
-        let tiers = BalanceStatsAggregator.summarize(report: report)
+        let tiers = snapshots.tiers
         for tier in tiers where tier.battles > 0 {
             findings.append(contentsOf: identityFindings(tier: tier, records: report.records))
             findings.append(contentsOf: stallFindings(tier: tier, records: report.records))

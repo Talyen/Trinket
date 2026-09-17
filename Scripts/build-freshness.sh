@@ -27,6 +27,14 @@ project_generation_inputs=("${TRINKET_PROJECT_GENERATION_INPUTS[@]}" Trinket.xco
 build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")
 
 generation_input_snapshot() {
+  generation_input_snapshots "$@"
+}
+
+# Hash generation-input groups in one interpreter invocation, printing one
+# hex digest per group in argument order. Groups are separated by `--`
+# (patterns keep spaces, e.g. "Raw Assets", as single arguments). Without a
+# `--` separator this behaves exactly like generation_input_snapshot.
+generation_input_snapshots() {
   python3 - "$@" <<'PY_SNAPSHOT'
 import glob
 import hashlib
@@ -34,18 +42,26 @@ import json
 import sys
 from pathlib import Path
 
-records = {}
+groups = [[]]
 for pattern in sys.argv[1:]:
-    matches = glob.glob(pattern)
-    records[pattern] = None
-    for match in matches:
-        path = Path(match)
-        files = path.rglob("*") if path.is_dir() else [path]
-        for file in files:
-            if file.is_file() and file.suffix != ".md":
-                stat = file.stat()
-                records[str(file)] = [stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns]
-print(hashlib.sha256(json.dumps(records, sort_keys=True).encode()).hexdigest())
+    if pattern == "--":
+        groups.append([])
+    else:
+        groups[-1].append(pattern)
+
+for patterns in groups:
+    records = {}
+    for pattern in patterns:
+        matches = glob.glob(pattern)
+        records[pattern] = None
+        for match in matches:
+            path = Path(match)
+            files = path.rglob("*") if path.is_dir() else [path]
+            for file in files:
+                if file.is_file() and file.suffix != ".md":
+                    stat = file.stat()
+                    records[str(file)] = [stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns]
+    print(hashlib.sha256(json.dumps(records, sort_keys=True).encode()).hexdigest())
 PY_SNAPSHOT
 }
 
@@ -61,11 +77,25 @@ record_build_input_git_snapshot() {
 touch_generate_stamp() {
   local results_dir="${1:-${RESULTS_DIR:-$PWD/.DerivedData/TestResults}}"
   local stamp="$results_dir/.last-generate.stamp"
+  local content_digest project_digest assets_digest
   mkdir -p "$results_dir"
-  generation_input_snapshot "${content_generation_inputs[@]}" > "$stamp.content" || return $?
-  generation_input_snapshot "${project_generation_inputs[@]}" > "$stamp.project" || return $?
+  # One interpreter invocation per stamp; digests print in group order.
   if [[ "${2:-false}" == true ]]; then
-    generation_input_snapshot "${asset_generation_inputs[@]}" > "$stamp.assets" || return $?
+    {
+      read -r content_digest
+      read -r project_digest
+      read -r assets_digest
+    } < <(generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}" -- "${asset_generation_inputs[@]}") || return $?
+    printf '%s\n' "$content_digest" > "$stamp.content" || return $?
+    printf '%s\n' "$project_digest" > "$stamp.project" || return $?
+    printf '%s\n' "$assets_digest" > "$stamp.assets" || return $?
+  else
+    {
+      read -r content_digest
+      read -r project_digest
+    } < <(generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}") || return $?
+    printf '%s\n' "$content_digest" > "$stamp.content" || return $?
+    printf '%s\n' "$project_digest" > "$stamp.project" || return $?
   fi
   touch "$stamp"
 }
@@ -104,9 +134,11 @@ prepare_generated_inputs() {
   fi
 
   local content_snapshot project_snapshot assets_snapshot
-  content_snapshot="$(generation_input_snapshot "${content_generation_inputs[@]}")" || return $?
-  project_snapshot="$(generation_input_snapshot "${project_generation_inputs[@]}")" || return $?
-  assets_snapshot="$(generation_input_snapshot "${asset_generation_inputs[@]}")" || return $?
+  {
+    read -r content_snapshot
+    read -r project_snapshot
+    read -r assets_snapshot
+  } < <(generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}" -- "${asset_generation_inputs[@]}") || return $?
   [[ -f "$stamp.content" && "$(cat "$stamp.content")" == "$content_snapshot" ]] || content_changed=changed
   [[ -f "$stamp.project" && "$(cat "$stamp.project")" == "$project_snapshot" ]] || project_changed=changed
   [[ -f "$stamp.assets" && "$(cat "$stamp.assets")" == "$assets_snapshot" ]] || assets_changed=changed
@@ -226,6 +258,30 @@ package_objroot() {
 
 package_shared_precomps_dir() {
   printf '%s/Build/Intermediates.noindex/PrecompiledHeaders' "${1:?}"
+}
+
+# Shared per-package scheme invocation prefix: scheme, SDK, destination, the
+# per-package DerivedData tenant pins that keep parallel package builds off
+# the shared Packages/.DerivedData/build.db, parallel target builds, and
+# hermetic package resolution pinned to the resolution lockfile (no network).
+# Callers run this then append their action word plus action-specific flags,
+# so the build-for-testing and test branches cannot drift on tenant layout
+# or build behavior.
+# Usage: trinket_set_package_scheme_args "$scheme" "$sdk" "$destination" "$package_dd"
+#        xcodebuild_args=(xcodebuild <action> "${TRINKET_PACKAGE_SCHEME_ARGS[@]}" ...)
+trinket_set_package_scheme_args() {
+  local scheme="$1" sdk="$2" destination="$3" package_dd="$4"
+  TRINKET_PACKAGE_SCHEME_ARGS=(
+    -scheme "$scheme"
+    -sdk "$sdk"
+    -destination "$destination"
+    -derivedDataPath "$package_dd"
+    -parallelizeTargets
+    -disableAutomaticPackageResolution
+    "SYMROOT=$(package_symroot "$package_dd")"
+    "OBJROOT=$(package_objroot "$package_dd")"
+    "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")"
+  )
 }
 
 # shellcheck disable=SC2034

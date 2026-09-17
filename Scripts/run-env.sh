@@ -21,6 +21,8 @@ trinket_run_env_shared_root() {
 }
 
 _TRINKET_RUN_ENV_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib"
+# shellcheck source=lib/args.sh
+source "$_TRINKET_RUN_ENV_LIB_DIR/args.sh"
 source "$_TRINKET_RUN_ENV_LIB_DIR/lock.sh"
 # shellcheck source=lib/slots.sh
 source "$_TRINKET_RUN_ENV_LIB_DIR/slots.sh"
@@ -78,15 +80,7 @@ trinket_run_env_install_self_clean() {
 }
 
 trinket_run_env_ensure_diagnostics_session() {
-  if [[ -n "${TRINKET_DIAGNOSTICS_SESSION_ID:-}" ]]; then
-    return 0
-  fi
-  if [[ -n "${TRINKET_RUN_ID:-}" ]]; then
-    TRINKET_DIAGNOSTICS_SESSION_ID="$TRINKET_RUN_ID"
-  else
-    TRINKET_DIAGNOSTICS_SESSION_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
-  fi
-  export TRINKET_DIAGNOSTICS_SESSION_ID
+  trinket_ensure_diagnostics_session
 }
 
 trinket_run_env_init() {

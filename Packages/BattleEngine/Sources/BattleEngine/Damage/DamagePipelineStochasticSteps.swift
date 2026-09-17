@@ -1,4 +1,3 @@
-// swiftformat:disable:all
 import Foundation
 import TrinketContent
 import TrinketCore
@@ -31,7 +30,7 @@ package extension DamagePipeline {
         if DefensePoolEngine.shouldIgnoreDodge(
             keyword: state.damageKeyword,
             sourceActorID: state.sourceActorID,
-            in: context
+            in: context,
         ) {
             return
         }
@@ -104,14 +103,18 @@ package extension DamagePipeline {
         }
         let history = context.heroTalents.history[combatant.id]
         var chance = 0.10 + Double(history?.dodgeGrowth ?? 0) / 100
-        if history?.falseOpening == true { chance += 0.05 }
+        if history?.falseOpening == true {
+            chance += 0.05
+        }
         let profile = context.modifiers(for: combatant.id)
         chance += profile.triggers.dodgeChanceBonus
         if let owner = context.roster.participant(for: combatant) {
             chance += context.uniques.owners[owner]?.wrenflightDodge ?? 0
         }
         chance += context.roster.runtime(for: combatant)?.talents.dodgeChanceBonus(atTurn: context.turnCount) ?? 0
-        if context.roster.runtime(for: combatant)?.talents.turn.subzeroMistActive == true { chance += 0.20 }
+        if context.roster.runtime(for: combatant)?.talents.turn.subzeroMistActive == true {
+            chance += 0.20
+        }
         if context.roster.isDeathsDoorActive(for: combatant),
            profile.triggers.deathsDoorDodgeAndDebuffImmunity {
             chance += 0.5
@@ -157,7 +160,7 @@ package extension DamagePipeline {
             return
         }
         var abilityBonus = state.options.abilityCriticalChanceBonus
-        if actor.role != .enemy, state.options.isAttackHit, state.options.isBasicAttackHit,
+        if state.options.isAttackHit, state.options.isBasicAttackHit,
            let pendingBonus = context.roster.runtime(for: actor.combatant)?.talents.pending.basicCriticalBonus,
            pendingBonus > 0 {
             abilityBonus += pendingBonus
@@ -188,29 +191,26 @@ package extension DamagePipeline {
             return false
         }
         var guaranteed = state.options.guaranteedCritical
-        if actor.role != .enemy,
-           state.options.guaranteedCriticalIfEnemyBuffed,
+        if state.options.guaranteedCriticalIfEnemyBuffed,
            context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
             guaranteed = true
         }
         if state.options.isAttackHit,
-           actor.role != .enemy,
            context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
            context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
             guaranteed = true
         }
         if state.options.isAttackHit,
-           actor.role != .enemy,
            state.damageKeyword == .physical,
            context.modifiers(for: sourceActorID).triggers.firstPhysicalAttackGuaranteedCritical,
            context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
             guaranteed = true
         }
-        if actor.role != .enemy, state.options.isAttackHit {
+        if state.options.isAttackHit {
             for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
                 guard member.talents.pending.guaranteedCriticalAfterDodge,
                       member.id == sourceActorID
-                        || context.modifiers(for: member.id).triggers.onDodgeNextPartyHitGuaranteedCritical
+                      || context.modifiers(for: member.id).triggers.onDodgeNextPartyHitGuaranteedCritical
                 else { continue }
                 context.roster.mutateRuntime(for: member.combatant) {
                     $0.talents.pending.guaranteedCriticalAfterDodge = false
@@ -218,21 +218,18 @@ package extension DamagePipeline {
                 guaranteed = true
             }
         }
-        if actor.role != .enemy,
-           state.options.isAttackHit, state.options.isBasicAttackHit,
+        if state.options.isAttackHit, state.options.isBasicAttackHit,
            context.roster.runtime(for: actor.combatant)?.talents.pending.basicGuaranteedCritical == true {
             context.roster.mutateRuntime(for: actor.combatant) {
                 $0.talents.pending.basicGuaranteedCritical = false
             }
             guaranteed = true
         }
-        if actor.role != .enemy,
-           context.roster.isDeathsDoorActive(for: actor.combatant),
+        if context.roster.isDeathsDoorActive(for: actor.combatant),
            context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
             guaranteed = true
         }
-        if actor.role != .enemy,
-           context.modifiers(for: sourceActorID).triggers.warChest,
+        if context.modifiers(for: sourceActorID).triggers.warChest,
            state.damageKeyword == .physical,
            context.gold >= 50 {
             guaranteed = true

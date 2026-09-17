@@ -31,6 +31,9 @@ let package = Package(
         .target(
             name: "TrinketContent",
             dependencies: ["TrinketCore"],
+            // Generated TSVs are codegen inputs/outputs, not bundled resources.
+            // Any new generated TSV must be added here AND to
+            // Scripts/config/generated-paths.tsv (committed-output gate).
             exclude: [
                 "Generated/AbilityInventory.generated.tsv",
                 "Generated/AppIconSourceHashes.generated.tsv",

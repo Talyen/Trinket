@@ -571,6 +571,10 @@ public enum AbilityCatalog {
     ]
 
     public static func ability(id: String) -> Ability? {
-        AbilityCatalogIndexGenerated.abilitiesByID[id]
+        abilitiesByID[id]
     }
+
+    private static let abilitiesByID: [String: Ability] = Dictionary(
+        uniqueKeysWithValues: all.map { ($0.id, $0) },
+    )
 }

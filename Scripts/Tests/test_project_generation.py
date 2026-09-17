@@ -20,7 +20,7 @@ class ProjectGenerationTests(unittest.TestCase):
         self.env['PROJECT_CALLS'] = str(self.root / 'calls')
         for path in ('Scripts/build-inputs.env', '.githooks/pre-commit', 'Scripts/check-staged-project.sh',
                      'Scripts/apply-scheme-storekit.py',
-                     'Scripts/lib/project-generation.sh', 'Scripts/lib/tools.sh'):
+                     'Scripts/lib/project-generation.sh', 'Scripts/lib/tools.sh', 'Scripts/lib/args.sh'):
             target = self.root / path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / path, target)

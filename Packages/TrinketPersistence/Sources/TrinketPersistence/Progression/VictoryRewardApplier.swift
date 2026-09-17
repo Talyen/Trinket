@@ -3,6 +3,12 @@ import TrinketContent
 import TrinketCore
 
 public struct LootRequest: Equatable, Sendable {
+    /// Content-tier curve for item generation (ItemLootPolicy probabilities).
+    /// Always the authored level (Journey chapter math, Spire floor x2,
+    /// Labyrinth depth, Contract party-derived level) — never party-adjusted —
+    /// so under-leveled parties keep fair item tiers. Fight-relative scaling
+    /// (XP, gold, materials) uses the separate `encounterLevel` passed to
+    /// `resolveLoot`.
     public var rewardLevel: Int
     public var seedSalt: String
     public var itemID: String
@@ -37,18 +43,7 @@ public struct RewardOwnership: Equatable, Sendable {
     }
 
     public init(_ inventory: PlayerInventoryState) {
-        var trinkets = Set<String>()
-        var uniques = Set<String>()
-        for item in inventory.items {
-            if item.isTrinket {
-                trinkets.insert(item.templateID)
-            }
-            if item.rarity == .unique {
-                uniques.insert(item.templateID)
-            }
-        }
-        ownedTrinketIDs = trinkets
-        ownedUniqueIDs = uniques
+        self.init(ownedTrinketIDs: inventory.ownedTrinketIDs, ownedUniqueIDs: inventory.ownedUniqueIDs)
     }
 
     public init(_ save: PlayerSave) {
@@ -189,6 +184,10 @@ public enum VictoryRewardApplier {
         override ?? loot?.item
     }
 
+    /// Applies a battle's rewards. A pre-settled `award` from the battle that
+    /// just ran wins by design: it snapshots homestead production at battle
+    /// end, and re-settling at completion would accrue production a second
+    /// time. Callers without a battle pass nil to settle fresh.
     static func grantVictoryRewards(
         hero: Combatant,
         companion: Combatant,

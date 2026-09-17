@@ -78,13 +78,12 @@ struct PlayerSaveSlice: OptionSet {
         let mutationSlices = changed(between: snapshot, and: candidate)
         guard !mutationSlices.isEmpty else { return (snapshot, []) }
         let sanitizeSlices = sanitizeTargets(for: mutationSlices)
-        candidate = PlayerSaveSanitizer.sanitize(candidate, changedSlices: sanitizeSlices)
+        candidate = try PlayerSaveSanitizer.sanitizeAndValidate(candidate, changedSlices: sanitizeSlices)
         var changedSlices = changed(
             between: snapshot,
             and: candidate,
             within: persistTargets(for: sanitizeSlices),
         )
-        try PlayerSaveSanitizer.validate(candidate)
         if !changedSlices.isEmpty {
             candidate.modifiedAt = Date()
             changedSlices.insert(.root)

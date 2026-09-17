@@ -11,7 +11,7 @@ trinket_slot_entry_is_stale() {
   local slot="$1"
   local pid=""
   read -r pid _ < "$slot" 2>/dev/null || true
-  [[ "$pid" =~ ^[0-9]+$ ]] && ! kill -0 "$pid" 2>/dev/null
+  trinket_lock_pid_is_stale "$pid"
 }
 
 trinket_slot_reap_dir() {
@@ -174,7 +174,7 @@ trinket_ui_slot_acquire() {
   if [[ -e "$lock_path" ]]; then
     lock_pid=""
     read -r lock_pid _ < "$lock_path" || true
-    if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+    if trinket_lock_pid_is_stale "$lock_pid"; then
       rm -f "$lock_path"
     fi
   fi

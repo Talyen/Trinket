@@ -11,8 +11,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
 from internal.diagnostics import xcresult_diagnostics as xcresult
 from internal.diagnostics.diagnostic_model import (
     CLASSIFICATIONS, CLASSIFICATION_PRECEDENCE, GENERIC_MESSAGES, MAX_ISSUES, MAX_LINES,
@@ -184,7 +182,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Report Markdown: {markdown_path}", file=sys.stderr)
             print(f"Report annotations: {annotations_path}", file=sys.stderr)
         return 0
-    except Exception as error:
+    except (OSError, RuntimeError, ValueError) as error:
         print(f"failure_diagnostics.py: reporter execution failed: {error}", file=sys.stderr)
         return 2
 

@@ -162,11 +162,15 @@ struct HomesteadPresentationTests {
     }
 
     @Test func `poison effects use resulting tier totals`() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .alchemyLab))
-        let tier = try #require(definition.tier(3))
-        let effects = HomesteadEffectLine.lines(for: tier)
-        #expect(effects.map(\.displayValue) == ["+15%", "−30%"])
-        #expect(effects[0].id != effects[1].id)
+        let alchemy = try #require(GameContent.homesteadNode(matching: .alchemyLab))
+        let alchemyTier = try #require(alchemy.tier(3))
+        let alchemyEffects = HomesteadEffectLine.lines(for: alchemyTier)
+        #expect(alchemyEffects.map(\.displayValue) == ["+15%"])
+
+        let mycology = try #require(GameContent.homesteadNode(matching: .mycologyCellar))
+        let mycologyTier = try #require(mycology.tier(3))
+        let mycologyEffects = HomesteadEffectLine.lines(for: mycologyTier)
+        #expect(mycologyEffects.map(\.displayValue) == ["−30%", "3"])
     }
 
     @Test func `every affix modifier renders a labeled effect line`() {
@@ -193,6 +197,8 @@ struct HomesteadPresentationTests {
             .outgoingDamagePercent(8),
             .incomingDamageReductionPercent(12),
             .dodgeChanceBonus(5),
+            .rangedDamageDealt(2),
+            .maximumManaPercent(0.10),
         ]
         let tier = HomesteadNodeTier(
             tier: 1,

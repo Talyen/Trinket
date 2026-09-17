@@ -2,6 +2,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: $0"
+  echo "Enforce runtime artwork cache budgets (constants only; never media output sizes)."
+  exit 0
+fi
+
 # Scope: runtime cache constants only, not media-pipeline output sizes.
 # Despite the name, this never touches Trinket/Assets.xcassets or Trinket/Media;
 # see Scripts/check-unused-assets.py for pipeline orphan/missing coverage.

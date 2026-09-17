@@ -253,4 +253,27 @@ public extension Effect {
             false
         }
     }
+
+    /// Card-keyword derivation for damage-like effects. Exhaustive (no
+    /// default) so newly added Effect cases fail compile until classified
+    /// here alongside EffectPresentation's exhaustive switch.
+    var damageKeywordWhenActive: Keyword? {
+        switch self {
+        case .burn, .poison, .bleed, .recurringDamage, .avatar:
+            (potency ?? 0) > 0 ? keyword : nil
+        case let .multiplyDoT(keyword, multiplier):
+            multiplier > 1 ? keyword : nil
+        case let .detonateDoT(keyword, amount):
+            amount > 0 ? keyword : nil
+        case .controlMeter, .shield, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards,
+             .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom, .purge, .purgeRandom,
+             .halveShield, .deathsDoor, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit,
+             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
+             .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
+             .maximumManaBonus, .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus,
+             .freezeNextAttacker, .onHitDamage, .blessedAegis, .revive, .damageReductionPercent,
+             .damageReductionFlat, .healingReductionPercent, .hemorrhage:
+            nil
+        }
+    }
 }

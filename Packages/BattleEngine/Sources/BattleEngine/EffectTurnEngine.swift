@@ -58,7 +58,7 @@ package enum EffectTurnEngine {
             guard !context.isBattleOver, context.roster.health(for: target) > 0 else { break }
             guard let activeEffect = context.roster.activeEffects(for: target).first(where: { $0.id == scheduledEffect.id })
             else { continue }
-            guard let handler = EffectHandlers.all[activeEffect.effect.kind] else {
+            guard let handler = EffectHandlers.handler(for: activeEffect.effect.kind) else {
                 logger.error(
                     "Missing effect handler for turn of \(String(describing: activeEffect.effect.kind), privacy: .public)",
                 )

@@ -1,7 +1,6 @@
 import SwiftUI
 import Testing
 import TrinketContent
-import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
@@ -65,7 +64,7 @@ struct BattleSessionCardCueTests {
         #expect(session.hand.isEmpty)
     }
 
-    @Test func `lifting a mixed card cues its actual recipients without playing it`() throws {
+    @Test func `lifting a card cues without playing it`() throws {
         let session = makeSession()
         let card = try install(.spikedShield, in: session)
         let rng = session.engineState?.rng
@@ -73,8 +72,9 @@ struct BattleSessionCardCueTests {
         session.beginCardCue(card)
         let cue = try #require(session.cardCues.current)
         #expect(cue.mode == .preview)
-        #expect(cue.recipients[session.heroID ?? ""]?.kind == .protect)
-        #expect(cue.recipients[session.enemyID ?? ""]?.kind == .attack)
+        #expect(cue.cardID == card.id)
+        #expect(cue.phase == .lifted)
+        #expect(cue.denial == nil)
         #expect(session.engineState?.rng == rng)
         #expect(session.engineState?.roster.enemy.currentHealth == health)
         #expect(session.hand.contains(card))
@@ -92,46 +92,13 @@ struct BattleSessionCardCueTests {
         session.clearCardCues()
     }
 
-    @Test func `tap mode suppresses result-backed recipient visuals`() {
-        #expect(!BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .attack))
-        #expect(!BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .restore))
-        #expect(!BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .cleanse))
-        #expect(BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .protect))
-        #expect(BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .prepare))
-        #expect(BattleCardCuePresentationMode.tapCommit.showsRecipientVisual(for: .gain))
-        #expect(BattleCardCuePresentationMode.preview.showsRecipientVisual(for: .attack))
-    }
-
-    @Test func `drag preview hides only the fallback actor preparation cue`() throws {
-        let session = makeSession()
-        let fallbackCard = try install(.slash, in: session)
-        session.beginCardCue(fallbackCard)
-        let fallbackCue = try #require(session.cardCues.current)
-        let fallbackActor = try #require(fallbackCue.recipients[fallbackCue.actorID])
-        let enemy = try #require(fallbackCue.recipients[session.enemyID ?? ""])
-
-        #expect(fallbackActor.isActorPreparationFallback)
-        #expect(!BattleCardCuePresentationMode.preview.showsRecipientVisual(for: fallbackActor, isActor: true))
-        #expect(BattleCardCuePresentationMode.preview.showsRecipientVisual(for: enemy, isActor: false))
-
-        let explicitCard = try install(.kindling, in: session)
-        session.beginCardCue(explicitCard)
-        let explicitCue = try #require(session.cardCues.current)
-        let explicitActor = try #require(explicitCue.recipients[explicitCue.actorID])
-        #expect(explicitActor.kind == .prepare)
-        #expect(!explicitActor.isActorPreparationFallback)
-        #expect(BattleCardCuePresentationMode.preview.showsRecipientVisual(for: explicitActor, isActor: true))
-
-        session.clearCardCues()
-    }
-
     @Test func `tap commitment preserves the resource quote until feedback completes`() throws {
         let session = makeSession()
         let card = try install(.darkPact, in: session)
         session.beginCardCue(card)
         let before = try #require(session.cardCues.current)
         #expect(before.resources.first?.amount == 3)
-        #expect(before.recipients[before.actorID]?.keyword == .health)
+        #expect(before.actorID == session.heroID)
         #expect(session.playCard(cardID: card.id, requiresLift: true).didCommit)
         #expect(session.cardCues.current?.phase == .committed)
         #expect(session.cardCues.current?.resources == before.resources)
@@ -199,21 +166,14 @@ struct BattleSessionCardCueTests {
         session.denyCardCue(card)
         let cue = try #require(session.cardCues.current)
         #expect(cue.phase == .denied)
-        #expect(cue.recipients[state.hero.id]?.kind == .deniedHealth)
+        #expect(cue.denial == .insufficientHealth)
+        #expect(cue.actorID == state.hero.id)
         #expect(session.engineState?.roster.hero.currentHealth == 3)
         session.clearCardCues()
         _ = state.hand.remove(id: card.id)
         session.engineState = state
         session.denyCardCue(card)
         #expect(session.cardCues.current == nil)
-    }
-
-    @Test func `cleanse takes precedence over healing on the same recipient`() throws {
-        let session = makeSession()
-        let card = try install(.cleanse, in: session)
-        session.beginCardCue(card)
-        #expect(session.cardCues.current?.recipients[session.heroID ?? ""]?.kind == .cleanse)
-        session.clearCardCues()
     }
 
     private func makeSession() -> BattleSession {

@@ -119,7 +119,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             root.mkdir()
             scripts = root / "Scripts"
             scripts.mkdir()
-            for name in ("check-docs.py", "check-plans.py", "check-links.py", "check-testplan-sync.py", "internal/markdown.py"):
+            for name in ("check-docs.py", "check-plans.py", "check-links.py", "check-testplan-sync.py", "internal/markdown.py", "internal/cli.py"):
                 (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, scripts / name)
             for name, content in {
@@ -252,7 +252,7 @@ class DocumentationTests(ScriptRegressionTestCase):
         self.assertIn("Scripts/Tests/test_exec_wrappers.py", performance)
         self.assertEqual(select(["Scripts/agent-search.py", "Scripts/compare-performance.py"]), sorted([search, *performance]))
         self.assertLess(len(select(["Scripts/check-links.py"])), len(all_tests))
-        for shared in ("Scripts/lib/args.sh", "Scripts/test-scripts.sh", "Scripts/new-script.py",
+        for shared in ("Scripts/test-scripts.sh", "Scripts/new-script.py",
                        "Scripts/Tests/script_test_support.py", ".github/workflows/tests.yml", "project.yml"):
             with self.subTest(shared=shared):
                 self.assertEqual(select(["Scripts/agent-search.py", shared]), all_tests)
@@ -265,7 +265,8 @@ class DocumentationTests(ScriptRegressionTestCase):
         cases = {
             "Scripts/handoff.sh": {"Scripts/Tests/test_ci_verification_scripts.py",
                                    "Scripts/Tests/test_documentation.py",
-                                   "Scripts/Tests/test_exec_wrappers.py"},
+                                   "Scripts/Tests/test_exec_wrappers.py",
+                                   "Scripts/Tests/test-lib-args.sh"},
             "Scripts/check-unused-assets.py": {"Scripts/Tests/test_check_unused_assets.py"},
             "Scripts/ci-path-filter.py": {"Scripts/Tests/test_ci_path_filter.py"},
             "Scripts/balance-sweep.sh": {"Scripts/Tests/test_balance_report_retention.py"},
@@ -277,6 +278,18 @@ class DocumentationTests(ScriptRegressionTestCase):
                                             "Scripts/Tests/test_ci_verification_scripts.py",
                                             "Scripts/Tests/test-asset-hash-sort-locale.sh"},
             "Scripts/Tests/test_agent_search.py": {"Scripts/Tests/test_agent_search.py"},
+            "Scripts/lint.sh": {"Scripts/Tests/test_build_artifacts.py",
+                                "Scripts/Tests/test_build_process.py",
+                                "Scripts/Tests/test_ci_verification_scripts.py",
+                                "Scripts/Tests/test_exec_wrappers.py",
+                                "Scripts/Tests/test-lib-args.sh"},
+            "Scripts/assert-generated-output.sh": {"Scripts/Tests/test_project_generation.py",
+                                                   "Scripts/Tests/test_build_process.py",
+                                                   "Scripts/Tests/test_ci_verification_scripts.py"},
+            "Scripts/config/smoke-classes.txt": {"Scripts/Tests/test_project_generation.py",
+                                                 "Scripts/Tests/test_build_process.py",
+                                                 "Scripts/Tests/test_ci_verification_scripts.py",
+                                                 "Scripts/Tests/test_documentation.py"},
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -284,7 +297,7 @@ class DocumentationTests(ScriptRegressionTestCase):
                 self.assertEqual(set(selected), expected)
                 self.assertLess(len(selected), len(all_tests))
         # Residual unknowns still run everything (safe default).
-        for unknown in ("Scripts/lint.sh", "Scripts/format.sh"):
+        for unknown in ("Scripts/new-script.py", "Scripts/internal/cli.py", "Scripts/test-scripts.sh"):
             with self.subTest(unknown=unknown):
                 self.assertEqual(select([unknown]), all_tests)
 

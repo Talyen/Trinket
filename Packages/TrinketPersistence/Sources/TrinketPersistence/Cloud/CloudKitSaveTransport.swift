@@ -146,7 +146,10 @@ actor CloudKitSaveTransport: CloudSaveTransport {
         }
     }
 
-    private static func isConflict(_ error: any Error) -> Bool {
+    /// Pure CKError→conflict mapping shared by save paths. Internal for
+    /// isolated coverage: conflict retries the same request ID, anything
+    /// else surfaces (see `PlayerSaveCloudSync.synchronizeUntilCurrent`).
+    static func isConflict(_ error: any Error) -> Bool {
         guard let error = error as? CKError else { return (error as? CloudSaveError) == .conflict }
         if error.code == .serverRecordChanged {
             return true

@@ -47,6 +47,15 @@ trinket_dir_lock_chain_trap() {
   trap 'trinket_lock_exit_on_signal 143' TERM
 }
 
+# True when <pid> is a numeric pid with no live process. A missing or
+# non-numeric pid is NOT stale here: dir locks fail closed and wait out the
+# timeout rather than force-removing a lock whose owner is unknown.
+# (The simulator-cleanup lock in simctl.sh deliberately differs: hygiene
+# may fail open, so it treats unparseable pids as stale. See its comment.)
+trinket_lock_pid_is_stale() {
+  [[ "${1:-}" =~ ^[0-9]+$ ]] && ! kill -0 "$1" 2>/dev/null
+}
+
 # Acquires a directory lock, records its owner, and chains release onto EXIT.
 trinket_dir_lock_acquire() {
   local lock_dir="$1"
@@ -66,7 +75,7 @@ trinket_dir_lock_acquire() {
     if [[ -f "$lock_dir/pid" ]]; then
       read -r lock_pid < "$lock_dir/pid" 2>/dev/null || true
     fi
-    if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+    if trinket_lock_pid_is_stale "$lock_pid"; then
       rm -rf "$lock_dir"
       continue
     fi

@@ -15,7 +15,7 @@ struct MysteryOfferSnapshot: Codable {
 
     func resolvedOffers() throws -> [MysteryOffer] {
         guard version == 2 else { throw MysteryOfferError.invalidSnapshot }
-        return try offers.map { try $0.resolve() }
+        return try offers.compactMap { try $0.resolve() }
     }
 
     struct StoredOffer: Codable {
@@ -29,9 +29,13 @@ struct MysteryOfferSnapshot: Codable {
             item = StoredInventoryItem(offer.item)
         }
 
-        func resolve() throws -> MysteryOffer {
+        /// Nil when the offer's item is homeless (unknown base): the option
+        /// is dropped while surviving offers resolve. Invalid bonuses still
+        /// throw so a tampered payload cannot mint rewards.
+        func resolve() throws -> MysteryOffer? {
             guard bonus.amount >= 0 else { throw MysteryOfferError.invalidSnapshot }
-            return try MysteryOffer(choiceID: choiceID, item: item.resolve(), bonus: bonus)
+            guard let item = item.resolved() else { return nil }
+            return MysteryOffer(choiceID: choiceID, item: item, bonus: bonus)
         }
     }
 }

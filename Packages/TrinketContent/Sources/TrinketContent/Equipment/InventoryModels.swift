@@ -31,12 +31,17 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         self.affixPowers = affixPowers
     }
 
-    public func rewardInstance(for stageID: String) -> Self {
+    /// Turns a catalog template into a stage-tagged instance. Uniqueness
+    /// across drops is the caller's job: pass a per-drop `dropIndex` when one
+    /// stage can yield the same template twice. Trinkets and uniques return
+    /// themselves (ownership sets dedupe them by templateID).
+    public func rewardInstance(for stageID: String, dropIndex: Int = 0) -> Self {
         if isTrinket || rarity == .unique {
             return self
         }
+        let id = dropIndex == 0 ? "\(stageID)-\(templateID)" : "\(stageID)-\(templateID)#\(dropIndex)"
         return Self(
-            id: "\(stageID)-\(templateID)",
+            id: id,
             templateID: templateID,
             baseType: baseType,
             rarity: rarity,
@@ -278,18 +283,22 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
                 itemIDsBySlot[occupied] = nil
             }
         }
-        if item.baseType.weaponKind == .twoHanded {
-            if item.baseType.isRanged {
-                if let secondaryID = itemIDsBySlot[.secondaryWeapon],
-                   let secondary = inventory.first(where: { $0.id == secondaryID }),
-                   !secondary.baseType.isQuiver {
-                    itemIDsBySlot[.secondaryWeapon] = nil
-                }
-            } else {
-                itemIDsBySlot[.secondaryWeapon] = nil
-            }
+        if destination == .weapon {
+            clearDisallowedSecondary(primary: item.baseType, inventory: inventory)
         }
         itemIDsBySlot[destination] = item.id
+    }
+
+    /// Restores the weapon-pair invariant after a primary change: an equipped
+    /// secondary the new primary disallows is unequipped. One rule covers
+    /// two-handed primaries and ranged primaries paired with non-quiver
+    /// secondaries alike.
+    private mutating func clearDisallowedSecondary(primary: ItemBaseType, inventory: [InventoryItem]) {
+        guard let secondaryID = itemIDsBySlot[.secondaryWeapon],
+              let secondary = inventory.first(where: { $0.id == secondaryID }),
+              !Self.secondaryWeaponAllows(primary: primary, secondary: secondary.baseType)
+        else { return }
+        itemIDsBySlot[.secondaryWeapon] = nil
     }
 
     public func canEquip(

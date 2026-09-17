@@ -8,9 +8,9 @@ import re
 import sys
 from datetime import date, timedelta
 from pathlib import Path
-import importlib.util
 
-ROOT = Path(__file__).resolve().parent.parent
+from internal.cli import ROOT, load_sibling, validate_repo_paths
+
 PLAN_STATUSES = {"active", "blocked", "complete", "cancelled"}
 ARCHIVED_PLAN_STATUSES = {"complete", "cancelled"}
 PLAN_WARNING_DAYS = 3
@@ -139,26 +139,17 @@ def parse_arguments(description: str) -> argparse.Namespace:
     parser.add_argument("--paths", nargs="+", help="scope final closure checks to individual repository files; other checks remain global")
     args = parser.parse_args()
     if args.paths is not None:
-        paths = set()
-        for value in args.paths:
-            path = (ROOT / value).resolve()
-            if not path.is_relative_to(ROOT.resolve()) or path.is_dir():
-                parser.error(f"--paths requires individual files inside the repository: {value}")
-            paths.add(path)
-        args.paths = paths
+        try:
+            validated = validate_repo_paths(args.paths)
+        except ValueError as error:
+            parser.error(str(error))
+        args.paths = {(ROOT / value).resolve() for value in validated}
     return args
 
 
 def main() -> int:
     args = parse_arguments(__doc__)
-    links_path = Path(__file__).resolve().parent / "check-links.py"
-    links_spec = importlib.util.spec_from_file_location("check_links", links_path)
-    if links_spec is None or links_spec.loader is None:
-        print("check-plans: unable to load check-links.py", file=sys.stderr)
-        return 2
-    check_links = importlib.util.module_from_spec(links_spec)
-    sys.modules["check_links"] = check_links
-    links_spec.loader.exec_module(check_links)
+    check_links = load_sibling("check_links", "check-links.py")
 
     DOC_WARNINGS.clear()
     files = check_links.markdown_files()

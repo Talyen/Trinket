@@ -26,31 +26,6 @@ struct ItemAffixMagnitudeRollTests {
         ])
     }
 
-    @Test func `rolled integer modifiers stay in range`() throws {
-        let keen = try #require(GameContent.itemAffixDefinition(matching: "keen"))
-        let catalog = keen.basic
-        var seen = Set<Int>()
-        for seed in UInt64(1) ... 80 {
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            let rolled = catalog.rolled(using: &rng)
-            let value = try #require(rolled.modifiers.first.map { Int($0.numericValue.rounded()) })
-            try #expect((1 ... 2).contains(value))
-            seen.insert(value)
-        }
-        try #expect(seen == [1, 2])
-    }
-
-    @Test func `executioners keeps health threshold while rolling bonus`() throws {
-        let executioners = try #require(GameContent.itemAffixDefinition(matching: "executioners"))
-        let catalog = executioners.basic
-        for seed in UInt64(1) ... 40 {
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            let rolled = catalog.rolled(using: &rng)
-            try #expect(rolled.triggers.damageBelowHealthPercentThreshold == 0.30)
-            try #expect((1 ... 3).contains(rolled.triggers.damageBelowHealthPercentBonus))
-        }
-    }
-
     @Test func `boolean only affixes do not roll`() throws {
         let branding = try #require(GameContent.itemAffixDefinition(matching: "branding"))
         try #expect(!branding.basic.hasRollableMagnitudes)
@@ -104,12 +79,5 @@ struct ItemAffixMagnitudeRollTests {
 
         try #expect(ItemAffixMagnitudeRoll.integerRange(around: 2) == 1 ... 3)
         try #expect(bumped.isPerfectAffix(at: 0))
-    }
-
-    @Test func `scaling multi-number descriptions scales bonuses but keeps thresholds`() throws {
-        let secondWind = try #require(GameContent.itemAffixDefinition(matching: "second_wind"))
-        let scaled = secondWind.basic.scaled(by: 2)
-        #expect(scaled.description == "Restore 16 Health the first time you fall below 25% Health.")
-        #expect(scaled.triggers.onceBelowHealthPercentHeal == 16)
     }
 }

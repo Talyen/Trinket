@@ -66,7 +66,7 @@ package extension DamagePipeline {
         }
     }
 
-    static func applyTalentDamageApplications(
+    static func applyAttackerOnHitApplications(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
@@ -222,7 +222,6 @@ package extension DamagePipeline {
         applyTargetStateReactions(
             to: &state,
             source: source,
-            sourceActorID: sourceActorID,
             triggers: triggers,
             in: &context,
         )
@@ -381,7 +380,6 @@ package extension DamagePipeline {
     private static func applyTargetStateReactions(
         to state: inout DamageResolutionState,
         source: Combatant,
-        sourceActorID _: String,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) {

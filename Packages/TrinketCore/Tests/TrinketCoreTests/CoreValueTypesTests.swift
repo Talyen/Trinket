@@ -61,7 +61,7 @@ struct CoreValueTypesTests {
 
     @Test func `homestead node identifiers stay explicit`() {
         #expect(HomesteadNodeID.wheatField.rawValue == "wheatField")
-        #expect(HomesteadNodeID.allCases.count == 14)
+        #expect(HomesteadNodeID.allCases.count == 20)
         #expect(ResourceAmount(.gold, 5).id == .gold)
     }
 

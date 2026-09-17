@@ -9,8 +9,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from internal.markdown import headings
-
-ROOT = Path(__file__).resolve().parent.parent
+from internal.cli import ROOT
 
 
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:

@@ -4,7 +4,9 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-struct TrinketPersistenceOptimizationTests {
+/// Cross-slice invariant spot-checks (pure, in-memory). Formerly misnamed
+/// `TrinketPersistenceOptimizationTests`; nothing here measures performance.
+struct PersistenceInvariantsTests {
     @Test func `sanitize journey prunes completed shop payloads`() {
         var journey = JourneyProgressState.initial
         let completedStage = "chapter-1-stage-1"

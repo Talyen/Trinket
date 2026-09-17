@@ -3,29 +3,17 @@
 
 from __future__ import annotations
 
-import importlib.util
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from internal.cli import ROOT, load_sibling
 
 
-def _load_sibling(name: str, filename: str):
-    path = Path(__file__).resolve().parent / filename
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Unable to load {filename}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-_check_links = _load_sibling("check_links", "check-links.py")
-_check_testplan_sync = _load_sibling("check_testplan_sync", "check-testplan-sync.py")
-_check_plans = _load_sibling("check_plans", "check-plans.py")
+_check_links = load_sibling("check_links", "check-links.py")
+_check_testplan_sync = load_sibling("check_testplan_sync", "check-testplan-sync.py")
+_check_plans = load_sibling("check_plans", "check-plans.py")
 
 SKIP_PARTS = _check_links.SKIP_PARTS
 LINK = _check_links.LINK

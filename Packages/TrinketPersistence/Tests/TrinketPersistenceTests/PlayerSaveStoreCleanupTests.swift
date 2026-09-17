@@ -54,22 +54,15 @@ struct PlayerSaveStoreCleanupTests {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         do {
-            let store = try PlayerSaveStore(
-                storeURL: storeURL,
-                disableCloudSync: true,
-            )
+            let store = try context.makeSaveStore()
             var roster = store.roster
             roster.gold = 99
             #expect(store.persistBatch(logging: "Test setup") { $0.roster = roster })
         }
 
-        _ = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-            resetState: true,
-        )
+        _ = try context.makeSaveStore(resetState: true)
 
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let reloaded = try context.makeReloadedStore()
         try #expect(reloaded.roster.gold == PlayerRosterState.freshStart.gold)
         try #expect(primaryRootCount(at: storeURL) == 1)
     }
@@ -78,10 +71,7 @@ struct PlayerSaveStoreCleanupTests {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         do {
-            let firstStore = try PlayerSaveStore(
-                storeURL: storeURL,
-                disableCloudSync: true,
-            )
+            let firstStore = try context.makeSaveStore()
             var roster = firstStore.roster
             roster.gold = 99
             #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
@@ -93,7 +83,7 @@ struct PlayerSaveStoreCleanupTests {
         sideContext.insert(stale)
         try sideContext.save()
 
-        let reopened = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let reopened = try context.makeReloadedStore()
         try #expect(reopened.roster.gold == 99)
         try #expect(primaryRootCount(at: storeURL) == 1)
     }
@@ -103,10 +93,7 @@ struct PlayerSaveStoreCleanupTests {
         let storeURL = context.storeURL()
         let timestamp = Date()
         do {
-            let firstStore = try PlayerSaveStore(
-                storeURL: storeURL,
-                disableCloudSync: true,
-            )
+            let firstStore = try context.makeSaveStore()
             var roster = firstStore.roster
             roster.gold = 99
             #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
@@ -126,7 +113,7 @@ struct PlayerSaveStoreCleanupTests {
         sideContext.insert(stale)
         try sideContext.save()
 
-        let reopened = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let reopened = try context.makeReloadedStore()
         try #expect(reopened.roster.gold == 99)
         try #expect(reopened.currentSave.sessionGeneration == 4)
         try #expect(primaryRootCount(at: storeURL) == 1)

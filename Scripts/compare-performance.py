@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from internal.performance.performance_model import REQUIRED_NUMERIC_FIELDS, finite_number, load_baseline, validate_report, goal_findings
+from internal.performance.performance_model import REQUIRED_NUMERIC_FIELDS, finite_number, group_reports_by_scenario, load_baseline, validate_report, goal_findings
 
 
 def main() -> int:
@@ -27,19 +27,7 @@ def main() -> int:
 
     baseline = json.loads(args.baseline.read_text())
     scenarios, mode, minimum_average, minimum_low, maximum_severe = load_baseline(baseline)
-    expected = set(scenarios)
-    grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios}
-    failures: list[str] = []
-
-    for index, raw_report in enumerate(reports):
-        if not isinstance(raw_report, dict):
-            failures.append(f"report {index + 1}: expected an object")
-            continue
-        scenario = raw_report.get("scenario")
-        if not isinstance(scenario, str) or scenario not in expected:
-            failures.append(f"report {index + 1}: unexpected or missing scenario {scenario!r}")
-            continue
-        grouped[scenario].append(raw_report)
+    grouped, failures = group_reports_by_scenario(reports, scenarios)
 
     severe_limit_text = "zero" if maximum_severe == 0 else f"{maximum_severe:g}"
     findings: list[str] = []

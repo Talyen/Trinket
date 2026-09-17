@@ -1,52 +1,9 @@
 import BattleEngine
 import Observation
-import TrinketCore
-
-enum BattleCardCueKind: Int, Equatable {
-    case cleanse, restore, protect, attack, prepare, gain
-    case deniedHealth, deniedControl, deniedDefeated
-}
 
 enum BattleCardCuePresentationMode: Equatable {
     case preview
     case tapCommit
-
-    func showsRecipientVisual(for recipient: BattleRecipientCue, isActor: Bool) -> Bool {
-        if self == .preview, isActor, recipient.isActorPreparationFallback {
-            return false
-        }
-        return showsRecipientVisual(for: recipient.kind)
-    }
-
-    func showsRecipientVisual(for kind: BattleCardCueKind) -> Bool {
-        switch self {
-        case .preview:
-            true
-        case .tapCommit:
-            switch kind {
-            case .attack, .restore, .cleanse:
-                false
-            case .protect, .prepare, .gain, .deniedHealth, .deniedControl, .deniedDefeated:
-                true
-            }
-        }
-    }
-}
-
-struct BattleRecipientCue: Equatable {
-    let kind: BattleCardCueKind
-    let keyword: Keyword?
-    let isActorPreparationFallback: Bool
-
-    init(
-        kind: BattleCardCueKind,
-        keyword: Keyword?,
-        isActorPreparationFallback: Bool = false,
-    ) {
-        self.kind = kind
-        self.keyword = keyword
-        self.isActorPreparationFallback = isActorPreparationFallback
-    }
 }
 
 struct BattleCardCue: Equatable {
@@ -59,7 +16,7 @@ struct BattleCardCue: Equatable {
     let actorID: String
     var phase: Phase
     let mode: BattleCardCuePresentationMode
-    let recipients: [String: BattleRecipientCue]
+    let denial: BattlePlayError?
     let resources: [BattleCardAssessment.ResourceUse]
 }
 
@@ -85,7 +42,7 @@ final class BattleCardCueState {
             current = BattleCardCue(
                 id: previous.id, cardID: cardID, actorID: assessment.actorID, phase: .lifted,
                 mode: resolvedMode,
-                recipients: BattleCardCueRecipes.recipients(for: assessment), resources: assessment.resources,
+                denial: nil, resources: assessment.resources,
             )
             return
         }
@@ -94,7 +51,7 @@ final class BattleCardCueState {
         current = BattleCardCue(
             id: generation, cardID: cardID, actorID: assessment.actorID, phase: .lifted,
             mode: resolvedMode,
-            recipients: BattleCardCueRecipes.recipients(for: assessment), resources: assessment.resources,
+            denial: nil, resources: assessment.resources,
         )
     }
 
@@ -111,14 +68,9 @@ final class BattleCardCueState {
         clearPresentation()
     }
 
-    func deny(cardID: Int, actorID: String, reason: BattlePlayError, controlKeyword: Keyword?) {
+    func deny(cardID: Int, actorID: String, reason: BattlePlayError) {
         liftedCardIDs.remove(cardID)
-        let recipient: BattleRecipientCue
-        switch reason {
-        case .insufficientHealth: recipient = .init(kind: .deniedHealth, keyword: .health)
-        case .ownerSkipping: recipient = .init(kind: .deniedControl, keyword: controlKeyword)
-        case .ownerDefeated: recipient = .init(kind: .deniedDefeated, keyword: nil)
-        case .battleOver, .notPlayerTurn, .cardNotInHand:
+        guard reason == .insufficientHealth else {
             cancel(cardID: cardID)
             return
         }
@@ -127,7 +79,7 @@ final class BattleCardCueState {
         current = BattleCardCue(
             id: generation, cardID: cardID, actorID: actorID, phase: .denied,
             mode: .preview,
-            recipients: [actorID: recipient], resources: [],
+            denial: reason, resources: [],
         )
         scheduleClear(after: .milliseconds(400))
     }

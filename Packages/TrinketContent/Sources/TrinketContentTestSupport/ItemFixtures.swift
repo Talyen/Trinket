@@ -27,6 +27,12 @@ public enum ItemFixtures {
         return base
     }
 
+    /// Affix definitions eligible for a base type. Single home for the
+    /// predicate so catalog and generator tests cannot drift apart.
+    public static func eligibleAffixes(forBaseType baseType: ItemBaseType) -> [ItemAffixDefinition] {
+        GameContent.itemAffixDefinitions.filter { $0.isEligible(for: baseType) }
+    }
+
     public static func makeBareItem(
         _ baseID: String,
         id: String? = nil,

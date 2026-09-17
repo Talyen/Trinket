@@ -10,6 +10,10 @@ enforce=false
 
 if [[ "${1:-}" == "--enforce" ]]; then
   enforce=true
+elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "Usage: $0 [--enforce]"
+  echo "Estimate full-catalog decoded artwork size; --enforce fails over budget."
+  exit 0
 elif [[ -n "${1:-}" ]]; then
   echo "Usage: $0 [--enforce]" >&2
   exit 2

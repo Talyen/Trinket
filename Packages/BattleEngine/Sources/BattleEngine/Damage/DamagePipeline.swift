@@ -80,8 +80,8 @@ package enum DamagePipeline {
         state.damageEvents.append(contentsOf: EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context))
         applyDoTDamageReactions(to: &state, in: &context)
         applyLeech(to: &state, in: &context)
-        applyTalentDamageApplications(to: &state, in: &context)
-        applyTalentMirroredReactions(to: &state, in: &context)
+        applyAttackerOnHitApplications(to: &state, in: &context)
+        applyAttackerMirroredReactions(to: &state, in: &context)
 
         applyControlMeter(to: &state, in: &context)
         applyNimbleFang(to: &state, in: &context)

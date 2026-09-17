@@ -25,11 +25,6 @@ enum BalanceSweepCLI {
                 jobs=\(parsed.config.resolvedJobs) pacing=\(parsed.config.appliesFightPacing ? "on" : "off") …
                 """.utf8,
             ))
-            if parsed.deprecatedBattlesPerTier {
-                FileHandle.standardError.write(Data(
-                    "--battles-per-tier is deprecated; it is an alias for --samples (n per enemy / pairs per focus).\n".utf8,
-                ))
-            }
             if parsed.config.battlesPerTier < BalanceSweepConfig.contrastFlagMinPairs {
                 FileHandle.standardError.write(Data(
                     "warning: samples < \(BalanceSweepConfig.contrastFlagMinPairs); contrast flags are disabled.\n".utf8,
@@ -51,9 +46,10 @@ enum BalanceSweepCLI {
             #else
             report = BalanceSweepRunner.run(config: parsed.config)
             #endif
-            let findings = BalanceFindingsReporter.render(report)
+            let snapshots = BalanceTierSnapshots(report: report)
+            let findings = BalanceFindingsReporter.render(report, snapshots: snapshots)
             let fullMarkdown = parsed.writeFullMarkdown
-                ? BalanceMarkdownReporter.render(report)
+                ? BalanceMarkdownReporter.render(report, snapshots: snapshots)
                 : nil
             let written = try BalanceSweepCLIFiles.write(
                 findings: findings,

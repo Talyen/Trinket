@@ -17,11 +17,8 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
 from content_codegen import read_manifest_table
-
-ROOT = Path(__file__).resolve().parent.parent
+from internal.cli import ROOT
 
 ART_MANIFEST = ROOT / "ArtManifest" / "curated-assets.tsv"
 MUSIC_MANIFEST = ROOT / "MusicManifest" / "music.tsv"

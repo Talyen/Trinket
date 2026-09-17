@@ -3,8 +3,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct ArtCatalogIntegrationTests {
-    // swiftlint:disable function_body_length - one catalog invariant owns all art-reference domains
-    @Test func `catalog and content art references resolve across all domains`() throws {
+    @Test func `ability art references resolve`() throws {
         for ability in AbilityCatalog.all {
             _ = try #require(
                 ability.artReference,
@@ -27,7 +26,9 @@ struct ArtCatalogIntegrationTests {
                 "GameContent references unknown ability id \(id)",
             )
         }
+    }
 
+    @Test func `roster art references resolve`() throws {
         for hero in GameContent.heroes {
             _ = try #require(
                 ArtCatalog.combatantArtByID[hero.id],
@@ -49,7 +50,9 @@ struct ArtCatalogIntegrationTests {
                 "\(enemy.name) should have an art reference in the catalog",
             )
         }
+    }
 
+    @Test func `stage encounter art references resolve`() throws {
         for chapter in GameContent.chapters {
             for stage in chapter.stages {
                 guard let artID = GameContent.encounterArtID(for: stage) else { continue }
@@ -63,7 +66,9 @@ struct ArtCatalogIntegrationTests {
                 )
             }
         }
+    }
 
+    @Test func `item art references resolve`() throws {
         for item in GameContent.sampleInventoryItems {
             _ = try #require(
                 item.artReference,
@@ -96,7 +101,9 @@ struct ArtCatalogIntegrationTests {
             rewarded.artReference,
             "Missing art after rewardInstance for \(rewarded.templateID)",
         )
+    }
 
+    @Test func `homestead art references resolve`() throws {
         for resource in HomesteadResource.allCases {
             _ = try #require(
                 ArtCatalog.resourceArtByID[resource.rawValue],
@@ -113,7 +120,9 @@ struct ArtCatalogIntegrationTests {
             #expect(landscape.sourceAspectRatio > 1)
             #expect(ArtCatalog.allImageNamesSet.contains(portrait.imageName))
         }
+    }
 
+    @Test func `catalog image names are unique and complete`() {
         #expect(
             ArtCatalog.allImageNames.count == ArtCatalog.allImageNamesSet.count,
             "ArtCatalog.allImageNames must be unique",
@@ -123,8 +132,6 @@ struct ArtCatalogIntegrationTests {
             "allImageNames must contain every ability image",
         )
     }
-
-    // swiftlint:enable function_body_length
 
     @Test func `background focal points are normalized`() {
         for art in Array(ArtCatalog.backgroundArtByID.values) + Array(ArtCatalog.portraitBackgroundArtByID.values) {

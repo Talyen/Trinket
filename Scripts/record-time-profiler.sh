@@ -26,9 +26,9 @@ ALL_PROCESSES=0
 RECORDING_END_SLACK_SECONDS=5
 
 usage() {
-  echo "Usage: $0 --output <path.trace> [--time-limit 8s] [--attach Trinket]" >&2
-  echo "       $0 --output <path.trace> [--time-limit 8s] --all-processes" >&2
-  echo "       $0 --print-command [same flags]" >&2
+  echo "Usage: $0 --output <path.trace> [--time-limit 8s] [--attach Trinket]"
+  echo "       $0 --output <path.trace> [--time-limit 8s] --all-processes"
+  echo "       $0 --print-command [same flags]"
 }
 
 parse_seconds() {
@@ -70,8 +70,8 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "record-time-profiler: unknown argument: $1" >&2
-      usage
+      echo "record-time-profiler: Unknown argument: $1" >&2
+      usage >&2
       exit 1
       ;;
   esac

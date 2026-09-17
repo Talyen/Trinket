@@ -284,3 +284,214 @@ enum DoTMirrorCascade {
         return events
     }
 }
+
+private func isDetonatableDoT(_ effect: Effect, keyword: Keyword) -> Bool {
+    effect.keyword == keyword && (effect.isDecayingDoT || effect.isBleed)
+}
+
+struct MultiplyDoTHandler: BattleEffectHandler {
+    let kind: EffectKind = .multiplyDoT
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard case let .multiplyDoT(keyword, factor) = effect, factor > 1 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        var effects = context.roster.activeEffects(for: target)
+        guard let index = effects.firstIndex(where: {
+            isDetonatableDoT($0.effect, keyword: keyword)
+        }) else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let potency = effects[index].effect.potency ?? 0
+        let multiplied = potency * factor
+        switch keyword {
+        case .burn:
+            effects[index].effect = .burn(multiplied)
+        case .poison:
+            effects[index].effect = .poison(multiplied)
+        case .bleed:
+            effects[index].effect = .bleed(multiplied)
+        default:
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        context.roster.setActiveEffects(effects, for: target)
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .dotAmplified,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: multiplied,
+            keyword: keyword,
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}
+
+struct DetonateDoTHandler: BattleEffectHandler {
+    let kind: EffectKind = .detonateDoT
+
+    func apply(
+        _ effect: Effect,
+        ability _: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard case let .detonateDoT(keyword, factor) = effect, factor > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        guard context.resolution.depth(.detonation) == 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        context.resolution.enter(.detonation)
+        defer { context.resolution.leave(.detonation) }
+        var effects = context.roster.activeEffects(for: target)
+        let matching = effects.filter {
+            isDetonatableDoT($0.effect, keyword: keyword)
+        }
+        guard !matching.isEmpty else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        effects.removeAll {
+            isDetonatableDoT($0.effect, keyword: keyword)
+        }
+        context.roster.setActiveEffects(effects, for: target)
+        var events: [ActionEvent] = []
+        for active in matching {
+            events.append(contentsOf: detonate(active, factor: factor, source: source, target: target, in: &context))
+        }
+        return EffectApplyOutcome(events: events, didApply: true)
+    }
+
+    private func detonate(
+        _ active: ActiveEffect,
+        factor: Int,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        if active.effect.isBleed {
+            var amplified = active
+            amplified.effect = .bleed((active.effect.potency ?? 0) * factor)
+            return CombatTriggerEngine.detonateBleedStacks(
+                [amplified], on: target, sourceActorID: source.id,
+                provenance: context.resolution.damageProvenance(for: source.id), in: &context,
+            )
+        }
+        let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
+        let slowBurn = sourceTriggers?.burnDecaySlowPercent ?? 0
+        let tickCount = active.keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true ? 2 : 1
+        var remaining = active.effect
+        var events: [ActionEvent] = []
+        while context.roster.health(for: target) > 0 {
+            let next = remaining.potencyAfterTurn(
+                burnDecaySlowPercent: slowBurn, poisonDecaySlowPercent: sourceTriggers?.poisonDecaySlowPercent ?? 0,
+            )
+            guard next > 0 else { break }
+            remaining = .decayingDoT(keyword: active.keyword, potency: next)
+            for _ in 0 ..< tickCount where context.roster.health(for: target) > 0 {
+                events.append(contentsOf: DoTDamage.resolveDamage(
+                    basePotency: next * factor,
+                    keyword: active.keyword,
+                    target: target,
+                    sourceActorID: source.id,
+                    provenance: context.resolution.damageProvenance(for: source.id),
+                    in: &context,
+                ).events)
+            }
+        }
+        return events
+    }
+}
+
+struct RecurringDamageHandler: BattleEffectHandler {
+    let kind: EffectKind = .recurringDamage
+
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        guard let active = stacks.first,
+              case let .recurringDamage(damageKeyword, potency, _) = active.effect
+        else { return nil }
+        return EffectSummary(
+            keyword: keyword,
+            text: "\(damageKeyword.rawValue): Deals \(potency) \(damageKeyword.rawValue) damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
+        )
+    }
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard case let .recurringDamage(keyword, potency, turns) = effect, potency > 0, turns > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let application = ActiveEffectMutation.replaceAndEmit(
+            .recurringDamage(keyword, potency, turns),
+            to: target,
+            source: source,
+            ability: ability,
+            in: &context,
+            replacing: {
+                if case let .recurringDamage(existingKeyword, _, _) = $0 {
+                    return existingKeyword == keyword
+                }
+                return false
+            },
+            event: (.recurringDamageApplied, potency, keyword),
+        )
+        guard application.didApply else { return application }
+        if UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context) {
+            context.uniques.card?.damageRequests.append(.doTTick(
+                amount: potency,
+                target: target,
+                keyword: keyword,
+                sourceActorID: source.id,
+            ))
+        }
+        let events = DoTDamage.resolveDamage(
+            basePotency: potency,
+            keyword: keyword,
+            target: target,
+            sourceActorID: source.id,
+            provenance: context.resolution.damageProvenance(for: source.id),
+            in: &context,
+        ).events
+        return EffectApplyOutcome(events: application.events + events, didApply: true)
+    }
+
+    func advanceTurn(
+        _ active: ActiveEffect,
+        on target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard case let .recurringDamage(keyword, potency, _) = active.effect,
+              active.remainingTurns > 0
+        else {
+            return []
+        }
+        let sourceID = active.sourceActorID ?? target.id
+        let events = DoTDamage.resolveDamage(
+            basePotency: potency,
+            keyword: keyword,
+            target: target,
+            sourceActorID: sourceID,
+            in: &context,
+        ).events
+        if var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) {
+            updated.remainingTurns -= 1
+            ActiveEffectMutation.finishTurn(
+                active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
+            )
+        }
+        return events
+    }
+}

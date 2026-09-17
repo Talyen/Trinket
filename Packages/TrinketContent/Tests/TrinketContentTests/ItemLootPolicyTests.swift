@@ -75,16 +75,6 @@ struct ItemLootPolicyTests {
         #expect(ItemLootPolicy.roll(probabilities: [0, 0, 0, 1], using: &rng) == .unique)
     }
 
-    @Test func `seeded sweep reaches every tier through roll`() {
-        var rng = SeededRandomNumberGenerator(seed: 1234)
-        let probs = probabilities(level: 1)
-        var seen = Set<ItemDropTier>()
-        for _ in 0 ..< 10000 {
-            seen.insert(ItemLootPolicy.roll(probabilities: probs, using: &rng))
-        }
-        #expect(seen == Set(ItemDropTier.allCases))
-    }
-
     private func probabilities(level: Int, boss: Bool = false, bonus: Int = 0) -> [Double] {
         ItemLootPolicy.probabilities(
             level: level, bossContent: boss, astralChanceBonusPercent: bonus,

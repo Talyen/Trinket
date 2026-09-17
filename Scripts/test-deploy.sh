@@ -2,11 +2,9 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-
-if [[ -z "${TRINKET_DIAGNOSTICS_SESSION_ID:-}" ]]; then
-  TRINKET_DIAGNOSTICS_SESSION_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
-  export TRINKET_DIAGNOSTICS_SESSION_ID
-fi
+# shellcheck source=Scripts/lib/args.sh
+source Scripts/lib/args.sh
+trinket_ensure_diagnostics_session
 
 # Local/release confidence gate. Runs CI gate checks plus unit and UI tests.
 # --mode smoke mirrors the former ci-locally.sh (gate + unit + smoke
@@ -20,21 +18,24 @@ fi
 
 MODE="ui"
 NO_BUILD=false
+TEST_DEPLOY_USAGE="Usage: $0 [--mode smoke|ui] [--no-build]"
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --help|-h)
+      echo "$TEST_DEPLOY_USAGE"
+      echo "Pre-release deploy verification (release.sh calls this)."
+      exit 0
+      ;;
     --mode)
       if [[ $# -lt 2 ]]; then
-        echo "--mode requires smoke or ui" >&2
-        exit 1
+        trinket_die "--mode requires smoke or ui" "$TEST_DEPLOY_USAGE"
       fi
       MODE="$2"
       shift 2
       case "$MODE" in
         smoke|ui) ;;
         *)
-          echo "Unknown mode: $MODE"
-          echo "Usage: $0 [--mode smoke|ui] [--no-build]"
-          exit 1
+          trinket_die "Unknown mode: $MODE" "$TEST_DEPLOY_USAGE"
           ;;
       esac
       ;;
@@ -42,10 +43,12 @@ while [[ $# -gt 0 ]]; do
       NO_BUILD=true
       shift
       ;;
+    --)
+      shift
+      trinket_die "Unexpected argument: ${1:-}" "$TEST_DEPLOY_USAGE"
+      ;;
     *)
-      echo "Unknown argument: $1"
-      echo "Usage: $0 [--mode smoke|ui] [--no-build]"
-      exit 1
+      trinket_die "Unknown argument: $1" "$TEST_DEPLOY_USAGE"
       ;;
   esac
 done
@@ -56,28 +59,28 @@ export SKIP_GENERATE=1
 
 if [[ "$NO_BUILD" == "false" ]]; then
   echo ""
-  echo "=== Build for testing (app + packages) ==="
+  trinket_log_section "Build for testing (app + packages)"
   ./Scripts/build-for-testing.sh
 fi
 
 echo ""
-echo "=== Unit tests ==="
+trinket_log_section "Unit tests"
 ./Scripts/test.sh unit --no-build
 
 if [[ "$MODE" == "ui" ]]; then
   echo ""
-  echo "=== Additional UI journeys (FullUI plan; smoke runs in main CI) ==="
+  trinket_log_section "Additional UI journeys (FullUI plan; smoke runs in main CI)"
   # Deliberate release-time full run: opt past test.sh's CI-owned full-suite guard.
   TRINKET_ALLOW_FULL_UI=1 ./Scripts/test.sh ui --no-build
 else
   echo ""
-  echo "=== Smoke UI canary ==="
+  trinket_log_section "Smoke UI canary"
   ./Scripts/test.sh smoke --no-build
 
   echo ""
-  echo "=== Smoke timing report ==="
+  trinket_log_section "Smoke timing report"
   python3 ./Scripts/test-timing.py report --mode smoke --last 1 --top 10
 fi
 
 echo ""
-echo "=== All checks passed ==="
+trinket_log_section "All checks passed"

@@ -71,6 +71,8 @@ struct ItemAffixCatalogTests {
         try #expect(power.triggers.dodgeDealStunFlat == 0)
     }
 
+    /// Runtime mirror of codegen rejects (_validate_keywords/_validate_weight):
+    /// cheap defense for hand-edited affix definitions.
     @Test func `each affix has positive weight and keywords`() throws {
         for definition in GameContent.itemAffixDefinitions {
             try #expect(definition.weight > 0, "\(definition.id) should have positive weight")
@@ -98,15 +100,18 @@ struct ItemAffixCatalogTests {
                 ),
                 "\(definition.id) astral power",
             )
+            // Non-trinket affixes with real magnitudes must resolve astral
+            // stronger than basic; trigger-only affixes are exempt.
+            let isTriggerOnly = definition.basic.modifiers.isEmpty && definition.astral.modifiers.isEmpty
+            if !isTriggerOnly {
+                try #expect(definition.basic != definition.astral, "\(definition.id)")
+            }
         }
     }
 
     @Test func `each item base type has eligible affix pool`() throws {
         for baseType in GameContent.itemBaseTypes {
-            let eligible = GameContent.itemAffixDefinitions.filter { definition in
-                definition.slot == baseType.slot &&
-                    !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
-            }
+            let eligible = ItemFixtures.eligibleAffixes(forBaseType: baseType)
             try #expect(!eligible.isEmpty, "\(baseType.id) should have at least one eligible affix")
         }
     }

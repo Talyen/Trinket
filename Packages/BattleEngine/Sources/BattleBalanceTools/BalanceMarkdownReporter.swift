@@ -3,6 +3,10 @@ import Foundation
 
 public enum BalanceMarkdownReporter {
     public static func render(_ report: BalanceSweepReport) -> String {
+        render(report, snapshots: BalanceTierSnapshots(report: report))
+    }
+
+    public static func render(_ report: BalanceSweepReport, snapshots: BalanceTierSnapshots) -> String {
         if report.config.mode == .modeProgression {
             return BalanceProgressionReportFormatter.render(
                 config: report.config,
@@ -13,7 +17,7 @@ public enum BalanceMarkdownReporter {
                 elapsedSeconds: report.elapsedSeconds,
             )
         }
-        var body = renderIdentityOrContrast(report)
+        var body = renderIdentityOrContrast(report, snapshots: snapshots)
         if report.config.mode == .all, !report.progressionPlayerStates.isEmpty {
             body += "\n"
             body += BalanceProgressionReportFormatter.render(
@@ -28,13 +32,12 @@ public enum BalanceMarkdownReporter {
         return body
     }
 
-    private static func renderIdentityOrContrast(_ report: BalanceSweepReport) -> String {
-        let tiers = BalanceStatsAggregator.summarize(report: report)
-        let comparedTiers: [BalanceTierStats] = if report.comparedRecords.isEmpty {
-            []
-        } else {
-            BalanceStatsAggregator.summarize(report: report, records: report.comparedRecords)
-        }
+    private static func renderIdentityOrContrast(
+        _ report: BalanceSweepReport,
+        snapshots: BalanceTierSnapshots,
+    ) -> String {
+        let tiers = snapshots.tiers
+        let comparedTiers = snapshots.comparedTiers
         var lines: [String] = []
         appendReportHeader(report, into: &lines)
 

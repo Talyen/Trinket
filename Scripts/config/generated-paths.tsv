@@ -5,7 +5,6 @@ project|Trinket/Trinket.entitlements
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv
-content|Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift

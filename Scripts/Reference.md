@@ -33,7 +33,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
 | `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate (headless by default); composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` runs targeted UI smoke, `--mirror` installs on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure |
-| `./Scripts/ci-gate.sh` | Full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--skip-cheap` omits the closing cheap slices when handoff just ran them |
+| `./Scripts/ci-gate.sh` | Full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
 | `./Scripts/ci-gate.sh --fast` | Run only the ordered commands in [the cheap-slice registry](config/cheap-slices.txt); skips generation and style |
 | `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan] [--paths <file> …]` | Check links and structure globally; `--paths` scopes final active-plan closure only. Plan expiration is advisory; `check-plans.py` accepts the same flags |
@@ -83,7 +83,7 @@ These helpers are sourced or invoked by commands, Git hooks, or CI workflows. Li
 | `./Scripts/agent-push-gate.sh` | Internal pre-push generation completeness; invoked automatically by pre-push, not a manual post-commit step |
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts outside the source results tree and its ancestors, adding raw failure evidence only when needed |
 | `./Scripts/lint-analyze.sh [SwiftPath ...]` | On-demand clean app build and analysis; optional file/directory scope, fails on unused imports or zero analyzed files; never CI, handoff, or style |
-| `./Scripts/run-env.sh`, `./Scripts/xcode-runner.sh`, `./Scripts/build-freshness.sh` | Run environment, Xcode execution, generated-input freshness, and `--no-build` stamps for `build` / `test` / `generate` / `run-simulator` |
+| `./Scripts/run-env.sh`, `./Scripts/xcode-runner.sh`, `./Scripts/build-freshness.sh` | Run environment, Xcode execution, generated-input freshness, and `--no-build` stamps for `build` / `test` / `generate` / `run-simulator` / `lint-analyze` / `install-device` / `ci-gate` stamp alignment / `assert-generated-output` idempotence |
 | `./Scripts/change-classification.sh` | Sourced by `handoff` / `agent-context` / `agent-push-gate` |
 | `./Scripts/ensure-simulator.sh` | Invoked by `test` / `run-simulator` slot setup |
 | `./Scripts/check-module-boundaries.sh`, `./Scripts/check-agent-invariants.sh`, `./Scripts/check-exclusivity-footguns.sh` | Invoked via style gate / `ci-gate --fast` cheap slices |

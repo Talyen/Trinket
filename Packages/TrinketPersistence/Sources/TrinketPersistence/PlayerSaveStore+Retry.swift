@@ -17,10 +17,15 @@ public extension PlayerSaveStore {
     /// reset/account boundaries. The clear→action→check sequence is safe
     /// against concurrent keys: `action` is synchronous with no suspension
     /// between clear and check, so tasks can only interleave at `sleep`.
+    ///
+    /// Failure contract: `action` signals failure by leaving a retryable
+    /// `lastPersistenceError` (see `PlayerSavePersistenceError.isRetryable`)
+    /// behind — typically by running a `persistBatch`/`persistTransaction`
+    /// that records its own failure. A cleared error means success.
     func retrySaveAction(key: String, action: @escaping @MainActor () -> Void) {
         let generation = currentSave.sessionGeneration
         let key = "\(generation):\(key)"
-        guard lastPersistenceError == .writeFailed, saveActionRetries[key] == nil else { return }
+        guard let error = lastPersistenceError, error.isRetryable, saveActionRetries[key] == nil else { return }
         isRetryingSaveAction = true
         saveActionRetries[key] = Task { @MainActor [weak self] in
             var delay = SaveRetryPolicy.initialDelay
@@ -29,7 +34,7 @@ public extension PlayerSaveStore {
                 guard let self, currentSave.sessionGeneration == generation else { break }
                 lastPersistenceError = nil
                 action()
-                guard lastPersistenceError == .writeFailed else { break }
+                guard lastPersistenceError?.isRetryable == true else { break }
                 delay = SaveRetryPolicy.nextDelay(after: delay)
             }
             self?.saveActionRetries[key] = nil

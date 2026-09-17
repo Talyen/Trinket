@@ -18,7 +18,7 @@ struct PlayerSaveSanitizeOnLoadTests {
 
         try SaveTestSupport.writeRoot(dirty, to: storeURL)
 
-        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let store = try context.makeReloadedStore()
         try #expect(store.homestead.resources[.wood] == 0)
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         try #expect(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)

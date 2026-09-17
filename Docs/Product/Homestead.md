@@ -37,10 +37,11 @@ keep benefits and omit Build/Improve.
 Bonus symbols reuse keyword identities and colors: Health uses heart.fill; healing
 uses heart.circle.fill; damage uses its keyword symbol; damage resistance uses
 shield.fill tinted to its keyword. Party protection uses Block styling; companion
-damage uses pawprint.fill with Physical tint; Dodge uses wind; Astral finds uses
-sparkles with arcane tint; Gold finds uses circle.circle.fill with Gold tint.
-Production uses resource tints with carrot.fill (Food), leaf.fill (Herbs),
-diamond.fill (Gems), square.stack.3d.up.fill (Hide), and circle.circle.fill (Gold).
+damage uses pawprint.fill with Physical tint; ranged damage uses figure.archery with
+Physical tint; Dodge uses wind; Astral finds uses sparkles with arcane tint; Gold finds
+uses circle.circle.fill with Gold tint.
+Production uses resource tints with tree.fill (Wood), hammer.fill (Iron), carrot.fill (Food),
+leaf.fill (Herbs), diamond.fill (Gems), square.stack.3d.up.fill (Hide), and circle.circle.fill (Gold).
 Wallets, collection, and purchase costs retain illustrated resource artwork.
 Progress uses the catalog's actual tier count. No persistent completion banner,
 checkmark, or Tier N label appears.

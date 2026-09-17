@@ -5,7 +5,7 @@ Use for abilities, item bases, stages, art, music, SFX, cinematics, and project 
 This card owns the workflow. Column formats live in each manifest directory's
 README; open only the manifest README for the input being changed.
 
-**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (trigger families are `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX/cinematics (`--assets`), then runs XcodeGen. Pass `--skip-xcodegen` for content/asset codegen only. `--force-xcodegen` explicitly requests the default uncached project generation; see [Verification.md](../Platform/Verification.md#generated-project-consistency).
+**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (trigger families are `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX/cinematics (`--assets`), then runs XcodeGen (always uncached). Pass `--skip-xcodegen` for content/asset codegen only; see [Verification.md](../Platform/Verification.md#generated-project-consistency).
 
 | Input | Run | Review |
 |---|---|---|
@@ -39,5 +39,18 @@ change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 **Enemy traits:** author in `ContentManifest/traits.tsv` (same DSL); generated catalogs are outputs.
 
 Edit authored inputs (manifests, ability Swift, `ContentManifest/talents.tsv`, or `Scripts/internal/content/trigger_family_schema.json`). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. The verification router owns generation and idempotence.
+
+Ability inventory is the slowest codegen step: `content_codegen.py` runs the
+`AbilityInventoryDump` tool (full Swift build + Xcode SDK) unless the
+`.DerivedData/AbilityInventory.stamp` digest matches; force it with
+`TRINKET_FORCE_ABILITY_DUMP=1` (see `assert-generated-output.sh`). Ability
+tiers, shorthand, and the inventory regex-parse the authored catalog, and
+mystery/recruit validation scrapes `Encounters/*.swift` for `makeEvent(id:` /
+`recruit(id:` — keep those call shapes stable or update the scrapes together.
+
+Adding a new generated TSV output requires two files:
+`Scripts/config/generated-paths.tsv` (committed-output gate) and the
+`exclude` list in `Packages/TrinketContent/Package.swift` (keeps TSVs out of
+the bundled resources).
 
 Verification is conditional: manifest-only changes require generation plus idempotence; semantic catalog/content changes use `TrinketContentTests`; Swift source changes add the routed style check. Open only the manifest README for the input being changed.

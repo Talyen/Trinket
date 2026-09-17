@@ -57,11 +57,9 @@ struct BattleCombatantPane: View {
                     borderVisible: !isDefeated,
                     borderAccentKeyword: borderAccentKeyword,
                 ) {
-                    BattleRecipientCueLane(combatantID: combatant.id) {
-                        ZStack(alignment: .bottom) {
-                            artworkPresentation
-                            resourceBars
-                        }
+                    ZStack(alignment: .bottom) {
+                        artworkPresentation
+                        resourceBars
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -287,14 +287,7 @@ package enum BattleCardCombatEngine {
 
     @discardableResult
     static func drawOne(for owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
-        guard canDrawFromDeck(for: owner, in: context) else { return nil }
-        let ability: Ability? = switch owner {
-        case .hero: context.heroDeck.draw()
-        case .companion: context.companionDeck.draw()
-        case .enemy: nil
-        }
-        guard let ability else { return nil }
-        return deal(ability, owner: owner, context: &context)
+        drawSelecting(for: owner, context: &context) { $0.draw() }
     }
 
     static func drawFirstCard(
@@ -302,10 +295,19 @@ package enum BattleCardCombatEngine {
         for owner: BattleParticipant,
         context: inout BattleState,
     ) -> BattleCard? {
+        drawSelecting(for: owner, context: &context) { $0.drawFirst(where: { $0.keywords.contains(keyword) }) }
+    }
+
+    /// Shared guard, deck selection, and deal for every deck-draw path.
+    static func drawSelecting(
+        for owner: BattleParticipant,
+        context: inout BattleState,
+        select: (inout CombatDeck) -> Ability?,
+    ) -> BattleCard? {
         guard canDrawFromDeck(for: owner, in: context) else { return nil }
         let ability: Ability? = switch owner {
-        case .hero: context.heroDeck.drawFirst(where: { $0.keywords.contains(keyword) })
-        case .companion: context.companionDeck.drawFirst(where: { $0.keywords.contains(keyword) })
+        case .hero: select(&context.heroDeck)
+        case .companion: select(&context.companionDeck)
         case .enemy: nil
         }
         guard let ability else { return nil }

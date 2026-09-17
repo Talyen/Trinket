@@ -54,8 +54,7 @@ package enum CombatTriggerEngine {
     }
 
     static func hasLivingPartyTrigger(_ keyPath: KeyPath<CombatTraitTriggers, Bool>, in context: BattleState) -> Bool {
-        (context.roster.hero.isAlive && context.heroModifiers.triggers[keyPath: keyPath])
-            || (context.roster.companion.isAlive && context.companionModifiers.triggers[keyPath: keyPath])
+        livingAllies(in: context).contains { $0.profile.triggers[keyPath: keyPath] }
     }
 
     static func frozenTargetCannotBlockOrHeal(_ target: Combatant, in context: BattleState) -> Bool {
@@ -78,19 +77,13 @@ package enum CombatTriggerEngine {
         guard target.role == .enemy else { return 1 }
         let isBurning = context.roster.hasAffliction(.burn, on: target)
         guard isBurning else { return 1 }
-        var reduction = 0.0
-        if context.roster.hero.isAlive {
-            reduction += context.heroModifiers.triggers.burnReducesEnemyHealingAndLeechPercent
-        }
-        if context.roster.companion.isAlive {
-            reduction += context.companionModifiers.triggers.burnReducesEnemyHealingAndLeechPercent
-        }
+        let reduction = livingAllies(in: context)
+            .reduce(0.0) { $0 + $1.profile.triggers.burnReducesEnemyHealingAndLeechPercent }
         return max(0, 1 - min(1, reduction))
     }
 
     static func partyDebuffsExpireFaster(in context: BattleState) -> Bool {
-        (context.roster.hero.isAlive && context.heroModifiers.triggers.partyDebuffDurationHalved)
-            || (context.roster.companion.isAlive && context.companionModifiers.triggers.partyDebuffDurationHalved)
+        hasLivingPartyTrigger(\.partyDebuffDurationHalved, in: context)
     }
 
     static func companionReactingToHeroTriggers(in context: BattleState) -> CombatTraitTriggers? {

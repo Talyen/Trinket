@@ -13,6 +13,20 @@ enum PlayerSaveSanitizer {
         sanitize(save, changedSlices: .all)
     }
 
+    /// Single sanitize→validate entry for commit, reset, and cloud-restore
+    /// paths. Doctrine is heal-locally / reject-remotely: local callers pass
+    /// a sanitize that repairs (negative gold, duplicates, ghost equipment,
+    /// stale stage IDs, unreadable maps) and validation is the safety net
+    /// for what repair cannot heal (schema mismatch, unencodable powers);
+    /// cloud-restore callers rely on the same validation to refuse corrupt
+    /// snapshots before they can propagate. The store-open path deliberately
+    /// uses sanitize-only so a locally readable save always loads.
+    static func sanitizeAndValidate(_ save: PlayerSave, changedSlices: PlayerSaveSlice = .all) throws -> PlayerSave {
+        let sanitized = sanitize(save, changedSlices: changedSlices)
+        try validate(sanitized)
+        return sanitized
+    }
+
     static func sanitize(_ save: PlayerSave, changedSlices: PlayerSaveSlice) -> PlayerSave {
         var sanitized = save
         sanitized.worldSeed = resolvedWorldSeed(save, seedIfMissing: changedSlices.contains(.root))

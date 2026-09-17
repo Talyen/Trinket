@@ -8,13 +8,16 @@ This script lists files via compare/{before}...{sha} and writes GITHUB_OUTPUT.
 from __future__ import annotations
 
 import fnmatch
+import functools
 import json
 import os
-import subprocess
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+from internal.cli import read_env_arrays
 
 Z40 = "0000000000000000000000000000000000000000"
 
@@ -62,19 +65,31 @@ INFRA_INCLUDES = (
 INFRA_EXCLUDES = ("Scripts/**/*.md",)
 
 
+@functools.cache
 def generation_inputs() -> tuple[tuple[str, ...], ...]:
+    """Generation input registries parsed from build-inputs.env in Python.
+
+    Lazy (not import-time) so importing this module never shells out, and
+    parsed — not bash-sourced — so behavior is identical without a subprocess.
+    """
     registry = Path(__file__).with_name("build-inputs.env")
-    output = subprocess.check_output(
-        ["bash", "-eu", "-c", 'source "$1"; printf "content\\t%s\\n" "${TRINKET_CONTENT_GENERATION_INPUTS[@]}"; '
-         'printf "asset\\t%s\\n" "${TRINKET_ASSET_GENERATION_INPUTS[@]}"; '
-         'printf "project\\t%s\\n" "${TRINKET_PROJECT_GENERATION_INPUTS[@]}"', "_", str(registry)],
-        text=True,
+    parsed = read_env_arrays(
+        registry,
+        [
+            "TRINKET_CONTENT_GENERATION_INPUTS",
+            "TRINKET_ASSET_GENERATION_INPUTS",
+            "TRINKET_PROJECT_GENERATION_INPUTS",
+        ],
     )
-    rows = [line.split("\t", 1) for line in output.splitlines()]
-    return tuple(tuple(path for kind, path in rows if kind == group) for group in ("content", "asset", "project"))
+    return (
+        parsed["TRINKET_CONTENT_GENERATION_INPUTS"],
+        parsed["TRINKET_ASSET_GENERATION_INPUTS"],
+        parsed["TRINKET_PROJECT_GENERATION_INPUTS"],
+    )
 
 
-CONTENT_INPUTS, ASSET_INPUTS, PROJECT_INPUTS = generation_inputs()
+def _inputs() -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+    return generation_inputs()
 
 
 def is_generation_input(path: str, inputs: tuple[str, ...]) -> bool:
@@ -110,8 +125,9 @@ def matches_any(path: str, patterns: tuple[str, ...]) -> bool:
 def is_code_path(path: str) -> bool:
     if matches_any(path, CODE_EXCLUDES):
         return False
+    content_inputs, asset_inputs, project_inputs = _inputs()
     return (matches_any(path, CODE_INCLUDES) or matches_any(path, CODE_SCRIPT_INCLUDES)
-            or is_generation_input(path, CONTENT_INPUTS + ASSET_INPUTS + PROJECT_INPUTS))
+            or is_generation_input(path, content_inputs + asset_inputs + project_inputs))
 
 
 def is_infra_path(path: str) -> bool:
@@ -119,7 +135,8 @@ def is_infra_path(path: str) -> bool:
 
 
 def is_asset_path(path: str) -> bool:
-    return not path.endswith(".md") and is_generation_input(path, ASSET_INPUTS)
+    _, asset_inputs, _ = _inputs()
+    return not path.endswith(".md") and is_generation_input(path, asset_inputs)
 
 
 def classify(paths: list[str]) -> tuple[bool, bool, bool]:

@@ -6,10 +6,18 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from internal.cli import ROOT
 
 # Keep each leaf with its consumers' regressions. Infrastructure, runners,
 # fixtures, and this selector intentionally have no narrow route.
+#
+# INTENTIONALLY_UNMAPPED names leaves that must keep the safe full-suite
+# fallback (with the reason); test_script_selection.py enforces that every
+# other Scripts/ leaf is routed below.
+INTENTIONALLY_UNMAPPED = {
+    "Scripts/internal/cli.py": "shared by six families; any narrow route would under-test consumers",
+    "Scripts/test-scripts.sh": "the runner itself; self-hosted, always full suite",
+}
 FAMILIES = (
     (
         {"Scripts/agent-search.py"},
@@ -18,7 +26,7 @@ FAMILIES = (
     (
         {"Scripts/check-links.py", "Scripts/check-docs.py", "Scripts/check-plans.py",
          "Scripts/check-testplan-sync.py", "Scripts/agent-read.py", "Scripts/internal/markdown.py",
-         "Scripts/new-plan.sh"},
+         "Scripts/config/smoke-classes.txt", "Scripts/new-plan.sh"},
         {"test_documentation"},
     ),
     (
@@ -41,23 +49,31 @@ FAMILIES = (
     (
         {"Scripts/build.sh", "Scripts/build-for-testing.sh", "Scripts/build-freshness.sh",
          "Scripts/check-build-cache-paths.sh", "Scripts/test.sh", "Scripts/test-package.sh",
-         "Scripts/lib/app-build.sh", "Scripts/lib/derived-data.sh",
+         "Scripts/format.sh", "Scripts/lint.sh", "Scripts/lint-analyze.sh",
+         "Scripts/lib/app-build.sh", "Scripts/lib/args.sh", "Scripts/lib/derived-data.sh",
          "Scripts/lib/test-helpers.sh", "Scripts/lib/test-style.sh",
          "Scripts/prune-derived-data-cache.sh", "Scripts/stage-ci-test-artifact.sh"},
-        {"test_build_artifacts", "test_build_process", "test_ci_verification_scripts", "test_exec_wrappers"},
+        {"test_build_artifacts", "test_build_process", "test_ci_verification_scripts", "test_exec_wrappers",
+         "test-lib-args.sh"},
     ),
     (
         {"Scripts/handoff.sh", "Scripts/ci-gate.sh",
-         "Scripts/lib/cheap-slices.sh", "Scripts/config/cheap-slices.txt"},
-        {"test_ci_verification_scripts", "test_documentation", "test_exec_wrappers"},
+         "Scripts/lib/args.sh", "Scripts/lib/cheap-slices.sh", "Scripts/config/cheap-slices.txt"},
+        {"test_ci_verification_scripts", "test_documentation", "test_exec_wrappers", "test-lib-args.sh"},
+    ),
+    (
+        {"Scripts/script_test_selection.py"},
+        {"test_script_selection"},
     ),
     (
         {"Scripts/content_codegen.py", "Scripts/internal/content/content_codegen_modifiers.py",
          "Scripts/internal/content/content_codegen_triggers.py",
+         "Scripts/internal/content/trigger_family_schema.json",
          "Scripts/check-ui-style.py", "Scripts/check-accessibility-ids.py",
          "Scripts/check-agent-invariants.sh", "Scripts/check-exclusivity-footguns.sh",
          "Scripts/check-module-boundaries.sh", "Scripts/check-artwork-budget.sh",
          "Scripts/check-api-bans.sh", "Scripts/release-notes.sh",
+         "Scripts/config/system-colors.txt", "Scripts/config/uitest-system-query-allowlist.txt",
          "Scripts/lib/rg-check.sh", "Scripts/internal/swift_policy.py"},
         {"test_content_and_policy_scripts", "test_swift_style_policy", "test_exec_wrappers"},
     ),
@@ -88,11 +104,13 @@ FAMILIES = (
     (
         {"Scripts/prepare-art-assets.sh", "Scripts/prepare-audio-assets.sh",
          "Scripts/prepare-cinematic-assets.sh", "Scripts/prepare-assets.sh",
-         "Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh"},
+         "Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh",
+         "Scripts/ci-assets-gate.sh", "Scripts/report-art-memory.sh"},
         {"test_media_asset_scripts", "test_ci_verification_scripts", "test-asset-hash-sort-locale.sh"},
     ),
     (
         {"Scripts/generate.sh", "Scripts/agent-push-gate.sh",
+         "Scripts/assert-generated-output.sh", "Scripts/change-budget.sh",
          "Scripts/apply-scheme-storekit.py", "Scripts/check-staged-project.sh",
          "Scripts/ensure-ci-tools.sh", "Scripts/ensure-git-cliff.sh", "Scripts/update-tools.sh",
          "Scripts/lib/project-generation.sh", "Scripts/lib/tools.sh",
@@ -119,7 +137,7 @@ FAMILIES = (
         {"Scripts/release.sh", "Scripts/test-deploy.sh",
          "Scripts/promote.sh", "Scripts/lib/promote.sh",
          "Scripts/install-device.sh", "Scripts/run-simulator.sh",
-         "Scripts/record-time-profiler.sh"},
+         "Scripts/validate-commit-msg.sh", "Scripts/record-time-profiler.sh"},
         {"test_release_notes_user", "test_ci_verification_scripts"},
     ),
     (
@@ -128,7 +146,8 @@ FAMILIES = (
     ),
     (
         {"Scripts/agent-worktree.mjs", "Scripts/setup-git-safety.mjs",
-         "Scripts/git-safety-guard.mjs",
+         "Scripts/git-safety-guard.mjs", "Scripts/agent-watch-ci.sh",
+         "Scripts/ci-infra-rerun.sh", "Scripts/config/destructive-git-commands.txt",
          "Scripts/bin/git"},
         {"test_exec_wrappers"},
     ),

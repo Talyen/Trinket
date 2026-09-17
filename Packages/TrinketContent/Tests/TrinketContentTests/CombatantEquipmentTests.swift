@@ -201,6 +201,43 @@ struct CombatantEquipmentTests {
         try #expect(loadout.itemID(for: .secondaryWeapon) == swordA.id)
     }
 
+    @Test func `ranged primary clears disallowed secondary`() throws {
+        let shield = try ItemFixtures.makeBareItem("kite_shield", id: "shield-a")
+        // Synthetic one-handed ranged base: all authored ranged bases are
+        // two-handed today, but the pair invariant must hold regardless.
+        let skirmishBow = ItemBaseType(
+            id: "shortbow",
+            name: "Skirmish Bow",
+            slot: .weapon,
+            weaponKind: .oneHanded,
+            keywordAffinities: [.physical],
+        )
+        let bow = InventoryItem(
+            id: "bow-a",
+            baseType: skirmishBow,
+            rarity: .basic,
+            displayName: "Skirmish Bow",
+            affixes: [],
+        )
+        var loadout = EquipmentLoadout(itemIDsBySlot: [.secondaryWeapon: shield.id])
+        loadout.equip(bow, in: .weapon, inventory: [bow, shield])
+
+        try #expect(loadout.itemID(for: .weapon) == bow.id)
+        try #expect(loadout.itemID(for: .secondaryWeapon) == nil)
+    }
+
+    @Test func `empty primary leaves secondary available but quiver unequippable`() throws {
+        let quiver = try ItemFixtures.makeBareItem("quiver", id: "quiver-a")
+        let shield = try ItemFixtures.makeBareItem("kite_shield", id: "shield-a")
+        let loadout = EquipmentLoadout()
+
+        // Coherent by design: the slot is available, but a quiver needs a
+        // ranged primary while a shield does not.
+        #expect(loadout.isAvailable(.secondaryWeapon, inventory: [quiver, shield]))
+        #expect(!loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [quiver, shield]))
+        #expect(loadout.canEquip(shield, in: .secondaryWeapon, inventory: [quiver, shield]))
+    }
+
     @Test func `item I ds in family collects sibling slots`() throws {
         let loadout = EquipmentLoadout(itemIDsBySlot: [
             .weapon: "sword-a",

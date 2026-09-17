@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Shared matcher for xcodebuild failures that should get one simulator re-prep retry.
-# Sourced by Scripts/test.sh; covered by Scripts/Tests/test-asset-hash-sort-locale.sh.
+# Sourced by Scripts/test.sh; covered by Scripts/Tests/test-xcode-runner.sh.
 #
 # shellcheck shell=bash
 # shellcheck source=infrastructure-patterns.sh

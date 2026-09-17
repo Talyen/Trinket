@@ -10,8 +10,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from internal.markdown import heading_slugs, unfenced_lines
-
-ROOT = Path(__file__).resolve().parent.parent
+from internal.cli import ROOT
 SKIP_PARTS = {".git", ".DerivedData", ".tools", ".build", "Generated", "BalanceSweepReports"}
 LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 

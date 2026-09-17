@@ -11,10 +11,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [[ -z "${TRINKET_DIAGNOSTICS_SESSION_ID:-}" ]]; then
-  TRINKET_DIAGNOSTICS_SESSION_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
-  export TRINKET_DIAGNOSTICS_SESSION_ID
-fi
+# shellcheck source=Scripts/lib/args.sh
+source Scripts/lib/args.sh
+trinket_ensure_diagnostics_session
 
 # Keep source routing aligned with agent-context.sh and agent-push-gate.sh.
 # shellcheck source=Scripts/change-classification.sh

@@ -137,6 +137,10 @@ package extension HealingEngine {
         restored: Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        // Intentionally asymmetric with the companion-to-hero share above: each
+        // direction is a separately owned talent reading its owner's modifiers
+        // (Symbiosis on the hero here, leechSharesToHeroPercent on the companion
+        // there), not two ends of one split.
         let percent = min(max(context.heroModifiers.triggers.companionLeechSharePercent, 0), 1)
         guard restored > 0,
               percent > 0,

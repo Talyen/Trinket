@@ -54,6 +54,9 @@ public enum ShopOfferGenerator {
                 using: &randomNumberGenerator,
             )
             var price = item.rarity == .astral ? basePrice * astralPriceMultiplier : basePrice
+            // The starter shop is a Journey stage, so it never carries a
+            // labyrinth shop-discount modifier; its fixed discount wins by
+            // construction, not by precedence rule.
             if isStarterShop {
                 price = max(1, (price * starterShopPriceDiscountPercent) / 100)
             } else if priceDiscountPercent > 0 {

@@ -79,10 +79,11 @@ private struct ShopStockSnapshot: Codable {
     }
 
     func resolve() throws -> ShopStock {
-        let resolved = try offers.map { try $0.resolve() }
+        let resolved = offers.compactMap { $0.resolve() }
         let ids = Set(resolved.map(\.id))
-        guard ids.count == resolved.count, Set(purchasedOfferIDs).isSubset(of: ids) else { throw ShopPurchaseFailure.invalidOffer }
-        return ShopStock(offers: resolved, purchasedOfferIDs: Set(purchasedOfferIDs))
+        guard ids.count == resolved.count else { throw ShopPurchaseFailure.invalidOffer }
+        let validPurchased = Set(purchasedOfferIDs).intersection(ids)
+        return ShopStock(offers: resolved, purchasedOfferIDs: validPurchased)
     }
 
     struct StoredOffer: Codable {
@@ -96,9 +97,12 @@ private struct ShopStockSnapshot: Codable {
             price = offer.price
         }
 
-        func resolve() throws -> ShopOffer {
-            guard price >= 0 else { throw ShopPurchaseFailure.invalidOffer }
-            return try ShopOffer(id: id, item: item.resolve(), price: price)
+        /// Nil when the offer's item is homeless (unknown base): the option
+        /// is dropped while surviving offers resolve. Non-negative pricing
+        /// is still enforced so a tampered payload cannot mint rewards.
+        func resolve() -> ShopOffer? {
+            guard price >= 0, let item = item.resolved() else { return nil }
+            return ShopOffer(id: id, item: item, price: price)
         }
     }
 }

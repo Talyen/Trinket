@@ -1,6 +1,5 @@
 import BattleEngine
 import TrinketContent
-import TrinketCore
 
 extension BattleSession {
     func beginCardCue(
@@ -35,8 +34,7 @@ extension BattleSession {
             return
         }
         let actor = state.roster[card.owner]
-        let keyword = actor.activeEffects.first { $0.effect.keyword == .stun || $0.effect.keyword == .freeze }?.effect.keyword
-        cardCues.deny(cardID: card.id, actorID: actor.id, reason: reason, controlKeyword: keyword)
+        cardCues.deny(cardID: card.id, actorID: actor.id, reason: reason)
     }
 
     func clearCardCues() {

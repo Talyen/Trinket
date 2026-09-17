@@ -26,7 +26,7 @@ package extension DamagePipeline {
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)
         applyBurnDamageMultipliers(to: &state, in: &context)
-        applyOneShotEmpowers(to: &state, in: &context)
+        applyOneShotEmpowers(to: &state)
         applyOutgoingReductions(to: &state, in: &context)
         state.dealt = state.remaining
     }
@@ -249,7 +249,6 @@ package extension DamagePipeline {
 
     private static func applyOneShotEmpowers(
         to state: inout DamageResolutionState,
-        in _: inout BattleState,
     ) {
         state.remaining += state.pendingAttackBonus
         if state.damageKeyword == .holy {

@@ -8,7 +8,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from internal.cli import ROOT
 ID_FILE = ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift"
 UITESTS = ROOT / "TrinketUITests"
 ALLOWLIST_FILE = ROOT / "Scripts/config/uitest-system-query-allowlist.txt"

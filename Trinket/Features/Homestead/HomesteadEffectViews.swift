@@ -212,7 +212,7 @@ private struct HomesteadEffectStyle {
             self.init(keyword: .health)
         case .healthRestored:
             self.init(keyword: .health, symbol: "heart.circle.fill")
-        case .maximumMana:
+        case .maximumMana, .maximumManaPercent:
             self.init(keyword: .mana)
         case let .damageDealt(keyword, _):
             self.init(keyword: keyword)
@@ -224,6 +224,8 @@ private struct HomesteadEffectStyle {
             self.init(keyword: .block)
         case .outgoingDamagePercent:
             self.init(keyword: .physical)
+        case .rangedDamageDealt:
+            self.init(keyword: .physical, symbol: "figure.archery")
         case .companionDamageDealt, .companionPhysicalDamageDealt:
             self.init(keyword: .physical, symbol: "pawprint.fill")
         case .dodgeChanceBonus:

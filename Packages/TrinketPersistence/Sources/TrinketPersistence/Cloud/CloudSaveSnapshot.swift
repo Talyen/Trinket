@@ -47,7 +47,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
             starterSelection: starterSelection,
             journey: journey,
             roster: roster.restored(),
-            inventory: PlayerInventoryState(items: inventory.map { try $0.restored() }),
+            inventory: PlayerInventoryState(items: inventory.compactMap { $0.restored() }),
             homestead: homestead,
             spires: spires,
             labyrinth: labyrinth,
@@ -55,9 +55,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
         )
         guard !labyrinth.isMapPayloadUnreadable else { throw CloudSaveError.unsupportedSave }
-        let sanitized = PlayerSaveSanitizer.sanitize(save)
-        try PlayerSaveSanitizer.validate(sanitized)
-        return sanitized
+        return try PlayerSaveSanitizer.sanitizeAndValidate(save)
     }
 
     /// Fresh-install tie-break input: whether either side holds real player
@@ -143,6 +141,29 @@ struct CloudItemSnapshot: Codable, Equatable, Sendable {
         let description: String
         let keywords: Set<Keyword>
         let isCorrupted: Bool
+
+        init(id: String, title: String, description: String, keywords: Set<Keyword>, isCorrupted: Bool) {
+            self.id = id
+            self.title = title
+            self.description = description
+            self.keywords = keywords
+            self.isCorrupted = isCorrupted
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case id, title, description, keywords, isCorrupted
+        }
+
+        /// Lossy keyword decode: removed keywords are stripped instead of
+        /// failing the whole cloud snapshot (see `ItemResolution`).
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(String.self, forKey: .id)
+            title = try container.decode(String.self, forKey: .title)
+            description = try container.decode(String.self, forKey: .description)
+            keywords = try ItemResolution.decodeKeywordSet(from: container, forKey: .keywords)
+            isCorrupted = try container.decode(Bool.self, forKey: .isCorrupted)
+        }
     }
 
     init(_ item: InventoryItem) {
@@ -164,8 +185,11 @@ struct CloudItemSnapshot: Codable, Equatable, Sendable {
         affixPowers = item.affixPowers
     }
 
-    func restored() throws -> InventoryItem {
-        guard let base = GameContent.itemBaseType(matching: baseTypeID) else { throw CloudSaveError.unsupportedSave }
+    /// Non-throwing by design: an unknown base drops the item (nil + log),
+    /// matching the local SwiftData codec, instead of rejecting the whole
+    /// cloud snapshot for one sunset item family.
+    func restored() -> InventoryItem? {
+        guard let base = ItemResolution.baseType(matching: baseTypeID, itemID: id) else { return nil }
         return InventoryItem(
             id: id,
             templateID: templateID,

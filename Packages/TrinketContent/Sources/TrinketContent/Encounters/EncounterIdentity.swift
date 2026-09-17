@@ -17,7 +17,7 @@ public struct EncounterIdentity: Hashable, Codable, Sendable {
     public var stageID: String {
         switch location {
         case let .journey(stageID): stageID
-        case let .labyrinth(nodeID): GameContent.syntheticLabyrinthStage(nodeID: nodeID, encounter: .shop).id
+        case let .labyrinth(nodeID): nodeID
         }
     }
 

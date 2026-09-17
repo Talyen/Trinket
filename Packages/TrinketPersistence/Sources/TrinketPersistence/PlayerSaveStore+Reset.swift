@@ -7,8 +7,7 @@ extension PlayerSaveStore {
     /// recovery file before the primary write (via `applyCandidate`).
     func resetRoot(with save: PlayerSave) throws {
         let snapshot = currentSave
-        let sanitized = PlayerSaveSanitizer.sanitize(save)
-        try PlayerSaveSanitizer.validate(sanitized)
+        let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
         try applyCandidate(sanitized, replacing: snapshot, slices: .all)
     }
 
@@ -17,16 +16,16 @@ extension PlayerSaveStore {
     /// retains prior recoverable progress.
     func resetRootDurably(with save: PlayerSave) throws {
         let snapshot = currentSave
-        let sanitized = PlayerSaveSanitizer.sanitize(save)
-        try PlayerSaveSanitizer.validate(sanitized)
+        let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
         root.apply(sanitized, slices: .all, context: context)
         do {
             try encodeCloudStateForSave()
             try savePrimaryGraph()
         } catch {
             restoreSnapshot(snapshot, slices: .all)
-            lastPersistenceError = .writeFailed
-            throw PlayerSavePersistenceError.writeFailed
+            let mapped = PlayerSavePersistenceError.mapped(error)
+            lastPersistenceError = mapped
+            throw mapped
         }
         if let pendingSaveRecovery, pendingSaveRecovery.hasPendingSave {
             do {
@@ -111,10 +110,11 @@ extension PlayerSaveStore {
             root = previous.root
             usesMemoryFallback = true
             isPersistenceDegraded = true
-            lastPersistenceError = .writeFailed
+            let mapped = PlayerSavePersistenceError.mapped(error)
+            lastPersistenceError = mapped
             // PersistenceCheck: allow - prior recoverable progress is restored best-effort
             try? pendingSaveRecovery?.restorePendingData(pendingBackup)
-            throw PlayerSavePersistenceError.writeFailed
+            throw mapped
         }
     }
 

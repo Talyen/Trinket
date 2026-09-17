@@ -24,6 +24,9 @@ public enum CombatBuildResolver {
             profile.merge(CombatantTalentCatalog.profile(for: unlockedTalents))
         }
         profile.merge(additionalModifiers)
+        if profile.rangedDamageDealtBonus > 0, equippedItems.contains(where: \.baseType.isRanged) {
+            profile.damageDealtBonus[.physical, default: 0] += profile.rangedDamageDealtBonus
+        }
 
         return CombatBuild(combatant: combatant, modifiers: profile)
     }

@@ -33,7 +33,6 @@ package extension CombatTriggerEngine {
         )]
     }
 
-    // swiftlint:disable:next function_body_length cyclomatic_complexity - mana triggers share one ordered cadence
     internal static func afterSpendMana(_ payment: ManaPayment, in context: inout BattleState) -> [ActionEvent] {
         guard let actor = context.roster.combatant(for: payment.payerID)?.combatant else { return [] }
         let amountSpent = payment.amountSpent
@@ -42,233 +41,306 @@ package extension CombatTriggerEngine {
         return CombatCheckpoint.payment(payment).resolve([
             { afterHeroTalentSpendMana(actor: actor, amount: amountSpent, in: &$0) },
             { drawAfterSpendMana(by: actor, in: &$0) },
-            { context in
-                var events: [ActionEvent] = []
-                if triggers.spendManaBlockFlat > 0 {
-                    events.append(contentsOf: context.applyBlock(
-                        triggers.spendManaBlockFlat,
-                        to: actor,
-                        source: actor,
-                        abilityName: triggerAbilityName("spendManaBlockFlat", for: actor, fallback: "Aetherward", in: context),
-                    ))
-                }
-                return events
+            { spendManaBlockIfNeeded(actor: actor, triggers: triggers, in: &$0) },
+            { heroSpendManaCompanionIfNeeded(actor: actor, in: &$0) },
+            { spendManaRefundIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
+            { spendManaBurnIfNeeded(actor: actor, triggers: triggers, in: &$0) },
+            { heroSpendManaAfflictionIfNeeded(actor: actor, triggers: triggers, in: &$0) },
+            { spendManaEqualBlockIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
+            { spendManaOverchargeIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
+            { spendManaCleanseIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
+            {
+                spendManaChaosRiftIfNeeded(
+                    payment: payment,
+                    actor: actor,
+                    triggers: triggers,
+                    amountSpent: amountSpent,
+                    in: &$0,
+                )
             },
-            { context in
-                var events: [ActionEvent] = []
-                if actor.role == .hero, let companionTriggers = companionReactingToHeroTriggers(in: context) {
-                    if companionTriggers.onHeroSpendManaGainBlock > 0 {
-                        events.append(contentsOf: context.applyBlock(
-                            companionTriggers.onHeroSpendManaGainBlock,
-                            to: context.roster.companion.combatant,
-                            source: actor,
-                            abilityName: triggerAbilityName(
-                                "onHeroSpendManaGainBlock",
-                                for: context.roster.companion.combatant,
-                                fallback: "Mana Absorption",
-                                in: context,
-                            ),
-                        ))
-                    }
-                    if companionTriggers.onHeroSpendManaCompanionNextAttackBonus > 0,
-                       context.roster.health(for: actor) > 0, context.roster.companion.isAlive {
-                        context.roster.mutateRuntime(for: context.roster.companion.combatant) {
-                            $0.talents.pending.cardDamageBonus += companionTriggers.onHeroSpendManaCompanionNextAttackBonus
-                        }
-                    }
-                }
-                return events
-            },
-            { context in
-                var events: [ActionEvent] = []
-                if triggers.spendManaRefundChancePercent > 0,
-                   BattleChance.succeeds(probability: triggers.spendManaRefundChancePercent, using: &context.rng) {
-                    events.append(contentsOf: context.restoreManaEmitting(
-                        amountSpent,
-                        to: actor,
-                        abilityName: triggerAbilityName(
-                            "spendManaRefundChancePercent",
-                            for: actor,
-                            fallback: "Mana Flow",
-                            in: context,
-                        ),
-                    ))
-                }
-                return events
-            },
-            { context in
-                var events: [ActionEvent] = []
-                if triggers.onSpendManaBurnBurningEnemies > 0, context.roster.enemy.isAlive,
-                   context.roster.hasAffliction(.burn, on: context.enemy) {
-                    events.append(contentsOf: applyDoT(
-                        keyword: .burn,
-                        potency: triggers.onSpendManaBurnBurningEnemies,
-                        to: context.roster.enemy.combatant,
-                        sourceActorID: actor.id,
-                        in: &context,
-                    ))
-                }
-                return events
-            },
-            { context in
-                var events: [ActionEvent] = []
-                if actor.role == .hero, triggers.onHeroSpendManaApplyRandomAffliction, context.roster.enemy.isAlive {
-                    let keywords: [Keyword] = [.bleed, .burn, .poison]
-                    let keyword = keywords.randomElement(using: &context.rng) ?? .burn
-                    if keyword == .bleed {
-                        events.append(contentsOf: DoTApplicator.applyBleed(
-                            potency: 1,
-                            to: context.roster.enemy.combatant,
-                            sourceActorID: actor.id,
-                            application: .attached,
-                            in: &context,
-                        ))
-                    } else {
-                        events.append(contentsOf: context.applyDecayingDoT(
-                            keyword: keyword,
-                            potency: 1,
-                            to: context.roster.enemy.combatant,
-                            sourceActorID: actor.id,
-                            application: .attached,
-                        ))
-                    }
-                }
-                return events
-            },
-            { context in
-                var events: [ActionEvent] = []
-                if triggers.spendManaGrantsEqualBlock, amountSpent > 0 {
-                    events.append(contentsOf: context.applyBlock(
-                        amountSpent, to: actor, source: actor, abilityName: "Mana Cocoon",
-                    ))
-                }
-                return events
-            },
-            { context in
-                let overchargeMet = triggers.spendManaEmpowerNextCardThreshold > 0
-                    && amountSpent >= triggers.spendManaEmpowerNextCardThreshold
-                if overchargeMet, context.claimActionGuard(.spendOvercharge, actorID: actor.id) {
-                    if triggers.nextCardEmpowerPercent > 0 {
-                        context.roster.mutateRuntime(for: actor) {
-                            $0.talents.pending.cardDamagePercent += triggers.nextCardEmpowerPercent
-                        }
-                    }
-                }
-                return []
-            },
-            { context in
-                if triggers.spendManaRemovesAfflictions, amountSpent > 0 {
-                    let keywords = [Keyword.burn, .poison].filter { keyword in
-                        context.roster.activeEffects(for: actor).contains { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }
-                    }
-                    if let keyword = keywords.randomElement(using: &context.rng) {
-                        _ = DoTApplicator.consume(keyword, upTo: amountSpent, on: actor, in: &context)
-                    }
-                }
-                return []
-            },
-            { context in
-                var events: [ActionEvent] = []
-                if triggers.spendManaRandomElementDamage, amountSpent > 0, context.roster.enemy.isAlive {
-                    let keywords = [Keyword.freeze, .burn, .poison, .holy].shuffled(using: &context.rng)
-                    let amounts = [amountSpent / 2 + amountSpent % 2, amountSpent / 2]
-                    for (keyword, amount) in zip(keywords.prefix(2), amounts) where amount > 0 {
-                        guard CombatCheckpoint.payment(payment).allowsContinuation(in: context) else { break }
-                        events.append(contentsOf: context.resolveDamage(
-                            DamageRequest(
-                                amount: amount,
-                                target: context.roster.enemy.combatant,
-                                keyword: keyword,
-                                sourceActorID: actor.id,
-                                options: .reaction(),
-                            ),
-                        ).events)
-                    }
-                }
-                return events
-            },
-            { context in
-                if triggers.spendManaDamageBonusPerMana > 0,
-                   amountSpent >= BattleTurnEngine.manaEmpowermentCost {
-                    context.roster.mutateRuntime(for: actor) {
-                        $0.talents.pending.cardDamageBonus += amountSpent * triggers.spendManaDamageBonusPerMana
-                    }
-                }
-                return []
-            },
-            { context in
-                var events: [ActionEvent] = []
-                if triggers.onReachZeroManaRestoreMana > 0,
-                   spentLastMana,
-                   context.claimBattleGuard(.darkRecovery, actorID: actor.id) {
-                    events.append(contentsOf: context.restoreManaEmitting(
-                        triggers.onReachZeroManaRestoreMana,
-                        to: actor,
-                        abilityName: triggerAbilityName(
-                            "onReachZeroManaRestoreMana",
-                            for: actor,
-                            fallback: "Dark Recovery",
-                            in: context,
-                        ),
-                    ))
-                }
-                return events
-            },
-            { context in
-                var events: [ActionEvent] = []
-                if triggers.closedCircuit, amountSpent > 0, context.roster.enemy.isAlive {
-                    events.append(contentsOf: context.resolveDamage(DamageRequest(
-                        amount: amountSpent,
-                        target: context.roster.enemy.combatant,
-                        keyword: .stun,
-                        sourceActorID: actor.id,
-                        options: .reaction(),
-                    )).events)
-                }
-                return events
-            },
-            { context in
-                var events: [ActionEvent] = []
-                if triggers.spendLastManaStunDamage > 0,
-                   spentLastMana,
-                   context.roster.enemy.isAlive {
-                    events.append(contentsOf: context.resolveDamage(DamageRequest(
-                        amount: triggers.spendLastManaStunDamage,
-                        target: context.roster.enemy.combatant,
-                        keyword: .stun,
-                        sourceActorID: actor.id,
-                        options: .reaction(),
-                    )).events)
-                }
-                return events
-            },
+            { spendManaDamageBonusIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
+            { zeroManaRestoreIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
+            { closedCircuitIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
+            { lastManaStunIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
             { autoPlayAfterManaSpend(by: actor, amountSpent: amountSpent, in: &$0) },
-            { context in
-                var events: [ActionEvent] = []
-                let randomDoT = triggers.spendManaRandomDoTFlat
-                if randomDoT > 0, context.roster.enemy.isAlive {
-                    let enemy = context.roster.enemy.combatant
-                    if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
-                        events.append(contentsOf: context.applyDecayingDoT(
-                            keyword: .burn,
-                            potency: randomDoT,
-                            to: enemy,
-                            sourceActorID: actor.id,
-                            application: .ability,
-                        ))
-                    } else {
-                        events.append(contentsOf: context.resolveDamage(DamageRequest(
-                            amount: randomDoT,
-                            target: enemy,
-                            keyword: .freeze,
-                            sourceActorID: actor.id,
-                            options: .reaction(),
-                        )).events)
-                    }
-                }
-                return events
-            },
+            { spendManaRandomDoTIfNeeded(actor: actor, triggers: triggers, in: &$0) },
         ], in: &context)
+    }
+
+    private static func spendManaBlockIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.spendManaBlockFlat > 0 else { return [] }
+        return context.applyBlock(
+            triggers.spendManaBlockFlat,
+            to: actor,
+            source: actor,
+            abilityName: triggerAbilityName("spendManaBlockFlat", for: actor, fallback: "Aetherward", in: context),
+        )
+    }
+
+    private static func heroSpendManaCompanionIfNeeded(
+        actor: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        guard actor.role == .hero, let companionTriggers = companionReactingToHeroTriggers(in: context) else {
+            return events
+        }
+        if companionTriggers.onHeroSpendManaGainBlock > 0 {
+            events.append(contentsOf: context.applyBlock(
+                companionTriggers.onHeroSpendManaGainBlock,
+                to: context.roster.companion.combatant,
+                source: actor,
+                abilityName: triggerAbilityName(
+                    "onHeroSpendManaGainBlock",
+                    for: context.roster.companion.combatant,
+                    fallback: "Mana Absorption",
+                    in: context,
+                ),
+            ))
+        }
+        if companionTriggers.onHeroSpendManaCompanionNextAttackBonus > 0,
+           context.roster.health(for: actor) > 0, context.roster.companion.isAlive {
+            context.roster.mutateRuntime(for: context.roster.companion.combatant) {
+                $0.talents.pending.cardDamageBonus += companionTriggers.onHeroSpendManaCompanionNextAttackBonus
+            }
+        }
+        return events
+    }
+
+    private static func spendManaRefundIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        amountSpent: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.spendManaRefundChancePercent > 0,
+              BattleChance.succeeds(probability: triggers.spendManaRefundChancePercent, using: &context.rng) else {
+            return []
+        }
+        return context.restoreManaEmitting(
+            amountSpent,
+            to: actor,
+            abilityName: triggerAbilityName(
+                "spendManaRefundChancePercent",
+                for: actor,
+                fallback: "Mana Flow",
+                in: context,
+            ),
+        )
+    }
+
+    private static func spendManaBurnIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.onSpendManaBurnBurningEnemies > 0, context.roster.enemy.isAlive,
+              context.roster.hasAffliction(.burn, on: context.enemy) else { return [] }
+        return applyDoT(
+            keyword: .burn,
+            potency: triggers.onSpendManaBurnBurningEnemies,
+            to: context.roster.enemy.combatant,
+            sourceActorID: actor.id,
+            in: &context,
+        )
+    }
+
+    private static func heroSpendManaAfflictionIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard actor.role == .hero, triggers.onHeroSpendManaApplyRandomAffliction,
+              context.roster.enemy.isAlive else { return [] }
+        let keywords: [Keyword] = [.bleed, .burn, .poison]
+        let keyword = keywords.randomElement(using: &context.rng) ?? .burn
+        if keyword == .bleed {
+            return DoTApplicator.applyBleed(
+                potency: 1,
+                to: context.roster.enemy.combatant,
+                sourceActorID: actor.id,
+                application: .attached,
+                in: &context,
+            )
+        }
+        return context.applyDecayingDoT(
+            keyword: keyword,
+            potency: 1,
+            to: context.roster.enemy.combatant,
+            sourceActorID: actor.id,
+            application: .attached,
+        )
+    }
+
+    private static func spendManaEqualBlockIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        amountSpent: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.spendManaGrantsEqualBlock, amountSpent > 0 else { return [] }
+        return context.applyBlock(
+            amountSpent, to: actor, source: actor, abilityName: "Mana Cocoon",
+        )
+    }
+
+    private static func spendManaOverchargeIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        amountSpent: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let overchargeMet = triggers.spendManaEmpowerNextCardThreshold > 0
+            && amountSpent >= triggers.spendManaEmpowerNextCardThreshold
+        guard overchargeMet, context.claimActionGuard(.spendOvercharge, actorID: actor.id),
+              triggers.nextCardEmpowerPercent > 0 else { return [] }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.cardDamagePercent += triggers.nextCardEmpowerPercent
+        }
+        return []
+    }
+
+    private static func spendManaCleanseIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        amountSpent: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.spendManaRemovesAfflictions, amountSpent > 0 else { return [] }
+        let keywords = [Keyword.burn, .poison].filter { keyword in
+            context.roster.activeEffects(for: actor).contains { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }
+        }
+        if let keyword = keywords.randomElement(using: &context.rng) {
+            _ = DoTApplicator.consume(keyword, upTo: amountSpent, on: actor, in: &context)
+        }
+        return []
+    }
+
+    private static func spendManaChaosRiftIfNeeded(
+        payment: ManaPayment,
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        amountSpent: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        guard triggers.spendManaRandomElementDamage, amountSpent > 0, context.roster.enemy.isAlive else {
+            return events
+        }
+        let keywords = [Keyword.freeze, .burn, .poison, .holy].shuffled(using: &context.rng)
+        let amounts = [amountSpent / 2 + amountSpent % 2, amountSpent / 2]
+        for (keyword, amount) in zip(keywords.prefix(2), amounts) where amount > 0 {
+            guard CombatCheckpoint.payment(payment).allowsContinuation(in: context) else { break }
+            events.append(contentsOf: context.resolveDamage(
+                DamageRequest(
+                    amount: amount,
+                    target: context.roster.enemy.combatant,
+                    keyword: keyword,
+                    sourceActorID: actor.id,
+                    options: .reaction(),
+                ),
+            ).events)
+        }
+        return events
+    }
+
+    private static func spendManaDamageBonusIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        amountSpent: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.spendManaDamageBonusPerMana > 0,
+              amountSpent >= BattleTurnEngine.manaEmpowermentCost else { return [] }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.cardDamageBonus += amountSpent * triggers.spendManaDamageBonusPerMana
+        }
+        return []
+    }
+
+    private static func zeroManaRestoreIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        spentLastMana: Bool,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.onReachZeroManaRestoreMana > 0,
+              spentLastMana,
+              context.claimBattleGuard(.darkRecovery, actorID: actor.id) else { return [] }
+        return context.restoreManaEmitting(
+            triggers.onReachZeroManaRestoreMana,
+            to: actor,
+            abilityName: triggerAbilityName(
+                "onReachZeroManaRestoreMana",
+                for: actor,
+                fallback: "Dark Recovery",
+                in: context,
+            ),
+        )
+    }
+
+    private static func closedCircuitIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        amountSpent: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.closedCircuit, amountSpent > 0, context.roster.enemy.isAlive else { return [] }
+        return context.resolveDamage(DamageRequest(
+            amount: amountSpent,
+            target: context.roster.enemy.combatant,
+            keyword: .stun,
+            sourceActorID: actor.id,
+            options: .reaction(),
+        )).events
+    }
+
+    private static func lastManaStunIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        spentLastMana: Bool,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.spendLastManaStunDamage > 0,
+              spentLastMana,
+              context.roster.enemy.isAlive else { return [] }
+        return context.resolveDamage(DamageRequest(
+            amount: triggers.spendLastManaStunDamage,
+            target: context.roster.enemy.combatant,
+            keyword: .stun,
+            sourceActorID: actor.id,
+            options: .reaction(),
+        )).events
+    }
+
+    private static func spendManaRandomDoTIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let randomDoT = triggers.spendManaRandomDoTFlat
+        guard randomDoT > 0, context.roster.enemy.isAlive else { return [] }
+        let enemy = context.roster.enemy.combatant
+        if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
+            return context.applyDecayingDoT(
+                keyword: .burn,
+                potency: randomDoT,
+                to: enemy,
+                sourceActorID: actor.id,
+                application: .ability,
+            )
+        }
+        return context.resolveDamage(DamageRequest(
+            amount: randomDoT,
+            target: enemy,
+            keyword: .freeze,
+            sourceActorID: actor.id,
+            options: .reaction(),
+        )).events
     }
 
     private static func autoPlayAfterManaSpend(
@@ -296,6 +368,26 @@ package extension CombatTriggerEngine {
             }
             return events
         }
+    }
+
+    static func cardsPlayedManaIfNeeded(
+        count: Int,
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.cardsPlayedManaThreshold > 0, triggers.cardsPlayedManaFlat > 0,
+              count == triggers.cardsPlayedManaThreshold else { return [] }
+        return context.restoreManaEmitting(
+            triggers.cardsPlayedManaFlat,
+            to: actor,
+            abilityName: triggerAbilityName(
+                "cardsPlayedManaThreshold",
+                for: actor,
+                fallback: "Resonant Chimes",
+                in: context,
+            ),
+        )
     }
 
     static func afterGainMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {

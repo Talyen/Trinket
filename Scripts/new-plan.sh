@@ -3,6 +3,12 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: ./Scripts/new-plan.sh <PlanName>"
+  echo "Scaffold an active execution plan under Docs/Plans/."
+  exit 0
+fi
+
 name="${1:-}"
 if [[ -z "$name" ]]; then
   echo "Usage: ./Scripts/new-plan.sh <PlanName>" >&2

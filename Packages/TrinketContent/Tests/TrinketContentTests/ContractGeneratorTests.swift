@@ -2,7 +2,10 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-struct ContractsTests {
+/// Bounty-contract generator tests (ContractGenerator.makeOffer). For manifest
+/// catalog invariants, see GameContentCatalogInvariantTests; for test-fixture
+/// pins, see FixtureContractTests.
+struct ContractGeneratorTests {
     @Test(arguments: ContractDifficulty.allCases)
     func `every matching catalog enemy can be contracted`(difficulty: ContractDifficulty) {
         var rng = SeededRandomNumberGenerator(seed: 1772)

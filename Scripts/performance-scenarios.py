@@ -5,9 +5,11 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from internal.cli import ROOT
 
 
 def select(baseline: dict, selectors: list[str]) -> dict:

@@ -381,17 +381,15 @@ struct PartyPhysicalBonusHandler: BattleEffectHandler {
 
     func apply(
         _ effect: Effect,
-        ability: Ability,
+        ability _: Ability,
         source: Combatant,
-        target: Combatant,
+        target _: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .partyPhysicalBonus(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         context.resolution.preparePartyPhysicalDamage(amount, sourceID: source.id)
-        _ = target
-        _ = ability
         return EffectApplyOutcome(events: [], didApply: true)
     }
 }

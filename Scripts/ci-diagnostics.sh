@@ -14,12 +14,17 @@ KEEP=false
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --help|-h)
+      echo "Usage: ./Scripts/ci-diagnostics.sh [--reset | --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR> | --cleanup [--keep]] [RESULTS_DIR]"
+      echo "Aggregate structured diagnostics emitted by each CI test invocation (read-only for test output)."
+      exit 0
+      ;;
     --reset) MODE="reset" ;;
     --stage-artifacts) MODE="stage" ;;
     --cleanup) MODE="cleanup" ;;
     --keep) KEEP=true ;;
     -*)
-      echo "Unknown option: $1" >&2
+      echo "Unknown argument: $1" >&2
       echo "Usage: ./Scripts/ci-diagnostics.sh [--reset | --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR> | --cleanup [--keep]] [RESULTS_DIR]" >&2
       exit 2
       ;;

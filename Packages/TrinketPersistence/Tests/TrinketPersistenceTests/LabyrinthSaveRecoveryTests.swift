@@ -30,10 +30,7 @@ struct LabyrinthSaveRecoveryTests {
         let corruptBlob = Data("{not-valid-labyrinth-json".utf8)
 
         do {
-            let store = try PlayerSaveStore(
-                storeURL: storeURL,
-                disableCloudSync: true,
-            )
+            let store = try context.makeSaveStore()
             #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = PlayerLabyrinthState(worldSeed: 55, hasEntered: true) })
         }
 
@@ -46,14 +43,11 @@ struct LabyrinthSaveRecoveryTests {
             try sideContext.save()
         }
 
-        let loaded = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-        )
+        let loaded = try context.makeReloadedStore()
         #expect(!loaded.labyrinth.isMapPayloadUnreadable)
         #expect(loaded.labyrinth.hasMap)
 
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let reloaded = try context.makeReloadedStore()
         #expect(!reloaded.labyrinth.isMapPayloadUnreadable)
         #expect(reloaded.labyrinth.hasMap)
     }

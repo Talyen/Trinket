@@ -2,6 +2,10 @@ import Foundation
 import TrinketCore
 
 enum AbilityDescriptionFormatter {
+    /// Shared rider wording; the branched and fixed paths join riders
+    /// differently, but the words must not drift apart.
+    private static let manaEmpowermentRider = "convert all your Mana into bonus Burn damage"
+
     static func format(_ ability: Ability) -> String {
         if let branches = ability.outcomeBranches, !branches.isEmpty {
             let branchTexts = branches.map(formatBranch)
@@ -32,7 +36,7 @@ enum AbilityDescriptionFormatter {
             riders.append(critical)
         }
         if ability.repeatsManaEmpowerment {
-            riders.append("convert all your Mana into bonus Burn damage")
+            riders.append(manaEmpowermentRider)
         }
         if ability.hasLeech {
             riders.append("leech")
@@ -73,7 +77,7 @@ enum AbilityDescriptionFormatter {
         }
 
         if ability.repeatsManaEmpowerment {
-            clauses.append("convert all your Mana into bonus Burn damage")
+            clauses.append(manaEmpowermentRider)
         }
 
         let body = joinClauses(clauses)

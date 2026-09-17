@@ -39,5 +39,8 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Labyrinth map / completion | `LabyrinthProgressTests` | Generation, clear, sanitize, completion, map+run-health reload |
 | Labyrinth encounter level | `StageRewardEncounterLevelTests` | Loot/XP at overridden levels (pure; durable proof via slice reloads) |
 | Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Rebuild unreadable maps with the saved seed and retain the repaired map across reload |
+| Transport error mapping | `CloudTransportErrorMappingTests` | Conflict vs surfacing classification (pure; no live CloudKit I/O) |
+| Item degradation | `ItemResolutionTests` | Unknown-base drop, keyword strip, rarity fallback across codecs (pure) |
+| Cross-slice invariants | `PersistenceInvariantsTests` | Sanitize/journey, labyrinth reachability, ownership, store URL (pure) |
 
 Harnesses: `Support/PersistenceTestContext.swift` (fresh temp dir per test) and `TrinketPersistenceTestSupport.SaveTestSupport` (`writeRoot`, `makeSave`, `makeSideContext`, `makeGeneratedItem`, store factory).

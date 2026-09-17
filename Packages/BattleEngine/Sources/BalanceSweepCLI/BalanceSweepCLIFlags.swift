@@ -14,7 +14,6 @@ extension BalanceSweepCLI {
                                    mode-progression | all (default: identity)
           --samples <n>            Observations per identity enemy and pairs per contrast focus
                                    per tier (default: 32)
-          --battles-per-tier <n>   Deprecated alias for --samples
           --seed <n>               Sweep seed (default: 1)
           --tiers <list>           Comma list: early,middle,lateGame (default: all)
           --jobs <n>               Concurrent worker processes (default: CPU count)
@@ -49,7 +48,6 @@ extension BalanceSweepCLI {
         var config: BalanceSweepConfig
         var isWorker: Bool
         var outputFile: String?
-        var deprecatedBattlesPerTier: Bool
         var writeFullMarkdown: Bool
     }
 
@@ -77,7 +75,6 @@ extension BalanceSweepCLI {
         var durationFlagRate = BalanceSweepConfig.durationFlagRateDefault
         var comfortHPThreshold = BalanceSweepConfig.comfortHPThresholdDefault
         var comfortRoundThreshold = BalanceSweepConfig.comfortRoundThresholdDefault
-        var deprecatedBattlesPerTier = false
         var writeFullMarkdown = false
 
         mutating func consume(_ arguments: [String], index: inout Int) throws {
@@ -126,9 +123,6 @@ extension BalanceSweepCLI {
                     throw CLIError.invalidMode(raw)
                 }
                 mode = parsed
-            case "--battles-per-tier":
-                battlesPerTier = try BalanceSweepCLI.intValue(after: arg, in: arguments, index: &index)
-                deprecatedBattlesPerTier = true
             case "--samples":
                 battlesPerTier = try BalanceSweepCLI.intValue(after: arg, in: arguments, index: &index)
             case "--seed":
@@ -230,7 +224,6 @@ extension BalanceSweepCLI {
                 config: config,
                 isWorker: isWorker,
                 outputFile: outputFile,
-                deprecatedBattlesPerTier: deprecatedBattlesPerTier,
                 writeFullMarkdown: writeFullMarkdown,
             )
         }

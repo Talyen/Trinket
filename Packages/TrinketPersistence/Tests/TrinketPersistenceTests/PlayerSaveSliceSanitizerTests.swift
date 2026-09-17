@@ -132,11 +132,7 @@ struct PlayerSaveSliceSanitizerTests {
 
     @Test @MainActor func `homestead mutation leaves labyrinth seed alone`() throws {
         let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-        )
+        let store = try context.makeSaveStore()
         var snapshot = store.currentSave
         snapshot.labyrinth.worldSeed = 0
         let wood = (snapshot.homestead.resources[.wood] ?? 0) + 1
@@ -147,7 +143,7 @@ struct PlayerSaveSliceSanitizerTests {
         #expect(candidate.labyrinth.worldSeed == 0)
 
         try store.performBatchMutation { $0 = candidate }
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let reloaded = try context.makeReloadedStore()
         #expect(reloaded.labyrinth.worldSeed == reloaded.worldSeed)
         #expect(reloaded.homestead.resources[.wood] == wood)
     }

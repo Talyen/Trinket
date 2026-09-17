@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Shared CLI helpers (die/log_section/session); guard inside makes this safe
+# however often entry points source both this file and args.sh directly.
+# shellcheck source=args.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/args.sh"
+
 trinket_prepend_pinned_tools() {
   local root="${1:-$PWD}"
   if [[ -d "$root/.tools" ]]; then
@@ -13,6 +18,13 @@ trinket_require_pinned_tools() {
   "$root/Scripts/ensure-ci-tools.sh"
   trinket_prepend_pinned_tools "$root"
   export TRINKET_REQUIRE_PINNED_TOOLS=1
+}
+
+# Pinned-tools gate preamble shared by ci-gate/ci-assets-gate: banner + ensure
+# in one call so the "=== Ensure pinned tools ===" header cannot drift.
+trinket_gate_ensure_tools() {
+  trinket_log_section "Ensure pinned tools"
+  trinket_require_pinned_tools "$@"
 }
 
 # Require <binary> on PATH at the pinned version, exiting with install guidance

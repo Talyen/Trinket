@@ -10,30 +10,42 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 from internal.diagnostics.diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_LABELS_IN_DETAIL, MAX_LINE_CHARS, MAX_MESSAGE_CHARS
 from internal.diagnostics.diagnostic_model import CLASSIFICATION_PRECEDENCE, bounded_text
 
 FULL_REPORT = False
-argv = sys.argv[1:]
-SESSION_ID = os.environ.get("TRINKET_DIAGNOSTICS_SESSION_ID", "").strip()
-while argv and argv[0].startswith("--"):
-    option = argv.pop(0)
-    if option == "--full":
-        FULL_REPORT = True
-    else:
-        print(f"Unknown option: {option}", file=sys.stderr)
-        sys.exit(1)
+SESSION_ID = ""
+results_dir = Path.cwd()
+output_path = Path.cwd() / "ci-diagnostics.json"
 
-if len(argv) < 2:
-    print(
-        "Usage: ci-diagnostics.py [--full] <RESULTS_DIR> <OUTPUT_PATH>",
-        file=sys.stderr,
-    )
-    sys.exit(1)
 
-results_dir = Path(argv[0]).resolve()
-output_path = Path(argv[1]).resolve()
+def parse_args(argv: list[str], environ: dict[str, str]) -> None:
+    """Parse CLI into module config. Raises SystemExit on usage errors.
+
+    Kept as explicit globals (assigned once from main) so the pure report
+    helpers below keep their signatures; nothing executes on import.
+    """
+    global FULL_REPORT, SESSION_ID, results_dir, output_path
+    FULL_REPORT = False
+    args = list(argv)
+    SESSION_ID = environ.get("TRINKET_DIAGNOSTICS_SESSION_ID", "").strip()
+    while args and args[0].startswith("--"):
+        option = args.pop(0)
+        if option == "--full":
+            FULL_REPORT = True
+        else:
+            print(f"Unknown argument: {option}", file=sys.stderr)
+            raise SystemExit(1)
+
+    if len(args) < 2:
+        print(
+            "Usage: ci-diagnostics.py [--full] <RESULTS_DIR> <OUTPUT_PATH>",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+
+    results_dir = Path(args[0]).resolve()
+    output_path = Path(args[1]).resolve()
 
 # Classification precedence is owned by diagnostic_model (single source); the
 # order keeps the aggregate category useful when a build emits more than one
@@ -349,193 +361,205 @@ def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
     return reports, parse_errors, False, 0, selected_session, len(distinct_sessions)
 
 
-reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session, distinct_session_count = load_reports()
-recorded_invocations = len(reports)
-failed_reports = [report for report in reports if report["failed"]]
-missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"] and report["action"] not in {"build", "build-for-testing"})
-incomplete_result_invocations = sum(
-    1 for report in reports if not report["result_bundle_complete"] and report["action"] not in {"build", "build-for-testing"}
-)
 
-by_classification = {classification: 0 for classification in CLASSIFICATION_PRECEDENCE}
-for report in reports:
-    by_classification[report["classification"]] += 1
 
-if failed_reports:
-    failed_classes = {report["classification"] for report in failed_reports}
-    category = next(
-        classification
-        for classification in CLASSIFICATION_PRECEDENCE
-        if classification in failed_classes
+def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -> int:
+    """Aggregate invocation diagnostics. Pure orchestration; safe to import."""
+    parse_args(list(sys.argv[1:] if argv is None else argv), dict(os.environ) if environ is None else environ)
+
+    reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session, distinct_session_count = load_reports()
+    recorded_invocations = len(reports)
+    failed_reports = [report for report in reports if report["failed"]]
+    missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"] and report["action"] not in {"build", "build-for-testing"})
+    incomplete_result_invocations = sum(
+        1 for report in reports if not report["result_bundle_complete"] and report["action"] not in {"build", "build-for-testing"}
     )
-elif manifests_present and recorded_invocations and not parse_errors:
-    # Reporter uses unknown for a successful invocation with no issues. The
-    # exit code and result bundle, rather than that sentinel, determine pass.
-    category = "passed"
-else:
-    # No current status manifest means the outcome cannot be proven. In
-    # particular, do not infer a pass from a stale report or an unparsed log.
-    category = "unknown"
 
-if category == "passed":
-    detail = (
-        f"All {recorded_invocations} recorded invocation(s) completed successfully."
-    )
-    if incomplete_result_invocations:
-        detail += (
-            f" {incomplete_result_invocations} invocation(s) used watchdog log proof "
-            "because Xcode did not finalize the xcresult bundle."
+    by_classification = {classification: 0 for classification in CLASSIFICATION_PRECEDENCE}
+    for report in reports:
+        by_classification[report["classification"]] += 1
+
+    if failed_reports:
+        failed_classes = {report["classification"] for report in failed_reports}
+        category = next(
+            classification
+            for classification in CLASSIFICATION_PRECEDENCE
+            if classification in failed_classes
         )
-elif failed_reports:
-    labels = [compact_text(report["label"], limit=80) for report in failed_reports]
-    label_preview = ", ".join(labels[:MAX_LABELS_IN_DETAIL])
-    if len(labels) > MAX_LABELS_IN_DETAIL:
-        label_preview += f", +{len(labels) - MAX_LABELS_IN_DETAIL} more"
-    detail = (
-        f"{len(failed_reports)} of {recorded_invocations} recorded invocation(s) "
-        f"failed ({label_preview})."
-    )
-    if missing_result_invocations:
-        detail += f" {missing_result_invocations} invocation(s) had no xcresult bundle."
-    if missing_diagnostics_invocations:
-        detail += f" {missing_diagnostics_invocations} invocation(s) had no diagnostics report."
-elif parse_errors:
-    detail = (
-        f"No usable invocation diagnostics were recorded; {parse_errors} diagnostic "
-        "file(s) could not be parsed. Escalate with the raw CI logs."
-    )
-elif recorded_invocations and not manifests_present:
-    detail = (
-        f"{recorded_invocations} invocation diagnostic(s) were found without a current "
-        "status manifest. The outcome is unknown; rerun with the CI runner manifest."
-    )
-else:
-    detail = (
-        "No invocation diagnostics were recorded. The outcome is unknown; "
-        "escalate with the raw CI logs."
-    )
+    elif manifests_present and recorded_invocations and not parse_errors:
+        # Reporter uses unknown for a successful invocation with no issues. The
+        # exit code and result bundle, rather than that sentinel, determine pass.
+        category = "passed"
+    else:
+        # No current status manifest means the outcome cannot be proven. In
+        # particular, do not infer a pass from a stale report or an unparsed log.
+        category = "unknown"
 
-# Shared tenants accumulate sessions from crashed or unscoped runs; without a
-# session id the aggregate silently covers only the newest one. Say so instead
-# of letting a green summary hide stale red state (or the reverse).
-session_warning = ""
-if manifests_present and not SESSION_ID and distinct_session_count > 1:
-    session_warning = (
-        f"{distinct_session_count} diagnostics sessions share this results directory; "
-        "this aggregate covers only the newest session. Scope with "
-        "TRINKET_DIAGNOSTICS_SESSION_ID or clear stale state with "
-        "./Scripts/ci-diagnostics.sh --reset."
-    )
-    detail = f"{detail} Warning: {session_warning}"
+    if category == "passed":
+        detail = (
+            f"All {recorded_invocations} recorded invocation(s) completed successfully."
+        )
+        if incomplete_result_invocations:
+            detail += (
+                f" {incomplete_result_invocations} invocation(s) used watchdog log proof "
+                "because Xcode did not finalize the xcresult bundle."
+            )
+    elif failed_reports:
+        labels = [compact_text(report["label"], limit=80) for report in failed_reports]
+        label_preview = ", ".join(labels[:MAX_LABELS_IN_DETAIL])
+        if len(labels) > MAX_LABELS_IN_DETAIL:
+            label_preview += f", +{len(labels) - MAX_LABELS_IN_DETAIL} more"
+        detail = (
+            f"{len(failed_reports)} of {recorded_invocations} recorded invocation(s) "
+            f"failed ({label_preview})."
+        )
+        if missing_result_invocations:
+            detail += f" {missing_result_invocations} invocation(s) had no xcresult bundle."
+        if missing_diagnostics_invocations:
+            detail += f" {missing_diagnostics_invocations} invocation(s) had no diagnostics report."
+    elif parse_errors:
+        detail = (
+            f"No usable invocation diagnostics were recorded; {parse_errors} diagnostic "
+            "file(s) could not be parsed. Escalate with the raw CI logs."
+        )
+    elif recorded_invocations and not manifests_present:
+        detail = (
+            f"{recorded_invocations} invocation diagnostic(s) were found without a current "
+            "status manifest. The outcome is unknown; rerun with the CI runner manifest."
+        )
+    else:
+        detail = (
+            "No invocation diagnostics were recorded. The outcome is unknown; "
+            "escalate with the raw CI logs."
+        )
 
-def compact_invocation(report: dict) -> dict:
-    """Keep the default aggregate useful without embedding full reports."""
-    issues = report.get("issues", [])
-    return {
-        "label": report.get("label", ""),
-        "action": report.get("action", "unknown"),
-        "classification": report.get("classification", "unknown"),
-        "exit_code": report.get("exit_code", 1),
-        "status": report.get("status", "unknown"),
-        "failed": report.get("failed", True),
-        "result_bundle_exists": report.get("result_bundle_exists", False),
-        "result_bundle_complete": report.get("result_bundle_complete", False),
-        "diagnostics_exists": report.get("diagnostics_exists", False),
-        "diagnostic_path": report.get("diagnostic_path", ""),
-        "invocation_manifest": report.get("invocation_manifest", ""),
-        "issue_count": len(issues) if isinstance(issues, list) else 0,
+    # Shared tenants accumulate sessions from crashed or unscoped runs; without a
+    # session id the aggregate silently covers only the newest one. Say so instead
+    # of letting a green summary hide stale red state (or the reverse).
+    session_warning = ""
+    if manifests_present and not SESSION_ID and distinct_session_count > 1:
+        session_warning = (
+            f"{distinct_session_count} diagnostics sessions share this results directory; "
+            "this aggregate covers only the newest session. Scope with "
+            "TRINKET_DIAGNOSTICS_SESSION_ID or clear stale state with "
+            "./Scripts/ci-diagnostics.sh --reset."
+        )
+        detail = f"{detail} Warning: {session_warning}"
+
+    def compact_invocation(report: dict) -> dict:
+        """Keep the default aggregate useful without embedding full reports."""
+        issues = report.get("issues", [])
+        return {
+            "label": report.get("label", ""),
+            "action": report.get("action", "unknown"),
+            "classification": report.get("classification", "unknown"),
+            "exit_code": report.get("exit_code", 1),
+            "status": report.get("status", "unknown"),
+            "failed": report.get("failed", True),
+            "result_bundle_exists": report.get("result_bundle_exists", False),
+            "result_bundle_complete": report.get("result_bundle_complete", False),
+            "diagnostics_exists": report.get("diagnostics_exists", False),
+            "diagnostic_path": report.get("diagnostic_path", ""),
+            "invocation_manifest": report.get("invocation_manifest", ""),
+            "issue_count": len(issues) if isinstance(issues, list) else 0,
+        }
+
+
+    aggregate_issues = []
+    seen_issues: set[tuple[str, str, str]] = set()
+    for report in reports:
+        for issue in report.get("issues", []):
+            if FULL_REPORT:
+                aggregate_issues.append({"label": report["label"], **issue})
+                continue
+            key = (
+                report["label"],
+                str(issue.get("id", "unknown")),
+                str(issue.get("message", "")),
+            )
+            if key in seen_issues:
+                for existing in aggregate_issues:
+                    if (
+                        existing.get("label"),
+                        str(existing.get("id", "unknown")),
+                        str(existing.get("message", "")),
+                    ) == key:
+                        existing["occurrences"] = int(existing.get("occurrences", 1)) + 1
+                        break
+                continue
+            seen_issues.add(key)
+            aggregate_issues.append({"label": report["label"], "occurrences": 1, **normalized_issue(issue)})
+
+    aggregate_issues_total = len(aggregate_issues)
+    if not FULL_REPORT:
+        aggregate_issues = aggregate_issues[:MAX_AGGREGATE_ISSUES]
+
+    generated_at = iso_now()
+    aggregate = {
+        "schema_version": 1,
+        "generated_at": generated_at,
+        # Keep the historic fields consumed by workflow summaries and agents.
+        "recorded_at": generated_at,
+        "category": category,
+        "detail": detail,
+        "recorded_invocations": recorded_invocations,
+        "failed_invocations": len(failed_reports),
+        "missing_result_invocations": missing_result_invocations,
+        "incomplete_result_invocations": incomplete_result_invocations,
+        "missing_diagnostics_invocations": missing_diagnostics_invocations,
+        "status_manifests_present": manifests_present,
+        "session_id": selected_session,
+        "session_filter": selected_session or "unscoped",
+        "distinct_sessions": distinct_session_count,
+        "session_warning": session_warning,
+        "counts": {
+            "total": recorded_invocations,
+            "failed": len(failed_reports),
+            "missing_result": missing_result_invocations,
+            "incomplete_result": incomplete_result_invocations,
+            "missing_diagnostics": missing_diagnostics_invocations,
+            "by_classification": by_classification,
+        },
+        "invocations": reports if FULL_REPORT else [compact_invocation(report) for report in reports],
+        "issues": aggregate_issues,
+        "issues_total": aggregate_issues_total,
+        "issues_truncated": aggregate_issues_total > MAX_AGGREGATE_ISSUES,
     }
 
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as handle:
+        json.dump(aggregate, handle, indent=2)
+        handle.write("\n")
 
-aggregate_issues = []
-seen_issues: set[tuple[str, str, str]] = set()
-for report in reports:
-    for issue in report.get("issues", []):
-        if FULL_REPORT:
-            aggregate_issues.append({"label": report["label"], **issue})
-            continue
-        key = (
-            report["label"],
-            str(issue.get("id", "unknown")),
-            str(issue.get("message", "")),
-        )
-        if key in seen_issues:
-            for existing in aggregate_issues:
-                if (
-                    existing.get("label"),
-                    str(existing.get("id", "unknown")),
-                    str(existing.get("message", "")),
-                ) == key:
-                    existing["occurrences"] = int(existing.get("occurrences", 1)) + 1
-                    break
-            continue
-        seen_issues.add(key)
-        aggregate_issues.append({"label": report["label"], "occurrences": 1, **normalized_issue(issue)})
-
-aggregate_issues_total = len(aggregate_issues)
-if not FULL_REPORT:
-    aggregate_issues = aggregate_issues[:MAX_AGGREGATE_ISSUES]
-
-generated_at = iso_now()
-aggregate = {
-    "schema_version": 1,
-    "generated_at": generated_at,
-    # Keep the historic fields consumed by workflow summaries and agents.
-    "recorded_at": generated_at,
-    "category": category,
-    "detail": detail,
-    "recorded_invocations": recorded_invocations,
-    "failed_invocations": len(failed_reports),
-    "missing_result_invocations": missing_result_invocations,
-    "incomplete_result_invocations": incomplete_result_invocations,
-    "missing_diagnostics_invocations": missing_diagnostics_invocations,
-    "status_manifests_present": manifests_present,
-    "session_id": selected_session,
-    "session_filter": selected_session or "unscoped",
-    "distinct_sessions": distinct_session_count,
-    "session_warning": session_warning,
-    "counts": {
-        "total": recorded_invocations,
-        "failed": len(failed_reports),
-        "missing_result": missing_result_invocations,
-        "incomplete_result": incomplete_result_invocations,
-        "missing_diagnostics": missing_diagnostics_invocations,
-        "by_classification": by_classification,
-    },
-    "invocations": reports if FULL_REPORT else [compact_invocation(report) for report in reports],
-    "issues": aggregate_issues,
-    "issues_total": aggregate_issues_total,
-    "issues_truncated": aggregate_issues_total > MAX_AGGREGATE_ISSUES,
-}
-
-output_path.parent.mkdir(parents=True, exist_ok=True)
-with output_path.open("w", encoding="utf-8") as handle:
-    json.dump(aggregate, handle, indent=2)
-    handle.write("\n")
-
-print(f"CI diagnostic category: {category} — {detail}")
-if os.environ.get("GITHUB_STEP_SUMMARY"):
-    summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
-    with summary_path.open("a", encoding="utf-8") as summary:
-        summary.write("## CI diagnostics\n\n")
-        summary.write(f"- **Category:** `{category}`\n")
-        summary.write(f"- **Detail:** {detail}\n")
-        if session_warning:
-            summary.write(f"- **Sessions:** {session_warning}\n")
-        summary.write(
-            f"- **Invocations:** {recorded_invocations} recorded, "
-            f"{len(failed_reports)} failed, {missing_result_invocations} missing xcresult, "
-            f"{incomplete_result_invocations} incomplete xcresult, "
-            f"{missing_diagnostics_invocations} missing diagnostics\n"
-        )
-        if aggregate_issues:
-            summary.write("\n### Actionable diagnostics\n\n")
-            for issue in aggregate_issues[:20]:
-                title = issue["title"] or issue["kind"]
-                message = issue["message"] or issue["details"] or "No details provided."
-                summary.write(f"- `{issue['label']}` — **{title}:** {message}\n")
-        if category == "unknown":
+    print(f"CI diagnostic category: {category} — {detail}")
+    if os.environ.get("GITHUB_STEP_SUMMARY"):
+        summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
+        with summary_path.open("a", encoding="utf-8") as summary:
+            summary.write("## CI diagnostics\n\n")
+            summary.write(f"- **Category:** `{category}`\n")
+            summary.write(f"- **Detail:** {detail}\n")
+            if session_warning:
+                summary.write(f"- **Sessions:** {session_warning}\n")
             summary.write(
-                "\nThe category is unknown. Escalate by inspecting the raw CI logs; "
-                "otherwise consume the structured invocation diagnostics above.\n"
+                f"- **Invocations:** {recorded_invocations} recorded, "
+                f"{len(failed_reports)} failed, {missing_result_invocations} missing xcresult, "
+                f"{incomplete_result_invocations} incomplete xcresult, "
+                f"{missing_diagnostics_invocations} missing diagnostics\n"
             )
+            if aggregate_issues:
+                summary.write("\n### Actionable diagnostics\n\n")
+                for issue in aggregate_issues[:20]:
+                    title = issue["title"] or issue["kind"]
+                    message = issue["message"] or issue["details"] or "No details provided."
+                    summary.write(f"- `{issue['label']}` — **{title}:** {message}\n")
+            if category == "unknown":
+                summary.write(
+                    "\nThe category is unknown. Escalate by inspecting the raw CI logs; "
+                    "otherwise consume the structured invocation diagnostics above.\n"
+                )
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -38,7 +38,7 @@ USAGE
       exit 0
       ;;
     --) shift; break ;;
-    -*) echo "Unknown option: $1" >&2; exit 1 ;;
+    -*) echo "Unknown argument: $1" >&2; exit 1 ;;
     *) break ;;
   esac
 done

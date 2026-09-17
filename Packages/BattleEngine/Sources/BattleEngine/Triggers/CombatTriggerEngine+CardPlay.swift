@@ -43,20 +43,7 @@ package extension CombatTriggerEngine {
             context.additionalControlSkipsByCombatantID[context.roster.enemy.id, default: 0] += 1
         }
 
-        guard triggers.cardsPlayedManaThreshold > 0, triggers.cardsPlayedManaFlat > 0,
-              count == triggers.cardsPlayedManaThreshold
-        else { return events }
-
-        events.append(contentsOf: context.restoreManaEmitting(
-            triggers.cardsPlayedManaFlat,
-            to: actor,
-            abilityName: triggerAbilityName(
-                "cardsPlayedManaThreshold",
-                for: actor,
-                fallback: "Resonant Chimes",
-                in: context,
-            ),
-        ))
+        events.append(contentsOf: cardsPlayedManaIfNeeded(count: count, actor: actor, triggers: triggers, in: &context))
         return events
     }
 

@@ -51,22 +51,6 @@ struct ThemedGearGeneratorTests {
         try #expect(wizard.keywordProfile.contains(.burn))
     }
 
-    @Test func `fixed affix count override in item generator`() throws {
-        let baseType = try ItemFixtures.baseType("longsword")
-        var rng = SeededRandomNumberGenerator(seed: 12)
-
-        let item = ItemGenerator().generate(
-            id: "fixed",
-            baseType: baseType,
-            rarity: .basic,
-            fixedAffixCount: 1,
-            keywordBias: [.physical],
-            using: &rng,
-        )
-
-        try #expect(item.affixes.count == 1)
-    }
-
     @Test func `require build alignment rejects mismatched damage affixes`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let bias = Set(knight.abilityLoadout.abilities.flatMap(\.keywords))

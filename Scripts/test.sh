@@ -6,6 +6,8 @@ SCRIPT_DIR="$(dirname "$0")"
 
 # shellcheck source=run-env.sh
 source "$SCRIPT_DIR/run-env.sh"
+# shellcheck source=lib/args.sh
+source "$SCRIPT_DIR/lib/args.sh"
 
 # shellcheck source=build-freshness.sh
 source "$SCRIPT_DIR/build-freshness.sh"
@@ -51,29 +53,23 @@ while [[ $# -gt 0 ]]; do
       APP_ONLY=true
       shift
       ;;
-    --quiet|quiet)
-      QUIET=true
-      shift
-      ;;
     --help|-h)
       cat <<'USAGE'
 Usage: ./Scripts/test.sh [unit | ui | style | smoke | performance] [--no-build] [--app-only] [--quiet] [--verbose] [TestClass[/testMethod] | SwiftPath ...]
 
+Runs quietly by default; pass --verbose for full xcodebuild output.
 Bare local full exhaustive UI runs require TRINKET_ALLOW_FULL_UI=1; CI and
 targeted runs do not. See Scripts/README.md for tiers and routing.
+--app-only is unit-mode only: a compile-only app build via build.sh.
 USAGE
       exit 0
       ;;
-    --verbose|verbose)
-      VERBOSE=true
-      QUIET=false
-      shift
-      ;;
     *)
+      if trinket_args_quiet_verbose "$1"; then shift; continue; fi
       if [[ "$1" == -* ]]; then
-        echo "Unknown option: $1" >&2
+        echo "Unknown argument: $1" >&2
         echo "Usage: $0 [unit | ui | style | smoke | performance] [--no-build] [--app-only] [--quiet] [--verbose] [TestClass[/testMethod]|SwiftPath ...]" >&2
-      echo "       bare 'ui' (full suite) locally requires TRINKET_ALLOW_FULL_UI=1; CI and targeted runs do not." >&2
+        echo "       bare 'ui' (full suite) locally requires TRINKET_ALLOW_FULL_UI=1; CI and targeted runs do not." >&2
         exit 1
       fi
       TARGETS+=("$1")

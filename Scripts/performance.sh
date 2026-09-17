@@ -12,11 +12,11 @@ SELECTION=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --scenario|--group)
-      [[ $# -ge 2 ]] || { echo "$1 needs a value" >&2; exit 2; }
+      [[ $# -ge 2 ]] || { echo "$1 needs a value" >&2; exit 1; }
       SELECTION+=(--select "$2"); shift 2 ;;
     --list) exec python3 Scripts/performance-scenarios.py --list ;;
-    --help) echo "Usage: $0 [--scenario ID | --group GROUP]... [--list]"; exit 0 ;;
-    *) echo "Unknown argument: $1" >&2; exit 2 ;;
+    --help|-h) echo "Usage: $0 [--scenario ID | --group GROUP]... [--list]"; exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
 

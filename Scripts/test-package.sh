@@ -72,15 +72,6 @@ while [[ $# -gt 0 ]]; do
       DESTINATION="$2"
       shift 2
       ;;
-    --quiet|quiet)
-      QUIET=true
-      shift
-      ;;
-    --verbose|verbose)
-      VERBOSE=true
-      QUIET=false
-      shift
-      ;;
     --defer-terminal-output)
       DEFER_TERMINAL_OUTPUT=true
       shift
@@ -116,10 +107,12 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     -*)
-      echo "Unknown option: $1" >&2
+      if trinket_args_quiet_verbose "$1"; then shift; continue; fi
+      echo "Unknown argument: $1" >&2
       exit 1
       ;;
     *)
+      if trinket_args_quiet_verbose "$1"; then shift; continue; fi
       PACKAGES+=("$1")
       shift
       ;;
@@ -278,28 +271,16 @@ run_one_package() {
   if [[ "$ACTION" == "build-for-testing" ]]; then
     # Generic destination compile that --no-build test runs reuse; no result
     # bundle is produced (compiles have no test cases to record).
+    trinket_set_package_scheme_args "$scheme" iphonesimulator 'generic/platform=iOS Simulator' "$package_dd"
     xcodebuild_args=(
       xcodebuild build-for-testing \
-        -scheme "$scheme" \
-        -sdk iphonesimulator \
-        -destination 'generic/platform=iOS Simulator' \
-        -derivedDataPath "$package_dd" \
-        -parallelizeTargets \
-        -disableAutomaticPackageResolution \
-        "SYMROOT=$(package_symroot "$package_dd")" \
-        "OBJROOT=$(package_objroot "$package_dd")" \
-        "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")"
+        "${TRINKET_PACKAGE_SCHEME_ARGS[@]}" \
     )
   else
+    trinket_set_package_scheme_args "$scheme" iphonesimulator "$DESTINATION" "$package_dd"
     xcodebuild_args=(
       xcodebuild "$ACTION" \
-        -scheme "$scheme" \
-        -sdk iphonesimulator \
-        -destination "$DESTINATION" \
-        -derivedDataPath "$package_dd" \
-        "SYMROOT=$(package_symroot "$package_dd")" \
-        "OBJROOT=$(package_objroot "$package_dd")" \
-        "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")"
+        "${TRINKET_PACKAGE_SCHEME_ARGS[@]}" \
     )
     # Result bundles back test timing and failure diagnostics; build-for-testing
     # runs skip them to avoid writing bulky unused xcresults.

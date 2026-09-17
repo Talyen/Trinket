@@ -95,6 +95,8 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case .outgoingDamagePercent: "Party damage"
         case .incomingDamageReductionPercent: "Party damage taken"
         case .dodgeChanceBonus: "Dodge"
+        case .rangedDamageDealt: "Bow and Crossbow damage"
+        case .maximumManaPercent: "Maximum Mana"
         }
     }
 }
