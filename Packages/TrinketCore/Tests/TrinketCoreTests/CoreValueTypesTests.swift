@@ -65,6 +65,28 @@ struct CoreValueTypesTests {
         #expect(ResourceAmount(.gold, 5).id == .gold)
     }
 
+    @Test func `homestead resource resolves retired crystal alias as gems`() throws {
+        #expect(HomesteadResource.resolving(resourceID: "crystal") == .gems)
+        #expect(HomesteadResource.resolving(resourceID: "gems") == .gems)
+        #expect(HomesteadResource.resolving(resourceID: "gold") == .gold)
+        #expect(HomesteadResource.resolving(resourceID: "mana") == nil)
+
+        let legacy = try JSONDecoder().decode(HomesteadResource.self, from: Data("\"crystal\"".utf8))
+        #expect(legacy == .gems)
+        let encoded = try JSONEncoder().encode(HomesteadResource.gems)
+        #expect(try #require(String(bytes: encoded, encoding: .utf8)) == "\"gems\"")
+
+        let balances = try JSONEncoder().encode([HomesteadResource.gems: 4])
+        let roundTripped = try JSONDecoder().decode([HomesteadResource: Int].self, from: balances)
+        #expect(roundTripped == [.gems: 4])
+
+        // Saves written before the rename persist this balance under "crystal".
+        let legacyJSON = try #require(String(bytes: balances, encoding: .utf8))
+            .replacingOccurrences(of: "gems", with: "crystal")
+        let migrated = try JSONDecoder().decode([HomesteadResource: Int].self, from: Data(legacyJSON.utf8))
+        #expect(migrated == [.gems: 4])
+    }
+
     @Test func `damage conditions have non empty unique sentence fragments`() {
         let conditions = DamageCondition.allCases
         #expect(!conditions.isEmpty)

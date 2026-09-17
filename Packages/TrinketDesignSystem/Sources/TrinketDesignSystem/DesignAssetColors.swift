@@ -35,7 +35,7 @@ enum DesignAssetColors {
         "PlaceholderEnemy",
         "PlaceholderHero",
         "PlaceholderItem",
-        "ResourceCrystal",
+        "ResourceGems",
         "ResourceFood",
         "ResourceHerbs",
         "ResourceHide",

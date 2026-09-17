@@ -55,7 +55,7 @@ struct PlayerSaveStoreTests {
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         firstStore.grantGold(42)
         firstStore.grantExperience(5, to: GameContent.heroes[0])
-        firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
+        firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.gems, 2)])
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         firstStore.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
         firstStore.advanceJourneyToStage("chapter-1-stage-2")
@@ -65,7 +65,7 @@ struct PlayerSaveStoreTests {
         try #expect(secondStore.roster.gold == 42)
         try #expect(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP == 5)
         try #expect(secondStore.homestead.resources[.wood] == 14)
-        try #expect(secondStore.homestead.resources[.crystal] == 2)
+        try #expect(secondStore.homestead.resources[.gems] == 2)
         _ = try #require(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         try #expect(secondStore.journey.activeStageID == "chapter-1-stage-2")
         try #expect(secondStore.worldSeed == firstStore.worldSeed)
@@ -265,7 +265,7 @@ struct PlayerSaveStoreTests {
         }
         try #expect(reloaded.homestead.pendingProduction[.food] == 10)
         try #expect(reloaded.homestead.pendingProduction[.herbs] == 10)
-        try #expect(reloaded.homestead.pendingProduction[.crystal] == 10)
+        try #expect(reloaded.homestead.pendingProduction[.gems] == 10)
         try #expect(reloaded.homestead.pendingProduction[.hide] == 10)
         try #expect(reloaded.homestead.pendingProduction[.gold] == 10)
     }

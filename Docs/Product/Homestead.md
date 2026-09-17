@@ -40,7 +40,7 @@ shield.fill tinted to its keyword. Party protection uses Block styling; companio
 damage uses pawprint.fill with Physical tint; Dodge uses wind; Astral finds uses
 sparkles with arcane tint; Gold finds uses circle.circle.fill with Gold tint.
 Production uses resource tints with carrot.fill (Food), leaf.fill (Herbs),
-diamond.fill (Crystal), square.stack.3d.up.fill (Hide), and circle.circle.fill (Gold).
+diamond.fill (Gems), square.stack.3d.up.fill (Hide), and circle.circle.fill (Gold).
 Wallets, collection, and purchase costs retain illustrated resource artwork.
 Progress uses the catalog's actual tier count. No persistent completion banner,
 checkmark, or Tier N label appears.

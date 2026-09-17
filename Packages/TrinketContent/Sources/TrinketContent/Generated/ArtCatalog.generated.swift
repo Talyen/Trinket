@@ -1398,8 +1398,8 @@ public enum ArtCatalog {
         dict["hide"] = ResourceArtReference(
             imageName: "resource_homestead_hide"
         )
-        dict["crystal"] = ResourceArtReference(
-            imageName: "resource_homestead_crystal"
+        dict["gems"] = ResourceArtReference(
+            imageName: "resource_homestead_gems"
         )
         dict["gold"] = ResourceArtReference(
             imageName: "resource_homestead_gold"

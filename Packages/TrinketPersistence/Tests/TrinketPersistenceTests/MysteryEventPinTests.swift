@@ -83,7 +83,7 @@ struct MysteryEventPinTests {
             result = MysteryOfferPersistence.claim(offered[0], stage: stage, labyrinthNodeID: nodeID, save: &save)
         })
         #expect(result.grantedItems == [offered[0].item])
-        #expect(result.grantedMaterials == [ResourceAmount(.crystal, offered[0].bonus.amount)])
+        #expect(result.grantedMaterials == [ResourceAmount(.gems, offered[0].bonus.amount)])
         #expect(reloaded.roster.gold == goldBefore)
         let claimed = try context.makeReloadedStore()
         #expect(claimed.inventory.items.contains(offered[0].item))

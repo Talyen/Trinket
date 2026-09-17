@@ -58,7 +58,7 @@ Spikes and direct Thorns motifs use `asterisk`; explosive impacts retain
 | Campaign / Contract / Spire placeholder | `map.fill` / `scroll.fill` / `flag.fill` |
 | Party selection / Recruit reward | `person.2.fill` / `person.badge.plus` |
 | Wood / Stone / Iron fallback | `tree.fill` / `mountain.2.fill` / `hammer.fill` |
-| Food / Herbs / Hide / Crystal / Gold fallback | `carrot.fill` / `leaf.fill` / `pawprint.fill` / `diamond.fill` / `circle.circle.fill` |
+| Food / Herbs / Hide / Gems / Gold fallback | `carrot.fill` / `leaf.fill` / `pawprint.fill` / `diamond.fill` / `circle.circle.fill` |
 | Farming / Crafting / Alchemy / Training / Arcana category | `leaf.fill` / `hammer.fill` / `flask.fill` / `target` / `moon.stars.fill` |
 | Collect | `gift.fill` |
 | Corruption reward / Walk Away reward | `dice.fill` / `figure.walk` |

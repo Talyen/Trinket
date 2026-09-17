@@ -224,7 +224,7 @@ struct HomesteadPresentationTests {
             .food: "carrot.fill",
             .herbs: "leaf.fill",
             .hide: "square.stack.3d.up.fill",
-            .crystal: "diamond.fill",
+            .gems: "diamond.fill",
             .gold: "circle.circle.fill",
         ]
         for (resource, symbol) in expectedSymbols {

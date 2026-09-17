@@ -437,46 +437,46 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 1,
                     stageName: "Crystal Beds",
-                    cost: [ResourceAmount(.stone, 6), ResourceAmount(.crystal, 4)],
+                    cost: [ResourceAmount(.stone, 6), ResourceAmount(.gems, 4)],
                     bonus: HomesteadBonus(
                         title: "Mana & production",
-                        description: "Increase Mana by 2\nProduces 1 Crystal per day"
+                        description: "Increase Mana by 2\nProduces 1 Gem per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(2)], companionModifiers: [.maximumMana(2)]),
-                    production: ResourceAmount(.crystal, 1)
+                    production: ResourceAmount(.gems, 1)
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     stageName: "Covered Beds",
-                    cost: [ResourceAmount(.stone, 12), ResourceAmount(.crystal, 8)],
+                    cost: [ResourceAmount(.stone, 12), ResourceAmount(.gems, 8)],
                     bonus: HomesteadBonus(
                         title: "Mana & production",
-                        description: "Increase Mana by 4\nProduces 2 Crystal per day"
+                        description: "Increase Mana by 4\nProduces 2 Gems per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(4)], companionModifiers: [.maximumMana(4)]),
-                    production: ResourceAmount(.crystal, 2)
+                    production: ResourceAmount(.gems, 2)
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     stageName: "Growth Chambers",
-                    cost: [ResourceAmount(.stone, 24), ResourceAmount(.crystal, 16)],
+                    cost: [ResourceAmount(.stone, 24), ResourceAmount(.gems, 16)],
                     bonus: HomesteadBonus(
                         title: "Mana & production",
-                        description: "Increase Mana by 6\nProduces 3 Crystal per day"
+                        description: "Increase Mana by 6\nProduces 3 Gems per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(6)], companionModifiers: [.maximumMana(6)]),
-                    production: ResourceAmount(.crystal, 3)
+                    production: ResourceAmount(.gems, 3)
                 ),
                 HomesteadNodeTier(
                     tier: 4,
                     stageName: "Crystal Conservatory",
-                    cost: [ResourceAmount(.stone, 48), ResourceAmount(.crystal, 32)],
+                    cost: [ResourceAmount(.stone, 48), ResourceAmount(.gems, 32)],
                     bonus: HomesteadBonus(
                         title: "Mana & production",
-                        description: "Increase Mana by 8\nProduces 4 Crystal per day"
+                        description: "Increase Mana by 8\nProduces 4 Gems per day"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.maximumMana(8)], companionModifiers: [.maximumMana(8)]),
-                    production: ResourceAmount(.crystal, 4)
+                    production: ResourceAmount(.gems, 4)
                 )
             ]
         ))
@@ -491,7 +491,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 1,
                     stageName: "Inscription Table",
-                    cost: [ResourceAmount(.iron, 8), ResourceAmount(.crystal, 2)],
+                    cost: [ResourceAmount(.iron, 8), ResourceAmount(.gems, 2)],
                     bonus: HomesteadBonus(
                         title: "Burn, Freeze & Holy damage",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 1"
@@ -501,7 +501,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 2,
                     stageName: "Engraving Bench",
-                    cost: [ResourceAmount(.iron, 16), ResourceAmount(.crystal, 4)],
+                    cost: [ResourceAmount(.iron, 16), ResourceAmount(.gems, 4)],
                     bonus: HomesteadBonus(
                         title: "Burn, Freeze & Holy damage",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 2"
@@ -511,7 +511,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 3,
                     stageName: "Rune Forge",
-                    cost: [ResourceAmount(.iron, 32), ResourceAmount(.crystal, 8)],
+                    cost: [ResourceAmount(.iron, 32), ResourceAmount(.gems, 8)],
                     bonus: HomesteadBonus(
                         title: "Burn, Freeze & Holy damage",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 3"
@@ -521,7 +521,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 4,
                     stageName: "Expanded Workshop",
-                    cost: [ResourceAmount(.iron, 64), ResourceAmount(.crystal, 16)],
+                    cost: [ResourceAmount(.iron, 64), ResourceAmount(.gems, 16)],
                     bonus: HomesteadBonus(
                         title: "Burn, Freeze & Holy damage",
                         description: "Increase Burn, Freeze, and Holy damage dealt by 4"
@@ -645,7 +645,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 1,
                     stageName: "Shrine Foundation",
-                    cost: [ResourceAmount(.herbs, 4), ResourceAmount(.crystal, 6)],
+                    cost: [ResourceAmount(.herbs, 4), ResourceAmount(.gems, 6)],
                     bonus: HomesteadBonus(
                         title: "Astral finds",
                         description: "Increase Astral item roll weight by 5%"
@@ -655,7 +655,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 2,
                     stageName: "Enclosed Shrine",
-                    cost: [ResourceAmount(.herbs, 8), ResourceAmount(.crystal, 12)],
+                    cost: [ResourceAmount(.herbs, 8), ResourceAmount(.gems, 12)],
                     bonus: HomesteadBonus(
                         title: "Astral finds",
                         description: "Increase Astral item roll weight by 10%"
@@ -665,7 +665,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 3,
                     stageName: "Observation Chamber",
-                    cost: [ResourceAmount(.herbs, 16), ResourceAmount(.crystal, 24)],
+                    cost: [ResourceAmount(.herbs, 16), ResourceAmount(.gems, 24)],
                     bonus: HomesteadBonus(
                         title: "Astral finds",
                         description: "Increase Astral item roll weight by 15%"
@@ -675,7 +675,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 4,
                     stageName: "Observatory Tower",
-                    cost: [ResourceAmount(.herbs, 32), ResourceAmount(.crystal, 48)],
+                    cost: [ResourceAmount(.herbs, 32), ResourceAmount(.gems, 48)],
                     bonus: HomesteadBonus(
                         title: "Astral finds",
                         description: "Increase Astral item roll weight by 20%"
@@ -695,7 +695,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 1,
                     stageName: "Dug Shaft",
-                    cost: [ResourceAmount(.crystal, 5), ResourceAmount(.gold, 5)],
+                    cost: [ResourceAmount(.gems, 5), ResourceAmount(.gold, 5)],
                     bonus: HomesteadBonus(
                         title: "Treasure & production",
                         description: "Find 5% more Gold\nProduces 1 Gold per day"
@@ -706,7 +706,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 2,
                     stageName: "Stone Lining",
-                    cost: [ResourceAmount(.crystal, 10), ResourceAmount(.gold, 10)],
+                    cost: [ResourceAmount(.gems, 10), ResourceAmount(.gold, 10)],
                     bonus: HomesteadBonus(
                         title: "Treasure & production",
                         description: "Find 10% more Gold\nProduces 2 Gold per day"
@@ -717,7 +717,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 3,
                     stageName: "Covered Well",
-                    cost: [ResourceAmount(.crystal, 20), ResourceAmount(.gold, 20)],
+                    cost: [ResourceAmount(.gems, 20), ResourceAmount(.gold, 20)],
                     bonus: HomesteadBonus(
                         title: "Treasure & production",
                         description: "Find 15% more Gold\nProduces 3 Gold per day"
@@ -728,7 +728,7 @@ enum GameContentHomesteadGenerated {
                 HomesteadNodeTier(
                     tier: 4,
                     stageName: "Wellhouse",
-                    cost: [ResourceAmount(.crystal, 40), ResourceAmount(.gold, 40)],
+                    cost: [ResourceAmount(.gems, 40), ResourceAmount(.gold, 40)],
                     bonus: HomesteadBonus(
                         title: "Treasure & production",
                         description: "Find 20% more Gold\nProduces 4 Gold per day"

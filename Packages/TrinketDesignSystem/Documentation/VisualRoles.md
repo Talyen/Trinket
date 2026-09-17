@@ -12,7 +12,7 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 | Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
 | Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
 | Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
-| Resources | `HomesteadResource.tint` (gold resolves to the theme accent) | `ResourceWood` … `ResourceHide` / `ResourceCrystal` |
+| Resources | `HomesteadResource.tint` (gold resolves to the theme accent) | `ResourceWood` … `ResourceHide` / `ResourceGems` |
 | Chapter | `TrinketDesign.Colors.chapterForest` / `.chapterDungeon` / `.chapterDesert` / `.chapterTundra` | `ChapterForest` … `ChapterTundra` |
 
 On-art text styling uses `.trinketOnArtText(_:)`.

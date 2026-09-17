@@ -20,7 +20,7 @@ public struct BattleLootResult: Hashable, Sendable {
 
 enum BattleLoot {
     static let materialResources: [HomesteadResource] = [
-        .wood, .stone, .iron, .food, .herbs, .hide, .crystal,
+        .wood, .stone, .iron, .food, .herbs, .hide, .gems,
     ]
 
     static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {

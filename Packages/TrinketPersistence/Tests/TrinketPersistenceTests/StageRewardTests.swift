@@ -369,7 +369,7 @@ struct StageRewardTests {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let overrides = [ResourceAmount(.crystal, 7), ResourceAmount(.herbs, 2)]
+        let overrides = [ResourceAmount(.gems, 7), ResourceAmount(.herbs, 2)]
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
@@ -379,7 +379,7 @@ struct StageRewardTests {
             save: &save,
         )
 
-        try #expect(save.homestead.resources[.crystal] == 7)
+        try #expect(save.homestead.resources[.gems] == 7)
         try #expect(save.homestead.resources[.herbs] == 2)
     }
 }

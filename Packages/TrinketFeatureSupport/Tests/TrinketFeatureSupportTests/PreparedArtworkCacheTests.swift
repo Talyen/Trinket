@@ -90,13 +90,19 @@ struct PreparedArtworkCacheTests {
         while cache.pinDemandCount(for: "c") == 0 || cache.pinDemandCount(for: "e") == 0 {
             await Task.yield()
         }
-        #expect(await probe.started == ["a", "b"])
+        // Both decode slots run concurrently, so "a"/"b" arrival order is
+        // unsynchronized; only the started set is deterministic here.
+        let initiallyStarted = await probe.started
+        #expect(Set(initiallyStarted) == Set(["a", "b"]))
         canceled.cancel()
         await canceled.value
         #expect(cache.pinDemandCount(for: "c") == 0)
         await probe.release("a")
         await probe.waitForStarts(3)
-        #expect(await probe.started == ["a", "b", "d"])
+        let startedAfterRelease = await probe.started
+        #expect(startedAfterRelease.count == 3)
+        #expect(Set(startedAfterRelease.dropLast()) == Set(["a", "b"]))
+        #expect(startedAfterRelease.last == "d")
         await probe.release("b")
         await probe.waitForStarts(4)
         await probe.release("d")

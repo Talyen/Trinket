@@ -7,11 +7,38 @@ public enum HomesteadResource: String, CaseIterable, Codable, Hashable, Identifi
     case food
     case herbs
     case hide
-    case crystal
+    case gems
     case gold
 
     public var id: String {
         rawValue
+    }
+
+    /// Maps a persisted resource identifier to a live case.
+    /// TestFlight saves written before the Crystal → Gems rename encode this
+    /// resource as `"crystal"`; resolve that alias so existing balances survive.
+    public static func resolving(resourceID: String) -> Self? {
+        if resourceID == "crystal" {
+            return .gems
+        }
+        return Self(rawValue: resourceID)
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let resourceID = try container.decode(String.self)
+        guard let resource = Self.resolving(resourceID: resourceID) else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Unknown HomesteadResource: \(resourceID)",
+            )
+        }
+        self = resource
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }
 

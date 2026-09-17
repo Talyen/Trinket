@@ -249,7 +249,7 @@ resource	iron	resource_homestead_iron	Raw Assets/Homestead/Resources/iron.png	0.
 resource	food	resource_homestead_food	Raw Assets/Homestead/Resources/food.png	0.50	0.50
 resource	herbs	resource_homestead_herbs	Raw Assets/Homestead/Resources/herbs.png	0.50	0.50
 resource	hide	resource_homestead_hide	Raw Assets/Homestead/Resources/hide.png	0.50	0.50
-resource	crystal	resource_homestead_crystal	Raw Assets/Homestead/Resources/crystal.png	0.50	0.50
+resource	gems	resource_homestead_gems	Raw Assets/Homestead/Resources/gems.png	0.50	0.50
 resource	gold	resource_homestead_gold	Raw Assets/Homestead/Resources/gold.png	0.50	0.50
 resource	experience	resource_experience	Raw Assets/Resources/experience.png	0.50	0.50
 encounter	mystery-abandoned-study	encounter_mystery_abandoned_study	Raw Assets/Mystery Events/Abandoned Study.jpeg	0.50	0.50

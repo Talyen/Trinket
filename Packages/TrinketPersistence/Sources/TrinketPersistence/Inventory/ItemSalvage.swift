@@ -32,7 +32,7 @@ public enum ItemSalvage {
         case .armor:
             (.hide, .stone)
         case .accessory:
-            (.herbs, .crystal)
+            (.herbs, .gems)
         default:
             nil
         }

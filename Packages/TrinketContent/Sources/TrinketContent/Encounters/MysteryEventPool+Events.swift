@@ -27,7 +27,7 @@ extension MysteryEventPool {
         choices: [
             ("gather-the-moss", "Break the Crust", [
                 item("sapphire_amulet", trinkets: ["icy_heart"], uniques: ["rimeheart_locket"]),
-                .gainMaterial(.crystal),
+                .gainMaterial(.gems),
             ]),
             ("take-the-charm", "Read the Ripples", [
                 item("emerald_ring", uniques: ["serpents_eye"]),
@@ -163,7 +163,7 @@ extension MysteryEventPool {
         choices: [
             ("harvest-shards", "Harvest Shards", [
                 item("sapphire_amulet", guaranteedAffixIDs: ["manabound"]),
-                .gainMaterial(.crystal),
+                .gainMaterial(.gems),
             ]),
             ("take-the-chimes", "Learn the Melody", [
                 item("wand", trinkets: ["resonant_chimes"]),
@@ -180,7 +180,7 @@ extension MysteryEventPool {
         choices: [
             ("claim-the-feather", "Search the Nest", [
                 item("ruby_ring", uniques: ["bloodfire_signet"]),
-                .gainMaterial(.crystal),
+                .gainMaterial(.gems),
             ]),
             ("take-the-brand", "Gather the Embers", [
                 item("staff"),
@@ -286,7 +286,7 @@ extension MysteryEventPool {
             ]),
             ("repair-the-binding", "Break the Seal", [
                 item("staff", uniques: ["twin_casting"]),
-                .gainMaterial(.crystal),
+                .gainMaterial(.gems),
             ]),
         ],
     )
@@ -299,7 +299,7 @@ extension MysteryEventPool {
         choices: [
             ("collect-gems", "Collect Gems", [
                 item("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
-                .gainMaterial(.crystal),
+                .gainMaterial(.gems),
             ]),
             ("take-the-shell", "Break the Shell", [
                 item("topaz_amulet", trinkets: ["sundering_charm"]),
@@ -354,7 +354,7 @@ extension MysteryEventPool {
             ]),
             ("take-the-salts", "Take the Salts", [
                 item("ruby_amulet", trinkets: ["bone_charm"]),
-                .gainMaterial(.crystal),
+                .gainMaterial(.gems),
             ]),
         ],
     )

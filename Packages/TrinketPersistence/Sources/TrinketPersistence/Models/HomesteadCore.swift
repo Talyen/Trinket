@@ -24,7 +24,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
                 .food: 20,
                 .herbs: 14,
                 .hide: 10,
-                .crystal: 4,
+                .gems: 4,
             ],
             nodeTiers: [
                 .wheatField: 1,
@@ -47,7 +47,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         state.pendingProduction = [
             .food: 10,
             .herbs: 10,
-            .crystal: 10,
+            .gems: 10,
             .hide: 10,
             .gold: 10,
         ]

@@ -16,7 +16,7 @@ struct ItemSalvageApplierTests {
         ])
         #expect(ItemSalvage.yields(for: astralTrinket) == [
             ResourceAmount(.herbs, 16),
-            ResourceAmount(.crystal, 8),
+            ResourceAmount(.gems, 8),
         ])
         #expect(ItemSalvage.yields(for: basicArmor) == [
             ResourceAmount(.hide, 8),

@@ -46,7 +46,7 @@ VALID_CHAPTER_THEMES = frozenset({"forest", "dungeon", "desert", "tundra"})
 # Recruit sentinel: empty id = any eligible unlock; this id = companion-only pool.
 RANDOM_COMPANION_RECRUIT_ID = "random-companion"
 VALID_HOMESTEAD_RESOURCES = frozenset(
-    {"wood", "stone", "iron", "food", "herbs", "hide", "crystal", "gold"}
+    {"wood", "stone", "iron", "food", "herbs", "hide", "gems", "gold"}
 )
 VALID_HOMESTEAD_CATEGORIES = frozenset(
     {"farming", "crafting", "alchemy", "training", "arcana"}

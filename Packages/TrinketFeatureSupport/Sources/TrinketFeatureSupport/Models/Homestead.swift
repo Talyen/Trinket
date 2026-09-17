@@ -10,7 +10,7 @@ public extension HomesteadResource {
         case .food: "Food"
         case .herbs: "Herbs"
         case .hide: "Hide"
-        case .crystal: "Crystal"
+        case .gems: "Gems"
         case .gold: "Gold"
         }
     }
@@ -23,7 +23,7 @@ public extension HomesteadResource {
         case .food: .system("carrot.fill")
         case .herbs: .system("leaf.fill")
         case .hide: .system("square.stack.3d.up.fill")
-        case .crystal: .system("diamond.fill")
+        case .gems: .system("diamond.fill")
         case .gold: Keyword.gold.visualStyle.icon
         }
     }

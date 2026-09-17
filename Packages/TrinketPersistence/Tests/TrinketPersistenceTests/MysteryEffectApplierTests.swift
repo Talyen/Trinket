@@ -216,7 +216,7 @@ struct MysteryEffectApplierTests {
         let result = MysteryEffectApplier.apply(offer, save: &save)
         #expect(result.grantedItems == [offer.item])
         #expect(save.inventory.items.contains(offer.item))
-        #expect(result.grantedMaterials == [ResourceAmount(.crystal, offer.bonus.amount)])
+        #expect(result.grantedMaterials == [ResourceAmount(.gems, offer.bonus.amount)])
         #expect(MysteryEffectApplier.apply(offer, save: &save).isEmpty)
     }
 

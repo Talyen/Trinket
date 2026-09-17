@@ -16,8 +16,8 @@ public extension HomesteadResource {
             DesignAssetColors.named("ResourceHerbs")
         case .hide:
             DesignAssetColors.named("ResourceHide")
-        case .crystal:
-            DesignAssetColors.named("ResourceCrystal")
+        case .gems:
+            DesignAssetColors.named("ResourceGems")
         case .gold:
             TrinketDesign.Colors.accent
         }

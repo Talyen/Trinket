@@ -290,12 +290,12 @@ extension HomesteadModel {
     func toPlayerHomesteadState() -> PlayerHomesteadState {
         var resolvedResources: [HomesteadResource: Int] = [:]
         for balance in resources ?? [] {
-            guard let resource = HomesteadResource(rawValue: balance.resourceID), resource != .gold else { continue }
+            guard let resource = HomesteadResource.resolving(resourceID: balance.resourceID), resource != .gold else { continue }
             resolvedResources[resource] = balance.quantity
         }
         var resolvedPendingProduction: [HomesteadResource: Double] = [:]
         for pending in pendingProduction ?? [] {
-            guard let resource = HomesteadResource(rawValue: pending.resourceID) else { continue }
+            guard let resource = HomesteadResource.resolving(resourceID: pending.resourceID) else { continue }
             resolvedPendingProduction[resource] = pending.quantity
         }
         var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]
