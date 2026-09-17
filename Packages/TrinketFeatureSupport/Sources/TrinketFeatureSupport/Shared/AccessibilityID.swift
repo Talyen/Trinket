@@ -224,7 +224,6 @@ public enum AccessibilityID {
 
     public enum Shop {
         public static let encounterTitle = "Shop Encounter Title"
-        public static let encounterGreeting = "Shop Encounter Greeting"
         public static let encounterArt = "Shop Encounter Art"
         public static let goldBalance = "Shop Gold Balance"
         public static let leaveButton = "Shop Leave Button"
@@ -435,7 +434,6 @@ public extension AccessibilityID {
         public static let retry = "Full Game Retry"
         public static let status = "Full Game Status"
         public static let options = "Full Game Options"
-        public static let boundary = "Full Game Boundary"
         public static let hero = "Full Game Hero"
         public static let privacy = "Full Game Privacy"
     }

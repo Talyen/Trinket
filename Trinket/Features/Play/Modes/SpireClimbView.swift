@@ -74,17 +74,14 @@ struct SpireClimbView: View {
                 if rows.isEmpty {
                     completionState(for: spire)
                 } else {
-                    if !playerSave.contentAccess.allowsSpireFloor(activeFloorNumber) {
-                        FullGameBoundaryView(
-                            title: "Continue to Floor \(activeFloorNumber)",
-                            origin: .spire(spire.id, floor: activeFloorNumber),
-                        )
-                    }
                     StageSelectList(
                         rows: rows,
                         isPrimaryActionDisabled: { floor in
-                            isBattleActive || !isPartyAttuned(to: spire) || !playerSave.contentAccess.allowsSpireFloor(floor.floor)
+                            isBattleActive
+                                || (!isFloorLockedContent(floor)
+                                    && (!isPartyAttuned(to: spire) || !playerSave.contentAccess.allowsSpireFloor(floor.floor)))
                         },
+                        isLockedContent: isFloorLockedContent(_:),
                         onArtworkTap: showEnemyDetails,
                         onPrimaryAction: { floor in
                             if let message = spires.startBattle(for: floor) {
@@ -128,6 +125,10 @@ struct SpireClimbView: View {
             accessibilityIdentifier: AccessibilityID.Play.spireCompletionBack(spire.id.rawValue),
             onBack: { dismiss() },
         )
+    }
+
+    private func isFloorLockedContent(_ floor: SpireFloor) -> Bool {
+        floor.floor == activeFloorNumber && !playerSave.contentAccess.allowsSpireFloor(floor.floor)
     }
 
     private func isPartyAttuned(to spire: SpireDefinition) -> Bool {

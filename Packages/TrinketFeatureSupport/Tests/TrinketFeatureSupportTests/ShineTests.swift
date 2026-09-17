@@ -80,6 +80,33 @@ struct ShineTests {
 
         let unique = try ItemFixtures.makeBareItem("leather_armor", rarity: .unique, affixes: [corrupted])
         #expect(unique.affixShine(at: 0, affix: corrupted) == unique.displayTextShine)
+
+        let signature = ItemAffix(
+            id: "sig",
+            title: "Sig",
+            description: "Burn damage",
+            keywords: [.burn],
+        )
+        let uniqueSupport = try ItemFixtures.makeBareItem(
+            "leather_armor",
+            rarity: .unique,
+            affixes: [signature, corrupted],
+        )
+        #expect(uniqueSupport.affixShine(at: 1, affix: corrupted) == .corruption)
+    }
+
+    @Test func `unique signature keeps gold while supports use keyword shine`() throws {
+        let unique = try #require(GameContent.unique(matching: "wardbreaker"))
+        #expect(unique.uniqueSignatureIndex == 0)
+        let displayed = unique.displayedAffixes
+        #expect(unique.affixShine(at: 0, affix: displayed[0]) == unique.displayTextShine)
+        for index in 1 ..< displayed.count {
+            let affix = displayed[index]
+            let expected = Shine.itemText(colors: Keyword.referenced(in: affix.description).map(\.visualStyle.color))
+            #expect(unique.affixShine(at: index, affix: affix) == expected)
+            #expect(!unique.affixShine(at: index, affix: affix).textColors.isEmpty)
+            #expect(unique.affixShine(at: index, affix: affix) != unique.displayTextShine)
+        }
     }
 
     @Test(arguments: ["longsword", "brass_censer"])

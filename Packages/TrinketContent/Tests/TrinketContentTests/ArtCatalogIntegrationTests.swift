@@ -84,8 +84,8 @@ struct ArtCatalogIntegrationTests {
                 "Missing art for unique item \(item.templateID)",
             )
             #expect(
-                art == item.baseType.previewArtReference,
-                "Unique item \(item.templateID) should use base item art",
+                art == ArtCatalog.itemArtByID["\(item.baseType.id)-astral"],
+                "Unique item \(item.templateID) should use base item Astral art",
             )
         }
 

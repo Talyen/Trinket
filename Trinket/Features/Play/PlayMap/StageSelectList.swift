@@ -9,6 +9,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
     let rows: [StageSelectRowPresentation<Item>]
     var rowSpacing: CGFloat = TrinketDesign.Spacing.extraSmall * 2
     let isPrimaryActionDisabled: (Item) -> Bool
+    var isLockedContent: (Item) -> Bool = { _ in false }
     let onArtworkTap: (Item) -> Void
     let onPrimaryAction: (Item) -> Bool
     @ViewBuilder let artwork: (Item, _ isActive: Bool) -> Artwork
@@ -20,6 +21,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
                 StageSelectRow(
                     presentation: presentation,
                     isPrimaryActionDisabled: isPrimaryActionDisabled(presentation.item),
+                    isLockedContent: isLockedContent(presentation.item),
                     onArtworkTap: { onArtworkTap(presentation.item) },
                     onPrimaryAction: { onPrimaryAction(presentation.item) },
                     artwork: { artwork(presentation.item, presentation.isActive) },
@@ -35,6 +37,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
 private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
+    let isLockedContent: Bool
     let onArtworkTap: () -> Void
     let onPrimaryAction: () -> Bool
     @ViewBuilder let artwork: () -> Artwork
@@ -46,6 +49,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                 StageSelectActiveCard(
                     presentation: presentation,
                     isPrimaryActionDisabled: isPrimaryActionDisabled,
+                    isLockedContent: isLockedContent,
                     onArtworkTap: onArtworkTap,
                     onPrimaryAction: onPrimaryAction,
                     artwork: artwork,

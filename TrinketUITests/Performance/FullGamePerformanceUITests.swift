@@ -5,7 +5,7 @@ import XCTest
 
 final class FullGamePerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testLockedCharacterAndBoundary() throws {
+    func testLockedCharacterAndUnlockOffer() throws {
         let session = try SKTestSession(configurationFileNamed: "Trinket")
         session.resetToDefaultState()
         session.clearTransactions()
@@ -25,13 +25,14 @@ final class FullGamePerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg
                 .performanceArguments(from: TestLaunchArg.allUnseeded() + TestLaunchArg.completedStages(freeStages)))
             tapButton(AccessibilityID.Play.campaignModeCard)
-            reveal(button(AccessibilityID.FullGame.boundary))
-            measured("campaign-full-game-boundary", iteration: iteration) {
-                tapButton(AccessibilityID.FullGame.boundary)
+            let unlock = AccessibilityID.Play.stageAction(chapter: 4, stage: 1)
+            reveal(button(unlock))
+            measured("campaign-unlock-offer", iteration: iteration) {
+                tapButton(unlock)
                 assertExists(AccessibilityID.FullGame.offer)
                 tapButton(AccessibilityID.FullGame.close)
                 assertDoesNotExist(AccessibilityID.FullGame.offer)
-                assertExists(AccessibilityID.FullGame.boundary)
+                assertExists(unlock)
             }
         }
     }

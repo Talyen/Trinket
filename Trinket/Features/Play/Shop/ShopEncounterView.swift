@@ -36,12 +36,6 @@ struct ShopEncounterView: View {
                             .trinketTypography(.screenTitle)
                             .accessibilityIdentifier(AccessibilityID.Shop.encounterTitle)
 
-                        Text(session.greeting)
-                            .trinketTypography(.body)
-                            .foregroundStyle(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier(AccessibilityID.Shop.encounterGreeting)
-
                         if let errorMessage = session.lastPurchaseError {
                             Text(errorMessage)
                                 .trinketTypography(.badge)

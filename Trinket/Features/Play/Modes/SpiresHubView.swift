@@ -56,7 +56,6 @@ struct SpiresHubView: View {
             highestCleared: playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
             floorCount: spire.floorCount,
         )
-        let progress = SpiresProgress.floorsText(cleared: clearedFloors, total: spire.floorCount)
-        return playerSave.contentAccess.hasFullGame ? progress : "\(progress) · First \(ContentAccessPolicy.freeSpireFloorCount) free"
+        return SpiresProgress.floorsText(cleared: clearedFloors, total: spire.floorCount)
     }
 }

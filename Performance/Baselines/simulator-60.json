@@ -56,7 +56,7 @@
     "contracts-party-picker",
     "contracts-battle-return",
     "locked-character-offer",
-    "campaign-full-game-boundary",
+    "campaign-unlock-offer",
     "full-game-offer",
     "full-game-purchase",
     "full-game-restore",
@@ -304,11 +304,11 @@
     },
     "locked-character-offer": {
       "group": "fullgame",
-      "test": "FullGamePerformanceUITests/testLockedCharacterAndBoundary"
+      "test": "FullGamePerformanceUITests/testLockedCharacterAndUnlockOffer"
     },
-    "campaign-full-game-boundary": {
+    "campaign-unlock-offer": {
       "group": "fullgame",
-      "test": "FullGamePerformanceUITests/testLockedCharacterAndBoundary"
+      "test": "FullGamePerformanceUITests/testLockedCharacterAndUnlockOffer"
     },
     "full-game-offer": {
       "group": "fullgame",

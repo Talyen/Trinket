@@ -84,6 +84,15 @@ struct ChapterStageSelectView: View {
         presentation.chapter
     }
 
+    private var isChapterLocked: Bool {
+        !playerSave.contentAccess.allowsChapter(chapter.number)
+    }
+
+    private func isStageLockedContent(_ stage: Stage) -> Bool {
+        guard isChapterLocked else { return false }
+        return presentation.rows.first(where: \.isActive)?.item.id == stage.id
+    }
+
     private var presentation: CampaignMapSnapshot {
         retainedPresentation ?? CampaignMapSnapshot(journey: journey, playerSave: playerSave)
     }
@@ -114,12 +123,10 @@ struct ChapterStageSelectView: View {
                 if presentation.isComplete {
                     campaignCompletionState
                 } else {
-                    if !playerSave.contentAccess.allowsChapter(chapter.number) {
-                        FullGameBoundaryView(title: chapter.title, origin: .campaign(chapter: chapter.number))
-                    }
                     StageSelectList(
                         rows: presentation.rows,
-                        isPrimaryActionDisabled: { _ in !playerSave.contentAccess.allowsChapter(chapter.number) },
+                        isPrimaryActionDisabled: { isChapterLocked && !isStageLockedContent($0) },
+                        isLockedContent: isStageLockedContent(_:),
                         onArtworkTap: onEnemyTap,
                         onPrimaryAction: handlePrimaryAction,
                         artwork: { stage, isActive in

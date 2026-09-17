@@ -13,7 +13,6 @@ struct LabyrinthMapView: View {
     @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(EncounterPlayMode.self) private var encounters
     @State private var retainedPresentation: LabyrinthMapSnapshot?
-    @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @State private var nodeMessage: StageMapMessage?
@@ -91,44 +90,23 @@ struct LabyrinthMapView: View {
         .onChange(of: StageSelectPrepareDependency.labyrinth(playerSave: playerSave)) { _, _ in
             labyrinth.prepareReachableBattles()
         }
-        .safeAreaInset(edge: .bottom) {
-            if state.currentFloorNumber > ContentAccessPolicy.freeLabyrinthFloorCount, !playerSave.contentAccess.hasFullGame,
-               selectedNode == nil {
-                FullGameBoundaryView(
-                    title: "Continue to Floor \(ContentAccessPolicy.freeLabyrinthFloorCount + 1)",
-                    origin: .labyrinth(floor: ContentAccessPolicy.freeLabyrinthFloorCount + 1),
-                )
-                .trinketScreenBackground()
-            }
-        }
-        .onChange(of: playerSave.contentAccess) { _, access in
-            if !access.allowsLabyrinthFloor(viewedFloor) {
-                selectedNodeID = nil
-                viewedFloor = accessibleFloor(viewedFloor)
-            }
-        }
         .trinketMessageAlert($nodeMessage)
     }
 
     private func accessibleFloor(_ floor: Int) -> Int {
-        max(1, playerSave.contentAccess.hasFullGame ? floor : min(floor, ContentAccessPolicy.freeLabyrinthFloorCount))
+        max(1, floor)
     }
 
     private var floorMenu: some View {
         Menu {
             ForEach(floors) { floor in
                 Button {
-                    if playerSave.contentAccess.allowsLabyrinthFloor(floor.depthBand) {
-                        showFloor(floor.depthBand)
-                    } else {
-                        requestOffer(.labyrinth(floor: floor.depthBand))
-                    }
+                    showFloor(floor.depthBand)
                 } label: {
                     if floor.depthBand == viewedFloor {
                         Label("Floor \(floor.depthBand)", systemImage: "checkmark")
                     } else {
-                        Text(playerSave.contentAccess
-                            .allowsLabyrinthFloor(floor.depthBand) ? "Floor \(floor.depthBand)" : "Floor \(floor.depthBand) · Full Game")
+                        Text("Floor \(floor.depthBand)")
                     }
                 }
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthFloor(floor.depthBand))
@@ -197,7 +175,7 @@ struct LabyrinthMapView: View {
                     recruitArtwork: snapshot.recruitArtwork(for: selectedNode),
                     onPrimaryAction: { handleNodeAction(selectedNode, snapshot: snapshot) },
                 )
-                .frame(maxWidth: 340)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 .padding(.bottom, TrinketDesign.Spacing.small)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }

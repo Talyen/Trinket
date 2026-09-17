@@ -1,7 +1,7 @@
 # Unique equipment
 
 The collection has one Unique for each of the 29 weapon, armor, and accessory
-bases. Trinkets remain a separate category. Uniques use their base item's artwork
+bases. Trinkets remain a separate category. Uniques use their base item's Astral artwork
 and the existing singleton ownership, equipment, reward, and corruption rules.
 
 Collection shows the full authored Unique and Trinket catalogs, with owned items
@@ -13,7 +13,9 @@ items; Unique Gear slot filters include locked entries.
 
 The authored [Unique catalog](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog.swift)
 owns identities and powers. Each Unique has an exclusive signature and three
-fixed supporting powers, resolved at the catalog's Astral values without RNG.
+fixed supporting powers, resolved at the catalog's Astral roll-max values
+without RNG. Only the signature trait and the item name use the Unique gold
+shine; supporting traits use their normal keyword-based shine.
 Item-local pinned supports reuse standard powers when their slot or affinity
 needs adaptation; they never enter ordinary affix pools. Existing owned items
 keep their identities, and new trigger fields decode to inactive defaults in

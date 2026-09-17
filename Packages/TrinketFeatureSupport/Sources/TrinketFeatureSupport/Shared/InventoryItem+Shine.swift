@@ -38,6 +38,13 @@ public extension InventoryItem {
     }
 
     func affixShine(at index: Int, affix: ItemAffix) -> Shine {
+        if rarity == .unique, !isUniqueSignatureAffix(at: index) {
+            if affix.isCorrupted {
+                return .corruption
+            }
+            let keywords = Keyword.referenced(in: affix.description).prefix(3)
+            return .itemText(colors: keywords.map(\.visualStyle.color))
+        }
         if rarity == .unique {
             return .itemText(colors: Shine.uniqueBorderColors)
         }

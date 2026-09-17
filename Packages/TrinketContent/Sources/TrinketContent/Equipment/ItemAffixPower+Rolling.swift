@@ -72,6 +72,43 @@ public extension ItemAffixPower {
         return Self(description: description, modifiers: rolledModifiers, triggers: rolledTriggers)
     }
 
+    func rolledMax() -> Self {
+        guard hasRollableMagnitudes else { return self }
+        var description = description
+        let maxedModifiers = modifiers.map { modifier -> AffixModifier in
+            guard modifier.numericValue != 0 else { return modifier }
+            if modifier.isPercent {
+                let maximum = ItemAffixMagnitudeRoll.percentValues(around: modifier.numericValue).max()
+                    ?? modifier.numericValue
+                description = Self.replacingMagnitude(
+                    in: description,
+                    from: modifier.numericValue,
+                    to: maximum,
+                    isPercent: true,
+                )
+                return modifier.mapPercent { _ in maximum }
+            }
+            let old = Int(modifier.numericValue.rounded())
+            let maximum = ItemAffixMagnitudeRoll.integerRange(around: old).upperBound
+            description = Self.replacingMagnitude(
+                in: description,
+                from: Double(old),
+                to: Double(maximum),
+                isPercent: false,
+            )
+            return modifier.mapInt { _ in maximum }
+        }
+        let maxedTriggers = triggers.maxRolledAffixMagnitudes { old, new, isPercent in
+            description = Self.replacingMagnitude(
+                in: description,
+                from: old,
+                to: new,
+                isPercent: isPercent,
+            )
+        }
+        return Self(description: description, modifiers: maxedModifiers, triggers: maxedTriggers)
+    }
+
     func isAtOrAboveRollMax(of catalog: Self) -> Bool {
         guard catalog.hasRollableMagnitudes else { return false }
         for (index, catalogModifier) in catalog.modifiers.enumerated() where catalogModifier.numericValue != 0 {
@@ -326,6 +363,31 @@ private extension CombatTraitTriggers {
             }
         }
         return rolled
+    }
+
+    func maxRolledAffixMagnitudes(
+        record: (Double, Double, Bool) -> Void,
+    ) -> Self {
+        var maxed = self
+        for field in Self.affixMagnitudeFields {
+            switch field {
+            case let .int(keyPath):
+                let old = maxed[keyPath: keyPath]
+                guard old != 0 else { continue }
+                let new = ItemAffixMagnitudeRoll.integerRange(around: old).upperBound
+                guard new != old else { continue }
+                maxed[keyPath: keyPath] = new
+                record(Double(old), Double(new), false)
+            case let .percent(keyPath):
+                let old = maxed[keyPath: keyPath]
+                guard old != 0 else { continue }
+                let new = ItemAffixMagnitudeRoll.percentValues(around: old).max() ?? old
+                guard abs(new - old) > 1e-9 else { continue }
+                maxed[keyPath: keyPath] = new
+                record(old, new, true)
+            }
+        }
+        return maxed
     }
 
     func hasBumpableAffixMagnitude(direction: ItemAffixPowerBumpDirection) -> Bool {

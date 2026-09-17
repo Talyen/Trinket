@@ -37,9 +37,9 @@ public enum LabyrinthMapPresentation {
     ) -> String {
         switch type {
         case .battle: "Battle"
-        case .boss: "Challenge Boss"
-        case .shop: "Visit Shop"
-        case .mystery: "Approach Mystery"
+        case .boss: "Battle"
+        case .shop: "Shop"
+        case .mystery: "Approach"
         case .recruit: "Recruit"
         case .entrance: "Enter Labyrinth"
         }

@@ -49,7 +49,8 @@ features own the mapping from gameplay outcomes to those indicators.
 
 `Shine` owns text and border palettes; `ItemCard` falls back to rarity/Astral
 when no override is supplied. `displayTextShine` derives title colors
-from displayed affixes, preferring base affinities; Unique titles use gold.
+from displayed affixes, preferring base affinities; Unique titles and their
+signature trait use gold, while supporting traits use keyword shine.
 Title palettes do not limit border or plasma keywords. Text delegates to
 DesignSystem's `trinketShineText(colors:)`; source owns palette and motion tuning.
 Apply `shineText` before fixed foreground fallbacks, including `trinketOnArtText`.

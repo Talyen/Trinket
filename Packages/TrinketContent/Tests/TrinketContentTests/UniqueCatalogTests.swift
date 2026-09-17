@@ -137,12 +137,16 @@ struct UniqueCatalogTests {
         #expect(sampleIDs.isDisjoint(with: uniqueIDs))
     }
 
-    @Test func `unique items use base item artwork`() throws {
+    @Test func `unique items use base item astral artwork`() throws {
         for item in GameContent.uniqueItems {
             let art = try #require(item.artReference, "Unique item \(item.id) should have an art reference")
+            let astralArt = try #require(
+                ArtCatalog.itemArtByID["\(item.baseType.id)-astral"],
+                "Base type \(item.baseType.id) should have Astral art",
+            )
             #expect(
-                art == item.baseType.previewArtReference,
-                "Unique item \(item.id) art (\(art.imageName)) must match base type \(item.baseType.id) art",
+                art == astralArt,
+                "Unique item \(item.id) art (\(art.imageName)) must match base type \(item.baseType.id) Astral art",
             )
         }
     }
@@ -177,8 +181,28 @@ struct UniqueCatalogTests {
             #expect(item.affixes.first?.id == id)
             for (index, support) in supports.enumerated() {
                 let definition = try #require(GameContent.itemAffixDefinition(matching: support))
-                #expect(powers[index + 1] == definition.astral)
+                let max = definition.astral.rolledMax()
+                #expect(powers[index + 1] == max)
                 #expect(item.affixes[index + 1].title == definition.title)
+                #expect(item.affixes[index + 1].description == max.description)
+            }
+        }
+    }
+
+    @Test func `unique supports pin astral roll-max`() throws {
+        for item in GameContent.uniqueItems {
+            let powers = try #require(item.affixPowers)
+            #expect(powers.count == item.affixes.count)
+            let sources = GameContent.uniqueDefinitions.first(where: { $0.id == item.id })?.affixes
+            for (index, source) in (sources ?? []).enumerated() {
+                switch source {
+                case let .catalog(id):
+                    let definition = try #require(GameContent.itemAffixDefinition(matching: id))
+                    #expect(powers[index] == definition.astral.rolledMax())
+                    #expect(powers[index].isAtOrAboveRollMax(of: definition.astral))
+                case let .bespoke(bespoke):
+                    #expect(powers[index] == bespoke.astral.rolledMax())
+                }
             }
         }
     }

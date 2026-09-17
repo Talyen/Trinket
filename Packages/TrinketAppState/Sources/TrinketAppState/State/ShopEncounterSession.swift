@@ -25,7 +25,6 @@ public final class ShopEncounterSession: Identifiable, EncounterSession {
         origin.labyrinthNodeID
     }
 
-    public let greeting: String
     public let offers: [ShopOffer]
     public private(set) var lastPurchaseError: String?
     public private(set) var isPurchasing = false
@@ -34,13 +33,11 @@ public final class ShopEncounterSession: Identifiable, EncounterSession {
         origin: PlayEncounterOrigin,
         encounter: EncounterIdentity,
         offers: [ShopOffer],
-        greeting: String = "Welcome, traveler. Take a look at what I've got.",
     ) {
         self.origin = origin
         self.encounter = encounter
         stage = origin.resolvedStage(labyrinthEncounter: .shop)
         self.offers = offers
-        self.greeting = greeting
     }
 
     func markPurchaseStarted() {

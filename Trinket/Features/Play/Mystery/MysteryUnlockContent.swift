@@ -75,12 +75,13 @@ struct MysteryUnlockContent: View {
                         // UIStyleCheck: allow - Unlock art is the tap target for combatant detail; no button chrome.
                         .buttonStyle(.plain)
                         .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
-                        .scaleEffect(ceremony.artScale)
-                        .frame(maxWidth: 430)
-                        .trinketPresentationVisibility(ceremony.allowsDetail, opacity: 1)
+                        // Overlay before scale so the seal tracks the art.
                         .overlay(alignment: .bottomTrailing) {
                             recruitSealBadge
                         }
+                        .scaleEffect(ceremony.artScale)
+                        .frame(maxWidth: 430)
+                        .trinketPresentationVisibility(ceremony.allowsDetail, opacity: 1)
 
                         mysteryPersistFailureBanner(session.persistFailureMessage, centered: true)
                     }

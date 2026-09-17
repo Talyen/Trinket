@@ -92,7 +92,7 @@ struct StageMapPresentationTests {
         #expect(!names.contains("Battle"))
     }
 
-    @Test func `shop stages fall back to merchant subject name`() {
+    @Test func `shop stages resolve merchant art and title without a catalog stage entry`() {
         let stage = Stage(
             id: "test-shop",
             chapterID: "chapter-1",
@@ -103,7 +103,8 @@ struct StageMapPresentationTests {
         )
 
         #expect(GameContent.encounterArtID(for: stage) == nil)
-        #expect(stage.encounterSubjectName(worldSeed: 0) == "Merchant")
+        #expect(stage.encounterArtReference?.imageName == "encounter_destination_merchant_shop")
+        #expect(stage.encounterSubjectName(worldSeed: 0) == "Merchant's Shop")
     }
 
     @Test func `mapped event stages resolve encounter art without pinning catalog I ds`() throws {

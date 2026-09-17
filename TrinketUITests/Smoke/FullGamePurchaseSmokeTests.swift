@@ -129,15 +129,16 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         }
     }
 
-    func testCampaignBoundaryKeepsRewardsAndOffersTheNextChapter() {
+    func testCampaignUnlockOffersTheNextChapter() {
         let freeStages = GameContent.chapters.filter { $0.number <= 3 }.flatMap { $0.stages.map(\.id) }
         launchApp(arguments: TestLaunchArg.allUnseeded() + TestLaunchArg.completedStages(freeStages))
         tapButton(AccessibilityID.Play.campaignModeCard)
-        assertExistsAfterScroll(AccessibilityID.FullGame.boundary, requireHittable: true)
-        tapButton(AccessibilityID.FullGame.boundary)
+        let unlock = AccessibilityID.Play.stageAction(chapter: 4, stage: 1)
+        assertExistsAfterScroll(unlock, requireHittable: true)
+        tapButton(unlock)
         assertExists(AccessibilityID.FullGame.offer)
         tapButton(AccessibilityID.FullGame.close)
         XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
-        assertExists(AccessibilityID.FullGame.boundary)
+        assertExists(unlock)
     }
 }

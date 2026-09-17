@@ -12,12 +12,18 @@ struct LabyrinthNodeInspector: View {
     @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(\.isBattleActive) private var isBattleActive
     @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     let node: LabyrinthNode
     let type: LabyrinthNodeType
     let resolvedMysteryEvent: MysteryEvent?
     let recruitArtwork: EncounterArtReference?
     let onPrimaryAction: () -> Bool
+
+    private var isPaywalled: Bool {
+        guard let cluster = playerSave.labyrinth.cluster(for: node.id) else { return false }
+        return !playerSave.contentAccess.allowsLabyrinthFloor(cluster.depthBand)
+    }
 
     private var presentation: StageSelectRowPresentation<LabyrinthNode> {
         StageSelectRowPresentation.labyrinthRow(
@@ -32,6 +38,7 @@ struct LabyrinthNodeInspector: View {
         StageSelectActiveCard(
             presentation: presentation,
             isPrimaryActionDisabled: isBattleActive,
+            isLockedContent: isPaywalled,
             onArtworkTap: {
                 if let enemyDetail {
                     presentPlayCombatantDetail(enemyDetail)
@@ -93,12 +100,13 @@ struct LabyrinthNodeInspector: View {
                             Text(balanced: modifier.title.uppercased())
                                 .trinketFittedText()
                         }
-                        .trinketTypography(.eyebrow)
+                        .trinketTypography(.secondaryBody)
+                        .bold()
                         .foregroundStyle(LabyrinthModifierPresentation.style(for: modifier).color)
                         .trinketOnArtText(.title)
 
                         KeywordDescriptionText(text: modifier.effect.description)
-                            .trinketTypography(.footnote)
+                            .trinketTypography(.secondaryBody)
                             .trinketOnArtText(.eyebrow)
                             .lineLimit(nil)
                             .fixedSize(horizontal: false, vertical: true)

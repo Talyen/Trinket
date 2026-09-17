@@ -1502,7 +1502,9 @@ extension Keyword {
 extension InventoryItem {
     public var artReference: ItemArtReference? {
         // Catalog keys are template ids (e.g. crossbow-basic), not per-instance ids.
+        // Uniques share their base item's Astral artwork.
         ArtCatalog.itemArtByID[templateID]
+            ?? (rarity == .unique ? ArtCatalog.itemArtByID["\(baseType.id)-astral"] : nil)
             ?? ArtCatalog.itemArtByID["\(baseType.id)-\(rarity.rawValue)"]
             ?? baseType.previewArtReference
     }

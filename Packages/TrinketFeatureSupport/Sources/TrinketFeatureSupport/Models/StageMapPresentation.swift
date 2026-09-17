@@ -80,6 +80,14 @@ public extension Stage {
         if encounter.isCombat {
             return nil
         }
+        if encounter == .shop,
+           let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: .shop),
+           let art = ArtCatalog.encounterArtByID[artID] {
+            // Shop art is encounter-driven, not stage-ID-driven: campaign stages
+            // resolve the same art through the generated catalog, while synthetic
+            // labyrinth stages (id == nodeID) can never hit that lookup.
+            return art
+        }
         if case let .recruit(eventID) = encounter {
             return GameContent.recruitEncounterArtReference(forEventID: eventID)
         }
@@ -98,7 +106,7 @@ public extension Stage {
         case .randomBattle:
             resolvedBattleEnemyID(worldSeed: worldSeed).flatMap { GameContent.enemy(matching: $0)?.name } ?? "Battle"
         case .shop:
-            GameContent.encounterArtTitle(for: self) ?? "Merchant"
+            GameContent.encounterArtTitle(for: self) ?? "Merchant's Shop"
         case .mysteryEvent:
             mysteryEvent?.title ?? "Mystery"
         case .recruit:

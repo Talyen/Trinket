@@ -26,16 +26,23 @@ public extension GameContent {
                 guard let catalogDefinition = itemAffixDefinition(matching: id) else {
                     return nil
                 }
-                affixViews.append(catalogDefinition.resolved(for: .astral))
-                powers.append(catalogDefinition.astral)
+                let max = catalogDefinition.astral.rolledMax()
+                affixViews.append(ItemAffix(
+                    id: catalogDefinition.id,
+                    title: catalogDefinition.title,
+                    description: max.description,
+                    keywords: catalogDefinition.keywords,
+                ))
+                powers.append(max)
             case let .bespoke(bespoke):
+                let max = bespoke.astral.rolledMax()
                 affixViews.append(ItemAffix(
                     id: bespoke.id,
                     title: bespoke.title,
-                    description: bespoke.astral.description,
+                    description: max.description,
                     keywords: bespoke.keywords,
                 ))
-                powers.append(bespoke.astral)
+                powers.append(max)
             }
         }
         return InventoryItem(

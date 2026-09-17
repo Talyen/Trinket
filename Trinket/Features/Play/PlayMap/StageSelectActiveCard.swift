@@ -16,6 +16,7 @@ struct StageSelectActiveCard<
 
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
+    let isLockedContent: Bool
     let onArtworkTap: () -> Void
     let onPrimaryAction: () -> Bool
     @ViewBuilder let artwork: () -> Artwork
@@ -29,6 +30,7 @@ struct StageSelectActiveCard<
     init(
         presentation: StageSelectRowPresentation<Item>,
         isPrimaryActionDisabled: Bool,
+        isLockedContent: Bool = false,
         onArtworkTap: @escaping () -> Void,
         onPrimaryAction: @escaping () -> Bool,
         @ViewBuilder artwork: @escaping () -> Artwork,
@@ -37,6 +39,7 @@ struct StageSelectActiveCard<
     ) {
         self.presentation = presentation
         self.isPrimaryActionDisabled = isPrimaryActionDisabled
+        self.isLockedContent = isLockedContent
         self.onArtworkTap = onArtworkTap
         self.onPrimaryAction = onPrimaryAction
         self.artwork = artwork
@@ -73,6 +76,7 @@ struct StageSelectActiveCard<
                 artworkControl
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
+                    .trinketLockedCardEffect(isLocked: isLockedContent)
             }
             .overlay(alignment: .bottomLeading) {
                 artworkAccessory()
@@ -81,7 +85,7 @@ struct StageSelectActiveCard<
 
     @ViewBuilder
     private var artworkControl: some View {
-        if presentation.isArtworkInteractive {
+        if presentation.isArtworkInteractive, !isLockedContent {
             Button(action: onArtworkTap) {
                 artwork()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -127,7 +131,7 @@ struct StageSelectActiveCard<
 
     private var actionControls: some View {
         HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
-            if presentation.showsPartyPicker {
+            if presentation.showsPartyPicker, !isLockedContent {
                 partyPickerButton
             }
             primaryActionButton
@@ -142,10 +146,15 @@ struct StageSelectActiveCard<
             }
         } label: {
             Label {
-                Text(presentation.primaryActionTitle)
+                Text(isLockedContent ? "Unlock" : presentation.primaryActionTitle)
             } icon: {
-                GameIconImage(presentation.icon)
-                    .scaleEffect(1.15)
+                if isLockedContent {
+                    Image(systemName: "lock.fill")
+                        .scaleEffect(1.15)
+                } else {
+                    GameIconImage(presentation.icon)
+                        .scaleEffect(1.15)
+                }
             }
             .trinketTypography(.button)
             .lineLimit(1)
@@ -154,10 +163,11 @@ struct StageSelectActiveCard<
         }
         .trinketPrimaryActionButton(
             controlSize: .regular,
-            tint: presentation.tint,
+            tint: isLockedContent ? TrinketDesign.Colors.accent : presentation.tint,
             labelColor: TrinketDesign.Colors.Overlay.paper,
             accessibilityIdentifier: presentation.actionAccessibilityID,
         )
+        .accessibilityLabel(isLockedContent ? "Unlock" : presentation.primaryActionTitle)
         .disabled(isPrimaryActionDisabled)
         .trinketSensoryFeedback(
             .selection,
@@ -189,6 +199,7 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
     init(
         presentation: StageSelectRowPresentation<Item>,
         isPrimaryActionDisabled: Bool,
+        isLockedContent: Bool = false,
         onArtworkTap: @escaping () -> Void,
         onPrimaryAction: @escaping () -> Bool,
         @ViewBuilder artwork: @escaping () -> Artwork,
@@ -197,6 +208,7 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
         self.init(
             presentation: presentation,
             isPrimaryActionDisabled: isPrimaryActionDisabled,
+            isLockedContent: isLockedContent,
             onArtworkTap: onArtworkTap,
             onPrimaryAction: onPrimaryAction,
             artwork: artwork,
