@@ -27,8 +27,9 @@ public enum TrinketMotion: Sendable {
     public enum Reward: Sendable {
         public static let categoryEntranceScale: CGFloat = 0.97
         public static let categoryEntranceStagger: TimeInterval = 0.06
-        public static let collectionDuration: TimeInterval = 0.18
+        public static let collectionDuration: TimeInterval = 0.35
         public static let collectionPulseScale: CGFloat = 1.025
+        public static let cardCollectionPopScale: CGFloat = 1.05
         public static let collectionPulse: Animation = .easeInOut(duration: collectionDuration / 2)
 
         public static let resourceStagger: TimeInterval = 0.06

@@ -7,8 +7,8 @@ buttons and system toolbar styling.
 | Modifier / API | Use for |
 |----------------|---------|
 | `.trinketScreenBackground()` | Shared tab/screen canvas (`TrinketDesign.Colors.canvas`) |
-| `.trinketSurface(_:)` | Panels, cards, rows, selected/disabled/warning/reward states |
-| `.trinketMaterial(_:)` | `.bottomBar` / `.homesteadFooter`: regular glass; `.rewardReveal`: accent-tinted regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke |
+| `.trinketSurface(_:)` | Secondary panels, cards, and dense rows |
+| `.trinketMaterial(_:)` | `.bottomBar` / `.homesteadFooter`: regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke |
 | `.trinketGlassChip(_:)` | Regular-glass capsules; `.standard` / `.emphasis` select shared padding and emphasis stroke |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface(showsStroke:)` | Card identity tiles (`showsStroke` adds the artwork clip + subtle stroke) |

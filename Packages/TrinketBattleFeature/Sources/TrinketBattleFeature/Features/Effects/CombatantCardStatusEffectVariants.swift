@@ -96,24 +96,49 @@ struct CombatantStatusEffectOverlay: View {
             guard appear > 0.01 else { return }
             let center = CGPoint(x: canvasSize.width * 0.5, y: canvasSize.height * 0.28)
             let angleBase = phase * .pi * 2
+
+            var stars: [(point: CGPoint, size: CGFloat, rotation: CGFloat, opacity: Double, sinAngle: CGFloat)] = []
+            stars.reserveCapacity(count)
+
             for index in 0 ..< count {
                 let noise = CombatantCardEffectNoise.value(index, salt: 17)
                 let angle = angleBase + CGFloat(index) / CGFloat(count) * .pi * 2
                     + noise * 0.35
                 let radial = radius * (0.85 + noise * 0.3)
+                let sinAngle = sin(angle)
                 let point = CGPoint(
                     x: center.x + cos(angle) * radial,
-                    y: center.y + sin(angle) * radial,
+                    y: center.y + sinAngle * (radial * 0.38),
                 )
-                let starSize = (4 + noise * 5) * config.intensity
+                let depth = (sinAngle + 1) * 0.5
+                let depthScale = 0.75 + 0.35 * depth
+                let depthOpacity = 0.75 + 0.25 * depth
+                let baseSize = (6 + noise * 5) * config.intensity
+                let starSize = baseSize * depthScale
                 let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + noise * .pi * 2))
-                let opacity = Double(twinkle * appear)
+                let opacity = Double(twinkle * depthOpacity * appear)
+                let rotation = phase * .pi * 1.5 + noise * .pi * 2
+
+                stars.append((
+                    point: point,
+                    size: starSize,
+                    rotation: rotation,
+                    opacity: opacity,
+                    sinAngle: sinAngle,
+                ))
+            }
+
+            stars.sort { $0.sinAngle < $1.sinAngle }
+
+            for star in stars {
                 drawStar(
                     in: &context,
-                    at: point,
-                    size: starSize,
-                    color: style.color.opacity(opacity),
-                    secondary: style.secondaryColor.opacity(opacity * 0.7),
+                    at: star.point,
+                    size: star.size,
+                    rotation: star.rotation,
+                    color: style.color.opacity(star.opacity),
+                    secondary: style.secondaryColor.opacity(star.opacity * 0.8),
+                    opacity: star.opacity,
                 )
             }
         }
@@ -228,27 +253,45 @@ private func drawStar(
     in context: inout GraphicsContext,
     at point: CGPoint,
     size: CGFloat,
+    rotation: CGFloat,
     color: Color,
     secondary: Color,
+    opacity: Double,
 ) {
-    var path = Path()
     let spikes = 4
-    for i in 0 ..< (spikes * 2) {
-        let angle = CGFloat(i) * .pi / CGFloat(spikes) - .pi / 2
-        let radius = i.isMultiple(of: 2) ? size : size * 0.38
-        let p = CGPoint(
-            x: point.x + cos(angle) * radius,
-            y: point.y + sin(angle) * radius,
-        )
-        if i == 0 {
-            path.move(to: p)
-        } else {
-            path.addLine(to: p)
+    func starPath(at center: CGPoint, radius: CGFloat) -> Path {
+        var path = Path()
+        for i in 0 ..< (spikes * 2) {
+            let angle = CGFloat(i) * .pi / CGFloat(spikes) - .pi / 2 + rotation
+            let r = i.isMultiple(of: 2) ? radius : radius * 0.35
+            let p = CGPoint(
+                x: center.x + cos(angle) * r,
+                y: center.y + sin(angle) * r,
+            )
+            if i == 0 {
+                path.move(to: p)
+            } else {
+                path.addLine(to: p)
+            }
         }
+        path.closeSubpath()
+        return path
     }
-    path.closeSubpath()
-    context.fill(path, with: .color(color))
-    context.stroke(path, with: .color(secondary), lineWidth: 0.6)
+
+    let star = starPath(at: point, radius: size)
+
+    // Dark under-shadow and outline for guaranteed contrast against bright card art
+    let shadow = starPath(at: CGPoint(x: point.x, y: point.y + 1.2), radius: size)
+    context.fill(shadow, with: .color(TrinketDesign.Colors.Overlay.ink.opacity(0.45 * opacity)))
+    context.stroke(star, with: .color(TrinketDesign.Colors.Overlay.ink.opacity(0.65 * opacity)), lineWidth: 1.2)
+
+    // Primary keyword body fill and secondary rim stroke
+    context.fill(star, with: .color(color))
+    context.stroke(star, with: .color(secondary), lineWidth: 0.6)
+
+    // Bright paper-white core for contrast against dark card art
+    let core = starPath(at: point, radius: size * 0.44)
+    context.fill(core, with: .color(TrinketDesign.Colors.Overlay.paper.opacity(0.92 * opacity)))
 }
 
 private func drawSnowflake(

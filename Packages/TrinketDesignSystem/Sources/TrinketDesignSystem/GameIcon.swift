@@ -1,5 +1,13 @@
-public enum GameIcon: Hashable, Sendable {
-    case system(String)
+public struct GameIcon: Hashable, Sendable {
+    public let symbolName: String
+
+    private init(symbolName: String) {
+        self.symbolName = symbolName
+    }
+
+    public static func system(_ name: String) -> Self {
+        Self(symbolName: name)
+    }
 
     public init(id: String) {
         if id.hasPrefix("lucide:") {
@@ -9,12 +17,6 @@ public enum GameIcon: Hashable, Sendable {
             self = .system(String(id.dropFirst(3)))
         } else {
             self = .system(id)
-        }
-    }
-
-    public var symbolName: String {
-        switch self {
-        case let .system(name): name
         }
     }
 

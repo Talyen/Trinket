@@ -44,6 +44,30 @@ struct SemanticColorContrastTests {
             }
         }
     }
+
+    @Test func `resource tints remain distinguishable on gameplay surfaces`() throws {
+        let resourceNames = [
+            "ResourceWood",
+            "ResourceStone",
+            "ResourceIron",
+            "ResourceHide",
+            "ResourceHerbs",
+            "ResourceFood",
+            "ResourceGems",
+        ]
+        for style in [UIUserInterfaceStyle.dark, .light] {
+            for backgroundName in ["ThemeCanvas", "ThemeSurface", "ThemePanel"] {
+                let background = try resolvedSRGB(backgroundName, style: style)
+                for resourceName in resourceNames {
+                    let color = try resolvedSRGB(resourceName, style: style)
+                    #expect(
+                        contrastRatio(color, background) >= 1.5,
+                        "\(resourceName) should stay distinguishable over \(backgroundName) in \(style)",
+                    )
+                }
+            }
+        }
+    }
 }
 
 private func resolvedSRGB(_ name: String, style: UIUserInterfaceStyle) throws -> (red: Double, green: Double, blue: Double) {

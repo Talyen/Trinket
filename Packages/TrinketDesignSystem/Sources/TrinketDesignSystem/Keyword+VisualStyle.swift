@@ -6,19 +6,13 @@ public extension Keyword {
         public let color: Color
         public let secondaryColor: Color
         public let glowColor: Color
-        public let subtleBackgroundColor: Color
-        public let borderColor: Color
         public let icon: GameIcon
-        public let prefersDarkForeground: Bool
 
-        public init(color: Color, secondaryColor: Color? = nil, icon: GameIcon, prefersDarkForeground: Bool = false) {
+        public init(color: Color, secondaryColor: Color? = nil, icon: GameIcon) {
             self.color = color
             self.secondaryColor = secondaryColor ?? color.opacity(TrinketDesign.Opacity.secondary)
             glowColor = color.opacity(TrinketDesign.Opacity.glow)
-            subtleBackgroundColor = color.opacity(TrinketDesign.Opacity.subtle)
-            borderColor = color.opacity(TrinketDesign.Opacity.border)
             self.icon = icon
-            self.prefersDarkForeground = prefersDarkForeground
         }
 
         public static let physical = Self(
@@ -33,7 +27,6 @@ public extension Keyword {
         public static let stun = Self(
             color: DesignAssetColors.named("KeywordStun"),
             icon: .system("bolt.fill"),
-            prefersDarkForeground: true,
         )
         public static let block = Self(
             color: DesignAssetColors.named("KeywordBlock"),
@@ -47,12 +40,10 @@ public extension Keyword {
         public static let gold = Self(
             color: TrinketDesign.Colors.accent,
             icon: .system("circle.circle.fill"),
-            prefersDarkForeground: true,
         )
         public static let holy = Self(
             color: DesignAssetColors.named("KeywordHoly"),
             icon: .system("sun.max.fill"),
-            prefersDarkForeground: true,
         )
         public static let poison = Self(
             color: DesignAssetColors.named("KeywordPoison"),
@@ -69,12 +60,10 @@ public extension Keyword {
         public static let freeze = Self(
             color: DesignAssetColors.named("KeywordFreeze"),
             icon: .system("snowflake"),
-            prefersDarkForeground: true,
         )
         public static let dodge = Self(
             color: DesignAssetColors.named("KeywordDodge"),
             icon: .system("wind"),
-            prefersDarkForeground: true,
         )
         public static let purge = Self(
             color: DesignAssetColors.named("KeywordPurge"),

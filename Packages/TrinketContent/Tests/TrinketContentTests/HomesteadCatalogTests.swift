@@ -93,7 +93,7 @@ struct HomesteadCatalogTests {
         let archery = HomesteadEffects.from(nodeTiers: [.archeryRange: 1])
         #expect(archery.heroModifiers == [.rangedDamageDealt(1)])
 
-        let script = HomesteadEffects.from(nodeTiers: [.scriptorium: 1])
+        let script = HomesteadEffects.from(nodeTiers: [.library: 1])
         #expect(script.heroModifiers == [.leechGainedPercent(0.05)])
 
         let leyline = HomesteadEffects.from(nodeTiers: [.leylineEnergy: 1])

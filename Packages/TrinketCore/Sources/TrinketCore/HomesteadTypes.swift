@@ -77,11 +77,38 @@ public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiab
     case mycologyCellar = "mycologyCellar"
     case sparringGrounds = "sparringGrounds"
     case archeryRange = "archeryRange"
-    case scriptorium = "scriptorium"
+    case library = "library"
     case leylineEnergy = "leylineEnergy"
 
     public var id: String {
         rawValue
+    }
+
+    /// Maps a persisted node identifier to a live case.
+    /// Saves written before the Scriptorium → Library rename encode this
+    /// node as `"scriptorium"`; resolve that alias so existing tiers survive.
+    public static func resolving(nodeID: String) -> Self? {
+        if nodeID == "scriptorium" {
+            return .library
+        }
+        return Self(rawValue: nodeID)
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let nodeID = try container.decode(String.self)
+        guard let node = Self.resolving(nodeID: nodeID) else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Unknown HomesteadNodeID: \(nodeID)",
+            )
+        }
+        self = node
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }
 

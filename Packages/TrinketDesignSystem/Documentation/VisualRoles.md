@@ -25,7 +25,7 @@ On-art text styling uses `.trinketOnArtText(_:)`.
 
 ## Typography
 
-Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)` for copy.
+Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)` for copy. Symbol/glyph sizing (placeholder art, lock glyphs) is the exception: it uses explicit sizes with a `UIStyleCheck: allow` carve-out, since it sizes artwork rather than styling copy.
 
 | Role family | Typeface | Use for |
 |---|---|---|
@@ -50,7 +50,7 @@ Hero / Companion / Enemy / Ability / Item detail sheets share one body ladder (v
 
 ## Surface roles
 
-Use semantic modifiers (`.trinketSurface(.base)`, `.trinketScreenBackground()`) instead of hardcoded colors. Roles include `base`, `secondary`, `elevated`, `card`, `denseRow`, `selected`, `disabled`, `warning`, `reward`.
+Use semantic modifiers (`.trinketSurface(.secondary)`, `.trinketScreenBackground()`) instead of hardcoded colors. Roles are `secondary`, `card`, and `denseRow`.
 
 ## Keyword styling
 

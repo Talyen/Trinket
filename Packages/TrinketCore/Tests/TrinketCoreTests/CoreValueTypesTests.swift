@@ -87,6 +87,28 @@ struct CoreValueTypesTests {
         #expect(migrated == [.gems: 4])
     }
 
+    @Test func `homestead node resolves retired scriptorium alias as library`() throws {
+        #expect(HomesteadNodeID.resolving(nodeID: "scriptorium") == .library)
+        #expect(HomesteadNodeID.resolving(nodeID: "library") == .library)
+        #expect(HomesteadNodeID.resolving(nodeID: "wheatField") == .wheatField)
+        #expect(HomesteadNodeID.resolving(nodeID: "mana") == nil)
+
+        let legacy = try JSONDecoder().decode(HomesteadNodeID.self, from: Data("\"scriptorium\"".utf8))
+        #expect(legacy == .library)
+        let encoded = try JSONEncoder().encode(HomesteadNodeID.library)
+        #expect(try #require(String(bytes: encoded, encoding: .utf8)) == "\"library\"")
+
+        let tiers = try JSONEncoder().encode([HomesteadNodeID.library: 2])
+        let roundTripped = try JSONDecoder().decode([HomesteadNodeID: Int].self, from: tiers)
+        #expect(roundTripped == [.library: 2])
+
+        // Saves written before the rename persist this tier under "scriptorium".
+        let legacyJSON = try #require(String(bytes: tiers, encoding: .utf8))
+            .replacingOccurrences(of: "library", with: "scriptorium")
+        let migrated = try JSONDecoder().decode([HomesteadNodeID: Int].self, from: Data(legacyJSON.utf8))
+        #expect(migrated == [.library: 2])
+    }
+
     @Test func `damage conditions have non empty unique sentence fragments`() {
         let conditions = DamageCondition.allCases
         #expect(!conditions.isEmpty)

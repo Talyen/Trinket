@@ -169,45 +169,45 @@ slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot
 slot_background	accessory	slot_accessory	Raw Assets/Gear/Gear Slot Backgrounds/Accessory Slot.jpeg	0.50	0.50
 slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Trinket Slot.jpeg	0.50	0.50
 slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Weapon Slot.jpeg	0.50	0.50
-combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpeg	0.50	0.50
-combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.jpeg	0.50	0.50
-combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.jpeg	0.50	0.50
-combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpeg	0.50	0.50
-combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpeg	0.50	0.50
-combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.jpeg	0.50	0.50
-combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpeg	0.50	0.50
-combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpeg	0.50	0.50
-combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpeg	0.50	0.50
-combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpeg	0.50	0.50
-combatant	fire_elemental	enemy_fire_elemental_card	Raw Assets/Enemies/Fire Elemental.jpeg	0.50	0.50
-combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost Elemental.jpeg	0.50	0.50
-combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50
-combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpeg	0.50	0.50
-combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpeg	0.50	0.50
-combatant	bandit	enemy_bandit_card	Raw Assets/Enemies/Bandit.jpeg	0.50	0.50
-combatant	banshee	enemy_banshee_card	Raw Assets/Enemies/Banshee.jpeg	0.50	0.50
-combatant	blood_cultist	enemy_blood_cultist_card	Raw Assets/Enemies/Blood Cultist.jpeg	0.50	0.50
-combatant	brawler	enemy_brawler_card	Raw Assets/Enemies/Brawler.jpeg	0.50	0.50
-combatant	cleric	enemy_cleric_card	Raw Assets/Enemies/Cleric.jpeg	0.50	0.50
-combatant	dire_wolf	enemy_dire_wolf_card	Raw Assets/Enemies/Dire Wolf.jpeg	0.50	0.50
-combatant	earth_elemental	enemy_earth_elemental_card	Raw Assets/Enemies/Earth Elemental.jpeg	0.50	0.50
-combatant	fire_imp	enemy_fire_imp_card	Raw Assets/Enemies/Fire Imp.jpeg	0.50	0.50
-combatant	giant_snake	enemy_giant_snake_card	Raw Assets/Enemies/Giant Snake.jpeg	0.50	0.50
-combatant	giant_spider	enemy_giant_spider_card	Raw Assets/Enemies/Giant Spider.jpeg	0.50	0.50
-combatant	hellhound	enemy_hellhound_card	Raw Assets/Enemies/Hellhound.jpeg	0.50	0.50
-combatant	ice_wraith	enemy_ice_wraith_card	Raw Assets/Enemies/Ice Wraith.jpeg	0.50	0.50
-combatant	inquisitor	enemy_inquisitor_card	Raw Assets/Enemies/Inquisitor.jpeg	0.50	0.50
-combatant	ogre	enemy_ogre_card	Raw Assets/Enemies/Ogre.jpeg	0.50	0.50
-combatant	paladin	enemy_paladin_card	Raw Assets/Enemies/Paladin.jpeg	0.50	0.50
-combatant	pyromancer	enemy_pyromancer_card	Raw Assets/Enemies/Pyromancer.jpeg	0.50	0.50
-combatant	stone_golem	enemy_stone_golem_card	Raw Assets/Enemies/Stone Golem.jpeg	0.50	0.50
-combatant	the_blood_countess	enemy_the_blood_countess_card	Raw Assets/Enemies/Bosses/The Blood Countess.jpeg	0.50	0.50
-combatant	the_seraph	enemy_the_seraph_card	Raw Assets/Enemies/Bosses/The Seraph.jpeg	0.50	0.50
-combatant	the_stone_titan	enemy_the_stone_titan_card	Raw Assets/Enemies/Bosses/The Stone Titan.jpeg	0.50	0.50
-combatant	vampire	enemy_vampire_card	Raw Assets/Enemies/Vampire.jpeg	0.50	0.50
-combatant	winter_wolf	enemy_winter_wolf_card	Raw Assets/Enemies/Winter Wolf.jpeg	0.50	0.50
-combatant	yeti	enemy_yeti_card	Raw Assets/Enemies/Yeti.jpeg	0.50	0.50
-combatant	zealot	enemy_zealot_card	Raw Assets/Enemies/Zealot.jpeg	0.50	0.50
+combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpeg	0.51	0.00
+combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.jpeg	0.52	0.15
+combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.jpeg	0.38	0.00
+combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpeg	0.54	0.00
+combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpeg	0.53	0.00
+combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.jpeg	0.51	0.00
+combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpeg	0.47	0.00
+combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpeg	0.55	0.00
+combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpeg	0.56	0.00
+combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpeg	0.38	0.15
+combatant	fire_elemental	enemy_fire_elemental_card	Raw Assets/Enemies/Fire Elemental.jpeg	0.48	0.00
+combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost Elemental.jpeg	0.50	0.00
+combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.48	0.00
+combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpeg	0.50	0.60
+combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpeg	0.55	0.35
+combatant	bandit	enemy_bandit_card	Raw Assets/Enemies/Bandit.jpeg	0.47	0.00
+combatant	banshee	enemy_banshee_card	Raw Assets/Enemies/Banshee.jpeg	0.50	0.00
+combatant	blood_cultist	enemy_blood_cultist_card	Raw Assets/Enemies/Blood Cultist.jpeg	0.47	0.00
+combatant	brawler	enemy_brawler_card	Raw Assets/Enemies/Brawler.jpeg	0.53	0.00
+combatant	cleric	enemy_cleric_card	Raw Assets/Enemies/Cleric.jpeg	0.43	0.00
+combatant	dire_wolf	enemy_dire_wolf_card	Raw Assets/Enemies/Dire Wolf.jpeg	0.37	0.15
+combatant	earth_elemental	enemy_earth_elemental_card	Raw Assets/Enemies/Earth Elemental.jpeg	0.52	0.00
+combatant	fire_imp	enemy_fire_imp_card	Raw Assets/Enemies/Fire Imp.jpeg	0.48	0.00
+combatant	giant_snake	enemy_giant_snake_card	Raw Assets/Enemies/Giant Snake.jpeg	0.47	0.00
+combatant	giant_spider	enemy_giant_spider_card	Raw Assets/Enemies/Giant Spider.jpeg	0.46	0.15
+combatant	hellhound	enemy_hellhound_card	Raw Assets/Enemies/Hellhound.jpeg	0.37	0.15
+combatant	ice_wraith	enemy_ice_wraith_card	Raw Assets/Enemies/Ice Wraith.jpeg	0.52	0.00
+combatant	inquisitor	enemy_inquisitor_card	Raw Assets/Enemies/Inquisitor.jpeg	0.51	0.00
+combatant	ogre	enemy_ogre_card	Raw Assets/Enemies/Ogre.jpeg	0.51	0.00
+combatant	paladin	enemy_paladin_card	Raw Assets/Enemies/Paladin.jpeg	0.48	0.00
+combatant	pyromancer	enemy_pyromancer_card	Raw Assets/Enemies/Pyromancer.jpeg	0.51	0.00
+combatant	stone_golem	enemy_stone_golem_card	Raw Assets/Enemies/Stone Golem.jpeg	0.48	0.00
+combatant	the_blood_countess	enemy_the_blood_countess_card	Raw Assets/Enemies/Bosses/The Blood Countess.jpeg	0.50	0.00
+combatant	the_seraph	enemy_the_seraph_card	Raw Assets/Enemies/Bosses/The Seraph.jpeg	0.50	0.00
+combatant	the_stone_titan	enemy_the_stone_titan_card	Raw Assets/Enemies/Bosses/The Stone Titan.jpeg	0.53	0.00
+combatant	vampire	enemy_vampire_card	Raw Assets/Enemies/Vampire.jpeg	0.43	0.00
+combatant	winter_wolf	enemy_winter_wolf_card	Raw Assets/Enemies/Winter Wolf.jpeg	0.36	0.15
+combatant	yeti	enemy_yeti_card	Raw Assets/Enemies/Yeti.jpeg	0.43	0.05
+combatant	zealot	enemy_zealot_card	Raw Assets/Enemies/Zealot.jpeg	0.55	0.00
 combatant	pixie	companion_pixie_card	Raw Assets/Companions/Pixie.jpeg	0.50	0.50
 combatant	shield_scarab	companion_shield_scarab_card	Raw Assets/Companions/Shield Scarab.jpeg	0.50	0.50
 background	chapter-1	bg_forest	Raw Assets/Chapter Backgrounds/Forest.jpeg	0.50	0.50
@@ -233,7 +233,7 @@ background	transmutationCrucible	bg_homestead_transmutation_crucible	Raw Assets/
 background	mycologyCellar	bg_homestead_mycology_cellar	Raw Assets/Homestead/Mycology Cellar.jpeg	0.50	0.50
 background	sparringGrounds	bg_homestead_sparring_grounds	Raw Assets/Homestead/Sparring Grounds.jpeg	0.50	0.50
 background	archeryRange	bg_homestead_archery_range	Raw Assets/Homestead/Archery Range.jpeg	0.50	0.50
-background	scriptorium	bg_homestead_scriptorium	Raw Assets/Homestead/Scriptorium.jpeg	0.50	0.50
+background	library	bg_homestead_library	Raw Assets/Homestead/Library.jpeg	0.50	0.50
 background	leylineEnergy	bg_homestead_leyline_energy	Raw Assets/Homestead/Leyline Energy.jpeg	0.50	0.50
 portrait_background	wheatField	bg_homestead_wheat_field_portrait	Raw Assets/Homestead/Wheat Field (Portrait).jpeg	0.72	0.50
 portrait_background	herbGarden	bg_homestead_herb_garden_portrait	Raw Assets/Homestead/Herb Garden (Portrait).jpeg	0.50	0.50
@@ -253,7 +253,7 @@ portrait_background	transmutationCrucible	bg_homestead_transmutation_crucible_po
 portrait_background	mycologyCellar	bg_homestead_mycology_cellar_portrait	Raw Assets/Homestead/Mycology Cellar (Portrait).jpeg	0.50	0.50
 portrait_background	sparringGrounds	bg_homestead_sparring_grounds_portrait	Raw Assets/Homestead/Sparring Grounds (Portrait).jpeg	0.50	0.50
 portrait_background	archeryRange	bg_homestead_archery_range_portrait	Raw Assets/Homestead/Archery Range (Portrait).jpeg	0.50	0.50
-portrait_background	scriptorium	bg_homestead_scriptorium_portrait	Raw Assets/Homestead/Scriptorium (Portrait).jpeg	0.50	0.50
+portrait_background	library	bg_homestead_library_portrait	Raw Assets/Homestead/Library (Portrait).jpeg	0.50	0.50
 portrait_background	leylineEnergy	bg_homestead_leyline_energy_portrait	Raw Assets/Homestead/Leyline Energy (Portrait).jpeg	0.50	0.50
 resource	wood	resource_homestead_wood	Raw Assets/Homestead/Resources/wood.png	0.50	0.50
 resource	stone	resource_homestead_stone	Raw Assets/Homestead/Resources/stone.png	0.50	0.50

@@ -70,7 +70,7 @@ HOMESTEAD_NODE_ORDER = (
     "archeryRange",
     "moonlitSanctum",
     "wishingWell",
-    "scriptorium",
+    "library",
     "leylineEnergy",
 )
 VALID_HOMESTEAD_NODE_IDS = frozenset(HOMESTEAD_NODE_ORDER)

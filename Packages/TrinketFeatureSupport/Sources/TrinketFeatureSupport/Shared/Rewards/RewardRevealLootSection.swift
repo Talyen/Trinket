@@ -54,11 +54,11 @@ public struct RewardRevealLootSection: View {
             if !items.isEmpty {
                 rewardItemPager
                     .trinketPresentationVisibility(areItemsVisible)
-                    .modifier(RewardCollectionPulseModifier(isCollected: isCollected))
+                    .modifier(RewardItemCollectionModifier(isCollected: isCollected))
             }
 
             rewardWallet
-                .modifier(RewardCollectionPulseModifier(isCollected: isCollected))
+                .modifier(RewardWalletCollectionPulseModifier(isCollected: isCollected, hasItems: !items.isEmpty))
         }
     }
 
@@ -69,7 +69,7 @@ public struct RewardRevealLootSection: View {
                     Button {
                         onSelectItem(item)
                     } label: {
-                        RewardItemRevealCard(item: item)
+                        RewardItemRevealCard(item: item, isCollected: isCollected)
                     }
                     .buttonStyle(.plain)
                     .containerRelativeFrame(.horizontal)
@@ -126,15 +126,31 @@ public struct RewardRevealLootSection: View {
     }
 }
 
-private struct RewardCollectionPulseModifier: ViewModifier {
+private struct RewardItemCollectionModifier: ViewModifier {
     let isCollected: Bool
 
     func body(content: Content) -> some View {
         content
-            .phaseAnimator([false, true, false], trigger: isCollected) { view, expanded in
-                view.scaleEffect(expanded ? TrinketMotion.Reward.collectionPulseScale : 1)
-            } animation: { _ in
-                TrinketMotion.Reward.collectionPulse
+            .allowsHitTesting(!isCollected)
+            .accessibilityHidden(isCollected)
+    }
+}
+
+private struct RewardWalletCollectionPulseModifier: ViewModifier {
+    let isCollected: Bool
+    let hasItems: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .keyframeAnimator(
+                initialValue: 1.0,
+                trigger: isCollected,
+            ) { view, scale in
+                view.scaleEffect(scale)
+            } keyframes: { _ in
+                LinearKeyframe(1.0, duration: hasItems ? 0.08 : 0.0)
+                CubicKeyframe(TrinketMotion.Reward.collectionPulseScale, duration: 0.12)
+                SpringKeyframe(1.0, duration: 0.15, spring: .snappy)
             }
             .allowsHitTesting(!isCollected)
             .accessibilityHidden(isCollected)

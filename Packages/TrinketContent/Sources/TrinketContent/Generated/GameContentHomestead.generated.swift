@@ -951,9 +951,9 @@ enum GameContentHomesteadGenerated {
             ]
         ))
         list.append(HomesteadNodeDefinition(
-            id: .scriptorium,
-            title: "Scriptorium",
-            summary: "A vaulted library of floating illuminated grimoires and runic scrolls.",
+            id: .library,
+            title: "Library",
+            summary: "A quiet magical library of ancient tomes and gently floating illuminated scrolls.",
             iconID: "sf:books.vertical.fill",
             category: .arcana,
             prerequisites: [HomesteadNodeRequirement(.crystalGarden)],
@@ -980,7 +980,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    stageName: "Illuminated Vault",
+                    stageName: "Illuminated Study",
                     cost: [ResourceAmount(.wood, 24), ResourceAmount(.gems, 16)],
                     bonus: HomesteadBonus(
                         title: "Esoteric vitality",
@@ -990,7 +990,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
-                    stageName: "Grand Scriptorium",
+                    stageName: "Grand Library",
                     cost: [ResourceAmount(.wood, 48), ResourceAmount(.gems, 32)],
                     bonus: HomesteadBonus(
                         title: "Esoteric vitality",
@@ -1003,14 +1003,14 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .leylineEnergy,
             title: "Leyline Energy",
-            summary: "Resonant obsidian monoliths channeling raw subterranean planar magic.",
+            summary: "Luminous subterranean fissures channeling raw planar magic up from deep leylines.",
             iconID: "sf:bolt.fill",
             category: .arcana,
             prerequisites: [HomesteadNodeRequirement(.crystalGarden, tier: 2)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    stageName: "Grounding Pylon",
+                    stageName: "Glowing Fissure",
                     cost: [ResourceAmount(.stone, 6), ResourceAmount(.gems, 4)],
                     bonus: HomesteadBonus(
                         title: "Mana capacity & production",
@@ -1021,7 +1021,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    stageName: "Resonant Conduit",
+                    stageName: "Resonant Fault",
                     cost: [ResourceAmount(.stone, 12), ResourceAmount(.gems, 8)],
                     bonus: HomesteadBonus(
                         title: "Mana capacity & production",
@@ -1032,7 +1032,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    stageName: "Harmonic Spire",
+                    stageName: "Surging Rift",
                     cost: [ResourceAmount(.stone, 24), ResourceAmount(.gems, 16)],
                     bonus: HomesteadBonus(
                         title: "Mana capacity & production",
@@ -1043,7 +1043,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 4,
-                    stageName: "Planar Nexus",
+                    stageName: "Planar Confluence",
                     cost: [ResourceAmount(.stone, 48), ResourceAmount(.gems, 32)],
                     bonus: HomesteadBonus(
                         title: "Mana capacity & production",

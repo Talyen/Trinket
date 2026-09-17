@@ -46,13 +46,10 @@ private struct DesignSystemGallery: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             Text("Surfaces").trinketTypography(.sectionTitle)
             HStack(spacing: TrinketDesign.Spacing.medium) {
-                previewSurface("Base", role: .base)
-                previewSurface("Selected", role: .selected)
+                previewSurface("Secondary", role: .secondary)
+                previewSurface("Dense Row", role: .denseRow)
             }
-            HStack(spacing: TrinketDesign.Spacing.medium) {
-                previewSurface("Reward", role: .reward)
-                previewSurface("Disabled", role: .disabled)
-            }
+            previewSurface("Card", role: .card)
         }
     }
 
@@ -106,7 +103,6 @@ private struct DesignSystemGallery: View {
             Text("Materials").trinketTypography(.sectionTitle)
             previewMaterial("Bottom Bar", role: .bottomBar)
             previewMaterial("Homestead Footer", role: .homesteadFooter)
-            previewMaterial("Reward Reveal", role: .rewardReveal)
             previewMaterial("Subtle Overlay", role: .subtleOverlay)
             HStack(spacing: TrinketDesign.Spacing.medium) {
                 Text("999,999 Gold")

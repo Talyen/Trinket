@@ -1,20 +1,13 @@
 import SwiftUI
 
 public enum SurfaceRole: Equatable, Sendable {
-    case base
     case secondary
-    case elevated
     case card
     case denseRow
-    case selected
-    case disabled
-    case warning
-    case reward
 }
 
 public enum MaterialRole: Sendable {
     case bottomBar
-    case rewardReveal
     case subtleOverlay
     case homesteadFooter
 }
@@ -59,6 +52,8 @@ public enum TypographyRole: Sendable {
         case .badge: .caption.weight(.semibold)
         case .button: .body.weight(.semibold)
         case .statValue: .body.monospacedDigit().weight(.semibold)
+        // Intentional: identical to cardTitle; kept as a separate role so
+        // navigation chrome reads semantically at call sites.
         case .navigation: .headline.weight(.semibold)
         case .rowDisplay: .system(.headline, design: .serif).weight(.semibold)
         case .cardLabel: .subheadline.weight(.medium)
@@ -143,12 +138,8 @@ private struct SurfaceStyle {
 
     private static func spec(for role: SurfaceRole) -> Spec {
         switch role {
-        case .base:
-            Spec()
         case .secondary:
             Spec(fill: TrinketDesign.Colors.surface, stroke: TrinketDesign.Colors.subtleStroke.opacity(0.7))
-        case .elevated:
-            Spec(fill: TrinketDesign.Colors.elevated)
         case .card:
             Spec(stroke: .clear, strokeWidth: 0, padding: 0)
         case .denseRow:
@@ -157,27 +148,6 @@ private struct SurfaceStyle {
                 stroke: .clear,
                 strokeWidth: 0,
                 padding: TrinketDesign.Spacing.medium,
-            )
-        case .selected:
-            Spec(
-                fill: TrinketDesign.Colors.elevated,
-                stroke: TrinketDesign.Colors.accent.opacity(TrinketDesign.Opacity.secondary),
-                strokeWidth: 1.5,
-                shadow: SurfaceShadow(color: TrinketDesign.Colors.accent.opacity(0.18), radius: 10, y: 2),
-            )
-        case .disabled:
-            Spec(fill: TrinketDesign.Colors.surface, stroke: TrinketDesign.Colors.subtleStroke.opacity(0.45))
-        case .warning:
-            Spec(
-                fill: TrinketDesign.Colors.warning.opacity(0.12),
-                stroke: TrinketDesign.Colors.warning.opacity(0.65),
-            )
-        case .reward:
-            Spec(
-                fill: TrinketDesign.Colors.elevated,
-                stroke: TrinketDesign.Colors.accent.opacity(0.70),
-                strokeWidth: 1.25,
-                shadow: SurfaceShadow(color: TrinketDesign.Colors.accent.opacity(0.20), radius: 14, y: 4),
             )
         }
     }
@@ -195,10 +165,10 @@ struct MaterialRoleModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         switch role {
+        // Intentional: both bars share one regular-glass treatment; kept as
+        // separate roles so call sites keep their semantic meaning.
         case .bottomBar, .homesteadFooter:
             content.glassEffect(.regular, in: shape)
-        case .rewardReveal:
-            content.glassEffect(.regular.tint(TrinketDesign.Colors.accent), in: shape)
         case .subtleOverlay:
             content
                 .background(.ultraThinMaterial, in: shape)

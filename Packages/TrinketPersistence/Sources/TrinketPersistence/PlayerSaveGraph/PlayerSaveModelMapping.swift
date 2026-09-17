@@ -300,8 +300,8 @@ extension HomesteadModel {
         }
         var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]
         for tierModel in nodeTiers ?? [] {
-            guard let nodeID = HomesteadNodeID(rawValue: tierModel.nodeID) else { continue }
-            resolvedNodeTiers[nodeID] = tierModel.tier
+            guard let nodeID = HomesteadNodeID.resolving(nodeID: tierModel.nodeID) else { continue }
+            resolvedNodeTiers[nodeID] = max(resolvedNodeTiers[nodeID, default: 0], tierModel.tier)
         }
         return PlayerHomesteadState(
             resources: resolvedResources,
