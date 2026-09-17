@@ -39,15 +39,14 @@ enum BattleMotion {
     static let cardVerticalTiltClamp = 4.0
     static let cardPerspective: CGFloat = 0.10
     static let cardArmedScaleBoost: CGFloat = 0.01
-    static let cardArmedRingOpacity: CGFloat = 0.55
     static let cardArmedRingLineWidth: CGFloat = 2
     static let cardReadyRingOpacity = 0.18
     static let cardReadyPulseOpacity = 0.38
     static let cardReadyRingLineWidth: CGFloat = 1
     static let dealInsertOffset: CGFloat = 120
     static let dealInsertScale: CGFloat = 0.50
-    static let cardInspectHoldDuration: TimeInterval = 0.5
-    static let cardPressCommitDelay: TimeInterval = 0.11
+    static let cardInspectHoldDuration: TimeInterval = 0.36
+    static let cardPressedScale: CGFloat = 0.95
     static let cardPlayRiseHeightFraction: CGFloat = 0.55
 
     static var cardPress: Animation {

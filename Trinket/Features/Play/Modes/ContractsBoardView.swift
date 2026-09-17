@@ -70,13 +70,16 @@ struct ContractsBoardView: View {
                     perform { contracts.refresh() }
                 } label: {
                     ZStack {
-                        Image(systemName: "arrow.clockwise")
-                            .symbolEffect(.rotate, options: .nonRepeating, value: feedbackTrigger)
+                        Image(systemName: "dice.fill")
+                            .trinketTypography(.button)
+                            .symbolEffect(.bounce, options: .nonRepeating, value: feedbackTrigger)
                             .opacity(showsPreparationProgress ? 0 : 1)
                         if showsPreparationProgress {
                             ProgressView()
+                                .controlSize(.small)
                         }
                     }
+                    .frame(width: 24, height: 24)
                 }
                 .disabled(isBattleActive)
                 .accessibilityLabel("Refresh Contracts")

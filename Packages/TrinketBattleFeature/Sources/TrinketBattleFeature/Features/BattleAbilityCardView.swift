@@ -4,7 +4,6 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-// swiftlint:disable:next type_body_length - battle card owns press/drag/inspect/tap lifecycle
 struct BattleAbilityCardView: View {
     let card: BattleCard
     let isPlayable: Bool
@@ -28,8 +27,6 @@ struct BattleAbilityCardView: View {
     @State private var didExceedTapSlop = false
     @State private var interactionResolution: InteractionResolution = .idle
     @State private var inspectionTask: Task<Void, Never>?
-    @State private var pressCommitted = false
-    @State private var pressCommitTask: Task<Void, Never>?
     @State private var didAnnounceWindUp = false
     @State private var playArmFeedbackToken = 0
     @State private var availabilityFeedbackToken = 0
@@ -56,7 +53,7 @@ struct BattleAbilityCardView: View {
     }
 
     private var isScaleCommitted: Bool {
-        pressCommitted || didExceedTapSlop
+        didExceedTapSlop
     }
 
     private var playDragThreshold: CGFloat {
@@ -64,74 +61,88 @@ struct BattleAbilityCardView: View {
     }
 
     var body: some View {
-        BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
-            .equatable()
-            .frame(width: width, height: height)
-            .overlay { availabilityBorder }
-            .scaleEffect(x: activeScale.width, y: activeScale.height)
-            .animation(BattleMotion.cardPress, value: isGestureActive)
-            .rotationEffect(.degrees(activeRotation), anchor: .bottom)
-            .rotation3DEffect(
-                .degrees(isScaleCommitted ? verticalTilt : 0),
-                axis: (x: 1, y: 0, z: 0),
-                anchor: .bottom,
-                perspective: BattleMotion.cardPerspective,
-            )
-            .offset(activeOffset)
-            .shadow(
-                color: isScaleCommitted ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
-                radius: BattleMotion.cardHeldShadowRadius,
-                y: BattleMotion.cardHeldShadowY,
-            )
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .updating($isGestureActive) { _, isActive, _ in
-                        isActive = true
-                    }
-                    .onChanged(updateDrag)
-                    .onEnded(endDrag),
-            )
-            .trinketSensoryFeedback(
-                .selection,
-                trigger: playArmFeedbackToken,
-                enabled: hapticsEnabled,
-            )
-            .trinketSensoryFeedback(
-                .selection,
-                trigger: inspectFeedbackToken,
-                enabled: hapticsEnabled,
-            )
-            .trinketSensoryFeedback(
-                .warning,
-                trigger: denyFeedbackToken,
-                enabled: hapticsEnabled,
-            )
-            .onDisappear {
-                returnDrag()
-            }
-            .onChange(of: isGestureActive) { wasActive, isActive in
-                guard wasActive, !isActive,
-                      interactionResolution != .idle,
-                      interactionResolution != .inspecting else { return }
-                returnDrag()
-            }
-            .onChange(of: isDetailPresented) { _, isPresented in
-                guard !isPresented, interactionResolution == .inspecting else { return }
-                returnDrag()
-            }
-            .onChange(of: isPlayable) { _, playable in
-                if playable {
-                    availabilityFeedbackToken &+= 1
-                } else if interactionResolution != .inspecting {
-                    returnDrag()
+        BattleAbilityCardFace(
+            artworkName: card.ability.artReference?.imageName,
+            width: width,
+            height: height,
+            borderOpacity: isPlayArmed ? 0 : 1,
+        )
+        .equatable()
+        .frame(width: width, height: height)
+        .overlay { availabilityBorder }
+        .shineBorder(
+            isPlayArmed ? armedShine : .none,
+            cornerRadius: TrinketDesign.Corners.card,
+            lineWidth: BattleMotion.cardArmedRingLineWidth,
+        )
+        .scaleEffect(x: activeScale.width, y: activeScale.height)
+        .animation(BattleMotion.cardPress, value: isGestureActive)
+        .rotationEffect(.degrees(activeRotation), anchor: .bottom)
+        .rotation3DEffect(
+            .degrees(isScaleCommitted ? verticalTilt : 0),
+            axis: (x: 1, y: 0, z: 0),
+            anchor: .bottom,
+            perspective: BattleMotion.cardPerspective,
+        )
+        .offset(activeOffset)
+        .shadow(
+            color: isPlayArmed ? armedGlowColor.opacity(0.40) : .clear,
+            radius: 8,
+        )
+        .shadow(
+            color: isScaleCommitted ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
+            radius: BattleMotion.cardHeldShadowRadius,
+            y: BattleMotion.cardHeldShadowY,
+        )
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .updating($isGestureActive) { _, isActive, _ in
+                    isActive = true
                 }
+                .onChanged(updateDrag)
+                .onEnded(endDrag),
+        )
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: playArmFeedbackToken,
+            enabled: hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .impact(weight: .medium),
+            trigger: inspectFeedbackToken,
+            enabled: hapticsEnabled,
+        )
+        .trinketSensoryFeedback(
+            .warning,
+            trigger: denyFeedbackToken,
+            enabled: hapticsEnabled,
+        )
+        .onDisappear {
+            returnDrag()
+        }
+        .onChange(of: isGestureActive) { wasActive, isActive in
+            guard wasActive, !isActive,
+                  interactionResolution != .idle,
+                  interactionResolution != .inspecting else { return }
+            returnDrag()
+        }
+        .onChange(of: isDetailPresented) { _, isPresented in
+            guard !isPresented, interactionResolution == .inspecting else { return }
+            returnDrag()
+        }
+        .onChange(of: isPlayable) { _, playable in
+            if playable {
+                availabilityFeedbackToken &+= 1
+            } else if interactionResolution != .inspecting {
+                returnDrag()
             }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(card.ability.name)
-            .accessibilityHint(isPlayable ? "Double tap to play this card" : "Not playable")
-            .accessibilityAddTraits(.isButton)
-            .accessibilityAction { requestPlay(.tap) }
-            .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(card.ability.name)
+        .accessibilityHint(isPlayable ? "Double tap to play this card" : "Not playable")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { requestPlay(.tap) }
+        .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
     }
 
     private var activeOffset: CGSize {
@@ -168,7 +179,7 @@ struct BattleAbilityCardView: View {
 
     private var heldScale: CGSize {
         guard isScaleCommitted else {
-            let scale = isGestureActive ? TrinketMotion.Interaction.artworkCardPressedScale : 1
+            let scale = isGestureActive ? BattleMotion.cardPressedScale : 1
             return CGSize(width: scale, height: scale)
         }
         var base = CGFloat(BattleMotion.cardHeldScale)
@@ -189,16 +200,16 @@ struct BattleAbilityCardView: View {
             interactionResolution = .pressing
             onInteractionChanged(true)
             scheduleInspection()
-            schedulePressCommit()
         }
         if !didExceedTapSlop,
            BattleHandLayout.exceedsTapSlop(
                translation: value.translation,
                minimumDistance: BattleHandLayout.dragMinimumDistance,
            ) {
-            didExceedTapSlop = true
+            withAnimation(BattleMotion.cardLift) {
+                didExceedTapSlop = true
+            }
             cancelInspection()
-            commitPressImmediately()
             interactionResolution = .dragging
             announceWindUpIfNeeded(mode: .preview)
         }
@@ -244,7 +255,6 @@ struct BattleAbilityCardView: View {
             return
         }
         cancelInspection()
-        cancelPressCommit()
 
         let isTap = BattleHandLayout.isTapGesture(
             translation: value.translation,
@@ -261,6 +271,7 @@ struct BattleAbilityCardView: View {
             predictedEndTranslation: value.predictedEndTranslation,
             isPlayable: true,
             threshold: playDragThreshold,
+            currentlyArmed: isPlayArmed,
         )
         if shouldPlay {
             requestPlay(.drag)
@@ -280,7 +291,6 @@ struct BattleAbilityCardView: View {
         else { return }
 
         cancelInspection()
-        cancelPressCommit()
         interactionResolution = .inspecting
         inspectFeedbackToken &+= 1
         // Sheet dismissal owns the held appearance after the gesture hands off inspection.
@@ -302,35 +312,8 @@ struct BattleAbilityCardView: View {
         inspectionTask = nil
     }
 
-    private func schedulePressCommit() {
-        cancelPressCommit()
-        let delay = BattleMotion.cardPressCommitDelay
-        pressCommitTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(delay))
-            guard !Task.isCancelled else { return }
-            guard interactionResolution == .pressing else { return }
-            withAnimation(BattleMotion.cardPress) {
-                pressCommitted = true
-            }
-        }
-    }
-
-    private func cancelPressCommit() {
-        pressCommitTask?.cancel()
-        pressCommitTask = nil
-    }
-
-    private func commitPressImmediately() {
-        cancelPressCommit()
-        guard !pressCommitted else { return }
-        withAnimation(BattleMotion.cardPress) {
-            pressCommitted = true
-        }
-    }
-
     private func returnDrag() {
         cancelInspection()
-        cancelPressCommit()
         resetVisualState()
         interactionResolution = .idle
         onInteractionChanged(false)
@@ -343,11 +326,9 @@ struct BattleAbilityCardView: View {
             predictedEndTranslation = .zero
             isPlayArmed = false
             didExceedTapSlop = false
-            pressCommitted = false
         }
         didAnnounceDeny = false
         didReportPlayDenied = false
-        cancelPressCommit()
     }
 
     private enum PlayIntent {
@@ -378,7 +359,7 @@ struct BattleAbilityCardView: View {
             size: CGSize(width: width, height: height),
             rotation: CGFloat(activeRotation * .pi / 180),
             verticalTilt: CGFloat(verticalTilt),
-            scale: heldScale.width,
+            scale: isScaleCommitted ? heldScale.width : 1.0,
             perspective: BattleMotion.cardPerspective,
             keywords: card.ability.presentationKeywords,
         )
@@ -411,9 +392,9 @@ private extension BattleAbilityCardView {
         TrinketDesign.cardShape
             .strokeBorder(
                 TrinketDesign.Colors.accent.opacity(
-                    isPlayArmed ? BattleMotion.cardArmedRingOpacity : (isPlayable ? BattleMotion.cardReadyRingOpacity : 0),
+                    isPlayArmed ? 0 : (isPlayable ? BattleMotion.cardReadyRingOpacity : 0),
                 ),
-                lineWidth: isPlayArmed ? BattleMotion.cardArmedRingLineWidth : BattleMotion.cardReadyRingLineWidth,
+                lineWidth: BattleMotion.cardReadyRingLineWidth,
             )
             .animation(TrinketMotion.Interaction.stateChange, value: isPlayable)
             .overlay {
@@ -427,6 +408,21 @@ private extension BattleAbilityCardView {
                     }
             }
             .allowsHitTesting(false)
+    }
+
+    var armedShine: Shine {
+        let keywords = card.ability.presentationKeywords
+        if !keywords.isEmpty {
+            return .keywords(keywords)
+        }
+        return .colors([TrinketDesign.Colors.accent])
+    }
+
+    var armedGlowColor: Color {
+        if let primaryKeyword = card.ability.presentationKeywords.first {
+            return primaryKeyword.visualStyle.glowColor
+        }
+        return TrinketDesign.Colors.accent.opacity(TrinketDesign.Opacity.glow)
     }
 
     func beginTapPlay() {
@@ -456,18 +452,33 @@ private extension BattleAbilityCardView {
 
 struct BattleAbilityCardFace: View, Equatable {
     let artworkName: String?
+    var width: CGFloat?
+    var height: CGFloat?
+    var borderOpacity: Double = 1
 
     var body: some View {
         Group {
             if let artworkName {
-                Image.preparedAsset(named: artworkName)
+                let image = Image.preparedAsset(named: artworkName)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .decorativePreparedArtwork()
+                if let width, let height {
+                    image
+                        .frame(width: width, height: height)
+                        .clipped()
+                } else {
+                    image
+                }
             } else {
-                PlaceholderArtwork(.ability)
+                if let width, let height {
+                    PlaceholderArtwork(.ability)
+                        .frame(width: width, height: height)
+                } else {
+                    PlaceholderArtwork(.ability)
+                }
             }
         }
-        .combatantCardChrome()
+        .combatantCardChrome(borderOpacity: borderOpacity)
     }
 }

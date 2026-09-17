@@ -149,6 +149,7 @@ private actor SFXPlayback {
                       let buffer = Self.decodePCMBuffer(at: url)
                 else { continue }
                 decoded[clip.id] = buffer
+                await Task.yield()
             }
             await self?.finishCatalogWarmup(decoded, ids: ids, concurrentPlayerCount: concurrentPlayerCount)
         }

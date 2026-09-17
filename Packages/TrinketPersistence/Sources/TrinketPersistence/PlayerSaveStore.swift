@@ -461,7 +461,7 @@ extension PlayerSaveStore {
 
     func scheduleDeferredSave() {
         deferredSaveTask?.cancel()
-        deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
+        deferredSaveTask = Task { @MainActor [weak self] in
             do {
                 try await Task.sleep(for: .milliseconds(300))
             } catch {

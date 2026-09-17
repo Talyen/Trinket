@@ -137,25 +137,18 @@ enum BattleHandLayout {
         predictedEndTranslation: CGSize,
         isPlayable: Bool,
         threshold: CGFloat = playDragThreshold,
+        currentlyArmed: Bool = false,
     ) -> Bool {
         guard isPlayable else { return false }
+        if currentlyArmed {
+            return true
+        }
         let release = predictedEndTranslation.height < translation.height
             ? predictedEndTranslation
             : translation
         let upwardDistance = -release.height
         return upwardDistance >= threshold
             && upwardDistance > abs(release.width)
-    }
-
-    static func isPlayArmed(
-        translation: CGSize,
-        isPlayable: Bool,
-        threshold: CGFloat = playDragThreshold,
-    ) -> Bool {
-        guard isPlayable else { return false }
-        let upwardDistance = -translation.height
-        return upwardDistance >= threshold
-            && upwardDistance > abs(translation.width)
     }
 
     static func shouldRemainPlayArmed(

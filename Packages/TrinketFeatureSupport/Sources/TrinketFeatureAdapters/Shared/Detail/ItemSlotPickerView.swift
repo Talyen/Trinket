@@ -13,6 +13,7 @@ struct ItemSlotPickerView: View {
 
     @State private var model: ItemPickerItems
     @State private var filter = ItemPickerFilter()
+    @State private var displayItems: [InventoryItem]
     @State private var searchText = ""
     @State private var readyItem: InventoryItem?
     @State private var detailArtworkLease: PreparedArtworkLease?
@@ -33,10 +34,10 @@ struct ItemSlotPickerView: View {
         self.onEquip = onEquip
         self.onUnequip = onUnequip
         _model = State(initialValue: initialItems)
+        _displayItems = State(initialValue: initialItems.matching(ItemPickerFilter()))
     }
 
     var body: some View {
-        let displayItems = model.matching(filter)
         let siblingIDs = equippedInSiblingSlotIDs
 
         ItemPickerSearchScope(readyItem: $readyItem, onReady: presentReadyItem) {
@@ -86,7 +87,9 @@ struct ItemSlotPickerView: View {
                     }
                 }
                 .onChange(of: filter) { _, _ in
-                    if let first = displayItems.first {
+                    let updated = model.matching(filter)
+                    displayItems = updated
+                    if let first = updated.first {
                         proxy.scrollTo(first.id, anchor: .top)
                     }
                 }
@@ -149,9 +152,11 @@ struct ItemSlotPickerView: View {
         }
         .onChange(of: inventoryItems, initial: true) { _, _ in
             model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
+            displayItems = model.matching(filter)
         }
         .onChange(of: equipmentLoadout) { _, _ in
             model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
+            displayItems = model.matching(filter)
         }
     }
 
