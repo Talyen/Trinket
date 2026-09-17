@@ -94,6 +94,9 @@ extension BattleSession {
     }
 
     private var singlePreparedBattleRun: PreparedBattleRun? {
+        if let preferredPreparedRunKey, let run = preparedBattleRunsByKey[preferredPreparedRunKey] {
+            return run
+        }
         guard preparedBattleRunsByKey.count == 1 else { return nil }
         return preparedBattleRunsByKey.values.first
     }
@@ -185,7 +188,11 @@ extension BattleSession {
     public func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
         guard activeBattle == nil else { return }
         let before = preparedBattleRunsByKey.count
+        let previousPreferred = preferredPreparedRunKey
         preparedBattleRunsByKey = preparedBattleRunsByKey.filter { keys.contains($0.key) }
+        if let previousPreferred, preparedBattleRunsByKey[previousPreferred] == nil {
+            preferredPreparedRunKey = nil
+        }
         if preparedBattleRunsByKey.count != before {
             retainPreparedArtworkPins()
             preparedBattlePresentationRevision += 1
@@ -246,6 +253,7 @@ extension BattleSession {
         }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         releasePreparedArtworkPins()
+        preferredPreparedRunKey = nil
         engineState = nil
         clearRunState()
     }

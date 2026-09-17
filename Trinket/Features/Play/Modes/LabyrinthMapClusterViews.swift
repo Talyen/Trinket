@@ -57,8 +57,6 @@ struct LabyrinthFloorMap: View {
                 ),
                 renderPriority: node.id == selectedNodeID ? 2 : visualState == .reachable ? 1 : 0,
             )
-        }.sorted {
-            $0.renderPriority < $1.renderPriority
         }
 
         ZStack {
@@ -88,6 +86,7 @@ struct LabyrinthFloorMap: View {
                     },
                 )
                 .position(presentation.position)
+                .zIndex(Double(presentation.renderPriority))
             }
         }
         .frame(width: availableWidth, height: mapHeight)

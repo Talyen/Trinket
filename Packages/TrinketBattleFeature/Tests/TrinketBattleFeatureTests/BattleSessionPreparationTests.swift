@@ -178,6 +178,49 @@ struct BattleSessionPreparationTests {
         #expect(session.canAcceptBattleCommands)
     }
 
+    @Test func `preferred prepared run selects overlay and presentation among many`() {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = BattleSession()
+        let firstKey = BattleRunKey("test|preferred-a")
+        let secondKey = BattleRunKey("test|preferred-b")
+        let (first, _) = BattleRunConfigurationTestSupport.make(
+            runKey: firstKey,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy,
+        )
+        let (second, _) = BattleRunConfigurationTestSupport.make(
+            runKey: secondKey,
+            rngSeed: 1,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy,
+        )
+
+        #expect(session.prepareBattleRun(first))
+        #expect(session.prepareBattleRun(second))
+        #expect(session.overlayBattleConfiguration == nil)
+
+        session.preferredPreparedRunKey = firstKey
+        #expect(session.overlayBattleConfiguration?.id == first.id)
+        #expect(session.presentation.configurationID == first.id)
+
+        session.preferredPreparedRunKey = secondKey
+        #expect(session.overlayBattleConfiguration?.id == second.id)
+        #expect(session.presentation.configurationID == second.id)
+
+        session.keepPreparedRuns([firstKey])
+        #expect(session.preferredPreparedRunKey == nil)
+        #expect(session.overlayBattleConfiguration?.id == first.id)
+        #expect(session.presentation.configurationID == first.id)
+
+        session.preferredPreparedRunKey = firstKey
+        session.endBattle()
+        #expect(session.preferredPreparedRunKey == nil)
+        #expect(session.overlayBattleConfiguration == nil)
+        #expect(session.lifecyclePhase == .idle)
+    }
+
     @Test func `activate prepared battle resolves registered presentation before skip combat`() {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-overlay-context")

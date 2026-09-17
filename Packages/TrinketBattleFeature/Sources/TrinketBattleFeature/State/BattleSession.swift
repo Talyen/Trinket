@@ -131,6 +131,16 @@ public final class BattleSession: BattleRuntime {
 
     public internal(set) var preparedBattlePresentationRevision = 0
 
+    public var preferredPreparedRunKey: BattleRunKey? {
+        didSet {
+            guard oldValue != preferredPreparedRunKey else { return }
+            preparedBattlePresentationRevision += 1
+            if activeBattle == nil {
+                installSimulationPresentation()
+            }
+        }
+    }
+
     @ObservationIgnored
     var outcomePresentationDelayOverride: Duration?
 

@@ -1,3 +1,4 @@
+import BattleEngine
 import SwiftUI
 import TrinketAppState
 import TrinketContent
@@ -12,6 +13,7 @@ struct LabyrinthMapView: View {
 
     @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(\.isBattleActive) private var isBattleActive
     @State private var retainedPresentation: LabyrinthMapSnapshot?
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
@@ -26,6 +28,10 @@ struct LabyrinthMapView: View {
 
     private var hasEncounter: Bool {
         encounters.activeMysteryEncounter != nil || encounters.activeShopEncounter != nil
+    }
+
+    private var isRetainingPresentation: Bool {
+        hasEncounter || isBattleActive || labyrinth.battle.activeBattle != nil
     }
 
     private var floors: [LabyrinthCluster] {
@@ -78,7 +84,7 @@ struct LabyrinthMapView: View {
             guard retainedPresentation == nil else { return }
             reconcileProgress(previous: previous, current: current)
         }
-        .onChange(of: hasEncounter) { _, isActive in
+        .onChange(of: isRetainingPresentation) { _, isActive in
             guard !isActive, let retainedPresentation else { return }
             var transaction = Transaction()
             transaction.disablesAnimations = true
@@ -89,6 +95,9 @@ struct LabyrinthMapView: View {
         }
         .onChange(of: StageSelectPrepareDependency.labyrinth(playerSave: playerSave)) { _, _ in
             labyrinth.prepareReachableBattles()
+        }
+        .onDisappear {
+            labyrinth.battle.preferredPreparedRunKey = nil
         }
         .trinketMessageAlert($nodeMessage)
     }
@@ -151,53 +160,57 @@ struct LabyrinthMapView: View {
                     onSelectNode: { selectedNodeID = $0 },
                     onDismissSelection: { selectedNodeID = nil },
                 )
-                .id(cluster.id)
-                .transition(.opacity.combined(with: .offset(y: 12)))
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 .padding(.top, TrinketDesign.Spacing.small)
-                .padding(
-                    .bottom,
-                    selectedNode == nil
-                        ? TrinketDesign.Spacing.extraLarge
-                        : Self.inspectorScrollClearance,
-                )
+                .padding(.bottom, Self.inspectorScrollClearance)
             }
             .scrollIndicators(.hidden)
             .defaultScrollAnchor(.top)
+            .id(cluster.id)
+            .transition(.opacity.combined(with: .offset(y: 12)))
         }
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthMap)
         .overlay(alignment: .bottom) {
-            if let selectedNode {
-                LabyrinthNodeInspector(
-                    node: selectedNode,
-                    type: snapshot.type(for: selectedNode),
-                    resolvedMysteryEvent: snapshot.events[selectedNode.id],
-                    recruitArtwork: snapshot.recruitArtwork(for: selectedNode),
-                    onPrimaryAction: { handleNodeAction(selectedNode, snapshot: snapshot) },
-                )
-                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                .padding(.bottom, TrinketDesign.Spacing.small)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+            Group {
+                if let selectedNode {
+                    LabyrinthNodeInspector(
+                        node: selectedNode,
+                        type: snapshot.type(for: selectedNode),
+                        resolvedMysteryEvent: snapshot.events[selectedNode.id],
+                        recruitArtwork: snapshot.recruitArtwork(for: selectedNode),
+                        onPrimaryAction: { handleNodeAction(selectedNode, snapshot: snapshot) },
+                    )
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                    .padding(.bottom, TrinketDesign.Spacing.small)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
+            .animation(LabyrinthMapMotion.inspector, value: selectedNodeID)
         }
         .animation(LabyrinthMapMotion.floorChange, value: viewedFloor)
-        .animation(LabyrinthMapMotion.inspector, value: selectedNodeID)
         .trinketSensoryFeedback(
             .selection,
             trigger: nodeSelectionFeedbackTrigger,
             enabled: options.hapticsEnabled,
         )
-        .onChange(of: selectedNodeID) { _, newValue in
-            guard newValue != nil else { return }
-            nodeSelectionFeedbackTrigger &+= 1
+        .onChange(of: selectedNodeID) { _, newID in
+            if let newID, let node = state.node(id: newID), node.type.isCombat {
+                labyrinth.battle.preferredPreparedRunKey = PlayBattleOrigin.labyrinth(nodeID: newID).runKey
+                nodeSelectionFeedbackTrigger &+= 1
+            } else {
+                labyrinth.battle.preferredPreparedRunKey = nil
+                if newID != nil {
+                    nodeSelectionFeedbackTrigger &+= 1
+                }
+            }
         }
     }
 
     private func handleNodeAction(_ node: LabyrinthNode, snapshot: LabyrinthMapSnapshot) -> Bool {
-        guard !hasEncounter else { return false }
+        guard !isRetainingPresentation else { return false }
         retainedPresentation = snapshot
         let message = labyrinth.handleNodeAction(nodeID: node.id)
-        if !hasEncounter {
+        if !isRetainingPresentation {
             retainedPresentation = nil
         }
         if let message {

@@ -395,6 +395,7 @@ private class RejectingBattleRuntime: BattleRuntime {
     }
 
     var activeBattle: BattleRunConfiguration?
+    var preferredPreparedRunKey: BattleRunKey?
     var lifecyclePhase: BattleLifecyclePhase = .idle
     var isSuspendedForScenePhase = false
     var finalPartyHealthByCombatantID: [String: Int]?

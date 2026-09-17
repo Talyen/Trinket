@@ -10,6 +10,7 @@ public enum BattleLifecyclePhase: Equatable, Sendable {
 @MainActor
 public protocol BattleRuntime: AnyObject {
     var activeBattle: BattleRunConfiguration? { get }
+    var preferredPreparedRunKey: BattleRunKey? { get set }
     var lifecyclePhase: BattleLifecyclePhase { get }
     var isSuspendedForScenePhase: Bool { get }
     var resolvedDefeatProgress: BattleDefeatProgress? { get }
