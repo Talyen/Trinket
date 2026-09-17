@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import ast
 import io
 import json
+import os
 import re
+import shutil
 import subprocess
+import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -163,6 +168,82 @@ class CIPathFilterTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn('status="$(cat "$RUNNER_TEMP/trinket-sim-preboot.status")"', text)
         self.assertIn("Simulator preboot failed", text)
+
+    def test_standalone_env_parser_matches_internal_parser(self) -> None:
+        # changes.yml runs ci-path-filter.py from /tmp with only
+        # build-inputs.env beside it, so the module falls back to its
+        # vendored parser. Pin the two implementations against each other.
+        from internal.cli import read_env_arrays
+
+        names = [
+            "TRINKET_CONTENT_GENERATION_INPUTS",
+            "TRINKET_ASSET_GENERATION_INPUTS",
+            "TRINKET_PROJECT_GENERATION_INPUTS",
+        ]
+        env_path = ROOT / "Scripts" / "build-inputs.env"
+        self.assertEqual(
+            self.filter._standalone_read_env_arrays(env_path, names),
+            read_env_arrays(env_path, names),
+        )
+
+    def test_standalone_env_parser_rejects_bad_input_like_internal_parser(self) -> None:
+        from internal.cli import read_env_arrays
+
+        cases = {
+            "missing": ("OTHER=(\na\n)\n", ["WANT"]),
+            "unterminated": ("WANT=(\na\n", ["WANT"]),
+            "expansion": ("WANT=(\n$a\n)\n", ["WANT"]),
+        }
+        for label, (body, names) in cases.items():
+            with self.subTest(case=label):
+                with tempfile.TemporaryDirectory() as tmp:
+                    env = Path(tmp) / "build-inputs.env"
+                    env.write_text(body, encoding="utf-8")
+                    with self.assertRaises(ValueError):
+                        read_env_arrays(env, names)
+                    with self.assertRaises(ValueError):
+                        self.filter._standalone_read_env_arrays(env, names)
+
+    def test_module_loads_standalone_without_internal_package(self) -> None:
+        # Reproduce the CI layout: only the script and its env file, with
+        # no `internal` package importable, then exercise generation_inputs.
+        from internal.cli import read_env_arrays
+
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copy(ROOT / "Scripts" / "ci-path-filter.py", Path(tmp) / "ci-path-filter.py")
+            shutil.copy(ROOT / "Scripts" / "build-inputs.env", Path(tmp) / "build-inputs.env")
+            child = (
+                "import importlib.util, sys;"
+                "spec = importlib.util.spec_from_file_location('ci_standalone', 'ci-path-filter.py');"
+                "mod = importlib.util.module_from_spec(spec);"
+                "sys.modules['ci_standalone'] = mod;"
+                "spec.loader.exec_module(mod);"
+                "assert 'internal.cli' not in sys.modules, 'must run without the internal package';"
+                "print(repr(mod.generation_inputs()))"
+            )
+            output = subprocess.check_output(
+                [sys.executable, "-c", child],
+                cwd=tmp,
+                env={"PATH": "/usr/bin:/bin", "SYSTEMROOT": os.environ.get("SYSTEMROOT", "")}
+                if os.name == "nt"
+                else {"PATH": "/usr/bin:/bin"},
+                text=True,
+            )
+            standalone = ast.literal_eval(output.strip())
+            names = [
+                "TRINKET_CONTENT_GENERATION_INPUTS",
+                "TRINKET_ASSET_GENERATION_INPUTS",
+                "TRINKET_PROJECT_GENERATION_INPUTS",
+            ]
+            parsed = read_env_arrays(ROOT / "Scripts" / "build-inputs.env", names)
+            self.assertEqual(
+                standalone,
+                (
+                    parsed[names[0]],
+                    parsed[names[1]],
+                    parsed[names[2]],
+                ),
+            )
 
 
 if __name__ == "__main__":

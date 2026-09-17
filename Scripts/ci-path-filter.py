@@ -11,13 +11,78 @@ import fnmatch
 import functools
 import json
 import os
+import shlex
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from internal.cli import read_env_arrays
+
+def _standalone_read_env_arrays(path: Path | str, names: list[str]) -> dict[str, tuple[str, ...]]:
+    """Fallback for `internal.cli.read_env_arrays` when this file runs standalone.
+
+    The changes workflow fetches only this file plus build-inputs.env into
+    /tmp (no checkout by design), so the `internal` package is unavailable
+    there. This mirrors the canonical parser's contract — shlex splitting,
+    rejection of live shell expansions, and ValueError on unterminated or
+    missing arrays — and Scripts/Tests/test_ci_path_filter.py pins the two
+    implementations against each other.
+    """
+    wanted = set(names)
+    found: dict[str, list[str]] = {}
+    current: str | None = None
+    buffer: list[str] = []
+    for raw_line in Path(path).read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if current is None:
+            for name in wanted:
+                if line == f"{name}=(" or line.startswith(f"{name}=("):
+                    rest = line[len(name) + 2 :].strip()
+                    current = name
+                    buffer = []
+                    if rest:
+                        line = rest
+                    else:
+                        break
+                    if line.endswith(")"):
+                        chunk = line[:-1].strip()
+                        if chunk:
+                            buffer.append(chunk)
+                        found[current] = _standalone_split_array(" ".join(buffer), path, current)
+                        current = None
+                    elif line:
+                        buffer.append(line)
+                    break
+        elif line.endswith(")"):
+            chunk = line[:-1].strip()
+            if chunk:
+                buffer.append(chunk)
+            assert current is not None
+            found[current] = _standalone_split_array(" ".join(buffer), path, current)
+            current = None
+        else:
+            buffer.append(line)
+    if current is not None:
+        raise ValueError(f"{path}: unterminated array {current}")
+    missing = wanted - set(found)
+    if missing:
+        raise ValueError(f"{path}: missing arrays: {', '.join(sorted(missing))}")
+    return {name: tuple(found[name]) for name in names}
+
+
+def _standalone_split_array(body: str, path: Path | str, name: str) -> list[str]:
+    if "$" in body or "`" in body:
+        raise ValueError(f"{path}: array {name} needs live shell expansion; source it in bash instead")
+    return shlex.split(body)
+
+
+try:
+    from internal.cli import read_env_arrays
+except ImportError:
+    read_env_arrays = _standalone_read_env_arrays
 
 Z40 = "0000000000000000000000000000000000000000"
 
