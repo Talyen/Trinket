@@ -24,11 +24,10 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
 
     func testOfferDismissalAndReopen() throws {
         try throwIfStoreKitPurchaseUnavailable()
-        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
-        assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
-        tapButton(AccessibilityID.FullGame.options)
-        assertExists(AccessibilityID.FullGame.offer)
-        assertPurchaseProductLoaded()
+        try launchAndAwaitOfferProduct(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"]) { file, line in
+            assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true, file: file, line: line)
+            tapButton(AccessibilityID.FullGame.options, file: file, line: line)
+        }
         attachSuccessScreenshot(named: "Full Game offer")
         tapButton(AccessibilityID.FullGame.close)
         XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
@@ -38,13 +37,12 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
 
     func testAskToBuyPurchaseRestoreAndRepurchase() throws {
         try throwIfStoreKitPurchaseUnavailable()
-        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
+        try launchAndAwaitOfferProduct(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"]) { file, line in
+            assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true, file: file, line: line)
+            tapButton(AccessibilityID.FullGame.options, file: file, line: line)
+        }
         let session = try XCTUnwrap(storeSession)
         session.askToBuyEnabled = true
-        assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
-        tapButton(AccessibilityID.FullGame.options)
-        assertExists(AccessibilityID.FullGame.offer)
-        assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         assertExists(AccessibilityID.FullGame.status, timeout: 20)
         let pending = try XCTUnwrap(session.allTransactions().first)
@@ -89,13 +87,56 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
+        guard waitForProductLoaded(timeout: timeout) else {
+            fail("Button '\(AccessibilityID.FullGame.purchase)' not found after retrying", file: file, line: line)
+            return
+        }
+    }
+
+    /// Opens the Full Game offer and waits for the purchasable product.
+    ///
+    /// When the product catalog never resolves, the test session itself is
+    /// torn down and recreated around a relaunch before failing. Under
+    /// Xcode 27 StoreKitTest the catalog can fail to resolve for the
+    /// lifetime of the first session on a fresh install (every session call
+    /// errors); a new session plus a settled install then resolves
+    /// immediately, matching what the next test run would observe. Only the
+    /// failure path pays for the second launch.
+    private func launchAndAwaitOfferProduct(
+        arguments: [String],
+        file: StaticString = #file,
+        line: UInt = #line,
+        open: (_ file: StaticString, _ line: UInt) -> Void,
+    ) throws {
+        launchApp(arguments: arguments)
+        open(file, line)
+        assertExists(AccessibilityID.FullGame.offer, file: file, line: line)
+        if waitForProductLoaded(timeout: 20) {
+            return
+        }
+        storeSession?.clearTransactions()
+        storeSession = nil
+        app.terminate()
+        let session = try SKTestSession(configurationFileNamed: "Trinket")
+        session.resetToDefaultState()
+        session.disableDialogs = true
+        session.askToBuyEnabled = false
+        session.clearTransactions()
+        storeSession = session
+        launchApp(arguments: arguments)
+        open(file, line)
+        assertExists(AccessibilityID.FullGame.offer, file: file, line: line)
+        assertPurchaseProductLoaded(file: file, line: line)
+    }
+
+    private func waitForProductLoaded(timeout: TimeInterval) -> Bool {
         let purchase = button(AccessibilityID.FullGame.purchase)
         let retry = button(AccessibilityID.FullGame.retry)
         let deadline = Date().addingTimeInterval(timeout)
 
         while Date() < deadline {
             if waitForExistence(purchase, timeout: min(2, deadline.timeIntervalSinceNow)) {
-                return
+                return true
             }
             guard waitForExistence(retry, timeout: min(1, max(0, deadline.timeIntervalSinceNow))) else {
                 continue
@@ -103,7 +144,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
             tapWhenReady(retry)
         }
 
-        fail("Button '\(AccessibilityID.FullGame.purchase)' not found after retrying", file: file, line: line)
+        return false
     }
 
     func testLockedCharactersOpenOfferAndReturnToCollection() {
