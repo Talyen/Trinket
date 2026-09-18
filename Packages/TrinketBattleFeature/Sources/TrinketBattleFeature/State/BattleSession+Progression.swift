@@ -67,7 +67,7 @@ public extension BattleSession {
             break
         case let .staleSettlement(settlement):
             guard let input = victoryInput else { return }
-            spectacle.outcomePresentation = .victory(BattleVictorySummary.make(
+            presentVictory(BattleVictorySummary.make(
                 configuration: configuration, settlement: settlement,
                 heroName: input.heroName, companionName: input.companionName,
             ))

@@ -61,16 +61,6 @@ enum CombatFeedbackChipBridge {
 
         var affectedTargets = Set<String>()
         switch update {
-        case let .insert(items):
-            for item in items {
-                itemsByTarget[item.targetID, default: [:]][item.id] = item
-                affectedTargets.insert(item.targetID)
-            }
-        case let .update(items):
-            for item in items where itemsByTarget[item.targetID]?[item.id] != nil {
-                itemsByTarget[item.targetID]?[item.id] = item
-                affectedTargets.insert(item.targetID)
-            }
         case let .remove(ids):
             for targetID in Array(itemsByTarget.keys) {
                 let removed = ids.filter { itemsByTarget[targetID]?.removeValue(forKey: $0) != nil }
@@ -161,7 +151,7 @@ enum CombatFeedbackChipBridge {
         let visible = targetItems.values.filter { item in
             now >= item.availableAt && now < item.expiresAt
         }
-        let chipsToDraw = CombatFeedbackOverlayPolicy.orderedChips(from: visible.sorted {
+        let chipsToDraw = CombatFeedbackOrdering.orderedChips(from: visible.sorted {
             if $0.availableAt == $1.availableAt {
                 return $0.id < $1.id
             }

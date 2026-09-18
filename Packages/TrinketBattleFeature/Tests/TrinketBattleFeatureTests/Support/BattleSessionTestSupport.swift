@@ -10,9 +10,9 @@ import TrinketFeatureSupport
 
 @MainActor
 enum BattleSessionTestSupport {
-    /// Session-level default enemy is a 100 HP parked enemy — not
-    /// `quickWinParty`'s 1 HP default, which is substituted explicitly below so
-    /// the divergence stays visible. Pass `enemy:` to override.
+    /// Session-level default enemy is `passiveEnemy()`'s 100 HP parked enemy —
+    /// not `quickWinParty`'s 1 HP default, which is substituted explicitly below
+    /// so the divergence stays visible. Pass `enemy:` to override.
     static func makeConfiguredSession(
         rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         hero: Combatant? = nil,
@@ -25,12 +25,13 @@ enum BattleSessionTestSupport {
         completeVictory: ((BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?) -> BattleCompletionResult)? = nil,
     ) -> BattleSession {
         // Session default: a durable parked enemy. This intentionally replaces
-        // quickWinParty's 1 HP enemy; one-shot sessions should call
-        // BattlePartyFixtures.quickWinParty() directly.
+        // quickWinParty's 1 HP enemy with passiveEnemy()'s 100 HP default;
+        // one-shot sessions should call BattlePartyFixtures.quickWinParty()
+        // directly.
         let party = BattlePartyFixtures.quickWinParty(
             hero: hero,
             companion: companion,
-            enemy: enemy ?? CombatantFixtures.passiveEnemy(maxHealth: 100),
+            enemy: enemy ?? CombatantFixtures.passiveEnemy(),
         )
         let resolvedHero = party.hero
         let resolvedCompanion = party.companion
@@ -204,10 +205,18 @@ enum BattleSessionTestSupport {
         return session.outcome == .victory ? session.goldFlow?.net : nil
     }
 
+    /// Durability-probe scale for presentation tests that must survive many
+    /// turns without ending the battle. Deliberately larger than the shared
+    /// `20/100` fixture scale; the companion inherits the hero scale unless
+    /// overridden. See `BattleSessionPreparationTests` session-default pins.
+    private static let passiveSessionHeroHealth = 100
+    private static let passiveSessionHeroMana = 12
+    private static let passiveSessionEnemyHealth = 1000
+
     static func makePassiveSession(
-        heroHealth: Int = 100,
-        heroMana: Int = 12,
-        enemyHealth: Int = 1000,
+        heroHealth: Int = passiveSessionHeroHealth,
+        heroMana: Int = passiveSessionHeroMana,
+        enemyHealth: Int = passiveSessionEnemyHealth,
         companionHealth: Int? = nil,
         companionMana: Int? = nil,
     ) -> BattleSession {
@@ -272,6 +281,49 @@ enum BattleSessionTestSupport {
             isManualInteractionActive: isManualInteractionActive,
             playCard: playCard,
         )
+    }
+
+    static func makeUltimateSession(
+        heroID: String = "knight",
+        abilities: [Ability] = [.slash, .fireball, .avatarOfJustice],
+        enemyHealth: Int = 500,
+        ultimateInFrameDurationOverride: TimeInterval? = nil,
+        presentationEnvironment: BattleRuntimeDependencies? = nil,
+    ) -> BattleSession {
+        makeConfiguredSession(
+            hero: CombatantFixtures.combatant(id: heroID, role: .hero, abilities: abilities),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: enemyHealth,
+                abilities: [],
+            ),
+            ultimateInFrameDurationOverride: ultimateInFrameDurationOverride,
+            presentationEnvironment: presentationEnvironment,
+        )
+    }
+
+    /// Plays every playable card. Returns false (recording an issue) when
+    /// setup ends the battle before the caller’s assertion runs.
+    @discardableResult
+    static func exhaustHand(on session: BattleSession) -> Bool {
+        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
+            if session.playCard(cardID: card.id) == .rejected || session.outcome != nil {
+                Issue.record("Setup exhausted the battle before the pending assertion")
+                return false
+            }
+        }
+        return true
+    }
+
+    static func assertMilestonesExcluded(
+        from session: BattleSession,
+        sourceLocation: SourceLocation = #_sourceLocation,
+    ) {
+        let recordedIDs = Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))
+        let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
+        #expect(recordedIDs.isDisjoint(with: milestoneIDs), sourceLocation: sourceLocation)
     }
 
     nonisolated static func makeActionEvent(

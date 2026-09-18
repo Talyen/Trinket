@@ -3,20 +3,44 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-struct BattlefieldView<EnemyPane: View, HeroPane: View, CompanionPane: View>: View {
+struct BattlefieldView: View {
     let layout: BattleCardGridLayout.Metrics
-    let enemyPane: EnemyPane
-    let heroPane: HeroPane
-    let companionPane: CompanionPane
+    let presentation: BattlePresentationState
+    let hapticsEnabled: Bool
+    let onCombatantTap: (Combatant) -> Void
     let interactionState: BattleInteractionState
 
     var body: some View {
         VStack(spacing: layout.cardSpacing) {
-            sizedPane(enemyPane, size: layout.enemySize)
+            sizedPane(
+                BattleCombatantProjectionPane(
+                    presentation: presentation,
+                    role: .enemy,
+                    hapticsEnabled: hapticsEnabled,
+                    onCombatantTap: onCombatantTap,
+                ),
+                size: layout.enemySize,
+            )
 
             HStack(spacing: layout.cardSpacing) {
-                sizedPane(heroPane, size: layout.partySize)
-                sizedPane(companionPane, size: layout.partySize)
+                sizedPane(
+                    BattleCombatantProjectionPane(
+                        presentation: presentation,
+                        role: .hero,
+                        hapticsEnabled: hapticsEnabled,
+                        onCombatantTap: onCombatantTap,
+                    ),
+                    size: layout.partySize,
+                )
+                sizedPane(
+                    BattleCombatantProjectionPane(
+                        presentation: presentation,
+                        role: .companion,
+                        hapticsEnabled: hapticsEnabled,
+                        onCombatantTap: onCombatantTap,
+                    ),
+                    size: layout.partySize,
+                )
             }
         }
         .frame(maxWidth: .infinity, alignment: .top)

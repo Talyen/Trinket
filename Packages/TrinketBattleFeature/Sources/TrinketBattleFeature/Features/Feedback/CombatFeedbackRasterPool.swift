@@ -239,7 +239,7 @@ final class CombatFeedbackRasterPool {
     private func rasterRequests(
         displayScale: CGFloat,
     ) -> [(CombatFeedbackRasterKey, CombatFeedbackChipComposer.RasterInputs)] {
-        CombatFeedbackRasterCatalog.closedVocabularyChips().compactMap { item -> (
+        CombatFeedbackClosedVocabulary.orderedChips().compactMap { item -> (
             CombatFeedbackRasterKey,
             CombatFeedbackChipComposer.RasterInputs,
         )? in

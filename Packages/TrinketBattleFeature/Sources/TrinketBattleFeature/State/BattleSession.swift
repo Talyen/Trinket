@@ -187,7 +187,7 @@ public final class BattleSession: BattleRuntime {
         presentation.hand
     }
 
-    private var hasBlockingOverlay: Bool {
+    var hasBlockingOverlay: Bool {
         isShowingBattleLog || overlayCombatantDetail != nil || overlayAbilityDetail != nil
     }
 
@@ -256,11 +256,7 @@ public final class BattleSession: BattleRuntime {
             guard let resolved = progression.settleRewards(configuration, input.goldFlow) else { return nil }
             settlement = resolved
         } else {
-            let inputs = presentation.rewardInputs ?? RewardSettlementInputs(
-                gold: 0, reservedGold: 0, goldLimit: Int.max,
-                heroProgression: configuration.hero.progression, companionProgression: configuration.companion.progression,
-                productionDate: .distantPast,
-            )
+            let inputs = presentation.rewardInputs ?? Self.fallbackRewardInputs(for: configuration)
             settlement = presentation.rewardPlan.settle(battleGold: input.goldFlow, inputs: inputs)
         }
         return BattleVictorySummary.make(
@@ -271,12 +267,24 @@ public final class BattleSession: BattleRuntime {
         )
     }
 
+    static func fallbackRewardInputs(for configuration: BattleRunConfiguration) -> RewardSettlementInputs {
+        RewardSettlementInputs(
+            gold: 0, reservedGold: 0, goldLimit: Int.max,
+            heroProgression: configuration.hero.progression, companionProgression: configuration.companion.progression,
+            productionDate: .distantPast,
+        )
+    }
+
+    func presentVictory(_ summary: BattleVictorySummary) {
+        spectacle.outcomePresentation = .victory(summary)
+    }
+
     public func presentLaunchVictory() {
         guard let configuration = activeBattle,
               let context = presentationContext,
               let summary = makeVictorySummary(for: configuration, presentation: context)
         else { return }
-        spectacle.outcomePresentation = .victory(summary)
+        presentVictory(summary)
     }
 
     func effectSummaries(for combatant: Combatant) -> [EffectSummary]? {

@@ -29,7 +29,7 @@ struct CombatFeedbackRasterCatalogTests {
         let layoutDirection = LayoutDirection.leftToRight
         let displayScale: CGFloat = 3
         let warmed = Set(
-            CombatFeedbackRasterCatalog.closedVocabularyItems(at: date).map {
+            CombatFeedbackClosedVocabulary.enumerateItems(at: date).map {
                 CombatFeedbackRasterKey(
                     item: $0,
                     layoutDirection: layoutDirection,
@@ -74,6 +74,43 @@ struct CombatFeedbackRasterCatalogTests {
             )
         }
         #expect(Set(appearances).count == sources.count)
+    }
+
+    @Test @MainActor func `diagnostics distinguish numeric misses from unexpected vocabulary builds`() async throws {
+        let pool = CombatFeedbackRasterPool()
+        await pool.prewarmInfrastructureAndWait(displayScale: 1)
+        pool.resetDiagnostics()
+        let date = Date()
+        let word = try #require(CombatFeedbackClosedVocabulary.enumerateWordChips(at: date).first)
+        _ = pool.prepare(for: word, displayScale: 1)
+        let numeric = CombatFeedbackItem(
+            id: 999001, sourceEventIDs: [999001], actionGroupID: 999001, presentationIndex: 0,
+            targetID: "test", feedbackClass: .directDamage, keyword: .physical, visualRole: .keyword,
+            label: .amount(12345), availableAt: date, expiresAt: date.addingTimeInterval(1),
+            reactionKind: .damage,
+        )
+        _ = pool.prepare(for: numeric, displayScale: 1)
+        let snapshot = pool.snapshot()
+        #expect(snapshot.numericMissCount == 1)
+        #expect(snapshot.unexpectedClosedVocabularyBuildCount == 0)
+    }
+
+    @Test @MainActor func `pool evicts the least recently used raster at capacity`() {
+        let pool = CombatFeedbackRasterPool(capacity: 1)
+        let date = Date()
+        func numericItem(id: Int, amount: Int) -> CombatFeedbackItem {
+            CombatFeedbackItem(
+                id: id, sourceEventIDs: [id], actionGroupID: id, presentationIndex: 0,
+                targetID: "test", feedbackClass: .directDamage, keyword: .physical, visualRole: .keyword,
+                label: .amount(amount), availableAt: date, expiresAt: date.addingTimeInterval(1),
+                reactionKind: .damage,
+            )
+        }
+        _ = pool.prepare(for: numericItem(id: 1, amount: 11), displayScale: 1)
+        _ = pool.prepare(for: numericItem(id: 2, amount: 22), displayScale: 1)
+        let snapshot = pool.snapshot()
+        #expect(snapshot.entryCount == 1)
+        #expect(snapshot.evictionCount == 1)
     }
 }
 

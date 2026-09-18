@@ -8,10 +8,21 @@ styling or constants do not establish useful regression protection.
 
 | Concern | Suite |
 |---------|-------|
-| Session lifecycle, auto-battle, prepare/restart | `BattleSession*` (`BattleSessionPreparationTests` owns Session `activatePreparedBattle`) |
+| Session lifecycle, prepare/restart/activation | `BattleSessionPreparationTests` (+`Artwork` extension owns artwork-pin lifecycle; `SupportDefaults` pins construction defaults) |
+| Session commands, turn/auto-end, overlays, finishing taps | `BattleSessionSimulationTests` (+`CardPlayback` extension owns visual-cast vs settled-combat parity) |
+| Card cues (begin/cancel/deny/clear) | `BattleSessionCardCueTests` |
+| Auto-battle driving and retry | `BattleSessionAutoBattleTests` |
+| Spectacle, ultimate highlights, cinematics | `BattleSpectacleSessionTests` |
+| Attack/impact sequencing and timing | `BattleActionPresentationTests` |
+| Presentation projection identity | `BattlePresentationProjectionTests` |
 | Feedback scheduling, absorption, and expiry | `BattleFeedbackLaneTests` |
 | Feedback classification / consolidation | `CombatFeedbackPresenterTests` |
 | Chip host delivery and availability | `CombatFeedbackChipPresentationTests` |
+| Feedback motion and typography | `CombatFeedbackMotionTests` |
+| Card gesture policy | `BattleCardGesturePolicyTests` |
+| Effect descriptors and recipe fallbacks | `CombatFeedbackEffectPresentationTests` |
+| Raster warmup and invalidation | `CombatFeedbackRasterCatalogTests` |
+| SFX mapping | `CombatSFXMapperTests` |
 | Victory summary / claimed victory | `BattleVictorySummaryTests`, `BattleClaimedVictoryTests` |
 
 Runtime-contract behavior is exercised here through `BattleSession` (see

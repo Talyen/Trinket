@@ -46,6 +46,6 @@ extension BattleSession {
 
     var canPresentCardCue: Bool {
         spectacle.outcomePresentation == .battle && hasActiveSimulation && !isSuspendedForScenePhase
-            && overlayAbilityDetail == nil && overlayCombatantDetail == nil && !isShowingBattleLog
+            && !hasBlockingOverlay
     }
 }

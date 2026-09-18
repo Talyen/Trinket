@@ -30,19 +30,6 @@ enum CombatFeedbackChipLabel: Hashable {
         }
     }
 
-    var atlasFragments: [String] {
-        switch self {
-        case .amount:
-            displayString.map(String.init)
-        case let .word(word):
-            if let text = word.composeText {
-                [text]
-            } else {
-                []
-            }
-        }
-    }
-
     static func formatAmount(_ value: Int) -> String {
         String(value.magnitude)
     }

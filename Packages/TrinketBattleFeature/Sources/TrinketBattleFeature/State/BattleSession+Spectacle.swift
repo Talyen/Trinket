@@ -40,7 +40,10 @@ extension BattleSession {
     }
 
     func clearUltimateHighlight(for actorID: String) {
-        spectacle.pendingUltimateHighlightTasksByActorID[actorID]?.cancel()
+        if var entry = spectacle.pendingUltimateHighlightTasksByActorID[actorID] {
+            entry.invalidate()
+            spectacle.pendingUltimateHighlightTasksByActorID[actorID] = entry
+        }
         spectacle.pendingUltimateHighlightTasksByActorID[actorID] = nil
         if let highlight = spectacle.ultimateHighlightsByActorID.removeValue(forKey: actorID) {
             spectacle.cinematics.pause(actorID: actorID, abilityID: highlight.abilityID)
@@ -80,7 +83,7 @@ extension BattleSession {
             sfx: SFXID.victory,
         ) { session in
             guard case let .pendingVictory(summary) = session.spectacle.outcomePresentation else { return }
-            session.spectacle.outcomePresentation = .victory(summary)
+            session.presentVictory(summary)
         }
     }
 
@@ -148,10 +151,10 @@ extension BattleSession {
         case .victory:
             return
         case let .pendingVictory(summary):
-            spectacle.outcomePresentation = .victory(summary)
+            presentVictory(summary)
         case .battle, .defeat:
             guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
-            spectacle.outcomePresentation = .victory(summary)
+            presentVictory(summary)
         }
     }
 
@@ -168,7 +171,7 @@ extension BattleSession {
         spectacle.outcomeTask.invalidate()
         clearSpectacle()
         guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
-        spectacle.outcomePresentation = .victory(summary)
+        presentVictory(summary)
         dependencies.playSFX([SFXID.victory])
     }
     #endif
@@ -186,12 +189,7 @@ extension BattleSession {
                 materials: [], items: [],
             ).settle(
                 battleGold: .init(),
-                inputs: RewardSettlementInputs(
-                    gold: 0, reservedGold: 0, goldLimit: Int.max,
-                    heroProgression: configuration.hero.progression,
-                    companionProgression: configuration.companion.progression,
-                    productionDate: .distantPast,
-                ),
+                inputs: Self.fallbackRewardInputs(for: configuration),
             )
             session.spectacle.outcomePresentation = .defeat(settlement)
         }
@@ -224,7 +222,9 @@ extension BattleSession {
             while remaining > .zero, !Task.isCancelled {
                 let started = clock.now
                 let wasSuspended = isSuspendedForScenePhase
-                try? await Task.sleep(for: min(remaining, .milliseconds(50)))
+                // Suspension freezes the countdown, so sleep longer while
+                // suspended instead of waking every 50 ms for no progress.
+                try? await Task.sleep(for: min(remaining, wasSuspended ? .milliseconds(250) : .milliseconds(50)))
                 if !wasSuspended, !isSuspendedForScenePhase {
                     remaining -= started.duration(to: clock.now)
                 }
@@ -279,32 +279,43 @@ extension BattleSession {
             keyword: event.keyword,
             startedAt: date,
         )
-        spectacle.pendingUltimateHighlightTasksByActorID[event.actorID]?.cancel()
+        if var entry = spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] {
+            entry.invalidate()
+            spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = entry
+        }
         spectacle.ultimateHighlightsByActorID[event.actorID] = highlight
         spectacle.cinematics.warm(actorID: event.actorID, abilityID: event.abilityID)
         let hold = ultimateInFrameDurationOverride ?? .seconds(BattleMotion.ultimateInFrameDuration)
-        spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = Task { @MainActor [weak self] in
+        var entry = spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] ?? CancellableGeneration()
+        let generation = entry.claim()
+        entry.task = Task { @MainActor [weak self] in
             try? await Task.sleep(for: hold)
             guard let self, !Task.isCancelled else { return }
+            guard spectacle.pendingUltimateHighlightTasksByActorID[event.actorID]?.isCurrent(generation) == true else { return }
             if spectacle.ultimateHighlightsByActorID[event.actorID]?.id == highlightID {
                 spectacle.ultimateHighlightsByActorID[event.actorID] = nil
             }
-            spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = nil
+            if var finished = spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] {
+                finished.finish(generation: generation)
+                spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] =
+                    finished.hasPendingTask ? finished : nil
+            }
         }
+        spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = entry
     }
 
     func cancelUltimateHighlightWatchdogs() {
-        for task in spectacle.pendingUltimateHighlightTasksByActorID.values {
-            task.cancel()
+        for key in spectacle.pendingUltimateHighlightTasksByActorID.keys {
+            if var entry = spectacle.pendingUltimateHighlightTasksByActorID[key] {
+                entry.invalidate()
+                spectacle.pendingUltimateHighlightTasksByActorID[key] = entry
+            }
         }
         spectacle.pendingUltimateHighlightTasksByActorID.removeAll()
     }
 
     func clearAllPresentation() {
-        clearOutcomePresentation()
-        resetEphemeralOverlays()
-        feedback.clear()
-        clearSpectacle()
+        resetPresentation(releaseCinematicPlayers: true, resetSpectacleState: false)
     }
 
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {
@@ -338,21 +349,38 @@ extension BattleSession {
         cancelPendingBattleTasks()
         deliveredClaimedVictoryConfigurationID = nil
         presentation = BattlePresentationState()
-        spectacle.outcomeTask.invalidate()
-        spectacle.celebrateTask.invalidate()
-        cancelUltimateHighlightWatchdogs()
-        spectacle = BattleSpectacleState()
-        feedback.clear()
-        resetFeedbackRasterDiagnostics()
-        resetEphemeralOverlays()
+        resetPresentation(releaseCinematicPlayers: true, resetSpectacleState: true)
         feedback.release()
         presentationContext = nil
     }
 
     private func clearSharedPresentation(releaseCinematicPlayers: Bool) {
+        resetPresentation(
+            releaseCinematicPlayers: releaseCinematicPlayers,
+            resetSpectacleState: false,
+        )
+    }
+
+    private func resetPresentation(releaseCinematicPlayers: Bool, resetSpectacleState: Bool) {
         feedback.clear()
         resetFeedbackRasterDiagnostics()
-        clearSpectacle(releaseCinematicPlayers: releaseCinematicPlayers)
+        if resetSpectacleState {
+            cancelUltimateHighlightWatchdogs()
+            spectacle.outcomeTask.invalidate()
+            spectacle.celebrateTask.invalidate()
+            spectacle = BattleSpectacleState()
+            if releaseCinematicPlayers {
+                // Fresh spectacle owns fresh cinematic players; the retired
+                // instance releases its players in deinit.
+            }
+            // NB: no unconditional chip-bridge reset here. The lane already
+            // publishes `.reset` on clear when it published presentation, and
+            // production owns one long-lived session, so a teardown-time
+            // unconditional publish would only couple concurrent lanes
+            // (tests, DEBUG Preview Lab) through shared bridge statics.
+        } else {
+            clearSpectacle(releaseCinematicPlayers: releaseCinematicPlayers)
+        }
         clearOutcomePresentation()
         resetEphemeralOverlays()
     }

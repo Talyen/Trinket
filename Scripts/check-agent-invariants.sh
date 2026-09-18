@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Fail-closed mechanical invariants that agents otherwise skip: BattleEngine
 # entropy, test Task.sleep, persistence try?, undocumented concurrency escapes,
-# SwiftLint disables without a reason, and launch artwork pin release.
+# SwiftLint disables without a reason, launch artwork pin release, and stale
+# package husks left by package folds.
 #
 # Escape hatches (nearby line, same style as ExclusivityCheck):
 #   EntropyCheck: allow - <reason>
@@ -173,6 +174,16 @@ while IFS= read -r match; do
   fi
   trinket_rg_violation "${local_file}:${line}: do not release launch artwork pins after warmup (ArtworkWorkingSetCheck)"
 done <<< "$TRINKET_RG_MATCHES"
+
+# A folded package deletes its Package.swift and Sources but leaves ignored
+# build output (Packages/<name>/.build, build/) that plain `git status` never
+# surfaces. Flag husks with neither manifest nor sources; a missing manifest
+# beside live Sources already fails the build loudly elsewhere.
+for tenant in Packages/*/; do
+  if [[ ! -f "${tenant}Package.swift" && ! -d "${tenant}Sources" ]]; then
+    trinket_rg_violation "${tenant}: package husk without Package.swift or Sources (remove the stale fold leftover)"
+  fi
+done
 
 trinket_rg_report "Agent invariant check failed:" "Agent invariant check passed." "" \
   "Escape hatches: EntropyCheck / TestSleepCheck / PersistenceCheck / ConcurrencyCheck / ArtworkWorkingSetCheck: allow - <reason>."

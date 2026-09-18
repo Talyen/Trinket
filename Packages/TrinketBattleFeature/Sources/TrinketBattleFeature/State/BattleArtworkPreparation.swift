@@ -65,13 +65,16 @@ final class BattleArtworkPreparation {
         names = desired
     }
 
-    func retain(names desired: Set<String>) {
+    /// Synchronous pruning only. Acquisition happens in async `prepare`, so
+    /// callers use this after adding/removing runs to release pins for runs
+    /// that are no longer desired without pinning anything new.
+    func releaseExtraneousPins(names desired: Set<String>) {
         generation &+= 1
         releasePins(names.subtracting(desired))
         names.formIntersection(desired)
     }
 
     func release() {
-        retain(names: [])
+        releaseExtraneousPins(names: [])
     }
 }

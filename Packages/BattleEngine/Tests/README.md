@@ -42,7 +42,13 @@ helpers live in `Support/`. All remain in the same test target.
   (block decay, pacing, evaluator) to keep the exception. Wrapper parameters
   named `seed` that forward to `rngSeed` are the ergonomic convention, not a
   re-alias violation; do not introduce unrelated local `let seed = ...`
-  constants.
+  constants. Neighbor seeds must use `deterministicBattleSeedVariant(_:)` (or
+  range from `deterministicBattleSeed`) so the stream stays greppable — never
+  bare `1772` / `1773` literals.
+- Health scales are per-concern, not drift: `20/20/100` hero/companion/enemy
+  for factory battles, `50/50` pipeline source/target,
+  `40/40/200` talent-capstone probes, `1000+` presentation durability probes.
+  Do not normalize them toward one default.
 - `BattlePerformance.xctestplan` covers UI tests only; `BattlePerformanceScenario`
   has no unit-test participation.
 - Build combatants with `CombatantFixtures`. `BattleStateTestFactory` centralizes

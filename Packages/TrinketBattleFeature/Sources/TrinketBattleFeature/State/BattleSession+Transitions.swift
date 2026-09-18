@@ -57,8 +57,7 @@ extension BattleSession {
         guard hasActiveSimulation, engineHand.isEmpty, activeBattle?.id == configurationID else { return }
         commandState.transition(to: .opening)
         if !isSuspendedForScenePhase {
-            guard let playback = resolveTransition(.opening) else { return }
-            presentCompletedCommand(playback, at: .now)
+            presentOpeningTransition(for: configurationID)
             return
         }
         let generation = transitionTask.claim()
@@ -68,11 +67,16 @@ extension BattleSession {
             while !Task.isCancelled, isSuspendedForScenePhase {
                 await waitForAutoBattleRetry()
             }
-            guard !Task.isCancelled, transitionTask.isCurrent(generation),
-                  activeBattle?.id == configurationID,
-                  let playback = resolveTransition(.opening) else { return }
-            presentCompletedCommand(playback, at: .now)
+            guard !Task.isCancelled, transitionTask.isCurrent(generation) else { return }
+            presentOpeningTransition(for: configurationID)
         }
+    }
+
+    private func presentOpeningTransition(for configurationID: UUID) {
+        guard activeBattle?.id == configurationID,
+              let playback = resolveTransition(.opening)
+        else { return }
+        presentCompletedCommand(playback, at: .now)
     }
 
     func cancelTransitionPresentation() {

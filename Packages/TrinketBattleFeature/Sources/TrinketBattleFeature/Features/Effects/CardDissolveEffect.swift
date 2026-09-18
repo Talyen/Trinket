@@ -108,18 +108,11 @@ struct CardActivationParticles: View {
             guard !keywords.isEmpty else { return }
             for particle in particles {
                 let sample = sample(for: particle, size: size)
-                guard sample.opacity > 0, sample.diameter > 0 else { continue }
-                let rect = CGRect(
-                    x: sample.center.x - sample.diameter / 2,
-                    y: sample.center.y - sample.diameter / 2,
-                    width: sample.diameter,
-                    height: sample.diameter,
-                )
-                var particleContext = context
-                particleContext.opacity = sample.opacity
-                particleContext.fill(
-                    Path(ellipseIn: rect),
-                    with: .color(keywordColor(for: particle)),
+                context.fillParticle(
+                    center: sample.center,
+                    diameter: sample.diameter,
+                    opacity: sample.opacity,
+                    color: keywordColor(for: particle),
                 )
             }
         }

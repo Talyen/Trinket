@@ -38,8 +38,7 @@ final class BattleCinematicPlayer {
     }
 
     func warm(actorID: String, abilityID: String) {
-        guard isEnabled else { return }
-        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        guard let key = enabledKey(actorID: actorID, abilityID: abilityID) else { return }
         guard playersByCastKey[key] == nil else { return }
         guard let url = UltimateCinematicCatalog.videoURL(for: actorID, abilityID: abilityID) else { return }
 
@@ -52,8 +51,7 @@ final class BattleCinematicPlayer {
     }
 
     func player(for actorID: String, abilityID: String) -> AVPlayer? {
-        guard isEnabled else { return nil }
-        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        guard let key = enabledKey(actorID: actorID, abilityID: abilityID) else { return nil }
         if let existing = playersByCastKey[key] {
             return existing
         }
@@ -67,15 +65,14 @@ final class BattleCinematicPlayer {
     }
 
     func isReady(for actorID: String, abilityID: String) -> Bool {
-        guard isEnabled else { return false }
-        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        guard let key = enabledKey(actorID: actorID, abilityID: abilityID) else { return false }
         guard let player = playersByCastKey[key],
               let item = player.currentItem else { return false }
         return item.status == .readyToPlay
     }
 
     func whenReady(actorID: String, abilityID: String) async -> Bool {
-        guard isEnabled else { return false }
+        guard enabledKey(actorID: actorID, abilityID: abilityID) != nil else { return false }
         warm(actorID: actorID, abilityID: abilityID)
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
         guard playersByCastKey[key]?.currentItem != nil else { return false }
@@ -112,36 +109,12 @@ final class BattleCinematicPlayer {
         rate: Float = 1,
         onEnded: @escaping @MainActor () -> Void,
     ) {
-        guard isEnabled else { return }
-        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        guard let key = enabledKey(actorID: actorID, abilityID: abilityID) else { return }
         guard let player = player(for: actorID, abilityID: abilityID) else { return }
         applyVolume(effectsVolume: effectsVolume, to: player, actorID: actorID, abilityID: abilityID)
         clearObservers(for: actorID, abilityID: abilityID)
         if let item = player.currentItem {
-            let endObserver = NotificationCenter.default.addObserver(
-                forName: .AVPlayerItemDidPlayToEndTime,
-                object: item,
-                queue: .main,
-            ) { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.clearObservers(for: actorID, abilityID: abilityID)
-                    onEnded()
-                }
-            }
-            let failObserver = NotificationCenter.default.addObserver(
-                forName: .AVPlayerItemFailedToPlayToEndTime,
-                object: item,
-                queue: .main,
-            ) { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.clearObservers(for: actorID, abilityID: abilityID)
-                    onEnded()
-                }
-            }
-            observersByCastKey[key] = CinematicPlaybackObservers(
-                endObserver: endObserver,
-                failureObserver: failObserver,
-            )
+            observersByCastKey[key] = observe(item: item, actorID: actorID, abilityID: abilityID, onEnded: onEnded)
         }
         player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         player.play()
@@ -184,6 +157,35 @@ final class BattleCinematicPlayer {
         guard let observers = observersByCastKey.removeValue(forKey: key) else { return }
         NotificationCenter.default.removeObserver(observers.endObserver)
         NotificationCenter.default.removeObserver(observers.failureObserver)
+    }
+
+    private func enabledKey(actorID: String, abilityID: String) -> CinematicCastKey? {
+        guard isEnabled else { return nil }
+        return CinematicCastKey(actorID: actorID, abilityID: abilityID)
+    }
+
+    private func observe(
+        item: AVPlayerItem,
+        actorID: String,
+        abilityID: String,
+        onEnded: @escaping @MainActor () -> Void,
+    ) -> CinematicPlaybackObservers {
+        func makeObserver(for name: Notification.Name) -> NSObjectProtocol {
+            NotificationCenter.default.addObserver(
+                forName: name,
+                object: item,
+                queue: .main,
+            ) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.clearObservers(for: actorID, abilityID: abilityID)
+                    onEnded()
+                }
+            }
+        }
+        return CinematicPlaybackObservers(
+            endObserver: makeObserver(for: .AVPlayerItemDidPlayToEndTime),
+            failureObserver: makeObserver(for: .AVPlayerItemFailedToPlayToEndTime),
+        )
     }
 }
 

@@ -11,6 +11,9 @@ struct AutomaticCardCastView: View {
         cast.activationAt.timeIntervalSince(cast.startedAt)
     }
 
+    /// Automatic plays fly in from off-screen to a stage position by owner
+    /// side. This is intentionally not the hand resting center used by
+    /// manual casts in `CardCastEffectsLayer`.
     var body: some View {
         let metrics = BattleHandLayout.metrics(containerWidth: battleSize.width, cardCount: 3)
         let center = CGPoint(
@@ -24,7 +27,7 @@ struct AutomaticCardCastView: View {
         TimelineView(.animation(paused: cast.pausedAt != nil)) { timeline in
             let elapsed = (cast.pausedAt ?? timeline.date).timeIntervalSince(cast.startedAt)
             let arrival = min(1, max(0, elapsed / BattleMotion.cardDealDuration))
-            let eased = 1 - pow(1 - arrival, 3)
+            let eased = BattleMotion.easeOutCubic(arrival)
             let direction: CGFloat = cast.card.owner == .hero ? -1 : 1
             let progress = cardActivationProgress(elapsed: max(0, elapsed - revealDuration))
             CardDissolveEffect(

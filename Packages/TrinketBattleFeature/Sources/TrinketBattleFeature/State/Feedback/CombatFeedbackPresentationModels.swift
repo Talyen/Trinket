@@ -156,6 +156,35 @@ struct CombatReactionKeyframes: Equatable {
     }
 }
 
+/// Shared keyframe-channel forwarding for hit and attack recipes.
+/// Timing semantics stay on each recipe: hit reactions read impact/recovery
+/// from the first two samples, attacks read wind-up/swing/recover poses.
+protocol CombatReactionKeyframeHost {
+    var keyframes: CombatReactionKeyframes { get }
+}
+
+extension CombatReactionKeyframeHost {
+    var scaleX: [CombatFeedbackKeyframeSample] {
+        keyframes.scaleX
+    }
+
+    var scaleY: [CombatFeedbackKeyframeSample] {
+        keyframes.scaleY
+    }
+
+    var offsetX: [CombatFeedbackKeyframeSample] {
+        keyframes.offsetX
+    }
+
+    var offsetY: [CombatFeedbackKeyframeSample] {
+        keyframes.offsetY
+    }
+
+    var rotation: [CombatFeedbackKeyframeSample] {
+        keyframes.rotation
+    }
+}
+
 struct CombatantHitReactionRecipe: Equatable {
     let kind: CombatantHitReactionKind
     let keyframes: CombatReactionKeyframes
@@ -179,26 +208,6 @@ struct CombatantHitReactionRecipe: Equatable {
             rotation: rotation,
         )
         self.duration = duration
-    }
-
-    var scaleX: [CombatFeedbackKeyframeSample] {
-        keyframes.scaleX
-    }
-
-    var scaleY: [CombatFeedbackKeyframeSample] {
-        keyframes.scaleY
-    }
-
-    var offsetX: [CombatFeedbackKeyframeSample] {
-        keyframes.offsetX
-    }
-
-    var offsetY: [CombatFeedbackKeyframeSample] {
-        keyframes.offsetY
-    }
-
-    var rotation: [CombatFeedbackKeyframeSample] {
-        keyframes.rotation
     }
 
     var impactDuration: TimeInterval {
@@ -241,6 +250,8 @@ struct CombatantHitReactionRecipe: Equatable {
         keyframes.recoverOffsetY
     }
 }
+
+extension CombatantHitReactionRecipe: CombatReactionKeyframeHost {}
 
 enum CombatantAttackPhase: String, CaseIterable, Equatable {
     case windUp
@@ -309,26 +320,6 @@ struct CombatantAttackReactionRecipe: Equatable {
         )
     }
 
-    var scaleX: [CombatFeedbackKeyframeSample] {
-        keyframes.scaleX
-    }
-
-    var scaleY: [CombatFeedbackKeyframeSample] {
-        keyframes.scaleY
-    }
-
-    var offsetX: [CombatFeedbackKeyframeSample] {
-        keyframes.offsetX
-    }
-
-    var offsetY: [CombatFeedbackKeyframeSample] {
-        keyframes.offsetY
-    }
-
-    var rotation: [CombatFeedbackKeyframeSample] {
-        keyframes.rotation
-    }
-
     var windUpDuration: TimeInterval {
         scaleX[safe: 0]?.duration ?? 0.01
     }
@@ -359,6 +350,8 @@ struct CombatantAttackReactionRecipe: Equatable {
         )
     }
 }
+
+extension CombatantAttackReactionRecipe: CombatReactionKeyframeHost {}
 
 enum CombatantHitRecoilDirection: String, CaseIterable, Equatable {
     case up

@@ -297,9 +297,10 @@ final class CombatFeedbackRasterUIView: UIView {
         }
         let rasterID = ObjectIdentifier(raster)
         let hasMeasuredBounds = !bounds.isEmpty
+        let shadowColor = resolvedShadowColor
         withLayerActionsDisabled {
             chipLayer.contents = raster.image
-            chipLayer.shadowColor = TrinketDesign.Colors.accentEmphasized.resolve(in: EnvironmentValues()).cgColor
+            chipLayer.shadowColor = shadowColor
             chipLayer.shadowRadius = 4
             chipLayer.shadowOffset = .zero
             chipLayer.contentsScale = raster.displayScale
@@ -327,6 +328,26 @@ final class CombatFeedbackRasterUIView: UIView {
         chipLayer.contentsGravity = .resize
         chipLayer.isHidden = true
         return chipLayer
+    }
+
+    /// Resolves the chip shadow in this view's traits instead of a fresh
+    /// `EnvironmentValues()`, so Dark Mode/tint overrides apply to shadows
+    /// the same way they apply to composer tints.
+    private var resolvedShadowColor: CGColor {
+        var environment = EnvironmentValues()
+        environment.colorScheme = traitCollection.userInterfaceStyle == .dark ? .dark : .light
+        return TrinketDesign.Colors.accentEmphasized.resolve(in: environment).cgColor
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        guard traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) else { return }
+        let shadowColor = resolvedShadowColor
+        withLayerActionsDisabled {
+            for chip in layersByID.values {
+                chip.layer.shadowColor = shadowColor
+            }
+        }
     }
 
     private func recycleLayer(id: Int) {

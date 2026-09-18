@@ -39,6 +39,30 @@ dispatch conventions belong in the owning test guide, including
 [BattleEngine](../../Packages/BattleEngine/Tests/README.md#conventions) and
 [Persistence](../../Packages/TrinketPersistence/Tests/README.md).
 
+Seed streams are separate universes, not one constant: the battle RNG seed
+(`CombatantFixtures.deterministicBattleSeed`, with
+`deterministicBattleSeedVariant(_:)` for independent streams) is the only
+pinned seed. The save world seed (`PlayerSave.testWorldSeed`), the perf
+fixture seed (`BattlePerformanceFixture.seed`), and the generated-item seed
+(`SaveTestSupport.makeGeneratedItem`, default `11`) are intentionally
+distinct; do not unify them or reuse the battle seed for non-battle RNG.
+
+Known intentional forks (do not "fix" toward a single default):
+
+- Enemy HP: `1` in `quickWinParty` (fast victories) vs `100` in
+  `BattleSessionTestSupport.makeConfiguredSession` (durable sessions) vs
+  `100/1000` hero/enemy in `makePassiveSession` (durability probes, pinned in
+  `BattleSessionSupportDefaultsTests`).
+- Item IDs: `"<base>-test"` from `ItemFixtures.makeBareItem` (avoids catalog
+  collision) vs `"<baseID>-<rarity>"` from `SaveTestSupport.makeGeneratedItem`
+  (generator shapes). `SaveTestSupport.makeSave` defaults inventory to empty
+  while launch helpers seed both roster and inventory.
+- `BattleRunConfigurationTestSupport.make` (feature-level configuration) and
+  `BattleSessionTestSupport.makeConfiguredSession` (live session) overlap in
+  defaults but exercise different paths; both live in
+  `TrinketBattleFeatureTests/Support/` (test-target-internal, not a shared
+  support target).
+
 ## Unit conventions
 
 - **Naming:** `@Test func behaviorWhenCondition()` — no `test` prefix required.

@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -15,7 +16,7 @@ extension BattleTurnEngineTests {
         var companionProfile = CombatModifierProfile.zero
         companionProfile.triggers.negateFirstEnemyAttack = true
         var supportOutcomes = 0
-        for seed in UInt64(1772) ..< 1784 {
+        for seed in CombatantFixtures.deterministicBattleSeed ..< CombatantFixtures.deterministicBattleSeed + 12 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
                 enemyAbilities: [ability], companionModifiers: companionProfile,
                 rngSeed: seed, dealOpeningHand: false,

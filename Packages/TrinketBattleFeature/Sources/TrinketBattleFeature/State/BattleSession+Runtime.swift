@@ -114,17 +114,12 @@ extension BattleSession {
         var automaticCards: [BattleCard] = []
         var actions: [BattleResolvedAction] = []
         let events = try engineState.playCard(cardID: cardID, rebuildLog: false) { checkpoint, _, _ in
-            if case let .actionResolved(action) = checkpoint {
-                actions.append(action)
-            }
-            if case let .cardPlayed(card) = checkpoint, card.id != cardID {
-                automaticCards.append(card)
-            }
+            Self.collectCheckpoint(checkpoint, excludingCardID: cardID, automaticCards: &automaticCards, actions: &actions)
         }
         self.engineState = engineState
-        return (events, BattleTransitionPlayback(
+        return (events, Self.makePlayback(
             configurationID: configurationID,
-            snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: engineState),
+            state: engineState,
             events: events,
             automaticCards: automaticCards,
             actions: actions,
@@ -136,19 +131,44 @@ extension BattleSession {
         var automaticCards: [BattleCard] = []
         var actions: [BattleResolvedAction] = []
         let record: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { checkpoint, _, _ in
-            if case let .actionResolved(action) = checkpoint {
-                actions.append(action)
-            }
-            if case let .cardPlayed(card) = checkpoint {
-                automaticCards.append(card)
-            }
+            Self.collectCheckpoint(checkpoint, excludingCardID: nil, automaticCards: &automaticCards, actions: &actions)
         }
         let events: [ActionEvent] = switch kind {
         case .opening: state.drawOpeningHand(rebuildLog: false, recording: record)
         case .turn: state.endTurn(rebuildLog: false, recording: record)
         }
         engineState = state
-        return BattleTransitionPlayback(
+        return Self.makePlayback(
+            configurationID: configurationID,
+            state: state,
+            events: events,
+            automaticCards: automaticCards,
+            actions: actions,
+        )
+    }
+
+    private static func collectCheckpoint(
+        _ checkpoint: BattleTransitionCheckpoint,
+        excludingCardID: Int?,
+        automaticCards: inout [BattleCard],
+        actions: inout [BattleResolvedAction],
+    ) {
+        if case let .actionResolved(action) = checkpoint {
+            actions.append(action)
+        }
+        if case let .cardPlayed(card) = checkpoint, card.id != excludingCardID {
+            automaticCards.append(card)
+        }
+    }
+
+    private static func makePlayback(
+        configurationID: UUID,
+        state: BattleState,
+        events: [ActionEvent],
+        automaticCards: [BattleCard],
+        actions: [BattleResolvedAction],
+    ) -> BattleTransitionPlayback {
+        BattleTransitionPlayback(
             configurationID: configurationID,
             snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state),
             events: events,
@@ -190,10 +210,12 @@ extension BattleSession {
         let before = preparedBattleRunsByKey.count
         let previousPreferred = preferredPreparedRunKey
         preparedBattleRunsByKey = preparedBattleRunsByKey.filter { keys.contains($0.key) }
-        if let previousPreferred, preparedBattleRunsByKey[previousPreferred] == nil {
+        let preferredWasPruned = previousPreferred.map { preparedBattleRunsByKey[$0] == nil } ?? false
+        if preferredWasPruned {
+            // didSet already bumped the revision and reinstalled.
             preferredPreparedRunKey = nil
-        }
-        if preparedBattleRunsByKey.count != before {
+            retainPreparedArtworkPins()
+        } else if preparedBattleRunsByKey.count != before {
             retainPreparedArtworkPins()
             preparedBattlePresentationRevision += 1
         }
@@ -248,12 +270,16 @@ extension BattleSession {
 
     public func endBattle() {
         activeBattle = nil
-        if !preparedBattleRunsByKey.isEmpty {
-            preparedBattlePresentationRevision += 1
-        }
+        let hadPreparedRuns = !preparedBattleRunsByKey.isEmpty
+        let hadPreferredKey = preferredPreparedRunKey != nil
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         releasePreparedArtworkPins()
+        // didSet bumps the revision when the key actually changes, so only
+        // bump here when runs existed but no key change carries the revision.
         preferredPreparedRunKey = nil
+        if hadPreparedRuns, !hadPreferredKey {
+            preparedBattlePresentationRevision += 1
+        }
         engineState = nil
         clearRunState()
     }

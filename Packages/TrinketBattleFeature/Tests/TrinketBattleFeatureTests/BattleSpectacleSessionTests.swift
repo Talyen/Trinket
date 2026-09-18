@@ -54,20 +54,9 @@ struct BattleSpectacleSessionTests {
     }
 
     @Test func `unmapped ultimate aligns feedback with impact and starts highlight immediately`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
+        let session = BattleSessionTestSupport.makeUltimateSession(
+            heroID: "hero",
             abilities: [.slash, .fireball, .bloodthorn],
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(
-            hero: hero,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: 500,
-                abilities: [],
-            ),
         )
         let now = Date()
         let ultimate = try #require(
@@ -89,21 +78,7 @@ struct BattleSpectacleSessionTests {
     }
 
     @Test func `mapped hero ultimate shows in-frame highlight without blocking combat`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "knight",
-            role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice],
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(
-            hero: hero,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: 500,
-                abilities: [],
-            ),
-        )
+        let session = BattleSessionTestSupport.makeUltimateSession()
         let now = Date()
         let ultimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
@@ -132,20 +107,7 @@ struct BattleSpectacleSessionTests {
 
     @Test(arguments: [false, true])
     func `in-frame highlight expires while active and remains in a retiring presentation`(endBattle: Bool) async throws {
-        let hero = CombatantFixtures.combatant(
-            id: "knight",
-            role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice],
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(
-            hero: hero,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: 500,
-                abilities: [],
-            ),
+        let session = BattleSessionTestSupport.makeUltimateSession(
             ultimateInFrameDurationOverride: 0.01,
         )
         let now = Date()
@@ -161,7 +123,8 @@ struct BattleSpectacleSessionTests {
         if endBattle {
             let outgoing = session.spectacle
             let highlight = outgoing.ultimateHighlightsByActorID["knight"]
-            let expiration = try #require(outgoing.pendingUltimateHighlightTasksByActorID["knight"])
+            let entry = try #require(outgoing.pendingUltimateHighlightTasksByActorID["knight"])
+            let expiration = try #require(entry.task)
             session.endBattle()
             await expiration.value
             #expect(expiration.isCancelled)
@@ -177,20 +140,7 @@ struct BattleSpectacleSessionTests {
     }
 
     @Test func `always policy skips in-frame highlight but keeps feedback`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "knight",
-            role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice],
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(
-            hero: hero,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: 500,
-                abilities: [],
-            ),
+        let session = BattleSessionTestSupport.makeUltimateSession(
             presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
                 shouldAutoSkipUltimateCinematic: { _, _ in true },
             ),
@@ -215,20 +165,7 @@ struct BattleSpectacleSessionTests {
     }
 
     @Test func `disabled ultimate cinematic feature keeps feedback without a highlight`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "knight",
-            role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice],
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(
-            hero: hero,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: 500,
-                abilities: [],
-            ),
+        let session = BattleSessionTestSupport.makeUltimateSession(
             presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
                 shouldAutoSkipUltimateCinematic: { _, _ in false },
                 ultimateCinematicAnimationsEnabled: { false },
@@ -251,20 +188,8 @@ struct BattleSpectacleSessionTests {
     }
 
     @Test func `once per battle shows highlight once then skips`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "knight",
-            role: .hero,
-            abilities: [.slash, .fireball, .avatarOfJustice],
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(
-            hero: hero,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: 2000,
-                abilities: [],
-            ),
+        let session = BattleSessionTestSupport.makeUltimateSession(
+            enemyHealth: 2000,
             presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
                 shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
                     presentedActors.contains(actorID)

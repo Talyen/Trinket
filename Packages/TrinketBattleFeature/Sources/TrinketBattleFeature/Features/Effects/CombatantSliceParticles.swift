@@ -136,18 +136,11 @@ struct SliceBorderParticles: View {
             let color = TrinketDesign.Colors.battleSliceSpark
             for particle in particles {
                 let sample = sample(for: particle, cardOrigin: origin)
-                guard sample.opacity > 0, sample.diameter > 0 else { continue }
-                let rect = CGRect(
-                    x: sample.center.x - sample.diameter / 2,
-                    y: sample.center.y - sample.diameter / 2,
-                    width: sample.diameter,
-                    height: sample.diameter,
-                )
-                var particleContext = context
-                particleContext.opacity = sample.opacity
-                particleContext.fill(
-                    Path(ellipseIn: rect),
-                    with: .color(color),
+                context.fillParticle(
+                    center: sample.center,
+                    diameter: sample.diameter,
+                    opacity: sample.opacity,
+                    color: color,
                 )
             }
         }
@@ -224,23 +217,15 @@ struct SliceCutParticles: View {
                 let sprayDy = localNormal.dy * particle.side + tangent.dy * particle.sprayAngle
                 let dist = particle.speed * easedAge
                 let diameter = particle.size * (1 - 0.3 * age)
-                guard diameter > 0 else { continue }
                 let opacity = Double(pow(1 - age, 1.4))
-                guard opacity > 0 else { continue }
 
                 let posX = origin.x + sprayDx * dist
                 let posY = origin.y + sprayDy * dist
-                let rect = CGRect(
-                    x: posX - diameter / 2,
-                    y: posY - diameter / 2,
-                    width: diameter,
-                    height: diameter,
-                )
-                var particleContext = context
-                particleContext.opacity = opacity
-                particleContext.fill(
-                    Path(ellipseIn: rect),
-                    with: .color(color),
+                context.fillParticle(
+                    center: CGPoint(x: posX, y: posY),
+                    diameter: diameter,
+                    opacity: opacity,
+                    color: color,
                 )
             }
         }

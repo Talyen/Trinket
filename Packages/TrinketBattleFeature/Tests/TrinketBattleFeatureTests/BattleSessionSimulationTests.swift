@@ -134,9 +134,7 @@ struct BattleSessionSimulationTests {
         let impact = try #require(session.feedback.scheduledActions.first?.impactAt)
         session.feedback.advance(to: impact)
         #expect(!(session.feedback.activeItems.isEmpty))
-        let recordedIDs = Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))
-        let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
-        #expect(recordedIDs.isDisjoint(with: milestoneIDs))
+        BattleSessionTestSupport.assertMilestonesExcluded(from: session)
     }
 
     @Test func `play card distinguishes successful non victory from rejection`() throws {
@@ -220,9 +218,7 @@ struct BattleSessionSimulationTests {
         }
 
         #expect(session.engineState?.isPartyDefeated == true)
-        let recordedIDs = Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))
-        let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
-        #expect(recordedIDs.isDisjoint(with: milestoneIDs))
+        BattleSessionTestSupport.assertMilestonesExcluded(from: session)
     }
 
     @Test func `reset clears feedback and rebuilds state when reset called`() throws {
@@ -484,12 +480,8 @@ extension BattleSessionSimulationTests {
         defer { session.endBattle() }
         session.isAutoBattleEnabled = false
 
-        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
-            let resolution = session.playCard(cardID: card.id)
-            if resolution == .rejected || session.outcome != nil {
-                Issue.record("Setup exhausted the battle before the overlay assertion")
-                return
-            }
+        if !BattleSessionTestSupport.exhaustHand(on: session) {
+            return
         }
 
         #expect(!session.hasPlayableCard)
@@ -535,12 +527,8 @@ extension BattleSessionSimulationTests {
         defer { session.endBattle() }
         session.isAutoBattleEnabled = false
 
-        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
-            let resolution = session.playCard(cardID: card.id)
-            if resolution == .rejected || session.outcome != nil {
-                Issue.record("Setup exhausted the battle before the overlay assertion")
-                return
-            }
+        if !BattleSessionTestSupport.exhaustHand(on: session) {
+            return
         }
 
         #expect(!session.hasPlayableCard)
@@ -580,12 +568,8 @@ extension BattleSessionSimulationTests {
         defer { session.endBattle() }
         session.isAutoBattleEnabled = false
 
-        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
-            let resolution = session.playCard(cardID: card.id)
-            if resolution == .rejected || session.outcome != nil {
-                Issue.record("Setup exhausted the battle before the suspension assertion")
-                return
-            }
+        if !BattleSessionTestSupport.exhaustHand(on: session) {
+            return
         }
 
         #expect(!session.hasPlayableCard)

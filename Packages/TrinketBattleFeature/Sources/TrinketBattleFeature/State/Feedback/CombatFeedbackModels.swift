@@ -80,11 +80,28 @@ struct CombatFeedbackItem: Identifiable, Equatable {
 }
 
 enum CombatFeedbackUpdate {
-    case insert([CombatFeedbackItem])
-    case update([CombatFeedbackItem])
     case remove(Set<Int>)
     case replace([CombatFeedbackItem])
     case reset
+}
+
+enum CombatFeedbackOrdering {
+    /// Canonical chip grouping: first-seen action-group order, presentation
+    /// index within a group. The raster host keeps its own layer-local sorts
+    /// for incremental CALayer management; this is the policy for item order.
+    static func orderedChips(from visible: [CombatFeedbackItem]) -> [CombatFeedbackItem] {
+        var order: [Int] = []
+        var grouped: [Int: [CombatFeedbackItem]] = [:]
+        for item in visible {
+            if grouped[item.actionGroupID] == nil {
+                order.append(item.actionGroupID)
+            }
+            grouped[item.actionGroupID, default: []].append(item)
+        }
+        return order.flatMap { id in
+            (grouped[id] ?? []).sorted { $0.presentationIndex < $1.presentationIndex }
+        }
+    }
 }
 
 struct CombatantHitReaction: Equatable {

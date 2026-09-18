@@ -7,6 +7,8 @@ enum CombatSFXMapper {
     /// Battle-warm set: every mapper output plus battle-flow stingers.
     /// Owned here — not in TrinketContent — because battle event interpretation
     /// is BattleFeature's concern; TrinketContent only owns the clip catalog.
+    /// When adding a Keyword, update `controlClipID` and `damageClipID`
+    /// together, then extend this list if the new mapping adds an output.
     static let battlePrewarmIDs = [
         SFXID.abilityDraw,
         SFXID.hit,

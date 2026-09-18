@@ -4,7 +4,8 @@ import TrinketCore
 import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
-@Suite(.serialized)
+/// Pure resolution tests: no shared bridge/pool/atlas singletons, so they
+/// run in parallel with the rest of the package.
 struct CombatFeedbackChipPresentationTests {
     @Test @MainActor func `icon prewarming preserves shared keyword identity and cache reuse`() async throws {
         let atlas = CombatFeedbackGlyphAtlas()
@@ -52,7 +53,12 @@ struct CombatFeedbackChipPresentationTests {
         #expect(presentation.trailingStyle == .keyword(.poison))
         #expect(presentation.text == nil)
     }
+}
 
+/// Tests touching shared bridge/pool/atlas singletons stay serialized;
+/// the pure resolution tests above run in parallel.
+@Suite(.serialized)
+struct CombatFeedbackBridgeSerializedTests {
     @Test @MainActor func `bridge preserves chip display order when cache misses occur`() {
         CombatFeedbackChipBridge.debugReset()
         defer { CombatFeedbackChipBridge.debugReset() }
@@ -101,7 +107,7 @@ struct CombatFeedbackChipPresentationTests {
         let heroItem = makeTestItem(id: 10, targetID: "hero", amount: 5, availableAt: now.addingTimeInterval(0.5))
         let enemyItem = makeTestItem(id: 20, targetID: "enemy", amount: 8, availableAt: now.addingTimeInterval(1.2))
 
-        CombatFeedbackChipBridge.publish(.insert([heroItem, enemyItem]))
+        CombatFeedbackChipBridge.publish(.replace([heroItem, enemyItem]))
         #expect(CombatFeedbackChipBridge.debugNextAvailabilityTargetID == "hero")
 
         CombatFeedbackChipBridge.publish(.remove([heroItem.id]))
@@ -131,8 +137,10 @@ struct CombatFeedbackChipPresentationTests {
                     availableAt: now.addingTimeInterval(Double(index) * 0.1),
                 )
             }
-            CombatFeedbackChipBridge.publish(.insert(items))
-            #expect(try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(800)) {
+            CombatFeedbackChipBridge.publish(.replace(items))
+            // 2 s budget: the last chip needs 0.2 s of timer latency and this
+            // suite runs parallel with raster-prewarm CPU work.
+            #expect(try await BattleSessionTestSupport.waitUntil(timeout: .seconds(2)) {
                 view.debugLastAppliedChips.map(\.id) == items.map(\.id)
             })
             CombatFeedbackChipBridge.publish(.reset)
@@ -148,25 +156,47 @@ struct CombatFeedbackChipPresentationTests {
         #expect(session.lifecyclePhase == .idle)
     }
 
-    private func makeTestItem(
-        id: Int,
-        targetID: String,
-        amount: Int,
-        availableAt: Date,
-    ) -> CombatFeedbackItem {
-        CombatFeedbackItem(
-            id: id,
-            sourceEventIDs: [id],
-            actionGroupID: id,
-            presentationIndex: 0,
-            targetID: targetID,
-            feedbackClass: .directDamage,
-            keyword: .physical,
-            visualRole: .keyword,
-            label: .amount(amount),
-            availableAt: availableAt,
-            expiresAt: availableAt.addingTimeInterval(1.0),
-            reactionKind: .damage,
+    @Test @MainActor func `session teardown clears published chips from the shared bridge`() {
+        CombatFeedbackChipBridge.debugReset()
+        defer { CombatFeedbackChipBridge.debugReset() }
+        let session = BattleSession()
+        session.feedback.installBridge(ownerID: UUID(), onChange: CombatFeedbackChipBridge.publish)
+        session.feedback.record(
+            [BattleSessionTestSupport.makeActionEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical)],
+            at: .now,
         )
+        let view = CombatFeedbackRasterUIView()
+        CombatFeedbackChipBridge.register(
+            view,
+            combatantID: "enemy",
+            layoutDirection: .leftToRight,
+            displayScale: 3.0,
+        )
+        #expect(view.debugLastAppliedChips.map(\.id) == [1])
+
+        session.clearRunState()
+        #expect(view.debugLastAppliedChips.isEmpty)
     }
+}
+
+private func makeTestItem(
+    id: Int,
+    targetID: String,
+    amount: Int,
+    availableAt: Date,
+) -> CombatFeedbackItem {
+    CombatFeedbackItem(
+        id: id,
+        sourceEventIDs: [id],
+        actionGroupID: id,
+        presentationIndex: 0,
+        targetID: targetID,
+        feedbackClass: .directDamage,
+        keyword: .physical,
+        visualRole: .keyword,
+        label: .amount(amount),
+        availableAt: availableAt,
+        expiresAt: availableAt.addingTimeInterval(1.0),
+        reactionKind: .damage,
+    )
 }

@@ -14,12 +14,7 @@ extension BattleSession {
         if let progression {
             return progression.settleDefeat(configuration)
         }
-        let inputs = context.rewardInputs ?? RewardSettlementInputs(
-            gold: 0, reservedGold: 0, goldLimit: Int.max,
-            heroProgression: configuration.hero.progression,
-            companionProgression: configuration.companion.progression,
-            productionDate: .distantPast,
-        )
+        let inputs = context.rewardInputs ?? Self.fallbackRewardInputs(for: configuration)
         return context.rewardPlan.settleDefeat(progress: progress, inputs: inputs)
     }
 

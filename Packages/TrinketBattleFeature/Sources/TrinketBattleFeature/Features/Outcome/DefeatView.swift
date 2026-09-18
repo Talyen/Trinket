@@ -47,23 +47,21 @@ struct DefeatView: View {
     }
 
     private var experienceAwards: [RewardRevealExperienceAward] {
-        [
-            .init(
+        battleExperienceAwards(
+            hero: .init(
                 id: "hero", combatantName: configuration.hero.combatant.name,
                 artworkName: configuration.hero.combatant.artReference?.thumbnailImageName,
                 progressionBefore: settlement.inputs.heroProgression,
                 progressionAfter: settlement.heroProgressionAfter,
                 experienceAward: settlement.award.heroExperience,
-                accessibilityIdentifier: "\(configuration.hero.combatant.name) experience bar",
             ),
-            .init(
+            companion: .init(
                 id: "companion", combatantName: configuration.companion.combatant.name,
                 artworkName: configuration.companion.combatant.artReference?.thumbnailImageName,
                 progressionBefore: settlement.inputs.companionProgression,
                 progressionAfter: settlement.companionProgressionAfter,
                 experienceAward: settlement.award.companionExperience,
-                accessibilityIdentifier: "\(configuration.companion.combatant.name) experience bar",
             ),
-        ]
+        )
     }
 }

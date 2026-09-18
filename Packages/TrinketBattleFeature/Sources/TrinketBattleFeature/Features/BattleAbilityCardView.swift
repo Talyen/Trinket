@@ -57,7 +57,7 @@ struct BattleAbilityCardView: View {
     }
 
     private var playDragThreshold: CGFloat {
-        BattleHandLayout.playDragThreshold
+        BattleCardGesturePolicy.playDragThreshold
     }
 
     var body: some View {
@@ -159,7 +159,7 @@ struct BattleAbilityCardView: View {
 
     private var activeRotation: Double {
         guard isHeld else { return restingRotation }
-        return restingRotation + BattleHandLayout.heldTilt(
+        return restingRotation + BattleCardGesturePolicy.heldTilt(
             translation: dragTranslation,
             predictedEndTranslation: predictedEndTranslation,
             cardWidth: width,
@@ -202,9 +202,9 @@ struct BattleAbilityCardView: View {
             scheduleInspection()
         }
         if !didExceedTapSlop,
-           BattleHandLayout.exceedsTapSlop(
+           BattleCardGesturePolicy.exceedsTapSlop(
                translation: value.translation,
-               minimumDistance: BattleHandLayout.dragMinimumDistance,
+               minimumDistance: BattleCardGesturePolicy.dragMinimumDistance,
            ) {
             withAnimation(BattleMotion.cardLift) {
                 didExceedTapSlop = true
@@ -213,14 +213,14 @@ struct BattleAbilityCardView: View {
             interactionResolution = .dragging
             announceWindUpIfNeeded(mode: .preview)
         }
-        dragTranslation = BattleHandLayout.presentationTranslation(
+        dragTranslation = BattleCardGesturePolicy.presentationTranslation(
             value.translation,
             isPlayable: isPlayable,
             threshold: playDragThreshold,
         )
         predictedEndTranslation = value.predictedEndTranslation
 
-        let armed = BattleHandLayout.shouldRemainPlayArmed(
+        let armed = BattleCardGesturePolicy.shouldRemainPlayArmed(
             translation: value.translation,
             isPlayable: isPlayable,
             threshold: playDragThreshold,
@@ -256,17 +256,17 @@ struct BattleAbilityCardView: View {
         }
         cancelInspection()
 
-        let isTap = BattleHandLayout.isTapGesture(
+        let isTap = BattleCardGesturePolicy.isTapGesture(
             translation: value.translation,
             didExceedTapSlop: didExceedTapSlop,
-            minimumDistance: BattleHandLayout.dragMinimumDistance,
+            minimumDistance: BattleCardGesturePolicy.dragMinimumDistance,
         )
         if isTap {
             requestPlay(.tap)
             return
         }
 
-        let shouldPlay = BattleHandLayout.shouldPlay(
+        let shouldPlay = BattleCardGesturePolicy.shouldPlay(
             translation: value.translation,
             predictedEndTranslation: value.predictedEndTranslation,
             isPlayable: true,
@@ -282,11 +282,11 @@ struct BattleAbilityCardView: View {
 
     private func beginInspection() {
         guard interactionResolution == .pressing,
-              BattleHandLayout.shouldOpenAbilityDetail(
+              BattleCardGesturePolicy.shouldOpenAbilityDetail(
                   didRecognizeLongPress: true,
                   translation: dragTranslation,
                   didExceedTapSlop: didExceedTapSlop,
-                  minimumDistance: BattleHandLayout.dragMinimumDistance,
+                  minimumDistance: BattleCardGesturePolicy.dragMinimumDistance,
               )
         else { return }
 

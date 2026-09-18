@@ -24,9 +24,12 @@ struct BattleCardCue: Equatable {
 @Observable
 final class BattleCardCueState {
     private(set) var current: BattleCardCue?
-    @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var nextID = 0
+    // Tracks every lifted card for the requiresLift guard; `current` is the
+    // single presented cue. A second begin() while one card is lifted keeps
+    // both IDs until each commits/cancels, while presentation follows `current`.
     @ObservationIgnored private var liftedCardIDs: Set<Int> = []
-    @ObservationIgnored private var clearTask: Task<Void, Never>?
+    @ObservationIgnored private var clearGeneration = CancellableGeneration()
 
     func begin(
         cardID: Int,
@@ -46,10 +49,10 @@ final class BattleCardCueState {
             )
             return
         }
-        clearTask?.cancel()
-        generation &+= 1
+        clearGeneration.invalidate()
+        nextID &+= 1
         current = BattleCardCue(
-            id: generation, cardID: cardID, actorID: assessment.actorID, phase: .lifted,
+            id: nextID, cardID: cardID, actorID: assessment.actorID, phase: .lifted,
             mode: resolvedMode,
             denial: nil, resources: assessment.resources,
         )
@@ -70,14 +73,17 @@ final class BattleCardCueState {
 
     func deny(cardID: Int, actorID: String, reason: BattlePlayError) {
         liftedCardIDs.remove(cardID)
+        // Only health denial has a cue presentation (the owner's health-bar
+        // pulse). Other errors mean the cue is stale or state is unavailable,
+        // so the cue simply cancels.
         guard reason == .insufficientHealth else {
             cancel(cardID: cardID)
             return
         }
-        clearTask?.cancel()
-        generation &+= 1
+        clearGeneration.invalidate()
+        nextID &+= 1
         current = BattleCardCue(
-            id: generation, cardID: cardID, actorID: actorID, phase: .denied,
+            id: nextID, cardID: cardID, actorID: actorID, phase: .denied,
             mode: .preview,
             denial: reason, resources: [],
         )
@@ -90,9 +96,7 @@ final class BattleCardCueState {
     }
 
     private func clearPresentation() {
-        clearTask?.cancel()
-        clearTask = nil
-        generation &+= 1
+        clearGeneration.invalidate()
         current = nil
     }
 
@@ -101,13 +105,12 @@ final class BattleCardCueState {
     }
 
     private func scheduleClear(after duration: Duration) {
-        clearTask?.cancel()
-        let token = generation
-        clearTask = Task { @MainActor [weak self] in
+        let generation = clearGeneration.claim()
+        clearGeneration.task = Task { @MainActor [weak self] in
             try? await Task.sleep(for: duration)
-            guard !Task.isCancelled, let self, generation == token else { return }
+            guard !Task.isCancelled, let self, clearGeneration.isCurrent(generation) else { return }
             current = nil
-            clearTask = nil
+            clearGeneration.finish(generation: generation)
         }
     }
 }

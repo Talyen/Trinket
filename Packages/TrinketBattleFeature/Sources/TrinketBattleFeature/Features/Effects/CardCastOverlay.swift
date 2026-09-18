@@ -190,7 +190,7 @@ struct CardCastEffectsLayer: View {
     private func cast(_ request: CardActivationRequest, progress: CGFloat) -> some View {
         let configuration = CardDissolveConfiguration()
         let riseProgress = min(max(progress / configuration.dissolveDuration, 0), 1)
-        let rise = 1 - pow(1 - riseProgress, 3)
+        let rise = BattleMotion.easeOutCubic(Double(riseProgress))
 
         return CardDissolveEffect(
             progress: progress,

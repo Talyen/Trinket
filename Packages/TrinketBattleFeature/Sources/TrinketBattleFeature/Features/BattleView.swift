@@ -225,24 +225,9 @@ struct BattleFieldLane: View {
             ZStack(alignment: .bottom) {
                 BattlefieldView(
                     layout: layout,
-                    enemyPane: BattleCombatantProjectionPane(
-                        presentation: presentation,
-                        role: .enemy,
-                        hapticsEnabled: hapticsEnabled,
-                        onCombatantTap: showDetails(for:),
-                    ),
-                    heroPane: BattleCombatantProjectionPane(
-                        presentation: presentation,
-                        role: .hero,
-                        hapticsEnabled: hapticsEnabled,
-                        onCombatantTap: showDetails(for:),
-                    ),
-                    companionPane: BattleCombatantProjectionPane(
-                        presentation: presentation,
-                        role: .companion,
-                        hapticsEnabled: hapticsEnabled,
-                        onCombatantTap: showDetails(for:),
-                    ),
+                    presentation: presentation,
+                    hapticsEnabled: hapticsEnabled,
+                    onCombatantTap: showDetails(for:),
                     interactionState: interactionState,
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -274,10 +259,8 @@ struct BattleFieldLane: View {
                 cardCastLane(in: geometry.size)
                     .zIndex(3)
 
-                BattleCastPrewarmLane(presentation: presentation)
+                BattleInfrastructureLane(presentation: presentation)
                     .zIndex(2)
-
-                BattleFeedbackBridgeLane()
 
                 #if DEBUG
                 if let scenario = performanceScenario {
@@ -417,9 +400,16 @@ private struct BattleHandProjectionLane: View {
     }
 }
 
-private struct BattleFeedbackBridgeLane: View {
+/// Invisible battle infrastructure: feedback bridge wiring (mount
+/// lifetime) plus cast-artwork prewarm (per-configuration lifetime).
+/// One ZStack member instead of two; the two effects are independent.
+private struct BattleInfrastructureLane: View {
     @Environment(BattleSession.self) private var battleSession
     @State private var ownerID = UUID()
+
+    let presentation: BattlePresentationState
+    @State private var artworkName: String?
+    @State private var preparedConfigurationID: UUID?
 
     var body: some View {
         Color.clear
@@ -436,20 +426,7 @@ private struct BattleFeedbackBridgeLane: View {
             .onDisappear {
                 battleSession.feedback.uninstallBridge(ownerID: ownerID)
             }
-    }
-}
 
-private struct BattleCastPrewarmKey: Equatable {
-    let configurationID: UUID
-    let artworkName: String
-}
-
-private struct BattleCastPrewarmLane: View {
-    let presentation: BattlePresentationState
-    @State private var artworkName: String?
-    @State private var preparedConfigurationID: UUID?
-
-    var body: some View {
         if let artworkName {
             CardCastEffectsPrewarmView(artworkName: artworkName) {
                 self.artworkName = nil
@@ -484,6 +461,11 @@ private struct BattleCastPrewarmLane: View {
             artworkName: artworkName,
         )
     }
+}
+
+private struct BattleCastPrewarmKey: Equatable {
+    let configurationID: UUID
+    let artworkName: String
 }
 
 private extension BattleView {

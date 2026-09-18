@@ -103,6 +103,15 @@ enum BattleMotion {
         return clamped * clamped * (3 - 2 * clamped)
     }
 
+    /// Cubic ease-out. Shared by the manual cast rise and the automatic-card
+    /// arrival flight; the two presentations stay separate views because the
+    /// arrival flight (off-screen fly-in to a stage position) is intentionally
+    /// different from the in-place resting-center cast.
+    static func easeOutCubic(_ progress: Double) -> Double {
+        let clamped = min(max(progress, 0), 1)
+        return 1 - pow(1 - clamped, 3)
+    }
+
     static func chipScale(elapsed: TimeInterval) -> CGFloat {
         if elapsed <= 0 {
             return chipPopStartScale
@@ -134,13 +143,8 @@ enum BattleMotion {
         chipPopEndTime + chipPopHoldDuration
     }
 
-    static func lerp(_ start: CGFloat, _ end: CGFloat, _ progress: Double) -> CGFloat {
+    static func lerp<T: BinaryFloatingPoint>(_ start: T, _ end: T, _ progress: Double) -> T {
         let clamped = min(max(progress, 0), 1)
-        return start + (end - start) * CGFloat(clamped)
-    }
-
-    static func lerp(_ start: Double, _ end: Double, _ progress: Double) -> Double {
-        let clamped = min(max(progress, 0), 1)
-        return start + (end - start) * clamped
+        return start + (end - start) * T(clamped)
     }
 }

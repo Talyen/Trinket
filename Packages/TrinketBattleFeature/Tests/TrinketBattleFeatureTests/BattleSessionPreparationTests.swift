@@ -62,6 +62,35 @@ struct BattleSessionPreparationTests {
         #expect(session.preparedBattlePresentationRevision == initialRevision + 1)
     }
 
+    @Test func `end battle and pruning runs bump presentation revision once`() {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = BattleSession()
+        let firstKey = BattleRunKey("test|revision-first")
+        let secondKey = BattleRunKey("test|revision-second")
+        let (first, _) = BattleRunConfigurationTestSupport.make(
+            runKey: firstKey,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy,
+        )
+        let (second, _) = BattleRunConfigurationTestSupport.make(
+            runKey: secondKey,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy,
+        )
+
+        #expect(session.prepareBattleRun(first))
+        #expect(session.prepareBattleRun(second))
+        session.preferredPreparedRunKey = firstKey
+        let beforePrune = session.preparedBattlePresentationRevision
+        session.keepPreparedRuns([secondKey])
+        #expect(session.preparedBattlePresentationRevision == beforePrune + 1)
+        let beforeEnd = session.preparedBattlePresentationRevision
+        session.endBattle()
+        #expect(session.preparedBattlePresentationRevision == beforeEnd + 1)
+    }
+
     @Test func `activate prepared battle installs the prepared engine snapshot`() {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession()
@@ -285,5 +314,30 @@ struct BattleSessionPreparationTests {
         #expect(session.hand.count == expectedOpeningHandCount)
         #expect(!session.isDealingOpeningHand)
         #expect(session.activeBattle?.id == replacementConfiguration.id)
+    }
+}
+
+/// Pins `BattleSessionTestSupport` construction defaults so silent drift
+/// (lost 1 HP → 100 HP substitution, changed durability-probe scale) fails
+/// here instead of across presentation suites.
+@MainActor
+struct BattleSessionSupportDefaultsTests {
+    @Test func `configured sessions substitute a durable enemy for the quick-win default`() throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        let state = try #require(session.engineState)
+        #expect(state.roster.enemy.combatant.maxHealth == CombatantFixtures.passiveEnemy().maxHealth)
+        #expect(state.roster.enemy.combatant.maxHealth == 100)
+        #expect(
+            state.roster[.hero].combatant.actionIntervalTurns == CombatantFixtures.quickWinTurnInterval,
+        )
+    }
+
+    @Test func `passive sessions use the durability-probe scale`() throws {
+        let session = BattleSessionTestSupport.makePassiveSession()
+        let state = try #require(session.engineState)
+        #expect(state.roster[.hero].combatant.maxHealth == 100)
+        #expect(state.roster[.hero].combatant.maxMana == 12)
+        #expect(state.roster[.companion].combatant.maxHealth == 100)
+        #expect(state.roster.enemy.combatant.maxHealth == 1000)
     }
 }

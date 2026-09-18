@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -94,7 +95,13 @@ extension UniqueCollectionTests {
         #expect(!next.contains { $0.abilityName == "Threefold Grace" })
     }
 
-    @Test(arguments: [UInt64(1772), 1773], [false, true])
+    @Test(
+        arguments: [
+            CombatantFixtures.deterministicBattleSeed,
+            CombatantFixtures.deterministicBattleSeedVariant(1),
+        ],
+        [false, true],
+    )
     func `cinderbloom spends only resolved element allowances`(seed: UInt64, automatic: Bool) throws {
         var context = try battle(["threefold_grace", "wildhearts_favor"])
         context.rng = SeededRandomNumberGenerator(seed: seed)

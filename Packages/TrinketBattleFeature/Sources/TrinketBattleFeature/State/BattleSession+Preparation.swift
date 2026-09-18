@@ -2,11 +2,13 @@ import Foundation
 
 public extension BattleSession {
     func prepareBattlePresentationAssets(displayScale: CGFloat) async {
-        guard lifecyclePhase == .prepared || lifecyclePhase == .active else { return }
+        // lifecyclePhase already derives from the same runs/active state
+        // checked below, so one guard suffices on this actor.
+        let phase = lifecyclePhase
+        guard phase == .prepared || phase == .active else { return }
 
         let preparedRuns = preparedBattleRuns
         let activeConfiguration = activeBattle
-        guard !preparedRuns.isEmpty || activeConfiguration != nil else { return }
 
         await artworkPreparation.prepare(names: desiredPreparedArtworkNames, displayScale: displayScale) {
             var configurations = preparedRuns.map(\.configuration)
@@ -29,7 +31,7 @@ public extension BattleSession {
     }
 
     internal func retainPreparedArtworkPins() {
-        artworkPreparation.retain(names: desiredPreparedArtworkNames)
+        artworkPreparation.releaseExtraneousPins(names: desiredPreparedArtworkNames)
     }
 
     private var desiredPreparedArtworkNames: Set<String> {
@@ -41,7 +43,12 @@ public extension BattleSession {
     }
 
     internal func installSimulationPresentation() {
-        guard let snapshot = presentationSnapshot() else { return }
+        guard let snapshot = presentationSnapshot() else {
+            // No active or uniquely prepared run: no valid cue target exists,
+            // so a lifted cue cannot be valid either.
+            clearCardCues()
+            return
+        }
         presentation.install(snapshot)
         if let cue = cardCues.current, cue.phase == .lifted,
            !snapshot.playableCardIDs.contains(cue.cardID) {

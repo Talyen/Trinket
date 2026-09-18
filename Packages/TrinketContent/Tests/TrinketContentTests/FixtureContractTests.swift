@@ -22,16 +22,19 @@ struct FixtureContractTests {
         let hero = CombatantFixtures.passiveHero()
         #expect(hero.id == "hero")
         #expect(hero.maxHealth == 20)
+        #expect(hero.maxMana == 0)
         #expect(hero.actionIntervalTurns == CombatantFixtures.passiveTurnInterval)
 
         let companion = CombatantFixtures.passiveCompanion()
         #expect(companion.id == "companion")
         #expect(companion.maxHealth == 20)
+        #expect(companion.maxMana == 0)
         #expect(companion.actionIntervalTurns == CombatantFixtures.passiveTurnInterval)
 
         let enemy = CombatantFixtures.passiveEnemy()
         #expect(enemy.id == "enemy")
         #expect(enemy.maxHealth == 100)
+        #expect(enemy.maxMana == 0)
         #expect(enemy.actionIntervalTurns == CombatantFixtures.passiveTurnInterval)
     }
 
@@ -39,6 +42,9 @@ struct FixtureContractTests {
         let combatant = CombatantFixtures.combatant(id: "hero", role: .hero)
         #expect(combatant.actionIntervalTurns == nil)
         #expect(combatant.name == "Hero")
+        #expect(combatant.maxHealth == 20)
+        #expect(combatant.maxMana == 0)
+        #expect(combatant.abilities.isEmpty)
     }
 
     @Test func `names derive from hyphen and underscore ids`() {
@@ -55,6 +61,22 @@ struct FixtureContractTests {
         #expect(party.enemy.id == "enemy")
         #expect(party.enemy.maxHealth == 1)
         #expect(party.enemy.actionIntervalTurns == CombatantFixtures.passiveTurnInterval)
+    }
+
+    @Test func `quick-win overrides replace wholesale`() {
+        let customEnemy = CombatantFixtures.passiveEnemy(maxHealth: 500)
+        #expect(BattlePartyFixtures.quickWinParty(enemy: customEnemy).enemy.maxHealth == 500)
+
+        let customHero = CombatantFixtures.passiveHero()
+        let party = BattlePartyFixtures.quickWinParty(hero: customHero, heroAbilities: [.fireball])
+        #expect(party.hero.abilities.isEmpty)
+    }
+
+    @Test func `eligible affixes delegate to the catalog predicate`() throws {
+        let base = try ItemFixtures.baseType("longsword")
+        let eligible = ItemFixtures.eligibleAffixes(forBaseType: base)
+        #expect(eligible.count == GameContent.itemAffixDefinitions.count(where: { $0.isEligible(for: base) }))
+        #expect(eligible.allSatisfy { $0.isEligible(for: base) })
     }
 
     @Test func `bare items default to catalog names and test ids`() throws {

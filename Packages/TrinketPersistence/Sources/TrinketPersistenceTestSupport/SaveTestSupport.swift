@@ -126,7 +126,9 @@ public enum SaveTestSupport {
 
     /// Item produced by the generator (rolled affixes/powers) for tests that
     /// need generated shapes. For a bare catalog item without generation, use
-    /// `ItemFixtures.makeBareItem`.
+    /// `ItemFixtures.makeBareItem`. The default seed is the generated-item
+    /// stream, intentionally distinct from the battle RNG seed
+    /// (`CombatantFixtures.deterministicBattleSeed`).
     public static func makeGeneratedItem(
         baseID: String,
         rarity: Rarity,

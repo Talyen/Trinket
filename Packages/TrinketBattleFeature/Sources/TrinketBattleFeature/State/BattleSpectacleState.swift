@@ -40,6 +40,9 @@ public final class BattleSpectacleState {
     let cinematics = BattleCinematicPlayer()
     public internal(set) var outcomePresentation: BattleOutcomePresentation = .battle
     var ultimateHighlightsByActorID: [String: BattleUltimateInFramePresentation] = [:]
+    // Shared with celebrate IDs, which negate theirs so the two streams never
+    // collide. Wrapping arithmetic is unnecessary here; overflow is not a
+    // realistic battle-lifetime concern.
     var nextID = 0
     var actorsWhoPresentedUltimateThisBattle: Set<String> = []
 
@@ -48,5 +51,5 @@ public final class BattleSpectacleState {
     @ObservationIgnored
     var celebrateTask = CancellableGeneration()
     @ObservationIgnored
-    var pendingUltimateHighlightTasksByActorID: [String: Task<Void, Never>] = [:]
+    var pendingUltimateHighlightTasksByActorID: [String: CancellableGeneration] = [:]
 }

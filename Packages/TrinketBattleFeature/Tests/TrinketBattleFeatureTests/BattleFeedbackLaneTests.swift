@@ -64,6 +64,10 @@ struct BattleFeedbackLaneTests {
         #expect(lane.activeItems.first?.isCritical == true)
     }
 
+    /// Test-domain default: events share action 1 (one feedback group)
+    /// unless a call site passes an explicit actionID. This intentionally
+    /// differs from `BattleSessionTestSupport.makeActionEvent`, which
+    /// defaults actionID to the event id.
     private func makeEvent(
         id: Int,
         kind: ActionEvent.Kind,

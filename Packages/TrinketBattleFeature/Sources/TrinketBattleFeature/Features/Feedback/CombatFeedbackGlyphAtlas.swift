@@ -174,10 +174,25 @@ final class CombatFeedbackGlyphAtlas {
     private func prewarmRequests(
         displayScaleHundredths: Int,
     ) -> [PrewarmRequest] {
-        let requiredIcons = Set(Keyword.allCases.map { CombatFeedbackChipPresentation.Style.keyword($0).feedbackIcon }).union([
+        // Scope icons to closed-vocabulary appearances instead of every
+        // Keyword: damage numerals are unbounded and never prewarmed, and
+        // keywords that resolve to the same appearance share one icon.
+        var requiredIcons: Set<GameIcon> = [
             CombatFeedbackChipPresentation.Style.beneficialStatus.feedbackIcon,
             CombatFeedbackChipPresentation.Style.negativeStatus.feedbackIcon,
-        ])
+        ]
+        for source in CombatFeedbackClosedVocabulary.enumerateSources() {
+            let presentation = CombatFeedbackChipPresentation.resolve(
+                label: source.label,
+                keyword: source.keyword,
+                visualRole: source.visualRole,
+                feedbackClass: source.feedbackClass,
+            )
+            requiredIcons.insert(presentation.trailingStyle.feedbackIcon)
+            if let leading = presentation.leadingStyle {
+                requiredIcons.insert(leading.feedbackIcon)
+            }
+        }
         let numericFragments = CombatFeedbackChipLabel.numericAtlasFragments
         var requests: [PrewarmRequest] = []
 
@@ -212,7 +227,7 @@ final class CombatFeedbackGlyphAtlas {
     nonisolated static func wordAtlasFragments(
         for typography: CombatFeedbackTypographyTier,
     ) -> [String] {
-        CombatFeedbackRasterCatalog.wordAtlasFragments(for: typography)
+        CombatFeedbackClosedVocabulary.wordAtlasFragments(for: typography)
     }
 
     nonisolated static func bake(_ requests: [PrewarmRequest]) -> [PreparedGlyph] {
