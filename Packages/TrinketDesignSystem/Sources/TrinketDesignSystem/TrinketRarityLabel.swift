@@ -32,7 +32,7 @@ public struct TrinketRarityLabel: View {
         case .unique:
             [
                 TrinketDesign.Colors.warning,
-                TrinketDesign.Colors.warning.opacity(0.55),
+                TrinketDesign.Colors.warning.opacity(TrinketDesign.Opacity.shineDim),
             ]
         case .basic:
             []

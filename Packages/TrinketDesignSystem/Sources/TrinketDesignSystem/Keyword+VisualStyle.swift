@@ -16,24 +16,24 @@ public extension Keyword {
         }
 
         public static let physical = Self(
-            color: DesignAssetColors.named("KeywordPhysical"),
+            color: TrinketDesign.Colors.keywordPhysical,
             icon: .system("burst.fill"),
         )
         public static let burn = Self(
-            color: DesignAssetColors.named("KeywordBurn"),
-            secondaryColor: DesignAssetColors.named("KeywordPhysical"),
+            color: TrinketDesign.Colors.keywordBurn,
+            secondaryColor: TrinketDesign.Colors.keywordPhysical,
             icon: .system("flame.fill"),
         )
         public static let stun = Self(
-            color: DesignAssetColors.named("KeywordStun"),
+            color: TrinketDesign.Colors.keywordStun,
             icon: .system("bolt.fill"),
         )
         public static let block = Self(
-            color: DesignAssetColors.named("KeywordBlock"),
+            color: TrinketDesign.Colors.keywordBlock,
             icon: .system("shield.fill"),
         )
         public static let health = Self(
-            color: DesignAssetColors.named("KeywordHealth"),
+            color: TrinketDesign.Colors.keywordHealth,
             secondaryColor: TrinketDesign.Colors.health,
             icon: .system("heart.fill"),
         )
@@ -42,51 +42,52 @@ public extension Keyword {
             icon: .system("circle.circle.fill"),
         )
         public static let holy = Self(
-            color: DesignAssetColors.named("KeywordHoly"),
+            color: TrinketDesign.Colors.keywordHoly,
             icon: .system("sun.max.fill"),
         )
         public static let poison = Self(
-            color: DesignAssetColors.named("KeywordPoison"),
+            color: TrinketDesign.Colors.keywordPoison,
             icon: .system("flask.fill"),
         )
         public static let bleed = Self(
-            color: DesignAssetColors.named("KeywordBleed"),
+            color: TrinketDesign.Colors.keywordBleed,
             icon: .system("drop.fill"),
         )
         public static let leech = Self(
-            color: DesignAssetColors.named("KeywordLeech"),
+            color: TrinketDesign.Colors.keywordLeech,
             icon: .system("eyedropper"),
         )
         public static let freeze = Self(
-            color: DesignAssetColors.named("KeywordFreeze"),
+            color: TrinketDesign.Colors.keywordFreeze,
             icon: .system("snowflake"),
         )
         public static let dodge = Self(
-            color: DesignAssetColors.named("KeywordDodge"),
+            color: TrinketDesign.Colors.keywordDodge,
             icon: .system("wind"),
         )
         public static let purge = Self(
-            color: DesignAssetColors.named("KeywordPurge"),
+            color: TrinketDesign.Colors.keywordPurge,
             icon: .system("shield.slash.fill"),
         )
         public static let cleanse = Self(
-            color: DesignAssetColors.named("KeywordCleanse"),
+            color: TrinketDesign.Colors.keywordCleanse,
             icon: .system("sparkles"),
         )
         public static let mana = Self(
-            color: DesignAssetColors.named("KeywordMana"),
+            color: TrinketDesign.Colors.keywordMana,
             icon: .system("moon.stars.fill"),
         )
         public static let deathsDoor = Self(
-            color: DesignAssetColors.named("KeywordDeathsDoor"),
+            color: TrinketDesign.Colors.keywordDeathsDoor,
             icon: .system("hourglass.bottomhalf.filled"),
         )
         public static let thorns = Self(
-            color: DesignAssetColors.named("KeywordPhysical"),
+            color: TrinketDesign.Colors.keywordPhysical,
             icon: .system("asterisk"),
         )
-        /// Feedback-owned values sharing the VisualStyle currency; not Keyword
-        /// cases and unreachable from `visualStyle` below.
+        /// Feedback-owned presets sharing the VisualStyle currency. Not Keyword
+        /// cases and unreachable from `visualStyle` below; consumed by
+        /// `CombatFeedbackChipPresentation` in TrinketBattleFeature.
         public static let beneficialStatus = Self(
             color: TrinketDesign.Colors.success,
             icon: .system("arrowshape.up.fill"),

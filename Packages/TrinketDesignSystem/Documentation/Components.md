@@ -9,12 +9,11 @@
 | `OnArtText.swift` | On-art text styling (`.trinketOnArtText`) |
 | `ArtworkBlend.swift` | Bottom-edge artwork blend into a destination color (`.trinketBottomArtworkBlend()`; defaults to canvas, pass the actual surface below the art) |
 | `Keyword+VisualStyle.swift` | Color + game icon per Keyword (uses `Opacity` tokens); `gold` aliases accent and `thorns` aliases Physical (no dedicated assets); `beneficialStatus`/`negativeStatus` are feedback-owned values sharing the type |
-| `GameIcon.swift`, `GameIconImage.swift` | SF Symbol identity (`sf:` authored IDs, bare names resolve identically) and native SwiftUI rendering |
+| `GameIcon.swift` | SF Symbol identity (`sf:` authored IDs, bare names resolve identically) and native SwiftUI rendering |
 | `HomesteadResource+Color.swift` | Homestead resource tint resolution (gold resolves to the theme accent; icon/displayName live in `TrinketFeatureSupport/Models/Homestead.swift`) |
 | `CardModifiers.swift` | Card surfaces, selection border, lock effect, label space |
-| `GlassButtons.swift` | Glass buttons (prominent/secondary/icon via `.buttonStyle(.glass*)`), centered primary layout, press feedback |
+| `GlassButtons.swift` | Glass buttons (prominent/secondary via `.buttonStyle(.glass*)`), centered primary layout, press feedback |
 | `ViewGuards.swift` | Optional test identifiers, sensory-feedback gate, optional matched-transition source |
-| `ExperienceBar.swift` | XP/level progress bar |
 | `TrinketMotion.swift` | Motion recipes shared by multiple product features (`Interaction`/`Reward`/`Shine`/`Content`/`Screen` families: animations plus scales, staggers, delays, and durations) |
 | `PlaceholderArtwork.swift` | Unified placeholder wash + symbol (scaled, `Opacity.placeholderWash`) |
 | `WalletFormatting.swift`, `WalletBump.swift`, `WalletGrid.swift`, `WalletPill.swift`, `WalletChip.swift` | Wallet amount formatting (incl. `+` prefix), increase bump, grid layout, resource pills/chips (formatted-value pills do not animate amount changes) |

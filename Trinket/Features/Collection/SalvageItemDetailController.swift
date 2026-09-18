@@ -15,7 +15,7 @@ struct SalvageDetailState {
     var salvageSuccessCount = 0
 
     mutating func select(_ item: InventoryItem, inventory: [InventoryItem]) {
-        withAnimation(TrinketMotion.Reward.stateChange) {
+        withAnimation(TrinketMotion.Reward.collectionStateChange) {
             transmutationEvent = nil
         }
         selectedInventoryIndex = inventory.firstIndex { $0.id == item.id }
@@ -56,7 +56,7 @@ struct SalvageDetailState {
 
     mutating func finishTransmutation(id: UUID) {
         guard transmutationEvent?.id == id else { return }
-        withAnimation(TrinketMotion.Reward.stateChange) {
+        withAnimation(TrinketMotion.Reward.collectionStateChange) {
             transmutationEvent = nil
         }
     }
@@ -109,7 +109,7 @@ extension ItemDetailView {
             salvageYields: yields,
             equippedByName: saveStore.roster.equippedCombatantName(for: item.id),
             onSalvage: { () -> ItemSalvageActionResult in
-                let result = withAnimation(TrinketMotion.Reward.stateChange) {
+                let result = withAnimation(TrinketMotion.Reward.collectionStateChange) {
                     saveStore.salvageItem(id: item.id)
                 }
                 switch result {

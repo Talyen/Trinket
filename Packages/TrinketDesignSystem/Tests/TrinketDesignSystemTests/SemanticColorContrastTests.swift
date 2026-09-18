@@ -32,41 +32,46 @@ struct SemanticColorContrastTests {
         #expect(contrastRatio(color, canvas) >= 4.5)
     }
 
-    @Test func `death's door keyword remains readable on gameplay surfaces`() throws {
-        for style in [UIUserInterfaceStyle.dark, .light] {
-            let color = try resolvedSRGB("KeywordDeathsDoor", style: style)
-            for backgroundName in ["ThemeCanvas", "ThemeSurface", "ThemePanel"] {
-                let background = try resolvedSRGB(backgroundName, style: style)
-                #expect(
-                    contrastRatio(color, background) >= 3.0,
-                    "Death's Door should remain readable over \(backgroundName) in \(style)",
-                )
-            }
-        }
+    @Test(arguments: [UIUserInterfaceStyle.dark, .light], ["ThemeCanvas", "ThemeSurface", "ThemePanel"])
+    func `death's door keyword remains readable on gameplay surfaces`(
+        style: UIUserInterfaceStyle,
+        backgroundName: String,
+    ) throws {
+        let color = try resolvedSRGB("KeywordDeathsDoor", style: style)
+        let background = try resolvedSRGB(backgroundName, style: style)
+        #expect(
+            contrastRatio(color, background) >= 3.0,
+            "Death's Door should remain readable over \(backgroundName) in \(style)",
+        )
     }
 
-    @Test func `resource tints remain distinguishable on gameplay surfaces`() throws {
-        let resourceNames = [
-            "ResourceWood",
-            "ResourceStone",
-            "ResourceIron",
-            "ResourceHide",
-            "ResourceHerbs",
-            "ResourceFood",
-            "ResourceGems",
-        ]
-        for style in [UIUserInterfaceStyle.dark, .light] {
-            for backgroundName in ["ThemeCanvas", "ThemeSurface", "ThemePanel"] {
-                let background = try resolvedSRGB(backgroundName, style: style)
-                for resourceName in resourceNames {
-                    let color = try resolvedSRGB(resourceName, style: style)
-                    #expect(
-                        contrastRatio(color, background) >= 1.5,
-                        "\(resourceName) should stay distinguishable over \(backgroundName) in \(style)",
-                    )
-                }
+    private static let resourceCases: [(style: UIUserInterfaceStyle, backgroundName: String, resourceName: String)] =
+        [UIUserInterfaceStyle.dark, .light].flatMap { style in
+            ["ThemeCanvas", "ThemeSurface", "ThemePanel"].flatMap { background in
+                [
+                    "ResourceWood",
+                    "ResourceStone",
+                    "ResourceIron",
+                    "ResourceHide",
+                    "ResourceHerbs",
+                    "ResourceFood",
+                    "ResourceGems",
+                ].map { (style, background, $0) }
             }
         }
+
+    @Test(arguments: resourceCases)
+    func `resource tints remain distinguishable on gameplay surfaces`(
+        style: UIUserInterfaceStyle,
+        backgroundName: String,
+        resourceName: String,
+    ) throws {
+        let background = try resolvedSRGB(backgroundName, style: style)
+        let color = try resolvedSRGB(resourceName, style: style)
+        #expect(
+            contrastRatio(color, background) >= 1.5,
+            "\(resourceName) should stay distinguishable over \(backgroundName) in \(style)",
+        )
     }
 }
 

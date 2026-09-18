@@ -100,7 +100,7 @@ private struct DetailScrollNavigationTitle: View {
 
     var body: some View {
         Text(title)
-            .trinketTypography(.navigation)
+            .trinketTypography(.cardTitle)
             .trinketPresentationVisibility(opacity >= 0.5, opacity: opacity)
     }
 }

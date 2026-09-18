@@ -54,15 +54,15 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
                     .allowsTightening(true)
                     .contentTransition(.numericText())
             }
+            .animation(animatesAmountChanges ? TrinketMotion.Interaction.walletIncrease : nil, value: amount)
         }
         .frame(minHeight: TrinketDesign.Layout.walletResourceRowMinHeight, alignment: .leading)
-        .animation(animatesAmountChanges ? TrinketMotion.Interaction.walletIncrease : nil, value: amount)
         .trinketWalletIncreaseBump(
-            trigger: animatesAmountChanges && !keepsArtworkStationary ? increaseAnimationTrigger : 0,
+            trigger: increaseAnimationTrigger,
             delay: increaseAnimationDelay,
         )
         .onChange(of: amount) { oldAmount, newAmount in
-            guard newAmount > oldAmount else { return }
+            guard animatesAmountChanges, !keepsArtworkStationary, newAmount > oldAmount else { return }
             increaseAnimationTrigger &+= 1
         }
     }

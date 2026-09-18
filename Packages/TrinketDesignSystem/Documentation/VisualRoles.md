@@ -9,10 +9,11 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 | Theme chrome | `TrinketDesign.Colors.canvas/surface/panel/…/accent/success/…` | `ThemeCanvas`, `ThemeSurface`, … |
 | Gameplay health | `TrinketDesign.Colors.health`, `.healthRestore`, battle derived opacities | `ThemeHealth`, `ThemeHealthRestore` |
 | Overlays | `TrinketDesign.Colors.Overlay.ink/paper/…` | `ThemeOverlayInk`, `ThemeOverlayPaper` |
-| Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
+| Battle slice | `TrinketDesign.Colors.battleSliceCrack` / `.battleSliceSpark` | `BattleSliceCrack`, `BattleSliceSpark` |
+| Keywords | `Keyword.visualStyle.color` (`TrinketDesign.Colors.keyword*`; `gold` aliases accent, `thorns` aliases `keywordPhysical`) | `KeywordPhysical` … `KeywordDeathsDoor` |
 | Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
-| Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
-| Resources | `HomesteadResource.tint` (gold resolves to the theme accent) | `ResourceWood` … `ResourceHide` / `ResourceGems` |
+| Placeholders | `TrinketDesign.CardPlaceholderStyle.*` (`TrinketDesign.Colors.placeholder*`) | `PlaceholderHero` … |
+| Resources | `HomesteadResource.tint` (`TrinketDesign.Colors.resource*`; gold resolves to the theme accent) | `ResourceWood` … `ResourceHide` / `ResourceGems` |
 | Chapter | `TrinketDesign.Colors.chapterForest` / `.chapterDungeon` / `.chapterDesert` / `.chapterTundra` | `ChapterForest` … `ChapterTundra` |
 
 On-art text styling uses `.trinketOnArtText(_:)`.

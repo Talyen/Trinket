@@ -5,20 +5,23 @@ private struct ShineTextModifier: ViewModifier {
     @Environment(\.isDecorativeMotionActive) private var isMotionActive
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var clock = ShineClock()
 
     func body(content: Content) -> some View {
         if colors.isEmpty {
             content
         } else {
             let paused = reduceMotion || !isMotionActive || scenePhase != .active
+            // Stops are phase-independent: build once per body evaluation,
+            // not on every TimelineView tick.
             let sweepStops = textShineStops(colors: colors)
             TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: paused)) { context in
-                let phase = paused
-                    ? 0
-                    : TrinketMotion.Shine.phase(
-                        at: context.date.timeIntervalSinceReferenceDate,
-                        period: TrinketMotion.Shine.textLoopPeriod,
-                    )
+                // Freeze (don't snap to zero) so parking behind presentations
+                // or toggling Reduce Motion resumes seamlessly like plasma.
+                let phase = TrinketMotion.Shine.phase(
+                    at: clock.elapsed(at: context.date),
+                    period: TrinketMotion.Shine.textLoopPeriod,
+                )
                 content
                     .foregroundStyle(
                         LinearGradient(
@@ -28,6 +31,33 @@ private struct ShineTextModifier: ViewModifier {
                         ),
                     )
             }
+            .onAppear { clock.setActive(!paused, at: Date()) }
+            .onChange(of: paused) { _, isPaused in
+                clock.setActive(!isPaused, at: Date())
+            }
+            .onDisappear { clock.setActive(false, at: Date()) }
+        }
+    }
+}
+
+/// Frozen-phase clock mirroring `KeywordPlasmaBackground.PlasmaClock` so the
+/// two decorative loops park identically.
+private struct ShineClock {
+    private var accumulated: TimeInterval = 0
+    private var runningSince: Date?
+
+    func elapsed(at date: Date) -> TimeInterval {
+        accumulated + (runningSince.map { max(0, date.timeIntervalSince($0)) } ?? 0)
+    }
+
+    mutating func setActive(_ active: Bool, at date: Date) {
+        if active {
+            if runningSince == nil {
+                runningSince = date
+            }
+        } else if runningSince != nil {
+            accumulated = elapsed(at: date)
+            runningSince = nil
         }
     }
 }
@@ -48,6 +78,8 @@ private func textShineStops(colors: [Color]) -> [Gradient.Stop] {
 }
 
 public extension View {
+    /// Raw shine renderer over explicit colors. For a `Shine` model value, use
+    /// `shineText(_:)` in TrinketFeatureSupport instead.
     func trinketShineText(colors: [Color]) -> some View {
         modifier(ShineTextModifier(colors: colors))
     }

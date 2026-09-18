@@ -102,8 +102,6 @@ private struct DesignSystemGallery: View {
             Button("Inspect") {}
                 .trinketTypography(.button)
                 .trinketSecondaryActionButton()
-            Button("Close", systemImage: "xmark") {}
-                .trinketIconButton()
         }
     }
 
@@ -111,7 +109,6 @@ private struct DesignSystemGallery: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             Text("Materials").trinketTypography(.sectionTitle)
             previewMaterial("Bottom Bar", role: .bottomBar)
-            previewMaterial("Homestead Footer", role: .homesteadFooter)
             previewMaterial("Subtle Overlay", role: .subtleOverlay)
             HStack(spacing: TrinketDesign.Spacing.medium) {
                 Text("999,999 Gold")

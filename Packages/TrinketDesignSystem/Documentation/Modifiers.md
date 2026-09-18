@@ -8,7 +8,7 @@ buttons and system toolbar styling.
 |----------------|---------|
 | `.trinketScreenBackground()` | Shared tab/screen canvas (`TrinketDesign.Colors.canvas`) |
 | `.trinketSurface(_:)` | Secondary panels, cards, and dense rows |
-| `.trinketMaterial(_:)` | `.bottomBar` / `.homesteadFooter`: regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke |
+| `.trinketMaterial(_:)` | `.bottomBar`: regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke |
 | `.trinketGlassChip(_:)` | Regular-glass capsules; `.standard` / `.emphasis` select shared padding and emphasis stroke |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface(showsStroke:)` | Card identity tiles (`showsStroke` adds the artwork clip + subtle stroke) |
@@ -18,14 +18,14 @@ buttons and system toolbar styling.
 | `TrinketDesign.Layout.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`, single `GlassButtonModifier`) |
 | `.trinketSecondaryActionButton()` | Secondary CTAs (`.glass`) |
-| `.trinketIconButton()` | Circular glass icon controls with stable accessibility identifiers |
 | `.trinketArtworkCardButtonStyle()` | Press-scale feedback for card buttons; accepts optional `pressedScale` (default `0.99`), with `TrinketMotion.Interaction.choiceCardPressedScale` for talent choices |
 | `.trinketCardLabelSpace(_:)` | Reserved label height under cards |
 | `.trinketAccessibilityIdentifier(_:)` | Optional test identifier passthrough |
 | `.optionalMatchedTransitionSource(id:in:)` | Matched transitions with an optional namespace |
 | `.trinketCollectionShelfCardWidth()` | Peek-shelf card width |
 | `.trinketFittedText()` / `.trinketSingleLineFittedText()` | Native text shrinking/wrapping |
-| `Text(balanced:)` | Widow-proof titles |
+| `Text(balanced:)` / `String.trinketBalanced()` | Widow-proof titles |
+| `.trinketShineText(colors:)` | Animated shine over explicit colors (Reduce Motion aware, freezes while parked); for a `Shine` model value use FeatureSupport's `shineText(_:)` |
 | `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
@@ -36,7 +36,7 @@ buttons and system toolbar styling.
 | `.trinketWalletIncreaseBump(trigger:delay:)` | Wallet increase bump (entrance via `TrinketMotion.Interaction.walletBump`, settle via `press`) |
 
 Native toolbar buttons use the system-provided container without custom glass
-button styling. Reserve `.trinketIconButton()` for controls outside native toolbars.
+button styling.
 
 Glass chips and bar materials route through `.glassEffect` inside this package
 only. Glass buttons intentionally use `.buttonStyle(.glass/.glassProminent)`,

@@ -9,7 +9,6 @@ public enum SurfaceRole: Equatable, Sendable {
 public enum MaterialRole: Sendable {
     case bottomBar
     case subtleOverlay
-    case homesteadFooter
 }
 
 public enum GlassChipRole: String, CaseIterable, Sendable, Equatable {
@@ -32,7 +31,6 @@ public enum TypographyRole: Sendable {
     case badge
     case button
     case statValue
-    case navigation
     case rowDisplay
     case cardLabel
 
@@ -52,9 +50,6 @@ public enum TypographyRole: Sendable {
         case .badge: .caption.weight(.semibold)
         case .button: .body.weight(.semibold)
         case .statValue: .body.monospacedDigit().weight(.semibold)
-        // Intentional: identical to cardTitle; kept as a separate role so
-        // navigation chrome reads semantically at call sites.
-        case .navigation: .headline.weight(.semibold)
         case .rowDisplay: .system(.headline, design: .serif).weight(.semibold)
         case .cardLabel: .subheadline.weight(.medium)
         }
@@ -134,12 +129,15 @@ private struct SurfaceStyle {
         var strokeWidth: CGFloat = 1
         var padding: CGFloat = TrinketDesign.Spacing.large
         var shadow: SurfaceShadow?
+
+        /// Dimmed stroke for the secondary surface; single-use, so private.
+        static let secondaryStrokeOpacity: Double = 0.7
     }
 
     private static func spec(for role: SurfaceRole) -> Spec {
         switch role {
         case .secondary:
-            Spec(fill: TrinketDesign.Colors.surface, stroke: TrinketDesign.Colors.subtleStroke.opacity(0.7))
+            Spec(fill: TrinketDesign.Colors.surface, stroke: TrinketDesign.Colors.subtleStroke.opacity(Spec.secondaryStrokeOpacity))
         case .card:
             Spec(stroke: .clear, strokeWidth: 0, padding: 0)
         case .denseRow:
@@ -165,9 +163,7 @@ struct MaterialRoleModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         switch role {
-        // Intentional: both bars share one regular-glass treatment; kept as
-        // separate roles so call sites keep their semantic meaning.
-        case .bottomBar, .homesteadFooter:
+        case .bottomBar:
             content.glassEffect(.regular, in: shape)
         case .subtleOverlay:
             content

@@ -7,19 +7,19 @@ public extension HomesteadResource {
     var tint: Color {
         switch self {
         case .wood:
-            DesignAssetColors.named("ResourceWood")
+            TrinketDesign.Colors.resourceWood
         case .stone:
-            DesignAssetColors.named("ResourceStone")
+            TrinketDesign.Colors.resourceStone
         case .iron:
-            DesignAssetColors.named("ResourceIron")
+            TrinketDesign.Colors.resourceIron
         case .food:
-            DesignAssetColors.named("ResourceFood")
+            TrinketDesign.Colors.resourceFood
         case .herbs:
-            DesignAssetColors.named("ResourceHerbs")
+            TrinketDesign.Colors.resourceHerbs
         case .hide:
-            DesignAssetColors.named("ResourceHide")
+            TrinketDesign.Colors.resourceHide
         case .gems:
-            DesignAssetColors.named("ResourceGems")
+            TrinketDesign.Colors.resourceGems
         case .gold:
             TrinketDesign.Colors.accent
         }

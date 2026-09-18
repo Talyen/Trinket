@@ -34,6 +34,39 @@ public enum TrinketDesign {
         public static let chapterDesert = DesignAssetColors.named("ChapterDesert")
         public static let chapterTundra = DesignAssetColors.named("ChapterTundra")
 
+        // Keyword identity colors. `gold` aliases `accent` and `thorns` aliases
+        // `keywordPhysical`, so neither has a dedicated token here.
+        public static let keywordPhysical = DesignAssetColors.named("KeywordPhysical")
+        public static let keywordBurn = DesignAssetColors.named("KeywordBurn")
+        public static let keywordStun = DesignAssetColors.named("KeywordStun")
+        public static let keywordBlock = DesignAssetColors.named("KeywordBlock")
+        public static let keywordHealth = DesignAssetColors.named("KeywordHealth")
+        public static let keywordHoly = DesignAssetColors.named("KeywordHoly")
+        public static let keywordPoison = DesignAssetColors.named("KeywordPoison")
+        public static let keywordBleed = DesignAssetColors.named("KeywordBleed")
+        public static let keywordLeech = DesignAssetColors.named("KeywordLeech")
+        public static let keywordFreeze = DesignAssetColors.named("KeywordFreeze")
+        public static let keywordDodge = DesignAssetColors.named("KeywordDodge")
+        public static let keywordPurge = DesignAssetColors.named("KeywordPurge")
+        public static let keywordCleanse = DesignAssetColors.named("KeywordCleanse")
+        public static let keywordMana = DesignAssetColors.named("KeywordMana")
+        public static let keywordDeathsDoor = DesignAssetColors.named("KeywordDeathsDoor")
+
+        // Homestead resource tints. `gold` aliases `accent`.
+        public static let resourceWood = DesignAssetColors.named("ResourceWood")
+        public static let resourceStone = DesignAssetColors.named("ResourceStone")
+        public static let resourceIron = DesignAssetColors.named("ResourceIron")
+        public static let resourceFood = DesignAssetColors.named("ResourceFood")
+        public static let resourceHerbs = DesignAssetColors.named("ResourceHerbs")
+        public static let resourceHide = DesignAssetColors.named("ResourceHide")
+        public static let resourceGems = DesignAssetColors.named("ResourceGems")
+
+        public static let placeholderHero = DesignAssetColors.named("PlaceholderHero")
+        public static let placeholderCompanion = DesignAssetColors.named("PlaceholderCompanion")
+        public static let placeholderEnemy = DesignAssetColors.named("PlaceholderEnemy")
+        public static let placeholderItem = DesignAssetColors.named("PlaceholderItem")
+        public static let placeholderAbility = DesignAssetColors.named("PlaceholderAbility")
+
         public enum Overlay {
             public static let ink = DesignAssetColors.named("ThemeOverlayInk")
             public static let paper = DesignAssetColors.named("ThemeOverlayPaper")
@@ -53,6 +86,8 @@ public enum TrinketDesign {
         public static let placeholderWash: Double = 0.18
         public static let cinematicDim: Double = 0.6
         public static let chipEmphasisStroke: Double = 0.22
+        /// Dimmed duplicate of a color inside shine gradients.
+        public static let shineDim: Double = 0.55
     }
 
     public enum Spacing {
@@ -133,10 +168,10 @@ public enum TrinketDesign {
         public let color: Color
         public let icon: GameIcon
 
-        public static let hero = Self(color: DesignAssetColors.named("PlaceholderHero"), icon: .system("person.fill"))
-        public static let companion = Self(color: DesignAssetColors.named("PlaceholderCompanion"), icon: .system("pawprint.fill"))
-        public static let enemy = Self(color: DesignAssetColors.named("PlaceholderEnemy"), icon: .system("shield.slash.fill"))
-        public static let item = Self(color: DesignAssetColors.named("PlaceholderItem"), icon: .system("shippingbox.fill"))
-        public static let ability = Self(color: DesignAssetColors.named("PlaceholderAbility"), icon: .system("wand.and.stars"))
+        public static let hero = Self(color: Colors.placeholderHero, icon: .system("person.fill"))
+        public static let companion = Self(color: Colors.placeholderCompanion, icon: .system("pawprint.fill"))
+        public static let enemy = Self(color: Colors.placeholderEnemy, icon: .system("shield.slash.fill"))
+        public static let item = Self(color: Colors.placeholderItem, icon: .system("shippingbox.fill"))
+        public static let ability = Self(color: Colors.placeholderAbility, icon: .system("wand.and.stars"))
     }
 }

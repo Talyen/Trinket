@@ -29,10 +29,10 @@ public struct TrinketCompactResourceChip<Artwork: View>: View {
                 .trinketWalletIncreaseBump(trigger: animationTrigger)
 
             Text(value).monospacedDigit().fixedSize().contentTransition(.numericText())
+                .animation(TrinketMotion.Interaction.stateChange, value: value)
         }
         .trinketTypography(.button)
         .foregroundStyle(tint)
         .trinketGlassChip(.emphasis)
-        .animation(TrinketMotion.Interaction.stateChange, value: value)
     }
 }

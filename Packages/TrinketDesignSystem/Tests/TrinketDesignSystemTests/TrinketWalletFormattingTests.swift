@@ -19,6 +19,23 @@ struct TrinketWalletFormattingTests {
         #expect(TrinketWalletFormatting.displayString(for: -50) == (-50).formatted())
     }
 
+    @Test(arguments: [
+        (amount: 50, showsIncreasePrefix: true, expected: "+50"),
+        (amount: 50, showsIncreasePrefix: false, expected: "50"),
+        (
+            amount: 100000,
+            showsIncreasePrefix: true,
+            expected: "+\(100000.formatted(.number.notation(.compactName)))",
+        ),
+    ])
+    func `increase prefix applies after compact formatting`(
+        amount: Int,
+        showsIncreasePrefix: Bool,
+        expected: String,
+    ) {
+        #expect(TrinketWalletFormatting.displayString(for: amount, showsIncreasePrefix: showsIncreasePrefix) == expected)
+    }
+
     @Test func `wallet grid initializes safely with boundary column counts`() {
         _ = TrinketWalletGrid(columnCount: 0) {}
         _ = TrinketWalletGrid(columnCount: 4) {}

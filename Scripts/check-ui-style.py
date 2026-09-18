@@ -33,10 +33,9 @@ DESIGN_HELPERS = {
     "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift",
 }
 
-RGB_ALLOWED = {
-    "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/TrinketDesign.swift",
-    "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift",
-}
+# No raw RGB constructors remain in scanned sources; keep the set (empty) so a
+# future raw-color introduction fails the gate instead of passing silently.
+RGB_ALLOWED = set()
 
 ALLOW_RE = re.compile(r"^\s*//\s*UIStyleCheck:\s*allow\s*-\s*\S", re.MULTILINE)
 

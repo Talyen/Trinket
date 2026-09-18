@@ -1,4 +1,7 @@
 # SwiftUI system color tokens governed by the UI style and platform API checks.
+# Deliberately excluded: primary/secondary/tertiary/quaternary/clear are
+# adaptive system roles (used as default text, track, and spacer colors), not
+# one-off chrome colors. Banning them would flag ~80 legitimate call sites.
 white
 black
 red

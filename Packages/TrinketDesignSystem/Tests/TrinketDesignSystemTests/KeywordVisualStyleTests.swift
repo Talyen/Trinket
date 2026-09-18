@@ -35,23 +35,20 @@ struct KeywordVisualStyleTests {
             .hide: "ResourceHide",
             .gems: "ResourceGems",
         ]
+        #expect(
+            Set(HomesteadResource.allCases) == Set(expectedAsset.keys).union([.gold]),
+            "New resources need an explicit tint expectation; gold must stay accent",
+        )
         for resource in HomesteadResource.allCases {
-            if let asset = expectedAsset[resource] {
+            if resource == .gold {
+                #expect(matches(resource.tint, asset: "ThemeAntiqueGold"), "Gold tint must stay accent")
+            } else if let asset = expectedAsset[resource] {
                 #expect(matches(resource.tint, asset: asset), "Tint drift for \(resource)")
             } else {
-                #expect(matches(resource.tint, asset: "ThemeAntiqueGold"), "Gold tint must stay accent")
+                Issue.record("Missing tint expectation for \(resource)")
             }
             // Icons live in TrinketFeatureSupport and are pinned by GameIconCatalogTests.
         }
-    }
-
-    @Test func `increase prefix applies after compact formatting`() {
-        #expect(TrinketWalletFormatting.displayString(for: 50, showsIncreasePrefix: true) == "+50")
-        #expect(TrinketWalletFormatting.displayString(for: 50, showsIncreasePrefix: false) == "50")
-        #expect(
-            TrinketWalletFormatting.displayString(for: 100000, showsIncreasePrefix: true)
-                == "+\(100000.formatted(.number.notation(.compactName)))",
-        )
     }
 }
 

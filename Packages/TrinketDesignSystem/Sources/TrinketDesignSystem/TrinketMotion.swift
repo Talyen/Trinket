@@ -19,8 +19,9 @@ public enum TrinketMotion: Sendable {
 
         public static let selection: Animation = .spring(response: 0.22, dampingFraction: 1)
 
-        /// Generic state-transition ease. Distinct from `Reward.stateChange`,
-        /// which is a spring tuned for reward collection; keep the namespace.
+        /// Generic state-transition ease. Distinct from
+        /// `Reward.collectionStateChange`, which is a spring tuned for reward
+        /// collection; keep the namespace.
         public static let stateChange: Animation = .easeOut(duration: 0.18)
 
         public static let progressArrival: Animation = .spring(response: 0.28, dampingFraction: 1)
@@ -34,6 +35,8 @@ public enum TrinketMotion: Sendable {
     public enum Reward: Sendable {
         public static let categoryEntranceScale: CGFloat = 0.97
         /// Single stagger shared by category entrances and resource rows.
+        /// Deliberately tighter than `Content.entranceStagger`: reward rows
+        /// reveal in quick succession, content entrances breathe more.
         public static let entranceStagger: TimeInterval = 0.06
         public static let collectionDuration: TimeInterval = 0.35
         public static let collectionPulseScale: CGFloat = 1.025
@@ -45,7 +48,9 @@ public enum TrinketMotion: Sendable {
 
         /// Spring tuned for reward collection. Distinct from
         /// `Interaction.stateChange` (an easeOut for generic transitions).
-        public static let stateChange: Animation = .spring(response: 0.22, dampingFraction: 1.0)
+        /// Named for its use (salvage/collection state flips), not its curve,
+        /// so the two `stateChange` spellings never collide at call sites.
+        public static let collectionStateChange: Animation = .spring(response: 0.22, dampingFraction: 1.0)
 
         public static let lootReveal: Animation = .easeOut(duration: revealDuration)
 
@@ -66,6 +71,7 @@ public enum TrinketMotion: Sendable {
     public enum Content: Sendable {
         public static let fadeDuration: TimeInterval = 0.20
         public static let entranceDuration: TimeInterval = 0.35
+        /// Looser than `Reward.entranceStagger` by intent; see that token.
         public static let entranceStagger: TimeInterval = 0.08
         public static let secondEntranceDelay: TimeInterval = entranceStagger * 2
         public static let cardDissolveDuration: TimeInterval = 1.0

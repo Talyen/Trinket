@@ -82,18 +82,6 @@ public extension View {
         ))
     }
 
-    func trinketIconButton(accessibilityIdentifier: String? = nil) -> some View {
-        labelStyle(.iconOnly)
-            .modifier(GlassButtonModifier(
-                controlSize: .large,
-                tint: TrinketDesign.Colors.Overlay.paper,
-                labelColor: TrinketDesign.Colors.Overlay.paper,
-                isProminent: false,
-                accessibilityIdentifier: accessibilityIdentifier,
-                borderShape: .circle,
-            ))
-    }
-
     func trinketArtworkCardButtonStyle(
         pressedScale: CGFloat = TrinketMotion.Interaction.artworkCardPressedScale,
     ) -> some View {

@@ -6,21 +6,21 @@ struct DesignTokenInvariantTests {
         #expect(TrinketDesign.Layout.collectionShelfCardSpacing == TrinketDesign.Spacing.large)
     }
 
-    @Test func `opacity tokens stay inside unit range`() {
-        for value in [
-            TrinketDesign.Opacity.subtle,
-            TrinketDesign.Opacity.border,
-            TrinketDesign.Opacity.glow,
-            TrinketDesign.Opacity.secondary,
-            TrinketDesign.Opacity.dragShadow,
-            TrinketDesign.Opacity.trailingDamage,
-            TrinketDesign.Opacity.battleHealth,
-            TrinketDesign.Opacity.placeholderWash,
-            TrinketDesign.Opacity.cinematicDim,
-            TrinketDesign.Opacity.chipEmphasisStroke,
-        ] as [Double] {
-            #expect(value > 0 && value <= 1)
-        }
+    @Test(arguments: [
+        ("subtle", TrinketDesign.Opacity.subtle),
+        ("border", TrinketDesign.Opacity.border),
+        ("glow", TrinketDesign.Opacity.glow),
+        ("secondary", TrinketDesign.Opacity.secondary),
+        ("dragShadow", TrinketDesign.Opacity.dragShadow),
+        ("trailingDamage", TrinketDesign.Opacity.trailingDamage),
+        ("battleHealth", TrinketDesign.Opacity.battleHealth),
+        ("placeholderWash", TrinketDesign.Opacity.placeholderWash),
+        ("cinematicDim", TrinketDesign.Opacity.cinematicDim),
+        ("chipEmphasisStroke", TrinketDesign.Opacity.chipEmphasisStroke),
+        ("shineDim", TrinketDesign.Opacity.shineDim),
+    ])
+    func `opacity tokens stay inside unit range`(name: String, value: Double) {
+        #expect(value > 0 && value <= 1, "\(name) out of unit range")
     }
 
     @Test func `grid bounds stay ordered`() {
