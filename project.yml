@@ -85,6 +85,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         TrinketCloudEnvironment: $(CLOUDKIT_ENVIRONMENT)
         TrinketCloudSyncEnabled: $(CLOUDKIT_SYNC_ENABLED)
+        ITSAppUsesNonExemptEncryption: false
         UIBackgroundModes:
           - remote-notification
           - fetch
