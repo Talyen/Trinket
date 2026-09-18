@@ -309,6 +309,23 @@ struct AppStateLabyrinthTests {
         #expect(state.battle.activeBattle == nil)
     }
 
+    @Test func `duplicate labyrinth route delivery reports unavailable without paying twice`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        _ = state.labyrinth.startBattle(nodeID: combatNodeID)
+        let configuration = try #require(state.battle.activeBattle)
+        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
+        let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 3)))
+        let loot = PlayBattleCompletion.preparedLoot(from: presentation, materialRewards: nil)
+        let route = try #require(state.route(for: configuration.runKey))
+
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 3)).didComplete)
+        let saveAfterVictory = state.playerSave.currentSave
+        #expect(route.complete(configuration, presentation, settlement, nil, loot) == .unavailable)
+        #expect(state.playerSave.currentSave == saveAfterVictory)
+    }
+
     @Test func `labyrinth mystery nodes carry exactly one economy modifier`() throws {
         let state = try context.makePlaySession(arguments: ["-test-seed", "-reset-state"])
         _ = state.labyrinth.enter()

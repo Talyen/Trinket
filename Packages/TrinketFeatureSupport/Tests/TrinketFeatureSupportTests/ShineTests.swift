@@ -1,8 +1,8 @@
 import SwiftUI
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import TrinketFeatureSupport
 
 struct ShineTests {

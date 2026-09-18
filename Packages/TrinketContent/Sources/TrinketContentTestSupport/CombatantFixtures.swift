@@ -3,9 +3,7 @@ import TrinketCore
 
 /// Shared combatant construction for tests.
 ///
-/// This is the single home for combat fixtures. `TrinketTestSupport`
-/// re-exports this type so existing suites keep working; new code should
-/// import `TrinketContentTestSupport` directly.
+/// This is the single home for combat fixtures.
 public enum CombatantFixtures {
     public static let deterministicBattleSeed: UInt64 = 1772
     public static let passiveTurnInterval: Int = 100

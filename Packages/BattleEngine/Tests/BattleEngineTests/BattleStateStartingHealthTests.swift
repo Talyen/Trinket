@@ -1,8 +1,8 @@
 import BattleEngine
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 
 struct BattleStateStartingHealthTests {
     @Test(arguments: [false, true])

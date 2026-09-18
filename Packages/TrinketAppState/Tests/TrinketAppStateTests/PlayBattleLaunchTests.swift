@@ -17,6 +17,13 @@ struct PlayBattleLaunchTests {
         )
     }
 
+    private func knightAndWolf() throws -> (knight: Combatant, wolf: Combatant) {
+        try (
+            #require(GameContent.heroes.first { $0.id == "knight" }),
+            #require(GameContent.companions.first { $0.id == "wolf" }),
+        )
+    }
+
     @Test func `random battle resolves deterministic non boss encounter`() throws {
         let stage = try #require(
             GameContent.chapters
@@ -93,8 +100,7 @@ struct PlayBattleLaunchTests {
     }
 
     @Test func `assemble bakes gold find and claimed stage policy`() throws {
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let (knight, wolf) = try knightAndWolf()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battleEnemyID = try #require(stage.encounter.battleEnemyID)
         let enemy = try #require(GameContent.enemy(matching: battleEnemyID)?.combatant)
@@ -130,8 +136,7 @@ struct PlayBattleLaunchTests {
         let catalogEnemy = try #require(GameContent.enemy(matching: enemyID))
         let scaledEnemy = CombatantLevelScaler.scale(enemy: catalogEnemy, level: encounterLevel)
 
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let (knight, wolf) = try knightAndWolf()
 
         let configuration = PlayBattleLaunch.assembleLaunch(
             input: BattleLaunchInput(
@@ -154,8 +159,7 @@ struct PlayBattleLaunchTests {
     }
 
     @Test func `assemble bakes experience and material awards`() throws {
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let (knight, wolf) = try knightAndWolf()
         let stageReward = StageReward(
             gold: 12,
             itemTemplateIDs: [],
@@ -181,8 +185,7 @@ struct PlayBattleLaunchTests {
     }
 
     @Test func `assemble resolves reward items from pending or stage policy`() throws {
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let (knight, wolf) = try knightAndWolf()
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let baseType = try #require(GameContent.itemBaseTypes.first)
         let pendingItem = InventoryItem(

@@ -1,10 +1,10 @@
 import Foundation
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
-import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
 
@@ -321,9 +321,9 @@ extension CombatFeedbackPresenterTests {
             damageComponents: [DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy)],
             criticalChanceBonus: -1,
         )
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 30, abilities: [ability])
-        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 30, abilities: [])
-        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 30)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
         var profile = CombatantTalentCatalog.profile(for: ["knight_holy_t1_1", "knight_block_t1_2", "knight_holy_t3_2"])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleState(

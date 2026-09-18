@@ -8,6 +8,8 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class ContractsPlayMode {
+    // Note: contract battles launch cold (no pre-warming like Journey/Spires).
+    // Offer IDs rotate on refresh/replace, so cached runs would rarely hit.
     public let playerSave: PlayerSaveStore
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
@@ -45,12 +47,9 @@ public final class ContractsPlayMode {
     }
 
     public func resolvedEncounter(for offer: ContractOffer) -> ScaledEncounter? {
-        PlayBattlePreparation.scaledEncounter(
-            enemyID: offer.enemyID,
-            level: EncounterLevelResolver.contractEnemyLevel(
-                difficulty: offer.difficulty,
-                partyAverageLevel: playerSave.roster.activePartyAverageLevel,
-            ),
+        PlayBattlePreparation.contractEncounter(
+            for: offer,
+            partyAverageLevel: playerSave.roster.activePartyAverageLevel,
         )
     }
 
@@ -89,7 +88,10 @@ public final class ContractsPlayMode {
     private func battleRoute(offerID: String) -> PlayBattleRoute {
         PlayBattleRoute(origin: .contract(offerID: offerID)) { [weak self] configuration, _, award, _, loot in
             guard let self, let loot, let level = configuration.enemyEncounterLevel else { return .unavailable }
-            let result = playerSave.persistTransaction(logging: "Failed to complete contract") { save -> Result<Void, CompletionFailure> in
+            let transaction = playerSave.persistTransaction(logging: "Failed to complete contract") { save -> Result<
+                EncounterCompletion,
+                PlayCompletionFailure,
+            > in
                 switch ContractsCompletion.complete(
                     offerID: offerID,
                     hero: configuration.hero.combatant,
@@ -100,19 +102,11 @@ public final class ContractsPlayMode {
                     award: award,
                     save: &save,
                 ) {
-                case .completed: return .success(())
+                case .completed: return .success(.completed)
                 case .alreadyCompleted, .unavailable: return .failure(.unavailable)
                 }
             }
-            switch result {
-            case .committed: return .completed
-            case .rejected: return .unavailable
-            case .persistFailed: return .persistenceFailed
-            }
+            return PlayBattleRoute.completionResult(transaction)
         }
-    }
-
-    private enum CompletionFailure: Error {
-        case unavailable
     }
 }

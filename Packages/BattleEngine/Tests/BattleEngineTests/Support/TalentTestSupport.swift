@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 
 /// Shared talent-test factories, homed in Support per Tests/README.md.

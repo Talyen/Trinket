@@ -25,7 +25,10 @@ Packages/
     Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
   TrinketAppState/          App/Play orchestration, encounter sessions, options, and audio
-  TrinketTestSupport/       Shared battle-party fixtures (re-exports combat/content fixtures)
+
+Shared test fixtures (`CombatantFixtures`, `ItemFixtures`, `BattlePartyFixtures`)
+live in `TrinketContent`'s `TrinketContentTestSupport` target so
+`TrinketContentTests` can use them without a package cycle.
 
 ContentManifest/            affixes.tsv, item_bases.tsv, stages.tsv, combatants.tsv, …
 ArtManifest/                curated-assets.tsv
@@ -53,7 +56,7 @@ Scripts/                    generate, build, test, CI commands; internal/ Python
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots and product screens |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Media/` | Generated app resources |
 
-Battle launch/DTO contract: [battle-runtime.md](../AgentContext/battle-runtime.md). Persistence graph: [TrinketPersistence README](../../Packages/TrinketPersistence/README.md). UIKit feedback island: [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md). SwiftUI standing rules: [swiftui-features.md](../AgentContext/swiftui-features.md) and [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Shared fixtures: [TrinketTestSupport README](../../Packages/TrinketTestSupport/README.md).
+Battle launch/DTO contract: [battle-runtime.md](../AgentContext/battle-runtime.md). Persistence graph: [TrinketPersistence README](../../Packages/TrinketPersistence/README.md). UIKit feedback island: [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md). SwiftUI standing rules: [swiftui-features.md](../AgentContext/swiftui-features.md) and [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Shared fixtures: [Testing.md](Testing.md#fixtures).
 
 ## Product tabs vs code
 

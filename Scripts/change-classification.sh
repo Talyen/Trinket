@@ -99,9 +99,7 @@ trinket_route_shared_fixture_verification() {
 # Route touched package diffs to package tests or app compile proof.
 trinket_route_package_verification() {
   local package="$1"
-  if [[ "$package" == TrinketTestSupport ]]; then
-    trinket_route_shared_fixture_verification
-  elif trinket_package_has_tests "$package"; then
+  if trinket_package_has_tests "$package"; then
     trinket_add_package "$package"
   else
     TRINKET_NEEDS_APP_BUILD=true
@@ -149,7 +147,7 @@ trinket_classify_package_swift_path() {
   # (sourced above), not a second hardcoded list.
   local candidate
   local known=false
-  for candidate in "${TRINKET_TEST_PACKAGES[@]}" "${TRINKET_COMPILE_ONLY_PACKAGES[@]}"; do
+  for candidate in "${TRINKET_TEST_PACKAGES[@]}"; do
     if [[ "$package" == "$candidate" ]]; then
       known=true
       break

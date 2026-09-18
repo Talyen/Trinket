@@ -28,10 +28,7 @@ public final class SpiresPlayMode {
     }
 
     public func resolvedEncounter(for floor: SpireFloor) -> ScaledEncounter? {
-        PlayBattlePreparation.scaledEncounter(
-            enemyID: floor.enemyID,
-            level: EncounterLevelResolver.spireEnemyLevel(for: floor),
-        )
+        PlayBattlePreparation.spireEncounter(for: floor)
     }
 
     private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootResult {
@@ -49,17 +46,27 @@ public final class SpiresPlayMode {
         let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
             guard let self else { return .unavailable }
-            return completeFloor(
-                floor,
-                hero: configuration.hero.combatant,
-                companion: configuration.companion.combatant,
-                battleGold: award.award.goldFlow,
-                award: award,
-                materialRewards: materialRewards,
-                rewardItem: presentation?.pendingRewardItem,
-                loot: loot,
-                enemyEncounterLevel: configuration.enemyEncounterLevel,
-            ) ? .completed : .persistenceFailed
+            let transaction = playerSave.persistTransaction(logging: "Failed to persist Spire floor") { save -> Result<
+                EncounterCompletion,
+                PlayCompletionFailure,
+            > in
+                switch SpireCompletion.complete(
+                    floor: floor,
+                    hero: configuration.hero.combatant,
+                    companion: configuration.companion.combatant,
+                    battleGold: award.award.goldFlow,
+                    award: award,
+                    materialRewards: materialRewards,
+                    rewardItem: presentation?.pendingRewardItem,
+                    loot: loot,
+                    enemyEncounterLevel: configuration.enemyEncounterLevel,
+                    save: &save,
+                ) {
+                case .completed: return .success(.completed)
+                case .alreadyCompleted, .unavailable: return .failure(.unavailable)
+                }
+            }
+            return PlayBattleRoute.completionResult(transaction)
         }
     }
 
@@ -134,20 +141,13 @@ public final class SpiresPlayMode {
               let encounter = resolvedEncounter(for: floor)
         else { return }
 
-        let inputs = preparationInputs(for: floor)
-        let runKey = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor).runKey
-        battleLaunch.prepareIfNeeded(
+        let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
+        battleLaunch.prepareSingleBattle(
             tracker: &preparationTracker,
-            inputs: inputs,
-            runKey: runKey,
-        ) { combatRequest(for: floor, encounter: encounter) }
-    }
-
-    private func preparationInputs(for floor: SpireFloor) -> SingleBattlePreparationInputs {
-        SingleBattlePreparationInputs(
-            runKey: PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor).runKey,
-            party: PlayBattlePartySnapshot(playerSave: playerSave),
+            origin: origin,
             stageRewardsAlreadyClaimed: false,
+            party: PlayBattlePartySnapshot(playerSave: playerSave),
+            makeRequest: { combatRequest(for: floor, encounter: encounter) },
         )
     }
 
@@ -160,9 +160,6 @@ public final class SpiresPlayMode {
             encounter: encounter,
             route: battleRoute(floor: floor),
             loot: battleLoot(for: floor, encounterLevel: encounter.level),
-            stageRewardsAlreadyClaimed: false,
-            universalModifiers: [],
-            labyrinthModifiers: [],
         )
     }
 

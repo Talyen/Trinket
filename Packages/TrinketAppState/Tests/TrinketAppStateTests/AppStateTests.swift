@@ -1,11 +1,11 @@
 import Testing
 import TrinketBattleFeature
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketPersistenceTestSupport
-import TrinketTestSupport
 @testable import TrinketAppState
 
 @MainActor

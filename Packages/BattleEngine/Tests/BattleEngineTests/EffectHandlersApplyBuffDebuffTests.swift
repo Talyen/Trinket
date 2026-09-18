@@ -1,8 +1,8 @@
 import BattleEngine
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 
 struct EffectHandlersApplyBuffDebuffTests {
     @Test func `status summary order is independent of effect insertion order`() {

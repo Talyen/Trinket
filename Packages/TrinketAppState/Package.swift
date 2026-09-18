@@ -18,7 +18,6 @@ let package = Package(
         .package(path: "../TrinketPersistence"),
         .package(path: "../TrinketFeatureSupport"),
         .package(path: "../TrinketBattleFeature"),
-        .package(path: "../TrinketTestSupport"),
     ],
     targets: [
         .target(
@@ -42,7 +41,7 @@ let package = Package(
                 "TrinketFeatureSupport",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
                 "TrinketBattleFeature",
-                .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
+                .product(name: "TrinketContentTestSupport", package: "TrinketContent"),
                 .product(name: "TrinketPersistenceTestSupport", package: "TrinketPersistence"),
             ],
         ),

@@ -753,26 +753,17 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertNotIn("--build-only TrinketBattleFeature", plan)
         self.assertIn("SmokeBattleTests", plan)
 
-    def test_compile_only_packages_are_disjoint_from_test_packages(self) -> None:
+    def test_package_registry_has_no_compile_only_split(self) -> None:
         owner = (ROOT / "Scripts" / "build-inputs.env").read_text(encoding="utf-8")
-        test_packages = re.findall(
-            r"^\s+(Trinket\w+|BattleEngine)\s*$",
-            owner.split("TRINKET_TEST_PACKAGES=(")[1].split(")")[0],
-            re.MULTILINE,
-        )
-        compile_only = re.findall(
-            r"^\s+(Trinket\w+|BattleEngine)\s*$",
-            owner.split("TRINKET_COMPILE_ONLY_PACKAGES=(")[1].split(")")[0],
-            re.MULTILINE,
-        )
-        self.assertEqual(set(test_packages) & set(compile_only), set())
+        self.assertNotIn("TRINKET_COMPILE_ONLY_PACKAGES", owner)
         classifier = (ROOT / "Scripts" / "change-classification.sh").read_text(
             encoding="utf-8"
         )
+        self.assertNotIn("TRINKET_COMPILE_ONLY_PACKAGES", classifier)
         # The package membership gate must read the registry, not a
         # second hardcoded list that can drift from build-inputs.env.
         self.assertIn(
-            '"${TRINKET_TEST_PACKAGES[@]}" "${TRINKET_COMPILE_ONLY_PACKAGES[@]}"',
+            '"${TRINKET_TEST_PACKAGES[@]}"',
             classifier,
         )
 
@@ -794,22 +785,20 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertIn("test-package.sh BattleEngine", plan)
 
     def test_shared_fixture_verification_routes(self) -> None:
-        support_root = "Packages/TrinketTestSupport"
         content_support = "Packages/TrinketContent/Sources/TrinketContentTestSupport"
         combatant = f"{content_support}/CombatantFixtures.swift"
         item = f"{content_support}/ItemFixtures.swift"
-        party = f"{support_root}/Sources/TrinketTestSupport/BattlePartyFixtures.swift"
+        party = f"{content_support}/BattlePartyFixtures.swift"
         consumers = {"BattleEngine", "TrinketAppState", "TrinketBattleFeature", "TrinketFeatureSupport"}
         cases = [
             ("combatant", [combatant], consumers | {"TrinketContent"}, False, False),
             ("item", [item], consumers | {"TrinketContent"}, False, False),
-            ("party", [party], consumers, False, False),
-            ("manifest", [f"{support_root}/Package.swift"], consumers, False, True),
+            ("party", [party], consumers | {"TrinketContent"}, False, False),
             ("content-manifest", ["Packages/TrinketContent/Package.swift"], {"TrinketContent"}, False, True),
             ("deleted", [f"{content_support}/DeletedFixture.swift"], consumers | {"TrinketContent"}, False, False),
             ("deduplicated", [combatant, item, party, "Packages/BattleEngine/Tests/BattleEngineTests/BattleStateTests.swift"], consumers | {"TrinketContent"}, False, False),
-            ("mixed-app", [party, "Trinket/App/TrinketApp.swift"], consumers, True, False),
-            ("docs", [f"{support_root}/README.md"], set(), False, False),
+            ("mixed-app", [party, "Trinket/App/TrinketApp.swift"], consumers | {"TrinketContent"}, True, False),
+            ("docs", ["Docs/Platform/Testing.md"], set(), False, False),
         ]
         for name, paths, expected_packages, app_build, generation in cases:
             with self.subTest(case=name):

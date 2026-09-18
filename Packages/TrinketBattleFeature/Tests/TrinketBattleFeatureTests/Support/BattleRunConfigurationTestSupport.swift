@@ -1,9 +1,9 @@
 import BattleEngine
 import Foundation
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 import TrinketFeatureContracts
-import TrinketTestSupport
 @testable import TrinketBattleFeature
 
 @MainActor

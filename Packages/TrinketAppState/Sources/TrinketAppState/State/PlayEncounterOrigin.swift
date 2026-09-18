@@ -36,3 +36,14 @@ public enum PlayEncounterOrigin: Hashable, Sendable {
         }
     }
 }
+
+/// Shared header for transient encounter sessions (shop, mystery).
+/// Both sessions expose the same origin/stage/encounter triple; the protocol
+/// keeps that mapping in one place instead of drifting per session type.
+@MainActor
+protocol EncounterSession: AnyObject {
+    var stage: Stage { get }
+    var origin: PlayEncounterOrigin { get }
+    var encounter: EncounterIdentity { get }
+    var labyrinthNodeID: String? { get }
+}

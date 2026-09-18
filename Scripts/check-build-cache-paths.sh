@@ -4,8 +4,7 @@
 # (.github/actions/build-cache-key/action.yml).
 #
 # Intentional differences (do not "fix" by forcing identical lists):
-# - Cache uses Packages/** (broader); build-inputs enumerates TRINKET_TEST_PACKAGES
-#   plus Packages/TrinketTestSupport.
+# - Cache uses Packages/** (broader); build-inputs enumerates TRINKET_TEST_PACKAGES.
 # - Cache uses *.xctestplan; build-inputs lists each known plan by name.
 # - changes.yml also watches .github/**, Trinket.xcodeproj/**, lint/format config —
 #   those trigger CI jobs but are deliberately omitted from the cache key so

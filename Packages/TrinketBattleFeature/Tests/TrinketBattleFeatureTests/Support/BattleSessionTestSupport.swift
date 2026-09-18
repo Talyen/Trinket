@@ -1,15 +1,18 @@
 import Foundation
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 import TrinketFeatureContracts
 import TrinketFeatureSupport
-import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
 
 @MainActor
 enum BattleSessionTestSupport {
+    /// Session-level default enemy is a 100 HP parked enemy — not
+    /// `quickWinParty`'s 1 HP default, which is substituted explicitly below so
+    /// the divergence stays visible. Pass `enemy:` to override.
     static func makeConfiguredSession(
         rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         hero: Combatant? = nil,
@@ -21,10 +24,13 @@ enum BattleSessionTestSupport {
         stageRewardsAlreadyClaimed: Bool = false,
         completeVictory: ((BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?) -> BattleCompletionResult)? = nil,
     ) -> BattleSession {
+        // Session default: a durable parked enemy. This intentionally replaces
+        // quickWinParty's 1 HP enemy; one-shot sessions should call
+        // BattlePartyFixtures.quickWinParty() directly.
         let party = BattlePartyFixtures.quickWinParty(
             hero: hero,
             companion: companion,
-            enemy: enemy ?? CombatantFixtures.passiveEnemy(),
+            enemy: enemy ?? CombatantFixtures.passiveEnemy(maxHealth: 100),
         )
         let resolvedHero = party.hero
         let resolvedCompanion = party.companion
@@ -216,7 +222,7 @@ enum BattleSessionTestSupport {
         )
     }
 
-    static func makeUltimateProbeParty(enemyHealth: Int) -> (hero: Combatant, companion: Combatant, enemy: Combatant) {
+    static func makeUltimateProbeParty(enemyHealth: Int) -> BattlePartyFixtures.BattleParty {
         (
             hero: CombatantFixtures.combatant(
                 id: "hero",

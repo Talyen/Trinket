@@ -36,10 +36,7 @@ public final class EncounterPlayMode {
     }
 
     @discardableResult
-    func beginShopEncounter(
-        origin: PlayEncounterOrigin,
-        onAutoComplete: @escaping () -> StageMapMessage? = { nil },
-    ) -> ShopEncounterOpenResult {
+    func beginShopEncounter(origin: PlayEncounterOrigin) -> ShopEncounterOpenResult {
         guard playerSave.encounterAccessRestriction(for: origin) == nil,
               canBeginTransientEncounter else { return .unavailable }
 
@@ -55,14 +52,9 @@ public final class EncounterPlayMode {
         case .rejected:
             return .failed(StageMapMessage(title: "Shop Unavailable", message: "The shop could not be opened. Your progress is preserved."))
         case .persistFailed:
-            // Transient write failure: silent retry; the session opens late via
-            // observation instead of surfacing an error for a passing blip.
-            playerSave.retrySaveAction(key: SaveRetryKey.shopOpen) { [weak self] in
-                guard let self else { return }
-                if case .autoCompleted = beginShopEncounter(origin: origin, onAutoComplete: onAutoComplete) {
-                    _ = onAutoComplete()
-                }
-            }
+            // Transient write failure: beginShopOrAutoComplete schedules a
+            // silent retry; the session opens late via observation instead of
+            // surfacing an error for a passing blip.
             return .unavailable
         }
     }
@@ -99,13 +91,24 @@ public final class EncounterPlayMode {
         identifier: String,
         onAutoComplete: @escaping () -> StageMapMessage?,
     ) -> StageMapMessage? {
-        switch beginShopEncounter(origin: origin, onAutoComplete: onAutoComplete) {
+        switch beginShopEncounter(origin: origin) {
         case .autoCompleted:
             if let failure = onAutoComplete() {
                 return failure
             }
             return Self.emptyShopClosedMessage(identifier: identifier)
-        case .opened, .unavailable:
+        case .opened:
+            return nil
+        case .unavailable:
+            if playerSave.lastPersistenceError == .writeFailed {
+                playerSave.retrySaveAction(key: SaveRetryKey.shopOpen) { [weak self] in
+                    _ = self?.beginShopOrAutoComplete(
+                        origin: origin,
+                        identifier: identifier,
+                        onAutoComplete: onAutoComplete,
+                    )
+                }
+            }
             return nil
         case let .failed(message):
             return message

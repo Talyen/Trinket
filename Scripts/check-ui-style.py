@@ -22,7 +22,6 @@ SCAN_ROOTS = [
     "Packages/TrinketContent",
     "Packages/TrinketCore",
     "Packages/TrinketPersistence",
-    "Packages/TrinketTestSupport",
 ]
 
 DESIGN_SYSTEM_SOURCES = "Packages/TrinketDesignSystem/Sources/"

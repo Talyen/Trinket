@@ -39,16 +39,19 @@ struct PlayBattleLaunch {
     }
 
     /// Single paywall → busy → resolve → activate gate for mode battle entry.
-    /// Modes pre-check access first when they need a specific message to take
-    /// precedence; this re-check keeps the gate single-owned. A busy battle
-    /// returns `busyMessage`: map taps (Journey/Labyrinth) pass nil and swallow
-    /// the tap, while explicit board/floor taps (Spires/Contracts) surface the
-    /// failure. A busy transient encounter is always a silent ignore.
+    /// Modes pre-check access first only when a mode-specific message must
+    /// take precedence over the paywall (offer/floor/node availability,
+    /// attunement, reachability); the re-check here keeps the gate
+    /// single-owned. A busy battle returns `busyMessage`: map taps
+    /// (Journey/Labyrinth) pass nil and swallow the tap, while explicit
+    /// board/floor taps (Spires/Contracts) surface the failure. A busy
+    /// transient encounter is always a silent ignore. `busyMessage` has no
+    /// default so each call site declares its choice.
     @discardableResult
     func startBattle(
         origin: PlayBattleOrigin,
         encounters: EncounterPlayMode,
-        busyMessage: StageMapMessage? = nil,
+        busyMessage: StageMapMessage?,
         resolve: () -> PlayCombatRequest?,
         onActivated: () -> Void = {},
     ) -> StageMapMessage? {
@@ -92,15 +95,12 @@ struct PlayBattleLaunch {
     }
 
     func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
-        guard battle.lifecyclePhase != .active else { return }
-        battle.keepPreparedRuns(keys)
-        runRegistry.keep(keys)
+        keepPreparedRuns(keys, preservingWhere: { _ in false })
     }
 
     /// Prunes prepared runs to `keys` while preserving runs owned by other modes.
     /// Callers pass the survivor set for keys they own; `preserve` returns true
-    /// for origins the caller must not evict. One mode's pruning must never
-    /// destroy a sibling mode's warms.
+    /// for origins the caller must not evict (see `PlayBattleOrigin.isLabyrinth`).
     func keepPreparedRuns(
         _ keys: Set<BattleRunKey>,
         preservingWhere preserve: (PlayBattleOrigin) -> Bool,
@@ -129,6 +129,28 @@ struct PlayBattleLaunch {
         if prepareCombat(makeRequest()) {
             tracker.notePrepared(inputs)
         }
+    }
+
+    /// Shared single-battle pre-warm for Journey/Spires. Both warm at most one
+    /// run keyed by origin. Contracts intentionally skips pre-warming: offer
+    /// IDs rotate on refresh/replace, so cached runs would rarely hit.
+    func prepareSingleBattle(
+        tracker: inout PlayBattlePreparationTracker<SingleBattlePreparationInputs>,
+        origin: PlayBattleOrigin,
+        stageRewardsAlreadyClaimed: Bool,
+        party: PlayBattlePartySnapshot,
+        makeRequest: () -> PlayCombatRequest,
+    ) {
+        prepareIfNeeded(
+            tracker: &tracker,
+            inputs: SingleBattlePreparationInputs(
+                runKey: origin.runKey,
+                party: party,
+                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            ),
+            runKey: origin.runKey,
+            makeRequest: makeRequest,
+        )
     }
 
     @discardableResult

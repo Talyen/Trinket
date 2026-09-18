@@ -23,6 +23,15 @@ public enum PlayBattleOrigin: Hashable, Sendable {
             BattleRunKey("contract|\(offerID)")
         }
     }
+
+    /// Owner scope for prepared-run pruning: one mode's pruning must never
+    /// destroy a sibling mode's warms.
+    var isLabyrinth: Bool {
+        if case .labyrinth = self {
+            return true
+        }
+        return false
+    }
 }
 
 @MainActor
@@ -44,6 +53,33 @@ struct PlayBattleRoute {
         }
         return true
     }
+
+    /// Single idempotency mapping for mode battle routes. Duplicate deliveries
+    /// (double-tap, silent retry, deferred flush) report `.unavailable` and
+    /// grant nothing further instead of paying twice; only a failed write is
+    /// retryable as `.persistenceFailed`.
+    static func completionResult(_ completion: EncounterCompletion) -> BattleCompletionResult {
+        switch completion {
+        case .completed: .completed
+        case .alreadyCompleted, .unavailable: .unavailable
+        }
+    }
+
+    static func completionResult(
+        _ transaction: SaveTransactionResult<EncounterCompletion, PlayCompletionFailure>,
+    ) -> BattleCompletionResult {
+        switch transaction {
+        case let .committed(completion): completionResult(completion)
+        case .rejected: .unavailable
+        case .persistFailed: .persistenceFailed
+        }
+    }
+}
+
+/// Rejection for mode completion transactions: the encounter was already
+/// claimed or is no longer available, so the write is intentionally skipped.
+enum PlayCompletionFailure: Error {
+    case unavailable
 }
 
 @MainActor

@@ -1,6 +1,7 @@
 import BattleEngine
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 
 struct BattleLogReducerTests {
@@ -83,16 +84,10 @@ struct BattleLogReducerTests {
     }
 
     @Test func `battle start log uses names captured by event`() throws {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
-        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
-        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
-        let replacementEnemy = Combatant(
-            id: "replacement-enemy",
-            name: "Replacement Enemy",
-            role: .enemy,
-            maxHealth: 10,
-            abilities: [],
-        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 10)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 10)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 10)
+        let replacementEnemy = CombatantFixtures.combatant(id: "replacement-enemy", role: .enemy, maxHealth: 10)
         var battle = BattleState(
             hero: hero,
             companion: companion,

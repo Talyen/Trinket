@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 
 struct BattleTurnEngineTests {
@@ -300,9 +300,8 @@ struct BattleTurnEngineTests {
         let basic = Ability(id: "basic", name: "Basic", tier: .basic, directDamage: 1, description: "Basic")
         let skill = Ability(id: "skill", name: "Skill", tier: .skill, directDamage: 5, description: "Skill")
         let ultimate = Ability(id: "ult", name: "Ult", tier: .ultimate, directDamage: 9, description: "Ult")
-        let enemy = Combatant(
+        let enemy = CombatantFixtures.combatant(
             id: "enemy",
-            name: "Enemy",
             role: .enemy,
             maxHealth: 30,
             abilities: [basic, skill, ultimate],
@@ -551,9 +550,8 @@ struct BattleTurnEngineComponentTests {
             tier: .basic,
             damageComponents: [DamageComponent(5, keyword: .burn)],
         )
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero",
-            name: "Hero",
             role: .hero,
             maxHealth: 50,
             maxMana: 10,

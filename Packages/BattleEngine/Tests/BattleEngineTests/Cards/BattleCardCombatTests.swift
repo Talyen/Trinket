@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 
 struct BattleCardCombatTests {
@@ -43,26 +43,22 @@ struct BattleCardCombatTests {
     }
 
     @Test func `paced opening hand matches immediate draw for same seed`() throws {
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "hero",
-            name: "Hero",
             role: .hero,
             maxHealth: 50,
             abilities: [.slash, .heal, .smite],
         )
-        let companion = Combatant(
+        let companion = CombatantFixtures.combatant(
             id: "companion",
-            name: "Companion",
             role: .companion,
             maxHealth: 50,
             abilities: [.bash, .fangs, .bloodthorn],
         )
-        let enemy = Combatant(
+        let enemy = CombatantFixtures.combatant(
             id: "enemy",
-            name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            abilities: [],
         )
         let seed: UInt64 = 42
         let immediate = BattleState(
@@ -356,16 +352,14 @@ struct BattleCardCombatTests {
 
     @Test func `played card returns to deck after effects so draw cannot fetch it`() throws {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: Combatant(
+            hero: CombatantFixtures.combatant(
                 id: "hero",
-                name: "Hero",
                 role: .hero,
                 maxHealth: 50,
                 abilities: [.packTactics],
             ),
-            companion: Combatant(
+            companion: CombatantFixtures.combatant(
                 id: "companion",
-                name: "Companion",
                 role: .companion,
                 maxHealth: 50,
                 abilities: [.slash],

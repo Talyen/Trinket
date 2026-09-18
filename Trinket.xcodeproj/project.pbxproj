@@ -47,7 +47,6 @@
 		8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8841A94175DB81C08D6F654D /* Trinket.storekit */ = {isa = PBXFileReference; path = Trinket.storekit; sourceTree = "<group>"; };
 		8D80BAE3DD95D195DC723862 /* TrinketPersistence */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketPersistence; path = Packages/TrinketPersistence; sourceTree = SOURCE_ROOT; };
-		929F7A06B8C849A87066F3DE /* TrinketTestSupport */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketTestSupport; path = Packages/TrinketTestSupport; sourceTree = SOURCE_ROOT; };
 		9C0890BB8BE4806E4AEDBE9B /* TrinketAppState */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketAppState; path = Packages/TrinketAppState; sourceTree = SOURCE_ROOT; };
 		ADA42E5A1490B3683FC93B52 /* Media */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Media; path = Trinket/Media; sourceTree = SOURCE_ROOT; };
 		B16CD0B73E69AB7EEA6213A0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -142,7 +141,6 @@
 				3301AA31D98CDD220CFDF5FF /* TrinketDesignSystem */,
 				61DAE383D9127ED4E5EE169F /* TrinketFeatureSupport */,
 				8D80BAE3DD95D195DC723862 /* TrinketPersistence */,
-				929F7A06B8C849A87066F3DE /* TrinketTestSupport */,
 			);
 			path = Packages;
 			sourceTree = "<group>";
@@ -295,7 +293,6 @@
 				67B181382CCFAFEB2A60F327 /* XCLocalSwiftPackageReference "Packages/TrinketDesignSystem" */,
 				07A2D09A8B924C5A7E9A1EC1 /* XCLocalSwiftPackageReference "Packages/TrinketFeatureSupport" */,
 				28CA298E56ABA2E9AE051727 /* XCLocalSwiftPackageReference "Packages/TrinketPersistence" */,
-				595EFA13D311CAC556EE8594 /* XCLocalSwiftPackageReference "Packages/TrinketTestSupport" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 34E76F1E0275AF5606A8CE2F /* Products */;
@@ -626,10 +623,6 @@
 		355F0B06AED548C005142BD6 /* XCLocalSwiftPackageReference "Packages/TrinketContent" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/TrinketContent;
-		};
-		595EFA13D311CAC556EE8594 /* XCLocalSwiftPackageReference "Packages/TrinketTestSupport" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Packages/TrinketTestSupport;
 		};
 		5E1DE20763EC52DE81FE7B72 /* XCLocalSwiftPackageReference "Packages/TrinketCore" */ = {
 			isa = XCLocalSwiftPackageReference;

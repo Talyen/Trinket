@@ -124,6 +124,9 @@ public enum SaveTestSupport {
         try context.save()
     }
 
+    /// Item produced by the generator (rolled affixes/powers) for tests that
+    /// need generated shapes. For a bare catalog item without generation, use
+    /// `ItemFixtures.makeBareItem`.
     public static func makeGeneratedItem(
         baseID: String,
         rarity: Rarity,

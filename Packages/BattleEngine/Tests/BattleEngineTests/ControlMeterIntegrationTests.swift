@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 
 struct ControlMeterIntegrationTests {
@@ -89,13 +89,7 @@ struct ControlMeterIntegrationTests {
     }
 
     @Test func `shield bash applies stun skip and block`() throws {
-        let hero = Combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 20,
-            abilities: [.shieldBash],
-        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [.shieldBash])
         let companion = CombatantFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
@@ -116,7 +110,7 @@ struct ControlMeterIntegrationTests {
     }
 
     @Test func `party owner skip blocks card play then clears on end turn`() throws {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.slash])
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [.slash])
         let companion = CombatantFixtures.passiveCompanion()
         let enemy = CombatantFixtures.passiveEnemy(maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
@@ -152,7 +146,7 @@ struct ControlMeterIntegrationTests {
 
     @Test func `shatter and dazed apply during control status linger`() throws {
         let jab = Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [jab])
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [jab])
         let companion = CombatantFixtures.passiveCompanion()
         let enemy = CombatantFixtures.passiveEnemy(maxHealth: 100)
 

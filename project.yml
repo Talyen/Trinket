@@ -20,8 +20,6 @@ packages:
     path: Packages/TrinketPersistence
   TrinketDesignSystem:
     path: Packages/TrinketDesignSystem
-  TrinketTestSupport:
-    path: Packages/TrinketTestSupport
   TrinketFeatureSupport:
     path: Packages/TrinketFeatureSupport
   TrinketBattleFeature:

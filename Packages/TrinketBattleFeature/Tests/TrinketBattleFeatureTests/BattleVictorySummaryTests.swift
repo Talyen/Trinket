@@ -1,9 +1,9 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 import TrinketFeatureContracts
 import TrinketFeatureSupport
-import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
 

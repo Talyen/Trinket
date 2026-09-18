@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 
 @Suite("Content access")
 struct ContentAccessPolicyTests {
@@ -24,7 +25,7 @@ struct ContentAccessPolicyTests {
     }
 
     @Test func `conditional and unselected abilities count for attunement`() throws {
-        let frostWhelp = Combatant(id: "frost_whelp", name: "Frost Whelp", role: .companion, maxHealth: 20, abilities: [.iceShot])
+        let frostWhelp = CombatantFixtures.combatant(id: "frost_whelp", role: .companion, maxHealth: 20, abilities: [.iceShot])
         let spire = try #require(GameContent.spire(id: .ironVein))
         #expect(!frostWhelp.keywordProfile.contains(.physical))
         #expect(SpireAttunement.matches(frostWhelp, spire: spire))
@@ -39,7 +40,7 @@ struct ContentAccessPolicyTests {
     @Test(arguments: ContentAccessPolicy.freeHeroIDs)
     func `campaign recruits complete the free roster`(heroID: String) throws {
         let companionID = try #require(ContentAccessPolicy.freeCompanionIDs.first)
-        let seed: UInt64 = 1772
+        let seed: UInt64 = CombatantFixtures.deterministicBattleSeed
         var heroes: Set<String> = [heroID]
         var companions: Set<String> = [companionID]
         for chapter in GameContent.chapters where chapter.number <= 3 {

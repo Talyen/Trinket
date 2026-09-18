@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import Testing
 import TrinketContent
-import TrinketTestSupport
+import TrinketContentTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
 

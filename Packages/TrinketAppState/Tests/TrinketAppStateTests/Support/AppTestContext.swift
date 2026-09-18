@@ -2,10 +2,10 @@ import BattleEngine
 import Foundation
 import TrinketBattleFeature
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketPersistenceTestSupport
-import TrinketTestSupport
 @testable import TrinketAppState
 
 final class AppTestContext {

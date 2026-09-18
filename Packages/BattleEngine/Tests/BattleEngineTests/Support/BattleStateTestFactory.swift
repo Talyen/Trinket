@@ -1,6 +1,6 @@
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 
 enum BattleStateTestFactory {

@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 
 struct RestorationIntegrationTests {
@@ -40,9 +40,9 @@ struct RestorationIntegrationTests {
             description: "Restore 3 Health.",
             effects: [.instantHeal(.health, 3)],
         )
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [heal])
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 10, abilities: [heal])
         let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -70,9 +70,9 @@ struct RestorationIntegrationTests {
             damageKeyword: .physical,
             hasLeech: true,
         )
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [leechSlash])
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 10, abilities: [leechSlash])
         let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,
@@ -100,12 +100,9 @@ struct RestorationIntegrationTests {
             description: "Restore 5 Health.",
             effects: [.instantHeal(.health, 5)],
         )
-        let hero = CombatantFixtures.combatant(id: "hero", name: "Hero", role: .hero)
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
         let companion = CombatantFixtures.passiveCompanion()
-        let enemy = Combatant(
-            id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20,
-            abilities: [selfHeal],
-        )
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 20, abilities: [selfHeal])
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
             companion: companion,

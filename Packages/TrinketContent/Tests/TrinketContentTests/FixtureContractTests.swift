@@ -45,6 +45,18 @@ struct FixtureContractTests {
         #expect(CombatantFixtures.combatant(id: "enemy-boss_2", role: .enemy).name == "Enemy Boss 2")
     }
 
+    @Test func `quick-win party wins fast with parked support`() {
+        let party = BattlePartyFixtures.quickWinParty()
+        #expect(party.hero.id == "hero")
+        #expect(party.hero.abilities == [.slash])
+        #expect(party.hero.actionIntervalTurns == CombatantFixtures.quickWinTurnInterval)
+        #expect(party.companion.id == "companion")
+        #expect(party.companion.actionIntervalTurns == CombatantFixtures.passiveTurnInterval)
+        #expect(party.enemy.id == "enemy")
+        #expect(party.enemy.maxHealth == 1)
+        #expect(party.enemy.actionIntervalTurns == CombatantFixtures.passiveTurnInterval)
+    }
+
     @Test func `bare items default to catalog names and test ids`() throws {
         let item = try ItemFixtures.makeBareItem("longsword")
         let base = try ItemFixtures.baseType("longsword")

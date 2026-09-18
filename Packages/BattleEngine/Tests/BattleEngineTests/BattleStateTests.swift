@@ -1,8 +1,8 @@
 import BattleEngine
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 
 struct BattleStateTests {
     private var defaultEnemy: Combatant {
@@ -85,7 +85,7 @@ struct BattleStateTests {
     }
 
     @Test func `battle gold tracks initial balance and resource gains`() throws {
-        let goldHero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.steal])
+        let goldHero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [.steal])
         var battle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
             companion: CombatantFixtures.passiveCompanion(),
@@ -124,9 +124,9 @@ struct BattleStateTests {
     }
 
     @Test func `card combat defeat when party obliterated`() throws {
-        let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
-        let observer = Combatant(id: "observer", name: "Observer", role: .companion, maxHealth: 1, abilities: [])
-        let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
+        let fragile = CombatantFixtures.combatant(id: "fragile", role: .hero, maxHealth: 1)
+        let observer = CombatantFixtures.combatant(id: "observer", role: .companion, maxHealth: 1)
+        let enemy = CombatantFixtures.combatant(id: "strong", role: .enemy, maxHealth: 100, abilities: [.slash])
         var battle = BattleStateTestFactory.makeBattle(hero: fragile, companion: observer, enemy: enemy)
 
         while !battle.isBattleOver {
@@ -163,9 +163,9 @@ struct BattleStateTests {
 
     @Test func `battle ends when hero kills enemy without further plays`() throws {
         let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1, description: "Finisher")
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
-        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [.bash])
-        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 1, abilities: [])
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [finisher])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20, abilities: [.bash])
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1)
         var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
         let events = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
@@ -179,26 +179,21 @@ struct BattleStateTests {
     }
 
     @Test func `faustian bargain self damage does not wipe party when companion survives`() throws {
-        let hero = Combatant(
+        let hero = CombatantFixtures.combatant(
             id: "warlock",
-            name: "Warlock",
             role: .hero,
             maxHealth: 3,
             abilities: [.faustianBargain],
         )
-        let companion = Combatant(
+        let companion = CombatantFixtures.combatant(
             id: "companion",
-            name: "Companion",
             role: .companion,
             maxHealth: 20,
-            abilities: [],
         )
-        let enemy = Combatant(
+        let enemy = CombatantFixtures.combatant(
             id: "enemy",
-            name: "Enemy",
             role: .enemy,
             maxHealth: 50,
-            abilities: [],
         )
         var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 

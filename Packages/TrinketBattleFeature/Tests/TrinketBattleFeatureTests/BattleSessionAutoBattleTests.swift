@@ -2,9 +2,9 @@ import BattleEngine
 import Foundation
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 import TrinketFeatureSupport
-import TrinketTestSupport
 @testable import TrinketBattleFeature
 
 @MainActor
@@ -335,27 +335,12 @@ struct BattleSessionAutoBattleTests {
         #expect(probe.persistedValues == [false, true])
 
         session.endBattle()
+        let party = BattlePartyFixtures.quickWinParty(enemyMaxHealth: 100)
         let (nextConfiguration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: CombatantFixtures.deterministicBattleSeedVariant(2),
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                actionIntervalTurns: CombatantFixtures.quickWinTurnInterval,
-                abilities: [.slash],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                actionIntervalTurns: CombatantFixtures.passiveTurnInterval,
-                abilities: [],
-            ),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: 100,
-                actionIntervalTurns: CombatantFixtures.passiveTurnInterval,
-                abilities: [],
-            ),
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy,
         )
         #expect(session.activate(nextConfiguration))
         #expect(session.isAutoBattleEnabled)

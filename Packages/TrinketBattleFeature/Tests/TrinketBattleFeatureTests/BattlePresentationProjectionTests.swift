@@ -1,7 +1,7 @@
 import Foundation
 import Testing
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
 

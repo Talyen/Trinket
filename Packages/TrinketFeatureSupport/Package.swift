@@ -25,7 +25,6 @@ let package = Package(
         .package(path: "../BattleEngine"),
         .package(path: "../TrinketPersistence"),
         .package(path: "../TrinketDesignSystem"),
-        .package(path: "../TrinketTestSupport"),
     ],
     targets: [
         .target(
@@ -64,7 +63,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "TrinketPersistence",
-                .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
+                .product(name: "TrinketContentTestSupport", package: "TrinketContent"),
                 .product(name: "TrinketPersistenceTestSupport", package: "TrinketPersistence"),
             ],
         ),

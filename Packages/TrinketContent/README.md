@@ -18,9 +18,10 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 The source root holds `GameContent`, shared access policy, and trigger coding.
 Domain-specific `GameContent` extensions live beside their models and catalogs.
 `Sources/TrinketContentTestSupport/` is the one additional target: shared
-combat/content test fixtures (`CombatantFixtures`, `ItemFixtures`) that
-`TrinketContentTests` and `TrinketTestSupport` both consume without a package
-cycle. All other folders remain in the main target.
+combat/content/battle-party test fixtures (`CombatantFixtures`,
+`ItemFixtures`, `BattlePartyFixtures`) that `TrinketContentTests` and the
+other packages' test targets consume without a package cycle. All other
+folders remain in the main target.
 
 ## Manifest sources
 

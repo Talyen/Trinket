@@ -199,6 +199,22 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.roster.gold == initialGold + expectedGold)
     }
 
+    @Test func `duplicate journey route delivery reports unavailable without paying twice`() throws {
+        let state = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = state.journey.startBattle(for: stage)
+        let configuration = try #require(state.battle.activeBattle)
+        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
+        let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 5)))
+        let loot = PlayBattleCompletion.preparedLoot(from: presentation, materialRewards: nil)
+        let route = try #require(state.route(for: configuration.runKey))
+
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 5)).didComplete)
+        let saveAfterVictory = state.playerSave.currentSave
+        #expect(route.complete(configuration, presentation, settlement, nil, loot) == .unavailable)
+        #expect(state.playerSave.currentSave == saveAfterVictory)
+    }
+
     @Test func `complete active battle without stage grants gold only`() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)

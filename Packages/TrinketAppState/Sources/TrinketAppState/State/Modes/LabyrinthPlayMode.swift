@@ -115,12 +115,13 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     func startBattle(nodeID: String) -> StageMapMessage? {
-        if let restriction = playerSave.accessRestriction(for: .labyrinth(nodeID: nodeID)) {
-            return restriction
-        }
-        return battleLaunch.startBattle(
+        // No access pre-check here: PlayBattleLaunch.startBattle owns the gate
+        // and returns the restriction first. handleNodeAction keeps its own
+        // check so the paywall takes precedence over reachability messages.
+        battleLaunch.startBattle(
             origin: .labyrinth(nodeID: nodeID),
             encounters: encounters,
+            busyMessage: nil, // Map taps swallow a busy battle.
             resolve: {
                 let labyrinth = playerSave.labyrinth
                 guard let node = labyrinth.node(id: nodeID), node.type.isCombat,
@@ -179,12 +180,7 @@ public final class LabyrinthPlayMode {
                 preparedKeys.insert(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
             }
         }
-        battleLaunch.keepPreparedRuns(preparedKeys, preservingWhere: { origin in
-            if case .labyrinth = origin {
-                return false
-            }
-            return true
-        })
+        battleLaunch.keepPreparedRuns(preparedKeys, preservingWhere: { !$0.isLabyrinth })
         // Always cache: correctness rides on the hasPreparedRun leg above, so
         // a transient failure still retries via missingPreparedRun instead of
         // re-warming on every appear.
@@ -268,13 +264,7 @@ extension LabyrinthPlayMode {
         for node: LabyrinthNode,
         partyAverageLevel: Int,
     ) -> ScaledEncounter? {
-        PlayBattlePreparation.scaledEncounter(
-            enemyID: node.enemyID,
-            level: EncounterLevelResolver.labyrinthAdjusted(
-                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-                partyAverageLevel: partyAverageLevel,
-            ),
-        )
+        PlayBattlePreparation.labyrinthEncounter(for: node, partyAverageLevel: partyAverageLevel)
     }
 
     private static func combatModifiers(
@@ -323,10 +313,7 @@ extension LabyrinthPlayMode {
             encounterLevel: encounterLevel,
             enemyIsBoss: VictoryRewardApplier.isBoss(enemyID: node.enemyID),
             worldSeed: playerSave.worldSeed,
-            ownership: RewardOwnership(
-                ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-                ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
-            ),
+            ownership: RewardOwnership(playerSave.inventory),
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
         )
     }
@@ -335,17 +322,28 @@ extension LabyrinthPlayMode {
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
             guard let self else { return .unavailable }
-            return completeNode(
-                nodeID: nodeID,
-                hero: configuration.hero.combatant,
-                companion: configuration.companion.combatant,
-                battleGold: award.award.goldFlow,
-                award: award,
-                materialRewards: materialRewards,
-                rewardItem: presentation?.pendingRewardItem,
-                loot: loot,
-                enemyEncounterLevel: configuration.enemyEncounterLevel,
-            ) ? .completed : .persistenceFailed
+            let transaction = playerSave.persistTransaction(logging: "Failed to persist Labyrinth node") { save -> Result<
+                EncounterCompletion,
+                PlayCompletionFailure,
+            > in
+                switch LabyrinthCompletion.complete(
+                    nodeID: nodeID,
+                    hero: configuration.hero.combatant,
+                    companion: configuration.companion.combatant,
+                    battleGold: award.award.goldFlow,
+                    award: award,
+                    materialRewards: materialRewards,
+                    rewardItem: presentation?.pendingRewardItem,
+                    loot: loot,
+                    enemyEncounterLevel: configuration.enemyEncounterLevel,
+                    save: &save,
+                    access: playerSave.contentAccess,
+                ) {
+                case .completed: return .success(.completed)
+                case .alreadyCompleted, .unavailable: return .failure(.unavailable)
+                }
+            }
+            return PlayBattleRoute.completionResult(transaction)
         }
     }
 }

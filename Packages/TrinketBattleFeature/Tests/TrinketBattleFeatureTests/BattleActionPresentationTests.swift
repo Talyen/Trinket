@@ -1,10 +1,20 @@
 import Foundation
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
+
+/// Durable enemy that acts every turn, for presentation tests that need
+/// repeated enemy actions without an early victory.
+private func durableActingEnemy(abilities: [Ability]) -> Combatant {
+    CombatantFixtures.passiveEnemy(
+        maxHealth: 1000,
+        actionIntervalTurns: CombatantFixtures.quickWinTurnInterval,
+        abilities: abilities,
+    )
+}
 
 @MainActor
 struct BattleActionPresentationTests {
@@ -202,7 +212,7 @@ struct BattleActionPresentationTests {
 
     @Test(arguments: [false, true], [Ability.slash, .block])
     func `enemy attacks use actual resolved actions`(skipped: Bool, ability: Ability) throws {
-        let enemy = CombatantFixtures.passiveEnemy(maxHealth: 1000, actionIntervalTurns: 1, abilities: [ability])
+        let enemy = durableActingEnemy(abilities: [ability])
         let session = BattleSessionTestSupport.makeConfiguredSession(enemy: enemy)
         defer { session.endBattle() }
         var state = try #require(session.engineState)
@@ -299,7 +309,7 @@ struct BattleActionPresentationTests {
             id: "redirect-recoil", name: "Hit", tier: .basic,
             damageComponents: [DamageComponent(10, keyword: .physical, target: .hero)], criticalChanceBonus: -1,
         )
-        let enemy = CombatantFixtures.passiveEnemy(maxHealth: 1000, actionIntervalTurns: 1, abilities: [attack])
+        let enemy = durableActingEnemy(abilities: [attack])
         var state = BattleState(
             hero: original.hero, companion: original.companion, enemy: enemy,
             companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t3_1"]),

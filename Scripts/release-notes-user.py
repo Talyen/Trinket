@@ -109,9 +109,7 @@ def conventional_type(subject: str) -> str | None:
 def is_infra_path(path: str) -> bool:
     if path in INFRA_NAMES or path.endswith(".md") or path.endswith(".xctestplan"):
         return True
-    if path.endswith("Package.swift") or "TrinketTestSupport" in path:
-        return True
-    if "TrinketContentTestSupport" in path:
+    if path.endswith("Package.swift") or "TrinketContentTestSupport" in path:
         return True
     if "/Tests/" in path or path.endswith("Tests.swift"):
         return True

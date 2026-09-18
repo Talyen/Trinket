@@ -32,28 +32,45 @@ public extension EncounterPlayMode {
         guard canBeginTransientEncounter else { return nil }
 
         let inputs = mysteryPickInputs(origin: origin)
-        let pickContext = inputs.pickContext
-        let pinnedLabyrinthEventID = inputs.pinnedLabyrinthEventID
-        let pinnedJourneyEventID = inputs.pinnedJourneyEventID
-
         let opened = MysteryEncounterSession.open(
             origin: origin,
             encounter: origin.identity(in: playerSave.currentSave),
             forcedEventID: forcedEventID,
             worldSeed: playerSave.worldSeed,
-            pickContext: pickContext,
-            pinnedLabyrinthEventID: pinnedLabyrinthEventID,
-            pinnedJourneyEventID: pinnedJourneyEventID,
+            pickContext: inputs.pickContext,
+            pinnedLabyrinthEventID: inputs.pinnedLabyrinthEventID,
+            pinnedJourneyEventID: inputs.pinnedJourneyEventID,
         )
 
-        if let id = opened.session.event.unlockCombatantID, !playerSave.contentAccess.allowsCombatant(id) {
-            return .fullGameRequired(.combatant(id))
+        if let paywall = mysteryPaywallMessage(for: opened.session.event) {
+            return paywall
         }
+        return finishOpeningMystery(
+            opened.session,
+            origin: origin,
+            forcedEventID: forcedEventID,
+            resolvedEventID: opened.resolvedEventID,
+            pinnedLabyrinthEventID: inputs.pinnedLabyrinthEventID,
+            pinnedJourneyEventID: inputs.pinnedJourneyEventID,
+        )
+    }
 
+    /// Pins the event, prepares offers, publishes the session, and auto-resolves
+    /// recruit events. Transient write failures schedule a silent retry and
+    /// return nil; rejections surface a message. (Recruit auto-resolve needs no
+    /// retry here: the resolution path already scheduled one internally.)
+    private func finishOpeningMystery(
+        _ session: MysteryEncounterSession,
+        origin: PlayEncounterOrigin,
+        forcedEventID: String?,
+        resolvedEventID: String,
+        pinnedLabyrinthEventID: String?,
+        pinnedJourneyEventID: String?,
+    ) -> StageMapMessage? {
         if let pinFailure = pinMysteryEventIfNeeded(
             origin: origin,
-            resolvedEventID: opened.resolvedEventID,
-            isRecruit: opened.session.event.isRecruit,
+            resolvedEventID: resolvedEventID,
+            isRecruit: session.event.isRecruit,
             pinnedLabyrinthEventID: pinnedLabyrinthEventID,
             pinnedJourneyEventID: pinnedJourneyEventID,
         ) {
@@ -64,8 +81,8 @@ public extension EncounterPlayMode {
             return pinFailure
         }
 
-        if !opened.session.event.isRecruit, !opened.session.isCorruptionAltar {
-            guard prepareMysteryOffers(opened.session) else {
+        if !session.event.isRecruit, !session.isCorruptionAltar {
+            guard prepareMysteryOffers(session) else {
                 if playerSave.lastPersistenceError == .writeFailed {
                     retryOpeningMystery(origin: origin, forcedEventID: forcedEventID)
                     return nil
@@ -73,14 +90,14 @@ public extension EncounterPlayMode {
                 return Self.mysteryPinFailureMessage
             }
         }
-        activeMysteryEncounter = opened.session
+        activeMysteryEncounter = session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
-        if opened.session.event.isRecruit {
+        if session.event.isRecruit {
             guard resolveActiveMysteryChoice(choiceID: nil) else {
                 if playerSave.lastPersistenceError == .writeFailed {
                     return nil
                 }
-                let detail = opened.session.persistFailureMessage
+                let detail = session.persistFailureMessage
                     ?? Self.mysteryPinFailureMessage.message
                 activeMysteryEncounter = nil
                 return StageMapMessage(
@@ -90,6 +107,15 @@ public extension EncounterPlayMode {
             }
         }
         return nil
+    }
+
+    /// Character paywall for mystery events that unlock combatants. Also
+    /// enforced in `PlayBattleLaunch.activateBattle` and
+    /// `resolveActiveMysteryChoice`; checked here so the paywall surfaces
+    /// before any pin writes.
+    private func mysteryPaywallMessage(for event: MysteryEvent) -> StageMapMessage? {
+        guard let id = event.unlockCombatantID, !playerSave.contentAccess.allowsCombatant(id) else { return nil }
+        return .fullGameRequired(.combatant(id))
     }
 
     private func retryOpeningMystery(origin: PlayEncounterOrigin, forcedEventID: String?) {
@@ -151,7 +177,7 @@ public extension EncounterPlayMode {
     @discardableResult
     func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
-        if let id = mysterySession.event.unlockCombatantID, !playerSave.contentAccess.allowsCombatant(id) {
+        if mysteryPaywallMessage(for: mysterySession.event) != nil {
             mysterySession.markPersistFailed("This character requires Full Game. Progress is preserved.")
             return false
         }

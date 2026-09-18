@@ -3,11 +3,9 @@ import TrinketCore
 
 /// Shared inventory-item construction for tests.
 ///
-/// This is the single home for item fixtures — including for
-/// `TrinketContentTests`, which cannot depend on `TrinketTestSupport` without
-/// a package cycle. `TrinketTestSupport` re-exports this type so existing
-/// suites keep working; new code should import `TrinketContentTestSupport`
-/// directly.
+/// This is the single home for item fixtures. It lives in this package's
+/// `TrinketContentTestSupport` target (rather than a separate package) so
+/// `TrinketContentTests` can use it without a package cycle.
 ///
 /// The helper does not run item generation: affixes default to empty and
 /// stored powers to `nil`; callers can supply `affixes` and `affixPowers`

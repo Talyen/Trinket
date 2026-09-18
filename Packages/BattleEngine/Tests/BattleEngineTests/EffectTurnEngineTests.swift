@@ -1,8 +1,8 @@
 import BattleEngine
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 
 struct EffectTurnEngineTests {
     @Test func `lethal enemy burn ends turn before party damage`() {

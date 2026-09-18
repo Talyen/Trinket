@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
-import TrinketTestSupport
 @testable import BattleEngine
 
 struct DoTMechanicsTests {
@@ -44,15 +44,14 @@ struct DoTMechanicsTests {
         heroEffects: [ActiveEffect] = [],
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
-            hero: Combatant(
+            hero: CombatantFixtures.combatant(
                 id: "hero",
-                name: "Hero",
                 role: .hero,
                 maxHealth: 20,
                 abilities: heroAbilities,
             ),
             companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: enemyEffects,
             activeHeroEffects: heroEffects,
         )

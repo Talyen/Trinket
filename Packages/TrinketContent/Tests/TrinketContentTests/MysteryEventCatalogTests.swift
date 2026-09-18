@@ -1,4 +1,5 @@
 import Testing
+import TrinketContentTestSupport
 import TrinketCore
 @testable import TrinketContent
 
@@ -257,10 +258,9 @@ struct MysteryEventCatalogTests {
         let geode = try #require(GameContent.mysteryEvent(matching: "crystal-geode"))
         let offers = try geode.choices.map { choice in
             let pool = try #require(choice.itemPool)
-            let base = try #require(GameContent.itemBaseType(matching: pool.baseTypeID))
-            return MysteryOffer(
+            return try MysteryOffer(
                 choiceID: choice.id,
-                item: InventoryItem(id: choice.id, baseType: base, rarity: .basic, displayName: base.name, affixes: []),
+                item: ItemFixtures.makeBareItem(pool.baseTypeID, id: choice.id),
                 bonus: .experience(1),
             )
         }
