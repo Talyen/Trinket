@@ -9,14 +9,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from internal.cli import ROOT
+from internal.cli import ROOT, read_json
 
 
 def select(baseline: dict, selectors: list[str]) -> dict:
     inventory = baseline['coverage']
     if set(inventory) != set(baseline['scenarios']):
         raise ValueError('coverage inventory and baseline scenarios differ')
-    plan = json.loads((ROOT / 'BattlePerformance.xctestplan').read_text())
+    plan = read_json(ROOT / 'BattlePerformance.xctestplan')
     classes = set(plan['testTargets'][0]['selectedTests'])
     for scenario, entry in inventory.items():
         owner, method = entry['test'].split('/')
@@ -59,7 +59,7 @@ def main() -> None:
     parser.add_argument('--output', type=Path)
     parser.add_argument('--list', action='store_true')
     args = parser.parse_args()
-    baseline = json.loads((ROOT / 'Performance/Baselines/simulator-60.json').read_text())
+    baseline = read_json(ROOT / 'Performance/Baselines/simulator-60.json')
     try:
         selected = select(baseline, args.select)
     except ValueError as error:

@@ -8,13 +8,12 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        assert(
-            state.buildupDamage == state.remaining || state.remaining == 0,
-            "buildupDamage invariant before shield: buildup \(state.buildupDamage) != remaining \(state.remaining)",
-        )
         var effects = context.roster.activeEffects(for: state.combatant)
 
         let blockMultiplier = DamageDefensePolicy.blockMultiplier(state: state, in: context)
+        // Full bypass skips Intercede too: Intercede scales by the same
+        // multiplier, so it would absorb 0 and its absorbed-gated side
+        // effects (talent blocked-damage, block-broken) would no-op.
         guard blockMultiplier > 0 else { return }
 
         applyIntercede(to: &state, blockMultiplier: blockMultiplier, in: &context)
@@ -146,7 +145,6 @@ package extension DamagePipeline {
     ) -> ShieldAbsorption {
         let absorbed = min(state.remaining, effectiveBuffer)
         state.blockedAmount += absorbed
-        state.buildupDamage = max(0, state.buildupDamage - absorbed)
         appendAbsorption(
             absorbed,
             abilityName: keyword.rawValue,
@@ -182,7 +180,6 @@ package extension DamagePipeline {
         else { return }
         let heroAbsorbed = reduced.absorbed
         state.blockedAmount += heroAbsorbed
-        state.buildupDamage = max(0, state.buildupDamage - heroAbsorbed)
         appendAbsorption(
             heroAbsorbed,
             abilityName: "Intercede",
@@ -218,10 +215,10 @@ package extension DamagePipeline {
               let attacker = context.roster.combatant(for: attackerID)
         else { return [] }
         var events: [ActionEvent] = []
-        if defenderTriggersContainStoredImpact(in: context, defender: defender) {
+        if partyTrigger(\.storedImpact, defender: defender, in: context) {
             context.storedBlockedDamageByActorID[defender.id, default: 0] += absorbed
         }
-        if hasSeismicReversal(in: context, defender: defender) {
+        if partyTrigger(\.seismicReversal, defender: defender, in: context) {
             events.append(contentsOf: resolveNestedDamage(
                 amount: absorbed,
                 keyword: .stun,
@@ -231,7 +228,7 @@ package extension DamagePipeline {
                 in: &context,
             ).events)
         }
-        if hasGlacialReprieve(in: context, defender: defender) {
+        if partyTrigger(\.glacialReprieve, defender: defender, in: context) {
             events.append(contentsOf: resolveNestedDamage(
                 amount: absorbed,
                 keyword: .freeze,
@@ -251,18 +248,6 @@ package extension DamagePipeline {
     ) -> Bool {
         context.modifiers(for: defender.id).triggers[keyPath: keyPath]
             || CombatTriggerEngine.hasLivingPartyTrigger(keyPath, in: context)
-    }
-
-    private static func defenderTriggersContainStoredImpact(in context: BattleState, defender: Combatant) -> Bool {
-        partyTrigger(\.storedImpact, defender: defender, in: context)
-    }
-
-    private static func hasSeismicReversal(in context: BattleState, defender: Combatant) -> Bool {
-        partyTrigger(\.seismicReversal, defender: defender, in: context)
-    }
-
-    private static func hasGlacialReprieve(in context: BattleState, defender: Combatant) -> Bool {
-        partyTrigger(\.glacialReprieve, defender: defender, in: context)
     }
 
     private static func extraBlockRemoval(

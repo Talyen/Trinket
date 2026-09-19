@@ -19,7 +19,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 if ! command -v swift >/dev/null 2>&1; then
-  echo "error: swift not found. Install Xcode 26+ command-line tools to run BalanceSweepCLI." >&2
+  echo "error: swift not found. Install Xcode 27+ command-line tools to run BalanceSweepCLI." >&2
   exit 1
 fi
 
@@ -65,7 +65,11 @@ if [[ "$NO_BUILD" -eq 1 ]]; then
     exit 1
   fi
   echo "BalanceSweepCLI via cached binary ($CONFIGURATION) …" >&2
-  echo "note: cached binary may predate current thresholds/flags; rebuild without --no-build if results look stale." >&2
+  if [[ -n "$(find "$ROOT/Packages/BattleEngine/Sources/BattleBalanceTools" "$ROOT/Packages/BattleEngine/Sources/BalanceSweepCLI" -type f -newer "$BIN" -print -quit 2>/dev/null)" ]]; then
+    echo "warning: cached binary predates sweep sources; rebuild without --no-build if results look stale." >&2
+  else
+    echo "note: cached binary may predate current thresholds/flags; rebuild without --no-build if results look stale." >&2
+  fi
   exec "$BIN" "${ARGS[@]}"
 fi
 echo "BalanceSweepCLI via Packages/BattleEngine ($CONFIGURATION) …" >&2

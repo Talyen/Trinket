@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-import TrinketCore
+@testable import TrinketCore
 
 struct KeywordCoreTests {
     @Test func `keyword raw values are unique`() {
@@ -90,6 +90,20 @@ struct KeywordCoreTests {
     @Test func `referenced text without keywords is empty`() {
         #expect(Keyword.referenced(in: "").isEmpty)
         #expect(Keyword.referenced(in: "Draw a card.").isEmpty)
+        // Word-boundary negative: Blockade contains no boundary-delimited term.
+        #expect(Keyword.referenced(in: "Blockade the door.").isEmpty)
+    }
+
+    @Test func `referenced resolves longest overlapping match`() {
+        // "Burning" matches Burn (via status alias), not a separate keyword.
+        #expect(Keyword.referenced(in: "Burning") == [.burn])
+        #expect(Keyword.referenced(in: "Frozen") == [.freeze])
+    }
+
+    @Test func `term lookup covers every styled term`() {
+        for (term, keyword) in Keyword.styledTerms {
+            #expect(Keyword.termLookup[term.lowercased()] == keyword)
+        }
     }
 
     @Test func `referenced keywords matches terms with straight and curly apostrophes`() {

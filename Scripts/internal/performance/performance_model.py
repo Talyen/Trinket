@@ -53,6 +53,18 @@ def validate_report_domains(report: dict[str, Any]) -> list[str]:
     return failures
 
 
+def load_results_reports(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """Extract the reports array from a collected results payload.
+
+    Single source for the shape check previously restated in
+    compare-performance.py and aggregate-performance-results.py.
+    """
+    reports = payload.get("reports")
+    if not isinstance(reports, list):
+        raise SystemExit("results payload must contain a reports array")
+    return reports
+
+
 def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str, float, float, float]:
     scenarios = baseline.get("scenarios")
     if not isinstance(scenarios, list) or not scenarios or any(

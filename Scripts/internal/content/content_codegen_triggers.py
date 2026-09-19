@@ -4,16 +4,17 @@
 from __future__ import annotations
 
 import functools
-import json
 import re
 from pathlib import Path
+
+from internal.cli import read_json
 
 TRIGGER_FAMILY_SCHEMA = Path(__file__).resolve().parent / "trigger_family_schema.json"
 
 
 @functools.cache
 def _trigger_families() -> list:
-    payload = json.loads(TRIGGER_FAMILY_SCHEMA.read_text(encoding="utf-8"))
+    payload = read_json(TRIGGER_FAMILY_SCHEMA)
     families = payload["families"]
     valid_types = {"Int", "Bool", "Double", "Keyword?", "[Int]"}
     valid_merges = {"add", "or", "max", "mul", "add_excess", "coalesce", "union"}
@@ -115,13 +116,22 @@ _FLAG_TRIGGERS: dict[str, str] = {
 }
 
 
+def _sorted_by_declining_length(mapping: dict[str, str]) -> list[tuple[str, str]]:
+    """Single home for longest-prefix-first ordering; shadow pairs
+    (foo vs foo_all) must route to the longer prefix."""
+    return sorted(mapping.items(), key=lambda kv: -len(kv[0]))
+
+
+_SORTED_SIMPLE_TRIGGERS = _sorted_by_declining_length(_TRIGGER_SIMPLE_MAP)
+_SORTED_FLAG_TRIGGERS = _sorted_by_declining_length(_FLAG_TRIGGERS)
+
+
 def _apply_simple_trigger(token: str, values: dict[str, str]) -> bool:
-    # Longest prefix first so shadow pairs (foo vs foo_all) route correctly.
-    for prefix, field in sorted(_TRIGGER_SIMPLE_MAP.items(), key=lambda kv: -len(kv[0])):
+    for prefix, field in _SORTED_SIMPLE_TRIGGERS:
         if token.startswith(prefix + ":"):
             values[field] = token.split(":", 1)[1]
             return True
-    for prefix, field in sorted(_FLAG_TRIGGERS.items(), key=lambda kv: -len(kv[0])):
+    for prefix, field in _SORTED_FLAG_TRIGGERS:
         if token == prefix or token.startswith(prefix + ":"):
             if ":" in token:
                 remainder = token.split(":", 1)[1].strip()
@@ -237,13 +247,15 @@ def _validate_trigger_value(field: str, raw_value: str, row_id: str) -> None:
     if field_type is None:
         raise ValueError(f"Unknown trigger field: {field}")
     value = raw_value.strip()
-    if field_type == "Int":
-        parse_typed_int(value, f"{field} for {row_id}")
-    elif field_type == "Double":
-        parse_typed_double(value, f"{field} for {row_id}")
-    elif field_type == "Bool":
-        parse_typed_bool(value, f"{field} for {row_id}")
-    elif field_type == "Keyword?":
+    scalar_parsers = {
+        "Int": parse_typed_int,
+        "Double": parse_typed_double,
+        "Bool": parse_typed_bool,
+    }
+    if field_type in scalar_parsers:
+        scalar_parsers[field_type](value, f"{field} for {row_id}")
+        return
+    if field_type == "Keyword?":
         if not value.startswith(".") or value[1:] not in VALID_KEYWORDS:
             raise ValueError(
                 f"Trigger value for {field} for {row_id} must be a known keyword, "

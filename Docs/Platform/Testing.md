@@ -168,7 +168,8 @@ to [Verification.md](Verification.md).
 
 ## UI execution notes
 
-Frame pacing and app-journey metrics are not part of smoke or hosted CI. Use the
-performance playbook for the exclusive matrix, focused harness iteration, and
-Instruments evidence. Full layout, launch-arg catalog, speed rules, and
-mid-battle guidance live in [`TrinketUITests/README.md`](../../TrinketUITests/README.md).
+Frame pacing and app-journey metrics are not part of smoke or hosted CI.
+Measurement belongs to the [performance playbook](PerformanceInvestigationPlaybook.md).
+Launch-arg catalog, speed rules, and mid-battle guidance live in
+[`TrinketUITests/README.md`](../../TrinketUITests/README.md); command selection and
+isolation belong to [Verification.md](Verification.md).

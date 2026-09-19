@@ -371,9 +371,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(battle.spectacle.outcomePresentation.isVictoryPresented)
         #expect(battle.spectacle.outcomePresentation.victorySummaryIfAvailable == summary)
         #expect(state.battle.activeBattle != nil)
-        for _ in 0 ..< 300 where state.battle.activeBattle != nil {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { state.battle.activeBattle != nil }
         #expect(state.playerSave.journey.hasClaimedRewards(for: stage))
         #expect(state.battle.activeBattle == nil)
         #expect(!playerSave.isRetryingSaveAction)

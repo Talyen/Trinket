@@ -133,21 +133,22 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
     /// until the budget is spent. Removed selections leave their points available;
     /// valid selections within budget are unchanged. Gapped rows (missing prior row
     /// in the tree) stay locked, so chains through them are dropped.
+    ///
+    /// Tree priority is the `trees` array order, and node order within a row is
+    /// the tree's `nodes` array order: reordering either input changes which
+    /// selections survive capping. Node IDs must be unique across all trees;
+    /// duplicates collapse in `kept` and under-count the budget.
     public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {
         guard budget > 0 else { return [] }
         var kept: Set<String> = []
         let rows = Set(trees.flatMap { $0.nodes.map(\.row) }).sorted()
-        let maps = trees.map { Dictionary(grouping: $0.nodes, by: \.row) }
         for row in rows {
-            for (tree, map) in zip(trees, maps) {
-                guard let rowNodes = map[row] else { continue }
-                for node in rowNodes {
-                    guard nodeIDs.contains(node.id) else { continue }
-                    let remaining = budget - kept.count
+            for tree in trees {
+                for node in tree.nodes where node.row == row && nodeIDs.contains(node.id) {
                     guard tree.canUnlock(
                         node: node,
                         unlockedNodeIDs: kept,
-                        availablePoints: remaining,
+                        availablePoints: budget - kept.count,
                     ) else { continue }
                     kept.insert(node.id)
                     if kept.count == budget {

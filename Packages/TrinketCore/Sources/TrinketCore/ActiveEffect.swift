@@ -31,6 +31,9 @@ public struct EffectSummary: Identifiable, Equatable, Hashable, Sendable {
         self.text = text
     }
 
+    /// Display-only identity for row diffing; not stable across text edits and
+    /// never a persistence key. Consumed by BattleEngine effect handlers and
+    /// TrinketFeatureSupport detail views.
     public var id: String {
         "\(keyword.rawValue):\(text)"
     }

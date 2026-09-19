@@ -97,7 +97,8 @@ private enum BalanceSweepCLIFiles {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyyMMdd-HHmmss"
         let stamp = formatter.string(from: Date())
-        let stem = "\(stamp)-\(report.config.mode.rawValue)-seed\(report.config.seed)"
+        // PID suffix: two sweeps starting in the same second must not share a stem.
+        let stem = "\(stamp)-p\(ProcessInfo.processInfo.processIdentifier)-\(report.config.mode.rawValue)-seed\(report.config.seed)"
         let findingsURL = directory.appendingPathComponent("\(stem).md")
         try findings.write(to: findingsURL, atomically: true, encoding: .utf8)
         let jsonURL = findingsURL.deletingPathExtension().appendingPathExtension("json")

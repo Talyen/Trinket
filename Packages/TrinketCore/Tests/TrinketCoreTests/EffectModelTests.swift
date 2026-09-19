@@ -160,8 +160,15 @@ struct EffectModelTests {
 
     @Test func `every effect kind has behavior metadata`() {
         for kind in EffectKind.allCases {
-            _ = (kind.isRemovableDebuff, kind.isRemovableBuff, kind.advancesEachTurn, kind.isInstant, kind.isDecayingDoT, kind.isBleed)
-            #expect(Self.representativeEffect(for: kind).kind == kind)
+            let effect = Self.representativeEffect(for: kind)
+            #expect(effect.kind == kind)
+            // Each kind opts into at least one lifecycle flag; a flagless
+            // kind would be invisible to duration/removal queries.
+            #expect(
+                kind.isRemovableDebuff || kind.isRemovableBuff || kind.advancesEachTurn
+                    || kind.isInstant || kind.isDecayingDoT || kind.isBleed,
+                "\(kind) has no behavior flags",
+            )
         }
     }
 
@@ -171,6 +178,7 @@ struct EffectModelTests {
             let phrase = EffectPresentation.applyPhrase(for: effect)
             #expect(!phrase.isEmpty)
             #expect(phrase != effect.keyword.rawValue, "\(effect) must describe more than its keyword")
+            #expect(EffectPresentation.applyPhrase(for: effect) == phrase, "applyPhrase must be deterministic")
         }
     }
 
@@ -195,13 +203,13 @@ struct EffectModelTests {
     }
 
     @Test func `flag effect summary phrases are registered`() {
-        for kind in [
-            EffectKind.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical,
-            .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker,
+        for effect in [
+            Effect.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical,
+            .nextStrikeLeech, .partyPhysicalBonus(3), .freezeNextAttacker,
         ] {
-            #expect(!EffectKind.requiredBattleSummaryPhrase(for: kind).isEmpty)
-            #expect(EffectKind.battleSummaryPhrase(for: kind) != nil)
+            #expect(!EffectPresentation.requiredBattleSummaryPhrase(for: effect).isEmpty)
+            #expect(EffectPresentation.battleSummaryPhrase(for: effect) != nil)
         }
-        #expect(EffectKind.battleSummaryPhrase(for: .burn) == nil)
+        #expect(EffectPresentation.battleSummaryPhrase(for: .burn(2)) == nil)
     }
 }

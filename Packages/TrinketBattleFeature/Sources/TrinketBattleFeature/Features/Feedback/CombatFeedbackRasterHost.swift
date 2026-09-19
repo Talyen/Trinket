@@ -112,11 +112,6 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     @MainActor
-    static var isMotionClockPaused: Bool {
-        CombatFeedbackChipMotionClock.isPaused
-    }
-
-    @MainActor
     func apply(chips: [(item: CombatFeedbackItem, raster: CombatFeedbackRaster?)]) {
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipHostApply,
@@ -378,10 +373,6 @@ private enum CombatFeedbackChipMotionClock {
 
     private struct WeakHost {
         weak var view: CombatFeedbackRasterUIView?
-    }
-
-    static var isPaused: Bool {
-        displayLink?.isPaused ?? true
     }
 
     static func register(_ view: CombatFeedbackRasterUIView) {

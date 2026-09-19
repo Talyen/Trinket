@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-import TrinketBattleFeature
 import TrinketContent
 import TrinketFeatureSupport
 import TrinketPersistenceTestSupport
@@ -124,9 +123,7 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.activeShopEncounter === session)
         #expect(playerSave.isRetryingSaveAction)
 
-        for _ in 0 ..< 300 where playerSave.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
         #expect(state.encounters.activeShopEncounter == nil)
     }
     #endif

@@ -99,41 +99,16 @@ enum BalanceDurationAggregation {
         _ records: [BalanceBattleRecord],
         flagRate: Double,
     ) -> [BalanceEnemyDurationStats] {
-        let grouped = Dictionary(grouping: records, by: \.enemyID)
-        return grouped.keys.sorted().compactMap { enemyID -> BalanceEnemyDurationStats? in
-            let recs = grouped[enemyID] ?? []
-            guard !recs.isEmpty else { return nil }
-            let isBoss = recs[0].isBoss
-            let minRounds = isBoss
-                ? BalanceDurationThresholds.bossMinRounds
-                : BalanceDurationThresholds.trashMinRounds
-            let maxRounds = isBoss
-                ? BalanceDurationThresholds.bossMaxRounds
-                : BalanceDurationThresholds.trashMaxRounds
-            let short = recs.count { $0.result.isDecided && $0.result.rounds < minRounds }
-            let long = recs.count { $0.result.rounds > maxRounds }
-            let avg = recs.reduce(0.0) { $0 + Double($1.result.rounds) } / Double(recs.count)
-            let shortRate = Double(short) / Double(recs.count)
-            let longRate = Double(long) / Double(recs.count)
-            let sampleTooLow = recs.count < BalanceSweepConfig.identityFlagMinBattles
-            var flags: [String] = []
-            if !sampleTooLow {
-                if shortRate >= flagRate {
-                    flags.append("FAST")
-                }
-                if longRate >= flagRate {
-                    flags.append("SLOW")
-                }
-            }
-            return BalanceEnemyDurationStats(
-                enemyID: enemyID,
-                isBoss: isBoss,
-                battles: recs.count,
-                averageRounds: avg,
-                shortRate: shortRate,
-                longRate: longRate,
-                flagged: !flags.isEmpty,
-                flagReason: flags.isEmpty ? nil : flags.joined(separator: " "),
+        durationRows(records, idPath: \.enemyID, flagRate: flagRate).map { row in
+            BalanceEnemyDurationStats(
+                enemyID: row.id,
+                isBoss: row.isBoss,
+                battles: row.battles,
+                averageRounds: row.averageRounds,
+                shortRate: row.shortRate,
+                longRate: row.longRate,
+                flagged: row.flagged,
+                flagReason: row.flagReason,
             )
         }
     }
@@ -144,22 +119,46 @@ enum BalanceDurationAggregation {
         idPath: KeyPath<BalanceBattleRecord, String>,
         flagRate: Double,
     ) -> [BalanceCombatantDurationStats] {
+        durationRows(records, idPath: idPath, flagRate: flagRate).map { row in
+            BalanceCombatantDurationStats(
+                combatantID: row.id,
+                role: role,
+                battles: row.battles,
+                averageRounds: row.averageRounds,
+                shortRate: row.shortRate,
+                longRate: row.longRate,
+                flagged: row.flagged,
+                flagReason: row.flagReason,
+            )
+        }
+    }
+
+    private struct DurationRow {
+        var id: String
+        var isBoss: Bool
+        var battles: Int
+        var averageRounds: Double
+        var shortRate: Double
+        var longRate: Double
+        var flagged: Bool
+        var flagReason: String?
+    }
+
+    /// Shared bucketing for per-enemy and per-combatant duration tables. Each
+    /// record picks its own trash/boss thresholds so a combatant can face both.
+    private static func durationRows(
+        _ records: [BalanceBattleRecord],
+        idPath: KeyPath<BalanceBattleRecord, String>,
+        flagRate: Double,
+    ) -> [DurationRow] {
         let grouped = Dictionary(grouping: records, by: { $0[keyPath: idPath] })
-        return grouped.keys.sorted().compactMap { combatantID -> BalanceCombatantDurationStats? in
-            let recs = grouped[combatantID] ?? []
+        return grouped.keys.sorted().compactMap { id -> DurationRow? in
+            let recs = grouped[id] ?? []
             guard !recs.isEmpty else { return nil }
             let short = recs.count { rec in
-                let minR = rec.isBoss
-                    ? BalanceDurationThresholds.bossMinRounds
-                    : BalanceDurationThresholds.trashMinRounds
-                return rec.result.isDecided && rec.result.rounds < minR
+                rec.result.isDecided && rec.result.rounds < minRounds(isBoss: rec.isBoss)
             }
-            let long = recs.count { rec in
-                let maxR = rec.isBoss
-                    ? BalanceDurationThresholds.bossMaxRounds
-                    : BalanceDurationThresholds.trashMaxRounds
-                return rec.result.rounds > maxR
-            }
+            let long = recs.count { $0.result.rounds > maxRounds(isBoss: $0.isBoss) }
             let avg = recs.reduce(0.0) { $0 + Double($1.result.rounds) } / Double(recs.count)
             let shortRate = Double(short) / Double(recs.count)
             let longRate = Double(long) / Double(recs.count)
@@ -173,9 +172,9 @@ enum BalanceDurationAggregation {
                     flags.append("SLOW")
                 }
             }
-            return BalanceCombatantDurationStats(
-                combatantID: combatantID,
-                role: role,
+            return DurationRow(
+                id: id,
+                isBoss: recs[0].isBoss,
                 battles: recs.count,
                 averageRounds: avg,
                 shortRate: shortRate,
@@ -184,5 +183,13 @@ enum BalanceDurationAggregation {
                 flagReason: flags.isEmpty ? nil : flags.joined(separator: " "),
             )
         }
+    }
+
+    private static func minRounds(isBoss: Bool) -> Int {
+        isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds
+    }
+
+    private static func maxRounds(isBoss: Bool) -> Int {
+        isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds
     }
 }

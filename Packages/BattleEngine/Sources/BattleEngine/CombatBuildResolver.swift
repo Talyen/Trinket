@@ -34,29 +34,28 @@ public enum CombatBuildResolver {
     public static func build(
         enemy: Enemy,
     ) -> CombatBuild {
-        var profile = CombatModifierProfile.zero
-        if let trait = GameContent.trait(for: enemy) {
-            trait.apply(to: &profile)
-            profile.traitDisplayName = trait.name
-        }
-
-        return CombatBuild(combatant: enemy.combatant, modifiers: profile)
+        CombatBuild(combatant: enemy.combatant, modifiers: traitProfile(for: enemy))
     }
 
     public static func build(
         enemy: Enemy,
         level: Int,
     ) -> CombatBuild {
-        var profile = CombatModifierProfile.zero
-        if let trait = GameContent.trait(for: enemy) {
-            trait.apply(to: &profile)
-            profile.traitDisplayName = trait.name
-        }
+        var profile = traitProfile(for: enemy)
         profile.outgoingDamagePercent += EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss)
 
         let scaledCombatant = CombatantLevelScaler.scale(enemy: enemy, level: level)
 
         return CombatBuild(combatant: scaledCombatant, modifiers: profile)
+    }
+
+    private static func traitProfile(for enemy: Enemy) -> CombatModifierProfile {
+        var profile = CombatModifierProfile.zero
+        if let trait = GameContent.trait(for: enemy) {
+            trait.apply(to: &profile)
+            profile.traitDisplayName = trait.name
+        }
+        return profile
     }
 
     private static func affixProfile(

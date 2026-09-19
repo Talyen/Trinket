@@ -3,19 +3,18 @@
 
 from __future__ import annotations
 
-import json
 import re
 import shlex
 import sys
 from collections import Counter
 from pathlib import Path
 
-from internal.cli import ROOT
+from internal.cli import ROOT, read_json
 
 
 def testplan_failures() -> list[str]:
     failures: list[str] = []
-    plan = json.loads((ROOT / "Smoke.xctestplan").read_text(encoding="utf-8"))
+    plan = read_json(ROOT / "Smoke.xctestplan")
     selected = {
         test
         for target in plan["testTargets"]
@@ -37,7 +36,7 @@ def testplan_failures() -> list[str]:
         )
     workflow = (ROOT / ".github/workflows/tests.yml").read_text(encoding="utf-8")
     for plan_name, job, smoke in [("Smoke", "smoke", True), ("FullUI", "exhaustive-ui", False)]:
-        plan = json.loads((ROOT / f"{plan_name}.xctestplan").read_text(encoding="utf-8"))
+        plan = read_json(ROOT / f"{plan_name}.xctestplan")
         selections = [test for target in plan["testTargets"] for test in target.get("selectedTests", [])]
         declared: set[str] = set()
         for path in sorted((ROOT / "TrinketUITests").rglob("*.swift")):

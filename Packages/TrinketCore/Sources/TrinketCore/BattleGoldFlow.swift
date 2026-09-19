@@ -15,11 +15,11 @@ public struct BattleGoldFlow: Equatable, Hashable, Sendable {
 
     public mutating func record(delta: Int) {
         if delta >= 0 {
-            let (next, overflow) = gained.addingReportingOverflow(delta)
-            gained = overflow ? Int.max : next
+            gained = SaturatedArithmetic.saturatingAdd(gained, delta)
         } else {
-            let (next, overflow) = spent.subtractingReportingOverflow(delta)
-            spent = overflow ? Int.max : next
+            // Subtracting a negative delta adds its magnitude; the saturating
+            // helper also covers Int.min without trapping on negation.
+            spent = SaturatedArithmetic.saturatingSub(spent, delta)
         }
     }
 }

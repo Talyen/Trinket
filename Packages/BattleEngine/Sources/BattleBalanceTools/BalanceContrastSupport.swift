@@ -10,12 +10,6 @@ struct BalanceContrastContext {
     var enemies: [Enemy]
 }
 
-struct BalanceContrastWorkItem {
-    var focusIndex: Int
-    var tier: SimulationPowerTier
-    var pairIndex: Int
-}
-
 struct ContrastPairOutcome: Equatable {
     var focusIndex: Int
     var tier: SimulationPowerTier
@@ -23,32 +17,49 @@ struct ContrastPairOutcome: Equatable {
     var baseline: BattleSimResult
 }
 
+/// One sampled contrast matchup: a fixed owner/partner/enemy/loadout/gear
+/// foundation that variants override along a single axis (ability loadout,
+/// affix gear, or talent kit).
+struct ContrastMatchupBase {
+    var owner: Combatant
+    var partner: Combatant
+    var enemy: Enemy
+    var ownerLoadout: AbilityLoadout
+    var partnerLoadout: AbilityLoadout
+    var ownerGear: SimulationMatchupBuilder.GearOverride?
+    var partnerGear: SimulationMatchupBuilder.GearOverride?
+    var tier: SimulationPowerTier
+    var seed: UInt64
+
+    /// Builds one side of the pair, assigning owner to its roster role. A nil
+    /// `ownerGear`/`ownerLoadout` uses the base value; `ownerTalents` replaces
+    /// the base's default empty kit.
+    func matchup(
+        ownerLoadout: AbilityLoadout? = nil,
+        ownerGear: SimulationMatchupBuilder.GearOverride? = nil,
+        ownerTalents: Set<String> = [],
+    ) -> ConfiguredSimulationMatchup {
+        let ownerIsHero = owner.role == .hero
+        let loadout = ownerLoadout ?? self.ownerLoadout
+        let gear = ownerGear ?? self.ownerGear
+        return SimulationMatchupBuilder.build(
+            hero: ownerIsHero ? owner : partner,
+            companion: ownerIsHero ? partner : owner,
+            enemy: enemy,
+            tier: tier,
+            heroLoadout: ownerIsHero ? loadout : partnerLoadout,
+            companionLoadout: ownerIsHero ? partnerLoadout : loadout,
+            seed: seed,
+            heroGear: ownerIsHero ? gear : partnerGear,
+            companionGear: ownerIsHero ? partnerGear : gear,
+            heroTalents: ownerIsHero ? ownerTalents : [],
+            companionTalents: ownerIsHero ? [] : ownerTalents,
+        )
+    }
+}
+
 enum BalanceContrastSupport {
     typealias Pair = (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup)
-
-    static func workItems(
-        fociCount: Int,
-        tiers: [SimulationPowerTier],
-        samples: Int,
-    ) -> [BalanceContrastWorkItem] {
-        guard fociCount > 0, samples > 0 else { return [] }
-        var items: [BalanceContrastWorkItem] = []
-        items.reserveCapacity(fociCount * tiers.count * samples)
-        for focusIndex in 0 ..< fociCount {
-            for tier in tiers {
-                for pairIndex in 0 ..< samples {
-                    items.append(
-                        BalanceContrastWorkItem(
-                            focusIndex: focusIndex,
-                            tier: tier,
-                            pairIndex: pairIndex,
-                        ),
-                    )
-                }
-            }
-        }
-        return items
-    }
 
     static func aggregate(
         foci: [(entityID: String, baselineID: String, ownerID: String, baselineKind: ContrastBaselineKind, nonCombat: Bool)],
@@ -180,80 +191,41 @@ enum BalanceContrastSupport {
         return partner
     }
 
-    static func assignRoles(_ parts: MatchupParts) -> (
-        hero: Combatant,
-        companion: Combatant,
-        heroLoadout: AbilityLoadout,
-        companionLoadout: AbilityLoadout,
-        heroGear: SimulationMatchupBuilder.GearOverride?,
-        companionGear: SimulationMatchupBuilder.GearOverride?,
-        heroTalents: Set<String>,
-        companionTalents: Set<String>,
-    ) {
-        if parts.owner.role == .hero {
-            return (
-                parts.owner,
-                parts.partner,
-                parts.ownerLoadout,
-                parts.partnerLoadout,
-                parts.ownerGear,
-                parts.partnerGear,
-                parts.ownerTalents,
-                parts.partnerTalents,
-            )
-        }
-        return (
-            parts.partner,
-            parts.owner,
-            parts.partnerLoadout,
-            parts.ownerLoadout,
-            parts.partnerGear,
-            parts.ownerGear,
-            parts.partnerTalents,
-            parts.ownerTalents,
+    /// Sampled base with shared-bias gear both sides wear. Ability and talent
+    /// pairs differ only in what they override afterward; affix pairs keep
+    /// their custom gear factory and only share `sampleBasePair`.
+    static func base(
+        owner: Combatant,
+        tier: SimulationPowerTier,
+        pairIndex: Int,
+        context: BalanceContrastContext,
+        pairSeed: UInt64,
+    ) -> ContrastMatchupBase {
+        let sampled = sampleBasePair(
+            owner: owner,
+            pairIndex: pairIndex,
+            context: context,
+            pairSeed: pairSeed,
         )
-    }
-
-    struct MatchupParts {
-        var owner: Combatant
-        var partner: Combatant
-        var ownerLoadout: AbilityLoadout
-        var partnerLoadout: AbilityLoadout
-        var ownerGear: SimulationMatchupBuilder.GearOverride?
-        var partnerGear: SimulationMatchupBuilder.GearOverride?
-        var ownerTalents: Set<String> = []
-        var partnerTalents: Set<String> = []
-        var enemy: Enemy
-        var tier: SimulationPowerTier
-        var seed: UInt64
-    }
-
-    static func buildMatchup(_ parts: MatchupParts) -> ConfiguredSimulationMatchup {
-        let roles = assignRoles(parts)
-        return SimulationMatchupBuilder.build(
-            hero: roles.hero,
-            companion: roles.companion,
-            enemy: parts.enemy,
-            tier: parts.tier,
-            heroLoadout: roles.heroLoadout,
-            companionLoadout: roles.companionLoadout,
-            seed: parts.seed,
-            heroGear: roles.heroGear,
-            companionGear: roles.companionGear,
-            heroTalents: roles.heroTalents,
-            companionTalents: roles.companionTalents,
+        let gears = sharedGear(
+            owner: owner,
+            partner: sampled.partner,
+            ownerLoadout: sampled.ownerLoadout,
+            partnerLoadout: sampled.partnerLoadout,
+            tier: tier,
+            pairSeed: pairSeed,
         )
-    }
-
-    static func buildOwnerPair(
-        base: MatchupParts,
-        mutate: (inout MatchupParts, Bool) -> Void,
-    ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        var withEntity = base
-        mutate(&withEntity, true)
-        var withBaseline = base
-        mutate(&withBaseline, false)
-        return (buildMatchup(withEntity), buildMatchup(withBaseline))
+        return ContrastMatchupBase(
+            owner: owner,
+            partner: sampled.partner,
+            enemy: sampled.enemy,
+            ownerLoadout: sampled.ownerLoadout,
+            partnerLoadout: sampled.partnerLoadout,
+            ownerGear: gears.owner,
+            partnerGear: gears.partner,
+            tier: tier,
+            seed: pairSeed,
+        )
     }
 
     static func seed(
@@ -330,55 +302,11 @@ enum BalanceContrastSupport {
     static func workCount(fociCount: Int, config: BalanceSweepConfig) -> Int {
         fociCount * config.tiers.count * config.battlesPerTier
     }
-
-    /// Shared isolated-pair preamble: sampled partner/enemy/loadouts plus the
-    /// shared-bias gear both sides wear. Ability and talent pairs differ only
-    /// in what they mutate afterward (loadout vs talents); affix pairs keep
-    /// their custom gear factory and only share `sampleBasePair`.
-    struct IsolatedPairBase {
-        var partner: Combatant
-        var enemy: Enemy
-        var ownerLoadout: AbilityLoadout
-        var partnerLoadout: AbilityLoadout
-        var ownerGear: SimulationMatchupBuilder.GearOverride?
-        var partnerGear: SimulationMatchupBuilder.GearOverride?
-    }
-
-    static func isolatedPairBase(
-        owner: Combatant,
-        tier: SimulationPowerTier,
-        pairIndex: Int,
-        context: BalanceContrastContext,
-        pairSeed: UInt64,
-    ) -> IsolatedPairBase {
-        let base = sampleBasePair(
-            owner: owner,
-            pairIndex: pairIndex,
-            context: context,
-            pairSeed: pairSeed,
-        )
-        let gears = sharedGear(
-            owner: owner,
-            partner: base.partner,
-            ownerLoadout: base.ownerLoadout,
-            partnerLoadout: base.partnerLoadout,
-            tier: tier,
-            pairSeed: pairSeed,
-        )
-        return IsolatedPairBase(
-            partner: base.partner,
-            enemy: base.enemy,
-            ownerLoadout: base.ownerLoadout,
-            partnerLoadout: base.partnerLoadout,
-            ownerGear: gears.owner,
-            partnerGear: gears.partner,
-        )
-    }
 }
 
-/// Sweep execution for `BalanceContrastSupport`: work counting, the parallel
-/// pair-run loop, and the sliced-region variant. Sampling, matchup building,
-/// and summary bucketing stay in `BalanceContrastSupport`.
+/// Sweep execution for `BalanceContrastSupport`: the parallel pair-run loop.
+/// Sampling, matchup building, and summary bucketing stay in
+/// `BalanceContrastSupport`.
 extension BalanceContrastSupport {
     static func runSweep<Focus: Sendable>(
         context: BalanceContrastContext,
@@ -391,7 +319,7 @@ extension BalanceContrastSupport {
             baselineKind: ContrastBaselineKind,
             nonCombat: Bool,
         ),
-        primes: (tier: UInt64, pair: UInt64),
+        primes: @escaping @Sendable (Focus) -> (tier: UInt64, pair: UInt64),
         makePair: @escaping @Sendable (Focus, SimulationPowerTier, Int, UInt64) -> Pair?,
         policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
@@ -401,11 +329,13 @@ extension BalanceContrastSupport {
         let config = context.config
 
         let work = config.sliceWork(
-            workItems(
-                fociCount: foci.count,
-                tiers: tiers,
-                samples: config.battlesPerTier,
-            ),
+            foci.indices.flatMap { focusIndex in
+                tiers.flatMap { tier in
+                    (0 ..< config.battlesPerTier).map { pairIndex in
+                        (focusIndex: focusIndex, tier: tier, pairIndex: pairIndex)
+                    }
+                }
+            },
         )
         let jobs = config.resolvedJobs
         let pairResults = SweepWorkerPool.map(count: work.count, jobs: jobs) { idx -> ContrastPairOutcome? in
@@ -416,7 +346,7 @@ extension BalanceContrastSupport {
                 tier: item.tier,
                 pairIndex: item.pairIndex,
                 entityID: summarize(focus).entityID,
-                primes: primes,
+                primes: primes(focus),
             )
             guard let pair = makePair(focus, item.tier, item.pairIndex, pairSeed) else { return nil }
             let outcome = runEntityBaselinePair(
@@ -438,47 +368,6 @@ extension BalanceContrastSupport {
             foci: foci.map(summarize),
             pairResults: pairResults,
             config: config,
-        )
-    }
-
-    /// Sliced-region variant for sweeps that partition one work stream across
-    /// sub-sweeps (talent sibling vs kit). Carves `region` out of the caller's
-    /// global slice so each sub-sweep keeps stable work indices and sampling
-    /// is unchanged.
-    static func runSlicedContrast<Focus: Sendable>(
-        context: BalanceContrastContext,
-        foci: [Focus],
-        region: Range<Int>,
-        summarize: @escaping @Sendable (Focus) -> (
-            entityID: String,
-            baselineID: String,
-            ownerID: String,
-            baselineKind: ContrastBaselineKind,
-            nonCombat: Bool,
-        ),
-        primes: (tier: UInt64, pair: UInt64),
-        makePair: @escaping @Sendable (Focus, SimulationPowerTier, Int, UInt64) -> Pair?,
-        policy: PlayPolicy,
-    ) -> [PairedContrastSummary] {
-        guard !foci.isEmpty else { return [] }
-        guard let sliced = context.config.withLocalSlice(
-            regionStart: region.lowerBound,
-            regionCount: region.count,
-        ) else { return [] }
-        let slicedContext = BalanceContrastContext(
-            config: sliced,
-            heroes: context.heroes,
-            companions: context.companions,
-            enemies: context.enemies,
-        )
-        return runSweep(
-            context: slicedContext,
-            foci: foci,
-            tiers: slicedContext.config.tiers,
-            summarize: summarize,
-            primes: primes,
-            makePair: makePair,
-            policy: policy,
         )
     }
 }

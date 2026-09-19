@@ -14,30 +14,19 @@ public struct BalanceSweepWorkerJob: Equatable, Sendable {
 }
 
 public enum BalanceSweepWorkPlan {
-    public static let identityChunkSize = 16
-    public static let pairContrastChunkSize = 128
-    public static let talentContrastChunkSize = 64
-    public static let progressionChunkSize = 4
-
-    public static let concreteModes: [BalanceSweepMode] = [
-        .identity,
-        .abilityContrast,
-        .affixContrast,
-        .talentContrast,
-        .modeProgression,
+    /// Per-mode chunk sizes: identity and contrast splits are balanced for
+    /// worker-process waves, progression runs fewer, longer units.
+    private static let modeChunks: [(mode: BalanceSweepMode, size: Int)] = [
+        (.identity, 16),
+        (.abilityContrast, 128),
+        (.affixContrast, 128),
+        (.talentContrast, 64),
+        (.modeProgression, 4),
     ]
 
-    public static func chunkSize(for mode: BalanceSweepMode) -> Int {
-        switch mode {
-        case .identity: identityChunkSize
-        case .abilityContrast, .affixContrast: pairContrastChunkSize
-        case .talentContrast: talentContrastChunkSize
-        case .modeProgression: progressionChunkSize
-        case .all: identityChunkSize
-        }
-    }
+    public static let concreteModes: [BalanceSweepMode] = modeChunks.map(\.mode)
 
-    public static func workCount(for mode: BalanceSweepMode, config: BalanceSweepConfig) -> Int {
+    static func workCount(for mode: BalanceSweepMode, config: BalanceSweepConfig) -> Int {
         switch mode {
         case .identity:
             config.tiers.count * config.resolvedRoster.enemies.count * config.battlesPerTier
@@ -68,11 +57,11 @@ public enum BalanceSweepWorkPlan {
     }
 
     public static func workerJobs(config: BalanceSweepConfig) -> [BalanceSweepWorkerJob] {
-        let modes = config.mode == .all ? concreteModes : [config.mode]
-        return modes.flatMap { mode in
+        let modes = config.mode == .all ? modeChunks : modeChunks.filter { $0.mode == config.mode }
+        return modes.flatMap { mode, size in
             chunkRanges(
                 workCount: workCount(for: mode, config: config),
-                chunkSize: chunkSize(for: mode),
+                chunkSize: size,
             ).map { range in
                 BalanceSweepWorkerJob(mode: mode, offset: range.offset, limit: range.limit)
             }

@@ -32,41 +32,35 @@ public final class SpiresPlayMode {
     }
 
     private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootResult {
-        SpireCompletion.resolveLoot(
+        let loot = BattleLootContext(playerSave: playerSave)
+        return SpireCompletion.resolveLoot(
             for: floor,
             encounterLevel: encounterLevel,
-            worldSeed: playerSave.worldSeed,
-            ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-            ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
-            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
+            worldSeed: loot.worldSeed,
+            ownedTrinketIDs: loot.ownedTrinketIDs,
+            ownedUniqueIDs: loot.ownedUniqueIDs,
+            astralChanceBonusPercent: loot.astralChanceBonusPercent,
         )
     }
 
     func battleRoute(floor: SpireFloor) -> PlayBattleRoute {
-        let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
-        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
-            guard let self else { return .unavailable }
-            let transaction = playerSave.persistTransaction(logging: "Failed to persist Spire floor") { save -> Result<
-                EncounterCompletion,
-                PlayCompletionFailure,
-            > in
-                switch SpireCompletion.complete(
-                    floor: floor,
-                    hero: configuration.hero.combatant,
-                    companion: configuration.companion.combatant,
-                    battleGold: award.award.goldFlow,
-                    award: award,
-                    materialRewards: materialRewards,
-                    rewardItem: presentation?.pendingRewardItem,
-                    loot: loot,
-                    enemyEncounterLevel: configuration.enemyEncounterLevel,
-                    save: &save,
-                ) {
-                case .completed: return .success(.completed)
-                case .alreadyCompleted, .unavailable: return .failure(.unavailable)
-                }
-            }
-            return PlayBattleRoute.completionResult(transaction)
+        PlayBattleRoute.makeModeRoute(
+            origin: .spire(spireID: floor.spireID, floor: floor.floor),
+            logging: "Failed to persist Spire floor",
+            playerSave: playerSave,
+        ) { configuration, presentation, award, materialRewards, loot, save in
+            SpireCompletion.complete(
+                floor: floor,
+                hero: configuration.hero.combatant,
+                companion: configuration.companion.combatant,
+                battleGold: award.award.goldFlow,
+                award: award,
+                materialRewards: materialRewards,
+                rewardItem: presentation?.pendingRewardItem,
+                loot: loot,
+                enemyEncounterLevel: configuration.enemyEncounterLevel,
+                save: &save,
+            )
         }
     }
 
@@ -154,13 +148,15 @@ public final class SpiresPlayMode {
     private func combatRequest(
         for floor: SpireFloor,
         encounter: ScaledEncounter,
-    ) -> PlayCombatRequest {
-        PlayCombatRequest(
+    ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
+        let loot = battleLoot(for: floor, encounterLevel: encounter.level)
+        let input = ModeBattleSpec.launchInput(
             origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounter: encounter,
-            route: battleRoute(floor: floor),
-            loot: battleLoot(for: floor, encounterLevel: encounter.level),
+            loot: loot,
+            roster: playerSave.roster,
         )
+        return (input, battleRoute(floor: floor))
     }
 
     @discardableResult

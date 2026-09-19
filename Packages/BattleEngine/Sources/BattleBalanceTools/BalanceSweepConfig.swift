@@ -104,20 +104,6 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         return Array(remainder.prefix(workLimit))
     }
 
-    public func withLocalSlice(regionStart: Int, regionCount: Int) -> Self? {
-        guard regionCount > 0 else { return nil }
-        let globalStart = workOffset
-        let globalEnd = workLimit.map { globalStart + $0 } ?? Int.max
-        let regionEnd = regionStart + regionCount
-        let start = max(globalStart, regionStart)
-        let end = min(globalEnd, regionEnd)
-        guard start < end else { return nil }
-        var copy = self
-        copy.workOffset = start - regionStart
-        copy.workLimit = end - start
-        return copy
-    }
-
     public var resolvedJobs: Int {
         if jobs <= 0 {
             return max(1, ProcessInfo.processInfo.activeProcessorCount)

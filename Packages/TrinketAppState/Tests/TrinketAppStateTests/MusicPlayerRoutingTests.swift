@@ -55,7 +55,6 @@ struct MusicPlayerRoutingTests {
         if let expectedTrackID {
             #expect(request.track.id == expectedTrackID)
         } else {
-            #expect(request.resumeKey.stageID == nil)
             #expect(request.resumeKey.enemyID == enemyID)
         }
     }
@@ -128,6 +127,52 @@ struct MusicPlayerRoutingTests {
         )
 
         #expect(route == .silence(preservingPosition: true))
+    }
+
+    @Test func `muted battle resolves to preserving silence`() {
+        let battle = PlayBattleLaunchTestSupport.make(
+            origin: .journey(stageID: "chapter-1-stage-1"),
+            rngSeed: 0,
+            hero: GameContent.heroes[0],
+            companion: GameContent.companions[0],
+            enemy: GameContent.enemy(matching: "skeleton")?.combatant,
+        )
+
+        let route = MusicRoute.resolve(
+            selectedTab: .play,
+            activeBattle: battle,
+            sceneIsActive: true,
+            musicVolume: 0.0,
+        )
+
+        #expect(route == .silence(preservingPosition: true))
+    }
+
+    @Test func `same enemy resolves same resume key across modes`() throws {
+        let enemy = try #require(GameContent.enemy(matching: "skeleton")?.combatant)
+        let bossEnemy = try #require(GameContent.enemy(matching: "the_blight_treant")?.combatant)
+        func request(origin: PlayBattleOrigin, enemy: Combatant) throws -> MusicPlaybackRequest {
+            let battle = PlayBattleLaunchTestSupport.make(
+                origin: origin,
+                rngSeed: 0,
+                hero: GameContent.heroes[0],
+                companion: GameContent.companions[0],
+                enemy: enemy,
+            )
+            return try trackRequest(from: MusicRoute.resolve(
+                selectedTab: .play,
+                activeBattle: battle,
+                sceneIsActive: true,
+                musicVolume: 0.75,
+            ))
+        }
+
+        let journey = try request(origin: .journey(stageID: "chapter-1-stage-1"), enemy: enemy)
+        let spire = try request(origin: .spire(spireID: .ironVein, floor: 1), enemy: enemy)
+        #expect(journey.resumeKey == spire.resumeKey)
+
+        let boss = try request(origin: .journey(stageID: "chapter-1-stage-10"), enemy: bossEnemy)
+        #expect(boss.resumeKey != journey.resumeKey)
     }
 
     @Test func `menu track is stable within a day and rotates across days`() throws {

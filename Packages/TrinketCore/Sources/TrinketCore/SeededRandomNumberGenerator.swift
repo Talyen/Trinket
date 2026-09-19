@@ -1,6 +1,9 @@
 /// Deterministic LCG for replays and tests. Synthesized `Equatable` intentionally
 /// includes draw progress (`state`), so a used generator never equals a fresh one
-/// with the same seed.
+/// with the same seed. Equality is lineage, not future-sequence equality: the
+/// zero-seed fallback maps `seed == 0` to a fixed non-zero state, so
+/// `init(seed: 0)` and `init(seed: <fallback>)` share a future sequence while
+/// comparing unequal.
 public struct SeededRandomNumberGenerator: RandomNumberGenerator, Equatable, Sendable {
     public let seed: UInt64
 

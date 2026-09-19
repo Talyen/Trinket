@@ -97,20 +97,16 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.cleanseBlockPerStack > 0, removedCount > 0 {
-            events.append(contentsOf: context.applyBlock(
-                triggers.cleanseBlockPerStack * removedCount,
-                to: target,
-                source: source,
-                abilityName: triggerAbilityName("cleanseBlockPerStack", for: source, fallback: "Spellbreak Shield", in: context),
+            events.append(contentsOf: emitBlock(
+                "cleanseBlockPerStack", "Spellbreak Shield",
+                amount: triggers.cleanseBlockPerStack * removedCount, to: target, source: source, in: &context,
             ))
         }
         guard allowPartyBlock, triggers.cleansePartyBlock > 0 else { return events }
         for (_, member) in livingPartyMembers(in: context) {
-            events.append(contentsOf: context.applyBlock(
-                triggers.cleansePartyBlock,
-                to: member.combatant,
-                source: source,
-                abilityName: triggerAbilityName("cleansePartyBlock", for: source, fallback: "Cleansing Ward", in: context),
+            events.append(contentsOf: emitBlock(
+                "cleansePartyBlock", "Cleansing Ward",
+                amount: triggers.cleansePartyBlock, to: member.combatant, source: source, in: &context,
             ))
         }
         return events

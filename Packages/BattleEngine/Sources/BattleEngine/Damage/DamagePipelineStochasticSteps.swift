@@ -38,7 +38,7 @@ package extension DamagePipeline {
         if hasEvadeNextHit || autoDodge {
             dodged = true
         } else {
-            let chance = dodgeChance(for: state, in: context)
+            let chance = dodgeChance(for: state.combatant, attackerID: state.sourceActorID, in: context)
             dodged = BattleChance.succeeds(probability: chance, using: &context.rng)
         }
         guard dodged else {
@@ -179,7 +179,7 @@ package extension DamagePipeline {
         else {
             return
         }
-        applyCritical(to: &state)
+        state.isCritical = true
     }
 
     private static func resolveGuaranteedCrit(
@@ -235,13 +235,9 @@ package extension DamagePipeline {
             guaranteed = true
         }
         if guaranteed {
-            applyCritical(to: &state)
+            state.isCritical = true
         }
         return guaranteed
-    }
-
-    private static func applyCritical(to state: inout DamageResolutionState) {
-        state.isCritical = true
     }
 
     static func applyCriticalBlockSteal(

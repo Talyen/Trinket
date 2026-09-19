@@ -9,6 +9,12 @@ import TrinketPersistenceTestSupport
 @testable import TrinketAppState
 @testable import TrinketPersistence
 
+enum DuplicateRouteOrigin: Sendable, CaseIterable {
+    case journey
+    case labyrinth
+    case spire
+}
+
 @MainActor
 struct AppStatePlayFlowTests {
     let context: AppTestContext
@@ -199,10 +205,28 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.roster.gold == initialGold + expectedGold)
     }
 
-    @Test func `duplicate journey route delivery reports unavailable without paying twice`() throws {
-        let state = try context.makePlaySession()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.journey.startBattle(for: stage)
+    @Test(arguments: [DuplicateRouteOrigin.journey, .labyrinth, .spire])
+    func `duplicate route delivery reports unavailable without paying twice`(origin: DuplicateRouteOrigin) throws {
+        switch origin {
+        case .journey:
+            let state = try context.makePlaySession()
+            let stage = try #require(GameContent.chapters[0].stages.first)
+            _ = state.journey.startBattle(for: stage)
+            try checkDuplicateDelivery(state: state)
+        case .labyrinth:
+            let state = try context.makePlaySession(arguments: ["-reset-state"])
+            let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
+            _ = state.labyrinth.startBattle(nodeID: combatNodeID)
+            try checkDuplicateDelivery(state: state)
+        case .spire:
+            let state = try context.makePlaySession()
+            let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+            _ = state.spires.startBattle(for: floor)
+            try checkDuplicateDelivery(state: state)
+        }
+    }
+
+    private func checkDuplicateDelivery(state: PlaySession) throws {
         let configuration = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 5)))

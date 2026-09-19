@@ -6,6 +6,56 @@ import TrinketPersistence
 /// A resolved enemy plus the level it should fight at.
 public typealias ScaledEncounter = (combatant: Combatant, level: Int)
 
+/// Shared loot tail for battle modes: world seed, ownership, and astral bonus
+/// read from the same save slice. Modes keep only their `resolveLoot`
+/// selection; this removes the copied tail.
+@MainActor
+struct BattleLootContext {
+    let worldSeed: UInt64
+    let ownedTrinketIDs: Set<String>
+    let ownedUniqueIDs: Set<String>
+    let astralChanceBonusPercent: Int
+    let ownership: RewardOwnership
+
+    init(playerSave: PlayerSaveStore) {
+        worldSeed = playerSave.worldSeed
+        ownedTrinketIDs = playerSave.inventory.ownedTrinketIDs
+        ownedUniqueIDs = playerSave.inventory.ownedUniqueIDs
+        astralChanceBonusPercent = playerSave.homestead.effects.astralChanceBonusPercent
+        ownership = RewardOwnership(playerSave.inventory)
+    }
+}
+
+/// Shared roster + loot → launch-input tail for battle modes. Modes keep
+/// only their `resolveLoot` selection plus any experience/modifier extras;
+/// hero/companion lookup and reward plumbing stay single-owned here.
+enum ModeBattleSpec {
+    static func launchInput(
+        origin: PlayBattleOrigin,
+        encounter: ScaledEncounter,
+        loot: BattleLootResult,
+        roster: PlayerRosterState,
+        stageRewardsAlreadyClaimed: Bool = false,
+        experienceBonusPercent: Int = 0,
+        universalModifiers: [AffixModifier] = [],
+        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+    ) -> BattleLaunchInput {
+        BattleLaunchInput(
+            origin: origin,
+            hero: roster.activeHero,
+            companion: roster.activeCompanion,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: loot.asStageReward,
+            experienceBonusPercent: experienceBonusPercent,
+            pendingRewardItem: loot.item,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            universalModifiers: universalModifiers,
+            labyrinthModifiers: labyrinthModifiers,
+        )
+    }
+}
+
 /// Preparation cache key for single-battle modes (Journey, Spires).
 /// Both warm at most one run; the run key identifies the battle 1:1 with the
 /// mode's battle origin (stage ID, spire + floor), so cache behavior is unchanged.

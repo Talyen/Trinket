@@ -12,11 +12,9 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
 
         if profile.triggers.holyDamageBlockFlat > 0 {
-            events.append(contentsOf: context.applyBlock(
-                profile.triggers.holyDamageBlockFlat,
-                to: source,
-                source: source,
-                abilityName: triggerAbilityName("holyDamageBlockFlat", for: source, fallback: "Sanctum", in: context),
+            events.append(contentsOf: emitBlock(
+                "holyDamageBlockFlat", "Sanctum",
+                amount: profile.triggers.holyDamageBlockFlat, to: source, source: source, in: &context,
             ))
         }
 
@@ -31,11 +29,9 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.holyDamageHealFlat > 0 {
-            events.append(contentsOf: context.healEmitting(
-                amount: profile.triggers.holyDamageHealFlat,
-                target: source,
-                source: source,
-                abilityName: triggerAbilityName("holyDamageHealFlat", for: source, fallback: "Beacon", in: context),
+            events.append(contentsOf: emitHeal(
+                "holyDamageHealFlat", "Beacon",
+                amount: profile.triggers.holyDamageHealFlat, to: source, source: source, in: &context,
             ))
         }
 
@@ -43,42 +39,28 @@ package extension CombatTriggerEngine {
             let lowest = BattleTargetResolver.effectTarget(
                 .lowestHealthAlly, actor: source, abilityTarget: enemy, in: context,
             )
-            let blessingName = triggerAbilityName(
-                "holyDamageHealLowestAllyFlat",
-                for: source,
-                fallback: "Divine Blessing",
-                in: context,
-            )
-            events.append(contentsOf: context.healEmitting(
-                amount: profile.triggers.holyDamageHealLowestAllyFlat,
-                target: lowest,
-                source: source,
-                abilityName: blessingName,
+            events.append(contentsOf: emitHeal(
+                "holyDamageHealLowestAllyFlat", "Divine Blessing",
+                amount: profile.triggers.holyDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,
             ))
         }
         if profile.triggers.holyDamageHealHeroFlat > 0, context.roster.hero.isAlive {
-            events.append(contentsOf: context.healEmitting(
+            events.append(contentsOf: emitHeal(
+                "holyDamageHealHeroFlat", "Sun Glyph",
                 amount: profile.triggers.holyDamageHealHeroFlat,
-                target: context.roster.hero.combatant,
-                source: source,
-                abilityName: triggerAbilityName("holyDamageHealHeroFlat", for: source, fallback: "Sun Glyph", in: context),
+                to: context.roster.hero.combatant, source: source, in: &context,
             ))
         }
 
         if profile.triggers.onHolyDamageRestoreMana > 0 {
-            events.append(contentsOf: context.restoreManaEmitting(
-                profile.triggers.onHolyDamageRestoreMana,
-                to: source,
-                abilityName: triggerAbilityName("onHolyDamageRestoreMana", for: source, fallback: "Radiant Wisdom", in: context),
+            events.append(contentsOf: emitMana(
+                "onHolyDamageRestoreMana", "Radiant Wisdom",
+                amount: profile.triggers.onHolyDamageRestoreMana, to: source, in: &context,
             ))
         }
-        if profile.triggers.holyDamageNextHitBonus > 0 {
+        if profile.triggers.holyDamageNextHitBonus > 0 || profile.triggers.holyDamageNextAttackHolyBonus > 0 {
             context.roster.mutateRuntime(for: source) {
                 $0.talents.pending.nextHitBonus += profile.triggers.holyDamageNextHitBonus
-            }
-        }
-        if profile.triggers.holyDamageNextAttackHolyBonus > 0 {
-            context.roster.mutateRuntime(for: source) {
                 $0.talents.pending.nextAttackHolyBonus += profile.triggers.holyDamageNextAttackHolyBonus
             }
         }
@@ -102,11 +84,10 @@ package extension CombatTriggerEngine {
         }
         if profile.triggers.onHolyDamagePartyBlock > 0 {
             for (_, member) in livingPartyMembers(in: context) {
-                events.append(contentsOf: context.applyBlock(
-                    profile.triggers.onHolyDamagePartyBlock,
-                    to: member.combatant,
-                    source: source,
-                    abilityName: triggerAbilityName("onHolyDamagePartyBlock", for: source, fallback: "Radiant Barrier", in: context),
+                events.append(contentsOf: emitBlock(
+                    "onHolyDamagePartyBlock", "Radiant Barrier",
+                    amount: profile.triggers.onHolyDamagePartyBlock,
+                    to: member.combatant, source: source, in: &context,
                 ))
             }
         }

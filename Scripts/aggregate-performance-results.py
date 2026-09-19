@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from internal.performance.performance_model import METRICS, load_baseline, validate_report as validate_frame_report, goal_findings
+from internal.cli import read_json
+from internal.performance.performance_model import METRICS, load_baseline, load_results_reports, validate_report as validate_frame_report, goal_findings
 
 
 def aggregate(values: list[float]) -> dict[str, float]:
@@ -52,11 +53,9 @@ def main() -> int:
     if args.expected_repetitions < 1:
         parser.error("--expected-repetitions must be a positive integer")
 
-    payload = json.loads(args.results.read_text())
-    reports = payload.get("reports", [])
-    if not isinstance(reports, list):
-        raise SystemExit("results payload must contain a reports array")
-    baseline = json.loads(args.baseline.read_text())
+    payload = read_json(args.results)
+    reports = load_results_reports(payload)
+    baseline = read_json(args.baseline)
     scenarios_value, mode, _, _, _ = load_baseline(baseline)
     expected_scenarios = set(scenarios_value)
 

@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import importlib.util
 import os
 import subprocess
 import sys
@@ -15,15 +14,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "Scripts"))
 
+from internal.cli import load_sibling
+
 
 def load_script(name: str, filename: str):
-    spec = importlib.util.spec_from_file_location(name, ROOT / "Scripts" / filename)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Unable to load {filename}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
+    """Load a Scripts/ module by filename (shared with internal.cli.load_sibling)."""
+    return load_sibling(name, filename)
 
 
 class ScriptRegressionTestCase(unittest.TestCase):

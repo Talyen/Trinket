@@ -390,11 +390,9 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.remaining > 0 else {
-            state.buildupDamage = 0
             return
         }
         guard let damageKeyword = state.damageKeyword else {
-            state.buildupDamage = state.remaining
             return
         }
         let profile = context.modifiers(for: state.combatant.id)
@@ -427,7 +425,6 @@ package extension DamagePipeline {
         if talentResistance > 0 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - min(1, talentResistance) * reductionMultiplier)
         }
-        state.buildupDamage = state.remaining
     }
 
     static func applyCriticalMultiply(
@@ -435,13 +432,11 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.isCritical, state.remaining > 0 else {
-            state.buildupDamage = state.remaining
             return
         }
         let critMultiplier = criticalMultiplier(for: state.sourceActorID, in: context)
         state.remaining = CombatRounding.scaled(state.remaining, multiplier: critMultiplier)
         state.dealt = state.remaining
-        state.buildupDamage = state.remaining
     }
 
     static func criticalMultiplier(for sourceActorID: String?, in context: BattleState) -> Double {
@@ -488,11 +483,6 @@ package extension DamagePipeline {
         }
 
         state.remaining = remaining
-        state.buildupDamage = state.remaining
-        assert(
-            state.buildupDamage == state.remaining,
-            "buildupDamage invariant: \(state.buildupDamage) != remaining \(state.remaining) after applyTakenFlatAdjustments",
-        )
     }
 
     static func applyMarkedConsume(

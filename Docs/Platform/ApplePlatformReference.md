@@ -29,6 +29,9 @@ Trinket requires Swift 6.4 or newer (Xcode 27 or newer for Apple-platform builds
 Each `Package.swift` declares this minimum with `swift-tools-version: 6.4`;
 `.swiftformat` targets the same syntax version. Packages use Swift 6 language mode
 by default, and `project.yml` declares that mode with `SWIFT_VERSION: "6.0"`.
+The values above mirror their executable owners (`project.yml`,
+`Package.swift`, `.swiftformat`); change the owners,
+not this page, and keep only the policy sentence here if they drift.
 The language mode is distinct from the compiler and package tools versions:
 `swiftc -swift-version` accepts `6`, not `6.4`. Do not change `SWIFT_VERSION`
 merely to match Xcode's bundled Swift compiler.

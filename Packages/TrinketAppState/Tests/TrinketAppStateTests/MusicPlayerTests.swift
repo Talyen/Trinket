@@ -13,7 +13,6 @@ struct MusicPlayerTests {
         player.silenceImmediately(preservingPosition: true)
         player.cancelActiveFades()
         player.clearEncounterResumePositions()
-        player.suspendPreservingPosition()
 
         #expect(!player.canPreviewVolume)
     }

@@ -108,15 +108,12 @@ final class CombatFeedbackRasterPool {
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
     ) -> CombatFeedbackRaster? {
-        let key = makeKey(
-            for: item,
+        let key = CombatFeedbackRasterKey(
+            item: item,
             layoutDirection: layoutDirection,
             displayScale: displayScale,
         )
-        guard let raster = rasters[key] else { return nil }
-        hitCount += 1
-        markMostRecent(key)
-        return raster
+        return lookup(key)
     }
 
     @discardableResult
@@ -126,14 +123,12 @@ final class CombatFeedbackRasterPool {
         displayScale: CGFloat,
     ) -> CombatFeedbackRaster? {
         let scale = max(1, displayScale)
-        let key = makeKey(
-            for: item,
+        let key = CombatFeedbackRasterKey(
+            item: item,
             layoutDirection: layoutDirection,
             displayScale: scale,
         )
-        if let raster = rasters[key] {
-            hitCount += 1
-            markMostRecent(key)
+        if let raster = lookup(key) {
             return raster
         }
         missCount += 1
@@ -243,7 +238,7 @@ final class CombatFeedbackRasterPool {
             CombatFeedbackRasterKey,
             CombatFeedbackChipComposer.RasterInputs,
         )? in
-            let rasterKey = makeKey(for: item, layoutDirection: .leftToRight, displayScale: displayScale)
+            let rasterKey = CombatFeedbackRasterKey(item: item, layoutDirection: .leftToRight, displayScale: displayScale)
             guard rasters[rasterKey] == nil,
                   let inputs = CombatFeedbackChipComposer.prepareInputs(
                       presentation: item.chipPresentation,
@@ -289,16 +284,11 @@ final class CombatFeedbackRasterPool {
         )
     }
 
-    private func makeKey(
-        for item: CombatFeedbackItem,
-        layoutDirection: LayoutDirection,
-        displayScale: CGFloat,
-    ) -> CombatFeedbackRasterKey {
-        CombatFeedbackRasterKey(
-            item: item,
-            layoutDirection: layoutDirection,
-            displayScale: displayScale,
-        )
+    private func lookup(_ key: CombatFeedbackRasterKey) -> CombatFeedbackRaster? {
+        guard let raster = rasters[key] else { return nil }
+        hitCount += 1
+        markMostRecent(key)
+        return raster
     }
 
     private func insert(_ raster: CombatFeedbackRaster, for key: CombatFeedbackRasterKey) {

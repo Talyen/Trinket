@@ -182,10 +182,51 @@ struct EffectHandlersApplyStatusTests {
         case .allBuffsLeaveDebuffs:
             try #expect(!(battle.activeEffects(of: battle.enemy)).contains(where: \.effect.isRemovableBuff))
             try #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isRemovableDebuff))
-            try #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .purge })
+            try #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .block })
         case .randomOneOfTwo:
             try #expect(battle.activeEffects(of: battle.enemy).filter(\.effect.isRemovableBuff).count == 1)
             try #expect(outcome.events.contains { $0.effectKind == .purgeApplied })
         }
+    }
+
+    @Test func `direct purge of multiple buffs emits per-keyword events`() throws {
+        var battle = BattleStateTestFactory.makeBattle()
+        BattleStateTestFactory.seedActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
+                ActiveEffect(id: 2, effect: .thorns(3), remainingTurns: 0),
+            ],
+            for: battle.enemy,
+            on: &battle,
+        )
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .purge(nil),
+            source: battle.hero,
+            target: battle.enemy,
+            battle: &battle,
+        )
+        try #expect(outcome.didApply)
+        let purgeEvents = outcome.events.filter { $0.effectKind == .purgeApplied }
+        try #expect(purgeEvents.count == 2)
+        try #expect(Set(purgeEvents.map(\.keyword)) == [.block, .thorns])
+    }
+
+    @Test func `intercepted timed debuff reports not applied`() throws {
+        let warded = CombatModifierProfile(
+            triggers: CombatTraitTriggers(cleanse: CleanseTriggers(blockFirstDebuffPerTurn: true)),
+        )
+        // Fae Ward lives on the target's own profile: seed the debuff target as hero with ward.
+        var battle = BattleStateTestFactory.makeBattle(
+            heroModifiers: warded,
+            dealOpeningHand: false,
+        )
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .damageReductionFlat(2, 2),
+            source: battle.enemy,
+            target: battle.hero,
+            battle: &battle,
+        )
+        try #expect(!outcome.didApply)
+        try #expect(!battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff))
     }
 }

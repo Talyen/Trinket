@@ -169,19 +169,14 @@ enum CardDissolveTexture {
         cutAngleDegrees: CGFloat? = nil,
     ) -> CGImage? {
         let cache = cache
-        let clampedCell = max(1, min(cellSize, 16))
-        let noiseKey = noiseCacheKey(
+        let (key, _) = thresholdKeys(
+            progress: progress,
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
-            cellSize: clampedCell,
+            cellSize: cellSize,
+            thresholdMidpoint: thresholdMidpoint,
+            thresholdContrast: thresholdContrast,
             cutAngleDegrees: cutAngleDegrees,
-        )
-        let step = progressStep(for: progress)
-        let key = ThresholdCacheKey(
-            noise: noiseKey,
-            progressStep: step,
-            thresholdMidpoint: quantize(thresholdMidpoint),
-            thresholdContrast: Int(thresholdContrast.rounded()),
         )
         if let cached = cache.cachedThresholdImage(key: key) {
             return cached
@@ -191,7 +186,7 @@ enum CardDissolveTexture {
             progress: progress,
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
-            cellSize: clampedCell,
+            cellSize: cellSize,
             thresholdMidpoint: thresholdMidpoint,
             thresholdContrast: thresholdContrast,
             cutAngleDegrees: cutAngleDegrees,
@@ -208,22 +203,17 @@ enum CardDissolveTexture {
         thresholdContrast: CGFloat = 100,
         cutAngleDegrees: CGFloat? = nil,
     ) -> CGImage? {
-        let clampedCell = max(1, min(cellSize, 16))
-        let noiseKey = noiseCacheKey(
+        let (key, noiseKey) = thresholdKeys(
+            progress: progress,
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
-            cellSize: clampedCell,
+            cellSize: cellSize,
+            thresholdMidpoint: thresholdMidpoint,
+            thresholdContrast: thresholdContrast,
             cutAngleDegrees: cutAngleDegrees,
         )
-        let step = progressStep(for: progress)
-        let key = ThresholdCacheKey(
-            noise: noiseKey,
-            progressStep: step,
-            thresholdMidpoint: quantize(thresholdMidpoint),
-            thresholdContrast: Int(thresholdContrast.rounded()),
-        )
         let noise = noiseBytes(key: noiseKey, cache: cache)
-        let steppedProgress = CGFloat(step) / CGFloat(progressSteps)
+        let steppedProgress = CGFloat(key.progressStep) / CGFloat(progressSteps)
         return cache.thresholdImage(key: key) {
             makeThresholdImage(
                 noise: noise,
@@ -232,6 +222,31 @@ enum CardDissolveTexture {
                 thresholdContrast: CGFloat(key.thresholdContrast),
             )
         }
+    }
+
+    private static func thresholdKeys(
+        progress: CGFloat,
+        edgeDepthWeight: CGFloat,
+        noiseWeight: CGFloat,
+        cellSize: Int,
+        thresholdMidpoint: CGFloat,
+        thresholdContrast: CGFloat,
+        cutAngleDegrees: CGFloat?,
+    ) -> (ThresholdCacheKey, NoiseCacheKey) {
+        let clampedCell = max(1, min(cellSize, 16))
+        let noiseKey = noiseCacheKey(
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: clampedCell,
+            cutAngleDegrees: cutAngleDegrees,
+        )
+        let key = ThresholdCacheKey(
+            noise: noiseKey,
+            progressStep: progressStep(for: progress),
+            thresholdMidpoint: quantize(thresholdMidpoint),
+            thresholdContrast: Int(thresholdContrast.rounded()),
+        )
+        return (key, noiseKey)
     }
 
     static func prewarm(

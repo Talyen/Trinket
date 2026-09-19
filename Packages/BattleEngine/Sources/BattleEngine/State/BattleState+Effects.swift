@@ -133,12 +133,16 @@ package extension BattleState {
         return true
     }
 
+    /// @discardableResult so existing fire-and-forget callers are untouched;
+    /// new callers (like TimedDebuffHandler) should check the return instead
+    /// of assuming the effect landed (ward/purge interception can refuse it).
+    @discardableResult
     mutating func appendEffect(
         _ effect: Effect,
         to target: Combatant,
         sourceID: String,
         remainingTurns: Int,
-    ) {
+    ) -> Bool {
         insertEffect(
             effect,
             to: target,
@@ -147,12 +151,13 @@ package extension BattleState {
         )
     }
 
+    @discardableResult
     mutating func prependEffect(
         _ effect: Effect,
         to target: Combatant,
         sourceID: String? = nil,
         remainingTurns: Int,
-    ) {
+    ) -> Bool {
         insertEffect(
             effect,
             to: target,

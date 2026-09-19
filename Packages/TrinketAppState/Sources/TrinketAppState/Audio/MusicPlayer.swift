@@ -92,23 +92,8 @@ final class MusicPlayer {
         }
     }
 
-    /// Suspends playback while preserving the resume position, so the next `play`
-    /// of the same request resumes. Use `silenceImmediately(preservingPosition: false)` to drop it.
-    func suspendPreservingPosition() {
-        silenceImmediately(preservingPosition: true)
-    }
-
     func silenceImmediately(preservingPosition: Bool) {
-        cancelPendingLoad()
-        clearPrepared()
-        if preservingPosition {
-            saveCurrentPosition()
-        }
-        let oldPlayer = currentPlayer
-        cancelActiveFades()
-        currentPlayer = nil
-        currentRequest = nil
-        oldPlayer?.stop()
+        takeCurrentForSilence(preservingPosition: preservingPosition)?.stop()
     }
 
     func cancelActiveFades() {
@@ -131,8 +116,7 @@ final class MusicPlayer {
             cancelPendingLoad()
             clearPrepared()
             cancelActiveFades()
-            currentPlayer.numberOfLoops = request.track.isLooping ? -1 : 0
-            currentPlayer.volume = targetVolume(for: request, appVolume: volume)
+            configureLoop(currentPlayer, request: request, volume: targetVolume(for: request, appVolume: volume))
             if !currentPlayer.isPlaying {
                 currentPlayer.play()
             }
@@ -232,8 +216,7 @@ final class MusicPlayer {
 
     private func storePrepared(_ player: AVAudioPlayer, request: MusicPlaybackRequest) {
         applyResumePosition(player, request: request)
-        player.numberOfLoops = request.track.isLooping ? -1 : 0
-        player.volume = 0
+        configureLoop(player, request: request, volume: 0)
         preparedPlayer = player
         preparedRequest = request
     }
@@ -247,42 +230,45 @@ final class MusicPlayer {
         configureSessionIfNeeded()
         canSaveCurrentPosition = true
         applyResumePosition(player, request: request)
-        player.numberOfLoops = request.track.isLooping ? -1 : 0
         let target = targetVolume(for: request, appVolume: volume)
 
         if shouldCrossfade, currentPlayer != nil {
-            player.volume = 0
+            configureLoop(player, request: request, volume: 0)
             player.play()
             crossfade(to: player, request: request, targetVolume: target)
             return
         }
 
-        player.volume = target
+        configureLoop(player, request: request, volume: target)
         player.play()
         cancelActiveFades()
         currentPlayer = player
         currentRequest = request
     }
 
-    private func fadeOutCurrent(preservingPosition: Bool) {
-        if pendingStartVolume != nil {
-            cancelPendingLoad()
-        }
-        guard currentPlayer != nil else { return }
+    /// Shared silence teardown: drops pending loads and prepared decodes,
+    /// saves the resume position when asked, then detaches the current player
+    /// and cancels fades. Callers decide whether the detached player stops
+    /// now or fades out.
+    private func takeCurrentForSilence(preservingPosition: Bool) -> AVAudioPlayer? {
+        cancelPendingLoad()
         clearPrepared()
-
         if preservingPosition {
             saveCurrentPosition()
         }
-
         let oldPlayer = currentPlayer
         cancelActiveFades()
         currentPlayer = nil
         currentRequest = nil
+        return oldPlayer
+    }
+
+    private func fadeOutCurrent(preservingPosition: Bool) {
+        guard let oldPlayer = takeCurrentForSilence(preservingPosition: preservingPosition) else { return }
 
         let duration = fadeDuration
         fadeTask = Task { @MainActor [weak self] in
-            defer { oldPlayer?.stop() }
+            defer { oldPlayer.stop() }
             await self?.ramp(oldPlayer: oldPlayer, newPlayer: nil, targetVolume: 0, duration: duration)
         }
     }
@@ -374,11 +360,17 @@ final class MusicPlayer {
     }
 
     private func resourceURL(for track: TrinketContent.MusicTrack) -> URL? {
-        MediaResourceLocator.url(
+        AudioSupport.mediaURL(
             resourceName: track.resourceName,
             fileExtension: track.fileExtension,
             subdirectory: "Music",
         )
+    }
+
+    /// Single home for loop count + volume setup.
+    private func configureLoop(_ player: AVAudioPlayer, request: MusicPlaybackRequest, volume: Float) {
+        player.numberOfLoops = request.track.isLooping ? -1 : 0
+        player.volume = volume
     }
 
     private func saveCurrentPosition() {

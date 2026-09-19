@@ -8,7 +8,7 @@ package extension CombatTriggerEngine {
             let actor = runtime.combatant
             let triggers = context.modifiers(for: actor.id).triggers
 
-            events.append(contentsOf: endOfTurnBlockConversion(runtime: runtime, actor: actor, in: &context))
+            events.append(contentsOf: endOfTurnBlockConversion(runtime: runtime, actor: actor, triggers: triggers, in: &context))
             events.append(contentsOf: endOfTurnHealing(actor: actor, triggers: triggers, in: &context))
             events.append(contentsOf: hoardArmorBlock(actor: actor, triggers: triggers, in: &context))
         }
@@ -18,16 +18,14 @@ package extension CombatTriggerEngine {
     private static func endOfTurnBlockConversion(
         runtime: CombatantRuntime,
         actor: Combatant,
+        triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let triggers = context.modifiers(for: actor.id).triggers
         guard triggers.unspentManaConvertsToBlock, runtime.maxMana > 0, runtime.currentMana > 0 else { return [] }
         let converted = runtime.currentMana
-        return context.applyBlock(
-            converted,
-            to: actor,
-            source: actor,
-            abilityName: triggerAbilityName("unspentManaConvertsToBlock", for: actor, fallback: "Mana Shield", in: context),
+        return emitBlock(
+            "unspentManaConvertsToBlock", "Mana Shield",
+            amount: converted, to: actor, source: actor, in: &context,
         )
     }
 
@@ -39,11 +37,9 @@ package extension CombatTriggerEngine {
         guard triggers.blockPerGoldCollectedEvery > 0, context.gold > 0 else { return [] }
         let block = min(5, context.gold / triggers.blockPerGoldCollectedEvery)
         guard block > 0 else { return [] }
-        return context.applyBlock(
-            block,
-            to: actor,
-            source: actor,
-            abilityName: triggerAbilityName("blockPerGoldCollectedEvery", for: actor, fallback: "Hoard Armor", in: context),
+        return emitBlock(
+            "blockPerGoldCollectedEvery", "Hoard Armor",
+            amount: block, to: actor, source: actor, in: &context,
         )
     }
 
@@ -67,11 +63,9 @@ package extension CombatTriggerEngine {
         guard triggers.endTurnWithBlockHealFlat > 0,
               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor)) > 0
         else { return [] }
-        return context.healEmitting(
-            amount: triggers.endTurnWithBlockHealFlat,
-            target: actor,
-            source: actor,
-            abilityName: triggerAbilityName("endTurnWithBlockHealFlat", for: actor, fallback: "Hibernation", in: context),
+        return emitHeal(
+            "endTurnWithBlockHealFlat", "Hibernation",
+            amount: triggers.endTurnWithBlockHealFlat, to: actor, source: actor, in: &context,
         )
     }
 
@@ -82,11 +76,9 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard triggers.endOfTurnHealLowestAlly > 0 else { return [] }
         let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
-        return context.healEmitting(
-            amount: triggers.endOfTurnHealLowestAlly,
-            target: lowest,
-            source: actor,
-            abilityName: triggerAbilityName("endOfTurnHealLowestAlly", for: actor, fallback: "Cheer Up", in: context),
+        return emitHeal(
+            "endOfTurnHealLowestAlly", "Cheer Up",
+            amount: triggers.endOfTurnHealLowestAlly, to: lowest, source: actor, in: &context,
         )
     }
 
@@ -98,11 +90,9 @@ package extension CombatTriggerEngine {
         guard triggers.partyRegenPerRound > 0 else { return [] }
         var events: [ActionEvent] = []
         for (_, member) in livingPartyMembers(in: context) {
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.partyRegenPerRound,
-                target: member.combatant,
-                source: actor,
-                abilityName: triggerAbilityName("partyRegenPerRound", for: actor, fallback: "Campfire Comfort", in: context),
+            events.append(contentsOf: emitHeal(
+                "partyRegenPerRound", "Campfire Comfort",
+                amount: triggers.partyRegenPerRound, to: member.combatant, source: actor, in: &context,
             ))
         }
         return events

@@ -4,13 +4,13 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from internal.performance.performance_model import REQUIRED_NUMERIC_FIELDS, finite_number, group_reports_by_scenario, load_baseline, validate_report, goal_findings
+from internal.cli import read_json
+from internal.performance.performance_model import REQUIRED_NUMERIC_FIELDS, finite_number, group_reports_by_scenario, load_baseline, load_results_reports, validate_report, goal_findings
 
 
 def main() -> int:
@@ -20,12 +20,10 @@ def main() -> int:
     parser.add_argument("--summary", required=True, type=Path)
     args = parser.parse_args()
 
-    payload = json.loads(args.results.read_text())
-    reports = payload.get("reports")
-    if not isinstance(reports, list):
-        raise SystemExit("results payload must contain a reports array")
+    payload = read_json(args.results)
+    reports = load_results_reports(payload)
 
-    baseline = json.loads(args.baseline.read_text())
+    baseline = read_json(args.baseline)
     scenarios, mode, minimum_average, minimum_low, maximum_severe = load_baseline(baseline)
     grouped, failures = group_reports_by_scenario(reports, scenarios)
 

@@ -115,11 +115,11 @@ stashing files or changing the index. Leading Git options such as `-C` and `-c`
 apply to both its checks and the requested command.
 
 `git config core.hooksPath .githooks` enables the advisory commit-message hook,
-the [staged project check](Verification.md#generated-project-consistency),
-and the pre-push style/generation checks. Pre-push styles Swift files in the
+staged-project validation, and pre-push checks. Generation and idempotence policy
+lives in [Verification.md](Verification.md#generated-project-consistency); the hooks
+enforce it at commit/push time. Pre-push styles Swift files in the
 commits being pushed (platform bans stay full-tree), runs the internal
-`agent-push-gate.sh` component (regenerate only when classification says
-content, project, or assets changed), then path-scoped package tests against
+push gate, then path-scoped package tests against
 that generated tree. A requested push still requires a green path-scoped
 handoff before commit. Review and include only task-related authored and
 generated files.

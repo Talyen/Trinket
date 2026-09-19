@@ -39,15 +39,6 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-verify_archive() {
-  local archive="$1" expected="$2" label="$3" actual
-  actual="$(trinket_tool_sha256_file "$archive")"
-  if [[ "$actual" != "$expected" ]]; then
-    echo "$label checksum mismatch: expected $expected, found $actual" >&2
-    return 1
-  fi
-}
-
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 arch="$(uname -m)"
 
@@ -59,7 +50,7 @@ download_unzip() {
   tmpdir="$(mktemp -d)"
   archive="$tmpdir/tool.zip"
   curl -fsSL "$url" -o "$archive"
-  verify_archive "$archive" "$expected" "Downloaded archive" || { rm -rf "$tmpdir"; return 1; }
+  trinket_tool_verify_file "$archive" "$expected" "Downloaded archive" || { rm -rf "$tmpdir"; return 1; }
   unzip -qo "$archive" -d "$tmpdir"
   # Copy extracted tree into dest for caller inspection.
   mkdir -p "$dest"

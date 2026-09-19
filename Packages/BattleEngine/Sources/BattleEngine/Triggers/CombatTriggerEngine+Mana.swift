@@ -73,11 +73,9 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.spendManaBlockFlat > 0 else { return [] }
-        return context.applyBlock(
-            triggers.spendManaBlockFlat,
-            to: actor,
-            source: actor,
-            abilityName: triggerAbilityName("spendManaBlockFlat", for: actor, fallback: "Aetherward", in: context),
+        return emitBlock(
+            "spendManaBlockFlat", "Aetherward",
+            amount: triggers.spendManaBlockFlat, to: actor, source: actor, in: &context,
         )
     }
 
@@ -121,16 +119,7 @@ package extension CombatTriggerEngine {
               BattleChance.succeeds(probability: triggers.spendManaRefundChancePercent, using: &context.rng) else {
             return []
         }
-        return context.restoreManaEmitting(
-            amountSpent,
-            to: actor,
-            abilityName: triggerAbilityName(
-                "spendManaRefundChancePercent",
-                for: actor,
-                fallback: "Mana Flow",
-                in: context,
-            ),
-        )
+        return emitMana("spendManaRefundChancePercent", "Mana Flow", amount: amountSpent, to: actor, in: &context)
     }
 
     private static func spendManaBurnIfNeeded(
@@ -158,21 +147,13 @@ package extension CombatTriggerEngine {
               context.roster.enemy.isAlive else { return [] }
         let keywords: [Keyword] = [.bleed, .burn, .poison]
         let keyword = keywords.randomElement(using: &context.rng) ?? .burn
-        if keyword == .bleed {
-            return DoTApplicator.applyBleed(
-                potency: 1,
-                to: context.roster.enemy.combatant,
-                sourceActorID: actor.id,
-                application: .attached,
-                in: &context,
-            )
-        }
-        return context.applyDecayingDoT(
+        return applyDoT(
             keyword: keyword,
             potency: 1,
             to: context.roster.enemy.combatant,
             sourceActorID: actor.id,
             application: .attached,
+            in: &context,
         )
     }
 
@@ -271,15 +252,9 @@ package extension CombatTriggerEngine {
         guard triggers.onReachZeroManaRestoreMana > 0,
               spentLastMana,
               context.claimBattleGuard(.darkRecovery, actorID: actor.id) else { return [] }
-        return context.restoreManaEmitting(
-            triggers.onReachZeroManaRestoreMana,
-            to: actor,
-            abilityName: triggerAbilityName(
-                "onReachZeroManaRestoreMana",
-                for: actor,
-                fallback: "Dark Recovery",
-                in: context,
-            ),
+        return emitMana(
+            "onReachZeroManaRestoreMana", "Dark Recovery",
+            amount: triggers.onReachZeroManaRestoreMana, to: actor, in: &context,
         )
     }
 
@@ -289,14 +264,8 @@ package extension CombatTriggerEngine {
         amountSpent: Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard triggers.closedCircuit, amountSpent > 0, context.roster.enemy.isAlive else { return [] }
-        return context.resolveDamage(DamageRequest(
-            amount: amountSpent,
-            target: context.roster.enemy.combatant,
-            keyword: .stun,
-            sourceActorID: actor.id,
-            options: .reaction(),
-        )).events
+        guard triggers.closedCircuit, amountSpent > 0 else { return [] }
+        return spendManaStunDamage(amount: amountSpent, actor: actor, in: &context)
     }
 
     private static func lastManaStunIfNeeded(
@@ -306,10 +275,18 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.spendLastManaStunDamage > 0,
-              spentLastMana,
-              context.roster.enemy.isAlive else { return [] }
+              spentLastMana else { return [] }
+        return spendManaStunDamage(amount: triggers.spendLastManaStunDamage, actor: actor, in: &context)
+    }
+
+    private static func spendManaStunDamage(
+        amount: Int,
+        actor: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard context.roster.enemy.isAlive else { return [] }
         return context.resolveDamage(DamageRequest(
-            amount: triggers.spendLastManaStunDamage,
+            amount: amount,
             target: context.roster.enemy.combatant,
             keyword: .stun,
             sourceActorID: actor.id,
@@ -378,15 +355,9 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard triggers.cardsPlayedManaThreshold > 0, triggers.cardsPlayedManaFlat > 0,
               count == triggers.cardsPlayedManaThreshold else { return [] }
-        return context.restoreManaEmitting(
-            triggers.cardsPlayedManaFlat,
-            to: actor,
-            abilityName: triggerAbilityName(
-                "cardsPlayedManaThreshold",
-                for: actor,
-                fallback: "Resonant Chimes",
-                in: context,
-            ),
+        return emitMana(
+            "cardsPlayedManaThreshold", "Resonant Chimes",
+            amount: triggers.cardsPlayedManaFlat, to: actor, in: &context,
         )
     }
 
@@ -395,24 +366,15 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         let amount = triggers.gainManaBlockFlat
         if amount > 0 {
-            events.append(contentsOf: context.applyBlock(
-                amount,
-                to: actor,
-                source: actor,
-                abilityName: triggerAbilityName("gainManaBlockFlat", for: actor, fallback: "Arcane Ward", in: context),
+            events.append(contentsOf: emitBlock(
+                "gainManaBlockFlat", "Arcane Ward",
+                amount: amount, to: actor, source: actor, in: &context,
             ))
         }
         if triggers.onGainManaHealFlat > 0 {
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.onGainManaHealFlat,
-                target: actor,
-                source: actor,
-                abilityName: triggerAbilityName(
-                    "onGainManaHealFlat",
-                    for: actor,
-                    fallback: "Life Tap",
-                    in: context,
-                ),
+            events.append(contentsOf: emitHeal(
+                "onGainManaHealFlat", "Life Tap",
+                amount: triggers.onGainManaHealFlat, to: actor, source: actor, in: &context,
             ))
         }
         return events

@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -281,119 +282,37 @@ def collect_recruit_event_ids() -> set[str]:
 
 @functools.cache
 def parse_affix_rows() -> list[AffixRow]:
-    return _parse_tsv_rows(
-        MANIFEST_DIR / "affixes.tsv",
-        [
-            "id",
-            "title",
-            "slot",
-            "keywords",
-            "weight",
-            "basic_description",
-            "astral_description",
-            "basic_modifiers",
-            "astral_modifiers",
-            "basic_triggers",
-            "astral_triggers",
-        ],
-        AffixRow,
-        min_columns=AFFIX_REQUIRED_COLUMNS,
-    )
+    return _parse_table("affix")
 
 
 @functools.cache
 def parse_trait_rows() -> list[TraitRow]:
-    return _parse_tsv_rows(
-        MANIFEST_DIR / "traits.tsv",
-        ["id", "name", "description", "modifiers", "triggers"],
-        TraitRow,
-    )
+    return _parse_table("trait")
 
 
 @functools.cache
 def parse_stage_rows() -> list[StageRow]:
-    return _parse_tsv_rows(
-        MANIFEST_DIR / "stages.tsv",
-        [
-            "chapter_id",
-            "chapter_number",
-            "chapter_title",
-            "theme",
-            "stage_number",
-            "encounter",
-            "enemy_id",
-            "encounter_art_id",
-            "encounter_art_title",
-        ],
-        StageRow,
-    )
+    return _parse_table("stage")
 
 
 @functools.cache
 def parse_item_base_rows() -> list[ItemBaseRow]:
-    return _parse_tsv_rows(
-        MANIFEST_DIR / "item_bases.tsv",
-        ["id", "name", "slot", "weapon_kind", "keywords"],
-        ItemBaseRow,
-    )
+    return _parse_table("item_base")
 
 
 @functools.cache
 def parse_combatant_rows() -> list[CombatantRow]:
-    return _parse_tsv_rows(
-        MANIFEST_DIR / "combatants.tsv",
-        [
-            "id",
-            "name",
-            "role",
-            "max_health",
-            "max_mana",
-            "basics",
-            "skills",
-            "ultimates",
-        ],
-        CombatantRow,
-    )
+    return _parse_table("combatant")
 
 
 @functools.cache
 def parse_enemy_rows() -> list[EnemyRow]:
-    return _parse_tsv_rows(
-        MANIFEST_DIR / "enemies.tsv",
-        [
-            "id",
-            "name",
-            "max_health",
-            "is_boss",
-            "abilities",
-            "trait_id",
-            "faction",
-        ],
-        EnemyRow,
-    )
+    return _parse_table("enemy")
 
 
 @functools.cache
 def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
-    return _parse_tsv_rows(
-        MANIFEST_DIR / "homestead_nodes.tsv",
-        [
-            "node_id",
-            "title",
-            "summary",
-            "icon_id",
-            "category",
-            "prerequisites",
-            "tier",
-            "stage_name",
-            "cost",
-            "bonus_title",
-            "bonus_description",
-            "modifiers",
-            "production",
-        ],
-        HomesteadNodeRow,
-    )
+    return _parse_table("homestead_node")
 
 
 def swift_escape(value: str) -> str:
@@ -496,10 +415,26 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
 
 ABILITY_DECL_BUILDERS = r"(?:Ability\()"
 
+ABILITY_DECL_PATTERN = (
+    rf"static let (\w+) = {ABILITY_DECL_BUILDERS}\s*"
+    r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)'
+)
+
 
 @functools.cache
 def _read_ability_source() -> str:
     return (ABILITY_DIR / "AbilityCatalog.swift").read_text()
+
+
+def iter_ability_decls() -> Iterator[tuple[str, str, str, str]]:
+    """Yield (symbol, id, name, tier) for each ability declaration.
+
+    Every `static let X = Ability(` declaration carries id/name/tier, so the
+    tier, shorthand, and inventory scans share this one pattern.
+    """
+    for match in re.finditer(ABILITY_DECL_PATTERN, _read_ability_source()):
+        symbol, ability_id, name, tier = match.groups()
+        yield symbol, ability_id, name, tier
 
 
 def collect_ability_symbols() -> set[str]:
@@ -508,12 +443,7 @@ def collect_ability_symbols() -> set[str]:
 
 def collect_ability_tiers() -> dict[str, str]:
     tiers: dict[str, str] = {}
-    for match in re.finditer(
-        rf"static let (\w+) = {ABILITY_DECL_BUILDERS}\s*"
-        r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)',
-        _read_ability_source(),
-    ):
-        symbol, _, _, tier = match.groups()
+    for symbol, _, _, tier in iter_ability_decls():
         if symbol in tiers:
             raise ValueError(f"Ability symbol '{symbol}' appears twice in AbilityCatalog.swift")
         tiers[symbol] = tier
@@ -577,9 +507,7 @@ def _validate_ability_symbols(
 def validate_trait_rows(rows: list[TraitRow]) -> None:
     seen: set[str] = set()
     for row in rows:
-        if row.id in seen:
-            raise ValueError(f"Duplicate trait id: {row.id}")
-        seen.add(row.id)
+        _ensure_unique(seen, row.id, "trait id")
 
         _validate_snake_id("trait id", row.id, row.id)
         _require_non_empty("trait name", row.name, row.id)
@@ -597,9 +525,7 @@ def validate_combatant_rows(
     ability_tiers = ability_tiers or collect_ability_tiers()
     seen: set[str] = set()
     for row in rows:
-        if row.id in seen:
-            raise ValueError(f"Duplicate combatant id: {row.id}")
-        seen.add(row.id)
+        _ensure_unique(seen, row.id, "combatant id")
 
         _validate_snake_id("combatant id", row.id, row.id)
         _require_non_empty("combatant name", row.name, row.id)
@@ -643,11 +569,9 @@ def validate_enemy_rows(
 ) -> None:
     seen: set[str] = set()
     for row in rows:
-        if row.id in seen:
-            raise ValueError(f"Duplicate enemy id: {row.id}")
+        _ensure_unique(seen, row.id, "enemy id")
         if row.id in combatant_ids:
             raise ValueError(f"Enemy id '{row.id}' conflicts with a hero/companion combatant id")
-        seen.add(row.id)
 
         _validate_snake_id("enemy id", row.id, row.id)
         _require_non_empty("enemy name", row.name, row.id)
@@ -786,9 +710,7 @@ def _validate_weight(raw: str, row_id: str) -> None:
 def validate_affix_rows(rows: list[AffixRow]) -> None:
     seen: set[str] = set()
     for row in rows:
-        if row.id in seen:
-            raise ValueError(f"Duplicate affix id: {row.id}")
-        seen.add(row.id)
+        _ensure_unique(seen, row.id, "affix id")
 
         _validate_affix_id(row.id, row.id)
         _require_non_empty("affix title", row.title, row.id)
@@ -1441,14 +1363,10 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         parse_homestead_combat_tokens(row.modifiers)
         validate_homestead_cost(row.cost, row_id)
         if row.production.strip():
-            if ":" not in row.production:
-                raise ValueError(
-                    f"Production entry {row.production!r} for {row_id} must be resource:quantity"
-                )
-            resource, quantity = row.production.split(":", 1)
-            if resource.strip() not in VALID_HOMESTEAD_RESOURCES:
-                raise ValueError(f"Unknown production resource '{resource}' for {row_id}")
-            _validate_positive_int("Production quantity", quantity.strip(), row_id, minimum=1)
+            try:
+                parse_homestead_production_value(row.production)
+            except ValueError as error:
+                raise ValueError(f"{error} for {row_id}") from error
         nodes.setdefault(row.node_id, []).append(row)
 
     node_tiers = {
@@ -1510,9 +1428,7 @@ def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:
 def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
     seen_ids: set[str] = set()
     for row in rows:
-        if row.id in seen_ids:
-            raise ValueError(f"Duplicate item base id: {row.id}")
-        seen_ids.add(row.id)
+        _ensure_unique(seen_ids, row.id, "item base id")
         if row.slot not in VALID_SLOTS:
             raise ValueError(f"Unknown item slot '{row.slot}' for {row.id}")
         valid_weapon_kinds = {"one_handed", "two_handed", "off_hand"}
@@ -1584,14 +1500,129 @@ class TalentRow:
     triggers: str
 
 
-@functools.cache
-def parse_talent_rows() -> list[TalentRow]:
-    return _parse_tsv_rows(
-        MANIFEST_DIR / "talents.tsv",
+# Single declarative table spec for manifest parsing; replaces eight
+# near-identical parse_* bodies. Column lists live here once; the thin
+# parse_* functions preserve the public API used by validators and tests.
+_TABLE_SPECS: dict[str, tuple[str, list[str], type, int | None]] = {
+    "affix": (
+        "affixes.tsv",
+        [
+            "id",
+            "title",
+            "slot",
+            "keywords",
+            "weight",
+            "basic_description",
+            "astral_description",
+            "basic_modifiers",
+            "astral_modifiers",
+            "basic_triggers",
+            "astral_triggers",
+        ],
+        AffixRow,
+        AFFIX_REQUIRED_COLUMNS,
+    ),
+    "trait": (
+        "traits.tsv",
+        ["id", "name", "description", "modifiers", "triggers"],
+        TraitRow,
+        None,
+    ),
+    "stage": (
+        "stages.tsv",
+        [
+            "chapter_id",
+            "chapter_number",
+            "chapter_title",
+            "theme",
+            "stage_number",
+            "encounter",
+            "enemy_id",
+            "encounter_art_id",
+            "encounter_art_title",
+        ],
+        StageRow,
+        None,
+    ),
+    "item_base": (
+        "item_bases.tsv",
+        ["id", "name", "slot", "weapon_kind", "keywords"],
+        ItemBaseRow,
+        None,
+    ),
+    "combatant": (
+        "combatants.tsv",
+        [
+            "id",
+            "name",
+            "role",
+            "max_health",
+            "max_mana",
+            "basics",
+            "skills",
+            "ultimates",
+        ],
+        CombatantRow,
+        None,
+    ),
+    "enemy": (
+        "enemies.tsv",
+        [
+            "id",
+            "name",
+            "max_health",
+            "is_boss",
+            "abilities",
+            "trait_id",
+            "faction",
+        ],
+        EnemyRow,
+        None,
+    ),
+    "homestead_node": (
+        "homestead_nodes.tsv",
+        [
+            "node_id",
+            "title",
+            "summary",
+            "icon_id",
+            "category",
+            "prerequisites",
+            "tier",
+            "stage_name",
+            "cost",
+            "bonus_title",
+            "bonus_description",
+            "modifiers",
+            "production",
+        ],
+        HomesteadNodeRow,
+        None,
+    ),
+    "talent": (
+        "talents.tsv",
         ["id", "name", "icon_id", "description", "modifiers", "triggers"],
         TalentRow,
-        min_columns=TALENT_REQUIRED_COLUMNS,
-    )
+        TALENT_REQUIRED_COLUMNS,
+    ),
+}
+
+
+def _parse_table(name: str):
+    filename, columns, row_type, min_columns = _TABLE_SPECS[name]
+    return _parse_tsv_rows(MANIFEST_DIR / filename, columns, row_type, min_columns=min_columns)
+
+
+def _ensure_unique(seen: set[str], value: str, label: str) -> None:
+    """Single home for duplicate-ID checks; replaces repeated seen-set blocks."""
+    if value in seen:
+        raise ValueError(f"Duplicate {label}: {value}")
+    seen.add(value)
+
+
+@functools.cache
+def parse_talent_rows() -> list[TalentRow]:
+    return _parse_table("talent")
 
 
 def combatant_id_for_talent(talent_id: str, sorted_combatant_ids: list[str]) -> str:
@@ -1659,9 +1690,7 @@ def validate_talent_rows(rows: list[TalentRow], combatant_ids: list[str] | None 
     seen: set[str] = set()
     sorted_cids = sorted(combatant_ids, key=len, reverse=True) if combatant_ids is not None else None
     for row in rows:
-        if row.id in seen:
-            raise ValueError(f"Duplicate talent id: {row.id}")
-        seen.add(row.id)
+        _ensure_unique(seen, row.id, "talent id")
 
         _validate_snake_id("talent id", row.id, row.id)
         if sorted_cids is not None:
@@ -1730,11 +1759,7 @@ def validate_manifests() -> tuple[
 
 def generate_ability_shorthand() -> None:
     entries: list[tuple[str, str]] = []
-    for match in re.finditer(
-        rf"static let (\w+) = {ABILITY_DECL_BUILDERS}",
-        _read_ability_source(),
-    ):
-        symbol = match.group(1)
+    for symbol, _, _, _ in iter_ability_decls():
         entries.append((symbol, f"AbilityCatalog.{symbol}"))
 
     entries.sort(key=lambda item: item[0])
@@ -1746,12 +1771,7 @@ def generate_ability_shorthand() -> None:
 def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
     """Regex-extract id/name/tier from the ability catalog (cross-check only)."""
     rows: list[tuple[str, str, str]] = []
-    for match in re.finditer(
-        rf"static let \w+ = {ABILITY_DECL_BUILDERS}\s*"
-        r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)',
-        _read_ability_source(),
-    ):
-        ability_id, name, tier = match.groups()
+    for _, ability_id, name, tier in iter_ability_decls():
         rows.append((ability_id, name, tier))
     tier_rank = {"basic": 0, "skill": 1, "ultimate": 2}
     rows.sort(key=lambda item: (tier_rank[item[2]], item[1].lower()))

@@ -63,6 +63,13 @@ struct TalentModelsTests {
         #expect(CombatantProgression.at(level: 44).totalTalentPoints == 22)
     }
 
+    @Test func `available talent points clamp extreme counts without trapping`() {
+        let level10 = CombatantProgression.at(level: 10)
+        #expect(level10.availableTalentPoints(unlockedCount: Int.min) == 5)
+        #expect(level10.availableTalentPoints(unlockedCount: -1) == 5)
+        #expect(level10.availableTalentPoints(unlockedCount: Int.max) == 0)
+    }
+
     @Test func `tier 1 nodes can be unlocked with points`() {
         let tree = makeSampleTree()
         let t1Node = tree.nodes(forRow: 1)[0]
@@ -186,5 +193,43 @@ struct TalentModelsTests {
         let overBudget = Set(tree.nodes.map(\.id))
 
         #expect(config.cappedUnlocks(overBudget, budget: 7) == Set(tree.nodes.prefix(7).map(\.id)))
+    }
+
+    @Test func `capped unlocks with negative budget is empty`() {
+        let config = CombatantTalentConfig(combatantID: "rogue", trees: [makeSampleTree()])
+        #expect(config.cappedUnlocks(["anything"], budget: -1).isEmpty)
+    }
+
+    @Test func `capped unlocks with no trees is empty`() {
+        let config = CombatantTalentConfig(combatantID: "rogue", trees: [])
+        #expect(config.cappedUnlocks(["anything"], budget: 5).isEmpty)
+        #expect(!config.hasUnlockableNode(unlockedNodeIDs: [], availablePoints: 1))
+    }
+
+    @Test func `capped unlocks follow tree array order`() {
+        let poison = makeSampleTree(keyword: .poison)
+        let bleed = makeSampleTree(keyword: .bleed)
+        let forward = CombatantTalentConfig(combatantID: "rogue", trees: [poison, bleed])
+        let reversed = CombatantTalentConfig(combatantID: "rogue", trees: [bleed, poison])
+        let overBudget = Set(poison.nodes.map(\.id) + bleed.nodes.map(\.id))
+
+        // Tree priority is input order: first tree wins ties at budget 1.
+        #expect(forward.cappedUnlocks(overBudget, budget: 1) == [poison.nodes[0].id])
+        #expect(reversed.cappedUnlocks(overBudget, budget: 1) == [bleed.nodes[0].id])
+    }
+
+    @Test func `rows sort regardless of node input order`() {
+        let ordered = makeSampleTree()
+        let shuffledNodes = ordered.nodes.reversed()
+        let shuffled = TalentTree(keyword: .poison, nodes: Array(shuffledNodes))
+        #expect(shuffled.rows == [1, 2, 3, 4])
+    }
+
+    @Test func `duplicate node IDs across trees keep one copy`() {
+        let shared = TalentNode(id: "shared", name: "Shared", keyword: .poison, row: 1, description: "Shared.")
+        let first = TalentTree(keyword: .poison, nodes: [shared])
+        let second = TalentTree(keyword: .bleed, nodes: [shared])
+        let config = CombatantTalentConfig(combatantID: "rogue", trees: [first, second])
+        #expect(config.cappedUnlocks(["shared"], budget: 2) == ["shared"])
     }
 }

@@ -48,18 +48,12 @@ package struct DamageResolutionState {
     public let options: DamageOperation
     var provenance: DamageProvenance?
 
-    /// Damage still to be dealt after each pipeline stage. `buildupDamage`
-    /// tracks the same value pre-shield so talent reactions can scale off the
-    /// unblocked hit; shield absorption decrements both together and every
-    /// other stage must keep them in sync (`buildupDamage == remaining`
-    /// until absorption, then both reduced by the absorbed amount). `dealt`
-    /// is the outgoing-damage snapshot used for crit/pacing math, not a third
+    /// Damage still to be dealt after each pipeline stage. `dealt`
+    /// is the outgoing-damage snapshot used for crit/pacing math, not a second
     /// running total.
     public var remaining: Int = 0
 
     public var dealt: Int = 0
-
-    public var buildupDamage: Int = 0
 
     public var statBonus: Int = 0
     public var itemBonus: Int = 0

@@ -91,6 +91,16 @@ package enum CombatTriggerEngine {
         return context.companionModifiers.triggers
     }
 
+    /// Runs `perform` inside the hero-reaction scope shared by reward emitters.
+    static func withHeroReaction(
+        in context: inout BattleState,
+        perform: (inout BattleState) -> [ActionEvent],
+    ) -> [ActionEvent] {
+        context.resolution.enter(.heroReaction)
+        defer { context.resolution.leave(.heroReaction) }
+        return perform(&context)
+    }
+
     static func resolveBonusHeal(
         amount: Int,
         source: Combatant,
@@ -110,6 +120,71 @@ package enum CombatTriggerEngine {
                 ),
             ),
             in: &context,
+        )
+    }
+
+    /// Reward emitters fold the trigger-name lookup into the reward call so
+    /// trigger sites stay one statement. `source` names the trigger that fired;
+    /// for mana the naming actor can differ from the recipient via `nameFrom`.
+    static func emitBlock(
+        _ key: String,
+        _ fallback: String,
+        amount: Int,
+        to target: Combatant,
+        source: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        context.applyBlock(
+            amount,
+            to: target,
+            source: source,
+            abilityName: triggerAbilityName(key, for: source, fallback: fallback, in: context),
+        )
+    }
+
+    static func emitHeal(
+        _ key: String,
+        _ fallback: String,
+        amount: Int,
+        to target: Combatant,
+        source: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        context.healEmitting(
+            amount: amount,
+            target: target,
+            source: source,
+            abilityName: triggerAbilityName(key, for: source, fallback: fallback, in: context),
+        )
+    }
+
+    static func emitMana(
+        _ key: String,
+        _ fallback: String,
+        amount: Int,
+        to target: Combatant,
+        nameFrom: Combatant? = nil,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let source = nameFrom ?? target
+        return context.restoreManaEmitting(
+            amount,
+            to: target,
+            abilityName: triggerAbilityName(key, for: source, fallback: fallback, in: context),
+        )
+    }
+
+    static func emitGold(
+        _ key: String,
+        _ fallback: String,
+        amount: Int,
+        to target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        context.grantGoldEvent(
+            amount,
+            to: target,
+            abilityName: triggerAbilityName(key, for: target, fallback: fallback, in: context),
         )
     }
 

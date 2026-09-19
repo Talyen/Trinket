@@ -66,8 +66,8 @@ public final class JourneyPlayMode {
 
     @discardableResult
     public func startBattle(for stage: Stage) -> StageMapMessage? {
-        // No access pre-check here: PlayBattleLaunch.startBattle owns the gate
-        // and returns the restriction first.
+        // No access pre-check here: PlayBattleLaunch.startBattle owns the
+        // gate and returns the restriction first.
         battleLaunch.startBattle(
             origin: .journey(stageID: stage.id),
             encounters: encounters,
@@ -203,7 +203,7 @@ public final class JourneyPlayMode {
                     materialRewards: isLast ? materialRewards : nil,
                     rewardItem: isLast ? rewardItem : nil,
                     loot: isLast ? loot : nil,
-                    enemyEncounterLevel: enemyEncounterLevel,
+                    enemyEncounterLevel: isLast ? enemyEncounterLevel : nil,
                     in: GameContent.chapters,
                     save: &save,
                 )
@@ -229,14 +229,15 @@ extension JourneyPlayMode {
         for stage: Stage,
         encounter: ScaledEncounter,
     ) -> BattleLootResult {
-        StageCompletion.resolveLoot(
+        let loot = BattleLootContext(playerSave: playerSave)
+        return StageCompletion.resolveLoot(
             for: stage,
             encounterLevel: encounter.level,
             enemyIsBoss: VictoryRewardApplier.isBoss(enemyID: encounter.combatant.id),
-            worldSeed: playerSave.worldSeed,
-            ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-            ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
-            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
+            worldSeed: loot.worldSeed,
+            ownedTrinketIDs: loot.ownedTrinketIDs,
+            ownedUniqueIDs: loot.ownedUniqueIDs,
+            astralChanceBonusPercent: loot.astralChanceBonusPercent,
         )
     }
 
@@ -250,46 +251,40 @@ extension JourneyPlayMode {
     private func combatRequest(
         for stage: Stage,
         encounter: ScaledEncounter,
-    ) -> PlayCombatRequest {
-        let stageRewardsAlreadyClaimed = Self.stageRewardsAlreadyClaimed(
-            for: stage,
-            journey: playerSave.journey,
-        )
-        return PlayCombatRequest(
+    ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
+        let loot = battleLoot(for: stage, encounter: encounter)
+        let input = ModeBattleSpec.launchInput(
             origin: .journey(stageID: stage.id),
             encounter: encounter,
-            route: battleRoute(stage: stage),
-            loot: battleLoot(for: stage, encounter: encounter),
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            loot: loot,
+            roster: playerSave.roster,
+            stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
+                for: stage,
+                journey: playerSave.journey,
+            ),
         )
+        return (input, battleRoute(stage: stage))
     }
 
     func battleRoute(stage: Stage) -> PlayBattleRoute {
-        let origin = PlayBattleOrigin.journey(stageID: stage.id)
-        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, award, materialRewards, loot in
-            guard let self else { return .unavailable }
-            let transaction = playerSave.persistTransaction(logging: "Failed to persist stage completion") { save -> Result<
-                EncounterCompletion,
-                PlayCompletionFailure,
-            > in
-                switch StageCompletion.complete(
-                    stage,
-                    hero: configuration.hero.combatant,
-                    companion: configuration.companion.combatant,
-                    battleGold: award.award.goldFlow,
-                    award: award,
-                    materialRewards: materialRewards,
-                    rewardItem: presentation?.pendingRewardItem,
-                    loot: loot,
-                    enemyEncounterLevel: configuration.enemyEncounterLevel,
-                    in: GameContent.chapters,
-                    save: &save,
-                ) {
-                case .completed: return .success(.completed)
-                case .alreadyCompleted, .unavailable: return .failure(.unavailable)
-                }
-            }
-            return PlayBattleRoute.completionResult(transaction)
+        PlayBattleRoute.makeModeRoute(
+            origin: .journey(stageID: stage.id),
+            logging: "Failed to persist stage completion",
+            playerSave: playerSave,
+        ) { configuration, presentation, award, materialRewards, loot, save in
+            StageCompletion.complete(
+                stage,
+                hero: configuration.hero.combatant,
+                companion: configuration.companion.combatant,
+                battleGold: award.award.goldFlow,
+                award: award,
+                materialRewards: materialRewards,
+                rewardItem: presentation?.pendingRewardItem,
+                loot: loot,
+                enemyEncounterLevel: configuration.enemyEncounterLevel,
+                in: GameContent.chapters,
+                save: &save,
+            )
         }
     }
 }

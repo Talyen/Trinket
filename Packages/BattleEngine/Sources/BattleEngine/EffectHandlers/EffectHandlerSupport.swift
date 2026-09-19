@@ -78,6 +78,13 @@ enum EffectRemoval {
         effects.removeAll { $0.id == removed.id }
         return removed
     }
+
+    /// Distinct keywords in stable order for per-keyword removal events.
+    /// Shared by Cleanse/Purge so the two operations cannot drift apart again.
+    static func distinctSortedKeywords(from removed: [ActiveEffect]) -> [Keyword] {
+        let distinct = Set(removed.map(\.keyword))
+        return distinct.sorted { $0.rawValue < $1.rawValue }
+    }
 }
 
 enum TimedBuffSummary {

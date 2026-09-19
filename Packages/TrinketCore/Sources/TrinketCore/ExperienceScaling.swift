@@ -5,7 +5,8 @@ enum ProgressionBracket: Equatable {
     case mid
     case late
 
-    /// Boundaries come from `EnemyPowerCurve.midLevel/lateLevel`; change both together.
+    /// Boundaries are the single source of truth on
+    /// `EnemyPowerCurve.midLevel/lateLevel`; this reads them directly.
     static func forLevel(_ level: Int) -> Self {
         if level < EnemyPowerCurve.midLevel {
             return .early
@@ -31,7 +32,8 @@ public enum ExperienceScaling {
     private static let catchUpDecayConstant = 2.0
 
     public static func levelDeltaMultiplier(playerLevel: Int, enemyLevel: Int) -> Double {
-        let gap = playerLevel - enemyLevel
+        // Saturating gap: extreme levels must fall off to zero rather than trap.
+        let gap = SaturatedArithmetic.saturatingSub(playerLevel, enemyLevel)
         guard gap < underlevelCutoff else { return 0 }
         guard gap > 0 else { return 1 }
 
@@ -80,8 +82,7 @@ public enum ExperienceScaling {
     /// is the call-site convenience used by reward code.
     public static func cappedAward(_ amount: Int, requiredXP: Int) -> Int {
         guard amount > 0 else { return 0 }
-        let (multiplied, overflow) = max(0, requiredXP).multipliedReportingOverflow(by: maxGrantLevelsEquivalent)
-        let ceiling = overflow ? Int.max : multiplied
+        let ceiling = SaturatedArithmetic.saturatingMul(max(0, requiredXP), maxGrantLevelsEquivalent)
         return min(amount, ceiling)
     }
 
@@ -102,7 +103,8 @@ public enum ExperienceScaling {
         highestLevel: Int,
         maxMultiplier: Double = 2.5,
     ) -> Double {
-        let gap = max(0, highestLevel - combatantLevel)
+        // Saturating gap: extreme levels must clamp rather than trap.
+        let gap = max(0, SaturatedArithmetic.saturatingSub(highestLevel, combatantLevel))
         guard gap > 0 else { return 1.0 }
         return 1.0 + (maxMultiplier - 1.0) * (1.0 - exp(-Double(gap) / catchUpDecayConstant))
     }

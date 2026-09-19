@@ -105,23 +105,17 @@ public struct ExperienceBar: View {
         }
         .onChange(of: reduceMotion) { _, isReduced in
             guard isReduced else { return }
-            animationTask?.cancel()
-            animationTask = nil
-            snapToPost()
-            reportCompletion()
+            cancelAndSnap()
         }
         .onChange(of: snapToFinal) { _, shouldSnap in
             guard shouldSnap else { return }
-            animationTask?.cancel()
-            animationTask = nil
-            snapToPost()
-            reportCompletion()
+            cancelAndSnap()
         }
         .onChange(of: pre) { _, _ in
-            finishImmediately()
+            cancelAndSnap()
         }
         .onChange(of: post) { _, _ in
-            finishImmediately()
+            cancelAndSnap()
         }
         .onDisappear {
             animationTask?.cancel()
@@ -175,7 +169,7 @@ public struct ExperienceBar: View {
         }
     }
 
-    private func finishImmediately() {
+    private func cancelAndSnap() {
         animationTask?.cancel()
         animationTask = nil
         snapToPost()
@@ -183,9 +177,7 @@ public struct ExperienceBar: View {
     }
 
     private func snapToPost() {
-        var transaction = Transaction(animation: nil)
-        transaction.disablesAnimations = true
-        withTransaction(transaction) {
+        withoutAnimation {
             displayedLevel = post.level
             displayedXP = post.currentXP
             displayedRequiredXP = post.requiredXP
@@ -249,13 +241,19 @@ public struct ExperienceBar: View {
     }
 
     private func applyLevelUp(newLevel: Int, newRequiredXP: Int) {
-        var transaction = Transaction(animation: nil)
-        transaction.disablesAnimations = true
-        withTransaction(transaction) {
+        withoutAnimation {
             displayedLevel = newLevel
             displayedRequiredXP = newRequiredXP
             displayedXP = 0
             displayedFraction = 0
+        }
+    }
+
+    private func withoutAnimation(_ updates: () -> Void) {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            updates()
         }
     }
 

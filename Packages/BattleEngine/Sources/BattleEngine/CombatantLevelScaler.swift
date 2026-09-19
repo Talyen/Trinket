@@ -37,10 +37,10 @@ public enum CombatantLevelScaler {
         )
     }
 
-    public static func powerRating(for enemy: Enemy, level: Int) -> CombatPowerSnapshot {
+    public static func powerRating(for enemy: Enemy, level: Int) -> (level: Int, maxHealth: Int, rawDamagePercent: Double) {
         let scaled = scale(enemy: enemy, level: level)
         let rawDamage = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss)
-        return CombatPowerSnapshot(
+        return (
             level: level,
             maxHealth: scaled.maxHealth,
             rawDamagePercent: rawDamage,

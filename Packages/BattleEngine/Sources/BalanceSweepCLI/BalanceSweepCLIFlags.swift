@@ -79,15 +79,9 @@ extension BalanceSweepCLI {
 
         mutating func consume(_ arguments: [String], index: inout Int) throws {
             let arg = arguments[index]
-            if arg == "--worker" {
-                isWorker = true
-                return
-            }
-            try consumeValued(arg, arguments: arguments, index: &index)
-        }
-
-        mutating func consumeFilters(_ arg: String, arguments: [String], index: inout Int) throws -> Bool {
             switch arg {
+            case "--worker":
+                isWorker = true
             case "--hero":
                 heroIDs = try BalanceSweepCLI.csvValue(after: arg, in: arguments, index: &index)
             case "--companion":
@@ -96,27 +90,6 @@ extension BalanceSweepCLI {
                 enemyIDs = try BalanceSweepCLI.csvValue(after: arg, in: arguments, index: &index)
             case "--focus":
                 focusIDs = try BalanceSweepCLI.csvValue(after: arg, in: arguments, index: &index)
-            default:
-                return false
-            }
-            return true
-        }
-
-        mutating func consumeValued(_ arg: String, arguments: [String], index: inout Int) throws {
-            if try consumeFilters(arg, arguments: arguments, index: &index) {
-                return
-            }
-            if try consumeSampleFlags(arg, arguments: arguments, index: &index) {
-                return
-            }
-            if try consumeWorkFlags(arg, arguments: arguments, index: &index) {
-                return
-            }
-            try consumePolicyFlags(arg, arguments: arguments, index: &index)
-        }
-
-        mutating func consumeSampleFlags(_ arg: String, arguments: [String], index: inout Int) throws -> Bool {
-            switch arg {
             case "--mode":
                 let raw = try BalanceSweepCLI.stringValue(after: arg, in: arguments, index: &index)
                 guard let parsed = BalanceSweepMode(rawValue: raw) else {
@@ -131,12 +104,11 @@ extension BalanceSweepCLI {
                 let raw = try BalanceSweepCLI.stringValue(after: arg, in: arguments, index: &index)
                 tiers = try BalanceSweepCLI.parseTiers(raw)
             default:
-                return false
+                try consumeRunFlags(arg, arguments: arguments, index: &index)
             }
-            return true
         }
 
-        mutating func consumeWorkFlags(_ arg: String, arguments: [String], index: inout Int) throws -> Bool {
+        mutating func consumeRunFlags(_ arg: String, arguments: [String], index: inout Int) throws {
             switch arg {
             case "--jobs":
                 jobs = try BalanceSweepCLI.intValue(after: arg, in: arguments, index: &index)
@@ -160,14 +132,6 @@ extension BalanceSweepCLI {
                 comfortHPThreshold = try BalanceSweepCLI.doubleValue(after: arg, in: arguments, index: &index)
             case "--comfort-rounds":
                 comfortRoundThreshold = try BalanceSweepCLI.doubleValue(after: arg, in: arguments, index: &index)
-            default:
-                return false
-            }
-            return true
-        }
-
-        mutating func consumePolicyFlags(_ arg: String, arguments: [String], index: inout Int) throws {
-            switch arg {
             case "--pacing":
                 let raw = try BalanceSweepCLI.stringValue(after: arg, in: arguments, index: &index)
                 switch raw.lowercased() {

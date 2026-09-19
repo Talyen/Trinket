@@ -126,11 +126,11 @@ unapproved merge algorithm.
   beta, repeating stage 3's critical device scenarios and stage 2's rollback proof.
   Record actual outcomes and build IDs. Preserve source identifiers even though the
   App Store display name includes “Heroes & Companions.”
-- [ ] Ship `PrivacyInfo.xcprivacy` and review its declarations, App Store privacy
-  answers, support/privacy pages, Options/reset copy, and review notes against actual
-  behavior. Describe optional iCloud sync, offline play without login, and propagated
-  reset accurately; do not promise manual sync controls. Keep existing local-only
-  disclosures until sync ships. Use [Apple's privacy definitions](https://developer.apple.com/app-store/app-privacy-details/).
+- [ ] Ship `PrivacyInfo.xcprivacy` and reconcile the iCloud sync delta against actual
+  behavior: optional sync, offline play without login, and propagated reset.
+  Do not promise manual sync controls. General support/privacy pages and App Privacy
+  answers follow the [release procedure](Release.md#prepare-while-the-beta-is-running);
+  keep existing local-only disclosures until sync ships. Use [Apple's privacy definitions](https://developer.apple.com/app-store/app-privacy-details/).
 - [ ] Enable automatic sync by default only after the required gates pass. Retain the
   tested rollback and repeat relevant checks when the implementation or provisioning
   changes. Verify Production again before App Store submission.
@@ -142,7 +142,9 @@ Deploying a CloudKit schema does not submit the app for App Review or release it
 Preparing and compiling an enabled Release build does not access Production;
 installing/running that distributed build does. Keep these actions distinct.
 
-The build switch is ready without another save-code change:
+The build switch is ready without another save-code change. The checked-in
+default stays `NO`; pass `YES` only as an archive-time override for the
+intended TestFlight build:
 
 | Build | `CLOUDKIT_SYNC_ENABLED` | CloudKit environment |
 |---|---|---|

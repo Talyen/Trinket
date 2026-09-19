@@ -221,7 +221,7 @@ extension CombatTriggerTalentDamageTests {
                 amount: amount, combatant: battle.enemy, sourceActorID: battle.hero.id,
                 damageKeyword: .bleed, options: .periodic,
             )
-            hit.buildupDamage = amount
+            hit.remaining = amount
             DamagePipeline.applyAttackerMirroredReactions(to: &hit, in: &battle)
             let poison = battle.activeEffects(of: battle.enemy).first { $0.effect.keyword == .poison }
             #expect((poison != nil) == shouldProc)

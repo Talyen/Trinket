@@ -172,10 +172,10 @@ A failing engine/hand scenario is a lead, not proof of engine cost: confirm the 
 
 Do not freeze slots, delay card removal, add placeholders, split user-visible work across frames, reduce feedback richness, lower asset resolution, reduce particle counts, or add another presentation framework to win a metric. Hand movement is gameplay feedback.
 
-Do not drop launch or imminent artwork pins, replace `PreparedArtworkCache`
-hits with on-demand `Image(name)`, or lower the budgets below to reduce memory;
-see [Memory and energy](#memory-and-energy). Pins are the eviction defense;
-`NSCache` alone is not. Budgets are tuned for
+Pin lifecycle belongs to [ui-performance.md](../AgentContext/ui-performance.md):
+do not drop launch or imminent artwork pins, replace `PreparedArtworkCache`
+hits with on-demand `Image(name)`, or lower the budgets below to reduce memory.
+Budgets are tuned for
 the current supported working set; their enforced values are listed once below.
 
 ### Artwork Budgets
@@ -265,8 +265,8 @@ Repeat the same journey after the change and compare peaks and settled
 footprint. Verify cache eviction and scene background/foreground behavior; a
 lower peak that produces repeated decode churn is not automatically an
 improvement. Launch and imminent-destination artwork pins are hitch prevention
-— do not release the first-interactive working set after warmup to lower the
-peak.
+(see [ui-performance.md](../AgentContext/ui-performance.md)); do not release the
+first-interactive working set after warmup to lower the peak.
 
 For art inputs, `./Scripts/report-art-memory.sh` estimates full-catalog RGBA
 decode cost. It is a catalog-sizing signal, not expected simultaneous

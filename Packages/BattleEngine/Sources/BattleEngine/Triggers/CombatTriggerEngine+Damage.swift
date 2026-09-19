@@ -258,11 +258,8 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let amount = context.modifiers(for: source.id).triggers.stunDamageBlockFlat
         guard amount > 0 else { return [] }
-        return context.applyBlock(
-            amount,
-            to: source,
-            source: source,
-            abilityName: triggerAbilityName("stunDamageBlockFlat", for: source, fallback: "Oathbound", in: context),
+        return emitBlock(
+            "stunDamageBlockFlat", "Oathbound", amount: amount, to: source, source: source, in: &context,
         )
     }
 
@@ -275,11 +272,9 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: source.id).triggers
         var events = burnDamageHeals(triggers: triggers, source: source, in: &context)
         if triggers.onBurnDamageGainBlock > 0 {
-            events.append(contentsOf: context.applyBlock(
-                triggers.onBurnDamageGainBlock,
-                to: source,
-                source: source,
-                abilityName: triggerAbilityName("onBurnDamageGainBlock", for: source, fallback: "Flame Shield", in: context),
+            events.append(contentsOf: emitBlock(
+                "onBurnDamageGainBlock", "Flame Shield",
+                amount: triggers.onBurnDamageGainBlock, to: source, source: source, in: &context,
             ))
         }
         events.append(contentsOf: emberShieldIfNeeded(source: source, in: &context))
@@ -302,11 +297,8 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         guard triggers.freezeDamageGrantsBlock, amount > 0 else { return [] }
-        return context.applyBlock(
-            amount,
-            to: source,
-            source: source,
-            abilityName: triggerAbilityName("freezeDamageGrantsBlock", for: source, fallback: "Rimeheart", in: context),
+        return emitBlock(
+            "freezeDamageGrantsBlock", "Rimeheart", amount: amount, to: source, source: source, in: &context,
         )
     }
 
@@ -317,30 +309,16 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.burnDamageHealFlat > 0 {
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.burnDamageHealFlat,
-                target: source,
-                source: source,
-                abilityName: triggerAbilityName(
-                    "burnDamageHealFlat",
-                    for: source,
-                    fallback: "Bloodfire",
-                    in: context,
-                ),
+            events.append(contentsOf: emitHeal(
+                "burnDamageHealFlat", "Bloodfire",
+                amount: triggers.burnDamageHealFlat, to: source, source: source, in: &context,
             ))
         }
         if triggers.onBurnDamageHealLowestAllyFlat > 0 {
             let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.onBurnDamageHealLowestAllyFlat,
-                target: lowest,
-                source: source,
-                abilityName: triggerAbilityName(
-                    "onBurnDamageHealLowestAllyFlat",
-                    for: source,
-                    fallback: "Healing Flames",
-                    in: context,
-                ),
+            events.append(contentsOf: emitHeal(
+                "onBurnDamageHealLowestAllyFlat", "Healing Flames",
+                amount: triggers.onBurnDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,
             ))
         }
         return events
@@ -355,16 +333,12 @@ package extension CombatTriggerEngine {
               source.id != context.roster.companion.id,
               context.companionModifiers.triggers.onAllyBurnDamageGainBlock > 0
         else { return [] }
-        return context.applyBlock(
-            context.companionModifiers.triggers.onAllyBurnDamageGainBlock,
+        return emitBlock(
+            "onAllyBurnDamageGainBlock", "Ember Shield",
+            amount: context.companionModifiers.triggers.onAllyBurnDamageGainBlock,
             to: context.roster.companion.combatant,
             source: context.roster.companion.combatant,
-            abilityName: triggerAbilityName(
-                "onAllyBurnDamageGainBlock",
-                for: context.roster.companion.combatant,
-                fallback: "Ember Shield",
-                in: context,
-            ),
+            in: &context,
         )
     }
 
@@ -391,35 +365,26 @@ package extension CombatTriggerEngine {
         )
 
         if profile.triggers.criticalGoldFlat > 0 {
-            events.append(contentsOf: context.grantGoldEvent(
-                profile.triggers.criticalGoldFlat,
-                to: source,
-                abilityName: triggerAbilityName("criticalGoldFlat", for: source, fallback: "Cutpurse", in: context),
+            events.append(contentsOf: emitGold(
+                "criticalGoldFlat", "Cutpurse", amount: profile.triggers.criticalGoldFlat, to: source, in: &context,
             ))
         }
 
         if profile.triggers.criticalActionGoldFlat > 0,
            context.claimActionGuard(.criticalActionGold, actorID: source.id) {
-            events.append(contentsOf: context.grantGoldEvent(
-                profile.triggers.criticalActionGoldFlat,
-                to: source,
-                abilityName: triggerAbilityName("criticalActionGoldFlat", for: source, fallback: "Lucky Clover", in: context),
+            events.append(contentsOf: emitGold(
+                "criticalActionGoldFlat", "Lucky Clover",
+                amount: profile.triggers.criticalActionGoldFlat, to: source, in: &context,
             ))
         }
 
-        if profile.triggers.criticalApplyPoison > 0, context.roster.health(for: enemy) > 0 {
+        for (keyword, potency) in [
+            (Keyword.poison, profile.triggers.criticalApplyPoison),
+            (Keyword.burn, profile.triggers.criticalApplyBurn),
+        ] where potency > 0 && context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: applyDoT(
-                keyword: .poison,
-                potency: profile.triggers.criticalApplyPoison,
-                to: enemy,
-                sourceActorID: source.id,
-                in: &context,
-            ))
-        }
-        if profile.triggers.criticalApplyBurn > 0, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: applyDoT(
-                keyword: .burn,
-                potency: profile.triggers.criticalApplyBurn,
+                keyword: keyword,
+                potency: potency,
                 to: enemy,
                 sourceActorID: source.id,
                 in: &context,
@@ -447,10 +412,9 @@ package extension CombatTriggerEngine {
         }
         if profile.triggers.criticalVsStunnedEnemyGold > 0,
            context.roster.hasControlStatus(for: enemy, keyword: .stun) {
-            events.append(contentsOf: context.grantGoldEvent(
-                profile.triggers.criticalVsStunnedEnemyGold,
-                to: source,
-                abilityName: triggerAbilityName("criticalVsStunnedEnemyGold", for: source, fallback: "Confounding Loot", in: context),
+            events.append(contentsOf: emitGold(
+                "criticalVsStunnedEnemyGold", "Confounding Loot",
+                amount: profile.triggers.criticalVsStunnedEnemyGold, to: source, in: &context,
             ))
         }
 

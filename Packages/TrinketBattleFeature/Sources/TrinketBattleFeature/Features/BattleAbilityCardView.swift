@@ -56,10 +56,6 @@ struct BattleAbilityCardView: View {
         didExceedTapSlop
     }
 
-    private var playDragThreshold: CGFloat {
-        BattleCardGesturePolicy.playDragThreshold
-    }
-
     var body: some View {
         BattleAbilityCardFace(
             artworkName: card.ability.artReference?.imageName,
@@ -75,7 +71,7 @@ struct BattleAbilityCardView: View {
             cornerRadius: TrinketDesign.Corners.card,
             lineWidth: BattleMotion.cardArmedRingLineWidth,
         )
-        .scaleEffect(x: activeScale.width, y: activeScale.height)
+        .scaleEffect(x: heldScale.width, y: heldScale.height)
         .animation(BattleMotion.cardPress, value: isGestureActive)
         .rotationEffect(.degrees(activeRotation), anchor: .bottom)
         .rotation3DEffect(
@@ -189,10 +185,6 @@ struct BattleAbilityCardView: View {
         return CGSize(width: base, height: base)
     }
 
-    private var activeScale: CGSize {
-        heldScale
-    }
-
     private func updateDrag(_ value: DragGesture.Value) {
         guard interactionResolution != .inspecting else { return }
 
@@ -216,14 +208,14 @@ struct BattleAbilityCardView: View {
         dragTranslation = BattleCardGesturePolicy.presentationTranslation(
             value.translation,
             isPlayable: isPlayable,
-            threshold: playDragThreshold,
+            threshold: BattleCardGesturePolicy.playDragThreshold,
         )
         predictedEndTranslation = value.predictedEndTranslation
 
         let armed = BattleCardGesturePolicy.shouldRemainPlayArmed(
             translation: value.translation,
             isPlayable: isPlayable,
-            threshold: playDragThreshold,
+            threshold: BattleCardGesturePolicy.playDragThreshold,
             currentlyArmed: isPlayArmed,
         )
         if armed != isPlayArmed {
@@ -239,7 +231,7 @@ struct BattleAbilityCardView: View {
             let release = value.predictedEndTranslation.height < value.translation.height
                 ? value.predictedEndTranslation
                 : value.translation
-            let crossedDenyThreshold = -release.height >= playDragThreshold
+            let crossedDenyThreshold = -release.height >= BattleCardGesturePolicy.playDragThreshold
                 && -release.height > abs(release.width)
             if crossedDenyThreshold, !didAnnounceDeny {
                 didAnnounceDeny = true
@@ -270,7 +262,7 @@ struct BattleAbilityCardView: View {
             translation: value.translation,
             predictedEndTranslation: value.predictedEndTranslation,
             isPlayable: true,
-            threshold: playDragThreshold,
+            threshold: BattleCardGesturePolicy.playDragThreshold,
             currentlyArmed: isPlayArmed,
         )
         if shouldPlay {

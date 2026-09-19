@@ -23,6 +23,14 @@ enum PlayerSaveSanitizer {
     /// uses sanitize-only so a locally readable save always loads.
     static func sanitizeAndValidate(_ save: PlayerSave, changedSlices: PlayerSaveSlice = .all) throws -> PlayerSave {
         let sanitized = sanitize(save, changedSlices: changedSlices)
+        #if DEBUG
+        for (_, progression) in sanitized.roster.progressions {
+            assert(
+                progression.level >= 1 && progression.currentXP >= 0 && progression.requiredXP > 0,
+                "sanitizeProgressions must heal level/XP/requiredXP; validate skips the redundant check",
+            )
+        }
+        #endif
         try validate(sanitized)
         return sanitized
     }
@@ -96,37 +104,11 @@ enum PlayerSaveSanitizer {
         for (_, nodeTier) in save.homestead.nodeTiers where nodeTier < 0 {
             throw PlayerSavePersistenceError.invalidSave("Homestead node tiers cannot be negative.")
         }
-        try validateProgressions(in: save.roster.progressions)
+        // Progressions are healed by sanitizeProgressions (level >= 1, XP clamped,
+        // requiredXP recomputed), so validate skips the redundant sub-check; the
+        // DEBUG assert in sanitizeAndValidate guards the post-sanitize invariant.
         try validateEncodedAffixPowers(save.inventory)
     }
-
-    private static func validateProgressions(
-        in progressions: [String: CombatantProgression],
-    ) throws {
-        for (combatantID, progression) in progressions {
-            guard progression.level >= 1 else {
-                throw PlayerSavePersistenceError.invalidSave(
-                    "Combatant \(combatantID) level must be at least 1.",
-                )
-            }
-            guard progression.currentXP >= 0 else {
-                throw PlayerSavePersistenceError.invalidSave(
-                    "Combatant \(combatantID) current XP cannot be negative.",
-                )
-            }
-            guard progression.requiredXP > 0 else {
-                throw PlayerSavePersistenceError.invalidSave(
-                    "Combatant \(combatantID) required XP must be positive.",
-                )
-            }
-        }
-    }
-
-    static let defaultHeroIDs: Set<String> = Set(GameContent.heroes.map(\.id))
-    static let defaultCompanionIDs: Set<String> = Set(GameContent.companions.map(\.id))
-    static let defaultChapterIDs: Set<String> = Set(GameContent.chapters.map(\.id))
-    static let defaultAllStages: [Stage] = GameContent.chapters.flatMap(\.stages)
-    static let defaultStageIDs: Set<String> = Set(defaultAllStages.map(\.id))
 
     static func sanitizeJourney(
         _ journey: JourneyProgressState,
@@ -142,16 +124,16 @@ enum PlayerSaveSanitizer {
             allStages = chapters.flatMap(\.stages)
             validStageIDs = Set(allStages.map(\.id))
         } else {
-            validChapterIDs = defaultChapterIDs
-            allStages = defaultAllStages
-            validStageIDs = defaultStageIDs
+            validChapterIDs = Set(GameContent.chapters.map(\.id))
+            allStages = GameContent.chapters.flatMap(\.stages)
+            validStageIDs = Set(allStages.map(\.id))
         }
 
         var sanitized = journey
         let beforeCompleted = journey.completedStageIDs.count
         let beforeClaimed = journey.claimedRewardStageIDs.count
-        sanitized.completedStageIDs = journey.completedStageIDs.filter { validStageIDs.contains($0) }
-        sanitized.claimedRewardStageIDs = journey.claimedRewardStageIDs.filter { validStageIDs.contains($0) }
+        sanitized.completedStageIDs = journey.completedStageIDs.filtered(to: validStageIDs)
+        sanitized.claimedRewardStageIDs = journey.claimedRewardStageIDs.filtered(to: validStageIDs)
         if sanitized.completedStageIDs.count != beforeCompleted || sanitized.claimedRewardStageIDs.count != beforeClaimed {
             sanitizerLogger.info("Sanitized journey: dropped invalid stage IDs")
         }
@@ -244,8 +226,8 @@ enum PlayerSaveSanitizer {
     static func sanitizeRoster(
         _ roster: PlayerRosterState,
         inventory: PlayerInventoryState,
-        heroIDs: Set<String> = Self.defaultHeroIDs,
-        companionIDs: Set<String> = Self.defaultCompanionIDs,
+        heroIDs: Set<String> = Set(GameContent.heroes.map(\.id)),
+        companionIDs: Set<String> = Set(GameContent.companions.map(\.id)),
     ) -> PlayerRosterState {
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let validHeroIDs = heroIDs
@@ -253,8 +235,8 @@ enum PlayerSaveSanitizer {
 
         var sanitized = roster
         sanitized.gold = PlayerRosterState.clampedGoldBalance(roster.gold)
-        sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.filter { validHeroIDs.contains($0) }
-        sanitized.unlockedCompanionIDs = roster.unlockedCompanionIDs.filter { validCompanionIDs.contains($0) }
+        sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.filtered(to: validHeroIDs)
+        sanitized.unlockedCompanionIDs = roster.unlockedCompanionIDs.filtered(to: validCompanionIDs)
 
         if sanitized.unlockedHeroIDs.isEmpty {
             sanitizerLogger.notice("Sanitized roster: injected starter hero (unlocked set was empty)")
@@ -479,5 +461,13 @@ private func validateEncodedAffixPowers(_ inventory: PlayerInventoryState) throw
                 "Inventory item \(item.id) affix powers could not be encoded.",
             )
         }
+    }
+}
+
+private extension Set<String> {
+    /// Single home for ID-allowlist filtering; replaces repeated
+    /// `filter { validIDs.contains($0) }` closures.
+    func filtered(to validIDs: Set<String>) -> Set<String> {
+        filter(validIDs.contains)
     }
 }

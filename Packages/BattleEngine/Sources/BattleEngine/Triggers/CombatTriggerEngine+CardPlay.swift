@@ -145,11 +145,11 @@ package extension CombatTriggerEngine {
               !context.resolution.isAutomaticPlay else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         if keywords.contains(.burn) {
-            if triggers.furnaceRhythm {
-                context.primedRepeatKeywords.insert(.physical)
-            }
-            if triggers.temperCycle {
-                context.primedRepeatKeywords.insert(.freeze)
+            for (keyword, enabled) in [
+                (Keyword.physical, triggers.furnaceRhythm),
+                (Keyword.freeze, triggers.temperCycle),
+            ] where enabled {
+                context.primedRepeatKeywords.insert(keyword)
             }
         }
         return []
@@ -166,20 +166,11 @@ package extension CombatTriggerEngine {
               !context.resolution.isAutomaticPlay
         else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        if keywords.contains(.physical), triggers.furnaceRhythm,
-           context.primedRepeatKeywords.remove(.physical) != nil {
-            context.resolution.enter(.damage)
-            defer { context.resolution.leave(.damage) }
-            return BattleTurnEngine.performAction(
-                ability: ability,
-                actor: actor,
-                abilityTarget: abilityTarget,
-                origin: .cardRepeat,
-                context: &context,
-            )
-        }
-        if keywords.contains(.freeze), triggers.temperCycle,
-           context.primedRepeatKeywords.remove(.freeze) != nil {
+        for (keyword, enabled) in [
+            (Keyword.physical, triggers.furnaceRhythm),
+            (Keyword.freeze, triggers.temperCycle),
+        ] where keywords.contains(keyword) && enabled
+            && context.primedRepeatKeywords.remove(keyword) != nil {
             context.resolution.enter(.damage)
             defer { context.resolution.leave(.damage) }
             return BattleTurnEngine.performAction(
@@ -197,11 +188,12 @@ package extension CombatTriggerEngine {
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return [] }
         let count = context.modifiers(for: actor.id).triggers.drawOnSpendMana
         guard count > 0, context.turnCadence.spendManaDrawOwners.insert(owner).inserted else { return [] }
-        return drawCards(
+        return drawClaimedCards(
             count,
             for: owner,
             actor: actor,
-            abilityName: triggerAbilityName("drawOnSpendMana", for: actor, fallback: "Runic Quill", in: context),
+            abilityKey: "drawOnSpendMana",
+            fallback: "Runic Quill",
             in: &context,
         )
     }
@@ -210,11 +202,29 @@ package extension CombatTriggerEngine {
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return [] }
         let count = context.modifiers(for: actor.id).triggers.drawOnHealthLoss
         guard count > 0, context.turnCadence.healthLossDrawOwners.insert(owner).inserted else { return [] }
-        return drawCards(
+        return drawClaimedCards(
             count,
             for: owner,
             actor: actor,
-            abilityName: triggerAbilityName("drawOnHealthLoss", for: actor, fallback: "Bone Charm", in: context),
+            abilityKey: "drawOnHealthLoss",
+            fallback: "Bone Charm",
+            in: &context,
+        )
+    }
+
+    private static func drawClaimedCards(
+        _ count: Int,
+        for owner: BattleParticipant,
+        actor: Combatant,
+        abilityKey: String,
+        fallback: String,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        drawCards(
+            count,
+            for: owner,
+            actor: actor,
+            abilityName: triggerAbilityName(abilityKey, for: actor, fallback: fallback, in: context),
             in: &context,
         )
     }
@@ -275,13 +285,10 @@ package extension CombatTriggerEngine {
                   context.resolution.claim(.heroTalent("playfulEnergy"), actorID: actor.id, cadence: .turn(context.turnCount))
             else { continue }
             for (_, target) in livingPartyMembers(in: context) {
-                events.append(contentsOf: context.healEmitting(
+                events.append(contentsOf: emitHeal(
+                    "cardsPlayedHealPartyThreshold", "Playful Energy",
                     amount: triggers.cardsPlayedHealPartyAmount,
-                    target: target.combatant,
-                    source: actor.combatant,
-                    abilityName: triggerAbilityName(
-                        "cardsPlayedHealPartyThreshold", for: actor.combatant, fallback: "Playful Energy", in: context,
-                    ),
+                    to: target.combatant, source: actor.combatant, in: &context,
                 ))
             }
         }

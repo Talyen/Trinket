@@ -25,18 +25,26 @@ trinket_tool_write_marker() {
   printf 'archive=%s\nbinary=%s\n' "$archive_checksum" "$(trinket_tool_sha256_file "$bin")" > "$TOOLS_DIR/.$name.sha256"
 }
 
+# Verify a downloaded archive against its pinned checksum. Single source for
+# the comparison and mismatch message used by zip and tarball installers.
+# Usage: trinket_tool_verify_file <file> <expected-sha256> <label> || return 1
+trinket_tool_verify_file() {
+  local file="$1" expected="$2" label="$3" actual
+  actual="$(trinket_tool_sha256_file "$file")"
+  if [[ "$actual" != "$expected" ]]; then
+    echo "$label checksum mismatch: expected $expected, found $actual" >&2
+    return 1
+  fi
+}
+
 # Downloads and checksum-verifies a tarball; prints the temp dir holding it
 # as archive.tar.gz. Callers own cleanup of the printed dir.
 trinket_tool_fetch_tarball() {
   local url="$1" checksum="$2" label="$3"
-  local tmpdir actual
+  local tmpdir
   tmpdir="$(mktemp -d)"
   curl -fsSL "$url" -o "$tmpdir/archive.tar.gz"
-  actual="$(trinket_tool_sha256_file "$tmpdir/archive.tar.gz")"
-  if [[ "$actual" != "$checksum" ]]; then
-    echo "$label checksum mismatch: expected $checksum, found $actual" >&2
-    rm -rf "$tmpdir"
-    return 1
-  fi
+  trinket_tool_verify_file "$tmpdir/archive.tar.gz" "$checksum" "$label" \
+    || { rm -rf "$tmpdir"; return 1; }
   printf '%s' "$tmpdir"
 }

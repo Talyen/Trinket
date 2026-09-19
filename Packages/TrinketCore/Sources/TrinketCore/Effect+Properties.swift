@@ -129,34 +129,6 @@ public extension EffectKind {
             [.removableDebuff]
         }
     }
-
-    static func requiredBattleSummaryPhrase(for kind: EffectKind) -> String {
-        guard let phrase = battleSummaryPhrase(for: kind) else {
-            preconditionFailure("Every flag effect needs a battle summary phrase; missing \(kind)")
-        }
-        return phrase
-    }
-
-    static func battleSummaryPhrase(for kind: EffectKind) -> String? {
-        switch kind {
-        case .nextHolyStrike:
-            "Holy Strike: Next attack deals double Holy damage and applies Burning."
-        case .nextStrikeDouble:
-            "Double Strike: Next attack deals double damage."
-        case .evadeNextHit:
-            "Evasion: Dodges the next attack."
-        case .nextStrikeCritical:
-            "Critical Focus: Next attack is a guaranteed Critical Hit."
-        case .nextStrikeLeech:
-            "Leech Focus: Next attack Leeches."
-        case .partyPhysicalBonus:
-            "Sniff Out: Party's next attack deals additional Physical damage."
-        case .freezeNextAttacker:
-            "Glacial Ward: Freezes the next attacker."
-        default:
-            nil
-        }
-    }
 }
 
 public extension Effect {

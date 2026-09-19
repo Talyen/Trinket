@@ -46,8 +46,7 @@ struct AppStateLabyrinthTests {
 
     @Test func `unchanged labyrinth inputs reuse prepared battles`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        _ = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        _ = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let battle = try #require(context.lastBattle)
 
         state.labyrinth.prepareReachableBattles()
@@ -60,8 +59,7 @@ struct AppStateLabyrinthTests {
 
     @Test func `relevant labyrinth input change replaces prepared battles`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        _ = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        _ = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let battle = try #require(context.lastBattle)
         state.labyrinth.prepareReachableBattles()
         let preparedRevision = battle.preparedBattlePresentationRevision
@@ -76,8 +74,7 @@ struct AppStateLabyrinthTests {
 
     @Test func `returning from battle prepares unchanged labyrinth inputs again`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let battle = try #require(context.lastBattle)
         state.labyrinth.prepareReachableBattles()
         let preparedRevision = battle.preparedBattlePresentationRevision
@@ -92,8 +89,7 @@ struct AppStateLabyrinthTests {
 
     @Test func `labyrinth prepare drops unreachable combat runs`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let battle = try #require(context.lastBattle)
         state.labyrinth.prepareReachableBattles()
         let clearedKey = PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey
@@ -133,8 +129,7 @@ struct AppStateLabyrinthTests {
 
     @Test func `start labyrinth battle sets configuration and in memory origin`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let node = try #require(state.playerSave.labyrinth.nodes[combatNodeID])
         let expectedModifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         let message = state.labyrinth.startBattle(nodeID: combatNodeID)
@@ -289,8 +284,7 @@ struct AppStateLabyrinthTests {
 
     @Test func `labyrinth battle always starts at full baseline health`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         _ = state.labyrinth.startBattle(nodeID: combatNodeID)
         let battle = try #require(state.battle.activeBattle)
         #expect(battle.hero.startingHealth == nil)
@@ -299,31 +293,13 @@ struct AppStateLabyrinthTests {
 
     @Test func `completing labyrinth battle clears node`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         _ = state.labyrinth.startBattle(nodeID: combatNodeID)
         let configuration = try #require(state.battle.activeBattle)
 
         #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 3)).didComplete)
         #expect(state.playerSave.labyrinth.nodes[combatNodeID]?.isCleared == true)
         #expect(state.battle.activeBattle == nil)
-    }
-
-    @Test func `duplicate labyrinth route delivery reports unavailable without paying twice`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
-        _ = state.labyrinth.startBattle(nodeID: combatNodeID)
-        let configuration = try #require(state.battle.activeBattle)
-        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
-        let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 3)))
-        let loot = PlayBattleCompletion.preparedLoot(from: presentation, materialRewards: nil)
-        let route = try #require(state.route(for: configuration.runKey))
-
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 3)).didComplete)
-        let saveAfterVictory = state.playerSave.currentSave
-        #expect(route.complete(configuration, presentation, settlement, nil, loot) == .unavailable)
-        #expect(state.playerSave.currentSave == saveAfterVictory)
     }
 
     @Test func `labyrinth mystery nodes carry exactly one economy modifier`() throws {

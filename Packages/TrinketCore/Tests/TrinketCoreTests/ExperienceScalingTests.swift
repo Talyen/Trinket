@@ -26,6 +26,26 @@ struct ExperienceScalingTests {
         #expect(nearEqual > halfway)
     }
 
+    @Test func `level gap cutoff falls off at exactly ten`() {
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 19, enemyLevel: 10) > 0)
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 20, enemyLevel: 10) == 0)
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 10, enemyLevel: 10) == 1)
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 5, enemyLevel: 10) == 1)
+    }
+
+    @Test func `extreme levels never trap`() {
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: Int.max, enemyLevel: Int.min) == 0)
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: Int.min, enemyLevel: Int.max) == 1)
+        #expect(ExperienceScaling.catchUpMultiplier(for: Int.min, highestLevel: Int.max) <= 2.5)
+        #expect(ExperienceScaling.battleAward(playerLevel: Int.max, enemyLevel: Int.min) == 0)
+        #expect(ExperienceScaling.baseBattleAward(forPlayerLevel: Int.max) >= 1)
+    }
+
+    @Test func `capped award with non positive requirement clips to zero`() {
+        #expect(ExperienceScaling.cappedAward(10, requiredXP: 0) == 0)
+        #expect(ExperienceScaling.cappedAward(10, requiredXP: -5) == 0)
+    }
+
     @Test func `base battle award targets early mid and late progression`() {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 1)
         #expect(award == 7)

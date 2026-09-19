@@ -48,37 +48,31 @@ package extension CombatTriggerEngine {
         }
 
         if triggers.dodgeGoldFlat > 0 {
-            events.append(contentsOf: context.grantGoldEvent(
-                triggers.dodgeGoldFlat,
-                to: combatant,
-                abilityName: triggerAbilityName("dodgeGoldFlat", for: combatant, fallback: "Payday", in: context),
+            events.append(contentsOf: emitGold(
+                "dodgeGoldFlat", "Payday", amount: triggers.dodgeGoldFlat, to: combatant, in: &context,
             ))
         }
 
         if triggers.dodgeBlockFlat > 0 {
-            events.append(contentsOf: context.applyBlock(
-                triggers.dodgeBlockFlat,
-                to: combatant,
-                source: combatant,
-                abilityName: triggerAbilityName("dodgeBlockFlat", for: combatant, fallback: "Untouchable", in: context),
+            events.append(contentsOf: emitBlock(
+                "dodgeBlockFlat", "Untouchable",
+                amount: triggers.dodgeBlockFlat, to: combatant, source: combatant, in: &context,
             ))
         }
 
         if triggers.onDodgeGrantHeroBlock > 0, context.roster.hero.isAlive {
-            events.append(contentsOf: context.applyBlock(
-                triggers.onDodgeGrantHeroBlock,
-                to: context.roster.hero.combatant,
-                source: combatant,
-                abilityName: triggerAbilityName("onDodgeGrantHeroBlock", for: combatant, fallback: "Aerial Cover", in: context),
+            events.append(contentsOf: emitBlock(
+                "onDodgeGrantHeroBlock", "Aerial Cover",
+                amount: triggers.onDodgeGrantHeroBlock,
+                to: context.roster.hero.combatant, source: combatant, in: &context,
             ))
         }
 
         if triggers.onDodgePartyMana > 0 {
             for (_, member) in livingPartyMembers(in: context) {
-                events.append(contentsOf: context.restoreManaEmitting(
-                    triggers.onDodgePartyMana,
-                    to: member.combatant,
-                    abilityName: triggerAbilityName("onDodgePartyMana", for: combatant, fallback: "Dodge", in: context),
+                events.append(contentsOf: emitMana(
+                    "onDodgePartyMana", "Dodge",
+                    amount: triggers.onDodgePartyMana, to: member.combatant, nameFrom: combatant, in: &context,
                 ))
             }
         }
@@ -108,8 +102,22 @@ package extension CombatTriggerEngine {
 
         events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
         if allowsCounterattacks {
-            events.append(contentsOf: applyWhiplashStun(for: combatant, profile: profile, in: &context))
-            events.append(contentsOf: applyRimewindFreeze(for: combatant, profile: profile, in: &context))
+            events.append(contentsOf: applyDodgeCounterDamage(
+                keyword: .stun,
+                amount: profile.triggers.dodgeDealStunFlat,
+                key: "dodgeDealStunFlat",
+                fallback: "Whiplash",
+                for: combatant,
+                in: &context,
+            ))
+            events.append(contentsOf: applyDodgeCounterDamage(
+                keyword: .freeze,
+                amount: profile.triggers.dodgeDealFreezeFlat,
+                key: "dodgeDealFreezeFlat",
+                fallback: "Rimewind",
+                for: combatant,
+                in: &context,
+            ))
         }
 
         if triggers.dodgeApplyPoison > 0, context.roster.enemy.isAlive {
@@ -265,34 +273,34 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard profile.triggers.dodgeHealFlat > 0 else { return [] }
-        return context.healEmitting(
-            amount: profile.triggers.dodgeHealFlat,
-            target: combatant,
-            source: combatant,
-            abilityName: triggerAbilityName("dodgeHealFlat", for: combatant, fallback: "Sidestep", in: context),
+        return emitHeal(
+            "dodgeHealFlat", "Sidestep",
+            amount: profile.triggers.dodgeHealFlat, to: combatant, source: combatant, in: &context,
         )
     }
 
-    private static func applyWhiplashStun(
+    private static func applyDodgeCounterDamage(
+        keyword: Keyword,
+        amount: Int,
+        key: String,
+        fallback: String,
         for combatant: Combatant,
-        profile: CombatModifierProfile,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard profile.triggers.dodgeDealStunFlat > 0, context.roster.enemy.isAlive else { return [] }
+        guard amount > 0, context.roster.enemy.isAlive else { return [] }
         let enemy = context.roster.enemy.combatant
-        let amount = profile.triggers.dodgeDealStunFlat
-        let name = triggerAbilityName("dodgeDealStunFlat", for: combatant, fallback: "Whiplash", in: context)
+        let name = triggerAbilityName(key, for: combatant, fallback: fallback, in: context)
         let outcome = context.resolveDamage(
             DamageRequest(
                 amount: amount,
                 target: enemy,
-                keyword: .stun,
+                keyword: keyword,
                 sourceActorID: combatant.id,
                 options: .reaction(cause: .dodge, accuracy: .normal),
             ),
         )
         var events = outcome.events.map { event in
-            event.keyword == .stun ? event.with(abilityName: name) : event
+            event.keyword == keyword ? event.with(abilityName: name) : event
         }
         if outcome.healthLost > 0, !events.contains(where: { $0.abilityName == name }) {
             events.append(context.nextEvent(
@@ -301,41 +309,7 @@ package extension CombatTriggerEngine {
                 abilityName: name,
                 target: enemy,
                 amount: outcome.healthLost,
-                keyword: .stun,
-            ))
-        }
-        return events
-    }
-
-    private static func applyRimewindFreeze(
-        for combatant: Combatant,
-        profile: CombatModifierProfile,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard profile.triggers.dodgeDealFreezeFlat > 0, context.roster.enemy.isAlive else { return [] }
-        let enemy = context.roster.enemy.combatant
-        let amount = profile.triggers.dodgeDealFreezeFlat
-        let name = triggerAbilityName("dodgeDealFreezeFlat", for: combatant, fallback: "Rimewind", in: context)
-        let outcome = context.resolveDamage(
-            DamageRequest(
-                amount: amount,
-                target: enemy,
-                keyword: .freeze,
-                sourceActorID: combatant.id,
-                options: .reaction(cause: .dodge, accuracy: .normal),
-            ),
-        )
-        var events = outcome.events.map { event in
-            event.keyword == .freeze ? event.with(abilityName: name) : event
-        }
-        if outcome.healthLost > 0, !events.contains(where: { $0.abilityName == name }) {
-            events.append(context.nextEvent(
-                kind: .effect,
-                actorName: combatant.name,
-                abilityName: name,
-                target: enemy,
-                amount: outcome.healthLost,
-                keyword: .freeze,
+                keyword: keyword,
             ))
         }
         return events

@@ -1,6 +1,9 @@
 import TrinketContent
 import TrinketCore
 
+/// Public by design: the feature layer (BattleSession, BattlePresentationState)
+/// reads health/mana/effects/modifiers off BattleState. Keep this surface
+/// public; the sibling BattleState+* extensions stay package-scoped mutators.
 public extension BattleState {
     var hero: Combatant {
         roster.hero.combatant

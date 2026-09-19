@@ -27,15 +27,7 @@ fi
 TRINKET_RG_BULLET="  "
 
 has_nearby_allow() {
-  local file="$1"
-  local line_number="$2"
-  local marker="$3"
-  local start=$((line_number > 4 ? line_number - 4 : 1))
-  if sed -n "${start},${line_number}p" "$file" \
-    | grep -Eq "^[[:space:]]*//[[:space:]]*${marker}:[[:space:]]*allow[[:space:]]*-[[:space:]]*[[:graph:]]"; then
-    return 0
-  fi
-  return 1
+  trinket_rg_has_nearby_allow "$1" "$2" "$3"
 }
 
 has_nearby_concurrency_rationale() {
@@ -55,7 +47,10 @@ scan_matches() {
   local pattern="$1"
   local glob="$2"
   shift 2
-  trinket_rg_scan -n --glob "$glob" --glob '!**/Generated/**' "$pattern" "$@"
+  # --with-filename: ripgrep omits the file prefix for explicit single-file
+  # inputs (e.g. Trinket/App/TrinketApp.swift below); without it the
+  # file:line:text parse misreads the line number and the rule silently passes.
+  trinket_rg_scan --with-filename -n --glob "$glob" --glob '!**/Generated/**' "$pattern" "$@"
 }
 
 scan_matches '\b(Date|UUID)\(\)' '*.swift' Packages/BattleEngine/Sources/BattleEngine

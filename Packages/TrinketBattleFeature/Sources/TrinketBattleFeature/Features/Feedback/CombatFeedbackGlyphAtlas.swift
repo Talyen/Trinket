@@ -214,7 +214,7 @@ final class CombatFeedbackGlyphAtlas {
                     requests.append(.fragment(key, recipe))
                 }
             }
-            for fragment in Self.wordAtlasFragments(for: typography) {
+            for fragment in CombatFeedbackClosedVocabulary.wordAtlasFragments(for: typography) {
                 let key = FragmentKey(face: face, text: fragment)
                 if fragments[key] == nil {
                     requests.append(.fragment(key, recipe))
@@ -222,12 +222,6 @@ final class CombatFeedbackGlyphAtlas {
             }
         }
         return requests
-    }
-
-    nonisolated static func wordAtlasFragments(
-        for typography: CombatFeedbackTypographyTier,
-    ) -> [String] {
-        CombatFeedbackClosedVocabulary.wordAtlasFragments(for: typography)
     }
 
     nonisolated static func bake(_ requests: [PrewarmRequest]) -> [PreparedGlyph] {
@@ -260,6 +254,20 @@ final class CombatFeedbackGlyphAtlas {
         return rasterize(image: image, displayScaleHundredths: face.displayScaleHundredths)
     }
 
+    private nonisolated static func renderedImage(
+        pointSize: CGSize,
+        displayScaleHundredths: Int,
+        draw: (CGRect) -> Void,
+    ) -> CGImage? {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = CGFloat(displayScaleHundredths) / 100
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
+        return renderer.image { _ in
+            draw(CGRect(origin: .zero, size: pointSize))
+        }.cgImage
+    }
+
     nonisolated static func bakeFragment(
         _ text: String,
         face: Face,
@@ -278,17 +286,16 @@ final class CombatFeedbackGlyphAtlas {
         let width = size.width
         guard width > 0 || text == "  " else { return nil }
 
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = CGFloat(face.displayScaleHundredths) / 100
-        format.opaque = false
         let pointSize = CGSize(width: max(ceil(width), 1), height: ceil(height))
-        let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
-        let image = renderer.image { _ in
-            if width > 0 {
-                nsText.draw(at: .zero, withAttributes: attributes)
-            }
-        }
-        guard let cgImage = image.cgImage else { return nil }
+        guard let cgImage = renderedImage(
+            pointSize: pointSize,
+            displayScaleHundredths: face.displayScaleHundredths,
+            draw: { _ in
+                if width > 0 {
+                    nsText.draw(at: .zero, withAttributes: attributes)
+                }
+            },
+        ) else { return nil }
         return Glyph(image: cgImage, width: width > 0 ? pointSize.width : width, height: pointSize.height)
     }
 
@@ -298,15 +305,14 @@ final class CombatFeedbackGlyphAtlas {
     ) -> Glyph? {
         let size = image.size
         guard size.width > 0, size.height > 0 else { return nil }
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = CGFloat(displayScaleHundredths) / 100
-        format.opaque = false
         let pointSize = CGSize(width: ceil(size.width), height: ceil(size.height))
-        let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
-        let rendered = renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: pointSize))
-        }
-        guard let cgImage = rendered.cgImage else { return nil }
+        guard let cgImage = renderedImage(
+            pointSize: pointSize,
+            displayScaleHundredths: displayScaleHundredths,
+            draw: { rect in
+                image.draw(in: rect)
+            },
+        ) else { return nil }
         return Glyph(image: cgImage, width: pointSize.width, height: pointSize.height)
     }
 }
@@ -370,43 +376,5 @@ enum CombatFeedbackGlyphMetrics {
         case .black: .black
         default: .bold
         }
-    }
-}
-
-@MainActor
-enum CombatFeedbackDisplayLinkGate {
-    static func waitForNextDisplayLink() async {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            let link = CADisplayLink(
-                target: DisplayLinkResumeBox(continuation: continuation),
-                selector: #selector(DisplayLinkResumeBox.fire),
-            )
-            link.add(to: .main, forMode: .common)
-            DisplayLinkResumeBox.retain(link)
-        }
-    }
-}
-
-@MainActor
-private final class DisplayLinkResumeBox: NSObject {
-    private static var retainedLinks: [ObjectIdentifier: CADisplayLink] = [:]
-
-    private let continuation: CheckedContinuation<Void, Never>
-    private var didResume = false
-
-    init(continuation: CheckedContinuation<Void, Never>) {
-        self.continuation = continuation
-    }
-
-    static func retain(_ link: CADisplayLink) {
-        retainedLinks[ObjectIdentifier(link)] = link
-    }
-
-    @objc func fire(_ link: CADisplayLink) {
-        guard !didResume else { return }
-        didResume = true
-        link.invalidate()
-        Self.retainedLinks.removeValue(forKey: ObjectIdentifier(link))
-        continuation.resume()
     }
 }

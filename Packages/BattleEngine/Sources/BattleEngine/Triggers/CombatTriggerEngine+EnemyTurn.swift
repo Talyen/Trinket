@@ -2,6 +2,19 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    /// Total of a trigger magnitude across living allies plus the first ally
+    /// carrying it (nil when nobody does). Shared by the bleed/poison
+    /// enemy-action gates, which differ only in the key they sum.
+    private static func partyChanceAndSource<T: Numeric & Comparable>(
+        _ chance: KeyPath<CombatTraitTriggers, T>,
+        in context: BattleState,
+    ) -> (chance: T, source: Combatant?) {
+        let living = livingAllies(in: context)
+        let total = living.reduce(0) { $0 + $1.profile.triggers[keyPath: chance] }
+        let source = living.first { $0.profile.triggers[keyPath: chance] > 0 }?.combatant
+        return (total, source)
+    }
+
     static func beforeEnemyActBleedReactions(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return ([], false) }
@@ -9,15 +22,13 @@ package extension CombatTriggerEngine {
         guard enemyIsBleeding else { return ([], false) }
 
         var events: [ActionEvent] = []
-        let living = livingAllies(in: context)
-        let skipChance = living.reduce(0) {
-            $0 + $1.profile.triggers.bleedingEnemyActionSkipChancePercent
-        }
+        let (skipChance, skipSource) = partyChanceAndSource(
+            \.bleedingEnemyActionSkipChancePercent,
+            in: context,
+        )
         if skipChance > 0,
            BattleChance.succeeds(probability: skipChance, using: &context.rng) {
-            let source = living.first {
-                $0.profile.triggers.bleedingEnemyActionSkipChancePercent > 0
-            }?.combatant ?? context.roster.hero.combatant
+            let source = skipSource ?? context.roster.hero.combatant
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .controlActionSkipped,
@@ -40,11 +51,8 @@ package extension CombatTriggerEngine {
     static func beforeEnemyAttackBleedReactions(in context: inout BattleState) -> [ActionEvent] {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive, context.roster.hasAffliction(.bleed, on: enemy) else { return [] }
-        let living = livingAllies(in: context)
-        let damage = living.reduce(0) { $0 + $1.profile.triggers.bleedingEnemyAttackDealDamage }
-        guard damage > 0, let source = living.first(where: {
-            $0.profile.triggers.bleedingEnemyAttackDealDamage > 0
-        })?.combatant else { return [] }
+        let (damage, source) = partyChanceAndSource(\.bleedingEnemyAttackDealDamage, in: context)
+        guard damage > 0, let source else { return [] }
         return context.resolveDamage(DamageRequest(
             amount: damage, target: enemy, keyword: .physical, sourceActorID: source.id, options: .reaction(),
         )).events
@@ -168,16 +176,11 @@ package extension CombatTriggerEngine {
         guard context.roster.hasAffliction(.poison, on: enemy) else {
             return nil
         }
-        let living = livingAllies(in: context)
-        let missChance = living.reduce(0) {
-            $0 + $1.profile.triggers.poisonedEnemyMissChancePercent
-        }
+        let (missChance, missSource) = partyChanceAndSource(\.poisonedEnemyMissChancePercent, in: context)
         guard missChance > 0, BattleChance.succeeds(probability: missChance, using: &context.rng) else {
             return nil
         }
-        let source = living.first {
-            $0.profile.triggers.poisonedEnemyMissChancePercent > 0
-        }?.combatant ?? context.roster.hero.combatant
+        let source = missSource ?? context.roster.hero.combatant
         return ([context.nextEvent(
             kind: .effect,
             effectKind: .dodgeApplied,
@@ -199,15 +202,11 @@ package extension CombatTriggerEngine {
         let retrieverTriggers = context.companionModifiers.triggers
         var events: [ActionEvent] = []
         if retrieverTriggers.onEnemyAbilityGold > 0 {
-            events.append(contentsOf: context.grantGoldEvent(
-                retrieverTriggers.onEnemyAbilityGold,
+            events.append(contentsOf: emitGold(
+                "onEnemyAbilityGold", "Fetch!",
+                amount: retrieverTriggers.onEnemyAbilityGold,
                 to: context.roster.companion.combatant,
-                abilityName: triggerAbilityName(
-                    "onEnemyAbilityGold",
-                    for: context.roster.companion.combatant,
-                    fallback: "Fetch!",
-                    in: context,
-                ),
+                in: &context,
             ))
         }
         return events
@@ -234,20 +233,15 @@ package extension CombatTriggerEngine {
             }
             if triggers.onEnemyStunRecoverApplyAfflictions > 0, context.roster.health(for: enemy) > 0 {
                 let potency = triggers.onEnemyStunRecoverApplyAfflictions
-                events.append(contentsOf: context.applyDecayingDoT(
-                    keyword: .poison,
-                    potency: potency,
-                    to: enemy,
-                    sourceActorID: member.id,
-                    application: .attached,
-                ))
-                events.append(contentsOf: context.applyDecayingDoT(
-                    keyword: .burn,
-                    potency: potency,
-                    to: enemy,
-                    sourceActorID: member.id,
-                    application: .attached,
-                ))
+                for keyword in [Keyword.poison, .burn] {
+                    events.append(contentsOf: context.applyDecayingDoT(
+                        keyword: keyword,
+                        potency: potency,
+                        to: enemy,
+                        sourceActorID: member.id,
+                        application: .attached,
+                    ))
+                }
                 events.append(contentsOf: DoTApplicator.applyBleed(
                     potency: potency,
                     to: enemy,

@@ -55,13 +55,7 @@ package extension DamagePipeline {
         else { return }
         let potency = runtime.talents.pending.bleedAfterDodge
         context.roster.mutateRuntime(for: attacker.combatant) { $0.talents.pending.bleedAfterDodge = 0 }
-        state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
-            potency: potency,
-            to: state.combatant,
-            sourceActorID: sourceActorID,
-            application: .attached,
-            in: &context,
-        ))
+        appendTargetBleed(potency: potency, state: &state, context: &context)
     }
 
     private static func applyEnemyTraitReactions(
@@ -165,9 +159,10 @@ package extension DamagePipeline {
         attacker: CombatantRuntime,
         in context: inout BattleState,
     ) {
+        let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         let wards = onHitWardTotals(from: context.roster.activeEffects(for: state.combatant))
 
-        let holyDamage = context.modifiers(for: state.combatant.id).triggers.onHitAttackerHoly
+        let holyDamage = defenderTriggers.onHitAttackerHoly
         if holyDamage > 0, context.roster.health(for: attacker.combatant) > 0 {
             state.damageEvents.append(contentsOf: resolveNestedDamage(
                 amount: holyDamage,
@@ -180,9 +175,9 @@ package extension DamagePipeline {
 
         applyThornsRetaliation(amount: wards.thornsStacks, attacker: attacker, to: &state, in: &context)
 
-        if context.modifiers(for: state.combatant.id).triggers.onHitGainBlock > 0 {
+        if defenderTriggers.onHitGainBlock > 0 {
             state.damageEvents.append(contentsOf: context.applyBlock(
-                context.modifiers(for: state.combatant.id).triggers.onHitGainBlock,
+                defenderTriggers.onHitGainBlock,
                 to: state.combatant,
                 source: state.combatant,
                 abilityName: CombatTriggerEngine.triggerAbilityName(

@@ -2,18 +2,17 @@ import Foundation
 
 public enum CombatRounding {
     /// Scales a non-positive base to zero; saturates at `Int.max` instead of trapping.
+    /// Implementation lives in `SaturatedArithmetic`; kept here for call-site continuity.
     public static func scaled(_ value: Int, multiplier: Double) -> Int {
-        guard value > 0 else { return 0 }
-        return rounded(Double(value) * multiplier)
+        SaturatedArithmetic.scaled(value, multiplier: multiplier)
     }
 
     /// Clamps negatives and non-finite inputs to zero; saturates at `Int.max`.
-    /// Uses banker's rounding, so exact .5 ties round to even.
+    /// Uses away-from-zero rounding (`Double.rounded()`), so exact .5 ties
+    /// round away from zero (2.5 → 3). Non-finite multipliers therefore
+    /// collapse through this path to zero rather than saturating.
     public static func rounded(_ value: Double) -> Int {
-        guard value.isFinite, value > 0 else { return 0 }
-        let rounded = value.rounded()
-        guard rounded < Double(Int.max) else { return Int.max }
-        return Int(rounded)
+        SaturatedArithmetic.rounded(value)
     }
 
     public static func scaled(_ value: Int, byPercent percent: Int) -> Int {

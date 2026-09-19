@@ -17,6 +17,35 @@ PLAN_WARNING_DAYS = 3
 DOC_WARNINGS: list[str] = []
 
 
+def declares_execution_plan(path: Path) -> bool:
+    """True when the file carries execution-plan front matter.
+
+    Only the front-matter block is inspected (bounded read): a prose mention
+    of the marker elsewhere must not flag a documentation page, and the full
+    text is never loaded for this scan.
+    """
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            first = handle.readline().strip()
+            if first != "---":
+                return False
+            # Cap the scan well above real front matter (~7 lines) so a
+            # ---led document without a closing fence cannot turn this into
+            # a full-text read.
+            for _ in range(40):
+                line = handle.readline()
+                if not line:
+                    return False
+                stripped = line.strip()
+                if stripped == "---":
+                    return False
+                if re.fullmatch(r"type:[ \t]*execution-plan", stripped):
+                    return True
+            return False
+    except OSError:
+        return False
+
+
 def plan_metadata(path: Path) -> tuple[dict[str, str], list[str]]:
     """Parse the deliberately small plan front matter without a YAML dependency."""
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -80,7 +109,7 @@ def plan_failures(
         for path in files
         if path.is_file()
         and plans_dir not in path.parents
-        and "type: execution-plan" in path.read_text(encoding="utf-8", errors="replace")
+        and declares_execution_plan(path)
     )
     for path in sorted(set(parallel_plan_paths)):
         failures.append(

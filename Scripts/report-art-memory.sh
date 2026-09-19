@@ -3,6 +3,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# shellcheck source=Scripts/lib/tempdir.sh
+source Scripts/lib/tempdir.sh
+
 manifest="ArtManifest/curated-assets.tsv"
 asset_catalog="Trinket/Assets.xcassets"
 budget_mib="${ART_CATALOG_DECODED_MEMORY_BUDGET_MIB:-1024}"
@@ -24,12 +27,8 @@ if ! [[ "$budget_mib" =~ ^[1-9][0-9]*$ ]]; then
   exit 2
 fi
 
-report_temp="$(mktemp)"
-mapping_temp="$(mktemp)"
-cleanup() {
-  rm -f "$report_temp" "$mapping_temp"
-}
-trap cleanup EXIT INT TERM
+trinket_mktemp_file report_temp trinket-art-memory-report
+trinket_mktemp_file mapping_temp trinket-art-memory-mapping
 
 awk -F $'\t' '!/^#/ && NF >= 3 { print $3 "\t" $1 }' "$manifest" > "$mapping_temp"
 

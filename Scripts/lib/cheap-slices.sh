@@ -33,7 +33,7 @@ trinket_run_cheap_slices() {
     cmd="${line%%#*}"
     cmd="$(printf '%s' "$cmd" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
     [[ -z "$cmd" ]] && continue
-    if [[ "$after_style" == true ]] && { [[ "$cmd" == ./Scripts/check-api-bans.sh ]] || [[ "$flags" == *skip-when-style-checked* ]]; }; then
+    if [[ "$after_style" == true ]] && [[ "$flags" == *skip-when-style-checked* ]]; then
       continue
     fi
     ran_any=true

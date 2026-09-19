@@ -44,7 +44,6 @@ package enum DamagePipeline {
             request.amountBasis = .resolved
             state.damageEvents.append(contentsOf: HealingEngine.resolveHeal(request, in: &context).events)
             state.remaining = 0
-            state.buildupDamage = 0
             state.dealt = 0
             return
         }
@@ -67,6 +66,12 @@ package enum DamagePipeline {
         }
     }
 
+    /// Committed-damage reaction order (load-bearing, do not reorder):
+    /// card-hit → enemy traits → DoT mirrors/ticks → leech → attacker on-hit
+    /// applications → attacker mirrors → control meter/fang → retaliation-gated
+    /// reactive/keyword/crit → uniques. DoT mirrors must precede leech so
+    /// mirrored ticks count toward the same hit; keyword reactions stay last
+    /// among pipeline-owned steps so wards see final healthLost.
     private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
         if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
@@ -179,7 +184,6 @@ package enum DamagePipeline {
         if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
             let bonus = CombatTriggerEngine.heroCardDamageBonus(keyword: state.damageKeyword, sourceID: state.sourceActorID, in: &context)
             state.remaining += bonus
-            state.buildupDamage += bonus
             state.unique.outgoingDamage += bonus
             state.heroCardBlockIgnore = CombatTriggerEngine.heroCardBlockIgnore(
                 keyword: state.damageKeyword,

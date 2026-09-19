@@ -20,7 +20,8 @@ class ProjectGenerationTests(unittest.TestCase):
         self.env['PROJECT_CALLS'] = str(self.root / 'calls')
         for path in ('Scripts/build-inputs.env', '.githooks/pre-commit', 'Scripts/check-staged-project.sh',
                      'Scripts/apply-scheme-storekit.py',
-                     'Scripts/lib/project-generation.sh', 'Scripts/lib/tools.sh', 'Scripts/lib/args.sh'):
+                     'Scripts/lib/project-generation.sh', 'Scripts/lib/tools.sh', 'Scripts/lib/args.sh',
+                     'Scripts/lib/tempdir.sh', 'Scripts/lib/lock.sh'):
             target = self.root / path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / path, target)
@@ -182,6 +183,7 @@ printf cached > "$cache"
         for relative in ('.githooks/pre-push', 'Scripts/agent-push-gate.sh',
                          'Scripts/assert-generated-output.sh', 'Scripts/change-classification.sh',
                          'Scripts/lib/classification-plan.sh', 'Scripts/lib/smoke-classes.sh',
+                         'Scripts/lib/generated-paths.sh',
                          'Scripts/config/smoke-classes.txt',
                           'Scripts/build-inputs.env', 'Scripts/format-dirs.env'):
             target = self.root / relative

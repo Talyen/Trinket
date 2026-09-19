@@ -17,9 +17,9 @@ package extension CombatTriggerEngine {
         }
         if triggers.firstGoldTheftHeal > 0,
            context.claimHeroTalent("scavengersCache", actorID: actor.id) {
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.firstGoldTheftHeal, target: actor, source: actor,
-                abilityName: triggerAbilityName("firstGoldTheftHeal", for: actor, fallback: "Scavenger's Cache", in: context),
+            events.append(contentsOf: emitHeal(
+                "firstGoldTheftHeal", "Scavenger's Cache",
+                amount: triggers.firstGoldTheftHeal, to: actor, source: actor, in: &context,
             ))
         }
         return events
@@ -28,26 +28,12 @@ package extension CombatTriggerEngine {
     static func afterEnemyDefeated(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
 
-        if context.roster.hero.isAlive {
-            let hero = context.roster.hero.combatant
-            let amount = context.heroModifiers.triggers.defeatEnemyGoldFlat
+        for (_, member) in livingPartyMembers(in: context) {
+            let actor = member.combatant
+            let amount = context.modifiers(for: actor.id).triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                events.append(contentsOf: context.grantGoldEvent(
-                    amount,
-                    to: hero,
-                    abilityName: triggerAbilityName("defeatEnemyGoldFlat", for: hero, fallback: "Bounty", in: context),
-                ))
-            }
-        }
-
-        if context.roster.companion.isAlive {
-            let companion = context.roster.companion.combatant
-            let amount = context.companionModifiers.triggers.defeatEnemyGoldFlat
-            if amount > 0 {
-                events.append(contentsOf: context.grantGoldEvent(
-                    amount,
-                    to: companion,
-                    abilityName: triggerAbilityName("defeatEnemyGoldFlat", for: companion, fallback: "Bounty", in: context),
+                events.append(contentsOf: emitGold(
+                    "defeatEnemyGoldFlat", "Bounty", amount: amount, to: actor, in: &context,
                 ))
             }
         }
@@ -84,10 +70,8 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.critOnDefeatGold > 0 {
-            events.append(contentsOf: context.grantGoldEvent(
-                triggers.critOnDefeatGold,
-                to: actor,
-                abilityName: triggerAbilityName("critOnDefeatGold", for: actor, fallback: "Bounty Hunter", in: context),
+            events.append(contentsOf: emitGold(
+                "critOnDefeatGold", "Bounty Hunter", amount: triggers.critOnDefeatGold, to: actor, in: &context,
             ))
         }
         return events
@@ -98,24 +82,18 @@ package extension CombatTriggerEngine {
         for actor in [context.roster.hero.combatant, context.roster.companion.combatant] {
             let triggers = context.modifiers(for: actor.id).triggers
             if triggers.victoryGoldFlat > 0 {
-                events.append(contentsOf: context.grantGoldEvent(
-                    triggers.victoryGoldFlat,
-                    to: actor,
-                    abilityName: triggerAbilityName("victoryGoldFlat", for: actor, fallback: "Smuggler's Map", in: context),
+                events.append(contentsOf: emitGold(
+                    "victoryGoldFlat", "Smuggler's Map", amount: triggers.victoryGoldFlat, to: actor, in: &context,
                 ))
             }
             if triggers.victoryGoldCoin {
                 if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
-                    events.append(contentsOf: context.grantGoldEvent(
-                        7,
-                        to: actor,
-                        abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context),
+                    events.append(contentsOf: emitGold(
+                        "victoryGoldCoin", "Wishing Well Coin", amount: 7, to: actor, in: &context,
                     ))
                 } else {
-                    events.append(contentsOf: context.grantGoldEvent(
-                        3,
-                        to: actor,
-                        abilityName: triggerAbilityName("victoryGoldCoin", for: actor, fallback: "Wishing Well Coin", in: context),
+                    events.append(contentsOf: emitGold(
+                        "victoryGoldCoin", "Wishing Well Coin", amount: 3, to: actor, in: &context,
                     ))
                 }
             }
@@ -173,16 +151,9 @@ package extension CombatTriggerEngine {
         }
         if restoresParty {
             for (_, member) in livingPartyMembers(in: context) {
-                events.append(contentsOf: context.healEmitting(
-                    amount: triggers.onGainGoldHealParty,
-                    target: member.combatant,
-                    source: combatant,
-                    abilityName: triggerAbilityName(
-                        "onGainGoldHealParty",
-                        for: combatant,
-                        fallback: "Golden Recovery",
-                        in: context,
-                    ),
+                events.append(contentsOf: emitHeal(
+                    "onGainGoldHealParty", "Golden Recovery",
+                    amount: triggers.onGainGoldHealParty, to: member.combatant, source: combatant, in: &context,
                 ))
             }
         }
@@ -192,16 +163,9 @@ package extension CombatTriggerEngine {
                 if percent > 0 {
                     let block = Int((Double(granted) * percent).rounded(.down))
                     if block > 0 {
-                        events.append(contentsOf: context.applyBlock(
-                            block,
-                            to: member.combatant,
-                            source: member.combatant,
-                            abilityName: triggerAbilityName(
-                                "goldGainBlockPercent",
-                                for: member.combatant,
-                                fallback: "Golden Guard",
-                                in: context,
-                            ),
+                        events.append(contentsOf: emitBlock(
+                            "goldGainBlockPercent", "Golden Guard",
+                            amount: block, to: member.combatant, source: member.combatant, in: &context,
                         ))
                     }
                     continue
@@ -210,16 +174,9 @@ package extension CombatTriggerEngine {
                 guard every > 0 else { continue }
                 let newlyGranted = currentEarned / every - previousEarned / every
                 if newlyGranted > 0 {
-                    events.append(contentsOf: context.applyBlock(
-                        newlyGranted,
-                        to: member.combatant,
-                        source: member.combatant,
-                        abilityName: triggerAbilityName(
-                            "blockPerGoldEarnedEvery",
-                            for: member.combatant,
-                            fallback: "Golden Guard",
-                            in: context,
-                        ),
+                    events.append(contentsOf: emitBlock(
+                        "blockPerGoldEarnedEvery", "Golden Guard",
+                        amount: newlyGranted, to: member.combatant, source: member.combatant, in: &context,
                     ))
                 }
             }
@@ -241,35 +198,27 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
 
         if triggers.leechRestoreManaFlat > 0 {
-            events.append(contentsOf: context.restoreManaEmitting(
-                context.paced(triggers.leechRestoreManaFlat, sourceActorID: actor.id),
-                to: actor,
-                abilityName: triggerAbilityName("leechRestoreManaFlat", for: actor, fallback: "Siphoning", in: context),
+            events.append(contentsOf: emitMana(
+                "leechRestoreManaFlat", "Siphoning",
+                amount: context.paced(triggers.leechRestoreManaFlat, sourceActorID: actor.id),
+                to: actor, in: &context,
             ))
         }
 
         if triggers.leechGoldFlat > 0 {
-            events.append(contentsOf: context.grantGoldEvent(
-                triggers.leechGoldFlat,
-                to: actor,
-                abilityName: triggerAbilityName("leechGoldFlat", for: actor, fallback: "Blood Price", in: context),
+            events.append(contentsOf: emitGold(
+                "leechGoldFlat", "Blood Price", amount: triggers.leechGoldFlat, to: actor, in: &context,
             ))
         }
 
         guard let target, target.role == .enemy, context.roster.health(for: target) > 0 else { return events }
-        if triggers.onLeechApplyPoison > 0 {
+        for (keyword, potency) in [
+            (Keyword.poison, triggers.onLeechApplyPoison),
+            (Keyword.bleed, triggers.onLeechApplyBleed),
+        ] where potency > 0 {
             events.append(contentsOf: applyDoT(
-                keyword: .poison,
-                potency: triggers.onLeechApplyPoison,
-                to: target,
-                sourceActorID: actor.id,
-                in: &context,
-            ))
-        }
-        if triggers.onLeechApplyBleed > 0 {
-            events.append(contentsOf: applyDoT(
-                keyword: .bleed,
-                potency: triggers.onLeechApplyBleed,
+                keyword: keyword,
+                potency: potency,
                 to: target,
                 sourceActorID: actor.id,
                 in: &context,

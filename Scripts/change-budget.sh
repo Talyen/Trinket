@@ -3,6 +3,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+# shellcheck source=Scripts/lib/tempdir.sh
+source Scripts/lib/tempdir.sh
 # shellcheck source=Scripts/change-classification.sh
 source Scripts/change-classification.sh
 
@@ -39,9 +41,8 @@ if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
   exit 0
 fi
 
-stats=$(mktemp -t trinket-budget-stats.XXXXXX)
-patch=$(mktemp -t trinket-budget-patch.XXXXXX)
-trap 'rm -f "$stats" "$patch"' EXIT
+trinket_mktemp_file stats trinket-budget-stats
+trinket_mktemp_file patch trinket-budget-patch
 git diff --no-renames --numstat "$base" -- "${TRINKET_CHANGED_PATHS[@]}" > "$stats"
 git diff --no-renames --unified=0 "$base" -- "${TRINKET_CHANGED_PATHS[@]}" > "$patch"
 

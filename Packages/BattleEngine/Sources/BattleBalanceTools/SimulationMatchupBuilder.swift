@@ -43,30 +43,32 @@ public enum SimulationMatchupBuilder {
         let resolvedCompanionLevel = companionLevel ?? tier.level
         let resolvedEnemyLevel = enemyLevel ?? tier.level
 
-        let heroRequest = makePartyRequest(
-            level: resolvedHeroLevel,
-            tier: tier,
-            idPrefix: "sim-hero",
-            gearOverride: heroGear,
-            talents: heroTalents,
-            bias: gearKeywordBias,
-            generator: gearGenerator,
+        let heroPrepared = preparePartyMember(
+            hero,
+            loadout: heroLoadout,
+            slot: PartySlot(
+                level: resolvedHeroLevel,
+                tier: tier,
+                idPrefix: "sim-hero",
+                gearOverride: heroGear,
+                talents: heroTalents,
+                bias: gearKeywordBias,
+                generator: gearGenerator,
+            ),
+            using: &rng,
         )
-        let companionRequest = makePartyRequest(
-            level: resolvedCompanionLevel,
-            tier: tier,
-            idPrefix: "sim-companion",
-            gearOverride: companionGear,
-            talents: companionTalents,
-            bias: gearKeywordBias,
-            generator: gearGenerator,
-        )
-
-        let heroPrepared = preparePartyMember(hero, loadout: heroLoadout, request: heroRequest, using: &rng)
         let companionPrepared = preparePartyMember(
             companion,
             loadout: companionLoadout,
-            request: companionRequest,
+            slot: PartySlot(
+                level: resolvedCompanionLevel,
+                tier: tier,
+                idPrefix: "sim-companion",
+                gearOverride: companionGear,
+                talents: companionTalents,
+                bias: gearKeywordBias,
+                generator: gearGenerator,
+            ),
             using: &rng,
         )
 
@@ -231,128 +233,59 @@ public enum SimulationMatchupBuilder {
         Set(tree.nodes.filter { $0.row < row }.map(\.id))
     }
 
-    public static func progression(level: Int) -> CombatantProgression {
-        CombatantProgression(
-            level: level,
-            currentXP: 0,
-            requiredXP: CombatantProgression.requiredXP(forLevel: level),
-        )
-    }
-
-    private struct PartyPrepareRequest {
-        var progression: CombatantProgression
+    private struct PartySlot {
+        var level: Int
         var tier: SimulationPowerTier
-        var idPrefix: String = ""
+        var idPrefix: String
         var gearOverride: GearOverride?
-        var unlockedTalents: Set<String> = []
-        var gearKeywordBias: Set<Keyword>?
-        var gearGenerator: ThemedGearGenerator
-
-        func with(idPrefix: String, gearOverride: GearOverride?) -> Self {
-            var copy = self
-            copy.idPrefix = idPrefix
-            copy.gearOverride = gearOverride
-            return copy
-        }
-    }
-
-    private static func makePartyRequest(
-        level: Int,
-        tier: SimulationPowerTier,
-        idPrefix: String,
-        gearOverride: GearOverride?,
-        talents: Set<String>,
-        bias: Set<Keyword>?,
-        generator: ThemedGearGenerator,
-    ) -> PartyPrepareRequest {
-        PartyPrepareRequest(
-            progression: progression(level: level),
-            tier: tier,
-            idPrefix: idPrefix,
-            gearOverride: gearOverride,
-            unlockedTalents: talents,
-            gearKeywordBias: bias,
-            gearGenerator: generator,
-        )
-    }
-
-    private struct PreparedPartyMember {
-        var build: CombatBuild
-        var loadout: AbilityLoadout
-        var affixIDs: [String]
-        var itemBaseIDs: [String]
-    }
-
-    private static func makePrepared(
-        combatant: Combatant,
-        loadout: AbilityLoadout,
-        unlockedTalents: Set<String>,
-        inventory: [InventoryItem],
-        equipmentLoadout: EquipmentLoadout,
-    ) -> PreparedPartyMember {
-        let sanitized = equipmentLoadout.sanitized(for: combatant, inventory: inventory)
-        let build = CombatBuildResolver.build(
-            combatant: combatant,
-            equipmentLoadout: sanitized,
-            inventory: inventory,
-            unlockedTalents: unlockedTalents,
-        )
-        return PreparedPartyMember(
-            build: build,
-            loadout: loadout,
-            affixIDs: inventory.flatMap { $0.affixes.map(\.id) },
-            itemBaseIDs: inventory.map(\.baseType.id),
-        )
+        var talents: Set<String>
+        var bias: Set<Keyword>?
+        var generator: ThemedGearGenerator
     }
 
     private static func preparePartyMember(
         _ combatant: Combatant,
         loadout: AbilityLoadout,
-        request: PartyPrepareRequest,
+        slot: PartySlot,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> PreparedPartyMember {
+    ) -> (build: CombatBuild, loadout: AbilityLoadout, affixIDs: [String], itemBaseIDs: [String]) {
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
-        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: request.progression.level)
+        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: slot.level)
 
-        if let gearOverride = request.gearOverride {
-            return makePrepared(
-                combatant: scaled,
-                loadout: loadout,
-                unlockedTalents: request.unlockedTalents,
-                inventory: gearOverride.inventory,
-                equipmentLoadout: gearOverride.loadout,
+        let inventory: [InventoryItem]
+        let equipmentLoadout: EquipmentLoadout
+        if let gearOverride = slot.gearOverride {
+            inventory = gearOverride.inventory
+            equipmentLoadout = gearOverride.loadout
+        } else if slot.tier.includesGear, let rarity = slot.tier.rarity, let affixCount = slot.tier.fixedAffixCount {
+            let buildKeywords = slot.bias ?? Set(scaled.abilities.flatMap(\.keywords))
+            let gear = slot.generator.generate(
+                for: scaled,
+                rarity: rarity,
+                fixedAffixCount: affixCount,
+                idPrefix: slot.idPrefix,
+                keywordBias: buildKeywords,
+                requireBuildAlignment: true,
+                using: &randomNumberGenerator,
             )
+            inventory = gear.inventory
+            equipmentLoadout = gear.loadout
+        } else {
+            inventory = []
+            equipmentLoadout = EquipmentLoadout()
         }
 
-        guard request.tier.includesGear,
-              let rarity = request.tier.rarity,
-              let affixCount = request.tier.fixedAffixCount
-        else {
-            return makePrepared(
-                combatant: scaled,
-                loadout: loadout,
-                unlockedTalents: request.unlockedTalents,
-                inventory: [],
-                equipmentLoadout: EquipmentLoadout(),
-            )
-        }
-
-        let buildKeywords = request.gearKeywordBias ?? Set(scaled.abilities.flatMap(\.keywords))
-        let gear = request.gearGenerator.generate(
-            for: scaled,
-            rarity: rarity,
-            fixedAffixCount: affixCount,
-            idPrefix: request.idPrefix,
-            keywordBias: buildKeywords,
-            requireBuildAlignment: true,
-            using: &randomNumberGenerator,
-        )
-        return makePrepared(
+        let build = CombatBuildResolver.build(
             combatant: scaled,
-            loadout: loadout,
-            unlockedTalents: request.unlockedTalents,
-            inventory: gear.inventory,
-            equipmentLoadout: gear.loadout,
+            equipmentLoadout: equipmentLoadout.sanitized(for: scaled, inventory: inventory),
+            inventory: inventory,
+            unlockedTalents: slot.talents,
+        )
+        return (
+            build,
+            loadout,
+            inventory.flatMap { $0.affixes.map(\.id) },
+            inventory.map(\.baseType.id),
         )
     }
 }

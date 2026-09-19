@@ -32,9 +32,12 @@ source Scripts/run-env.sh
 source Scripts/build-freshness.sh
 source Scripts/xcode-runner.sh
 source Scripts/lib/app-build.sh
+# shellcheck source=Scripts/lib/tempdir.sh
+source Scripts/lib/tempdir.sh
 trinket_run_env_init
 prepare_generated_inputs "$RESULTS_DIR"
 analysis_dir="$(mktemp -d "$DERIVED_DATA_PATH/analyze.XXXXXX")"
+trinket_temp_track "$analysis_dir"
 trinket_set_app_xcodebuild_args "$analysis_dir"
 xcode_runner_prepare analyze-build "$RESULTS_DIR"
 COMBINED="$XCODE_RUNNER_LOG_PATH"
@@ -61,6 +64,5 @@ if grep -E -q 'unused_import' "$analyze_output"; then
   exit 1
 fi
 rm "$analyze_output"
-rm -r "$analysis_dir"
 echo "lint-analyze: no unused_import violations (remaining findings advisory); passing."
 exit 0

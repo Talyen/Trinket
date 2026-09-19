@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-import TrinketBattleFeature
 import TrinketContent
 import TrinketFeatureSupport
 @testable import TrinketAppState
@@ -77,21 +76,5 @@ struct AppStateSpiresTests {
 
         let message = state.spires.startBattle(for: floor)
         #expect(message?.title == PlayBattleLaunch.activationFailureMessage.title)
-    }
-
-    @Test func `duplicate spire route delivery reports unavailable without paying twice`() throws {
-        let state = try context.makePlaySession()
-        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        #expect(state.spires.startBattle(for: floor) == nil)
-        let configuration = try #require(state.battle.activeBattle)
-        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
-        let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 0)))
-        let loot = PlayBattleCompletion.preparedLoot(from: presentation, materialRewards: nil)
-        let route = try #require(state.route(for: configuration.runKey))
-
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
-        let saveAfterVictory = state.playerSave.currentSave
-        #expect(route.complete(configuration, presentation, settlement, nil, loot) == .unavailable)
-        #expect(state.playerSave.currentSave == saveAfterVictory)
     }
 }

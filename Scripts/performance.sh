@@ -28,18 +28,12 @@ fi
 mkdir -p .DerivedData "$(dirname "$OUTPUT_DIR")"
 # shellcheck source=lib/lock.sh
 source Scripts/lib/lock.sh
+# trinket_dir_lock_acquire chains lock release onto EXIT and installs signal
+# traps with child reaping; no bespoke cleanup is needed here.
 if ! trinket_dir_lock_acquire "$LOCK_DIR" 0; then
   echo "Battle performance lane is already in use. This runner is intentionally exclusive." >&2
   exit 1
 fi
-cleanup() {
-  local status=$?
-  trinket_dir_lock_release "$LOCK_DIR" "${BASHPID:-$$}"
-  return "$status"
-}
-trap cleanup EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
 
 if [[ -e "$OUTPUT_DIR" ]]; then
   echo "Performance output already exists; choose a fresh TRINKET_PERFORMANCE_OUTPUT_DIR: $OUTPUT_DIR" >&2

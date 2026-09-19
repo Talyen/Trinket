@@ -29,12 +29,31 @@ struct CombatRoundingTests {
         #expect(CombatRounding.scaled(Int.max, multiplier: 2) == Int.max)
     }
 
-    @Test func `scaled by percent rounds ties to even`() {
+    @Test func `scaled by percent rounds ties away from zero`() {
         #expect(CombatRounding.scaled(15, byPercent: 5) == 16)
         #expect(CombatRounding.scaled(10, byPercent: 25) == 13)
         #expect(CombatRounding.scaled(10, byPercent: 50) == 15)
         #expect(CombatRounding.scaled(10, byPercent: -50) == 5)
         #expect(CombatRounding.scaled(0, byPercent: 50) == 0)
         #expect(CombatRounding.scaled(-10, byPercent: 50) == 0)
+        // True .5 ties: away-from-zero, not banker's (2.5 → 3, not 2).
+        #expect(CombatRounding.rounded(2.5) == 3)
+        #expect(CombatRounding.rounded(3.5) == 4)
+    }
+
+    @Test func `scaled by zero percent is identity for non negative bases`() {
+        #expect(CombatRounding.scaled(10, byPercent: 0) == 10)
+        #expect(CombatRounding.scaled(0, byPercent: 0) == 0)
+        #expect(CombatRounding.scaled(-10, byPercent: 0) == 0)
+        #expect(CombatRounding.scaled(Int.min, byPercent: 50) == 0)
+    }
+
+    @Test func `scaled with non finite multiplier collapses to zero`() {
+        // Documents the rounded() non-finite path: infinite scaling cannot
+        // saturate because the product is non-finite before rounding.
+        #expect(CombatRounding.scaled(10, multiplier: .infinity) == 0)
+        #expect(CombatRounding.scaled(10, multiplier: -.infinity) == 0)
+        #expect(CombatRounding.scaled(10, multiplier: .nan) == 0)
+        #expect(CombatRounding.scaled(10, multiplier: -0.5) == 0)
     }
 }

@@ -25,6 +25,7 @@ public final class ContractsPlayMode {
     @discardableResult
     public func enter() -> StageMapMessage? {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
+        guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.persistBatch(logging: "Failed to open Contracts", { save in
             save.contracts.ensureBoard()
         }) else {
@@ -37,6 +38,7 @@ public final class ContractsPlayMode {
     @discardableResult
     public func refresh() -> StageMapMessage? {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
+        guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.persistBatch(logging: "Failed to refresh Contracts", { save in
             save.contracts.refresh()
         }) else {
@@ -72,41 +74,38 @@ public final class ContractsPlayMode {
     private func combatRequest(
         for offer: ContractOffer,
         encounter: ScaledEncounter,
-    ) -> PlayCombatRequest {
-        PlayCombatRequest(
+    ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
+        let loot = ContractsCompletion.resolveLoot(
+            for: offer,
+            encounterLevel: encounter.level,
+            save: playerSave.currentSave,
+        )
+        let input = ModeBattleSpec.launchInput(
             origin: .contract(offerID: offer.id),
             encounter: encounter,
-            route: battleRoute(offerID: offer.id),
-            loot: ContractsCompletion.resolveLoot(
-                for: offer,
-                encounterLevel: encounter.level,
-                save: playerSave.currentSave,
-            ),
+            loot: loot,
+            roster: playerSave.roster,
         )
+        return (input, battleRoute(offerID: offer.id))
     }
 
     private func battleRoute(offerID: String) -> PlayBattleRoute {
-        PlayBattleRoute(origin: .contract(offerID: offerID)) { [weak self] configuration, _, award, _, loot in
-            guard let self, let loot, let level = configuration.enemyEncounterLevel else { return .unavailable }
-            let transaction = playerSave.persistTransaction(logging: "Failed to complete contract") { save -> Result<
-                EncounterCompletion,
-                PlayCompletionFailure,
-            > in
-                switch ContractsCompletion.complete(
-                    offerID: offerID,
-                    hero: configuration.hero.combatant,
-                    companion: configuration.companion.combatant,
-                    encounterLevel: level,
-                    loot: loot,
-                    battleGold: award.award.goldFlow,
-                    award: award,
-                    save: &save,
-                ) {
-                case .completed: return .success(.completed)
-                case .alreadyCompleted, .unavailable: return .failure(.unavailable)
-                }
-            }
-            return PlayBattleRoute.completionResult(transaction)
+        PlayBattleRoute.makeModeRoute(
+            origin: .contract(offerID: offerID),
+            logging: "Failed to complete contract",
+            playerSave: playerSave,
+        ) { configuration, _, award, _, loot, save in
+            guard let loot, let level = configuration.enemyEncounterLevel else { return .unavailable }
+            return ContractsCompletion.complete(
+                offerID: offerID,
+                hero: configuration.hero.combatant,
+                companion: configuration.companion.combatant,
+                encounterLevel: level,
+                loot: loot,
+                battleGold: award.award.goldFlow,
+                award: award,
+                save: &save,
+            )
         }
     }
 }

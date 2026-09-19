@@ -233,6 +233,9 @@ package extension CombatTriggerEngine {
         if fullyBlocked, triggers.missedOpportunity {
             events.append(contentsOf: heroTalentBlock(to: actor, source: actor, name: "Missed Opportunity", in: &context))
         }
+        // Physical-only tail by design: Clean Cut, Cracked Guard, Cold Read,
+        // Feigned Miss, and Prismatic Edge reward physical cards. Smoke Trick
+        // and Missed Opportunity above intentionally fire for any keyword.
         guard keyword == .physical else { return events }
         if critical, triggers.cleanCut {
             context.removeTalentPoint(.poison, from: actor)

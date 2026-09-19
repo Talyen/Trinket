@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
@@ -141,9 +140,7 @@ struct AppStateMysteryRecruitTests {
         #expect(playerSave.isRetryingSaveAction)
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == nil)
-        for _ in 0 ..< 300 where playerSave.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
         #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] != nil)
     }
     #endif
@@ -274,9 +271,7 @@ struct AppStateMysteryRecruitTests {
         #expect(playerSave.isRetryingSaveAction)
         #expect(state.playerSave.roster.gold == goldBefore)
 
-        for _ in 0 ..< 300 where playerSave.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
         #expect(state.encounters.activeMysteryEncounter?.phase == .reward)
         #expect(session.applyResult?.grantedItems == [shown.item])
         #expect(state.playerSave.journey.mysteryOfferPayloads[session.stage.id] == nil)
@@ -311,9 +306,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(playerSave.isRetryingSaveAction)
 
-        for _ in 0 ..< 300 where playerSave.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
         #expect(state.encounters.finishActiveMysteryEncounter())

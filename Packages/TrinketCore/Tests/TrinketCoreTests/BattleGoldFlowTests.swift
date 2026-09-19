@@ -36,4 +36,26 @@ struct BattleGoldFlowTests {
         #expect(flow.gained == Int.max)
         #expect(flow.spent == Int.max)
     }
+
+    @Test func `record handles extreme deltas without trapping`() {
+        var maxGain = BattleGoldFlow()
+        maxGain.record(delta: Int.max)
+        #expect(maxGain.gained == Int.max)
+        maxGain.record(delta: Int.max)
+        #expect(maxGain.gained == Int.max)
+
+        var minSpend = BattleGoldFlow()
+        minSpend.record(delta: Int.min)
+        #expect(minSpend.spent == Int.max)
+        #expect(minSpend.net == -Int.max)
+
+        var minGain = BattleGoldFlow()
+        minGain.record(delta: Int.min)
+        #expect(minGain.gained == 0)
+        #expect(minGain.spent == Int.max)
+    }
+
+    @Test func `net can go negative when spending exceeds gains`() {
+        #expect(BattleGoldFlow(gained: 5, spent: 50).net == -45)
+    }
 }

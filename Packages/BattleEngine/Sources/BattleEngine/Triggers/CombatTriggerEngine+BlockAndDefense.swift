@@ -147,16 +147,9 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        events.append(contentsOf: context.healEmitting(
-            amount: power,
-            target: target,
-            source: target,
-            abilityName: triggerAbilityName(
-                "blockBrokenSaintfallPower",
-                for: target,
-                fallback: "Saintfall",
-                in: context,
-            ),
+        events.append(contentsOf: emitHeal(
+            "blockBrokenSaintfallPower", "Saintfall",
+            amount: power, to: target, source: target, in: &context,
         ))
         return events
     }
@@ -173,11 +166,9 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: target.id)
         var events: [ActionEvent] = []
         if profile.triggers.blockBrokenBlockFlat > 0 {
-            events.append(contentsOf: context.applyBlock(
-                profile.triggers.blockBrokenBlockFlat,
-                to: target,
-                source: target,
-                abilityName: triggerAbilityName("blockBrokenBlockFlat", for: target, fallback: "Cascading", in: context),
+            events.append(contentsOf: emitBlock(
+                "blockBrokenBlockFlat", "Cascading",
+                amount: profile.triggers.blockBrokenBlockFlat, to: target, source: target, in: &context,
             ))
         }
 
@@ -338,11 +329,9 @@ package extension CombatTriggerEngine {
         let percent = Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
         guard percent < profile.triggers.onceBelowHealthPercentThreshold else { return events }
         context.roster.mutateRuntime(for: target) { $0.hasTriggeredSecondWind = true }
-        events.append(contentsOf: context.healEmitting(
-            amount: profile.triggers.onceBelowHealthPercentHeal,
-            target: target,
-            source: target,
-            abilityName: triggerAbilityName("onceBelowHealthPercentHeal", for: target, fallback: "Second Wind", in: context),
+        events.append(contentsOf: emitHeal(
+            "onceBelowHealthPercentHeal", "Second Wind",
+            amount: profile.triggers.onceBelowHealthPercentHeal, to: target, source: target, in: &context,
         ))
         return events
     }

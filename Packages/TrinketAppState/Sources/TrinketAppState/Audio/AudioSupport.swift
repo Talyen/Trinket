@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import os
+import TrinketContent
 import TrinketPersistence
 
 /// Shared audio plumbing for `MusicPlayer` and `SFXPlayer`.
@@ -23,6 +24,16 @@ enum AudioSupport {
     /// Applies a catalog gain to an app volume, clamped to 0...1.
     static func targetVolume(appVolume: Float, gain: Double) -> Float {
         min(appVolume * Float(max(0, gain)), 1)
+    }
+
+    /// Single home for catalog bundle lookup. Music and SFX differ only in
+    /// subdirectory.
+    static func mediaURL(resourceName: String, fileExtension: String, subdirectory: String) -> URL? {
+        MediaResourceLocator.url(
+            resourceName: resourceName,
+            fileExtension: fileExtension,
+            subdirectory: subdirectory,
+        )
     }
 }
 

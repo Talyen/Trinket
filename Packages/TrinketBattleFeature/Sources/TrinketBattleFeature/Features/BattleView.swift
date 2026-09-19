@@ -175,12 +175,18 @@ public struct BattleView: View {
             }
         }
         .animation(TrinketMotion.Screen.crossfade, value: spectacle.outcomePresentation)
-        .modifier(BattleOutcomeHapticsModifier(
-            battleSession: battleSession,
-            spectacle: spectacle,
-            victoryTrigger: $victoryFeedbackToken,
-            defeatTrigger: $defeatFeedbackToken,
-        ))
+        .trinketSensoryFeedback(.success, trigger: victoryFeedbackToken, enabled: battleSession.hapticsEnabled)
+        .trinketSensoryFeedback(.error, trigger: defeatFeedbackToken, enabled: battleSession.hapticsEnabled)
+        .onChange(of: spectacle.outcomePresentation) { _, newValue in
+            switch newValue {
+            case .victory:
+                victoryFeedbackToken &+= 1
+            case .defeat:
+                defeatFeedbackToken &+= 1
+            case .battle, .pendingVictory:
+                break
+            }
+        }
     }
 
     private func completeVictoryPrimaryAction(summary: BattleVictorySummary) -> Bool {
@@ -426,15 +432,6 @@ private struct BattleInfrastructureLane: View {
             .onDisappear {
                 battleSession.feedback.uninstallBridge(ownerID: ownerID)
             }
-
-        if let artworkName {
-            CardCastEffectsPrewarmView(artworkName: artworkName) {
-                self.artworkName = nil
-            }
-        }
-        Color.clear
-            .frame(width: 0, height: 0)
-            .accessibilityHidden(true)
             .task(id: prewarmKey) {
                 guard let prewarmKey,
                       preparedConfigurationID != prewarmKey.configurationID
@@ -449,6 +446,12 @@ private struct BattleInfrastructureLane: View {
                     artworkName = nil
                 }
             }
+
+        if let artworkName {
+            CardCastEffectsPrewarmView(artworkName: artworkName) {
+                self.artworkName = nil
+            }
+        }
     }
 
     private var prewarmKey: BattleCastPrewarmKey? {
@@ -471,28 +474,5 @@ private struct BattleCastPrewarmKey: Equatable {
 private extension BattleView {
     var hasStageProgression: Bool {
         presentationContext.hasProgressionRewards
-    }
-}
-
-private struct BattleOutcomeHapticsModifier: ViewModifier {
-    let battleSession: BattleSession
-    let spectacle: BattleSpectacleState
-    @Binding var victoryTrigger: Int
-    @Binding var defeatTrigger: Int
-
-    func body(content: Content) -> some View {
-        content
-            .trinketSensoryFeedback(.success, trigger: victoryTrigger, enabled: battleSession.hapticsEnabled)
-            .trinketSensoryFeedback(.error, trigger: defeatTrigger, enabled: battleSession.hapticsEnabled)
-            .onChange(of: spectacle.outcomePresentation) { _, newValue in
-                switch newValue {
-                case .victory:
-                    victoryTrigger &+= 1
-                case .defeat:
-                    defeatTrigger &+= 1
-                case .battle, .pendingVictory:
-                    break
-                }
-            }
     }
 }

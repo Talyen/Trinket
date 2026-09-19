@@ -7,8 +7,9 @@ operations. Damage type owns Stun/Freeze buildup; callers do not opt into it wit
 a flag. Counterattacks and repeated hits carry explicit origins; repeating periodic
 or reaction damage preserves its operation kind. Redirected damage enters the
 recipient's defenses with outgoing scaling already resolved. `DamageDefensePolicy`
-owns mitigation and Block bypass, including Intercede, while preserving each
-checkpoint's order and rounding. Partial bypass scales each defense before
+owns mitigation and Block bypass multipliers, while the shield steps in
+`DamagePipeline` own Intercede absorption on top of those multipliers,
+preserving each checkpoint's order and rounding. Partial bypass scales each defense before
 subtracting it and clamping damage. Burn detonation preserves the original
 source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
 preserves the original source's slower decay. Resolution depth limits recursion, never changes
@@ -22,6 +23,10 @@ reactions. Reserve next-hit resources before nested reactions and never write a
 cached effects array back after a reaction. `CleanseOperation` owns removal and
 all cleanse consequences together. `PurgeOperation` likewise commits removals
 before protection and rewards; dependent damage reads its actual removed effects.
+Removal events report what was actually removed: one event per removed buff for
+purge, one per distinct keyword for cleanse. Empty purge reports `didApply:false`;
+empty cleanse still reports any heal and side-effect events as applied
+(`didApply` reflects emitted events).
 `DoTApplication.reflection` preserves the
 removed potency and duration without new-application bonuses or immediate damage.
 Turn handlers commit their own effect updates and return only events. Decaying

@@ -61,9 +61,7 @@ struct DefeatCompletionTests {
         let settlement = try #require(play.settleDefeatRewards(configuration))
         play.playerSave.forcesNextSaveFailure = true
         #expect(!battle.claimDefeat(configurationID: configuration.id, settlement: settlement, action: action))
-        for _ in 0 ..< 300 where battle.activeBattle?.id == configuration.id {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { battle.activeBattle?.id == configuration.id }
         #expect(battle.activeBattle?.id != configuration.id)
         #expect(play.playerSave.roster.progression(for: configuration.hero.combatant) == settlement.heroProgressionAfter)
         #expect(!play.playerSave.isRetryingSaveAction)

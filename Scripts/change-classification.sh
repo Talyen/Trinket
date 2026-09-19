@@ -22,6 +22,8 @@ source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/smoke-classes.sh"
 source "$TRINKET_CHANGE_CLASSIFICATION_DIR/build-inputs.env"
 # shellcheck source=lib/classification-plan.sh
 source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/classification-plan.sh"
+# shellcheck source=lib/generated-paths.sh
+source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/generated-paths.sh"
 
 source "$TRINKET_CHANGE_CLASSIFICATION_DIR/lib/project-generation.sh"
 
@@ -481,15 +483,13 @@ trinket_load_generated_registry() {
   if [[ ${#TRINKET_GENERATED_REGISTRY[@]+x} ]] && ((${#TRINKET_GENERATED_REGISTRY[@]} > 0)); then
     return 0
   fi
-  local line entry registry="$TRINKET_CHANGE_CLASSIFICATION_DIR/config/generated-paths.tsv"
+  local kind entry registry="$TRINKET_CHANGE_CLASSIFICATION_DIR/config/generated-paths.tsv"
   # Sparse fixture checkouts may lack the registry; fallbacks below still apply.
   [[ -f "$registry" ]] || return 0
-  while IFS= read -r line; do
-    case "$line" in ''|\#*) continue ;; esac
-    case "$line" in content\|*|asset\|*) ;; *) continue ;; esac
-    entry="${line#*|}"
-    [[ -n "$entry" ]] && TRINKET_GENERATED_REGISTRY+=("${entry%/}")
-  done < "$registry"
+  while IFS='|' read -r kind entry; do
+    case "$kind" in content|asset) ;; *) continue ;; esac
+    TRINKET_GENERATED_REGISTRY+=("$entry")
+  done < <(trinket_generated_registry_rows "$registry")
 }
 
 trinket_is_generated_output() {

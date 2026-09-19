@@ -32,11 +32,14 @@ public struct DamageComponent: Hashable, Sendable {
         self.condition = condition
     }
 
+    /// Component-level rule: any Burn/Freeze damage component. The effect-level
+    /// twin (`Effect.isManaEmpowerableBurnOrFreezeDamage`) covers only `.burn`
+    /// and Burn/Freeze `recurringDamage`; both share `manaEmpowermentBonus`.
     public var isManaEmpowerableBurnOrFreezeDamage: Bool {
         keyword == .burn || keyword == .freeze
     }
 
-    public func withManaEmpowerment(_ amount: Int = 1) -> Self {
+    public func withManaEmpowerment(_ amount: Int = Effect.manaEmpowermentBonus) -> Self {
         guard isManaEmpowerableBurnOrFreezeDamage else { return self }
         return Self(
             self.amount + amount,
@@ -112,6 +115,11 @@ public enum Effect: Hashable, Sendable {
     public static let abilityLeechPercent = 0.50
     public static let standardMarkedDuration = 3
     public static let standardMarkedBonus = 2
+    /// Mana empowerment bonus shared by `DamageComponent.withManaEmpowerment`,
+    /// `Effect.withManaEmpowerment`, and the "Spend 3 Mana" line in
+    /// `Keyword.mana.rulesText` (cost itself lives in
+    /// `BattleEngine.BattleTurnEngine`). Update together.
+    public static let manaEmpowermentBonus = 1
 
     public static func decayingDoT(keyword: Keyword, potency: Int) -> Self {
         switch keyword {
@@ -187,7 +195,7 @@ public enum Effect: Hashable, Sendable {
         }
     }
 
-    public func withManaEmpowerment(_ amount: Int = 1) -> Self {
+    public func withManaEmpowerment(_ amount: Int = manaEmpowermentBonus) -> Self {
         switch self {
         case let .burn(potency):
             .burn(potency + amount)
@@ -233,15 +241,20 @@ public enum Effect: Hashable, Sendable {
         case let .burn(potency):
             let normalNext = potency / 2
             let loss = potency - normalNext
-            let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - min(1, max(0, burnDecaySlowPercent)))
+            let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - clamped01(burnDecaySlowPercent))
             return potency - adjustedLoss
         case let .poison(potency):
             let loss = Self.poisonDecayAmount(for: potency)
-            let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - min(1, max(0, poisonDecaySlowPercent)))
+            let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - clamped01(poisonDecaySlowPercent))
             return max(0, potency - adjustedLoss)
         default:
             return 0
         }
+    }
+
+    /// Clamps a slow-percent to [0, 1]; decay math needs the bound twice.
+    private func clamped01(_ value: Double) -> Double {
+        min(1, max(0, value))
     }
 
     public var summary: String {

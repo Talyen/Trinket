@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SIMCTL_JSON="$SCRIPT_DIR/simctl_json.py"
+# All simctl JSON queries go through lib/simctl.sh's trinket_simctl_json when
+# this file is sourced after run-env.sh (every production caller). Standalone
+# sourcing keeps working via the sibling simctl_json.py next to this file.
+if ! command -v trinket_simctl_json >/dev/null 2>&1; then
+  trinket_simctl_json() {
+    python3 "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/simctl_json.py" "$@"
+  }
+fi
 
 # Creates, boots, and verifies an iOS Simulator for xcodebuild test runs.
 # When sourced, sets:
@@ -30,7 +36,7 @@ discard_simulator() {
 
 simulator_udid_for_name() {
   xcrun simctl list devices available -j 2>/dev/null \
-    | python3 "$SIMCTL_JSON" udid-for-name "$1" 2>/dev/null || true
+    | trinket_simctl_json udid-for-name "$1" 2>/dev/null || true
 }
 
 rename_legacy_shared_simulator_if_needed() {
@@ -147,7 +153,7 @@ PY
 boot_simulator() {
   local state
   state="$(xcrun simctl list devices "$SIMULATOR_UDID" -j 2>/dev/null \
-    | python3 "$SIMCTL_JSON" state-for-udid "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"
+    | trinket_simctl_json state-for-udid "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"
 
   if [[ "$state" == "Booted" ]]; then
     echo "$SIMULATOR_NAME ($SIMULATOR_UDID) is already booted."
@@ -183,7 +189,7 @@ simulator_matches_name() {
   local expected_name="$2"
   local actual_name
   actual_name="$(xcrun simctl list devices "$udid" -j 2>/dev/null \
-    | python3 "$SIMCTL_JSON" name-for-udid "$udid" 2>/dev/null || true)"
+    | trinket_simctl_json name-for-udid "$udid" 2>/dev/null || true)"
   [[ -n "$actual_name" && "$actual_name" == "$expected_name" ]]
 }
 

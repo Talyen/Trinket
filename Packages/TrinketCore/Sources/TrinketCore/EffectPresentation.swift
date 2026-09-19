@@ -121,12 +121,45 @@ public enum EffectPresentation {
 
     // swiftlint:enable function_body_length
 
+    public static func requiredBattleSummaryPhrase(for effect: Effect) -> String {
+        guard let phrase = battleSummaryPhrase(for: effect) else {
+            preconditionFailure("Every flag effect needs a battle summary phrase; missing \(effect)")
+        }
+        return phrase
+    }
+
+    public static func battleSummaryPhrase(for effect: Effect) -> String? {
+        switch effect {
+        case .nextHolyStrike:
+            "Holy Strike: Next attack deals double Holy damage and applies Burning."
+        case .nextStrikeDouble:
+            "Double Strike: Next attack deals double damage."
+        case .evadeNextHit:
+            "Evasion: Dodges the next attack."
+        case .nextStrikeCritical:
+            "Critical Focus: Next attack is a guaranteed Critical Hit."
+        case .nextStrikeLeech:
+            "Leech Focus: Next attack Leeches."
+        case .partyPhysicalBonus:
+            "Sniff Out: Party's next attack deals additional Physical damage."
+        case .freezeNextAttacker:
+            "Glacial Ward: Freezes the next attacker."
+        default:
+            nil
+        }
+    }
+
     private static func durationPhrase(turns: Int) -> String {
-        turns == 1 ? "for 1 turn" : "for \(turns) turns"
+        turnPhrase(turns: turns, includeMore: false)
     }
 
     private static func moreTurnsPhrase(turns: Int) -> String {
-        turns == 1 ? "for 1 more turn" : "for \(turns) more turns"
+        turnPhrase(turns: turns, includeMore: true)
+    }
+
+    private static func turnPhrase(turns: Int, includeMore: Bool) -> String {
+        let more = includeMore ? "more " : ""
+        return turns == 1 ? "for 1 \(more)turn" : "for \(turns) \(more)turns"
     }
 
     private static func statusPhrase(for keyword: Keyword, amount: Int) -> String {

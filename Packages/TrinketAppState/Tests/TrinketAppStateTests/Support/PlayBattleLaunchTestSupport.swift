@@ -10,6 +10,15 @@ import TrinketPersistence
 
 @MainActor
 enum PlayBattleLaunchTestSupport {
+    /// Polls `condition` (up to ~3s) until the save-retry machinery settles.
+    /// Single home for the retry-settling loop previously copied across
+    /// shop/mystery/victory/defeat tests.
+    static func awaitSaveQuiescence(when condition: () -> Bool) async throws {
+        for _ in 0 ..< 300 where condition() {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
     /// First stage of the first campaign chapter. Prefer this over indexing
     /// `GameContent.chapters[0].stages.first` so content-order assumptions live
     /// in one place.
@@ -85,9 +94,9 @@ enum PlayBattleLaunchTestSupport {
             rosterState: roster,
             inventoryState: inventory,
             homesteadState: homestead,
-            // Launches with a mode origin (or explicit run key) carry
-            // progression rewards; bare launches without either do not.
-            hasProgressionRewards: runKey != nil || origin != nil,
+            // Mirrors production (`PlayBattleLaunch.preparationInputs`):
+            // progression rewards ride on the mode origin, not the run key.
+            hasProgressionRewards: origin != nil,
         ).configuration
     }
 }

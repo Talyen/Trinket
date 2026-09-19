@@ -120,7 +120,8 @@ public extension EncounterPlayMode {
 
     private func retryOpeningMystery(origin: PlayEncounterOrigin, forcedEventID: String?) {
         playerSave.retrySaveAction(key: SaveRetryKey.mysteryOpen) { [weak self] in
-            _ = self?.beginMysteryEncounter(origin: origin, forcedEventID: forcedEventID)
+            guard let self, activeMysteryEncounter == nil, canBeginTransientEncounter else { return }
+            _ = beginMysteryEncounter(origin: origin, forcedEventID: forcedEventID)
         }
     }
 

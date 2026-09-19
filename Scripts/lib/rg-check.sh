@@ -14,6 +14,12 @@
 #     prints the header plus one bullet per violation to stderr and one
 #     ::error annotation per violation to stdout when GITHUB_ACTIONS=true
 #     and a title was given, then exits 1; otherwise echoes the OK message.
+#   trinket_rg_has_nearby_allow <file> <line> <marker>
+#     true when a `// <marker>: allow - <reason>` comment appears on one of
+#     the 4 lines ending at <line> (shared escape-hatch window).
+#   trinket_rg_contains <pattern> <target>
+#     true when the pattern is present in the target file (rg with grep
+#     fallback); false when absent. Exits 2+ on search error.
 #
 # bash 3.2-safe: indexed arrays only, no associative arrays, no mapfile.
 
@@ -26,6 +32,8 @@ violations=()
 TRINKET_RG_BULLET="${TRINKET_RG_BULLET:-  - }"
 
 # Run in the caller, not process substitution, so a search error stops the gate.
+# NOTE: ripgrep omits the file prefix when every input is an explicit file.
+# Callers parsing file:line matches must pass --with-filename in that case.
 trinket_rg_scan() {
   local status
   if TRINKET_RG_MATCHES="$(rg "$@")"; then
@@ -40,6 +48,30 @@ trinket_rg_scan() {
 
 trinket_rg_violation() {
   violations+=("$1")
+}
+
+# Shared nearby-allow window for `// <marker>: allow - <reason>` escape hatches.
+trinket_rg_has_nearby_allow() {
+  local _file="$1"
+  local _line_number="$2"
+  local _marker="$3"
+  local _start=$((_line_number > 4 ? _line_number - 4 : 1))
+  if sed -n "${_start},${_line_number}p" "$_file" \
+    | grep -Eq "^[[:space:]]*//[[:space:]]*${_marker}:[[:space:]]*allow[[:space:]]*-[[:space:]]*[[:graph:]]"; then
+    return 0
+  fi
+  return 1
+}
+
+# Shared presence probe for constant-enforcement gates.
+trinket_rg_contains() {
+  local _pattern="$1"
+  local _target="$2"
+  if command -v rg >/dev/null 2>&1; then
+    rg -q --no-ignore -g '!*' "$_pattern" "$_target" 2>/dev/null
+  else
+    grep -Eq "$_pattern" "$_target"
+  fi
 }
 
 _trinket_rg_trim() {

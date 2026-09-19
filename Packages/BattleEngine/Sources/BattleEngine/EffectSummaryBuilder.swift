@@ -18,9 +18,22 @@ public enum EffectSummaryBuilder {
 
     public static func build(for effects: [ActiveEffect]) -> [EffectSummary] {
         let grouped = Dictionary(grouping: effects, by: \.effect.kind)
+        // Fail-open ordering: kinds in priorityOrder keep their slots; any
+        // other kind (e.g. a future handler gaining a summary) appends after
+        // them in rawValue order instead of being silently dropped.
+        let orderedKinds = grouped.keys.sorted { lhs, rhs in
+            let lhsIndex = priorityOrder.firstIndex(of: lhs)
+            let rhsIndex = priorityOrder.firstIndex(of: rhs)
+            switch (lhsIndex, rhsIndex) {
+            case let (l?, r?): return l < r
+            case (_?, nil): return true
+            case (nil, _?): return false
+            case (nil, nil): return String(describing: lhs) < String(describing: rhs)
+            }
+        }
         var summaries: [EffectSummary] = []
         summaries.reserveCapacity(grouped.count)
-        for kind in priorityOrder {
+        for kind in orderedKinds {
             guard let kindEffects = grouped[kind], !kindEffects.isEmpty else { continue }
             guard let handler = EffectHandlers.handler(for: kind) else { continue }
             let groupedByKeyword = Dictionary(grouping: kindEffects, by: \.keyword)

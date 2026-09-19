@@ -53,6 +53,9 @@ package enum BattleCardCombatEngine {
                 && !deck(for: owner, in: context).isEmpty
         }
         guard !eligible.isEmpty else { return false }
+        // Rechecked (not redundant with the entry guard): the deal-plan loop
+        // above deals via deal(), which appends unconditionally, so the hand
+        // may have filled since entry.
         guard context.hand.count < BattleHand.maxSize else { return false }
         guard let owner = eligible.randomElement(using: &context.rng) else { return false }
         return drawOne(for: owner, context: &context) != nil
@@ -96,6 +99,8 @@ package enum BattleCardCombatEngine {
                 recording?(.bufferPromoted, context, [])
             }
         }
+        // Not redundant with the inner loop: draws can exhaust (empty deck,
+        // blocked owner) while buffered cards remain, so drain the buffer.
         while promoteNextFromBuffer(context: &context) != nil {
             recording?(.bufferPromoted, context, [])
         }

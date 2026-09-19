@@ -55,6 +55,15 @@ struct ContentAccessModeTests {
     }
 
     @Test @MainActor
+    func `locked shop surfaces the paywall instead of staying silent`() throws {
+        let context = try AppTestContext()
+        let state = try context.makeAppState(contentAccess: .free)
+        let shopStage = try #require(GameContent.stage(id: "chapter-4-stage-8"))
+        #expect(state.play.journey.handleStagePrimaryAction(for: shopStage)?.fullGameOffer == .campaign(chapter: 4))
+        #expect(state.play.encounters.activeShopEncounter == nil)
+    }
+
+    @Test @MainActor
     func `retry after access loss returns to the map`() throws {
         let context = try AppTestContext()
         let state = try context.makeAppState()

@@ -15,13 +15,23 @@ struct CombatantProgressionTests {
     }
 
     @Test func `adding extreme experience saturates without trapping`() {
-        let progression = CombatantProgression.at(level: 1)
-        let leveled = progression.addingExperience(Int.max)
-        #expect(leveled.level > 1)
-        #expect(leveled.currentXP >= 0)
+        // Bounded: exercises the Int.max-level guard directly instead of
+        // leveling ~3.8M times from level 1.
+        let nearCap = CombatantProgression(level: Int.max - 1, currentXP: 0, requiredXP: 10)
+        let capped = nearCap.addingExperience(Int.max)
+        #expect(capped.level == Int.max)
+        #expect(capped.currentXP >= 0)
+
+        // Saturated requirement: one level-up consumes the whole grant.
+        let saturated = CombatantProgression(level: 1000, currentXP: 0, requiredXP: Int.max)
+        let advanced = saturated.addingExperience(Int.max)
+        #expect(advanced.level == 1001)
+        #expect(advanced.currentXP == 0)
+
+        #expect(CombatantProgression.requiredXP(forLevel: Int.max) == Int.max)
     }
 
-    @Test func `adding experience handles single and multiple level ups`() {
+    @Test func `adding experience preserves exact multi level remainder`() {
         let progression = CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
         let leveled = progression.addingExperience(2)
         #expect(leveled.level == 2)

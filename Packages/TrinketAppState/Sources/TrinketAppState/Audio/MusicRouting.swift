@@ -4,7 +4,6 @@ import TrinketContent
 
 struct MusicResumeKey: Hashable {
     let contextKind: MusicTrackKind
-    let stageID: String?
     let enemyID: String?
     let trackID: String
 }
@@ -16,14 +15,12 @@ struct MusicPlaybackRequest: Equatable {
     static func resumable(
         track: MusicTrack,
         contextKind: MusicTrackKind,
-        stageID: String?,
         enemyID: String?,
     ) -> Self {
         Self(
             track: track,
             resumeKey: MusicResumeKey(
                 contextKind: contextKind,
-                stageID: stageID,
                 enemyID: enemyID,
                 trackID: track.id,
             ),
@@ -74,7 +71,6 @@ enum MusicRoute: Equatable {
             MusicPlaybackRequest.resumable(
                 track: track,
                 contextKind: .menu,
-                stageID: nil,
                 enemyID: nil,
             ),
         )
@@ -89,7 +85,6 @@ enum MusicRoute: Equatable {
                 MusicPlaybackRequest.resumable(
                     track: bossTrack,
                     contextKind: .boss,
-                    stageID: nil,
                     enemyID: enemyID,
                 ),
             )
@@ -103,7 +98,6 @@ enum MusicRoute: Equatable {
             MusicPlaybackRequest.resumable(
                 track: track,
                 contextKind: .battle,
-                stageID: nil,
                 enemyID: enemyID,
             ),
         )

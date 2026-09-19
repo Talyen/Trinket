@@ -81,32 +81,6 @@ public struct SimulationBuildContext: Equatable, Hashable, Sendable {
     public let companionItemBaseIDs: [String]
     public let heroTalentIDs: [String]
     public let companionTalentIDs: [String]
-
-    public init(
-        tier: SimulationPowerTier,
-        heroLoadout: AbilityLoadout,
-        companionLoadout: AbilityLoadout,
-        loadoutSampleIndex: Int,
-        seed: UInt64,
-        heroAffixIDs: [String] = [],
-        companionAffixIDs: [String] = [],
-        heroItemBaseIDs: [String] = [],
-        companionItemBaseIDs: [String] = [],
-        heroTalentIDs: [String] = [],
-        companionTalentIDs: [String] = [],
-    ) {
-        self.tier = tier
-        self.heroLoadout = heroLoadout
-        self.companionLoadout = companionLoadout
-        self.loadoutSampleIndex = loadoutSampleIndex
-        self.seed = seed
-        self.heroAffixIDs = heroAffixIDs
-        self.companionAffixIDs = companionAffixIDs
-        self.heroItemBaseIDs = heroItemBaseIDs
-        self.companionItemBaseIDs = companionItemBaseIDs
-        self.heroTalentIDs = heroTalentIDs
-        self.companionTalentIDs = companionTalentIDs
-    }
 }
 
 public struct ConfiguredSimulationMatchup: Equatable, Sendable {
@@ -120,28 +94,4 @@ public struct ConfiguredSimulationMatchup: Equatable, Sendable {
     public let enemyID: String
     public let enemyFaction: EnemyFaction
     public let isBoss: Bool
-
-    public init(
-        hero: Combatant,
-        companion: Combatant,
-        enemy: Combatant,
-        heroModifiers: CombatModifierProfile,
-        companionModifiers: CombatModifierProfile,
-        enemyModifiers: CombatModifierProfile = .zero,
-        context: SimulationBuildContext,
-        enemyID: String,
-        enemyFaction: EnemyFaction = .mortal,
-        isBoss: Bool,
-    ) {
-        self.hero = hero
-        self.companion = companion
-        self.enemy = enemy
-        self.heroModifiers = heroModifiers
-        self.companionModifiers = companionModifiers
-        self.enemyModifiers = enemyModifiers
-        self.context = context
-        self.enemyID = enemyID
-        self.enemyFaction = enemyFaction
-        self.isBoss = isBoss
-    }
 }

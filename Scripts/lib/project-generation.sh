@@ -7,8 +7,13 @@ trinket_generate_project() (
   source "$tool_root/Scripts/lib/tools.sh"
   trinket_require_pinned_tools "$tool_root"
   export LC_ALL=C LANG=C
-  cache_dir="$(mktemp -d "${TMPDIR:-/tmp}/trinket-xcodegen.XXXXXX")"
-  trap 'rm -rf "$cache_dir"' EXIT
+  # Subshell-local tracking: the parent shell's array and EXIT trap are
+  # inherited, so reset before tracking or our EXIT would delete parent paths
+  # (e.g. check-staged-project.sh's snapshot, still needed after we return).
+  TRINKET_TEMP_TRACKED=()
+  # shellcheck source=tempdir.sh
+  source "$tool_root/Scripts/lib/tempdir.sh"
+  trinket_mktemp_dir cache_dir trinket-xcodegen
   "$tool_root/.tools/xcodegen" generate --spec "$project_root/project.yml" \
     --cache-path "$cache_dir/cache"
   # The pinned XcodeGen silently drops `storeKitConfiguration`, which would

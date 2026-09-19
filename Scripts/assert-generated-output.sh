@@ -3,6 +3,8 @@
 # shared tracked-path list and committed-drift check (agent-push-gate fallback).
 
 TRINKET_GENERATED_OUTPUT_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/generated-paths.sh
+source "$TRINKET_GENERATED_OUTPUT_SCRIPT_DIR/lib/generated-paths.sh"
 
 trinket_set_generated_tracked_paths() {
   local include_assets="${1:-false}"
@@ -11,11 +13,10 @@ trinket_set_generated_tracked_paths() {
 
   TRACKED_PATHS=()
   while IFS='|' read -r kind path; do
-    [[ -z "$kind" || "$kind" == \#* ]] && continue
     [[ "$kind" == project && "$include_pbxproj" != true ]] && continue
     [[ "$kind" == asset && "$include_assets" != true ]] && continue
     TRACKED_PATHS+=("$path")
-  done < "$paths_file"
+  done < <(trinket_generated_registry_rows "$paths_file")
 }
 
 # Plan target UUIDs must be PBXNativeTarget IDs in the generated project.

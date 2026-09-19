@@ -110,7 +110,6 @@ package extension DamagePipeline {
         guard state.options.isAttackHit else { return }
         applyPhysicalAttackReactions(
             to: &state,
-            source: source,
             sourceActorID: sourceActorID,
             triggers: triggers,
             keyword: keyword,
@@ -151,15 +150,14 @@ package extension DamagePipeline {
 
     private static func applyPhysicalAttackReactions(
         to state: inout DamageResolutionState,
-        source: Combatant,
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
         in context: inout BattleState,
     ) {
-        if keyword == .physical, state.buildupDamage > 0, triggers.physicalStunBuildupPercent > 0 {
+        if keyword == .physical, state.remaining > 0, triggers.physicalStunBuildupPercent > 0 {
             let buildup = CombatRounding.scaled(
-                state.buildupDamage,
+                state.remaining,
                 multiplier: triggers.physicalStunBuildupPercent,
             )
             state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
@@ -173,18 +171,13 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
-        if keyword == .physical, state.buildupDamage > 0, triggers.physicalDamageBlockPercent > 0 {
+        if keyword == .physical, state.remaining > 0, triggers.physicalDamageBlockPercent > 0 {
             let block = CombatRounding.scaled(
-                state.buildupDamage,
+                state.remaining,
                 multiplier: triggers.physicalDamageBlockPercent,
             )
             if block > 0 {
-                state.damageEvents.append(contentsOf: context.applyBlock(
-                    block,
-                    to: source,
-                    source: source,
-                    abilityName: "Vanguard's Crest",
-                ))
+                appendAttackerBlock(block, abilityName: "Vanguard's Crest", state: &state, context: &context)
             }
         }
     }
@@ -211,7 +204,6 @@ package extension DamagePipeline {
         )
         applyRangedAndPhysicalAfflictions(
             to: &state,
-            source: source,
             sourceActorID: sourceActorID,
             triggers: triggers,
             keyword: keyword,
@@ -227,7 +219,6 @@ package extension DamagePipeline {
         )
         applyRandomOnHitApplications(
             to: &state,
-            source: source,
             sourceActorID: sourceActorID,
             triggers: triggers,
             target: target,
@@ -238,7 +229,6 @@ package extension DamagePipeline {
 
     private static func applyRangedAndPhysicalAfflictions(
         to state: inout DamageResolutionState,
-        source: Combatant,
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
@@ -256,22 +246,10 @@ package extension DamagePipeline {
             ))
         }
         if triggers.physicalAttackApplyBleed > 0, keyword == .physical, targetAlive {
-            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
-                potency: triggers.physicalAttackApplyBleed,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .attached,
-                in: &context,
-            ))
+            appendTargetBleed(potency: triggers.physicalAttackApplyBleed, state: &state, context: &context)
         }
         if triggers.physicalAttackApplyBleedAndStun > 0, keyword == .physical, targetAlive {
-            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
-                potency: triggers.physicalAttackApplyBleedAndStun,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .attached,
-                in: &context,
-            ))
+            appendTargetBleed(potency: triggers.physicalAttackApplyBleedAndStun, state: &state, context: &context)
             state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                 triggers.physicalAttackApplyBleedAndStun,
                 keyword: .stun,
@@ -291,12 +269,7 @@ package extension DamagePipeline {
             in: &context,
         )
         if triggers.onPhysicalDamageGainBlock > 0, keyword == .physical {
-            state.damageEvents.append(contentsOf: context.applyBlock(
-                triggers.onPhysicalDamageGainBlock,
-                to: source,
-                source: source,
-                abilityName: "Bone Shield",
-            ))
+            appendAttackerBlock(triggers.onPhysicalDamageGainBlock, abilityName: "Bone Shield", state: &state, context: &context)
         }
     }
 
@@ -349,13 +322,7 @@ package extension DamagePipeline {
             ).events)
         }
         if triggers.basicAttackApplyBleed > 0 {
-            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
-                potency: triggers.basicAttackApplyBleed,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .attached,
-                in: &context,
-            ))
+            appendTargetBleed(potency: triggers.basicAttackApplyBleed, state: &state, context: &context)
         }
         if triggers.basicAttackFreezeBuildup > 0 {
             state.damageEvents.append(contentsOf: resolveNestedDamage(
@@ -413,12 +380,7 @@ package extension DamagePipeline {
             ))
         }
         if triggers.onAttackFrozenEnemyGainBlock > 0, targetIsFrozen {
-            state.damageEvents.append(contentsOf: context.applyBlock(
-                triggers.onAttackFrozenEnemyGainBlock,
-                to: source,
-                source: source,
-                abilityName: "Frost Guard",
-            ))
+            appendAttackerBlock(triggers.onAttackFrozenEnemyGainBlock, abilityName: "Frost Guard", state: &state, context: &context)
         }
         if triggers.onAttackStunnedEnemyGold > 0, targetIsStunned {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
@@ -428,12 +390,7 @@ package extension DamagePipeline {
             ))
         }
         if triggers.onAttackStunnedEnemyBlock > 0, targetIsStunned {
-            state.damageEvents.append(contentsOf: context.applyBlock(
-                triggers.onAttackStunnedEnemyBlock,
-                to: source,
-                source: source,
-                abilityName: "Disorienting Strike",
-            ))
+            appendAttackerBlock(triggers.onAttackStunnedEnemyBlock, abilityName: "Disorienting Strike", state: &state, context: &context)
         }
         if source.role == .hero, targetIsPoisoned, targetAlive {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.companionSpitPoison(
@@ -445,7 +402,6 @@ package extension DamagePipeline {
 
     private static func applyRandomOnHitApplications(
         to state: inout DamageResolutionState,
-        source: Combatant,
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         target: Combatant,
@@ -454,13 +410,7 @@ package extension DamagePipeline {
     ) {
         if triggers.directHitBleedChancePercent > 0, targetAlive,
            BattleChance.succeeds(probability: triggers.directHitBleedChancePercent, using: &context.rng) {
-            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
-                potency: 1,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .attached,
-                in: &context,
-            ))
+            appendTargetBleed(potency: 1, state: &state, context: &context)
         }
         if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunDamage > 0,
            state.options.isAttackHit, !state.options.isRetaliation, targetAlive,
@@ -474,13 +424,7 @@ package extension DamagePipeline {
             ).events)
         }
         if triggers.attackApplyBleed > 0, state.options.isAttackHit, targetAlive {
-            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
-                potency: triggers.attackApplyBleed,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .attached,
-                in: &context,
-            ))
+            appendTargetBleed(potency: triggers.attackApplyBleed, state: &state, context: &context)
         }
         if triggers.attackBurstChancePercent > 0, targetAlive,
            BattleChance.succeeds(probability: triggers.attackBurstChancePercent, using: &context.rng) {
@@ -496,12 +440,7 @@ package extension DamagePipeline {
             }
             let burstBlock = max(0, triggers.attackBurstBlock)
             if burstBlock > 0 {
-                state.damageEvents.append(contentsOf: context.applyBlock(
-                    burstBlock,
-                    to: source,
-                    source: source,
-                    abilityName: "Bone Burst",
-                ))
+                appendAttackerBlock(burstBlock, abilityName: "Bone Burst", state: &state, context: &context)
             }
         }
     }
@@ -548,9 +487,9 @@ package extension DamagePipeline {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) {
-        guard state.buildupDamage > 0, triggers.holyStunBuildupPercent > 0 else { return }
+        guard state.remaining > 0, triggers.holyStunBuildupPercent > 0 else { return }
         let buildup = CombatRounding.scaled(
-            state.buildupDamage,
+            state.remaining,
             multiplier: triggers.holyStunBuildupPercent,
         )
         let stunEvents = ControlMeterEngine.applyMeterCharge(
@@ -583,14 +522,14 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard state.buildupDamage > 0,
+        guard state.remaining > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
               context.roster.health(for: state.combatant) > 0
         else { return }
         let wasControlled = context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-            state.buildupDamage,
+            state.remaining,
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,
@@ -598,5 +537,38 @@ package extension DamagePipeline {
             in: &context,
         ))
         state.didTriggerControl = !wasControlled && context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
+    }
+
+    /// Attached-bleed fan-out for attacker on-hit riders: the target is
+    /// always the damage recipient and the source the pipeline attacker.
+    static func appendTargetBleed(
+        potency: Int,
+        state: inout DamageResolutionState,
+        context: inout BattleState,
+    ) {
+        guard let sourceActorID = state.sourceActorID else { return }
+        state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+            potency: potency,
+            to: state.combatant,
+            sourceActorID: sourceActorID,
+            application: .attached,
+            in: &context,
+        ))
+    }
+
+    /// Self-block fan-out for attacker on-hit riders: the attacker blocks.
+    static func appendAttackerBlock(
+        _ amount: Int,
+        abilityName: String,
+        state: inout DamageResolutionState,
+        context: inout BattleState,
+    ) {
+        guard let source = state.partySource(in: context) else { return }
+        state.damageEvents.append(contentsOf: context.applyBlock(
+            amount,
+            to: source.combatant,
+            source: source.combatant,
+            abilityName: abilityName,
+        ))
     }
 }

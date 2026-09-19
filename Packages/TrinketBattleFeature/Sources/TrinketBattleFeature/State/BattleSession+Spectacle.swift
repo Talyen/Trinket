@@ -40,10 +40,7 @@ extension BattleSession {
     }
 
     func clearUltimateHighlight(for actorID: String) {
-        if var entry = spectacle.pendingUltimateHighlightTasksByActorID[actorID] {
-            entry.invalidate()
-            spectacle.pendingUltimateHighlightTasksByActorID[actorID] = entry
-        }
+        invalidateUltimateHighlightTask(for: actorID)
         spectacle.pendingUltimateHighlightTasksByActorID[actorID] = nil
         if let highlight = spectacle.ultimateHighlightsByActorID.removeValue(forKey: actorID) {
             spectacle.cinematics.pause(actorID: actorID, abilityID: highlight.abilityID)
@@ -106,36 +103,18 @@ extension BattleSession {
         guard let heroID,
               let companionID
         else { return }
-        spectacle.nextID += 1
-        let heroCelebrateID = -spectacle.nextID
-        spectacle.nextID += 1
-        let companionCelebrateID = -spectacle.nextID
         let celebrateExpiry = date.addingTimeInterval(BattleMotion.chipDisplayDuration)
-        var didPublish = false
-        if isHeroAlive {
-            feedback.hitReactionsByTargetID[heroID] = CombatantHitReaction(
-                id: heroCelebrateID,
+        var reactedIDs: Set<String> = []
+        for (combatantID, isAlive) in [(heroID, isHeroAlive), (companionID, isCompanionAlive)] where isAlive {
+            spectacle.nextID += 1
+            feedback.hitReactionsByTargetID[combatantID] = CombatantHitReaction(
+                id: -spectacle.nextID,
                 kind: .celebrate,
             )
-            feedback.celebrateReactionExpiresAt[heroID] = celebrateExpiry
-            didPublish = true
+            feedback.celebrateReactionExpiresAt[combatantID] = celebrateExpiry
+            reactedIDs.insert(combatantID)
         }
-        if isCompanionAlive {
-            feedback.hitReactionsByTargetID[companionID] = CombatantHitReaction(
-                id: companionCelebrateID,
-                kind: .celebrate,
-            )
-            feedback.celebrateReactionExpiresAt[companionID] = celebrateExpiry
-            didPublish = true
-        }
-        if didPublish {
-            var reactedIDs: Set<String> = []
-            if isHeroAlive {
-                reactedIDs.insert(heroID)
-            }
-            if isCompanionAlive {
-                reactedIDs.insert(companionID)
-            }
+        if !reactedIDs.isEmpty {
             feedback.noteHitReactionsChanged(for: reactedIDs)
             feedback.updatePruneDate()
         }
@@ -279,10 +258,7 @@ extension BattleSession {
             keyword: event.keyword,
             startedAt: date,
         )
-        if var entry = spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] {
-            entry.invalidate()
-            spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = entry
-        }
+        invalidateUltimateHighlightTask(for: event.actorID)
         spectacle.ultimateHighlightsByActorID[event.actorID] = highlight
         spectacle.cinematics.warm(actorID: event.actorID, abilityID: event.abilityID)
         let hold = ultimateInFrameDurationOverride ?? .seconds(BattleMotion.ultimateInFrameDuration)
@@ -306,12 +282,16 @@ extension BattleSession {
 
     func cancelUltimateHighlightWatchdogs() {
         for key in spectacle.pendingUltimateHighlightTasksByActorID.keys {
-            if var entry = spectacle.pendingUltimateHighlightTasksByActorID[key] {
-                entry.invalidate()
-                spectacle.pendingUltimateHighlightTasksByActorID[key] = entry
-            }
+            invalidateUltimateHighlightTask(for: key)
         }
         spectacle.pendingUltimateHighlightTasksByActorID.removeAll()
+    }
+
+    private func invalidateUltimateHighlightTask(for actorID: String) {
+        if var entry = spectacle.pendingUltimateHighlightTasksByActorID[actorID] {
+            entry.invalidate()
+            spectacle.pendingUltimateHighlightTasksByActorID[actorID] = entry
+        }
     }
 
     func clearAllPresentation() {

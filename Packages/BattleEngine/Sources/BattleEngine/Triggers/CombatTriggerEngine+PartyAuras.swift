@@ -53,23 +53,12 @@ package extension CombatTriggerEngine {
 
     private static func enrageAuraBonus(in context: BattleState) -> Int {
         var bonus = 0
-        if context.roster.hero.isAlive {
-            let aura = context.heroModifiers.triggers
+        for member in [context.roster.hero, context.roster.companion] where member.isAlive {
+            let aura = context.modifiers(for: member.id).triggers
             if aura.partyAllStatsBonusBelowHealthAmount > 0,
-               context.roster.maxHealth(for: context.roster.hero.combatant) > 0 {
-                let percent = Double(context.roster.health(for: context.roster.hero.combatant))
-                    / Double(context.roster.maxHealth(for: context.roster.hero.combatant))
-                if percent < aura.partyAllStatsBonusBelowHealthThreshold {
-                    bonus += aura.partyAllStatsBonusBelowHealthAmount
-                }
-            }
-        }
-        if context.roster.companion.isAlive {
-            let aura = context.companionModifiers.triggers
-            if aura.partyAllStatsBonusBelowHealthAmount > 0,
-               context.roster.maxHealth(for: context.roster.companion.combatant) > 0 {
-                let percent = Double(context.roster.health(for: context.roster.companion.combatant))
-                    / Double(context.roster.maxHealth(for: context.roster.companion.combatant))
+               context.roster.maxHealth(for: member.combatant) > 0 {
+                let percent = Double(context.roster.health(for: member.combatant))
+                    / Double(context.roster.maxHealth(for: member.combatant))
                 if percent < aura.partyAllStatsBonusBelowHealthThreshold {
                     bonus += aura.partyAllStatsBonusBelowHealthAmount
                 }

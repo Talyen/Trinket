@@ -1,5 +1,4 @@
 import Testing
-import TrinketBattleFeature
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketFeatureContracts

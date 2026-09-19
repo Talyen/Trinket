@@ -40,11 +40,12 @@ enum PurgeOperation {
         }
         context.roster.setActiveEffects(effects, for: target)
         CombatTriggerEngine.protectPurgedEffects(removed, source: source, target: target, in: &context)
-        let keywords: [Keyword] = if case let .all(keyword) = selection, origin == .direct {
-            [keyword ?? .purge]
-        } else {
-            removed.map(\.keyword)
-        }
+        // One event per removed buff (sorted for determinism), so direct
+        // purges report what was actually removed instead of collapsing to
+        // a single generic line. This matches the long-standing triggered
+        // path; only the direct `.all` path changes. `origin` is
+        // intentionally ignored for the keyword choice.
+        let keywords = removed.map(\.keyword).sorted { $0.rawValue < $1.rawValue }
         var events = keywords.map { keyword in
             context.nextEvent(
                 kind: .effect, effectKind: .purgeApplied,

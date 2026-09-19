@@ -194,5 +194,16 @@ class ComparePerformanceTests(unittest.TestCase):
         self.assertEqual(status, 0)
 
 
+class LoadResultsReportsTests(unittest.TestCase):
+    def test_reports_shape_check_lives_in_performance_model(self) -> None:
+        from internal.performance.performance_model import load_results_reports
+
+        self.assertEqual(load_results_reports({"reports": [{"a": 1}]}), [{"a": 1}])
+        for payload in ({"reports": {}}, {"other": []}, {}):
+            with self.subTest(payload=payload), self.assertRaises(SystemExit) as caught:
+                load_results_reports(payload)
+            self.assertIn("results payload must contain a reports array", str(caught.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

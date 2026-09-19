@@ -114,7 +114,7 @@ class ExecWrapperTests(unittest.TestCase):
             source.write_text("struct ContentView {}")
             (scripts / "test.sh").write_text('#!/bin/bash\n./Scripts/check-api-bans.sh\necho style-checked\n')
             (scripts / "check-api-bans.sh").write_text('#!/bin/bash\necho api >> checks\n')
-            (scripts / "config/cheap-slices.txt").write_text('./Scripts/check-api-bans.sh\necho cheap-checked\n')
+            (scripts / "config/cheap-slices.txt").write_text('./Scripts/check-api-bans.sh  # skip-when-style-checked\necho cheap-checked\n')
             startup = root / "startup"
             startup.write_text('command() { if [[ "$*" == "-v xcodebuild" ]]; then return 1; fi; builtin command "$@"; }\n')
             environment = {**os.environ, "BASH_ENV": str(startup)}

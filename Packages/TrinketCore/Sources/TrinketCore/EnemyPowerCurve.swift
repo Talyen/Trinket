@@ -1,8 +1,8 @@
 import Foundation
 
 public enum EnemyPowerCurve {
-    /// Bracket boundaries shared with `ProgressionBracket` in ExperienceScaling.swift;
-    /// change both together.
+    /// Bracket boundaries; the single source of truth read directly by
+    /// `ProgressionBracket` in ExperienceScaling.swift.
     public static let midLevel = 20
     public static let lateLevel = 40
 
@@ -29,6 +29,9 @@ public enum EnemyPowerCurve {
         (midLevel, 0.95),
         (lateLevel, 2.30),
     ]
+    // NOTE: boss damage sits below normal damage at the mid/late anchors
+    // (0.95 < 1.20, 2.30 < 2.50). Pinned by tests as current tuning,
+    // pending battle-owner review on whether that ordering is intentional.
 
     public static func health(level: Int, isBoss: Bool) -> Double {
         interpolate(max(1, level), anchors: isBoss ? bossHPAnchors : normalHPAnchors, logarithmicTail: true)
@@ -71,9 +74,10 @@ public enum EnemyPowerCurve {
         return last.value
     }
 
-    /// Shared easing for curve interpolation and XP falloff. Module-internal:
-    /// both callers live in TrinketCore.
-    static func progressionSmoothstep(_ value: Double) -> Double {
+    /// Shared easing for curve interpolation and XP falloff. Public so the
+    /// cross-file caller (`ExperienceScaling`) does not depend on an
+    /// undocumented internal; behavior unchanged.
+    public static func progressionSmoothstep(_ value: Double) -> Double {
         let clamped = min(max(value, 0), 1)
         return clamped * clamped * (3 - (2 * clamped))
     }

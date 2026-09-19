@@ -56,7 +56,9 @@ To inspect the Full Game offer, open Options → Full Game. The non-consumable p
 - Confirm ownership/licensing of all content; the App Review phone number is saved.
 - Complete and review Apple's age-rating questionnaire against the actual visuals
   and gameplay; do not infer rights or content disclosures from the app's genre.
-- Reconcile the App Privacy answers and these drafts with the shipped build.
+- Reconcile the App Privacy answers and these drafts with the shipped build,
+  following the [release procedure](Release.md#prepare-while-the-beta-is-running)
+  for pages and answers and [Purchases.md](Purchases.md) for purchase behavior.
 - Add release-build screenshots and choose the matching build only after release
   verification. The currently prepared store version and beta build versions can
   differ until that selection.
@@ -67,8 +69,10 @@ App Store Connect product `6811501717` uses the existing identifier from
 [Purchases.md](Purchases.md), with English description **Unlock all chapters and
 game modes permanently.** Creation/localization/pricing do not submit the product
 for review. Availability is configured for the United States for the owner's
-internal test. The review screenshot remains unfinished. Paid Apps Agreement activation is pending
-the owner's bank account and W-9; live sandbox purchase and restore verification
+internal test. The review screenshot remains unfinished. Paid Apps Agreement,
+banking/tax, and sandbox purchase/restore status follow
+[Purchases.md](Purchases.md#before-release); current standing: agreement activation is pending
+the owner's bank account and W-9, and live sandbox purchase and restore verification
 remain outstanding. No app review was requested.
 
 ## Cloud-enabled beta copy

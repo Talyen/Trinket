@@ -45,12 +45,12 @@ public final class SFXPlayer {
         enqueue { await $0.playAll(ids, volume: volume) }
     }
 
-    public func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
+    public func warm(_ ids: [String], concurrentPlayerCount: Int) {
         guard !isDisabled else { return }
         enqueue { await $0.warm(ids, concurrentPlayerCount: concurrentPlayerCount) }
     }
 
-    public func warmAllCatalog(concurrentPlayerCount: Int = 2) {
+    public func warmAllCatalog(concurrentPlayerCount: Int) {
         guard !isDisabled else { return }
         enqueue { $0.warmAllCatalog(concurrentPlayerCount: concurrentPlayerCount) }
     }
@@ -102,15 +102,13 @@ private actor SFXPlayback {
         }
     }
 
-    func warm(_ ids: [String], concurrentPlayerCount: Int = 1) async {
+    func warm(_ ids: [String], concurrentPlayerCount: Int) async {
         let desiredCount = max(1, concurrentPlayerCount)
         let idsNeedingWork = ids.filter { id in
             (preparedVoicesByID[id]?.count ?? 0) < desiredCount
         }
         guard !idsNeedingWork.isEmpty else {
-            if ensureEngineRunning() {
-                startPreparedVoicesIfNeeded()
-            }
+            ensureStarted()
             return
         }
 
@@ -130,12 +128,10 @@ private actor SFXPlayback {
         }
         preparedVoicesArePlaying = false
         engine.prepare()
-        if ensureEngineRunning() {
-            startPreparedVoicesIfNeeded()
-        }
+        ensureStarted()
     }
 
-    func warmAllCatalog(concurrentPlayerCount: Int = 2) {
+    func warmAllCatalog(concurrentPlayerCount: Int) {
         let ids = SFXCatalog.clips.map(\.id)
         let clips = SFXCatalog.clips
         catalogWarmTask?.cancel()
@@ -200,12 +196,10 @@ private actor SFXPlayback {
     private func ensureReady(for ids: [String]) async -> Bool {
         let missing = ids.filter { preparedVoicesByID[$0] == nil && !failedBufferIDs.contains($0) }
         if !missing.isEmpty {
-            await warm(missing)
+            await warm(missing, concurrentPlayerCount: 1)
         }
         configureSessionIfNeeded()
-        guard ensureEngineRunning() else { return false }
-        startPreparedVoicesIfNeeded()
-        return true
+        return ensureStarted()
     }
 
     /// Returns the cached buffer, decoding off-actor on a miss so file I/O
@@ -257,11 +251,20 @@ private actor SFXPlayback {
     }
 
     private nonisolated static func resourceURL(for clip: SFXClip) -> URL? {
-        MediaResourceLocator.url(
+        AudioSupport.mediaURL(
             resourceName: clip.resourceName,
             fileExtension: clip.fileExtension,
             subdirectory: "SFX",
         )
+    }
+
+    /// Shared ensure-engine + start-voices epilogue. Returns whether the
+    /// engine is running.
+    @discardableResult
+    private func ensureStarted() -> Bool {
+        guard ensureEngineRunning() else { return false }
+        startPreparedVoicesIfNeeded()
+        return true
     }
 
     private func configureSessionIfNeeded() {

@@ -151,6 +151,10 @@ public final class PlaySession {
                 progressionsBefore: [:],
             )
         }
+        // Clear any deferred victory exit and stale defeat claim. Talent
+        // choices above already consumed the deferred progressions, so this
+        // only drops the pending exit and claim slot.
+        battleCompletion.cancelPendingExit()
     }
 
     @discardableResult
@@ -194,7 +198,7 @@ public final class PlaySession {
                 guard let self, battle.activeBattle?.id == configuration.id else { return }
                 _ = completeActiveBattle(
                     configuration, battleGold: battleGold, materialRewards: materialRewards,
-                    settlement: settlement,
+                    settlement: settlement, defersPresentationExit: false,
                 )
             }
         }
@@ -298,51 +302,5 @@ public final class PlaySession {
             else { return nil }
             return combatant.id
         }
-    }
-}
-
-@MainActor
-final class PlayBattleRunRegistry {
-    private var battleRuns: [BattleRunKey: PlayBattleRunRegistration] = [:]
-
-    func register(_ registration: PlayBattleRunRegistration) {
-        battleRuns[registration.route.origin.runKey] = registration
-    }
-
-    func remove(_ runKey: BattleRunKey) {
-        battleRuns.removeValue(forKey: runKey)
-    }
-
-    func keep(_ keys: Set<BattleRunKey>) {
-        battleRuns = battleRuns.filter { keys.contains($0.key) }
-    }
-
-    func registration(for runKey: BattleRunKey?) -> PlayBattleRunRegistration? {
-        guard let runKey else { return nil }
-        return battleRuns[runKey]
-    }
-
-    func runKeys() -> Set<BattleRunKey> {
-        Set(battleRuns.keys)
-    }
-
-    func origin(for runKey: BattleRunKey) -> PlayBattleOrigin? {
-        battleRuns[runKey]?.route.origin
-    }
-
-    func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
-        registration(for: runKey)?.route
-    }
-
-    func presentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
-        registration(for: runKey)?.presentation
-    }
-
-    func universalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
-        registration(for: runKey)?.universalModifiers ?? []
-    }
-
-    func removeAll() {
-        battleRuns.removeAll(keepingCapacity: true)
     }
 }

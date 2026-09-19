@@ -27,16 +27,7 @@ SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 TRINKET_RG_BULLET="  "
 
 is_allowed() {
-  local file="$1"
-  local line_number="$2"
-
-  local start=$((line_number > 4 ? line_number - 4 : 1))
-  local end="$line_number"
-  if sed -n "${start},${end}p" "$file" \
-    | grep -Eq '^[[:space:]]*//[[:space:]]*ExclusivityCheck:[[:space:]]*allow[[:space:]]*-[[:space:]]*[[:graph:]]'; then
-    return 0
-  fi
-  return 1
+  trinket_rg_has_nearby_allow "$1" "$2" "ExclusivityCheck"
 }
 
 # True when IDENT was introduced as a local `var` or as an `inout` parameter

@@ -68,6 +68,8 @@ fi
 source ./Scripts/xcode-runner.sh
 # shellcheck source=lib/app-build.sh
 source ./Scripts/lib/app-build.sh
+# shellcheck source=lib/tempdir.sh
+source Scripts/lib/tempdir.sh
 trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 # Compile against a generic destination so xcodebuild does not boot/show a
 # concrete simulator. Quiet logs go under TestResults/raw/; print a heartbeat
@@ -77,11 +79,13 @@ xcode_runner_run --label "run-simulator" --quiet -- \
   xcodebuild build "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
 
 BUILD_SETTINGS_PATH="$(mktemp "$RESULTS_DIR/run-simulator-settings.XXXXXX")"
+trinket_temp_track "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
 if ! TRINKET_XCODE_WALL_TIMEOUT_SECONDS=60 TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0 \
   xcode_runner_execute_watched "$BUILD_SETTINGS_PATH.log" "" \
   bash -c 'output=$1; shift; exec "$@" > "$output"' _ "$BUILD_SETTINGS_PATH" \
   xcodebuild -showBuildSettings -json "${TRINKET_APP_XCODEBUILD_ARGS[@]}"; then
   echo "error: could not resolve Trinket build settings; output: $BUILD_SETTINGS_PATH; log: $BUILD_SETTINGS_PATH.log" >&2
+  trinket_temp_untrack "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
   exit 1
 fi
 if ! APP_PATH="$(python3 - "$BUILD_SETTINGS_PATH" <<'PYSETTINGS'
@@ -108,9 +112,9 @@ except (OSError, ValueError, KeyError, TypeError) as error:
 PYSETTINGS
 )"; then
   echo "Build settings retained: $BUILD_SETTINGS_PATH" >&2
+  trinket_temp_untrack "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
   exit 1
 fi
-rm -f "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
 
 if [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
   echo "Build succeeded. Preparing $TRINKET_SIMULATOR_NAME..."
@@ -180,7 +184,7 @@ do
   if (( SECONDS >= LAUNCH_DEADLINE )); then
     echo "error: simctl launch failed for $BUNDLE_ID" >&2
     echo "  Simulator UDID: $SIMULATOR_UDID ($TRINKET_SIMULATOR_NAME)" >&2
-    xcrun simctl list devices "$SIMULATOR_UDID" -j 2>/dev/null | python3 Scripts/simctl_json.py state-for-udid "$SIMULATOR_UDID" 2>/dev/null | sed 's/^/  sim state: /' >&2 || true
+    xcrun simctl list devices "$SIMULATOR_UDID" -j 2>/dev/null | trinket_simctl_json state-for-udid "$SIMULATOR_UDID" 2>/dev/null | sed 's/^/  sim state: /' >&2 || true
     pgrep -a Simulator 2>&1 | sed 's/^/  /' >&2 || echo "  Simulator.app not running" >&2
     exit 1
   fi

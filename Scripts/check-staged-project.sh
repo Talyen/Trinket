@@ -4,6 +4,8 @@ export GIT_OPTIONAL_LOCKS=0
 cd "$(git rev-parse --show-toplevel)"
 ROOT="$PWD"
 source Scripts/lib/project-generation.sh
+# shellcheck source=Scripts/lib/tempdir.sh
+source Scripts/lib/tempdir.sh
 
 needed=false
 while IFS= read -r -d '' path; do
@@ -14,8 +16,7 @@ while IFS= read -r -d '' path; do
 done < <(git diff --cached --name-only --no-renames -z)
 [[ "$needed" == true ]] || exit 0
 
-snapshot="$(mktemp -d "${TMPDIR:-/tmp}/trinket-staged-project.XXXXXX")"
-trap 'rm -rf "$snapshot"' EXIT
+trinket_mktemp_dir snapshot trinket-staged-project
 cp "$(git rev-parse --git-path index)" "$snapshot/index"
 export GIT_INDEX_FILE="$snapshot/index"
 

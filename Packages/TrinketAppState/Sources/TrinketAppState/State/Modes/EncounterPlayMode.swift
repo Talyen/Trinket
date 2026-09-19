@@ -37,8 +37,10 @@ public final class EncounterPlayMode {
 
     @discardableResult
     func beginShopEncounter(origin: PlayEncounterOrigin) -> ShopEncounterOpenResult {
-        guard playerSave.encounterAccessRestriction(for: origin) == nil,
-              canBeginTransientEncounter else { return .unavailable }
+        if let restriction = playerSave.encounterAccessRestriction(for: origin) {
+            return .failed(restriction)
+        }
+        guard canBeginTransientEncounter else { return .unavailable }
 
         let encounter = origin.identity(in: playerSave.currentSave)
         switch playerSave.persistTransaction(logging: "Failed to prepare shop stock", { save in

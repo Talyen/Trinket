@@ -52,11 +52,10 @@ package tests cover purchase result states and game access policies.
   Family Sharing (Apple does not permit turning it off later).
 - Verify real product loading, restoration, family ownership, pending approval,
   and refunds on sandbox/TestFlight devices.
-- Publish the privacy/support pages from `Website/` using GitHub Pages. Supply a
-  public support contact and verify the pages without login. Expected base URL:
-  `https://talyen.github.io/Trinket/`.
-- Confirm privacy text and App Store privacy answers match the shipped storage,
-  sync, diagnostics, and purchase behavior; use Apple's standard EULA.
+- For support/privacy pages and App Store privacy answers, follow the
+  [release procedure](Release.md#prepare-while-the-beta-is-running); the purchase-specific
+  behavior to reconcile there is verified ownership, restore/family semantics,
+  and the Full Game offer in Options. Use Apple's standard EULA.
 - Submit the first non-consumable with an app version. Include a paywall screenshot
   and review instructions: open Options → Full Game to inspect the offer without
   finishing free content. Explain that recruitment and game progression remain earned.

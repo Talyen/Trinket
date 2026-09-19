@@ -361,26 +361,14 @@ extension BattleTurnEngine {
         sourceActorID: String,
         context: inout BattleState,
     ) -> [ActionEvent] {
-        switch keyword {
-        case .burn, .poison:
-            context.applyDecayingDoT(
-                keyword: keyword,
-                potency: potency,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .afterHit,
-            )
-        case .bleed:
-            DoTApplicator.applyBleed(
-                potency: potency,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .afterHit,
-                in: &context,
-            )
-        default:
-            []
-        }
+        DoTApplicator.applyDoT(
+            keyword: keyword,
+            potency: potency,
+            to: target,
+            sourceActorID: sourceActorID,
+            application: .afterHit,
+            in: &context,
+        ) ?? []
     }
 
     static func activeDamageKeywordOverride(

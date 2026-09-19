@@ -19,40 +19,33 @@ struct PlayBattleLaunch {
     )
 
     @discardableResult
-    func activateCombat(_ request: PlayCombatRequest) -> Bool {
-        guard playerSave.accessRestriction(for: request.origin) == nil else { return false }
-        return activateBattle(
-            makeLaunchInput(for: request),
-            route: request.route,
-        )
+    func activateCombat(_ input: BattleLaunchInput, route: PlayBattleRoute) -> Bool {
+        guard playerSave.accessRestriction(for: input.origin) == nil else { return false }
+        return activateBattle(input, route: route)
     }
 
     @discardableResult
     func activateRequest(
-        _ request: PlayCombatRequest,
+        _ input: BattleLaunchInput,
+        route: PlayBattleRoute,
         onActivated: () -> Void = {},
     ) -> StageMapMessage? {
         guard battle.lifecyclePhase != .active else { return Self.activationFailureMessage }
-        guard activateCombat(request) else { return Self.activationFailureMessage }
+        guard activateCombat(input, route: route) else { return Self.activationFailureMessage }
         onActivated()
         return nil
     }
 
     /// Single paywall → busy → resolve → activate gate for mode battle entry.
-    /// Modes pre-check access first only when a mode-specific message must
-    /// take precedence over the paywall (offer/floor/node availability,
-    /// attunement, reachability); the re-check here keeps the gate
-    /// single-owned. A busy battle returns `busyMessage`: map taps
-    /// (Journey/Labyrinth) pass nil and swallow the tap, while explicit
-    /// board/floor taps (Spires/Contracts) surface the failure. A busy
-    /// transient encounter is always a silent ignore. `busyMessage` has no
-    /// default so each call site declares its choice.
+    /// Map taps (Journey/Labyrinth) pass nil and swallow a busy battle;
+    /// explicit board/floor taps (Spires/Contracts) pass the failure message.
+    /// A busy transient encounter is always a silent ignore.
     @discardableResult
     func startBattle(
         origin: PlayBattleOrigin,
         encounters: EncounterPlayMode,
         busyMessage: StageMapMessage?,
-        resolve: () -> PlayCombatRequest?,
+        resolve: () -> (input: BattleLaunchInput, route: PlayBattleRoute)?,
         onActivated: () -> Void = {},
     ) -> StageMapMessage? {
         if let restriction = playerSave.accessRestriction(for: origin) {
@@ -63,14 +56,14 @@ struct PlayBattleLaunch {
         guard let request = resolve() else {
             return StageMapMessage(title: "Encounter Missing", message: "This battle is not ready yet.")
         }
-        return activateRequest(request, onActivated: onActivated)
+        return activateRequest(request.input, route: request.route, onActivated: onActivated)
     }
 
     @discardableResult
-    func prepareCombat(_ request: PlayCombatRequest) -> Bool {
-        guard playerSave.accessRestriction(for: request.origin) == nil else { return false }
-        let launch = makeBattleLaunch(makeLaunchInput(for: request))
-        return prepareLaunch(launch, route: request.route)
+    func prepareCombat(_ input: BattleLaunchInput, route: PlayBattleRoute) -> Bool {
+        guard playerSave.accessRestriction(for: input.origin) == nil else { return false }
+        let launch = makeBattleLaunch(input)
+        return prepareLaunch(launch, route: route)
     }
 
     private func prepareLaunch(_ launch: BattleLaunchAssembly, route: PlayBattleRoute) -> Bool {
@@ -115,42 +108,32 @@ struct PlayBattleLaunch {
         runRegistry.keep(survivors)
     }
 
-    func prepareIfNeeded<Input: Equatable>(
-        tracker: inout PlayBattlePreparationTracker<Input>,
-        inputs: Input,
-        runKey: BattleRunKey,
-        makeRequest: () -> PlayCombatRequest,
-    ) {
-        guard battle.lifecyclePhase != .active else { return }
-        guard tracker.shouldPrepare(
-            for: inputs,
-            hasPreparedRun: battle.hasPreparedRun(runKey),
-        ) else { return }
-        if prepareCombat(makeRequest()) {
-            tracker.notePrepared(inputs)
-        }
-    }
-
     /// Shared single-battle pre-warm for Journey/Spires. Both warm at most one
     /// run keyed by origin. Contracts intentionally skips pre-warming: offer
     /// IDs rotate on refresh/replace, so cached runs would rarely hit.
+    /// Sibling warms (including same-mode) are intentionally retained:
+    /// prepared runs remain until pruning, restart, or end.
     func prepareSingleBattle(
         tracker: inout PlayBattlePreparationTracker<SingleBattlePreparationInputs>,
         origin: PlayBattleOrigin,
         stageRewardsAlreadyClaimed: Bool,
         party: PlayBattlePartySnapshot,
-        makeRequest: () -> PlayCombatRequest,
+        makeRequest: () -> (input: BattleLaunchInput, route: PlayBattleRoute),
     ) {
-        prepareIfNeeded(
-            tracker: &tracker,
-            inputs: SingleBattlePreparationInputs(
-                runKey: origin.runKey,
-                party: party,
-                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            ),
+        guard battle.lifecyclePhase != .active else { return }
+        let inputs = SingleBattlePreparationInputs(
             runKey: origin.runKey,
-            makeRequest: makeRequest,
+            party: party,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
         )
+        guard tracker.shouldPrepare(
+            for: inputs,
+            hasPreparedRun: battle.hasPreparedRun(origin.runKey),
+        ) else { return }
+        let request = makeRequest()
+        if prepareCombat(request.input, route: request.route) {
+            tracker.notePrepared(inputs)
+        }
     }
 
     @discardableResult
@@ -198,23 +181,6 @@ struct PlayBattleLaunch {
         }
         shellSession.selectedTab = .play
         return true
-    }
-
-    private func makeLaunchInput(for request: PlayCombatRequest) -> BattleLaunchInput {
-        let roster = playerSave.roster
-        return BattleLaunchInput(
-            origin: request.origin,
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: request.encounter.combatant,
-            enemyEncounterLevel: request.encounter.level,
-            stageReward: request.loot.asStageReward,
-            experienceBonusPercent: LabyrinthModifierEffects.combining(request.labyrinthModifiers).experienceEarnedPercent,
-            pendingRewardItem: request.loot.item,
-            stageRewardsAlreadyClaimed: request.stageRewardsAlreadyClaimed,
-            universalModifiers: request.universalModifiers,
-            labyrinthModifiers: request.labyrinthModifiers,
-        )
     }
 
     private func freshRngSeed() -> UInt64 {

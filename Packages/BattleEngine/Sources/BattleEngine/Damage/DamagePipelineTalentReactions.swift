@@ -9,7 +9,6 @@ package extension DamagePipeline {
               context.modifiers(for: source.id).triggers.backdraft else { return }
         let burn = DoTApplicator.consume(.burn, on: state.combatant, in: &context)
         state.remaining += burn
-        state.buildupDamage += burn
         state.unique.outgoingDamage += burn
     }
 
@@ -36,10 +35,10 @@ package extension DamagePipeline {
         source: CombatantRuntime,
         in context: inout BattleState,
     ) {
-        guard state.buildupDamage > 0 else { return }
+        guard state.remaining > 0 else { return }
         let scaled = keyword == .bleed
-            ? state.buildupDamage
-            : CombatRounding.scaled(state.buildupDamage, multiplier: 0.5)
+            ? state.remaining
+            : CombatRounding.scaled(state.remaining, multiplier: 0.5)
         guard scaled > 0 else { return }
 
         var destinations: [Keyword] = []
@@ -91,7 +90,7 @@ package extension DamagePipeline {
     ) {
         if triggers.sunwall, keyword == .holy {
             state.damageEvents.append(contentsOf: grantTalentCompanionBlock(
-                state.buildupDamage,
+                state.remaining,
                 source: source.combatant,
                 in: &context,
             ))
@@ -105,7 +104,7 @@ package extension DamagePipeline {
         }
         if triggers.eyeOfTheStorm, keyword == .stun {
             state.damageEvents.append(contentsOf: context.restoreManaEmitting(
-                state.buildupDamage,
+                state.remaining,
                 to: source.combatant,
                 abilityName: "Eye of the Storm",
             ))
@@ -119,14 +118,12 @@ package extension DamagePipeline {
         source: CombatantRuntime,
         in context: inout BattleState,
     ) {
-        if triggers.shatterpoint, keyword == .freeze {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
-                on: state.combatant,
-                sourceActorID: source.id,
-                in: &context,
-            ))
-        }
-        if triggers.arterialCascade, keyword == .physical, state.isCritical {
+        // Both talent detonations consume the same bleed stack with the same
+        // call; only their gates differ (keywords are mutually exclusive).
+        let shouldDetonateBleed =
+            (triggers.shatterpoint && keyword == .freeze)
+                || (triggers.arterialCascade && keyword == .physical && state.isCritical)
+        if shouldDetonateBleed {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
                 on: state.combatant,
                 sourceActorID: source.id,
@@ -288,15 +285,26 @@ package extension DamagePipeline {
                 in: &context,
             ).events)
         }
-        applyPulverizeStrike(
-            to: &state,
-            sourceActorID: sourceActorID,
-            triggers: triggers,
-            keyword: keyword,
-            target: target,
-            targetAlive: targetAlive,
-            in: &context,
-        )
+        // Pulverize Strike is folded in here (its only caller): same
+        // physical/alive gates plus a once-per-turn claim, then one bleed and
+        // one stun application.
+        if triggers.firstPhysicalBleedStunPerTurn, keyword == .physical, targetAlive,
+           context.claimTurnGuard(.pulverize, actorID: sourceActorID) {
+            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+                potency: 1,
+                to: target,
+                sourceActorID: sourceActorID,
+                application: .reaction,
+                in: &context,
+            ))
+            state.damageEvents.append(contentsOf: resolveNestedDamage(
+                amount: 1,
+                keyword: .stun,
+                target: target,
+                sourceActorID: sourceActorID,
+                in: &context,
+            ).events)
+        }
     }
 
     static func applyBleedingPreyHeal(
@@ -315,33 +323,5 @@ package extension DamagePipeline {
                 in: context,
             ),
         )
-    }
-
-    private static func applyPulverizeStrike(
-        to state: inout DamageResolutionState,
-        sourceActorID: String,
-        triggers: CombatTraitTriggers,
-        keyword: Keyword,
-        target: Combatant,
-        targetAlive: Bool,
-        in context: inout BattleState,
-    ) {
-        guard triggers.firstPhysicalBleedStunPerTurn, keyword == .physical, targetAlive,
-              context.claimTurnGuard(.pulverize, actorID: sourceActorID)
-        else { return }
-        state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
-            potency: 1,
-            to: target,
-            sourceActorID: sourceActorID,
-            application: .reaction,
-            in: &context,
-        ))
-        state.damageEvents.append(contentsOf: resolveNestedDamage(
-            amount: 1,
-            keyword: .stun,
-            target: target,
-            sourceActorID: sourceActorID,
-            in: &context,
-        ).events)
     }
 }

@@ -6,46 +6,23 @@ package extension CombatTriggerEngine {
         for combatant: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        guard context.roster.health(for: combatant) > 0 else { return [] }
         let profile = context.modifiers(for: combatant.id)
-        guard profile.triggers.blockPerTurn > 0,
-              context.roster.health(for: combatant) > 0
-        else { return turnGoldBlock(for: combatant, triggers: profile.triggers, in: &context) }
-
-        var events = context.applyBlock(
-            profile.triggers.blockPerTurn,
-            to: combatant,
-            source: combatant,
-            abilityName: triggerAbilityName(
-                "blockPerTurn",
-                for: combatant,
-                fallback: traitName(for: combatant, in: context),
-                in: context,
-            ),
-        )
-        events.append(contentsOf: turnGoldBlock(for: combatant, triggers: profile.triggers, in: &context))
+        var events: [ActionEvent] = []
+        if profile.triggers.blockPerTurn > 0 {
+            events.append(contentsOf: emitBlock(
+                "blockPerTurn", traitName(for: combatant, in: context),
+                amount: profile.triggers.blockPerTurn, to: combatant, source: combatant, in: &context,
+            ))
+        }
+        if profile.triggers.blockWhileGoldAmount > 0, profile.triggers.blockWhileGoldThreshold > 0,
+           context.gold >= profile.triggers.blockWhileGoldThreshold {
+            events.append(contentsOf: emitBlock(
+                "blockWhileGoldAmount", "Golden Guard",
+                amount: profile.triggers.blockWhileGoldAmount, to: combatant, source: combatant, in: &context,
+            ))
+        }
         return events
-    }
-
-    private static func turnGoldBlock(
-        for combatant: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard triggers.blockWhileGoldAmount > 0, triggers.blockWhileGoldThreshold > 0,
-              context.gold >= triggers.blockWhileGoldThreshold,
-              context.roster.health(for: combatant) > 0
-        else { return [] }
-        return context.applyBlock(
-            triggers.blockWhileGoldAmount,
-            to: combatant,
-            source: combatant,
-            abilityName: triggerAbilityName(
-                "blockWhileGoldAmount",
-                for: combatant,
-                fallback: "Golden Guard",
-                in: context,
-            ),
-        )
     }
 
     static func atPlayerTurnStart(in context: inout BattleState) -> [ActionEvent] {
@@ -242,18 +219,14 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.goldPerTurn > 0 {
-            events.append(contentsOf: context.grantGoldEvent(
-                triggers.goldPerTurn,
-                to: actor,
-                abilityName: triggerAbilityName("goldPerTurn", for: actor, fallback: "Merchant's Favor", in: context),
+            events.append(contentsOf: emitGold(
+                "goldPerTurn", "Merchant's Favor", amount: triggers.goldPerTurn, to: actor, in: &context,
             ))
         }
         if triggers.healthPerTurn > 0 {
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.healthPerTurn,
-                target: actor,
-                source: actor,
-                abilityName: triggerAbilityName("healthPerTurn", for: actor, fallback: "Grove's Favor", in: context),
+            events.append(contentsOf: emitHeal(
+                "healthPerTurn", "Grove's Favor",
+                amount: triggers.healthPerTurn, to: actor, source: actor, in: &context,
             ))
         }
         if let blessing = runtime.talents.timed.lingeringBlessing,
@@ -292,29 +265,24 @@ package extension CombatTriggerEngine {
         if triggers.goldEveryNTurnsInterval > 0,
            context.turnCount > 0,
            context.isPlayerTurn(every: triggers.goldEveryNTurnsInterval) {
-            events.append(contentsOf: context.grantGoldEvent(
-                triggers.goldEveryNTurnsAmount,
-                to: actor,
-                abilityName: triggerAbilityName("goldEveryNTurnsAmount", for: actor, fallback: "Dig for Treasure", in: context),
+            events.append(contentsOf: emitGold(
+                "goldEveryNTurnsAmount", "Dig for Treasure",
+                amount: triggers.goldEveryNTurnsAmount, to: actor, in: &context,
             ))
         }
         if triggers.healthRegenFirstTurnsDuration > 0,
            context.turnCount < triggers.healthRegenFirstTurnsDuration {
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.healthRegenFirstTurnsAmount,
-                target: actor,
-                source: actor,
-                abilityName: triggerAbilityName("healthRegenFirstTurnsAmount", for: actor, fallback: "Sprite Touch", in: context),
+            events.append(contentsOf: emitHeal(
+                "healthRegenFirstTurnsAmount", "Sprite Touch",
+                amount: triggers.healthRegenFirstTurnsAmount, to: actor, source: actor, in: &context,
             ))
         }
         if triggers.healthRegenAboveHalfHealth > 0,
            context.roster.maxHealth(for: actor) > 0,
            context.roster.health(for: actor) * 2 > context.roster.maxHealth(for: actor) {
-            events.append(contentsOf: context.healEmitting(
-                amount: triggers.healthRegenAboveHalfHealth,
-                target: actor,
-                source: actor,
-                abilityName: triggerAbilityName("healthRegenAboveHalfHealth", for: actor, fallback: "Safe Perch", in: context),
+            events.append(contentsOf: emitHeal(
+                "healthRegenAboveHalfHealth", "Safe Perch",
+                amount: triggers.healthRegenAboveHalfHealth, to: actor, source: actor, in: &context,
             ))
         }
         return events
@@ -345,10 +313,8 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.bonusManaOnTurns.contains(context.playerTurnNumber) {
-            events.append(contentsOf: context.restoreManaEmitting(
-                1,
-                to: actor,
-                abilityName: triggerAbilityName("bonusManaOnTurns", for: actor, fallback: "Aetherial Surge", in: context),
+            events.append(contentsOf: emitMana(
+                "bonusManaOnTurns", "Aetherial Surge", amount: 1, to: actor, in: &context,
             ))
         }
         return events
@@ -404,45 +370,48 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        if triggers.everyNTurnsFreezeAllEnemiesInterval > 0,
-           context.turnCount > 0,
-           context.isPlayerTurn(every: triggers.everyNTurnsFreezeAllEnemiesInterval),
-           context.roster.enemy.isAlive {
+        // Freeze and stun share the same every-N-turns cadence against the
+        // enemy; only their interval/amount/keyword differ. The stun-attached
+        // team block fires whenever the stun damage fired, even if that
+        // damage defeated the enemy.
+        var firedStunDamage = false
+        for (interval, amount, keyword) in [
+            (
+                triggers.everyNTurnsFreezeAllEnemiesInterval,
+                triggers.everyNTurnsFreezeAllEnemiesAmount,
+                Keyword.freeze,
+            ),
+            (
+                triggers.everyNTurnsStunBuildupInterval,
+                triggers.everyNTurnsStunBuildupAmount,
+                Keyword.stun,
+            ),
+        ] {
+            guard interval > 0,
+                  context.turnCount > 0,
+                  context.isPlayerTurn(every: interval),
+                  context.roster.enemy.isAlive
+            else { continue }
             events.append(contentsOf: context.resolveDamage(DamageRequest(
-                amount: triggers.everyNTurnsFreezeAllEnemiesAmount,
+                amount: amount,
                 target: context.roster.enemy.combatant,
-                keyword: .freeze,
+                keyword: keyword,
                 sourceActorID: actor.id,
                 options: .reaction(),
             )).events)
+            if keyword == .stun {
+                firedStunDamage = true
+            }
         }
-        if triggers.everyNTurnsStunBuildupInterval > 0,
-           context.turnCount > 0,
-           context.isPlayerTurn(every: triggers.everyNTurnsStunBuildupInterval),
-           context.roster.enemy.isAlive {
-            events.append(contentsOf: context.resolveDamage(DamageRequest(
-                amount: triggers.everyNTurnsStunBuildupAmount,
-                target: context.roster.enemy.combatant,
-                keyword: .stun,
-                sourceActorID: actor.id,
-                options: .reaction(),
-            )).events)
-            if triggers.everyNTurnsTeamBlockAmount > 0 {
-                for memberOwner in [BattleParticipant.hero, .companion] {
-                    let member = context.roster[memberOwner]
-                    guard member.isAlive else { continue }
-                    events.append(contentsOf: context.applyBlock(
-                        triggers.everyNTurnsTeamBlockAmount,
-                        to: member.combatant,
-                        source: actor,
-                        abilityName: triggerAbilityName(
-                            "everyNTurnsTeamBlockAmount",
-                            for: actor,
-                            fallback: "Quaking Carapace",
-                            in: context,
-                        ),
-                    ))
-                }
+        if firedStunDamage, triggers.everyNTurnsTeamBlockAmount > 0 {
+            for memberOwner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[memberOwner]
+                guard member.isAlive else { continue }
+                events.append(contentsOf: emitBlock(
+                    "everyNTurnsTeamBlockAmount", "Quaking Carapace",
+                    amount: triggers.everyNTurnsTeamBlockAmount,
+                    to: member.combatant, source: actor, in: &context,
+                ))
             }
         }
         events.append(contentsOf: turnZeroBonuses(for: owner, actor: actor, triggers: triggers, in: &context))
@@ -458,25 +427,21 @@ package extension CombatTriggerEngine {
         guard context.turnCount == 0 else { return [] }
         var events: [ActionEvent] = []
         if triggers.startBattleBonusMana > 0 {
-            events.append(contentsOf: context.restoreManaEmitting(
-                triggers.startBattleBonusMana,
-                to: actor,
-                abilityName: triggerAbilityName("startBattleBonusMana", for: actor, fallback: "Dragon Spark", in: context),
+            events.append(contentsOf: emitMana(
+                "startBattleBonusMana", "Dragon Spark",
+                amount: triggers.startBattleBonusMana, to: actor, in: &context,
             ))
         }
         if triggers.startBattleBlock > 0 {
-            events.append(contentsOf: context.applyBlock(
-                triggers.startBattleBlock,
-                to: actor,
-                source: actor,
-                abilityName: triggerAbilityName("startBattleBlock", for: actor, fallback: "Watchful Eye", in: context),
+            events.append(contentsOf: emitBlock(
+                "startBattleBlock", "Watchful Eye",
+                amount: triggers.startBattleBlock, to: actor, source: actor, in: &context,
             ))
         }
         if triggers.startBattleBonusGold > 0 {
-            events.append(contentsOf: context.grantGoldEvent(
-                triggers.startBattleBonusGold,
-                to: actor,
-                abilityName: triggerAbilityName("startBattleBonusGold", for: actor, fallback: "Deep Pockets", in: context),
+            events.append(contentsOf: emitGold(
+                "startBattleBonusGold", "Deep Pockets",
+                amount: triggers.startBattleBonusGold, to: actor, in: &context,
             ))
         }
         if triggers.dodgeFirstAttackEachCombat {

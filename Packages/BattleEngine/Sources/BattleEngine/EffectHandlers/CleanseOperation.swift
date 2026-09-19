@@ -42,6 +42,9 @@ enum CleanseOperation {
             context.ownersSkippingThisPlayerTurn.remove(owner)
         }
         let healAmount = baseHeal + healPerDebuff * removed.count
+        // Empty-removal still reports heal/side-effect events as applied
+        // (Panacea heal-only case). Purge has no such side effects, so its
+        // empty path reports didApply:false. The asymmetry is intentional.
         guard !removed.isEmpty else {
             var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
             if healAmount > 0 {
@@ -87,10 +90,11 @@ enum CleanseOperation {
         for item in removed {
             countsByKeyword[item.keyword, default: 0] += 1
         }
+        let orderedKeywords = EffectRemoval.distinctSortedKeywords(from: removed)
         var events = CombatTriggerEngine.afterHeroCleanse(
             source: source, target: target, removed: removed.map(\.keyword), in: &context,
         )
-        for (keyword, _) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+        for keyword in orderedKeywords {
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .cleanseApplied,
@@ -121,11 +125,11 @@ enum CleanseOperation {
             allowMassCleanse: allowMassCleanse,
             in: &context,
         ))
-        for (keyword, count) in countsByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+        for keyword in orderedKeywords {
             events.append(contentsOf: CombatTriggerEngine.afterCleanseKeywordReaction(
                 source: source,
                 removedKeyword: keyword,
-                removedCount: count,
+                removedCount: countsByKeyword[keyword, default: 0],
                 in: &context,
             ))
         }

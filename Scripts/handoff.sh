@@ -239,7 +239,15 @@ if [[ "$DRY_RUN" == true ]]; then
       continue
     fi
     if [[ "$kind" == scripts ]] && trinket_scripts_run_covers_docs; then
-      _dry_commands+=("${display/ --paths/ --skip-docs --paths}")
+      # Rebuild the preview from the classified paths (same %q quoting as the
+      # plan builder) instead of rewriting the display string, so preview and
+      # execution cannot drift when the plan shape changes.
+      _scripts_preview="./Scripts/test-scripts.sh --skip-docs --paths"
+      for _preview_path in "${TRINKET_CHANGED_PATHS[@]}"; do
+        printf -v _preview_quoted '%q' "$_preview_path"
+        _scripts_preview+=" $_preview_quoted"
+      done
+      _dry_commands+=("$_scripts_preview")
     else
       _dry_commands+=("$display")
     fi

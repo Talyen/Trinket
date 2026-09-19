@@ -8,14 +8,21 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
     public static func requiredXP(forLevel level: Int) -> Int {
         guard level > 1 else { return 10 }
         let steps = level - 1
-        let (fiveSteps, overflow1) = steps.multipliedReportingOverflow(by: 5)
-        guard !overflow1 else { return Int.max }
-        let (square, overflow2) = steps.multipliedReportingOverflow(by: steps)
-        guard !overflow2 else { return Int.max }
-        let (base, overflow3) = 10.addingReportingOverflow(fiveSteps)
-        guard !overflow3 else { return Int.max }
-        let (total, overflow4) = base.addingReportingOverflow(square / 2)
-        return overflow4 ? Int.max : total
+        // Quadratic curve 10 + 5·steps + steps²/2 with saturation instead of
+        // trapping; steps is non-negative here so saturation only goes upward.
+        let fiveSteps = SaturatedArithmetic.saturatingMul(steps, 5)
+        if fiveSteps == Int.max {
+            return Int.max
+        }
+        let square = SaturatedArithmetic.saturatingMul(steps, steps)
+        if square == Int.max {
+            return Int.max
+        }
+        let base = SaturatedArithmetic.saturatingAdd(10, fiveSteps)
+        if base == Int.max {
+            return Int.max
+        }
+        return SaturatedArithmetic.saturatingAdd(base, square / 2)
     }
 
     public static let initial = Self(
@@ -48,8 +55,9 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         guard amount > 0 else { return self }
 
         var nextLevel = level
-        let (addedXP, overflow) = currentXP.addingReportingOverflow(amount)
-        var nextXP = overflow ? Int.max : addedXP
+        // Saturates instead of trapping; preserves the previous
+        // overflow-to-Int.max behavior exactly.
+        var nextXP = SaturatedArithmetic.saturatingAdd(currentXP, amount)
         var nextRequiredXP = requiredXP
 
         while nextRequiredXP > 0, nextXP >= nextRequiredXP {
@@ -66,11 +74,14 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         )
     }
 
+    /// Point budget owned here; unlock legality lives in `TalentModels`.
     public var totalTalentPoints: Int {
         max(level, 0) / 2
     }
 
     public func availableTalentPoints(unlockedCount: Int) -> Int {
-        max(totalTalentPoints - unlockedCount, 0)
+        // Clamp negative counts (impossible from real callers, previously
+        // trapping on Int.min) before subtracting so no input can trap.
+        max(totalTalentPoints - max(unlockedCount, 0), 0)
     }
 }

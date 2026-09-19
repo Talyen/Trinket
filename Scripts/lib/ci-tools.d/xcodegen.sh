@@ -8,7 +8,6 @@ install_xcodegen() {
   local bin="$TOOLS_DIR/xcodegen"
   local install_dir="$TOOLS_DIR/xcodegen-$XCODEGEN_VERSION"
   local real_bin="$install_dir/bin/xcodegen"
-  local marker="$TOOLS_DIR/.xcodegen.sha256"
 
   write_xcodegen_wrapper() {
     # XcodeGen resolves SettingPresets from argv[0]/../share/xcodegen. A plain
@@ -23,9 +22,7 @@ EOF
     chmod +x "$bin"
   }
 
-  if [[ -x "$real_bin" && -f "$marker" ]] \
-    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$XCODEGEN_SHA256" ]] \
-    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(trinket_tool_sha256_file "$real_bin")" ]] \
+  if trinket_tool_marker_fresh "xcodegen" "$real_bin" "$XCODEGEN_SHA256" \
     && [[ "$("$real_bin" --version 2>/dev/null | awk '{print $NF}' || true)" == "$XCODEGEN_VERSION" ]]; then
     write_xcodegen_wrapper
     return 0
@@ -36,7 +33,7 @@ EOF
   archive="$tmpdir/xcodegen.zip"
 
   curl -fsSL "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip" -o "$archive"
-  verify_archive "$archive" "$XCODEGEN_SHA256" "XcodeGen"
+  trinket_tool_verify_file "$archive" "$XCODEGEN_SHA256" "XcodeGen"
 
   rm -rf "$install_dir"
   unzip -qo "$archive" -d "$tmpdir"
@@ -50,5 +47,5 @@ EOF
     echo "XcodeGen version mismatch after install: expected $XCODEGEN_VERSION, found $actual" >&2
     exit 1
   fi
-  printf 'archive=%s\nbinary=%s\n' "$XCODEGEN_SHA256" "$(trinket_tool_sha256_file "$real_bin")" > "$marker"
+  trinket_tool_write_marker "xcodegen" "$real_bin" "$XCODEGEN_SHA256"
 }

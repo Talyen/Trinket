@@ -2,23 +2,24 @@
 """Shared scaffolding for Scripts/ Python tools.
 
 Single source for the repo-root discovery, usage-error reporting, shell-env
-array parsing, and sibling-module loading previously copy-pasted across the
-check-*/agent-*/performance helpers.
+array parsing, JSON loading, and sibling-module loading previously copy-pasted
+across the check-*/agent-*/performance helpers.
 
 Scripts run as `python3 Scripts/<tool>.py`, so each tool still needs one
 bootstrap line before importing this module::
 
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from internal.cli import ROOT, die, load_sibling, read_env_arrays
+    from internal.cli import ROOT, die, load_sibling, read_env_arrays, read_json
 """
 
 from __future__ import annotations
 
 import importlib.util
+import json
 import shlex
 import sys
 from pathlib import Path
-from typing import NoReturn
+from typing import Any, NoReturn
 
 
 def repo_root() -> Path:
@@ -50,6 +51,21 @@ def load_sibling(name: str, filename: str) -> object:
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def read_json(path: Path | str) -> Any:
+    """Load a JSON file, attaching the path to decode errors.
+
+    OSError propagates unchanged (it already carries the filename); only the
+    message of JSONDecodeError is prefixed so strict gates report which file
+    failed. Callers that tolerate missing/corrupt input keep their own
+    try/except — the exception types are unchanged.
+    """
+    text = Path(path).read_text(encoding="utf-8")
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as error:
+        raise json.JSONDecodeError(f"{path}: {error.msg}", error.doc, error.pos) from None
 
 
 def read_env_arrays(path: Path | str, names: list[str]) -> dict[str, tuple[str, ...]]:

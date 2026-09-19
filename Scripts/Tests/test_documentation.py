@@ -223,6 +223,37 @@ class DocumentationTests(ScriptRegressionTestCase):
             self.assertIn("reuses retired audit number 05", joined)
             self.assertIn("does not start with '# 02.'", joined)
 
+    def test_plan_marker_detection_reads_front_matter_only(self) -> None:
+        check_plans = self.check_docs._check_plans
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plan = root / "plan.md"
+            plan.write_text("---\ntype: execution-plan\nstatus: active\n---\n\n# Plan\n")
+            self.assertTrue(check_plans.declares_execution_plan(plan))
+            prose = root / "prose.md"
+            prose.write_text("# Guide\n\nFront matter uses `type: execution-plan`.\n")
+            self.assertFalse(check_plans.declares_execution_plan(prose))
+            unfenced = root / "unfenced.md"
+            unfenced.write_text("---\nA document starting with a rule.\n")
+            self.assertFalse(check_plans.declares_execution_plan(unfenced))
+            self.assertFalse(check_plans.declares_execution_plan(root / "missing.md"))
+
+    def test_command_inventory_rejects_stale_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            scripts.mkdir()
+            (scripts / "kept.sh").write_text("#!/bin/sh\n")
+            (scripts / "Reference.md").write_text(
+                "| `./Scripts/kept.sh` | Kept |\n"
+                "| `./Scripts/deleted.sh` | Gone |\n"
+            )
+            with patch.object(self.check_docs, "ROOT", root):
+                failures = self.check_docs.script_index_failures()
+            self.assertEqual(len(failures), 1)
+            self.assertIn("Scripts/deleted.sh", failures[0])
+            self.assertIn("does not exist", failures[0])
+
     def test_document_heading_cache_reuses_parsed_targets(self) -> None:
         from unittest.mock import patch
         links = load_script("review_links", "check-links.py")
@@ -311,7 +342,8 @@ class DocumentationTests(ScriptRegressionTestCase):
                                 "Scripts/Tests/test_build_process.py",
                                 "Scripts/Tests/test_ci_verification_scripts.py",
                                 "Scripts/Tests/test_exec_wrappers.py",
-                                "Scripts/Tests/test-lib-args.sh"},
+                                "Scripts/Tests/test-lib-args.sh",
+                                "Scripts/Tests/test-lib-tempdir.sh"},
             "Scripts/assert-generated-output.sh": {"Scripts/Tests/test_project_generation.py",
                                                    "Scripts/Tests/test_build_process.py",
                                                    "Scripts/Tests/test_ci_verification_scripts.py"},

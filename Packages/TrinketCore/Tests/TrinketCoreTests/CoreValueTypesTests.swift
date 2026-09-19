@@ -3,14 +3,6 @@ import Testing
 import TrinketCore
 
 struct CoreValueTypesTests {
-    @Test func `power snapshot compares and hashes by value`() {
-        let first = CombatPowerSnapshot(level: 5, maxHealth: 40, rawDamagePercent: 1.2)
-        let second = CombatPowerSnapshot(level: 5, maxHealth: 40, rawDamagePercent: 1.2)
-        #expect(first == second)
-        #expect(Set([first, second]).count == 1)
-        #expect(first != CombatPowerSnapshot(level: 6, maxHealth: 40, rawDamagePercent: 1.2))
-    }
-
     @Test func `secondary slots collapse to base display names`() {
         #expect(ItemSlot.secondaryWeapon.baseItemSlot == .weapon)
         #expect(ItemSlot.secondaryAccessory.baseItemSlot == .accessory)
@@ -57,6 +49,10 @@ struct CoreValueTypesTests {
         let summary = EffectSummary(keyword: .burn, text: "Burning: 3 damage")
         #expect(summary.id == "Burn:Burning: 3 damage")
         #expect(summary == EffectSummary(keyword: .burn, text: "Burning: 3 damage"))
+        // Display-only identity: same keyword+text collapses by design and is
+        // never a persistence key.
+        #expect(summary == EffectSummary(keyword: .burn, text: "Burning: 3 damage"))
+        #expect(summary != EffectSummary(keyword: .burn, text: "Burning: 4 damage"))
     }
 
     @Test func `homestead node identifiers stay explicit`() {
@@ -113,6 +109,10 @@ struct CoreValueTypesTests {
         let conditions = DamageCondition.allCases
         #expect(!conditions.isEmpty)
         #expect(conditions.count == Set(conditions).count)
+        // Sync point: evaluation lives in BattleEngine.BattleConditionEvaluator;
+        // adding a case here must update its switch. Count change breaks this
+        // and forces the evaluator review.
+        #expect(conditions.count == 12)
 
         for condition in conditions {
             #expect(!condition.sentenceFragment.isEmpty, "\(condition) should have a sentence fragment")

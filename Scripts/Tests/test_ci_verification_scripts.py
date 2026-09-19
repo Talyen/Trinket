@@ -56,6 +56,46 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
         self.assertIn("aligned", result.stdout)
 
+    def test_build_cache_paths_reject_drifted_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ("Scripts/check-build-cache-paths.sh", "Scripts/build-freshness.sh",
+                          "Scripts/build-inputs.env", ".github/actions/build-cache-key/action.yml"):
+                target = root / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT / name, target)
+            action = root / ".github/actions/build-cache-key/action.yml"
+            live = action.read_text(encoding="utf-8")
+
+            def run_checker() -> subprocess.CompletedProcess[str]:
+                return subprocess.run(
+                    [str(root / "Scripts/check-build-cache-paths.sh")],
+                    cwd=root,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+
+            lines = live.splitlines(keepends=True)
+            full_index = next(i for i, line in enumerate(lines) if "full=" in line)
+            self.assertIn("'Trinket/**', ", lines[full_index])
+            lines[full_index] = lines[full_index].replace("'Trinket/**', ", "", 1)
+            action.write_text("".join(lines), encoding="utf-8")
+            result = run_checker()
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("must include Trinket/**", result.stderr)
+
+            lines = live.splitlines(keepends=True)
+            nonsource_index = next(i for i, line in enumerate(lines) if "nonsource=" in line)
+            self.assertNotIn("Scripts/**", lines[nonsource_index])
+            lines[nonsource_index] = lines[nonsource_index].replace(
+                "hashFiles(", "hashFiles('Scripts/**', ", 1
+            )
+            action.write_text("".join(lines), encoding="utf-8")
+            result = run_checker()
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("must not include Scripts/**", result.stderr)
+
     def test_ci_assets_gate_locale_rerun(self) -> None:
         text = (ROOT / "Scripts" / "ci-assets-gate.sh").read_text(encoding="utf-8")
         self.assertIn("generate.sh --assets", text)
@@ -832,9 +872,11 @@ class CIVerificationScriptTests(ScriptRegressionTestCase):
             with self.subTest(initial=initial, generator=generator), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 (root / "Scripts/config").mkdir(parents=True)
+                (root / "Scripts/lib").mkdir(parents=True)
                 (root / "Trinket.xcodeproj").mkdir()
                 (root / "results").mkdir()
-                for filename in ("assert-generated-output.sh", "build-freshness.sh", "build-inputs.env"):
+                for filename in ("assert-generated-output.sh", "build-freshness.sh", "build-inputs.env",
+                                 "lib/generated-paths.sh"):
                     shutil.copy2(ROOT / "Scripts" / filename, root / "Scripts" / filename)
                 (root / "Scripts/config/generated-paths.tsv").write_text("content|output\n")
                 (root / "Scripts/run-env.sh").write_text(

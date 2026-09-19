@@ -281,14 +281,11 @@ struct PlayerSaveStoreTests {
     }
 
     @Test(arguments: [
-        ("negative-xp", true),
         ("schema-version", false),
     ])
     func `validate rejects corrupt save fields`(mode: String, expectsMessageContainsXP: Bool) throws {
         var save = PlayerSave.fresh
         switch mode {
-        case "negative-xp":
-            save.roster.progressions["knight"] = CombatantProgression(level: 1, currentXP: -1, requiredXP: 100)
         case "schema-version":
             save.schemaVersion = 0
         default:

@@ -49,6 +49,15 @@ enum LabyrinthTestSupport {
         firstReachableCombatNodeID(where: { _ in true }, in: state)
     }
 
+    /// Enters the labyrinth and returns the first reachable combat node.
+    /// Single home for the enter + lookup preamble copied across labyrinth
+    /// tests. Like those call sites, an enter message is ignored: the lookup
+    /// requires its own `#require`.
+    static func enterAndFindCombatNode(in state: PlaySession) throws -> String {
+        _ = state.labyrinth.enter()
+        return try #require(firstReachableCombatNodeID(in: state))
+    }
+
     static func firstReachableCombatNodeID(
         where matches: (LabyrinthNode) -> Bool,
         in state: PlaySession,

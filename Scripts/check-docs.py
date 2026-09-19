@@ -159,6 +159,14 @@ def script_index_failures() -> list[str]:
                 f"Scripts/Reference.md: command index is missing Scripts/{script.name} "
                 "(add it to the owning section)"
             )
+    # Stale rows point at scripts that no longer exist; the missing-script
+    # loop above cannot catch them.
+    for mentioned in sorted(set(re.findall(r"Scripts/([A-Za-z0-9_.-]+\.sh)", text))):
+        if not (ROOT / "Scripts" / mentioned).is_file():
+            failures.append(
+                f"Scripts/Reference.md: command index references Scripts/{mentioned}, "
+                "which does not exist (remove the row)"
+            )
     return failures
 
 

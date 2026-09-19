@@ -45,6 +45,36 @@ struct PlayBattleRoute {
         BattleLootResult?,
     ) -> BattleCompletionResult
 
+    /// Shared persist-transaction wrapper for mode battle routes. Each mode
+    /// passes only its completion call; idempotency mapping stays single-owned
+    /// here (duplicate deliveries grant nothing further, failed writes retry).
+    static func makeModeRoute(
+        origin: PlayBattleOrigin,
+        logging: String,
+        playerSave: PlayerSaveStore,
+        complete: @escaping (
+            BattleRunConfiguration,
+            BattlePresentationContext?,
+            BattleRewardSettlement,
+            [ResourceAmount]?,
+            BattleLootResult?,
+            inout PlayerSave,
+        ) -> EncounterCompletion,
+    ) -> Self {
+        Self(origin: origin) { configuration, presentation, award, materialRewards, loot in
+            let transaction = playerSave.persistTransaction(logging: logging) { save -> Result<
+                EncounterCompletion,
+                PlayCompletionFailure,
+            > in
+                switch complete(configuration, presentation, award, materialRewards, loot, &save) {
+                case .completed: return .success(.completed)
+                case .alreadyCompleted, .unavailable: return .failure(.unavailable)
+                }
+            }
+            return Self.completionResult(transaction)
+        }
+    }
+
     static func matches(_ route: Self?, runKey: BattleRunKey?, missingLog: String) -> Bool {
         guard let runKey else { return route == nil }
         guard let route, route.origin.runKey == runKey else {

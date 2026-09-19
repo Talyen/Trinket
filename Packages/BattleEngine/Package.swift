@@ -38,7 +38,9 @@ let package = Package(
         ),
         .executableTarget(
             name: "BalanceSweepCLI",
-            dependencies: ["BattleBalanceTools"],
+            // Direct imports in BalanceSweepCLIMain/Flags: BattleBalanceTools,
+            // BattleEngine (PlayPolicy, tiers), TrinketContent (catalogs).
+            dependencies: ["BattleBalanceTools", "BattleEngine", "TrinketContent"],
         ),
         .testTarget(
             name: "BattleEngineTests",
