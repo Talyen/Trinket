@@ -88,7 +88,7 @@ trinket_package_has_tests() {
 }
 
 # Consumers that pin shared fixture behavior; fixture source changes fan out
-# to all of them (see Scripts/Tests/test_ci_verification_scripts.py).
+# to all of them (see Scripts/Tests/test_ci_handoff_routing.py).
 TRINKET_SHARED_FIXTURE_CONSUMERS=(BattleEngine TrinketAppState TrinketBattleFeature TrinketFeatureSupport)
 
 trinket_route_shared_fixture_verification() {

@@ -137,7 +137,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
     def test_build_notes_skips_infra_and_uses_fallback(self) -> None:
         summary, bullets = notes.build_notes(
             [
-                commit("Add script regression coverage", "Scripts/Tests/test_ci_verification_scripts.py"),
+                commit("Add script regression coverage", "Scripts/Tests/test_ci_build_scripts.py"),
                 commit("ci: speed up isolate slots", ".github/workflows/tests.yml"),
             ]
         )

@@ -54,14 +54,14 @@ FAMILIES = (
          "Scripts/lib/test-helpers.sh", "Scripts/lib/test-style.sh",
          "Scripts/lib/tempdir.sh",
          "Scripts/prune-derived-data-cache.sh", "Scripts/stage-ci-test-artifact.sh"},
-        {"test_build_artifacts", "test_build_process", "test_ci_verification_scripts", "test_exec_wrappers",
+        {"test_build_artifacts", "test_build_process", "test_ci_build_scripts", "test_exec_wrappers",
          "test-lib-args.sh", "test-lib-tempdir.sh"},
     ),
     (
         {"Scripts/handoff.sh", "Scripts/ci-gate.sh",
          "Scripts/lib/args.sh", "Scripts/lib/cheap-slices.sh", "Scripts/config/cheap-slices.txt",
          "Scripts/lib/gate.sh"},
-        {"test_ci_verification_scripts", "test_documentation", "test_exec_wrappers", "test-lib-args.sh"},
+        {"test_ci_gate_scripts", "test_ci_handoff_routing", "test_documentation", "test_exec_wrappers", "test-lib-args.sh"},
     ),
     (
         {"Scripts/script_test_selection.py"},
@@ -101,14 +101,14 @@ FAMILIES = (
     ),
     (
         {"Scripts/test-timing.py"},
-        {"test_test_timing", "test_ci_verification_scripts"},
+        {"test_test_timing", "test_ci_build_scripts"},
     ),
     (
         {"Scripts/prepare-art-assets.sh", "Scripts/prepare-audio-assets.sh",
          "Scripts/prepare-cinematic-assets.sh", "Scripts/prepare-assets.sh",
          "Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh",
          "Scripts/ci-assets-gate.sh", "Scripts/report-art-memory.sh"},
-        {"test_media_asset_scripts", "test_ci_verification_scripts", "test-asset-hash-sort-locale.sh"},
+        {"test_media_asset_scripts", "test_ci_build_scripts", "test-asset-hash-sort-locale.sh"},
     ),
     (
         {"Scripts/generate.sh", "Scripts/agent-push-gate.sh",
@@ -120,7 +120,7 @@ FAMILIES = (
          "Scripts/lib/ci-tools.d/ripgrep.sh", "Scripts/lib/generated-paths.sh",
          "Scripts/build-inputs.env", "Scripts/format-dirs.env", "Scripts/tool-versions.env",
          "Scripts/config/generated-paths.tsv", "Scripts/config/smoke-classes.txt"},
-        {"test_project_generation", "test_build_process", "test_ci_verification_scripts"},
+        {"test_project_generation", "test_build_process", "test_ci_build_scripts"},
     ),
     (
         {"Scripts/run-env.sh", "Scripts/ensure-simulator.sh", "Scripts/simctl_json.py",
@@ -140,7 +140,7 @@ FAMILIES = (
          "Scripts/promote.sh", "Scripts/lib/promote.sh",
          "Scripts/install-device.sh", "Scripts/run-simulator.sh",
          "Scripts/validate-commit-msg.sh", "Scripts/record-time-profiler.sh"},
-        {"test_release_notes_user", "test_ci_verification_scripts"},
+        {"test_release_notes_user", "test_ci_build_scripts"},
     ),
     (
         {"Scripts/balance-sweep.sh"},

@@ -5,10 +5,12 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from collections.abc import Iterable
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -23,6 +25,20 @@ def load_script(name: str, filename: str):
 
 
 class ScriptRegressionTestCase(unittest.TestCase):
+
+    def make_repo_fixture(self, directory: str, files: Iterable[str]) -> Path:
+        """Create an isolated repo root holding copies of repository files.
+
+        `files` are repository-relative paths (e.g. "Scripts/build-freshness.sh");
+        parent directories are created. Returns the root. Callers add any
+        synthetic files (stubs, manifests) on top.
+        """
+        root = Path(directory)
+        for relative in files:
+            target = root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / relative, target)
+        return root
 
     # Shared audio-fixture shape; only the manifest/raw/media layout differs.
     _AUDIO_FIXTURES = {
