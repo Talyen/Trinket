@@ -12,8 +12,13 @@ and product contracts in [SwiftUI feature context](../../../Docs/AgentContext/sw
 
 | Concern | Reference |
 | --- | --- |
-| View inputs, `@State`, `@Observable`, bindings, `onChange` dependencies | [Data flow](references/dataflow.md) |
-| Custom environment actions, `@Entry` defaults, frequent environment updates | [Environment performance](references/environment.md) |
+| View inputs | [Passing data](references/dataflow.md#passing-data-into-views) |
+| `@State` and bindings | [Local state](references/dataflow.md#view-local-state-with-state), [Bindings](references/dataflow.md#bindings) |
+| `@Observable` dependencies | [Property granularity](references/dataflow.md#per-property-dependency-granularity-on-observable-models), [Computed properties](references/dataflow.md#cache-derived-observable-values-computed-properties-still-establish-dependencies-transitively) |
+| `onChange` dependencies | [Side effects](references/dataflow.md#isolating-onchangeof-side-effect-invalidation) |
+| Custom environment actions | [Closures](references/environment.md#closures-in-the-environment) |
+| `@Entry` defaults | [Unstable defaults](references/environment.md#unstable-environment-default-values) |
+| Frequent environment updates | [Rapid updates](references/environment.md#rapidly-updating-environment-values) |
 | Stable collection identity and efficient `ForEach` / `List` rows | [ForEach](references/foreach.md) |
 | Separate view update boundaries, cheap initializers, single-child `Group` | [View structure](references/structure.md) |
 | Conditional modifiers and `AnyShapeStyle` | [Modifiers](references/modifiers.md) |
@@ -31,7 +36,7 @@ performance defect. Follow the affected inputs, identity, and lifecycle before
 choosing a fix. Preserve the app's existing observation and resource owners;
 do not introduce new model layers solely to reproduce a reference example.
 Verification and performance claims follow
-[Verification.md](../../../Docs/Platform/Verification.md).
+[Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification).
 
 Source version, local adaptations, and refresh procedure:
 [Apple skill references](../../../Docs/Platform/ApplePlatformReference.md#apple-skill-references).

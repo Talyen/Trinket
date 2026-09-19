@@ -11,7 +11,10 @@ The departing card rises quickly, then eases upward through the artwork's
 dissolve, travelling 55% of its height with the existing departure duration.
 Holding to inspect, dragging to play, and cancelling a drag remain available.
 
-Touch-down gives an immediate small compression before the larger held-card lift.
+Touch-down immediately lifts the card with a small enlargement and shadow.
+Movement follows the finger from its original grab position in a stable hand
+coordinate space; the tap-versus-drag threshold does not delay visual pickup.
+Only lift and return animate independently of the finger's movement.
 A restrained edge marks playable cards, with one settling accent when a card
 becomes playable. The armed-drag edge takes precedence; these cues never dim the
 artwork, repeat continuously, or delay an action.

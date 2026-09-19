@@ -450,6 +450,7 @@ public struct BattleState {
             keyword: keyword,
             target: target,
             sourceActorID: sourceActorID,
+            operation: keyword == .burn || keyword == .poison ? .resolvedPeriodic : .periodic,
             in: &self,
         )
     }

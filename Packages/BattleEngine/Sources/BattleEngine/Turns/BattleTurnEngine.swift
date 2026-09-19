@@ -341,7 +341,9 @@ extension BattleTurnEngine {
                     ))
                 }
                 events.append(contentsOf: applyDoTStackFromDamage(
-                    keyword: damageKeyword, potency: amount, to: damageTarget,
+                    keyword: damageKeyword,
+                    potency: damageKeyword == .burn || damageKeyword == .poison ? dealt : amount,
+                    to: damageTarget,
                     sourceActorID: actor.id, context: &context,
                 ))
             }

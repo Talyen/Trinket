@@ -8,6 +8,9 @@ Each consuming consequence allocates from the remainder. Transfers offer at most
 the recipient's missing Health so nested healing cannot convert overflow already
 owned by the parent. Echoes and Leech success read actual restoration. Independent
 observers such as Wishspring read original overflow without consuming it.
+Healing emits original overflow as an `overheal` event, including at full Health.
+Floating feedback combines it with restored Health in the existing healing number;
+restoration events, battle-log totals, and healing triggers still use actual restoration.
 `CombatGain` owns bounded applied gains; proportional effects use `CombatRounding`
 without an implicit minimum-one grant. Lingering Blessing stores its amount,
 source, and remaining duration together.

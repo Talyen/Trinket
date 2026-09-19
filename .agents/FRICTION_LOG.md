@@ -13,6 +13,7 @@ Centralized intake for agent pain points, confusion, and struggle while working 
 
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
+| 2026-09-19 | Simulator profiling | Xcode 27A266a host `xctrace` rejected a live leased Simulator app by verified PID and by name; the [performance playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md#investigation-loop) host attachment route is unavailable on this host. Sampled stacks remain CPU leads, not render-hitch evidence; investigate the attachment route before treating it as reliable. |
 | 2026-09-14 | review | Dirty-file-scoped review missed downstream exhaustive-switch breaks from committed enum cases; full handoff caught them (FeatureSupport, BattleFeature, app). Fixed in-tree; consider a dirty-tree-wide exhaustive-switch/build check earlier in review. |
 | 2026-09-17 | battle-engine/damage | Investigation flagged Intercede `heroCardBlockBroken` as a player-visible bug; verification showed the flag is only read for enemy-target hits (`DamagePipeline.swift:75`) while Intercede only runs for companion-target hits (`+Shield.swift:174`) — dead store, edit dropped. Live channels (Block math, cascading, `blockedAmount`) already correct and test-locked. |
 

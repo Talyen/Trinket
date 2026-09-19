@@ -51,6 +51,19 @@ package enum HealingEngine {
         events.append(contentsOf: applyOnHealGrants(restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context))
 
         appendHealLog(request: request, restored: restored, flags: flags, events: &events, in: &context)
+        if overflow > 0 {
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .overheal,
+                actorName: request.sourceActorID.flatMap { context.roster.combatant(for: $0)?.name } ?? request.target.name,
+                abilityName: "",
+                target: request.target,
+                amount: overflow,
+                keyword: .health,
+                isCritical: flags.contains(.critical),
+                origin: request.isHoTTick ? .periodic : (request.isDirectCardHeal ? .direct : .automatic),
+            ))
+        }
         events.append(contentsOf: applyRestoredReactions(
             restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context,
         ))

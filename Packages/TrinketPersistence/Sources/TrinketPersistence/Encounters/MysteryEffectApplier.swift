@@ -163,8 +163,8 @@ public enum MysteryEffectApplier {
         goldFoundPercent: Int = 0,
         experienceEarnedPercent: Int = 0,
         materialsFoundPercent: Int = 0,
+        at grantDate: Date = Date(),
     ) -> MysteryEffectResult {
-        let grantDate = Date()
         save.homestead.settleProduction(at: grantDate, roster: save.roster)
         var result = MysteryEffectResult()
         for effect in effects {

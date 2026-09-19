@@ -35,6 +35,7 @@ package extension CombatTriggerEngine {
                     keyword: .poison,
                     target: target,
                     sourceActorID: sourceActorID,
+                    operation: .resolvedPeriodic,
                     in: &context,
                 ).events)
             }
@@ -209,6 +210,7 @@ package extension CombatTriggerEngine {
                     keyword: .poison,
                     target: target,
                     sourceActorID: sourceActorID,
+                    operation: .resolvedPeriodic,
                     in: &context,
                 ).events)
             }

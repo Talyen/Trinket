@@ -13,10 +13,10 @@ frost_whelp	Frost Whelp	companion	14	8	rayOfFrost,iceShot,manaBerries,stargaze	f
 lizard_scout	Lizard Scout	companion	14	0	stab,blackjack,causticJab,sniffOut	serratedEdge,poisonDagger,steal,acidPotion	hemorrhage,bloodthorn,shadowstep,astralArrow
 panther	Panther	companion	15	0	rendingSlash,fangs,stab,sniffOut	pounce,venomFangs,predatorsFocus,serratedEdge	shadowstep,bloodthorn,hemorrhage,packTactics
 phoenix	Phoenix	companion	14	8	kindling,fireArrow,pixieDust,manaBerries	fireball,cinderbloom,manaPotion,heal	phoenixFeather,combustion,meteor,sunburst
-golden_retriever	Golden Retriever	companion	16	0	apple,sniffOut,block,shieldBash	stoneskinPotion,tithe,steal,heal	luckPotion,goldenPlate,panaceaPotion,blessedAegis
-library_owl	Library Owl	companion	14	8	apple,stargaze,manaBerries,block	heal,cleanse,smite,manaPotion	panaceaPotion,sunburst,astralArrow,luckPotion
+golden_retriever	Golden Retriever	companion	16	0	shieldBash,sniffOut,block,apple	stoneskinPotion,tithe,steal,heal	luckPotion,goldenPlate,panaceaPotion,blessedAegis
+library_owl	Library Owl	companion	14	8	stargaze,apple,manaBerries,block	heal,cleanse,smite,manaPotion	sunburst,panaceaPotion,astralArrow,luckPotion
 risen_skeleton	Risen Skeleton	companion	15	0	slash,block,fangs,rendingSlash	darkPact,sunder,bloodOffering,venomFangs	faustianBargain,hemorrhage,bloodthorn,shadowstep
-mana_moth	Mana Moth	companion	14	11	manaBerries,pixieDust,stargaze,rayOfFrost	manaPotion,manaShield,frostbolt,coldSnap	meteor,blizzard,combustion,luckPotion
-pixie	Pixie	companion	14	7	pixieDust,manaBerries,apple,stargaze	cleanse,heal,tithe,manaPotion	panaceaPotion,sunburst,meteor,luckPotion
-shield_scarab	Shield Scarab	companion	16	0	block,shieldBash,bash,slash	spikedShield,stoneskinPotion,briarShield,sunder	thornMail,blessedAegis,earthquake,moltenBulwark
-fox	Fox	companion	14	0	sniffOut,fangs,bash,rendingSlash	steal,pounce,predatorsFocus,serratedEdge	shadowstep,luckPotion,packTactics,bloodthorn
+mana_moth	Mana Moth	companion	14	11	stargaze,pixieDust,manaBerries,rayOfFrost	manaPotion,manaShield,frostbolt,coldSnap	meteor,blizzard,combustion,luckPotion
+pixie	Pixie	companion	14	7	pixieDust,manaBerries,apple,stargaze	cleanse,heal,tithe,manaPotion	sunburst,panaceaPotion,meteor,luckPotion
+shield_scarab	Shield Scarab	companion	16	0	shieldBash,block,bash,slash	spikedShield,stoneskinPotion,briarShield,sunder	thornMail,blessedAegis,earthquake,moltenBulwark
+fox	Fox	companion	14	0	bash,fangs,sniffOut,rendingSlash	steal,pounce,predatorsFocus,serratedEdge	shadowstep,luckPotion,packTactics,bloodthorn

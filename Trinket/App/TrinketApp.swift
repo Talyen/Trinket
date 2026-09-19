@@ -149,6 +149,7 @@ struct TrinketApp: App {
                     )
                 }
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .preferredColorScheme(.dark)
         }
         // Intentional: game screens manage their own chrome; system overlays

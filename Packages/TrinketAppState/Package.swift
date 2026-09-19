@@ -39,6 +39,7 @@ let package = Package(
                 "BattleEngine",
                 "TrinketPersistence",
                 "TrinketFeatureSupport",
+                .product(name: "TrinketFeatureAdapters", package: "TrinketFeatureSupport"),
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
                 "TrinketBattleFeature",
                 .product(name: "TrinketContentTestSupport", package: "TrinketContent"),

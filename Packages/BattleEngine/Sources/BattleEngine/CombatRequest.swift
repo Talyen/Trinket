@@ -55,7 +55,7 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
-            options: .periodic,
+            options: keyword == .burn || keyword == .poison ? .resolvedPeriodic : .periodic,
         )
     }
 }

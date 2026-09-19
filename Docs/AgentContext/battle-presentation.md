@@ -43,7 +43,7 @@ ordered effect batches; opening/turn recording additionally reports nested
 turn events remain single-delivery. Resolved actions carry stable action and card
 identity and the action-start event boundary, the selected attack classification,
 exclusive event membership, and
-actual direct-damage receipts. Receipts include redirected recipients even when
+actual action-damage receipts. Receipts include redirected recipients even when
 combat logging has no corresponding damage event; they never change the log.
 Nested actions own their own events. BattleFeature extracts these records and
 automatic card identities, not a replay of historical hand snapshots. Late visual completion only removes its own cast.
@@ -77,8 +77,8 @@ do not invent attacks.
 
 Impact delivery groups results by the presentation beat, independent of the
 engine's broader feedback group. Recoil chooses the strongest result per recipient,
-including directional Block recoil; periodic results cannot suppress a direct hit
-or produce recoil. Manual floating results, sounds, result haptics, and recoil
+including directional Block recoil and immediate DoT damage resolved by an action.
+Between-turn periodic results cannot suppress an action hit or produce recoil. Manual floating results, sounds, result haptics, and recoil
 share immediate delivery, including support results while earlier attacks are pending. Scheduled
 attack phases never replay those results. Automatic plays, counterattacks,
 enemy actions, and auto-battle retain combined impact delivery.

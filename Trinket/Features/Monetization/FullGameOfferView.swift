@@ -31,13 +31,6 @@ struct FullGameOfferView: View {
             .padding(TrinketDesign.Layout.contentMargin)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { purchaseArea }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Close", systemImage: "xmark") { dismiss() }
-                    .labelStyle(.iconOnly)
-                    .accessibilityIdentifier(AccessibilityID.FullGame.close)
-            }
-        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.FullGame.offer)
         .task { await store.loadProduct() }

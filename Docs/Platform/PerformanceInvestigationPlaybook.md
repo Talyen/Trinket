@@ -71,7 +71,10 @@ for every catalog entry.
 | Options / Full Game | Form scroll, sliders/toggles, reset cancel/confirm, offer dismissal, local StoreKit purchase/restore, locked-content entry |
 
 Scroll scenarios perform a slow drag, a fast flick through newly exposed content,
-and a reverse flick, including deceleration. They assert movement using stable
+and a reverse flick, including deceleration. If the viewport returns to its
+starting offset, verification uses a separate one-way drag (and the opposite
+direction if already at an edge) before rejecting the fixture as unscrollable.
+They assert movement using stable
 accessibility identities or labels rather than recyclable child indices. Fixtures
 must contain enough content to scroll. Short item details and the fixed resource
 wallet fit their viewport; they receive presentation/interaction coverage instead
@@ -221,6 +224,14 @@ budgets there.
    ./Scripts/record-time-profiler.sh --output .DerivedData/PerformanceResults/tp.trace --time-limit 8s
    ```
 
+   If host attachment rejects an app PID, first confirm it still belongs to the
+   live leased Simulator app; launchctl can retain a stale entry after exit.
+   Xcode 27A266a has also rejected verified live PIDs and app names on this host.
+   Record the attachment failure. A bounded `sample <pid> 20 1 -file <path>` can
+   provide CPU investigation leads, but is not an Instruments hitch trace and
+   cannot establish render-pipeline timing. Keep instrumented and sampled runs
+   separate from uninstrumented before/after comparisons.
+
    The wrapper waits for xctrace to report that recording ended, then waits
    for save to finish. It does not guess a serialize window. SIGINT only if
    `--time-limit` is ignored.
@@ -228,6 +239,14 @@ budgets there.
    Animation Hitches is unsupported on Simulator (`Hitches is not supported on
    this platform`). Capture that template on a physical device.
 4. Identify an app-attributed stack, observation invalidation, layout pass, or rendering phase. A long signpost interval is elapsed time, not CPU self-time; an interval spanning animation or a scheduled callback includes waiting. A healthy CPU profile does not exclude GPU/render-server cost. Simulator scheduling noise alone is not an app regression.
+
+   Inspect XCTest accessibility work before attributing automated-journey cost
+   to the game. Standalone scroll steps keep their explicit before/after
+   snapshots outside capture; combined navigation/scroll/return journeys using
+   `exerciseScroll` currently take those snapshots inside capture. Those reports
+   include that automation cost. Neither sampled-stack counts nor a faster
+   automated journey alone proves that a particular view refactor improved
+   rendering.
 
    The callback sampler stores aggregate intervals, not rendered frames or a
    timestamped hitch timeline. It cannot identify which stack caused a slow
@@ -241,6 +260,14 @@ budgets there.
 6. Rerun the affected scenario and relevant shared consumers. Run the full Battle
    matrix when the change affects its shared boundaries or a broad comparison is
    needed; unrelated scenarios are not a mandatory iteration step.
+
+Choose scroll containers for the actual working set. Collection and Homestead
+already use lazy grids; the Combat Log uses `List`; Collection's landing shelves
+are bounded. An eager stage stack alone is not evidence of a defect. Likewise,
+viewport state invalidating an inventory view is a lead until a profile shows
+material derivation cost. Retain these owners unless measured app work supports
+a simpler change; a generic feed benchmark does not justify migrating the game
+to `List` or adding another cache/model layer.
 
 Prefer direct stored-state mutation, one projection publication, narrow observation, cached immutable geometry, equatable static faces, bounded/preallocated resources, and parked idle clocks. Consider removing dead wrappers and redundant passes when that addresses the measured cause.
 

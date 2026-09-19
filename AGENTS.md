@@ -36,8 +36,9 @@ Reuse unchanged guidance already present in context; reread when changed or no
 longer available. Reroute when scope crosses owners and read newly applicable
 material. Use `--working-tree --allow-broad-scope` only for intentional whole-tree work.
 
-Choose scoped `rg`, filename discovery, direct reads, or
-`python3 Scripts/agent-search.py <pattern> --scope <owner>` for the question.
+For unknown owners or broad concepts, use filename-only `rg -l`/`rg --files` or
+`python3 Scripts/agent-search.py <pattern> --scope <owner>`. Inspect matching
+content only after narrowing paths.
 Follow relevant callers, tests, and configuration across owners. Load linked material only
 for its concern; generated catalogs/logs need targeted lookups. See
 [context reading examples](Docs/AgentContext/README.md). Use an execution plan only
@@ -65,7 +66,7 @@ for failures caused by the change without another approval checkpoint. Stop when
 complete or blocked by a required decision or unavailable prerequisite; apply the
 encountered-fix rules above to other failures.
 
-- Choose tests for consequential confidence under [Testing.md](Docs/Platform/Testing.md). Consolidate or retire coverage made redundant within scope when evidence justifies it; test counts are not a goal and evidence-based retirement needs no separate approval.
+- Choose tests for consequential confidence under [Testing.md](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Consolidate or retire coverage made redundant within scope when evidence justifies it; test counts are not a goal and evidence-based retirement needs no separate approval.
 - Run `./Scripts/handoff.sh --isolate --paths <file...>` for the union of requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification.md](Docs/Platform/Verification.md) owns gates, simulator limits, and failures.
 - Review the final diff for scope and generated consistency. Report results, verification, adopted fixes separately, and exact blockers/skips. Do not claim verified completion with unresolved required checks.
 

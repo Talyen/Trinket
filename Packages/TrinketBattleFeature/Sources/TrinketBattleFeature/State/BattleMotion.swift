@@ -46,12 +46,7 @@ enum BattleMotion {
     static let dealInsertOffset: CGFloat = 120
     static let dealInsertScale: CGFloat = 0.50
     static let cardInspectHoldDuration: TimeInterval = 0.36
-    static let cardPressedScale: CGFloat = 0.95
     static let cardPlayRiseHeightFraction: CGFloat = 0.55
-
-    static var cardPress: Animation {
-        .spring(response: 0.16, dampingFraction: 1.0)
-    }
 
     static var cardLift: Animation {
         .spring(response: 0.2, dampingFraction: 1.0)

@@ -9,7 +9,8 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/generate.sh [--assets [--kind art\|cinematic\|music\|sfx\|app-icon\|all]] [--skip-xcodegen]` | Generate the Xcode project without cache reuse and authored derived content (`--assets` also prepares art/music/SFX/cinematics; `--kind` prepares one asset kind; `--skip-xcodegen` runs content/asset codegen only) |
 | `./Scripts/build.sh` | Compile only the app; `--release-device` verifies unsigned iOS Release compilation |
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; add `--status` for global dirty counts and exact scoped status; add `--smoke` to preview the smoke route; use `--full` for path inventory, route metadata, and full commands and `--working-tree --allow-broad-scope` only intentionally |
-| `python3 Scripts/agent-search.py <pattern> --scope <owner>` | Authored-first discovery: matching filenames/counts by default; plain identifiers promote exact filename stems outside docs; `--files` searches filenames; `--excerpts` for bounded lines, `--mode tests`, `docs`, or `generated` for other surfaces; omissions are explicit |
+| `python3 Scripts/agent-search.py <pattern> --scope <owner>` | Authored-first discovery: matching filenames/counts by default; plain identifiers promote exact filename stems and show declaration-location hints outside docs; `--files` searches filenames; `--excerpts` for bounded lines, `--mode tests`, `docs`, or `generated` for other surfaces; omissions are explicit |
+| `python3 Scripts/agent-diff.py --paths <files...> [--staged] [--generated] [--stat]` | Authored patches and generated statistics; default is unstaged, untracked files are listed for explicit reads; `--generated` expands generated patches; whole-tree review requires `--working-tree` |
 | `python3 Scripts/agent-read.py 'path.md#heading'` | Read a complete optional-reference section with source lines and parent headings; `--outline` lists anchors, and omitting the anchor reads the whole document |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Optional worktree under `.worktrees/<slug>` on `agent/<slug>`; checkout policy lives in [AGENTS.md](../AGENTS.md#protect-the-workspace) |
 | `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |
@@ -27,7 +28,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/assert-generated-output.sh [--regenerate] [--assets] [--strict-assets] --idempotent` | Confirm regeneration produces no diff (`--regenerate` runs `generate.sh` first; `--assets` includes art/music/SFX/cinematic outputs; `--strict-assets` fingerprints full media trees) |
 | `./Scripts/build-for-testing.sh` | Rebuild app and package schemes for `test.sh … --no-build` runs against CI build artifacts |
 | `./Scripts/build-for-testing.sh --app-only` | Build the app and UI test bundles, skipping package test schemes (CI shared build) |
-| `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | Run one or more packages' tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition |
+| `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | Run one or more packages' tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition; multiple packages emit an aggregate failure summary with retained report paths, `--verbose` expands worker output |
 | `./Scripts/test.sh unit [--no-build] [--app-only] [--quiet] [--verbose]` | Run all package unit suites via the parallel `test-package.sh` owner (`--app-only` is a compile-only app build) |
 | `./Scripts/test.sh style [--no-build]` | Run the style gate (format/lint/UI style/API bans/exclusivity/invariants/accessibility IDs) |
 | `./Scripts/test.sh performance [--scenario …] [--group …]` | List/run the performance matrix via `performance.sh` selection |
@@ -40,6 +41,25 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan] [--paths <file> …]` | Check links and structure globally; `--paths` scopes final active-plan closure only. Plan expiration is advisory; `check-plans.py` accepts the same flags |
 | `./Scripts/check-api-bans.sh` | Banned legacy observation/navigation APIs plus XCTest-outside-UITests migration |
+
+### Headless playthroughs
+
+Manual only; [scope, evidence, and interpretation](../Docs/Platform/HeadlessPlaythroughs.md).
+
+```sh
+./Scripts/playthrough-sweep.sh --scenarios 4 --seed 42 --horizon 2
+./Scripts/playthrough-sweep.sh --mode contracts --full-access --horizon 10 --policy setupAware-v1
+./Scripts/playthrough-sweep.sh --scenario PlaythroughReports/example/career-0000/scenario.json
+./Scripts/playthrough-sweep.sh --replay-bundle PlaythroughReports/example/career-0000
+./Scripts/playthrough-sweep.sh --crash-proof
+./Scripts/playthrough-sweep.sh --baseline PlaythroughReports/baseline/report.json --scenarios 4 --seed 42 --horizon 2
+```
+
+`--output` must name a new directory (default `PlaythroughReports/<timestamp>`).
+`--hero`/`--companion` choose starter IDs; `--full-access` simulates content ownership.
+`--timeout` bounds each worker in seconds. `--help` lists modes and policies without
+acquiring a Simulator. The wrapper acquires isolation, builds the AppState test
+product, and supplies explicit worker requests; no nightly automation is created.
 
 ### Assets
 
@@ -81,6 +101,7 @@ These helpers are sourced or invoked by commands, Git hooks, or CI workflows. Li
 
 | Command | Owner / entry point |
 |---|---|
+| `python3 Scripts/package-diagnostics.py [--verbose] <worker-output-dir> <packages...>` | Aggregate the current package run’s outcomes and deduplicated diagnostics; invoked by `test-package.sh` |
 | `./Scripts/check-staged-project.sh` | Pre-commit check of the staged project against staged inputs; preserves the index and working files |
 | `./Scripts/ci-path-filter.py` | CI path filter via the GitHub compare API (no full checkout); `code` / `assets` / `infra` outputs |
 | `./Scripts/stage-ci-test-artifact.sh` | Archive Products + build stamps in a tar file for CI `--no-build` test jobs |

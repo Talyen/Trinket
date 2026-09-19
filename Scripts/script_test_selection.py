@@ -20,6 +20,72 @@ INTENTIONALLY_UNMAPPED = {
 }
 FAMILIES = (
     (
+        {"Scripts/config/generated-paths.tsv"},
+        {"test_agent_diff", "test_agent_search"},
+    ),
+    (
+        {"Scripts/internal/diagnostics/diagnostic_model.py"},
+        {"test_package_diagnostics"},
+    ),
+    (
+        {"Scripts/internal/content/common.py"},
+        {"test_check_unused_assets"},
+    ),
+    (
+        {"Scripts/content_codegen.py", "Scripts/internal/content/common.py"},
+        {"test_codegen_abilities", "test_codegen_common", "test_codegen_homestead",
+         "test_codegen_stages", "test_codegen_talents", "test_codegen_triggers",
+         "test_content_codegen"},
+    ),
+    (
+        {"Scripts/internal/content/abilities.py"},
+        {"test_codegen_abilities", "test_content_codegen"},
+    ),
+    (
+        {"Scripts/internal/content/homestead.py"},
+        {"test_codegen_homestead", "test_content_codegen"},
+    ),
+    (
+        {"Scripts/internal/content/stages.py"},
+        {"test_codegen_stages", "test_content_codegen"},
+    ),
+    (
+        {"Scripts/internal/content/talents.py"},
+        {"test_codegen_talents", "test_content_codegen"},
+    ),
+    (
+        {"Scripts/internal/content/items.py"},
+        {"test_content_codegen"},
+    ),
+    (
+        {"Scripts/internal/content/roster.py"},
+        {"test_content_codegen"},
+    ),
+    (
+        {"Scripts/internal/content/content_codegen_modifiers.py",
+         "Scripts/internal/content/content_codegen_triggers.py",
+         "Scripts/internal/content/trigger_family_schema.json"},
+        {"test_codegen_common", "test_codegen_homestead", "test_codegen_stages",
+         "test_codegen_talents", "test_codegen_triggers", "test_content_codegen"},
+    ),
+    (
+        {"Scripts/config/diagnostic-limits.env", "Scripts/internal/diagnostics/diagnostic_limits.py",
+         "Scripts/script_diagnostics.py"},
+        {"test_codegen_abilities", "test_package_diagnostics"},
+    ),
+    (
+        {"Scripts/test-package.sh"},
+        {"test_package_diagnostics"},
+    ),
+    (
+        {"Scripts/agent-diff.py"},
+        {"test_agent_diff"},
+    ),
+    (
+        {"Scripts/package-diagnostics.py"},
+        {"test_exec_wrappers", "test_package_diagnostics"},
+    ),
+    (
         {"Scripts/agent-search.py"},
         {"test_agent_search"},
     ),
@@ -68,16 +134,13 @@ FAMILIES = (
         {"test_script_selection"},
     ),
     (
-        {"Scripts/content_codegen.py", "Scripts/internal/content/content_codegen_modifiers.py",
-         "Scripts/internal/content/content_codegen_triggers.py",
-         "Scripts/internal/content/trigger_family_schema.json",
-         "Scripts/check-ui-style.py", "Scripts/check-accessibility-ids.py",
+        {"Scripts/check-ui-style.py", "Scripts/check-accessibility-ids.py",
          "Scripts/check-agent-invariants.sh", "Scripts/check-exclusivity-footguns.sh",
          "Scripts/check-module-boundaries.sh", "Scripts/check-artwork-budget.sh",
          "Scripts/check-api-bans.sh", "Scripts/release-notes.sh",
          "Scripts/config/system-colors.txt", "Scripts/config/uitest-system-query-allowlist.txt",
          "Scripts/lib/rg-check.sh", "Scripts/internal/swift_policy.py"},
-        {"test_content_and_policy_scripts", "test_swift_style_policy", "test_exec_wrappers"},
+        {"test_policy_scripts", "test_swift_style_policy", "test_exec_wrappers"},
     ),
     (
         {"Scripts/check-unused-assets.py"},
@@ -145,6 +208,10 @@ FAMILIES = (
     (
         {"Scripts/balance-sweep.sh"},
         {"test_balance_report_retention"},
+    ),
+    (
+        {"Scripts/playthrough-sweep.sh", "Scripts/playthrough_sweep.py"},
+        {"test_playthrough_sweep", "test_exec_wrappers"},
     ),
     (
         {"Scripts/agent-worktree.mjs", "Scripts/setup-git-safety.mjs",

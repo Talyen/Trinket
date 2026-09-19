@@ -527,6 +527,7 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
         "lint.sh",
         "new-plan.sh",
         "performance.sh",
+        "playthrough-sweep.sh",
         "prepare-assets.sh",
         "prepare-audio-assets.sh",
         "promote.sh",

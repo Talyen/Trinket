@@ -40,10 +40,17 @@ change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 Edit authored inputs (manifests, ability Swift, `ContentManifest/talents.tsv`, or `Scripts/internal/content/trigger_family_schema.json`). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. The verification router owns generation and idempotence.
 
-Ability inventory is the slowest codegen step: `content_codegen.py` runs the
+`Scripts/content_codegen.py` coordinates domain owners under `Scripts/internal/content/`:
+abilities, items, roster (including enemies/traits), stages, Homestead, talents,
+and the trigger DSL/generator. Each owner keeps its row schema, validation, and
+rendering together; `common.py` owns shared TSV and output helpers.
+
+Ability inventory is the slowest codegen step: the abilities owner runs the
 `AbilityInventoryDump` tool (full Swift build + Xcode SDK) unless the
 `.DerivedData/AbilityInventory.stamp` digest matches; force it with
-`TRINKET_FORCE_ABILITY_DUMP=1` (see `assert-generated-output.sh`). Ability
+`TRINKET_FORCE_ABILITY_DUMP=1` (see `assert-generated-output.sh`). Failed dump logs
+are retained under `RESULTS_DIR` or `.DerivedData/ContentGeneration`, with bounded
+terminal excerpts. Ability
 tiers, shorthand, and the inventory regex-parse the authored catalog, and
 mystery/recruit validation scrapes `Encounters/*.swift` for `makeEvent(id:` /
 `recruit(id:` — keep those call shapes stable or update the scrapes together.

@@ -134,6 +134,13 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         print(result.stderr, file=sys.stderr, end="")
         return result.returncode
     counts: Counter[str] = Counter()
+    declarations: dict[str, int] = {}
+    identifier = re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", args.pattern)
+    declaration = re.compile(
+        rf"^\s*(?:(?:public|package|internal|private|fileprivate|final|static|class|open|indirect|nonisolated|override|async)\s+)*"
+        rf"(?:struct|class|enum|actor|protocol|typealias|func|def|function|let|var|const)\s+`?{re.escape(args.pattern)}`?\b",
+        re.IGNORECASE if args.ignore_case else 0,
+    ) if identifier and args.mode != "docs" else None
     excerpts = []
     for raw in result.stdout.splitlines():
         event = json.loads(raw)
@@ -143,6 +150,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         name = data["path"]["text"]
         if event["type"] == "match":
             counts[name] += 1
+            if declaration and declaration.search(data["lines"].get("text", "")):
+                declarations.setdefault(name, data["line_number"])
         if args.excerpts:
             line = data["lines"].get("text")
             if line is None:
@@ -152,7 +161,9 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     names.sort(key=order)
     excerpts.sort(key=lambda row: (order(row[0]), row[1]))
     rows = ([f"{name}:{number}: {line}" for name, number, line in excerpts] if args.excerpts
-            else [f"{name}: {counts[name]} matching lines" for name in names])
+            else [(f"{name}:{declarations[name]}: {counts[name]} matching lines (declaration hint)"
+                   if name in declarations else f"{name}: {counts[name]} matching lines")
+                  for name in names])
     shortened = 0
     for row in rows[:args.limit]:
         if args.excerpts and len(row) > 300:

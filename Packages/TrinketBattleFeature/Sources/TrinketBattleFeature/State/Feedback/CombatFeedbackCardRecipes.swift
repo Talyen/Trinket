@@ -28,15 +28,15 @@ enum CombatFeedbackCardRecipes {
     static let damageCardReaction = CombatantHitReactionRecipe(
         kind: .damage,
         scaleX: [
-            .init(value: 0.96, duration: 0.08),
+            .init(value: 0.945, duration: 0.08),
             .init(value: 1.0, duration: 0.16),
         ],
         scaleY: [
-            .init(value: 1.025, duration: 0.08),
+            .init(value: 1.035, duration: 0.08),
             .init(value: 1.0, duration: 0.16),
         ],
         offsetX: [
-            .init(value: -4, duration: 0.08),
+            .init(value: -6, duration: 0.08),
             .init(value: 0, duration: 0.16),
         ],
         offsetY: [
@@ -49,15 +49,15 @@ enum CombatFeedbackCardRecipes {
     static let criticalCardReaction = CombatantHitReactionRecipe(
         kind: .critical,
         scaleX: [
-            .init(value: 0.93, duration: 0.08),
+            .init(value: 0.91, duration: 0.08),
             .init(value: 1.0, duration: 0.18),
         ],
         scaleY: [
-            .init(value: 1.04, duration: 0.08),
+            .init(value: 1.055, duration: 0.08),
             .init(value: 1.0, duration: 0.18),
         ],
         offsetX: [
-            .init(value: -7, duration: 0.08),
+            .init(value: -9, duration: 0.08),
             .init(value: 0, duration: 0.18),
         ],
         offsetY: [

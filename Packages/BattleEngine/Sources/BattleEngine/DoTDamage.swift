@@ -10,15 +10,17 @@ package enum DoTDamage {
         sourceActorID: String?,
         guaranteedCritical: Bool = false,
         provenance: DamageProvenance? = nil,
+        operation: DamageOperation = .periodic,
         in context: inout BattleState,
     ) -> CombatOutcome {
         guard basePotency > 0 else { return .empty }
 
-        var request = DamageRequest.doTTick(
+        var request = DamageRequest(
             amount: basePotency,
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
+            options: operation,
         )
         request.options.guaranteedCritical = guaranteedCritical
         request.provenance = provenance

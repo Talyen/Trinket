@@ -5,6 +5,43 @@ import TrinketCore
 @testable import BattleEngine
 
 struct RestorationIntegrationTests {
+    @Test(arguments: [0, 3, 10])
+    func `healing reports overflow without inflating restoration`(missingHealth: Int) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+        )
+        battle.roster.hero.currentHealth = battle.hero.maxHealth - missingHealth
+        var request = HealRequest(
+            amount: 10, target: battle.hero,
+            logAs: .instantHeal(actorName: battle.hero.name, abilityName: "Heal", keyword: .health),
+        )
+        request.amountBasis = .resolved
+
+        let result = HealingEngine.resolveHealing(request, in: &battle)
+
+        #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
+        #expect(result.directRestoration == missingHealth)
+        #expect(result.events.first { $0.effectKind == .instantHeal }?.amount == missingHealth)
+        let overflow = result.events.filter { $0.effectKind == .overheal }
+        #expect(overflow.map(\.amount) == (missingHealth < 10 ? [10 - missingHealth] : []))
+        #expect(overflow.allSatisfy { BattleLogReducer.line(for: $0) == nil })
+    }
+
+    @Test func `full health leech emits overflow without triggering leech success`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+        )
+        battle.appliesFightPacing = false
+        let result = HealingEngine.leechFromDamage(
+            20, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle,
+        )
+        #expect(result.healthDelta == 0)
+        #expect(!result.flags.contains(.leeched))
+        #expect(result.events.contains { $0.effectKind == .overheal && $0.amount > 0 })
+    }
+
     @Test func `lingering blessing keeps pixies healing bonuses and protective bloom`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 50, companionMaxHealth: 50,

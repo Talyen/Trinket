@@ -5,6 +5,7 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | Document | Purpose |
 |----------|---------|
 | [Architecture.md](Architecture.md) | Module layout, DAG, hub containment |
+| [HeadlessPlaythroughs.md](HeadlessPlaythroughs.md) | Manual progression careers, replay evidence, and host limits |
 | [Testing.md](Testing.md) | Unit / smoke / UI conventions and keep/drop rubric |
 | [Verification.md](Verification.md) | Task routing, gate composition, CI, style, and handoff |
 | [SimulatorOperations.md](SimulatorOperations.md) | Managed simulator isolation and local Xcode operations |

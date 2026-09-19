@@ -224,6 +224,9 @@ run_one_package() {
   result_bundle="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
   log_file="$XCODE_RUNNER_LOG_PATH"
   package_report_prefix="$XCODE_RUNNER_REPORT_PREFIX"
+  if [[ -n "${TRINKET_PACKAGE_OUTPUT_ROOT:-}" ]]; then
+    printf '%s\n' "$package_report_prefix" >"$TRINKET_PACKAGE_OUTPUT_ROOT/$package.report"
+  fi
   package_dd="$(package_derived_data_path "$package")"
   mkdir -p "$package_dd"
 
@@ -405,6 +408,7 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$jobs" -I{} bash -c '
 
   export DERIVED_DATA_PATH="$derived_data_path"
   export RESULTS_DIR="$results_dir"
+  export TRINKET_PACKAGE_OUTPUT_ROOT="$output_root"
   # Children already share a prepared generate stamp / SKIP_GENERATE from parents.
   export SKIP_GENERATE=1
 
@@ -441,31 +445,9 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$jobs" -I{} bash -c '
   exit "$status"
 ' _ {} "$DESTINATION" "$ACTION" "$QUIET" "$VERBOSE" "$REPORT_PREFIX" "$INCLUDE_BALANCE_SWEEP_TESTS" "$package_output_root" "$DERIVED_DATA_PATH" "$RESULTS_DIR" "$ITERATIONS" "$RUN_UNTIL_FAILURE" || failed=1
 
-# Emit deferred output in declaration order after all workers finish.
-for package in "${PACKAGES[@]}"; do
-  status_file="$package_output_root/$package.status"
-  stdout_file="$package_output_root/$package.stdout"
-  package_status=1
-  if [[ -f "$status_file" ]]; then
-    package_status="$(cat "$status_file")"
-  fi
-  if [[ -s "$stdout_file" ]]; then
-    cat "$stdout_file"
-  elif [[ "$package_status" -eq 0 ]]; then
-    echo "Package $package completed without deferred output."
-  else
-    echo "Package $package failed without deferred output." >&2
-  fi
-  if [[ "$package_status" != "0" ]]; then
-    failed=1
-    # Deferred reporter output only writes the .md; surface it now in order.
-    report="$(find "$RESULTS_DIR" -maxdepth 1 -type f -name "${package}-*-diagnostics.md" -print 2>/dev/null | sort | tail -1)"
-    if [[ -n "$report" && -s "$report" ]]; then
-      echo ""
-      echo "=== $package failure report ==="
-      cat "$report"
-    fi
-  fi
-done
+# One bounded report for the invocation; verbose mode retains complete worker output.
+summary_args=("$package_output_root" "${PACKAGES[@]}")
+if [[ "$VERBOSE" == "true" ]]; then summary_args=(--verbose "${summary_args[@]}"); fi
+python3 Scripts/package-diagnostics.py "${summary_args[@]}" || failed=1
 
 exit "$failed"

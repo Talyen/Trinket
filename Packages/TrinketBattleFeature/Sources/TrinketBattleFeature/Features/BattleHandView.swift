@@ -19,6 +19,8 @@ private struct HeldCardInteraction: Equatable {
 }
 
 struct BattleHandView: View {
+    static let coordinateSpaceName = "battleHand"
+
     let cards: [BattleCard]
     let isDetailPresented: Bool
     let isPlayable: (BattleCard) -> Bool
@@ -127,6 +129,7 @@ struct BattleHandView: View {
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
         }
 
+        .coordinateSpace(name: Self.coordinateSpaceName)
         .transition(.identity)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Battle.hand)

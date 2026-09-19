@@ -27,16 +27,22 @@ public struct ContractOffer: Codable, Equatable, Hashable, Identifiable, Sendabl
 }
 
 public enum ContractGenerator {
+    public static func randomOffer(_ difficulty: ContractDifficulty, _ excludingEnemyIDs: Set<String>) -> ContractOffer {
+        var rng = SystemRandomNumberGenerator()
+        return makeOffer(difficulty: difficulty, excludingEnemyIDs: excludingEnemyIDs, using: &rng)
+    }
+
     public static func makeOffer(
         difficulty: ContractDifficulty,
         excludingEnemyIDs: Set<String> = [],
         using rng: inout some RandomNumberGenerator,
+        id: String = UUID().uuidString,
     ) -> ContractOffer {
         let pool = GameContent.enemies.filter { $0.isBoss == difficulty.isBoss }
         let alternatives = pool.filter { !excludingEnemyIDs.contains($0.id) }
         guard let enemy = (alternatives.isEmpty ? pool : alternatives).randomElement(using: &rng) else {
             preconditionFailure("Contracts require ordinary enemies and bosses in the catalog")
         }
-        return ContractOffer(difficulty: difficulty, enemyID: enemy.id)
+        return ContractOffer(id: id, difficulty: difficulty, enemyID: enemy.id)
     }
 }

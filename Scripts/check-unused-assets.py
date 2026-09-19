@@ -17,7 +17,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from content_codegen import read_manifest_table
+from internal.content.common import read_manifest_table
 from internal.cli import ROOT
 
 ART_MANIFEST = ROOT / "ArtManifest" / "curated-assets.tsv"

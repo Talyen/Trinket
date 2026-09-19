@@ -94,6 +94,7 @@ enum CombatFeedbackEffectPresentation {
 
     private static let table: [ActionEvent.EffectOutcome: Descriptor] = [
         .instantHeal: Descriptor(.heal, isAdditive: true, labelRule: .amount),
+        .overheal: Descriptor(.heal, isAdditive: true, labelRule: .amount),
         .leechHeal: Descriptor(.heal, isAdditive: true, labelRule: .amount),
         .resourceGain: Descriptor(
             .resource,

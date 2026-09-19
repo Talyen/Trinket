@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -34,6 +35,7 @@ public enum MysteryEncounterResolution {
         request: MysteryEncounterRequest,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
+        at date: Date = Date(),
     ) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure> {
         guard request.encounter.isPlayable(in: save), request.stage.id == request.encounter.stageID,
               let choice = choiceID
@@ -47,7 +49,7 @@ public enum MysteryEncounterResolution {
             return .success(.dismiss)
         }
         if choice.itemPool != nil {
-            return resolveOffer(choice: choice, request: request, save: &save, using: &randomNumberGenerator)
+            return resolveOffer(choice: choice, request: request, save: &save, using: &randomNumberGenerator, at: date)
         }
         guard let rewardLevel = request.encounter.rewardLevel(in: save) else { return .failure(.unavailable) }
         var candidate = save
@@ -60,7 +62,7 @@ public enum MysteryEncounterResolution {
             rewardLevel: rewardLevel,
             save: &candidate, using: &randomNumberGenerator,
             goldFoundPercent: bonuses.goldFoundPercent, experienceEarnedPercent: bonuses.experienceEarnedPercent,
-            materialsFoundPercent: bonuses.materialsFoundPercent,
+            materialsFoundPercent: bonuses.materialsFoundPercent, at: date,
         )
         let requiredItems = choice.effects.count(where: {
             if case .gainItem = $0 {
@@ -110,12 +112,13 @@ public enum MysteryEncounterResolution {
         request: MysteryEncounterRequest,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
+        at date: Date = Date(),
     ) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure> {
         do {
             var candidate = save
             let prepared = try MysteryOfferPersistence.prepare(
                 event: request.event, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID,
-                save: &candidate, using: &randomNumberGenerator,
+                save: &candidate, using: &randomNumberGenerator, at: date,
             )
             if prepared != request.displayedOffers {
                 save = candidate
@@ -123,7 +126,7 @@ public enum MysteryEncounterResolution {
             }
             guard let offer = prepared.first(where: { $0.choiceID == choice.id }) else { return .failure(.unavailable) }
             let result = MysteryOfferPersistence.claim(
-                offer, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID, save: &candidate,
+                offer, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID, save: &candidate, at: date,
             )
             guard result.grantedItems.count == 1 else { return .failure(.unavailable) }
             save = candidate

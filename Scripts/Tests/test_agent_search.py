@@ -162,3 +162,14 @@ class AgentSearchTests(unittest.TestCase):
             self.assertEqual(self.search("[", "--files")[0], 2)
             with self.assertRaises(SystemExit):
                 self.search("Owner", "--files", "--excerpts")
+
+    def test_identifier_locations_distinguish_declarations_from_references(self) -> None:
+        self.write("Owner.swift", "// struct Needle {}\nlet reference: Needle\npublic struct Needle {}\n")
+        self.write("Caller.swift", "let value: Needle\n")
+        _, output = self.search("Needle")
+        self.assertIn("Owner.swift:3: 3 matching lines (declaration hint)", output)
+        self.assertNotIn("Caller.swift:1:", output)
+        _, output = self.search("needle", "-i")
+        self.assertIn("Owner.swift:3: 3 matching lines (declaration hint)", output)
+        _, output = self.search("Needle.*")
+        self.assertNotIn("declaration hint", output)

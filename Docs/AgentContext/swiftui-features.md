@@ -2,6 +2,10 @@
 
 Use for tabs, screens, navigation, shared views, design-system polish, and accessibility identifiers.
 
+The app root sets a soft top scroll-edge effect for all screens. Preserve this
+blurred transition instead of inheriting the OS automatic appearance; detail
+headers may still hide the effect until their title is pinned.
+
 Play, Collection, Homestead, and Options screens live in `Trinket/Features/`.
 Shared game-specific views, presentation models, accessibility IDs, and artwork/frame
 support live in `Packages/TrinketFeatureSupport`. App and Play orchestration lives in

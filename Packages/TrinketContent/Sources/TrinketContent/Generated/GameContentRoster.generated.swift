@@ -178,7 +178,7 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 16,
             abilityChoices: AbilityChoices(
-                basics: [.apple, .sniffOut, .block, .shieldBash],
+                basics: [.shieldBash, .sniffOut, .block, .apple],
                 skills: [.stoneskinPotion, .tithe, .steal, .heal],
                 ultimates: [.luckPotion, .goldenPlate, .panaceaPotion, .blessedAegis]
             )
@@ -190,9 +190,9 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.apple, .stargaze, .manaBerries, .block],
+                basics: [.stargaze, .apple, .manaBerries, .block],
                 skills: [.heal, .cleanse, .smite, .manaPotion],
-                ultimates: [.panaceaPotion, .sunburst, .astralArrow, .luckPotion]
+                ultimates: [.sunburst, .panaceaPotion, .astralArrow, .luckPotion]
             )
         ))
         list.append(Combatant(
@@ -213,7 +213,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 11,
             abilityChoices: AbilityChoices(
-                basics: [.manaBerries, .pixieDust, .stargaze, .rayOfFrost],
+                basics: [.stargaze, .pixieDust, .manaBerries, .rayOfFrost],
                 skills: [.manaPotion, .manaShield, .frostbolt, .coldSnap],
                 ultimates: [.meteor, .blizzard, .combustion, .luckPotion]
             )
@@ -227,7 +227,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.pixieDust, .manaBerries, .apple, .stargaze],
                 skills: [.cleanse, .heal, .tithe, .manaPotion],
-                ultimates: [.panaceaPotion, .sunburst, .meteor, .luckPotion]
+                ultimates: [.sunburst, .panaceaPotion, .meteor, .luckPotion]
             )
         ))
         list.append(Combatant(
@@ -236,7 +236,7 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 16,
             abilityChoices: AbilityChoices(
-                basics: [.block, .shieldBash, .bash, .slash],
+                basics: [.shieldBash, .block, .bash, .slash],
                 skills: [.spikedShield, .stoneskinPotion, .briarShield, .sunder],
                 ultimates: [.thornMail, .blessedAegis, .earthquake, .moltenBulwark]
             )
@@ -247,7 +247,7 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.sniffOut, .fangs, .bash, .rendingSlash],
+                basics: [.bash, .fangs, .sniffOut, .rendingSlash],
                 skills: [.steal, .pounce, .predatorsFocus, .serratedEdge],
                 ultimates: [.shadowstep, .luckPotion, .packTactics, .bloodthorn]
             )

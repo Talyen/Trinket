@@ -77,18 +77,24 @@ package enum DoTApplicator {
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        var collected = immediateDamage(
-            keyword: keyword, potency: potency, target: effectTarget,
-            sourceActorID: sourceActorID, application: application,
-            provenance: provenance, in: &context,
-        )
+        var collected: [ActionEvent] = []
+        var appliedPotency = potency
+        if application.dealsImmediateDamage {
+            let outcome = DoTDamage.resolveDamage(
+                basePotency: potency, keyword: keyword, target: effectTarget,
+                sourceActorID: sourceActorID, provenance: provenance, in: &context,
+            )
+            collected = outcome.events
+            appliedPotency = outcome.healthLost
+        }
+        guard appliedPotency > 0, context.roster.health(for: effectTarget) > 0 else { return collected }
 
         var currentEffects = context.roster.activeEffects(for: effectTarget)
-        let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: potency)
+        let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: appliedPotency)
         guard !context.interceptDebuff(appliedEffect, on: effectTarget) else { return collected }
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = Effect.decayingDoT(keyword: keyword, potency: existingPotency + potency)
+            currentEffects[index].effect = Effect.decayingDoT(keyword: keyword, potency: existingPotency + appliedPotency)
             currentEffects[index].sourceActorID = sourceActorID
         } else {
             currentEffects.append(

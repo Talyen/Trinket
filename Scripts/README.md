@@ -41,5 +41,6 @@ with `handoff.sh --isolate --dry-run --paths <files...>` before an unfamiliar ro
 | Verification | [Package tests, UI checks, handoff, and gates](Reference.md#verification) |
 | Assets | [Artwork and media preparation](Reference.md#assets) |
 | Release | [Release and deploy verification](Reference.md#release) |
+| Automated playthroughs | [Manual careers, replay, and comparison](Reference.md#headless-playthroughs) |
 | Diagnostics | [Failures, timings, performance, and cleanup](Reference.md#diagnostics) |
 | Tooling maintenance | [Internal helpers](Reference.md#internal-helpers) and [toolchain requirements](Reference.md#toolchain-ladder) |

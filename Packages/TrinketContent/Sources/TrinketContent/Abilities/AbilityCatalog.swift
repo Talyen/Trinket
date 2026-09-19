@@ -372,7 +372,7 @@ public enum AbilityCatalog {
 
     public static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate,
-        description: "Deal 6 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once.",
+        description: "Deal 6 Burn damage. Detonate all enemy Burn at once.",
         damageComponents: [
             DamageComponent(6, keyword: .burn),
         ],

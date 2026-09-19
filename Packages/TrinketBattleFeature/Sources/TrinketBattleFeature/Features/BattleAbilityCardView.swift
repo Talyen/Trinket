@@ -52,10 +52,6 @@ struct BattleAbilityCardView: View {
         }
     }
 
-    private var isScaleCommitted: Bool {
-        didExceedTapSlop
-    }
-
     var body: some View {
         BattleAbilityCardFace(
             artworkName: card.ability.artReference?.imageName,
@@ -71,27 +67,29 @@ struct BattleAbilityCardView: View {
             cornerRadius: TrinketDesign.Corners.card,
             lineWidth: BattleMotion.cardArmedRingLineWidth,
         )
-        .scaleEffect(x: heldScale.width, y: heldScale.height)
-        .animation(BattleMotion.cardPress, value: isGestureActive)
+        .animation(isHeld ? BattleMotion.cardLift : BattleMotion.cardReturn) { content in
+            content
+                .scaleEffect(x: heldScale.width, y: heldScale.height)
+                .shadow(
+                    color: isPlayArmed ? armedGlowColor.opacity(0.40) : .clear,
+                    radius: 8,
+                )
+                .shadow(
+                    color: isHeld ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
+                    radius: BattleMotion.cardHeldShadowRadius,
+                    y: BattleMotion.cardHeldShadowY,
+                )
+        }
         .rotationEffect(.degrees(activeRotation), anchor: .bottom)
         .rotation3DEffect(
-            .degrees(isScaleCommitted ? verticalTilt : 0),
+            .degrees(verticalTilt),
             axis: (x: 1, y: 0, z: 0),
             anchor: .bottom,
             perspective: BattleMotion.cardPerspective,
         )
         .offset(activeOffset)
-        .shadow(
-            color: isPlayArmed ? armedGlowColor.opacity(0.40) : .clear,
-            radius: 8,
-        )
-        .shadow(
-            color: isScaleCommitted ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
-            radius: BattleMotion.cardHeldShadowRadius,
-            y: BattleMotion.cardHeldShadowY,
-        )
         .gesture(
-            DragGesture(minimumDistance: 0)
+            DragGesture(minimumDistance: 0, coordinateSpace: .named(BattleHandView.coordinateSpaceName))
                 .updating($isGestureActive) { _, isActive, _ in
                     isActive = true
                 }
@@ -174,10 +172,7 @@ struct BattleAbilityCardView: View {
     }
 
     private var heldScale: CGSize {
-        guard isScaleCommitted else {
-            let scale = isGestureActive ? BattleMotion.cardPressedScale : 1
-            return CGSize(width: scale, height: scale)
-        }
+        guard isHeld else { return CGSize(width: 1, height: 1) }
         var base = CGFloat(BattleMotion.cardHeldScale)
         if isPlayArmed {
             base += BattleMotion.cardArmedScaleBoost
@@ -198,9 +193,7 @@ struct BattleAbilityCardView: View {
                translation: value.translation,
                minimumDistance: BattleCardGesturePolicy.dragMinimumDistance,
            ) {
-            withAnimation(BattleMotion.cardLift) {
-                didExceedTapSlop = true
-            }
+            didExceedTapSlop = true
             cancelInspection()
             interactionResolution = .dragging
             announceWindUpIfNeeded(mode: .preview)
@@ -222,9 +215,7 @@ struct BattleAbilityCardView: View {
             if armed {
                 playArmFeedbackToken &+= 1
             }
-            withAnimation(BattleMotion.cardLift) {
-                isPlayArmed = armed
-            }
+            isPlayArmed = armed
         }
 
         if !isPlayable {
@@ -306,8 +297,10 @@ struct BattleAbilityCardView: View {
 
     private func returnDrag() {
         cancelInspection()
-        resetVisualState()
-        interactionResolution = .idle
+        withAnimation(BattleMotion.cardReturn) {
+            resetVisualState()
+            interactionResolution = .idle
+        }
         onInteractionChanged(false)
     }
 
@@ -351,7 +344,7 @@ struct BattleAbilityCardView: View {
             size: CGSize(width: width, height: height),
             rotation: CGFloat(activeRotation * .pi / 180),
             verticalTilt: CGFloat(verticalTilt),
-            scale: isScaleCommitted ? heldScale.width : 1.0,
+            scale: heldScale.width,
             perspective: BattleMotion.cardPerspective,
             keywords: card.ability.presentationKeywords,
         )

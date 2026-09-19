@@ -384,3 +384,31 @@ struct BattleActionPresentationTests {
         return cards
     }
 }
+
+extension BattleActionPresentationTests {
+    @Test(arguments: [Ability.avatarOfJustice, Ability(
+        id: "recurring-recoil", name: "Recurring", tier: .skill,
+        targetedEffects: [TargetedEffect(.recurringDamage(.burn, 6, 2))],
+    )])
+    func `immediate periodic card damage reacts but later ticks stay quiet`(ability: Ability) throws {
+        let session = BattleSessionTestSupport.makePassiveSession()
+        defer { session.endBattle() }
+        var state = try #require(session.engineState)
+        state.hand = BattleHand()
+        let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &state)
+        session.engineState = state
+        session.installSimulationPresentation()
+        session.feedback.clear()
+        let health = state.roster.enemy.currentHealth
+
+        #expect(session.playCard(cardID: card.id) == .committed)
+
+        let afterPlay = try #require(session.engineState?.roster.enemy.currentHealth)
+        #expect(afterPlay < health)
+        #expect(session.feedback.hitReactionsByTargetID[state.enemy.id]?.kind == .damage)
+        session.feedback.clear()
+        session.endTurn()
+        #expect((session.engineState?.roster.enemy.currentHealth ?? afterPlay) < afterPlay)
+        #expect(session.feedback.hitReactionsByTargetID[state.enemy.id] == nil)
+    }
+}

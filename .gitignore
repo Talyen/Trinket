@@ -20,6 +20,7 @@ fastlane/test_output
 .DS_Store
 .tools/
 BalanceSweepReports/
+PlaythroughReports/
 
 # Agent worktrees (isolated checkouts for parallel agents)
 .worktrees/

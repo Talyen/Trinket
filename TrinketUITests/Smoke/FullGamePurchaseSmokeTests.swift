@@ -29,7 +29,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
             tapButton(AccessibilityID.FullGame.options, file: file, line: line)
         }
         attachSuccessScreenshot(named: "Full Game offer")
-        tapButton(AccessibilityID.FullGame.close)
+        dismissSheet()
         XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
         tapButton(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
@@ -162,7 +162,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
             assertExists(AccessibilityID.FullGame.offer)
             XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.CombatantDetail.header(name: name)].exists)
             attachSuccessScreenshot(named: "Full Game offer - \(name)")
-            tapButton(AccessibilityID.FullGame.close)
+            dismissSheet()
             XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
             assertExists(card)
             XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.CombatantDetail.header(name: name)].exists)
@@ -178,7 +178,7 @@ final class FullGamePurchaseSmokeTests: TrinketUITestCase {
         assertExistsAfterScroll(unlock, requireHittable: true)
         tapButton(unlock)
         assertExists(AccessibilityID.FullGame.offer)
-        tapButton(AccessibilityID.FullGame.close)
+        dismissSheet()
         XCTAssertTrue(app.descendants(matching: .any)[AccessibilityID.FullGame.offer].waitForNonExistence(timeout: 10))
         assertExists(unlock)
     }

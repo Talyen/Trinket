@@ -37,6 +37,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
                     keyword: keyword,
                     target: target,
                     sourceActorID: active.sourceActorID,
+                    operation: .resolvedPeriodic,
                     in: &context,
                 )
                 events.append(contentsOf: outcome.events)
@@ -403,6 +404,7 @@ struct DetonateDoTHandler: BattleEffectHandler {
                     target: target,
                     sourceActorID: source.id,
                     provenance: context.resolution.damageProvenance(for: source.id),
+                    operation: .resolvedPeriodic,
                     in: &context,
                 ).events)
             }
@@ -450,11 +452,12 @@ struct RecurringDamageHandler: BattleEffectHandler {
         )
         guard application.didApply else { return application }
         if UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context) {
-            context.uniques.card?.damageRequests.append(.doTTick(
+            context.uniques.card?.damageRequests.append(DamageRequest(
                 amount: potency,
                 target: target,
                 keyword: keyword,
                 sourceActorID: source.id,
+                options: .periodic,
             ))
         }
         let events = DoTDamage.resolveDamage(

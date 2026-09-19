@@ -21,8 +21,10 @@ final class AppTestContext {
     let suiteName: String
     let userDefaults: UserDefaults
     private(set) var lastBattle: BattleSession?
+    var progressionDate: @MainActor () -> Date = { Date() }
 
     private var cachedPlayerSave: PlayerSaveStore?
+    private let ownsDirectory: Bool
 
     private static let defaultTestArguments = [
         "-disable-cloud-sync",
@@ -30,16 +32,20 @@ final class AppTestContext {
         "-skip-starter-selection",
     ]
 
-    init() throws {
+    init(directoryURL: URL? = nil) throws {
         let prefix = "AppTestContext"
         suiteName = "\(prefix).\(UUID().uuidString)"
-        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: prefix)
+        ownsDirectory = directoryURL == nil
+        self.directoryURL = try directoryURL ?? SaveTestSupport.makeTempDirectory(prefix: prefix)
+        try FileManager.default.createDirectory(at: self.directoryURL, withIntermediateDirectories: true)
         userDefaults = try SaveTestSupport.makeUserDefaults(suiteName: suiteName)
     }
 
     deinit {
         SaveTestSupport.removeUserDefaults(suiteName: suiteName, defaults: userDefaults)
-        SaveTestSupport.removeTempDirectory(directoryURL)
+        if ownsDirectory {
+            SaveTestSupport.removeTempDirectory(directoryURL)
+        }
     }
 
     @MainActor
@@ -73,11 +79,17 @@ final class AppTestContext {
     }
 
     @MainActor
-    func makeAppState(environment: AppEnvironment) throws -> AppState {
+    func makeAppState(
+        environment: AppEnvironment,
+        playerSave: PlayerSaveStore? = nil,
+        battleRuntime: (any BattleRuntime)? = nil,
+        contentAccess: ContentAccessPolicy = .fullGame,
+    ) throws -> AppState {
         try buildAppState(
             environment: environment,
-            playerSave: sharedPlayerSave(resetState: environment.resetState),
-            battle: BattleSession(presentationEnvironment: .silent),
+            playerSave: playerSave ?? sharedPlayerSave(resetState: environment.resetState),
+            battle: battleRuntime ?? BattleSession(presentationEnvironment: .silent),
+            contentAccess: contentAccess,
         )
     }
 
@@ -110,6 +122,8 @@ final class AppTestContext {
         battle: any BattleRuntime,
         contentAccess: ContentAccessPolicy = .fullGame,
     ) throws -> AppState {
+        let progressionDate = progressionDate
+        playerSave.contentAccess = contentAccess
         let state = try AppState(
             environment: environment,
             playerSave: playerSave,
@@ -122,7 +136,7 @@ final class AppTestContext {
                         play?.battlePresentation(for: configuration)
                     },
                     settleRewards: { [weak play] configuration, gold in
-                        play?.settleBattleRewards(configuration, battleGold: gold)
+                        play?.settleBattleRewards(configuration, battleGold: gold, at: progressionDate())
                     },
                     completeVictory: { [weak play] configuration, gold, settlement, defersExit in
                         play?.completeActiveBattle(
@@ -132,7 +146,7 @@ final class AppTestContext {
                         ) ?? .unavailable
                     },
                     settleDefeat: { [weak play] configuration in
-                        play?.settleDefeatRewards(configuration)
+                        play?.settleDefeatRewards(configuration, at: progressionDate())
                     },
                     completeDefeat: { [weak play] configuration, settlement, action in
                         play?.completeDefeat(configuration, settlement: settlement, action: action) ?? .unavailable
@@ -143,7 +157,6 @@ final class AppTestContext {
                 )
             },
         )
-        state.playerSave.contentAccess = contentAccess
         lastBattle = battle as? BattleSession
         return state
     }

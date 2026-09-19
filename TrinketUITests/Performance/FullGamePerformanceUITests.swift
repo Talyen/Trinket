@@ -17,7 +17,7 @@ final class FullGamePerformanceUITests: PerformanceJourneyUITestCase {
             measured("locked-character-offer", iteration: iteration) {
                 tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
                 assertExists(AccessibilityID.FullGame.offer)
-                tapButton(AccessibilityID.FullGame.close)
+                dismissSheet()
                 assertDoesNotExist(AccessibilityID.FullGame.offer)
                 assertExists(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
             }
@@ -30,7 +30,7 @@ final class FullGamePerformanceUITests: PerformanceJourneyUITestCase {
             measured("campaign-unlock-offer", iteration: iteration) {
                 tapButton(unlock)
                 assertExists(AccessibilityID.FullGame.offer)
-                tapButton(AccessibilityID.FullGame.close)
+                dismissSheet()
                 assertDoesNotExist(AccessibilityID.FullGame.offer)
                 assertExists(unlock)
             }
@@ -51,7 +51,7 @@ final class FullGamePerformanceUITests: PerformanceJourneyUITestCase {
                 tapButton(AccessibilityID.FullGame.options)
                 assertExists(AccessibilityID.FullGame.offer)
                 assertExists(AccessibilityID.FullGame.purchase, timeout: 20)
-                tapButton(AccessibilityID.FullGame.close)
+                dismissSheet()
                 assertDoesNotExist(AccessibilityID.FullGame.offer)
             }
             tapButton(AccessibilityID.FullGame.options)

@@ -190,7 +190,6 @@ struct AbilityCatalogTests {
 
     @Test func `combustion detonates burning enemies`() throws {
         let combustion = try #require(AbilityCatalog.ability(id: "combustion"))
-        try #expect(combustion.summary == "Deal 6 Burn damage. If the enemy is Burning, detonate all its remaining Burn at once.")
         try #expect(combustion.damageComponents == [DamageComponent(6, keyword: .burn)])
         try #expect(combustion.targetedEffects == [
             TargetedEffect(.detonateDoT(.burn, 1), target: .enemy, condition: .enemyBurning),

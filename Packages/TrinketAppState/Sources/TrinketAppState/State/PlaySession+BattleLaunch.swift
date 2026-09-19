@@ -6,12 +6,27 @@ import TrinketFeatureContracts
 import TrinketPersistence
 
 @MainActor
-struct PlayBattleLaunch {
+final class PlayBattleLaunch {
     let playerSave: PlayerSaveStore
     let shellSession: ShellSession
     let battle: any BattleRuntime
     let runRegistry: PlayBattleRunRegistry
     let battlePerformanceScenario: BattlePerformanceScenario?
+    var nextCombatSeed: () -> UInt64 = { UInt64.random(in: .min ... .max) }
+
+    init(
+        playerSave: PlayerSaveStore,
+        shellSession: ShellSession,
+        battle: any BattleRuntime,
+        runRegistry: PlayBattleRunRegistry,
+        battlePerformanceScenario: BattlePerformanceScenario?,
+    ) {
+        self.playerSave = playerSave
+        self.shellSession = shellSession
+        self.battle = battle
+        self.runRegistry = runRegistry
+        self.battlePerformanceScenario = battlePerformanceScenario
+    }
 
     static let activationFailureMessage = StageMapMessage(
         title: "Battle Unavailable",
@@ -185,7 +200,7 @@ struct PlayBattleLaunch {
 
     private func freshRngSeed() -> UInt64 {
         battlePerformanceScenario == nil
-            ? UInt64.random(in: UInt64.min ... UInt64.max)
+            ? nextCombatSeed()
             : BattlePerformanceFixture.seed
     }
 

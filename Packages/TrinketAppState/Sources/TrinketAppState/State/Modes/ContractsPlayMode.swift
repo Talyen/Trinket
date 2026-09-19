@@ -13,6 +13,7 @@ public final class ContractsPlayMode {
     public let playerSave: PlayerSaveStore
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
+    var makeOffer: (ContractDifficulty, Set<String>) -> ContractOffer = ContractGenerator.randomOffer
     private let encounters: EncounterPlayMode
 
     init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleLaunch: PlayBattleLaunch, encounters: EncounterPlayMode) {
@@ -27,7 +28,7 @@ public final class ContractsPlayMode {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.persistBatch(logging: "Failed to open Contracts", { save in
-            save.contracts.ensureBoard()
+            save.contracts.ensureBoard(makeOffer: makeOffer)
         }) else {
             playerSave.retrySaveAction(key: SaveRetryKey.contractsEnter) { [weak self] in _ = self?.enter() }
             return nil
@@ -40,7 +41,7 @@ public final class ContractsPlayMode {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.persistBatch(logging: "Failed to refresh Contracts", { save in
-            save.contracts.refresh()
+            save.contracts.refresh(makeOffer: makeOffer)
         }) else {
             playerSave.retrySaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] in _ = self?.refresh() }
             return nil
@@ -94,8 +95,8 @@ public final class ContractsPlayMode {
             origin: .contract(offerID: offerID),
             logging: "Failed to complete contract",
             playerSave: playerSave,
-        ) { configuration, _, award, _, loot, save in
-            guard let loot, let level = configuration.enemyEncounterLevel else { return .unavailable }
+        ) { [weak self] configuration, _, award, _, loot, save in
+            guard let self, let loot, let level = configuration.enemyEncounterLevel else { return .unavailable }
             return ContractsCompletion.complete(
                 offerID: offerID,
                 hero: configuration.hero.combatant,
@@ -104,7 +105,7 @@ public final class ContractsPlayMode {
                 loot: loot,
                 battleGold: award.award.goldFlow,
                 award: award,
-                save: &save,
+                save: &save, makeOffer: makeOffer,
             )
         }
     }

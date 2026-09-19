@@ -17,6 +17,18 @@ the meaning of a request.
 Turn ticks and detonations share `Effect.potencyAfterTurn` for deterministic decay;
 random growth remains a turn-processing rule.
 
+Burn and Poison attached by damaging attacks or effect applications store the
+actual Health damage dealt by that damage instance, after offensive bonuses,
+critical damage, mitigation and Block. Fully blocked, dodged or otherwise
+zero-Health-damage applications attach no stacks. This rule is identical for
+party members and enemies. Subsequent Burn/Poison ticks, consumed-stack damage
+and detonations use resolved potency: do not repeat outgoing flat/percent bonuses,
+critical multipliers or fight pacing. Current recipient defenses still apply.
+Explicit non-damaging stack grants and reflection retain their specified potency;
+neither gains outgoing bonuses. Ticks never attach new stacks. Bleed and authored
+recurring damage retain their separate rules. Combustion still adds its Burn before
+detonating all remaining Burn, including the fresh application.
+
 Keep ordered
 damage checkpoints in `DamagePipeline`; commit mutations before their dependent
 reactions. Reserve next-hit resources before nested reactions and never write a

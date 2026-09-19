@@ -6,7 +6,7 @@ import TrinketCore
 
 struct DoTMechanicsTests {
     @Test(arguments: [Keyword.burn, .poison], [false, true])
-    func `flashover only doubles burn against frozen enemies`(keyword: Keyword, frozen: Bool) throws {
+    func `flashover doubles the burn hit but not stored ticks`(keyword: Keyword, frozen: Bool) throws {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(criticalChanceBonus: -1, burnDoubleVsFrozenChancePercent: 1),
@@ -34,7 +34,7 @@ struct DoTMechanicsTests {
 
         _ = handler.advanceTurn(active, on: enemy, in: &battle)
 
-        let expectedDamage = keyword == .burn ? (frozen ? 4 : 2) : 3
+        let expectedDamage = keyword == .burn ? 2 : 3
         #expect(healthBefore - battle.health(of: enemy) == expectedDamage)
     }
 
@@ -384,7 +384,7 @@ struct DoTMechanicsTests {
 }
 
 extension DoTMechanicsTests {
-    @Test func `burn doubling applies once to initial damage and each decayed tick`() throws {
+    @Test func `burn bonuses are stored once and double tick preserves resolved potency`() throws {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(
                 damageDealtBonus: [.burn: 2],
@@ -403,11 +403,11 @@ extension DoTMechanicsTests {
         #expect(statusAmounts(from: initial, keyword: .burn) == [20])
         let burn = battle.activeEffects(of: enemy).first { $0.keyword == .burn }
         let active = try #require(burn)
-        #expect(active.effect.potency == 8)
+        #expect(active.effect.potency == 20)
         let handler = try #require(EffectHandlers.all[.burn])
         let ticks = handler.advanceTurn(active, on: enemy, in: &battle)
-        #expect(statusAmounts(from: ticks, keyword: .burn) == [12, 12])
-        #expect(battle.activeEffects(of: enemy).first { $0.keyword == .burn }?.effect.potency == 4)
+        #expect(statusAmounts(from: ticks, keyword: .burn) == [10, 10])
+        #expect(battle.activeEffects(of: enemy).first { $0.keyword == .burn }?.effect.potency == 10)
     }
 
     @Test(arguments: [false, true])

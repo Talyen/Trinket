@@ -23,6 +23,7 @@ public struct ActionEvent: Identifiable, Equatable {
 
     public enum EffectOutcome: Equatable, Sendable, CaseIterable {
         case instantHeal
+        case overheal
         case resourceGain
         case cardsDrawn
         case leechHeal

@@ -161,19 +161,19 @@ extension UniqueCollectionTests {
     }
 
     @Test(arguments: [Keyword.burn, .bleed])
-    func `bloodember shares bonuses on hits and ticks without baking twice`(keyword: Keyword) throws {
+    func `bloodember stores burn bonuses once while bleed retains its tick rules`(keyword: Keyword) throws {
         var extra = CombatModifierProfile(damageDealtBonus: [.burn: 2, .bleed: 3], outgoingDamagePercent: 0.2)
         extra.triggers.damageVsBleedingBonus = 4
         var context = try battle(["bloodember_pendant"], extra: extra)
         context.appendEffect(.bleed(1), to: context.roster.enemy.combatant, sourceID: context.roster.hero.id, remainingTurns: 2)
         try play(attack(keyword), in: &context)
         #expect(context.roster.enemy.currentHealth == 1979)
-        let tick = DoTDamage.resolveDamage(
-            basePotency: 10, keyword: keyword, target: context.roster.enemy.combatant,
-            sourceActorID: context.roster.hero.id, in: &context,
-        )
-        #expect(tick.healthLost == 21)
-        #expect(context.roster.enemy.activeEffects.contains { $0.keyword == keyword && $0.effect.potency == 10 })
+        let potency = keyword == .burn ? 21 : 10
+        let active = try #require(context.roster.enemy.activeEffects.first { $0.keyword == keyword && $0.effect.potency == potency })
+        let handler = try #require(EffectHandlers.all[active.effect.kind])
+        let before = context.health(of: context.enemy)
+        _ = handler.advanceTurn(active, on: context.enemy, in: &context)
+        #expect(before - context.health(of: context.enemy) == (keyword == .burn ? 10 : 21))
     }
 
     @Test func `bloodember keeps burn and bleed leech with bloodfire`() throws {
@@ -217,7 +217,7 @@ extension UniqueCollectionTests {
         try play(attack(.holy), in: &context)
         #expect(before - context.roster.enemy.currentHealth == 25)
         #expect(context.uniques.owners[.hero]?.viperReady == false)
-        #expect(context.roster.enemy.activeEffects.contains { $0.effect == .poison(5) })
+        #expect(context.roster.enemy.activeEffects.contains { $0.effect == .poison(7) })
         #expect(context.roster.enemy.activeEffects.contains { $0.effect == .bleed(5) })
         try play(attack(), in: &context)
         #expect(before - context.roster.enemy.currentHealth == 35)
@@ -250,8 +250,12 @@ extension UniqueCollectionTests {
         #expect(events.count(where: { $0.abilityName == "Everkeen" }) == 0)
     }
 
-    @Test func `serpent checks poison before each packet and retains other mitigation`() throws {
+    @Test(arguments: [false, true])
+    func `serpent requires existing poison when the first packet is fully blocked`(alreadyPoisoned: Bool) throws {
         var context = try battle(["serpents_eye"], enemyExtra: CombatModifierProfile(damageTakenFlat: [.physical: 2]))
+        if alreadyPoisoned {
+            context.appendEffect(.poison(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
+        }
         block(20, owner: .enemy, in: &context)
         let mixed = Ability(
             id: "mixed",
@@ -261,7 +265,8 @@ extension UniqueCollectionTests {
             criticalChanceBonus: -1,
         )
         try play(mixed, in: &context)
-        #expect(blockAmount(.enemy, in: context) == 16)
-        #expect(context.roster.enemy.currentHealth == 1992)
+        #expect(blockAmount(.enemy, in: context) == (alreadyPoisoned ? 20 : 8))
+        #expect(context.roster.enemy.currentHealth == (alreadyPoisoned ? 1988 : 2000))
+        #expect(context.roster.hasAffliction(.poison, on: context.enemy) == alreadyPoisoned)
     }
 }

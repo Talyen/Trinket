@@ -79,6 +79,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     static let redirected = Self(kind: .reaction(.talent), scaling: .resolved, accuracy: .unavoidable)
 
     public static let periodic = Self(kind: .periodic, scaling: .statsAndItems, accuracy: .unavoidable)
+    static let resolvedPeriodic = Self(kind: .periodic, scaling: .resolved, accuracy: .unavoidable)
     public static let healthCost = Self(kind: .healthCost, scaling: .flat, accuracy: .unavoidable)
 
     var applyStatBonus: Bool {

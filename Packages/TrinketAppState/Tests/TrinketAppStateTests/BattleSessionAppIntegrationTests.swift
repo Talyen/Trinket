@@ -1,7 +1,9 @@
+import BattleEngine
 import Foundation
 import Observation
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketFeatureSupport
 import TrinketPersistence
 @testable import TrinketAppState
@@ -357,6 +359,8 @@ struct BattleSessionAppIntegrationTests {
         )
         battle.partyCelebrateDelayOverride = .zero
         let state = try context.makePlaySession(playerSave: playerSave, battleRuntime: battle)
+        // Persistence retries need a repeatable victory, not a sampled matchup.
+        state.battleLaunch.nextCombatSeed = { CombatantFixtures.deterministicBattleSeed }
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
@@ -383,7 +387,7 @@ struct BattleSessionAppIntegrationTests {
         var steps = 0
         while battle.outcome == nil, steps < 200 {
             steps += 1
-            if let card = battle.hand.first(where: { battle.isCardPlayable($0) }) {
+            if let engine = battle.engineState, let card = PlayPolicy.greedy.preferredPlayableCard(in: engine) {
                 _ = battle.playCard(cardID: card.id)
                 continue
             }

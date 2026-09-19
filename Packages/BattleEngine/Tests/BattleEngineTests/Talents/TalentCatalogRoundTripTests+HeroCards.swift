@@ -268,7 +268,7 @@ extension TalentCatalogRoundTripTests {
         seedHeroTalentEffect(.poison(7), on: .hero, in: &battle, source: .enemy)
         let events = try playHeroTalentCard(.causticJab, in: &battle)
         #expect(events.filter { $0.kind == .abilityDamage }.map(\.amount) == [11])
-        #expect(talentPoints(.poison, on: .enemy, in: battle) == 8)
+        #expect(talentPoints(.poison, on: .enemy, in: battle) == 11)
         #expect(talentPoints(.poison, on: .hero, in: battle) == 0)
     }
 
@@ -294,7 +294,10 @@ extension TalentCatalogRoundTripTests {
     }
 
     @Test func `unstable culture rewards natural enemy poison expiry without accumulating multipliers`() throws {
-        var battle = heroTalentBattle("alchemist_poison_t3_2")
+        var profile = CombatantTalentCatalog.profile(for: ["alchemist_poison_t3_2"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
+        battle.appliesFightPacing = false
         for _ in 0 ..< 2 {
             seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
             _ = EffectTurnEngine.advanceAll(context: &battle)
@@ -329,7 +332,8 @@ extension TalentCatalogRoundTripTests {
         #expect(!repeated.contains { $0.kind == .abilityDamage && $0.keyword == .poison })
         let next = try playHeroTalentCard(.stab, in: &battle)
         #expect(next.count { $0.kind == .abilityDamage && $0.keyword == .poison } == 1)
-        #expect(talentPoints(.poison, on: .enemy, in: battle) == 2)
+        let poisonHit = try #require(next.first { $0.kind == .abilityDamage && $0.keyword == .poison })
+        #expect(talentPoints(.poison, on: .enemy, in: battle) == poisonHit.amount)
     }
 }
 

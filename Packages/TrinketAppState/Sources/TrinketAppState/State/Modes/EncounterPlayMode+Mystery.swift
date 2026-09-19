@@ -130,11 +130,10 @@ public extension EncounterPlayMode {
             [MysteryOffer],
             MysteryChoiceFailure,
         > in
-            var rng = SystemRandomNumberGenerator()
             do {
                 return try .success(MysteryOfferPersistence.prepare(
                     event: session.event, stage: session.stage,
-                    labyrinthNodeID: session.labyrinthNodeID, save: &save, using: &rng,
+                    labyrinthNodeID: session.labyrinthNodeID, save: &save, using: &mysteryRandom, at: currentDate(),
                 ))
             } catch {
                 return .failure(.unavailable)
@@ -187,12 +186,13 @@ public extension EncounterPlayMode {
             return false
         }
 
+        let date = currentDate()
         return persistMysteryResolution(mysterySession, logging: "Failed to apply mystery effects") { save, rng in
             MysteryEncounterResolution.resolve(
                 choiceID: choiceID,
                 request: mysterySession.resolutionRequest,
                 save: &save,
-                using: &rng,
+                using: &rng, at: date,
             )
         }
     }
@@ -219,12 +219,11 @@ public extension EncounterPlayMode {
     private func persistMysteryResolution(
         _ mysterySession: MysteryEncounterSession,
         logging: String,
-        mutate: @escaping (inout PlayerSave, inout SystemRandomNumberGenerator) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure>,
+        mutate: @escaping (inout PlayerSave, inout any RandomNumberGenerator) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure>,
     ) -> Bool {
         mysterySession.markChoiceStarted()
         switch playerSave.persistTransaction(logging: logging, { save in
-            var rng = SystemRandomNumberGenerator()
-            return mutate(&save, &rng)
+            mutate(&save, &mysteryRandom)
         }) {
         case let .committed(outcome):
             return applyMysteryOutcome(outcome, session: mysterySession)

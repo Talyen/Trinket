@@ -327,7 +327,8 @@ enum CombatResolver {
         state.provenance = request.provenance
         DamagePipeline.run(state: &state, in: &context)
         var outcome = CombatOutcome.fromDamage(state: state)
-        if !request.options.isPeriodic, !request.options.isHealthCost, let impact = outcome.damageImpact {
+        // Recording is scoped to a resolved action, including its immediate DoT pulses.
+        if !request.options.isHealthCost, let impact = outcome.damageImpact {
             context.cardPlayRecording?.recordDamage(BattleResolvedDamage(
                 targetID: request.target.id, keyword: request.keyword ?? .physical, impact: impact, isCritical: outcome.isCritical,
             ))

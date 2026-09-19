@@ -9,6 +9,26 @@ import TrinketFeatureSupport
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackPresenterTests {
+    @Test(arguments: [0, 3, 10])
+    func `healing feedback includes overflow in one health number`(restored: Int) throws {
+        let events = [
+            BattleSessionTestSupport.makeActionEvent(
+                id: 1, kind: .effect, effectKind: .instantHeal, amount: restored, keyword: .health, actionID: 1,
+            ),
+            BattleSessionTestSupport.makeActionEvent(
+                id: 2, kind: .effect, effectKind: .overheal, amount: 10 - restored, keyword: .health,
+                isCritical: true, actionID: 1,
+            ),
+        ]
+        let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
+        let item = try #require(items.first)
+        #expect(items.count == 1)
+        #expect(item.label == .amount(10))
+        #expect(item.keyword == .health)
+        #expect(item.feedbackClass == .heal)
+        #expect(item.isCritical)
+    }
+
     @Test func `filters merges and sums damage chips`() {
         let filtered = CombatFeedbackPresenter.makeItems(
             from: [

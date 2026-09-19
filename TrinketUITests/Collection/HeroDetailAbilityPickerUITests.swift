@@ -33,12 +33,15 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
         scrollUntilVisible(button(weaponSlot), swipingUp: true, maxAttempts: 6, requireHittable: true)
         tapButton(weaponSlot)
         assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 10)
+        app.scrollViews[AccessibilityID.LoadoutPicker.itemGrid("Weapon")].swipeUp()
         tapButton(AccessibilityID.LoadoutPicker.itemFilter)
         tapButton(AccessibilityID.LoadoutPicker.itemRarityFilter)
         // The rarity menu exposes options by label only; "Astral" is the product contract here.
         tapButton("Astral")
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.trinketWaitForExistence(timeout: 5))
+        replaceText(in: search, with: "no-such-equipment")
+        assertExists(AccessibilityID.LoadoutPicker.itemsNoResults)
         replaceText(in: search, with: "long")
         let candidateID = AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral")
         tapButton(candidateID)

@@ -53,9 +53,9 @@ extension PlayBattleCompletion {
 }
 
 public extension PlaySession {
-    func settleDefeatRewards(_ configuration: BattleRunConfiguration) -> BattleRewardSettlement? {
+    func settleDefeatRewards(_ configuration: BattleRunConfiguration, at date: Date = Date()) -> BattleRewardSettlement? {
         guard let presentation = battlePresentation(for: configuration) else { return nil }
-        return battleCompletion.settleDefeat(configuration, presentation: presentation, at: Date())
+        return battleCompletion.settleDefeat(configuration, presentation: presentation, at: date)
     }
 
     func completeDefeat(

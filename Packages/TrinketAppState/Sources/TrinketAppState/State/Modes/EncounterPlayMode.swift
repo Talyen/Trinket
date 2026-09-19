@@ -13,6 +13,8 @@ public final class EncounterPlayMode {
     public let battle: any BattleRuntime
     let options: OptionsStore
     let sfxPlayer: SFXPlayer
+    var mysteryRandom: any RandomNumberGenerator = SystemRandomNumberGenerator()
+    var currentDate: () -> Date = { Date() }
 
     public var activeMysteryEncounter: MysteryEncounterSession?
     public var activeShopEncounter: ShopEncounterSession?

@@ -62,8 +62,8 @@ The optional `agent-search.py` helper defaults to authored production text from 
 untracked inventory. Generated paths use the existing generated-output registry;
 tests (including test-support targets), Markdown/`.mdc` and generated output have explicit
 `--mode` surfaces. Results default to filenames with matching-line counts.
-For plain identifiers, exact filename stems come first outside docs; this is a
-lookup hint, not proof of symbol ownership. `--files` matches relative filenames
+For plain identifiers, exact filename stems come first outside docs; declaration-like
+matching lines include jump locations. Both are lookup hints, not proof of symbol ownership. `--files` matches relative filenames
 without reading their contents, using the same filters and bounds.
 Documentation results put current guides and references first, procedures/knowledge
 next, and task records last, alphabetically within each group. This ordering
@@ -118,3 +118,10 @@ Use `--status` on the initial route to see global dirty counts and exact status
 for task files, including either endpoint of a rename. Counts are informational;
 inspect overlapping diffs and resolve unclear ownership before editing. Reroutes
 can omit status when the relevant workspace state is unchanged.
+
+For review, `python3 Scripts/agent-diff.py --paths <files...>` shows authored
+unstaged patches and generated-file statistics using the generated-path registry.
+Use `--staged` for the index, `--stat` for statistics only, or `--generated` to
+expand generated patches. Untracked files are listed for explicit reads. Whole-tree
+review requires `--working-tree`. This view does not replace overlapping diff
+inspection, generated consistency review, or idempotence verification.

@@ -13,16 +13,7 @@ extension UniqueCombatEngine {
         for var request in play.damageRequests where !context.isBattleOver && context.roster.health(for: actor) > 0 {
             request.options = request.options.repeated()
             request.provenance = nil
-            events.append(contentsOf: repeatHit(request, actor: actor, name: "The Final Spark", in: &context))
-            if request.options.isAttackHit, let keyword = request.keyword {
-                events.append(contentsOf: BattleTurnEngine.applyDoTStackFromDamage(
-                    keyword: keyword,
-                    potency: request.amount,
-                    to: request.target,
-                    sourceActorID: actor.id,
-                    context: &context,
-                ))
-            }
+            events.append(contentsOf: repeatHit(request, actor: actor, name: "The Final Spark", attachDoT: true, in: &context))
         }
         return events
     }
@@ -162,12 +153,13 @@ extension UniqueCombatEngine {
         _ request: DamageRequest,
         actor: Combatant,
         name: String,
+        attachDoT: Bool = false,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard !context.isBattleOver, context.roster.health(for: actor) > 0,
               context.roster.health(for: request.target) > 0 else { return [] }
         let result = context.resolveDamage(request)
-        return result.events + [context.nextEvent(
+        var events = result.events + [context.nextEvent(
             kind: .abilityDamage,
             actorID: actor.id,
             actorName: actor.name,
@@ -177,6 +169,14 @@ extension UniqueCombatEngine {
             keyword: request.keyword ?? .physical,
             isCritical: result.isCritical,
         )]
+        if attachDoT, request.options.isAttackHit, case .landed = result.damageImpact, let keyword = request.keyword {
+            events.append(contentsOf: BattleTurnEngine.applyDoTStackFromDamage(
+                keyword: keyword,
+                potency: keyword == .burn || keyword == .poison ? result.healthLost : request.amount,
+                to: request.target, sourceActorID: actor.id, context: &context,
+            ))
+        }
+        return events
     }
 
     static func afterUniqueDodge(

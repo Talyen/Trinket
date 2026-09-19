@@ -176,10 +176,21 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
             XCTFail("Could not snapshot scrolled content: \(error)", file: file, line: line)
             return
         }
-        let moved = before.contains { anchor in
-            let matches = after.filter { $0.key == anchor.key }
-            return matches.isEmpty || matches.allSatisfy {
-                abs($0.frame.minX - anchor.frame.minX) > 2 || abs($0.frame.minY - anchor.frame.minY) > 2
+        var moved = scrollAnchorsMoved(from: before, to: after)
+        if !moved {
+            // A round trip may end at its starting offset. Verify a separate
+            // one-way drag before concluding that the fixture cannot scroll.
+            let start = surface.coordinate(withNormalizedOffset: horizontal ? CGVector(dx: 0.8, dy: 0.5) : CGVector(dx: 0.5, dy: 0.75))
+            let end = surface.coordinate(withNormalizedOffset: horizontal ? CGVector(dx: 0.2, dy: 0.5) : CGVector(dx: 0.5, dy: 0.25))
+            for reverse in [false, true] {
+                let origin = reverse ? end : start
+                let destination = reverse ? start : end
+                origin.press(forDuration: 0.1, thenDragTo: destination, withVelocity: .slow, thenHoldForDuration: 0.1)
+                let advanced = captureScrollProbes(surface, horizontal: horizontal)
+                if scrollAnchorsMoved(from: after, to: advanced) {
+                    moved = true
+                    break
+                }
             }
         }
         if !moved {
@@ -193,6 +204,15 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
             add(hierarchy)
         }
         XCTAssertTrue(moved, "Scroll fixture did not expose moving content", file: file, line: line)
+    }
+
+    private func scrollAnchorsMoved(from before: [ScrollAnchor], to after: [ScrollAnchor]) -> Bool {
+        before.contains { anchor in
+            let matches = after.filter { $0.key == anchor.key }
+            return matches.isEmpty || matches.allSatisfy {
+                abs($0.frame.minX - anchor.frame.minX) > 2 || abs($0.frame.minY - anchor.frame.minY) > 2
+            }
+        }
     }
 
     @MainActor

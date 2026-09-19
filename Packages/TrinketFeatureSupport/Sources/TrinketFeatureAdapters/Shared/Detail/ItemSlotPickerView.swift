@@ -15,6 +15,7 @@ struct ItemSlotPickerView: View {
     @State private var filter = ItemPickerFilter()
     @State private var displayItems: [InventoryItem]
     @State private var searchText = ""
+    @State private var scrollPosition = ScrollPosition(edge: .top)
     @State private var readyItem: InventoryItem?
     @State private var detailArtworkLease: PreparedArtworkLease?
     @State private var requestedItem: InventoryItem?
@@ -41,58 +42,55 @@ struct ItemSlotPickerView: View {
         let siblingIDs = equippedInSiblingSlotIDs
 
         ItemPickerSearchScope(readyItem: $readyItem, onReady: presentReadyItem) {
-            ScrollViewReader { proxy in
-                VStack(spacing: 0) {
-                    if filter.isActive {
-                        Text("\(displayItems.count) of \(model.eligible.count) items")
-                            .trinketTypography(.caption)
-                            .foregroundStyle(.secondary)
-                            .padding(.vertical, TrinketDesign.Spacing.small)
-                    }
-                    if displayItems.isEmpty {
-                        emptyState
-                    } else {
-                        OptionPickerGrid(
-                            items: displayItems,
-                            isSelected: { item in
-                                item.id == equipmentLoadout.itemID(for: slot)
-                            },
-                            onSelect: { requestedItem = $0 },
-                            accessibilityIdentifier: { item in
-                                AccessibilityID.LoadoutPicker.itemCandidate(item.id)
-                            },
-                            artworkNameProvider: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
-                            card: { item, isSelected in
-                                ItemCard(
-                                    item: item,
-                                    showsAffixCount: false,
-                                    isSelected: isSelected,
-                                    shine: isSelected ? .keywords(item.plasmaKeywords) : nil,
-                                    shineLineWidth: isSelected ? 3 : 1.5,
-                                )
-                                .overlay(alignment: .topTrailing) {
-                                    if siblingIDs.contains(item.id) {
-                                        Text("Equipped")
-                                            .trinketTypography(.caption)
-                                            .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-                                            .padding(.horizontal, TrinketDesign.Spacing.tight)
-                                            .padding(.vertical, 2)
-                                            .background(TrinketDesign.Colors.accent, in: Capsule())
-                                            .padding(TrinketDesign.Spacing.tight)
-                                    }
+            VStack(spacing: 0) {
+                if filter.isActive {
+                    Text("\(displayItems.count) of \(model.eligible.count) items")
+                        .trinketTypography(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, TrinketDesign.Spacing.small)
+                }
+                if displayItems.isEmpty {
+                    emptyState
+                } else {
+                    OptionPickerGrid(
+                        items: displayItems,
+                        isSelected: { item in
+                            item.id == equipmentLoadout.itemID(for: slot)
+                        },
+                        onSelect: { requestedItem = $0 },
+                        accessibilityIdentifier: { item in
+                            AccessibilityID.LoadoutPicker.itemCandidate(item.id)
+                        },
+                        artworkNameProvider: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
+                        card: { item, isSelected in
+                            ItemCard(
+                                item: item,
+                                showsAffixCount: false,
+                                isSelected: isSelected,
+                                shine: isSelected ? .keywords(item.plasmaKeywords) : nil,
+                                shineLineWidth: isSelected ? 3 : 1.5,
+                            )
+                            .overlay(alignment: .topTrailing) {
+                                if siblingIDs.contains(item.id) {
+                                    Text("Equipped")
+                                        .trinketTypography(.caption)
+                                        .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
+                                        .padding(.horizontal, TrinketDesign.Spacing.tight)
+                                        .padding(.vertical, 2)
+                                        .background(TrinketDesign.Colors.accent, in: Capsule())
+                                        .padding(TrinketDesign.Spacing.tight)
                                 }
-                            },
-                        )
-                        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
-                    }
+                            }
+                        },
+                    )
+                    .scrollPosition($scrollPosition)
+                    .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
                 }
-                .onChange(of: filter) { _, _ in
-                    let updated = model.matching(filter)
-                    displayItems = updated
-                    if let first = updated.first {
-                        proxy.scrollTo(first.id, anchor: .top)
-                    }
-                }
+            }
+            .onChange(of: filter) { _, _ in
+                displayItems = model.matching(filter)
+                // Newly filtered item IDs may not have lazy-layout geometry yet.
+                scrollPosition.scrollTo(edge: .top)
             }
         }
         .searchable(text: $searchText, prompt: "Search equipment")

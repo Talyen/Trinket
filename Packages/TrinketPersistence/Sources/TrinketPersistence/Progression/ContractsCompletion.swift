@@ -41,11 +41,12 @@ public enum ContractsCompletion {
         battleGold: BattleGoldFlow = .init(),
         award: BattleRewardSettlement? = nil,
         save: inout PlayerSave,
+        makeOffer: (ContractDifficulty, Set<String>) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> EncounterCompletion {
         // `replace` returns false for both unknown offers and already-consumed
         // IDs (consumed IDs are swapped for fresh IDs). Both map to
         // `.alreadyCompleted`: idempotent, grants nothing further.
-        guard save.contracts.replace(offerID: offerID) else { return .alreadyCompleted }
+        guard save.contracts.replace(offerID: offerID, makeOffer: makeOffer) else { return .alreadyCompleted }
         VictoryRewardApplier.grantVictoryRewards(
             hero: hero,
             companion: companion,
