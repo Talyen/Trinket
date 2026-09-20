@@ -6,7 +6,9 @@ for argument in "$@"; do
   case "$argument" in
     --help|-h|--dry-run)
       # Preview/help work before Ruby gems or credentials have been configured.
-      exec /usr/bin/ruby Scripts/internal/testflight.rb "$@"
+      exec env -u RUBYOPT -u RUBYLIB -u GEM_HOME -u GEM_PATH \
+        -u BUNDLE_GEMFILE -u BUNDLE_PATH -u BUNDLE_FROZEN -u BUNDLE_IGNORE_CONFIG \
+        /usr/bin/ruby Scripts/internal/testflight.rb "$@"
       ;;
     --doctor) doctor=true ;;
   esac
