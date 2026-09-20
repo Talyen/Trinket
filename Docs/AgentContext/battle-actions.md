@@ -32,8 +32,14 @@ records shared so nested actions do not copy their full payload onto the stack.
 `BattleActionContext` likewise shares immutable participants while preserving value
 equality; payment receipts and checkpoint eligibility retain actor IDs.
 
-`Ability.operations` is the common traversal for classification, empowerment, and
-execution; `possibleOperations` includes unresolved outcomes. `BattleActionContext`
+Ability definitions share immutable storage so nested automatic casts and combat
+snapshots do not copy the complete definition through each stack frame.
+`Ability.operations` is the authoritative ordered traversal for classification,
+empowerment, descriptions, and execution; `possibleOperations` includes unresolved
+outcomes. Deterministic conditional outcomes resolve once at action preparation,
+without RNG, and card assessment uses the same selection before quoting costs.
+Random outcomes remain separate. Conditional guaranteed criticals snapshot their
+eligibility at preparation. `BattleActionContext`
 binds the selected target for an action and resolves allies/opponents relative to
 its actor. A defeated actor cannot continue; a winning card may still resolve its
 remaining support rewards. New actions cannot start after battle ends.
@@ -83,3 +89,24 @@ For a named talent change, look up its rule in [talent interactions](battle-tale
 
 Use `withAutomaticPlay` for automatic chains; counterattack ancestry follows its
 action frame. Do not toggle a separate automatic-play flag.
+
+## Ability strategy
+
+- Shield Bash spends exactly 2 Block when available for 5 base Stun damage;
+  otherwise it deals 2 Stun without spending Block. Reserve the payment before
+  interception reactions; a cancelled attack refunds it without Block-gain
+  triggers. It no longer grants Block.
+- Ice Shot chooses 5 Physical against an already Frozen target or 2 Freeze
+  otherwise. It preserves Frozen and buys no Freeze empowerment for Physical.
+  Its conditional Physical payoff does not change its existing Freeze identity.
+- Maul chooses 3 Stun against positive enemy Block or 3 Bleed otherwise; it is
+  not random. Stab guarantees a Critical Hit against full Health at preparation
+  and otherwise uses ordinary critical chance, without its former +25% bonus.
+- Sunder halves Block before its 4 Physical hit, using existing halving rounding.
+- Sniff Out prepares +3 Physical for the living partner, falling back to the
+  caster if the partner is defeated. Reapplication refreshes rather than stacks;
+  preparation survives turn changes. Only the recipient's next damaging card
+  reserves it, including automatically played cards. The first damaging hit
+  consumes the reservation once; support cards, the other partner's attacks,
+  periodic damage, and counterattacks cannot spend it. The recipient owns the
+  visible preparation and detail summary, independently of the source's survival.

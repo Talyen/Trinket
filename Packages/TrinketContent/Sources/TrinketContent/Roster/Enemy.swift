@@ -5,18 +5,18 @@ public struct Enemy: Identifiable, Hashable, Sendable {
     public static let fallbackMaxHealth: Int = 12
 
     public let combatant: Combatant
-    public let traitID: String
+    public let traitIDs: [String]
     public let isBoss: Bool
     public let faction: EnemyFaction
 
     public init(
         combatant: Combatant,
-        traitID: String,
+        traitIDs: [String],
         isBoss: Bool = false,
         faction: EnemyFaction = .mortal,
     ) {
         self.combatant = combatant
-        self.traitID = traitID
+        self.traitIDs = traitIDs
         self.isBoss = isBoss
         self.faction = faction
     }

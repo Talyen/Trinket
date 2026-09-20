@@ -24,8 +24,10 @@ Only building details hide the tab bar. Resources opens a compact expandable
 wallet sheet with a Close control.
 
 A compact native glass bottom panel shows exact current benefits. Each effect uses
-an equally sized, colored SF Symbol in a 28-point frame beside a secondary eyebrow
-and a body-sized effect line. Bonuses use a Bonus eyebrow; production uses the
+an icon in a shared 28-point frame beside a secondary eyebrow and a body-sized
+effect line. Icons and text blocks align at the top so wrapped descriptions keep
+the icons, eyebrows, and first lines aligned. Bonuses use colored SF Symbols and
+a Bonus eyebrow; production uses illustrated material artwork with the
 resource name and a daily rate, without separate section headers. Effect labels
 and bold white values stay tightly grouped; existing keyword formatting remains.
 Details and offers share this layout. Bonus-plus-production items use equal-width
@@ -40,9 +42,8 @@ shield.fill tinted to its keyword. Party protection uses Block styling; companio
 damage uses pawprint.fill with Physical tint; ranged damage uses figure.archery with
 Physical tint; Dodge uses wind; Astral finds uses sparkles with arcane tint; Gold finds
 uses circle.circle.fill with Gold tint.
-Production uses resource tints with tree.fill (Wood), hammer.fill (Iron), carrot.fill (Food),
-leaf.fill (Herbs), diamond.fill (Gems), square.stack.3d.up.fill (Hide), and circle.circle.fill (Gold).
-Wallets, collection, and purchase costs retain illustrated resource artwork.
+Production uses the same illustrated resource artwork as wallets, collection,
+and purchase costs for every material.
 Progress uses the catalog's actual tier count. No persistent completion banner,
 checkmark, or Tier N label appears.
 

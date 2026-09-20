@@ -61,7 +61,7 @@ Tab-separated columns:
 id	name	description	modifiers	triggers
 ```
 
-- One row per enemy trait. `modifiers` / `triggers` use the same pipe-separated DSL as affixes.
+- One row per shared enemy trait, with a unique thematic name and one coherent mechanic. Independent benefits, resistances, and weaknesses are separate traits; alternate triggers for one benefit and periodic cadence configuration stay together. `modifiers` / `triggers` use the same pipe-separated DSL as affixes.
 - Generates `GameContentTraits.generated.swift`.
 - Enemy turn auras: `turn_random_damage_all_enemies:keywordA:keywordB:amount` rolls one keyword each turn and deals `amount` of that type to each living party member. `turn_freeze_all_enemies:amount` deals fixed Freeze damage every other turn.
 
@@ -127,13 +127,14 @@ id	name	role	max_health	max_mana	basics	skills	ultimates
 Tab-separated columns:
 
 ```text
-id	name	max_health	is_boss	abilities	trait_id	faction
+id	name	max_health	is_boss	abilities	trait_ids	faction
 ```
 
 - `max_health`: explicit positive integer; scaled at encounter level via `EnemyPowerCurve` normal/boss HP curves.
 - `is_boss`: `true` or `false`.
 - `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
+- `trait_ids`: nonempty comma-separated list of distinct IDs from `traits.tsv`, ordered as signature mechanics, resistances, then weaknesses. Identical effects share a definition; all assigned traits compose into the enemy combat profile and appear individually in enemy details.
 - Enemy damage scales via `EnemyPowerCurve` raw damage % curves. Interpolation and growth beyond the final anchor follow [battle-balance.md](../Docs/AgentContext/battle-balance.md); the final anchor is not an upper cap. Enemies have 0% Crit/Dodge and cannot gain guaranteed crit, evade, or trait crit/dodge effects.
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)

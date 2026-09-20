@@ -27,6 +27,8 @@ public struct ActionEvent: Identifiable, Equatable {
         case resourceGain
         case cardsDrawn
         case leechHeal
+        case physicalPreparationApplied
+        case blockSpent
         case shieldApplied
         case shieldAbsorbed
         case controlActionSkipped

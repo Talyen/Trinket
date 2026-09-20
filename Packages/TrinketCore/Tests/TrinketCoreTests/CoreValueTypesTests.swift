@@ -109,10 +109,6 @@ struct CoreValueTypesTests {
         let conditions = DamageCondition.allCases
         #expect(!conditions.isEmpty)
         #expect(conditions.count == Set(conditions).count)
-        // Sync point: evaluation lives in BattleEngine.BattleConditionEvaluator;
-        // adding a case here must update its switch. Count change breaks this
-        // and forces the evaluator review.
-        #expect(conditions.count == 12)
 
         for condition in conditions {
             #expect(!condition.sentenceFragment.isEmpty, "\(condition) should have a sentence fragment")

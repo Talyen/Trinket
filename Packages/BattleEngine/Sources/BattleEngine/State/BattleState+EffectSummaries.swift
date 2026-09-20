@@ -7,7 +7,7 @@ package extension BattleState {
         let pending = runtime.talents.pending.effectSummaries(
             criticalAppliesToParty: modifiers(for: combatant.id).triggers.onDodgeNextPartyHitGuaranteedCritical,
             partyCardDamageBonus: resolution.pendingPartyCardDamage(from: combatant.id),
-            partyPhysicalBonus: resolution.pendingPartyPhysicalDamage(from: combatant.id),
+            partyPhysicalBonus: resolution.pendingPhysicalDamage(for: combatant.id),
         )
         return pending + timedEffectSummaries(runtime.talents)
             + preparedEffectSummaries(heroTalents.history[combatant.id])
@@ -71,7 +71,7 @@ private extension CombatantTalentState.Pending {
             (
                 partyPhysicalBonus > 0,
                 .physical,
-                "Sniff Out: Your party’s next attack deals \(partyPhysicalBonus) additional Physical damage.",
+                "Sniff Out: Your next attack deals \(partyPhysicalBonus) additional Physical damage.",
             ),
             (cardDamageBonus > 0, .physical, "Prepared Damage: Your next attack deals \(cardDamageBonus) additional damage."),
             (

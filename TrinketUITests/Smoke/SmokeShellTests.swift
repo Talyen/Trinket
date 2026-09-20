@@ -41,6 +41,15 @@ final class SmokeShellTests: TrinketUITestCase {
         tabBar.selectOptions()
         options.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Options.hapticsToggle, timeout: 10)
+        let experiment = app.switches[AccessibilityID.Options.stationaryFeedbackToggle]
+        scrollUntilVisible(experiment, swipingUp: true, maxAttempts: 3, requireHittable: true)
+        XCTAssertEqual(experiment.value as? String, "1")
+        tapWhenReady(experiment.switches.firstMatch)
+        let off = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "0"), object: experiment)
+        XCTAssertEqual(XCTWaiter.wait(for: [off], timeout: 3), .completed)
+        tapWhenReady(experiment.switches.firstMatch)
+        let on = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: experiment)
+        XCTAssertEqual(XCTWaiter.wait(for: [on], timeout: 3), .completed)
 
         tabBar.selectPlay()
         play.assertLoaded(timeout: 10)

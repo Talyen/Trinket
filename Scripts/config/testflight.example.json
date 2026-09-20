@@ -1,0 +1,6 @@
+{
+  "key_id": "YOUR_KEY_ID",
+  "issuer_id": "YOUR_ISSUER_UUID",
+  "key_filepath": "/absolute/path/outside/repository/AuthKey_YOUR_KEY_ID.p8",
+  "internal_group_id": "YOUR_EXISTING_INTERNAL_GROUP_ID"
+}

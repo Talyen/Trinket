@@ -17,6 +17,7 @@ verified behavior from inference and state material assumptions.
 - Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree. The safety shim refuses these commands without stashing working files.
 - Work directly in the primary checkout on `main` by default; do not create worktrees for routine tasks, branch there, or open pull requests.
 - Commit/push only when requested, following [Release.md](Docs/Platform/Release.md). Include only requested/adopted changes; stage hunks for mixed files. Hosted CI follows a push to `main`, not a prerequisite for it.
+- For TestFlight deployment, use `./Scripts/testflight.sh`; [Release.md](Docs/Platform/Release.md#local-testflight-deployment) owns setup, recovery, and readiness. Use its doctor before improvising Xcode or App Store Connect steps.
 - Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Normal build/handoff handles generation freshness; use `./Scripts/generate.sh` for explicit regeneration.
 - Never kill foreign Xcode/Simulator processes. Follow [Verification.md](Docs/Platform/Verification.md) for isolation and diagnostics.
 

@@ -87,15 +87,21 @@ private struct HomesteadBenefitItem: View {
     }
 
     var body: some View {
-        let style = HomesteadEffectStyle(key: effect.id)
-        HStack(spacing: TrinketDesign.Spacing.small) {
-            Image(systemName: style.symbol)
-                .symbolRenderingMode(.monochrome)
-                .trinketTypography(.rowTitle)
-                .fontWeight(.semibold)
-                .foregroundStyle(style.tint)
-                .frame(width: 28, height: 28)
-                .accessibilityHidden(true)
+        HStack(alignment: .top, spacing: TrinketDesign.Spacing.small) {
+            Group {
+                if let resource = effect.resource {
+                    HomesteadResourceArtwork(resource: resource)
+                } else {
+                    let style = HomesteadEffectStyle(key: effect.id)
+                    Image(systemName: style.symbol)
+                        .symbolRenderingMode(.monochrome)
+                        .trinketTypography(.rowTitle)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(style.tint)
+                }
+            }
+            .frame(width: 28, height: 28)
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                 Text(effect.resource?.displayName ?? "Bonus")
                     .trinketTypography(.caption)

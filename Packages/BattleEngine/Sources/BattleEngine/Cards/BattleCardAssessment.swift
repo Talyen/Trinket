@@ -34,14 +34,15 @@ public extension BattleState {
         guard denial == nil else {
             return BattleCardAssessment(actorID: actor.id, denial: denial, targets: [], resources: [])
         }
-        let outcomes = BattleAbilityRules.assessmentOutcomes(card.ability)
+        let selected = BattleAbilityRules.resolveConditionalOutcome(card.ability, actor: actor, in: self)
+        let outcomes = BattleAbilityRules.assessmentOutcomes(selected)
         let candidates = outcomes.map { assessmentTargets($0, actor: actor) }
         let common = (candidates.first ?? []).filter { target in candidates.allSatisfy { $0.contains(target) } }
         var targets: [BattleCardAssessment.Target] = []
         for target in common where !targets.contains(target) {
             targets.append(target)
         }
-        let payments = outcomes.map { assessmentResources($0, original: card.ability, actor: actor) }
+        let payments = outcomes.map { assessmentResources($0, original: selected, actor: actor) }
         return BattleCardAssessment(
             actorID: actor.id, denial: nil, targets: targets,
             resources: BattleCardAssessment.commonResources(payments),
@@ -54,7 +55,7 @@ extension BattleAbilityRules {
         if let branches = ability.outcomeBranches {
             return branches
         }
-        return [AbilityOutcomeBranch(damageComponents: ability.damageComponents, targetedEffects: ability.targetedEffects)]
+        return [AbilityOutcomeBranch(operations: ability.operations)]
     }
 }
 
@@ -74,6 +75,11 @@ private extension BattleState {
         }
         for (index, targeted) in branch.targetedEffects.enumerated() {
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
+                continue
+            }
+            if case .partyPhysicalBonus = targeted.effect {
+                let recipient = BattleAbilityRules.preparationRecipient(for: actor, in: self)
+                targets.append(.init(combatantID: recipient.id, intent: .effect(targeted.effect)))
                 continue
             }
             if case .drawAndPlayCards = targeted.effect {

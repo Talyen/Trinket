@@ -70,9 +70,10 @@ and cancellation clear previews; a late cancellation cannot erase a newer cue.
 
 ## UIKit feedback island
 
-Combat results group by originating card/action and recipient. Matching damage
+The release presentation groups combat results by originating card/action and recipient. Matching damage
 types and actual healing update in place; critical contributions accent their
 typed total.
+The DEBUG stationary-feedback option provides an alternative for comparison.
 Layout, typography, motion, and retiring-group behavior follow the
 [floating combat feedback contract](../../Docs/AgentContext/battle-presentation.md#floating-combat-feedback).
 

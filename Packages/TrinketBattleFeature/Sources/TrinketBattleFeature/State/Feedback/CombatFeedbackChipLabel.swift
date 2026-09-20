@@ -6,13 +6,13 @@ import TrinketFeatureSupport
 enum CombatFeedbackChipLabel: Hashable {
     static let numericAtlasFragments = ["+"] + (0 ... 9).map(String.init)
 
-    case amount(Int)
+    case amount(Int, additive: Bool = true)
     case word(CombatFeedbackChipWord)
 
     func merging(with other: Self) -> Self? {
         switch (self, other) {
-        case let (.amount(lhs), .amount(rhs)):
-            guard (lhs >= 0) == (rhs >= 0) else { return nil }
+        case let (.amount(lhs, lhsAdditive), .amount(rhs, rhsAdditive)):
+            guard lhsAdditive, rhsAdditive, (lhs >= 0) == (rhs >= 0) else { return nil }
             return .amount(lhs + rhs)
         case let (.word(lhsWord), .word(rhsWord)):
             return lhsWord == rhsWord ? .word(lhsWord) : nil
@@ -23,10 +23,10 @@ enum CombatFeedbackChipLabel: Hashable {
 
     var displayString: String {
         switch self {
-        case let .amount(value):
+        case let .amount(value, _):
             Self.formatAmount(value)
-        case let .word(word):
-            word.composeText ?? ""
+        case .word:
+            ""
         }
     }
 
@@ -65,7 +65,7 @@ enum CombatFeedbackChipLabel: Hashable {
         }
         switch rule {
         case .amount:
-            return .amount(event.amount)
+            return .amount(event.amount, additive: CombatFeedbackEffectPresentation.descriptor(for: effectKind).isAdditive)
         case .negatedAmount:
             return .amount(-event.amount)
         case .dodgeWord:
@@ -87,7 +87,7 @@ enum CombatFeedbackChipLabel: Hashable {
 
     var isZeroNumeric: Bool {
         switch self {
-        case let .amount(value):
+        case let .amount(value, _):
             value == 0
         case .word:
             false
@@ -96,6 +96,8 @@ enum CombatFeedbackChipLabel: Hashable {
 }
 
 enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
+    case leech = "Leech"
+    case amplified = "Amplified"
     case thorns = "Thorns"
     case criticalUp = "Critical Up"
     case manaShield = "Mana Shield"
@@ -119,17 +121,4 @@ enum CombatFeedbackChipWord: Hashable {
     case cleanse(Keyword)
     case purge(Keyword)
     case status(CombatFeedbackStatusLabel)
-
-    var composeText: String? {
-        switch self {
-        case .dodge, .cleanse, .purge, .status:
-            nil
-        case let .plain(keyword):
-            keyword == .deathsDoor ? nil : keyword.rawValue
-        case let .applied(keyword):
-            keyword.rawValue
-        case let .triggered(keyword):
-            keyword.rawValue
-        }
-    }
 }

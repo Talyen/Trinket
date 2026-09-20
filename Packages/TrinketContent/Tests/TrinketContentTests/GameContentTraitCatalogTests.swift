@@ -6,7 +6,10 @@ struct GameContentTraitCatalogTests {
     @Test func `every enemy references known trait`() throws {
         let traitIDs = Set(GameContent.traits.map(\.id))
         for enemy in GameContent.enemies {
-            try #expect(traitIDs.contains(enemy.traitID), "\(enemy.name) trait")
+            try #expect(!enemy.traitIDs.isEmpty)
+            try #expect(Set(enemy.traitIDs).count == enemy.traitIDs.count)
+            try #expect(enemy.traitIDs.allSatisfy(traitIDs.contains), "\(enemy.name) traits")
+            try #expect(GameContent.traits(for: enemy).map(\.id) == enemy.traitIDs)
         }
     }
 
@@ -19,8 +22,8 @@ struct GameContentTraitCatalogTests {
 
     @Test func `bosses have no damage taken percent resists`() throws {
         for enemy in GameContent.enemies where enemy.isBoss {
-            let trait = try #require(GameContent.trait(for: enemy))
-            let resists = trait.modifiers.contains { modifier in
+            let traits = GameContent.traits(for: enemy)
+            let resists = traits.flatMap(\.modifiers).contains { modifier in
                 switch modifier {
                 case .damageTakenPercent:
                     true
@@ -33,7 +36,7 @@ struct GameContentTraitCatalogTests {
     }
 
     @Test func `necromancer leech chance is ten percent`() throws {
-        let necromancer = try #require(GameContent.traits.first { $0.id == "necromancer_trait" })
+        let necromancer = try #require(GameContent.traits.first { $0.id == "siphon" })
         try #expect(necromancer.triggers.leechChancePercent == 0.10)
     }
 
@@ -48,16 +51,39 @@ struct GameContentTraitCatalogTests {
     }
 
     @Test func `boss damage auras match typed identity`() throws {
-        try checkAura(id: "the_forge_golem_trait", keywordA: .stun, keywordB: .burn, amount: 1)
-        try checkAura(id: "the_iron_bear_trait", keywordA: .physical, keywordB: .stun, amount: 1)
-        try checkAura(id: "the_blight_treant_trait", keywordA: .poison, keywordB: .bleed, amount: 1)
-        try checkAura(id: "the_blood_countess_trait", keywordA: .bleed, keywordB: .bleed, amount: 1)
-        try checkAura(id: "the_seraph_trait", keywordA: .holy, keywordB: .holy, amount: 1)
-        try checkAura(id: "the_stone_titan_trait", keywordA: .physical, keywordB: .physical, amount: 1)
+        try checkAura(id: "furnace_pulse", keywordA: .stun, keywordB: .burn, amount: 1)
+        try checkAura(id: "thunderous_tremor", keywordA: .physical, keywordB: .stun, amount: 1)
+        try checkAura(id: "blighted_pulse", keywordA: .poison, keywordB: .bleed, amount: 1)
+        try checkAura(id: "crimson_pulse", keywordA: .bleed, keywordB: .bleed, amount: 1)
+        try checkAura(id: "radiant_judgment", keywordA: .holy, keywordB: .holy, amount: 1)
+        try checkAura(id: "seismic_pulse", keywordA: .physical, keywordB: .physical, amount: 1)
 
-        let frostwarden = try #require(GameContent.traits.first { $0.id == "the_frostwarden_trait" })
+        let frostwarden = try #require(GameContent.traits.first { $0.id == "winters_grasp" })
         try #expect(frostwarden.triggers.turnFreezeDamageAllEnemies == 1)
         try #expect(frostwarden.triggers.turnRandomDamageAllEnemiesAmount == 0)
+    }
+
+    @Test func `traits use distinct mechanic names instead of enemy names`() {
+        let names = GameContent.traits.map { $0.name.lowercased() }
+        let enemyNames = Set(GameContent.enemies.map { $0.name.lowercased() })
+        #expect(Set(names).count == names.count)
+        #expect(enemyNames.isDisjoint(with: names))
+        #expect(Set(GameContent.enemies.flatMap(\.traitIDs)) == Set(GameContent.traits.map(\.id)))
+    }
+
+    @Test func `enemies share matching mechanics and display each effect separately`() throws {
+        let expected: [String: [String]] = [
+            "fire_elemental": ["searing_body", "cold_shocked"],
+            "vampire": ["siphon", "sated_fury", "profane", "kindling"],
+            "living_armor": ["watchful_guard", "bloodless"],
+            "paladin": ["righteous_guard", "hallowed"],
+            "frost_elemental": ["chilling_strikes", "kindling"],
+            "winter_wolf": ["chilling_strikes", "kindling"],
+        ]
+        for (id, traitIDs) in expected {
+            let enemy = try #require(GameContent.enemy(matching: id))
+            #expect(enemy.traitIDs == traitIDs)
+        }
     }
 
     private func checkAura(id: String, keywordA: Keyword, keywordB: Keyword, amount: Int) throws {

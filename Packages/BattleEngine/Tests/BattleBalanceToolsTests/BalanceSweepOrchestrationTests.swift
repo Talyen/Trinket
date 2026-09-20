@@ -158,7 +158,7 @@ struct BalanceSweepOrchestrationTests {
                     heroAbilityIDs: ["slash"],
                     companionAbilityIDs: ["bash"],
                     enemyAbilityIDs: ["strike"],
-                    enemyTraitID: "",
+                    enemyTraitIDs: [],
                     affixIDs: [],
                     heroTalentIDs: [],
                     companionTalentIDs: [],
@@ -238,7 +238,7 @@ struct BalanceSweepOrchestrationTests {
         #expect(!earlyOnly.isEmpty)
     }
 
-    @Test func `identity win rate excludes timeouts`() {
+    @Test func `identity win rate excludes timeouts and counts every trait`() throws {
         let timeout = BattleSimResult(
             outcome: .defeat,
             rounds: 100,
@@ -265,7 +265,7 @@ struct BalanceSweepOrchestrationTests {
                 heroAbilityIDs: ["bash"],
                 companionAbilityIDs: ["swipe"],
                 enemyAbilityIDs: ["slash"],
-                enemyTraitID: "living_armor_trait",
+                enemyTraitIDs: ["watchful_guard", "bloodless"],
                 affixIDs: [],
                 heroAffixIDs: [],
                 companionAffixIDs: [],
@@ -287,6 +287,26 @@ struct BalanceSweepOrchestrationTests {
         #expect(stats.decidedBattles == 1)
         #expect(stats.wins == 1)
         #expect(stats.heroes.first?.winRate == 1)
+        #expect(Set(stats.enemyTraits.map(\.id)) == ["watchful_guard", "bloodless"])
+        #expect(stats.enemyTraits.allSatisfy { $0.battles == 1 })
+
+        try checkTraitRecordMigration(record(win, seed: 2))
+    }
+
+    private func checkTraitRecordMigration(_ current: BalanceBattleRecord) throws {
+        let data = try JSONEncoder().encode(current)
+        var json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        #expect(json["enemyTraitID"] == nil)
+        #expect(json["enemyTraitIDs"] as? [String] == current.enemyTraitIDs)
+        #expect(try JSONDecoder().decode(BalanceBattleRecord.self, from: data) == current)
+        json.removeValue(forKey: "enemyTraitIDs")
+        for legacyID in ["living_armor_trait", ""] {
+            json["enemyTraitID"] = legacyID
+            let legacyData = try JSONSerialization.data(withJSONObject: json)
+            let restored = try JSONDecoder().decode(BalanceBattleRecord.self, from: legacyData)
+            #expect(restored.enemyTraitIDs == (legacyID.isEmpty ? [] : [legacyID]))
+            #expect(restored.result == current.result)
+        }
     }
 
     @Test func `identity sampling balances partners and preserves filtered enemy replay`() throws {

@@ -16,6 +16,9 @@ enum CombatFeedbackChipComposer {
     struct ComposedRaster: @unchecked Sendable {
         let image: CGImage
         let pointSize: CGSize
+        var shineMask: CGImage?
+        var textWidth: CGFloat = 0
+        var maximumDigitWidth: CGFloat = 0
     }
 
     /// Concurrency-Safety: glyph bitmaps and resolved CGColors are immutable; no atlas or SwiftUI state crosses isolation.
@@ -27,6 +30,8 @@ enum CombatFeedbackChipComposer {
         let shadow: CGColor
         let layoutDirection: LayoutDirection
         let displayScale: CGFloat
+        let needsShineMask: Bool
+        let maximumDigitWidth: CGFloat
     }
 
     static func compose(
@@ -35,10 +40,11 @@ enum CombatFeedbackChipComposer {
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared,
+        needsShineMask: Bool = false,
     ) -> ComposedRaster? {
         guard let inputs = prepareInputs(
             presentation: presentation, feedbackClass: feedbackClass,
-            layoutDirection: layoutDirection, displayScale: displayScale, atlas: atlas,
+            layoutDirection: layoutDirection, displayScale: displayScale, atlas: atlas, needsShineMask: needsShineMask,
         ) else { return nil }
         return render(inputs)
     }
@@ -49,6 +55,7 @@ enum CombatFeedbackChipComposer {
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared,
+        needsShineMask: Bool = false,
     ) -> RasterInputs? {
         let recipe = CombatFeedbackChipStyle.forClass(feedbackClass)
         let scale = max(1, displayScale)
@@ -111,30 +118,17 @@ enum CombatFeedbackChipComposer {
             shadow: UIColor(TrinketDesign.Colors.Overlay.ink.opacity(0.95)).cgColor,
             layoutDirection: layoutDirection,
             displayScale: scale,
+            needsShineMask: needsShineMask,
+            maximumDigitWidth: needsShineMask ? (0 ... 9).compactMap {
+                atlas.fragment(String($0), face: face, recipe: recipe)?.width
+            }.max() ?? 0 : 0,
         )
     }
 
     nonisolated static func render(_ inputs: RasterInputs) -> ComposedRaster? {
-        blit(
-            leading: inputs.leading.map { ($0.0, resolvedColor($0.1)) },
-            trailing: (inputs.trailing.0, resolvedColor(inputs.trailing.1)),
-            textGlyphs: inputs.textGlyphs,
-            textTint: resolvedColor(inputs.textTint),
-            shadow: resolvedColor(inputs.shadow),
-            layoutDirection: inputs.layoutDirection,
-            displayScale: inputs.displayScale,
-        )
-    }
-
-    private nonisolated static func blit(
-        leading: (CombatFeedbackGlyphAtlas.Glyph, UIColor)?,
-        trailing: (CombatFeedbackGlyphAtlas.Glyph, UIColor),
-        textGlyphs: [CombatFeedbackGlyphAtlas.Glyph],
-        textTint: UIColor,
-        shadow: UIColor,
-        layoutDirection: LayoutDirection,
-        displayScale: CGFloat,
-    ) -> ComposedRaster? {
+        let leading = inputs.leading
+        let trailing = inputs.trailing
+        let textGlyphs = inputs.textGlyphs
         let textWidth = textGlyphs.reduce(CGFloat(0)) { $0 + $1.width }
         let textHeight = textGlyphs.lazy.map(\.height).max() ?? 0
         let leadingWidth = leading?.0.width ?? 0
@@ -149,11 +143,33 @@ enum CombatFeedbackChipComposer {
             height: ceil(contentHeight + verticalPadding * 2 + shadowOffsetY),
         )
 
+        guard let cgImage = renderImage(inputs, pointSize: pointSize, contentHeight: contentHeight, maskOnly: false) else { return nil }
+        return ComposedRaster(
+            image: cgImage, pointSize: pointSize,
+            shineMask: inputs
+                .needsShineMask ? renderImage(inputs, pointSize: pointSize, contentHeight: contentHeight, maskOnly: true) : nil,
+            textWidth: textWidth, maximumDigitWidth: inputs.maximumDigitWidth,
+        )
+    }
+
+    private nonisolated static func renderImage(
+        _ inputs: RasterInputs, pointSize: CGSize, contentHeight: CGFloat, maskOnly: Bool,
+    ) -> CGImage? {
+        let leading = inputs.leading.map { ($0.0, resolvedColor($0.1)) }
+        let trailing = (inputs.trailing.0, resolvedColor(inputs.trailing.1))
+        let textGlyphs = inputs.textGlyphs
+        let textTint = resolvedColor(inputs.textTint)
+        let shadow = resolvedColor(inputs.shadow)
+        let displayScale = inputs.displayScale
+        let layoutDirection = inputs.layoutDirection
+        let leadingWidth = leading?.0.width ?? 0
+        let trailingWidth = trailing.0.width
+        let textWidth = textGlyphs.reduce(CGFloat(0)) { $0 + $1.width }
         let format = UIGraphicsImageRendererFormat()
-        format.scale = displayScale
+        format.scale = inputs.displayScale
         format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
-        let image = renderer.image { _ in
+        return renderer.image { _ in
             let contentOrigin = CGPoint(x: horizontalPadding, y: verticalPadding)
             let origins = horizontalOrigins(
                 contentX: contentOrigin.x,
@@ -164,11 +180,13 @@ enum CombatFeedbackChipComposer {
             )
 
             let context = UIGraphicsGetCurrentContext()
-            context?.setShadow(
-                offset: CGSize(width: 0, height: shadowOffsetY),
-                blur: 1.5,
-                color: shadow.cgColor,
-            )
+            if !maskOnly {
+                context?.setShadow(
+                    offset: CGSize(width: 0, height: shadowOffsetY),
+                    blur: 1.5,
+                    color: shadow.cgColor,
+                )
+            }
             context?.beginTransparencyLayer(auxiliaryInfo: nil)
 
             if let leading {
@@ -176,7 +194,7 @@ enum CombatFeedbackChipComposer {
                     x: origins.leadingX,
                     y: contentOrigin.y + (contentHeight - leading.0.height) / 2,
                 )
-                draw(glyph: leading.0, at: origin, tint: leading.1, outline: shadow, displayScale: displayScale)
+                draw(glyph: leading.0, at: origin, tint: leading.1, outline: maskOnly ? nil : shadow, displayScale: displayScale)
             }
 
             var textX = origins.textX
@@ -185,7 +203,7 @@ enum CombatFeedbackChipComposer {
                     x: textX,
                     y: contentOrigin.y + (contentHeight - glyph.height) / 2,
                 )
-                draw(glyph: glyph, at: origin, tint: textTint, outline: shadow, displayScale: displayScale)
+                draw(glyph: glyph, at: origin, tint: textTint, outline: maskOnly ? nil : shadow, displayScale: displayScale)
                 textX += glyph.width
             }
 
@@ -193,13 +211,10 @@ enum CombatFeedbackChipComposer {
                 x: origins.trailingX,
                 y: contentOrigin.y + (contentHeight - trailing.0.height) / 2,
             )
-            draw(glyph: trailing.0, at: trailingOrigin, tint: trailing.1, outline: shadow, displayScale: displayScale)
+            draw(glyph: trailing.0, at: trailingOrigin, tint: trailing.1, outline: maskOnly ? nil : shadow, displayScale: displayScale)
             context?.endTransparencyLayer()
             context?.setShadow(offset: .zero, blur: 0, color: nil)
-        }
-
-        guard let cgImage = image.cgImage else { return nil }
-        return ComposedRaster(image: cgImage, pointSize: pointSize)
+        }.cgImage
     }
 
     private nonisolated static func resolvedColor(_ color: CGColor) -> UIColor {
@@ -267,16 +282,18 @@ enum CombatFeedbackChipComposer {
         glyph: CombatFeedbackGlyphAtlas.Glyph,
         at origin: CGPoint,
         tint: UIColor,
-        outline: UIColor,
+        outline: UIColor?,
         displayScale: CGFloat,
     ) {
         let rect = CGRect(origin: origin, size: CGSize(width: glyph.width, height: glyph.height))
         let tinted = UIImage(cgImage: glyph.image, scale: displayScale, orientation: .up)
             .withTintColor(tint, renderingMode: .alwaysOriginal)
-        let silhouette = tinted.withTintColor(outline, renderingMode: .alwaysOriginal)
-        for step in 0 ..< 8 {
-            let angle = CGFloat(step) * .pi / 4
-            silhouette.draw(in: rect.offsetBy(dx: cos(angle), dy: sin(angle)))
+        if let outline {
+            let silhouette = tinted.withTintColor(outline, renderingMode: .alwaysOriginal)
+            for step in 0 ..< 8 {
+                let angle = CGFloat(step) * .pi / 4
+                silhouette.draw(in: rect.offsetBy(dx: cos(angle), dy: sin(angle)))
+            }
         }
         tinted.draw(in: rect)
     }

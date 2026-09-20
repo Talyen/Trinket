@@ -316,7 +316,7 @@ private extension BalanceStatsAggregator {
             ),
             opponentMargins(
                 records: decided,
-                ids: { [$0.enemyTraitID] },
+                ids: { $0.enemyTraitIDs },
                 peerRate: overallRate,
                 threshold: threshold,
             ),

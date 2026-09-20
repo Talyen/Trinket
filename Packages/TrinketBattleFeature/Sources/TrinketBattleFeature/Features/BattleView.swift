@@ -424,7 +424,11 @@ private struct BattleInfrastructureLane: View {
             .onAppear {
                 battleSession.feedback.installBridge(
                     ownerID: ownerID,
-                    onChange: CombatFeedbackChipBridge.publish,
+                    onChange: { [weak feedback = battleSession.feedback] update in
+                        CombatFeedbackChipBridge.publish(update, onEvict: { [weak feedback] ids in
+                            feedback?.evictedItemIDs.formUnion(ids)
+                        })
+                    },
                 )
                 battleSession.feedback.prepareScheduler()
                 CombatFeedbackRasterUIView.prewarmMotionClock()

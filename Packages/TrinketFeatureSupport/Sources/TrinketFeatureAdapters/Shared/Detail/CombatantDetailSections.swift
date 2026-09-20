@@ -14,7 +14,7 @@ struct CombatantTraitsSection: View, Equatable {
             DetailTraitRow(
                 title: trait.name,
                 description: trimmed(trait.description),
-                descriptionAccessibilityID: descriptionID,
+                descriptionAccessibilityID: "\(descriptionID).\(trait.id)",
             )
         }
     }

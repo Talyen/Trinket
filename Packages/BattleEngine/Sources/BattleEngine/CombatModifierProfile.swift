@@ -26,7 +26,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var rangedDamageDealtBonus: Int
     public var maximumManaPercentBonus: Double
     public var triggers: CombatTraitTriggers
-    public var traitDisplayName: String?
     public var triggerAbilityNames: [String: String]
 
     public static let zero = Self()
@@ -54,7 +53,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         rangedDamageDealtBonus: Int = 0,
         maximumManaPercentBonus: Double = 0,
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
-        traitDisplayName: String? = nil,
         triggerAbilityNames: [String: String] = [:],
     ) {
         self.maximumHealthBonus = maximumHealthBonus
@@ -79,7 +77,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.rangedDamageDealtBonus = rangedDamageDealtBonus
         self.maximumManaPercentBonus = maximumManaPercentBonus
         self.triggers = triggers
-        self.traitDisplayName = traitDisplayName
         self.triggerAbilityNames = triggerAbilityNames
     }
 
@@ -125,9 +122,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         rangedDamageDealtBonus += other.rangedDamageDealtBonus
         maximumManaPercentBonus += other.maximumManaPercentBonus
         triggers.merge(other.triggers)
-        if traitDisplayName == nil {
-            traitDisplayName = other.traitDisplayName
-        }
         for (key, name) in other.triggerAbilityNames where triggerAbilityNames[key] == nil {
             triggerAbilityNames[key] = name
         }
@@ -302,7 +296,7 @@ public extension CombatantTraitDefinition {
         for modifier in modifiers {
             profile.merge(modifier)
         }
-        triggers.apply(to: &profile)
+        triggers.apply(to: &profile, abilityName: name)
     }
 }
 

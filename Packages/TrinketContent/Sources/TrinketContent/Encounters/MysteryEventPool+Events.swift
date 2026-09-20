@@ -8,7 +8,7 @@ extension MysteryEventPool {
         narrative: "Glowing berries surround {A}, and blue roots hum around {B}.",
         artID: "mystery-mana-berries",
         choices: [
-            ("harvest-berries", "Harvest Berries", [
+            ("harvest-berries", "Pick Berries", [
                 item("sapphire_ring", uniques: ["winters_credit"], guaranteedAffixIDs: ["manabound"]),
                 .gainMaterial(.herbs),
             ]),
@@ -25,11 +25,11 @@ extension MysteryEventPool {
         narrative: "Beneath the spring, crystal traps {A} while healing ripples reveal {B}.",
         artID: "mystery-enchanted-spring",
         choices: [
-            ("gather-the-moss", "Break the Crust", [
+            ("gather-the-moss", "Break Crust", [
                 item("sapphire_amulet", trinkets: ["icy_heart"], uniques: ["rimeheart_locket"]),
                 .gainMaterial(.gems),
             ]),
-            ("take-the-charm", "Read the Ripples", [
+            ("take-the-charm", "Read Ripples", [
                 item("emerald_ring", uniques: ["serpents_eye"]),
                 .gainExperience,
             ]),
@@ -42,11 +42,11 @@ extension MysteryEventPool {
         narrative: "Medicinal caps surround {A} as drifting spores gather above {B}.",
         artID: "mystery-fungal-grotto",
         choices: [
-            ("harvest-mushrooms", "Harvest the Caps", [
+            ("harvest-mushrooms", "Harvest Caps", [
                 item("emerald_amulet", trinkets: ["parasitic_bloom"]),
                 .gainMaterial(.herbs),
             ]),
-            ("collect-crystals", "Study the Spores", [
+            ("collect-crystals", "Study Spores", [
                 item("wand"),
                 .gainExperience,
             ]),
@@ -80,7 +80,7 @@ extension MysteryEventPool {
                 item("topaz_ring", trinkets: ["lucky_clover"]),
                 .gainGold(25),
             ]),
-            ("pick-mushrooms", "Learn the Dance", [
+            ("pick-mushrooms", "Learn Dance", [
                 item("leather_armor", uniques: ["dance_of_blades"]),
                 .gainExperience,
             ]),
@@ -93,7 +93,7 @@ extension MysteryEventPool {
         narrative: "Medicinal blooms surround {A}, and exposed roots trace healing rites near {B}.",
         artID: "mystery-sacred-grove",
         choices: [
-            ("pick-the-blooms", "Gather the Blooms", [
+            ("pick-the-blooms", "Gather Blooms", [
                 item("emerald_amulet", trinkets: ["groves_favor"], uniques: ["wildhearts_favor"]),
                 .gainMaterial(.herbs),
             ]),
@@ -110,11 +110,11 @@ extension MysteryEventPool {
         narrative: "An iron seam reveals {A}, and fallen timber traps {B} nearby.",
         artID: "mystery-mountain-pass",
         choices: [
-            ("mine-the-cliffside", "Search the Seam", [
+            ("mine-the-cliffside", "Search Seam", [
                 item("mace", trinkets: ["thunderstone"], uniques: ["the_lingering_bell"]),
                 .gainMaterial(.iron),
             ]),
-            ("gather-herbs", "Clear the Trail", [
+            ("gather-herbs", "Clear Trail", [
                 item("hatchet", uniques: ["red_harvest"]),
                 .gainMaterial(.wood),
             ]),
@@ -131,7 +131,7 @@ extension MysteryEventPool {
                 item("dagger", uniques: ["vipers_courtesy"]),
                 .gainMaterial(.food),
             ]),
-            ("pull-the-reeds", "Search the Stones", [
+            ("pull-the-reeds", "Search Stones", [
                 item("topaz_ring", trinkets: ["wishing_well_coin"]),
                 .gainGold(20),
             ]),
@@ -144,7 +144,7 @@ extension MysteryEventPool {
         narrative: "Medicinal beds surround {A} as treatment notes lie beneath {B}.",
         artID: "mystery-medicinal-herb-garden",
         choices: [
-            ("harvest-remedies", "Harvest Remedies", [
+            ("harvest-remedies", "Gather Herbs", [
                 item("emerald_amulet", trinkets: ["mortar_and_pestle"]),
                 .gainMaterial(.herbs),
             ]),
@@ -165,7 +165,7 @@ extension MysteryEventPool {
                 item("sapphire_amulet", guaranteedAffixIDs: ["manabound"]),
                 .gainMaterial(.gems),
             ]),
-            ("take-the-chimes", "Learn the Melody", [
+            ("take-the-chimes", "Learn Melody", [
                 item("wand", trinkets: ["resonant_chimes"]),
                 .gainExperience,
             ]),
@@ -178,11 +178,11 @@ extension MysteryEventPool {
         narrative: "Red crystals cradle {A} as phoenix embers warm {B}.",
         artID: "mystery-the-phoenix",
         choices: [
-            ("claim-the-feather", "Search the Nest", [
+            ("claim-the-feather", "Search Nest", [
                 item("ruby_ring", uniques: ["bloodfire_signet"]),
                 .gainMaterial(.gems),
             ]),
-            ("take-the-brand", "Gather the Embers", [
+            ("take-the-brand", "Gather Embers", [
                 item("staff"),
                 .gainMaterial(.wood),
             ]),
@@ -212,7 +212,7 @@ extension MysteryEventPool {
         narrative: "An offering bowl holds {A} while rusted chains bind {B} below.",
         artID: "mystery-ancient-altar",
         choices: [
-            ("take-the-offering", "Collect Tribute", [
+            ("take-the-offering", "Take Tribute", [
                 item("topaz_amulet", trinkets: ["merchants_favor"], uniques: ["the_golden_crucible"]),
                 .gainGold(20),
             ]),
@@ -233,7 +233,7 @@ extension MysteryEventPool {
                 item("dagger", trinkets: ["cutpurse_knife"]),
                 .gainGold(20),
             ]),
-            ("claim-blade", "Search the Pack", [
+            ("claim-blade", "Search Pack", [
                 item("shortsword", trinkets: ["smugglers_map"], uniques: ["the_patient_edge"]),
                 .gainMaterial(.hide),
             ]),
@@ -246,11 +246,11 @@ extension MysteryEventPool {
         narrative: "Burial coins surround {A} while fallen masonry pins {B} beside the crypt.",
         artID: "mystery-overgrown-temple",
         choices: [
-            ("search-the-crypt", "Search the Crypt", [
+            ("search-the-crypt", "Search Crypt", [
                 item("topaz_amulet", trinkets: ["sin_eaters_lantern"]),
                 .gainGold(20),
             ]),
-            ("take-a-tile", "Clear the Rubble", [
+            ("take-a-tile", "Clear Rubble", [
                 item("plate_armor", uniques: ["saintfall_plate", "oathkeeper"]),
                 .gainMaterial(.stone),
             ]),
@@ -263,11 +263,11 @@ extension MysteryEventPool {
         narrative: "An unfinished spell surrounds {A}, and a splintered cabinet hides {B}.",
         artID: "mystery-abandoned-study",
         choices: [
-            ("search-scrolls", "Study the Spell", [
+            ("search-scrolls", "Study Spell", [
                 item("wand", trinkets: ["runic_quill"], uniques: ["the_final_spark"]),
                 .gainExperience,
             ]),
-            ("take-the-quill", "Open the Cabinet", [
+            ("take-the-quill", "Open Cabinet", [
                 item("sapphire_amulet", trinkets: ["frozen_pocketwatch"]),
                 .gainMaterial(.wood),
             ]),
@@ -280,7 +280,7 @@ extension MysteryEventPool {
         narrative: "Loose pages reveal {A} while a crystal seal imprisons {B}.",
         artID: "mystery-mysterious-tome",
         choices: [
-            ("take-the-pages", "Study the Pages", [
+            ("take-the-pages", "Study Pages", [
                 item("spellbook", trinkets: ["tattered_pages"], uniques: ["threefold_grace"]),
                 .gainExperience,
             ]),
@@ -301,7 +301,7 @@ extension MysteryEventPool {
                 item("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 .gainMaterial(.gems),
             ]),
-            ("take-the-shell", "Break the Shell", [
+            ("take-the-shell", "Break Shell", [
                 item("topaz_amulet", trinkets: ["sundering_charm"]),
                 .gainMaterial(.stone),
             ]),
@@ -318,7 +318,7 @@ extension MysteryEventPool {
                 item("ruby_amulet", trinkets: ["meteorite"], uniques: ["bloodember_pendant"]),
                 .gainMaterial(.iron),
             ]),
-            ("search-the-crater", "Search the Ruins", [
+            ("search-the-crater", "Search Ruins", [
                 item("maul", trinkets: ["obsidian_hammer"], uniques: ["kingbreaker"]),
                 .gainMaterial(.stone),
             ]),
@@ -331,11 +331,11 @@ extension MysteryEventPool {
         narrative: "An ancient skeleton guards {A} while gold coins spill around {B}.",
         artID: "mystery-forgotten-hoard",
         choices: [
-            ("collect-the-bones", "Search the Bones", [
+            ("collect-the-bones", "Search Bones", [
                 item("ruby_amulet", trinkets: ["bone_charm"]),
                 .gainMaterial(.iron),
             ]),
-            ("claim-the-shield", "Recover the Hoard", [
+            ("claim-the-shield", "Recover Hoard", [
                 item("kite_shield", trinkets: ["vanguards_crest"], uniques: ["the_knights_answer"]),
                 .gainGold(30),
             ]),
@@ -365,11 +365,11 @@ extension MysteryEventPool {
         narrative: "A deserted lodge shelters {A}, and split logs surround {B} outside.",
         artID: "mystery-hunters-lodge",
         choices: [
-            ("claim-the-bow", "Take the Weapon", [
+            ("claim-the-bow", "Take Weapon", [
                 item("crossbow", uniques: ["blackfletch", "huntsmasters_call", "wrenflight"]),
                 .gainMaterial(.hide),
             ]),
-            ("take-the-hatchet", "Gather the Tools", [
+            ("take-the-hatchet", "Gather Tools", [
                 item("hatchet", uniques: ["the_unclosing_wound"]),
                 .gainMaterial(.wood),
             ]),
@@ -386,7 +386,7 @@ extension MysteryEventPool {
                 item("topaz_amulet", trinkets: ["brass_censer"]),
                 .gainMaterial(.herbs),
             ]),
-            ("claim-censer", "Take the Offering", [
+            ("claim-censer", "Take Offering", [
                 item("topaz_ring", uniques: ["golden_verdict"]),
                 .gainGold(20),
             ]),

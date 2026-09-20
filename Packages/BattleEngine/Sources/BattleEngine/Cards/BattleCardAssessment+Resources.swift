@@ -6,14 +6,17 @@ extension BattleState {
         _ branch: AbilityOutcomeBranch, original: Ability, actor: Combatant,
     ) -> [BattleCardAssessment.ResourceUse] {
         var resources: [BattleCardAssessment.ResourceUse] = []
+        if original.blockCost > 0 {
+            resources.append(resourceUse(.block, amount: original.blockCost, actor: actor))
+        }
         let healthCost = BattleAbilityRules.healthCost(branch.damageComponents, actor: actor, in: self)
         if healthCost > 0 {
             resources.append(resourceUse(.health, amount: healthCost, actor: actor))
         }
         let ability = Ability(
             id: original.id, name: original.name, tier: original.tier,
-            damageComponents: branch.damageComponents, targetedEffects: branch.targetedEffects,
             repeatsManaEmpowerment: original.repeatsManaEmpowerment,
+            operations: branch.operations,
         )
         resources.append(contentsOf: empowermentResourceUses(ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords))
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: self)

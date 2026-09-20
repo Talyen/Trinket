@@ -160,6 +160,60 @@ extension BattleTurnEngineTests {
         #expect(battle.roster.hero.currentHealth == heroHealthBefore)
     }
 
+    @Test func `ambush applies only once through a composed build`() throws {
+        var context = try enemyTraitContext("bandit")
+        let target = context.hero
+        let options = DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
+        for expectedDamage in [4, 2] {
+            let healthBefore = context.health(of: target)
+            _ = context.resolveDamage(DamageRequest(
+                amount: 2, target: target, keyword: .physical, sourceActorID: context.enemy.id, options: options,
+            ))
+            #expect(healthBefore - context.health(of: target) == expectedDamage)
+        }
+    }
+
+    @Test func `searing body retaliates while cold shocked remains a separate weakness`() throws {
+        var context = try enemyTraitContext("fire_elemental")
+        let hero = context.hero
+        _ = context.resolveDamage(DamageRequest(
+            amount: 1, target: context.enemy, keyword: .physical, sourceActorID: hero.id,
+            options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+        #expect(context.roster.hasAffliction(.burn, on: hero))
+        #expect(context.enemyModifiers.damageTakenVulnerability[.freeze] == 0.30)
+    }
+
+    @Test func `cleric feedback names each independent trait`() throws {
+        var context = try enemyTraitContext("cleric")
+        let enemy = context.enemy
+        context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 5 }
+        let blockEvents = CombatTriggerEngine.turnBlock(for: enemy, in: &context)
+        #expect(blockEvents.contains { $0.abilityName == "Watchful Guard" && $0.targetID == enemy.id })
+        let outcome = context.resolveDamage(DamageRequest(
+            amount: 2, target: context.hero, keyword: .holy, sourceActorID: enemy.id,
+            options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+        #expect(outcome.events.contains { $0.abilityName == "Restoring Light" && $0.targetID == enemy.id })
+    }
+
+    @Test(arguments: ["the_frostwarden", "the_iron_bear", "the_blight_treant", "the_forge_golem",
+                      "the_blood_countess", "the_seraph", "the_stone_titan"])
+    func `split boss auras keep their every other round cadence`(enemyID: String) throws {
+        var context = try enemyTraitContext(enemyID)
+        let enemy = context.enemy
+        for turn in 1 ... 4 {
+            context.turnCount = turn
+            let heroHealth = context.health(of: context.hero)
+            let companionHealth = context.health(of: context.companion)
+            _ = EnemyTraitEngine.turnFreeze(for: enemy, context: &context)
+            _ = EnemyTraitEngine.turnRandomDamageAllEnemies(for: enemy, context: &context)
+            let expectedDamage = turn.isMultiple(of: 2) ? 1 : 0
+            #expect(heroHealth - context.health(of: context.hero) == expectedDamage)
+            #expect(companionHealth - context.health(of: context.companion) == expectedDamage)
+        }
+    }
+
     private func enemyTraitContext(_ enemyID: String, heroModifiers: CombatModifierProfile = .zero) throws -> BattleState {
         let definition = try #require(GameContent.enemy(matching: enemyID))
         let build = CombatBuildResolver.build(enemy: definition)

@@ -36,11 +36,13 @@ enum AbilityValidator {
         "sap-arrow",
         "serrated-edge",
         "shadowstep",
+        "shield-bash",
         "slash",
         "smite",
         "sniff-out",
         "stab",
         "sunburst",
+        "sunder",
         "thorn-mail",
         "tithe",
     ]
@@ -93,6 +95,9 @@ enum AbilityValidator {
         if let branches = ability.outcomeBranches {
             componentSets.append(contentsOf: branches.map(\.damageComponents))
         }
+        if let conditional = ability.conditionalOutcome {
+            componentSets.append(conditional.operations.compactMap(\.damageComponent))
+        }
         return componentSets.compactMap { components in
             let enemyDamageTotal = components
                 .filter { $0.target == .abilityTarget }
@@ -142,8 +147,10 @@ enum AbilityValidator {
             (1 ... 12).contains(total)
         case "bash":
             total == 4
-        case "ice-shot":
-            total == 4
+        case "ice-shot", "shield-bash":
+            total == 5
+        case "maul":
+            total == 3
         case "slash":
             total == 3
         default:

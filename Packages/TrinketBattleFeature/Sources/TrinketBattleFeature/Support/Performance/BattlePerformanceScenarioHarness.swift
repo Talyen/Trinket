@@ -81,6 +81,8 @@ struct BattlePerformanceScenarioHarness: View {
             + ":rasterHits=\(raster.hitCount)"
             + ":rasterMisses=\(raster.missCount)"
             + ":rasterBuilds=\(raster.buildCount)"
+            + ":rasterBytes=\(raster.estimatedByteCount)"
+            + ":rasterEntries=\(raster.entryCount)"
             + ":numericRasterMisses=\(raster.numericMissCount)"
             + ":unexpectedClosedVocabularyBuilds=\(raster.unexpectedClosedVocabularyBuildCount)"
     }

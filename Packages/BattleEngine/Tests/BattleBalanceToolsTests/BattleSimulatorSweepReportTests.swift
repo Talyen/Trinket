@@ -315,6 +315,6 @@ struct BattleSimulatorSweepReportTests {
         #expect(markdown.contains("SHORT%"))
         #expect(markdown.contains("Avg rounds"))
         #expect(report.records.allSatisfy { !$0.enemyAbilityIDs.isEmpty })
-        #expect(report.records.allSatisfy { !$0.enemyTraitID.isEmpty })
+        #expect(report.records.allSatisfy { !$0.enemyTraitIDs.isEmpty })
     }
 }

@@ -15,11 +15,10 @@ struct MysterySpecialChoiceCard: View {
             onSelect()
         } label: {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                Text(balanced: choice.label)
+                Text(choice.label)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(.primary)
-                    .multilineTextAlignment(.leading)
-                    .trinketFittedText()
+                    .trinketSingleLineFittedText()
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 rewards

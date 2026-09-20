@@ -59,6 +59,32 @@ struct CombatFeedbackChipPresentationTests {
 /// the pure resolution tests above run in parallel.
 @Suite(.serialized)
 struct CombatFeedbackBridgeSerializedTests {
+    @Test @MainActor func `evicted stationary results cannot reappear after a publication or host remount`() {
+        CombatFeedbackChipBridge.debugReset()
+        defer { CombatFeedbackChipBridge.debugReset() }
+        let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        CombatFeedbackChipBridge.register(view, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        let now = Date.now
+        var first = makeTestItem(id: 1, targetID: "hero", amount: 10, availableAt: now)
+        first.usesStationaryExperiment = true
+        first.reservedDigitCount = 3
+        var second = makeTestItem(id: 2, targetID: "hero", amount: 20, availableAt: now)
+        second.usesStationaryExperiment = true
+        second.reservedDigitCount = 3
+        var evicted: Set<Int> = []
+        CombatFeedbackChipBridge.publish(.replace([first, second]), onEvict: { evicted.formUnion($0) })
+        #expect(evicted == [1])
+        #expect(view.debugVisibleChipIDs == [2])
+        CombatFeedbackChipBridge.publish(.replace([first, second]))
+        #expect(view.debugVisibleChipIDs == [2])
+        CombatFeedbackChipBridge.unregister(view)
+        let replacement = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        CombatFeedbackChipBridge.register(replacement, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        #expect(replacement.debugVisibleChipIDs == [2])
+        CombatFeedbackChipBridge.publish(.reset)
+        #expect(replacement.debugVisibleChipIDs.isEmpty)
+    }
+
     @Test @MainActor func `bridge preserves chip display order when cache misses occur`() {
         CombatFeedbackChipBridge.debugReset()
         defer { CombatFeedbackChipBridge.debugReset() }

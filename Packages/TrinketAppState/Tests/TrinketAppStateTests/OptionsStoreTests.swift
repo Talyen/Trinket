@@ -10,6 +10,18 @@ struct OptionsStoreTests {
         context = try AppTestContext()
     }
 
+    #if DEBUG
+    @Test func `stationary feedback defaults on and persists an explicit choice`() {
+        let defaults = context.userDefaults
+        let first = OptionsStore(defaults: defaults)
+        #expect(first.stationaryFeedbackExperimentEnabled)
+        first.stationaryFeedbackExperimentEnabled = false
+        #expect(!OptionsStore(defaults: defaults).stationaryFeedbackExperimentEnabled)
+        OptionsStore.clearDefaults(from: defaults)
+        #expect(OptionsStore(defaults: defaults).stationaryFeedbackExperimentEnabled)
+    }
+    #endif
+
     @Test func `clears stale auto battle when remember is off on load`() {
         context.userDefaults.set(true, forKey: OptionsStore.autoBattleEnabledKey)
 

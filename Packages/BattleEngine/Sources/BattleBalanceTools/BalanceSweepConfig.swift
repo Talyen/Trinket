@@ -158,7 +158,7 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
     public var heroAbilityIDs: [String]
     public var companionAbilityIDs: [String]
     public var enemyAbilityIDs: [String]
-    public var enemyTraitID: String
+    public var enemyTraitIDs: [String]
     public var affixIDs: [String]
     public var heroAffixIDs: [String]
     public var companionAffixIDs: [String]
@@ -179,7 +179,7 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
         heroAbilityIDs: [String],
         companionAbilityIDs: [String],
         enemyAbilityIDs: [String],
-        enemyTraitID: String,
+        enemyTraitIDs: [String],
         affixIDs: [String],
         heroAffixIDs: [String] = [],
         companionAffixIDs: [String] = [],
@@ -199,7 +199,7 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
         self.heroAbilityIDs = heroAbilityIDs
         self.companionAbilityIDs = companionAbilityIDs
         self.enemyAbilityIDs = enemyAbilityIDs
-        self.enemyTraitID = enemyTraitID
+        self.enemyTraitIDs = enemyTraitIDs
         self.affixIDs = affixIDs
         self.heroAffixIDs = heroAffixIDs
         self.companionAffixIDs = companionAffixIDs
@@ -210,6 +210,61 @@ public struct BalanceBattleRecord: Equatable, Codable, Sendable {
         self.seed = seed
         self.policyID = policyID
         self.result = result
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case tier
+        case heroID
+        case companionID
+        case enemyID
+        case isBoss
+        case heroAbilityIDs
+        case companionAbilityIDs
+        case enemyAbilityIDs
+        case enemyTraitIDs
+        case affixIDs
+        case heroAffixIDs
+        case companionAffixIDs
+        case heroItemBaseIDs
+        case companionItemBaseIDs
+        case heroTalentIDs
+        case companionTalentIDs
+        case seed
+        case policyID
+        case result
+    }
+
+    private enum LegacyCodingKeys: String, CodingKey {
+        case enemyTraitID
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        tier = try values.decode(SimulationPowerTier.self, forKey: .tier)
+        heroID = try values.decode(String.self, forKey: .heroID)
+        companionID = try values.decode(String.self, forKey: .companionID)
+        enemyID = try values.decode(String.self, forKey: .enemyID)
+        isBoss = try values.decode(Bool.self, forKey: .isBoss)
+        heroAbilityIDs = try values.decode([String].self, forKey: .heroAbilityIDs)
+        companionAbilityIDs = try values.decode([String].self, forKey: .companionAbilityIDs)
+        enemyAbilityIDs = try values.decode([String].self, forKey: .enemyAbilityIDs)
+        if let ids = try values.decodeIfPresent([String].self, forKey: .enemyTraitIDs) {
+            enemyTraitIDs = ids
+        } else {
+            let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
+            let id = try legacy.decode(String.self, forKey: .enemyTraitID)
+            enemyTraitIDs = id.isEmpty ? [] : [id]
+        }
+        affixIDs = try values.decode([String].self, forKey: .affixIDs)
+        heroAffixIDs = try values.decode([String].self, forKey: .heroAffixIDs)
+        companionAffixIDs = try values.decode([String].self, forKey: .companionAffixIDs)
+        heroItemBaseIDs = try values.decode([String].self, forKey: .heroItemBaseIDs)
+        companionItemBaseIDs = try values.decode([String].self, forKey: .companionItemBaseIDs)
+        heroTalentIDs = try values.decode([String].self, forKey: .heroTalentIDs)
+        companionTalentIDs = try values.decode([String].self, forKey: .companionTalentIDs)
+        seed = try values.decode(UInt64.self, forKey: .seed)
+        policyID = try values.decode(String.self, forKey: .policyID)
+        result = try values.decode(BattleSimResult.self, forKey: .result)
     }
 }
 

@@ -291,7 +291,7 @@ public enum BalanceSweepRunner {
             heroAbilityIDs: parts.matchup.context.heroLoadout.abilities.map(\.id),
             companionAbilityIDs: parts.matchup.context.companionLoadout.abilities.map(\.id),
             enemyAbilityIDs: parts.matchup.enemy.abilities.map(\.id),
-            enemyTraitID: parts.enemy.traitID,
+            enemyTraitIDs: parts.enemy.traitIDs,
             affixIDs: parts.matchup.context.heroAffixIDs + parts.matchup.context.companionAffixIDs,
             heroAffixIDs: parts.matchup.context.heroAffixIDs,
             companionAffixIDs: parts.matchup.context.companionAffixIDs,

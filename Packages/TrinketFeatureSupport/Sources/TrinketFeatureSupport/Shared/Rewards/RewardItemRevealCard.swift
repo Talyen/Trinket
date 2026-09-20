@@ -13,16 +13,6 @@ struct RewardItemRevealCard: View {
         verticalSizeClass == .compact ? 180 : 234
     }
 
-    private var glowColor: Color {
-        if let first = item.displayShine.colors?.first {
-            return first
-        }
-        if let firstKeyword = item.plasmaKeywords.first {
-            return firstKeyword.visualStyle.color
-        }
-        return TrinketDesign.Colors.accent
-    }
-
     private var burstColors: [Color] {
         var colors = item.displayShine.colors ?? []
         if colors.isEmpty {
@@ -52,19 +42,6 @@ struct RewardItemRevealCard: View {
             content
                 .scaleEffect(value.scale)
                 .overlay {
-                    if value.glowOpacity > 0.01 {
-                        ZStack {
-                            TrinketDesign.cardShape
-                                .strokeBorder(glowColor, lineWidth: 3)
-                                .blur(radius: 6)
-                            TrinketDesign.cardShape
-                                .strokeBorder(TrinketDesign.Colors.Overlay.paper, lineWidth: 1.5)
-                        }
-                        .opacity(value.glowOpacity)
-                        .allowsHitTesting(false)
-                    }
-                }
-                .overlay {
                     RewardCollectionBurstView(
                         progress: value.particleProgress,
                         colors: burstColors,
@@ -74,10 +51,6 @@ struct RewardItemRevealCard: View {
             KeyframeTrack(\.scale) {
                 CubicKeyframe(TrinketMotion.Reward.cardCollectionPopScale, duration: 0.12)
                 SpringKeyframe(1.0, duration: 0.23, spring: .snappy(duration: 0.23, extraBounce: 0.1))
-            }
-            KeyframeTrack(\.glowOpacity) {
-                LinearKeyframe(1.0, duration: 0.08)
-                CubicKeyframe(0.0, duration: 0.27)
             }
             KeyframeTrack(\.particleProgress) {
                 LinearKeyframe(0.0, duration: 0.02)
@@ -89,6 +62,5 @@ struct RewardItemRevealCard: View {
 
 private struct RewardCardCollectionValues {
     var scale: Double = 1.0
-    var glowOpacity: Double = 0.0
     var particleProgress: Double = 0.0
 }

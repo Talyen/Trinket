@@ -7,6 +7,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct CombatFeedbackRasterKey: Hashable {
+    let usesStationaryExperiment: Bool
     let typography: CombatFeedbackTypographyTier
     let presentation: CombatFeedbackChipPresentation
     let layoutDirection: LayoutDirection
@@ -17,6 +18,7 @@ struct CombatFeedbackRasterKey: Hashable {
         layoutDirection: LayoutDirection,
         displayScale: CGFloat,
     ) {
+        usesStationaryExperiment = item.usesStationaryExperiment
         typography = item.feedbackClass.typographyTier
         presentation = item.chipPresentation
         self.layoutDirection = layoutDirection
@@ -25,6 +27,9 @@ struct CombatFeedbackRasterKey: Hashable {
 }
 
 final class CombatFeedbackRaster {
+    let shineMask: CGImage?
+    let textWidth: CGFloat
+    let maximumDigitWidth: CGFloat
     let key: CombatFeedbackRasterKey
     let image: CGImage
     let pointSize: CGSize
@@ -35,7 +40,13 @@ final class CombatFeedbackRaster {
         image: CGImage,
         pointSize: CGSize,
         displayScale: CGFloat,
+        shineMask: CGImage? = nil,
+        textWidth: CGFloat = 0,
+        maximumDigitWidth: CGFloat = 0,
     ) {
+        self.shineMask = shineMask
+        self.textWidth = textWidth
+        self.maximumDigitWidth = maximumDigitWidth
         self.key = key
         self.image = image
         self.pointSize = pointSize
@@ -156,6 +167,7 @@ final class CombatFeedbackRasterPool {
             feedbackClass: item.feedbackClass,
             layoutDirection: layoutDirection,
             displayScale: scale,
+            needsShineMask: item.usesStationaryExperiment,
         ) else {
             return nil
         }
@@ -165,6 +177,9 @@ final class CombatFeedbackRasterPool {
             image: composed.image,
             pointSize: composed.pointSize,
             displayScale: scale,
+            shineMask: composed.shineMask,
+            textWidth: composed.textWidth,
+            maximumDigitWidth: composed.maximumDigitWidth,
         )
         buildCount += 1
         rasterAllocationCount += 1
@@ -216,6 +231,8 @@ final class CombatFeedbackRasterPool {
                 let raster = CombatFeedbackRaster(
                     key: request.0, image: image.image,
                     pointSize: image.pointSize, displayScale: displayScale,
+                    shineMask: image.shineMask, textWidth: image.textWidth,
+                    maximumDigitWidth: image.maximumDigitWidth,
                 )
                 buildCount += 1
                 rasterAllocationCount += 1
@@ -234,7 +251,15 @@ final class CombatFeedbackRasterPool {
     private func rasterRequests(
         displayScale: CGFloat,
     ) -> [(CombatFeedbackRasterKey, CombatFeedbackChipComposer.RasterInputs)] {
-        CombatFeedbackClosedVocabulary.orderedChips().compactMap { item -> (
+        var items = CombatFeedbackClosedVocabulary.orderedChips()
+        #if DEBUG
+        items += items.map { item in
+            var experimental = item
+            experimental.usesStationaryExperiment = true
+            return experimental
+        }
+        #endif
+        return items.compactMap { item -> (
             CombatFeedbackRasterKey,
             CombatFeedbackChipComposer.RasterInputs,
         )? in
@@ -244,6 +269,7 @@ final class CombatFeedbackRasterPool {
                       presentation: item.chipPresentation,
                       feedbackClass: item.feedbackClass,
                       displayScale: displayScale,
+                      needsShineMask: item.usesStationaryExperiment,
                   ) else { return nil }
             return (rasterKey, inputs)
         }
@@ -273,6 +299,7 @@ final class CombatFeedbackRasterPool {
             entryCount: rasters.count,
             estimatedByteCount: rasters.values.reduce(0) {
                 $0 + $1.image.bytesPerRow * $1.image.height
+                    + ($1.shineMask.map { $0.bytesPerRow * $0.height } ?? 0)
             },
             hitCount: hitCount,
             missCount: missCount,

@@ -26,12 +26,12 @@ struct KeywordCohesionMechanicsTests {
     @Test func `sniff out grants typed physical once and refreshes`() throws {
         var battle = cohesionBattleWithHand(.sniffOut)
         _ = try BattleTestFixtures.playCardNamed("Sniff Out", owner: .hero, on: &battle)
-        try #expect(battle.resolution.pendingPartyPhysicalDamage(from: battle.hero.id) == 3)
+        try #expect(battle.resolution.pendingPhysicalDamage(for: battle.companion.id) == 3)
         // Reapplication refreshes rather than accumulating.
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .sniffOut, owner: .hero)])
         _ = try BattleTestFixtures.playCardNamed("Sniff Out", owner: .hero, on: &battle)
-        try #expect(battle.resolution.pendingPartyPhysicalDamage(from: battle.hero.id) == 3)
+        try #expect(battle.resolution.pendingPhysicalDamage(for: battle.companion.id) == 3)
         // Next ordinary party attack consumes once on one hit.
         let slash = Ability(id: "slash-test", name: "Slash", tier: .basic, directDamage: 2, damageKeyword: .physical)
         battle.nextCardID += 1
@@ -40,7 +40,7 @@ struct KeywordCohesionMechanicsTests {
         _ = try BattleTestFixtures.playCardNamed("Slash", owner: .companion, on: &battle)
         // 2 base + 3 Sniff Out Physical = 5 (no equipment multiply, single hit).
         try #expect(before - battle.roster.enemy.currentHealth == 5)
-        try #expect(battle.resolution.pendingPartyPhysicalDamage(from: battle.hero.id) == 0)
+        try #expect(battle.resolution.pendingPhysicalDamage(for: battle.companion.id) == 0)
     }
 
     @Test func `predators focus crits and leeches without duplicating`() throws {

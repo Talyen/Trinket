@@ -40,8 +40,8 @@ struct CombatFeedbackChipPresentation: Hashable {
                 feedbackClass: feedbackClass,
             )
             return Self(
-                leadingStyle: nil,
-                trailingStyle: style,
+                leadingStyle: visualRole == .beneficialStatus ? .beneficialStatus : nil,
+                trailingStyle: visualRole == .beneficialStatus ? .keyword(keyword) : style,
                 text: label.displayString,
             )
         case let .word(word):
@@ -59,16 +59,8 @@ struct CombatFeedbackChipPresentation: Hashable {
         switch word {
         case .dodge:
             iconOnly(trailing: .keyword(.dodge))
-        case let .plain(chipKeyword):
-            if chipKeyword == .deathsDoor {
-                iconOnly(trailing: .keyword(.deathsDoor))
-            } else {
-                textAndIcon(trailing: .keyword(chipKeyword), text: chipKeyword.rawValue)
-            }
-        case let .applied(chipKeyword):
-            textAndIcon(trailing: .keyword(chipKeyword), text: chipKeyword.rawValue)
-        case let .triggered(chipKeyword):
-            textAndIcon(trailing: .keyword(chipKeyword), text: chipKeyword.rawValue)
+        case let .plain(chipKeyword), let .applied(chipKeyword), let .triggered(chipKeyword):
+            iconOnly(trailing: .keyword(chipKeyword))
         case let .cleanse(chipKeyword):
             dualAction(leading: .keyword(.cleanse), trailing: .keyword(chipKeyword))
         case let .purge(chipKeyword):
@@ -76,17 +68,6 @@ struct CombatFeedbackChipPresentation: Hashable {
         case let .status(status):
             resolveStatus(status, keyword: keyword)
         }
-    }
-
-    private static func textAndIcon(
-        trailing: Style,
-        text: String,
-    ) -> Self {
-        Self(
-            leadingStyle: nil,
-            trailingStyle: trailing,
-            text: text,
-        )
     }
 
     private static func resolveStatus(

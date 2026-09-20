@@ -89,7 +89,11 @@ all three controls. Filtered results show their count against eligible gear.
 Each visit starts with equipped gear first, then Unique, Astral, Basic, and name
 (with item identity breaking ties). Inspection preserves ordering, filters, and
 scroll position; changing filters returns to the top. Successfully equipping closes
-the picker. The currently equipped item's detail offers Unequip, which also closes
+the picker. Compact, icon-only equipment badges use a checkmark for the combatant
+being edited and a person for another wearer. Accessibility labels name the other
+wearer; the detail action says “Move from [name]” before transferring the item.
+Ownership comes from the live roster so the badge follows saved loadout changes.
+The currently equipped item's detail offers Unequip, which also closes
 the picker after a successful save. Failed edits preserve the detail for retry.
 Combatant details receive read-only loadouts and result-returning edit commands;
 save results control success feedback and navigation, never binding readback.

@@ -58,7 +58,7 @@ public struct CombatantDetailPane: View {
         guard combatant.role == .enemy,
               let enemy = GameContent.enemy(matching: combatant.id)
         else { return [] }
-        return GameContent.trait(for: enemy).map { [$0] } ?? []
+        return GameContent.traits(for: enemy)
     }
 
     public var body: some View {

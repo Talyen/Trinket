@@ -242,7 +242,7 @@ package extension CombatTriggerEngine {
             count,
             for: owner,
             actor: source,
-            abilityName: triggerAbilityName("cleanseBonusDraw", for: source, fallback: traitName(for: source, in: context), in: context),
+            abilityName: triggerAbilityName("cleanseBonusDraw", for: source, fallback: "Trait", in: context),
             in: &context,
         )
     }

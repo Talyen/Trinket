@@ -4,6 +4,22 @@ public enum AbilityOperation: Hashable, Sendable {
     case damage(DamageComponent)
     case effect(TargetedEffect)
 
+    var damageComponent: DamageComponent? {
+        if case let .damage(component) = self {
+            component
+        } else {
+            nil
+        }
+    }
+
+    var targetedEffect: TargetedEffect? {
+        if case let .effect(targeted) = self {
+            targeted
+        } else {
+            nil
+        }
+    }
+
     public var target: EffectTarget {
         switch self {
         case let .damage(component): component.target
@@ -54,41 +70,38 @@ public enum AbilityOperation: Hashable, Sendable {
 }
 
 public extension Ability {
-    var operations: [AbilityOperation] {
-        damageComponents.map(AbilityOperation.damage) + targetedEffects.map(AbilityOperation.effect)
-    }
-
     var possibleOperations: [AbilityOperation] {
-        guard let outcomeBranches else { return operations }
-        return outcomeBranches.flatMap(\.operations)
+        if let outcomeBranches {
+            return outcomeBranches.flatMap(\.operations)
+        }
+        return operations + (conditionalOutcome?.operations ?? [])
     }
 
-    func replacingOperations(_ operations: [AbilityOperation]) -> Self {
+    func replacingOperations(_ operations: [AbilityOperation], blockCost: Int? = nil, resolveCondition: Bool = false) -> Self {
         Self(
             id: id, name: name, tier: tier, description: descriptionOverride,
-            damageComponents: operations.compactMap {
-                if case let .damage(component) = $0 {
-                    component
-                } else {
-                    nil
-                }
-            },
-            targetedEffects: operations.compactMap {
-                if case let .effect(targeted) = $0 {
-                    targeted
-                } else {
-                    nil
-                }
-            },
             outcomeBranches: outcomeBranches, criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed, hasLeech: hasLeech,
             repeatsManaEmpowerment: repeatsManaEmpowerment, stealsGold: stealsGold,
+            operations: operations, conditionalOutcome: resolveCondition ? nil : conditionalOutcome,
+            blockCost: blockCost ?? self.blockCost, guaranteedCriticalCondition: guaranteedCriticalCondition,
         )
     }
 }
 
-public extension AbilityOutcomeBranch {
-    var operations: [AbilityOperation] {
-        damageComponents.map(AbilityOperation.damage) + targetedEffects.map(AbilityOperation.effect)
+public struct AbilityConditionalOutcome: Hashable, Sendable {
+    public let condition: DamageCondition
+    public let operations: [AbilityOperation]
+    public let blockCost: Int
+    public let contributesToIdentity: Bool
+
+    public init(
+        condition: DamageCondition, operations: [AbilityOperation], blockCost: Int = 0,
+        contributesToIdentity: Bool = true,
+    ) {
+        self.condition = condition
+        self.operations = operations
+        self.blockCost = blockCost
+        self.contributesToIdentity = contributesToIdentity
     }
 }

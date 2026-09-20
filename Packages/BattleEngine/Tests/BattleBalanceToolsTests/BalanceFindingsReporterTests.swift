@@ -247,7 +247,7 @@ struct BalanceFindingsReporterTests {
             heroAbilityIDs: ["bash", "smite"],
             companionAbilityIDs: ["maul"],
             enemyAbilityIDs: abilities,
-            enemyTraitID: "\(enemyID)_trait",
+            enemyTraitIDs: ["\(enemyID)_trait"],
             affixIDs: [],
             heroTalentIDs: [],
             companionTalentIDs: [],

@@ -6,6 +6,7 @@ final class ResolvedActionFacts: Sendable {
     let origin: DamageOperation.AttackOrigin
     let originalAbility: Ability
     let ability: Ability
+    let guaranteedCritical: Bool
     let isRandom: Bool
     let damageKeywords: Set<Keyword>
     let cleanses: Bool
@@ -21,6 +22,9 @@ final class ResolvedActionFacts: Sendable {
         self.origin = origin
         originalAbility = original
         ability = resolved
+        guaranteedCritical = resolved.guaranteedCriticalCondition.map {
+            BattleConditionEvaluator.isMet($0, action: action, in: context)
+        } ?? false
         isRandom = original.outcomeBranches != nil
         var keywords: Set<Keyword> = []
         var cleanses = false

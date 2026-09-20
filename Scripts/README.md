@@ -40,6 +40,7 @@ with `handoff.sh --isolate --dry-run --paths <files...>` before an unfamiliar ro
 | Development | [Generation, builds, discovery, and simulator/device launch](Reference.md#development) |
 | Verification | [Package tests, UI checks, handoff, and gates](Reference.md#verification) |
 | Assets | [Artwork and media preparation](Reference.md#assets) |
+| TestFlight | `./Scripts/testflight.sh` — [one-time setup and recovery](../Docs/Platform/Release.md#local-testflight-deployment) |
 | Release | [Release and deploy verification](Reference.md#release) |
 | Automated playthroughs | [Manual careers, replay, and comparison](Reference.md#headless-playthroughs) |
 | Diagnostics | [Failures, timings, performance, and cleanup](Reference.md#diagnostics) |

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Bonus-damage predicates. Evaluation lives in
+/// Ability predicates. Evaluation lives in
 /// `BattleEngine.BattleConditionEvaluator`; keep new cases in sync with its switch.
 public enum DamageCondition: CaseIterable, Hashable, Sendable {
     case enemyBleeding
@@ -14,6 +14,9 @@ public enum DamageCondition: CaseIterable, Hashable, Sendable {
     case enemyLowerHealthThanActor
     case allyBelowHalfHealth
     case enemyHasBuff
+    case enemyHasBlock
+    case enemyFullHealth
+    case actorHasTwoBlock
     case firstTurn
 
     /// Full sentence fragment used in card text (single home for condition copy).
@@ -32,6 +35,9 @@ public enum DamageCondition: CaseIterable, Hashable, Sendable {
         case .enemyLowerHealthThanActor: "the enemy has less Health than you"
         case .allyBelowHalfHealth: "your Hero or Companion is below half Health"
         case .enemyHasBuff: "the enemy has a buff"
+        case .enemyHasBlock: "the enemy has Block"
+        case .enemyFullHealth: "the enemy is at full Health"
+        case .actorHasTwoBlock: "you have at least 2 Block"
         case .firstTurn: "played on the first turn"
         }
     }

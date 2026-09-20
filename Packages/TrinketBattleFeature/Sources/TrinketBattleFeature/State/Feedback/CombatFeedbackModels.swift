@@ -11,6 +11,9 @@ enum CombatFeedbackVisualRole: Equatable {
 }
 
 struct CombatFeedbackItem: Identifiable, Equatable {
+    var usesStationaryExperiment = false
+    var reservedDigitCount = 0
+    var pausedAt: Date?
     let id: Int
     var sourceEventIDs: [Int]
     let actionGroupID: Int

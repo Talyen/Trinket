@@ -20,6 +20,13 @@ INTENTIONALLY_UNMAPPED = {
 }
 FAMILIES = (
     (
+        {"Scripts/testflight.sh", "Scripts/setup-testflight.sh",
+         "Scripts/lib/testflight-tools.sh", "Scripts/internal/testflight.rb",
+         "Scripts/config/testflight.example.json", "Scripts/Tests/testflight_test.rb",
+         "Gemfile", "Gemfile.lock"},
+        {"test_testflight"},
+    ),
+    (
         {"Scripts/config/generated-paths.tsv"},
         {"test_agent_diff", "test_agent_search"},
     ),

@@ -62,6 +62,7 @@ enum CombatFeedbackEffectPresentation {
     enum StatusChipLayout: Equatable {
         case dualBeneficial(trailing: Keyword)
         case dualNegative(trailing: Keyword)
+        case dualNegativeEventKeyword
         case dualBeneficialEventKeyword
         case iconOnlyNegative
     }
@@ -76,6 +77,8 @@ enum CombatFeedbackEffectPresentation {
         .manaShield: .dualBeneficial(trailing: .mana),
         .criticalUp: .dualBeneficial(trailing: .physical),
         .thorns: .dualBeneficial(trailing: .thorns),
+        .leech: .dualBeneficial(trailing: .leech),
+        .amplified: .dualNegativeEventKeyword,
         .ward: .dualBeneficialEventKeyword,
         .blockDown: .dualNegative(trailing: .block),
         .marked: .iconOnlyNegative,
@@ -109,6 +112,8 @@ enum CombatFeedbackEffectPresentation {
             labelRule: .amount,
             displayRule: .hidden,
         ),
+        .physicalPreparationApplied: Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .amount),
+        .blockSpent: Descriptor(.buff, labelRule: .negatedAmount),
         .shieldApplied: Descriptor(.buff, isAdditive: true, labelRule: .amount),
         .shieldAbsorbed: Descriptor(.block, isAdditive: true, labelRule: .negatedAmount),
         .dodgeApplied: Descriptor(.dodge, labelRule: .dodgeWord),
@@ -121,7 +126,7 @@ enum CombatFeedbackEffectPresentation {
         .deathsDoorExpired: Descriptor(.deathsDoor, labelRule: .deathsDoorIcon),
         .thornsTriggered: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
         .markedConsumed: Descriptor(.directDamage, displayRule: .hidden),
-        .leechApplied: Descriptor(.buff, labelRule: .plainKeyword, displayRule: .hidden),
+        .leechApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .leech),
         .shieldHalved: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .blockDown),
         .thornsApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .thorns),
         .markedApplied: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .marked),
@@ -135,7 +140,7 @@ enum CombatFeedbackEffectPresentation {
         .wardApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .ward),
         .avatarApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .avatar),
         .recurringDamageApplied: Descriptor(.dot, labelRule: .appliedKeyword),
-        .dotAmplified: Descriptor(.dot, labelRule: .triggeredKeyword),
+        .dotAmplified: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .amplified),
         .hemorrhageApplied: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .hemorrhage),
         .hemorrhageTriggered: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
     ]
@@ -160,6 +165,11 @@ private extension CombatFeedbackEffectPresentation.StatusChipLayout {
             CombatFeedbackChipPresentation.dualAction(
                 leading: .negativeStatus,
                 trailing: .keyword(trailing),
+            )
+        case .dualNegativeEventKeyword:
+            CombatFeedbackChipPresentation.dualAction(
+                leading: .negativeStatus,
+                trailing: .keyword(keyword),
             )
         case .dualBeneficialEventKeyword:
             CombatFeedbackChipPresentation.dualAction(

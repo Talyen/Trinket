@@ -11,7 +11,7 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if profile.triggers.blockPerTurn > 0 {
             events.append(contentsOf: emitBlock(
-                "blockPerTurn", traitName(for: combatant, in: context),
+                "blockPerTurn", "Trait",
                 amount: profile.triggers.blockPerTurn, to: combatant, source: combatant, in: &context,
             ))
         }
@@ -57,7 +57,7 @@ package extension CombatTriggerEngine {
             let abilityName = triggerAbilityName(
                 "autoCleanseTeamPerTurn",
                 for: sourceRuntime.combatant,
-                fallback: traitName(for: sourceRuntime.combatant, in: context),
+                fallback: "Trait",
                 in: context,
             )
             for targetOwner in [BattleParticipant.hero, .companion] {

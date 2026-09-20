@@ -329,6 +329,11 @@ public final class BattleSession: BattleRuntime {
         engineState = state
         activeBattle = configuration
         presentationContext = resolvedPresentation
+        #if DEBUG
+        feedback.usesStationaryExperiment = dependencies.stationaryFeedbackExperimentEnabled()
+        #else
+        feedback.usesStationaryExperiment = false
+        #endif
         resetRun(from: configuration)
         #if DEBUG
         if configuration.runKey != nil,

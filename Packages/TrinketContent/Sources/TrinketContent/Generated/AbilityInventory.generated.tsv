@@ -6,17 +6,17 @@ block	Block	basic	Gain 3 Block.
 caustic-jab	Caustic Jab	basic	Deal 1 Poison damage and halve the enemy's Block.
 fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
 fire-arrow	Fire Arrow	basic	Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage.
-ice-shot	Ice Shot	basic	Deal 2 Freeze damage. If this Freezes the enemy, deal 2 Physical damage.
+ice-shot	Ice Shot	basic	Deal 2 Freeze damage. Against Frozen enemies, deal 5 Physical instead.
 kindling	Kindling	basic	Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.
 mana-berries	Mana Berries	basic	Restore 2 Health and restore 2 Mana.
-maul	Maul	basic	Deal 2 Stun or Bleed damage at random.
+maul	Maul	basic	Deal 3 Bleed damage, or 3 Stun against enemies with Block.
 pixie-dust	Pixie Dust	basic	Deal 1 Burn damage and restore 1 Mana.
 ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage now and for 2 more turns.
 rending-slash	Rend	basic	Deal 2 Bleed damage.
-shield-bash	Shield Bash	basic	Deal 2 Stun damage and gain 1 Block.
+shield-bash	Shield Bash	basic	Deal 2 Stun damage. Spend 2 Block to deal 5 instead.
 slash	Slash	basic	Deal 2 to 3 Physical damage.
-sniff-out	Sniff Out	basic	Your party's next attack deals 3 additional Physical damage.
-stab	Stab	basic	Deal 2 Physical damage with a +25% chance to Critically Hit.
+sniff-out	Sniff Out	basic	Expose a weakness. Your partner’s next attack deals +3 Physical damage.
+stab	Stab	basic	Deal 2 Physical damage. Critically Hit enemies at full Health.
 stargaze	Stargaze	basic	Deal 1 Freeze damage and restore 1 Mana.
 venom-arrow	Venom Arrow	basic	Deal 2 Poison damage.
 acid-potion	Acid Potion	skill	Deal 3 Poison damage and halve the enemy's Block.
@@ -42,7 +42,7 @@ smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the
 spiked-shield	Spiked Shield	skill	Deal 2 Physical damage, gain 2 Block, and gain 2 Thorns.
 steal	Steal	skill	Deal 2 Physical damage and steal 2 Gold.
 stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
-sunder	Sunder	skill	Deal 4 Physical damage and halve the enemy's Block.
+sunder	Sunder	skill	Halve enemy Block, then deal 4 Physical damage.
 tithe	Tithe	skill	Deal 2 Holy damage and Steal 2 Gold.
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
 astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage.

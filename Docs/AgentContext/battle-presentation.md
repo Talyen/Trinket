@@ -87,6 +87,20 @@ recording parity remains in BattleEngine's card tests.
 
 ## Floating combat feedback
 
+Floating chips contain game icons and numbers, never spelled-out keyword or
+status names. Logs, ability descriptions, and accessibility wording remain text.
+Sniff Out shows beneficial-status + Physical icons with its prepared amount on
+the recipient; refreshing this preparation never adds its displayed numbers
+together. Leech preparation uses beneficial-status + Leech icons. Control
+triggers/skips and recurring applications use keyword icons. DoT amplification
+uses negative-status + keyword icons rather than implying another hit.
+Direct effects from automatically played cards remain visible, while unrelated
+passive benefit events retain their suppression. A successfully resolved catalog
+card with no visible result gets one primary-effect icon and zero; never add a
+zero beside actual feedback. Healing combines restored Health and overflow into
+one number, including at full Health.
+
+
 Each result uses the same typography and size curve whether alone or alongside
 other results on that combatant. Fit an individually oversized result against
 the artwork; never shrink the group or introduce smaller secondary typography
@@ -101,6 +115,37 @@ stationary hold, including during pop, while scale continues naturally. Already-
 groups keep their trajectory during the 0.15-second handoff fade; incoming results
 must not reposition outgoing feedback. Other combatants and same-action merge
 updates do not release or restart the hold. Unattended feedback lasts 0.95 seconds.
+
+### Stationary feedback experiment (DEBUG)
+
+Options → Developer → Stationary Feedback Experiment defaults on in DEBUG,
+persists locally, and applies at the next battle activation or Preview Lab entry.
+Release builds and disabled experiments retain the current behavior above.
+All existing floating result kinds use a fixed-center 2× → 1× cubic ease-out
+entrance over 0.25 seconds, then a smooth 0.25-second fade without rising.
+A single white gradient glint crosses glyph-only cached masks during entrance;
+keyword color, dark outlines, and critical emphasis remain intact.
+
+Place at the nearest available portrait-center position with an 8-point inset
+and 6-point gap, testing settled rectangles. Entrance overlap/clipping is allowed.
+Numeric reservations use widest-digit widths with one extra digit; wider updates
+emit separately. Existing positions and animation clocks never restart or reflow
+when another result arrives or expires. Matching semantic effects can merge across
+actions only before fade starts, without extending lifetime. Full portraits replace
+the oldest results until the new one fits; evicted results cannot receive merges
+or reappear. Resizing a portrait recomputes placements for its new bounds.
+
+The existing raster host, bridge, and shared motion clock own rendering. Masks
+are cached and included in pool byte diagnostics; per-frame work changes layer
+properties only. Feedback lifetimes also govern pending outcome timing. Suspension
+freezes experimental labels and resume shifts their original clocks.
+
+For a reproducible A/B capture, run the existing `engine-feedback` and
+`combined-worst-case` scenarios with
+`TEST_RUNNER_TRINKET_STATIONARY_FEEDBACK=0 ./Scripts/performance.sh --scenario engine-feedback --scenario combined-worst-case`,
+then repeat with `TEST_RUNNER_TRINKET_STATIONARY_FEEDBACK=1`. The UI test records
+the selected option in the report's app launch arguments; both runs retain the
+same fixture, production interactions, and measurement window.
 
 ## Display work lifecycle
 

@@ -27,20 +27,36 @@ enum BattleAbilityRules {
         }
     }
 
+    static func resolveConditionalOutcome(_ ability: Ability, actor: Combatant, in context: BattleState) -> Ability {
+        guard let conditional = ability.conditionalOutcome else { return ability }
+        let selected = BattleConditionEvaluator.isMet(conditional.condition, actor: actor, in: context)
+        return ability.replacingOperations(
+            selected ? conditional.operations : ability.operations,
+            blockCost: selected ? conditional.blockCost : ability.blockCost,
+            resolveCondition: true,
+        )
+    }
+
+    static func preparationRecipient(for actor: Combatant, in context: BattleState) -> Combatant {
+        BattleActionContext(actor: actor, in: context).allies(in: context)
+            .first { $0.id != actor.id && context.health(of: $0) > 0 } ?? actor
+    }
+
     static func resolveOutcome(_ ability: Ability, actor: Combatant, in context: inout BattleState) -> Ability {
+        let ability = resolveConditionalOutcome(ability, actor: actor, in: context)
         guard let branches = ability.outcomeBranches else { return ability }
         guard let selected = branches.randomElement(using: &context.rng) else { return ability }
-        let effects = selected.targetedEffects.compactMap { targeted -> TargetedEffect? in
+        let operations = selected.operations.compactMap { operation -> AbilityOperation? in
+            guard case let .effect(targeted) = operation else { return operation }
             if let condition = targeted.condition,
                !BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
                 return nil
             }
-            return TargetedEffect(targeted.effect, target: targeted.target)
+            return .effect(TargetedEffect(targeted.effect, target: targeted.target))
         }
         let branch = AbilityOutcomeBranch(
-            damageComponents: selected.damageComponents,
-            targetedEffects: effects,
             randomizeDamageKeywords: selected.randomizeDamageKeywords,
+            operations: operations,
         )
         return ability.resolving(branch: branch, using: &context.rng)
     }

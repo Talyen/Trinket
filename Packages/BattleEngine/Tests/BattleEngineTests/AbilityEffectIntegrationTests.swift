@@ -206,7 +206,7 @@ struct AbilityEffectIntegrationTests {
         try #expect(!events.contains { $0.kind == ActionEvent.Kind.status && $0.keyword == .burn })
     }
 
-    @Test func `ice shot shatters a frozen enemy`() {
+    @Test func `ice shot exploits freeze without consuming it`() {
         var context = iceShotBattle(frozenEnemy: true)
         let events = BattleTurnEngine.performAction(
             ability: .iceShot,
@@ -215,11 +215,12 @@ struct AbilityEffectIntegrationTests {
             context: &context,
         )
         let components = events.filter { $0.kind == .abilityDamage }
-        #expect(components.count == 2)
-        #expect(components.map(\.keyword) == [.freeze, .physical])
+        #expect(components.count == 1)
+        #expect(components.map(\.keyword) == [.physical])
+        #expect(BattleConditionEvaluator.isMet(.enemyFrozen, actor: context.hero, in: context))
     }
 
-    @Test func `ice shot skips shatter on an unfrozen enemy`() {
+    @Test func `ice shot builds freeze on an unfrozen enemy`() {
         var context = iceShotBattle(frozenEnemy: false)
         let events = BattleTurnEngine.performAction(
             ability: .iceShot,

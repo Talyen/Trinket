@@ -13,6 +13,13 @@ struct AbilityCatalogTests {
         #expect(branches.allSatisfy { $0.damageComponents.count == 1 && $0.targetedEffects.isEmpty })
     }
 
+    @Test func `rebuilt definitions retain value equality and operation order`() {
+        let rebuilt = Ability.sunder.replacingOperations(Ability.sunder.operations)
+        #expect(rebuilt == Ability.sunder)
+        #expect(Set([rebuilt, Ability.sunder]).count == 1)
+        #expect(rebuilt.operations.first == .effect(TargetedEffect(.halveShield(.block), target: .enemy)))
+    }
+
     @Test func `catalog I ds are unique and unknown lookup returns nil`() throws {
         let ids = AbilityCatalog.all.map(\.id)
         try #expect(
@@ -158,13 +165,14 @@ struct AbilityCatalogTests {
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
-    @Test func `ice shot shatters frozen enemies`() throws {
+    @Test func `ice shot retains freeze identity with a conditional physical outcome`() throws {
         let iceShot = try #require(AbilityCatalog.ability(id: "ice-shot"))
-        try #expect(iceShot.summary == "Deal 2 Freeze damage. If this Freezes the enemy, deal 2 Physical damage.")
+        try #expect(iceShot.summary == "Deal 2 Freeze damage. Against Frozen enemies, deal 5 Physical instead.")
         try #expect(iceShot.damageComponents == [
             DamageComponent(2, keyword: .freeze),
-            DamageComponent(2, keyword: .physical, condition: .enemyFrozen),
         ])
+        #expect(iceShot.conditionalOutcome?.condition == .enemyFrozen)
+        #expect(iceShot.conditionalOutcome?.operations == [.damage(DamageComponent(5, keyword: .physical))])
         try #expect(iceShot.keywords.contains(.physical))
         try #expect(iceShot.identityKeywords == [.freeze])
     }
@@ -236,9 +244,10 @@ struct AbilityCatalogTests {
             [DamageComponent(2, keyword: .physical)],
             [DamageComponent(3, keyword: .physical)],
         ])
-        try #expect(Ability.stab.summary == "Deal 2 Physical damage with a +25% chance to Critically Hit.")
+        try #expect(Ability.stab.summary == "Deal 2 Physical damage. Critically Hit enemies at full Health.")
         try #expect(Ability.stab.damageComponents == [DamageComponent(2, keyword: .physical)])
-        try #expect(Ability.stab.criticalChanceBonus == 0.25)
+        try #expect(Ability.stab.criticalChanceBonus == 0)
+        #expect(Ability.stab.guaranteedCriticalCondition == .enemyFullHealth)
     }
 
     @Test func `bandits arrow steals gold unconditionally`() throws {

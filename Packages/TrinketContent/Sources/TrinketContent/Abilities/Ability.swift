@@ -2,8 +2,15 @@ import Foundation
 import TrinketCore
 
 public struct AbilityOutcomeBranch: Hashable, Sendable {
-    public let damageComponents: [DamageComponent]
-    public let targetedEffects: [TargetedEffect]
+    public let operations: [AbilityOperation]
+    public var damageComponents: [DamageComponent] {
+        operations.compactMap(\.damageComponent)
+    }
+
+    public var targetedEffects: [TargetedEffect] {
+        operations.compactMap(\.targetedEffect)
+    }
+
     public let randomizeDamageKeywords: Bool
 
     public init(
@@ -11,30 +18,79 @@ public struct AbilityOutcomeBranch: Hashable, Sendable {
         targetedEffects: [TargetedEffect]? = nil,
         effects: [Effect] = [],
         randomizeDamageKeywords: Bool = false,
+        operations: [AbilityOperation]? = nil,
     ) {
-        self.damageComponents = damageComponents
-        if let targetedEffects {
-            self.targetedEffects = targetedEffects
-        } else {
-            self.targetedEffects = effects.map { TargetedEffect($0) }
-        }
+        self.operations = operations ?? (damageComponents.map(AbilityOperation.damage)
+            + (targetedEffects ?? effects.map { TargetedEffect($0) }).map(AbilityOperation.effect))
         self.randomizeDamageKeywords = randomizeDamageKeywords
     }
 }
 
 public struct Ability: Identifiable, Hashable, Sendable {
-    public let id: String
-    public let name: String
-    public let tier: AbilityTier
-    public let damageComponents: [DamageComponent]
-    public let descriptionOverride: String?
-    public let targetedEffects: [TargetedEffect]
-    public let outcomeBranches: [AbilityOutcomeBranch]?
-    public let criticalChanceBonus: Double
-    public let guaranteedCriticalIfEnemyBuffed: Bool
-    public let hasLeech: Bool
-    public let repeatsManaEmpowerment: Bool
-    public let stealsGold: Bool
+    private let storage: AbilityStorage
+    public var id: String {
+        storage.id
+    }
+
+    public var name: String {
+        storage.name
+    }
+
+    public var tier: AbilityTier {
+        storage.tier
+    }
+
+    public var operations: [AbilityOperation] {
+        storage.operations
+    }
+
+    public var damageComponents: [DamageComponent] {
+        operations.compactMap(\.damageComponent)
+    }
+
+    public var descriptionOverride: String? {
+        storage.descriptionOverride
+    }
+
+    public var targetedEffects: [TargetedEffect] {
+        operations.compactMap(\.targetedEffect)
+    }
+
+    public var outcomeBranches: [AbilityOutcomeBranch]? {
+        storage.outcomeBranches
+    }
+
+    public var conditionalOutcome: AbilityConditionalOutcome? {
+        storage.conditionalOutcome
+    }
+
+    public var blockCost: Int {
+        storage.blockCost
+    }
+
+    public var guaranteedCriticalCondition: DamageCondition? {
+        storage.guaranteedCriticalCondition
+    }
+
+    public var criticalChanceBonus: Double {
+        storage.criticalChanceBonus
+    }
+
+    public var guaranteedCriticalIfEnemyBuffed: Bool {
+        storage.guaranteedCriticalIfEnemyBuffed
+    }
+
+    public var hasLeech: Bool {
+        storage.hasLeech
+    }
+
+    public var repeatsManaEmpowerment: Bool {
+        storage.repeatsManaEmpowerment
+    }
+
+    public var stealsGold: Bool {
+        storage.stealsGold
+    }
 
     public var effects: [Effect] {
         targetedEffects.map(\.effect)
@@ -54,23 +110,20 @@ public struct Ability: Identifiable, Hashable, Sendable {
         hasLeech: Bool = false,
         repeatsManaEmpowerment: Bool = false,
         stealsGold: Bool = false,
+        operations: [AbilityOperation]? = nil,
+        conditionalOutcome: AbilityConditionalOutcome? = nil,
+        blockCost: Int = 0,
+        guaranteedCriticalCondition: DamageCondition? = nil,
     ) {
-        self.id = id
-        self.name = name
-        self.tier = tier
-        self.damageComponents = damageComponents
-        descriptionOverride = description
-        self.outcomeBranches = outcomeBranches
-        self.criticalChanceBonus = criticalChanceBonus
-        self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
-        self.hasLeech = hasLeech
-        self.repeatsManaEmpowerment = repeatsManaEmpowerment
-        self.stealsGold = stealsGold
-        if let targetedEffects {
-            self.targetedEffects = targetedEffects
-        } else {
-            self.targetedEffects = effects.map { TargetedEffect($0) }
-        }
+        storage = AbilityStorage(
+            id: id, name: name, tier: tier, description: description,
+            damageComponents: damageComponents, effects: effects, targetedEffects: targetedEffects,
+            outcomeBranches: outcomeBranches, criticalChanceBonus: criticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed, hasLeech: hasLeech,
+            repeatsManaEmpowerment: repeatsManaEmpowerment, stealsGold: stealsGold,
+            operations: operations, conditionalOutcome: conditionalOutcome, blockCost: blockCost,
+            guaranteedCriticalCondition: guaranteedCriticalCondition,
+        )
     }
 
     public init(
@@ -158,11 +211,11 @@ public struct Ability: Identifiable, Hashable, Sendable {
         var result = damageComponents
             .filter { $0.condition == nil || $0.bonusAmount > 0 }
             .map(\.keyword)
-        appendNonDamageKeywords(to: &result)
+        appendNonDamageKeywords(to: &result, identityOnly: true)
         return result
     }
 
-    private func appendNonDamageKeywords(to result: inout [Keyword]) {
+    private func appendNonDamageKeywords(to result: inout [Keyword], identityOnly: Bool = false) {
         for targetedEffect in targetedEffects {
             result.append(targetedEffect.effect.keyword)
             if case .blessedAegis = targetedEffect.effect {
@@ -174,6 +227,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 result.append(contentsOf: branch.damageComponents.map(\.keyword))
                 result.append(contentsOf: branch.targetedEffects.map(\.effect.keyword))
             }
+        }
+        if let conditionalOutcome, !identityOnly || conditionalOutcome.contributesToIdentity {
+            result.append(contentsOf: conditionalOutcome.operations.map(\.keyword))
         }
         if hasLeech {
             result.append(.leech)
@@ -198,34 +254,30 @@ public struct Ability: Identifiable, Hashable, Sendable {
         branch: AbilityOutcomeBranch,
         using rng: inout some RandomNumberGenerator,
     ) -> Self {
-        var components = branch.damageComponents
-        if branch.randomizeDamageKeywords {
-            let types = Keyword.damageTypes
-            components = components.map { component in
-                let keyword = types.randomElement(using: &rng) ?? .physical
-                return DamageComponent(
-                    component.amount,
-                    keyword: keyword,
-                    target: component.target,
-                    bonusAmount: component.bonusAmount,
-                    condition: component.condition,
-                )
-            }
+        let resolvedOperations = branch.operations.map { operation -> AbilityOperation in
+            guard branch.randomizeDamageKeywords, case let .damage(component) = operation else { return operation }
+            return .damage(DamageComponent(
+                component.amount,
+                keyword: Keyword.damageTypes.randomElement(using: &rng) ?? .physical,
+                target: component.target,
+                bonusAmount: component.bonusAmount,
+                condition: component.condition,
+            ))
         }
-        let effects = branch.targetedEffects
         return Self(
             id: id,
             name: name,
             tier: tier,
             description: descriptionOverride,
-            damageComponents: components,
-            targetedEffects: effects,
             outcomeBranches: nil,
             criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             hasLeech: hasLeech,
             repeatsManaEmpowerment: repeatsManaEmpowerment,
             stealsGold: stealsGold,
+            operations: resolvedOperations,
+            blockCost: blockCost,
+            guaranteedCriticalCondition: guaranteedCriticalCondition,
         )
     }
 

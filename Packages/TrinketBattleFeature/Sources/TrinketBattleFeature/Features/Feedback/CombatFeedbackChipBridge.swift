@@ -5,6 +5,8 @@ import TrinketFeatureSupport
 @MainActor
 enum CombatFeedbackChipBridge {
     private static var hosts: [ObjectIdentifier: WeakHost] = [:]
+    private static var evictedIDs: Set<Int> = []
+    private static var onEvict: ((Set<Int>) -> Void)?
     private static var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
     private static let availabilityTimer = FeedbackDeadlineTimer {
         availabilityTimerDidFire()
@@ -26,6 +28,7 @@ enum CombatFeedbackChipBridge {
         layoutDirection: LayoutDirection,
         displayScale: CGFloat,
     ) {
+        view.onEvict = suppress
         let key = ObjectIdentifier(view)
         let previous = hosts[key]
         let metadataChanged = previous == nil
@@ -49,6 +52,11 @@ enum CombatFeedbackChipBridge {
     }
 
     static func publish(_ update: CombatFeedbackUpdate) {
+        publish(update, onEvict: nil)
+    }
+
+    static func publish(_ update: CombatFeedbackUpdate, onEvict: ((Set<Int>) -> Void)?) {
+        self.onEvict = onEvict
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipPublish,
         )
@@ -62,6 +70,7 @@ enum CombatFeedbackChipBridge {
         var affectedTargets = Set<String>()
         switch update {
         case let .remove(ids):
+            evictedIDs.subtract(ids)
             for targetID in Array(itemsByTarget.keys) {
                 let removed = ids.filter { itemsByTarget[targetID]?.removeValue(forKey: $0) != nil }
                 if !removed.isEmpty {
@@ -72,11 +81,13 @@ enum CombatFeedbackChipBridge {
                 }
             }
         case let .replace(items):
+            evictedIDs.formIntersection(Set(items.map(\.id)))
             affectedTargets = Set(itemsByTarget.keys).union(items.map(\.targetID))
             itemsByTarget = Dictionary(grouping: items, by: \.targetID).mapValues { targetItems in
                 Dictionary(uniqueKeysWithValues: targetItems.map { ($0.id, $0) })
             }
         case .reset:
+            evictedIDs.removeAll()
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
             nextAvailabilityDate = nil
@@ -149,7 +160,7 @@ enum CombatFeedbackChipBridge {
         let now = Date()
         let targetItems = itemsByTarget[entry.combatantID] ?? [:]
         let visible = targetItems.values.filter { item in
-            now >= item.availableAt && now < item.expiresAt
+            !evictedIDs.contains(item.id) && now >= item.availableAt && (item.pausedAt ?? now) < item.expiresAt
         }
         let chipsToDraw = CombatFeedbackOrdering.orderedChips(from: visible.sorted {
             if $0.availableAt == $1.availableAt {
@@ -173,6 +184,11 @@ enum CombatFeedbackChipBridge {
         view.apply(chips: chips)
     }
 
+    private static func suppress(_ ids: Set<Int>) {
+        evictedIDs.formUnion(ids)
+        onEvict?(ids)
+    }
+
     #if DEBUG
     static var debugNextAvailabilityDate: Date? {
         nextAvailabilityDate
@@ -184,6 +200,8 @@ enum CombatFeedbackChipBridge {
 
     static func debugReset() {
         hosts.removeAll()
+        evictedIDs.removeAll()
+        onEvict = nil
         itemsByTarget.removeAll()
         nextAvailabilityDate = nil
         nextAvailabilityTargetID = nil

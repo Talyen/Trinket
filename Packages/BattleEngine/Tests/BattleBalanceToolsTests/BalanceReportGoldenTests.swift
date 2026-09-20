@@ -52,11 +52,11 @@ struct BalanceReportGoldenTests {
     }
 
     @Test func `identity sweep is stable`() {
-        #expect(Self.fingerprint(Self.config(mode: .identity)) == 8179176919387589517)
+        #expect(Self.fingerprint(Self.config(mode: .identity)) == 7683778774333908153)
     }
 
     @Test func `ability contrast is stable`() {
-        #expect(Self.fingerprint(Self.config(mode: .abilityContrast, focus: ["bash"])) == 6967803875348527119)
+        #expect(Self.fingerprint(Self.config(mode: .abilityContrast, focus: ["bash"])) == 18116803264468427028)
     }
 
     @Test func `affix contrast is stable`() {

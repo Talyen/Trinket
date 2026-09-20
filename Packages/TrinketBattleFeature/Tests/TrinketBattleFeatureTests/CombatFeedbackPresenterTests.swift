@@ -410,7 +410,7 @@ extension CombatFeedbackPresenterTests {
         #expect(items[0].label == .amount(-6))
     }
 
-    @Test func `suppresses cards control buildup leech applied and numeric zeroes but names zero value statuses`() {
+    @Test func `suppresses cards control buildup and numeric zeroes but shows preparations`() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
                 BattleSessionTestSupport.makeActionEvent(id: 1, kind: .effect, effectKind: .cardsDrawn, amount: 2, keyword: .physical),
@@ -428,7 +428,8 @@ extension CombatFeedbackPresenterTests {
             at: .now,
         )
 
-        #expect(items.count == 1)
+        #expect(items.count == 2)
+        #expect(items[1].label == .word(.status(.leech)))
         #expect(items[0].label == .word(.status(.nextHolyStrike)))
         #expect(items[0].visualRole == .beneficialStatus)
     }
@@ -470,7 +471,9 @@ extension CombatFeedbackPresenterTests {
             feedbackEvent(8, .recurringDamageApplied, .burn, origin: .direct),
         ]
         let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
-        #expect(items.count == 2)
+        #expect(items.count == 4)
+        #expect(items.contains { $0.label == .word(.status(.amplified)) })
+        #expect(items.contains { $0.label == .word(.applied(.burn)) })
         #expect(items.first { $0.feedbackClass == .heal }?.label == .amount(4))
         #expect(items.first { $0.feedbackClass == .resource }?.sourceEventIDs == [2])
     }

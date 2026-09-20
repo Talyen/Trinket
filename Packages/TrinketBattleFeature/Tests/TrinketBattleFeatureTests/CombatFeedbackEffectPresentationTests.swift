@@ -46,8 +46,8 @@ struct CombatFeedbackEffectPresentationTests {
         #expect(recurring.labelRule == .appliedKeyword)
 
         let amplified = CombatFeedbackEffectPresentation.descriptor(for: .dotAmplified)
-        #expect(amplified.feedbackClass == .dot)
-        #expect(amplified.labelRule == .triggeredKeyword)
+        #expect(amplified.feedbackClass == .buff)
+        #expect(amplified.statusLabel == .amplified)
     }
 
     @Test func `descriptor display rules match visibility policy`() {
@@ -58,7 +58,7 @@ struct CombatFeedbackEffectPresentationTests {
             CombatFeedbackEffectPresentation.descriptor(for: .controlApplied).displayRule == .hidden,
         )
         #expect(
-            CombatFeedbackEffectPresentation.descriptor(for: .leechApplied).displayRule == .hidden,
+            CombatFeedbackEffectPresentation.descriptor(for: .leechApplied).displayRule == .visible,
         )
         #expect(
             CombatFeedbackEffectPresentation.descriptor(for: .resourceGain).displayRule

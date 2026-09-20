@@ -62,7 +62,7 @@ struct CombatResolution {
     private var nextActionID = 0
     private var cards: [Card] = []
     private var partyCardDamageBySource: [String: Int] = [:]
-    private var partyPhysicalDamageBySource: [String: Int] = [:]
+    private var physicalDamageByRecipient: [String: Int] = [:]
     private(set) var nextCardID = 0
     private var claims: Set<ClaimKey> = []
 
@@ -121,24 +121,20 @@ struct CombatResolution {
         partyCardDamageBySource[actorID, default: 0]
     }
 
-    func pendingPartyPhysicalDamage(from actorID: String) -> Int {
-        partyPhysicalDamageBySource[actorID, default: 0]
+    func pendingPhysicalDamage(for actorID: String) -> Int {
+        physicalDamageByRecipient[actorID, default: 0]
     }
 
     mutating func preparePartyCardDamage(_ amount: Int, sourceID: String) {
         partyCardDamageBySource[sourceID] = amount
     }
 
-    mutating func preparePartyPhysicalDamage(_ amount: Int, sourceID: String) {
-        partyPhysicalDamageBySource[sourceID] = amount
+    mutating func preparePhysicalDamage(_ amount: Int, recipientID: String) {
+        physicalDamageByRecipient[recipientID] = amount
     }
 
     mutating func reservePartyCardDamage(livingSourceIDs: [String]) -> Int {
         livingSourceIDs.reduce(0) { $0 + (partyCardDamageBySource.removeValue(forKey: $1) ?? 0) }
-    }
-
-    mutating func reservePartyPhysicalDamage(livingSourceIDs: [String]) -> Int {
-        livingSourceIDs.reduce(0) { $0 + (partyPhysicalDamageBySource.removeValue(forKey: $1) ?? 0) }
     }
 
     mutating func beginCard(
@@ -146,7 +142,6 @@ struct CombatResolution {
         tier: AbilityTier,
         previousDamageKeywords: Set<Keyword>,
         partyDamageBonus: Int = 0,
-        partyPhysicalBonus: Int = 0,
     ) -> Int {
         let id = nextCardID
         nextCardID += 1
@@ -155,7 +150,6 @@ struct CombatResolution {
         talents.previousDamageKeywords = previousDamageKeywords
         cards.append(Card(
             partyDamageBonus: partyDamageBonus,
-            partyPhysicalBonus: partyPhysicalBonus,
             id: id,
             actorID: actorID,
             talents: talents,
@@ -252,6 +246,9 @@ struct CombatResolution {
         guard cards.last?.actorID == facts.action.actor.id, cards.last?.outcome == nil,
               facts.origin == .card || facts.origin == .ordinaryCard else { return false }
         cards[cards.count - 1].outcome = facts
+        if !facts.damageKeywords.isEmpty {
+            cards[cards.count - 1].partyPhysicalBonus = physicalDamageByRecipient.removeValue(forKey: facts.action.actor.id) ?? 0
+        }
         return true
     }
 

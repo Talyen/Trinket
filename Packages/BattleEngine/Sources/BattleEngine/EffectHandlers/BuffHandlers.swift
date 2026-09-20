@@ -381,7 +381,7 @@ struct PartyPhysicalBonusHandler: BattleEffectHandler {
 
     func apply(
         _ effect: Effect,
-        ability _: Ability,
+        ability: Ability,
         source: Combatant,
         target _: Combatant,
         in context: inout BattleState,
@@ -389,7 +389,12 @@ struct PartyPhysicalBonusHandler: BattleEffectHandler {
         guard case let .partyPhysicalBonus(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        context.resolution.preparePartyPhysicalDamage(amount, sourceID: source.id)
-        return EffectApplyOutcome(events: [], didApply: true)
+        let recipient = BattleAbilityRules.preparationRecipient(for: source, in: context)
+        context.resolution.preparePhysicalDamage(amount, recipientID: recipient.id)
+        let event = context.nextEvent(
+            kind: .effect, effectKind: .physicalPreparationApplied, actorName: source.name,
+            abilityName: ability.name, target: recipient, amount: amount, keyword: .physical, origin: .direct,
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }

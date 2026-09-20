@@ -3,7 +3,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct KeywordCohesionTests {
-    @Test func `every ability talent trait affix and unique signature has a keyword`() throws {
+    @Test func `keyword mechanics name their keywords`() throws {
         var missing: [String] = []
         for ability in AbilityCatalog.all where Keyword.referenced(in: ability.summary).isEmpty {
             missing.append("ability:\(ability.id)")
@@ -12,7 +12,13 @@ struct KeywordCohesionTests {
             missing.append("talent:\(nodeID)")
         }
         for trait in GameContent.traits where Keyword.referenced(in: trait.description).isEmpty {
-            missing.append("trait:\(trait.id)")
+            // Ambush doubles any attack damage; its former Holy weakness is now a separate trait.
+            if trait.id == "ambush" {
+                #expect(trait.modifiers.isEmpty)
+                #expect(trait.triggers == CombatTraitTriggers(damage: DamageTriggers(firstHitDoubleDamage: true)))
+            } else {
+                missing.append("trait:\(trait.id)")
+            }
         }
         for definition in GameContent.itemAffixDefinitions {
             if Keyword.referenced(in: definition.basic.description).isEmpty {

@@ -76,3 +76,27 @@ class ContentCodegenTests(ScriptRegressionTestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("Validated", result.stdout)
+
+    def test_enemy_trait_lists_validate_and_render(self) -> None:
+        sys.path.insert(0, str(ROOT / "Scripts"))
+        from internal.content.roster import EnemyRow, validate_enemy_rows, render_enemy
+
+        row = EnemyRow("test_enemy", "Test Enemy", "12", "false", "slash,bash,smite", "guard,bloodless", "mortal")
+        abilities = {"slash", "bash", "smite"}
+        traits = {"guard", "bloodless"}
+        validate_enemy_rows([row], abilities, set(), traits)
+        self.assertIn('traitIDs: ["guard", "bloodless"]', render_enemy(row))
+        for invalid in ("", "guard,", "guard,guard", "missing"):
+            with self.subTest(trait_ids=invalid):
+                row.trait_ids = invalid
+                with self.assertRaises(ValueError):
+                    validate_enemy_rows([row], abilities, set(), traits)
+
+    def test_trait_names_are_unique_case_insensitively(self) -> None:
+        sys.path.insert(0, str(ROOT / "Scripts"))
+        from internal.content.roster import TraitRow, validate_trait_rows
+
+        rows = [TraitRow("guard", "Guard", "Gain Block.", "", "blockPerTurn:1"),
+                TraitRow("other", "guard", "Gain Block.", "", "blockPerTurn:1")]
+        with self.assertRaisesRegex(ValueError, "trait name"):
+            validate_trait_rows(rows)

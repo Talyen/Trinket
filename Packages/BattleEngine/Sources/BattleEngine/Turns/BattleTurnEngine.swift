@@ -109,16 +109,35 @@ package enum BattleTurnEngine {
         }
         let resolvedAbility = BattleAbilityRules.resolveOutcome(ability, actor: actor, in: &context)
         let facts = ResolvedActionFacts(original: ability, resolved: resolvedAbility, action: action, origin: origin, in: context)
+        let blockCost = resolvedAbility.blockCost
+        if blockCost > 0 {
+            let balance = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
+            DefensePoolEngine.set(balance - blockCost, on: actor, in: &context)
+        }
+        var committed = false
+        defer {
+            if !committed, blockCost > 0 {
+                let remaining = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
+                DefensePoolEngine.set(remaining + blockCost, on: actor, in: &context)
+            }
+        }
         if entry == .enemyTurn {
             let interception = CombatTriggerEngine.beforeEnemyAttack(facts, in: &context)
             events.append(contentsOf: interception.events)
             guard !interception.cancelled else { return (events, false) }
         }
+        committed = true
         context.cardPlayRecording?.beginAction(
             id: actionID, actorID: actor.id,
             abilityID: resolvedAbility.id, isAttack: resolvedAbility.dealsCombatDamage, afterEventID: context.nextEventID,
         )
         defer { context.cardPlayRecording?.endAction(state: context) }
+        if blockCost > 0 {
+            events.append(context.nextEvent(
+                kind: .effect, effectKind: .blockSpent, actorName: actor.name,
+                abilityName: ability.name, target: actor, amount: blockCost, keyword: .block, origin: .direct,
+            ))
+        }
         let capturedCard = context.resolution.prepareAction(facts)
         let checkpoint = CombatCheckpoint.preparedAction(actor.id)
         checkpoint.perform(in: &context) { UniqueCombatEngine.prepareResolvedAttack(facts, in: &$0) }
@@ -145,23 +164,27 @@ package enum BattleTurnEngine {
             }
         }
 
-        let damageOutcome = applyDamageComponents(
-            ability: resolvedAbility,
-            actor: actor,
-            abilityTarget: abilityTarget,
-            context: &context,
-        )
-        events.append(contentsOf: damageOutcome.events)
+        var totalDealt = 0
+        var logKeyword = resolvedAbility.logDamageKeyword
+        var appliedEffectLogs: [String] = []
+        for operation in resolvedAbility.operations {
+            switch operation {
+            case let .damage(component):
+                let outcome = applyDamageComponents(
+                    [component], ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
+                    guaranteedCritical: facts.guaranteedCritical, context: &context,
+                )
+                events.append(contentsOf: outcome.events)
+                totalDealt += outcome.totalDealt
+                logKeyword = outcome.logDamageKeyword ?? logKeyword
+            case let .effect(targeted):
+                appliedEffectLogs.append(contentsOf: applyTargetedEffects(
+                    [targeted], ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
+                    context: &context, events: &events,
+                ))
+            }
+        }
 
-        let appliedEffectLogs = applyTargetedEffects(
-            ability: resolvedAbility,
-            actor: actor,
-            abilityTarget: abilityTarget,
-            context: &context,
-            events: &events,
-        )
-
-        let logKeyword = damageOutcome.logDamageKeyword ?? resolvedAbility.logDamageKeyword
         events.append(
             context.nextEvent(
                 kind: .ability,
@@ -172,7 +195,7 @@ package enum BattleTurnEngine {
                 abilityName: resolvedAbility.name,
                 abilityTier: resolvedAbility.tier,
                 target: abilityTarget,
-                amount: damageOutcome.totalDealt,
+                amount: totalDealt,
                 keyword: logKeyword,
                 appliedEffectSummaries: appliedEffectLogs,
             ),
@@ -222,9 +245,11 @@ extension BattleTurnEngine {
 
     // swiftlint:disable:next function_body_length - attack components resolve in deterministic order
     private static func applyDamageComponents(
+        _ components: [DamageComponent],
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
+        guaranteedCritical: Bool,
         context: inout BattleState,
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
@@ -233,7 +258,7 @@ extension BattleTurnEngine {
         let keywordOverride = activeDamageKeywordOverride(for: actor, in: context)
 
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
-        for case let .damage(component) in ability.operations {
+        for component in components {
             guard action.canContinue(in: context) else { break }
             let damageTarget = BattleTargetResolver.effectTarget(
                 component.target,
@@ -293,7 +318,7 @@ extension BattleTurnEngine {
                     origin: context.resolution.attackOrigin,
                     abilityCriticalChanceBonus: ability.criticalChanceBonus,
                     guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
-                    guaranteedCritical: nextStrike.contains(.critical),
+                    guaranteedCritical: guaranteedCritical || nextStrike.contains(.critical),
                     abilityHasLeech: ability.hasLeech || nextStrike.contains(.leech),
                 )
             var request = DamageRequest(
@@ -505,6 +530,7 @@ extension BattleTurnEngine {
     }
 
     private static func applyTargetedEffects(
+        _ effects: [TargetedEffect],
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
@@ -513,7 +539,7 @@ extension BattleTurnEngine {
     ) -> [String] {
         var appliedEffectLogs: [String] = []
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
-        for case let .effect(targetedEffect) in ability.operations {
+        for targetedEffect in effects {
             guard action.canContinue(in: context) else { break }
             if let condition = targetedEffect.condition,
                !BattleConditionEvaluator.isMet(

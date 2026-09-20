@@ -74,6 +74,8 @@ product, and supplies explicit worker requests; no nightly automation is created
 
 | Command | Purpose |
 |---|---|
+| `./Scripts/setup-testflight.sh` | Install local Ruby/Bundler/Fastlane tooling with locked gems; [configuration](../Docs/Platform/Release.md#one-time-testflight-setup) stays outside Git |
+| `./Scripts/testflight.sh [--doctor \| --dry-run \| --resume RUN] [--config FILE] [--notes FILE] [--cloud-sync YES\|NO] [--timeout SECONDS]` | Verify a clean checkout, archive/sign, upload, and confirm internal TestFlight availability; retain evidence for recovery; no Git mutations or review submission |
 | `./Scripts/test-deploy.sh [--mode smoke\|ui] [--no-build]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |
 | `./Scripts/release.sh [--version X.Y.Z] [--since-tag TAG] [--skip-tests] [--dry-run] [--no-tag]` | Preview or execute a release (`--version` pins semver, `--since-tag` sets the notes range, `--skip-tests` skips deploy verification, `--no-tag` commits without tagging) |
 
@@ -147,6 +149,11 @@ exact version and build; `TRINKET_XCODE_VERSION` pins an older one only for
 bisection). Local scripts honor `DEVELOPER_DIR`, otherwise inheriting the Mac's
 selected Xcode. [Platform support](../Docs/Platform/ApplePlatformReference.md#platform-support)
 owns the supported OS window and how beta validation is used.
+
+`testflight.sh` resolves that local selection once and uses it for verification,
+archiving, and export, without changing global `xcode-select`. Its upload receipt
+records the exact Xcode version. Use an Apple-supported distribution toolchain;
+successful local compilation alone does not establish upload eligibility.
 
 Check [Apple's supported macOS range](https://developer.apple.com/xcode/system-requirements)
 as well as the Xcode version. An older Xcode command-line build can succeed even

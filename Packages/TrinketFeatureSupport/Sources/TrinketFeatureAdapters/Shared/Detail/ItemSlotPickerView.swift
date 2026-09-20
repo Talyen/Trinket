@@ -3,8 +3,11 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketPersistence
 
 struct ItemSlotPickerView: View {
+    @Environment(PlayerSaveStore.self) private var playerSave
+
     let slot: ItemSlot
     let equipmentLoadout: EquipmentLoadout
     let inventoryItems: [InventoryItem]
@@ -39,8 +42,6 @@ struct ItemSlotPickerView: View {
     }
 
     var body: some View {
-        let siblingIDs = equippedInSiblingSlotIDs
-
         ItemPickerSearchScope(readyItem: $readyItem, onReady: presentReadyItem) {
             VStack(spacing: 0) {
                 if filter.isActive {
@@ -70,16 +71,8 @@ struct ItemSlotPickerView: View {
                                 shine: isSelected ? .keywords(item.plasmaKeywords) : nil,
                                 shineLineWidth: isSelected ? 3 : 1.5,
                             )
-                            .overlay(alignment: .topTrailing) {
-                                if siblingIDs.contains(item.id) {
-                                    Text("Equipped")
-                                        .trinketTypography(.caption)
-                                        .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-                                        .padding(.horizontal, TrinketDesign.Spacing.tight)
-                                        .padding(.vertical, 2)
-                                        .background(TrinketDesign.Colors.accent, in: Capsule())
-                                        .padding(TrinketDesign.Spacing.tight)
-                                }
+                            .overlay(alignment: .topLeading) {
+                                equipmentBadge(for: item)
                             }
                         },
                     )
@@ -101,7 +94,7 @@ struct ItemSlotPickerView: View {
             let isEquipped = equipmentLoadout.itemID(for: slot) == item.id
             ItemDetailView(
                 item: item,
-                primaryActionTitle: isEquipped ? "Unequip \(slot.displayName)" : "Equip \(slot.displayName)",
+                primaryActionTitle: actionTitle(for: item),
                 primaryActionAccessibilityID: isEquipped
                     ? AccessibilityID.LoadoutPicker.unequipItem
                     : AccessibilityID.LoadoutPicker.equipItem(item.id),
@@ -214,9 +207,34 @@ struct ItemSlotPickerView: View {
         }
     }
 
-    private var equippedInSiblingSlotIDs: Set<String> {
-        equipmentLoadout.itemIDs(inFamilyOf: slot)
-            .subtracting([equipmentLoadout.itemID(for: slot)].compactMap(\.self))
+    private func otherWearerName(for item: InventoryItem) -> String? {
+        guard !equipmentLoadout.itemIDsBySlot.values.contains(item.id) else { return nil }
+        return playerSave.roster.equippedCombatantName(for: item.id)
+    }
+
+    private func actionTitle(for item: InventoryItem) -> String {
+        if equipmentLoadout.itemID(for: slot) == item.id {
+            return "Unequip \(slot.displayName)"
+        }
+        if let wearer = otherWearerName(for: item) {
+            return "Move from \(wearer)"
+        }
+        return "Equip \(slot.displayName)"
+    }
+
+    @ViewBuilder
+    private func equipmentBadge(for item: InventoryItem) -> some View {
+        let isEquippedHere = equipmentLoadout.itemIDsBySlot.values.contains(item.id)
+        let otherWearer = otherWearerName(for: item)
+        if isEquippedHere || otherWearer != nil {
+            Image(systemName: isEquippedHere ? "checkmark" : "person.fill")
+                .trinketTypography(.badge)
+                .foregroundStyle(isEquippedHere ? TrinketDesign.Colors.accentEmphasized : .primary)
+                .frame(width: 24, height: 24)
+                .background(TrinketDesign.Colors.panel, in: Circle())
+                .padding(TrinketDesign.Spacing.tight)
+                .accessibilityLabel(otherWearer.map { "Equipped by \($0)" } ?? "Equipped by this combatant")
+        }
     }
 }
 

@@ -174,7 +174,7 @@ extension BattleFeedbackLane {
 
     var pendingFeedbackEnd: Date? {
         scheduledActions.filter { $0.stage <= 2 }.map {
-            $0.impactAt.addingTimeInterval(BattleMotion.chipDisplayDuration)
+            $0.impactAt.addingTimeInterval(feedbackLifetime)
         }.max()
     }
 
@@ -184,6 +184,10 @@ extension BattleFeedbackLane {
             advance(to: date)
             suspendedAt = date
             scheduler?.cancel()
+            for index in activeItems.indices where activeItems[index].usesStationaryExperiment {
+                activeItems[index].pausedAt = date
+            }
+            noteItemsChanged()
         } else if let paused = suspendedAt {
             let delay = date.timeIntervalSince(paused)
             for index in scheduledActions.indices {
@@ -192,6 +196,7 @@ extension BattleFeedbackLane {
                 scheduledActions[index].impactAt += delay
             }
             for index in activeItems.indices {
+                activeItems[index].pausedAt = nil
                 activeItems[index].availableAt += delay
                 activeItems[index].firstScheduledAt += delay
                 activeItems[index].expiresAt += delay

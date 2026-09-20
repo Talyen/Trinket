@@ -56,11 +56,14 @@ public enum AbilityCatalog {
 
     public static let iceShot = Ability(
         id: "ice-shot", name: "Ice Shot", tier: .basic,
-        description: "Deal 2 Freeze damage. If this Freezes the enemy, deal 2 Physical damage.",
-        damageComponents: [
-            DamageComponent(2, keyword: .freeze),
-            DamageComponent(2, keyword: .physical, condition: .enemyFrozen),
-        ],
+        description: "Deal 2 Freeze damage. Against Frozen enemies, deal 5 Physical instead.",
+        damageComponents: [DamageComponent(2, keyword: .freeze)],
+        conditionalOutcome: AbilityConditionalOutcome(
+            condition: .enemyFrozen,
+            operations: [.damage(DamageComponent(5, keyword: .physical))],
+            // Physical is the situational payoff; retain the card's Freeze identity.
+            contributesToIdentity: false,
+        ),
     )
 
     public static let kindling = Ability(
@@ -80,11 +83,12 @@ public enum AbilityCatalog {
 
     public static let maul = Ability(
         id: "maul", name: "Maul", tier: .basic,
-        description: "Deal 2 Stun or Bleed damage at random.",
-        outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .stun)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .bleed)]),
-        ],
+        description: "Deal 3 Bleed damage, or 3 Stun against enemies with Block.",
+        damageComponents: [DamageComponent(3, keyword: .bleed)],
+        conditionalOutcome: AbilityConditionalOutcome(
+            condition: .enemyHasBlock,
+            operations: [.damage(DamageComponent(3, keyword: .stun))],
+        ),
     )
 
     public static let pixieDust = Ability(
@@ -105,8 +109,13 @@ public enum AbilityCatalog {
 
     public static let shieldBash = Ability(
         id: "shield-bash", name: "Shield Bash", tier: .basic,
+        description: "Deal 2 Stun damage. Spend 2 Block to deal 5 instead.",
         damageComponents: [DamageComponent(2, keyword: .stun)],
-        targetedEffects: [TargetedEffect(.shield(.block, 1))],
+        conditionalOutcome: AbilityConditionalOutcome(
+            condition: .actorHasTwoBlock,
+            operations: [.damage(DamageComponent(5, keyword: .stun))],
+            blockCost: 2,
+        ),
     )
 
     public static let slash = Ability(
@@ -120,15 +129,15 @@ public enum AbilityCatalog {
 
     public static let sniffOut = Ability(
         id: "sniff-out", name: "Sniff Out", tier: .basic,
-        description: "Your party's next attack deals 3 additional Physical damage.",
+        description: "Expose a weakness. Your partner’s next attack deals +3 Physical damage.",
         targetedEffects: [TargetedEffect(.partyPhysicalBonus(3))],
     )
 
     public static let stab = Ability(
         id: "stab", name: "Stab", tier: .basic,
-        description: "Deal 2 Physical damage with a +25% chance to Critically Hit.",
+        description: "Deal 2 Physical damage. Critically Hit enemies at full Health.",
         damageComponents: [DamageComponent(2, keyword: .physical)],
-        criticalChanceBonus: 0.25,
+        guaranteedCriticalCondition: .enemyFullHealth,
     )
 
     public static let stargaze = Ability(
@@ -323,8 +332,11 @@ public enum AbilityCatalog {
         id: "sunder",
         name: "Sunder",
         tier: .skill,
-        damageComponents: [DamageComponent(4, keyword: .physical)],
-        targetedEffects: [TargetedEffect(.halveShield(.block), target: .enemy)],
+        description: "Halve enemy Block, then deal 4 Physical damage.",
+        operations: [
+            .effect(TargetedEffect(.halveShield(.block), target: .enemy)),
+            .damage(DamageComponent(4, keyword: .physical)),
+        ],
     )
 
     public static let tithe = Ability(

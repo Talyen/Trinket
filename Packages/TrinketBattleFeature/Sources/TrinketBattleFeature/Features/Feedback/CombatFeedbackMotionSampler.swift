@@ -8,6 +8,7 @@ struct CombatFeedbackAnimationState: Equatable {
     var opacity = 1.0
     var scale = 1.0
     var riseProgress = 0.0
+    var shineProgress = 1.0
 }
 
 enum CombatFeedbackMotionSampler {
@@ -15,7 +16,17 @@ enum CombatFeedbackMotionSampler {
         for item: CombatFeedbackItem,
         at date: Date,
     ) -> CombatFeedbackAnimationState {
+        let date = item.pausedAt ?? date
         let elapsed = max(0, date.timeIntervalSince(item.firstScheduledAt))
+        if item.usesStationaryExperiment {
+            let progress = min(1, elapsed / StationaryFeedbackLayout.shrinkDuration)
+            let remaining = 1 - progress
+            return CombatFeedbackAnimationState(
+                opacity: 1 - BattleMotion.smoothProgress((elapsed - StationaryFeedbackLayout.shrinkDuration) / 0.25),
+                scale: 1 + remaining * remaining * remaining,
+                shineProgress: progress,
+            )
+        }
         let holdEnd = item.firstScheduledAt.addingTimeInterval(BattleMotion.chipHoldEndTime)
         let riseStart = min(holdEnd, item.retiringAt ?? holdEnd)
         let riseDuration = BattleMotion.chipDisplayDuration - BattleMotion.chipHoldEndTime

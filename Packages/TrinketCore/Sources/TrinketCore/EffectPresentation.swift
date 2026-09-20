@@ -51,7 +51,7 @@ public enum EffectPresentation {
         case .nextStrikeLeech:
             "your next attack Leeches"
         case let .partyPhysicalBonus(amount):
-            "your party's next attack deals \(amount) additional Physical damage"
+            "your partner's next attack deals \(amount) additional Physical damage"
         case .evadeNextHit:
             "dodge the next attack"
         case .convertManaToBlock:
@@ -141,7 +141,7 @@ public enum EffectPresentation {
         case .nextStrikeLeech:
             "Leech Focus: Next attack Leeches."
         case .partyPhysicalBonus:
-            "Sniff Out: Party's next attack deals additional Physical damage."
+            "Sniff Out: Partner's next attack deals additional Physical damage."
         case .freezeNextAttacker:
             "Glacial Ward: Freezes the next attacker."
         default:

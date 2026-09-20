@@ -66,7 +66,7 @@ class EnemyRow:
     max_health: str
     is_boss: str
     abilities: str
-    trait_id: str
+    trait_ids: str
     faction: str
 
 
@@ -85,7 +85,7 @@ def parse_combatant_rows() -> list[CombatantRow]:
 @functools.cache
 def parse_enemy_rows() -> list[EnemyRow]:
     return _parse_tsv_rows(MANIFEST_DIR / 'enemies.tsv',
-        ['id', 'name', 'max_health', 'is_boss', 'abilities', 'trait_id', 'faction'], EnemyRow, min_columns=None)
+        ['id', 'name', 'max_health', 'is_boss', 'abilities', 'trait_ids', 'faction'], EnemyRow, min_columns=None)
 
 
 def primary_stats_swift(row: CombatantRow) -> str:
@@ -118,8 +118,10 @@ def _validate_ability_symbols(
 
 def validate_trait_rows(rows: list[TraitRow]) -> None:
     seen: set[str] = set()
+    names: set[str] = set()
     for row in rows:
         _ensure_unique(seen, row.id, "trait id")
+        _ensure_unique(names, row.name.casefold(), "trait name")
 
         _validate_snake_id("trait id", row.id, row.id)
         _require_non_empty("trait name", row.name, row.id)
@@ -194,9 +196,10 @@ def validate_enemy_rows(
 
 
         _validate_ability_symbols(row.abilities, row.id, ability_symbols, expected_count=3)
-        _require_non_empty("trait_id", row.trait_id, row.id)
-        if row.trait_id not in trait_ids:
-            raise ValueError(f"Unknown trait_id '{row.trait_id}' for enemy {row.id}")
+        assigned_traits = parse_enemy_trait_ids(row)
+        for trait_id in assigned_traits:
+            if trait_id not in trait_ids:
+                raise ValueError(f"Unknown trait_id '{trait_id}' for enemy {row.id}")
         if row.faction not in VALID_ENEMY_FACTIONS:
             raise ValueError(f"Invalid faction '{row.faction}' for enemy {row.id}")
         render_enemy(row)
@@ -219,6 +222,15 @@ def render_party_combatant(row: CombatantRow) -> str:
         )"""
 
 
+def parse_enemy_trait_ids(row: EnemyRow) -> list[str]:
+    ids = [value.strip() for value in row.trait_ids.split(",")]
+    if not all(ids):
+        raise ValueError(f"trait_ids for {row.id} must be a nonempty list without empty entries")
+    if len(ids) != len(set(ids)):
+        raise ValueError(f"Duplicate trait_ids for enemy {row.id}")
+    return ids
+
+
 def render_enemy(row: EnemyRow) -> str:
     flags: list[str] = []
     if row.is_boss == "true":
@@ -226,11 +238,12 @@ def render_enemy(row: EnemyRow) -> str:
     faction = row.faction.strip() or "mortal"
     flags.append(f"faction: .{faction}")
     flag_clause = ", " + ", ".join(flags)
+    traits = ", ".join(f'"{swift_escape(value)}"' for value in parse_enemy_trait_ids(row))
     return (
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
         f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
         f"abilities: {ability_symbols_swift(row.abilities)}), "
-        f"traitID: \"{swift_escape(row.trait_id)}\"{flag_clause})"
+        f"traitIDs: [{traits}]{flag_clause})"
     )
 
 

@@ -438,8 +438,8 @@ extension BalanceFindingsReporter {
             let listed = unique.map { "`\($0)`" }.joined(separator: ", ")
             return "only enemy with \(listed)"
         }
-        if let trait = mine.first?.enemyTraitID, !trait.isEmpty {
-            return "trait `\(trait)`"
+        if let traits = mine.first?.enemyTraitIDs, !traits.isEmpty {
+            return "traits " + traits.map { "`\($0)`" }.joined(separator: ", ")
         }
         return "identity vs \(enemyID)"
     }

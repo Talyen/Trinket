@@ -55,7 +55,8 @@ final class CombatFeedbackRasterUIView: UIView {
         let layer: CALayer
         var item: CombatFeedbackItem
         var retiringOpacity = 1.0
-        let rasterIdentity: ObjectIdentifier
+        var rasterIdentity: ObjectIdentifier
+        var reservationSize: CGSize = .zero
 
         init(
             layer: CALayer,
@@ -70,6 +71,9 @@ final class CombatFeedbackRasterUIView: UIView {
 
     static let preallocatedSlotCount = 12
 
+    var onEvict: ((Set<Int>) -> Void)?
+    private var stationaryLayout = StationaryFeedbackLayout()
+    private var shineLayers: [ObjectIdentifier: CALayer] = [:]
     private var layersByID: [Int: ChipLayer] = [:]
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
@@ -88,6 +92,9 @@ final class CombatFeedbackRasterUIView: UIView {
     private var groups: [Group] = []
     #if DEBUG
     var debugLastAppliedChips: [CombatFeedbackItem] = []
+    var debugVisibleChipIDs: Set<Int> {
+        Set(layersByID.keys)
+    }
     #endif
 
     override init(frame: CGRect) {
@@ -137,9 +144,15 @@ final class CombatFeedbackRasterUIView: UIView {
 
         for (item, raster) in validChips {
             if let existing = layersByID[item.id],
-               existing.rasterIdentity == ObjectIdentifier(raster) {
+               existing.rasterIdentity == ObjectIdentifier(raster) || item.usesStationaryExperiment {
                 if existing.item.retiringAt == nil, let retiringAt = item.retiringAt {
                     existing.retiringOpacity = CombatFeedbackMotionSampler.state(for: existing.item, at: retiringAt).opacity
+                }
+                if existing.rasterIdentity != ObjectIdentifier(raster) {
+                    withLayerActionsDisabled {
+                        configureRaster(raster, on: existing.layer)
+                    }
+                    existing.rasterIdentity = ObjectIdentifier(raster)
                 }
                 existing.item = item
                 continue
@@ -151,11 +164,11 @@ final class CombatFeedbackRasterUIView: UIView {
         orderedLayers = layersByID.values.sorted(by: Self.chipLayerOrder)
         layoutGroups()
 
-        if layersByID.isEmpty {
+        tickMotion(at: .now)
+        if layersByID.isEmpty || orderedLayers.allSatisfy({ $0.item.pausedAt != nil }) {
             CombatFeedbackChipMotionClock.unregister(self)
         } else {
             CombatFeedbackChipMotionClock.register(self)
-            tickMotion(at: .now)
         }
     }
 
@@ -176,6 +189,12 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     private func layoutGroups() {
+        if orderedLayers.first?.item.usesStationaryExperiment == true {
+            layoutStationary()
+            groups = []
+            return
+        }
+        stationaryLayout = StationaryFeedbackLayout()
         let grouped = Dictionary(grouping: orderedLayers, by: { $0.item.actionGroupID })
         groups = grouped.values.sorted { Self.chipLayerOrder($0[0], $1[0]) }.map { layers in
             let layers = layers.sorted {
@@ -249,6 +268,10 @@ final class CombatFeedbackRasterUIView: UIView {
     fileprivate func tickMotion(at date: Date) {
         guard !bounds.isEmpty else { return }
         withLayerActionsDisabled {
+            if orderedLayers.first?.item.usesStationaryExperiment == true {
+                tickStationary(at: date)
+                return
+            }
             for (groupIndex, group) in groups.enumerated() {
                 let representative = group.motionItem
                 let state = CombatFeedbackMotionSampler.state(for: representative, at: date)
@@ -277,6 +300,9 @@ final class CombatFeedbackRasterUIView: UIView {
         let lhsItem = lhs.item
         let rhsItem = rhs.item
         if lhsItem.availableAt == rhsItem.availableAt {
+            if lhsItem.usesStationaryExperiment, lhsItem.presentationIndex != rhsItem.presentationIndex {
+                return lhsItem.presentationIndex < rhsItem.presentationIndex
+            }
             return lhsItem.id < rhsItem.id
         }
         return lhsItem.availableAt < rhsItem.availableAt
@@ -294,7 +320,7 @@ final class CombatFeedbackRasterUIView: UIView {
         let hasMeasuredBounds = !bounds.isEmpty
         let shadowColor = resolvedShadowColor
         withLayerActionsDisabled {
-            chipLayer.contents = raster.image
+            configureRaster(raster, on: chipLayer)
             chipLayer.shadowColor = shadowColor
             chipLayer.shadowRadius = 4
             chipLayer.shadowOffset = .zero
@@ -311,11 +337,12 @@ final class CombatFeedbackRasterUIView: UIView {
             }
         }
 
-        layersByID[item.id] = ChipLayer(
-            layer: chipLayer,
-            item: item,
-            rasterIdentity: rasterID,
+        let chip = ChipLayer(layer: chipLayer, item: item, rasterIdentity: rasterID)
+        chip.reservationSize = CGSize(
+            width: raster.pointSize.width + max(0, CGFloat(item.reservedDigitCount) * raster.maximumDigitWidth - raster.textWidth),
+            height: raster.pointSize.height,
         )
+        layersByID[item.id] = chip
     }
 
     private func makeLayer() -> CALayer {
@@ -350,6 +377,10 @@ final class CombatFeedbackRasterUIView: UIView {
         withLayerActionsDisabled {
             layer.layer.removeAllAnimations()
             layer.layer.contents = nil
+            if let shine = shineLayers[ObjectIdentifier(layer.layer)] {
+                shine.isHidden = true
+                shine.mask?.contents = nil
+            }
             layer.layer.transform = CATransform3DIdentity
             layer.layer.opacity = 1
             layer.layer.isHidden = true
@@ -362,6 +393,80 @@ final class CombatFeedbackRasterUIView: UIView {
         CATransaction.setDisableActions(true)
         updates()
         CATransaction.commit()
+    }
+}
+
+private extension CombatFeedbackRasterUIView {
+    private func configureRaster(_ raster: CombatFeedbackRaster, on chipLayer: CALayer) {
+        chipLayer.contents = raster.image
+        chipLayer.contentsScale = raster.displayScale
+        chipLayer.bounds = CGRect(origin: .zero, size: raster.pointSize)
+        let key = ObjectIdentifier(chipLayer)
+        guard let mask = raster.shineMask else {
+            shineLayers[key]?.isHidden = true
+            return
+        }
+        let shine: CALayer
+        if let existing = shineLayers[key] {
+            shine = existing
+        } else {
+            shine = CALayer()
+            let gradient = CAGradientLayer()
+            let environment = EnvironmentValues()
+            gradient.colors = [0.0, 0.25, 1, 0.25, 0].map {
+                TrinketDesign.Colors.Overlay.paper.opacity($0).resolve(in: environment).cgColor
+            }
+            gradient.locations = [0.2, 0.38, 0.5, 0.62, 0.8]
+            gradient.startPoint = CGPoint(x: 0, y: 0.2)
+            gradient.endPoint = CGPoint(x: 1, y: 0.8)
+            shine.addSublayer(gradient)
+            shine.mask = CALayer()
+            chipLayer.addSublayer(shine)
+            shineLayers[key] = shine
+        }
+        shine.frame = chipLayer.bounds
+        shine.sublayers?.first?.frame = shine.bounds
+        shine.mask?.frame = shine.bounds
+        shine.mask?.contents = mask
+        shine.mask?.contentsScale = raster.displayScale
+        shine.isHidden = true
+    }
+
+    private func layoutStationary() {
+        stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
+        var evicted: Set<Int> = []
+        for chip in orderedLayers {
+            if let result = stationaryLayout.place(id: chip.item.id, size: chip.reservationSize) {
+                evicted.formUnion(result.evicted)
+            }
+        }
+        for id in evicted {
+            recycleLayer(id: id)
+        }
+        orderedLayers.removeAll { evicted.contains($0.item.id) }
+        if !evicted.isEmpty {
+            onEvict?(evicted)
+        }
+    }
+
+    private func tickStationary(at date: Date) {
+        for (index, chip) in orderedLayers.enumerated() {
+            guard let slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id }) else { continue }
+            let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
+            chip.layer.position = CGPoint(x: slot.rect.midX, y: slot.rect.midY)
+            let scale = slot.fitScale * state.scale
+            chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
+            chip.layer.opacity = Float(state.opacity)
+            chip.layer.zPosition = CGFloat(index)
+            let now = chip.item.pausedAt ?? date
+            let criticalElapsed = chip.item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1
+            chip.layer.shadowOpacity = Float(max(0, 1 - criticalElapsed / 0.3))
+            if let shine = shineLayers[ObjectIdentifier(chip.layer)] {
+                shine.isHidden = state.shineProgress >= 1
+                let x = -0.35 + state.shineProgress * 1.7
+                shine.sublayers?.first?.position.x = x * chip.layer.bounds.width
+            }
+        }
     }
 }
 

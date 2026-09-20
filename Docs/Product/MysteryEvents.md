@@ -12,7 +12,8 @@ component: centered rarity/type above the item name, with the standard shine
 colors. Artwork opens the read-only
 item detail sheet; only the action button commits. Do not add info icons, guaranteed
 affix notes, recipient notes, or a separate Confirm button to ordinary Mysteries.
-Allow names and actions to wrap and the screen to scroll on smaller devices.
+Keep action labels under 15 characters and on a single line, fitting text down when
+needed. Allow item names to wrap and the screen to scroll on smaller devices.
 
 Use the shared cinematic hero header, with the Mystery eyebrow and event title
 at the bottom left of the artwork and the standard artwork blend and on-art text

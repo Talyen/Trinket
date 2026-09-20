@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
@@ -58,7 +59,8 @@ enum CombatFeedbackPresenter {
             PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
         }
         let sources = consolidate(filteredSources)
-        let prepared = sources.compactMap(prepare)
+        var prepared = sources.compactMap(prepare)
+        appendSilentActionFeedback(events, to: &prepared)
         var groupOrder: [PresentationGroupKey] = []
         var grouped: [PresentationGroupKey: [PreparedEvent]] = [:]
         for item in prepared {
@@ -139,7 +141,8 @@ enum CombatFeedbackPresenter {
     }
 
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
-        events.filter { event in
+        let actions = events.filter { $0.kind == .ability }
+        return events.filter { event in
             guard event.kind != .milestone else { return false }
             if event.kind == .ability {
                 return false
@@ -151,12 +154,13 @@ enum CombatFeedbackPresenter {
                 if effectKind == .shieldAbsorbed {
                     return event.isFullyBlocked
                 }
-                if effectKind == .recurringDamageApplied || effectKind == .dotAmplified {
-                    return false
-                }
                 let feedbackClass = classify(event)
                 if feedbackClass == .buff || feedbackClass == .resource, event.origin != .direct {
-                    return false
+                    let belongsToCard = actions.contains {
+                        $0.feedbackGroupID == event.feedbackGroupID
+                            && $0.abilityName == event.abilityName && $0.actorName == event.actorName
+                    }
+                    guard belongsToCard else { return false }
                 }
                 return CombatFeedbackEffectPresentation
                     .descriptor(for: effectKind)
@@ -241,6 +245,25 @@ enum CombatFeedbackPresenter {
             reactionKind: event.kind == .status || event.origin == .periodic ? .none : reactionKind(for: feedbackClass),
             isCritical: event.isCritical,
         )
+    }
+
+    private static func appendSilentActionFeedback(_ events: [ActionEvent], to prepared: inout [PreparedEvent]) {
+        let visibleIDs = Set(prepared.flatMap(\.sourceEventIDs))
+        let visibleActions = Set(events.filter { visibleIDs.contains($0.id) }.map(\.feedbackGroupID))
+        for action in events where action.kind == .ability && !visibleActions.contains(action.feedbackGroupID) {
+            guard let ability = AbilityCatalog.ability(id: action.abilityID),
+                  let primary = ability.operations.first else { continue }
+            let existing = events.first { $0.actionID == action.actionID && $0.kind == .abilityDamage }
+                ?? events.first { $0.actionID == action.actionID && $0.kind == .effect }
+            let targetID = existing?.targetID ?? (ability.dealsCombatDamage ? action.targetID : action.actorID)
+            guard !targetID.isEmpty else { continue }
+            prepared.append(PreparedEvent(
+                id: action.id, sourceEventIDs: [action.id], originalOrder: events.count,
+                actionID: action.feedbackGroupID, targetID: targetID, feedbackClass: .buff,
+                keyword: existing?.keyword ?? primary.keyword, visualRole: .keyword,
+                label: .amount(0), reactionKind: .none, isCritical: false,
+            ))
+        }
     }
 
     private static func visualRole(for event: ActionEvent) -> CombatFeedbackVisualRole {

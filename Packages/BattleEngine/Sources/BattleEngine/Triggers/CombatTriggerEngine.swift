@@ -2,13 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package enum CombatTriggerEngine {
-    static func traitName(
-        for combatant: Combatant,
-        in context: BattleState,
-    ) -> String {
-        context.modifiers(for: combatant.id).traitDisplayName ?? "Trait"
-    }
-
     static func triggerAbilityName(
         _ key: String,
         for combatant: Combatant,
@@ -115,7 +108,7 @@ package enum CombatTriggerEngine {
                 sourceActorID: source.id,
                 logAs: .instantHeal(
                     actorName: source.name,
-                    abilityName: traitName(for: source, in: context),
+                    abilityName: "Trait",
                     keyword: .health,
                 ),
             ),

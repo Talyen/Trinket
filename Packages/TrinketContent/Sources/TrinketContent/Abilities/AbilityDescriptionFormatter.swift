@@ -23,8 +23,7 @@ enum AbilityDescriptionFormatter {
             id: "branch",
             name: "branch",
             tier: .basic,
-            damageComponents: branch.damageComponents,
-            targetedEffects: branch.targetedEffects,
+            operations: branch.operations,
         )
         let text = formatFixed(ability)
         return text.hasSuffix(".") ? String(text.dropLast()) : text
@@ -59,17 +58,17 @@ enum AbilityDescriptionFormatter {
     private static func formatFixed(_ ability: Ability) -> String {
         var clauses: [String] = []
 
-        for component in ability.damageComponents where component.target == .actor {
-            clauses.append("Lose \(component.amount) Health")
-        }
-
-        let enemyDamage = ability.damageComponents.filter { $0.target == .abilityTarget || $0.target == .enemy }
-        if !enemyDamage.isEmpty {
-            clauses.append(contentsOf: formatEnemyDamage(enemyDamage))
-        }
-
-        for targetedEffect in ability.targetedEffects {
-            clauses.append(formatTargetedEffect(targetedEffect))
+        for operation in ability.operations {
+            switch operation {
+            case let .damage(component):
+                if component.target == .actor {
+                    clauses.append("Lose \(component.amount) Health")
+                } else {
+                    clauses.append(contentsOf: formatEnemyDamage([component]))
+                }
+            case let .effect(targeted):
+                clauses.append(formatTargetedEffect(targeted))
+            }
         }
 
         if let critical = criticalClause(for: ability) {

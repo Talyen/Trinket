@@ -11,7 +11,7 @@ public extension GameContent {
         traitsByID[id]
     }
 
-    static func trait(for enemy: Enemy) -> CombatantTraitDefinition? {
-        trait(id: enemy.traitID)
+    static func traits(for enemy: Enemy) -> [CombatantTraitDefinition] {
+        enemy.traitIDs.compactMap { trait(id: $0) }
     }
 }

@@ -56,6 +56,12 @@ public enum BattleConditionEvaluator {
             }
         case .enemyHasBuff:
             return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
+        case .enemyHasBlock:
+            return DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: enemy)) > 0
+        case .enemyFullHealth:
+            return context.roster.health(for: enemy) == context.roster.maxHealth(for: enemy)
+        case .actorHasTwoBlock:
+            return DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: action.actor)) >= 2
         case .firstTurn:
             return context.turnCount == 0
         }

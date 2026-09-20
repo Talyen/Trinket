@@ -173,8 +173,17 @@ struct OptionsView: View {
 
         #if DEBUG
         Section {
+            Toggle("Stationary Feedback Experiment", isOn: Binding(
+                get: { optionsStore.stationaryFeedbackExperimentEnabled },
+                set: { optionsStore.stationaryFeedbackExperimentEnabled = $0 },
+            ))
+            .accessibilityIdentifier(AccessibilityID.Options.stationaryFeedbackToggle)
+            Text("Applies to the next battle, including Preview Lab.")
+                .trinketTypography(.caption)
+                .foregroundStyle(.secondary)
+
             NavigationLink("Preview Lab") {
-                PreviewLabView()
+                PreviewLabView(stationaryFeedbackExperimentEnabled: optionsStore.stationaryFeedbackExperimentEnabled)
             }
 
             Button("Unlock All") {

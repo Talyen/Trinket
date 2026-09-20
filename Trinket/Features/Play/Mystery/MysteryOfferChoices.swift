@@ -44,7 +44,7 @@ struct MysteryOfferChoices: View {
                         onChoose(offer.choiceID)
                     } label: {
                         Text(choices.first { $0.id == offer.choiceID }?.label ?? "Choose")
-                            .fixedSize(horizontal: false, vertical: true)
+                            .trinketSingleLineFittedText()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Mystery.choiceButton(choiceID: offer.choiceID))

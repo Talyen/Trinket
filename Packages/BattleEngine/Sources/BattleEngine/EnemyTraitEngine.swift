@@ -172,7 +172,7 @@ package enum EnemyTraitEngine {
                 effectKind: .thornsTriggered,
                 actorID: defender.id,
                 actorName: defender.name,
-                abilityName: CombatTriggerEngine.traitName(for: defender, in: context),
+                abilityName: profile.triggerAbilityName("thornsPercent", fallback: "Trait"),
             )
         }
         if events.isEmpty, outcome.healthLost > 0 {
@@ -180,7 +180,7 @@ package enum EnemyTraitEngine {
                 kind: .effect,
                 effectKind: .thornsTriggered,
                 actorName: defender.name,
-                abilityName: CombatTriggerEngine.traitName(for: defender, in: context),
+                abilityName: profile.triggerAbilityName("thornsPercent", fallback: "Trait"),
                 target: attacker,
                 amount: outcome.healthLost,
                 keyword: .physical,

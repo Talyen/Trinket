@@ -51,9 +51,8 @@ public enum CombatBuildResolver {
 
     private static func traitProfile(for enemy: Enemy) -> CombatModifierProfile {
         var profile = CombatModifierProfile.zero
-        if let trait = GameContent.trait(for: enemy) {
+        for trait in GameContent.traits(for: enemy) {
             trait.apply(to: &profile)
-            profile.traitDisplayName = trait.name
         }
         return profile
     }

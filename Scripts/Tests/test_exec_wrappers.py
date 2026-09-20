@@ -537,10 +537,12 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
         "release.sh",
         "report-art-memory.sh",
         "run-simulator.sh",
+        "setup-testflight.sh",
         "test-deploy.sh",
         "test-package.sh",
         "test-scripts.sh",
         "test.sh",
+        "testflight.sh",
         "update-tools.sh",
     )
     NO_HELP_SCRIPTS = (

@@ -33,7 +33,30 @@ extension BattleTurnEngine {
             }
         }
         context.resolution.prepareActionTalents(action)
-        return ability.replacingOperations(components.map(AbilityOperation.damage) + effects.map(AbilityOperation.effect))
+        return ability.replacingOperations(preparedOperations(ability, components: components, effects: effects))
+    }
+
+    private static func preparedOperations(
+        _ ability: Ability, components: [DamageComponent], effects: [TargetedEffect],
+    ) -> [AbilityOperation] {
+        let originalDamageCount = ability.damageComponents.count
+        var result = originalDamageCount == 0 ? components.map(AbilityOperation.damage) : []
+        var damageIndex = 0
+        var effectIndex = 0
+        for operation in ability.operations {
+            switch operation {
+            case .damage:
+                result.append(.damage(components[damageIndex]))
+                damageIndex += 1
+                if damageIndex == originalDamageCount {
+                    result.append(contentsOf: components.dropFirst(originalDamageCount).map(AbilityOperation.damage))
+                }
+            case .effect:
+                result.append(.effect(effects[effectIndex]))
+                effectIndex += 1
+            }
+        }
+        return result
     }
 
     private static func captureTalentPreparations(for actor: Combatant, in context: inout BattleState) {
