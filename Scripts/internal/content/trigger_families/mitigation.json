@@ -18,7 +18,11 @@
       "name": "thornsPercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 2
+      }
     },
     {
       "name": "bleedResistance",

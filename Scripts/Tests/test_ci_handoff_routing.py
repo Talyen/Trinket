@@ -2,12 +2,26 @@
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/ci-gate.sh',
+    'Scripts/config/cheap-slices.txt',
+    'Scripts/handoff.sh',
+    'Scripts/lib/args.sh',
+    'Scripts/lib/cheap-slices.sh',
+    'Scripts/lib/gate.sh',
+)
+
+
 import re
 import shutil
 import subprocess
 import unittest
 
 from script_test_support import ROOT, ScriptRegressionTestCase
+
+import os
+import tempfile
+from pathlib import Path
 
 class CIHandoffRoutingTests(ScriptRegressionTestCase):
     def test_mystery_subflow_runs_play_smoke(self) -> None:
@@ -215,6 +229,75 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 if name == "docs":
                     self.assertIn("./Scripts/check-docs.py", plan)
                     self.assertNotIn("./Scripts/test.sh style", plan)
+
+
+    def test_handoff_reports_unavailable_compilation_after_available_checks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            source = root / "Trinket/App/ContentView.swift"
+            source.parent.mkdir(parents=True)
+            source.write_text("struct ContentView {}")
+            (scripts / "test.sh").write_text('#!/bin/bash\n./Scripts/check-api-bans.sh\necho style-checked\n')
+            (scripts / "check-api-bans.sh").write_text('#!/bin/bash\necho api >> checks\n')
+            (scripts / "config/cheap-slices.txt").write_text('./Scripts/check-api-bans.sh  # skip-when-style-checked\necho cheap-checked\n')
+            startup = root / "startup"
+            startup.write_text('command() { if [[ "$*" == "-v xcodebuild" ]]; then return 1; fi; builtin command "$@"; }\n')
+            environment = {**os.environ, "BASH_ENV": str(startup)}
+            for dry in (False, True):
+                result = subprocess.run([str(scripts / "handoff.sh"), *(["--dry-run"] if dry else []),
+                                         "--paths", "Trinket/App/ContentView.swift"],
+                                        env=environment, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0 if dry else 2, result.stdout + result.stderr)
+                self.assertNotIn("Handoff PASS", result.stdout)
+                if dry:
+                    self.assertIn("Unavailable required check", result.stdout)
+                else:
+                    self.assertIn("style-checked", result.stdout)
+                    self.assertIn("cheap-checked", result.stdout)
+                    self.assertIn("INCOMPLETE", result.stderr)
+                    self.assertEqual((root / "checks").read_text(), "api\n")
+
+
+    def test_handoff_reports_outcome_after_all_checks_including_quiet_mode(self) -> None:
+        for selected, cheap, expected in ((0, 0, 0), (7, 0, 1), (0, 8, 8)):
+            with self.subTest(selected=selected, cheap=cheap), tempfile.TemporaryDirectory() as directory:
+                scripts = Path(directory) / "Scripts"
+                shutil.copytree(ROOT / "Scripts", scripts)
+                payload = "selected-check\n" * 200 + "FAIL: fixture diagnostic\n" if selected else "selected-check\n"
+                (scripts / "test-scripts.sh").write_text(f"#!/bin/bash\ncat <<'PAYLOAD'\n{payload}PAYLOAD\nexit {selected}\n")
+                registry = scripts / "config/cheap-slices.txt"
+                registry.write_text(f"echo cheap-check; exit {cheap}\n")
+                result = subprocess.run(
+                    [str(scripts / "handoff.sh"), "--quiet", "--paths", "Scripts/test-scripts.sh"],
+                    env={**os.environ, "TRINKET_CHEAP_SLICES_CONFIG": str(registry)},
+                    text=True, capture_output=True,
+                )
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                if expected == 0:
+                    self.assertTrue(result.stdout.strip().endswith("Handoff PASS: selected checks and cheap CI slices completed."))
+                    self.assertLess(result.stdout.index("Handoff phase PASS: cheap CI slices"), result.stdout.index("Handoff PASS"))
+                    self.assertNotIn("selected-check", result.stdout)
+                    self.assertNotIn("cheap-check", result.stdout)
+                    logs = Path(next(line.removeprefix("Handoff logs: ") for line in result.stdout.splitlines()
+                                     if line.startswith("Handoff logs: ")))
+                    self.assertEqual((logs / "phase-1.log").read_text(), "selected-check\n")
+                    self.assertEqual((logs / "phase-2.log").read_text(), "cheap-check\n")
+                else:
+                    self.assertNotIn("Handoff PASS", result.stdout)
+                    self.assertIn("Handoff FAIL", result.stderr)
+                    self.assertIn("./Scripts/test-scripts.sh" if selected else "cheap CI slices", result.stderr)
+                    log = Path(next(line.removeprefix("Full log: ") for line in result.stderr.splitlines()
+                                    if line.startswith("Full log: ")))
+                    self.assertEqual(log.read_text(), payload if selected else "cheap-check\n")
+                    self.assertLess(len(result.stderr.splitlines()), 70)
+                    if selected:
+                        self.assertIn("FAIL: fixture diagnostic", result.stderr)
+                        self.assertIn("output omitted", result.stderr)
+                    if selected:
+                        self.assertNotIn("cheap-check", result.stdout)
+
 
 
 if __name__ == "__main__":

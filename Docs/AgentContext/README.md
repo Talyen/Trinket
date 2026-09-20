@@ -46,7 +46,8 @@ Verification: ./Scripts/handoff.sh --isolate --paths <files...>
 
 Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.
 
-Start unknown-owner discovery with filenames or `agent-search.py`; use content
+Start unknown-owner discovery with `agent-search.py --overview`, then
+`agent-search.py --files <pattern> --scope <owner>`; use scoped content
 `rg` and direct reads after narrowing files. Read enough surrounding context to understand the contract and
 its exceptions, including relevant callers, tests, configuration, and generated
 references. Prefer targeted catalog lookups and bounded diagnostic output over
@@ -62,15 +63,22 @@ The `agent-search.py` helper defaults to authored production text from Git's tra
 untracked inventory. Generated paths use the existing generated-output registry;
 tests (including test-support targets), Markdown/`.mdc` and generated output have explicit
 `--mode` surfaces. Results default to filenames with matching-line counts.
-For plain identifiers, exact filename stems come first outside docs; declaration-like
+For plain identifiers, exact filename stems, filename word/prefix matches, and declarations
+rank before other references outside docs; declaration-like
 matching lines include jump locations. Both are lookup hints, not proof of symbol ownership. `--files` matches relative filenames
-without reading their contents, using the same filters and bounds.
+without reading their contents, using the same filters and bounds. Use
+`--mode assets --files` to include raw/processed media and asset metadata without
+reading binary contents. `--overview` pages owner counts and entry points from
+the Git inventory; individual asset filenames are omitted. Scopes and fingerprinted
+pagination apply to both modes. Scoped `rg --files` remains available.
 Documentation results put current guides and references first, procedures/knowledge
 next, and task records last, alphabetically within each group. This ordering
 applies before either file or excerpt limits; explicit scopes can still retrieve
 plans, evals, and friction records directly. Resolved friction archives are excluded
 unless `--scope` names `.agents/friction-archive` or a file within it. For direct
 `rg` discovery, likewise omit that archive unless investigating past friction.
+Search continuation commands use `--offset` and a result fingerprint (`--expect`);
+changed results require restarting instead of silently skipping or repeating matches.
 Bounds always report omitted
 files/lines and shortened excerpts; no matches means no
 matches within the displayed surface, not within the whole repository.
@@ -92,16 +100,22 @@ python3 Scripts/agent-read.py Docs/Platform/Verification.md --outline
 python3 Scripts/agent-read.py 'Docs/Platform/Verification.md#local-simulator-budget'
 ```
 
-The reader prints source lines and parent headings; without an anchor it reads
-all of the document. Read applicable constraints and relevant behavior sections,
+The reader prints source lines and parent headings. Unanchored Markdown over
+12,000 characters returns a paginated heading outline labeled navigation only;
+read the relevant anchors or explicitly use `--full` for the entire document.
+Smaller documents still read completely by default. Read applicable constraints and relevant behavior sections,
 including their exceptions; unrelated sections are not mandatory prereads.
-Missing anchors fail explicitly. Sections are never silently truncated.
+Missing anchors fail explicitly. Sections are never silently truncated. Known Battle presentation leaves route directly
+to relevant anchors plus shared display-lifetime constraints; shared owners retain
+whole-card references.
 
-For Swift or Python, `agent-read.py path.swift --outline` lists declaration hints
-with source lines (Swift uses the existing pinned SwiftFormat tokenizer). It
-includes local declarations, not a semantic ownership map. `--offset` / `--limit`
-page the outline; `--lines START:END` reads an explicit complete range. Inspect
-surrounding attributes and complete bodies before changing code.
+For Swift or Python, `agent-read.py path.swift --outline` lists qualified types and
+members with complete lexical source ranges and the file path once. Swift uses the
+pinned SwiftFormat tokenizer; this is not a semantic ownership map. Add
+`--include-locals` for declarations inside functions. `--symbol Qualified.name`
+reads an attached comment/attribute block and complete declaration; overloaded or
+ambiguous names return candidate ranges without choosing one. `--offset` /
+`--limit` page the outline; `--lines START:END` reads an explicit complete range.
 
 For a generated-content investigation, explicitly target the catalog and entry:
 

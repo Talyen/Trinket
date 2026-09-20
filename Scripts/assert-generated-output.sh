@@ -12,6 +12,12 @@ trinket_set_generated_tracked_paths() {
   local paths_file="$TRINKET_GENERATED_OUTPUT_SCRIPT_DIR/config/generated-paths.tsv"
 
   TRACKED_PATHS=()
+  # Plans retain authored settings, but their selectedTests are generated.
+  # Include both in consistency/completeness checks without classifying the
+  # entire files as generated-only inputs in discovery and review.
+  if [[ "$include_pbxproj" == true ]]; then
+    TRACKED_PATHS+=(Smoke.xctestplan FullUI.xctestplan)
+  fi
   while IFS='|' read -r kind path; do
     [[ "$kind" == project && "$include_pbxproj" != true ]] && continue
     [[ "$kind" == asset && "$include_assets" != true ]] && continue

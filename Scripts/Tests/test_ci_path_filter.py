@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/ci-path-filter.py',
+)
+
+
 import ast
 import io
 import json

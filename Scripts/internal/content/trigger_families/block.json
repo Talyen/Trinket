@@ -24,7 +24,11 @@
       "name": "blockBrokenBlockFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 11
+      }
     },
     {
       "name": "blockBrokenSaintfallPower",
@@ -36,7 +40,11 @@
       "name": "holyDamageBlockFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 16
+      }
     },
     {
       "name": "stunDamageBlockFlat",
@@ -54,13 +62,20 @@
       "name": "blockGainThornsPercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 41
+      }
     },
     {
       "name": "sunderingBlockMultiplier",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "reason": "Word-described magnitude has no patchable number in the card text."
+      }
     },
     {
       "name": "blockRetainsThreeQuarters",
@@ -294,7 +309,11 @@
       "name": "physicalDamageBlockPercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 43
+      }
     },
     {
       "name": "freezeDamageGrantsBlock",

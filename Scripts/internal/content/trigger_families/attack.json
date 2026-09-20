@@ -282,13 +282,20 @@
       "name": "criticalPurgeCount",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 27
+      }
     },
     {
       "name": "criticalPurgeAll",
       "type": "Bool",
       "default": "false",
-      "merge": "or"
+      "merge": "or",
+      "affix_roll": {
+        "reason": "On/off rule with no rollable magnitude."
+      }
     },
     {
       "name": "prismaticEdge",

@@ -1,5 +1,31 @@
 """Generated project and real Git hook behavior in isolated repositories."""
 
+SCRIPT_INPUTS = (
+    'Scripts/agent-push-gate.sh',
+    'Scripts/apply-scheme-storekit.py',
+    'Scripts/assert-generated-output.sh',
+    'Scripts/build-inputs.env',
+    'Scripts/change-budget.sh',
+    'Scripts/check-staged-project.sh',
+    'Scripts/check-testplan-sync.py',
+    'Scripts/config/generated-paths.tsv',
+    'Scripts/config/ui-tests.tsv',
+    'Scripts/ensure-ci-tools.sh',
+    'Scripts/ensure-git-cliff.sh',
+    'Scripts/format-dirs.env',
+    'Scripts/generate.sh',
+    'Scripts/lib/ci-tools.d/ripgrep.sh',
+    'Scripts/lib/ci-tools.d/xcodegen.sh',
+    'Scripts/lib/generated-paths.sh',
+    'Scripts/lib/project-generation.sh',
+    'Scripts/lib/smoke-classes.sh',
+    'Scripts/lib/tool-install.sh',
+    'Scripts/lib/tools.sh',
+    'Scripts/tool-versions.env',
+    'Scripts/update-tools.sh',
+)
+
+
 import os
 from pathlib import Path
 import shutil
@@ -25,6 +51,7 @@ class ProjectGenerationTests(unittest.TestCase):
             target = self.root / path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / path, target)
+        self.write('Scripts/check-testplan-sync.py', '# UI registry generator stub; covered by test_ui_registration.py\n')
         self.write('Scripts/ensure-ci-tools.sh', '#!/bin/bash\nexit 0\n', executable=True)
         self.write('Scripts/tool-versions.env', 'XCODEGEN_WRAPPER_REV=1\n')
         self.write('.tools/xcodegen', '''#!/bin/bash
@@ -45,6 +72,8 @@ cp "$spec" "$root/Trinket.xcodeproj/project.pbxproj"
 printf cached > "$cache"
 ''', executable=True)
         self.write('.gitignore', '.tools/\ncalls\n.DerivedData/\n')
+        self.write('Smoke.xctestplan', '{}\n')
+        self.write('FullUI.xctestplan', '{}\n')
         self.write('project.yml', 'canonical\n')
         self.write('Trinket.xcodeproj/project.pbxproj', 'canonical\n')
         self.write('code.swift', 'original\n')
@@ -76,6 +105,21 @@ printf cached > "$cache"
 
     def git(self, *args, expected=0):
         return self.run_command('git', *args, expected=expected)
+
+    def test_staged_ui_plan_must_match_generated_registry_selection(self):
+        self.write('Scripts/check-testplan-sync.py',
+                   'import sys\nfrom pathlib import Path\n'
+                   'root = Path(sys.argv[sys.argv.index("--root") + 1])\n'
+                   '(root / "Smoke.xctestplan").write_text(' + repr('{"generated": true}\n') + ')\n')
+        self.git('add', 'Scripts/check-testplan-sync.py')
+        index = (self.root / '.git/index').read_bytes()
+        result = self.run_command('bash', '.githooks/pre-commit', expected=1)
+        self.assertIn('staged Smoke selections do not match', result.stderr)
+        self.assertEqual((self.root / '.git/index').read_bytes(), index)
+        self.assertEqual((self.root / 'Smoke.xctestplan').read_text(), '{}\n')
+        self.write('Smoke.xctestplan', '{"generated": true}\n')
+        self.git('add', 'Smoke.xctestplan')
+        self.run_command('bash', '.githooks/pre-commit')
 
     def test_real_commit_checks_staged_pair_and_preserves_working_changes(self):
         self.write('project.yml', 'staged\n')
@@ -184,7 +228,7 @@ printf cached > "$cache"
                          'Scripts/assert-generated-output.sh', 'Scripts/change-classification.sh',
                          'Scripts/lib/classification-plan.sh', 'Scripts/lib/smoke-classes.sh',
                          'Scripts/lib/generated-paths.sh',
-                         'Scripts/config/smoke-classes.txt',
+                         'Scripts/config/ui-tests.tsv',
                           'Scripts/build-inputs.env', 'Scripts/format-dirs.env'):
             target = self.root / relative
             target.parent.mkdir(parents=True, exist_ok=True)

@@ -8,6 +8,21 @@ the tool calls are patched at the process boundary.
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/ci-diagnostics.py',
+    'Scripts/ci-diagnostics.sh',
+    'Scripts/config/diagnostic-limits.env',
+    'Scripts/diagnostic_maintenance.py',
+    'Scripts/failure_diagnostics.py',
+    'Scripts/internal/diagnostics/diagnostic_limits.py',
+    'Scripts/internal/diagnostics/diagnostic_model.py',
+    'Scripts/internal/diagnostics/diagnostic_rendering.py',
+    'Scripts/internal/diagnostics/failure_diagnostics_parsers.py',
+    'Scripts/internal/diagnostics/xcresult_diagnostics.py',
+    'Scripts/script_diagnostics.py',
+)
+
+
 import io
 import json
 import os
@@ -26,6 +41,8 @@ CLI_SCRIPT = ROOT / "Scripts" / "failure_diagnostics.py"
 FIXTURES = ROOT / "Scripts" / "Tests" / "Fixtures"
 sys.path.insert(0, str(ROOT / "Scripts"))
 import failure_diagnostics as REPORTER  # noqa: E402
+
+import shutil
 
 
 def fixture(name: str) -> dict:
@@ -630,6 +647,67 @@ class ReporterTests(unittest.TestCase):
             aggregate = json.loads(aggregate_path.read_text(encoding="utf-8"))
             self.assertEqual(aggregate["category"], "unknown")
             self.assertEqual(aggregate["failed_invocations"], 1)
+
+
+    def test_script_failures_retain_bounded_evidence_and_exit_status(self) -> None:
+        import sys
+        payloads = {
+            "python": "noise\n" * 100 + 'Traceback (most recent call last):\n  File "case.py", line 7\nAssertionError: expected price\n' + "z" * 2000 + "\nnoise\n" * 100,
+            "shell": "noise\n" * 100 + "FAIL: expected retained evidence\n" + "z" * 2000 + "\nnoise\n" * 100,
+            "unknown": "noise\n" * 100 + "last diagnostic\n",
+            "success": "quiet successful details\n",
+            "syntax": "syntax fixture",
+        }
+        for case, payload in payloads.items():
+            with self.subTest(case=case), tempfile.TemporaryDirectory(prefix="script evidence ") as directory:
+                root = Path(directory)
+                scripts = root / "Scripts"
+                for relative in ("lib", "config", "Tests"):
+                    (scripts / relative).mkdir(parents=True)
+                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env"):
+                    (scripts / name).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(ROOT / "Scripts" / name, scripts / name)
+                (scripts / "check-build-cache-paths.sh").write_text("#!/bin/bash\nexit 0\n")
+                (scripts / "check-build-cache-paths.sh").chmod(0o755)
+                (root / "payload").write_text(payload)
+                (scripts / "Tests/test_fixture.py").write_text("")
+                (root / "bin").mkdir()
+                stub = root / "bin/python3"
+                stub.write_text(
+                    '#!/bin/bash\nif [[ "$1" == -m ]]; then\n'
+                    '  if [[ "$CASE" == python ]]; then cat "$PAYLOAD"; exit 7; fi\n'
+                    '  exit 0\nfi\nexec "$REAL_PYTHON" "$@"\n'
+                )
+                stub.chmod(0o755)
+                (scripts / "Tests/test-fixture.sh").write_text(
+                    '#!/bin/bash\ncat "$PAYLOAD"\n[[ "$CASE" == success ]] && exit 0\nexit 9\n'
+                )
+                if case == "syntax":
+                    (scripts / "Tests/test-fixture.sh").write_text("#!/bin/bash\nif broken\n")
+                env = {**os.environ, "PATH": str(root / "bin") + ":" + os.environ["PATH"],
+                       "CASE": case, "PAYLOAD": str(root / "payload"), "REAL_PYTHON": sys.executable,
+                       "RESULTS_DIR": str(root / "retained logs")}
+                result = subprocess.run([str(scripts / "test-scripts.sh"), "--skip-docs"], env=env, text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0 if case == "success" else 7 if case == "python" else 2 if case == "syntax" else 9, result.stdout + result.stderr)
+                if case == "success":
+                    self.assertFalse(list((root / "retained logs").iterdir()))
+                    self.assertNotIn(payload.strip(), result.stdout)
+                    continue
+                log = Path(next(line.removeprefix("Full log: ") for line in result.stderr.splitlines() if line.startswith("Full log: ")))
+                if case == "syntax":
+                    self.assertIn("syntax error", log.read_text())
+                    self.assertIn("syntax error", result.stderr)
+                    continue
+                self.assertEqual(log.read_text(), payload)
+                self.assertLessEqual(len(result.stderr.splitlines()), 63)
+                excerpt = result.stderr.splitlines()[2:-1]
+                self.assertTrue(all(len(line) <= 240 for line in excerpt))
+                self.assertIn("output omitted", result.stderr)
+                expected = {"python": "AssertionError: expected price", "shell": "FAIL: expected retained evidence", "unknown": "last diagnostic"}[case]
+                self.assertIn(expected, result.stderr)
+                if case == "python":
+                    self.assertIn("Traceback", result.stderr)
+
 
 
 if __name__ == "__main__":

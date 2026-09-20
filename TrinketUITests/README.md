@@ -15,13 +15,14 @@ use the canonical value and retirement rules for selective player journeys.
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
-Smoke membership is defined by the selected tests in `Smoke.xctestplan`,
-mirrored in `Scripts/config/smoke-classes.txt`; `check-docs.py` fails when they
-diverge, so update both together. The smoke command can filter the plan for
-focused iteration. When deleting or consolidating a UI class, remove obsolete
-references from the affected test plan, smoke registry, and CI matrix together.
-Keep registration checks so retained tests cannot be silently skipped. The checker
-compares source classes, plans, and literal CI matrix target rows, including duplicates.
+Author smoke and exhaustive membership once in `Scripts/config/ui-tests.tsv`.
+Each row supplies suite, smoke routing key (empty for FullUI), class, shard name,
+shard order, and within-shard test order. `./Scripts/generate.sh` updates only
+`selectedTests` in the UI plans, preserving other plan settings. CI reads its
+matrices from the registry through `check-testplan-sync.py --matrix`; local smoke
+routing uses the same rows. Add, remove, or move registrations with the source
+class, then regenerate. The checker rejects missing/duplicate classes, conflicting
+shard orders, stale plan selections, and workflows bypassing registry matrices.
 Focused runs require every requested filter and at least one executed test in the
 result tree. When export stalls, terminal per-test log records provide that proof;
 a suite summary alone does not. Documented individual skips remain visible in results.

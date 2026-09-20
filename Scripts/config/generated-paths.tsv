@@ -44,3 +44,4 @@ asset|Trinket/Media/Music
 asset|Trinket/Media/SFX
 asset|Trinket/Media/Cinematics
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/AffixModifier.generated.swift
+content|Packages/TrinketContent/Sources/TrinketContent/Generated/AffixRolling.generated.swift

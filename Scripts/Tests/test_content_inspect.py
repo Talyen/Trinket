@@ -1,5 +1,23 @@
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/internal/content/abilities.py',
+    'Scripts/content-inspect.py',
+    'Scripts/internal/content/affix_rolling.py',
+    'Scripts/internal/content/common.py',
+    'Scripts/internal/content/content_codegen_modifiers.py',
+    'Scripts/internal/content/content_codegen_triggers.py',
+    'Scripts/internal/content/homestead.py',
+    'Scripts/internal/content/items.py',
+    'Scripts/internal/content/modifier_schema.py',
+    'Scripts/internal/content/modifiers.json',
+    'Scripts/internal/content/roster.py',
+    'Scripts/internal/content/stages.py',
+    'Scripts/internal/content/talents.py',
+    'Scripts/internal/content/trigger_families/*.json',
+)
+
+
 import contextlib
 import io
 from pathlib import Path
@@ -50,3 +68,17 @@ class ContentInspectTests(ScriptRegressionTestCase):
                     self.assertEqual(INSPECT.main(['--kind', 'talents', '--id', 'one', *flags]), 0)
                 self.assertEqual('x' * 2000 in output.getvalue(), expected)
                 self.assertEqual('[shortened; use --full]' in output.getvalue(), not expected)
+
+    def test_ability_id_lookup_points_to_authored_tier_and_declaration(self) -> None:
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(INSPECT.main(['--id', 'fireball', '--kind', 'abilities']), 0)
+        text = output.getvalue()
+        self.assertIn('AbilityCatalog+Skill.swift:', text)
+        self.assertIn('symbol: AbilityCatalog.fireball', text)
+        location = next(line.split(' — ')[0] for line in text.splitlines() if ' — ' in line)
+        name, line = location.rsplit(':', 1)
+        self.assertIn('static let fireball', (INSPECT.ROOT / name).read_text().splitlines()[int(line) - 1])
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(INSPECT.main(['--id', 'firebal', '--kind', 'abilities']), 1)
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            INSPECT.main(['--trigger', 'cleanseBonusDraw', '--kind', 'abilities'])

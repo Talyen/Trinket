@@ -2,11 +2,24 @@
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/ci-gate.sh',
+    'Scripts/config/cheap-slices.txt',
+    'Scripts/handoff.sh',
+    'Scripts/lib/args.sh',
+    'Scripts/lib/cheap-slices.sh',
+    'Scripts/lib/gate.sh',
+)
+
+
 import os
 import subprocess
 import unittest
 
 from script_test_support import ROOT, ScriptRegressionTestCase
+
+import tempfile
+from pathlib import Path
 
 class CIGateScriptTests(ScriptRegressionTestCase):
     def test_ci_diff_review_is_advisory(self) -> None:
@@ -174,6 +187,18 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         plan = "\n".join(result.stdout.splitlines())
         self.assertIn("./Scripts/build.sh", plan)
         self.assertNotIn("SmokeShellTests", plan)
+
+
+    def test_cheap_slices_require_a_readable_nonempty_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            registry = Path(directory) / "slices"
+            script = 'source Scripts/lib/cheap-slices.sh; TRINKET_CHEAP_SLICES_CONFIG="$1"; trinket_run_cheap_slices'
+            for content, status in ((None, 1), ("# empty\n", 1), ("exit 17\n", 17), ("true\n", 0)):
+                if content is not None:
+                    registry.write_text(content)
+                result = subprocess.run(["bash", "-eu", "-c", script, "_", str(registry)], cwd=ROOT, capture_output=True, text=True)
+                self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+
 
 
 if __name__ == "__main__":

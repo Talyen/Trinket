@@ -2,6 +2,18 @@
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/ci-assets-gate.sh',
+    'Scripts/lib/media-assets.sh',
+    'Scripts/prepare-app-icon.sh',
+    'Scripts/prepare-art-assets.sh',
+    'Scripts/prepare-assets.sh',
+    'Scripts/prepare-audio-assets.sh',
+    'Scripts/prepare-cinematic-assets.sh',
+    'Scripts/report-art-memory.sh',
+)
+
+
 import json
 import os
 import re
@@ -264,12 +276,14 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
         (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift").write_text(
             "", encoding="utf-8"
         )
-        (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift").write_text(
+        (root / "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Basic.swift").write_text(
             'id: "slash"\n', encoding="utf-8"
         )
         (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift").write_text(
             'id: "longsword"\n', encoding="utf-8"
         )
+        for tier in ("Skill", "Ultimate"):
+            (root / f"Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+{tier}.swift").write_text("")
         sips = root / "bin/sips"
         sips.write_text(
             "#!/usr/bin/env python3\n"

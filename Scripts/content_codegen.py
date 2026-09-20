@@ -6,6 +6,7 @@ from __future__ import annotations
 import sys
 
 from internal.content.modifier_schema import generate_modifiers
+from internal.content.affix_rolling import generate_affix_rolling
 
 from internal.content.abilities import (
     collect_ability_symbols,
@@ -175,6 +176,7 @@ def main() -> int:
     generate_modifiers()
     generate_trigger_families()
     generate_trigger_root()
+    generate_affix_rolling(_trigger_families())
     generate_talent_catalog(talent_rows, [row.id for row in combatant_rows])
     generate_ability_shorthand()
     generate_ability_inventory()

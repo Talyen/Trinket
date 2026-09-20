@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/content_codegen.py',
+    'Scripts/internal/content/affix_rolling.py',
+    'Scripts/internal/content/common.py',
+    'Scripts/internal/content/content_codegen_modifiers.py',
+    'Scripts/internal/content/content_codegen_triggers.py',
+    'Scripts/internal/content/modifier_schema.py',
+    'Scripts/internal/content/modifiers.json',
+    'Scripts/internal/content/trigger_families/*.json',
+)
+
+
 import json
 from pathlib import Path
 import tempfile
@@ -159,3 +171,32 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
     def test_modifier_token_to_swift_rejects_malformed_token(self) -> None:
         with self.assertRaises(ValueError):
             content_codegen_modifiers.modifier_token_to_swift("damage_dealt:fire")
+
+    def test_affix_policies_preserve_seeded_order_and_require_explicit_classification(self) -> None:
+        import hashlib
+        from internal.content.affix_rolling import rolling_policies, validate_affix_rolling, generate_affix_rolling
+        from internal.content import affix_rolling
+        families = content_codegen_triggers._trigger_families()
+        policies = rolling_policies(families)
+        ordered = sorted(((name, policy) for name, policy in policies.items() if 'order' in policy),
+                         key=lambda row: row[1]['order'])
+        # Frozen pre-migration order/type sequence: existing seeded rolls must not
+        # change when the declaration list becomes generated. New fields append.
+        baseline = '\n'.join(f'{policy["kind"]}:{name}' for name, policy in ordered[:59])
+        self.assertEqual(hashlib.sha256(baseline.encode()).hexdigest(),
+                         '0a8b6702d8b445345f702919422def283377f84d3022c6d01e9a6fbf3db8526b')
+        validate_affix_rolling('onBleedApplyPoison:1|onBleedDealPoisonChancePercent:20', 'infected')
+        with self.assertRaisesRegex(ValueError, 'explicit affix_roll'):
+            validate_affix_rolling('ghostfrost:true', 'unclassified')
+        with tempfile.TemporaryDirectory() as directory, patch.object(affix_rolling, 'GENERATED_DIR', Path(directory)):
+            generate_affix_rolling(families)
+            output = Path(directory) / 'AffixRolling.generated.swift'
+            before = output.read_bytes()
+            generate_affix_rolling(families)
+            self.assertEqual(before, output.read_bytes())
+            self.assertIn('.int(\\.onBleedApplyPoison, name: "onBleedApplyPoison")', before.decode())
+            self.assertIn('"sunderingBlockMultiplier":', before.decode())
+        for policy in ({'reason': ''}, {'kind': 'percent', 'order': 0}, {'kind': 'int', 'order': -1},
+                       {'kind': 'int', 'order': 0, 'reason': 'ambiguous'}):
+            with self.subTest(policy=policy), self.assertRaises(ValueError):
+                rolling_policies([{'fields': [{'name': 'value', 'type': 'Int', 'affix_roll': policy}]}])

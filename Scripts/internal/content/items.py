@@ -22,6 +22,7 @@ from internal.content.common import (
 from internal.content.content_codegen_modifiers import VALID_KEYWORDS
 from internal.content.content_codegen_modifiers import modifiers_swift
 from internal.content.content_codegen_triggers import triggers_swift
+from internal.content.affix_rolling import validate_affix_rolling
 
 
 VALID_SLOTS = frozenset({"weapon", "armor", "accessory", "trinket"})
@@ -131,6 +132,8 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
         modifiers_swift(row.astral_modifiers, row.id)
         triggers_swift(row.basic_triggers, row.id)
         triggers_swift(row.astral_triggers, row.id)
+        validate_affix_rolling(row.basic_triggers, row.id)
+        validate_affix_rolling(row.astral_triggers, row.id)
 
 
 def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:

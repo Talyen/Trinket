@@ -2,6 +2,33 @@
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/config/infrastructure-patterns.env',
+    'Scripts/config/simulator-names.env',
+    'Scripts/ensure-simulator.sh',
+    'Scripts/install-device.sh',
+    'Scripts/lib/infrastructure-patterns.sh',
+    'Scripts/lib/lock.sh',
+    'Scripts/lib/promote.sh',
+    'Scripts/lib/simctl.sh',
+    'Scripts/lib/slots.sh',
+    'Scripts/lib/xcode-manifest.sh',
+    'Scripts/lib/xcode-watchdog.sh',
+    'Scripts/lib/xcodebuild-infra.sh',
+    'Scripts/playthrough-sweep.sh',
+    'Scripts/playthrough_sweep.py',
+    'Scripts/promote.sh',
+    'Scripts/record-time-profiler.sh',
+    'Scripts/release.sh',
+    'Scripts/run-env.sh',
+    'Scripts/run-simulator.sh',
+    'Scripts/simctl_json.py',
+    'Scripts/test-deploy.sh',
+    'Scripts/validate-commit-msg.sh',
+    'Scripts/xcode-runner.sh',
+)
+
+
 import json
 import os
 import subprocess
@@ -12,6 +39,11 @@ import unittest
 from pathlib import Path
 
 from script_test_support import ROOT, ScriptRegressionTestCase
+
+import plistlib
+import pty
+import shutil
+import signal
 
 class CISessionScriptTests(ScriptRegressionTestCase):
     def test_ci_diagnostics_stages_structured_artifacts_and_failure_forensics(self) -> None:
@@ -354,6 +386,261 @@ class CISessionScriptTests(ScriptRegressionTestCase):
             # Fresh orphans and evidence with a diagnostics report survive.
             self.assertTrue(fresh_log.exists())
             self.assertTrue(claimed_log.exists())
+
+
+    def test_simulator_launcher_installs_resolved_product_and_rejects_missing_outputs(self) -> None:
+        for mode in ("valid", "missing-target", "missing-product", "missing-plist", "settings-failed",
+                     "inspect-stop", "inspect-eof", "inspect-cancel", "inspect-no-terminal", "inspect-legacy"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                scripts = root / "Scripts"
+                shutil.copytree(ROOT / "Scripts", scripts)
+                (scripts / "lib/tools.sh").write_text('trinket_prepend_pinned_tools() { :; }\n')
+                if not mode.startswith("inspect-"):
+                    (scripts / "run-env.sh").write_text(
+                        'trinket_run_env_init() { DERIVED_DATA_PATH="$PWD/agent-dd"; '
+                        'RESULTS_DIR="$PWD/results"; mkdir -p "$RESULTS_DIR"; }\n'
+                        'trinket_run_env_print() { :; }\n'
+                    )
+                (scripts / "build-freshness.sh").write_text('prepare_generated_inputs() { :; }\n')
+                (scripts / "ensure-simulator.sh").write_text(
+                    'trinket_sim_slot_ensure() { :; }\n'
+                    'ensure_test_simulator() { SIMULATOR_UDID=fixture; }\n'
+                )
+                (scripts / "xcode-runner.sh").write_text(
+                    'source Scripts/lib/xcode-watchdog.sh\n'
+                    'xcode_runner_run() { while [[ "$1" != -- ]]; do shift; done; shift; "$@"; }\n'
+                )
+                app = root / "custom products/Debug-iphonesimulator/Trinket.app"
+                app.mkdir(parents=True)
+                if mode != "missing-plist":
+                    (app / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": "fixture.trinket"}))
+                if mode == "missing-product":
+                    shutil.rmtree(app)
+                settings = [{"target": "Dependency", "buildSettings": {}}]
+                if mode != "missing-target":
+                    settings.append({"target": "Trinket", "buildSettings": {
+                        "TARGET_BUILD_DIR": str(app.parent), "FULL_PRODUCT_NAME": app.name,
+                    }})
+                (root / "settings.json").write_text(json.dumps(settings))
+                (root / "mode").write_text(mode)
+                binaries = root / "bin"
+                binaries.mkdir()
+                commands = {
+                    "xcodebuild": r"""#!/usr/bin/env python3
+import json, pathlib, sys
+with pathlib.Path('build-args.jsonl').open('a') as handle:
+    handle.write(json.dumps(sys.argv[1:]) + '\n')
+if '-showBuildSettings' in sys.argv:
+    if pathlib.Path('mode').read_text() == 'settings-failed':
+        raise SystemExit(72)
+    print(pathlib.Path('settings.json').read_text())
+""",
+                    "xcrun": """#!/usr/bin/env python3
+import json, pathlib, sys
+if sys.argv[1:3] == ['simctl', 'install']:
+    pathlib.Path('install.json').write_text(json.dumps(sys.argv[3:]))
+    if not pathlib.Path('mode').read_text().startswith('inspect-'):
+        raise SystemExit(73)
+if 'appearance' in sys.argv:
+    print('dark')
+""",
+                }
+                if mode.startswith("inspect-"):
+                    developer = root / "Xcode.app/Contents/Developer"
+                    device_app = (developer / "Applications/Simulator.app" if mode == "inspect-legacy"
+                                  else developer.parent / "Applications/DeviceHub.app")
+                    device_app.mkdir(parents=True)
+                    commands["xcode-select"] = "#!/bin/sh\nprintf '%s\\n' '" + str(developer) + "'\n"
+                    commands["open"] = """#!/usr/bin/env python3
+import json, pathlib, sys
+pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
+"""
+                for name, source in commands.items():
+                    binary = binaries / name
+                    binary.write_text(source)
+                    binary.chmod(0o755)
+                environment = {key: value for key, value in os.environ.items()
+                               if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
+                environment["PATH"] = str(binaries) + os.pathsep + os.environ["PATH"]
+                if mode.startswith("inspect-"):
+                    environment.pop("DEVELOPER_DIR", None)
+                    command = [str(scripts / "run-simulator.sh"), "--isolate", "--inspect"]
+                    if mode == "inspect-no-terminal":
+                        result = subprocess.run(command, env=environment, stdin=subprocess.DEVNULL,
+                                                capture_output=True, text=True)
+                        self.assertEqual(result.returncode, 1, result.stderr)
+                        self.assertFalse((root / ".DerivedData").exists())
+                        self.assertFalse((root / "build-args.jsonl").exists())
+                        continue
+                    master, slave = pty.openpty()
+                    try:
+                        with (root / "inspection.log").open("w+") as output:
+                            process = subprocess.Popen(command, env=environment, stdin=slave,
+                                                       stdout=output, stderr=output)
+                            try:
+                                deadline = time.monotonic() + 15
+                                while time.monotonic() < deadline:
+                                    output.seek(0)
+                                    transcript = output.read()
+                                    if "Inspection ready:" in transcript or process.poll() is not None:
+                                        break
+                                    time.sleep(0.02)
+                                self.assertIn("Inspection ready:", transcript)
+                                self.assertIn("Trinket Agent 1 (fixture)", transcript)
+                                self.assertIn(str(app), transcript)
+                                self.assertIsNone(process.poll())
+                                lease = root / ".DerivedData/.active-sim/1.slot"
+                                self.assertTrue(lease.exists())
+                                if mode == "inspect-cancel":
+                                    process.send_signal(signal.SIGTERM)
+                                else:
+                                    os.write(master, b"stop\n" if mode == "inspect-stop" else b"\x04")
+                                self.assertEqual(process.wait(timeout=10), 143 if mode == "inspect-cancel" else 0)
+                                self.assertFalse(lease.exists())
+                            finally:
+                                if process.poll() is None:
+                                    process.kill()
+                                    process.wait(timeout=5)
+                    finally:
+                        os.close(master)
+                        os.close(slave)
+                    self.assertEqual(json.loads((root / "install.json").read_text()), ["fixture", str(app)])
+                    opened = json.loads((root / "open.json").read_text())
+                    self.assertEqual(opened[:2], ["-a", str(device_app)])
+                    self.assertEqual(opened[2:], ["--args", "-CurrentDeviceUDID", "fixture"]
+                                     if mode == "inspect-legacy" else [])
+                    continue
+                result = subprocess.run(
+                    [str(scripts / "run-simulator.sh"), "--isolate"],
+                    env={**os.environ, "PATH": str(binaries) + os.pathsep + os.environ["PATH"]},
+                    capture_output=True, text=True,
+                )
+                calls = [json.loads(line) for line in (root / "build-args.jsonl").read_text().splitlines()]
+                self.assertEqual(calls[0][0], "build")
+                self.assertEqual(calls[1][:2], ["-showBuildSettings", "-json"])
+                self.assertEqual(calls[0][1:], calls[1][2:])
+                if mode == "valid":
+                    self.assertEqual(result.returncode, 73, result.stdout + result.stderr)
+                    self.assertEqual(json.loads((root / "install.json").read_text()), ["fixture", str(app)])
+                else:
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertIn("could not resolve", result.stderr)
+                    self.assertFalse((root / "install.json").exists())
+
+
+    def test_simulator_names_single_sourced(self) -> None:
+        config = (ROOT / "Scripts" / "config" / "simulator-names.env").read_text()
+        self.assertIn("Trinket Run", config)
+        self.assertIn("Trinket Agent", config)
+        shell = (ROOT / "Scripts" / "lib" / "simctl.sh").read_text()
+        self.assertIn("simulator-names.env", shell)
+        python = (ROOT / "Scripts" / "simctl_json.py").read_text()
+        self.assertIn("simulator-names.env", python)
+
+
+    def test_chained_locks_preserve_quoted_cleanup_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "owner's resources.lock"
+            second = root / "second.lock"
+            script = '''
+source Scripts/lib/lock.sh
+trinket_dir_lock_acquire "$1" 0
+trinket_dir_lock_acquire "$2" 0
+'''
+            result = subprocess.run(["bash", "-eu", "-c", script, "_", str(first), str(second)],
+                                    cwd=ROOT, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertFalse(first.exists())
+            self.assertFalse(second.exists())
+
+
+    def test_cancellation_stops_workers_before_releasing_resources(self) -> None:
+        for owner in ("lock", "run-env"):
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                with self.subTest(owner=owner, signal=sig), tempfile.TemporaryDirectory() as directory:
+                    script = '''
+source Scripts/run-env.sh
+trap 'test ! -e "$resource"; ! kill -0 "$worker" 2>/dev/null' EXIT
+if [[ "$1" == lock ]]; then
+  resource="$2/generation.lock"
+  trinket_dir_lock_acquire "$resource" 0
+else
+  TRINKET_REPO_ROOT="$2"
+  TRINKET_ISOLATE=1
+  trinket_run_env_init
+  resource="$TRINKET_SIM_SLOT_PATH"
+fi
+bash -c 'trap "" INT TERM; while :; do sleep 1; done' &
+worker=$!
+printf '%s\\n' "$resource"
+wait "$worker"
+echo continued > "$2/continued"
+'''
+                    env = {key: value for key, value in os.environ.items()
+                           if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
+                    process = subprocess.Popen(["bash", "-eu", "-c", script, "_", owner, directory],
+                                               cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    resource = Path(process.stdout.readline().strip())
+                    self.assertTrue(resource.exists())
+                    process.send_signal(sig)
+                    stdout, stderr = process.communicate(timeout=10)
+                    self.assertEqual(process.returncode, 128 + sig, stdout + stderr)
+                    self.assertFalse(resource.exists())
+                    self.assertFalse((Path(directory) / "continued").exists())
+
+
+    def test_mirror_uses_its_build_and_only_the_human_simulator(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            calls = root / "calls"
+            (scripts / "build.sh").write_text('#!/bin/bash\nprintf "build\\n" >> "$MIRROR_CALLS"\nexit "$BUILD_STATUS"\n')
+            app = root / ".DerivedData/runs/agent-1/Build/Products/Debug-iphonesimulator/Trinket.app"
+            app.mkdir(parents=True)
+            (app / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": "fixture.app"}))
+            other = root / ".DerivedData/runs/agent-2/Build/Products/Debug-iphonesimulator/Trinket.app"
+            other.mkdir(parents=True)
+            fake = root / "bin"
+            fake.mkdir()
+            xcrun = fake / "xcrun"
+            xcrun.write_text('''#!/usr/bin/env python3
+import json, os, sys
+with open(os.environ["MIRROR_CALLS"], "a") as stream:
+    stream.write(json.dumps(sys.argv[1:]) + "\\n")
+if sys.argv[1:4] == ["simctl", "list", "devices"]:
+    print(json.dumps({"devices": {"runtime": [
+        {"name": "Trinket Run", "udid": "human", "state": "Booted"},
+        {"name": "Trinket Agent 2", "udid": "peer", "state": "Booted"}]}}))
+elif sys.argv[1:3] == ["simctl", "install"]:
+    sys.exit(int(os.environ["INSTALL_STATUS"]))
+else:
+    sys.exit(92)
+''')
+            xcrun.chmod(0o755)
+            env = {key: value for key, value in os.environ.items()
+                   if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR", "GITHUB_ACTIONS"}}
+            env.update(PATH=f"{fake}:{env['PATH']}", MIRROR_CALLS=str(calls))
+            for build_status, install_status, product in ((0, 0, True), (65, 0, True), (0, 1, True), (0, 0, False)):
+                with self.subTest(build=build_status, install=install_status, product=product):
+                    if not product:
+                        shutil.rmtree(app)
+                    calls.write_text("")
+                    result = subprocess.run([str(scripts / "promote.sh")], cwd=root,
+                                            env={**env, "BUILD_STATUS": str(build_status), "INSTALL_STATUS": str(install_status)},
+                                            capture_output=True, text=True, timeout=10)
+                    self.assertEqual(result.returncode, 0 if build_status == install_status == 0 and product else 1,
+                                     result.stdout + result.stderr)
+                    lines = calls.read_text().splitlines()
+                    self.assertEqual(lines.count("build"), 1)
+                    commands = [json.loads(line) for line in lines if line != "build"]
+                    installs = [command for command in commands if command[:2] == ["simctl", "install"]]
+                    self.assertEqual(installs, [] if build_status or not product else [["simctl", "install", "human", str(app)]])
+                    self.assertFalse(any(command[1] in {"terminate", "launch"} for command in commands))
+                    self.assertFalse(list((root / ".DerivedData/.active-sim").glob("*.slot")))
+
 
 
 if __name__ == "__main__":

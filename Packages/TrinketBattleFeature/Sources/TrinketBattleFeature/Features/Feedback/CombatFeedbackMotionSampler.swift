@@ -23,10 +23,12 @@ enum CombatFeedbackMotionSampler {
             let pulseProgress = BattleMotion.smoothProgress((updateElapsed ?? StationaryFeedbackLayout.mergePulseDuration)
                 / StationaryFeedbackLayout.mergePulseDuration)
             let pulseScale = 1 + (StationaryFeedbackLayout.mergePulseScale - 1) * (1 - pulseProgress)
+            let driftProgress = min(1, max(0, (elapsed - StationaryFeedbackLayout.shrinkStart) / StationaryFeedbackLayout.shrinkDuration))
             let fadeProgress = (elapsed - StationaryFeedbackLayout.fadeStart) / StationaryFeedbackLayout.fadeDuration
             return CombatFeedbackAnimationState(
                 opacity: 1 - BattleMotion.smoothProgress(fadeProgress),
                 scale: stationaryScale(elapsed: elapsed) * pulseScale,
+                riseProgress: driftProgress * driftProgress,
                 shineProgress: min(1, (updateElapsed ?? elapsed) / StationaryFeedbackLayout.shineDuration),
             )
         }
@@ -50,15 +52,12 @@ enum CombatFeedbackMotionSampler {
         let scale: Double
         if elapsed < StationaryFeedbackLayout.popDuration {
             let remaining = 1 - elapsed / StationaryFeedbackLayout.popDuration
-            scale = 1 + (StationaryFeedbackLayout.peakScale - 1) * (1 - remaining * remaining * remaining)
-        } else if elapsed < StationaryFeedbackLayout.holdStart {
-            let progress = (elapsed - StationaryFeedbackLayout.popDuration) / StationaryFeedbackLayout.settleDuration
-            scale = StationaryFeedbackLayout.peakScale
-                + (StationaryFeedbackLayout.largeScale - StationaryFeedbackLayout.peakScale) * BattleMotion.smoothProgress(progress)
+            scale = StationaryFeedbackLayout.initialScale
+                + (StationaryFeedbackLayout.peakScale - StationaryFeedbackLayout.initialScale) * (1 - remaining * remaining * remaining)
         } else {
             let progress = min(1, max(0, (elapsed - StationaryFeedbackLayout.shrinkStart) / StationaryFeedbackLayout.shrinkDuration))
-            let remaining = 1 - progress
-            scale = 1 + (StationaryFeedbackLayout.largeScale - 1) * remaining * remaining * remaining
+            scale = StationaryFeedbackLayout.peakScale
+                + (StationaryFeedbackLayout.finalScale - StationaryFeedbackLayout.peakScale) * progress * progress
         }
         return StationaryFeedbackLayout.sizeScale * scale
     }

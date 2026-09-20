@@ -86,8 +86,23 @@ final class BattleFlowUITests: TrinketUITestCase {
 
     private func assertCancelledDrag(from origin: XCUICoordinate, cards: XCUIElementQuery) {
         let countBefore = cards.count
-        origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 35, dy: 35)))
+        // Cross the shared movement boundary, then hold beyond native long-press recognition.
+        origin.press(
+            forDuration: 0.05,
+            thenDragTo: origin.withOffset(CGVector(dx: 11, dy: 0)),
+            withVelocity: XCUIGestureVelocity(rawValue: 40),
+            thenHoldForDuration: 0.7,
+        )
         XCTAssertEqual(cards.count, countBefore, "A drag below the play threshold must leave the hand unchanged")
+        assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
+
+        origin.press(
+            forDuration: 0.05,
+            thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -60)),
+            withVelocity: .fast,
+            thenHoldForDuration: 0,
+        )
+        XCTAssertEqual(cards.count, countBefore, "A flick released inside the play boundary must cancel")
         assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
     }
 

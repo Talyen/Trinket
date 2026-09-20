@@ -1,83 +1,78 @@
 # Trinket agent guide
 
 Portrait-first iOS fantasy turn-based card combat. SwiftUI + SPM under `Packages/`;
-Xcode project generated from `project.yml`. Configuration pins toolchains;
-[Scripts](Scripts/README.md) owns commands. Nested `AGENTS.md` files add local
-constraints. [Documentation map](Docs/README.md) owns policy precedence.
+Xcode project generated from `project.yml`. Configuration pins toolchains.
+[Scripts](Scripts/README.md) owns commands; nested `AGENTS.md` files add local
+constraints; [Docs](Docs/README.md) owns policy precedence.
 
 ## Communication
 
-Write for someone who knows Trinket as a game. Use player-facing names; include
-implementation detail when needed for a decision, risk, or blocker. Distinguish
-verified behavior from inference and state material assumptions.
+Write for someone who knows Trinket as a game. Use player-facing names, explain
+material decisions/risks/blockers, and distinguish verified behavior from inference.
 
 ## Protect the workspace
 
-- Inspect scoped Git status with the routing command below before editing, then each overlapping dirty file's full diff. Use `git status --short` for intentional whole-tree inspection. Preserve in-flight work with surgical edits; clarify ownership before editing overlapping changes when it is unclear.
-- Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree. The safety shim refuses these commands without stashing working files.
-- Work directly in the primary checkout on `main` by default; do not create worktrees for routine tasks, branch there, or open pull requests.
-- Commit/push only when requested, following [Release.md](Docs/Platform/Release.md). Include only requested/adopted changes; stage hunks for mixed files. Hosted CI follows a push to `main`, not a prerequisite for it.
-- For TestFlight deployment, use `./Scripts/testflight.sh`; [Release.md](Docs/Platform/Release.md#local-testflight-deployment) owns setup, recovery, and readiness. Use its doctor before improvising Xcode or App Store Connect steps.
-- Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Normal build/handoff handles generation freshness; use `./Scripts/generate.sh` for explicit regeneration.
-- Never kill foreign Xcode/Simulator processes. Follow [Verification.md](Docs/Platform/Verification.md) for isolation and diagnostics.
+- Before editing, inspect scoped status with the router below and every overlapping dirty file's full diff. Preserve in-flight work with surgical edits; clarify unclear ownership. Use `git status --short` only for intentional whole-tree inspection.
+- Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree.
+- Work in the primary checkout on `main`; no routine worktrees, branches, or pull requests.
+- Commit/push only when requested. Read [Release](Docs/Platform/Release.md#local-hooks-and-push-discipline) for staging and push rules; hosted CI follows a push, not a prerequisite for it. For TestFlight, read [deployment](Docs/Platform/Release.md#local-testflight-deployment) and use `./Scripts/testflight.sh` and its doctor.
+- Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Build/handoff handles freshness; `./Scripts/generate.sh` explicitly regenerates.
+- Never kill foreign Xcode/Simulator processes. [Verification](Docs/Platform/Verification.md) owns isolation and diagnostics.
 
 ## Product constraints
 
-- Use first-party SwiftUI and the [platform support policy](Docs/Platform/ApplePlatformReference.md#platform-support); the deployment target is a minimum, not an adoption ceiling. Small availability checks within the supported window are appropriate; avoid legacy compatibility frameworks and UIKit feature chrome. Extend existing measured UIKit feedback only through its package guide.
-- Do not remove launch/imminent artwork pins, switch first-screen art to on-demand `Image(name)`, or lower artwork memory budgets without product approval. [Performance playbook](Docs/Platform/PerformanceInvestigationPlaybook.md) owns budgets; `check-artwork-budget.sh` enforces them.
+- Use first-party SwiftUI under the [platform policy](Docs/Platform/ApplePlatformReference.md#platform-support). The deployment target is a minimum, not an adoption ceiling; small supported-window availability checks are appropriate. Avoid legacy compatibility frameworks and UIKit feature chrome; existing measured UIKit feedback follows its package guide.
+- Preserve launch/imminent artwork pins and first-screen prepared artwork; do not replace them with on-demand `Image(name)` or lower [artwork budgets](Docs/Platform/PerformanceInvestigationPlaybook.md) without product approval.
 - Preserve or migrate saves, serialized identifiers, manifests, and live schemas unless the consumer window is proven closed or a break is approved. Source/API compatibility needs a confirmed current consumer.
-- Prefer self-explanatory code. Add concise comments for non-obvious rationale, invariants, or platform limitations; avoid narrating the implementation. Remove temporary debug output. [doc-budget](.agents/skills/doc-budget/SKILL.md) covers checker directives and suppression reasons.
+- Prefer self-explanatory code and concise rationale/invariant comments; remove temporary debug output. Use [doc-budget](.agents/skills/doc-budget/SKILL.md) for checker directives or suppressions.
 
 ## Route and read
 
-Run `./Scripts/agent-context.sh --agent --status --paths <file...>` once likely touched paths
-are known. Read root/local safeguards and applicable ownership constraints; use the
-routed cards to find relevant behavior contracts. Load skills when their triggers apply.
-Reuse unchanged guidance already present in context; reread when changed or no
-longer available. Reroute when scope crosses owners and read newly applicable
-material. Use `--working-tree --allow-broad-scope` only for intentional whole-tree work.
+Start discovery with `python3 Scripts/agent-search.py --files <pattern> --scope <owner>`;
+when the owner is unknown, use `--overview`. Asset filenames use `--mode assets --files`.
+Scoped `rg --files` and content `rg` remain available after narrowing the surface.
 
-For unknown owners or broad concepts, start with filename-only `rg --files` or
-`python3 Scripts/agent-search.py <pattern> --scope <owner>`. Use content `rg` only
-after narrowing files. Read documentation sections with
-`python3 Scripts/agent-read.py 'path.md#heading'`; use `--outline` for headings
-or Swift/Python declaration hints.
-Review with `python3 Scripts/agent-diff.py --paths <file...>`; follow all relevant
-pages before editing overlapping changes. Use `--full` only for intentional unbounded output.
-Follow relevant callers, tests, and configuration across owners. Load linked material only
-for its concern; generated catalogs/logs need targeted lookups. See
-[context reading examples](Docs/AgentContext/README.md). Use an execution plan only
-for durable coordination/resumption; [Plans](Docs/Plans/README.md) owns lifecycle.
+Once paths are known, run `./Scripts/agent-context.sh --agent --status --paths <file...>`.
+Read root/local safeguards and applicable routed ownership/behavior sections; load
+skills by trigger. Reuse unchanged guidance already in context. Reroute across owners.
+Use `--working-tree --allow-broad-scope` only for intentional whole-tree work.
+
+Read sections with `python3 Scripts/agent-read.py 'path.md#heading'`; `--outline`
+lists headings or Swift/Python declarations, `--symbol` reads a declaration, and
+`--full` intentionally expands a large document. An outline is navigation, not a read.
+Review all relevant pages of `python3 Scripts/agent-diff.py --paths <file...>` before
+editing overlapping work. Follow relevant callers, tests, and configuration;
+use targeted generated-catalog/log lookups. [Context examples](Docs/AgentContext/README.md)
+own retrieval details. Create an [execution plan](Docs/Plans/README.md) only for
+durable coordination/resumption.
 
 ## Choose the change
 
-- Fix the owning module's root cause with the simplest complete solution. Reuse or delete when that improves clarity; additional code is appropriate for correctness, coherent ownership, or measured performance.
-- Keep types/files cohesive. Share abstractions for confirmed repeated behavior or enforced boundaries, not predicted reuse. Avoid speculative extension points, compatibility layers, or defensive paths for impossible states.
-- Prefer existing dependencies. New ones need material simplification and checked maintenance, license, platform, and toolchain fit.
-- Delete replaced implementations and redundant tests unless current compatibility requires parallel paths. `change-budget.sh` counts are investigation signals, not targets or mandatory justification triggers; distinguish task changes from pre-existing work. Explain material tradeoffs, not every threshold crossing.
+Fix the owning module's root cause with the simplest complete solution. Keep files
+cohesive; reuse abstractions for confirmed repetition or enforced boundaries, not
+predicted needs. Delete replaced code and redundant tests unless current compatibility
+requires them. Prefer existing dependencies; new ones need material simplification
+and checked maintenance, license, platform, and toolchain fit.
 
-Adopt encountered reproducible defects, gate failures, documentation drift, or
-bounded debt only within scope when evidence, intended behavior, and ownership are
-clear and the complete fix is reversible with targeted verification. No speculative
-sweeps. Propose unresolved decisions about product choices, migrations,
-dependencies, architectural boundaries, or broad rewrites; existing session
-approval carries forward. Continue independent authorized work. Unrelated dirty
-work is never permission to overwrite it.
+Adopt encountered defects, gate failures, documentation drift, or bounded debt only
+within scope when reproducible, ownership/intended behavior are clear, and the full
+fix is reversible with targeted verification. No speculative sweeps. Propose unresolved
+product, migration, dependency, architecture, or broad-rewrite decisions; existing
+session approval carries forward. Continue independent authorized work.
 
 ## Verify and hand off
 
 Continue authorized work through implementation, relevant verification, and fixes
-for failures caused by the change without another approval checkpoint. Stop when
-complete or blocked by a required decision or unavailable prerequisite; apply the
-encountered-fix rules above to other failures.
+caused by the change without another approval checkpoint. Stop when complete or
+blocked by a required decision or unavailable prerequisite.
 
-- Choose tests for consequential confidence under [Testing.md](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Consolidate or retire coverage made redundant within scope when evidence justifies it; test counts are not a goal and evidence-based retirement needs no separate approval.
-- Run `./Scripts/handoff.sh --isolate --paths <file...>` for the union of requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification.md](Docs/Platform/Verification.md) owns gates, simulator limits, and failures.
-- Review the final diff for scope and generated consistency. Report results, verification, adopted fixes separately, and exact blockers/skips. Do not claim verified completion with unresolved required checks.
+- Follow [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior) for consequential coverage and evidence-based retirement; test counts are not a goal.
+- Run `./Scripts/handoff.sh --isolate --paths <file...>` for requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
+- Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. Do not claim verified completion with required checks unresolved.
 
 ## Maintain guidance
 
-Update canonical policy owners with behavior changes; link rather than duplicate.
+Update canonical policy owners with behavior changes; follow [documentation editing](Docs/README.md#editing-guidance).
 Load [knowledge](.agents/knowledge/index.md) only for its concern. Record misleading
-guidance or recurring friction in [.agents/FRICTION_LOG.md](.agents/FRICTION_LOG.md),
-with a fix link when resolved. Keep one-off failures in session history.
+guidance or recurring friction in [.agents/FRICTION_LOG.md](.agents/FRICTION_LOG.md)
+with a fix link when resolved; keep one-off failures in session history.

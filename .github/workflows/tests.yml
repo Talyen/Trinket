@@ -50,6 +50,8 @@ jobs:
     timeout-minutes: 30
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
+      smoke-matrix: ${{ steps.ui-matrices.outputs.smoke }}
+      full-ui-matrix: ${{ steps.ui-matrices.outputs.full-ui }}
     steps:
       # Local composite actions cannot run before the repo exists, so the
       # first step inlines actions/checkout (same sparse set as
@@ -82,6 +84,15 @@ jobs:
           test -f FullUI.xctestplan
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
+      - name: Read UI test shards
+        id: ui-matrices
+        shell: bash
+        run: |
+          set -euo pipefail
+          smoke_matrix="$(python3 Scripts/check-testplan-sync.py --matrix Smoke)"
+          full_ui_matrix="$(python3 Scripts/check-testplan-sync.py --matrix FullUI)"
+          echo "smoke=$smoke_matrix" >> "$GITHUB_OUTPUT"
+          echo "full-ui=$full_ui_matrix" >> "$GITHUB_OUTPUT"
       - name: Restore warm cache and build
         id: restore-and-build
         uses: ./.github/actions/restore-and-build
@@ -151,12 +162,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Shell
-            target: SmokeShellTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests
-          - name: Play
-            target: SmokeBattleTests SmokeShopTests
+      matrix: ${{ fromJSON(needs.build.outputs.smoke-matrix) }}
     runs-on: xcode-27
     timeout-minutes: 25
     steps:
@@ -204,16 +210,7 @@ jobs:
     continue-on-error: true
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Battle
-            target: BattleFlowUITests
-          - name: Collection
-            target: TabNavigationUITests HeroDetailAbilityPickerUITests
-          - name: Homestead
-            target: HomesteadNodeDetailUITests
-          - name: Play
-            target: PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests
+      matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}
     runs-on: xcode-27
     timeout-minutes: 25
     steps:

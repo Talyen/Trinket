@@ -3,6 +3,22 @@
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/check-accessibility-ids.py',
+    'Scripts/check-agent-invariants.sh',
+    'Scripts/check-api-bans.sh',
+    'Scripts/check-artwork-budget.sh',
+    'Scripts/check-exclusivity-footguns.sh',
+    'Scripts/check-module-boundaries.sh',
+    'Scripts/check-ui-style.py',
+    'Scripts/config/system-colors.txt',
+    'Scripts/config/uitest-system-query-allowlist.txt',
+    'Scripts/internal/swift_policy.py',
+    'Scripts/lib/rg-check.sh',
+    'Scripts/release-notes.sh',
+)
+
+
 import json
 import os
 import shutil

@@ -4,252 +4,102 @@
 from __future__ import annotations
 
 import argparse
+import ast
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 from internal.cli import ROOT
 
 # Keep each leaf with its consumers' regressions. Infrastructure, runners,
-# fixtures, and this selector intentionally have no narrow route.
+# and shared fixtures without declared ownership use the full-suite fallback.
 #
 # INTENTIONALLY_UNMAPPED names leaves that must keep the safe full-suite
 # fallback (with the reason); test_script_selection.py enforces that every
-# other Scripts/ leaf is routed below.
+# other Scripts/ leaf is owned by suite metadata or the shell families below.
 INTENTIONALLY_UNMAPPED = {
     "Scripts/internal/cli.py": "shared by six families; any narrow route would under-test consumers",
     "Scripts/test-scripts.sh": "the runner itself; self-hosted, always full suite",
 }
-FAMILIES = (
-    (
-        {"Scripts/testflight.sh", "Scripts/setup-testflight.sh",
-         "Scripts/lib/testflight-tools.sh", "Scripts/internal/testflight.rb",
-         "Scripts/config/testflight.example.json", "Scripts/Tests/testflight_test.rb",
-         "Gemfile", "Gemfile.lock"},
-        {"test_testflight"},
-    ),
-    (
-        {"Scripts/config/generated-paths.tsv"},
-        {"test_agent_diff", "test_agent_search"},
-    ),
-    (
-        {"Scripts/internal/diagnostics/diagnostic_model.py"},
-        {"test_package_diagnostics"},
-    ),
-    (
-        {"Scripts/internal/content/common.py", "Scripts/internal/content/talents.py",
-         "Scripts/internal/content/items.py", "Scripts/internal/content/roster.py",
-         "Scripts/internal/content/stages.py", "Scripts/internal/content/homestead.py"},
-        {"test_content_inspect"},
-    ),
-    (
-        {"Scripts/internal/swift_policy.py"},
-        {"test_documentation"},
-    ),
-    (
-        {"Scripts/internal/content/common.py"},
-        {"test_check_unused_assets"},
-    ),
-    (
-        {"Scripts/content_codegen.py", "Scripts/internal/content/common.py"},
-        {"test_codegen_abilities", "test_codegen_common", "test_codegen_homestead",
-         "test_codegen_stages", "test_codegen_talents", "test_codegen_triggers",
-         "test_content_codegen"},
-    ),
-    (
-        {"Scripts/internal/content/abilities.py"},
-        {"test_codegen_abilities", "test_content_codegen"},
-    ),
-    (
-        {"Scripts/internal/content/homestead.py"},
-        {"test_codegen_homestead", "test_content_codegen"},
-    ),
-    (
-        {"Scripts/internal/content/stages.py"},
-        {"test_codegen_stages", "test_content_codegen"},
-    ),
-    (
-        {"Scripts/internal/content/talents.py"},
-        {"test_codegen_talents", "test_content_codegen"},
-    ),
-    (
-        {"Scripts/internal/content/items.py"},
-        {"test_content_codegen"},
-    ),
-    (
-        {"Scripts/internal/content/roster.py"},
-        {"test_content_codegen"},
-    ),
-    (
-        {"Scripts/internal/content/content_codegen_modifiers.py",
-         "Scripts/internal/content/content_codegen_triggers.py",
-         "Scripts/internal/content/modifier_schema.py",
-         "Scripts/internal/content/modifiers.json",
-         *(path.relative_to(ROOT).as_posix() for path in (ROOT / "Scripts/internal/content/trigger_families").glob("*.json"))},
-        {"test_codegen_common", "test_codegen_homestead", "test_codegen_stages",
-         "test_codegen_talents", "test_codegen_triggers", "test_content_codegen", "test_content_inspect"},
-    ),
-    (
-        {"Scripts/config/diagnostic-limits.env", "Scripts/internal/diagnostics/diagnostic_limits.py",
-         "Scripts/script_diagnostics.py"},
-        {"test_codegen_abilities", "test_package_diagnostics"},
-    ),
-    (
-        {"Scripts/test-package.sh"},
-        {"test_package_diagnostics"},
-    ),
-    (
-        {"Scripts/content-inspect.py"},
-        {"test_content_inspect"},
-    ),
-    (
-        {"Scripts/agent-diff.py"},
-        {"test_agent_diff"},
-    ),
-    (
-        {"Scripts/package-diagnostics.py"},
-        {"test_exec_wrappers", "test_package_diagnostics"},
-    ),
-    (
-        {"Scripts/agent-search.py"},
-        {"test_agent_search"},
-    ),
-    (
-        {"Scripts/check-links.py", "Scripts/check-docs.py", "Scripts/check-plans.py",
-         "Scripts/check-testplan-sync.py", "Scripts/agent-read.py", "Scripts/internal/markdown.py",
-         "Scripts/config/smoke-classes.txt", "Scripts/new-plan.sh", "Scripts/internal/doc_diagnostics.py"},
-        {"test_documentation"},
-    ),
-    (
-        {"Scripts/aggregate-performance-results.py", "Scripts/compare-performance.py",
-         "Scripts/collect-performance-results.py", "Scripts/internal/performance/performance_model.py",
-         "Scripts/performance_environment.py", "Scripts/performance-scenarios.py",
-         "Scripts/performance.sh"},
-        {"test_aggregate_performance", "test_compare_performance", "test_performance_scenarios", "test_exec_wrappers"},
-    ),
-    (
-        {"Scripts/release-notes-user.py"},
-        {"test_release_notes_user"},
-    ),
-    (
-        {"Scripts/agent-context.sh", "Scripts/change-classification.sh",
-         "Scripts/lib/classification-plan.sh", "Scripts/lib/smoke-classes.sh",
-         "Scripts/internal/agent_status.py"},
-        {"test_agent_context"},
-    ),
-    (
-        {"Scripts/build.sh", "Scripts/build-for-testing.sh", "Scripts/build-freshness.sh",
-         "Scripts/check-build-cache-paths.sh", "Scripts/test.sh", "Scripts/test-package.sh",
-         "Scripts/format.sh", "Scripts/lint.sh", "Scripts/lint-analyze.sh",
-         "Scripts/lib/app-build.sh", "Scripts/lib/args.sh", "Scripts/lib/derived-data.sh",
-         "Scripts/lib/test-helpers.sh", "Scripts/lib/test-style.sh",
-         "Scripts/lib/tempdir.sh",
-         "Scripts/prune-derived-data-cache.sh", "Scripts/stage-ci-test-artifact.sh"},
-        {"test_build_artifacts", "test_build_process", "test_ci_build_scripts", "test_exec_wrappers",
-         "test-lib-args.sh", "test-lib-tempdir.sh"},
-    ),
-    (
-        {"Scripts/handoff.sh", "Scripts/ci-gate.sh",
-         "Scripts/lib/args.sh", "Scripts/lib/cheap-slices.sh", "Scripts/config/cheap-slices.txt",
-         "Scripts/lib/gate.sh"},
-        {"test_ci_gate_scripts", "test_ci_handoff_routing", "test_documentation", "test_exec_wrappers", "test-lib-args.sh"},
-    ),
-    (
-        {"Scripts/script_test_selection.py"},
-        {"test_script_selection"},
-    ),
-    (
-        {"Scripts/check-ui-style.py", "Scripts/check-accessibility-ids.py",
-         "Scripts/check-agent-invariants.sh", "Scripts/check-exclusivity-footguns.sh",
-         "Scripts/check-module-boundaries.sh", "Scripts/check-artwork-budget.sh",
-         "Scripts/check-api-bans.sh", "Scripts/release-notes.sh",
-         "Scripts/config/system-colors.txt", "Scripts/config/uitest-system-query-allowlist.txt",
-         "Scripts/lib/rg-check.sh", "Scripts/internal/swift_policy.py"},
-        {"test_policy_scripts", "test_swift_style_policy", "test_exec_wrappers"},
-    ),
-    (
-        {"Scripts/check-unused-assets.py"},
-        {"test_check_unused_assets"},
-    ),
-    (
-        {"Scripts/ci-path-filter.py"},
-        {"test_ci_path_filter"},
-    ),
-    (
-        {"Scripts/ci-diagnostics.py", "Scripts/ci-diagnostics.sh",
-         "Scripts/failure_diagnostics.py", "Scripts/diagnostic_maintenance.py",
-         "Scripts/script_diagnostics.py",
-         "Scripts/internal/diagnostics/diagnostic_limits.py",
-         "Scripts/internal/diagnostics/diagnostic_model.py",
-         "Scripts/internal/diagnostics/diagnostic_rendering.py",
-         "Scripts/internal/diagnostics/failure_diagnostics_parsers.py",
-         "Scripts/internal/diagnostics/xcresult_diagnostics.py",
-         "Scripts/config/diagnostic-limits.env"},
-        {"test_failure_diagnostics", "test_test_timing", "test_verification_improvements", "test_exec_wrappers"},
-    ),
-    (
-        {"Scripts/test-timing.py"},
-        {"test_test_timing", "test_ci_build_scripts"},
-    ),
-    (
-        {"Scripts/prepare-art-assets.sh", "Scripts/prepare-audio-assets.sh",
-         "Scripts/prepare-cinematic-assets.sh", "Scripts/prepare-assets.sh",
-         "Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh",
-         "Scripts/ci-assets-gate.sh", "Scripts/report-art-memory.sh"},
-        {"test_media_asset_scripts", "test_ci_build_scripts", "test-asset-hash-sort-locale.sh"},
-    ),
-    (
-        {"Scripts/generate.sh", "Scripts/agent-push-gate.sh",
-         "Scripts/assert-generated-output.sh", "Scripts/change-budget.sh",
-         "Scripts/apply-scheme-storekit.py", "Scripts/check-staged-project.sh",
-         "Scripts/ensure-ci-tools.sh", "Scripts/ensure-git-cliff.sh", "Scripts/update-tools.sh",
-         "Scripts/lib/project-generation.sh", "Scripts/lib/tools.sh",
-         "Scripts/lib/tool-install.sh", "Scripts/lib/ci-tools.d/xcodegen.sh",
-         "Scripts/lib/ci-tools.d/ripgrep.sh", "Scripts/lib/generated-paths.sh",
-         "Scripts/build-inputs.env", "Scripts/format-dirs.env", "Scripts/tool-versions.env",
-         "Scripts/config/generated-paths.tsv", "Scripts/config/smoke-classes.txt"},
-        {"test_project_generation", "test_build_process", "test_ci_build_scripts"},
-    ),
-    (
-        {"Scripts/run-env.sh", "Scripts/ensure-simulator.sh", "Scripts/simctl_json.py",
-         "Scripts/lib/simctl.sh", "Scripts/lib/slots.sh", "Scripts/lib/lock.sh",
-         "Scripts/config/simulator-names.env"},
-        {"test_exec_wrappers", "test-run-env.sh"},
-    ),
-    (
-        {"Scripts/xcode-runner.sh", "Scripts/lib/xcode-manifest.sh",
-         "Scripts/lib/xcode-watchdog.sh", "Scripts/lib/xcodebuild-infra.sh",
-         "Scripts/lib/infrastructure-patterns.sh",
-         "Scripts/config/infrastructure-patterns.env"},
-        {"test_exec_wrappers", "test-xcode-runner.sh"},
-    ),
-    (
-        {"Scripts/release.sh", "Scripts/test-deploy.sh",
-         "Scripts/promote.sh", "Scripts/lib/promote.sh",
-         "Scripts/install-device.sh", "Scripts/run-simulator.sh",
-         "Scripts/validate-commit-msg.sh", "Scripts/record-time-profiler.sh"},
-        {"test_release_notes_user", "test_ci_build_scripts"},
-    ),
-    (
-        {"Scripts/balance-sweep.sh"},
-        {"test_balance_report_retention"},
-    ),
-    (
-        {"Scripts/playthrough-sweep.sh", "Scripts/playthrough_sweep.py"},
-        {"test_playthrough_sweep", "test_exec_wrappers"},
-    ),
-    (
-        {"Scripts/agent-worktree.mjs", "Scripts/setup-git-safety.mjs",
-         "Scripts/git-safety-guard.mjs", "Scripts/agent-watch-ci.sh",
-         "Scripts/ci-infra-rerun.sh", "Scripts/config/destructive-git-commands.txt",
-         "Scripts/bin/git"},
-        {"test_exec_wrappers"},
-    ),
-)
+SHELL_FAMILIES = (({'Scripts/build-for-testing.sh',
+   'Scripts/build-freshness.sh',
+   'Scripts/build.sh',
+   'Scripts/check-build-cache-paths.sh',
+   'Scripts/format.sh',
+   'Scripts/lib/app-build.sh',
+   'Scripts/lib/args.sh',
+   'Scripts/lib/derived-data.sh',
+   'Scripts/lib/tempdir.sh',
+   'Scripts/lib/test-helpers.sh',
+   'Scripts/lib/test-style.sh',
+   'Scripts/lint-analyze.sh',
+   'Scripts/lint.sh',
+   'Scripts/prune-derived-data-cache.sh',
+   'Scripts/stage-ci-test-artifact.sh',
+   'Scripts/test-package.sh',
+   'Scripts/test.sh'},
+  {'test-lib-args.sh', 'test-lib-tempdir.sh'}),
+ ({'Scripts/ci-gate.sh',
+   'Scripts/config/cheap-slices.txt',
+   'Scripts/handoff.sh',
+   'Scripts/lib/args.sh',
+   'Scripts/lib/cheap-slices.sh',
+   'Scripts/lib/gate.sh'},
+  {'test-lib-args.sh'}),
+ ({'Scripts/ci-assets-gate.sh',
+   'Scripts/lib/media-assets.sh',
+   'Scripts/prepare-app-icon.sh',
+   'Scripts/prepare-art-assets.sh',
+   'Scripts/prepare-assets.sh',
+   'Scripts/prepare-audio-assets.sh',
+   'Scripts/prepare-cinematic-assets.sh',
+   'Scripts/report-art-memory.sh'},
+  {'test-asset-hash-sort-locale.sh'}),
+ ({'Scripts/config/simulator-names.env',
+   'Scripts/ensure-simulator.sh',
+   'Scripts/lib/lock.sh',
+   'Scripts/lib/simctl.sh',
+   'Scripts/lib/slots.sh',
+   'Scripts/run-env.sh',
+   'Scripts/simctl_json.py'},
+  {'test-run-env.sh'}),
+ ({'Scripts/config/infrastructure-patterns.env',
+   'Scripts/lib/infrastructure-patterns.sh',
+   'Scripts/lib/xcode-manifest.sh',
+   'Scripts/lib/xcode-watchdog.sh',
+   'Scripts/lib/xcodebuild-infra.sh',
+   'Scripts/xcode-runner.sh'},
+  {'test-xcode-runner.sh'}))
 
 
 def _module_path(module: str) -> str:
     if module.endswith(".sh"):
         return f"Scripts/Tests/{module}"
     return f"Scripts/Tests/{module}.py"
+
+
+def regression_families(root: Path = ROOT) -> list[tuple[set[str], set[str]]]:
+    """Read literal SCRIPT_INPUTS without importing or executing test modules."""
+    families = list(SHELL_FAMILIES)
+    for path in sorted((root / "Scripts/Tests").glob("test*.py")):
+        try:
+            tree = ast.parse(path.read_text(), filename=str(path))
+            declarations = [node for node in tree.body if isinstance(node, ast.Assign)
+                            and any(isinstance(target, ast.Name) and target.id == "SCRIPT_INPUTS"
+                                    for target in node.targets)]
+            if not declarations:
+                continue
+            if len(declarations) != 1:
+                raise ValueError("SCRIPT_INPUTS must be declared once")
+            inputs = ast.literal_eval(declarations[0].value)
+            if not isinstance(inputs, (tuple, list)) or not all(isinstance(value, str) for value in inputs):
+                raise ValueError("SCRIPT_INPUTS must be a literal tuple/list of repository-relative paths or globs")
+            for value in inputs:
+                if not value or Path(value).is_absolute() or ".." in Path(value).parts:
+                    raise ValueError(f"invalid SCRIPT_INPUTS path: {value!r}")
+            families.append((set(inputs), {path.stem}))
+        except (OSError, SyntaxError, ValueError, TypeError) as error:
+            raise ValueError(f"{path.relative_to(root)}: invalid test ownership: {error}") from error
+    return families
 
 
 def select_tests(paths: list[str], root: Path = ROOT) -> list[str]:
@@ -261,6 +111,7 @@ def select_tests(paths: list[str], root: Path = ROOT) -> list[str]:
     )
     if not paths:
         return available
+    routes = regression_families(root)
     available_set = set(available)
     selected: set[str] = set()
     for raw in paths:
@@ -271,11 +122,14 @@ def select_tests(paths: list[str], root: Path = ROOT) -> list[str]:
             raise ValueError("--paths requires individual files, not directories")
         if path.endswith(".md"):
             continue
+        if path in INTENTIONALLY_UNMAPPED:
+            return available
         # Editing a regression module runs just itself.
         if path in available_set:
             selected.add(path)
             continue
-        families = [modules for owners, modules in FAMILIES if path in owners]
+        families = [modules for owners, modules in routes
+                    if any(fnmatchcase(path, owner) for owner in owners)]
         if not families:
             return available
         for modules in families:

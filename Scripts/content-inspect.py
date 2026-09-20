@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inspect authored ContentManifest records or canonical trigger-field usage."""
+"""Inspect authored manifest/ability IDs or canonical manifest trigger-field usage."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import sys
 
 from internal.cli import ROOT
 from internal.content.common import MANIFEST_DIR, read_tsv_records
+from internal.content.abilities import located_ability_decls
 from internal.content.content_codegen_triggers import _trigger_field_types, parse_trigger_values
 from internal.content.homestead import parse_homestead_node_rows
 from internal.content.items import parse_affix_rows, parse_item_base_rows
@@ -26,6 +27,12 @@ PARSERS = {
 
 
 def records(kind: str):
+    if kind == "abilities":
+        for path, line, (symbol, identity, name, tier) in located_ability_decls():
+            yield f"{path.relative_to(ROOT)}:{line}", identity, {
+                "id": identity, "name": name, "tier": tier, "symbol": f"AbilityCatalog.{symbol}",
+            }
+        return
     path = MANIFEST_DIR / f"{kind}.tsv"
     locations = read_tsv_records(path)[1:]
     rows = PARSERS[kind]()
@@ -42,9 +49,9 @@ def records(kind: str):
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     query = parser.add_mutually_exclusive_group(required=True)
-    query.add_argument("--id", help="exact manifest ID; all Homestead tiers; stages use chapter_id:stage_number")
+    query.add_argument("--id", help="exact manifest or ability ID; all Homestead tiers; stages use chapter_id:stage_number")
     query.add_argument("--trigger", help="exact canonical Swift trigger field (aliases resolve through codegen)")
-    parser.add_argument("--kind", choices=tuple(PARSERS), help="restrict to one authored manifest")
+    parser.add_argument("--kind", choices=(*PARSERS, "abilities"), help="restrict to one manifest or authored abilities")
     parser.add_argument("--limit", type=int, default=5, help="records per page")
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--full", action="store_true", help="show complete fields in this page")
@@ -52,11 +59,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.limit < 1 or args.offset < 0 or (args.references and args.id is None):
         parser.error("positive --limit, nonnegative --offset, and --id for --references are required")
+    if args.kind == "abilities" and args.trigger:
+        parser.error("--trigger searches manifest DSL fields; abilities require --id")
     try:
         if args.trigger and args.trigger not in _trigger_field_types():
             raise ValueError(f"Unknown canonical trigger field: {args.trigger}")
         matches = []
-        for kind in ([args.kind] if args.kind else PARSERS):
+        kinds = [args.kind] if args.kind else [*PARSERS, *(["abilities"] if args.id is not None else [])]
+        for kind in kinds:
             for location, identity, fields in records(kind):
                 if args.id is not None:
                     match = identity == args.id
@@ -67,7 +77,8 @@ def main(argv: list[str] | None = None) -> int:
                     matches.append((location, identity, fields))
         if args.offset > len(matches):
             raise ValueError("--offset is beyond the last matching record")
-        print("Surface: authored ContentManifest tables; ability Swift and generated catalogs are outside this lookup.")
+        print("Surface: authored ContentManifest tables and ability tier declarations; generated catalogs are outside this lookup."
+              if args.id is not None else "Surface: authored ContentManifest DSL fields; ability Swift is outside trigger lookup.")
         stop = min(len(matches), args.offset + args.limit)
         for location, identity, fields in matches[args.offset:stop]:
             print(f"{location} — {identity}")

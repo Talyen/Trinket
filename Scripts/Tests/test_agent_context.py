@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/agent-context.sh',
+    'Scripts/change-classification.sh',
+    'Scripts/internal/agent_status.py',
+    'Scripts/lib/classification-plan.sh',
+    'Scripts/lib/smoke-classes.sh',
+)
+
+
 import os
 import shutil
 import subprocess
@@ -109,7 +118,8 @@ class AgentContextTests(ScriptRegressionTestCase):
                 self.assertIn("/battle-runtime.md", output)
                 self.assertEqual({name for name in both if f"/{name}.md" in output}, expected)
                 for name in expected:
-                    self.assertEqual(output.count(f"/{name}.md"), 1)
+                    references = [line.strip() for line in output.splitlines() if f"/{name}.md" in line]
+                    self.assertEqual(len(references), len(set(references)))
                 if paths[0].startswith(engine):
                     for unrelated in ("battle-damage", "battle-actions", "battle-healing"):
                         self.assertNotIn(f"/{unrelated}.md", output)
@@ -556,6 +566,41 @@ class AgentContextTests(ScriptRegressionTestCase):
             self.assertNotIn("Workspace status:", plain)
             self.assertIn('MM "Scripts/mixed name.py"', detailed)
             self.assertTrue(detailed.endswith(plain))
+
+
+    def test_leaf_sections_include_lifecycle_and_mixed_hubs_restore_broad_reference(self) -> None:
+        feature = 'Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/'
+        def route(*paths):
+            return subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--paths', *paths], cwd=ROOT, text=True)
+        output = route(feature + 'Features/Feedback/CombatFeedbackRasterHost.swift')
+        for section in ['display-lifetime', 'display-work-lifecycle', 'floating-combat-feedback']:
+            self.assertIn('battle-presentation.md#' + section, output)
+        self.assertNotIn('battle-launch.md', output)
+        for paths in [(feature + 'Features/Feedback/CombatFeedbackRasterHost.swift', feature + 'State/BattleSession.swift'),
+                      (feature + 'State/BattleSession.swift', feature + 'Features/Feedback/CombatFeedbackRasterHost.swift')]:
+            output = route(*paths)
+            self.assertIn('battle-presentation.md\n', output)
+            self.assertNotIn('battle-presentation.md#', output)
+
+
+    def test_content_guidance_routes_shared_safeguards_and_only_relevant_sections(self) -> None:
+        cases = {
+            "Packages/TrinketCore/Sources/TrinketCore/Effect.swift": set(),
+            "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Basic.swift": {"abilities"},
+            "ContentManifest/talents.tsv": {"manifests"},
+            "ArtManifest/art.tsv": {"media-assets"},
+            "project.yml": {"project-generation"},
+            "Scripts/internal/content/trigger_families/damage.json": {"trigger-schemas", "generation-tooling"},
+        }
+        prefix = "Docs/AgentContext/content-and-manifests.md#"
+        for path, sections in cases.items():
+            with self.subTest(path=path):
+                output = subprocess.check_output([str(ROOT / "Scripts/agent-context.sh"), "--paths", path],
+                                                 cwd=ROOT, text=True)
+                actual = {line.strip().removeprefix(prefix) for line in output.splitlines()
+                          if line.strip().startswith(prefix)}
+                self.assertEqual(actual, sections | {"shared-safeguards"})
+                self.assertNotIn("content-and-manifests.md\n", output)
 
 
 if __name__ == "__main__":

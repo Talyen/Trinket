@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/config/diagnostic-limits.env',
+    'Scripts/content_codegen.py',
+    'Scripts/internal/content/abilities.py',
+    'Scripts/internal/content/common.py',
+    'Scripts/internal/diagnostics/diagnostic_limits.py',
+    'Scripts/script_diagnostics.py',
+)
+
+
 from pathlib import Path
 from unittest.mock import patch
 import os
@@ -80,3 +90,28 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
             self.assertEqual((root / "AbilityInventory.generated.tsv").read_text(), payload)
             self.assertEqual((root / "stamp").read_text(), "digest")
             self.assertEqual(list((root / "logs").iterdir()), [])
+
+    def test_tier_sources_share_authored_locations_and_reject_duplicate_symbols(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for tier in abilities.ABILITY_TIERS:
+                (root / f'AbilityCatalog+{tier}.swift').write_text(
+                    f'extension AbilityCatalog {{\n    public static let {tier.lower()}Card = Ability(\n'
+                    f'        id: "{tier.lower()}-card", name: "{tier}", tier: .{tier.lower()},\n    )\n}}\n')
+            abilities._read_ability_sources.cache_clear()
+            try:
+                with patch.object(abilities, 'ABILITY_DIR', root):
+                    located = list(abilities.located_ability_decls())
+                    self.assertEqual([row[1] for row in located], [2, 2, 2])
+                    self.assertEqual([row[0].name for row in located],
+                                     [f'AbilityCatalog+{tier}.swift' for tier in abilities.ABILITY_TIERS])
+                    self.assertEqual(list(abilities.iter_ability_decls()), [row[2] for row in located])
+                    self.assertEqual(abilities.collect_ability_tiers(),
+                                     {tier.lower() + 'Card': tier.lower() for tier in abilities.ABILITY_TIERS})
+                    path = root / 'AbilityCatalog+Skill.swift'
+                    path.write_text(path.read_text().replace('skillCard', 'basicCard'))
+                    abilities._read_ability_sources.cache_clear()
+                    with self.assertRaisesRegex(ValueError, 'appears twice'):
+                        abilities.collect_ability_tiers()
+            finally:
+                abilities._read_ability_sources.cache_clear()

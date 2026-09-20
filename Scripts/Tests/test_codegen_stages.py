@@ -1,5 +1,18 @@
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/content_codegen.py',
+    'Scripts/internal/content/affix_rolling.py',
+    'Scripts/internal/content/common.py',
+    'Scripts/internal/content/content_codegen_modifiers.py',
+    'Scripts/internal/content/content_codegen_triggers.py',
+    'Scripts/internal/content/modifier_schema.py',
+    'Scripts/internal/content/modifiers.json',
+    'Scripts/internal/content/stages.py',
+    'Scripts/internal/content/trigger_families/*.json',
+)
+
+
 from script_test_support import ScriptRegressionTestCase
 from internal.content import stages
 

@@ -1,5 +1,24 @@
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/check-docs.py',
+    'Scripts/check-links.py',
+    'Scripts/check-plans.py',
+    'Scripts/check-testplan-sync.py',
+    'Scripts/ci-gate.sh',
+    'Scripts/config/cheap-slices.txt',
+    'Scripts/config/ui-tests.tsv',
+    'Scripts/handoff.sh',
+    'Scripts/internal/doc_diagnostics.py',
+    'Scripts/internal/markdown.py',
+    'Scripts/internal/swift_policy.py',
+    'Scripts/lib/args.sh',
+    'Scripts/lib/cheap-slices.sh',
+    'Scripts/lib/gate.sh',
+    'Scripts/new-plan.sh',
+)
+
+
 import contextlib
 import io
 import json
@@ -15,25 +34,6 @@ from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 
 class DocumentationTests(ScriptRegressionTestCase):
-    def test_ui_registration_requires_actual_unique_matrix_targets(self) -> None:
-        checker = load_script("ui_registration", "check-testplan-sync.py")
-        original_read = Path.read_text
-        workflow = ROOT / ".github/workflows/tests.yml"
-        original = workflow.read_text()
-        self.assertEqual(checker.testplan_failures(), [])
-        cases = [
-            ("StarterOnboardingSmokeTests ", "", "smoke matrix mismatch"),
-            ("target: BattleFlowUITests", "target: MissingTests # BattleFlowUITests", "exhaustive-ui matrix mismatch"),
-            ("target: BattleFlowUITests", "target: BattleFlowUITests BattleFlowUITests", "duplicate classes"),
-        ]
-        for old, new, message in cases:
-            with self.subTest(change=new):
-                self.assertIn(old, original)
-                def read(path, *args, **kwargs):
-                    return original.replace(old, new) if path == workflow else original_read(path, *args, **kwargs)
-                with patch.object(Path, "read_text", read):
-                    self.assertTrue(any(message in failure for failure in checker.testplan_failures()))
-
     @classmethod
     def setUpClass(cls) -> None:
         cls.check_docs = load_script("check_docs", "check-docs.py")
@@ -125,10 +125,12 @@ class DocumentationTests(ScriptRegressionTestCase):
             for name, content in {
                 "Scripts/Reference.md": "Scripts/change-classification.sh",
                 "Scripts/change-classification.sh": "",
-                "Scripts/config/smoke-classes.txt": "",
-                "Smoke.xctestplan": '{"testTargets": []}',
-                "FullUI.xctestplan": '{"testTargets": []}',
-                ".github/workflows/tests.yml": "",
+                "Scripts/config/ui-tests.tsv": "Smoke|SHELL|SmokeFixture|Shell|0|0\nFullUI||FullFixture|All|0|0\n",
+                "TrinketUITests/Smoke/Fixture.swift": "class SmokeFixture: TrinketUITestCase {}",
+                "TrinketUITests/Fixture.swift": "class FullFixture: TrinketUITestCase {}",
+                "Smoke.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["SmokeFixture"], "target": {"name": "TrinketUITests"}}]}),
+                "FullUI.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["FullFixture"], "target": {"name": "TrinketUITests"}}]}),
+                ".github/workflows/tests.yml": "  smoke:\n      matrix: ${{ fromJSON(needs.build.outputs.smoke-matrix) }}\n  exhaustive-ui:\n      matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}\n",
                 "Docs/AgentContext/README.md": "# Context",
                 "Docs/Audits/Proposals.md": "# Proposals",
                 "README.md": "# Fixture\nA clean pass is valid. Historical label: QuickSmoke.\n",
@@ -185,8 +187,8 @@ class DocumentationTests(ScriptRegressionTestCase):
             (root / "Docs/Broken.md").write_text("[missing](missing.md)")
             run("check-docs.py", "--final", "--paths", "README.md", status=1, message="missing.md")
             (root / "Docs/Broken.md").unlink()
-            (scripts / "config/smoke-classes.txt").write_text("SHELL=MissingTests")
-            run("check-docs.py", "--final", "--paths", "README.md", status=1, message="selectedTests must match")
+            (scripts / "config/ui-tests.tsv").write_text("SHELL=MissingTests")
+            run("check-docs.py", "--final", "--paths", "README.md", status=1, message="expected suite|key|class")
             self.assertEqual(plan.read_text(), original)
 
     def test_proposal_evidence_identifier_resolution(self) -> None:
@@ -334,6 +336,9 @@ class DocumentationTests(ScriptRegressionTestCase):
             "Scripts/test-timing.py": {"Scripts/Tests/test_test_timing.py",
                                        "Scripts/Tests/test_ci_build_scripts.py"},
             "Scripts/run-env.sh": {"Scripts/Tests/test_exec_wrappers.py",
+                                   "Scripts/Tests/test_ci_session_scripts.py",
+                                   "Scripts/Tests/test_ci_build_scripts.py",
+                                   "Scripts/Tests/test_build_process.py",
                                    "Scripts/Tests/test-run-env.sh"},
             "Scripts/lib/media-assets.sh": {"Scripts/Tests/test_media_asset_scripts.py",
                                             "Scripts/Tests/test_ci_build_scripts.py",
@@ -348,7 +353,8 @@ class DocumentationTests(ScriptRegressionTestCase):
             "Scripts/assert-generated-output.sh": {"Scripts/Tests/test_project_generation.py",
                                                    "Scripts/Tests/test_build_process.py",
                                                    "Scripts/Tests/test_ci_build_scripts.py"},
-            "Scripts/config/smoke-classes.txt": {"Scripts/Tests/test_project_generation.py",
+            "Scripts/config/ui-tests.tsv": {"Scripts/Tests/test_project_generation.py",
+                                                 "Scripts/Tests/test_ui_registration.py",
                                                  "Scripts/Tests/test_build_process.py",
                                                  "Scripts/Tests/test_ci_build_scripts.py",
                                                  "Scripts/Tests/test_documentation.py"},
@@ -463,76 +469,14 @@ class DocumentationTests(ScriptRegressionTestCase):
                     captured.unlink()
 
 
-    def test_section_reader_preserves_complete_ranges_and_link_anchor_identity(self) -> None:
-        reader = load_script("agent_read", "agent-read.py")
-        links = load_script("section_links", "check-links.py")
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            lines = ["# Guide", "Intro", "## Repeat", "Policy", "### Child", "x" * 500,
-                     "````markdown", "## Hidden", "```", "[hidden](missing.md)", "~~~~", "````",
-                     "Child ending", "## Repeat", "Second", "## Repeat-1", "Third"]
-            path = root / "Guide.md"
-            path.write_text("\n".join(lines) + "\n")
-            def read(target, *flags):
-                with contextlib.redirect_stdout(io.StringIO()) as output:
-                    status = reader.main([target, *flags], root=root)
-                self.assertEqual(status, 0)
-                return output.getvalue()
-            section = read("Guide.md#repeat")
-            self.assertIn("Guide.md:3-13 (complete section)", section)
-            self.assertIn("1: # Guide", section)
-            self.assertIn("6: " + "x" * 500, section)
-            self.assertIn("13: Child ending", section)
-            self.assertNotIn("14: ## Repeat", section)
-            child = read("Guide.md#child")
-            self.assertIn("3: ## Repeat", child)
-            self.assertIn("5: ### Child", child)
-            self.assertNotIn("4: Policy", child)
-            outline = read("Guide.md", "--outline")
-            self.assertNotIn("#hidden", outline)
-            self.assertIn("Guide.md#repeat-1 [14-15]", outline)
-            self.assertIn("Guide.md#repeat-1-1 [16-17]", outline)
-            self.assertIn("15: Second", read("Guide.md#repeat-1"))
-            self.assertIn("17: Third", read("Guide.md"))
-            source = root / "Links.md"
-            source.write_text("\n".join(f"[section](Guide.md#{slug})" for slug in links.heading_slugs(path)))
-            with patch.object(links, "ROOT", root):
-                self.assertEqual(links.broken_links([source, path]), [])
-            for target in ("Guide.md#absent", "../outside.md", "Guide.swift"):
-                with contextlib.redirect_stderr(io.StringIO()) as error, contextlib.redirect_stdout(io.StringIO()) as output:
-                    self.assertEqual(reader.main([target], root=root), 2)
-                self.assertEqual(output.getvalue(), "")
-                self.assertIn("Read failed:", error.getvalue())
-
     def test_shared_markdown_helper_selects_all_direct_consumers(self) -> None:
         select = load_script("script_test_selection", "script_test_selection.py").select_tests
         expected = ["Scripts/Tests/test_documentation.py"]
         for path in ("Scripts/check-links.py", "Scripts/check-docs.py", "Scripts/check-plans.py",
-                     "Scripts/check-testplan-sync.py", "Scripts/agent-read.py", "Scripts/internal/markdown.py"):
-            self.assertEqual(select([path]), expected)
+                     "Scripts/check-testplan-sync.py", "Scripts/internal/markdown.py"):
+            self.assertIn("Scripts/Tests/test_documentation.py", select([path]))
         self.assertGreater(len(select(["Scripts/Tests/script_test_support.py"])), len(expected))
 
-    def test_source_outline_and_explicit_reads(self) -> None:
-        reader = load_script("source_reader", "agent-read.py")
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / "code.py").write_text('"def fake(): pass"\nclass Owner:\n    def real(self):\n        return 2\n')
-            with contextlib.redirect_stdout(io.StringIO()) as output:
-                self.assertEqual(reader.main(["code.py", "--outline", "--limit", "1"], root=root), 0)
-            self.assertIn("code.py:2:", output.getvalue())
-            self.assertNotIn("fake", output.getvalue())
-            self.assertIn("omitted 1", output.getvalue())
-            with contextlib.redirect_stdout(io.StringIO()) as output:
-                self.assertEqual(reader.main(["code.py", "--lines", "3:4"], root=root), 0)
-            self.assertIn("4:         return 2", output.getvalue())
-            with contextlib.redirect_stderr(io.StringIO()):
-                self.assertEqual(reader.main(["code.py", "--lines", "3:9"], root=root), 2)
-            (root / "code.swift").write_text('struct Owner {}\n')
-            tokens = [{"type": "keyword", "string": "struct"}, {"type": "space", "string": " "},
-                      {"type": "identifier", "string": "Owner"}, {"type": "space", "string": " "},
-                      {"type": "startOfScope", "string": "{"}, {"type": "endOfScope", "string": "}"}]
-            with patch("internal.swift_policy.formatter_tokens", return_value=tokens):
-                self.assertEqual(reader.source_outline(root / "code.swift", 'struct Owner {}\n'), [(1, 'struct Owner {}')])
 
     def test_documentation_failures_retain_complete_bounded_report(self) -> None:
         from internal.doc_diagnostics import group_failures, report_failures, render

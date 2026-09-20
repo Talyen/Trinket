@@ -121,30 +121,35 @@ updates do not release or restart the hold. Unattended feedback lasts 0.95 secon
 Options → Developer → Stationary Feedback Experiment defaults on in DEBUG,
 persists locally, and applies at the next battle activation or Preview Lab entry.
 Release builds and disabled experiments retain the current behavior above.
-All existing floating result kinds render icons and numbers 20% larger. They pop
-from settled size to 2.3× settled size over 0.07 seconds with cubic ease-out,
-smoothly settle to 2× over 0.09 seconds, then hold for 0.50 seconds. They shrink
-with cubic ease-out over 0.35 seconds before a smooth 0.25-second fade without
-rising. Their center stays fixed throughout the 1.26-second lifetime.
-A single white gradient glint crosses glyph-only cached masks over the first 0.25 seconds;
+All existing floating result kinds use a base size 20% larger than the standard
+feedback. They pop from 0.75× to 1.9× base size over 0.14 seconds with cubic
+ease-out, hold at the peak for 0.15 seconds, then shrink to 1.3× over 1.10 seconds
+with quadratic ease-in. The smooth 0.50-second fade overlaps the end of the
+shrink, finishing together at 1.39 seconds. The pop and brief hold stay anchored;
+during the shrink, feedback drifts upward by 32 points with quadratic ease-in.
+A single white gradient glint crosses glyph-only cached masks over the first 0.45 seconds;
 keyword color, dark outlines, and critical emphasis remain intact.
 
-Cluster up to five results around the portrait center: center, above-left,
-below-right, above-right, then below-left. Offset by 0.6× the fitted settled
-height horizontally and 0.9× vertically, clamping settled rectangles to an
-8-point portrait inset. Overlap is allowed throughout the animation; centers
-remain at least half the smaller settled height apart. Newer results draw on top.
-Numeric reservations use widest-digit widths with one extra digit; wider updates
-emit separately. Existing positions and animation clocks never restart or reflow
-when another result arrives or expires. Matching semantic effects can merge across
-actions only before fade starts at 1.01 seconds, without extending lifetime. Full clusters or clamped positions replace
-the oldest results until a distinct center is available; evicted results cannot receive merges
-or reappear. Resizing a portrait recomputes placements for its new bounds.
+Use one vertical lane centered on the portrait. Each new result appears at the
+center and pushes existing anchors upward by half the largest fitted peak height
+in the lane. Pushes ease out over 0.18 seconds and retarget from their current
+position; size can hold briefly while position responds to a new result.
+Overlaps are allowed and newer results draw on top. Fit base rectangles to an
+8-point portrait inset. Numeric reservations use widest-digit widths with one
+extra digit; wider updates emit separately. Merges do not push the lane.
 
-Merges that increase direct, critical, or periodic damage replay the 0.25-second
+There is no five-result capacity eviction. Existing results keep their original
+fade and expiration clocks. An additional spatial fade spans the top 40 points
+(or one quarter of a smaller portrait), reaching zero 8 points from the top.
+Only then is the result evicted; it cannot receive merges or reappear after
+publication or host remount. Expiration never pulls surviving results back down.
+Matching semantic effects can merge across actions only before fade starts at
+0.89 seconds, without extending lifetime. Resizing recomputes lane anchors.
+
+Merges that increase direct, critical, or periodic damage replay the 0.45-second
 white glint and add a 10% size pulse that settles over 0.18 seconds. Repeated merges
 restart this bounded pulse rather than stacking it; the original pop, hold, shrink,
-fade, position, and expiration clocks stay unchanged. Other merges do not pulse.
+fade, drift, and expiration clocks stay unchanged. Other merges do not pulse.
 
 The existing raster host, bridge, and shared motion clock own rendering. Masks
 are cached and included in pool byte diagnostics; per-frame work changes layer

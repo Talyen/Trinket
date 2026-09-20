@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/agent-search.py',
+    'Scripts/config/generated-paths.tsv',
+)
+
+
 import contextlib
 import io
 import subprocess
@@ -173,3 +179,73 @@ class AgentSearchTests(unittest.TestCase):
         self.assertIn("Owner.swift:3: 3 matching lines (declaration hint)", output)
         _, output = self.search("Needle.*")
         self.assertNotIn("declaration hint", output)
+
+    def test_ranked_pages_do_not_repeat_and_reject_changed_results(self) -> None:
+        import shlex
+        self.write('AReference.swift', 'Talent\n')
+        self.write('ZOwner.swift', 'struct Talent {}\n')
+        self.write('HeroTalent.swift', 'Talent\n')
+        self.write('Talent.swift', 'struct Talent {}\n')
+        expected = ['Talent.swift', 'HeroTalent.swift', 'ZOwner.swift', 'AReference.swift']
+        args = ['Talent', '--limit', '1']
+        for index, name in enumerate(expected):
+            status, output = self.search(*args)
+            self.assertEqual(status, 0)
+            rows = [line for line in output.splitlines() if 'matching lines' in line]
+            self.assertEqual(len(rows), 1)
+            self.assertTrue(rows[0].startswith(name + ':'), output)
+            self.assertIn(f'Results {index}:{index + 1}', output)
+            if index < len(expected) - 1:
+                args = shlex.split(next(l.removeprefix('Continue: ') for l in output.splitlines() if l.startswith('Continue: ')))[2:]
+                if index == 0:
+                    continuation = args
+        self.write('Talent.swift', 'struct Talent {}\nTalent\n')
+        with contextlib.redirect_stderr(io.StringIO()) as error:
+            status, _ = self.search(*continuation)
+        self.assertEqual(status, 2)
+        self.assertIn('results changed', error.getvalue())
+
+    def test_filename_and_excerpt_pagination_preserve_query_flags(self) -> None:
+        import shlex
+        for name in ['One.swift', 'Two.swift', 'Three.swift']:
+            self.write(name, 'a.b\na.b\n')
+        for initial in [['swift', '--files', '--limit', '1'],
+                        ['a.b', '-F', '--excerpts', '--context', '0', '--limit', '2']]:
+            status, first = self.search(*initial)
+            command = shlex.split(next(l.removeprefix('Continue: ') for l in first.splitlines() if l.startswith('Continue: ')))[2:]
+            status, second = self.search(*command)
+            self.assertEqual(status, 0)
+            self.assertNotEqual(first, second)
+            self.assertNotIn('One.swift:', second) if '--excerpts' in initial else self.assertNotIn('\nOne.swift\n', second)
+
+    def test_asset_filenames_include_binary_inputs_and_outputs_without_reading_contents(self) -> None:
+        self.write('Raw Assets/Sounds/Needle.WAV', 'not text search content')
+        self.write('Trinket/Assets.xcassets/Needle.imageset/Contents.json', '{}')
+        self.write('Trinket/Assets.xcassets/Needle.imageset/picture.heic', 'binary')
+        self.write('.DerivedData/Needle.png', 'ignored')
+        status, output = self.search('Needle', '--mode', 'assets', '--files')
+        self.assertEqual(status, 0)
+        self.assertIn('Matched 3 files', output)
+        self.assertNotIn('not text search content', output)
+        self.assertNotIn('.DerivedData', output)
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            self.search('Needle', '--mode', 'assets')
+
+    def test_overview_groups_assets_and_pages_owners(self) -> None:
+        import shlex
+        for i in range(100):
+            self.write(f'Raw Assets/Sounds/clip{i}.wav', 'binary')
+        self.write('Packages/Game/README.md', '# Game')
+        self.write('Packages/Game/Sources/Rules.swift', 'struct Rules {}')
+        status, output = self.search('--overview', '--scope', 'Raw Assets')
+        self.assertEqual(status, 0)
+        self.assertIn('Raw Assets/Sounds: 100 files', output)
+        self.assertNotIn('clip', output)
+        status, output = self.search('--overview', '--scope', 'Packages', '--scope', 'Raw Assets', '--limit', '1')
+        self.assertIn('Packages/Game/README.md', output)
+        command = shlex.split(next(line.removeprefix('Continue: ') for line in output.splitlines()
+                                  if line.startswith('Continue: ')))[2:]
+        status, next_page = self.search(*command)
+        self.assertEqual(status, 0)
+        self.assertIn('Raw Assets/Sounds: 100 files', next_page)
+        self.assertNotIn('Packages/Game/README.md', next_page)

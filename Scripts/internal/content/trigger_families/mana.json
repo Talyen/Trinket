@@ -30,7 +30,11 @@
       "name": "spendManaBlockFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 15
+      }
     },
     {
       "name": "empoweredElementDrawOpposite",
@@ -48,25 +52,40 @@
       "name": "gainManaBlockFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 30
+      }
     },
     {
       "name": "leechRestoreManaFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 29
+      }
     },
     {
       "name": "drawOnSpendMana",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 42
+      }
     },
     {
       "name": "repeatManaEmpowerment",
       "type": "Bool",
       "default": "false",
-      "merge": "or"
+      "merge": "or",
+      "affix_roll": {
+        "reason": "On/off rule with no rollable magnitude."
+      }
     },
     {
       "name": "unspentManaConvertsToBlock",
@@ -204,13 +223,20 @@
       "name": "cardsPlayedManaThreshold",
       "type": "Int",
       "default": "0",
-      "merge": "max"
+      "merge": "max",
+      "affix_roll": {
+        "reason": "Threshold gates the condition, not the reward."
+      }
     },
     {
       "name": "cardsPlayedManaFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 47
+      }
     },
     {
       "name": "onBurnDamageRestoreManaFlat",
@@ -222,25 +248,39 @@
       "name": "drawEveryOtherTurn",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 38
+      }
     },
     {
       "name": "healCompanionDrawsCompanionCard",
       "type": "Bool",
       "default": "false",
-      "merge": "or"
+      "merge": "or",
+      "affix_roll": {
+        "reason": "On/off rule with no rollable magnitude."
+      }
     },
     {
       "name": "forbiddenKnowledge",
       "type": "Bool",
       "default": "false",
-      "merge": "or"
+      "merge": "or",
+      "affix_roll": {
+        "reason": "On/off rule with no rollable magnitude."
+      }
     },
     {
       "name": "drawOnHealthLoss",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 39
+      }
     },
     {
       "name": "companionCardsEveryOtherTurn",
@@ -252,7 +292,11 @@
       "name": "companionCardsPerTurn",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 50
+      }
     },
     {
       "name": "onFreezeEnemyGainManaEqualBlock",

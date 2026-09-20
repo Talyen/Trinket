@@ -24,7 +24,11 @@
       "name": "gainGoldBonusHealSelf",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 1
+      }
     },
     {
       "name": "defeatBleedingEnemyGold",
@@ -36,31 +40,50 @@
       "name": "defeatEnemyGoldFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 31
+      }
     },
     {
       "name": "leechGoldFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 32
+      }
     },
     {
       "name": "goldPerTurn",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 45
+      }
     },
     {
       "name": "victoryGoldFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 48
+      }
     },
     {
       "name": "victoryGoldCoin",
       "type": "Bool",
       "default": "false",
-      "merge": "or"
+      "merge": "or",
+      "affix_roll": {
+        "reason": "On/off rule with no rollable magnitude."
+      }
     },
     {
       "name": "criticalGoldFlat",
@@ -72,7 +95,11 @@
       "name": "criticalActionGoldFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 28
+      }
     },
     {
       "name": "startBattleBonusGold",

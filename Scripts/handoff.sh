@@ -30,7 +30,35 @@ FINAL=false
 KEEP_PLAN=false
 PATH_MODE="unset"
 STYLE_CHECKED=false
+HANDOFF_LOG_DIR=""
+HANDOFF_PHASE=0
 declare -a requested_paths=()
+
+# Quiet mode retains each child's complete terminal output; diagnostics expand only on failure.
+run_phase() {
+  local label="$1" status log
+  shift
+  if [[ "$QUIET" != true ]]; then
+    "$@"
+    return $?
+  fi
+  if [[ -z "$HANDOFF_LOG_DIR" ]]; then
+    local log_root="${RESULTS_DIR:-$PWD/.DerivedData/HandoffResults}"
+    mkdir -p "$log_root" || return $?
+    HANDOFF_LOG_DIR="$(mktemp -d "$log_root/handoff.XXXXXX")" || return $?
+    echo "Handoff logs: $HANDOFF_LOG_DIR"
+  fi
+  HANDOFF_PHASE=$((HANDOFF_PHASE + 1))
+  log="$HANDOFF_LOG_DIR/phase-$HANDOFF_PHASE.log"
+  if ( "$@" ) >"$log" 2>&1; then
+    echo "Handoff phase PASS: $label (phase-$HANDOFF_PHASE.log)"
+  else
+    status=$?
+    printf 'Handoff phase FAIL: %s (exit %s)\nFull log: %s\n' "$label" "$status" "$log" >&2
+    python3 Scripts/script_diagnostics.py "$log" || true
+    return "$status"
+  fi
+}
 
 # check_run <kind> <argument>
 run_check() {
@@ -170,6 +198,7 @@ headlessly by default.
 --isolate forwards to the simulator-slot environment so runs do not collide.
 --final applies global documentation checks and task-scoped active-plan closure checks.
 --keep-plan permits an intentionally unfinished active plan with --final.
+--quiet prints phase outcomes, retains complete child output, and expands bounded failures.
 Use --working-tree to opt into whole-tree classification; --paths is preferred.
 USAGE
       exit 0
@@ -212,7 +241,7 @@ if [[ "$FINAL" == true ]]; then
 fi
 
 if [[ "$FINAL" == true && "$DRY_RUN" != true ]]; then
-  if python3 ./Scripts/check-docs.py "${docs_args[@]}"; then
+  if run_phase "final documentation check" python3 ./Scripts/check-docs.py "${docs_args[@]}"; then
     :
   else
     status=$?
@@ -295,7 +324,7 @@ if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
       # --final already ran check-docs.py with plan-lifecycle flags.
       continue
     fi
-    if ! run_check "$kind" "$argument"; then
+    if ! run_phase "$kind: $argument" run_check "$kind" "$argument"; then
       echo "Handoff FAIL: $cmd (see diagnostics above)" >&2
       exit 1
     fi
@@ -312,7 +341,7 @@ if [[ "$QUIET" != true ]]; then
   echo ""
   echo "=== Cheap CI slices (boundaries, API bans, release notes, artwork budget) ==="
 fi
-if run_cheap_ci_slices; then
+if run_phase "cheap CI slices" run_cheap_ci_slices; then
   :
 else
   status=$?
@@ -332,7 +361,7 @@ if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${ISOLATE}" == true ]]; th
   fi
   if [[ "$_mirror_needs_build" == true ]]; then
     if [[ "$QUIET" == true ]]; then
-      ./Scripts/promote.sh --quiet || { echo "Handoff FAIL: mirror" >&2; exit 1; }
+      run_phase "mirror" ./Scripts/promote.sh --quiet || { echo "Handoff FAIL: mirror" >&2; exit 1; }
     else
       ./Scripts/promote.sh || { echo "Handoff FAIL: mirror" >&2; exit 1; }
     fi

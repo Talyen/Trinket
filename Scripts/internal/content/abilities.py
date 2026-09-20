@@ -37,9 +37,20 @@ ABILITY_DECL_PATTERN = (
 )
 
 
+ABILITY_TIERS = ("Basic", "Skill", "Ultimate")
+
+
 @functools.cache
-def _read_ability_source() -> str:
-    return (ABILITY_DIR / "AbilityCatalog.swift").read_text()
+def _read_ability_sources() -> tuple[tuple[Path, str], ...]:
+    return tuple((path, path.read_text()) for tier in ABILITY_TIERS
+                 for path in [ABILITY_DIR / f"AbilityCatalog+{tier}.swift"])
+
+
+def located_ability_decls() -> Iterator[tuple[Path, int, tuple[str, str, str, str]]]:
+    """Share declaration parsing between codegen and authored-location lookup."""
+    for path, source in _read_ability_sources():
+        for match in re.finditer(ABILITY_DECL_PATTERN, source):
+            yield path, source.count("\n", 0, match.start()) + 1, match.groups()
 
 
 def iter_ability_decls() -> Iterator[tuple[str, str, str, str]]:
@@ -48,9 +59,8 @@ def iter_ability_decls() -> Iterator[tuple[str, str, str, str]]:
     Every `static let X = Ability(` declaration carries id/name/tier, so the
     tier, shorthand, and inventory scans share this one pattern.
     """
-    for match in re.finditer(ABILITY_DECL_PATTERN, _read_ability_source()):
-        symbol, ability_id, name, tier = match.groups()
-        yield symbol, ability_id, name, tier
+    for _, _, declaration in located_ability_decls():
+        yield declaration
 
 
 def collect_ability_symbols() -> set[str]:
@@ -61,7 +71,7 @@ def collect_ability_tiers() -> dict[str, str]:
     tiers: dict[str, str] = {}
     for symbol, _, _, tier in iter_ability_decls():
         if symbol in tiers:
-            raise ValueError(f"Ability symbol '{symbol}' appears twice in AbilityCatalog.swift")
+            raise ValueError(f"Ability symbol '{symbol}' appears twice in the ability tier catalogs")
         tiers[symbol] = tier
     return tiers
 

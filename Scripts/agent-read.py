@@ -4,54 +4,43 @@
 from __future__ import annotations
 
 import argparse
-import ast
+import shlex
 import sys
 from pathlib import Path
 from urllib.parse import unquote
 
 from internal.markdown import headings
 from internal.cli import ROOT
+from internal.source_declarations import source_declarations
 
-
-def source_outline(path: Path, source: str) -> list[tuple[int, str]]:
-    if path.suffix == ".py":
-        tree = ast.parse(source)
-        return sorted((node.lineno, f"{type(node).__name__} {node.name}") for node in ast.walk(tree)
-                      if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)))
-    from internal.swift_policy import formatter_tokens
-    tokens = formatter_tokens(source, ROOT)
-    lines = source.splitlines()
-    declarations = {"struct", "class", "enum", "actor", "protocol", "extension", "func", "typealias", "init", "deinit", "subscript", "var", "let"}
-    found = {}
-    line = 1
-    for index, token in enumerate(tokens):
-        kind, value = token["type"], token["string"]
-        if kind == "keyword" and value in declarations:
-            following = next((entry for entry in tokens[index + 1:] if entry["type"] not in {"space", "linebreak"}), None)
-            if value != "class" or not following or following["string"] not in {"func", "var", "subscript"}:
-                found[line] = lines[line - 1].strip()
-        line += value.count("\n")
-    return sorted(found.items())
-
+DOCUMENT_CHAR_BUDGET = 12_000
 
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("target", help="repository Markdown path, optionally followed by #heading-anchor")
     parser.add_argument("--outline", action="store_true", help="list anchors and source ranges instead of document text")
+    parser.add_argument("--full", action="store_true", help="intentionally read an entire Markdown document")
     parser.add_argument("--lines", help="explicit inclusive source range START:END")
     parser.add_argument("--offset", type=int, default=0, help="source-outline entry offset")
     parser.add_argument("--limit", type=int, default=60, help="source-outline page length")
+    parser.add_argument("--include-locals", action="store_true", help="include function-local declarations")
+    parser.add_argument("--symbol", help="read a complete declaration by qualified or unqualified name")
     args = parser.parse_args(argv)
     name, separator, anchor = args.target.partition("#")
     path = (root / name).resolve()
     try:
+        if args.offset < 0 or args.limit < 1:
+            raise ValueError("outline offset must be nonnegative and limit positive")
+        if args.full and (separator or args.outline or args.lines or args.symbol or args.include_locals
+                          or path.suffix not in {".md", ".mdc"}):
+            raise ValueError("--full requires an unanchored Markdown document without other read modes")
         relative = path.relative_to(root.resolve()).as_posix()
         if not name or path.suffix not in {".md", ".mdc", ".swift", ".py"}:
             raise ValueError("target must be Markdown, Swift, or Python within the repository")
         source = path.read_text(encoding="utf-8")
         lines = source.splitlines()
         if args.lines:
-            if separator or args.outline:
+            if separator or args.outline or args.symbol:
                 raise ValueError("--lines cannot be combined with an anchor or --outline")
             start, end = map(int, args.lines.split(":"))
             if not 1 <= start <= end <= len(lines):
@@ -61,22 +50,37 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
                 print(f"{number}: {lines[number - 1]}")
             return 0
         if path.suffix in {".swift", ".py"}:
-            if separator or not args.outline or args.offset < 0 or args.limit < 1:
-                raise ValueError("source files require --outline or --lines START:END; outline bounds must be nonnegative/positive")
-            entries = source_outline(path, source)
+            if separator or args.outline == bool(args.symbol) or args.offset < 0 or args.limit < 1:
+                raise ValueError("source files require --outline, --symbol, or --lines; outline bounds must be nonnegative/positive")
+            entries = source_declarations(path, source, args.include_locals)
+            if args.symbol:
+                entries = [entry for entry in entries if entry.name == args.symbol or entry.name.rsplit(".", 1)[-1] == args.symbol]
+                if not entries:
+                    raise ValueError(f"missing declaration {args.symbol!r}; use --outline")
+                if len(entries) == 1:
+                    entry = entries[0]
+                    print(f"{relative}:{entry.start}-{entry.end} (complete lexical declaration: {entry.name})")
+                    for number in range(entry.start, entry.end + 1):
+                        print(f"{number}: {lines[number - 1]}")
+                    return 0
+                print(f"Ambiguous symbol {args.symbol!r}; use a qualified name or --lines START:END:")
             if args.offset > len(entries):
                 raise ValueError("--offset is beyond the last outline entry")
             stop = min(len(entries), args.offset + args.limit)
-            print("Declaration hints only; includes local declarations. Read surrounding attributes, callers, and complete bodies.")
-            for number, declaration in entries[args.offset:stop]:
-                print(f"{relative}:{number}: {declaration[:240]}")
-                if len(declaration) > 240:
-                    print("  … declaration line shortened; read the source range")
-            print(f"Entries {args.offset}:{stop} of {len(entries)}; omitted {max(0, len(entries) - stop)} after this page.")
+            print(f"{relative} — lexical declaration ranges; {'includes locals' if args.include_locals else 'types and members only'}")
+            for entry in entries[args.offset:stop]:
+                print(f"  {entry.start}:{entry.end} {entry.kind} {entry.name}")
+            print(f"Entries {args.offset}:{stop} of {len(entries)}; omitted {len(entries) - stop} after this page.")
             if stop < len(entries):
-                import shlex
-                print("Continue: " + shlex.join(["python3", "Scripts/agent-read.py", relative, "--outline", "--offset", str(stop), "--limit", str(args.limit)]))
-            return 0
+                command = ["python3", "Scripts/agent-read.py", relative]
+                command += ["--symbol", args.symbol] if args.symbol else ["--outline"]
+                command += ["--offset", str(stop), "--limit", str(args.limit)]
+                if args.include_locals:
+                    command.append("--include-locals")
+                print("Continue: " + shlex.join(command))
+            return 2 if args.symbol else 0
+        if args.symbol or args.include_locals:
+            raise ValueError("--symbol and --include-locals require Swift or Python")
         entries = headings(lines)
         selected = None
         if separator:
@@ -84,10 +88,24 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             if selected is None:
                 raise ValueError(f"missing heading #{anchor}; use --outline {name}")
         start, end = (selected.start, selected.end) if selected else (1, len(lines))
-        if args.outline:
-            for entry in entries:
-                if start <= entry.start <= end:
-                    print(f"{relative}#{entry.slug} [{entry.start}-{entry.end}] {'#' * entry.level} {entry.title}")
+        automatic_outline = not separator and not args.full and len(source) > DOCUMENT_CHAR_BUDGET
+        if args.outline or automatic_outline:
+            if automatic_outline:
+                print(f"Navigation only: {len(source)} characters exceeds the {DOCUMENT_CHAR_BUDGET}-character default; document text has NOT been read.")
+                print("Read a section: python3 Scripts/agent-read.py '" + relative + "#<anchor>'")
+                print("Read full document: " + shlex.join(["python3", "Scripts/agent-read.py", relative, "--full"]))
+            visible = [entry for entry in entries if start <= entry.start <= end]
+            if args.offset > len(visible):
+                raise ValueError("--offset is beyond the last outline entry")
+            stop = min(len(visible), args.offset + args.limit)
+            for entry in visible[args.offset:stop]:
+                print(f"{relative}#{entry.slug} [{entry.start}-{entry.end}] {'#' * entry.level} {entry.title}")
+            if not visible:
+                print("No headings; use --full or --lines START:END to read the document.")
+            if stop < len(visible):
+                print(f"Omitted {len(visible) - stop} headings.")
+                print("Continue: " + shlex.join(["python3", "Scripts/agent-read.py", args.target,
+                                                 "--outline", "--offset", str(stop), "--limit", str(args.limit)]))
         else:
             print(f"{relative}:{start}-{end} (complete {'section' if selected else 'document'})")
             if selected and selected.parents:

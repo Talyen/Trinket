@@ -61,7 +61,9 @@ trinket_asset_extract_swift_quoted_ids "$scratch/combatant_ids" \
   "$generated_dir/GameContentRoster.generated.swift" \
   "$generated_dir/GameContentEnemies.generated.swift"
 trinket_asset_extract_swift_quoted_ids "$scratch/ability_ids" \
-  "$content_dir/AbilityCatalog.swift"
+  "$content_dir/AbilityCatalog+Basic.swift" \
+  "$content_dir/AbilityCatalog+Skill.swift" \
+  "$content_dir/AbilityCatalog+Ultimate.swift"
 trinket_asset_extract_swift_quoted_ids "$scratch/item_ids" \
   "$generated_dir/GameContentItemBases.generated.swift"
 

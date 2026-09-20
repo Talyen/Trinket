@@ -1,5 +1,26 @@
 """Executable product transfer and incremental cache retention contracts."""
 
+SCRIPT_INPUTS = (
+    'Scripts/build-for-testing.sh',
+    'Scripts/build-freshness.sh',
+    'Scripts/build.sh',
+    'Scripts/check-build-cache-paths.sh',
+    'Scripts/format.sh',
+    'Scripts/lib/app-build.sh',
+    'Scripts/lib/args.sh',
+    'Scripts/lib/derived-data.sh',
+    'Scripts/lib/tempdir.sh',
+    'Scripts/lib/test-helpers.sh',
+    'Scripts/lib/test-style.sh',
+    'Scripts/lint-analyze.sh',
+    'Scripts/lint.sh',
+    'Scripts/prune-derived-data-cache.sh',
+    'Scripts/stage-ci-test-artifact.sh',
+    'Scripts/test-package.sh',
+    'Scripts/test.sh',
+)
+
+
 import os
 from pathlib import Path
 import shutil

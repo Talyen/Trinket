@@ -21,6 +21,20 @@ struct PlaythroughScenario: Codable, Equatable {
     var sessionSeconds = 3600.0
 }
 
+struct PlaythroughBattleOutcome: Codable {
+    let attempt: Int
+    let outcome: String
+    let encounterID: String?
+    let enemyID: String?
+    let enemyEncounterLevel: Int?
+    let heroLevel: Int
+    let companionLevel: Int
+    let heroTalentCount: Int
+    let companionTalentCount: Int
+    let heroEquipmentCount: Int
+    let companionEquipmentCount: Int
+}
+
 enum PlaythroughAction: Codable, Equatable {
     case starterHero(String)
     case starterCompanion(String)
@@ -98,6 +112,7 @@ struct PlaythroughSummary: Codable {
     var cardsObserved = 0
     var playableObservations = 0
     var cardsChosen = 0
+    var battleOutcomes: [PlaythroughBattleOutcome] = []
     var simulatedSeconds = 0.0
     var wallSeconds = 0.0
     var diagnostic: String?

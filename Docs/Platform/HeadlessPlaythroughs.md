@@ -97,23 +97,42 @@ never `completedObjective`.
 
 ## Reports and interpretation
 
-JSON and HTML share one structured result. Reports retain planned, completed, and
-incomplete counts; outcomes, reached encounters, turns/actions, observed/playable/
-chosen cards, Gold earned/spent, equipment changes, talents, Homestead upgrades,
-simulated cadence, and process/worker wall time. `cardsDrawn` reads the engine's
-newly dealt card identity counter, including buffered/automatic cards;
-`cardsObserved` counts distinct visible or buffered IDs, and `playableObservations`
-counts legal cards at command boundaries, so those are intentionally different
-metrics. Zero milestones remain in the report with the configured horizon.
+Each run writes three report layers. `report-agent.json` is the compact,
+agent-facing artifact: it contains derived metrics, confidence, limitations,
+actionable insights, and recommended next experiments. It does not include worker
+summaries, action journals, logs, test bundles, or private store contents. Agents
+should read this report first. `report.html` presents the same insights for human
+review, and `report.json` retains the full structured worker result for local
+diagnostics and tooling.
 
-Baseline comparison requires identical scenario manifests and seed populations.
-It reports paired outcomes and Gold effects; uncertainty uses careers, not
-correlated battles. The Wilson interval for careers reaching a victory is conditional
-on completed careers, whose denominator is explicit; incomplete careers remain
-visible separately. A single career supplies no estimated standard error for an
-economy difference. Thresholds are advisory; confirm anomalies with more seeds and
-another policy before making a balance claim. No automation or balance CI gate is
-installed.
+The report generator derives planned, completed, and incomplete counts; career and
+attempt outcomes; retry sequences; reached encounters; turns/actions;
+observed/playable/chosen cards; Gold earned/spent; equipment changes, talents,
+Homestead upgrades; simulated cadence; and process/worker wall time. It also
+generates sample-size confidence, economy-coverage warnings, full attempt-trajectory
+comparisons, late-run regression findings, compact failure contexts by encounter and
+enemy, memory-budget findings, baseline effects, and context-aware next-experiment
+recommendations. Failure contexts include bounded seed/attempt examples for targeted
+follow-up; raw journals remain omitted.
+`cardsDrawn` reads the engine's newly dealt card identity counter, including
+buffered/automatic cards; `cardsObserved` counts distinct visible or buffered IDs,
+and `playableObservations` counts legal cards at command boundaries, so those are
+intentionally different metrics. Zero milestones remain in the reports with the
+configured horizon.
+
+Raw evidence remains available under each worker for replay and forensic debugging,
+but is deliberately omitted from the agent report. Retrieve only a named career
+and bounded evidence range when investigating a specific anomaly; do not dump a
+whole `actions.jsonl`, `.xcresult`, log, checkpoint, or store into agent context.
+
+Baseline comparison requires identical scenario settings and seed populations.
+The policy may differ intentionally for a paired policy comparison. Reports retain
+paired outcomes and Gold effects; uncertainty uses careers, not correlated battles.
+The Wilson interval for careers reaching a victory is conditional on completed
+careers, whose denominator is explicit; incomplete careers remain visible
+separately. A single career supplies no estimated standard error for an economy
+difference. Thresholds are advisory; confirm anomalies with more seeds and another
+policy before making a balance claim. No automation or balance CI gate is installed.
 
 ## Coverage and execution budget
 

@@ -249,7 +249,7 @@ commits being pushed (platform bans stay full-tree), runs the internal
 push gate, then path-scoped package tests against
 that generated tree. A requested push still requires a green path-scoped
 handoff before commit. Review and include only task-related authored and
-generated files.
+generated files; stage individual hunks when task and unrelated changes share a file.
 
 Pre-push invokes `agent-push-gate.sh` internally; do not run it manually after
 commit. Landing policy remains in [AGENTS.md](../../AGENTS.md#protect-the-workspace).

@@ -36,43 +36,71 @@
       "name": "poisonDecayIncreaseChance",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 6
+      }
     },
     {
       "name": "onBleedApplyPoison",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 3
+      }
     },
     {
       "name": "onBurnApplyPoison",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 4
+      }
     },
     {
       "name": "onBleedDealBurnDamage",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 5
+      }
     },
     {
       "name": "onBleedDealPoisonChancePercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 53
+      }
     },
     {
       "name": "onBurnDealPoisonChancePercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 54
+      }
     },
     {
       "name": "onBleedDealBurnChancePercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 55
+      }
     },
     {
       "name": "onBurnDamageDetonateBleedChancePercent",
@@ -90,7 +118,11 @@
       "name": "freezeDamageWhileBurningBonus",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 7
+      }
     },
     {
       "name": "bleedConsumesPoison",
@@ -198,13 +230,20 @@
       "name": "poisonDamageLeech",
       "type": "Bool",
       "default": "false",
-      "merge": "or"
+      "merge": "or",
+      "affix_roll": {
+        "reason": "On/off rule with no rollable magnitude."
+      }
     },
     {
       "name": "bleedDamageGoldFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 44
+      }
     },
     {
       "name": "burnDamageRampPerRound",

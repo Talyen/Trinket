@@ -7,7 +7,7 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 
 ## Structure
 
-- **Abilities/** — Ability models, validation, and the authored `AbilityCatalog.swift` catalog (tiers grouped by `// MARK:` sections).
+- **Abilities/** — Ability models, validation, and authored `AbilityCatalog+Basic/Skill/Ultimate.swift` tier catalogs with ordered tier lists.
 - **Equipment/** — Item and affix models, Unique catalogs, and loot generation.
 - **Encounters/** — Journey, Labyrinth, Spire, Contracts, Mysteries, shops, and reward settlement.
 - **Roster/** — Combatant models, equipment/keyword projections, and talent/trait lookup.
@@ -29,7 +29,7 @@ Schemas and input/output ownership live in
 [`ContentManifest/README.md`](../../ContentManifest/README.md) and the matching
 media-manifest READMEs. `Generated/` is the output of `./Scripts/generate.sh`;
 do not maintain a second generated-file inventory here. Abilities remain
-authored in `Abilities/AbilityCatalog.swift`; trigger-family
+authored in the three `Abilities/AbilityCatalog+*.swift` tier files; trigger-family
 schemas are indexed by `Scripts/internal/content/trigger_families/index.json`.
 Modifier cases and mechanical transforms are generated from
 `Scripts/internal/content/modifiers.json`; `AffixModifier.swift` retains magnitude

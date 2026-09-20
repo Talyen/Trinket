@@ -5,44 +5,19 @@ import Testing
 /// must roll with the loot system or be explicitly excused, and every rollable
 /// power must display its rolls.
 struct ItemAffixRollCoverageTests {
-    /// Populated affix trigger fields that intentionally never roll, with reasons.
-    /// Thresholds gate a condition (rolling them rewrites the trigger, not the reward).
-    /// Flags are on/off rules with no magnitude. Word-described magnitudes have no
-    /// patchable number in their card text, so rolling them would silently diverge
-    /// value from display.
-    private static let nonRollableFields: Set<String> = [
-        // Thresholds.
-        "damageBelowHealthPercentThreshold",
-        "dodgeChanceBelowHealthPercentThreshold",
-        "onceBelowHealthPercentThreshold",
-        "cardsPlayedManaThreshold",
-        // On/off flags.
-        "victoryGoldCoin",
-        "repeatManaEmpowerment",
-        "poisonDamageLeech",
-        "healCompanionDrawsCompanionCard",
-        "forbiddenKnowledge",
-        "enemyStunnedPurgeAll",
-        "enemyStunnedApplyMarked",
-        "criticalPurgeAll",
-        // Word-described magnitudes ("twice as much", "double damage").
-        "sunderingBlockMultiplier",
-        "stunnedDamageMultiplier",
-    ]
-
     @Test func `every populated affix trigger field rolls or is excused`() {
         let rollable = CombatTraitTriggers.affixMagnitudeFieldNames
         var violations: [String] = []
         for definition in GameContent.itemAffixDefinitions {
             for power in [definition.basic, definition.astral] {
                 for field in power.triggers.populatedFieldNames {
-                    if !rollable.contains(field), !Self.nonRollableFields.contains(field) {
+                    if !rollable.contains(field), CombatTraitTriggers.nonRollableAffixFields[field] == nil {
                         violations.append("\(definition.id): \(field)")
                     }
                 }
             }
         }
-        #expect(violations.isEmpty, "Add to affixMagnitudeFields or excuse: \(violations.sorted())")
+        #expect(violations.isEmpty, "Classify affix_roll in the trigger schema: \(violations.sorted())")
     }
 
     @Test func `every rollable generatable power displays its roll max`() {

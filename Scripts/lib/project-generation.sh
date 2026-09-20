@@ -14,6 +14,7 @@ trinket_generate_project() (
   # shellcheck source=tempdir.sh
   source "$tool_root/Scripts/lib/tempdir.sh"
   trinket_mktemp_dir cache_dir trinket-xcodegen
+  python3 "$tool_root/Scripts/check-testplan-sync.py" --generate --root "$project_root"
   "$tool_root/.tools/xcodegen" generate --spec "$project_root/project.yml" \
     --cache-path "$cache_dir/cache"
   # The pinned XcodeGen silently drops `storeKitConfiguration`, which would

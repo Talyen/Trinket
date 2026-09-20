@@ -35,6 +35,8 @@ tool_paths=(
   Scripts/lib/tools.sh
   Scripts/lib/tool-install.sh
   Scripts/lib/project-generation.sh
+  Scripts/check-testplan-sync.py
+  Scripts/internal/cli.py
   Scripts/check-staged-project.sh
   .githooks/pre-commit
 )
@@ -53,6 +55,9 @@ if [[ ! -f "$snapshot/repo/$project" ]]; then
   echo "Project check: regenerate with ./Scripts/generate.sh and stage $project before committing." >&2
   exit 1
 fi
+for plan in Smoke FullUI; do
+  cp "$snapshot/repo/$plan.xctestplan" "$snapshot/$plan.xctestplan"
+done
 cp "$snapshot/repo/$project" "$snapshot/staged-project.pbxproj"
 trinket_generate_project "$ROOT" "$snapshot/repo"
 if ! cmp -s "$snapshot/staged-project.pbxproj" "$snapshot/repo/$project"; then
@@ -60,4 +65,10 @@ if ! cmp -s "$snapshot/staged-project.pbxproj" "$snapshot/repo/$project"; then
   echo "Edit authored inputs, run ./Scripts/generate.sh, and stage $project with its inputs before retrying." >&2
   exit 1
 fi
+for plan in Smoke FullUI; do
+  if ! cmp -s "$snapshot/$plan.xctestplan" "$snapshot/repo/$plan.xctestplan"; then
+    echo "Project check: staged $plan selections do not match the UI-test registry; regenerate and stage the plan." >&2
+    exit 1
+  fi
+done
 echo "Staged project matches staged inputs."

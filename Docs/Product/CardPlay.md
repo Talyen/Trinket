@@ -16,8 +16,20 @@ Movement follows the finger from its original grab position in a stable hand
 coordinate space; the tap-versus-drag threshold does not delay visual pickup.
 Only lift and return animate independently of the finger's movement.
 A restrained edge marks playable cards, with one settling accent when a card
-becomes playable. The armed-drag edge takes precedence; these cues never dim the
-artwork, repeat continuously, or delay an action.
+becomes playable. Crossing the drag-to-play threshold adds no border animation,
+glow, enlargement, or haptic. Availability cues never dim the artwork, repeat
+continuously, or delay an action.
+
+Inspection uses native long-press recognition with a 0.5-second hold and a
+10-point movement tolerance. Reaching 10 points of displacement cancels both
+inspection and tap activation for that touch, even if the finger returns to its
+starting position. Inspection consumes the touch; releasing never plays the card.
+The nonvisual “Inspect card” accessibility action offers the same details.
+
+A drag plays only when released at least 80 points upward and farther upward
+than sideways. Predicted flick travel and earlier threshold crossings do not
+commit a card. Returning inside that boundary cancels the play. Interrupted
+touches return the card without playing or reopening inspection.
 
 The hand remains a physical, smoothly reflowing fan. A touch stays attached to
 the card originally pressed, and that card stays steady while surrounding cards

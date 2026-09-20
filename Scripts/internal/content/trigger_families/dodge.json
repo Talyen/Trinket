@@ -36,13 +36,21 @@
       "name": "dodgeChanceBonus",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 36
+      }
     },
     {
       "name": "dodgeBlockFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 24
+      }
     },
     {
       "name": "dodgeApplyPoison",
@@ -54,13 +62,21 @@
       "name": "dodgeGoldFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 19
+      }
     },
     {
       "name": "dodgeHealFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 33
+      }
     },
     {
       "name": "dodgeChanceAboveHalfHealthBonus",
@@ -72,13 +88,20 @@
       "name": "dodgeChanceBelowHealthPercentThreshold",
       "type": "Double",
       "default": "0",
-      "merge": "max"
+      "merge": "max",
+      "affix_roll": {
+        "reason": "Threshold gates the condition, not the reward."
+      }
     },
     {
       "name": "dodgeChanceBelowHealthPercentBonus",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 34
+      }
     },
     {
       "name": "onDodgeDrawCardForHero",

@@ -26,6 +26,7 @@ final class PlaythroughCareer {
     var crashOnSettlement = false
     var seenCards: Set<Int> = []
     var observedBattleID: UUID?
+    var currentBattleEncounterID: String?
 
     var state: AppState {
         guard let app else { preconditionFailure("Career is closed") }

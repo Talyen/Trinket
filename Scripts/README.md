@@ -45,3 +45,13 @@ with `handoff.sh --isolate --dry-run --paths <files...>` before an unfamiliar ro
 | Automated playthroughs | [Manual careers, replay, and comparison](Reference.md#headless-playthroughs) |
 | Diagnostics | [Failures, timings, performance, and cleanup](Reference.md#diagnostics) |
 | Tooling maintenance | [Internal helpers](Reference.md#internal-helpers) and [toolchain requirements](Reference.md#toolchain-ladder) |
+
+## Script regression ownership
+
+Each Python test module may declare a literal `SCRIPT_INPUTS = ("Scripts/owner.py", ...)`
+tuple of repository-relative files or globs. The selector reads it with AST literal
+parsing and never imports test modules. Keep ownership beside the tests when adding
+or moving coverage; shared consumers combine their selections. Shell-suite mappings
+and explicit full-suite exceptions remain in `script_test_selection.py`. Unknown
+inputs fall back to the full suite; ownership regressions reject unaccounted leaves
+and malformed metadata. Direct edits to a test module select that module.

@@ -30,7 +30,11 @@
       "name": "cleanseSelfHeal",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 0
+      }
     },
     {
       "name": "cleanseBonusHeal",
@@ -42,19 +46,31 @@
       "name": "onceBelowHealthPercentHeal",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 13
+      }
     },
     {
       "name": "blockOnDeathsDoor",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 14
+      }
     },
     {
       "name": "holyDamageHealFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 18
+      }
     },
     {
       "name": "burnDamageHealFlat",
@@ -66,13 +82,21 @@
       "name": "healthRestoredPoisonPercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 46
+      }
     },
     {
       "name": "healthPerTurn",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 49
+      }
     },
     {
       "name": "heroCritHealPartyFlat",
@@ -156,7 +180,11 @@
       "name": "freezeDamageLeechChancePercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 58
+      }
     },
     {
       "name": "healingBelowHealthPercentThreshold",
@@ -264,7 +292,11 @@
       "name": "companionLeechSharePercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 12
+      }
     },
     {
       "name": "onLeechApplyPoison",

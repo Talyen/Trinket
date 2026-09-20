@@ -409,7 +409,9 @@ private extension CombatTraitTriggers {
         }
         return true
     }
+}
 
+extension CombatTraitTriggers {
     enum AffixMagnitudeField: Sendable {
         case int(WritableKeyPath<CombatTraitTriggers, Int> & Sendable, name: String)
         case percent(WritableKeyPath<CombatTraitTriggers, Double> & Sendable, name: String)
@@ -451,74 +453,11 @@ private extension CombatTraitTriggers {
             }
         }
     }
-
-    static let affixMagnitudeFields: [AffixMagnitudeField] = [
-        .int(\.cleanseSelfHeal, name: "cleanseSelfHeal"),
-        .int(\.gainGoldBonusHealSelf, name: "gainGoldBonusHealSelf"),
-        .percent(\.thornsPercent, name: "thornsPercent"),
-        .int(\.onBleedApplyPoison, name: "onBleedApplyPoison"),
-        .int(\.onBurnApplyPoison, name: "onBurnApplyPoison"),
-        .int(\.onBleedDealBurnDamage, name: "onBleedDealBurnDamage"),
-        .percent(\.poisonDecayIncreaseChance, name: "poisonDecayIncreaseChance"),
-        .int(\.freezeDamageWhileBurningBonus, name: "freezeDamageWhileBurningBonus"),
-        .int(\.damageWhileTargetFrozenBonus, name: "damageWhileTargetFrozenBonus"),
-        .int(\.damageBelowHealthPercentBonus, name: "damageBelowHealthPercentBonus"),
-        .int(\.damageAfterDodgeBonus, name: "damageAfterDodgeBonus"),
-        .int(\.blockBrokenBlockFlat, name: "blockBrokenBlockFlat"),
-        .percent(\.companionLeechSharePercent, name: "companionLeechSharePercent"),
-        .int(\.onceBelowHealthPercentHeal, name: "onceBelowHealthPercentHeal"),
-        .int(\.blockOnDeathsDoor, name: "blockOnDeathsDoor"),
-        .int(\.spendManaBlockFlat, name: "spendManaBlockFlat"),
-        .int(\.holyDamageBlockFlat, name: "holyDamageBlockFlat"),
-        .int(\.holyDamageCleanseCount, name: "holyDamageCleanseCount"),
-        .int(\.holyDamageHealFlat, name: "holyDamageHealFlat"),
-        .int(\.dodgeGoldFlat, name: "dodgeGoldFlat"),
-        .percent(\.ignoreEnemyMitigationPercent, name: "ignoreEnemyMitigationPercent"),
-        .percent(\.physicalIgnoreMitigationPercent, name: "physicalIgnoreMitigationPercent"),
-        .int(\.stunDealPhysicalFlat, name: "stunDealPhysicalFlat"),
-        .int(\.damageWhileTargetStunnedBonus, name: "damageWhileTargetStunnedBonus"),
-        .int(\.dodgeBlockFlat, name: "dodgeBlockFlat"),
-        .int(\.holyDamagePurgeCount, name: "holyDamagePurgeCount"),
-        .int(\.enemyStunnedPurgeCount, name: "enemyStunnedPurgeCount"),
-        .int(\.criticalPurgeCount, name: "criticalPurgeCount"),
-        .int(\.criticalActionGoldFlat, name: "criticalActionGoldFlat"),
-        .int(\.leechRestoreManaFlat, name: "leechRestoreManaFlat"),
-        .int(\.gainManaBlockFlat, name: "gainManaBlockFlat"),
-        .int(\.defeatEnemyGoldFlat, name: "defeatEnemyGoldFlat"),
-        .int(\.leechGoldFlat, name: "leechGoldFlat"),
-        .int(\.dodgeHealFlat, name: "dodgeHealFlat"),
-        .percent(\.dodgeChanceBelowHealthPercentBonus, name: "dodgeChanceBelowHealthPercentBonus"),
-        .int(\.dodgeDealStunFlat, name: "dodgeDealStunFlat"),
-        .percent(\.dodgeChanceBonus, name: "dodgeChanceBonus"),
-        .int(\.holyDamagePoisonFlat, name: "holyDamagePoisonFlat"),
-        .int(\.drawEveryOtherTurn, name: "drawEveryOtherTurn"),
-        .int(\.drawOnHealthLoss, name: "drawOnHealthLoss"),
-        .percent(\.physicalStunBuildupPercent, name: "physicalStunBuildupPercent"),
-        .percent(\.blockGainThornsPercent, name: "blockGainThornsPercent"),
-        .int(\.drawOnSpendMana, name: "drawOnSpendMana"),
-        .percent(\.physicalDamageBlockPercent, name: "physicalDamageBlockPercent"),
-        .int(\.bleedDamageGoldFlat, name: "bleedDamageGoldFlat"),
-        .int(\.goldPerTurn, name: "goldPerTurn"),
-        .percent(\.healthRestoredPoisonPercent, name: "healthRestoredPoisonPercent"),
-        .int(\.cardsPlayedManaFlat, name: "cardsPlayedManaFlat"),
-        .int(\.victoryGoldFlat, name: "victoryGoldFlat"),
-        .int(\.healthPerTurn, name: "healthPerTurn"),
-        .int(\.companionCardsPerTurn, name: "companionCardsPerTurn"),
-        .int(\.freezeExtraActionSkips, name: "freezeExtraActionSkips"),
-        .percent(\.criticalChanceBonus, name: "criticalChanceBonus"),
-        // BumpTarget.trigger indexes this array ephemerally during a single roll.
-        .percent(\.onBleedDealPoisonChancePercent, name: "onBleedDealPoisonChancePercent"),
-        .percent(\.onBurnDealPoisonChancePercent, name: "onBurnDealPoisonChancePercent"),
-        .percent(\.onBleedDealBurnChancePercent, name: "onBleedDealBurnChancePercent"),
-        .percent(\.stunExtendChancePercent, name: "stunExtendChancePercent"),
-        .percent(\.freezeExtendChancePercent, name: "freezeExtendChancePercent"),
-        .percent(\.freezeDamageLeechChancePercent, name: "freezeDamageLeechChancePercent"),
-    ]
 }
 
 public extension CombatTraitTriggers {
     /// Names of rollable trigger magnitudes. Pair with the excused-fields set
-    /// in ItemAffixRollCoverageTests for the full contract: every populated
+    /// generated from the trigger schema for the full contract: every populated
     /// affix trigger field must be rollable or explicitly excused.
     static var affixMagnitudeFieldNames: Set<String> {
         Set(affixMagnitudeFields.map(\.fieldName))

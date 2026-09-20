@@ -9,14 +9,21 @@ back to the full suite, which masks routing gaps.
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/script_test_selection.py',
+)
+
+
 import sys
+import tempfile
 import unittest
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 from script_test_support import ROOT
 
 sys.path.insert(0, str(ROOT / "Scripts"))
-from script_test_selection import FAMILIES, INTENTIONALLY_UNMAPPED, select_tests
+from script_test_selection import regression_families, INTENTIONALLY_UNMAPPED, select_tests
 
 
 def script_leaves() -> set[str]:
@@ -38,17 +45,18 @@ def script_leaves() -> set[str]:
 
 class ScriptSelectionTests(unittest.TestCase):
     def test_every_leaf_is_routed_or_intentionally_unmapped(self) -> None:
-        routed = {owner for owners, _ in FAMILIES for owner in owners}
-        unaccounted = script_leaves() - routed - set(INTENTIONALLY_UNMAPPED)
+        patterns = {owner for owners, _ in regression_families() for owner in owners}
+        unaccounted = {leaf for leaf in script_leaves() if leaf not in INTENTIONALLY_UNMAPPED
+                       and not any(fnmatchcase(leaf, pattern) for pattern in patterns)}
         self.assertEqual(unaccounted, set())
 
     def test_routing_references_exist(self) -> None:
         available = {
             path.relative_to(ROOT).as_posix() for path in (ROOT / "Scripts/Tests").iterdir()
         }
-        for owners, modules in FAMILIES:
+        for owners, modules in regression_families():
             for owner in owners:
-                self.assertTrue((ROOT / owner).exists(), f"routed leaf is missing: {owner}")
+                self.assertTrue(list(ROOT.glob(owner)), f"routed leaf is missing: {owner}")
             for module in modules:
                 module_path = (
                     f"Scripts/Tests/{module}" if module.endswith(".sh") else f"Scripts/Tests/{module}.py"
@@ -74,6 +82,25 @@ class ScriptSelectionTests(unittest.TestCase):
         )
         # Docs are checked by their own gate, not the script suites.
         self.assertEqual(select_tests(["Scripts/Reference.md"]), [])
+
+    def test_literal_metadata_is_not_executed_and_globs_union_consumers(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            tests = root / "Scripts/Tests"
+            tests.mkdir(parents=True)
+            (tests / "test_one.py").write_text(
+                "SCRIPT_INPUTS = ('Scripts/domain/*.json',)\nraise RuntimeError('must not execute')\n")
+            (tests / "test_two.py").write_text("SCRIPT_INPUTS = ['Scripts/domain/known.json']\n")
+            all_tests = select_tests([], root)
+            self.assertEqual(select_tests(['Scripts/domain/known.json'], root), all_tests)
+            self.assertEqual(select_tests(['Scripts/domain/new.json'], root), ['Scripts/Tests/test_one.py'])
+            self.assertEqual(select_tests(['Scripts/unmapped.py'], root), all_tests)
+            self.assertEqual(select_tests(['Scripts/Tests/test_two.py'], root), ['Scripts/Tests/test_two.py'])
+            for source in ("SCRIPT_INPUTS = get_paths()", "SCRIPT_INPUTS = ('../outside.py',)",
+                           "SCRIPT_INPUTS = 'Scripts/one.py'", "SCRIPT_INPUTS = ()\nSCRIPT_INPUTS = ()"):
+                (tests / "test_one.py").write_text(source)
+                with self.assertRaisesRegex(ValueError, 'invalid test ownership'):
+                    select_tests(['Scripts/domain/known.json'], root)
 
 
 if __name__ == "__main__":

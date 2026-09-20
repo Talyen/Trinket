@@ -107,7 +107,19 @@ trinket_route_package_verification() {
     TRINKET_NEEDS_APP_BUILD=true
   fi
 }
-trinket_add_context_card() { trinket_add_unique TRINKET_CONTEXT_CARDS "$1"; }
+trinket_add_context_card() {
+  local card="$1" existing
+  local -a retained=()
+  for existing in "${TRINKET_CONTEXT_CARDS[@]-}"; do
+    # A broad owner in a mixed scope subsumes its section recommendations.
+    [[ "$existing" == "${card%%#*}" ]] && return 0
+    if [[ "$card" != *'#'* && "$existing" == "$card#"* ]]; then continue; fi
+    [[ -n "$existing" ]] && retained+=("$existing")
+  done
+  TRINKET_CONTEXT_CARDS=()
+  if (( ${#retained[@]} > 0 )); then TRINKET_CONTEXT_CARDS=("${retained[@]}"); fi
+  trinket_add_unique TRINKET_CONTEXT_CARDS "$card"
+}
 trinket_add_route_card() { trinket_add_unique TRINKET_ROUTE_CARDS "$1"; }
 trinket_add_skill() { trinket_add_unique TRINKET_SKILLS "$1"; }
 trinket_add_knowledge() { trinket_add_unique TRINKET_KNOWLEDGE "$1"; }
@@ -361,6 +373,13 @@ trinket_path_is_visual_ui() {
   esac
 }
 
+trinket_add_presentation_sections() {
+  local section
+  for section in display-lifetime display-work-lifecycle "$@"; do
+    trinket_add_context_card "Docs/AgentContext/battle-presentation.md#$section"
+  done
+}
+
 trinket_add_runtime_contracts_for_path() {
   trinket_add_route_card Docs/AgentContext/battle.md
   trinket_add_context_card Docs/AgentContext/battle-runtime.md
@@ -369,10 +388,15 @@ trinket_add_runtime_contracts_for_path() {
     */PlaySession+BattleLaunch.swift|*/PlaySession+BattleCompletion.swift|*/PlayBattleLaunch+Configuration.swift|\
     */BattleSession+Progression.swift)
       trinket_add_context_card Docs/AgentContext/battle-launch.md ;;
-    */Features/BattleAbilityCardView.swift|*/Features/BattleHandView.swift|*/Features/BattleFieldLane+CardPlay.swift|\
+    */Features/Feedback/*|*/State/Feedback/*)
+      trinket_add_presentation_sections floating-combat-feedback ;;
+    */Features/BattleAbilityCardView.swift|*/Features/BattleHandView.swift|*/Features/BattleFieldLane+CardPlay.swift)
+      trinket_add_presentation_sections continuous-card-input card-visibility ;;
+    */Features/Battlefield/*|*/Features/Effects/*)
+      trinket_add_presentation_sections attack-and-impact-presentation card-visibility ;;
     */Features/BattleCombatantProjectionPane.swift|*/Features/BattleLogSheet.swift|*/Features/BattleAutoToggle.swift|\
-    */Features/Battlefield/*|*/Features/Effects/*|*/Features/Feedback/*|*/Features/Layout/*|\
-    */State/Feedback/*|*/State/BattleCard*.swift|\
+    */Features/Layout/*|\
+    */State/BattleCard*.swift|\
     */State/BattlePresentationState.swift|*/State/BattleCommandState.swift|\
     */State/BattleMotion.swift|*/State/BattleSpectacle*.swift|*/State/BattleSession+CardCues.swift|\
     */State/BattleSession+Transitions.swift)
@@ -651,6 +675,23 @@ trinket_classify_path() {
   trinket_add_package_boundary_warnings_for_path "$path"
 }
 
+trinket_add_content_sections_for_path() {
+  case "$1" in
+    Packages/TrinketContent/Sources/TrinketContent/Abilities/*|Scripts/internal/content/abilities.py)
+      trinket_add_context_card Docs/AgentContext/content-and-manifests.md#abilities ;;
+    ContentManifest/*)
+      trinket_add_context_card Docs/AgentContext/content-and-manifests.md#manifests ;;
+    Scripts/internal/content/trigger_families/*|Scripts/internal/content/modifiers.json|Scripts/internal/content/modifier_schema.py|Scripts/internal/content/content_codegen_triggers.py|Scripts/internal/content/content_codegen_modifiers.py|Scripts/internal/content/affix_rolling.py)
+      trinket_add_context_card Docs/AgentContext/content-and-manifests.md#trigger-schemas ;;
+    ArtManifest/*|MusicManifest/*|SoundManifest/*|CinematicManifest/*|Raw\ Assets/*|Trinket/Assets.xcassets/*|Trinket/Media/*|Scripts/prepare-*-assets.sh|Scripts/prepare-app-icon.sh|Scripts/lib/media-assets.sh)
+      trinket_add_context_card Docs/AgentContext/content-and-manifests.md#media-assets ;;
+  esac
+  case "$1" in
+    Scripts/content_codegen.py|Scripts/internal/content/*|Scripts/generate.sh|Scripts/assert-generated-output.sh|Scripts/config/generated-paths.tsv|Packages/TrinketContent/Package.swift)
+      trinket_add_context_card Docs/AgentContext/content-and-manifests.md#generation-tooling ;;
+  esac
+}
+
 trinket_classify_paths() {
   trinket_reset_classification
   local path
@@ -668,7 +709,10 @@ trinket_classify_paths() {
   fi
 
   if [[ "$TRINKET_HAS_CONTENT" == true || "$TRINKET_HAS_ASSETS" == true ]]; then
-    trinket_add_context_card Docs/AgentContext/content-and-manifests.md
+    trinket_add_context_card Docs/AgentContext/content-and-manifests.md#shared-safeguards
+    for path in ${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}; do
+      trinket_add_content_sections_for_path "$path"
+    done
   fi
   if [[ ${#TRINKET_PACKAGES[@]+x} ]] && (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     for package in ${TRINKET_PACKAGES[@]+"${TRINKET_PACKAGES[@]}"}; do
@@ -691,7 +735,8 @@ trinket_classify_paths() {
     esac
   done
   if [[ "$TRINKET_HAS_PROJECT" == true ]]; then
-    trinket_add_context_card Docs/AgentContext/content-and-manifests.md
+    trinket_add_context_card Docs/AgentContext/content-and-manifests.md#shared-safeguards
+    trinket_add_context_card Docs/AgentContext/content-and-manifests.md#project-generation
   fi
 
   if [[ ${#TRINKET_CHANGED_PATHS[@]+x} ]] && (( ${#TRINKET_CHANGED_PATHS[@]} > 0 )); then

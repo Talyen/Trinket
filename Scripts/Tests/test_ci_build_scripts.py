@@ -2,6 +2,77 @@
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/agent-push-gate.sh',
+    'Scripts/apply-scheme-storekit.py',
+    'Scripts/assert-generated-output.sh',
+    'Scripts/build-for-testing.sh',
+    'Scripts/build-freshness.sh',
+    'Scripts/build-inputs.env',
+    'Scripts/build.sh',
+    'Scripts/change-budget.sh',
+    'Scripts/check-build-cache-paths.sh',
+    'Scripts/check-staged-project.sh',
+    'Scripts/ci-assets-gate.sh',
+    'Scripts/config/generated-paths.tsv',
+    'Scripts/config/infrastructure-patterns.env',
+    'Scripts/config/simulator-names.env',
+    'Scripts/config/ui-tests.tsv',
+    'Scripts/ensure-ci-tools.sh',
+    'Scripts/ensure-git-cliff.sh',
+    'Scripts/ensure-simulator.sh',
+    'Scripts/format-dirs.env',
+    'Scripts/format.sh',
+    'Scripts/generate.sh',
+    'Scripts/install-device.sh',
+    'Scripts/lib/app-build.sh',
+    'Scripts/lib/args.sh',
+    'Scripts/lib/ci-tools.d/ripgrep.sh',
+    'Scripts/lib/ci-tools.d/xcodegen.sh',
+    'Scripts/lib/derived-data.sh',
+    'Scripts/lib/generated-paths.sh',
+    'Scripts/lib/infrastructure-patterns.sh',
+    'Scripts/lib/lock.sh',
+    'Scripts/lib/media-assets.sh',
+    'Scripts/lib/project-generation.sh',
+    'Scripts/lib/promote.sh',
+    'Scripts/lib/simctl.sh',
+    'Scripts/lib/slots.sh',
+    'Scripts/lib/tempdir.sh',
+    'Scripts/lib/test-helpers.sh',
+    'Scripts/lib/test-style.sh',
+    'Scripts/lib/tool-install.sh',
+    'Scripts/lib/tools.sh',
+    'Scripts/lib/xcode-manifest.sh',
+    'Scripts/lib/xcode-watchdog.sh',
+    'Scripts/lib/xcodebuild-infra.sh',
+    'Scripts/lint-analyze.sh',
+    'Scripts/lint.sh',
+    'Scripts/prepare-app-icon.sh',
+    'Scripts/prepare-art-assets.sh',
+    'Scripts/prepare-assets.sh',
+    'Scripts/prepare-audio-assets.sh',
+    'Scripts/prepare-cinematic-assets.sh',
+    'Scripts/promote.sh',
+    'Scripts/prune-derived-data-cache.sh',
+    'Scripts/record-time-profiler.sh',
+    'Scripts/release.sh',
+    'Scripts/report-art-memory.sh',
+    'Scripts/run-env.sh',
+    'Scripts/run-simulator.sh',
+    'Scripts/simctl_json.py',
+    'Scripts/stage-ci-test-artifact.sh',
+    'Scripts/test-deploy.sh',
+    'Scripts/test-package.sh',
+    'Scripts/test-timing.py',
+    'Scripts/test.sh',
+    'Scripts/tool-versions.env',
+    'Scripts/update-tools.sh',
+    'Scripts/validate-commit-msg.sh',
+    'Scripts/xcode-runner.sh',
+)
+
+
 import json
 import os
 import subprocess
@@ -10,6 +81,9 @@ import time
 import unittest
 
 from script_test_support import ROOT, ScriptRegressionTestCase
+
+import shutil
+from pathlib import Path
 
 class CIBuildScriptTests(ScriptRegressionTestCase):
     def test_generate_pins_c_locale(self) -> None:
@@ -112,7 +186,7 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
         )
         self.assertNotIn("./Scripts/test.sh unit --no-build", workflow)
         self.assertIn("build-for-testing.sh --app-only", workflow)
-        self.assertIn("name: Homestead", workflow)
+        self.assertIn("fromJSON(needs.build.outputs.full-ui-matrix)", workflow)
         self.assertIn("preboot-simulator: 'true'", workflow)
         self.assertNotIn("checkout-ci", workflow)
         self.assertIn("Smoke tests (${{ matrix.name }})", workflow)
@@ -342,6 +416,49 @@ prepare_generated_inputs results
         text = (ROOT / "Scripts" / "lib" / "derived-data.sh").read_text(encoding="utf-8")
         self.assertIn('Packages/.DerivedData', text)
         self.assertIn('rm -rf "$repo_root/Packages/.DerivedData"', text)
+
+
+    def test_unit_dispatch_forwards_flags_and_exit_without_app_preparation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scripts = Path(directory) / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            (scripts / "run-env.sh").write_text('trinket_run_env_init() { exit 91; }\n')
+            (scripts / "test-package.sh").write_text('#!/bin/bash\nprintf "%s\\n" "$@"\nexit 17\n')
+            for flags in (("--no-build", "--verbose"), ("--quiet",)):
+                result = subprocess.run([str(scripts / "test.sh"), "unit", *flags],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 17, result.stdout + result.stderr)
+                args = result.stdout.splitlines()
+                self.assertEqual(args[:len(flags)], list(flags))
+                self.assertIn("BattleEngine", args)
+                self.assertEqual(len(args), len(set(args)))
+
+
+    def test_package_build_prepares_generated_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scripts = Path(directory) / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            (scripts / "run-env.sh").write_text(
+                'trinket_run_env_init() { RESULTS_DIR="$PWD/results"; }\n'
+            )
+            (scripts / "ensure-simulator.sh").write_text('trinket_sim_slot_ensure() { :; }\n')
+            (scripts / "build-freshness.sh").write_text(
+                'TRINKET_TEST_PACKAGES=(BattleEngine)\n'
+                'prepare_generated_inputs() { echo "prepared inputs"; exit 73; }\n'
+            )
+            for action in (
+                ["--destination", "platform=iOS Simulator,name=Fixture"],
+                ["--destination", "id=fixture"],
+                ["--build-for-testing"],
+            ):
+                with self.subTest(action=action):
+                    result = subprocess.run(
+                        [str(scripts / "test-package.sh"), *action, "BattleEngine"],
+                        capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, 73, result.stdout + result.stderr)
+                    self.assertIn("prepared inputs", result.stdout)
+
 
 
 if __name__ == "__main__":

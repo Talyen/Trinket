@@ -65,7 +65,7 @@ struct CombatFeedbackBridgeSerializedTests {
         let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         CombatFeedbackChipBridge.register(view, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
         let now = Date.now
-        let items = (1 ... 6).map { id in
+        let items = (1 ... 30).map { id in
             var item = makeTestItem(id: id, targetID: "hero", amount: 10, availableAt: now)
             item.usesStationaryExperiment = true
             item.reservedDigitCount = 3
@@ -73,14 +73,18 @@ struct CombatFeedbackBridgeSerializedTests {
         }
         var evicted: Set<Int> = []
         CombatFeedbackChipBridge.publish(.replace(items), onEvict: { evicted.formUnion($0) })
-        #expect(evicted == [1])
-        #expect(view.debugVisibleChipIDs == [2, 3, 4, 5, 6])
+        #expect(evicted.isEmpty)
+        view.debugTickMotion(at: now.addingTimeInterval(0.3))
+        #expect(!evicted.isEmpty)
+        let survivingIDs = Set(items.map(\.id)).subtracting(evicted)
+        #expect(survivingIDs.contains(30))
+        #expect(view.debugVisibleChipIDs == survivingIDs)
         CombatFeedbackChipBridge.publish(.replace(items))
-        #expect(view.debugVisibleChipIDs == [2, 3, 4, 5, 6])
+        #expect(view.debugVisibleChipIDs == survivingIDs)
         CombatFeedbackChipBridge.unregister(view)
         let replacement = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         CombatFeedbackChipBridge.register(replacement, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
-        #expect(replacement.debugVisibleChipIDs == [2, 3, 4, 5, 6])
+        #expect(replacement.debugVisibleChipIDs == survivingIDs)
         CombatFeedbackChipBridge.publish(.reset)
         #expect(replacement.debugVisibleChipIDs.isEmpty)
     }

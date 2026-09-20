@@ -51,6 +51,8 @@ struct HeadlessPlaythroughTests {
         let first = try PlaythroughCareer(scenario: scenario, output: output.appendingPathComponent("alone"))
         let uninterrupted = try await first.run(reload: false)
         #expect(first.summary.outcomes.count == 2)
+        #expect(first.summary.battleOutcomes.count == 2)
+        #expect(first.summary.battleOutcomes.allSatisfy { $0.encounterID != nil && $0.enemyID != nil })
         #expect(first.summary.termination == "completedObjective")
 
         var unrelated = scenario

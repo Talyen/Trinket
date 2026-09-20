@@ -18,25 +18,41 @@
       "name": "freezeExtraActionSkips",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 51
+      }
     },
     {
       "name": "freezeExtendChancePercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 57
+      }
     },
     {
       "name": "stunExtendChancePercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 56
+      }
     },
     {
       "name": "physicalStunBuildupPercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 40
+      }
     },
     {
       "name": "holyStunBuildupPercent",
@@ -138,31 +154,49 @@
       "name": "enemyStunnedApplyMarked",
       "type": "Bool",
       "default": "false",
-      "merge": "or"
+      "merge": "or",
+      "affix_roll": {
+        "reason": "On/off rule with no rollable magnitude."
+      }
     },
     {
       "name": "enemyStunnedPurgeCount",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 26
+      }
     },
     {
       "name": "enemyStunnedPurgeAll",
       "type": "Bool",
       "default": "false",
-      "merge": "or"
+      "merge": "or",
+      "affix_roll": {
+        "reason": "On/off rule with no rollable magnitude."
+      }
     },
     {
       "name": "stunDealPhysicalFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 22
+      }
     },
     {
       "name": "dodgeDealStunFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 35
+      }
     },
     {
       "name": "onDodgeAttackerStunBuildup",
@@ -174,7 +208,10 @@
       "name": "onceBelowHealthPercentThreshold",
       "type": "Double",
       "default": "0",
-      "merge": "max"
+      "merge": "max",
+      "affix_roll": {
+        "reason": "Threshold gates the condition, not the reward."
+      }
     },
     {
       "name": "turnFreezeDamageAllEnemies",

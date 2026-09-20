@@ -2,6 +2,22 @@
 
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/ci-diagnostics.py',
+    'Scripts/ci-diagnostics.sh',
+    'Scripts/config/diagnostic-limits.env',
+    'Scripts/diagnostic_maintenance.py',
+    'Scripts/failure_diagnostics.py',
+    'Scripts/internal/diagnostics/diagnostic_limits.py',
+    'Scripts/internal/diagnostics/diagnostic_model.py',
+    'Scripts/internal/diagnostics/diagnostic_rendering.py',
+    'Scripts/internal/diagnostics/failure_diagnostics_parsers.py',
+    'Scripts/internal/diagnostics/xcresult_diagnostics.py',
+    'Scripts/script_diagnostics.py',
+    'Scripts/test-timing.py',
+)
+
+
 import json
 import os
 import subprocess

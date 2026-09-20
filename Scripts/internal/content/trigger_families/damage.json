@@ -30,7 +30,10 @@
       "name": "damageBelowHealthPercentThreshold",
       "type": "Double",
       "default": "0",
-      "merge": "max"
+      "merge": "max",
+      "affix_roll": {
+        "reason": "Threshold gates the condition, not the reward."
+      }
     },
     {
       "name": "damageBelowHealthPercentKeyword",
@@ -42,31 +45,51 @@
       "name": "damageBelowHealthPercentBonus",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 9
+      }
     },
     {
       "name": "damageAfterDodgeBonus",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 10
+      }
     },
     {
       "name": "damageWhileTargetFrozenBonus",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 8
+      }
     },
     {
       "name": "damageWhileTargetStunnedBonus",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 23
+      }
     },
     {
       "name": "ignoreEnemyMitigationPercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 20
+      }
     },
     {
       "name": "leechIgnoresMitigation",
@@ -96,7 +119,11 @@
       "name": "physicalIgnoreMitigationPercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 21
+      }
     },
     {
       "name": "turnRandomDamageAllEnemiesKeywordA",
@@ -126,19 +153,30 @@
       "name": "holyDamagePoisonFlat",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 37
+      }
     },
     {
       "name": "stunnedDamageMultiplier",
       "type": "Double",
       "default": "1",
-      "merge": "mul"
+      "merge": "mul",
+      "affix_roll": {
+        "reason": "Word-described magnitude has no patchable number in the card text."
+      }
     },
     {
       "name": "criticalChanceBonus",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 52
+      }
     },
     {
       "name": "damageVsBleedingBonus",

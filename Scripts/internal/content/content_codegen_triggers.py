@@ -41,6 +41,8 @@ def _trigger_families() -> list:
                 raise ValueError(f"Unknown trigger type {field['type']!r} for {field['name']!r}")
             if field["merge"] not in valid_merges:
                 raise ValueError(f"Unknown merge op {field['merge']!r} for {field['name']!r}")
+    from internal.content.affix_rolling import rolling_policies
+    rolling_policies(families)
     return families
 
 

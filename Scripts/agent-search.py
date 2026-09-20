@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import shlex
 import json
 import re
 import subprocess
@@ -17,6 +19,8 @@ TEXT_SUFFIXES = {
     ".env", ".json", ".yml", ".yaml", ".tsv", ".toml", ".pbxproj",
     ".xctestplan", ".xcprivacy", ".entitlements", ".plist", ".md", ".mdc", ".txt",
 }
+ASSET_SUFFIXES = {".png", ".jpg", ".jpeg", ".heic", ".webp", ".gif", ".svg", ".pdf",
+                  ".wav", ".mp3", ".m4a", ".aac", ".aiff", ".ogg", ".caf", ".mp4", ".mov"}
 
 
 def inventory(root: Path, mode: str, scopes: list[str]) -> list[str]:
@@ -39,6 +43,12 @@ def inventory(root: Path, mode: str, scopes: list[str]) -> list[str]:
             scope == ".agents/friction-archive" or scope.startswith(".agents/friction-archive/")
             for scope in scopes
         ):
+            continue
+        if mode == "overview" or (mode == "assets" and (
+            path.suffix.lower() in ASSET_SUFFIXES or name.startswith("Raw Assets/")
+            or ".xcassets/" in name or name.startswith("Trinket/Media/")
+        )):
+            selected.append(name)
             continue
         is_generated = any(name == entry or name.startswith(entry + "/") for entry in generated)
         is_generated |= "/Generated/" in name or ".generated." in name
@@ -70,8 +80,9 @@ def positive(value: str) -> int:
 
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("pattern", help="rg regular expression; use -- before a pattern starting with -")
-    parser.add_argument("--mode", choices=("source", "tests", "docs", "generated"), default="source")
+    parser.add_argument("pattern", nargs="?", help="rg regular expression; use -- before a pattern starting with -")
+    parser.add_argument("--mode", choices=("source", "tests", "docs", "generated", "assets"), default="source")
+    parser.add_argument("--overview", action="store_true", help="page owner counts and entry points without listing assets")
     parser.add_argument("--scope", action="append", default=[], help="repository-relative file or directory; repeatable")
     parser.add_argument("--excerpts", action="store_true", help="show matching lines and context instead of file counts")
     parser.add_argument("--files", action="store_true", help="match relative filenames instead of file contents")
@@ -79,7 +90,18 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser.add_argument("--context", type=int, choices=range(0, 6), default=2, help="excerpt context lines (0–5; default: 2)")
     parser.add_argument("-i", "--ignore-case", action="store_true")
     parser.add_argument("-F", "--fixed-strings", action="store_true")
+    parser.add_argument("--offset", type=int, default=0, help="result offset from a continuation command")
+    parser.add_argument("--expect", help="reject continuation if search results changed")
     args = parser.parse_args(argv)
+    if args.overview:
+        if args.pattern is not None or args.files or args.excerpts or args.mode != "source":
+            parser.error("--overview accepts scopes and pagination, not a pattern, --mode, --files, or --excerpts")
+    elif args.pattern is None:
+        parser.error("a pattern is required unless --overview is selected")
+    if args.mode == "assets" and not args.files:
+        parser.error("--mode assets requires --files; asset contents are not searched")
+    if args.offset < 0:
+        parser.error("--offset must be nonnegative")
     if args.files and args.excerpts:
         parser.error("--files and --excerpts are mutually exclusive")
     scopes = []
@@ -90,12 +112,17 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         normalized = candidate.as_posix().rstrip("/")
         if normalized != ".":
             scopes.append(normalized)
-    files = inventory(root, args.mode, scopes)
-    print(f"Search: {args.mode}; {len(files)} text files; scope: {', '.join(scopes) or 'repository'}")
+    files = inventory(root, "overview" if args.overview else args.mode, scopes)
+    surface = "overview" if args.overview else args.mode
+    unit = "files" if args.overview or args.mode == "assets" else "text files"
+    print(f"Search: {surface}; {len(files)} {unit}; scope: {', '.join(scopes) or 'repository'}")
     if args.mode == "docs":
         print("Order: current documentation, procedures/knowledge, then task records (alphabetical within each).")
         print("Friction archives require --scope .agents/friction-archive or a file within it.")
     if not files:
+        if args.expect or args.offset:
+            print("Search results changed or offset is beyond the empty surface; restart at --offset 0.", file=sys.stderr)
+            return 2
         print("No files in this search surface. Choose another --mode or --scope.")
         return 1
     command = ["rg", "--json", "--sort", "path"]
@@ -103,13 +130,92 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         command.append("--ignore-case")
     if args.fixed_strings:
         command.append("--fixed-strings")
+    declarations: dict[str, int] = {}
+
     def order(name: str):
         if args.mode == "docs":
             return documentation_order(name)
         identifier = re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", args.pattern)
         stem = Path(name).stem
         exact = stem.casefold() == args.pattern.casefold() if args.ignore_case else stem == args.pattern
-        return (0 if identifier and exact else 1, name)
+        words = re.findall(r"[A-Z]+(?=[A-Z][a-z]|$)|[A-Z]?[a-z]+|[0-9]+", stem)
+        relevant = stem.casefold().startswith(args.pattern.casefold()) or any(
+            word.casefold().startswith(args.pattern.casefold()) for word in words)
+        return (0 if identifier and exact else 1 if identifier and relevant else
+                2 if name in declarations else 3, name)
+
+    def render(rows: list[str], summary: str, unit: str) -> int:
+        identity = [args.pattern, surface, scopes, args.files, args.excerpts, args.ignore_case,
+                    args.fixed_strings, args.context, rows]
+        digest = hashlib.sha256(json.dumps(identity).encode()).hexdigest()
+        if args.expect and args.expect != digest:
+            print("Search results changed; restart at --offset 0.", file=sys.stderr)
+            return 2
+        if args.offset > len(rows):
+            print("--offset is beyond the last result.", file=sys.stderr)
+            return 2
+        stop = min(len(rows), args.offset + args.limit)
+        shortened = 0
+        for row in rows[args.offset:stop]:
+            if args.excerpts and len(row) > 300:
+                row = row[:299] + "…"
+                shortened += 1
+            print(row)
+        print(f"{summary}; omitted {len(rows) - stop} {unit}; shortened {shortened} lines.")
+        print(f"Results {args.offset}:{stop} of {len(rows)}.")
+        if stop < len(rows):
+            continuation = ["python3", "Scripts/agent-search.py", "--mode", args.mode,
+                            "--offset", str(stop), "--limit", str(args.limit), "--expect", digest,
+                            "--context", str(args.context)]
+            for scope in scopes:
+                continuation += ["--scope", scope]
+            for flag, enabled in [("--files", args.files), ("--excerpts", args.excerpts),
+                                  ("-i", args.ignore_case), ("-F", args.fixed_strings)]:
+                if enabled:
+                    continuation.append(flag)
+            if args.overview:
+                continuation += ["--overview"]
+            else:
+                continuation += ["--", args.pattern]
+            print("Continue: " + shlex.join(continuation))
+        if shortened:
+            print("Read the selected source range for complete shortened lines.")
+        return 0 if rows else 1
+
+    if args.overview:
+        owners: dict[str, list[str]] = {}
+        for name in files:
+            parts = Path(name).parts
+            depth = 2 if parts[0] in {"Packages", "Docs", "Trinket", "Raw Assets", ".agents"} else 1
+            owner = "/".join(parts[:depth]) if len(parts) > depth else "." if len(parts) == 1 else parts[0]
+            owners.setdefault(owner, []).append(name)
+        rows = []
+        def owner_order(item):
+            owner = item[0]
+            if owner == ".":
+                rank = 0
+            elif owner.startswith("Packages/"):
+                rank = 1
+            elif owner.startswith(("Raw Assets", "Trinket/Assets.xcassets", "Trinket/Media")):
+                rank = 7
+            elif owner.startswith("Trinket/"):
+                rank = 2
+            elif owner == "Scripts":
+                rank = 3
+            elif owner.endswith("Manifest"):
+                rank = 4
+            elif owner.startswith("Docs/"):
+                rank = 5
+            else:
+                rank = 6
+            return rank, owner
+        for owner, names in sorted(owners.items(), key=owner_order):
+            entries = sorted(name for name in names if Path(name).name in {"README.md", "AGENTS.md", "Package.swift", "project.yml"})
+            entries.sort(key=lambda name: (len(Path(name).parts), name))
+            entry_text = ", ".join(entries[:2]) or "scope filename searches here"
+            row = f"{owner}: {len(names)} files; entry: {entry_text}"
+            rows.append(json.dumps(row) if any(c in row for c in "\n\r\t") else row)
+        return render(rows, f"Grouped {len(files)} files into {len(rows)} owners", "owners")
 
     if args.files:
         result = subprocess.run([*command, "--null-data", "--", args.pattern], input="\0".join(files) + "\0",
@@ -120,13 +226,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         names = sorted((event["data"]["lines"]["text"].removesuffix("\0")
                         for raw in result.stdout.splitlines()
                         if (event := json.loads(raw))["type"] == "match"), key=order)
-        for name in names[:args.limit]:
-            print(json.dumps(name) if any(c in name for c in "\n\r\t") else name)
-        omitted = max(0, len(names) - args.limit)
-        print(f"Matched {len(names)} files; omitted {omitted} files.")
-        if omitted:
-            print("Narrow --scope or raise --limit for complete filenames.")
-        return result.returncode
+        rows = [json.dumps(name) if any(c in name for c in "\n\r\t") else name for name in names]
+        return render(rows, f"Matched {len(names)} files", "files")
     if args.excerpts:
         command.extend(["--context", str(args.context)])
     result = subprocess.run([*command, "--", args.pattern, *files], cwd=root, capture_output=True, text=True)
@@ -134,7 +235,6 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         print(result.stderr, file=sys.stderr, end="")
         return result.returncode
     counts: Counter[str] = Counter()
-    declarations: dict[str, int] = {}
     identifier = re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", args.pattern)
     declaration = re.compile(
         rf"^\s*(?:(?:public|package|internal|private|fileprivate|final|static|class|open|indirect|nonisolated|override|async)\s+)*"
@@ -164,18 +264,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             else [(f"{name}:{declarations[name]}: {counts[name]} matching lines (declaration hint)"
                    if name in declarations else f"{name}: {counts[name]} matching lines")
                   for name in names])
-    shortened = 0
-    for row in rows[:args.limit]:
-        if args.excerpts and len(row) > 300:
-            row = row[:299] + "…"
-            shortened += 1
-        print(row)
-    omitted = max(0, len(rows) - args.limit)
-    unit = "excerpt lines" if args.excerpts else "files"
-    print(f"Matched {sum(counts.values())} lines in {len(counts)} files; omitted {omitted} {unit}; shortened {shortened} lines.")
-    if omitted or shortened:
-        print("Narrow --scope, raise --limit, or read the selected file with rg/sed for complete text.")
-    return result.returncode
+    return render(rows, f"Matched {sum(counts.values())} lines in {len(counts)} files",
+                  "excerpt lines" if args.excerpts else "files")
 
 
 if __name__ == "__main__":

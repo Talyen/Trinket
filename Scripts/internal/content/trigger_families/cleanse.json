@@ -24,13 +24,21 @@
       "name": "holyDamageCleanseCount",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 17
+      }
     },
     {
       "name": "holyDamagePurgeCount",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "kind": "int",
+        "order": 25
+      }
     },
     {
       "name": "holyDamagePurgeAll",

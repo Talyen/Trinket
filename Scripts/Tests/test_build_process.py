@@ -1,6 +1,54 @@
 #!/usr/bin/env python3
 """Build contracts exercised without invoking Xcode or reserving simulators."""
 
+SCRIPT_INPUTS = (
+    'Scripts/agent-push-gate.sh',
+    'Scripts/apply-scheme-storekit.py',
+    'Scripts/assert-generated-output.sh',
+    'Scripts/build-for-testing.sh',
+    'Scripts/build-freshness.sh',
+    'Scripts/build-inputs.env',
+    'Scripts/build.sh',
+    'Scripts/change-budget.sh',
+    'Scripts/check-build-cache-paths.sh',
+    'Scripts/check-staged-project.sh',
+    'Scripts/config/generated-paths.tsv',
+    'Scripts/config/simulator-names.env',
+    'Scripts/config/ui-tests.tsv',
+    'Scripts/ensure-ci-tools.sh',
+    'Scripts/ensure-git-cliff.sh',
+    'Scripts/ensure-simulator.sh',
+    'Scripts/format-dirs.env',
+    'Scripts/format.sh',
+    'Scripts/generate.sh',
+    'Scripts/lib/app-build.sh',
+    'Scripts/lib/args.sh',
+    'Scripts/lib/ci-tools.d/ripgrep.sh',
+    'Scripts/lib/ci-tools.d/xcodegen.sh',
+    'Scripts/lib/derived-data.sh',
+    'Scripts/lib/generated-paths.sh',
+    'Scripts/lib/lock.sh',
+    'Scripts/lib/project-generation.sh',
+    'Scripts/lib/simctl.sh',
+    'Scripts/lib/slots.sh',
+    'Scripts/lib/tempdir.sh',
+    'Scripts/lib/test-helpers.sh',
+    'Scripts/lib/test-style.sh',
+    'Scripts/lib/tool-install.sh',
+    'Scripts/lib/tools.sh',
+    'Scripts/lint-analyze.sh',
+    'Scripts/lint.sh',
+    'Scripts/prune-derived-data-cache.sh',
+    'Scripts/run-env.sh',
+    'Scripts/simctl_json.py',
+    'Scripts/stage-ci-test-artifact.sh',
+    'Scripts/test-package.sh',
+    'Scripts/test.sh',
+    'Scripts/tool-versions.env',
+    'Scripts/update-tools.sh',
+)
+
+
 import os
 from pathlib import Path
 import shutil
@@ -214,6 +262,68 @@ prepare_generated_inputs results
 """
             result = subprocess.run(["bash", "-eu", "-c", command], cwd=root, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+    def test_tool_updates_leave_pins_untouched_after_download_or_hash_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            scripts.mkdir()
+            for name in ("update-tools.sh", "tool-versions.env"):
+                shutil.copy2(ROOT / "Scripts" / name, scripts)
+            pins = scripts / "tool-versions.env"
+            initial = pins.read_bytes()
+            curl = root / "curl"
+            curl.write_text('#!/bin/bash\nif [[ "$*" == *api.github.com* ]]; then echo \'{"tag_name":"999.0.0"}\'; exit 0; fi\nexit "$DOWNLOAD_STATUS"\n')
+            curl.chmod(0o755)
+            hasher = root / "shasum"
+            hasher.write_text('#!/bin/bash\nexit 7\n')
+            hasher.chmod(0o755)
+            for download, expected in ((22, 22), (0, 7)):
+                result = subprocess.run([str(scripts / "update-tools.sh"), "--apply"],
+                                        env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}",
+                                             "DOWNLOAD_STATUS": str(download)}, capture_output=True, text=True)
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                self.assertEqual(pins.read_bytes(), initial)
+
+
+    def test_preflight_and_style_do_not_reserve_a_run(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scripts = Path(directory) / "Scripts"
+            shutil.copytree(ROOT / "Scripts", scripts)
+            (scripts / "run-env.sh").write_text(
+                'trinket_run_env_init() { echo "unexpected run reservation" >&2; exit 91; }\n'
+            )
+            (scripts / "lib/test-style.sh").write_text(
+                'trinket_run_style_gate() { echo "style checked"; }\n'
+            )
+            cases = [
+                (name, ["--help"], 0, "Usage:")
+                for name in ("test.sh", "test-package.sh", "build-for-testing.sh", "generate.sh")
+            ] + [
+                ("generate.sh", ["--force-xcodegen"], 1, "Unknown argument"),
+                ("generate.sh", ["--bad-option"], 1, "Unknown argument"),
+                ("test.sh", ["style"], 0, "style checked"),
+                ("build-for-testing.sh", ["--bad-option"], 1, "Unknown argument"),
+                ("test-package.sh", ["--bad-option"], 1, "Unknown argument"),
+                ("test-package.sh", ["MissingPackage"], 1, "Unknown package"),
+                ("test-package.sh", ["BattleEngine", "BattleEngine"], 1, "Duplicate package"),
+                ("test-package.sh", ["--destination", "platform=macOS", "BattleEngine"], 1, "only platform=iOS Simulator"),
+                ("test-package.sh", ["--destination", "generic/platform=macOS", "BattleEngine"], 1, "only platform=iOS Simulator"),
+                ("test-package.sh", ["--destination", "", "BattleEngine"], 1, "requires a value"),
+                ("test-package.sh", ["--destination", "platform=iOS,name=Phone", "BattleEngine"], 1, "only platform=iOS Simulator"),
+                ("test-package.sh", ["--build-for-testing", "--destination", "id=fixture", "BattleEngine"], 1, "cannot be combined"),
+                ("test-package.sh", ["--iterations", "0", "BattleEngine"], 1, "--iterations requires a positive integer"),
+                ("test-package.sh", ["--iterations", "abc", "BattleEngine"], 1, "--iterations requires a positive integer"),
+                ("test-package.sh", ["--build-for-testing", "--iterations", "2", "BattleEngine"], 1, "Repetition options cannot be combined"),
+                ("test-package.sh", ["--build-for-testing", "--run-tests-until-failure", "BattleEngine"], 1, "Repetition options cannot be combined"),
+            ]
+            for name, args, status, message in cases:
+                with self.subTest(name=name, args=args):
+                    result = subprocess.run([str(scripts / name), *args], capture_output=True, text=True)
+                    self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                    self.assertIn(message, result.stdout + result.stderr)
+
 
 
 if __name__ == "__main__":

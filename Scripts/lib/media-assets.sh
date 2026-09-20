@@ -78,8 +78,8 @@ trinket_asset_cleanup_tracked() {
 }
 
 # Single home for the cinematic Ultimate gate: the generated ability inventory
-# (tier column) instead of MARK-grepping authored Swift, so section renames in
-# AbilityCatalog.swift cannot silently break cinematic validation.
+# (tier column) instead of MARK-grepping authored Swift, so file moves in
+# the authored catalogs cannot silently break cinematic validation.
 trinket_content_assert_ultimate_ability() {
   local ability_id="$1"
   awk -F$'\t' -v id="$ability_id" 'NR > 1 && $1 == id && $3 == "ultimate" { found=1 } END { exit found ? 0 : 1 }' \

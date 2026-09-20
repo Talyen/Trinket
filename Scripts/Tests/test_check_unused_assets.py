@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+SCRIPT_INPUTS = (
+    'Scripts/check-unused-assets.py',
+    'Scripts/internal/content/common.py',
+)
+
+
 import tempfile
 import unittest
 from pathlib import Path

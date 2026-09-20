@@ -70,9 +70,13 @@ id	name	description	modifiers	triggers
 Abilities are authored only in:
 
 ```text
-Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift
+Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Basic.swift
+Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Skill.swift
+Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Ultimate.swift
 ```
 
+- Keep each tier’s ordered registration list beside its declarations; preserve existing order.
+- Locate a card with `python3 Scripts/content-inspect.py --kind abilities --id <id>`.
 - Author abilities with `Ability(...)` directly; use the `directDamage:` convenience for single-hit cards and `effects:` for effect-only cards.
 - After editing, run `./Scripts/generate.sh` to refresh `AbilityShorthand.generated.swift` and `AbilityInventory.generated.tsv`.
 - **List / understand all abilities:** read `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary`) or `AbilityCatalog.all` — not a ContentManifest TSV.

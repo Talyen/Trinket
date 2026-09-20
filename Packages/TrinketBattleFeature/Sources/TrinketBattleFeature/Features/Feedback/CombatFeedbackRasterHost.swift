@@ -57,6 +57,7 @@ final class CombatFeedbackRasterUIView: UIView {
         var retiringOpacity = 1.0
         var rasterIdentity: ObjectIdentifier
         var reservationSize: CGSize = .zero
+        var lanePush = StationaryFeedbackPush()
 
         init(
             layer: CALayer,
@@ -94,6 +95,10 @@ final class CombatFeedbackRasterUIView: UIView {
     var debugLastAppliedChips: [CombatFeedbackItem] = []
     var debugVisibleChipIDs: Set<Int> {
         Set(layersByID.keys)
+    }
+
+    func debugTickMotion(at date: Date) {
+        tickMotion(at: date)
     }
     #endif
 
@@ -434,13 +439,44 @@ private extension CombatFeedbackRasterUIView {
 
     private func layoutStationary() {
         stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
-        var evicted: Set<Int> = []
         for chip in orderedLayers {
-            if let result = stationaryLayout.place(id: chip.item.id, size: CGSize(
+            _ = stationaryLayout.place(id: chip.item.id, size: CGSize(
                 width: chip.reservationSize.width * StationaryFeedbackLayout.sizeScale,
                 height: chip.reservationSize.height * StationaryFeedbackLayout.sizeScale,
-            )) {
-                evicted.formUnion(result.evicted)
+            ))
+        }
+        let date = Date.now
+        for chip in orderedLayers {
+            guard let slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id }) else { continue }
+            let elapsed = (chip.item.pausedAt ?? date).timeIntervalSince(chip.item.firstScheduledAt)
+            chip.lanePush.retarget(to: bounds.midY - slot.rect.midY, at: elapsed)
+        }
+    }
+
+    private func tickStationary(at date: Date) {
+        var evicted: Set<Int> = []
+        for (index, chip) in orderedLayers.enumerated() {
+            guard let slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id }) else { continue }
+            let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
+            let now = chip.item.pausedAt ?? date
+            let elapsed = now.timeIntervalSince(chip.item.firstScheduledAt)
+            let centerY = bounds.midY - chip.lanePush.offset(at: elapsed)
+                - StationaryFeedbackLayout.driftDistance * state.riseProgress
+            chip.layer.position = CGPoint(x: slot.rect.midX, y: centerY)
+            let edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: centerY, in: bounds)
+            if edgeOpacity == 0 {
+                evicted.insert(chip.item.id)
+            }
+            let scale = slot.fitScale * state.scale
+            chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
+            chip.layer.opacity = Float(state.opacity * edgeOpacity)
+            chip.layer.zPosition = CGFloat(index)
+            let criticalElapsed = chip.item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1
+            chip.layer.shadowOpacity = Float(max(0, 1 - criticalElapsed / 0.3))
+            if let shine = shineLayers[ObjectIdentifier(chip.layer)] {
+                shine.isHidden = state.shineProgress >= 1
+                let x = -0.35 + state.shineProgress * 1.7
+                shine.sublayers?.first?.position.x = x * chip.layer.bounds.width
             }
         }
         for id in evicted {
@@ -449,26 +485,6 @@ private extension CombatFeedbackRasterUIView {
         orderedLayers.removeAll { evicted.contains($0.item.id) }
         if !evicted.isEmpty {
             onEvict?(evicted)
-        }
-    }
-
-    private func tickStationary(at date: Date) {
-        for (index, chip) in orderedLayers.enumerated() {
-            guard let slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id }) else { continue }
-            let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
-            chip.layer.position = CGPoint(x: slot.rect.midX, y: slot.rect.midY)
-            let scale = slot.fitScale * state.scale
-            chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
-            chip.layer.opacity = Float(state.opacity)
-            chip.layer.zPosition = CGFloat(index)
-            let now = chip.item.pausedAt ?? date
-            let criticalElapsed = chip.item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1
-            chip.layer.shadowOpacity = Float(max(0, 1 - criticalElapsed / 0.3))
-            if let shine = shineLayers[ObjectIdentifier(chip.layer)] {
-                shine.isHidden = state.shineProgress >= 1
-                let x = -0.35 + state.shineProgress * 1.7
-                shine.sublayers?.first?.position.x = x * chip.layer.bounds.width
-            }
         }
     }
 }

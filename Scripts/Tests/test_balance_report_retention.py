@@ -1,3 +1,8 @@
+
+SCRIPT_INPUTS = (
+    'Scripts/balance-sweep.sh',
+)
+
 import os
 from pathlib import Path
 import shutil

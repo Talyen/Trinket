@@ -19,7 +19,9 @@ and product contracts in [SwiftUI feature context](../../../Docs/AgentContext/sw
 | Custom environment actions | [Closures](references/environment.md#closures-in-the-environment) |
 | `@Entry` defaults | [Unstable defaults](references/environment.md#unstable-environment-default-values) |
 | Frequent environment updates | [Rapid updates](references/environment.md#rapidly-updating-environment-values) |
-| Stable collection identity and efficient `ForEach` / `List` rows | [ForEach](references/foreach.md) |
+| Collection identity | [Avoid index identity](references/foreach.md#avoid-collection-indices-as-identity), [Identity lifetime](references/foreach.md#identity-must-outlive-the-view-that-renders-the-foreach) |
+| Collection update cost | [Cheap IDs](references/foreach.md#keep-the-id-cheap-to-hash), [Sorting and filtering](references/foreach.md#dont-sort-or-filter-inline-in-foreach) |
+| `List` row structure | [Unary rows](references/foreach.md#prefer-unary-row-views-in-list) |
 | Separate view update boundaries, cheap initializers, single-child `Group` | [View structure](references/structure.md) |
 | Conditional modifiers and `AnyShapeStyle` | [Modifiers](references/modifiers.md) |
 | Custom `Animatable` implementations and macros | [Animations](references/animations.md) |

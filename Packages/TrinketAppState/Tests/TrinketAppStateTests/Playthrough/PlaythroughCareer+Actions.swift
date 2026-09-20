@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import TrinketContent
 import TrinketCore
@@ -69,6 +70,7 @@ extension PlaythroughCareer {
             battle.finishVictoryPresentation(configurationID: config.id)
             try require(battle.activeBattle == nil, "victory exit")
             summary.outcomes.append("victory")
+            recordBattleOutcome("victory", configuration: config)
             if VictoryRewardApplier.isBoss(enemyID: config.enemy?.id) {
                 summary.bossVictories += 1
             }
@@ -82,10 +84,13 @@ extension PlaythroughCareer {
                 "defeat claim",
             )
             summary.outcomes.append("defeat")
+            recordBattleOutcome("defeat", configuration: config)
         case .retreat:
+            guard let config = battle.activeBattle else { throw PlaythroughFailure.rejected("retreat battle") }
             try require(battle.canRetreat, "retreat readiness")
             play.endBattleReturningToOrigin()
             summary.outcomes.append("retreat")
+            recordBattleOutcome("retreat", configuration: config)
         default: throw PlaythroughFailure.unsupported("invalid battle action")
         }
     }
@@ -98,18 +103,21 @@ extension PlaythroughCareer {
             }
             launchSeed = seed
             try require(play.journey.handleStagePrimaryAction(for: stage) == nil, "campaign entry \(id)")
+            currentBattleEncounterID = id
             summary.reachedStages.append(id)
         case .enterLabyrinth:
             try require(play.labyrinth.enter() == nil, "Labyrinth entry")
         case let .labyrinth(id, seed):
             launchSeed = seed
             try require(play.labyrinth.handleNodeAction(nodeID: id) == nil, "Labyrinth node")
+            currentBattleEncounterID = "labyrinth/\(id)"
             summary.reachedStages.append("labyrinth/\(id)")
         case let .contracts(refresh):
             try require((refresh ? play.contracts.refresh() : play.contracts.enter()) == nil, "Contracts board")
         case let .contract(id, seed):
             launchSeed = seed
             try require(play.contracts.startBattle(offerID: id) == nil, "Contract launch")
+            currentBattleEncounterID = "contract/\(id)"
             summary.reachedStages.append("contract/\(id)")
         case let .spire(id, number, seed):
             launchSeed = seed
@@ -117,6 +125,7 @@ extension PlaythroughCareer {
                 throw PlaythroughFailure.unsupported("Spire floor")
             }
             try require(play.spires.startBattle(for: floor) == nil, "Spire launch")
+            currentBattleEncounterID = "spire/\(id)/\(number)"
             summary.reachedStages.append("spire/\(id)/\(number)")
         default: throw PlaythroughFailure.unsupported("invalid mode action")
         }
@@ -164,5 +173,21 @@ extension PlaythroughCareer {
 
     func require(_ condition: Bool, _ message: String) throws {
         guard condition else { throw PlaythroughFailure.rejected(message) }
+    }
+
+    private func recordBattleOutcome(_ outcome: String, configuration: BattleRunConfiguration) {
+        summary.battleOutcomes.append(.init(
+            attempt: summary.battleOutcomes.count + 1,
+            outcome: outcome,
+            encounterID: currentBattleEncounterID ?? configuration.runKey?.rawValue,
+            enemyID: configuration.enemy?.id,
+            enemyEncounterLevel: configuration.enemyEncounterLevel,
+            heroLevel: configuration.hero.progression.level,
+            companionLevel: configuration.companion.progression.level,
+            heroTalentCount: configuration.hero.unlockedTalents.count,
+            companionTalentCount: configuration.companion.unlockedTalents.count,
+            heroEquipmentCount: configuration.hero.equipmentLoadout.itemIDsBySlot.count,
+            companionEquipmentCount: configuration.companion.equipmentLoadout.itemIDsBySlot.count,
+        ))
     }
 }
