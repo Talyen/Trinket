@@ -276,7 +276,9 @@ private struct HomesteadPurchasePresentation {
         highlightedEffects = Set(HomesteadEffectLine.lines(for: targetTier).filter { line in
             line.resource == nil && !previous.contains { $0.id == line.id && $0.value == line.value }
         }.map(\.id))
-        highlightsProduction = (targetTier.production?.quantity ?? 0) > (previousTier?.production?.quantity ?? 0)
+        highlightsProduction = targetTier.production.contains { output in
+            output.quantity > (previousTier?.production.first { $0.resource == output.resource }?.quantity ?? 0)
+        }
         displayedTier = targetTier
     }
 }

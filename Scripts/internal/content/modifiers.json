@@ -1,0 +1,146 @@
+[
+  {
+    "token": "maximum_health",
+    "case": "maximumHealth",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "maximum_mana",
+    "case": "maximumMana",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "critical_damage",
+    "case": "criticalDamage",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "mana_restored",
+    "case": "manaRestored",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "damage_dealt",
+    "case": "damageDealt",
+    "type": "Int",
+    "keyword": true
+  },
+  {
+    "token": "poison_damage_dealt_percent",
+    "case": "poisonDamageDealtPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "health_restored",
+    "case": "healthRestored",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "leech_gained_percent",
+    "case": "leechGainedPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "leech_healing",
+    "case": "leechHealing",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "gold_gained",
+    "case": "goldGained",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "gold_gained_percent",
+    "case": "goldGainedPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "block_gained",
+    "case": "blockGained",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "bleed_duration",
+    "case": "bleedDuration",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "damage_taken_percent",
+    "case": "damageTakenPercent",
+    "type": "Double",
+    "keyword": true
+  },
+  {
+    "token": "damage_taken_flat",
+    "case": "damageTakenFlat",
+    "type": "Int",
+    "keyword": true
+  },
+  {
+    "token": "damage_taken_vulnerability",
+    "case": "damageTakenVulnerability",
+    "type": "Double",
+    "keyword": true
+  },
+  {
+    "token": "companion_damage_dealt",
+    "case": "companionDamageDealt",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "companion_physical_damage_dealt",
+    "case": "companionPhysicalDamageDealt",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "companion_bleed_damage_dealt",
+    "case": "companionBleedDamageDealt",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "outgoing_damage_percent",
+    "case": "outgoingDamagePercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "incoming_damage_reduction_percent",
+    "case": "incomingDamageReductionPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "dodge_chance_bonus",
+    "case": "dodgeChanceBonus",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "ranged_damage_dealt",
+    "case": "rangedDamageDealt",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "maximum_mana_percent",
+    "case": "maximumManaPercent",
+    "type": "Double",
+    "keyword": false
+  }
+]

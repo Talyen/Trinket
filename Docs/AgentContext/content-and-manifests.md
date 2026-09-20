@@ -38,7 +38,7 @@ change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 **Enemy traits:** author in `ContentManifest/traits.tsv` (same DSL); generated catalogs are outputs.
 
-Edit authored inputs (manifests, ability Swift, `ContentManifest/talents.tsv`, or `Scripts/internal/content/trigger_family_schema.json`). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. The verification router owns generation and idempotence.
+Edit authored inputs (manifests, ability Swift, `ContentManifest/talents.tsv`, or the relevant `Scripts/internal/content/trigger_families/*.json`). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. The verification router owns generation and idempotence.
 
 `Scripts/content_codegen.py` coordinates domain owners under `Scripts/internal/content/`:
 abilities, items, roster (including enemies/traits), stages, Homestead, talents,
@@ -61,3 +61,17 @@ Adding a new generated TSV output requires two files:
 the bundled resources).
 
 Verification is conditional: manifest-only changes require generation plus idempotence; semantic catalog/content changes use `TrinketContentTests`; Swift source changes add the routed style check. Open only the manifest README for the input being changed.
+
+For exact manifest inspection, use `python3 Scripts/content-inspect.py --id <id>`;
+`--trigger <canonicalField>` finds entries using that trigger through the same DSL
+parser as generation. Results identify authored locations and disclose omitted
+records/shortened fields; follow pagination or `--full` to expand. `--references`
+adds bounded literal source/test hints, not a semantic consumer graph.
+
+Trigger definitions live one family per JSON under `Scripts/internal/content/trigger_families/`;
+`index.json` preserves generation order. Edit the relevant family, not the index,
+for a field change. `Scripts/internal/content/modifiers.json` owns modifier DSL
+names, Swift cases, numeric kinds and keyword arguments. It generates the
+`AffixModifier` enum and mechanical transforms; gameplay application, presentation,
+and magnitude bump policy remain authored. Preserve case names, associated-value
+shapes, and Codable representations when evolving these definitions.

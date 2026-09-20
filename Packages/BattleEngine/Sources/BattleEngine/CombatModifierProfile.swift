@@ -5,6 +5,8 @@ import TrinketCore
 public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var maximumHealthBonus: Int
     public var maximumManaBonus: Int
+    public var criticalDamageBonus: Int
+    public var manaRestoredBonus: Int
     public var damageDealtBonus: [Keyword: Int]
     public var poisonDamageDealtPercent: Double
     public var healthRestoredBonus: Int
@@ -33,6 +35,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public init(
         maximumHealthBonus: Int = 0,
         maximumManaBonus: Int = 0,
+        criticalDamageBonus: Int = 0,
+        manaRestoredBonus: Int = 0,
         damageDealtBonus: [Keyword: Int] = [:],
         poisonDamageDealtPercent: Double = 0,
         healthRestoredBonus: Int = 0,
@@ -57,6 +61,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     ) {
         self.maximumHealthBonus = maximumHealthBonus
         self.maximumManaBonus = maximumManaBonus
+        self.criticalDamageBonus = criticalDamageBonus
+        self.manaRestoredBonus = manaRestoredBonus
         self.damageDealtBonus = damageDealtBonus
         self.poisonDamageDealtPercent = poisonDamageDealtPercent
         self.healthRestoredBonus = healthRestoredBonus
@@ -94,6 +100,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public mutating func merge(_ other: Self) {
         maximumHealthBonus += other.maximumHealthBonus
         maximumManaBonus += other.maximumManaBonus
+        criticalDamageBonus += other.criticalDamageBonus
+        manaRestoredBonus += other.manaRestoredBonus
         for (keyword, amount) in other.damageDealtBonus {
             damageDealtBonus[keyword, default: 0] += amount
         }
@@ -159,6 +167,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             damageDealtBonus[keyword, default: 0] += amount
         case let .poisonDamageDealtPercent(amount):
             poisonDamageDealtPercent += amount
+        case let .criticalDamage(amount):
+            criticalDamageBonus += amount
+        case let .manaRestored(amount):
+            manaRestoredBonus += amount
         case let .healthRestored(amount):
             healthRestoredBonus += amount
         case let .leechGainedPercent(amount):

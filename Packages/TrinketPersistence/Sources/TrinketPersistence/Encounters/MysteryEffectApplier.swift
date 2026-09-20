@@ -244,15 +244,22 @@ public enum MysteryEffectApplier {
     ) -> MysteryRewardBonus? {
         switch effect {
         case let .gainGold(amount):
-            .gold(CombatRounding.scaled(amount, byPercent: goldPercent + save.homestead.effects.goldFindPercent))
+            .gold(CombatRounding
+                .scaled(amount, byPercent: goldPercent + save.homestead.effects.goldFindPercent) +
+                (amount > 0 ? save.homestead.effects.goldFindFlat : 0))
         case let .gainMaterial(resource):
-            .material(resource, CombatRounding.scaled(materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent))
+            .material(
+                resource,
+                CombatRounding
+                    .scaled(materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent) +
+                    (resource == .gems ? save.homestead.effects.gemsFindBonus : 0),
+            )
         case .gainExperience:
             .experience(RewardExperiencePolicy.encounterAward(
                 encounterLevel: encounterLevel,
                 roster: save.roster,
                 percent: experiencePercent,
-            ))
+            ) + save.homestead.effects.experienceBonus)
         default:
             nil
         }

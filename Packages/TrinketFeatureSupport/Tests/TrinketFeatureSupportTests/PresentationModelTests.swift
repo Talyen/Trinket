@@ -178,10 +178,10 @@ struct PresentationModelTests {
                 astralChanceBonusPercent: 5,
                 goldFindPercent: 10,
             ),
-            production: .init(.wood, 25),
+            production: [.init(.wood, 25)],
         )
         let lines = HomesteadEffectLine.lines(for: tier)
-        let healthLine = lines.first(where: { $0.label == "Health" })
+        let healthLine = lines.first(where: { $0.label == "Hero Health" })
         #expect(healthLine?.displayValue == "+10")
 
         let damageTakenLine = lines.first(where: { $0.label == "Physical damage taken" })
@@ -191,7 +191,7 @@ struct PresentationModelTests {
         #expect(astralLine?.displayValue == "+5%")
 
         let productionLine = lines.first(where: { $0.id == .production(.wood) })
-        #expect(productionLine?.displayValue == "25")
+        #expect(productionLine?.displayValue == "+25")
     }
 
     @Test func `accessibility id full game and contracts mode presence`() {

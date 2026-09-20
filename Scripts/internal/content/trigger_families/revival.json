@@ -1,0 +1,90 @@
+{
+  "file_stem": "RevivalTriggers",
+  "family": "revival",
+  "fields": [
+    {
+      "name": "undyingEmber",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "borrowedLife",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "onceDeathReviveHealth",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "onceDeathReviveBlock",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "deathsDoorDurationBonusTurns",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "reviveDealBurnDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onSurviveDeathsDoorDamageBonusPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "deathsDoorDodgeAndDebuffImmunity",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "onDeathDealPhysicalDamageAllEnemies",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "guaranteedCritWhileOnDeathsDoor",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "deathsDoorExpiredHealFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "onHeroFatalHealPercentMaxHealth",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onAllyDeathsDoorHealAndCleanse",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "surviveDeathsDoorPartyHealPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    }
+  ]
+}

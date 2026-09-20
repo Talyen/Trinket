@@ -185,8 +185,9 @@ print_agent() {
     fi
   done
   if (( ${#search_roots[@]} > 0 )); then
-    printf 'Discovery: scoped rg, direct reads, or python3 Scripts/agent-search.py <pattern> --scope <root> (add --mode tests or --excerpts)\n'
+    printf 'Discovery: start with filenames; read content after narrowing (add --mode tests or --excerpts):\n'
     for search_root in "${search_roots[@]}"; do
+      printf '  python3 Scripts/agent-search.py "<pattern>" --scope %q\n' "$search_root"
       case "$search_root" in
         Packages/*) printf '  source/tests: %s (test mode includes support targets)\n' "$search_root" ;;
         Scripts) printf '  source: Scripts; tests: Scripts/Tests\n' ;;

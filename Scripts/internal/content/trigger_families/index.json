@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$version": 1,
+  "families": [
+    "damage.json",
+    "attack.json",
+    "block.json",
+    "mitigation.json",
+    "dot.json",
+    "control.json",
+    "dodge.json",
+    "mana.json",
+    "gold.json",
+    "healing.json",
+    "revival.json",
+    "cleanse.json",
+    "enemyTurn.json",
+    "onHit.json"
+  ]
+}

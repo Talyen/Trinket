@@ -10,6 +10,18 @@ struct HomesteadStateTests {
         case herbGardenMaterials
     }
 
+    @Test func `crystal production survives reload and collects both resources once`() throws {
+        let start = Date(timeIntervalSince1970: 1000)
+        var state = PlayerHomesteadState(resources: [:], nodeTiers: [.crystalGarden: 4], lastProductionAt: start)
+        var roster = PlayerRosterState.freshStart
+        state.settleProduction(at: start.addingTimeInterval(43200), roster: roster)
+        state = try JSONDecoder().decode(PlayerHomesteadState.self, from: JSONEncoder().encode(state))
+        let end = start.addingTimeInterval(86400)
+        let first = state.collectProduction(at: end, roster: &roster)
+        #expect(Set(first) == Set([ResourceAmount(.gems, 4), ResourceAmount(.stone, 4)]))
+        #expect(state.collectProduction(at: end, roster: &roster).isEmpty)
+    }
+
     @Test(arguments: [
         BuildSpendCase.wheatFieldMaterials,
         .herbGardenMaterials,
@@ -28,7 +40,7 @@ struct HomesteadStateTests {
             let built = homestead.buildOrUpgrade(definition, roster: &roster)
             try #expect(built)
             try #expect(homestead.tier(for: .wheatField) == 1)
-            try #expect(homestead.resources[.wood] == 15)
+            try #expect(homestead.resources[.wood] == 16)
             try #expect(homestead.resources[.herbs] == 5)
             try #expect(roster.gold == 4)
 
@@ -44,7 +56,7 @@ struct HomesteadStateTests {
             let built = homestead.buildOrUpgrade(definition, roster: &roster)
             try #expect(built)
             try #expect(homestead.tier(for: .herbGarden) == 1)
-            try #expect(homestead.resources[.wood] == 0)
+            try #expect(homestead.resources[.wood] == 1)
             try #expect(homestead.resources[.herbs] == 0)
             try #expect(roster.gold == 10)
         }
@@ -69,15 +81,15 @@ struct HomesteadStateTests {
         let tier3 = HomesteadEffects.from(nodeTiers: [.wheatField: 3])
 
         try #expect(tier1.heroModifiers == [.maximumHealth(4)])
-        try #expect(tier1.companionModifiers == [.maximumHealth(4)])
+        try #expect(tier1.companionModifiers.isEmpty)
         try #expect(tier3.heroModifiers == [.maximumHealth(12)])
-        try #expect(tier3.companionModifiers == [.maximumHealth(12)])
+        try #expect(tier3.companionModifiers.isEmpty)
     }
 
-    @Test func `wishing well increases gold find percent`() throws {
+    @Test func `wishing well adds flat gold to positive rewards`() throws {
         let effects = HomesteadEffects.from(nodeTiers: [.wishingWell: 2])
-        try #expect(effects.goldFindPercent == 10)
-        try #expect(effects.adjustedGold(100) == 110)
+        try #expect(effects.goldFindFlat == 2)
+        try #expect(effects.adjustedGold(100) == 102)
     }
 
     @Test func `moonlit sanctum increases astral chance percent`() throws {

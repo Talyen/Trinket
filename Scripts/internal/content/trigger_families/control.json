@@ -1,0 +1,222 @@
+{
+  "file_stem": "ControlTriggers",
+  "family": "control",
+  "fields": [
+    {
+      "name": "stunDamageAddsEnemyBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "stunRetainedBuildupPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "freezeExtraActionSkips",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "freezeExtendChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "stunExtendChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "physicalStunBuildupPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "holyStunBuildupPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "holyTriggeredStunGoldFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "frozenEnemyCannotBlockOrHeal",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "enemyStunExtraActionSkips",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onEnemyStunRecoverDrawCard",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onEnemyStunRecoverApplyAfflictions",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "enemyStunThresholdReductionPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onStunEnemyApplyBurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onceBelowHealthPercentStunAllEnemies",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "freezeCardsPlayedThisTurnFreezeAll",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "flashFreeze",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "everyNTurnsFreezeAllEnemiesInterval",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "everyNTurnsFreezeAllEnemiesAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "everyNTurnsStunBuildupInterval",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "everyNTurnsStunBuildupAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "everyNTurnsTeamBlockAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "enemyStunnedApplyMarked",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "enemyStunnedPurgeCount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "enemyStunnedPurgeAll",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "stunDealPhysicalFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "dodgeDealStunFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onDodgeAttackerStunBuildup",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onceBelowHealthPercentThreshold",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "turnFreezeDamageAllEnemies",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "turnFreezeDamageAllEnemiesInterval",
+      "type": "Int",
+      "default": "2",
+      "merge": "max"
+    },
+    {
+      "name": "stunPurgeDealHolyPerEffect",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "lightningRod",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "avalancheGuard",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "stunExtendVsBurning",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "dodgeDealFreezeFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    }
+  ]
+}

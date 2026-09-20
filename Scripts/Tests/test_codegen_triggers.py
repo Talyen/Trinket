@@ -1,11 +1,49 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+import tempfile
+from unittest.mock import patch
+
 from script_test_support import ScriptRegressionTestCase, load_script
 from internal.content import content_codegen_modifiers
 from internal.content import content_codegen_triggers
 
 
 class CodegenTriggersTests(ScriptRegressionTestCase):
+    def test_split_schema_rejects_duplicate_fields_and_unsafe_index_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            index = folder / "index.json"
+            family = {"family": "sample", "file_stem": "SampleTriggers",
+                      "fields": [{"name": "bonus", "type": "Int", "default": "0", "merge": "add"}]}
+            (folder / "sample.json").write_text(json.dumps(family))
+            with patch.object(content_codegen_triggers, "TRIGGER_FAMILY_SCHEMA", index):
+                try:
+                    for names in (["../sample.json"], ["sample.json", "sample.json"]):
+                        index.write_text(json.dumps({"families": names}))
+                        content_codegen_triggers._trigger_families.cache_clear()
+                        with self.assertRaises(ValueError):
+                            content_codegen_triggers._trigger_families()
+                    index.write_text(json.dumps({"families": ["sample.json"]}))
+                    family["fields"].append(family["fields"][0])
+                    (folder / "sample.json").write_text(json.dumps(family))
+                    content_codegen_triggers._trigger_families.cache_clear()
+                    with self.assertRaisesRegex(ValueError, "Duplicate"):
+                        content_codegen_triggers._trigger_families()
+                finally:
+                    content_codegen_triggers._trigger_families.cache_clear()
+
+    def test_modifier_schema_rejects_ambiguous_names_and_unsupported_shapes(self) -> None:
+        from internal.content.modifier_schema import modifier_definitions
+        row = {"token": "maximum_health", "case": "maximumHealth", "type": "Int", "keyword": False}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "modifiers.json"
+            for rows in ([row, row], [{**row, "type": "Float"}], [{**row, "keyword": "false"}]):
+                path.write_text(json.dumps(rows))
+                with self.assertRaises(ValueError):
+                    modifier_definitions(path)
+
     def test_triggers_swift_maps_known_token_to_grouped_field(self) -> None:
         self.assertEqual(
             content_codegen_triggers.triggers_swift("on_cleanse_self_heal:2"),

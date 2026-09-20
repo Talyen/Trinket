@@ -70,11 +70,11 @@ struct PlayerHomesteadStoreTests {
         let result = await firstStore.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .success)
         try #expect(firstStore.homestead.tier(for: .wheatField) == 1)
-        try #expect(firstStore.homestead.resources[.wood] == 15)
+        try #expect(firstStore.homestead.resources[.wood] == 16)
 
         let reloaded = try context.makeReloadedStore()
         try #expect(reloaded.homestead.tier(for: .wheatField) == 1)
-        try #expect(reloaded.homestead.resources[.wood] == 15)
+        try #expect(reloaded.homestead.resources[.wood] == 16)
         try #expect(reloaded.homestead.resources[.herbs] == 5)
     }
 

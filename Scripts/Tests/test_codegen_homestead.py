@@ -27,3 +27,11 @@ class CodegenHomesteadTests(ScriptRegressionTestCase):
             with self.subTest(icon_id=icon_id), self.assertRaises(ValueError):
                 common._validate_game_icon(icon_id, "sample")
         common._validate_game_icon("sf:burst.fill", "sample")
+    def test_multiple_production_outputs_validate_each_resource(self) -> None:
+        self.assertEqual(
+            homestead.parse_homestead_production("gems:2|stone:1"),
+            "[ResourceAmount(.gems, 2), ResourceAmount(.stone, 1)]",
+        )
+        for raw in ["gems:1|gems:2", "gems:1|stone:0", "gems:1|unknown:2"]:
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                homestead.parse_homestead_production(raw)

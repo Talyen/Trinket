@@ -3,141 +3,75 @@ import TrinketCore
 @testable import TrinketContent
 
 struct HomesteadCatalogTests {
-    @Test func `homestead node IDs are unique`() throws {
-        let ids = GameContent.homesteadNodes.map(\.id)
-        try #expect(Set(ids).count == ids.count)
-    }
-
-    @Test func `homestead prerequisites reference known nodes`() throws {
-        let knownIDs = Set(GameContent.homesteadNodes.map(\.id))
-        for node in GameContent.homesteadNodes {
+    @Test func `every node has four increasing tiers and valid prerequisites`() {
+        let nodes = GameContent.homesteadNodes
+        #expect(Set(nodes.map(\.id)).count == nodes.count)
+        for node in nodes {
+            #expect(node.maxTier == 4)
+            #expect(node.tiers.map(\.tier) == [1, 2, 3, 4])
             for requirement in node.prerequisites {
-                try #expect(
-                    knownIDs.contains(requirement.nodeID),
-                    "Node \(node.id) references unknown prerequisite \(requirement.nodeID)",
-                )
+                #expect(nodes.contains { $0.id == requirement.nodeID })
             }
-        }
-    }
-
-    @Test func `homestead tiers strengthen effects and stay party scoped`() throws {
-        for node in GameContent.homesteadNodes {
-            let nodeID = node.id
-            let tier1 = HomesteadEffects.from(nodeTiers: [nodeID: 1])
-            let tier4 = HomesteadEffects.from(nodeTiers: [nodeID: 4])
-            switch nodeID {
-            case .moonlitSanctum:
-                try #expect(tier1.astralChanceBonusPercent == 5)
-                try #expect(tier4.astralChanceBonusPercent == 20)
-                try #expect(tier1.heroModifiers.isEmpty)
-                try #expect(tier1.companionModifiers.isEmpty)
-            case .wishingWell:
-                try #expect(tier1.goldFindPercent == 5)
-                try #expect(tier4.goldFindPercent == 20)
-                try #expect(tier1.heroModifiers.isEmpty)
-                try #expect(tier1.companionModifiers.isEmpty)
-            case .hunterLodge:
-                try #expect(tier1.heroModifiers.isEmpty)
-                try #expect(tier4.heroModifiers.isEmpty)
-                try #expect(tier1.companionModifiers.count == 1)
-                try #expect(tier4.companionModifiers.count == 1)
-                try #expect(tier4.companionModifiers[0].numericValue > tier1.companionModifiers[0].numericValue)
-            case .agilityTraining:
-                try #expect(tier1.heroModifiers.isEmpty)
-                try #expect(tier4.heroModifiers.isEmpty)
-                try #expect(tier1.companionModifiers.count == 1)
-                try #expect(tier4.companionModifiers.count == 1)
-                try #expect(
-                    tier4.companionModifiers[0].numericValue > tier1.companionModifiers[0].numericValue,
-                )
-            default:
-                try #expect(tier1.heroModifiers == tier1.companionModifiers)
-                try #expect(tier4.heroModifiers == tier4.companionModifiers)
-                try #expect(!tier1.heroModifiers.isEmpty)
-                try #expect(tier1.heroModifiers.count == tier4.heroModifiers.count)
-                for (lower, higher) in zip(tier1.heroModifiers, tier4.heroModifiers) {
-                    try #expect(higher.numericValue > lower.numericValue)
+            for tier in node.tiers {
+                #expect(!tier.stageName.isEmpty)
+                #expect(tier.stageName.split(separator: " ").count <= 3)
+                #expect(Set(tier.production.map(\.resource)).count == tier.production.count)
+            }
+            for (lower, higher) in zip(node.tiers, node.tiers.dropFirst()) {
+                let a = lower.combatBonus
+                let b = higher.combatBonus
+                for (old, new) in zip(a.heroModifiers + a.companionModifiers, b.heroModifiers + b.companionModifiers) {
+                    #expect(new.numericValue > old.numericValue)
+                }
+                for (old, new) in zip(
+                    [a.astralChanceBonusPercent, a.goldFindFlat, a.experienceBonus, a.gemsFindBonus],
+                    [b.astralChanceBonusPercent, b.goldFindFlat, b.experienceBonus, b.gemsFindBonus],
+                ) where old > 0 {
+                    #expect(new > old)
+                }
+                #expect(lower.production.map(\.resource) == higher.production.map(\.resource))
+                for (old, new) in zip(lower.production, higher.production) {
+                    #expect(new.quantity > old.quantity)
                 }
             }
         }
     }
 
-    @Test func `homestead combat bonuses match authored tier values`() {
-        let culinary = HomesteadEffects.from(nodeTiers: [.culinaryArts: 1])
-        #expect(culinary.heroModifiers == [.damageTakenPercent(.burn, 0.10)])
-        #expect(culinary.companionModifiers == culinary.heroModifiers)
+    @Test func `farms separate hero and companion health and crystal garden covers stone`() throws {
+        let wheat = HomesteadEffects.from(nodeTiers: [.wheatField: 4])
+        let coop = HomesteadEffects.from(nodeTiers: [.chickenCoop: 4])
+        #expect(wheat.heroModifiers == [.maximumHealth(16)])
+        #expect(wheat.companionModifiers.isEmpty)
+        #expect(coop.heroModifiers.isEmpty)
+        #expect(coop.companionModifiers == [.maximumHealth(16)])
+        let crystal = try #require(GameContent.homesteadNode(matching: .crystalGarden)?.tier(4))
+        #expect(crystal.combatBonus.heroModifiers == [.criticalDamage(4)])
+        #expect(crystal.production == [.init(.gems, 4), .init(.stone, 4)])
+        let resources = Set(GameContent.homesteadNodes.flatMap { $0.tiers.flatMap { $0.production.map(\.resource) } })
+        #expect(resources == Set(HomesteadResource.allCases))
+    }
 
-        let culinaryMax = HomesteadEffects.from(nodeTiers: [.culinaryArts: 4])
-        #expect(culinaryMax.heroModifiers == [.damageTakenPercent(.burn, 0.40)])
+    @Test func `battle loot overrides receive the Gem bonus exactly once`() {
+        let plan = BattleRewardPlan(
+            stageGold: 10, goldFindPercent: 0, goldFindFlat: 4, gemsFindBonus: 4,
+            heroExperience: 0, companionExperience: 0, materials: [.init(.gems, 1)], items: [],
+        )
+        #expect(plan.resolve(battleGold: .init()).materials == [.init(.gems, 5)])
+        let override: [ResourceAmount] = [.init(.gems, 2), .init(.wood, 1)]
+        let award = plan.resolve(battleGold: .init(), materials: override)
+        #expect(award.materials == [.init(.gems, 6), .init(.wood, 1)])
+        #expect(award.goldGained == 14)
+        #expect(plan.resolve(battleGold: .init(), materials: override) == award)
+    }
 
-        let wool = HomesteadEffects.from(nodeTiers: [.woolTailoring: 1])
-        #expect(wool.heroModifiers == [.damageTakenPercent(.freeze, 0.15)])
-        let woolMax = HomesteadEffects.from(nodeTiers: [.woolTailoring: 4])
-        #expect(woolMax.heroModifiers == [.damageTakenPercent(.freeze, 0.5)])
-
-        let alchemy = HomesteadEffects.from(nodeTiers: [.alchemyLab: 1])
-        #expect(alchemy.heroModifiers == [
-            .poisonDamageDealtPercent(0.05),
+    @Test func `meta rewards are flat and do not create absent rewards`() {
+        let bonuses = HomesteadEffects.from(nodeTiers: [.wishingWell: 4, .library: 4, .moonlitSanctum: 4])
+        #expect(bonuses.experienceBonus == 20)
+        #expect(bonuses.adjustedGold(100) == 104)
+        #expect(bonuses.adjustedGold(0) == 0)
+        #expect(bonuses.adjustedMaterials([.init(.gems, 2), .init(.gems, 3), .init(.wood, 1)]) == [
+            .init(.gems, 6), .init(.gems, 3), .init(.wood, 1),
         ])
-        #expect(alchemy.companionModifiers == alchemy.heroModifiers)
-
-        let transmutation = HomesteadEffects.from(nodeTiers: [.transmutationCrucible: 1])
-        #expect(transmutation.heroModifiers == [.damageDealt(.burn, 1)])
-
-        let mycology = HomesteadEffects.from(nodeTiers: [.mycologyCellar: 1])
-        #expect(mycology.heroModifiers == [.damageTakenPercent(.poison, 0.10)])
-
-        let sparring = HomesteadEffects.from(nodeTiers: [.sparringGrounds: 1])
-        #expect(sparring.heroModifiers == [.blockGained(1)])
-
-        let archery = HomesteadEffects.from(nodeTiers: [.archeryRange: 1])
-        #expect(archery.heroModifiers == [.rangedDamageDealt(1)])
-
-        let script = HomesteadEffects.from(nodeTiers: [.library: 1])
-        #expect(script.heroModifiers == [.leechGainedPercent(0.05)])
-
-        let leyline = HomesteadEffects.from(nodeTiers: [.leylineEnergy: 1])
-        #expect(leyline.heroModifiers == [.maximumManaPercent(0.05)])
-
-        let lodge = HomesteadEffects.from(nodeTiers: [.hunterLodge: 4])
-        #expect(lodge.heroModifiers.isEmpty)
-        #expect(lodge.companionModifiers == [.companionDamageDealt(4)])
-
-        let agility = HomesteadEffects.from(nodeTiers: [.agilityTraining: 2])
-        #expect(agility.heroModifiers.isEmpty)
-        #expect(agility.companionModifiers == [.dodgeChanceBonus(0.04)])
-    }
-
-    @Test func `homestead tiers have concise stage names`() throws {
-        for definition in GameContent.homesteadNodes {
-            for tier in definition.tiers {
-                try #expect(!tier.stageName.isEmpty, "\(definition.id) tier \(tier.tier)")
-                try #expect(tier.stageName.split(separator: " ").count <= 3, "\(definition.id) tier \(tier.tier)")
-            }
-        }
-    }
-
-    @Test func `production nodes have four tiers of one increasing resource`() throws {
-        for node in GameContent.homesteadNodes {
-            try #expect(node.maxTier == 4, "\(node.title) should have four tiers")
-        }
-
-        let productionNodes = GameContent.homesteadNodes.filter { definition in
-            definition.tiers.contains { $0.production != nil }
-        }
-        try #expect(!productionNodes.isEmpty)
-
-        for definition in productionNodes {
-            let productions = definition.tiers.compactMap(\.production)
-            try #expect(productions.count == 4, "\(definition.id)")
-            try #expect(productions.count == definition.tiers.count, "\(definition.id)")
-            let resource = try #require(productions.first?.resource)
-            try #expect(productions.allSatisfy { $0.resource == resource }, "\(definition.id)")
-            let quantities = productions.map(\.quantity)
-            try #expect(
-                zip(quantities, quantities.dropFirst()).allSatisfy { $0 < $1 },
-                "\(definition.id)",
-            )
-        }
+        #expect(bonuses.adjustedMaterials([.init(.wood, 1)]) == [.init(.wood, 1)])
     }
 }

@@ -71,6 +71,7 @@ package extension BattleState {
     @discardableResult
     mutating func restoreMana(_ amount: Int, to combatant: Combatant) -> Int {
         guard var runtime = roster.runtime(for: combatant) else { return 0 }
+        let amount = amount > 0 ? amount + modifiers(for: combatant.id).manaRestoredBonus : amount
         let actual = runtime.restoreMana(amount)
         var total = actual
         if actual > 0, modifiers(for: combatant.id).triggers.manaGainDoubleChancePercent > 0,

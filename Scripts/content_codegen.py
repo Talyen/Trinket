@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import sys
 
+from internal.content.modifier_schema import generate_modifiers
+
 from internal.content.abilities import (
     collect_ability_symbols,
     collect_ability_tiers,
@@ -170,6 +172,7 @@ def main() -> int:
     generate_homestead_catalog(homestead_rows)
     generate_item_bases_catalog(item_base_rows)
     generate_encounter_art_catalog(stage_rows)
+    generate_modifiers()
     generate_trigger_families()
     generate_trigger_root()
     generate_talent_catalog(talent_rows, [row.id for row in combatant_rows])

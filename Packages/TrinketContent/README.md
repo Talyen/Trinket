@@ -30,7 +30,11 @@ Schemas and input/output ownership live in
 media-manifest READMEs. `Generated/` is the output of `./Scripts/generate.sh`;
 do not maintain a second generated-file inventory here. Abilities remain
 authored in `Abilities/AbilityCatalog.swift`; trigger-family
-schema remains in `Scripts/internal/content/trigger_family_schema.json`.
+schemas are indexed by `Scripts/internal/content/trigger_families/index.json`.
+Modifier cases and mechanical transforms are generated from
+`Scripts/internal/content/modifiers.json`; `AffixModifier.swift` retains magnitude
+bump policy. Historical item-power normalization lives in
+`Equipment/InventoryItem+Compatibility.swift`.
 
 ## Adding content
 

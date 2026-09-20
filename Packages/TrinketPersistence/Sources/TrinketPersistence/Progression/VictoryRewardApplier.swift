@@ -114,9 +114,10 @@ public enum VictoryRewardApplier {
         stageGold: Int,
         battleGold: BattleGoldFlow,
         goldFoundPercent: Int,
+        goldFindFlat: Int = 0,
     ) -> Int {
         BattleRewardPlan(
-            stageGold: stageGold, goldFindPercent: goldFoundPercent,
+            stageGold: stageGold, goldFindPercent: goldFoundPercent, goldFindFlat: goldFindFlat,
             heroExperience: 0, companionExperience: 0, materials: [], items: [],
         ).resolve(battleGold: battleGold).goldDelta
     }
@@ -130,6 +131,7 @@ public enum VictoryRewardApplier {
             stageGold: stageGold,
             battleGold: battleGold,
             goldFoundPercent: homestead.effects.goldFindPercent,
+            goldFindFlat: homestead.effects.goldFindFlat,
         )
     }
 
@@ -226,17 +228,19 @@ public enum VictoryRewardApplier {
         let resolved = award ?? BattleRewardPlan(
             stageGold: stageGold + consolationGold,
             goldFindPercent: save.homestead.effects.goldFindPercent,
+            goldFindFlat: save.homestead.effects.goldFindFlat,
+            gemsFindBonus: save.homestead.effects.gemsFindBonus,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(
                 encounterLevel: encounterLevel, roster: save.roster, percent: experienceEarnedPercent,
             ),
             heroExperience: grantsCombatExperience ? battleExperienceAward(
                 playerLevel: save.roster.progression(for: hero).level, enemyLevel: encounterLevel,
                 highestLevel: save.roster.highestHeroLevel, experienceEarnedPercent: experienceEarnedPercent,
-            ) : 0,
+            ) + save.homestead.effects.experienceBonus : 0,
             companionExperience: grantsCombatExperience ? battleExperienceAward(
                 playerLevel: save.roster.progression(for: companion).level, enemyLevel: encounterLevel,
                 highestLevel: save.roster.highestCompanionLevel, experienceEarnedPercent: experienceEarnedPercent,
-            ) : 0,
+            ) + save.homestead.effects.experienceBonus : 0,
             materials: materialRewards, items: payableItem.map { [$0] } ?? [],
         ).settle(
             battleGold: battleGold,

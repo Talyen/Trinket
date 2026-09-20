@@ -35,6 +35,16 @@ FAMILIES = (
         {"test_package_diagnostics"},
     ),
     (
+        {"Scripts/internal/content/common.py", "Scripts/internal/content/talents.py",
+         "Scripts/internal/content/items.py", "Scripts/internal/content/roster.py",
+         "Scripts/internal/content/stages.py", "Scripts/internal/content/homestead.py"},
+        {"test_content_inspect"},
+    ),
+    (
+        {"Scripts/internal/swift_policy.py"},
+        {"test_documentation"},
+    ),
+    (
         {"Scripts/internal/content/common.py"},
         {"test_check_unused_assets"},
     ),
@@ -71,9 +81,11 @@ FAMILIES = (
     (
         {"Scripts/internal/content/content_codegen_modifiers.py",
          "Scripts/internal/content/content_codegen_triggers.py",
-         "Scripts/internal/content/trigger_family_schema.json"},
+         "Scripts/internal/content/modifier_schema.py",
+         "Scripts/internal/content/modifiers.json",
+         *(path.relative_to(ROOT).as_posix() for path in (ROOT / "Scripts/internal/content/trigger_families").glob("*.json"))},
         {"test_codegen_common", "test_codegen_homestead", "test_codegen_stages",
-         "test_codegen_talents", "test_codegen_triggers", "test_content_codegen"},
+         "test_codegen_talents", "test_codegen_triggers", "test_content_codegen", "test_content_inspect"},
     ),
     (
         {"Scripts/config/diagnostic-limits.env", "Scripts/internal/diagnostics/diagnostic_limits.py",
@@ -83,6 +95,10 @@ FAMILIES = (
     (
         {"Scripts/test-package.sh"},
         {"test_package_diagnostics"},
+    ),
+    (
+        {"Scripts/content-inspect.py"},
+        {"test_content_inspect"},
     ),
     (
         {"Scripts/agent-diff.py"},
@@ -99,7 +115,7 @@ FAMILIES = (
     (
         {"Scripts/check-links.py", "Scripts/check-docs.py", "Scripts/check-plans.py",
          "Scripts/check-testplan-sync.py", "Scripts/agent-read.py", "Scripts/internal/markdown.py",
-         "Scripts/config/smoke-classes.txt", "Scripts/new-plan.sh"},
+         "Scripts/config/smoke-classes.txt", "Scripts/new-plan.sh", "Scripts/internal/doc_diagnostics.py"},
         {"test_documentation"},
     ),
     (

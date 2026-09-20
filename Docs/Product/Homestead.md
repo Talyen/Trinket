@@ -98,3 +98,27 @@ Portrait and landscape sources coexist in `Raw Assets/Homestead/`.
 exports. Gallery thumbnails join launch-priority artwork. Full portraits remain
 outside broad launch warmup and are pinned by imminent category/detail owners.
 Preserve existing pins and memory limits.
+
+## Bonus and production rules
+
+Each building has four tiers. Every numeric bonus and each material output
+increases at every tier; tier values replace lower tiers. Crystal Garden grants
+flat Critical damage and produces both Gems and Stone. Library and Agility
+Training intentionally have no production. All material types have a producer.
+
+Descriptions use concise labels and signed values: Health, Mana, Experience,
+Physical damage, and Poison damage taken. Hero and Companion scopes remain
+explicit where they differ. Production uses the existing daily clock and shows
+per Day; collecting multiple resources preserves each resource's fractional
+progress independently. Multiple outputs stack as individual benefit rows.
+
+Critical damage and Mana restored modify existing outcomes without additional
+combat-text events. Library adds flat Experience to earned reward awards;
+Wishing Well adds flat Gold to positive earned Gold rewards. Neither changes
+production, purchase refunds, or initial balances. Moonlit Sanctum adds its Gem
+bonus once to encounter rewards that already contain Gems. Reward previews and
+settlement share these adjustments, including overridden battle loot.
+
+Upgrade costs are fixed authored values. Their material proportions account for
+production support and total upgrade demand; prices do not depend on which
+buildings the player owns.

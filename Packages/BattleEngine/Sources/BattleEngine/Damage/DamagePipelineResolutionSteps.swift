@@ -435,7 +435,8 @@ package extension DamagePipeline {
             return
         }
         let critMultiplier = criticalMultiplier(for: state.sourceActorID, in: context)
-        state.remaining = CombatRounding.scaled(state.remaining, multiplier: critMultiplier)
+        let bonus = state.sourceActorID.map { context.modifiers(for: $0).criticalDamageBonus } ?? 0
+        state.remaining = CombatRounding.scaled(state.remaining, multiplier: critMultiplier) + bonus
         state.dealt = state.remaining
     }
 

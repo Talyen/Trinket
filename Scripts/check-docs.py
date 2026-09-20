@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from internal.cli import ROOT, load_sibling
+from internal.doc_diagnostics import report_failures
 
 
 _check_links = load_sibling("check_links", "check-links.py")
@@ -239,9 +240,7 @@ def main() -> int:
         files, final=args.final, keep_plan=args.keep_plan, paths=args.paths,
     )
     if failures:
-        print("Documentation checks failed:", file=sys.stderr)
-        for failure in failures:
-            print(f"- {failure}", file=sys.stderr)
+        report_failures("Documentation checks failed:", failures, root=ROOT)
         return 1
     print(f"Documentation checks passed ({len(files)} Markdown files).")
     for warning in DOC_WARNINGS:

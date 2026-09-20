@@ -1,0 +1,60 @@
+{
+  "file_stem": "EnemyTurnTriggers",
+  "family": "enemyTurn",
+  "fields": [
+    {
+      "name": "negateFirstEnemyAttack",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "attackDelayEnemyTurnChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedingEnemyActionSkipChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "extraCardDrawWhileEnemyBleeding",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "extraCardDrawBelowEnemyHealthPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "ultimateAppliesBurnPotency",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onHeroHolyAbilityCompanionHolyDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onHolyDamageRestoreMana",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnReducesEnemyHealingAndLeechPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    }
+  ]
+}

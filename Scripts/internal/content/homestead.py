@@ -88,6 +88,8 @@ def parse_homestead_combat_tokens(
     gold = 0
     seen: dict[tuple[str, str | None], str] = {}
     for token in parse_modifier_tokens(raw):
+        if token.split(":", 1)[0] in HOMESTEAD_META_FIELDS:
+            continue
         if token.startswith("astral_chance:") or token.startswith("gold_find:"):
             name, _, amount = token.partition(":")
             if name in seen:
@@ -126,9 +128,30 @@ def parse_homestead_combat_tokens(
             hero.append(swift)
         if scope in ("companion", "both"):
             companion.append(swift)
-    if not hero and not companion and astral == 0 and gold == 0:
+    if not hero and not companion and astral == 0 and gold == 0 and not parse_homestead_meta(raw):
         raise ValueError("homestead modifiers must declare combat bonuses")
     return hero, companion, astral, gold
+
+
+HOMESTEAD_META_FIELDS = {
+    "gold_find_flat": "goldFindFlat",
+    "experience": "experienceBonus",
+    "gems_find": "gemsFindBonus",
+}
+
+
+def parse_homestead_meta(raw: str) -> dict[str, int]:
+    values: dict[str, int] = {}
+    for token in parse_modifier_tokens(raw):
+        name, _, amount = token.partition(":")
+        if name not in HOMESTEAD_META_FIELDS:
+            continue
+        if name in values:
+            raise ValueError(f"Duplicate homestead bonus {name}")
+        values[name] = int(amount)
+        if values[name] <= 0:
+            raise ValueError(f"Homestead bonus {name} must be positive")
+    return values
 
 
 def render_homestead_combat_bonus(raw: str) -> str:
@@ -142,6 +165,7 @@ def render_homestead_combat_bonus(raw: str) -> str:
         parts.append(f"astralChanceBonusPercent: {astral}")
     if gold:
         parts.append(f"goldFindPercent: {gold}")
+    parts.extend(f"{HOMESTEAD_META_FIELDS[name]}: {value}" for name, value in parse_homestead_meta(raw).items())
     return "HomesteadTierCombatBonus(" + ", ".join(parts) + ")"
 
 
@@ -211,11 +235,13 @@ def parse_homestead_production_value(raw: str) -> tuple[str, int] | None:
 
 
 def parse_homestead_production(raw: str) -> str | None:
-    parsed = parse_homestead_production_value(raw)
-    if parsed is None:
+    if not raw.strip():
         return None
-    resource, quantity = parsed
-    return f"ResourceAmount(.{resource}, {quantity})"
+    entries = [parse_homestead_production_value(token) for token in raw.split("|")]
+    resources = [resource for resource, _ in entries]
+    if len(set(resources)) != len(resources):
+        raise ValueError("Duplicate production resource")
+    return "[" + ", ".join(f"ResourceAmount(.{resource}, {quantity})" for resource, quantity in entries) + "]"
 
 
 def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
@@ -294,7 +320,7 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         validate_homestead_cost(row.cost, row_id)
         if row.production.strip():
             try:
-                parse_homestead_production_value(row.production)
+                parse_homestead_production(row.production)
             except ValueError as error:
                 raise ValueError(f"{error} for {row_id}") from error
         nodes.setdefault(row.node_id, []).append(row)

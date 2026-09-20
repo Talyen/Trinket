@@ -29,7 +29,7 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 - `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `block_per_turn:2`). Empty for flat modifier affixes. Trailing trigger columns may be omitted (no trailing tabs required); extra columns are rejected.
 - One value per field in a cell: repeating a modifier or trigger field is rejected, as are non-numeric amounts and unknown keywords. Trigger value types follow the schema field types.
 
-Trigger tokens resolve against `Scripts/internal/content/trigger_family_schema.json` (families → `Generated/*Triggers.generated.swift`): explicit aliases and multi-part parsers live in `Scripts/internal/content/content_codegen_triggers.py`, otherwise `snake_case` maps to the schema field (`dodge_chance_bonus` → `dodgeChanceBonus`). `camelCase` schema field names are accepted everywhere, not only in talents. Separate fields with `|` — gluing two fields with `,` inside one token is rejected. When the same token exists as both a modifier and a trigger (e.g. `dodge_chance_bonus`), the column decides which one it becomes.
+Trigger tokens resolve against `Scripts/internal/content/trigger_families/index.json` (families → `Generated/*Triggers.generated.swift`): explicit aliases and multi-part parsers live in `Scripts/internal/content/content_codegen_triggers.py`, otherwise `snake_case` maps to the schema field (`dodge_chance_bonus` → `dodgeChanceBonus`). `camelCase` schema field names are accepted everywhere, not only in talents. Separate fields with `|` — gluing two fields with `,` inside one token is rejected. When the same token exists as both a modifier and a trigger (e.g. `dodge_chance_bonus`), the column decides which one it becomes.
 
 Merge semantics when trigger sources stack (schema `merge` op per field): `add` sums, `or` takes either, `max` takes the larger, `mul` multiplies (identity 1), `add_excess` adds only the excess over 1 (identity 1, for a few damage multipliers), `coalesce` keeps the later value, `union` merges the sorted set (only `bonusManaOnTurns`).
 
@@ -150,9 +150,9 @@ node_id	title	summary	icon_id	category	prerequisites	tier	stage_name	cost	bonus_
 - `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
 - `stage_name`: concise, player-facing name for the node's construction stage; use no more than three words.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).
-- `production`: one `resource:quantity` daily rate (e.g. `food:1`), or empty for no passive production. Each tier supplies its complete rate, not an increment over the previous tier.
-- `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Combat tokens include `outgoing_damage_percent:0.02`, `incoming_damage_reduction_percent:0.02`, `dodge_chance_bonus:0.02` (all additive, rounded via `CombatRounding`). Homestead-only tokens: `astral_chance:N`, `gold_find:N`.
-- One row per tier; node metadata must match across tiers for the same `node_id`.
+- `production`: pipe-separated `resource:quantity` daily rates (e.g. `gems:1|stone:1`), or empty for no passive production. Each tier supplies its complete rate, not an increment over the previous tier.
+- `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Combat tokens include `outgoing_damage_percent:0.02`, `incoming_damage_reduction_percent:0.02`, `dodge_chance_bonus:0.02` (all additive, rounded via `CombatRounding`). Homestead-only tokens: `astral_chance:N`, legacy `gold_find:N`, `gold_find_flat:N`, `experience:N`, and `gems_find:N`. Flat combat tokens include `critical_damage:N`, `mana_restored:N`, and `damage_taken_flat:keyword:N`.
+- Four rows per node; each numeric bonus and each production quantity increases at every tier. Node metadata must match across tiers for the same `node_id`.
 
 Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. The `GameContent` registry reads the generated catalogs directly; `HomesteadEffects` computes tier effects from them.
 
@@ -161,3 +161,10 @@ Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. The `GameConte
 Single entry: `./Scripts/generate.sh` (content-only regeneration adds
 `--skip-xcodegen`). Input→command routing, review steps, generation assertions,
 and shared media-pipeline rules: [content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).
+
+## Inspecting authored content
+
+Use `python3 Scripts/content-inspect.py --id <id>` for labeled records and source
+locations, or `--trigger <canonicalField>` to find trigger usage. See the
+[content workflow](../Docs/AgentContext/content-and-manifests.md) for paging,
+reference lookup, and trigger/modifier schema ownership.

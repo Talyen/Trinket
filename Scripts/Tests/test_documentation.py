@@ -119,7 +119,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             root.mkdir()
             scripts = root / "Scripts"
             scripts.mkdir()
-            for name in ("check-docs.py", "check-plans.py", "check-links.py", "check-testplan-sync.py", "internal/markdown.py", "internal/cli.py"):
+            for name in ("check-docs.py", "check-plans.py", "check-links.py", "check-testplan-sync.py", "internal/markdown.py", "internal/cli.py", "internal/doc_diagnostics.py"):
                 (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, scripts / name)
             for name, content in {
@@ -511,3 +511,43 @@ class DocumentationTests(ScriptRegressionTestCase):
                      "Scripts/check-testplan-sync.py", "Scripts/agent-read.py", "Scripts/internal/markdown.py"):
             self.assertEqual(select([path]), expected)
         self.assertGreater(len(select(["Scripts/Tests/script_test_support.py"])), len(expected))
+
+    def test_source_outline_and_explicit_reads(self) -> None:
+        reader = load_script("source_reader", "agent-read.py")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "code.py").write_text('"def fake(): pass"\nclass Owner:\n    def real(self):\n        return 2\n')
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(reader.main(["code.py", "--outline", "--limit", "1"], root=root), 0)
+            self.assertIn("code.py:2:", output.getvalue())
+            self.assertNotIn("fake", output.getvalue())
+            self.assertIn("omitted 1", output.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(reader.main(["code.py", "--lines", "3:4"], root=root), 0)
+            self.assertIn("4:         return 2", output.getvalue())
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(reader.main(["code.py", "--lines", "3:9"], root=root), 2)
+            (root / "code.swift").write_text('struct Owner {}\n')
+            tokens = [{"type": "keyword", "string": "struct"}, {"type": "space", "string": " "},
+                      {"type": "identifier", "string": "Owner"}, {"type": "space", "string": " "},
+                      {"type": "startOfScope", "string": "{"}, {"type": "endOfScope", "string": "}"}]
+            with patch("internal.swift_policy.formatter_tokens", return_value=tokens):
+                self.assertEqual(reader.source_outline(root / "code.swift", 'struct Owner {}\n'), [(1, 'struct Owner {}')])
+
+    def test_documentation_failures_retain_complete_bounded_report(self) -> None:
+        from internal.doc_diagnostics import group_failures, report_failures, render
+        failures = [f"Docs/File{i}.md:3: missing link target ../Missing.md" for i in range(100)]
+        failures += [f"Other{i}.md: distinct issue {i}" for i in range(25)]
+        self.assertEqual(len(group_failures(failures)), 26)
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.dict("os.environ", {"RESULTS_DIR": directory}), contextlib.redirect_stderr(io.StringIO()) as output:
+                report_failures("Failed", failures)
+            self.assertLess(len(output.getvalue()), 12000)
+            self.assertIn("98 additional locations", output.getvalue())
+            self.assertIn("Omitted 6 groups", output.getvalue())
+            reports = list(Path(directory).glob("*.json"))
+            self.assertEqual(len(reports), 1)
+            self.assertEqual(json.loads(reports[0].read_text())["failures"], failures)
+            with contextlib.redirect_stderr(io.StringIO()) as expanded:
+                self.assertEqual(render(failures, offset=20, full=True), 26)
+            self.assertIn("distinct issue 24", expanded.getvalue())

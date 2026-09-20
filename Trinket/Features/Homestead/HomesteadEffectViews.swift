@@ -37,7 +37,7 @@ struct HomesteadBenefitsView: View {
 
     var body: some View {
         Group {
-            if tier.production != nil, lines.count == 2 {
+            if !tier.production.isEmpty, lines.count == 2 {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .top, spacing: TrinketDesign.Spacing.medium) {
                         item(lines[0])
@@ -118,7 +118,7 @@ private struct HomesteadBenefitItem: View {
                         .scaleEffect(isHighlighted ? 1.08 : 1, anchor: .leading)
                         .fixedSize()
                     if effect.resource != nil {
-                        Text("per day")
+                        Text("per Day")
                             .fixedSize()
                     }
                 }
@@ -196,6 +196,10 @@ private struct HomesteadEffectStyle {
             self.init(modifier: modifier)
         case .astralFind:
             self.init(symbol: "sparkles", tint: TrinketDesign.Colors.arcane)
+        case .experience:
+            self.init(symbol: "book.fill", tint: TrinketDesign.Colors.arcane)
+        case .gemsFind:
+            self.init(symbol: "diamond.fill", tint: TrinketDesign.Colors.arcane)
         case .goldFind:
             self.init(keyword: .gold)
         case let .production(resource):
@@ -218,7 +222,9 @@ private struct HomesteadEffectStyle {
             self.init(keyword: .health)
         case .healthRestored:
             self.init(keyword: .health, symbol: "heart.circle.fill")
-        case .maximumMana, .maximumManaPercent:
+        case .criticalDamage:
+            self.init(keyword: .physical, symbol: "scope")
+        case .manaRestored, .maximumMana, .maximumManaPercent:
             self.init(keyword: .mana)
         case let .damageDealt(keyword, _):
             self.init(keyword: keyword)

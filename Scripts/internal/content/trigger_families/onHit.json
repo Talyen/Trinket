@@ -1,0 +1,54 @@
+{
+  "file_stem": "OnHitTriggers",
+  "family": "onHit",
+  "fields": [
+    {
+      "name": "resonantShell",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "onHitAttackerBurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onHitAttackerFreezeBuildup",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onHitAttackerPoison",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onHitAttackerBleedPotency",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onHitAttackerBleedTurns",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "onHitAttackerHoly",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onHitGainBlock",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    }
+  ]
+}

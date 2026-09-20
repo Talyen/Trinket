@@ -95,7 +95,9 @@ trinket_require_pinned_version swiftlint "$SWIFTLINT_VERSION" version
 mkdir -p .DerivedData/swiftlint-cache
 
 if [ ${#extra_args[@]} -gt 0 ]; then
-  swiftlint lint --cache-path .DerivedData/swiftlint-cache "${extra_args[@]}" "${LINT_TARGETS[@]}"
+  swiftlint lint --quiet --cache-path .DerivedData/swiftlint-cache "${extra_args[@]}" "${LINT_TARGETS[@]}"
 else
-  swiftlint lint --cache-path .DerivedData/swiftlint-cache "${LINT_TARGETS[@]}"
+  swiftlint lint --quiet --cache-path .DerivedData/swiftlint-cache "${LINT_TARGETS[@]}"
 fi
+
+echo "SwiftLint passed."

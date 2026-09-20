@@ -46,8 +46,8 @@ Verification: ./Scripts/handoff.sh --isolate --paths <files...>
 
 Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.
 
-Choose scoped `rg`, filename discovery, direct reads, or `agent-search.py` according
-to the question. Read enough surrounding context to understand the contract and
+Start unknown-owner discovery with filenames or `agent-search.py`; use content
+`rg` and direct reads after narrowing files. Read enough surrounding context to understand the contract and
 its exceptions, including relevant callers, tests, configuration, and generated
 references. Prefer targeted catalog lookups and bounded diagnostic output over
 loading unrelated material. [CI diagnostics](ci-diagnostics.md) explains retained
@@ -58,7 +58,7 @@ searches to the relevant owner (for example `.agents/` or `.github/`). Inspect
 `.DerivedData/`, `BalanceSweepReports/`, or other artifacts when needed for the
 investigation, using explicit paths and bounded output.
 
-The optional `agent-search.py` helper defaults to authored production text from Git's tracked and nonignored
+The `agent-search.py` helper defaults to authored production text from Git's tracked and nonignored
 untracked inventory. Generated paths use the existing generated-output registry;
 tests (including test-support targets), Markdown/`.mdc` and generated output have explicit
 `--mode` surfaces. Results default to filenames with matching-line counts.
@@ -85,7 +85,7 @@ python3 Scripts/agent-search.py DamagePipeline --scope Packages/BattleEngine/Sou
 sed -n '40,100p' Packages/BattleEngine/Sources/BattleEngine/Damage/DamagePipelineResolutionSteps.swift
 ```
 
-For section-based reads with heading context, use the optional reader:
+For section-based reads with heading context, use the section reader:
 
 ```sh
 python3 Scripts/agent-read.py Docs/Platform/Verification.md --outline
@@ -96,6 +96,12 @@ The reader prints source lines and parent headings; without an anchor it reads
 all of the document. Read applicable constraints and relevant behavior sections,
 including their exceptions; unrelated sections are not mandatory prereads.
 Missing anchors fail explicitly. Sections are never silently truncated.
+
+For Swift or Python, `agent-read.py path.swift --outline` lists declaration hints
+with source lines (Swift uses the existing pinned SwiftFormat tokenizer). It
+includes local declarations, not a semantic ownership map. `--offset` / `--limit`
+page the outline; `--lines START:END` reads an explicit complete range. Inspect
+surrounding attributes and complete bodies before changing code.
 
 For a generated-content investigation, explicitly target the catalog and entry:
 
@@ -122,6 +128,11 @@ can omit status when the relevant workspace state is unchanged.
 For review, `python3 Scripts/agent-diff.py --paths <files...>` shows authored
 unstaged patches and generated-file statistics using the generated-path registry.
 Use `--staged` for the index, `--stat` for statistics only, or `--generated` to
-expand generated patches. Untracked files are listed for explicit reads. Whole-tree
+expand generated patches. Output defaults to a 12,000-character content budget,
+paged at complete hunks/records with repeated file headers. Follow the printed
+continuation command; its fingerprint rejects a changed diff. An oversized hunk
+is disclosed with an explicit larger-budget command, never silently cut. `--full`
+is an intentional unbounded read. Review every relevant page before editing
+overlapping work. Untracked files are listed for explicit reads. Whole-tree
 review requires `--working-tree`. This view does not replace overlapping diff
 inspection, generated consistency review, or idempotence verification.

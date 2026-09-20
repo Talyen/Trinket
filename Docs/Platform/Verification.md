@@ -212,6 +212,12 @@ to bypass product chrome routing.
 
 ## Failures and reporting
 
+Documentation/link failures are grouped with bounded location previews. Complete
+reports are retained under `RESULTS_DIR` or `.DerivedData/DocumentationResults`;
+use the printed paging/expansion commands to inspect every relevant failure.
+Failure status does not depend on how many locations are printed. SwiftLint
+suppresses per-file progress while retaining violations and a success summary.
+
 When Xcode is unavailable, handoff runs available checks and reports
 `INCOMPLETE` with exit code 2 if the selected app compilation could not run.
 Its dry run lists that unavailable requirement; it cannot report PASS.

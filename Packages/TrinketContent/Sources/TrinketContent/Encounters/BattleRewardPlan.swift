@@ -3,6 +3,8 @@ import TrinketCore
 public struct BattleRewardPlan: Equatable, Sendable {
     public let stageGold: Int
     public let goldFindPercent: Int
+    public let goldFindFlat: Int
+    public let gemsFindBonus: Int
     public let goldOverflowExperience: Int
     public let heroExperience: Int
     public let companionExperience: Int
@@ -12,6 +14,8 @@ public struct BattleRewardPlan: Equatable, Sendable {
     public init(
         stageGold: Int,
         goldFindPercent: Int,
+        goldFindFlat: Int = 0,
+        gemsFindBonus: Int = 0,
         goldOverflowExperience: Int = 0,
         heroExperience: Int,
         companionExperience: Int,
@@ -20,6 +24,8 @@ public struct BattleRewardPlan: Equatable, Sendable {
     ) {
         self.stageGold = max(0, stageGold)
         self.goldFindPercent = goldFindPercent
+        self.goldFindFlat = goldFindFlat
+        self.gemsFindBonus = gemsFindBonus
         self.goldOverflowExperience = goldOverflowExperience
         self.heroExperience = heroExperience
         self.companionExperience = companionExperience
@@ -37,12 +43,20 @@ public struct BattleRewardPlan: Equatable, Sendable {
     }
 
     public func resolve(battleGold: BattleGoldFlow, materials: [ResourceAmount]? = nil) -> BattleRewardAward {
-        let gained = max(0, CombatRounding.scaled(stageGold + battleGold.gained, byPercent: goldFindPercent))
+        let baseGold = stageGold + battleGold.gained
+        let gained = max(0, CombatRounding.scaled(baseGold, byPercent: goldFindPercent)) + (baseGold > 0 ? goldFindFlat : 0)
         let stage = min(stageGold, gained)
+        let effects = HomesteadEffects(
+            heroModifiers: [],
+            companionModifiers: [],
+            astralChanceBonusPercent: 0,
+            goldFindPercent: 0,
+            gemsFindBonus: gemsFindBonus,
+        )
         return BattleRewardAward(
             stageGold: stage, battleGold: gained - stage - battleGold.spent,
             goldFlow: battleGold, heroExperience: heroExperience, companionExperience: companionExperience,
-            materials: materials ?? self.materials, items: items,
+            materials: effects.adjustedMaterials(materials ?? self.materials), items: items,
         )
     }
 

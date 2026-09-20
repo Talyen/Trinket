@@ -7,6 +7,8 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case modifier(AffixModifier, companion: Bool)
         case astralFind
         case goldFind
+        case experience
+        case gemsFind
         case production(HomesteadResource)
     }
 
@@ -24,7 +26,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         if bonus.astralChanceBonusPercent != 0 {
             lines.append(Self(
                 id: .astralFind,
-                label: "Astral finds",
+                label: "Astral drop rates",
                 value: "\(bonus.astralChanceBonusPercent)%",
                 resource: nil,
             ))
@@ -32,12 +34,26 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         if bonus.goldFindPercent != 0 {
             lines.append(Self(
                 id: .goldFind,
-                label: "Gold finds",
+                label: "Gold found",
                 value: "\(bonus.goldFindPercent)%",
                 resource: nil,
             ))
         }
-        if let production = tier.production {
+        if bonus.goldFindFlat > 0 {
+            lines.append(Self(id: .goldFind, label: "Gold found", value: "\(bonus.goldFindFlat)", resource: nil))
+        }
+        if bonus.experienceBonus > 0 {
+            lines.append(Self(id: .experience, label: "Experience", value: "\(bonus.experienceBonus)", resource: nil))
+        }
+        if bonus.gemsFindBonus > 0 {
+            lines.append(Self(
+                id: .gemsFind,
+                label: "Gems in encounter rewards containing Gems",
+                value: "\(bonus.gemsFindBonus)",
+                resource: nil,
+            ))
+        }
+        for production in tier.production {
             lines.append(Self(
                 id: .production(production.resource),
                 label: production.resource.displayName,
@@ -52,7 +68,13 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         let label = label(for: modifier)
         let value = modifier.numericValue * (modifier.isPercent ? 100 : 1)
         let formatted = value.formatted(.number.precision(.fractionLength(0 ... 2)))
-        let scopedLabel = companion ? "Companion \(label)" : label
+        let scopedLabel: String = if companion, !label.hasPrefix("Companion ") {
+            "Companion \(label)"
+        } else if !companion, case .maximumHealth = modifier {
+            "Hero \(label)"
+        } else {
+            label
+        }
         return Self(
             id: .modifier(modifier.mapInt { _ in 0 }.mapPercent { _ in 0 }, companion: companion),
             label: scopedLabel,
@@ -63,7 +85,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
 
     public var displayValue: String {
         if resource != nil {
-            return value
+            return "+" + value
         }
         if case let .modifier(modifier, _) = id {
             switch modifier {
@@ -77,10 +99,12 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
 
     private static func label(for modifier: AffixModifier) -> String {
         switch modifier {
+        case .criticalDamage: "Critical damage"
+        case .manaRestored: "Mana restored"
         case .maximumHealth: "Health"
         case .maximumMana: "Mana"
-        case let .damageDealt(keyword, _): "\(keyword.rawValue) damage dealt"
-        case .poisonDamageDealtPercent: "Poison damage dealt"
+        case let .damageDealt(keyword, _): "\(keyword.rawValue) damage"
+        case .poisonDamageDealtPercent: "Poison damage"
         case .healthRestored: "Health restored"
         case .leechGainedPercent: "Leech gained"
         case .leechHealing: "Leech healing"
@@ -96,7 +120,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case .incomingDamageReductionPercent: "Party damage taken"
         case .dodgeChanceBonus: "Dodge"
         case .rangedDamageDealt: "Bow and Crossbow damage"
-        case .maximumManaPercent: "Maximum Mana"
+        case .maximumManaPercent: "Mana"
         }
     }
 }

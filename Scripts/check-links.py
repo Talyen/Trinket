@@ -11,6 +11,7 @@ from urllib.parse import unquote
 
 from internal.markdown import heading_slugs, unfenced_lines
 from internal.cli import ROOT
+from internal.doc_diagnostics import report_failures
 SKIP_PARTS = {".git", ".DerivedData", ".tools", ".build", "Generated", "BalanceSweepReports"}
 LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 
@@ -109,9 +110,7 @@ def main() -> int:
     files = markdown_files()
     failures = broken_links(files)
     if failures:
-        print("Documentation link checks failed:", file=sys.stderr)
-        for failure in failures:
-            print(f"- {failure}", file=sys.stderr)
+        report_failures("Documentation link checks failed:", failures, root=ROOT)
         return 1
     print(f"Documentation links passed ({len(files)} Markdown files).")
     return 0

@@ -127,10 +127,11 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
             let activeTier = projected.tier(for: nodeID)
             guard activeTier > 0,
                   let definition = GameContent.homesteadNode(matching: nodeID),
-                  let production = definition.tier(activeTier)?.production,
-                  production.quantity > 0
+                  let tier = definition.tier(activeTier)
             else { continue }
-            rates[production.resource, default: 0] += Double(production.quantity) / Self.secondsPerDay
+            for production in tier.production where production.quantity > 0 {
+                rates[production.resource, default: 0] += Double(production.quantity) / Self.secondsPerDay
+            }
         }
 
         var soonest: TimeInterval?
@@ -204,21 +205,22 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
             let activeTier = tier(for: nodeID)
             guard activeTier > 0,
                   let definition = GameContent.homesteadNode(matching: nodeID),
-                  let production = definition.tier(activeTier)?.production,
-                  production.quantity > 0
+                  let tier = definition.tier(activeTier)
             else { continue }
 
-            let pending = pendingProduction[production.resource, default: 0]
-            let generated = Double(production.quantity) * elapsed / Self.secondsPerDay
-            if production.resource == .gold {
-                let capacity = Double(PlayerRosterState.maxGoldBalance)
-                    - Double(balance(for: .gold, roster: roster))
-                    - pending
-                guard capacity > 0 else { continue }
-                pendingProduction[.gold] = pending + min(capacity, generated)
-                continue
+            for production in tier.production where production.quantity > 0 {
+                let pending = pendingProduction[production.resource, default: 0]
+                let generated = Double(production.quantity) * elapsed / Self.secondsPerDay
+                if production.resource == .gold {
+                    let capacity = Double(PlayerRosterState.maxGoldBalance)
+                        - Double(balance(for: .gold, roster: roster))
+                        - pending
+                    guard capacity > 0 else { continue }
+                    pendingProduction[.gold] = pending + min(capacity, generated)
+                    continue
+                }
+                pendingProduction[production.resource] = pending + generated
             }
-            pendingProduction[production.resource] = pending + generated
         }
         lastProductionAt = date
     }

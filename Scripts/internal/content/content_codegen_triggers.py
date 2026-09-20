@@ -18,13 +18,21 @@ from internal.cli import read_json
 from internal.content.common import GENERATED_DIR, write_if_changed
 
 
-TRIGGER_FAMILY_SCHEMA = Path(__file__).resolve().parent / "trigger_family_schema.json"
+TRIGGER_FAMILY_SCHEMA = Path(__file__).resolve().parent / "trigger_families" / "index.json"
 
 
 @functools.cache
 def _trigger_families() -> list:
     payload = read_json(TRIGGER_FAMILY_SCHEMA)
-    families = payload["families"]
+    names = payload["families"]
+    if len(names) != len(set(names)) or any(Path(name).name != name or not name.endswith(".json") or name == "index.json" for name in names):
+        raise ValueError("Trigger family index must contain unique JSON basenames")
+    families = [read_json(TRIGGER_FAMILY_SCHEMA.parent / name) for name in names]
+    family_names = [family["family"] for family in families]
+    stems = [family["file_stem"] for family in families]
+    fields = [field["name"] for family in families for field in family["fields"]]
+    if any(len(values) != len(set(values)) for values in (family_names, stems, fields)):
+        raise ValueError("Duplicate trigger family, output stem, or field")
     valid_types = {"Int", "Bool", "Double", "Keyword?", "[Int]"}
     valid_merges = {"add", "or", "max", "mul", "add_excess", "coalesce", "union"}
     for family in families:
@@ -280,9 +288,8 @@ def _validate_trigger_value(field: str, raw_value: str, row_id: str) -> None:
                 ) from error
 
 
-def triggers_swift(raw: str, row_id: str = "") -> str:
-    field_group, group_order, family_types = _trigger_schema_info()
-    known_fields = set(field_group)
+def parse_trigger_values(raw: str, row_id: str = "") -> dict[str, str]:
+    known_fields = set(_trigger_field_types())
     label = row_id or "triggers"
     seen_fields: dict[str, str] = {}
     values: dict[str, str] = {}
@@ -312,6 +319,12 @@ def triggers_swift(raw: str, row_id: str = "") -> str:
         values.update(resolved)
     for field, raw_value in values.items():
         _validate_trigger_value(field, raw_value, label)
+    return values
+
+
+def triggers_swift(raw: str, row_id: str = "") -> str:
+    field_group, group_order, family_types = _trigger_schema_info()
+    values = parse_trigger_values(raw, row_id)
     grouped: dict[str, list[str]] = {g: [] for g in group_order}
     for label in values:
         try:

@@ -33,17 +33,24 @@ KEBAB_IDENTIFIER = re.compile(rf"^{_KEBAB_BODY}$")
 SNAKE_IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 
 
+def read_tsv_records(path: Path) -> list[tuple[int, tuple[str, ...]]]:
+    """Shared TSV rules with physical row starts for inspection diagnostics."""
+    rows = []
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.reader(handle, delimiter="\t")
+        start = 1
+        for fields in reader:
+            line = start
+            start = reader.line_num + 1
+            if not fields or (len(fields) == 1 and not fields[0]) or fields[0].startswith("#"):
+                continue
+            rows.append((line, tuple(fields)))
+    return rows
+
+
 @functools.cache
 def _read_tsv_cached(path: Path) -> tuple[tuple[str, ...], ...]:
-    rows: list[tuple[str, ...]] = []
-    with path.open(newline="", encoding="utf-8") as handle:
-        for fields in csv.reader(handle, delimiter="\t"):
-            if not fields or (len(fields) == 1 and not fields[0]):
-                continue
-            if fields[0].startswith("#"):
-                continue
-            rows.append(tuple(fields))
-    return tuple(rows)
+    return tuple(fields for _, fields in read_tsv_records(path))
 
 
 def read_tsv(path: Path) -> list[list[str]]:

@@ -37,9 +37,13 @@ Reuse unchanged guidance already present in context; reread when changed or no
 longer available. Reroute when scope crosses owners and read newly applicable
 material. Use `--working-tree --allow-broad-scope` only for intentional whole-tree work.
 
-For unknown owners or broad concepts, use filename-only `rg -l`/`rg --files` or
-`python3 Scripts/agent-search.py <pattern> --scope <owner>`. Inspect matching
-content only after narrowing paths.
+For unknown owners or broad concepts, start with filename-only `rg --files` or
+`python3 Scripts/agent-search.py <pattern> --scope <owner>`. Use content `rg` only
+after narrowing files. Read documentation sections with
+`python3 Scripts/agent-read.py 'path.md#heading'`; use `--outline` for headings
+or Swift/Python declaration hints.
+Review with `python3 Scripts/agent-diff.py --paths <file...>`; follow all relevant
+pages before editing overlapping changes. Use `--full` only for intentional unbounded output.
 Follow relevant callers, tests, and configuration across owners. Load linked material only
 for its concern; generated catalogs/logs need targeted lookups. See
 [context reading examples](Docs/AgentContext/README.md). Use an execution plan only
