@@ -38,10 +38,7 @@ public enum TrinketMotion: Sendable {
         /// Deliberately tighter than `Content.entranceStagger`: reward rows
         /// reveal in quick succession, content entrances breathe more.
         public static let entranceStagger: TimeInterval = 0.06
-        public static let collectionDuration: TimeInterval = 0.35
-        public static let collectionPulseScale: CGFloat = 1.025
-        public static let cardCollectionPopScale: CGFloat = 1.05
-        public static let collectionPulse: Animation = .easeInOut(duration: collectionDuration / 2)
+        public static let collectionPulse: Animation = .easeInOut(duration: TrinketMotion.Screen.crossfadeDuration / 2)
 
         public static let entranceDelay: TimeInterval = 0.08
         public static let revealDuration: TimeInterval = 0.18

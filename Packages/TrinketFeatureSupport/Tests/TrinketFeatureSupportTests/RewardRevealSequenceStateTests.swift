@@ -93,7 +93,7 @@ struct RewardRevealSequenceStateTests {
         #expect(await waitUntil { clock.isSleeping })
         #expect(state.isCollected)
         #expect(exits == 0)
-        #expect(clock.requestedDurations == [.milliseconds(350)])
+        #expect(clock.requestedDurations == [.milliseconds(200)])
         clock.advance()
         #expect(await waitUntil { exits == 1 })
         #expect(!clock.isSleeping)

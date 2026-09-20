@@ -62,25 +62,25 @@ struct CombatFeedbackBridgeSerializedTests {
     @Test @MainActor func `evicted stationary results cannot reappear after a publication or host remount`() {
         CombatFeedbackChipBridge.debugReset()
         defer { CombatFeedbackChipBridge.debugReset() }
-        let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         CombatFeedbackChipBridge.register(view, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
         let now = Date.now
-        var first = makeTestItem(id: 1, targetID: "hero", amount: 10, availableAt: now)
-        first.usesStationaryExperiment = true
-        first.reservedDigitCount = 3
-        var second = makeTestItem(id: 2, targetID: "hero", amount: 20, availableAt: now)
-        second.usesStationaryExperiment = true
-        second.reservedDigitCount = 3
+        let items = (1 ... 6).map { id in
+            var item = makeTestItem(id: id, targetID: "hero", amount: 10, availableAt: now)
+            item.usesStationaryExperiment = true
+            item.reservedDigitCount = 3
+            return item
+        }
         var evicted: Set<Int> = []
-        CombatFeedbackChipBridge.publish(.replace([first, second]), onEvict: { evicted.formUnion($0) })
+        CombatFeedbackChipBridge.publish(.replace(items), onEvict: { evicted.formUnion($0) })
         #expect(evicted == [1])
-        #expect(view.debugVisibleChipIDs == [2])
-        CombatFeedbackChipBridge.publish(.replace([first, second]))
-        #expect(view.debugVisibleChipIDs == [2])
+        #expect(view.debugVisibleChipIDs == [2, 3, 4, 5, 6])
+        CombatFeedbackChipBridge.publish(.replace(items))
+        #expect(view.debugVisibleChipIDs == [2, 3, 4, 5, 6])
         CombatFeedbackChipBridge.unregister(view)
-        let replacement = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        let replacement = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         CombatFeedbackChipBridge.register(replacement, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
-        #expect(replacement.debugVisibleChipIDs == [2])
+        #expect(replacement.debugVisibleChipIDs == [2, 3, 4, 5, 6])
         CombatFeedbackChipBridge.publish(.reset)
         #expect(replacement.debugVisibleChipIDs.isEmpty)
     }

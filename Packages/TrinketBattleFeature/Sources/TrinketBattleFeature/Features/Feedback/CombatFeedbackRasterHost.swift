@@ -436,7 +436,10 @@ private extension CombatFeedbackRasterUIView {
         stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
         var evicted: Set<Int> = []
         for chip in orderedLayers {
-            if let result = stationaryLayout.place(id: chip.item.id, size: chip.reservationSize) {
+            if let result = stationaryLayout.place(id: chip.item.id, size: CGSize(
+                width: chip.reservationSize.width * StationaryFeedbackLayout.sizeScale,
+                height: chip.reservationSize.height * StationaryFeedbackLayout.sizeScale,
+            )) {
                 evicted.formUnion(result.evicted)
             }
         }

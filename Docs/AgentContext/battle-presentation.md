@@ -121,19 +121,30 @@ updates do not release or restart the hold. Unattended feedback lasts 0.95 secon
 Options → Developer → Stationary Feedback Experiment defaults on in DEBUG,
 persists locally, and applies at the next battle activation or Preview Lab entry.
 Release builds and disabled experiments retain the current behavior above.
-All existing floating result kinds use a fixed-center 2× → 1× cubic ease-out
-entrance over 0.25 seconds, then a smooth 0.25-second fade without rising.
-A single white gradient glint crosses glyph-only cached masks during entrance;
+All existing floating result kinds render icons and numbers 20% larger. They pop
+from settled size to 2.3× settled size over 0.07 seconds with cubic ease-out,
+smoothly settle to 2× over 0.09 seconds, then hold for 0.50 seconds. They shrink
+with cubic ease-out over 0.35 seconds before a smooth 0.25-second fade without
+rising. Their center stays fixed throughout the 1.26-second lifetime.
+A single white gradient glint crosses glyph-only cached masks over the first 0.25 seconds;
 keyword color, dark outlines, and critical emphasis remain intact.
 
-Place at the nearest available portrait-center position with an 8-point inset
-and 6-point gap, testing settled rectangles. Entrance overlap/clipping is allowed.
+Cluster up to five results around the portrait center: center, above-left,
+below-right, above-right, then below-left. Offset by 0.6× the fitted settled
+height horizontally and 0.9× vertically, clamping settled rectangles to an
+8-point portrait inset. Overlap is allowed throughout the animation; centers
+remain at least half the smaller settled height apart. Newer results draw on top.
 Numeric reservations use widest-digit widths with one extra digit; wider updates
 emit separately. Existing positions and animation clocks never restart or reflow
 when another result arrives or expires. Matching semantic effects can merge across
-actions only before fade starts, without extending lifetime. Full portraits replace
-the oldest results until the new one fits; evicted results cannot receive merges
+actions only before fade starts at 1.01 seconds, without extending lifetime. Full clusters or clamped positions replace
+the oldest results until a distinct center is available; evicted results cannot receive merges
 or reappear. Resizing a portrait recomputes placements for its new bounds.
+
+Merges that increase direct, critical, or periodic damage replay the 0.25-second
+white glint and add a 10% size pulse that settles over 0.18 seconds. Repeated merges
+restart this bounded pulse rather than stacking it; the original pop, hold, shrink,
+fade, position, and expiration clocks stay unchanged. Other merges do not pulse.
 
 The existing raster host, bridge, and shared motion clock own rendering. Masks
 are cached and included in pool byte diagnostics; per-frame work changes layer

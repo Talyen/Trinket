@@ -53,7 +53,7 @@ final class RewardCollectionState {
             feedbackTrigger &+= 1
             task = Task { @MainActor [weak self, clock] in
                 do {
-                    try await clock.sleep(for: .seconds(TrinketMotion.Reward.collectionDuration))
+                    try await clock.sleep(for: .seconds(TrinketMotion.Screen.crossfadeDuration))
                     guard !Task.isCancelled else { return }
                     self?.finish()
                 } catch {}
