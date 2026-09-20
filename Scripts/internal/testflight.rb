@@ -127,7 +127,7 @@ module TrinketTestFlight
     def start
       if @options[:resume]
         @run_dir = File.realpath(@options[:resume])
-        expected_root = File.join(@root, '.DerivedData/testflight') + '/'
+        expected_root = File.realpath(File.join(@root, '.DerivedData/testflight')) + '/'
         raise Failure, 'Resume requires a run directory under this checkout’s .DerivedData/testflight/.' unless @run_dir.start_with?(expected_root)
         @receipt = JSON.parse(File.read(File.join(@run_dir, 'receipt.json')))
         raise Failure, 'Unsupported deployment receipt.' unless @receipt['schema'] == 1

@@ -149,7 +149,10 @@ begin
     assert(deploy.receipt['stage'] == 'ready')
     assert(deploy.commands.first[1]['TRINKET_ISOLATE'] == '1')
     assert(portal.calls == [:upload, :distribute])
-    resumed = factory.call(resume: deploy.run_dir)
+    resume_path = deploy.run_dir
+    alternate_case_path = deploy.run_dir.sub('/.DerivedData/testflight/', '/.DerivedData/TestFlight/')
+    resume_path = alternate_case_path if File.exist?(alternate_case_path)
+    resumed = factory.call(resume: resume_path)
     resumed.dirty = true # Completed artifacts are independent of current source.
     resumed.execute
     assert(resumed.commands.empty?)
