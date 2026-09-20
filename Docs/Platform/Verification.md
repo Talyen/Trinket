@@ -33,6 +33,13 @@ route; rerun it when requested work or an encountered fix crosses into another
 owner. The final path list is the union of requested work and every explicitly
 adopted fix, not the task's initial path list.
 
+For shared enum or API reviews, include relevant committed changes in the
+comparison scope and follow downstream consumers beyond the dirty files. Run
+an early isolated app compilation (`TRINKET_ISOLATE=1 ./Scripts/test.sh unit --app-only`)
+when package checks do not compile those consumers; Swift compilation catches
+exhaustive-switch failures in unchanged code. Whole-tree dirty-path routing
+alone does not cover relevant committed changes.
+
 Markdown routes to documentation checks even beneath script or manifest roots.
 For executable script changes, handoff passes the same path scope to the script
 runner. Registered leaf families run their owning and consumer regressions;

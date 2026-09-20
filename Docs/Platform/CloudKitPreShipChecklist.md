@@ -31,6 +31,28 @@ Store Connect record is **Trinket: Heroes & Companions**.
 Banking/tax completion and Full Game purchase testing are separate StoreKit work
 and do not block CloudKit development. See [Purchases.md](Purchases.md).
 
+## Remaining live verification
+
+The CloudKit implementation plan is closed with verification gaps; closure does
+not waive the readiness gates below or enable wider distribution. Complete-save
+sync and internal Production testing are implemented. Historical bidirectional
+sync evidence does not establish all account and failure scenarios on the current
+build. Build-specific outcomes remain in the archived plan's Git history and
+release handoffs.
+
+Before wider enablement, obtain the missing live evidence for account switching,
+sign-out/restricted accounts, network loss/reconnect, quota failures, populated-save
+upgrade/rollback, imported starter-choice navigation, Production reset with an
+offline device, and concurrent/interrupted Homestead claims and upgrades. Isolated
+transport tests cover relevant invariants but do not replace these device checks.
+Reconcile player-facing disclosures after the gates pass.
+
+Resume this validation when suitable test accounts, controllable devices, and a
+named cloud-enabled build are available, or before changing the distributed
+default or submitting with sync. A new TestFlight build follows the clean-checkout
+and deployment prerequisites in [Release](Release.md#local-testflight-deployment).
+Until the evidence is obtained, ordinary builds retain their local-only default.
+
 ## Required readiness gates
 
 Complete these stages in order. Source and isolated test checks are agent-checkable;

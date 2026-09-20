@@ -147,6 +147,20 @@ then repeat with `TEST_RUNNER_TRINKET_STATIONARY_FEEDBACK=1`. The UI test record
 the selected option in the report's app launch arguments; both runs retain the
 same fixture, production interactions, and measurement window.
 
+### Verification gap
+
+The ability-strategy implementation is complete, but visual inspection of the
+icon/number feedback and rapid card play in both standard and stationary
+presentation modes remains unverified as of September 20, 2026 (UTC). Package
+and BattleFlow UI checks passed; they do not establish visual legibility or
+animation behavior. Device Hub inspection returned `timeoutReached`, including
+after a Computer Use runtime reset and successful managed app launch.
+
+When interactive inspection becomes available, or when changing this feedback,
+check both modes under rapid card play and address any reproduced defect. This
+is a retained verification gap, not a confirmed rendering defect or an open
+implementation commitment.
+
 ## Display work lifecycle
 
 `BattleCommandState` owns command readiness and suspension. Visual tasks and

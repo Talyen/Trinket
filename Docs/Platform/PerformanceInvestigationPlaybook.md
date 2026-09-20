@@ -277,6 +277,32 @@ Simulator evidence does not establish physical-device performance. Before claimi
 
 MetricKit `MXAnimationMetric.hitchTimeRatio` remains production trend evidence. It complements—and does not replace—reproducible local scenarios and Instruments traces.
 
+### Unresolved device evidence
+
+The September 2026 artwork, remediation, and scroll investigations are closed
+with verification limits. Bounded artwork preparation and equipment search fixes
+are implemented; Simulator samples did not justify further model, container, or
+combat rewrites. Callback threshold findings remain observations, not resolved
+shipping-device regressions.
+
+As of September 20 (UTC), launch/first-use artwork, equipment and shared browsing,
+save/reward returns, and rapid combat still lack controlled device hitch evidence.
+Refresh cadence, thermal/Low Power Mode behavior, cold/settled/revisit memory, and
+background/foreground behavior also remain unverified. On iPhone 14 Pro / iOS
+27.0 (24A437), Xcode 27A266a rejected attachment to the confirmed Trinket process.
+A device-wide Animation Hitches recording disconnected after 1.45 seconds;
+a device-wide Time Profiler recording completed, but contained no controlled
+interaction or before/after comparison. Device Hub Computer Use timed out.
+Local diagnostic artifacts are under
+`.DerivedData/PerformanceResults/plan-completion-device/`; their availability
+must be checked before reuse.
+
+Revisit when a player-visible problem is reproducible on device or working
+interaction/profiling tools permit the missing measurements. Use the investigation
+loop above to establish attribution before choosing a fix. Closing the plans does
+not establish a performance gain, justify visual reductions, or change artwork
+budgets; a CPU capture alone does not establish rendered-frame smoothness.
+
 ## Memory and energy
 
 Use measured device evidence for memory, battery, thermal, and lifecycle regressions.
