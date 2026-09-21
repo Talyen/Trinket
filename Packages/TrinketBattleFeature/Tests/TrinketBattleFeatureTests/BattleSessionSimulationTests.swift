@@ -152,7 +152,8 @@ struct BattleSessionSimulationTests {
         #expect(rejected == .rejected)
     }
 
-    @Test func `presentation projection tracks simulation without exposing log storage`() throws {
+    @Test(arguments: [false, true])
+    func `presentation projection survives exit and replacement`(restart: Bool) throws {
         let session = BattleSessionTestSupport.makeConfiguredSession(
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [.slash]),
         )
@@ -183,18 +184,30 @@ struct BattleSessionSimulationTests {
         let outgoingHand = outgoingPresentation.hand
         #expect(!outgoingHand.isEmpty)
 
-        session.endBattle()
-
-        #expect(session.activeBattle == nil)
+        if restart {
+            let replacementHero = try #require(session.activeBattle?.hero.combatant)
+            let replacementCompanion = try #require(session.activeBattle?.companion.combatant)
+            let replacement = BattleRunConfigurationTestSupport.make(
+                hero: replacementHero,
+                companion: replacementCompanion,
+            ).configuration
+            #expect(session.restart(replacement))
+            #expect(session.activeBattle?.id == replacement.id)
+            #expect(session.presentation.configurationID == replacement.id)
+            #expect(!session.presentation.hand.isEmpty)
+        } else {
+            session.endBattle()
+            #expect(session.activeBattle == nil)
+            #expect(session.presentation.configurationID == nil)
+            #expect(session.presentation.hand.isEmpty)
+            #expect(session.presentation.hero == nil)
+            #expect(session.presentation.companion == nil)
+            #expect(session.presentation.enemy == nil)
+        }
         #expect(session.presentation !== outgoingPresentation)
         #expect(session.spectacle !== outgoingSpectacle)
         #expect(session.spectacle.outcomePresentation == .battle)
         #expect(outgoingSpectacle.outcomePresentation == retiredOutcome)
-        #expect(session.presentation.configurationID == nil)
-        #expect(session.presentation.hand.isEmpty)
-        #expect(session.presentation.hero == nil)
-        #expect(session.presentation.companion == nil)
-        #expect(session.presentation.enemy == nil)
         #expect(outgoingPresentation.configurationID == configurationID)
         #expect(outgoingPresentation.hand == outgoingHand)
         #expect(outgoingPresentation.hero == outgoingHero)

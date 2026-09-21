@@ -103,7 +103,9 @@ struct BattleActionPresentationTests {
         #expect(session.playCard(cardID: second.id, at: nextDate) == .committed)
         let beat = try #require(session.feedback.scheduledActions.last)
         #expect(beat.impactAt > nextDate)
-        #expect(session.feedback.activeItems.contains { $0.actionGroupID == beat.id && $0.availableAt == nextDate })
+        let expectedIDs = Set(CombatFeedbackPresenter.makeItems(from: beat.events, at: nextDate).flatMap(\.sourceEventIDs))
+        #expect(!expectedIDs.isEmpty)
+        #expect(expectedIDs.isSubset(of: Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))))
         if ability == .heal {
             #expect(session.feedback.hitReactionsByTargetID[state.hero.id]?.kind == .heal)
         }
@@ -182,7 +184,9 @@ struct BattleActionPresentationTests {
         }
         #expect(hits.count == 2)
         #expect(Set(hits).count == 2)
-        #expect(session.feedback.activeItems.last?.actionGroupID == beats[1].id)
+        let expectedIDs = Set(beats.flatMap { CombatFeedbackPresenter.makeItems(from: $0.events, at: date) }.flatMap(\.sourceEventIDs))
+        #expect(!expectedIDs.isEmpty)
+        #expect(expectedIDs.isSubset(of: Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))))
     }
 
     @Test func `automatic cards share reveal and attack timing`() throws {
@@ -372,7 +376,9 @@ struct BattleActionPresentationTests {
         }
         #expect(delivered == [2, 1])
     }
+}
 
+extension BattleActionPresentationTests {
     private func installAttacks(in session: BattleSession) throws -> [BattleCard] {
         var state = try #require(session.engineState)
         state.hand = BattleHand()
@@ -383,9 +389,7 @@ struct BattleActionPresentationTests {
         session.feedback.clear()
         return cards
     }
-}
 
-extension BattleActionPresentationTests {
     @Test(arguments: [Ability.avatarOfJustice, Ability(
         id: "recurring-recoil", name: "Recurring", tier: .skill,
         targetedEffects: [TargetedEffect(.recurringDamage(.burn, 6, 2))],

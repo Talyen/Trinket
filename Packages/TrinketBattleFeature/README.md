@@ -70,11 +70,10 @@ and cancellation clear previews; a late cancellation cannot erase a newer cue.
 
 ## UIKit feedback island
 
-The release presentation groups combat results by originating card/action and recipient. Matching damage
-types and actual healing update in place; critical contributions accent their
-typed total.
-The DEBUG stationary-feedback option provides an alternative for comparison.
-Layout, typography, motion, and retiring-group behavior follow the
+All builds use Revised Short Rise for central combat results and smaller,
+independent lower-corner feeds for beneficial and harmful status changes.
+Matching effects consolidate across actions; critical contributions accent their
+typed total. Layout, typography, motion, and merge lifetimes follow the
 [floating combat feedback contract](../../Docs/AgentContext/battle-presentation.md#floating-combat-feedback).
 
 Only direct card benefits, damage, healing, fully blocked hits, Dodge, control
@@ -84,7 +83,7 @@ and pending talent benefits remain inspectable in the combatant detail sheet;
 there are no portrait status counters or gain strips. Engine event origin and
 feedback-group identity drive this policy, never display names.
 
-Combat floating chips use always-mounted UIKit hosts (`CombatFeedbackRasterHost`,
+Combat floating chips use artwork-mounted UIKit hosts (`CombatFeedbackRasterHost`,
 `CombatFeedbackChipBridge`, glyph atlas / composers) so chip publishes skip SwiftUI
 battle-chrome invalidation. This is an intentional performance exception to the root
 “prefer SwiftUI” guardrail.

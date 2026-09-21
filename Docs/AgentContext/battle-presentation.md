@@ -6,9 +6,10 @@ Use with the [common runtime contract](battle-runtime.md) for display lifetime, 
 
 (Battle-side view; Play side: [ui-performance.md](ui-performance.md).)
 `BattleView` captures its combat projection and spectacle references when composed.
-Ending Battle cancels their work and gives the session fresh display objects instead
-of clearing the objects held by outgoing views. The runtime is empty immediately,
-while the retiring view keeps its last hand, combatants, and outcome until hidden.
+Ending or restarting Battle cancels their work and gives the session fresh display objects instead
+of clearing the objects held by outgoing views. The runtime ends or replaces the
+run immediately, while the retiring view keeps its last hand, combatants, and
+outcome until hidden.
 Retiring views must not look up replacement display objects from the session. The captured spectacle is supplied through the view environment,
 including ultimate overlays. Each spectacle owns its cinematic players; they
 release when that presentation retires, so ending a run cannot empty a visible
@@ -101,81 +102,50 @@ zero beside actual feedback. Healing combines restored Health and overflow into
 one number, including at full Health.
 
 
-Each result uses the same typography and size curve whether alone or alongside
-other results on that combatant. Fit an individually oversized result against
-the artwork; never shrink the group or introduce smaller secondary typography
-because more results are present. Arrange results in presentation order and wrap
-at their peak size. The group shares pop, settling, rise, update pulse, and fade;
-keyword colors and critical emphasis remain specific to each result.
+All builds use Revised Short Rise: a 0.05-second pop, brief peak/settle/hold,
+40-point cubic ease-out rise, and a 0.24-second fade ending at 0.74 seconds.
+There is no animation picker or Stationary Feedback Experiment setting.
 
-After the 0.14-second pop settles, groups hold their size and position for 0.20
-seconds before rising and shrinking within the combatant artwork, allowing slight
-edge clipping. A new group on the same combatant immediately releases any remaining
-stationary hold, including during pop, while scale continues naturally. Already-rising
-groups keep their trajectory during the 0.15-second handoff fade; incoming results
-must not reposition outgoing feedback. Other combatants and same-action merge
-updates do not release or restart the hold. Unattended feedback lasts 0.95 seconds.
+Each portrait has three independent feedback regions. Damage, DoT ticks, healing,
+Block absorption, and Dodge stay centered. Buffs, cleanse, and resource gains
+appear lower left; debuffs, control, purge, resource losses, and Death's Door
+appear lower right, interpreted from the recipient's perspective. DoT applications
+are status feedback; actual DoT damage stays centered. Existing event visibility
+rules remain unchanged. Lower status feedback uses 90% of the central size and
+the identical pop, pause, rise, shrink, fade, glint, and merge pulse. Use the same
+portrait-based oversized-label fitting in all three regions; do not force lower
+labels to shrink into a half-width box. Anchor the lower regions above resource
+bars, shifting unusually wide labels inward to retain their size. Preserve icons,
+colors, and critical emphasis.
 
-### Stationary feedback experiment (DEBUG)
+New arrivals push only their own region upward by half the largest fitted peak
+height. Pushes ease out over 0.18 seconds and retarget continuously, without a
+cumulative displacement cap. Newer results draw on top. Expiration never pulls
+surviving labels back down. The spatial fade at the artwork's top edge evicts
+labels permanently once they leave view.
 
-Options → Developer → Stationary Feedback Experiment defaults on in DEBUG,
-persists locally, and applies at the next battle activation or Preview Lab entry.
-Release builds and disabled experiments retain the current behavior above.
-All existing floating result kinds use a base size 20% larger than the standard
-feedback. They pop from 0.75× to 1.9× base size over 0.14 seconds with cubic
-ease-out, hold at the peak for 0.15 seconds, then shrink to 1.3× over 1.10 seconds
-with quadratic ease-in. The smooth 0.50-second fade overlaps the end of the
-shrink, finishing together at 1.39 seconds. The pop and brief hold stay anchored;
-during the shrink, feedback drifts upward by 32 points with quadratic ease-in.
-A single white gradient glint crosses glyph-only cached masks over the first 0.45 seconds;
-keyword color, dark outlines, and critical emphasis remain intact.
+Matching semantic effects consolidate across actions before fading begins.
+Reserve one extra numeric digit; wider updates emit separately. Consolidated
+results add 0.12 seconds of visibility, capped at 0.30 seconds beyond the original
+lifetime, without restarting motion. All regions replay a 0.45-second white glyph
+glint and bounded 10% pulse over 0.18 seconds when results consolidate. Critical contributions restart the separate 0.3-second accent halo.
 
-Use one vertical lane centered on the portrait. Each new result appears at the
-center and pushes existing anchors upward by half the largest fitted peak height
-in the lane. Pushes ease out over 0.18 seconds and retarget from their current
-position; size can hold briefly while position responds to a new result.
-Overlaps are allowed and newer results draw on top. Fit base rectangles to an
-8-point portrait inset. Numeric reservations use widest-digit widths with one
-extra digit; wider updates emit separately. Merges do not push the lane.
+Feedback hosts are composed with the artwork inside its attack and hit-reaction
+transforms, including the masked halves of the enemy split/dissolve death effect.
+They are not positioned by fixed battlefield anchors. Remounted death fragments
+replay the bridge's live items using original timestamps and cached rasters.
 
-There is no five-result capacity eviction. Existing results keep their original
-fade and expiration clocks. An additional spatial fade spans the top 40 points
-(or one quarter of a smaller portrait), reaching zero 8 points from the top.
-Only then is the result evicted; it cannot receive merges or reappear after
-publication or host remount. Expiration never pulls surviving results back down.
-Matching semantic effects can merge across actions only before fade starts at
-0.89 seconds, without extending lifetime. Resizing recomputes lane anchors.
-
-Merges that increase direct, critical, or periodic damage replay the 0.45-second
-white glint and add a 10% size pulse that settles over 0.18 seconds. Repeated merges
-restart this bounded pulse rather than stacking it; the original pop, hold, shrink,
-fade, drift, and expiration clocks stay unchanged. Other merges do not pulse.
-
-The existing raster host, bridge, and shared motion clock own rendering. Masks
-are cached and included in pool byte diagnostics; per-frame work changes layer
-properties only. Feedback lifetimes also govern pending outcome timing. Suspension
-freezes experimental labels and resume shifts their original clocks.
-
-For a reproducible A/B capture, run the existing `engine-feedback` and
-`combined-worst-case` scenarios with
-`TEST_RUNNER_TRINKET_STATIONARY_FEEDBACK=0 ./Scripts/performance.sh --scenario engine-feedback --scenario combined-worst-case`,
-then repeat with `TEST_RUNNER_TRINKET_STATIONARY_FEEDBACK=1`. The UI test records
-the selected option in the report's app launch arguments; both runs retain the
-same fixture, production interactions, and measurement window.
+The raster host, bridge, glyph/mask cache, and shared display clock own rendering.
+Prewarm the single production vocabulary including glint masks. Frame updates
+change layer properties only. Feedback expiration participates in outcome timing;
+suspension freezes every region and resume shifts its original clocks.
 
 ### Verification gap
 
-The ability-strategy implementation is complete, but visual inspection of the
-icon/number feedback and rapid card play in both standard and stationary
-presentation modes remains unverified as of September 20, 2026 (UTC). Package
-and BattleFlow UI checks passed; they do not establish visual legibility or
-animation behavior. Device Hub inspection returned `timeoutReached`, including
-after a Computer Use runtime reset and successful managed app launch.
-
-When interactive inspection becomes available, or when changing this feedback,
-check both modes under rapid card play and address any reproduced defect. This
-is a retained verification gap, not a confirmed rendering defect or an open
-implementation commitment.
+Interactive inspection remains blocked by Device Hub Computer Use timeouts.
+Package and UI checks cannot establish visual feel. When inspection is available,
+check central readability and smaller lower-corner status feedback under rapid
+card play, including consolidation, overlap, and portrait clipping.
 
 ## Display work lifecycle
 

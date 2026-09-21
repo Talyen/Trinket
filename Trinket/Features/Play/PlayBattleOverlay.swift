@@ -19,35 +19,20 @@ struct PlayBattleOverlay: View {
     @Environment(\.displayScale) private var displayScale
     @Binding var stageMessage: StageMapMessage?
     @State private var preparedOverlayID: UUID?
+    @State private var preparedBattleView: BattleView?
 
     var body: some View {
         let configuration = battle.overlayBattleConfiguration
         let isActive = battle.activeBattle != nil
         NavigationStack {
             Group {
-                if let configuration, preparedOverlayID == configuration.id {
-                    if let presentationContext = battlePresentationContext(for: configuration) {
-                        BattleView(
-                            configuration: configuration,
-                            presentationContext: presentationContext,
-                            battleSession: battle,
-                            completeVictory: { summary in
-                                battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: true)
-                            },
-                            restartBattle: { [weak play] in
-                                if let message = play?.restartActiveBattle() {
-                                    stageMessage = message
-                                }
-                            },
-                            retreat: { [weak play] in
-                                play?.endBattleReturningToOrigin()
-                            },
-                            performanceScenario: AppEnvironment.shared.battlePerformanceScenario,
+                if let preparedBattleView {
+                    preparedBattleView
+                        .trinketPresentationVisibility(
+                            isActive && preparedOverlayID == configuration?.id,
+                            opacity: 1,
                         )
-                    } else {
-                        Color.clear
-                            .accessibilityHidden(true)
-                    }
+                        .id(preparedOverlayID)
                 } else {
                     Color.clear
                         .accessibilityHidden(true)
@@ -58,13 +43,40 @@ struct PlayBattleOverlay: View {
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
             .toolbarVisibility(.visible, for: .navigationBar)
         }
-        .trinketPresentationVisibility(isActive && preparedOverlayID == configuration?.id)
+        .trinketPresentationVisibility(
+            isActive && preparedOverlayID == configuration?.id,
+            opacity: isActive && preparedBattleView != nil ? 1 : 0,
+        )
         .animation(nil, value: battle.activeBattle?.id)
         .task(id: battlePresentationTaskKey) {
             let key = battlePresentationTaskKey
             await battle.prepareBattlePresentationAssets(displayScale: displayScale)
             guard !Task.isCancelled, key == battlePresentationTaskKey else { return }
-            preparedOverlayID = key.overlayConfigurationID
+            guard let configuration = battle.overlayBattleConfiguration,
+                  let presentationContext = battlePresentationContext(for: configuration) else {
+                preparedBattleView = nil
+                preparedOverlayID = nil
+                return
+            }
+            // Keep the captured outgoing display mounted until its replacement is ready.
+            preparedBattleView = BattleView(
+                configuration: configuration,
+                presentationContext: presentationContext,
+                battleSession: battle,
+                completeVictory: { [battle] summary in
+                    battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: true)
+                },
+                restartBattle: { [weak play, stageMessage = $stageMessage] in
+                    if let message = play?.restartActiveBattle() {
+                        stageMessage.wrappedValue = message
+                    }
+                },
+                retreat: { [weak play] in
+                    play?.endBattleReturningToOrigin()
+                },
+                performanceScenario: AppEnvironment.shared.battlePerformanceScenario,
+            )
+            preparedOverlayID = configuration.id
         }
         .disabled(play.playerSave.isRetryingSaveAction)
     }

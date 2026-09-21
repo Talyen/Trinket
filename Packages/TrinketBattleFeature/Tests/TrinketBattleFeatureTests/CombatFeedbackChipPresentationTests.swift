@@ -62,27 +62,27 @@ struct CombatFeedbackBridgeSerializedTests {
     @Test @MainActor func `evicted stationary results cannot reappear after a publication or host remount`() {
         CombatFeedbackChipBridge.debugReset()
         defer { CombatFeedbackChipBridge.debugReset() }
-        let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
+        let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
         CombatFeedbackChipBridge.register(view, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
         let now = Date.now
-        let items = (1 ... 30).map { id in
+        let items = (1 ... 3).map { id in
             var item = makeTestItem(id: id, targetID: "hero", amount: 10, availableAt: now)
-            item.usesStationaryExperiment = true
             item.reservedDigitCount = 3
+            item.expiresAt = now.addingTimeInterval(CombatFeedbackMotionSampler.lifetime)
             return item
         }
         var evicted: Set<Int> = []
         CombatFeedbackChipBridge.publish(.replace(items), onEvict: { evicted.formUnion($0) })
         #expect(evicted.isEmpty)
-        view.debugTickMotion(at: now.addingTimeInterval(0.3))
+        view.debugTickMotion(at: now.addingTimeInterval(0.65))
         #expect(!evicted.isEmpty)
         let survivingIDs = Set(items.map(\.id)).subtracting(evicted)
-        #expect(survivingIDs.contains(30))
+        #expect(survivingIDs.contains(3))
         #expect(view.debugVisibleChipIDs == survivingIDs)
         CombatFeedbackChipBridge.publish(.replace(items))
         #expect(view.debugVisibleChipIDs == survivingIDs)
         CombatFeedbackChipBridge.unregister(view)
-        let replacement = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
+        let replacement = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
         CombatFeedbackChipBridge.register(replacement, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
         #expect(replacement.debugVisibleChipIDs == survivingIDs)
         CombatFeedbackChipBridge.publish(.reset)
@@ -135,7 +135,7 @@ struct CombatFeedbackBridgeSerializedTests {
 
         let now = Date()
         let heroItem = makeTestItem(id: 10, targetID: "hero", amount: 5, availableAt: now.addingTimeInterval(0.5))
-        let enemyItem = makeTestItem(id: 20, targetID: "enemy", amount: 8, availableAt: now.addingTimeInterval(1.2))
+        let enemyItem = makeTestItem(id: 20, targetID: "enemy", amount: 8, availableAt: now.addingTimeInterval(0.65))
 
         CombatFeedbackChipBridge.publish(.replace([heroItem, enemyItem]))
         #expect(CombatFeedbackChipBridge.debugNextAvailabilityTargetID == "hero")

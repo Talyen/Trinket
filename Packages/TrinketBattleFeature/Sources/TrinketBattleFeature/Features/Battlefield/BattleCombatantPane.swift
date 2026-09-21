@@ -28,6 +28,7 @@ extension View {
 }
 
 struct BattleCombatantPane: View {
+    @Environment(\.displayScale) private var displayScale
     @Environment(BattleSession.self) private var battleSession
     @Environment(BattleSpectacleState.self) private var spectacle
     let combatant: Combatant
@@ -79,14 +80,21 @@ struct BattleCombatantPane: View {
             BattleSliceArtwork {
                 artworkLayer
                     .combatantCardChrome()
+                    .overlay { feedbackLayer }
             }
         } else {
             CombatantStatusEffectPresentation(keyword: isDefeated ? nil : borderAccentKeyword) {
                 artworkLayer
+                    .saturation(isDefeated ? 0 : 1)
+                    .colorMultiply(isDefeated ? .gray : .white)
+                    .overlay { feedbackLayer }
             }
-            .saturation(isDefeated ? 0 : 1)
-            .colorMultiply(isDefeated ? .gray : .white)
         }
+    }
+
+    private var feedbackLayer: some View {
+        CombatFeedbackRasterSlot(combatantID: combatant.id, displayScale: displayScale)
+            .allowsHitTesting(false)
     }
 
     private var isDefeated: Bool {

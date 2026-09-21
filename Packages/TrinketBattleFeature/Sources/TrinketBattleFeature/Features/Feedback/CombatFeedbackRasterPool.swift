@@ -7,7 +7,6 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct CombatFeedbackRasterKey: Hashable {
-    let usesStationaryExperiment: Bool
     let typography: CombatFeedbackTypographyTier
     let presentation: CombatFeedbackChipPresentation
     let layoutDirection: LayoutDirection
@@ -18,7 +17,6 @@ struct CombatFeedbackRasterKey: Hashable {
         layoutDirection: LayoutDirection,
         displayScale: CGFloat,
     ) {
-        usesStationaryExperiment = item.usesStationaryExperiment
         typography = item.feedbackClass.typographyTier
         presentation = item.chipPresentation
         self.layoutDirection = layoutDirection
@@ -167,7 +165,7 @@ final class CombatFeedbackRasterPool {
             feedbackClass: item.feedbackClass,
             layoutDirection: layoutDirection,
             displayScale: scale,
-            needsShineMask: item.usesStationaryExperiment,
+            needsShineMask: true,
         ) else {
             return nil
         }
@@ -251,14 +249,7 @@ final class CombatFeedbackRasterPool {
     private func rasterRequests(
         displayScale: CGFloat,
     ) -> [(CombatFeedbackRasterKey, CombatFeedbackChipComposer.RasterInputs)] {
-        var items = CombatFeedbackClosedVocabulary.orderedChips()
-        #if DEBUG
-        items += items.map { item in
-            var experimental = item
-            experimental.usesStationaryExperiment = true
-            return experimental
-        }
-        #endif
+        let items = CombatFeedbackClosedVocabulary.orderedChips()
         return items.compactMap { item -> (
             CombatFeedbackRasterKey,
             CombatFeedbackChipComposer.RasterInputs,
@@ -269,7 +260,7 @@ final class CombatFeedbackRasterPool {
                       presentation: item.chipPresentation,
                       feedbackClass: item.feedbackClass,
                       displayScale: displayScale,
-                      needsShineMask: item.usesStationaryExperiment,
+                      needsShineMask: true,
                   ) else { return nil }
             return (rasterKey, inputs)
         }

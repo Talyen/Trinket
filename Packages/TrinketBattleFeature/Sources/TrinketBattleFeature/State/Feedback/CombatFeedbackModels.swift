@@ -4,6 +4,10 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
+enum CombatFeedbackRegion: CaseIterable {
+    case impact, benefit, setback
+}
+
 enum CombatFeedbackVisualRole: Equatable {
     case keyword
     case beneficialStatus
@@ -11,7 +15,6 @@ enum CombatFeedbackVisualRole: Equatable {
 }
 
 struct CombatFeedbackItem: Identifiable, Equatable {
-    var usesStationaryExperiment = false
     var reservedDigitCount = 0
     var pausedAt: Date?
     let id: Int
@@ -28,7 +31,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let reactionKind: CombatantHitReactionKind
     var firstScheduledAt: Date
     var lastUpdatedAt: Date?
-    var retiringAt: Date?
     var isCritical: Bool
     var criticalAt: Date?
 
@@ -65,6 +67,32 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         criticalAt = isCritical ? availableAt : nil
     }
 
+    var region: CombatFeedbackRegion {
+        if case .word(.cleanse) = label {
+            return .benefit
+        }
+        if case .word(.purge) = label {
+            return .setback
+        }
+        if case .word(.applied) = label {
+            return .setback
+        }
+        switch visualRole {
+        case .beneficialStatus: return .benefit
+        case .negativeStatus: return .setback
+        case .keyword: break
+        }
+        switch feedbackClass {
+        case .directDamage, .critical, .dot, .heal, .block, .dodge: return .impact
+        case .control, .deathsDoor: return .setback
+        case .buff, .resource:
+            if case let .amount(value, _) = label, value < 0 {
+                return .setback
+            }
+            return .benefit
+        }
+    }
+
     var reactionPriority: Int {
         (isCritical && reactionKind == .damage ? CombatantHitReactionKind.critical : reactionKind).priority
     }
@@ -76,7 +104,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     func scheduled(at date: Date) -> Self {
         var copy = self
         copy.availableAt = date
-        copy.expiresAt = date.addingTimeInterval(BattleMotion.chipDisplayDuration)
+        copy.expiresAt = date.addingTimeInterval(CombatFeedbackMotionSampler.lifetime)
         copy.firstScheduledAt = date
         return copy
     }

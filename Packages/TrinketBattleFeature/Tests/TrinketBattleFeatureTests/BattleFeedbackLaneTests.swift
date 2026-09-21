@@ -106,7 +106,7 @@ struct BattleFeedbackLaneTests {
         for id in 1 ... 2 {
             lane.record(
                 [makeEvent(id: id, kind: .abilityDamage, amount: 1, keyword: .physical)],
-                at: Date.now.addingTimeInterval(-BattleMotion.chipDisplayDuration + 0.05),
+                at: Date.now.addingTimeInterval(-CombatFeedbackMotionSampler.lifetime + 0.05),
             )
             #expect(try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(500)) {
                 removedIDs.contains(id)
@@ -116,7 +116,7 @@ struct BattleFeedbackLaneTests {
         }
         lane.record(
             [makeEvent(id: 3, kind: .abilityDamage, amount: 1, keyword: .physical)],
-            at: Date.now.addingTimeInterval(-BattleMotion.chipDisplayDuration + 0.05),
+            at: Date.now.addingTimeInterval(-CombatFeedbackMotionSampler.lifetime + 0.05),
         )
         let cancelledDeadline = try #require(lane.nextPruneAt)
         lane.release()
@@ -125,62 +125,6 @@ struct BattleFeedbackLaneTests {
         })
         #expect(removedIDs == [1, 2])
         #expect(lane.activeItems.isEmpty)
-    }
-
-    @Test @MainActor func `merges matching queued and visible outcomes without restarting motion`() throws {
-        let lane = BattleFeedbackLane()
-        defer { lane.release() }
-        let start = Date(timeIntervalSince1970: 1000)
-        lane.record([
-            makeEvent(id: 1, kind: .abilityDamage, amount: 4, keyword: .burn),
-            makeEvent(id: 2, kind: .status, amount: 2, keyword: .poison),
-        ], at: start)
-        #expect(lane.activeItems.allSatisfy { $0.availableAt == start })
-        lane.activeItems[0].availableAt = start.addingTimeInterval(0.1)
-        lane.record([makeEvent(id: 3, kind: .status, amount: 3, keyword: .burn)], at: start.addingTimeInterval(0.01))
-        #expect(lane.activeItems.count == 2)
-        #expect(lane.activeItems[0].label == .amount(-7))
-        #expect(lane.activeItems[0].firstScheduledAt == start)
-        lane.record(
-            [makeEvent(id: 4, kind: .abilityDamage, amount: 5, keyword: .burn, isCritical: true)],
-            at: start.addingTimeInterval(0.6),
-        )
-        let merged = try #require(lane.activeItems.first)
-        #expect(merged.id == 1)
-        #expect(merged.label == .amount(-12))
-        #expect(merged.sourceEventIDs == [1, 3, 4])
-        #expect(merged.firstScheduledAt == start)
-        #expect(merged.isCritical)
-        #expect(merged.criticalAt == start.addingTimeInterval(0.6))
-        #expect(lane.activeItems.allSatisfy { $0.expiresAt == start.addingTimeInterval(1.2) })
-        lane.pruneExpired(at: start.addingTimeInterval(1.2))
-        #expect(lane.activeItems.isEmpty)
-        #expect(lane.hitReactionsByTargetID.isEmpty)
-    }
-
-    @Test @MainActor func `rapid cards hand off immediately without merging or accumulating a queue`() throws {
-        let lane = BattleFeedbackLane()
-        defer { lane.release() }
-        let start = Date(timeIntervalSince1970: 1000)
-        lane.record([
-            makeEvent(id: 100, kind: .abilityDamage, amount: 2, keyword: .physical, targetID: "hero"),
-        ], at: start)
-        let hero = try #require(lane.activeItems.first)
-        for id in 1 ... 10 {
-            let date = start.addingTimeInterval(Double(id) * 0.01)
-            lane.record([makeEvent(id: id, kind: .abilityDamage, amount: id, keyword: .burn, actionID: id)], at: date)
-            #expect(lane.activeItems.count(where: { $0.targetID == "enemy" }) <= 2)
-            #expect(lane.activeItems.first { $0.targetID == "hero" } == hero)
-            let latest = try #require(lane.activeItems.last)
-            #expect(latest.availableAt == date)
-            #expect(latest.label == .amount(-id))
-            #expect(latest.retiringAt == nil)
-        }
-        let older = try #require(lane.activeItems.first { $0.targetID == "enemy" })
-        #expect(older.retiringAt == start.addingTimeInterval(0.1))
-        lane.pruneExpired(at: start.addingTimeInterval(0.26))
-        #expect(lane.activeItems.map(\.id) == [100, 10])
-        #expect(lane.hitReactionsByTargetID["enemy"]?.id == 10)
     }
 
     @Test @MainActor func `repeated delivery does not replay sound and expiration preserves celebration`() {

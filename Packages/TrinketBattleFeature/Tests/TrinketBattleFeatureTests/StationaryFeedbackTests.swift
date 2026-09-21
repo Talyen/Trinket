@@ -5,27 +5,8 @@ import Testing
 @testable import TrinketBattleFeature
 
 struct StationaryFeedbackTests {
-    @Test @MainActor func `mode changes are captured at battle activation`() throws {
-        var enabled = false
-        let dependencies = BattleRuntimeDependencies(
-            playSFX: { _ in }, warmSFX: { _, _ in }, hapticsEnabled: { false }, effectsVolume: { 0 },
-            shouldAutoSkipUltimateCinematic: { _, _ in false },
-            stationaryFeedbackExperimentEnabled: { enabled },
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(presentationEnvironment: dependencies)
-        defer { session.endBattle() }
-        #expect(!session.feedback.usesStationaryExperiment)
-        enabled = true
-        #expect(!session.feedback.usesStationaryExperiment)
-        let configuration = try #require(session.activeBattle)
-        #expect(session.restart(configuration))
-        #expect(session.feedback.usesStationaryExperiment)
-        #expect(abs(session.feedback.feedbackLifetime - 1.39) < 0.000001)
-    }
-
     @Test @MainActor func `critical contributions retain emphasis without restarting and targets stay independent`() throws {
         let lane = BattleFeedbackLane()
-        lane.usesStationaryExperiment = true
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         lane.record([event(1, amount: 4)], at: start)
@@ -40,59 +21,8 @@ struct StationaryFeedbackTests {
         #expect(lane.activeItems.count == 2)
     }
 
-    @Test @MainActor func `cross attack merges keep the entrance clock and stop at fade`() throws {
-        let lane = BattleFeedbackLane()
-        lane.usesStationaryExperiment = true
-        defer { lane.release() }
-        let start = Date.now.addingTimeInterval(10)
-        lane.record([event(1, amount: 4)], at: start)
-        lane.record([event(2, amount: 5)], at: start.addingTimeInterval(0.889))
-        let merged = try #require(lane.activeItems.first)
-        #expect(merged.label == .amount(-9))
-        #expect(merged.sourceEventIDs == [1, 2])
-        #expect(merged.firstScheduledAt == start)
-        #expect(merged.expiresAt == start.addingTimeInterval(1.39))
-        #expect(merged.lastUpdatedAt == start.addingTimeInterval(0.889))
-        lane.record([event(3, amount: 6)], at: start.addingTimeInterval(0.89))
-        #expect(lane.activeItems.map(\.label) == [.amount(-9), .amount(-6)])
-        #expect(lane.activeItems.allSatisfy { $0.retiringAt == nil })
-        lane.pruneExpired(at: start.addingTimeInterval(1.34))
-        #expect(lane.activeItems.map(\.id) == [1, 3])
-        lane.pruneExpired(at: start.addingTimeInterval(1.39))
-        #expect(lane.activeItems.map(\.id) == [3])
-    }
-
-    @Test @MainActor func `merged damage pulses and glints without extending or restarting its lifetime`() throws {
-        let lane = BattleFeedbackLane()
-        lane.usesStationaryExperiment = true
-        defer { lane.release() }
-        let start = Date.now.addingTimeInterval(10)
-        lane.record([event(1, amount: 4)], at: start)
-        let original = try #require(lane.activeItems.first)
-        let mergeAt = start.addingTimeInterval(0.4)
-        lane.record([event(2, amount: 5)], at: mergeAt)
-        let merged = try #require(lane.activeItems.first)
-        let pulse = CombatFeedbackMotionSampler.state(for: merged, at: mergeAt)
-        #expect(merged.label == .amount(-9))
-        #expect(merged.firstScheduledAt == original.firstScheduledAt && merged.expiresAt == original.expiresAt)
-        let unmerged = CombatFeedbackMotionSampler.state(for: original, at: mergeAt)
-        #expect(abs(pulse.scale - unmerged.scale * 1.10) < 0.000001 && pulse.shineProgress == 0)
-        #expect(pulse.riseProgress == unmerged.riseProgress)
-        let sweeping = CombatFeedbackMotionSampler.state(for: merged, at: mergeAt.addingTimeInterval(0.3))
-        #expect(sweeping.shineProgress > 0 && sweeping.shineProgress < 1)
-        let recovered = CombatFeedbackMotionSampler.state(for: merged, at: mergeAt.addingTimeInterval(0.5))
-        #expect(recovered == CombatFeedbackMotionSampler.state(for: original, at: mergeAt.addingTimeInterval(0.5)))
-        let pausedAt = mergeAt.addingTimeInterval(0.05)
-        let beforePause = CombatFeedbackMotionSampler.state(for: merged, at: pausedAt)
-        lane.setSuspended(true, at: pausedAt)
-        lane.setSuspended(false, at: pausedAt.addingTimeInterval(20))
-        let resumed = try #require(lane.activeItems.first)
-        #expect(CombatFeedbackMotionSampler.state(for: resumed, at: pausedAt.addingTimeInterval(20)) == beforePause)
-    }
-
     @Test @MainActor func `reserved digit overflow and visual eviction emit a new amount`() {
         let lane = BattleFeedbackLane()
-        lane.usesStationaryExperiment = true
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         lane.record([event(1, amount: 9)], at: start)
@@ -106,46 +36,7 @@ struct StationaryFeedbackTests {
         #expect(lane.activeItems.flatMap(\.sourceEventIDs) == [1, 2, 3, 4])
     }
 
-    @Test @MainActor func `stationary motion has exact boundaries and survives suspension`() throws {
-        let lane = BattleFeedbackLane()
-        lane.usesStationaryExperiment = true
-        defer { lane.release() }
-        let start = Date.now.addingTimeInterval(10)
-        lane.record([event(1, amount: 4)], at: start)
-        let item = try #require(lane.activeItems.first)
-        let initial = CombatFeedbackMotionSampler.state(for: item, at: start)
-        #expect(abs(initial.scale - 0.9) < 0.000001 && initial.opacity == 1 && initial.shineProgress == 0)
-        let popping = CombatFeedbackMotionSampler.state(for: item, at: start.addingTimeInterval(0.07))
-        let peak = CombatFeedbackMotionSampler.state(for: item, at: start.addingTimeInterval(0.14))
-        #expect(popping.scale > initial.scale && popping.scale < peak.scale)
-        #expect(abs(peak.scale - 2.28) < 0.000001 && peak.opacity == 1)
-        let held = CombatFeedbackMotionSampler.state(for: item, at: start.addingTimeInterval(0.28))
-        #expect(abs(held.scale - peak.scale) < 0.000001 && held.opacity == 1 && held.riseProgress == 0)
-        let earlyShrink = CombatFeedbackMotionSampler.state(for: item, at: start.addingTimeInterval(0.4))
-        let middleShrink = CombatFeedbackMotionSampler.state(for: item, at: start.addingTimeInterval(0.84))
-        #expect(popping.riseProgress == 0 && abs(peak.riseProgress) < 0.000001)
-        #expect(earlyShrink.riseProgress > 0 && abs(middleShrink.riseProgress - 0.25) < 0.000001)
-        #expect(earlyShrink.scale < peak.scale && middleShrink.scale < earlyShrink.scale)
-        #expect(abs(middleShrink.scale - 2.10) < 0.000001 && middleShrink.opacity == 1)
-        let fadeStart = CombatFeedbackMotionSampler.state(for: item, at: start.addingTimeInterval(0.89))
-        let fading = CombatFeedbackMotionSampler.state(for: item, at: start.addingTimeInterval(1.14))
-        let gone = CombatFeedbackMotionSampler.state(for: item, at: start.addingTimeInterval(1.39))
-        #expect(abs(fadeStart.opacity - 1) < 0.000001 && fadeStart.shineProgress == 1)
-        #expect(abs(fading.opacity - 0.5) < 0.000001)
-        #expect(fadeStart.riseProgress < fading.riseProgress && fading.riseProgress < gone.riseProgress)
-        #expect(fadeStart.scale > fading.scale && fading.scale > gone.scale)
-        #expect(abs(gone.scale - 1.56) < 0.000001 && abs(gone.opacity) < 0.000001 && abs(gone.riseProgress - 1) < 0.000001)
-        let pausedAt = start.addingTimeInterval(0.4)
-        lane.setSuspended(true, at: pausedAt)
-        let paused = try #require(lane.activeItems.first)
-        let before = CombatFeedbackMotionSampler.state(for: item, at: pausedAt)
-        #expect(CombatFeedbackMotionSampler.state(for: paused, at: pausedAt.addingTimeInterval(20)) == before)
-        lane.setSuspended(false, at: pausedAt.addingTimeInterval(20))
-        let resumed = try #require(lane.activeItems.first)
-        #expect(CombatFeedbackMotionSampler.state(for: resumed, at: pausedAt.addingTimeInterval(20)) == before)
-    }
-
-    @Test func `new lane results push older anchors upward and merges do not push`() throws {
+    @Test func `new arrivals push preceding labels upward while merges do not push`() throws {
         var layout = StationaryFeedbackLayout()
         let bounds = CGRect(x: 0, y: 0, width: 200, height: 240)
         let size = CGSize(width: 60, height: 30)
@@ -178,7 +69,7 @@ struct StationaryFeedbackTests {
         push.retarget(to: 60, at: 0.29)
         #expect(push.offset(at: 0.29) == halfway)
         #expect(push.offset(at: 0.38) > halfway && push.offset(at: 0.38) < 60)
-        #expect(push.offset(at: 0.5) == 60)
+        #expect(push.offset(at: 0.6) == 60)
         let bounds = CGRect(x: 0, y: 0, width: 200, height: 240)
         #expect(StationaryFeedbackLayout.edgeOpacity(centerY: 120, in: bounds) == 1)
         #expect(StationaryFeedbackLayout.edgeOpacity(centerY: 28, in: bounds) == 0.5)
@@ -202,9 +93,8 @@ struct StationaryFeedbackTests {
         #expect(layout.slots.isEmpty)
     }
 
-    @Test @MainActor func `experimental rasters cache glyph masks and account for their storage`() throws {
+    @Test @MainActor func `production rasters cache glyph masks and account for their storage`() throws {
         let lane = BattleFeedbackLane()
-        lane.usesStationaryExperiment = true
         defer { lane.release() }
         lane.record([event(1, amount: 9)])
         let item = try #require(lane.activeItems.first)
@@ -216,9 +106,123 @@ struct StationaryFeedbackTests {
         #expect(pool.snapshot().estimatedByteCount == raster.image.bytesPerRow * raster.image.height + mask.bytesPerRow * mask.height)
         #expect(pool.prepare(for: item, displayScale: 1) === raster)
         #expect(pool.snapshot().buildCount == 1)
-        var original = item
-        original.usesStationaryExperiment = false
-        #expect(pool.prepare(for: original, displayScale: 1)?.shineMask == nil)
+    }
+
+    @Test
+    @MainActor func `feedback retains merge fade boundaries and suspension clocks`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        lane.record([event(1, amount: 4)], at: start)
+        lane.record(
+            [event(2, amount: 5)],
+            at: start.addingTimeInterval((CombatFeedbackMotionSampler.lifetime - CombatFeedbackMotionSampler.fadeDuration) - 0.01),
+        )
+        let merged = try #require(lane.activeItems.first)
+        #expect(merged.label == .amount(-9))
+        #expect(merged.firstScheduledAt == start)
+        let extensionDuration = 0.12
+        #expect(abs(merged.expiresAt.timeIntervalSince(start) - CombatFeedbackMotionSampler.lifetime - extensionDuration) < 0.000001)
+        #expect(lane.feedbackLifetime == CombatFeedbackMotionSampler.lifetime)
+        let fadeAt = merged.expiresAt.addingTimeInterval(-CombatFeedbackMotionSampler.fadeDuration)
+        lane.record([event(3, amount: 6)], at: fadeAt)
+        #expect(lane.activeItems.count == 2)
+        let pausedAt = fadeAt.addingTimeInterval(0.05)
+        let before = CombatFeedbackMotionSampler.state(for: merged, at: pausedAt)
+        lane.setSuspended(true, at: pausedAt)
+        lane.setSuspended(false, at: pausedAt.addingTimeInterval(20))
+        let resumed = try #require(lane.activeItems.first)
+        #expect(CombatFeedbackMotionSampler.state(for: resumed, at: pausedAt.addingTimeInterval(20)) == before)
+        let gone = CombatFeedbackMotionSampler.state(for: resumed, at: resumed.expiresAt)
+        #expect(abs(gone.opacity) < 0.000001)
+    }
+
+    @Test @MainActor func `merged values extend visibility without restarting travel and cannot live indefinitely`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        lane.record([event(1, amount: 4)], at: start)
+        let original = try #require(lane.activeItems.first)
+        let mergeAt = start.addingTimeInterval(0.25)
+        lane.record([event(2, amount: 5)], at: mergeAt)
+        let merged = try #require(lane.activeItems.first)
+        let before = CombatFeedbackMotionSampler.state(for: original, at: mergeAt)
+        let after = CombatFeedbackMotionSampler.state(for: merged, at: mergeAt)
+        #expect(after.riseProgress == before.riseProgress)
+        #expect(abs(after.scale - before.scale * 1.10) < 0.000001)
+        #expect(after.shineProgress == 0)
+        for id in 3 ... 8 {
+            lane.record([event(id, amount: 1)], at: start.addingTimeInterval(0.25 + Double(id) * 0.03))
+        }
+        let extended = try #require(lane.activeItems.first)
+        #expect(lane.activeItems.count == 1)
+        #expect(abs(extended.expiresAt.timeIntervalSince(original.expiresAt) - 0.30) < 0.000001)
+        #expect(CombatFeedbackMotionSampler.state(for: extended, at: original.expiresAt).opacity == 1)
+        lane.pruneExpired(at: extended.expiresAt)
+        #expect(lane.activeItems.isEmpty)
+    }
+
+    @Test func `status lanes fit their corners and never push the damage lane or each other`() throws {
+        var layout = StationaryFeedbackLayout()
+        let bounds = CGRect(x: 0, y: 0, width: 160, height: 220)
+        layout.retain(ids: [], in: bounds)
+        let hitPlacement = layout.place(id: 1, size: CGSize(width: 60, height: 30))
+        let hit = try #require(hitPlacement)
+        let benefitPlacement = layout.place(id: 2, size: CGSize(width: 40, height: 24), region: .benefit)
+        let benefit = try #require(benefitPlacement)
+        let setbackPlacement = layout.place(id: 3, size: CGSize(width: 40, height: 24), region: .setback)
+        let setback = try #require(setbackPlacement)
+        for id in 4 ... 10 {
+            _ = layout.place(id: id, size: CGSize(width: 30, height: 24), region: .setback)
+        }
+        #expect(layout.slots.first { $0.id == 1 } == hit)
+        #expect(layout.slots.first { $0.id == 2 } == benefit)
+        #expect(benefit.rect.midX < bounds.midX && setback.rect.midX > bounds.midX)
+        #expect(benefit.rect.midY > bounds.midY && setback.rect.midY > bounds.midY)
+        #expect(!benefit.rect.intersects(setback.rect))
+        #expect(benefit.fitScale == 1 && setback.fitScale == 1)
+        let wider = layout.place(id: 11, size: CGSize(width: 90, height: 24), region: .benefit)
+        #expect(try #require(wider).fitScale == hit.fitScale)
+    }
+
+    @Test @MainActor func `status routing separates applications from actual damage and respects recipient polarity`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let events = [
+            BattleSessionTestSupport.makeActionEvent(id: 1, kind: .effect, effectKind: .cleanseApplied, amount: 1, keyword: .poison),
+            BattleSessionTestSupport.makeActionEvent(id: 2, kind: .effect, effectKind: .purgeApplied, amount: 1, keyword: .block),
+            BattleSessionTestSupport.makeActionEvent(id: 3, kind: .effect, effectKind: .markedApplied, amount: 1, keyword: .physical),
+            BattleSessionTestSupport.makeActionEvent(id: 4, kind: .effect, effectKind: .wardApplied, amount: 1, keyword: .holy),
+            BattleSessionTestSupport.makeActionEvent(id: 5, kind: .status, amount: 3, keyword: .poison),
+            BattleSessionTestSupport.makeActionEvent(id: 6, kind: .effect, effectKind: .instantHeal, amount: 4, keyword: .health),
+        ]
+        lane.record(events)
+        for (id, region) in [(1, CombatFeedbackRegion.benefit), (2, .setback), (3, .setback), (4, .benefit), (5, .impact), (6, .impact)] {
+            #expect(try #require(lane.activeItems.first { $0.sourceEventIDs.contains(id) }).region == region)
+        }
+    }
+
+    @Test @MainActor func `status consolidation repeats the shared pulse and glint without restarting motion`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        let first = BattleSessionTestSupport.makeActionEvent(
+            id: 1, kind: .effect, effectKind: .cleanseApplied, amount: 1, keyword: .poison,
+        )
+        let second = BattleSessionTestSupport.makeActionEvent(
+            id: 2, kind: .effect, effectKind: .cleanseApplied, amount: 1, keyword: .poison,
+        )
+        lane.record([first], at: start)
+        let original = try #require(lane.activeItems.first)
+        let date = start.addingTimeInterval(0.3)
+        lane.record([second], at: date)
+        #expect(lane.activeItems.count == 1)
+        let merged = try #require(lane.activeItems.first)
+        let before = CombatFeedbackMotionSampler.state(for: original, at: date)
+        let after = CombatFeedbackMotionSampler.state(for: merged, at: date)
+        #expect(after.riseProgress == before.riseProgress && after.shineProgress == 0)
+        #expect(abs(after.scale - before.scale * 1.10) < 0.000001)
+        #expect(merged.expiresAt > original.expiresAt && merged.firstScheduledAt == original.firstScheduledAt)
     }
 
     private func event(_ id: Int, amount: Int) -> BattleEngine.ActionEvent {

@@ -2,7 +2,6 @@ import Foundation
 
 @MainActor
 public struct BattleRuntimeDependencies {
-    public let stationaryFeedbackExperimentEnabled: () -> Bool
     public let playSFX: ([String]) -> Void
     public let warmSFX: ([String], Int) -> Void
     public let hapticsEnabled: () -> Bool
@@ -33,12 +32,10 @@ public struct BattleRuntimeDependencies {
         autoBattleEnabled: @escaping () -> Bool = { false },
         setAutoBattleEnabled: @escaping (Bool) -> Void = { _ in },
         shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool,
-        stationaryFeedbackExperimentEnabled: @escaping () -> Bool = { false },
         ultimateCinematicAnimationsEnabled: @escaping () -> Bool = {
             BattleFeatureFlags.ultimateCinematicAnimationsEnabled
         },
     ) {
-        self.stationaryFeedbackExperimentEnabled = stationaryFeedbackExperimentEnabled
         self.playSFX = playSFX
         self.warmSFX = warmSFX
         self.hapticsEnabled = hapticsEnabled

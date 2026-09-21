@@ -98,7 +98,11 @@ outer `NavigationStack`: native navigation hosting can retain accessible childre
 beneath an otherwise hidden container. Keep opacity at one for the immediate return
 from battle; do not unmount the stack or add battle observation to its destinations.
 The retained battle overlay root owns stable navigation geometry. Battle visibility
-switches immediately without fading its hand; keep the overlay mounted for prewarm
+switches immediately without fading its hand. When Retry or Battle Again replaces
+an active run, retain the captured outgoing display, without interaction, until
+the replacement artwork is ready; do not expose the browsing stack during that
+asynchronous preparation. Publish the new display and its identity together.
+Keep the overlay mounted for prewarm
 and preserve its navigation inset until hidden.
 
 Artwork admission is shared across callers: at most two decodes run concurrently,

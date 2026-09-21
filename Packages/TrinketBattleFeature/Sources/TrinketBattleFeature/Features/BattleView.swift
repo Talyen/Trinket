@@ -222,10 +222,6 @@ struct BattleFieldLane: View {
     var body: some View {
         GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
-            let anchors = BattleCardGridLayout.feedbackAnchors(
-                containerWidth: geometry.size.width,
-                layout: layout,
-            )
             let hapticsEnabled = battleSession.hapticsEnabled
 
             ZStack(alignment: .bottom) {
@@ -235,15 +231,6 @@ struct BattleFieldLane: View {
                     hapticsEnabled: hapticsEnabled,
                     onCombatantTap: showDetails(for:),
                     interactionState: interactionState,
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-
-                BattlefieldFeedbackOverlay(
-                    layout: layout,
-                    anchors: anchors,
-                    enemyID: configuration.enemy?.id,
-                    heroID: configuration.hero.combatant.id,
-                    companionID: configuration.companion.combatant.id,
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 

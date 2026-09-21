@@ -8,7 +8,7 @@ import TrinketFeatureSupport
 #if DEBUG
 
 public struct PreviewLabView: View {
-    public init(stationaryFeedbackExperimentEnabled: Bool = false) {
+    public init() {
         let enemyID = Self.defaultEnemyID
         let heroID = Self.defaultHeroID
         let companionID = Self.defaultCompanionID
@@ -18,7 +18,7 @@ public struct PreviewLabView: View {
             companionID: companionID,
         )
         let session = BattleSession(
-            presentationEnvironment: PreviewLab.dependencies(stationaryFeedbackExperimentEnabled: stationaryFeedbackExperimentEnabled),
+            presentationEnvironment: PreviewLab.dependencies(),
         )
         _ = session.activate(configuration, presentation: .empty)
         _labSession = State(initialValue: session)
@@ -179,14 +179,13 @@ public struct PreviewLabView: View {
 
 private enum PreviewLab {
     @MainActor
-    static func dependencies(stationaryFeedbackExperimentEnabled: Bool) -> BattleRuntimeDependencies {
+    static func dependencies() -> BattleRuntimeDependencies {
         BattleRuntimeDependencies(
             playSFX: { _ in },
             warmSFX: { _, _ in },
             hapticsEnabled: { false },
             effectsVolume: { 1 },
             shouldAutoSkipUltimateCinematic: { _, _ in false },
-            stationaryFeedbackExperimentEnabled: { stationaryFeedbackExperimentEnabled },
             ultimateCinematicAnimationsEnabled: { true },
         )
     }

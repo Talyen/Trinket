@@ -35,7 +35,6 @@ public enum AccessibilityID {
     }
 
     public enum Options {
-        public static let stationaryFeedbackToggle = "Options.StationaryFeedbackToggle"
         public static let hapticsToggle = "Haptics Toggle"
         public static let rememberAutoBattleToggle = "Remember Auto-Battle Preference Toggle"
         public static let resetProgressConfirmation = "Reset Game Progress"

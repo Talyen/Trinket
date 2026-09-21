@@ -46,57 +46,24 @@ struct CombatFeedbackMotionTests {
         }
     }
 
-    @Test func `chip holds after pop before rising and fading`() throws {
-        let item = try makeItem()
-        for elapsed in [0, BattleMotion.chipPopPeakTime, BattleMotion.chipPopEndTime, BattleMotion.chipHoldEndTime] {
-            let state = CombatFeedbackMotionSampler.state(for: item, at: item.firstScheduledAt.addingTimeInterval(elapsed))
-            #expect(state.riseProgress == 0)
-            #expect(state.opacity == 1)
+    @Test @MainActor func `all regions share the same ceremony with slightly smaller status labels`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        lane.record([
+            BattleSessionTestSupport.makeActionEvent(id: 1, kind: .abilityDamage, amount: 4, keyword: .physical),
+            BattleSessionTestSupport.makeActionEvent(id: 2, kind: .effect, effectKind: .cleanseApplied, amount: 1, keyword: .poison),
+        ], at: start)
+        let hit = try #require(lane.activeItems.first { $0.region == .impact })
+        let status = try #require(lane.activeItems.first { $0.region == .benefit })
+        for elapsed in [0.0, 0.07, 0.14, 0.2, 0.4, 0.6, 0.74] {
+            let date = start.addingTimeInterval(elapsed)
+            let main = CombatFeedbackMotionSampler.state(for: hit, at: date)
+            let lower = CombatFeedbackMotionSampler.state(for: status, at: date)
+            #expect(abs(lower.scale - main.scale * 0.90) < 0.000001)
+            #expect(lower.riseProgress == main.riseProgress)
+            #expect(lower.opacity == main.opacity && lower.shineProgress == main.shineProgress)
         }
-        let held = CombatFeedbackMotionSampler.state(for: item, at: item.firstScheduledAt.addingTimeInterval(0.25))
-        #expect(held.scale == Double(BattleMotion.chipPopHoldScale))
-        let rising = CombatFeedbackMotionSampler.state(for: item, at: item.firstScheduledAt.addingTimeInterval(0.5))
-        #expect(rising.riseProgress > 0 && rising.riseProgress < 1)
-        #expect(rising.scale < held.scale)
-        let expired = CombatFeedbackMotionSampler.state(for: item, at: item.expiresAt.addingTimeInterval(0.01))
-        #expect(expired.riseProgress == 1)
-        #expect(expired.opacity == 0)
-    }
-
-    @Test(arguments: [0.05, 0.25, 0.5])
-    func `handoff releases held text without jumping or restarting motion`(elapsed: TimeInterval) throws {
-        let original = try makeItem()
-        let handoff = original.firstScheduledAt.addingTimeInterval(elapsed)
-        var retiring = original
-        retiring.retiringAt = handoff
-        retiring.expiresAt = handoff.addingTimeInterval(BattleMotion.feedbackHandoffDuration)
-        let before = CombatFeedbackMotionSampler.state(for: original, at: handoff)
-        let after = CombatFeedbackMotionSampler.state(for: retiring, at: handoff)
-        #expect(after.riseProgress == before.riseProgress)
-        #expect(after.scale == before.scale)
-        let later = handoff.addingTimeInterval(0.05)
-        let moving = CombatFeedbackMotionSampler.state(for: retiring, at: later)
-        let uninterrupted = CombatFeedbackMotionSampler.state(for: original, at: later)
-        #expect(moving.riseProgress > after.riseProgress)
-        #expect(moving.scale == uninterrupted.scale)
-        if elapsed >= BattleMotion.chipHoldEndTime {
-            #expect(moving.riseProgress == uninterrupted.riseProgress)
-        }
-        #expect(moving.opacity < after.opacity)
-    }
-
-    private func makeItem() throws -> CombatFeedbackItem {
-        let event = BattleSessionTestSupport.makeActionEvent(
-            id: 1, kind: .abilityDamage, amount: 4, keyword: .physical,
-        )
-        return try #require(CombatFeedbackPresenter.makeItems(from: [event], at: Date(timeIntervalSince1970: 1000)).first)
-    }
-
-    @Test func `chip pop scale phases`() {
-        #expect(BattleMotion.chipScale(elapsed: 0) == BattleMotion.chipPopStartScale)
-        #expect(
-            abs(BattleMotion.chipScale(elapsed: BattleMotion.chipPopPeakTime) - BattleMotion
-                .chipPopOvershootScale) < 0.001,
-        )
+        #expect(CombatFeedbackMotionSampler.state(for: status, at: start.addingTimeInterval(0.4)).riseProgress > 0)
     }
 }

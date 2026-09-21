@@ -184,7 +184,7 @@ extension BattleFeedbackLane {
             advance(to: date)
             suspendedAt = date
             scheduler?.cancel()
-            for index in activeItems.indices where activeItems[index].usesStationaryExperiment {
+            for index in activeItems.indices {
                 activeItems[index].pausedAt = date
             }
             noteItemsChanged()
@@ -201,7 +201,6 @@ extension BattleFeedbackLane {
                 activeItems[index].firstScheduledAt += delay
                 activeItems[index].expiresAt += delay
                 activeItems[index].lastUpdatedAt = activeItems[index].lastUpdatedAt?.addingTimeInterval(delay)
-                activeItems[index].retiringAt = activeItems[index].retiringAt?.addingTimeInterval(delay)
                 activeItems[index].criticalAt = activeItems[index].criticalAt?.addingTimeInterval(delay)
             }
             for actorID in recordedHitExpirations.keys {

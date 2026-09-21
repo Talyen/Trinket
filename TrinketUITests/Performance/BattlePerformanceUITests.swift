@@ -42,9 +42,7 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
 
     @MainActor
     private func runOnce(scenario: String, iteration: Int) {
-        let experimental = ProcessInfo.processInfo.environment["TRINKET_STATIONARY_FEEDBACK"] != "0"
         let arguments = TestLaunchArg.allForBattlePerformance(scenario)
-            + ["-options.stationaryFeedbackExperiment", experimental ? "YES" : "NO"]
         launchApp(arguments: arguments)
         battle.assertActive(timeout: 8)
         let gesture = prepareGesture(for: scenario)

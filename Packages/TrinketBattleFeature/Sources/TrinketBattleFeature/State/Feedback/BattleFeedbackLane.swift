@@ -8,11 +8,10 @@ import TrinketFeatureSupport
 @MainActor
 @Observable
 final class BattleFeedbackLane {
-    @ObservationIgnored var usesStationaryExperiment = false
     @ObservationIgnored var evictedItemIDs: Set<Int> = []
 
     var feedbackLifetime: TimeInterval {
-        usesStationaryExperiment ? StationaryFeedbackLayout.lifetime : BattleMotion.chipDisplayDuration
+        CombatFeedbackMotionSampler.lifetime
     }
 
     @ObservationIgnored
@@ -146,64 +145,11 @@ final class BattleFeedbackLane {
         guard !prepared.isEmpty || !damage.isEmpty else { return }
 
         for item in prepared {
-            if usesStationaryExperiment {
-                recordStationary(item, at: date)
-            } else {
-                recordCurrent(item, at: date)
-            }
+            recordStationary(item, at: date)
         }
         noteItemsChanged()
         applyMultimodalPresentation(for: prepared, damage: damage, at: date, environment: environment)
         updatePruneDate()
-    }
-
-    private func recordCurrent(_ item: CombatFeedbackItem, at date: Date) {
-        let existingGroup = activeItems.first {
-            $0.targetID == item.targetID && $0.actionGroupID == item.actionGroupID && $0.retiringAt == nil
-        }
-        if existingGroup == nil {
-            if let reaction = hitReactionsByTargetID[item.targetID], activeItems.contains(where: {
-                $0.targetID == item.targetID && $0.retiringAt != nil && $0.sourceEventIDs.contains(reaction.id)
-            }) {
-                hitReactionsByTargetID.removeValue(forKey: item.targetID)
-                noteHitReactionsChanged(for: [item.targetID])
-            }
-            activeItems.removeAll { $0.targetID == item.targetID && $0.retiringAt != nil }
-            for index in activeItems.indices where activeItems[index].targetID == item.targetID {
-                activeItems[index].retiringAt = date
-                activeItems[index].expiresAt = min(
-                    activeItems[index].expiresAt,
-                    date.addingTimeInterval(BattleMotion.feedbackHandoffDuration),
-                )
-            }
-        }
-        let start = existingGroup?.firstScheduledAt ?? date
-        let expiry = min(
-            date.addingTimeInterval(BattleMotion.chipDisplayDuration),
-            start.addingTimeInterval(BattleMotion.maxContinuousChipLifetime),
-        )
-        if let index = activeItems.firstIndex(where: { existing in
-            existing.targetID == item.targetID && existing.actionGroupID == item.actionGroupID
-                && existing.retiringAt == nil && existing.keyword == item.keyword
-                && existing.feedbackClass == item.feedbackClass && existing.visualRole == item.visualRole
-                && existing.label.merging(with: item.label) != nil
-        }), let merged = activeItems[index].label.merging(with: item.label) {
-            activeItems[index].label = merged
-            activeItems[index].sourceEventIDs += item.sourceEventIDs
-            activeItems[index].lastUpdatedAt = date
-            activeItems[index].isCritical = activeItems[index].isCritical || item.isCritical
-            if item.isCritical {
-                activeItems[index].criticalAt = date
-            }
-        } else {
-            var scheduled = item.scheduled(at: start)
-            scheduled.criticalAt = item.isCritical ? date : nil
-            activeItems.append(scheduled)
-        }
-        for index in activeItems.indices where activeItems[index].targetID == item.targetID
-            && activeItems[index].actionGroupID == item.actionGroupID && activeItems[index].retiringAt == nil {
-            activeItems[index].expiresAt = expiry
-        }
     }
 
     func prepareScheduler() {

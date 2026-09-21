@@ -54,7 +54,6 @@ final class CombatFeedbackRasterUIView: UIView {
     private final class ChipLayer {
         let layer: CALayer
         var item: CombatFeedbackItem
-        var retiringOpacity = 1.0
         var rasterIdentity: ObjectIdentifier
         var reservationSize: CGSize = .zero
         var lanePush = StationaryFeedbackPush()
@@ -78,19 +77,6 @@ final class CombatFeedbackRasterUIView: UIView {
     private var layersByID: [Int: ChipLayer] = [:]
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
-    private struct Group {
-        let layers: [ChipLayer]
-        let motionItem: CombatFeedbackItem
-        let placements: [Placement]
-        let topRetention: CGFloat
-    }
-
-    private struct Placement {
-        var offset: CGPoint
-        let fitScale: CGFloat
-    }
-
-    private var groups: [Group] = []
     #if DEBUG
     var debugLastAppliedChips: [CombatFeedbackItem] = []
     var debugVisibleChipIDs: Set<Int> {
@@ -148,11 +134,7 @@ final class CombatFeedbackRasterUIView: UIView {
         }
 
         for (item, raster) in validChips {
-            if let existing = layersByID[item.id],
-               existing.rasterIdentity == ObjectIdentifier(raster) || item.usesStationaryExperiment {
-                if existing.item.retiringAt == nil, let retiringAt = item.retiringAt {
-                    existing.retiringOpacity = CombatFeedbackMotionSampler.state(for: existing.item, at: retiringAt).opacity
-                }
+            if let existing = layersByID[item.id] {
                 if existing.rasterIdentity != ObjectIdentifier(raster) {
                     withLayerActionsDisabled {
                         configureRaster(raster, on: existing.layer)
@@ -167,7 +149,7 @@ final class CombatFeedbackRasterUIView: UIView {
         }
 
         orderedLayers = layersByID.values.sorted(by: Self.chipLayerOrder)
-        layoutGroups()
+        layoutStationary()
 
         tickMotion(at: .now)
         if layersByID.isEmpty || orderedLayers.allSatisfy({ $0.item.pausedAt != nil }) {
@@ -180,7 +162,7 @@ final class CombatFeedbackRasterUIView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         guard !bounds.isEmpty else { return }
-        layoutGroups()
+        layoutStationary()
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
         withLayerActionsDisabled {
             for layer in layersByID.values {
@@ -193,119 +175,16 @@ final class CombatFeedbackRasterUIView: UIView {
         tickMotion(at: .now)
     }
 
-    private func layoutGroups() {
-        if orderedLayers.first?.item.usesStationaryExperiment == true {
-            layoutStationary()
-            groups = []
-            return
-        }
-        stationaryLayout = StationaryFeedbackLayout()
-        let grouped = Dictionary(grouping: orderedLayers, by: { $0.item.actionGroupID })
-        groups = grouped.values.sorted { Self.chipLayerOrder($0[0], $1[0]) }.map { layers in
-            let layers = layers.sorted {
-                if $0.item.presentationIndex == $1.item.presentationIndex {
-                    return $0.item.id < $1.item.id
-                }
-                return $0.item.presentationIndex < $1.item.presentationIndex
-            }
-            let sizes = layers.map(\.layer.bounds.size)
-            let fits = sizes.map { size in
-                min(
-                    1,
-                    max(0, bounds.width - 16) / max(1, size.width * BattleMotion.chipMaximumScale),
-                    max(0, bounds.height - 16) / max(1, size.height * BattleMotion.chipMaximumScale),
-                )
-            }
-            let placements = placements(sizes: sizes, fits: fits)
-            let topRetention = zip(sizes, placements).map { size, placement in
-                size.height * placement.fitScale * 0.25 - placement.offset.y
-            }.max() ?? 0
-            var motionItem = layers[0].item
-            motionItem.lastUpdatedAt = layers.compactMap(\.item.lastUpdatedAt).max()
-            return Group(layers: layers, motionItem: motionItem, placements: placements, topRetention: topRetention)
-        }
-    }
-
-    private func placements(sizes: [CGSize], fits: [CGFloat]) -> [Placement] {
-        let gap: CGFloat = 6
-        let availableWidth = max(0, bounds.width - 16) / BattleMotion.chipMaximumScale
-        var rows: [[Int]] = []
-        var row: [Int] = []
-        var width: CGFloat = 0
-        for index in sizes.indices {
-            let chipWidth = sizes[index].width * fits[index]
-            if !row.isEmpty, width + gap + chipWidth > availableWidth {
-                rows.append(row)
-                row = []
-                width = 0
-            }
-            width += (row.isEmpty ? 0 : gap) + chipWidth
-            row.append(index)
-        }
-        if !row.isEmpty {
-            rows.append(row)
-        }
-        var placements: [Placement] = []
-        var height: CGFloat = 0
-        for row in rows {
-            let rowWidth = row.reduce(CGFloat.zero) { $0 + sizes[$1].width * fits[$1] }
-                + CGFloat(row.count - 1) * gap
-            let rowHeight = row.map { sizes[$0].height * fits[$0] }.max() ?? 0
-            var x = -rowWidth / 2
-            for index in row {
-                let chipWidth = sizes[index].width * fits[index]
-                placements.append(Placement(
-                    offset: CGPoint(x: x + chipWidth / 2, y: height + rowHeight / 2),
-                    fitScale: fits[index],
-                ))
-                x += chipWidth + gap
-            }
-            height += rowHeight + gap
-        }
-        height = max(0, height - gap)
-        return placements.map { placement in
-            var centered = placement
-            centered.offset.y -= height / 2
-            return centered
-        }
-    }
-
     fileprivate func tickMotion(at date: Date) {
         guard !bounds.isEmpty else { return }
-        withLayerActionsDisabled {
-            if orderedLayers.first?.item.usesStationaryExperiment == true {
-                tickStationary(at: date)
-                return
-            }
-            for (groupIndex, group) in groups.enumerated() {
-                let representative = group.motionItem
-                let state = CombatFeedbackMotionSampler.state(for: representative, at: date)
-                let endY = max(bounds.height * 0.04, group.topRetention * BattleMotion.chipPopEndScale)
-                let centerY = bounds.midY - max(0, bounds.midY - endY) * state.riseProgress
-                for (index, chip) in group.layers.enumerated() {
-                    let placement = group.placements[index]
-                    let scale = placement.fitScale * state.scale
-                    let retention = chip.layer.bounds.height * scale * 0.25
-                    let y = centerY + placement.offset.y * state.scale
-                    chip.layer.position = CGPoint(
-                        x: bounds.midX + placement.offset.x * state.scale,
-                        y: min(bounds.height - retention, max(retention, y)),
-                    )
-                    chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
-                    chip.layer.zPosition = CGFloat(groupIndex)
-                    chip.layer.opacity = Float(state.opacity * chip.retiringOpacity)
-                    let criticalElapsed = chip.item.criticalAt.map { max(0, date.timeIntervalSince($0)) } ?? 1
-                    chip.layer.shadowOpacity = Float(max(0, 1 - criticalElapsed / 0.3))
-                }
-            }
-        }
+        withLayerActionsDisabled { tickStationary(at: date) }
     }
 
     private static func chipLayerOrder(_ lhs: ChipLayer, _ rhs: ChipLayer) -> Bool {
         let lhsItem = lhs.item
         let rhsItem = rhs.item
         if lhsItem.availableAt == rhsItem.availableAt {
-            if lhsItem.usesStationaryExperiment, lhsItem.presentationIndex != rhsItem.presentationIndex {
+            if lhsItem.presentationIndex != rhsItem.presentationIndex {
                 return lhsItem.presentationIndex < rhsItem.presentationIndex
             }
             return lhsItem.id < rhsItem.id
@@ -440,16 +319,18 @@ private extension CombatFeedbackRasterUIView {
     private func layoutStationary() {
         stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
         for chip in orderedLayers {
+            let sizeScale = StationaryFeedbackLayout.sizeScale
+                * (chip.item.region == .impact ? 1 : CombatFeedbackMotionSampler.statusSizeScale)
             _ = stationaryLayout.place(id: chip.item.id, size: CGSize(
-                width: chip.reservationSize.width * StationaryFeedbackLayout.sizeScale,
-                height: chip.reservationSize.height * StationaryFeedbackLayout.sizeScale,
-            ))
+                width: chip.reservationSize.width * sizeScale,
+                height: chip.reservationSize.height * sizeScale,
+            ), region: chip.item.region)
         }
         let date = Date.now
         for chip in orderedLayers {
             guard let slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id }) else { continue }
             let elapsed = (chip.item.pausedAt ?? date).timeIntervalSince(chip.item.firstScheduledAt)
-            chip.lanePush.retarget(to: bounds.midY - slot.rect.midY, at: elapsed)
+            chip.lanePush.retarget(to: StationaryFeedbackLayout.area(for: slot.region, in: bounds).midY - slot.rect.midY, at: elapsed)
         }
     }
 
@@ -460,14 +341,14 @@ private extension CombatFeedbackRasterUIView {
             let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
             let now = chip.item.pausedAt ?? date
             let elapsed = now.timeIntervalSince(chip.item.firstScheduledAt)
-            let centerY = bounds.midY - chip.lanePush.offset(at: elapsed)
-                - StationaryFeedbackLayout.driftDistance * state.riseProgress
+            let centerY = StationaryFeedbackLayout.area(for: slot.region, in: bounds).midY - chip.lanePush.offset(at: elapsed)
+                - CombatFeedbackMotionSampler.riseDistance * state.riseProgress
+            let scale = slot.fitScale * state.scale
             chip.layer.position = CGPoint(x: slot.rect.midX, y: centerY)
             let edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: centerY, in: bounds)
             if edgeOpacity == 0 {
                 evicted.insert(chip.item.id)
             }
-            let scale = slot.fitScale * state.scale
             chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
             chip.layer.opacity = Float(state.opacity * edgeOpacity)
             chip.layer.zPosition = CGFloat(index)

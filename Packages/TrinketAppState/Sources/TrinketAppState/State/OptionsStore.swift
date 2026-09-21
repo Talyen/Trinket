@@ -24,17 +24,6 @@ public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sen
 public final class OptionsStore {
     @ObservationIgnored private let defaults: UserDefaults
 
-    /// Observation must see an unconditional property declaration to track toggle changes.
-    public var stationaryFeedbackExperimentEnabled: Bool {
-        didSet {
-            #if DEBUG
-            defaults.set(stationaryFeedbackExperimentEnabled, forKey: Self.stationaryFeedbackExperimentKey)
-            #endif
-        }
-    }
-
-    static let stationaryFeedbackExperimentKey = "options.stationaryFeedbackExperiment"
-
     public var musicVolume: Double {
         didSet { defaults.set(musicVolume, forKey: Self.musicVolumeKey) }
     }
@@ -77,7 +66,6 @@ public final class OptionsStore {
     private static let legacyAutoBattleEnabledKey = "battle.autoBattleEnabled"
 
     static func clearDefaults(from defaults: UserDefaults) {
-        defaults.removeObject(forKey: stationaryFeedbackExperimentKey)
         defaults.removeObject(forKey: musicVolumeKey)
         defaults.removeObject(forKey: effectsVolumeKey)
         defaults.removeObject(forKey: hapticsEnabledKey)
@@ -89,14 +77,6 @@ public final class OptionsStore {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        #if DEBUG
-        stationaryFeedbackExperimentEnabled = Self.readBool(
-            from: defaults, key: Self.stationaryFeedbackExperimentKey, default: true,
-        )
-        #else
-        stationaryFeedbackExperimentEnabled = false
-        #endif
-
         let rememberAutoValue = Self.readBool(from: defaults, key: Self.rememberAutoBattlePreferenceKey, default: false)
         let autoBattleValue = rememberAutoValue && Self.readAutoBattleEnabled(from: defaults)
 

@@ -111,7 +111,6 @@ public final class AppState {
                     actorsWhoPresentedThisBattle: presentedActors,
                 )
             },
-            stationaryFeedbackExperimentEnabled: { dependencies.options.stationaryFeedbackExperimentEnabled },
         )) else {
             preconditionFailure(
                 "AppState requires a battle runtime. Pass `makeBattleRuntime`.",

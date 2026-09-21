@@ -65,18 +65,6 @@ enum BattleMotion {
 
     static let chipDisplayDuration: TimeInterval = 0.95
     static let feedbackHandoffDuration: TimeInterval = 0.15
-    static let chipPopStartScale: CGFloat = 0.5
-    static let chipPopOvershootScale: CGFloat = 2.0
-    static let chipPopHoldScale: CGFloat = 1.8
-    static let chipUpdateOvershootScale: CGFloat = 1.08
-    static let chipMaximumScale = chipPopOvershootScale * chipUpdateOvershootScale
-    static let chipPopEndScale: CGFloat = 1.0
-    static let chipPopDuration: TimeInterval = 0.14
-    static let chipPopHoldDuration: TimeInterval = 0.20
-    static let chipPopShrinkDuration: TimeInterval = 0.45
-    static let chipPopFadeDuration: TimeInterval = 0.28
-    static let maxContinuousChipLifetime: TimeInterval = 1.2
-
     static let cardCastParticleCount = 8
 
     static var scrim: Animation {
@@ -103,37 +91,6 @@ enum BattleMotion {
     static func easeOutCubic(_ progress: Double) -> Double {
         let clamped = min(max(progress, 0), 1)
         return 1 - pow(1 - clamped, 3)
-    }
-
-    static func chipScale(elapsed: TimeInterval) -> CGFloat {
-        if elapsed <= 0 {
-            return chipPopStartScale
-        }
-        if elapsed <= chipPopPeakTime {
-            let progress = elapsed / chipPopPeakTime
-            return lerp(chipPopStartScale, chipPopOvershootScale, smoothProgress(progress))
-        }
-        if elapsed <= chipPopEndTime {
-            let progress = (elapsed - chipPopPeakTime) / (chipPopEndTime - chipPopPeakTime)
-            return lerp(chipPopOvershootScale, chipPopHoldScale, smoothProgress(progress))
-        }
-        if elapsed <= chipHoldEndTime {
-            return chipPopHoldScale
-        }
-        let shrinkProgress = min(1, (elapsed - chipHoldEndTime) / chipPopShrinkDuration)
-        return lerp(chipPopHoldScale, chipPopEndScale, smoothProgress(shrinkProgress))
-    }
-
-    static var chipPopPeakTime: TimeInterval {
-        chipPopDuration * 0.75
-    }
-
-    static var chipPopEndTime: TimeInterval {
-        chipPopDuration
-    }
-
-    static var chipHoldEndTime: TimeInterval {
-        chipPopEndTime + chipPopHoldDuration
     }
 
     static func lerp<T: BinaryFloatingPoint>(_ start: T, _ end: T, _ progress: Double) -> T {
