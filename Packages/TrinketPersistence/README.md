@@ -47,10 +47,9 @@ graph→value is `toPlayerSave()`/`toPlayerRosterState()` and friends,
 CloudKit-only is `restored()`, content-ID lookups are `resolve()`.
 
 Reward and claim contracts live in [progression](../../Docs/AgentContext/persistence-progression.md).
-Known differences between current behavior and intended product rules are recorded
-with [Contracts](../../Docs/Product/Contracts.md#implementation-discrepancy) and
-[Mystery events](../../Docs/Product/MysteryEvents.md#implementation-discrepancy);
-do not treat a package summary as approval to resolve those product choices.
+Product rules for item quality and displayed offers live in
+[Contracts](../../Docs/Product/Contracts.md#board) and
+[Mystery events](../../Docs/Product/MysteryEvents.md#stability-and-completion).
 
 Tests use `SaveTestSupport` with `disableCloudSync: true`. The
 `-disable-cloud-sync` launch argument belongs to app / UI tests through

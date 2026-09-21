@@ -17,7 +17,7 @@ missing registration or changed identities fail closed until explicitly prepared
 
 Play screens read save slices from `PlayerSaveStore` directly. Mode types own map/node/floor selection and mode-unique completion writes; they must not re-absorb the shared victory persist→dismiss sequence. `AppState` prepares audio and requests launch state. BattleSession resolves registered presentation context before publishing activation. Restart installs the new registration before restarting the runtime and restores the previous registration if restart fails. The composition root owns the launch-victory preview; the overlay never installs progression callbacks or presentation context.
 
-Battle completion and Defeat Leave restore the origin's full browsing path without a
+Battle completion and Defeat Continue restore the origin's full browsing path without a
 navigation animation before ending the runtime. Do not defer this return to a
 view's lifecycle callback: battle exits immediately, so the map must already
 show the intended destination.
@@ -41,7 +41,7 @@ Capacity, reservations, and transaction rules live in
 [persistence context](persistence.md). Current combat content only grants Gold;
 it must not debit the battle wallet.
 
-Defeat Retry and Leave share one settled XP claim through the configured
+Defeat Continue uses the leave action to claim settled XP through the configured
 progression capability. Revalidate the active configuration, resolved defeat (including retreat), and
 settlement before saving; stale inputs refresh the reveal and storage failures
 retain the chosen action for an automatic retry without an error alert. A committed configuration retains its settlement

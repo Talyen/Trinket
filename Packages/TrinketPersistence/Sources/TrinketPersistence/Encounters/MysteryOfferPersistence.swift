@@ -56,10 +56,8 @@ public enum MysteryOfferPersistence {
         // the direct-effects path, so only pooled choices produce offers.
         let offers: [MysteryOffer] = event.choices.compactMap { choice in
             let saved = previous.first { $0.choiceID == choice.id }
-            if let saved, MysteryEffectApplier.isAvailable(saved.item, in: save.inventory) {
-                return saved
-            }
-            return MysteryEffectApplier.resolveOffer(
+            let available = saved.flatMap { MysteryEffectApplier.isAvailable($0.item, in: save.inventory) ? $0 : nil }
+            guard let offer = available ?? MysteryEffectApplier.resolveOffer(
                 choice: choice,
                 encounterID: stage.id,
                 encounterLevel: level,
@@ -67,6 +65,16 @@ public enum MysteryOfferPersistence {
                 save: save,
                 bonuses: bonuses,
                 using: &randomNumberGenerator,
+            ) else { return nil }
+            // Revalidate saved bonuses too, including raw bonuses from older saves.
+            // Available items and their rolled affixes remain pinned.
+            return MysteryOffer(
+                choiceID: offer.choiceID,
+                item: offer.item,
+                bonus: MysteryEffectApplier.settledBonus(
+                    offer.bonus, encounterLevel: level, save: save,
+                    experiencePercent: bonuses.experienceEarnedPercent, at: date,
+                ),
             )
         }
         if offers != previous {
@@ -97,15 +105,9 @@ public enum MysteryOfferPersistence {
             return MysteryEffectResult()
         }
         guard saved.contains(offer) else { return MysteryEffectResult() }
-        // Settle against the tap-time clock (default now) so the grant matches
-        // wallet state at claim, not preview-time production.
+        // Validate and grant at one production date on a candidate, so stale
+        // offers cannot grant partial rewards or complete the encounter.
         let grantDate = date
-        // Candidate-commit: item grant + bonus + markCleared + payload clear
-        // apply atomically. `apply` is item-first (duplicate item grants
-        // nothing, including no bonus), so the failure path discards the
-        // candidate with no partial gold/material/XP mutation.
-        // The stored bonus is raw; settle it against wallet caps now so the
-        // grant matches wallet state at tap time rather than preview time.
         var candidate = save
         candidate.homestead.settleProduction(at: grantDate, roster: candidate.roster)
         guard let inputs = levelInputs(stage: stage, labyrinthNodeID: labyrinthNodeID, save: candidate) else {
@@ -113,18 +115,11 @@ public enum MysteryOfferPersistence {
         }
         let level = inputs.encounterLevel
         let bonuses = inputs.bonuses
-        let settledOffer = MysteryOffer(
-            choiceID: offer.choiceID,
-            item: offer.item,
-            bonus: MysteryEffectApplier.settledBonus(
-                offer.bonus,
-                encounterLevel: level,
-                save: candidate,
-                experiencePercent: bonuses.experienceEarnedPercent,
-                at: grantDate,
-            ),
-        )
-        let result = MysteryEffectApplier.apply(settledOffer, save: &candidate, at: grantDate)
+        guard MysteryEffectApplier.settledBonus(
+            offer.bonus, encounterLevel: level, save: candidate,
+            experiencePercent: bonuses.experienceEarnedPercent, at: grantDate,
+        ) == offer.bonus else { return MysteryEffectResult() }
+        let result = MysteryEffectApplier.apply(offer, save: &candidate, at: grantDate)
         guard result.grantedItems.count == 1 else { return result }
         if let labyrinthNodeID {
             candidate.labyrinth.markCleared(nodeID: labyrinthNodeID, eligibleRecruitEventIDs: candidate.roster.eligibleRecruitEventIDs)

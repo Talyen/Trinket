@@ -13,7 +13,7 @@ Centralized intake for agent pain points, confusion, and struggle while working 
 
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
-| 2026-09-20 | Reward contracts | Product rules disagree with deliberate implementation for [Contract item quality](../Docs/Product/Contracts.md#implementation-discrepancy) and [Mystery claim-time substitution](../Docs/Product/MysteryEvents.md#implementation-discrepancy). Both sides are now explicit; resolving the gameplay choice remains open. |
+| 2026-09-20 | Simulator inspection | Device Hub is running and the leased app launches, but Computer Use `getApp` times out (`-10005`) by both app path and bundle ID. This recurring blocker prevents [floating-feedback visual verification](../Docs/AgentContext/battle-presentation.md#verification-gap); rendered-layer tests establish geometry only. |
 
 ## Archive
 

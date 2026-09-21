@@ -21,13 +21,14 @@ Victory chrome reads a settled award derived from launch-baked quantities; do no
 
 Retreat immediately resolves the session as defeat and opens its reward screen,
 without confirmation or the combat outcome delay. It freezes enemy Health progress
-and stops combat; even zero XP shows Retry and Leave. Both actions use the normal
-defeat claim, and neither completes the encounter.
+and stops combat; even zero XP shows Continue. Continue uses the normal defeat claim and returns
+to the origin without completing the encounter.
 
 Defeat shows its title and a short enemy subtitle above the same party portrait
 and animated XP section used by Victory. Both party rows remain visible at zero
-XP, with unchanged bars. Retry is primary and Leave secondary, stacked below the
-panel with a 16-point gap; both wait for XP reveal completion. There is no separate artwork, battle
+XP, with unchanged bars. Continue is the sole primary action below the panel and
+waits for XP reveal completion. Players retry by re-entering the encounter from
+the previous screen. There is no separate artwork, battle
 recap, loot section, or collection feedback. A refreshed defeat settlement resets
 XP presentation when recipient progression changes. Debug launch screens
 `battle-defeat` and `battle-defeat-save-failure` resolve a short simulated loss;
@@ -93,52 +94,62 @@ recording parity remains in BattleEngine's card tests.
 
 ## Floating combat feedback
 
-Floating chips contain game icons and numbers. Freeze and Stun feedback also
-shows “Frozen” and “Stunned” beside their icons. Other keyword and status names
-remain icon-only. Logs, ability descriptions, and accessibility wording remain text.
+Floating chips contain game icons and numbers. Only actual Freeze and Stun
+activation events show “Frozen” and “Stunned” beside their icons. Their build-up
+and skipped-action reminders do not float; other action-skip feedback stays
+icon-only. Logs, ability descriptions, and accessibility wording remain text.
+A later actual control activation gets its own chip, even while the previous
+activation is visible. No-result cards do not invent a zero chip; card motion
+acknowledges their play.
+
 Sniff Out shows beneficial-status + Physical icons with its prepared amount on
-the recipient; refreshing this preparation never adds its displayed numbers
-together. Leech preparation uses beneficial-status + Leech icons. Control
-triggers/skips and recurring applications use keyword icons. DoT amplification
-uses negative-status + keyword icons rather than implying another hit.
+the recipient. A refresh replaces the visible value rather than adding numbers;
+if the replacement exceeds the reserved width, retire the old slot before showing
+the wider value. Leech preparation uses beneficial-status + Leech icons. DoT
+amplification uses negative-status + keyword icons rather than implying another hit.
 Direct effects from automatically played cards remain visible, while unrelated
-passive benefit events retain their suppression. A successfully resolved catalog
-card with no visible result gets one primary-effect icon and zero; never add a
-zero beside actual feedback. Healing combines restored Health and overflow into
-one number, including at full Health.
+passive benefit events retain their suppression. Healing combines restored Health
+and overflow into one number, including at full Health.
 
+Central chips use Revised Short Rise: a 0.05-second pop, brief peak/settle/hold,
+52-point cubic ease-out rise (bounded in short portraits), and a 0.34-second fade
+ending at 0.92 seconds. There is no animation picker.
 
-All builds use Revised Short Rise: a 0.05-second pop, brief peak/settle/hold,
-52-point cubic ease-out central rise (bounded in short portraits), and a
-0.34-second fade ending at 0.92 seconds.
-There is no animation picker or Stationary Feedback Experiment setting.
+Each portrait has three independent regions. Damage, DoT ticks, healing, Block
+absorption, and Dodge stay centered and have no count cap. Buffs, cleanse, and
+resource gains appear lower left; debuffs, control, purge, resource losses, and
+Death's Door appear lower right, interpreted from the recipient's perspective.
+DoT applications are status feedback; actual DoT damage stays centered.
 
-Each portrait has three independent feedback regions. Damage, DoT ticks, healing,
-Block absorption, and Dodge stay centered. Buffs, cleanse, and resource gains
-appear lower left; debuffs, control, purge, resource losses, and Death's Door
-appear lower right, interpreted from the recipient's perspective. DoT applications
-are status feedback; actual DoT damage stays centered. Existing event visibility
-rules remain unchanged. Lower status feedback uses 80% of the central size and
-the identical pop, pause, shrink, fade, glint, and merge pulse, with no automatic
-rise. Fit oversized labels against the full portrait at maximum pop plus merge
-pulse in all three regions; do not force lower labels into a half-width box.
-Place lower labels using their reserved peak footprint, 8 points inside the sides
-and above the resource bars. Keep their centers fixed through pop, shrink, fade,
-and numeric growth, including icon-only, numeric, and dual-icon results.
-Preserve icons, colors, and critical emphasis.
+Lower chips use 80% of the central base size, a smaller 0.85-to-1.20 pop settling
+to 1.0 at 0.16 seconds, the same lifetime and fade, and no automatic rise.
+Each corner fits its full reserved peak footprint within half the usable portrait
+width, with an 8-point center gap, 8-point outer margins, and clearance above the
+resource bars. Keep centers fixed through animation and numeric growth. The
+renderer and layout use the same region-specific peak bounds.
 
 New arrivals push only their own region upward by half the largest fitted peak
-height. Pushes ease out over 0.18 seconds and retarget continuously, without a
-cumulative displacement cap. Newer results draw on top. Expiration never pulls
-surviving labels back down. The spatial fade at the artwork's top edge evicts
-labels permanently once they leave view.
+height. Pushes ease out over 0.18 seconds and retarget continuously. Expiration
+never pulls surviving labels back down. The spatial fade at the artwork's top
+edge evicts labels permanently once they leave view.
 
 Matching semantic effects consolidate across actions before fading begins.
-Reserve one extra numeric digit; wider updates emit separately. Consolidated
-results add 0.12 seconds of visibility, capped at 0.30 seconds beyond the original
-lifetime, without restarting motion. All regions replay a 0.45-second white glyph
-glint and bounded 10% pulse over 0.18 seconds when results consolidate. Critical contributions restart a broader 0.48-second accent halo and a
-0.14-second white glyph flash, alongside the existing glint.
+Keep distinct effect outcomes separate even when they share a keyword and style;
+compatible damage and healing retain their existing aggregation families.
+Reserve one extra numeric digit; wider additive updates emit separately.
+Central merges add 0.12 seconds of visibility, capped at 0.30 seconds beyond the
+original lifetime, and replay the glint and bounded 10% pulse. Critical central
+contributions retain their accent halo and flash. Corner merges update numbers or
+retain identical status words and source IDs without renewed glint, pulse, or
+lifetime extension.
+
+After consolidating each complete incoming batch, publish at most two visible
+chips per corner per recipient. Prioritize actual control activations and Death's
+Door, then the most recently received results (event ID breaks simultaneous ties).
+Permanently evict overflow through the lane's existing eviction mechanism; never
+queue stale notifications or resurrect evicted chips on publication/remount.
+Apply sound and hit reactions from committed results before visual culling can
+hide them. Card inputs and damage presentation remain immediate.
 
 Feedback hosts are composed with the artwork inside its attack and hit-reaction
 transforms, including the masked halves of the enemy split/dissolve death effect.

@@ -100,6 +100,56 @@ struct MysteryEventPinTests {
         }
     }
 
+    #if DEBUG
+    @Test @MainActor func `failed bonus refresh preserves saved offers and retry survives reload`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore(resetState: true)
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        var save = store.currentSave
+        save.roster.gold = 0
+        save.homestead.pendingProduction = [:]
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        let offers = try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
+        )
+        save.roster.gold = PlayerRosterState.maxGoldBalance
+        #expect(store.persistBatch(logging: "Seed stale mystery offer") { $0 = save })
+        let before = store.currentSave
+        let request = MysteryEncounterRequest(
+            encounter: EncounterIdentity(location: .journey(stageID: stage.id), save: before),
+            stage: stage, event: event, displayedOffers: offers,
+        )
+        store.forcesNextSaveFailure = true
+        let failed = store.persistTransaction(logging: "Refresh mystery offer") { candidate in
+            MysteryEncounterResolution.resolve(choiceID: offers[0].choiceID, request: request, save: &candidate, using: &rng)
+        }
+        guard case .persistFailed = failed else {
+            Issue.record("Expected failed refresh write")
+            return
+        }
+        #expect(store.currentSave == before)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.currentSave == before)
+        let retry = reloaded.persistTransaction(logging: "Retry mystery refresh") { candidate in
+            MysteryEncounterResolution.resolve(choiceID: offers[0].choiceID, request: request, save: &candidate, using: &rng)
+        }
+        guard case let .committed(.refreshedOffers(revised)) = retry else {
+            Issue.record("Expected saved revised offers without a grant")
+            return
+        }
+        #expect(revised.map(\.item) == offers.map(\.item))
+        #expect(reloaded.inventory == before.inventory)
+        #expect(reloaded.roster == before.roster)
+        #expect(!reloaded.journey.completedStageIDs.contains(stage.id))
+        let reopened = try context.makeReloadedStore()
+        var reopenedSave = reopened.currentSave
+        #expect(try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &reopenedSave, using: &rng,
+        ) == revised)
+    }
+    #endif
+
     @MainActor
     private func reachableMysteryNodeID(in store: PlayerSaveStore, enabled: Bool) throws -> String? {
         guard enabled else { return nil }
@@ -162,14 +212,13 @@ struct MysteryEventPinTests {
             var rng = SeededRandomNumberGenerator(seed: 3)
             let offers = try MysteryOfferPersistence.prepare(event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng)
             let offer = offers[0]
-            // Prepare stores the raw bonus; wallet-cap replacement happens at claim.
-            guard case .gold = offer.bonus else { Issue.record("Expected raw gold bonus at prepare time"); continue }
+            guard case let .experience(amount) = offer.bonus else { Issue.record("Expected receivable XP offer"); continue }
             let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save)
             #expect(result.grantedItems == [offer.item])
             #expect(result.grantedGold == 0)
             #expect(result.hasGrantedExperience)
-            #expect(result.heroGrantedExperience > 0)
-            #expect(result.heroGrantedExperience == result.companionGrantedExperience)
+            #expect(result.heroGrantedExperience == amount)
+            #expect(result.companionGrantedExperience == amount)
         }
     }
 
@@ -239,10 +288,9 @@ struct MysteryEventPinTests {
         ) == nil)
     }
 
-    @Test func `mystery bonus settles at claim against wallet state`() throws {
+    @Test func `stale bonus cannot be claimed until the stored offer is refreshed`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
-        // Prepare while the wallet is empty: the stored bonus stays raw.
         var save = SaveTestSupport.makeSave(gold: 0)
         save.homestead.pendingProduction = [:]
         var rng = SeededRandomNumberGenerator(seed: 3)
@@ -251,15 +299,43 @@ struct MysteryEventPinTests {
         )
         let offer = try #require(offers.first)
         guard case .gold = offer.bonus else {
-            Issue.record("Expected a raw gold bonus at prepare time")
+            Issue.record("Expected a receivable Gold offer")
             return
         }
-        // Fill the wallet before claiming: the grant must replace gold with
-        // XP instead of truncating, using claim-time wallet state.
         save.roster.gold = PlayerRosterState.maxGoldBalance
-        let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save)
+        let before = save
+        #expect(MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save).isEmpty)
+        #expect(save == before)
+        let revised = try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
+        )
+        #expect(revised.map(\.item) == offers.map(\.item))
+        let result = MysteryOfferPersistence.claim(revised[0], stage: stage, labyrinthNodeID: nil, save: &save)
         #expect(result.grantedItems == [offer.item])
         #expect(result.grantedGold == 0)
-        #expect(result.hasGrantedExperience)
+        #expect(result.heroGrantedExperience == revised[0].bonus.amount)
+        #expect(result.companionGrantedExperience == revised[0].bonus.amount)
+    }
+
+    @Test func `legacy raw XP snapshot is capped without rerolling its item`() throws {
+        let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        var save = SaveTestSupport.makeSave()
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        let original = try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
+        )
+        let raw = original.map { MysteryOffer(choiceID: $0.choiceID, item: $0.item, bonus: .experience(10000)) }
+        save.journey.mysteryOfferPayloads[stage.id] = try JSONEncoder().encode(MysteryOfferSnapshot(eventID: event.id, offers: raw))
+        save.roster.progressions[save.roster.activeHeroID] = .at(level: 1)
+        save.roster.progressions[save.roster.activeCompanionID] = .at(level: 30)
+        let revised = try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
+        )
+        #expect(revised.map(\.item) == original.map(\.item))
+        #expect(revised[0].bonus == .experience(30))
+        let result = MysteryOfferPersistence.claim(revised[0], stage: stage, labyrinthNodeID: nil, save: &save)
+        #expect(result.heroGrantedExperience == 30)
+        #expect(result.companionGrantedExperience == 30)
     }
 }

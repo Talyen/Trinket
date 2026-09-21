@@ -50,8 +50,9 @@ struct CombatantStatusEffectConfig: Equatable {
             config.wobbleDegrees = 2.2
             config.tintStrength = 0
         case .iceCrystals:
-            config.particleCount = 12
-            config.frostOpacity = 0.82
+            config.intensity = 1.18
+            config.particleCount = 16
+            config.frostOpacity = 0.9
             config.crackDensity = 0.76
             config.tintStrength = 0
         }
@@ -180,8 +181,8 @@ struct CombatantStatusEffectOverlay: View {
 
             TrinketDesign.cardShape
                 .strokeBorder(
-                    style.color.opacity(0.26 * veilOpacity),
-                    lineWidth: 1.25,
+                    style.color.opacity(0.34 * veilOpacity),
+                    lineWidth: 1.5,
                 )
 
             if onsetGlow > 0.001 {
@@ -228,7 +229,7 @@ struct CombatantStatusEffectOverlay: View {
                 default: CGPoint(x: inset, y: along * size.height)
                 }
 
-                let twinkle: CGFloat = 0.55 + 0.45 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
+                let twinkle: CGFloat = 0.72 + 0.28 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
                 let breathe: CGFloat = 0.88 + 0.12 * twinkle
                 let radiusFraction: CGFloat = min(size.width, size.height)
                     * (0.01 + config.crackDensity * 0.018)

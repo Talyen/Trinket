@@ -47,6 +47,8 @@ materials and Gold, and learning or practice for XP. The authored catalog is
 Save both rolled items, including their affix powers, and secondary amounts with
 the Journey stage or Labyrinth node before enabling choices. Reopening reuses
 these offers. Existing saves without snapshots acquire them on first opening.
+Existing snapshots with unresolved bonuses are revalidated without rerolling
+available items or affixes.
 
 Revalidate ownership and grant capacity before claiming. If a special item has
 become owned, or a secondary reward no longer fits, save and display the revised
@@ -60,17 +62,3 @@ reveal screen.
 Engineering owners: [content](../AgentContext/content-and-manifests.md),
 [persistence](../AgentContext/persistence.md), and
 [SwiftUI features](../AgentContext/swiftui-features.md).
-
-## Implementation discrepancy
-
-The intended stability rule above requires a revised offer and fresh action when
-a reward no longer fits. Current
-[MysteryOfferPersistence.claim](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/MysteryOfferPersistence.swift)
-instead stores the raw bonus and settles capacity at claim time. The
-[AppState Mystery tests](../../Packages/TrinketAppState/Tests/TrinketAppStateTests/AppStateMysteryRecruitTests.swift)
-explicitly expect Gold that fills between preview and claim to convert to XP on
-the first tap. This means the displayed bonus is not a guaranteed final grant.
-
-Confirm whether to retain that immediate settlement or restore the displayed-offer
-guarantee before changing code or the product rule. Atomic item/reward completion
-and protection against duplicate claims remain required in either case.

@@ -199,6 +199,7 @@ extension BattleFeedbackLane {
                 activeItems[index].pausedAt = nil
                 activeItems[index].availableAt += delay
                 activeItems[index].firstScheduledAt += delay
+                activeItems[index].lastReceivedAt += delay
                 activeItems[index].expiresAt += delay
                 activeItems[index].lastUpdatedAt = activeItems[index].lastUpdatedAt?.addingTimeInterval(delay)
                 activeItems[index].criticalAt = activeItems[index].criticalAt?.addingTimeInterval(delay)

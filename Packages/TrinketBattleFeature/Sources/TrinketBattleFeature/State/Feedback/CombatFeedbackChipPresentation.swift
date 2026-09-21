@@ -59,7 +59,9 @@ struct CombatFeedbackChipPresentation: Hashable {
         switch word {
         case .dodge:
             iconOnly(trailing: .keyword(.dodge))
-        case let .plain(chipKeyword), let .applied(chipKeyword), let .triggered(chipKeyword):
+        case let .plain(chipKeyword), let .applied(chipKeyword):
+            iconOnly(trailing: .keyword(chipKeyword))
+        case let .triggered(chipKeyword):
             Self(
                 leadingStyle: nil,
                 trailingStyle: .keyword(chipKeyword),

@@ -188,7 +188,7 @@ struct StationaryFeedbackTests {
         let wider = layout.place(id: 11, size: CGSize(width: 90, height: 24), region: .benefit)
         let wideSlot = try #require(wider)
         #expect(wideSlot.fitScale > 0.5)
-        #expect(wideSlot.rect.width * StationaryFeedbackLayout.peakScale * StationaryFeedbackLayout.mergePulseScale <= bounds.width - 16)
+        #expect(wideSlot.rect.width * StationaryFeedbackLayout.maximumScale(for: .benefit) <= (bounds.width - 24) / 2)
     }
 
     @Test @MainActor func `corner rasters keep their centers through pop fade and numeric growth`() throws {
@@ -197,6 +197,7 @@ struct StationaryFeedbackTests {
         for benefit in [true, false] {
             let labels: [CombatFeedbackChipLabel] = [
                 .word(.plain(.poison)), .amount(9),
+                .word(.triggered(.freeze)), .word(.triggered(.stun)),
                 benefit ? .word(.cleanse(.poison)) : .word(.purge(.poison)),
             ]
             for label in labels {
@@ -222,6 +223,10 @@ struct StationaryFeedbackTests {
                     view.debugTickMotion(at: start.addingTimeInterval(elapsed))
                     #expect(layer.position == center)
                     #expect(view.bounds.contains(layer.frame))
+                    #expect(
+                        benefit ? layer.frame.maxX <= view.bounds.midX - 4 + 0.000001 : layer.frame.minX >= view.bounds.midX + 4 - 0.000001,
+                        "Corner \(benefit), label \(label), rendered frame \(layer.frame)",
+                    )
                 }
                 if case .amount = label {
                     item.label = .amount(99)
@@ -231,6 +236,10 @@ struct StationaryFeedbackTests {
                     view.debugTickMotion(at: start.addingTimeInterval(0.05))
                     #expect(layer.position == center)
                     #expect(view.bounds.contains(layer.frame))
+                    #expect(
+                        benefit ? layer.frame.maxX <= view.bounds.midX - 4 + 0.000001 : layer.frame.minX >= view.bounds.midX + 4 - 0.000001,
+                        "Corner \(benefit), label \(label), rendered frame \(layer.frame)",
+                    )
                 }
             }
         }
@@ -253,7 +262,7 @@ struct StationaryFeedbackTests {
         }
     }
 
-    @Test @MainActor func `status consolidation repeats the shared pulse and glint without restarting motion`() throws {
+    @Test @MainActor func `status consolidation retains source identity without restarting motion or extending visibility`() throws {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -271,9 +280,9 @@ struct StationaryFeedbackTests {
         let merged = try #require(lane.activeItems.first)
         let before = CombatFeedbackMotionSampler.state(for: original, at: date)
         let after = CombatFeedbackMotionSampler.state(for: merged, at: date)
-        #expect(after.riseProgress == before.riseProgress && after.shineProgress == 0)
-        #expect(abs(after.scale - before.scale * 1.10) < 0.000001)
-        #expect(merged.expiresAt > original.expiresAt && merged.firstScheduledAt == original.firstScheduledAt)
+        #expect(after == before)
+        #expect(merged.sourceEventIDs == [1, 2])
+        #expect(merged.expiresAt == original.expiresAt && merged.firstScheduledAt == original.firstScheduledAt)
     }
 
     private func event(_ id: Int, amount: Int) -> BattleEngine.ActionEvent {

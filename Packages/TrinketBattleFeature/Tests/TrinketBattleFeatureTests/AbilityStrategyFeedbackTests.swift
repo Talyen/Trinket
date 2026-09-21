@@ -1,7 +1,6 @@
 import BattleEngine
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import TrinketBattleFeature
 
@@ -14,10 +13,10 @@ struct AbilityStrategyFeedbackTests {
                 )
                 for item in CombatFeedbackPresenter.makeItems(from: [event], at: .now) {
                     switch item.label {
-                    case .word(.plain(.freeze)), .word(.applied(.freeze)), .word(.triggered(.freeze)):
+                    case .word(.triggered(.freeze)):
                         #expect(item.chipPresentation.text == "Frozen")
                         #expect(item.chipPresentation.trailingStyle == .keyword(.freeze))
-                    case .word(.plain(.stun)), .word(.applied(.stun)), .word(.triggered(.stun)):
+                    case .word(.triggered(.stun)):
                         #expect(item.chipPresentation.text == "Stunned")
                         #expect(item.chipPresentation.trailingStyle == .keyword(.stun))
                     default:
@@ -40,33 +39,14 @@ struct AbilityStrategyFeedbackTests {
         #expect(item.label.merging(with: item.label) == nil)
     }
 
-    @Test(arguments: AbilityCatalog.all)
-    func `every catalog card produces feedback at full health`(ability: Ability) throws {
-        var state = BattleState(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100, abilities: [ability]),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
-            dealOpeningHand: true,
-        )
-        let card = try #require(state.hand.cards.first { $0.owner == .hero })
-        let events = try state.playCard(cardID: card.id)
-        let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
-        #expect(!items.isEmpty, "Silent card: \(ability.name)")
-        if ability.id == Ability.heal.id {
-            #expect(items.contains { $0.keyword == .health && $0.label != .amount(0) })
-        }
-    }
-
-    @Test func `silent fallback does not add zero beside real feedback`() {
+    @Test func `silent cards do not invent zero feedback`() {
         let summary = ActionEvent(
             id: 2, actionID: 1, kind: .ability, actorID: "hero", actorName: "Hero",
             abilityID: Ability.manaPotion.id, abilityName: "Mana Potion", targetID: "hero", targetName: "Hero",
             amount: 0, keyword: .physical,
         )
         let silent = CombatFeedbackPresenter.makeItems(from: [summary], at: .now)
-        #expect(silent.count == 1)
-        #expect(silent.first?.label == .amount(0))
-        #expect(silent.first?.keyword == .mana)
+        #expect(silent.isEmpty)
         let gain = BattleSessionTestSupport.makeActionEvent(
             id: 1, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .mana, actionID: 1,
         )

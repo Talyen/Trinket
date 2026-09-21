@@ -20,10 +20,14 @@ Let P be the active Hero and Companion's average level, rounded down:
 
 Use the existing enemy curves, shared
 [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
-at the resolved encounter level, catch-up XP,
-level-difference XP reductions, reward ownership, and applicable Homestead
-effects. There are no Contracts-specific stat or reward multipliers. Difficulty
-labels describe level and enemy category, not a guaranteed matchup outcome.
+with Campaign progress anchoring item quality. Use the active Campaign stage's
+authored encounter level, or the highest authored level after Campaign completion.
+Contract encounter level drives XP, Gold, and material quantities; leveling through
+Contracts alone does not advance item quality. Hard Contracts receive the shared
+boss loot weighting. Preserve catch-up XP, level-difference XP reductions, reward
+ownership, and applicable Homestead effects. There are no Contracts-specific stat
+or reward multipliers. Difficulty labels describe level and enemy category, not a
+guaranteed matchup outcome.
 
 Use the shared Stage screen, list, and active-card layout from Campaign and Spires.
 All three offers are available Stage cards, showing difficulty (Easy, Standard,
@@ -58,15 +62,3 @@ all other saved progress.
 Contracts has no entry cost, timers, separate statistics, ranks, bonus
 objectives, or overall completion percentage. Its lasting rewards are roster
 progression, equipment, gold, and materials.
-
-## Implementation discrepancy
-
-The intended rule above uses the resolved encounter level for loot. The current
-[ContractsCompletion.resolveLoot](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Progression/ContractsCompletion.swift)
-instead anchors item quality to Campaign progress through `campaignRewardLevel`,
-while XP, Gold, and material quantities use the Contract's encounter level. Its
-source comment explicitly describes avoiding better item tiers through grinding.
-
-These are different progression rules, not interchangeable descriptions. Confirm
-whether Campaign-gated item quality is intended before changing either the product
-rule or the implementation. This documentation review does not approve a loot rebalance.

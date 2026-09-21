@@ -61,14 +61,14 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testDefeatRetry() {
+    func testDefeatReturn() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg
                 .performanceArguments(from: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat")))
             assertExists(AccessibilityID.Battle.defeat)
-            measured("defeat-retry", iteration: iteration) {
-                tapButton(AccessibilityID.Battle.defeatPrimaryButton)
-                battle.assertActive()
+            measured("defeat-return", iteration: iteration) {
+                tapButton(AccessibilityID.Battle.defeatLeaveButton)
+                play.assertCampaignLoaded()
             }
         }
     }

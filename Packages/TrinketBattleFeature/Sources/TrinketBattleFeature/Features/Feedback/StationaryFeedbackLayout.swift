@@ -26,17 +26,17 @@ struct StationaryFeedbackLayout {
         slots.removeAll { !ids.contains($0.id) }
     }
 
-    mutating func place(id: Int, size: CGSize, region: CombatFeedbackRegion = .impact) -> Slot? {
+    mutating func place(id: Int, size: CGSize, region: CombatFeedbackRegion = .impact, bottomInset: CGFloat = 0) -> Slot? {
         if let slot = slots.first(where: { $0.id == id }) {
             return slot
         }
-        let fittingArea = bounds.insetBy(dx: 8, dy: 8)
+        let fittingArea = fittingArea(for: region, bottomInset: bottomInset)
         guard fittingArea.width > 0, fittingArea.height > 0, size.width > 0, size.height > 0 else { return nil }
-        let maximumScale = Self.peakScale * Self.mergePulseScale
+        let maximumScale = Self.maximumScale(for: region)
         let fit = min(1, fittingArea.width / (size.width * maximumScale), fittingArea.height / (size.height * maximumScale))
         let fitted = CGSize(width: size.width * fit, height: size.height * fit)
         let pushDistance = max(fitted.height, slots.filter { $0.region == region }.map(\.rect.height).max() ?? 0)
-            * Self.peakScale * 0.5
+            * (region == .impact ? Self.peakScale : CombatFeedbackMotionSampler.statusPeakScale) * 0.5
         for index in slots.indices where slots[index].region == region {
             slots[index].rect = slots[index].rect.offsetBy(dx: 0, dy: -pushDistance)
         }
@@ -56,17 +56,33 @@ struct StationaryFeedbackLayout {
     }
 
     func position(for slot: Slot, push: CGFloat, rise: CGFloat, bottomInset: CGFloat) -> CGPoint {
-        let inset = bounds.insetBy(dx: 8, dy: 8)
+        let inset = fittingArea(for: slot.region, bottomInset: bottomInset)
         // Reserve the peak footprint so scaling and numeric merges keep a fixed center.
-        let maximumScale = Self.peakScale * Self.mergePulseScale
+        let maximumScale = Self.maximumScale(for: slot.region)
         let halfWidth = slot.rect.width * maximumScale / 2
         let x = switch slot.region {
         case .impact: bounds.midX
         case .benefit: inset.minX + halfWidth
         case .setback: inset.maxX - halfWidth
         }
-        let y = slot.region == .impact ? bounds.midY : inset.maxY - bottomInset - slot.rect.height * maximumScale / 2
+        let y = slot.region == .impact ? bounds.midY : inset.maxY - slot.rect.height * maximumScale / 2
         return CGPoint(x: x, y: y - push - rise)
+    }
+
+    static func maximumScale(for region: CombatFeedbackRegion) -> CGFloat {
+        region == .impact ? peakScale * mergePulseScale : CombatFeedbackMotionSampler.statusPeakScale
+    }
+
+    private func fittingArea(for region: CombatFeedbackRegion, bottomInset: CGFloat) -> CGRect {
+        var area = bounds.insetBy(dx: 8, dy: 8)
+        if region != .impact {
+            area.size.height -= bottomInset
+            area.size.width = (area.width - 8) / 2
+            if region == .setback {
+                area.origin.x = bounds.midX + 4
+            }
+        }
+        return area
     }
 
     static func edgeOpacity(centerY: CGFloat, in bounds: CGRect) -> Double {

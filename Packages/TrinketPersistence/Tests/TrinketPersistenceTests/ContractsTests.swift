@@ -34,6 +34,22 @@ struct ContractBoardTests {
         #expect(Set(board.offers.map(\.enemyID)).count == 3)
     }
 
+    @Test func `item quality follows Campaign progress rather than roster leveling`() throws {
+        var save = SaveTestSupport.makeSave()
+        let early = ContractsCompletion.campaignRewardLevel(in: save)
+        save.roster.progressions[save.roster.activeHeroID] = .at(level: 40)
+        save.roster.progressions[save.roster.activeCompanionID] = .at(level: 40)
+        #expect(ContractsCompletion.campaignRewardLevel(in: save) == early)
+
+        let lastStage = try #require(GameContent.chapters.last?.stages.last)
+        save.journey.activeStageID = lastStage.id
+        let late = ContractsCompletion.campaignRewardLevel(in: save)
+        #expect(late > early)
+        #expect(late == StageCompletion.resolvedEncounterLevel(for: lastStage, in: GameContent.chapters))
+        save.journey.activeStageID = nil
+        #expect(ContractsCompletion.campaignRewardLevel(in: save) == late)
+    }
+
     @Test(arguments: ContractDifficulty.allCases)
     func `claim grants regular rewards once and replaces only its slot`(difficulty: ContractDifficulty) throws {
         var save = SaveTestSupport.makeSave()

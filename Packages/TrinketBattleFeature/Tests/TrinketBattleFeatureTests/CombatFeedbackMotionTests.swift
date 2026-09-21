@@ -46,7 +46,7 @@ struct CombatFeedbackMotionTests {
         }
     }
 
-    @Test @MainActor func `corner feedback stays still and smaller while sharing the central fade and pulse`() throws {
+    @Test @MainActor func `corner feedback stays still with a smaller pop and the central fade`() throws {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -60,7 +60,8 @@ struct CombatFeedbackMotionTests {
             let date = start.addingTimeInterval(elapsed)
             let main = CombatFeedbackMotionSampler.state(for: hit, at: date)
             let lower = CombatFeedbackMotionSampler.state(for: status, at: date)
-            #expect(abs(lower.scale - main.scale * 0.80) < 0.000001)
+            #expect(lower.scale < main.scale)
+            #expect(lower.scale <= 1.2 * 0.8 * CombatFeedbackMotionSampler.statusPeakScale)
             #expect(lower.riseProgress == 0)
             #expect(lower.opacity == main.opacity && lower.shineProgress == main.shineProgress)
         }

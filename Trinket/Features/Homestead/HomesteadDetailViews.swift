@@ -39,19 +39,6 @@ struct HomesteadNodeDetailView: View {
         GeometryReader { geometry in
             ZStack {
                 portrait
-                LinearGradient(
-                    colors: [
-                        TrinketDesign.Colors.Overlay.ink.opacity(0.64),
-                        .clear,
-                        .clear,
-                        TrinketDesign.Colors.Overlay.ink.opacity(0.38),
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom,
-                )
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
-
                 VStack(spacing: TrinketDesign.Spacing.large) {
                     buildingIdentity
                     Spacer(minLength: TrinketDesign.Spacing.large)
@@ -136,7 +123,6 @@ struct HomesteadNodeDetailView: View {
                 .trinketTypography(.screenDisplay)
                 .multilineTextAlignment(.center)
                 .trinketOnArtText()
-                .trinketOnArtTextBackdrop()
             HomesteadTierProgress(
                 currentTier: purchasePresentation?.displayedTierNumber ?? status.currentTier,
                 totalTiers: definition.maxTier,

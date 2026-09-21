@@ -141,9 +141,7 @@ public enum MysteryEffectApplier {
         )
     }
 
-    /// Applies a prepared offer. The bonus is applied as stored: the claim
-    /// path settles it against wallet caps just before calling, so previews
-    /// stay estimates and grants always match wallet state at tap time.
+    /// Applies the exact prepared offer after the claim path validates capacity.
     public static func apply(_ offer: MysteryOffer, save: inout PlayerSave, at date: Date = Date()) -> MysteryEffectResult {
         guard isAvailable(offer.item, in: save.inventory) else { return MysteryEffectResult() }
         var result = MysteryEffectResult()
@@ -265,9 +263,8 @@ public enum MysteryEffectApplier {
         }
     }
 
-    /// Single settle point for mystery bonuses: wallet-cap gold→XP replacement
-    /// plus shared-XP capping, computed against wallet state at grant time.
-    /// Offers store the raw bonus; claim settles just before applying.
+    /// Resolves receivable bonuses for offer preparation and claim validation.
+    /// Direct effects use the same wallet-cap replacement and shared-XP limits.
     static func settledBonus(
         _ bonus: MysteryRewardBonus,
         encounterLevel: Int,

@@ -15,6 +15,8 @@ enum CombatFeedbackVisualRole: Equatable {
 }
 
 struct CombatFeedbackItem: Identifiable, Equatable {
+    let effectKind: ActionEvent.EffectOutcome?
+    var lastReceivedAt: Date
     var reservedDigitCount = 0
     var pausedAt: Date?
     let id: Int
@@ -49,7 +51,10 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         reactionKind: CombatantHitReactionKind,
         firstScheduledAt: Date? = nil,
         isCritical: Bool = false,
+        effectKind: ActionEvent.EffectOutcome? = nil,
     ) {
+        self.effectKind = effectKind
+        lastReceivedAt = firstScheduledAt ?? availableAt
         self.id = id
         self.sourceEventIDs = sourceEventIDs
         self.actionGroupID = actionGroupID
@@ -106,6 +111,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         copy.availableAt = date
         copy.expiresAt = date.addingTimeInterval(CombatFeedbackMotionSampler.lifetime)
         copy.firstScheduledAt = date
+        copy.lastReceivedAt = date
         return copy
     }
 }

@@ -75,7 +75,6 @@ struct HubArtworkCard: View {
                     .trinketOnArtText(.title)
                     .trinketFittedText()
             }
-            .trinketOnArtTextBackdrop()
             .padding(TrinketDesign.Spacing.large)
         }
         .aspectRatio(1.35, contentMode: .fit)

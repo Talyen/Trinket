@@ -27,13 +27,10 @@ struct DefeatView: View {
                 }
                 .accessibilityIdentifier(AccessibilityID.Battle.experience)
             },
-            primaryActionTitle: "Retry",
-            primaryActionAccessibilityIdentifier: AccessibilityID.Battle.defeatPrimaryButton,
+            primaryActionTitle: "Continue",
+            primaryActionAccessibilityIdentifier: AccessibilityID.Battle.defeatLeaveButton,
             isPrimaryActionDisabled: isCompleting || completedExperienceBars < experienceAwards.count,
-            onPrimaryAction: { complete(.retry) },
-            secondaryActionTitle: "Leave",
-            secondaryActionAccessibilityIdentifier: AccessibilityID.Battle.defeatLeaveButton,
-            onSecondaryAction: { complete(.leave) },
+            onPrimaryAction: { complete(.leave) },
             contentTopPadding: TrinketDesign.Spacing.extraSmall,
             contentStackSpacing: TrinketDesign.Spacing.large,
             pinsPrimaryActionToBottom: false,

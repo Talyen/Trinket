@@ -334,7 +334,7 @@ private extension CombatFeedbackRasterUIView {
             _ = stationaryLayout.place(id: chip.item.id, size: CGSize(
                 width: chip.reservationSize.width * sizeScale,
                 height: chip.reservationSize.height * sizeScale,
-            ), region: chip.item.region)
+            ), region: chip.item.region, bottomInset: bottomInset)
         }
         let date = Date.now
         for chip in orderedLayers {

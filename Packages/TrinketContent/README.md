@@ -76,9 +76,9 @@ There are no category-conversion fallbacks. Guaranteed Astral rewards constrain
 the same resolver to Astral gear; exact authored item rewards remain exact.
 
 Item reward level uses authored Journey progression (chapter base for shops and
-Mysteries), Spire floor level, or Labyrinth depth. Contracts currently uses a
-Campaign anchor; the [product discrepancy](../../Docs/Product/Contracts.md#implementation-discrepancy)
-records its difference from the intended encounter-level rule.
+Mysteries), Spire floor level, or Labyrinth depth. Contracts uses the active Campaign stage's authored level (the highest authored
+level after Campaign completion), so roster leveling alone does not advance item
+quality; see [Contracts](../../Docs/Product/Contracts.md#board).
 Party-adjusted currency and experience calculations remain separate. Saved items
 and pinned offers retain their contents; newly generated rewards use current tuning.
 

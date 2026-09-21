@@ -147,6 +147,7 @@ final class BattleFeedbackLane {
         for item in prepared {
             recordStationary(item, at: date)
         }
+        limitCornerItems()
         noteItemsChanged()
         applyMultimodalPresentation(for: prepared, damage: damage, at: date, environment: environment)
         updatePruneDate()

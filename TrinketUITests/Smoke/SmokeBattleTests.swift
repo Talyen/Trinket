@@ -24,16 +24,18 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
     }
 
-    func testDefeatRetryStartsBattle() {
+    func testDefeatContinueReturnsToCampaign() {
         launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
             "0.01",
             in: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat"),
         ))
-        tapWhenReady(button(AccessibilityID.Battle.defeatPrimaryButton))
-        battle.assertActive(timeout: 8)
+        assertDoesNotExist(AccessibilityID.Battle.defeatPrimaryButton)
+        tapWhenReady(button(AccessibilityID.Battle.defeatLeaveButton))
+        play.assertCampaignLoaded()
+        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
     }
 
-    func testDefeatLeaveRecoversFromSaveFailureAndReturnsToCampaign() {
+    func testDefeatContinueRecoversFromSaveFailureAndReturnsToCampaign() {
         launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
             "0.01",
             in: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat-save-failure"),
@@ -68,7 +70,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         battle.retreatAction.tap()
         XCTAssertFalse(app.alerts.firstMatch.exists)
         assertExists(AccessibilityID.Battle.defeat)
-        assertButtonExists(AccessibilityID.Battle.defeatPrimaryButton)
+        assertDoesNotExist(AccessibilityID.Battle.defeatPrimaryButton)
         assertButtonExists(AccessibilityID.Battle.defeatLeaveButton)
         battle.defeatLeaveAction.trinketTapWhenReady()
         assertExists(AccessibilityID.Play.contractsBoard, timeout: 10)
