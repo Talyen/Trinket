@@ -85,7 +85,7 @@
     "victory-reveal",
     "defeat-reveal",
     "victory-claim-return",
-    "defeat-retry",
+    "defeat-return",
     "defeat-save-recovery",
     "postbattle-talent-reveal",
     "postbattle-talent-choice",
@@ -422,9 +422,9 @@
       "group": "outcome",
       "test": "OutcomePerformanceUITests/testVictoryReturn"
     },
-    "defeat-retry": {
+    "defeat-return": {
       "group": "outcome",
-      "test": "OutcomePerformanceUITests/testDefeatRetry"
+      "test": "OutcomePerformanceUITests/testDefeatReturn"
     },
     "defeat-save-recovery": {
       "group": "outcome",
