@@ -20,6 +20,49 @@ from script_test_support import load_script
 
 
 class AgentReadTests(unittest.TestCase):
+    def test_signatures_filters_and_multiple_complete_symbols(self) -> None:
+        reader = load_script('signature_reader', 'agent-read.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = '''struct Owner {
+    var stored: Int = 99
+    /// Preserve the supplied value.
+    @MainActor
+    public static func make(
+        _ value: String = "{not a body}", transform: (Int) -> Int = { $0 }
+    ) throws -> String {
+        return "body-secret"
+    }
+    private func other() -> Int { 7 }
+}
+'''
+            (root / 'Code.swift').write_text(source)
+            (root / 'code.py').write_text('class Owner:\n    # Contract\n    def make(self, data: dict = {"key": 1}) -> str:\n        return "body-secret"\n    value: int = 99\n')
+            def read(path, *args):
+                with contextlib.redirect_stdout(io.StringIO()) as output:
+                    self.assertEqual(reader.main([path, *args], root=root), 0)
+                return output.getvalue()
+            swift = read('Code.swift', '--signatures', '--kind', 'methods', '--match', 'MAKE')
+            self.assertIn('public static func make(', swift)
+            self.assertIn('throws -> String', swift)
+            self.assertIn('{ $0 }', swift)
+            self.assertIn('Preserve the supplied value', swift)
+            self.assertNotIn('body-secret', swift)
+            self.assertNotIn('Owner.stored', swift)
+            self.assertNotIn('Owner.other', swift)
+            properties = read('Code.swift', '--signatures', '--kind', 'properties')
+            self.assertIn('var stored: Int', properties)
+            self.assertNotIn('99', properties)
+            python = read('code.py', '--signatures', '--kind', 'methods')
+            self.assertIn('data: dict = {"key": 1}) -> str', python)
+            self.assertIn('# Contract', python)
+            self.assertNotIn('body-secret', python)
+            multiple = read('Code.swift', '--symbol', 'make', '--symbol', 'other')
+            self.assertIn('body-secret', multiple)
+            self.assertIn('private func other()', multiple)
+            page = read('Code.swift', '--signatures', '--kind', 'methods', '--limit', '1')
+            self.assertIn('--signatures --offset 1 --limit 1 --kind methods', page)
+
     def test_section_reader_preserves_complete_ranges_and_link_anchor_identity(self) -> None:
         reader = load_script("agent_read", "agent-read.py")
         links = load_script("section_links", "check-links.py")
@@ -127,6 +170,10 @@ struct Owner {
                 self.assertEqual(reader.main(['code.swift', '--symbol', 'work'], root=root), 2)
             self.assertIn('Ambiguous symbol', output.getvalue())
             self.assertNotIn('return nested()', output.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(reader.main(['code.swift', '--symbol', 'work', '--limit', '1'], root=root), 2)
+            self.assertIn('Candidates 0:1 of 2; omitted 1', output.getvalue())
+            self.assertIn('--symbol work --offset 1 --limit 1', output.getvalue())
             with contextlib.redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(reader.main(['code.swift', '--symbol', 'Owner.values'], root=root), 0)
             self.assertIn('1, 2', output.getvalue())

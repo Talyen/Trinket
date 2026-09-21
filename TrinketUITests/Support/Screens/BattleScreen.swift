@@ -28,8 +28,8 @@ struct BattleScreen {
         app.buttons[AccessibilityID.Battle.retreat]
     }
 
-    var retreatConfirmAction: XCUIElement {
-        app.buttons[AccessibilityID.Battle.retreatConfirm].firstMatch
+    var defeatLeaveAction: XCUIElement {
+        app.buttons[AccessibilityID.Battle.defeatLeaveButton].firstMatch
     }
 
     func assertActive(

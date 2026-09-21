@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 from internal.cli import ROOT
+from internal.generated_summary import generated_summary
 
 
 def patch_units(patch: str) -> list[str]:
@@ -35,6 +36,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope.add_argument("--paths", nargs="+", help="individual repository-relative files, including deletions")
     scope.add_argument("--working-tree", action="store_true", help="intentionally inspect every path")
     parser.add_argument("--generated", action="store_true", help="also expand generated patches")
+    parser.add_argument("--summary", action="store_true", help="add record/field hints for supported generated catalogs")
     parser.add_argument("--stat", action="store_true", help="show authored statistics without patches")
     parser.add_argument("--max-chars", type=int, default=12000, help="page content budget (default: 12000 characters)")
     parser.add_argument("--start", type=int, default=0, help="resume at a reported unit offset")
@@ -69,11 +71,30 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     for record in filter(None, records):
         added, removed, name = record.split("\t", 2)
         (outputs if is_generated(name) else authored).append((name, added, removed))
-    units = []
+    units, summary_versions = [], []
     for label, rows in (("Authored", authored), ("Generated (expand with --generated)", outputs)):
         if rows:
             for name, added, removed in rows:
                 units.append(f"{label}: +{added} -{removed} {json.dumps(name, ensure_ascii=False)}\n")
+    if args.summary:
+        def version(spec):
+            revision, name = spec.split(':', 1)
+            if not revision:
+                exists = git('ls-files', '--stage', '-z', '--', name)
+            else:
+                head = subprocess.run(['git', 'rev-parse', '--verify', 'HEAD'], cwd=root, capture_output=True)
+                if head.returncode:
+                    # A staged addition in an unborn repository has no prior content.
+                    return b''
+                exists = git('ls-tree', '-z', revision, '--', name)
+            if not exists:
+                return b''
+            return git('show', spec)
+        for name, _, _ in outputs:
+            before = version(('HEAD:' if args.staged else ':') + name)
+            after = version(':' + name) if args.staged else (root / name).read_bytes() if (root / name).exists() else b''
+            summary_versions.append(hashlib.sha256(before + b'\0' + after).hexdigest())
+            units.extend(generated_summary(name, before, after, staged=args.staged))
     expanded = authored + (outputs if args.generated else [])
     if expanded and not args.stat:
         units.extend(patch_units(git(*diff, "--", *(name for name, _, _ in expanded)).decode()))
@@ -83,7 +104,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             units.append(f"Untracked: {len(untracked)} files (not included in Git patches; read explicitly):\n")
             for name in untracked:
                 units.append(f"  {'generated' if is_generated(name) else 'authored'} {json.dumps(name, ensure_ascii=False)}\n")
-    digest = hashlib.sha256("".join(units).encode()).hexdigest()
+    digest = hashlib.sha256("".join(units + summary_versions).encode()).hexdigest()
     if args.expect and args.expect != digest:
         print("Diff changed since the previous page; restart review at --start 0.", file=sys.stderr)
         return 2
@@ -102,7 +123,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             print(f"Next complete hunk/record needs {budget} characters; it was not truncated.")
         command = ["python3", "Scripts/agent-diff.py", "--start", str(stop), "--expect", digest,
                    "--max-chars", str(budget)]
-        command += [flag for flag, enabled in (("--staged", args.staged), ("--generated", args.generated), ("--stat", args.stat)) if enabled]
+        command += [flag for flag, enabled in (("--staged", args.staged), ("--generated", args.generated), ("--summary", args.summary), ("--stat", args.stat)) if enabled]
         command += ["--working-tree"] if args.working_tree else ["--paths", *paths]
         print("Continue: " + shlex.join(command))
         print("Review every relevant page before editing overlapping changes; --full explicitly expands all output.")

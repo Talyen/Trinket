@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import ast
+import io
+import tokenize
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,6 +17,28 @@ class Declaration:
     kind: str
     start: int
     end: int
+    signature: str = ''
+    documentation: str = ''
+
+
+def python_signature(source: str) -> str:
+    """Stop before a suite or assignment, respecting nested defaults and annotations."""
+    lines = source.splitlines(keepends=True)
+    depth = 0
+    for token in tokenize.generate_tokens(io.StringIO(source).readline):
+        if token.type != tokenize.OP:
+            continue
+        if token.string in {'(', '[', '{'}:
+            depth += 1
+        elif token.string in {')', ']', '}'}:
+            depth -= 1
+        elif depth == 0 and token.string in {':', '='}:
+            # A colon in an annotated assignment is part of its signature.
+            if token.string == ':' and not source.lstrip().startswith(('def ', 'async def ', 'class ')):
+                continue
+            end = sum(map(len, lines[:token.start[0] - 1])) + token.start[1]
+            return source[:end].strip()
+    return source.strip()
 
 
 def documented_start(lines: list[str], start: int) -> int:
@@ -63,7 +87,11 @@ def python_declarations(source: str, include_locals: bool) -> list[Declaration]:
             for name in names:
                 qualified = f'{owner}.{name}' if owner else name
                 if include_locals or not local:
-                    found.append(Declaration(qualified, kind, documented_start(lines, start), node.end_lineno))
+                    documented = documented_start(lines, start)
+                    segment = ast.get_source_segment(source, node)
+                    found.append(Declaration(qualified, kind, documented, node.end_lineno,
+                                             python_signature(segment),
+                                             '\n'.join(lines[documented - 1:node.lineno - 1])))
             if names and kind in {'class', 'def'}:
                 next_owner = f'{owner}.{names[0]}' if owner else names[0]
                 next_local = local or kind == 'def'
@@ -77,10 +105,13 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
     # Retain scope tokens, but make strings/comments opaque. Braces and keywords
     # inside literals (including interpolation) cannot delimit declarations.
     raw = formatter_tokens(source, ROOT)
-    tokens = []
+    tokens, offsets = [], []
+    offset = 0
     line, comments, strings = 1, [], []
     for token in raw:
         kind, value = token['type'], token['string']
+        token_offset = offset
+        offset += len(value)
         start = line
         line += value.count('\n')
         if comments:
@@ -102,8 +133,10 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
         elif kind == 'startOfScope' and '"' in value:
             strings.append(value)
             tokens.append(('literal', '<string>', start, line))
+            offsets.append(token_offset)
         elif kind not in {'space', 'linebreak', 'commentBody'}:
             tokens.append((kind, value, start, line))
+            offsets.append(token_offset)
     pairs, stack = {}, []
     for i, (kind, value, _, _) in enumerate(tokens):
         if kind == 'startOfScope' and value in {'{', '(', '[', '<'}:
@@ -120,6 +153,9 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
     modifiers = {'public', 'private', 'fileprivate', 'internal', 'package', 'open', 'static', 'final',
                  'override', 'nonisolated', 'mutating', 'nonmutating', 'required', 'convenience', 'indirect'}
     lines = source.splitlines()
+    line_offsets = [0]
+    for line_text in source.splitlines(keepends=True):
+        line_offsets.append(line_offsets[-1] + len(line_text))
     found = []
 
     def scan(begin: int, stop: int, owner: str = '', local: bool = False):
@@ -150,6 +186,7 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
                     name_index += 2
             qualified = f'{owner}.{name}' if owner else name
             j, body, last = name_index + 1, None, name_index
+            signature_end = None
             while j < stop:
                 next_kind, next_value, next_line, _ = tokens[j]
                 previous = tokens[last]
@@ -163,6 +200,8 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
                 if j in pairs:
                     last = pairs[j]
                     if next_value == '{':
+                        if signature_end is None:
+                            signature_end = offsets[j]
                         body = j
                         j = last + 1
                         if value in {'var', 'let'}:
@@ -172,10 +211,21 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
                         break
                     j = last + 1
                 else:
+                    if next_value == '=' and value in {'var', 'let'} and signature_end is None:
+                        signature_end = offsets[j]
                     last, j = j, j + 1
             start = documented_start(lines, number)
             if include_locals or not local:
-                found.append(Declaration(qualified, value, start, tokens[last][3]))
+                if signature_end is None:
+                    signature_end = offsets[j] if j < stop else line_offsets[tokens[last][3]]
+                # Include same-line modifiers; nested one-line declarations begin after the enclosing brace.
+                signature_start = line_offsets[number - 1]
+                prior = source[signature_start:offsets[i]]
+                if '{' in prior or ';' in prior:
+                    signature_start += max(prior.rfind('{'), prior.rfind(';')) + 1
+                found.append(Declaration(qualified, value, start, tokens[last][3],
+                                         source[signature_start:signature_end].strip(),
+                                         '\n'.join(lines[start - 1:number - 1])))
             if body is not None:
                 scan(body + 1, pairs[body], qualified, local or value not in types)
             i = max(j, i + 1)

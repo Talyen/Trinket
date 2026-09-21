@@ -8,7 +8,9 @@ live in each manifest directory's README; open only the relevant one.
 Edit authored inputs (manifests, ability Swift, `ContentManifest/talents.tsv`, or the relevant `Scripts/internal/content/trigger_families/*.json`). Do not hand-edit generated Swift, generated inventory TSV, processed assets/resources, or the Xcode project. The verification router owns generation and idempotence.
 
 Catalog inputs and generated outputs must stay in sync. Review generated changes
-against authored inputs; generation must be idempotent. Generated files are committed
+against authored inputs; generation must be idempotent. For generated talent, affix,
+and Homestead catalogs, `agent-diff.py --summary --paths <generated-files...>`
+provides bounded record/field hints and discloses unrecognized changes. Generated files are committed
 so the app builds without rerunning generation. Local handoff proves idempotence;
 pre-push and CI check committed-output completeness against HEAD.
 
@@ -32,10 +34,14 @@ combines those lists; preserve their order and existing IDs. Use
 **Enemy traits:** author in `ContentManifest/traits.tsv` (same DSL); generated catalogs are outputs.
 
 For exact manifest inspection, use `python3 Scripts/content-inspect.py --id <id>`;
+`--name <text>` finds player-facing names without first knowing the saved ID.
 `--trigger <canonicalField>` finds entries using that trigger through the same DSL
 parser as generation. Results identify authored locations and disclose omitted
 records/shortened fields; follow pagination or `--full` to expand. `--references`
-adds bounded literal source/test hints, not a semantic consumer graph.
+follows parsed trigger fields and modifier cases to schema locations, focused talent
+rule anchors, authored Swift references, and tests for the displayed record page.
+These are literal hints, not a semantic consumer graph. `--reference-limit` and
+`--reference-offset` page those hints independently; follow the printed continuation.
 
 ## Trigger schemas
 

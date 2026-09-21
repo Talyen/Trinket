@@ -46,7 +46,7 @@ struct CombatFeedbackMotionTests {
         }
     }
 
-    @Test @MainActor func `all regions share the same ceremony with slightly smaller status labels`() throws {
+    @Test @MainActor func `corner feedback stays still and smaller while sharing the central fade and pulse`() throws {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -56,14 +56,14 @@ struct CombatFeedbackMotionTests {
         ], at: start)
         let hit = try #require(lane.activeItems.first { $0.region == .impact })
         let status = try #require(lane.activeItems.first { $0.region == .benefit })
-        for elapsed in [0.0, 0.07, 0.14, 0.2, 0.4, 0.6, 0.74] {
+        for elapsed in [0.0, 0.07, 0.14, 0.2, 0.4, 0.6, 0.92] {
             let date = start.addingTimeInterval(elapsed)
             let main = CombatFeedbackMotionSampler.state(for: hit, at: date)
             let lower = CombatFeedbackMotionSampler.state(for: status, at: date)
-            #expect(abs(lower.scale - main.scale * 0.90) < 0.000001)
-            #expect(lower.riseProgress == main.riseProgress)
+            #expect(abs(lower.scale - main.scale * 0.80) < 0.000001)
+            #expect(lower.riseProgress == 0)
             #expect(lower.opacity == main.opacity && lower.shineProgress == main.shineProgress)
         }
-        #expect(CombatFeedbackMotionSampler.state(for: status, at: start.addingTimeInterval(0.4)).riseProgress > 0)
+        #expect(CombatFeedbackMotionSampler.state(for: hit, at: start.addingTimeInterval(0.4)).riseProgress > 0)
     }
 }

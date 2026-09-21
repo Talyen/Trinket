@@ -10,9 +10,9 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/build.sh` | Compile only the app; `--release-device` verifies unsigned iOS Release compilation |
 | `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; add `--status` for global dirty counts and exact scoped status; add `--smoke` to preview the smoke route; use `--full` for path inventory, route metadata, and full commands and `--working-tree --allow-broad-scope` only intentionally |
 | `python3 Scripts/agent-search.py <pattern> --scope <owner>` | Authored-first discovery: matching filenames/counts by default; plain identifiers rank exact stems, filename words/prefixes, then declarations before references outside docs; `--offset`/`--expect` continuations avoid repeats and reject changed results; `--overview` pages owner counts/entry points; `--files` searches filenames (`--mode assets --files` includes binary media names); `--excerpts` for bounded lines, `--mode tests`, `docs`, or `generated` for other surfaces; omissions are explicit |
-| `python3 Scripts/agent-diff.py --paths <files...> [--staged] [--generated] [--stat]` | Authored patches and generated statistics; complete-hunk pages default to 12,000 characters (`--max-chars`); follow fingerprinted continuation commands or explicitly use `--full`; default is unstaged, untracked files are listed for explicit reads; `--generated` expands generated patches; whole-tree review requires `--working-tree` |
-| `python3 Scripts/agent-read.py 'path.md#heading'` | Read a complete optional-reference section with source lines and parent headings; `--outline` lists anchors, and unanchored documents over 12,000 characters return navigation only (`--full` reads the complete document); Swift/Python `--outline` lists qualified types/members with source ranges (`--include-locals` adds locals); `--symbol Name` reads one complete lexical declaration or lists ambiguous candidates; `--lines START:END` reads a selected range |
-| `python3 Scripts/content-inspect.py --id <id>` | Exact authored ContentManifest/ability-ID lookup with labeled fields and source locations; `--trigger <canonicalField>` finds DSL usage through the shared parser; `--kind`, `--offset`, `--limit`, `--full`, and optional `--references` control retrieval; `--kind abilities` points to authored tier declarations |
+| `python3 Scripts/agent-diff.py --paths <files...>` | Paged authored diffs plus generated statistics; `--summary` adds generated talent/affix/Homestead record hints with explicit unsupported-format fallback; `--generated` expands generated patches; `--staged` reviews the index; `--full` intentionally reads all units |
+| `python3 Scripts/agent-read.py <file>[#anchor]` | Complete Markdown sections; `--outline` lists headings or Swift/Python declarations; `--signatures` shows source headers/comments without bodies; `--kind <category>` and `--match <text>` filter navigation; repeat `--symbol <name>` for complete declarations; `--lines START:END` reads an explicit range; large unanchored docs require `--full` |
+| `python3 Scripts/content-inspect.py --id <id>` | Inspect authored content by exact ID, player-facing `--name <text>`, or canonical `--trigger <field>`; `--references` follows parsed fields to schemas, rule anchors, authored Swift and tests; record and reference pages disclose omissions; `--full` expands record fields |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Optional worktree under `.worktrees/<slug>` on `agent/<slug>`; checkout policy lives in [AGENTS.md](../AGENTS.md#protect-the-workspace) |
 | `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an active execution plan with an advisory review date under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |
@@ -36,7 +36,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/test.sh smoke [--no-build]` | Run the checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
-| `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate (headless by default); composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` runs targeted UI smoke, `--mirror` installs on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` retains child logs and prints one outcome per phase plus bounded failures |
+| `./Scripts/handoff.sh --isolate --quiet --paths …` | Canonical path-scoped source gate (headless by default); composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` runs targeted UI smoke, `--mirror` installs on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` retains child logs and prints one outcome per phase plus bounded failures |
 | `./Scripts/ci-gate.sh` | Full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
 | `./Scripts/ci-gate.sh --fast` | Run only the ordered commands in [the cheap-slice registry](config/cheap-slices.txt); skips generation and style |
 | `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |
@@ -170,9 +170,9 @@ check the reported version/build and substitute the actual installed path:
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -version
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./Scripts/handoff.sh --isolate --paths <files...>
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./Scripts/handoff.sh --isolate --quiet --paths <files...>
 DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer xcodebuild -version
-DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer ./Scripts/handoff.sh --isolate --paths <files...>
+DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer ./Scripts/handoff.sh --isolate --quiet --paths <files...>
 ```
 
 The second handoff is prerelease evidence, not release qualification. Confirm the

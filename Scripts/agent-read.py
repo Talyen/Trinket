@@ -24,7 +24,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser.add_argument("--offset", type=int, default=0, help="source-outline entry offset")
     parser.add_argument("--limit", type=int, default=60, help="source-outline page length")
     parser.add_argument("--include-locals", action="store_true", help="include function-local declarations")
-    parser.add_argument("--symbol", help="read a complete declaration by qualified or unqualified name")
+    parser.add_argument("--symbol", action="append", default=[], help="read a complete declaration; repeat for multiple symbols")
+    parser.add_argument("--signatures", action="store_true", help="show declaration headers and attached comments, without bodies")
+    parser.add_argument("--kind", choices=("methods", "properties", "types"), help="filter source outlines/signatures")
+    parser.add_argument("--match", help="case-insensitive name substring for source outlines/signatures")
     args = parser.parse_args(argv)
     name, separator, anchor = args.target.partition("#")
     path = (root / name).resolve()
@@ -32,6 +35,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         if args.offset < 0 or args.limit < 1:
             raise ValueError("outline offset must be nonnegative and limit positive")
         if args.full and (separator or args.outline or args.lines or args.symbol or args.include_locals
+                          or args.signatures or args.kind or args.match
                           or path.suffix not in {".md", ".mdc"}):
             raise ValueError("--full requires an unanchored Markdown document without other read modes")
         relative = path.relative_to(root.resolve()).as_posix()
@@ -39,8 +43,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             raise ValueError("target must be Markdown, Swift, or Python within the repository")
         source = path.read_text(encoding="utf-8")
         lines = source.splitlines()
+        if (args.signatures or args.kind or args.match) and path.suffix not in {".swift", ".py"}:
+            raise ValueError("signatures and declaration filters require Swift or Python")
+        if (args.kind or args.match) and not (args.outline or args.signatures):
+            raise ValueError("declaration filters require --outline or --signatures")
         if args.lines:
-            if separator or args.outline or args.symbol:
+            if separator or args.outline or args.symbol or args.signatures:
                 raise ValueError("--lines cannot be combined with an anchor or --outline")
             start, end = map(int, args.lines.split(":"))
             if not 1 <= start <= end <= len(lines):
@@ -50,35 +58,74 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
                 print(f"{number}: {lines[number - 1]}")
             return 0
         if path.suffix in {".swift", ".py"}:
-            if separator or args.outline == bool(args.symbol) or args.offset < 0 or args.limit < 1:
+            navigation = args.outline or args.signatures
+            if separator or navigation == bool(args.symbol):
                 raise ValueError("source files require --outline, --symbol, or --lines; outline bounds must be nonnegative/positive")
             entries = source_declarations(path, source, args.include_locals)
             if args.symbol:
-                entries = [entry for entry in entries if entry.name == args.symbol or entry.name.rsplit(".", 1)[-1] == args.symbol]
-                if not entries:
-                    raise ValueError(f"missing declaration {args.symbol!r}; use --outline")
-                if len(entries) == 1:
-                    entry = entries[0]
+                selected = []
+                ambiguous = []
+                for symbol in args.symbol:
+                    matches = [entry for entry in entries if entry.name == symbol or entry.name.rsplit(".", 1)[-1] == symbol]
+                    if not matches:
+                        raise ValueError(f"missing declaration {symbol!r}; use --outline")
+                    if len(matches) != 1:
+                        ambiguous.append(symbol)
+                    for entry in matches:
+                        if entry not in selected:
+                            selected.append(entry)
+                if ambiguous:
+                    print(f"Ambiguous symbol(s) {', '.join(ambiguous)}; use a qualified name or --lines START:END:")
+                    if args.offset > len(selected):
+                        raise ValueError('--offset is beyond the last candidate')
+                    stop = min(len(selected), args.offset + args.limit)
+                    for entry in selected[args.offset:stop]:
+                        print(f"  {entry.start}:{entry.end} {entry.kind} {entry.name}")
+                    print(f'Candidates {args.offset}:{stop} of {len(selected)}; omitted {len(selected) - stop}.')
+                    if stop < len(selected):
+                        command = ['python3', 'Scripts/agent-read.py', relative]
+                        for symbol in args.symbol:
+                            command += ['--symbol', symbol]
+                        if args.include_locals:
+                            command.append('--include-locals')
+                        print('Continue: ' + shlex.join(command + ['--offset', str(stop), '--limit', str(args.limit)]))
+                    return 2
+                for entry in selected:
                     print(f"{relative}:{entry.start}-{entry.end} (complete lexical declaration: {entry.name})")
                     for number in range(entry.start, entry.end + 1):
                         print(f"{number}: {lines[number - 1]}")
-                    return 0
-                print(f"Ambiguous symbol {args.symbol!r}; use a qualified name or --lines START:END:")
+                return 0
+            kinds = {"methods": {"func", "def", "init", "deinit", "subscript"},
+                     "properties": {"var", "let"},
+                     "types": {"struct", "class", "enum", "actor", "protocol", "extension", "typealias", "associatedtype"}}
+            if args.kind:
+                entries = [entry for entry in entries if entry.kind in kinds[args.kind]]
+            if args.match:
+                entries = [entry for entry in entries if args.match.casefold() in entry.name.casefold()]
             if args.offset > len(entries):
                 raise ValueError("--offset is beyond the last outline entry")
             stop = min(len(entries), args.offset + args.limit)
             print(f"{relative} — lexical declaration ranges; {'includes locals' if args.include_locals else 'types and members only'}")
             for entry in entries[args.offset:stop]:
                 print(f"  {entry.start}:{entry.end} {entry.kind} {entry.name}")
+                if args.signatures:
+                    if entry.documentation:
+                        for line in entry.documentation.splitlines():
+                            print(f"    {line.strip()}")
+                    print("    " + " ".join(line.strip() for line in entry.signature.splitlines()))
             print(f"Entries {args.offset}:{stop} of {len(entries)}; omitted {len(entries) - stop} after this page.")
             if stop < len(entries):
                 command = ["python3", "Scripts/agent-read.py", relative]
-                command += ["--symbol", args.symbol] if args.symbol else ["--outline"]
+                command += ["--signatures"] if args.signatures else ["--outline"]
                 command += ["--offset", str(stop), "--limit", str(args.limit)]
+                if args.kind:
+                    command += ["--kind", args.kind]
+                if args.match:
+                    command += ["--match", args.match]
                 if args.include_locals:
                     command.append("--include-locals")
                 print("Continue: " + shlex.join(command))
-            return 2 if args.symbol else 0
+            return 0
         if args.symbol or args.include_locals:
             raise ValueError("--symbol and --include-locals require Swift or Python")
         entries = headings(lines)

@@ -21,6 +21,37 @@ from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 class AgentContextTests(ScriptRegressionTestCase):
+    def route(self, *paths):
+        return subprocess.check_output(
+            [str(ROOT / 'Scripts/agent-context.sh'), '--agent', '--paths', *paths], cwd=ROOT, text=True,
+        )
+
+    def test_agent_context_guidance_by_owner(self) -> None:
+        cases = (
+            ('Raw Assets/Art/example.png', ['Raw\\ Assets/Art/example.png'], []),
+            ('Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleLaunch.swift', ['Docs/AgentContext/battle-runtime.md'], ['Route metadata']),
+            ('Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/BattleFeedbackLane.swift', ['Docs/AgentContext/battle-runtime.md'], ['apple-design/SKILL.md']),
+            ('Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift', ['Docs/AgentContext/battle-engine.md'], []),
+            ('Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/GlassButtons.swift', ['.agents/skills/apple-design/SKILL.md'], ['Docs/AgentContext/swiftui-features.md']),
+            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift', ['Docs/AgentContext/swiftui-features.md'], []),
+            ('Packages/TrinketDesignSystem/Tests/TrinketDesignSystemTests/DesignSystemTests.swift', [], ['apple-design/SKILL.md']),
+            ('Packages/TrinketAppState/Sources/TrinketAppState/Audio/MusicPlayer.swift', ['Docs/AgentContext/audio.md'], ['Docs/AgentContext/battle']),
+            ('project.yml', ['Docs/AgentContext/content-and-manifests.md'], []),
+            ('Scripts/check-docs.py', [], ['Ownership and integration']),
+            ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['apple-design/SKILL.md']),
+            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift', ['.agents/knowledge/patterns/artwork-working-set.md'], []),
+            ('Packages/BattleEngine/Package.swift', ['.agents/knowledge/patterns/module-dag-containment.md'], []),
+            ('Docs/Platform/Architecture.md', ['.agents/knowledge/patterns/architecture-deferred-seams.md'], []),
+            ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['.agents/knowledge/patterns/']),
+        )
+        for path, required, excluded in cases:
+            with self.subTest(path=path):
+                output = self.route(path)
+                for text in required:
+                    self.assertIn(text, output)
+                for text in excluded:
+                    self.assertNotIn(text, output)
+
     def test_scope_normalization_preserves_package_verification(self) -> None:
         relative = "Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift"
         command = [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths"]
@@ -38,6 +69,11 @@ class AgentContextTests(ScriptRegressionTestCase):
         persistence = "Packages/TrinketPersistence/Sources/TrinketPersistence/"
         cases = (
             ([engine + "Damage/DamagePipelineResolutionSteps.swift"], {"battle-damage"}),
+            ([engine + "Triggers/CombatTriggerEngine+Damage.swift"], {"battle-damage"}),
+            ([engine + "Triggers/CombatTriggerEngine+Dodge.swift"], {"battle-damage"}),
+            ([engine + "Triggers/CombatTriggerEngine+BlockAndDefense.swift"], {"battle-damage"}),
+            ([engine + "Turns/BattleTurnEngine+Resolution.swift"], {"battle-damage"}),
+            ([engine + "Triggers/CombatTriggerEngine+Unknown.swift"], {"battle-damage", "battle-actions", "battle-healing"}),
             ([engine + "EffectHandlers/TimedDebuffHandlers.swift"], {"battle-damage"}),
             ([engine + "Healing/HealingEngine.swift"], {"battle-healing"}),
             ([engine + "State/BattleState.swift"], {"battle-damage", "battle-actions", "battle-healing"}),
@@ -152,21 +188,6 @@ class AgentContextTests(ScriptRegressionTestCase):
                 self.assertIn(".agents/skills/apple-design/SKILL.md", output)
                 self.assertIn("Packages/TrinketFeatureSupport/AGENTS.md", output)
 
-    def test_agent_context_shell_quotes_paths_with_spaces(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Raw Assets/Art/example.png",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(r"Raw\ Assets/Art/example.png", result.stdout)
 
     def test_agent_context_requires_explicit_scope(self) -> None:
         result = subprocess.run(
@@ -221,7 +242,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         for expected in (
             "AGENTS.md", "Docs/AgentContext/ui-performance.md",
             "Docs/AgentContext/battle-engine.md", "Generated/processed paths (do not hand-edit)",
-            "./Scripts/handoff.sh --isolate --paths",
+            "./Scripts/handoff.sh --isolate --quiet --paths",
         ):
             self.assertIn(expected, compact)
             self.assertIn(expected, full)
@@ -253,123 +274,8 @@ class AgentContextTests(ScriptRegressionTestCase):
         )
         import shlex
         command = next(line.strip() for line in output.splitlines() if "./Scripts/handoff.sh" in line)
-        self.assertEqual(shlex.split(command), ["./Scripts/handoff.sh", "--isolate", "--paths", *paths])
+        self.assertEqual(shlex.split(command), ["./Scripts/handoff.sh", "--isolate", "--quiet", "--paths", *paths])
 
-    def test_agent_context_routes_app_state_to_battle_card(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleLaunch.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/AgentContext/battle-runtime.md", result.stdout)
-        self.assertNotIn("Route metadata", result.stdout)
-
-    def test_agent_context_routes_battle_state_to_focused_card_without_design_skill(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/BattleFeedbackLane.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/AgentContext/battle-runtime.md", result.stdout)
-        self.assertNotIn("apple-design/SKILL.md", result.stdout)
-
-    def test_agent_context_routes_engine_to_engine_card(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/AgentContext/battle-engine.md", result.stdout)
-
-    def test_agent_context_routes_design_system_to_apple_design(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/GlassButtons.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(".agents/skills/apple-design/SKILL.md", result.stdout)
-        self.assertNotIn("Docs/AgentContext/swiftui-features.md", result.stdout)
-
-    def test_agent_context_routes_prepared_artwork_to_swiftui_features(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/AgentContext/swiftui-features.md", result.stdout)
-
-    def test_agent_context_keeps_design_skill_off_design_system_tests(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/TrinketDesignSystem/Tests/TrinketDesignSystemTests/DesignSystemTests.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertNotIn("apple-design/SKILL.md", result.stdout)
-
-    def test_agent_context_routes_audio_without_battle_context(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/TrinketAppState/Sources/TrinketAppState/Audio/MusicPlayer.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/AgentContext/audio.md", result.stdout)
-        self.assertNotIn("Docs/AgentContext/battle", result.stdout)
 
     def test_agent_context_routes_each_semantic_owner_to_one_required_card(self) -> None:
         cases = (
@@ -403,124 +309,6 @@ class AgentContextTests(ScriptRegressionTestCase):
                         self.assertNotIn(other_card, result.stdout)
                 self.assertNotIn("Route metadata", result.stdout)
 
-    def test_agent_context_routes_project_spec_to_generate_workflow(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "project.yml",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Docs/AgentContext/content-and-manifests.md", result.stdout)
-
-    def test_agent_context_omits_ownership_card_for_plain_tooling(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Scripts/check-docs.py",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertNotIn("Ownership and integration", result.stdout)
-
-    def test_agent_context_does_not_attach_design_skill_to_ui_tests(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "TrinketUITests/Smoke/SmokeShellTests.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertNotIn("apple-design/SKILL.md", result.stdout)
-
-    def test_agent_context_surfaces_artwork_memory_for_prepared_artwork(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(
-            ".agents/knowledge/patterns/artwork-working-set.md", result.stdout
-        )
-
-    def test_agent_context_surfaces_dag_memory_for_package_manifest(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Packages/BattleEngine/Package.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(
-            ".agents/knowledge/patterns/module-dag-containment.md", result.stdout
-        )
-
-    def test_agent_context_surfaces_deferred_seams_for_architecture_doc(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "Docs/Platform/Architecture.md",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(
-            ".agents/knowledge/patterns/architecture-deferred-seams.md",
-            result.stdout,
-        )
-
-    def test_agent_context_keeps_memory_quiet_for_unrelated_paths(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "agent-context.sh"),
-                "--agent",
-                "--paths",
-                "TrinketUITests/Smoke/SmokeShellTests.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertNotIn(".agents/knowledge/patterns/", result.stdout)
 
     def test_status_briefing_preserves_scope_and_rename_endpoints(self) -> None:
         status = load_script("agent_status", "internal/agent_status.py")

@@ -84,8 +84,10 @@ struct StationaryFeedbackTests {
         let placement = layout.place(id: 2, size: CGSize(width: 200, height: 200))
         let fitted = try #require(placement)
         #expect(layout.slots.map(\.id) == [1, 2])
-        #expect(fitted.rect == bounds.insetBy(dx: 8, dy: 8))
-        #expect(fitted.fitScale == 0.42)
+        let peak = StationaryFeedbackLayout.peakScale * StationaryFeedbackLayout.mergePulseScale
+        #expect(abs(fitted.rect.width * peak - 84) < 0.000001)
+        #expect(abs(fitted.rect.height * peak - 84) < 0.000001)
+        #expect(fitted.rect.midX == bounds.midX && fitted.rect.midY == bounds.midY)
         var otherPortrait = StationaryFeedbackLayout()
         otherPortrait.retain(ids: [], in: bounds)
         #expect(otherPortrait.slots.isEmpty)
@@ -157,7 +159,9 @@ struct StationaryFeedbackTests {
         let extended = try #require(lane.activeItems.first)
         #expect(lane.activeItems.count == 1)
         #expect(abs(extended.expiresAt.timeIntervalSince(original.expiresAt) - 0.30) < 0.000001)
-        #expect(CombatFeedbackMotionSampler.state(for: extended, at: original.expiresAt).opacity == 1)
+        let originalEnd = CombatFeedbackMotionSampler.state(for: original, at: original.expiresAt)
+        let extendedEnd = CombatFeedbackMotionSampler.state(for: extended, at: original.expiresAt)
+        #expect(extendedEnd.opacity > originalEnd.opacity)
         lane.pruneExpired(at: extended.expiresAt)
         #expect(lane.activeItems.isEmpty)
     }
@@ -182,7 +186,55 @@ struct StationaryFeedbackTests {
         #expect(!benefit.rect.intersects(setback.rect))
         #expect(benefit.fitScale == 1 && setback.fitScale == 1)
         let wider = layout.place(id: 11, size: CGSize(width: 90, height: 24), region: .benefit)
-        #expect(try #require(wider).fitScale == hit.fitScale)
+        let wideSlot = try #require(wider)
+        #expect(wideSlot.fitScale > 0.5)
+        #expect(wideSlot.rect.width * StationaryFeedbackLayout.peakScale * StationaryFeedbackLayout.mergePulseScale <= bounds.width - 16)
+    }
+
+    @Test @MainActor func `corner rasters stay edge anchored through pop fade and numeric growth`() throws {
+        let start = Date.now.addingTimeInterval(10)
+        let pool = CombatFeedbackRasterPool()
+        for benefit in [true, false] {
+            let labels: [CombatFeedbackChipLabel] = [
+                .word(.plain(.poison)), .amount(9),
+                benefit ? .word(.cleanse(.poison)) : .word(.purge(.poison)),
+            ]
+            for label in labels {
+                let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 160, height: 220))
+                view.bottomInset = 6
+                defer { view.apply(chips: []) }
+                var item = CombatFeedbackItem(
+                    id: 1, sourceEventIDs: [1], actionGroupID: 1, presentationIndex: 0,
+                    targetID: "test", feedbackClass: .buff, keyword: .poison,
+                    visualRole: benefit ? .beneficialStatus : .negativeStatus,
+                    label: label, availableAt: start,
+                    expiresAt: start.addingTimeInterval(CombatFeedbackMotionSampler.lifetime),
+                    reactionKind: .none,
+                )
+                if case .amount = label {
+                    item.reservedDigitCount = 2
+                }
+                let raster = try #require(pool.prepare(for: item, displayScale: 1))
+                view.apply(chips: [(item, raster)])
+                let layer = try #require(view.layer.sublayers?.first { !$0.isHidden && $0.contents != nil })
+                for elapsed in [0.0, 0.05, 0.16, 0.4, 0.8] {
+                    view.debugTickMotion(at: start.addingTimeInterval(elapsed))
+                    #expect(abs(layer.frame.maxY - 206) < 0.000001)
+                    #expect(abs((benefit ? layer.frame.minX : 160 - layer.frame.maxX) - 8) < 0.000001)
+                    #expect(view.bounds.contains(layer.frame))
+                }
+                if case .amount = label {
+                    item.label = .amount(99)
+                    item.lastUpdatedAt = start.addingTimeInterval(0.05)
+                    let merged = try #require(pool.prepare(for: item, displayScale: 1))
+                    view.apply(chips: [(item, merged)])
+                    view.debugTickMotion(at: start.addingTimeInterval(0.05))
+                    #expect(abs(layer.frame.maxY - 206) < 0.000001)
+                    #expect(abs((benefit ? layer.frame.minX : 160 - layer.frame.maxX) - 8) < 0.000001)
+                    #expect(view.bounds.contains(layer.frame))
+                }
+            }
+        }
     }
 
     @Test @MainActor func `status routing separates applications from actual damage and respects recipient polarity`() throws {

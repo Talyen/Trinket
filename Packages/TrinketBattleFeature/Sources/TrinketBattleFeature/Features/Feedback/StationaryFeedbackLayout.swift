@@ -12,6 +12,7 @@ struct StationaryFeedbackLayout {
         let region: CombatFeedbackRegion
         var rect: CGRect
         let fitScale: CGFloat
+        let initialCenterY: CGFloat
     }
 
     private(set) var slots: [Slot] = []
@@ -29,38 +30,41 @@ struct StationaryFeedbackLayout {
         if let slot = slots.first(where: { $0.id == id }) {
             return slot
         }
-        let area = Self.area(for: region, in: bounds)
-        guard area.width > 0, area.height > 0, size.width > 0, size.height > 0 else { return nil }
         let fittingArea = bounds.insetBy(dx: 8, dy: 8)
-        let fit = min(1, fittingArea.width / size.width, fittingArea.height / size.height)
+        guard fittingArea.width > 0, fittingArea.height > 0, size.width > 0, size.height > 0 else { return nil }
+        let maximumScale = Self.peakScale * Self.mergePulseScale
+        let fit = min(1, fittingArea.width / (size.width * maximumScale), fittingArea.height / (size.height * maximumScale))
         let fitted = CGSize(width: size.width * fit, height: size.height * fit)
         let pushDistance = max(fitted.height, slots.filter { $0.region == region }.map(\.rect.height).max() ?? 0)
             * Self.peakScale * 0.5
         for index in slots.indices where slots[index].region == region {
             slots[index].rect = slots[index].rect.offsetBy(dx: 0, dy: -pushDistance)
         }
-        let peakHalfWidth = min(fittingArea.width / 2, fitted.width * Self.peakScale * Self.mergePulseScale / 2)
-        let centerX = min(fittingArea.maxX - peakHalfWidth, max(fittingArea.minX + peakHalfWidth, area.midX))
+        let centerY = region == .impact ? bounds.midY : fittingArea.maxY - fitted.height / 2
+        let centerX = switch region {
+        case .impact: bounds.midX
+        case .benefit: fittingArea.minX + fitted.width / 2
+        case .setback: fittingArea.maxX - fitted.width / 2
+        }
         let rect = CGRect(
-            x: centerX - fitted.width / 2, y: area.midY - fitted.height / 2,
+            x: centerX - fitted.width / 2, y: centerY - fitted.height / 2,
             width: fitted.width, height: fitted.height,
         )
-        let slot = Slot(id: id, region: region, rect: rect, fitScale: fit)
+        let slot = Slot(id: id, region: region, rect: rect, fitScale: fit, initialCenterY: centerY)
         slots.append(slot)
         return slot
     }
 
-    static func area(for region: CombatFeedbackRegion, in bounds: CGRect) -> CGRect {
+    func position(for slot: Slot, renderedSize: CGSize, push: CGFloat, rise: CGFloat, bottomInset: CGFloat) -> CGPoint {
         let inset = bounds.insetBy(dx: 8, dy: 8)
-        guard region != .impact else { return inset }
-        let width = max(0, (inset.width - 8) / 2)
-        let height = max(0, bounds.height * 0.36)
-        return CGRect(
-            x: region == .benefit ? inset.minX : inset.maxX - width,
-            y: inset.maxY - height,
-            width: width,
-            height: height,
-        )
+        let halfWidth = renderedSize.width / 2
+        let x = switch slot.region {
+        case .impact: bounds.midX
+        case .benefit: inset.minX + halfWidth
+        case .setback: inset.maxX - halfWidth
+        }
+        let y = slot.region == .impact ? bounds.midY : inset.maxY - bottomInset - renderedSize.height / 2
+        return CGPoint(x: x, y: y - push - rise)
     }
 
     static func edgeOpacity(centerY: CGFloat, in bounds: CGRect) -> Double {

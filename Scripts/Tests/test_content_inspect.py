@@ -3,6 +3,8 @@ from __future__ import annotations
 SCRIPT_INPUTS = (
     'Scripts/internal/content/abilities.py',
     'Scripts/content-inspect.py',
+    'Scripts/internal/content/inspection.py',
+    'Scripts/internal/markdown.py',
     'Scripts/internal/content/affix_rolling.py',
     'Scripts/internal/content/common.py',
     'Scripts/internal/content/content_codegen_modifiers.py',
@@ -32,6 +34,30 @@ INSPECT = load_script("content_inspect", "content-inspect.py")
 
 
 class ContentInspectTests(ScriptRegressionTestCase):
+    def test_name_lookup_follows_fields_to_schema_rules_source_and_tests(self) -> None:
+        def run(*args):
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                status = INSPECT.main(list(args))
+            self.assertEqual(status, 0)
+            return output.getvalue()
+        output = run('--kind', 'talents', '--name', 'sToLeN tHuNdEr', '--references')
+        self.assertIn('fox_stun_t4_1', output)
+        self.assertIn('trigger_families/damage.json:', output)
+        self.assertIn('DamagePipelineResolutionSteps.swift:', output)
+        self.assertIn('TalentCatalogRoundTripTests+CapstoneDamage.swift:', output)
+        self.assertIn('battle-talents.md#stolen-thunder', output)
+        self.assertNotIn('/Generated/', output)
+        first = run('--kind', 'talents', '--name', 'Stolen Thunder', '--references', '--reference-limit', '1')
+        self.assertIn('--name', first)
+        self.assertIn('--reference-offset 1', first)
+        self.assertNotIn('Source:', first)
+        rest = run('--kind', 'talents', '--name', 'Stolen Thunder', '--references', '--reference-offset', '1')
+        self.assertIn('Source:', rest)
+        # Manifest alias resolves to the canonical Swift field before searching.
+        alias = run('--kind', 'talents', '--trigger', 'cleanseBonusDraw', '--references', '--reference-limit', '100')
+        self.assertIn('trigger_families/cleanse.json:', alias)
+        self.assertIn('CombatTriggerEngine+Cleanse.swift:', alias)
+
     def test_exact_lookup_alias_resolution_locations_and_pagination(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "talents.tsv"

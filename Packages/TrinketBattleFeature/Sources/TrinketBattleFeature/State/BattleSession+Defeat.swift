@@ -6,7 +6,28 @@ import TrinketFeatureContracts
 extension BattleSession {
     public var resolvedDefeatProgress: BattleDefeatProgress? {
         guard outcome == .defeat else { return nil }
-        return engineState?.defeatProgress
+        return retreatProgress ?? engineState?.defeatProgress
+    }
+
+    @discardableResult
+    func retreatFromBattle() -> Bool {
+        guard canRetreat, outcome == nil, let configuration = activeBattle,
+              let progress = engineState?.defeatProgress, presentationContext != nil else { return false }
+        retreatProgress = progress
+        guard let settlement = makeDefeatSettlement(for: configuration) else {
+            retreatProgress = nil
+            return false
+        }
+        cancelPendingAutoEnd()
+        cancelTransitionPresentation()
+        spectacle.outcomeTask.invalidate()
+        clearSpectacle()
+        feedback.clear()
+        clearCardCues()
+        commandState.transition(to: .outcome)
+        spectacle.outcomePresentation = .defeat(settlement)
+        playPresentationSFX(SFXID.defeat)
+        return true
     }
 
     func makeDefeatSettlement(for configuration: BattleRunConfiguration) -> BattleRewardSettlement? {

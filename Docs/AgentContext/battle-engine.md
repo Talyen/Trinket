@@ -36,7 +36,10 @@ active debuffs from keyword-associated buffs for conditions and damage rules.
 
 Use `agent-context.sh` to locate applicable contracts; follow calls into other
 concerns as needed. Shared or unrecognized engine paths list all three operation
-references for discovery, not as unconditional whole-document prereads.
+references for discovery, not as unconditional whole-document prereads. Known
+damage, Block/defense, and Dodge trigger files route to the damage contract.
+`BattleTurnEngine` owns action orchestration; its `+Resolution` extension owns
+damage components and targeted effects without changing operation order.
 
 | Concern | Canonical contract |
 |---|---|

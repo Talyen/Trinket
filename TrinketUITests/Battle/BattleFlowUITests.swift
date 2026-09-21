@@ -66,8 +66,8 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.openActions()
         assertButtonExists(AccessibilityID.Battle.retreat)
         tapWhenReady(battle.retreatAction)
-        assertButtonExists(AccessibilityID.Battle.retreatConfirm)
-        tapWhenReady(battle.retreatConfirmAction)
+        assertButtonExists(AccessibilityID.Battle.defeatLeaveButton)
+        tapWhenReady(battle.defeatLeaveAction)
 
         XCTAssertTrue(
             app.tabBars.buttons[AccessibilityID.Tab.play].trinketWaitForExistence(timeout: Self.defaultTimeout),

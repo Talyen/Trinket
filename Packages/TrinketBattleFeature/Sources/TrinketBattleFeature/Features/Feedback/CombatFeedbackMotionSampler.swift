@@ -9,10 +9,10 @@ struct CombatFeedbackAnimationState: Equatable {
 }
 
 enum CombatFeedbackMotionSampler {
-    static let lifetime: TimeInterval = 0.74
-    static let fadeDuration: TimeInterval = 0.24
-    static let riseDistance = 40.0
-    static let statusSizeScale = 0.90
+    static let lifetime: TimeInterval = 0.92
+    static let fadeDuration: TimeInterval = 0.34
+    static let riseDistance = 52.0
+    static let statusSizeScale = 0.80
 
     static func state(for item: CombatFeedbackItem, at date: Date) -> CombatFeedbackAnimationState {
         let date = item.pausedAt ?? date
@@ -34,7 +34,7 @@ enum CombatFeedbackMotionSampler {
         return CombatFeedbackAnimationState(
             opacity: 1 - BattleMotion.smoothProgress(fadeElapsed / fadeDuration),
             scale: 1.2 * scale * pulse * (item.region == .impact ? 1 : statusSizeScale),
-            riseProgress: exit,
+            riseProgress: item.region == .impact ? exit : 0,
             shineProgress: min(1, (updateElapsed ?? elapsed) / 0.45),
         )
     }

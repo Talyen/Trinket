@@ -175,7 +175,12 @@ public final class BattleSession: BattleRuntime {
             && dependencies.autoBattleEnabled()
     }
 
+    var retreatProgress: BattleDefeatProgress?
+
     var outcome: BattleSimulationOutcome? {
+        if retreatProgress != nil {
+            return .defeat
+        }
         guard let engineState else { return nil }
         return BattleSimulationOutcome.resolve(
             isPartyDefeated: engineState.isPartyDefeated,

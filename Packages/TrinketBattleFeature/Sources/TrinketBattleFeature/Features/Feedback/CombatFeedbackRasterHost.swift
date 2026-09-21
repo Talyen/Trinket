@@ -9,12 +9,14 @@ struct CombatFeedbackRasterSlot: View {
 
     let combatantID: String
     let displayScale: CGFloat
+    let bottomInset: CGFloat
 
     var body: some View {
         CombatFeedbackRasterHost(
             combatantID: combatantID,
             layoutDirection: layoutDirection,
             displayScale: displayScale,
+            bottomInset: bottomInset,
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -24,9 +26,11 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
     let combatantID: String
     let layoutDirection: LayoutDirection
     let displayScale: CGFloat
+    let bottomInset: CGFloat
 
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
+        view.bottomInset = bottomInset
         CombatFeedbackChipBridge.register(
             view,
             combatantID: combatantID,
@@ -37,6 +41,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: CombatFeedbackRasterUIView, context _: Context) {
+        uiView.bottomInset = bottomInset
         CombatFeedbackChipBridge.register(
             uiView,
             combatantID: combatantID,
@@ -71,6 +76,7 @@ final class CombatFeedbackRasterUIView: UIView {
 
     static let preallocatedSlotCount = 12
 
+    var bottomInset: CGFloat = 0
     var onEvict: ((Set<Int>) -> Void)?
     private var stationaryLayout = StationaryFeedbackLayout()
     private var shineLayers: [ObjectIdentifier: CALayer] = [:]
@@ -206,7 +212,7 @@ final class CombatFeedbackRasterUIView: UIView {
         withLayerActionsDisabled {
             configureRaster(raster, on: chipLayer)
             chipLayer.shadowColor = shadowColor
-            chipLayer.shadowRadius = 4
+            chipLayer.shadowRadius = 8
             chipLayer.shadowOffset = .zero
             chipLayer.contentsScale = raster.displayScale
             chipLayer.bounds = CGRect(origin: .zero, size: raster.pointSize)
@@ -304,12 +310,16 @@ private extension CombatFeedbackRasterUIView {
             gradient.startPoint = CGPoint(x: 0, y: 0.2)
             gradient.endPoint = CGPoint(x: 1, y: 0.8)
             shine.addSublayer(gradient)
+            let flash = CALayer()
+            flash.backgroundColor = TrinketDesign.Colors.Overlay.paper.resolve(in: environment).cgColor
+            flash.opacity = 0
+            shine.addSublayer(flash)
             shine.mask = CALayer()
             chipLayer.addSublayer(shine)
             shineLayers[key] = shine
         }
         shine.frame = chipLayer.bounds
-        shine.sublayers?.first?.frame = shine.bounds
+        shine.sublayers?.forEach { $0.frame = shine.bounds }
         shine.mask?.frame = shine.bounds
         shine.mask?.contents = mask
         shine.mask?.contentsScale = raster.displayScale
@@ -330,7 +340,7 @@ private extension CombatFeedbackRasterUIView {
         for chip in orderedLayers {
             guard let slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id }) else { continue }
             let elapsed = (chip.item.pausedAt ?? date).timeIntervalSince(chip.item.firstScheduledAt)
-            chip.lanePush.retarget(to: StationaryFeedbackLayout.area(for: slot.region, in: bounds).midY - slot.rect.midY, at: elapsed)
+            chip.lanePush.retarget(to: slot.initialCenterY - slot.rect.midY, at: elapsed)
         }
     }
 
@@ -341,11 +351,16 @@ private extension CombatFeedbackRasterUIView {
             let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
             let now = chip.item.pausedAt ?? date
             let elapsed = now.timeIntervalSince(chip.item.firstScheduledAt)
-            let centerY = StationaryFeedbackLayout.area(for: slot.region, in: bounds).midY - chip.lanePush.offset(at: elapsed)
-                - CombatFeedbackMotionSampler.riseDistance * state.riseProgress
             let scale = slot.fitScale * state.scale
-            chip.layer.position = CGPoint(x: slot.rect.midX, y: centerY)
-            let edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: centerY, in: bounds)
+            let position = stationaryLayout.position(
+                for: slot,
+                renderedSize: CGSize(width: chip.layer.bounds.width * scale, height: chip.layer.bounds.height * scale),
+                push: chip.lanePush.offset(at: elapsed),
+                rise: min(CombatFeedbackMotionSampler.riseDistance, max(0, bounds.height / 2 - 12)) * state.riseProgress,
+                bottomInset: bottomInset,
+            )
+            chip.layer.position = position
+            let edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
             if edgeOpacity == 0 {
                 evicted.insert(chip.item.id)
             }
@@ -353,9 +368,12 @@ private extension CombatFeedbackRasterUIView {
             chip.layer.opacity = Float(state.opacity * edgeOpacity)
             chip.layer.zPosition = CGFloat(index)
             let criticalElapsed = chip.item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1
-            chip.layer.shadowOpacity = Float(max(0, 1 - criticalElapsed / 0.3))
+            chip.layer.shadowOpacity = Float(1 - BattleMotion.smoothProgress(criticalElapsed / 0.48))
             if let shine = shineLayers[ObjectIdentifier(chip.layer)] {
-                shine.isHidden = state.shineProgress >= 1
+                let flashOpacity = Float(0.8 * (1 - BattleMotion.smoothProgress(criticalElapsed / 0.14)))
+                shine.isHidden = state.shineProgress >= 1 && flashOpacity == 0
+                shine.sublayers?.first?.isHidden = state.shineProgress >= 1
+                shine.sublayers?.last?.opacity = flashOpacity
                 let x = -0.35 + state.shineProgress * 1.7
                 shine.sublayers?.first?.position.x = x * chip.layer.bounds.width
             }

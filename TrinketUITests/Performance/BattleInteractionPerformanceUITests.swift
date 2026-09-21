@@ -30,7 +30,7 @@ final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
             measured("battle-retreat", iteration: iteration) {
                 battle.openActions()
                 battle.retreatAction.tap()
-                battle.retreatConfirmAction.tap()
+                battle.defeatLeaveAction.trinketTapWhenReady()
                 play.assertCampaignLoaded()
             }
         }

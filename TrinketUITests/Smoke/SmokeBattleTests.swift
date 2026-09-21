@@ -66,8 +66,11 @@ final class SmokeBattleTests: TrinketUITestCase {
         battle.openActions()
         assertButtonExists(AccessibilityID.Battle.retreat)
         battle.retreatAction.tap()
-        assertButtonExists(AccessibilityID.Battle.retreatConfirm)
-        battle.retreatConfirmAction.tap()
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+        assertExists(AccessibilityID.Battle.defeat)
+        assertButtonExists(AccessibilityID.Battle.defeatPrimaryButton)
+        assertButtonExists(AccessibilityID.Battle.defeatLeaveButton)
+        battle.defeatLeaveAction.trinketTapWhenReady()
         assertExists(AccessibilityID.Play.contractsBoard, timeout: 10)
         assertExistsAfterScroll(AccessibilityID.Play.contractFight("standard"), requireHittable: true)
     }

@@ -12,7 +12,7 @@ helpers, `config/` owns shared configuration, and `Tests/` owns script regressio
 
 ```sh
 ./Scripts/agent-context.sh --agent --status --paths <changed-paths...>
-./Scripts/handoff.sh --isolate --paths <changed-paths...>
+./Scripts/handoff.sh --isolate --quiet --paths <changed-paths...>
 ```
 
 These are the routing and final verification steps. Between them, use the
@@ -31,7 +31,7 @@ safeguards live in [Release](../Docs/Platform/Release.md#local-hooks-and-push-di
 Use [CI diagnostics](../Docs/AgentContext/ci-diagnostics.md) after a failure.
 Run artifacts are ephemeral by default; use the owning command's keep/cleanup
 switches when an investigation needs retained evidence. Preview verification
-with `handoff.sh --isolate --dry-run --paths <files...>` before an unfamiliar route.
+with `handoff.sh --isolate --quiet --dry-run --paths <files...>` before an unfamiliar route.
 
 ## Commands by task
 

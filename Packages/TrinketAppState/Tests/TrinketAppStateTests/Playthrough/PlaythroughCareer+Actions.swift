@@ -88,7 +88,11 @@ extension PlaythroughCareer {
         case .retreat:
             guard let config = battle.activeBattle else { throw PlaythroughFailure.rejected("retreat battle") }
             try require(battle.canRetreat, "retreat readiness")
-            play.endBattleReturningToOrigin()
+            try require(battle.retreatFromBattle(), "retreat")
+            guard case let .defeat(award) = battle.spectacle.outcomePresentation else {
+                throw PlaythroughFailure.rejected("retreat defeat presentation")
+            }
+            try require(battle.claimDefeat(configurationID: config.id, settlement: award, action: .leave), "retreat leave")
             summary.outcomes.append("retreat")
             recordBattleOutcome("retreat", configuration: config)
         default: throw PlaythroughFailure.unsupported("invalid battle action")

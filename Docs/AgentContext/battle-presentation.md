@@ -19,6 +19,11 @@ and uses the session's preparation method, independently of the gameplay feature
 
 Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 
+Retreat immediately resolves the session as defeat and opens its reward screen,
+without confirmation or the combat outcome delay. It freezes enemy Health progress
+and stops combat; even zero XP shows Retry and Leave. Both actions use the normal
+defeat claim, and neither completes the encounter.
+
 Defeat shows its title and a short enemy subtitle above the same party portrait
 and animated XP section used by Victory. Both party rows remain visible at zero
 XP, with unchanged bars. Retry is primary and Leave secondary, stacked below the
@@ -103,7 +108,8 @@ one number, including at full Health.
 
 
 All builds use Revised Short Rise: a 0.05-second pop, brief peak/settle/hold,
-40-point cubic ease-out rise, and a 0.24-second fade ending at 0.74 seconds.
+52-point cubic ease-out central rise (bounded in short portraits), and a
+0.34-second fade ending at 0.92 seconds.
 There is no animation picker or Stationary Feedback Experiment setting.
 
 Each portrait has three independent feedback regions. Damage, DoT ticks, healing,
@@ -111,12 +117,14 @@ Block absorption, and Dodge stay centered. Buffs, cleanse, and resource gains
 appear lower left; debuffs, control, purge, resource losses, and Death's Door
 appear lower right, interpreted from the recipient's perspective. DoT applications
 are status feedback; actual DoT damage stays centered. Existing event visibility
-rules remain unchanged. Lower status feedback uses 90% of the central size and
-the identical pop, pause, rise, shrink, fade, glint, and merge pulse. Use the same
-portrait-based oversized-label fitting in all three regions; do not force lower
-labels to shrink into a half-width box. Anchor the lower regions above resource
-bars, shifting unusually wide labels inward to retain their size. Preserve icons,
-colors, and critical emphasis.
+rules remain unchanged. Lower status feedback uses 80% of the central size and
+the identical pop, pause, shrink, fade, glint, and merge pulse, with no automatic
+rise. Fit oversized labels against the full portrait at maximum pop plus merge
+pulse in all three regions; do not force lower labels into a half-width box.
+Anchor lower labels by their current rendered edges, 8 points inside the sides
+and above the resource bars, including icon-only, numeric, and dual-icon results.
+Numeric merge reservations affect fitting but never add empty space at the corner.
+Preserve icons, colors, and critical emphasis.
 
 New arrivals push only their own region upward by half the largest fitted peak
 height. Pushes ease out over 0.18 seconds and retarget continuously, without a
@@ -128,7 +136,8 @@ Matching semantic effects consolidate across actions before fading begins.
 Reserve one extra numeric digit; wider updates emit separately. Consolidated
 results add 0.12 seconds of visibility, capped at 0.30 seconds beyond the original
 lifetime, without restarting motion. All regions replay a 0.45-second white glyph
-glint and bounded 10% pulse over 0.18 seconds when results consolidate. Critical contributions restart the separate 0.3-second accent halo.
+glint and bounded 10% pulse over 0.18 seconds when results consolidate. Critical contributions restart a broader 0.48-second accent halo and a
+0.14-second white glyph flash, alongside the existing glint.
 
 Feedback hosts are composed with the artwork inside its attack and hit-reaction
 transforms, including the masked halves of the enemy split/dissolve death effect.

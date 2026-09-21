@@ -16,14 +16,14 @@ struct DefeatCompletionTests {
         context = try AppTestContext()
     }
 
-    @Test(arguments: [BattleDefeatAction.retry, .leave])
-    func `defeat claims once and does not complete encounter`(action: BattleDefeatAction) throws {
+    @Test(arguments: [BattleDefeatAction.retry, .leave], [false, true])
+    func `defeat claims once and does not complete encounter`(action: BattleDefeatAction, retreat: Bool) throws {
         let play = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(play.journey.startBattle(for: stage) == nil)
         let battle = try #require(context.lastBattle)
         let configuration = try #require(battle.activeBattle)
-        try resolveDefeat(battle)
+        try resolveDefeat(battle, retreat: retreat)
         let settlement = try #require(play.settleDefeatRewards(configuration))
         let before = play.playerSave.currentSave
         #expect(settlement.award.heroExperience > 0)
@@ -43,6 +43,8 @@ struct DefeatCompletionTests {
             #expect(next.hero.progression == settlement.heroProgressionAfter)
             #expect(next.companion.progression == settlement.companionProgressionAfter)
             #expect(battle.engineState?.defeatProgress.depletedFraction == 0)
+            #expect(battle.resolvedDefeatProgress == nil)
+            #expect(battle.outcome == nil)
         case .leave:
             #expect(battle.activeBattle == nil)
             #expect(play.shellSession.playPath == [.campaign])
@@ -50,14 +52,14 @@ struct DefeatCompletionTests {
         battle.endBattle()
     }
 
-    @Test(arguments: [BattleDefeatAction.retry, .leave])
-    func `total write failure retries the chosen action without another tap`(action: BattleDefeatAction) async throws {
+    @Test(arguments: [BattleDefeatAction.retry, .leave], [false, true])
+    func `total write failure retries the chosen action without another tap`(action: BattleDefeatAction, retreat: Bool) async throws {
         let play = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(play.journey.startBattle(for: stage) == nil)
         let battle = try #require(context.lastBattle)
         let configuration = try #require(battle.activeBattle)
-        try resolveDefeat(battle)
+        try resolveDefeat(battle, retreat: retreat)
         let settlement = try #require(play.settleDefeatRewards(configuration))
         play.playerSave.forcesNextSaveFailure = true
         #expect(!battle.claimDefeat(configurationID: configuration.id, settlement: settlement, action: action))
@@ -159,9 +161,14 @@ struct DefeatCompletionTests {
         #expect(play.playerSave.currentSave == before)
     }
 
-    private func resolveDefeat(_ battle: BattleSession) throws {
+    private func resolveDefeat(_ battle: BattleSession, retreat: Bool = false) throws {
         var state = try #require(battle.engineState)
         state.roster.enemy.currentHealth = max(1, state.roster.enemy.maxHealth / 10)
+        if retreat {
+            battle.engineState = state
+            #expect(battle.retreatFromBattle())
+            return
+        }
         state.roster.hero.currentHealth = 0
         state.roster.companion.currentHealth = 0
         battle.engineState = state

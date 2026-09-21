@@ -419,6 +419,7 @@ trinket_add_battle_subcard_for_path() {
       case "$1" in
         */Sources/BattleBalanceTools/*|*/Sources/BalanceSweepCLI/*|*/Tests/BattleBalanceToolsTests/*)
           trinket_add_context_card Docs/AgentContext/battle-balance.md ;;
+        */Triggers/CombatTriggerEngine+Damage.swift|*/Triggers/CombatTriggerEngine+BlockAndDefense.swift|*/Triggers/CombatTriggerEngine+Dodge.swift|*/Turns/BattleTurnEngine+Resolution.swift|\
         */Damage/*|*/EffectHandlers/*|*DoT*|*EffectTurnEngine*|*DamagePipeline*)
           trinket_add_context_card Docs/AgentContext/battle-damage.md ;;
         *Healing*|*Leech*)

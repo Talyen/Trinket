@@ -356,7 +356,6 @@ public enum AccessibilityID {
         public static let skipCombat = "Skip Combat"
         #endif
         public static let retreat = "Retreat"
-        public static let retreatConfirm = "Confirm Retreat"
         public static let victory = "Victory"
         public static let defeat = "Defeat"
         public static let experience = "Experience"

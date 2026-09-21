@@ -234,12 +234,12 @@ print_agent() {
 
   printf 'Verification (agents: always --isolate):\n'
   if [[ "$PATH_MODE" == explicit ]]; then
-    printf '  ./Scripts/handoff.sh --isolate --paths'
+    printf '  ./Scripts/handoff.sh --isolate --quiet --paths'
     local path
     for path in "${TRINKET_CHANGED_PATHS[@]}"; do printf ' %q' "$path"; done
     printf '\n'
   else
-    printf '  ./Scripts/handoff.sh --isolate --working-tree\n'
+    printf '  ./Scripts/handoff.sh --isolate --quiet --working-tree\n'
   fi
   if [[ "$FULL" == true ]] && (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
     printf 'Plan detail (sequential under that tenant):\n'

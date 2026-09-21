@@ -16,7 +16,7 @@ is listed below; test authoring and tier ownership follow [Testing.md](Testing.m
 | Package behavior | `test-package.sh <Package>` | Focused iteration in the owning package |
 | All package behavior | `test.sh unit` | All package schemes; no app-level unit target |
 | App compilation | `test.sh unit --app-only` | Compile coverage for app-level Swift changes |
-| Task handoff | `handoff.sh --isolate --paths <files...>` | Required agent gate; add `--smoke` for changed interaction wiring |
+| Task handoff | `handoff.sh --isolate --quiet --paths <files...>` | Required agent gate; add `--smoke` for changed interaction wiring |
 | Focused interaction | `test.sh smoke <Class>` / `test.sh ui <Class>` | Existing journey, within the local limits below |
 | Gate-only check | `ci-gate.sh` / `ci-gate.sh --fast` | Full gate or cheap slices; neither runs unit/UI tests |
 | Local canary | `test-deploy.sh --mode smoke` | Optional human confidence run |
@@ -105,12 +105,12 @@ their forced generation and comparison against committed output.
 Choose verification from the behavior changed, not merely the file or package
 touched. Logic-only changes do not require visual inspection.
 
-Ordinary `handoff.sh --isolate --paths <files...>` runs the selected source,
+Ordinary `handoff.sh --isolate --quiet --paths <files...>` runs the selected source,
 package, compilation, and documentation checks. It does not run UI smoke unless
 `--smoke` is supplied; a green ordinary handoff is not UI interaction evidence.
 
 For changed interaction wiring or accessibility identifiers, use
-`handoff.sh --isolate --smoke --paths <files...>` and complete the selected smoke
+`handoff.sh --isolate --quiet --smoke --paths <files...>` and complete the selected smoke
 checks. `agent-context.sh --agent --smoke --paths <files...>` previews that route.
 If no smoke owner is inferred, apply the [UI keep/drop rubric](Testing.md)
 to select an existing focused journey or justify a coverage change; report any
@@ -221,8 +221,8 @@ to bypass product chrome routing.
 
 `handoff.sh --quiet` prints one outcome per phase and retains complete child terminal
 output under `RESULTS_DIR` or `.DerivedData/HandoffResults`. Failed phases include a
-bounded diagnostic excerpt and the full log path. Default output remains detailed;
-quiet mode does not change selected checks or failure status.
+bounded diagnostic excerpt and the full log path. Agent commands select quiet mode; omitting the flag retains detailed terminal
+output. Quiet mode does not change selected checks or failure status.
 
 Documentation/link failures are grouped with bounded location previews. Complete
 reports are retained under `RESULTS_DIR` or `.DerivedData/DocumentationResults`;

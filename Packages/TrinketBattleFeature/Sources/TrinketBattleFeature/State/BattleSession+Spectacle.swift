@@ -314,6 +314,7 @@ extension BattleSession {
 
     func resetRun(from configuration: BattleRunConfiguration) {
         cancelPendingBattleTasks()
+        retreatProgress = nil
         deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
         clearSharedPresentation(releaseCinematicPlayers: false)
@@ -327,6 +328,7 @@ extension BattleSession {
     func clearRunState() {
         clearCardCues()
         cancelPendingBattleTasks()
+        retreatProgress = nil
         deliveredClaimedVictoryConfigurationID = nil
         presentation = BattlePresentationState()
         resetPresentation(releaseCinematicPlayers: true, resetSpectacleState: true)

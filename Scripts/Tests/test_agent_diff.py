@@ -2,6 +2,7 @@ from __future__ import annotations
 
 SCRIPT_INPUTS = (
     'Scripts/agent-diff.py',
+    'Scripts/internal/generated_summary.py',
     'Scripts/config/generated-paths.tsv',
 )
 
@@ -20,6 +21,61 @@ DIFF = load_script("agent_diff", "agent-diff.py")
 
 
 class AgentDiffTests(unittest.TestCase):
+    def test_generated_record_summary_and_explicit_fallback(self) -> None:
+        from internal.generated_summary import generated_summary
+        name = 'Generated/CombatantTalentCatalog.generated.swift'
+        def catalog(ids):
+            return ('let talents = [\n' + '\n'.join(
+                f'"{identity}": CombatantTalentEffect(name: "{identity}", description: "parenthesis )", triggers: Trigger(value: {value})), '
+                for identity, value in ids) + '\n]\n').encode()
+        before = catalog([('one', 1), ('removed', 2)])
+        after = catalog([('one', 3), ('added', 4)])
+        summary = ''.join(generated_summary(name, before, after))
+        self.assertIn('Changed one.triggers', summary)
+        self.assertIn('Trigger(value: 1) → Trigger(value: 3)', summary)
+        self.assertIn('Added added', summary)
+        self.assertIn('Removed removed', summary)
+        self.assertIn('Registration sequence changed', summary)
+        self.assertIn('unsupported format', ''.join(generated_summary('Other.swift', b'', b'anything')))
+        self.assertIn('Summary unavailable', ''.join(generated_summary(name, before, b'bad generated syntax')))
+        self.assertIn('outside recognized records', ''.join(generated_summary(name, before, before + b'let unexpected = 1\n')))
+        for filename, source, changed in (
+            ('ItemAffixCatalog.generated.swift', 'ItemAffixCatalog.affix(id: "keen", basic: Power(value: 1))', 'basic'),
+            ('GameContentHomestead.generated.swift', 'HomesteadNodeDefinition(id: .farm, tiers: [Tier(value: 1)])', 'tiers'),
+        ):
+            summary = ''.join(generated_summary(filename, source.encode(), source.replace('value: 1', 'value: 2').encode()))
+            self.assertIn('.' + changed, summary)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.check_output(['git', *args], cwd=root)
+            git('init', '-q')
+            registry = root / 'Scripts/config/generated-paths.tsv'
+            registry.parent.mkdir(parents=True)
+            registry.write_text('content|Generated\n')
+            path = root / name
+            path.parent.mkdir()
+            path.write_bytes(before)
+            git('add', '.')
+            git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'baseline')
+            path.write_bytes(after)
+            git('add', name)
+            path.write_bytes(catalog([('one', 9)]))
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(DIFF.main(['--staged', '--summary', '--paths', name], root=root), 0)
+            self.assertIn('Trigger(value: 3)', output.getvalue())
+            self.assertNotIn('Trigger(value: 9)', output.getvalue())
+            self.assertIn('--generated --staged', output.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(DIFF.main(['--summary', '--max-chars', '250', '--paths', name], root=root), 0)
+            continuation = next(line.removeprefix('Continue: ') for line in output.getvalue().splitlines() if line.startswith('Continue: '))
+            args = shlex.split(continuation)[2:]
+            self.assertIn('--summary', args)
+            path.write_bytes(catalog([('one', 8)]))
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(DIFF.main(args, root=root), 2)
+
     def test_pages_preserve_hunks_and_reject_changed_continuations(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

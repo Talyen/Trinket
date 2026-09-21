@@ -67,7 +67,7 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Follow [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior) for consequential coverage and evidence-based retirement; test counts are not a goal.
-- Run `./Scripts/handoff.sh --isolate --paths <file...>` for requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
+- Run `./Scripts/handoff.sh --isolate --quiet --paths <file...>` for requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
 - Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. Do not claim verified completion with required checks unresolved.
 
 ## Maintain guidance

@@ -92,7 +92,7 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
                 battle.assertActive()
                 battle.openActions()
                 battle.retreatAction.tap()
-                battle.retreatConfirmAction.tap()
+                battle.defeatLeaveAction.trinketTapWhenReady()
                 assertExists(AccessibilityID.Play.contractsBoard)
             }
         }

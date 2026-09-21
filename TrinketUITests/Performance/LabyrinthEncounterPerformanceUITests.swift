@@ -49,7 +49,7 @@ final class LabyrinthEncounterPerformanceUITests: PerformanceJourneyUITestCase {
             measured("labyrinth-boss-retreat", iteration: iteration) {
                 battle.openActions()
                 battle.retreatAction.tap()
-                battle.retreatConfirmAction.tap()
+                battle.defeatLeaveAction.trinketTapWhenReady()
                 assertExists(AccessibilityID.Play.labyrinthMap)
             }
         }

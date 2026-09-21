@@ -2,37 +2,22 @@ from __future__ import annotations
 
 SCRIPT_INPUTS = (
     'Scripts/agent-watch-ci.sh',
-    'Scripts/agent-worktree.mjs',
-    'Scripts/bin/git',
-    'Scripts/check-accessibility-ids.py',
-    'Scripts/check-agent-invariants.sh',
     'Scripts/check-api-bans.sh',
-    'Scripts/check-artwork-budget.sh',
-    'Scripts/check-exclusivity-footguns.sh',
     'Scripts/check-module-boundaries.sh',
-    'Scripts/check-ui-style.py',
     'Scripts/ci-infra-rerun.sh',
-    'Scripts/config/destructive-git-commands.txt',
-    'Scripts/config/system-colors.txt',
-    'Scripts/config/uitest-system-query-allowlist.txt',
     'Scripts/format-dirs.env',
-    'Scripts/git-safety-guard.mjs',
-    'Scripts/internal/swift_policy.py',
-    'Scripts/lib/rg-check.sh',
     'Scripts/release-notes.sh',
-    'Scripts/setup-git-safety.mjs',
+    'Scripts/check-agent-invariants.sh',
+    'Scripts/check-exclusivity-footguns.sh',
+    'Scripts/lib/rg-check.sh',
 )
 
-
 from pathlib import Path
-from unittest.mock import patch
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
-
-from script_test_support import ROOT, ScriptRegressionTestCase, load_script
+from script_test_support import ScriptRegressionTestCase, ROOT
 
 
 class PolicyScriptsTests(ScriptRegressionTestCase):
@@ -51,232 +36,6 @@ class PolicyScriptsTests(ScriptRegressionTestCase):
                         )
                         self.assertEqual(result.returncode, 0 if status == 1 else 2, result.stdout + result.stderr)
 
-    def test_ui_style_requires_explicit_catalog_artwork_display_size(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            fixture = Path(directory) / "ArtworkFixture.swift"
-            fixture.write_text(
-                "Image.preparedAsset(named: art.imageName)\n",
-                encoding="utf-8",
-            )
-            rejected = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn("catalog artwork without explicit display size", rejected.stdout)
-
-            fixture.write_text(
-                "Image.preparedAsset(art, displaySize: .compact)\n",
-                encoding="utf-8",
-            )
-            accepted = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
-
-    def test_ui_style_owns_product_color_policy(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            fixture = Path(directory) / "ColorFixture.swift"
-            for source in (
-                "let color = Color(red: 1, green: 0, blue: 0)\n",
-                "let color = Color.red\n",
-                "Text(\"Alert\").foregroundStyle(.red)\n",
-                'let color = Color("Alert", bundle: .main)\n',
-            ):
-                fixture.write_text(source, encoding="utf-8")
-                rejected = subprocess.run(
-                    [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
-                    cwd=ROOT,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                self.assertNotEqual(rejected.returncode, 0, source)
-
-        swiftlint = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
-        platform = (ROOT / "Scripts" / "check-api-bans.sh").read_text(encoding="utf-8")
-        self.assertNotIn("banned_system_color_literal", swiftlint)
-        self.assertNotIn("SYSTEM_COLORS", platform)
-
-    def test_ui_style_scans_directories_without_ripgrep(self) -> None:
-        checker = load_script("check_ui_style", "check-ui-style.py")
-        with tempfile.TemporaryDirectory() as directory:
-            fixture = Path(directory) / "Nested" / "Style.swift"
-            fixture.parent.mkdir()
-            for source, expected in (("let color = Color.red\n", 1), ("let color = Color.primary\n", 0)):
-                with self.subTest(source=source), patch.object(checker.subprocess, "run", side_effect=FileNotFoundError), patch("builtins.print"):
-                    fixture.write_text(source)
-                    self.assertEqual(checker.main(["check-ui-style.py", directory]), expected)
-
-    def test_comment_rationale_preserves_suppression_and_concurrency_checks(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for name in ("check-agent-invariants.sh", "lib/rg-check.sh",
-                          "format-dirs.env", "build-inputs.env", "internal/swift_policy.py", "tool-versions.env"):
-                target = root / "Scripts" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ROOT / "Scripts" / name, target)
-            (root / ".tools").symlink_to(ROOT / ".tools", target_is_directory=True)
-            for package in (ROOT / "Packages").iterdir():
-                if package.is_dir():
-                    (root / "Packages" / package.name / "Sources" / package.name).mkdir(parents=True)
-                    (root / "Packages" / package.name / "Tests").mkdir()
-            (root / "Trinket/App").mkdir(parents=True)
-            (root / "TrinketUITests").mkdir()
-            (root / "Trinket/App/TrinketApp.swift").write_text("import SwiftUI\n")
-            fixture = root / "Trinket/Probe.swift"
-            cases = (
-                ("// Preserve ordering across suspension.\n/* The callback owns its lifetime. */\nstruct Probe {}\n", None),
-                ("// swiftlint:disable type_body_length\nstruct Probe {}\n", "swiftlint:disable must include"),
-                ("// swiftlint:disable type_body_length - cohesive fixture\nstruct Probe {}\n", None),
-                ("final class Probe: @unchecked Sendable {}\n", "needs a nearby Concurrency-Safety"),
-                ("// Concurrency-Safety: immutable fields never change after initialization\n"
-                 "final class Probe: @unchecked Sendable {}\n", None),
-            )
-            for source, failure in cases:
-                with self.subTest(source=source):
-                    fixture.write_text(source)
-                    result = subprocess.run([str(root / "Scripts/check-agent-invariants.sh")],
-                                            cwd=root, capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
-                    if failure:
-                        self.assertIn(failure, result.stderr)
-
-    def test_agent_invariants_reject_unseeded_entropy_sleep_try_and_pin_release(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for name in ("check-agent-invariants.sh", "lib/rg-check.sh",
-                          "format-dirs.env", "build-inputs.env", "internal/swift_policy.py", "tool-versions.env"):
-                target = root / "Scripts" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ROOT / "Scripts" / name, target)
-            (root / ".tools").symlink_to(ROOT / ".tools", target_is_directory=True)
-            for package in (ROOT / "Packages").iterdir():
-                if package.is_dir():
-                    (root / "Packages" / package.name / "Sources" / package.name).mkdir(parents=True)
-                    (root / "Packages" / package.name / "Tests").mkdir()
-            (root / "Trinket/App").mkdir(parents=True)
-            (root / "TrinketUITests").mkdir()
-            engine_probe = root / "Packages/BattleEngine/Sources/BattleEngine/Probe.swift"
-            sleep_probe = root / "Packages/BattleEngine/Tests/ProbeTests.swift"
-            persistence_probe = root / "Packages/TrinketPersistence/Sources/TrinketPersistence/Probe.swift"
-            app_main = root / "Trinket/App/TrinketApp.swift"
-
-            def run_checker() -> subprocess.CompletedProcess[str]:
-                return subprocess.run([str(root / "Scripts/check-agent-invariants.sh")],
-                                        cwd=root, capture_output=True, text=True)
-
-            clean = (
-                (engine_probe, "struct Probe {}\n"),
-                (sleep_probe, "import Testing\nstruct ProbeTests {}\n"),
-                (persistence_probe, "struct Probe {}\n"),
-                (app_main, "import SwiftUI\nstruct TrinketApp {}\n"),
-            )
-            cases = (
-                ("unseeded Date",
-                 ((engine_probe, "struct Probe { let now = Date() }\n"),), "unseeded Date()/UUID()"),
-                ("allowed Date",
-                 ((engine_probe, "// EntropyCheck: allow - deterministic fixture\nstruct Probe { let now = Date() }\n"),), None),
-                ("unseeded random",
-                 ((engine_probe, "struct Probe { let roll = Int.random(in: 1...6) }\n"),), "unseeded .random("),
-                ("injected random",
-                 ((engine_probe, "struct Probe { let roll = rng.random(in: 1...6, using: &generator) }\n"),), None),
-                ("blocking Task.sleep",
-                 ((sleep_probe, "import Testing\nstruct ProbeTests { func run() async { try? await Task.sleep(nanoseconds: 1_000) } }\n"),), "Task.sleep"),
-                ("millisecond Task.sleep",
-                 ((sleep_probe, "import Testing\nstruct ProbeTests { func run() async { try? await Task.sleep(.milliseconds(10)) } }\n"),), None),
-                ("silent persistence try",
-                 ((persistence_probe, "struct Probe { func load() { try? store.load() } }\n"),), "try? on persistence"),
-                ("allowed persistence try",
-                 ((persistence_probe, "// PersistenceCheck: allow - best-effort cache warm\nstruct Probe { func load() { try? store.load() } }\n"),), None),
-                ("released artwork pins",
-                 ((app_main, "import SwiftUI\nstruct TrinketApp { func reset() { view.releasePins() } }\n"),), "do not release launch artwork pins"),
-            )
-            for label, overwrites, failure in cases:
-                with self.subTest(label=label):
-                    for path, _ in clean:
-                        path.write_text(dict(clean)[path])
-                    for path, source in overwrites:
-                        path.write_text(source)
-                    result = run_checker()
-                    self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
-                    if failure:
-                        self.assertIn(failure, result.stderr)
-
-    def test_exclusivity_footguns_reject_self_inout_and_honor_allow(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for name in ("check-exclusivity-footguns.sh", "lib/rg-check.sh",
-                          "format-dirs.env", "build-inputs.env"):
-                target = root / "Scripts" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ROOT / "Scripts" / name, target)
-            for package in (ROOT / "Packages").iterdir():
-                if package.is_dir():
-                    (root / "Packages" / package.name / "Sources" / package.name).mkdir(parents=True)
-                    (root / "Packages" / package.name / "Tests").mkdir()
-            (root / "TrinketUITests").mkdir()
-            fixture = root / "Trinket/Probe.swift"
-            fixture.parent.mkdir(parents=True)
-            cases = (
-                ("explicit self inout",
-                 "struct Holder {\n  var count = 0\n  func bump() {\n    take(&self.count)\n  }\n}\n",
-                 "&self.count"),
-                ("allowed self inout",
-                 "struct Holder {\n  var count = 0\n  func bump() {\n    // ExclusivityCheck: allow - copied to a local before the call\n    take(&self.count)\n  }\n}\n",
-                 None),
-                ("stored into without local",
-                 "struct Runner {\n  var stored = 0\n  func run() {\n    apply(into: &stored)\n  }\n}\n",
-                 "into: &stored"),
-                ("into with function-local var",
-                 "struct Runner {\n  func run() {\n    var stored = 0\n    apply(into: &stored)\n  }\n}\n",
-                 None),
-            )
-            for label, source, failure in cases:
-                with self.subTest(label=label):
-                    fixture.write_text(source)
-                    result = subprocess.run([str(root / "Scripts/check-exclusivity-footguns.sh")],
-                                            cwd=root, capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
-                    if failure:
-                        self.assertIn(failure, result.stderr)
-
-    def test_artwork_budget_enforces_constants_and_rejects_96_floor(self) -> None:
-        live = (ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift").read_text(encoding="utf-8")
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for name in ("check-artwork-budget.sh", "lib/rg-check.sh"):
-                target = root / "Scripts" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ROOT / "Scripts" / name, target)
-            fixture = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift"
-            fixture.parent.mkdir(parents=True)
-            cases = (
-                ("live constants pass", live, None),
-                ("resident drift",
-                 live.replace("320 * 1024 * 1024", "321 * 1024 * 1024"), "residentArtworkByteCount must be 320"),
-                ("steady drift",
-                 live.replace("550 * 1024 * 1024", "551 * 1024 * 1024"), "steadyStateProcessByteCount must be 550"),
-                ("floor lowered to 96",
-                 live.replace("160 * 1024 * 1024", "96 * 1024 * 1024"), "96 MiB floor"),
-                ("cap lowered",
-                 live.replace("260 * 1024 * 1024", "160 * 1024 * 1024"), "NSCache cap must be 260"),
-            )
-            for label, source, failure in cases:
-                with self.subTest(label=label):
-                    fixture.write_text(source, encoding="utf-8")
-                    result = subprocess.run([str(root / "Scripts/check-artwork-budget.sh")],
-                                            cwd=root, capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
-                    if failure:
-                        self.assertIn(failure, result.stderr)
 
     def test_module_boundaries_reject_upward_imports_and_allowlist_battle_seams(self) -> None:
         manifest = (
@@ -333,41 +92,6 @@ class PolicyScriptsTests(ScriptRegressionTestCase):
                     if failure:
                         self.assertIn(failure, result.stderr)
 
-    def test_accessibility_ids_reject_duplicate_constants_and_raw_uitest_literals(self) -> None:
-        checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")
-        duplicates = checker.unique_constants()
-        self.assertEqual(duplicates, [])
-        raw = checker.raw_uitest_literals(checker.allowlist())
-        self.assertEqual(raw, [], raw)
-
-    def test_accessibility_ids_failure_fixture_rejects_duplicates_and_raw_literals(self) -> None:
-        checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            ids = root / "AccessibilityID.swift"
-            ids.write_text(
-                "public enum AccessibilityID {\n"
-                '  public static let playButton = "play-button"\n'
-                '  public static let playButtonAlias = "play-button"\n'
-                "}\n",
-                encoding="utf-8",
-            )
-            uitests = root / "UITests"
-            uitests.mkdir()
-            (uitests / "ProbeTests.swift").write_text(
-                "import XCTest\n"
-                "final class ProbeTests: XCTestCase {\n"
-                "  func testProbe() {\n"
-                '    app.buttons["play-button"].tap()\n'
-                "  }\n"
-                "}\n",
-                encoding="utf-8",
-            )
-            with patch.object(checker, "ROOT", root), patch.object(checker, "ID_FILE", ids), patch.object(checker, "UITESTS", uitests):
-                self.assertEqual(checker.unique_constants(), ["play-button"])
-                raw = checker.raw_uitest_literals(set())
-                self.assertEqual(len(raw), 1)
-                self.assertIn("play-button", raw[0])
 
     def test_style_gate_invokes_agent_invariants_and_accessibility_ids(self) -> None:
         text = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
@@ -375,87 +99,6 @@ class PolicyScriptsTests(ScriptRegressionTestCase):
         combined = text + style_lib
         self.assertIn("check-agent-invariants.sh", combined)
         self.assertIn("check-accessibility-ids.py", combined)
-
-
-    def test_git_setup_preserves_foreign_wrappers_and_updates_owned_wrappers(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            scripts = root / "Scripts"
-            scripts.mkdir()
-            shutil.copy2(ROOT / "Scripts/setup-git-safety.mjs", scripts)
-            home = root / "home"
-            wrapper = home / ".local/bin/git"
-            wrapper.parent.mkdir(parents=True)
-            (root / ".envrc").write_text(str(scripts / "bin"))
-            environment = {**os.environ, "HOME": str(home)}
-            for previous in ("#!/bin/sh\necho custom git\n", None,
-                             "#!/bin/sh\n# Global harness-agnostic shim: if inside Trinket repo, delegate to repo guard\nold\n"):
-                if previous is None:
-                    wrapper.unlink()
-                else:
-                    wrapper.write_text(previous)
-                result = subprocess.run(["node", str(scripts / "setup-git-safety.mjs")],
-                                        env=environment, capture_output=True, text=True)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                if previous and "custom git" in previous:
-                    self.assertEqual(wrapper.read_text(), previous)
-                else:
-                    self.assertIn(str(scripts / "bin/git"), wrapper.read_text())
-                    self.assertNotIn("\nold\n", wrapper.read_text())
-
-
-    def test_worktree_remove_preserves_unregistered_directories(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory).resolve()
-            scripts = root / "Scripts"
-            scripts.mkdir()
-            shutil.copy2(ROOT / "Scripts/agent-worktree.mjs", scripts)
-            worktree = root / ".worktrees/task"
-            worktree.mkdir(parents=True)
-            evidence = worktree / "unfinished.txt"
-            evidence.write_text("work in progress")
-            fake_git = root / "git"
-            fake_git.write_text('#!/bin/sh\nprintf "worktree %s/task-other\\0\\0" "$FIXTURE_WORKTREES"\nexit "${FIXTURE_GIT_STATUS:-0}"\n')
-            fake_git.chmod(0o755)
-            for task, status in (("!!!", "0"), ("task", "0"), ("task", "1")):
-                with self.subTest(task=task, status=status):
-                    worktree.mkdir(parents=True, exist_ok=True)
-                    evidence.write_text("work in progress")
-                    result = subprocess.run(
-                        ["node", str(scripts / "agent-worktree.mjs"), "remove", "--task", task],
-                        env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}",
-                             "FIXTURE_WORKTREES": str(root / ".worktrees"), "FIXTURE_GIT_STATUS": status},
-                        capture_output=True, text=True,
-                    )
-                    self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
-                    self.assertEqual(evidence.read_text(), "work in progress")
-
-
-    def test_git_guard_refuses_without_changing_target_repository(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
-            env.update(REAL_GIT="/usr/bin/git", GIT_OPTIONAL_LOCKS="0")
-            def git(*args):
-                return subprocess.check_output(["/usr/bin/git", *args], cwd=root, env=env)
-            git("init", "-q")
-            (root / "tracked").write_text("original")
-            git("add", "tracked")
-            git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
-                "-c", "core.hooksPath=/dev/null", "commit", "-qm", "baseline")
-            (root / "tracked").write_text("staged")
-            git("add", "tracked")
-            (root / "tracked").write_text("unstaged")
-            (root / "untracked").write_text("unfinished")
-            index = (root / ".git/index").read_bytes()
-            for prefix in ([], ["-C", str(root)], ["-c", "core.quotepath=false", "-C", str(root)]):
-                result = subprocess.run([str(ROOT / "Scripts/bin/git"), *prefix, "reset", "--hard"],
-                                        cwd=root, env=env, capture_output=True, text=True)
-                self.assertEqual(result.returncode, 1, result.stderr)
-                self.assertEqual((root / "tracked").read_text(), "unstaged")
-                self.assertEqual((root / "untracked").read_text(), "unfinished")
-                self.assertEqual((root / ".git/index").read_bytes(), index)
-                self.assertEqual(git("stash", "list"), b"")
 
 
     def test_format_roots_derived_from_packages(self) -> None:

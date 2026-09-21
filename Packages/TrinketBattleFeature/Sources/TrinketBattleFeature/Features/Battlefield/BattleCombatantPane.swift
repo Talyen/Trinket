@@ -93,8 +93,12 @@ struct BattleCombatantPane: View {
     }
 
     private var feedbackLayer: some View {
-        CombatFeedbackRasterSlot(combatantID: combatant.id, displayScale: displayScale)
-            .allowsHitTesting(false)
+        CombatFeedbackRasterSlot(
+            combatantID: combatant.id,
+            displayScale: displayScale,
+            bottomInset: TrinketDesign.Bars.battleHeight * (hasMana ? 2 : 1),
+        )
+        .allowsHitTesting(false)
     }
 
     private var isDefeated: Bool {

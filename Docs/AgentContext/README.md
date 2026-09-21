@@ -20,7 +20,7 @@ Sample briefing shape (exact cards vary by path):
 Read first: AGENTS.md, Packages/BattleEngine/AGENTS.md
 Ownership and integration: Docs/AgentContext/battle-engine.md
 Behavior references: Docs/AgentContext/battle-damage.md
-Verification: ./Scripts/handoff.sh --isolate --paths <files...>
+Verification: ./Scripts/handoff.sh --isolate --quiet --paths <files...>
 ```
 
 | Card | Typical trigger |
@@ -113,7 +113,10 @@ For Swift or Python, `agent-read.py path.swift --outline` lists qualified types 
 members with complete lexical source ranges and the file path once. Swift uses the
 pinned SwiftFormat tokenizer; this is not a semantic ownership map. Add
 `--include-locals` for declarations inside functions. `--symbol Qualified.name`
-reads an attached comment/attribute block and complete declaration; overloaded or
+reads an attached comment/attribute block and complete declaration; repeat `--symbol`
+to read several declarations together. `--signatures` shows headers and attached
+comments without bodies; filter outlines/signatures with `--kind methods|properties|types`
+and `--match <name-substring>`. Overloaded or
 ambiguous names return candidate ranges without choosing one. `--offset` /
 `--limit` page the outline; `--lines START:END` reads an explicit complete range.
 
@@ -141,6 +144,9 @@ can omit status when the relevant workspace state is unchanged.
 
 For review, `python3 Scripts/agent-diff.py --paths <files...>` shows authored
 unstaged patches and generated-file statistics using the generated-path registry.
+Add `--summary` for record/field hints in generated talent, affix, and Homestead
+catalogs. Unsupported formats and changes outside recognized records are disclosed;
+these hints do not replace idempotence or full patch review where needed.
 Use `--staged` for the index, `--stat` for statistics only, or `--generated` to
 expand generated patches. Output defaults to a 12,000-character content budget,
 paged at complete hunks/records with repeated file headers. Follow the printed

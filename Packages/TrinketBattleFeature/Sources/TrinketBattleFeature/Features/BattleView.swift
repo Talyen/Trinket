@@ -10,7 +10,6 @@ import TrinketFeatureSupport
 public struct BattleView: View {
     @State private var castPresentation = BattleCastPresentationState()
     @State private var interactionState = BattleInteractionState()
-    @State private var isConfirmingRetreat = false
     @State private var victoryFeedbackToken = 0
     @State private var defeatFeedbackToken = 0
 
@@ -80,17 +79,6 @@ public struct BattleView: View {
                 castPresentation.reset()
                 interactionState.suppressCombatantTaps = false
             }
-            .alert(
-                "Retreat from this battle?",
-                isPresented: $isConfirmingRetreat,
-            ) {
-                Button("Retreat", role: .destructive) {
-                    battleSession.playPresentationSFX(SFXID.uiCancel)
-                    retreat()
-                }
-                .accessibilityIdentifier(AccessibilityID.Battle.retreatConfirm)
-                Button("Cancel", role: .cancel) {}
-            }
     }
 
     private func battleActionsMenu(canRetreat: Bool) -> some View {
@@ -113,7 +101,7 @@ public struct BattleView: View {
 
             if canRetreat {
                 Button(role: .destructive) {
-                    isConfirmingRetreat = true
+                    battleSession.retreatFromBattle()
                 } label: {
                     Label("Retreat", systemImage: "figure.run")
                 }
