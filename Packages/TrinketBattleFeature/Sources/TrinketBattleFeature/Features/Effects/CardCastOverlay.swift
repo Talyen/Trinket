@@ -117,18 +117,18 @@ struct CardActivationRequest: Equatable, Identifiable {
         for card: BattleCard,
         index: Int,
         cardCount: Int,
-        battleSize: CGSize,
+        handFrame: CGRect,
         startedAt: Date = .now,
     ) -> Self {
         let metrics = BattleHandLayout.metrics(
-            containerWidth: battleSize.width,
+            containerWidth: handFrame.width,
             cardCount: cardCount,
         )
         let restingCenter = BattleHandLayout.restingCenter(
             index: index,
             metrics: metrics,
             cardCount: cardCount,
-            containerFrame: CGRect(origin: .zero, size: battleSize),
+            handFrame: handFrame,
         )
         return Self(
             startedAt: startedAt,
@@ -219,7 +219,6 @@ struct CardCastEffectsLayer: View {
 struct CardCastPresentationLane: View {
     let presentation: BattleCastPresentationState
     let playback: BattleCardPlaybackState
-    let battleSize: CGSize
     let hapticsEnabled: Bool
 
     var body: some View {

@@ -16,12 +16,23 @@ enum BattleHandLayout {
     static let fanAngleStep: CGFloat = 9
     static let fanLiftStep: CGFloat = 10
     static let bottomRise: CGFloat = 30
+    static let reservedHeight: CGFloat = 224
+    static let overlapAllowance: CGFloat = 56
     static let restingYFraction: CGFloat = 0.20
     struct Metrics: Equatable {
         let cardWidth: CGFloat
         let cardHeight: CGFloat
         let overlap: CGFloat
         let startX: CGFloat
+    }
+
+    static func frame(in containerSize: CGSize) -> CGRect {
+        CGRect(
+            x: 0,
+            y: containerSize.height - reservedHeight - bottomRise,
+            width: containerSize.width,
+            height: reservedHeight,
+        )
     }
 
     static func metrics(
@@ -57,7 +68,7 @@ enum BattleHandLayout {
         index: Int,
         metrics: Metrics,
         cardCount: Int,
-        containerFrame: CGRect,
+        handFrame: CGRect,
     ) -> CGPoint {
         let baseOffsetY = metrics.cardHeight * restingYFraction
             + restingOffsetY(
@@ -65,12 +76,12 @@ enum BattleHandLayout {
                 cardCount: cardCount,
             )
         return CGPoint(
-            x: containerFrame.midX + cardOffsetX(
+            x: handFrame.midX + cardOffsetX(
                 index: index,
                 metrics: metrics,
-                containerWidth: containerFrame.width,
+                containerWidth: handFrame.width,
             ),
-            y: containerFrame.maxY - bottomRise - metrics.cardHeight / 2 + baseOffsetY,
+            y: handFrame.maxY - metrics.cardHeight / 2 + baseOffsetY,
         )
     }
 

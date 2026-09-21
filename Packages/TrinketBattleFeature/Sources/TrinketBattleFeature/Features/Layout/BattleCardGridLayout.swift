@@ -7,21 +7,18 @@ enum BattleCardGridLayout {
     static let outerPadding: CGFloat = 0
     static let cardSpacing: CGFloat = 12
     static let combatantScale: CGFloat = 0.90
-    static let handReservedHeight: CGFloat = 224
-    static let handOverlapAllowance: CGFloat = 56
 
     struct Metrics: Equatable {
         let enemySize: CGSize
         let partySize: CGSize
         let outerPadding: CGFloat
         let cardSpacing: CGFloat
-        let handReservedHeight: CGFloat
     }
 
-    static func metrics(in containerSize: CGSize, handReservedHeight: CGFloat = handReservedHeight) -> Metrics {
+    static func metrics(in containerSize: CGSize) -> Metrics {
         let innerWidth = max(containerSize.width - 2 * outerPadding, 0)
         let innerHeight = max(
-            containerSize.height - 2 * outerPadding - handReservedHeight + handOverlapAllowance,
+            containerSize.height - 2 * outerPadding,
             0,
         )
         guard innerWidth > 0, innerHeight > 0 else {
@@ -30,7 +27,6 @@ enum BattleCardGridLayout {
                 partySize: .zero,
                 outerPadding: outerPadding,
                 cardSpacing: cardSpacing,
-                handReservedHeight: handReservedHeight,
             )
         }
 
@@ -54,7 +50,6 @@ enum BattleCardGridLayout {
             partySize: CGSize(width: partyWidth, height: partyHeight),
             outerPadding: outerPadding,
             cardSpacing: cardSpacing,
-            handReservedHeight: handReservedHeight,
         )
     }
 }

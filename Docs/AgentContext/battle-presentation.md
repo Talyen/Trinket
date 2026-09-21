@@ -172,6 +172,13 @@ are playable.
 
 ## Card visibility
 
+Hand departure coordinates use the hand's measured frame in the battle coordinate
+space. Auto Battle reads that frame for each play without restarting its driving
+task on resize. A frame change cancels an uncommitted press or drag and its cue;
+an inspection remains held until dismissal. Layout changes never reissue committed
+commands. Battlefield metrics receive the available battlefield area; the parent
+composition owns any space reserved for the hand.
+
 Holding a hand card to inspect it preserves its held appearance and foreground
 ordering through detail-sheet presentation until dismissal. Gesture release or
 cancellation during inspection must not return or play the card; dismissal

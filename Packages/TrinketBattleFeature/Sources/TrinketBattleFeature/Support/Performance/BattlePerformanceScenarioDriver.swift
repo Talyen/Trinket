@@ -73,7 +73,7 @@ struct BattlePerformanceScenarioDriver {
             for: card,
             index: index,
             cardCount: max(1, hand.count),
-            battleSize: battleSize,
+            handFrame: BattleHandLayout.frame(in: battleSize),
         )
     }
 }

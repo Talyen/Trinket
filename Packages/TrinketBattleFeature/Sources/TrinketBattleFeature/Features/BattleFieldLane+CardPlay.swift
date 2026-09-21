@@ -6,9 +6,9 @@ extension BattleFieldLane {
         "\(battleSession.isAutoBattleEnabled)-\(battleSession.activeBattle?.id.uuidString ?? "none")"
     }
 
-    func playAutoBattleCard(_ card: BattleCard, battleSize: CGSize) -> Bool {
+    func playAutoBattleCard(_ card: BattleCard, handFrame: CGRect) -> Bool {
         guard !Task.isCancelled, battleSession.isAutoBattleEnabled,
-              let request = activationRequest(for: card, battleSize: battleSize)
+              let request = activationRequest(for: card, handFrame: handFrame)
         else { return false }
         battleSession.beginCardCue(card, mode: .tapCommit)
         let didPlay = playCard(card, request: request, isAutomatic: true)
@@ -31,7 +31,7 @@ extension BattleFieldLane {
 
     private func activationRequest(
         for card: BattleCard,
-        battleSize: CGSize,
+        handFrame: CGRect,
     ) -> CardActivationRequest? {
         let hand = battleSession.hand
         guard let index = hand.firstIndex(where: { $0.id == card.id }) else { return nil }
@@ -39,7 +39,7 @@ extension BattleFieldLane {
             for: card,
             index: index,
             cardCount: hand.count,
-            battleSize: battleSize,
+            handFrame: handFrame,
         )
     }
 }

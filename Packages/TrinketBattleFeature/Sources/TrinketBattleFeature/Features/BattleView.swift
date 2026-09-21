@@ -207,9 +207,16 @@ struct BattleFieldLane: View {
     let castPresentation: BattleCastPresentationState
     var performanceScenario: BattlePerformanceScenario?
 
+    @State private var measuredHandFrame: CGRect?
+
     var body: some View {
         GeometryReader { geometry in
-            let layout = BattleCardGridLayout.metrics(in: geometry.size)
+            let battlefieldSize = CGSize(
+                width: geometry.size.width,
+                height: max(0, geometry.size.height - BattleHandLayout.reservedHeight + BattleHandLayout.overlapAllowance),
+            )
+            let layout = BattleCardGridLayout.metrics(in: battlefieldSize)
+            let handFrame = BattleHandLayout.frame(in: geometry.size)
             let hapticsEnabled = battleSession.hapticsEnabled
 
             ZStack(alignment: .bottom) {
@@ -222,22 +229,22 @@ struct BattleFieldLane: View {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-                automaticCardLane(in: geometry.size)
+                automaticCardLane(handFrame: handFrame)
 
                 BattleHandProjectionLane(
                     presentation: presentation,
                     hapticsEnabled: hapticsEnabled,
-                    battleSize: geometry.size,
+                    onFrameChanged: { measuredHandFrame = $0 },
                     onPlay: { playCard($0, request: $1) },
                     onInteractionChanged: updateCombatantTapSuppression(_:),
                     onLift: beginCardLift,
                     onLiftCancel: cancelCardLift(for:),
                 )
-                .frame(height: BattleCardGridLayout.handReservedHeight)
+                .frame(height: BattleHandLayout.reservedHeight)
                 .offset(y: -BattleHandLayout.bottomRise)
                 .zIndex(1)
 
-                cardCastLane(in: geometry.size)
+                cardCastLane()
                     .zIndex(3)
 
                 BattleInfrastructureLane(presentation: presentation)
@@ -262,7 +269,8 @@ struct BattleFieldLane: View {
                     isCardCastActive: { castPresentation.request != nil },
                     isManualInteractionActive: { interactionState.blocksCombatantTaps },
                     playCard: { card in
-                        playAutoBattleCard(card, battleSize: geometry.size)
+                        guard let measuredHandFrame, !measuredHandFrame.isEmpty else { return false }
+                        return playAutoBattleCard(card, handFrame: measuredHandFrame)
                     },
                 )
             }
@@ -270,19 +278,22 @@ struct BattleFieldLane: View {
         .ignoresSafeArea(.container, edges: .bottom)
     }
 
-    private func automaticCardLane(in size: CGSize) -> some View {
+    private func automaticCardLane(handFrame: CGRect) -> some View {
         ForEach(presentation.cardPlayback.casts) { cast in
-            AutomaticCardCastView(cast: cast, battleSize: size) {
+            AutomaticCardCastView(
+                cast: cast,
+                stagingFrame: CGRect(x: handFrame.minX, y: 0, width: handFrame.width, height: max(0, handFrame.minY)),
+                handWidth: handFrame.width,
+            ) {
                 presentation.cardPlayback.remove(id: cast.id)
             }
         }
     }
 
-    private func cardCastLane(in size: CGSize) -> some View {
+    private func cardCastLane() -> some View {
         CardCastPresentationLane(
             presentation: castPresentation,
             playback: presentation.cardPlayback,
-            battleSize: size,
             hapticsEnabled: battleSession.hapticsEnabled,
         )
     }
@@ -335,7 +346,7 @@ private struct BattleHandProjectionLane: View {
 
     let presentation: BattlePresentationState
     let hapticsEnabled: Bool
-    let battleSize: CGSize
+    let onFrameChanged: (CGRect) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
     let onLift: (BattleCard, BattleCardCuePresentationMode) -> Void
@@ -366,7 +377,7 @@ private struct BattleHandProjectionLane: View {
                     battleSession.playPresentationSFX(SFXID.uiDeny)
                 },
                 hapticsEnabled: hapticsEnabled,
-                battleFrame: CGRect(origin: .zero, size: battleSize),
+                onFrameChanged: onFrameChanged,
                 onCardInteractionChanged: onInteractionChanged,
                 onLift: onLift,
                 onLiftCancel: onLiftCancel,

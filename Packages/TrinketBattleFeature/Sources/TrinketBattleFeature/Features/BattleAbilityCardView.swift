@@ -13,6 +13,7 @@ struct BattleAbilityCardView: View {
     let restingRotation: CGFloat
     let restingOffsetY: CGFloat
     let restingCenter: CGPoint
+    let interactionFrame: CGRect
     let hapticsEnabled: Bool
     let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
@@ -106,6 +107,10 @@ struct BattleAbilityCardView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase != .active else { return }
+            cancelInteraction()
+        }
+        .onChange(of: interactionFrame) { _, _ in
+            guard interactionResolution == .pressing || interactionResolution == .dragging else { return }
             cancelInteraction()
         }
         .onChange(of: isGestureActive) { wasActive, isActive in

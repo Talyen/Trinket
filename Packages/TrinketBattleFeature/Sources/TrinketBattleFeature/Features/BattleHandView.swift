@@ -28,7 +28,7 @@ struct BattleHandView: View {
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onPlayDenied: (BattleCard) -> Void
     let hapticsEnabled: Bool
-    let battleFrame: CGRect
+    var onFrameChanged: ((CGRect) -> Void)?
     var onCardInteractionChanged: ((Bool) -> Void)?
     var onLift: ((BattleCard, BattleCardCuePresentationMode) -> Void)?
     var onLiftCancel: ((BattleCard) -> Void)?
@@ -43,7 +43,7 @@ struct BattleHandView: View {
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
         onPlayDenied: @escaping (BattleCard) -> Void,
         hapticsEnabled: Bool,
-        battleFrame: CGRect,
+        onFrameChanged: ((CGRect) -> Void)? = nil,
         onCardInteractionChanged: ((Bool) -> Void)? = nil,
         onLift: ((BattleCard, BattleCardCuePresentationMode) -> Void)? = nil,
         onLiftCancel: ((BattleCard) -> Void)? = nil,
@@ -55,7 +55,7 @@ struct BattleHandView: View {
         self.onPlay = onPlay
         self.onPlayDenied = onPlayDenied
         self.hapticsEnabled = hapticsEnabled
-        self.battleFrame = battleFrame
+        self.onFrameChanged = onFrameChanged
         self.onCardInteractionChanged = onCardInteractionChanged
         self.onLift = onLift
         self.onLiftCancel = onLiftCancel
@@ -63,6 +63,7 @@ struct BattleHandView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let handFrame = geometry.frame(in: .named(BattleCoordinateSpace.field))
             let layout = BattleHandLayout.metrics(
                 containerWidth: geometry.size.width,
                 cardCount: cards.count,
@@ -72,7 +73,7 @@ struct BattleHandView: View {
                     let liveSnapshot = liveSnapshot(
                         index: index,
                         layout: layout,
-                        containerWidth: geometry.size.width,
+                        handFrame: handFrame,
                     )
                     let isHeld = heldInteraction?.cardID == card.id
                     let snapshot = isHeld ? (heldInteraction?.layout ?? liveSnapshot) : liveSnapshot
@@ -86,6 +87,7 @@ struct BattleHandView: View {
                         restingRotation: snapshot.restingRotation,
                         restingOffsetY: snapshot.restingOffsetY,
                         restingCenter: snapshot.restingCenter,
+                        interactionFrame: handFrame,
                         hapticsEnabled: hapticsEnabled,
                         onInspect: { onInspect(card) },
                         onPlay: { command in onPlay(card, command) },
@@ -128,7 +130,11 @@ struct BattleHandView: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
         }
-
+        .onGeometryChange(for: CGRect.self) { geometry in
+            geometry.frame(in: .named(BattleCoordinateSpace.field))
+        } action: { frame in
+            onFrameChanged?(frame)
+        }
         .coordinateSpace(name: Self.coordinateSpaceName)
         .transition(.identity)
         .accessibilityElement(children: .contain)
@@ -138,7 +144,7 @@ struct BattleHandView: View {
     private func liveSnapshot(
         index: Int,
         layout: BattleHandLayout.Metrics,
-        containerWidth: CGFloat,
+        handFrame: CGRect,
     ) -> HeldCardLayoutSnapshot {
         HeldCardLayoutSnapshot(
             width: layout.cardWidth,
@@ -155,12 +161,12 @@ struct BattleHandView: View {
                 index: index,
                 metrics: layout,
                 cardCount: cards.count,
-                containerFrame: battleFrame,
+                handFrame: handFrame,
             ),
             fanOffsetX: BattleHandLayout.cardOffsetX(
                 index: index,
                 metrics: layout,
-                containerWidth: containerWidth,
+                containerWidth: handFrame.width,
             ),
         )
     }

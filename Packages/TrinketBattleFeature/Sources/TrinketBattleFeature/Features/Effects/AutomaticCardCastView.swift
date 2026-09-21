@@ -4,7 +4,8 @@ import TrinketFeatureSupport
 
 struct AutomaticCardCastView: View {
     let cast: BattleRecordedCardCast
-    let battleSize: CGSize
+    let stagingFrame: CGRect
+    let handWidth: CGFloat
     let onFinished: () -> Void
 
     private var revealDuration: TimeInterval {
@@ -15,13 +16,12 @@ struct AutomaticCardCastView: View {
     /// side. This is intentionally not the hand resting center used by
     /// manual casts in `CardCastEffectsLayer`.
     var body: some View {
-        let metrics = BattleHandLayout.metrics(containerWidth: battleSize.width, cardCount: 3)
+        let metrics = BattleHandLayout.metrics(containerWidth: handWidth, cardCount: 3)
         let center = CGPoint(
-            x: battleSize.width * (cast.card.owner == .hero ? 0.38 : 0.62),
-            y: max(
+            x: stagingFrame.minX + stagingFrame.width * (cast.card.owner == .hero ? 0.38 : 0.62),
+            y: stagingFrame.minY + max(
                 metrics.cardHeight / 2,
-                battleSize.height - BattleCardGridLayout.handReservedHeight
-                    - BattleHandLayout.bottomRise - metrics.cardHeight / 2,
+                stagingFrame.height - metrics.cardHeight / 2,
             ),
         )
         TimelineView(.animation(paused: cast.pausedAt != nil)) { timeline in
@@ -40,7 +40,7 @@ struct AutomaticCardCastView: View {
             }
             .rotationEffect(.degrees(direction * 18 * (1 - eased)))
             .position(
-                x: center.x + direction * battleSize.width * (1 - eased),
+                x: center.x + direction * stagingFrame.width * (1 - eased),
                 y: center.y + metrics.cardHeight * 0.3 * (1 - eased),
             )
             .opacity(elapsed < 0 ? 0 : 1)

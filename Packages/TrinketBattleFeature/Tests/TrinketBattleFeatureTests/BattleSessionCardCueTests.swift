@@ -7,6 +7,30 @@ import TrinketContentTestSupport
 
 @MainActor
 struct BattleSessionCardCueTests {
+    @Test func `moving the hand moves new cast origins without changing a committed cast`() throws {
+        let session = makeSession()
+        defer { session.endBattle() }
+        let card = try install(.slash, in: session)
+        let frame = BattleHandLayout.frame(in: CGSize(width: 375, height: 667))
+        let before = CardActivationRequest.restingRequest(for: card, index: 0, cardCount: 3, handFrame: frame)
+        let casts = BattleCastPresentationState()
+        defer { casts.reset() }
+        casts.append(before)
+
+        let moved = CardActivationRequest.restingRequest(
+            for: card,
+            index: 0,
+            cardCount: 3,
+            handFrame: frame.offsetBy(dx: 240, dy: -150),
+        )
+        #expect(moved.center.x == before.center.x + 240)
+        #expect(moved.center.y == before.center.y - 150)
+        #expect(moved.size == before.size)
+        #expect(moved.rotation == before.rotation)
+        #expect(casts.requests == [before])
+        #expect(session.hand.contains(card))
+    }
+
     @Test func `auto battle departs from rest and a manual play commits during its cast`() throws {
         let session = makeSession()
         defer { session.endBattle() }
@@ -29,10 +53,11 @@ struct BattleSessionCardCueTests {
             castPresentation: casts,
         )
         let battleSize = CGSize(width: 375, height: 667)
+        let handFrame = BattleHandLayout.frame(in: battleSize)
         let departure = CardActivationRequest.restingRequest(
-            for: card, index: 0, cardCount: session.hand.count, battleSize: battleSize,
+            for: card, index: 0, cardCount: session.hand.count, handFrame: handFrame,
         )
-        #expect(field.playAutoBattleCard(card, battleSize: battleSize))
+        #expect(field.playAutoBattleCard(card, handFrame: handFrame))
         #expect(!session.hand.contains(card))
         #expect(session.cardCues.current?.mode == .tapCommit)
         let automaticCast = try #require(casts.request)
@@ -46,7 +71,7 @@ struct BattleSessionCardCueTests {
         #expect(session.canInteractWithHand)
         session.beginCardCue(next, mode: .tapCommit)
         let manualCast = CardActivationRequest.restingRequest(
-            for: next, index: 0, cardCount: session.hand.count, battleSize: battleSize,
+            for: next, index: 0, cardCount: session.hand.count, handFrame: handFrame,
         )
         #expect(field.playCard(next, request: manualCast))
         #expect(session.hand.isEmpty)
@@ -57,7 +82,7 @@ struct BattleSessionCardCueTests {
         #expect(session.engineState?.rng == state.rng)
 
         session.isAutoBattleEnabled = false
-        #expect(!field.playAutoBattleCard(card, battleSize: battleSize))
+        #expect(!field.playAutoBattleCard(card, handFrame: handFrame))
         #expect(casts.requests.map(\.id) == [automaticCast.id, manualCast.id])
         casts.remove(id: automaticCast.id)
         #expect(casts.requests.map(\.id) == [manualCast.id])
