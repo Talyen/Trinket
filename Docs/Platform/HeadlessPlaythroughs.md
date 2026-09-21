@@ -97,13 +97,19 @@ never `completedObjective`.
 
 ## Reports and interpretation
 
-Each run writes three report layers. `report-agent.json` is the compact,
-agent-facing artifact: it contains derived metrics, confidence, limitations,
-actionable insights, and recommended next experiments. It does not include worker
-summaries, action journals, logs, test bundles, or private store contents. Agents
-should read this report first. `report.html` presents the same insights for human
-review, and `report.json` retains the full structured worker result for local
-diagnostics and tooling.
+Read `report-agent.md` first. This preview is bounded to 12,000 characters and
+contains experiment identity, aggregate metrics, confidence, limitations, findings,
+and next experiments. Warnings precede informational findings. It shows at most
+five highest-frequency failure contexts and five seed/attempt examples, discloses
+omitted blocks and shortened fields, and links to complete collections by JSON
+field path. All findings are calculated from complete data before preview selection.
+
+`report-agent.json` retains the complete derived analysis, including growing
+attempt trajectories, outcome sequences, stage counts, and paired transitions.
+It does not include worker summaries, action journals, logs, test bundles, or
+private store contents. `report.html` presents insights for human review, and
+`report.json` retains the full structured worker result for local diagnostics and
+tooling.
 
 The report generator derives planned, completed, and incomplete counts; career and
 attempt outcomes; retry sequences; reached encounters; turns/actions;

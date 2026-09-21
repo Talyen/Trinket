@@ -51,7 +51,7 @@ produce verified release artifacts; they do not provision these external service
 ### Prepare while the beta is running
 
 Use the existing App Store Connect record for TestFlight (provisioning:
-[CloudKit setup baseline](CloudKitPreShipChecklist.md#setup-baseline).
+[CloudKit setup baseline](CloudKitPreShipChecklist.md#setup-baseline)).
 Complete its public listing using the [metadata draft](AppStoreMetadata.md);
 do not create another app or change the bundle ID to match the display name.
 

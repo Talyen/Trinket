@@ -354,7 +354,6 @@ private extension CombatFeedbackRasterUIView {
             let scale = slot.fitScale * state.scale
             let position = stationaryLayout.position(
                 for: slot,
-                renderedSize: CGSize(width: chip.layer.bounds.width * scale, height: chip.layer.bounds.height * scale),
                 push: chip.lanePush.offset(at: elapsed),
                 rise: min(CombatFeedbackMotionSampler.riseDistance, max(0, bounds.height / 2 - 12)) * state.riseProgress,
                 bottomInset: bottomInset,

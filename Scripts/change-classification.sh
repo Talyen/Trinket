@@ -411,7 +411,7 @@ trinket_add_battle_subcard_for_path() {
   case "$1" in
     Trinket/App/TrinketApp.swift)
       trinket_add_runtime_contracts_for_path "$1" ;;
-    Packages/BattleEngine/Sources/BattleEngine/BattleRuntime.swift|Packages/BattleEngine/Sources/BattleEngine/BattleRuntimeDependencies.swift)
+    Packages/BattleEngine/Sources/BattleEngine/Runtime/BattleRuntime.swift|Packages/BattleEngine/Sources/BattleEngine/Runtime/BattleRuntimeDependencies.swift)
       trinket_add_runtime_contracts_for_path "$1" ;;
     Packages/BattleEngine/*)
       trinket_add_route_card Docs/AgentContext/battle.md

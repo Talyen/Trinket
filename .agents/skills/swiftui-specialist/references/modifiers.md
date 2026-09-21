@@ -1,6 +1,6 @@
 # Conditional View Modifiers
 
-Never write a conditional view modifier (sometimes called an `.if` modifier) that uses `@ViewBuilder` to switch between `transform(self)` and `self` based on a boolean. If you encounter an existing conditional view modifier in the codebase, do not remove or refactor it (doing so can change behavior and is out of scope), but when reviewing, point out that it may cause unexpected behavior and explain the alternatives below.
+Avoid a conditional view modifier (sometimes called an `.if` modifier) that switches between `transform(self)` and `self` when the same view should retain identity. Inspect whether the condition changes and whether replacement is intentional. Repair confirmed identity or animation problems within the task under the root change policy; neither an automatic rewrite nor a blanket prohibition on fixing existing code is appropriate.
 
 ## Why conditional view modifiers are problematic
 
@@ -80,4 +80,4 @@ Reach for `AnyShapeStyle` only when the branches genuinely will not unify - two 
 .foregroundStyle(isOn ? .yellow : .tint)
 ```
 
-When uncertain, assume the ternary compiles rather than inventing a type-mismatch error. If it truly does not, the fix is `AnyShapeStyle`, never an `.if`/`@ViewBuilder` branch.
+When uncertain, check the selected SDK or compile the expression before reporting a type mismatch. Use `AnyShapeStyle` when needed to vary style while preserving view identity.

@@ -46,17 +46,11 @@ duplicate deliveries grant nothing further. Value→graph is `init(save:)`,
 graph→value is `toPlayerSave()`/`toPlayerRosterState()` and friends,
 CloudKit-only is `restored()`, content-ID lookups are `resolve()`.
 
-Combat payouts come entirely from the seeded loot roll (`BattleLoot`);
-authored stage rewards apply to non-combat stages only. Loot `rewardLevel`
-(item tiers) is always authored — Journey chapter math, Spire floor x2,
-Labyrinth depth, Contracts campaign anchor — while `encounterLevel`
-(XP/gold/materials) is party-adjusted; Spire battles themselves launch at
-raw authored levels. A duplicate headline item converts to level-scaled
-consolation gold instead of consuming the encounter for nothing. Mystery
-offers store the raw bonus and settle wallet caps at claim, so previews are
-estimates and grants match wallet state at tap time. The commit path is a
-single `commit`: `performBatchMutation` throws, `persistBatch` returns Bool,
-`persistTransaction` returns tri-state.
+Reward and claim contracts live in [progression](../../Docs/AgentContext/persistence-progression.md).
+Known differences between current behavior and intended product rules are recorded
+with [Contracts](../../Docs/Product/Contracts.md#implementation-discrepancy) and
+[Mystery events](../../Docs/Product/MysteryEvents.md#implementation-discrepancy);
+do not treat a package summary as approval to resolve those product choices.
 
 Tests use `SaveTestSupport` with `disableCloudSync: true`. The
 `-disable-cloud-sync` launch argument belongs to app / UI tests through

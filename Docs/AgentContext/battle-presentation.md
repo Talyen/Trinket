@@ -93,8 +93,9 @@ recording parity remains in BattleEngine's card tests.
 
 ## Floating combat feedback
 
-Floating chips contain game icons and numbers, never spelled-out keyword or
-status names. Logs, ability descriptions, and accessibility wording remain text.
+Floating chips contain game icons and numbers. Freeze and Stun feedback also
+shows “Frozen” and “Stunned” beside their icons. Other keyword and status names
+remain icon-only. Logs, ability descriptions, and accessibility wording remain text.
 Sniff Out shows beneficial-status + Physical icons with its prepared amount on
 the recipient; refreshing this preparation never adds its displayed numbers
 together. Leech preparation uses beneficial-status + Leech icons. Control
@@ -121,9 +122,9 @@ rules remain unchanged. Lower status feedback uses 80% of the central size and
 the identical pop, pause, shrink, fade, glint, and merge pulse, with no automatic
 rise. Fit oversized labels against the full portrait at maximum pop plus merge
 pulse in all three regions; do not force lower labels into a half-width box.
-Anchor lower labels by their current rendered edges, 8 points inside the sides
-and above the resource bars, including icon-only, numeric, and dual-icon results.
-Numeric merge reservations affect fitting but never add empty space at the corner.
+Place lower labels using their reserved peak footprint, 8 points inside the sides
+and above the resource bars. Keep their centers fixed through pop, shrink, fade,
+and numeric growth, including icon-only, numeric, and dual-icon results.
 Preserve icons, colors, and critical emphasis.
 
 New arrivals push only their own region upward by half the largest fitted peak

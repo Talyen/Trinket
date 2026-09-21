@@ -14,13 +14,13 @@ and product contracts in [SwiftUI feature context](../../../Docs/AgentContext/sw
 | --- | --- |
 | View inputs | [Passing data](references/dataflow.md#passing-data-into-views) |
 | `@State` and bindings | [Local state](references/dataflow.md#view-local-state-with-state), [Bindings](references/dataflow.md#bindings) |
-| `@Observable` dependencies | [Property granularity](references/dataflow.md#per-property-dependency-granularity-on-observable-models), [Computed properties](references/dataflow.md#cache-derived-observable-values-computed-properties-still-establish-dependencies-transitively) |
+| `@Observable` dependencies | [Property granularity](references/dataflow.md#per-property-dependency-granularity-on-observable-models), [Computed properties](references/dataflow.md#derived-values-and-caching) |
 | `onChange` dependencies | [Side effects](references/dataflow.md#isolating-onchangeof-side-effect-invalidation) |
 | Custom environment actions | [Closures](references/environment.md#closures-in-the-environment) |
 | `@Entry` defaults | [Unstable defaults](references/environment.md#unstable-environment-default-values) |
 | Frequent environment updates | [Rapid updates](references/environment.md#rapidly-updating-environment-values) |
 | Collection identity | [Avoid index identity](references/foreach.md#avoid-collection-indices-as-identity), [Identity lifetime](references/foreach.md#identity-must-outlive-the-view-that-renders-the-foreach) |
-| Collection update cost | [Cheap IDs](references/foreach.md#keep-the-id-cheap-to-hash), [Sorting and filtering](references/foreach.md#dont-sort-or-filter-inline-in-foreach) |
+| Collection update cost | [Cheap IDs](references/foreach.md#keep-the-id-cheap-to-hash), [Sorting and filtering](references/foreach.md#sorting-and-filtering) |
 | `List` row structure | [Unary rows](references/foreach.md#prefer-unary-row-views-in-list) |
 | Separate view update boundaries, cheap initializers, single-child `Group` | [View structure](references/structure.md) |
 | Conditional modifiers and `AnyShapeStyle` | [Modifiers](references/modifiers.md) |

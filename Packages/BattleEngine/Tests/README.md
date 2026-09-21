@@ -12,8 +12,9 @@ plus `BattleBalanceToolsTests/` (`BattleSimulator*`, `Balance*`,
 `ModeProgressionToolingTests`, `SweepWorkerPoolTests`), which is excluded from
 the default package command. This guide names stable families.
 
-Card, turn, trigger, talent, and Unique suites are grouped under `Cards/`,
-`Turns/`, `Triggers/`, `Talents/`, and `Uniques/` within `BattleEngineTests/`.
+Action, combatant, card, turn, trigger, talent, and Unique suites are grouped
+under `Actions/`, `Combatants/`, `Cards/`, `Turns/`, `Triggers/`, `Talents/`, and
+`Uniques/` within `BattleEngineTests/`. Auto Battle policy tests live in `Cards/`.
 Keep suite extensions with their main declaration; shared factories and handler
 helpers live in `Support/`. All remain in the same test target.
 

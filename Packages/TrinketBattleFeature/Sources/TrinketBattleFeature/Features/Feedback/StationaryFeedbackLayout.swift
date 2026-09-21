@@ -55,15 +55,17 @@ struct StationaryFeedbackLayout {
         return slot
     }
 
-    func position(for slot: Slot, renderedSize: CGSize, push: CGFloat, rise: CGFloat, bottomInset: CGFloat) -> CGPoint {
+    func position(for slot: Slot, push: CGFloat, rise: CGFloat, bottomInset: CGFloat) -> CGPoint {
         let inset = bounds.insetBy(dx: 8, dy: 8)
-        let halfWidth = renderedSize.width / 2
+        // Reserve the peak footprint so scaling and numeric merges keep a fixed center.
+        let maximumScale = Self.peakScale * Self.mergePulseScale
+        let halfWidth = slot.rect.width * maximumScale / 2
         let x = switch slot.region {
         case .impact: bounds.midX
         case .benefit: inset.minX + halfWidth
         case .setback: inset.maxX - halfWidth
         }
-        let y = slot.region == .impact ? bounds.midY : inset.maxY - bottomInset - renderedSize.height / 2
+        let y = slot.region == .impact ? bounds.midY : inset.maxY - bottomInset - slot.rect.height * maximumScale / 2
         return CGPoint(x: x, y: y - push - rise)
     }
 

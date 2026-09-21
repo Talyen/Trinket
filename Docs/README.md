@@ -1,6 +1,7 @@
 # Documentation map
 
-One fact has one owner. Link instead of copying policy.
+Each rule has a canonical owner. Start with the document for the task; this map
+is a lookup aid, not a reading checklist.
 
 ## Layers
 
@@ -43,7 +44,10 @@ One fact has one owner. Link instead of copying policy.
 | Commit format, hooks, and push preconditions | [Platform/Release.md](Platform/Release.md) |
 | Audit procedure | [Audits/README.md](Audits/README.md) plus the cited audit file |
 
-Do not restate these elsewhere except a one-line pointer.
+Link to the owner for detailed rules. A short local summary is useful when it
+lets a reader act without another lookup; keep its owner linked and avoid copying
+mutable numbers, command options, or exception lists. A chain of index pages is
+not a substitute for a usable explanation.
 
 ## Lifecycle and retention
 
@@ -81,8 +85,16 @@ Add an instruction when it prevents a concrete failure or resolves a recurring
 decision. Put it at the narrowest owner that covers its actual scope, state the
 trigger and required action, and link to executable mechanics instead of copying
 flags or mutable implementation details. Prefer removing a duplicate or stale
-rule over adding another exception. Keep rationale and rejected approaches in
-knowledge when they remain useful.
+rule over adding another exception. Keep rationale beside the rule when it explains a surprising constraint; use
+knowledge for substantial rejected approaches that would otherwise distract from
+the current workflow.
+
+Distinguish requirements from defaults, examples, historical evidence, and known
+implementation gaps. Reserve “always” and “never” for actual invariants. Guidance
+should help a reader choose the smallest complete solution, not turn every
+example into a required abstraction, test, or approval step. Remove detail when
+its maintenance cost exceeds its decision value; retain non-obvious game rules,
+save contracts, and recovery instructions even when they are lengthy.
 
 For documentation-only changes, verify local links and the routed checks, and
 compare command examples or behavioral claims with their executable owners.

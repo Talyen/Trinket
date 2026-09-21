@@ -60,7 +60,11 @@ struct CombatFeedbackChipPresentation: Hashable {
         case .dodge:
             iconOnly(trailing: .keyword(.dodge))
         case let .plain(chipKeyword), let .applied(chipKeyword), let .triggered(chipKeyword):
-            iconOnly(trailing: .keyword(chipKeyword))
+            Self(
+                leadingStyle: nil,
+                trailingStyle: .keyword(chipKeyword),
+                text: chipKeyword == .freeze ? "Frozen" : chipKeyword == .stun ? "Stunned" : nil,
+            )
         case let .cleanse(chipKeyword):
             dualAction(leading: .keyword(.cleanse), trailing: .keyword(chipKeyword))
         case let .purge(chipKeyword):

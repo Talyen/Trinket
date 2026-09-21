@@ -109,7 +109,7 @@ save-backed adapters. Views take the narrowest owner. Launch/DTO details:
 
 ## Cross-cutting ownership pointers
 
-The canonical persistence graph, local-only CloudKit posture, and options split
+The canonical persistence graph, CloudKit enablement policy, and options split
 live in [persistence context](../AgentContext/persistence.md) and
 [Identity.md](../Product/Identity.md). Audio ownership is in
 [audio context](../AgentContext/audio.md). Do not copy those mutable details into

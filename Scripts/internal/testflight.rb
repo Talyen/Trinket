@@ -127,8 +127,8 @@ module TrinketTestFlight
     def start
       if @options[:resume]
         @run_dir = File.realpath(@options[:resume])
-        expected_root = File.realpath(File.join(@root, '.DerivedData/testflight')) + '/'
-        raise Failure, 'Resume requires a run directory under this checkout’s .DerivedData/testflight/.' unless @run_dir.start_with?(expected_root)
+        expected_root = File.realpath(File.join(@root, '.DerivedData/testflight'))
+        raise Failure, 'Resume requires a run directory under this checkout’s .DerivedData/testflight.' unless within_directory?(@run_dir, expected_root)
         @receipt = JSON.parse(File.read(File.join(@run_dir, 'receipt.json')))
         raise Failure, 'Unsupported deployment receipt.' unless @receipt['schema'] == 1
         %w[bundle_id team].each do |field|
@@ -164,6 +164,16 @@ module TrinketTestFlight
       save
       puts "Deployment #{@receipt['version']} (#{@receipt['build']}) — #{@receipt['commit']}"
       puts "Receipt and logs: #{@run_dir}"
+    end
+
+    def within_directory?(path, root)
+      current = File.dirname(path)
+      loop do
+        return true if File.identical?(current, root)
+        parent = File.dirname(current)
+        return false if parent == current
+        current = parent
+      end
     end
 
     def execute

@@ -46,10 +46,12 @@ public struct TalentTreeCard: View {
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
                         .trinketFittedText()
-                    Text(balanced: caption)
-                        .trinketTypography(.badge)
-                        .foregroundStyle(.tertiary)
-                        .trinketFittedText()
+                    if !caption.isEmpty {
+                        Text(balanced: caption)
+                            .trinketTypography(.badge)
+                            .foregroundStyle(.tertiary)
+                            .trinketFittedText()
+                    }
                 }
             },
         )

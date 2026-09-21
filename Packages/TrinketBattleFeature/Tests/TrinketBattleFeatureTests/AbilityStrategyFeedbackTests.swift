@@ -6,14 +6,23 @@ import TrinketCore
 @testable import TrinketBattleFeature
 
 struct AbilityStrategyFeedbackTests {
-    @Test func `floating vocabulary contains only icons and numbers`() {
+    @Test func `floating vocabulary names freeze and stun alongside icons and numbers`() {
         for outcome in ActionEvent.EffectOutcome.allCases {
             for keyword in Keyword.allCases {
                 let event = BattleSessionTestSupport.makeActionEvent(
                     id: 1, kind: .effect, effectKind: outcome, amount: 3, keyword: keyword,
                 )
                 for item in CombatFeedbackPresenter.makeItems(from: [event], at: .now) {
-                    #expect(item.chipPresentation.text?.allSatisfy(\.isNumber) ?? true)
+                    switch item.label {
+                    case .word(.plain(.freeze)), .word(.applied(.freeze)), .word(.triggered(.freeze)):
+                        #expect(item.chipPresentation.text == "Frozen")
+                        #expect(item.chipPresentation.trailingStyle == .keyword(.freeze))
+                    case .word(.plain(.stun)), .word(.applied(.stun)), .word(.triggered(.stun)):
+                        #expect(item.chipPresentation.text == "Stunned")
+                        #expect(item.chipPresentation.trailingStyle == .keyword(.stun))
+                    default:
+                        #expect(item.chipPresentation.text?.allSatisfy(\.isNumber) ?? true)
+                    }
                 }
             }
         }
@@ -43,7 +52,6 @@ struct AbilityStrategyFeedbackTests {
         let events = try state.playCard(cardID: card.id)
         let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
         #expect(!items.isEmpty, "Silent card: \(ability.name)")
-        #expect(items.allSatisfy { $0.chipPresentation.text?.allSatisfy(\.isNumber) ?? true })
         if ability.id == Ability.heal.id {
             #expect(items.contains { $0.keyword == .health && $0.label != .amount(0) })
         }

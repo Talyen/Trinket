@@ -142,8 +142,8 @@ class AgentContextTests(ScriptRegressionTestCase):
             ([feature + "State/Unknown.swift"], both),
             ([app + "AppState.swift"], both),
             (["Trinket/App/TrinketApp.swift"], both),
-            ([engine + "BattleRuntime.swift"], both),
-            ([engine + "BattleRuntimeDependencies.swift"], both),
+            ([engine + "Runtime/BattleRuntime.swift"], both),
+            ([engine + "Runtime/BattleRuntimeDependencies.swift"], both),
             ([presentation, launch], both),
         )
         for paths, expected in cases:

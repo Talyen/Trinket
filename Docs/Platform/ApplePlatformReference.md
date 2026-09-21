@@ -46,7 +46,10 @@ Two repository skills incorporate Apple's Xcode guidance:
   migration diagnostics, new APIs, and their availability.
 
 The reference snapshot was exported from **Xcode 27.0, build 27A266a** and
-incorporated on September 14, 2026, with entrypoints adapted for Trinket.
+incorporated on September 14, 2026. Entrypoints and implementation references
+are adapted for Trinket: local guidance distinguishes useful defaults from hard
+invariants and removes repetitive examples. These are maintained adaptations,
+not verbatim Apple policy.
 These are on-demand technical references, not additional product or workflow
 policy. [Documentation precedence](../README.md#policy-precedence), this page's
 platform choices, and the routed package contracts still apply. When a snapshot
@@ -54,7 +57,7 @@ conflicts with the selected SDK, verify its public declarations and current Appl
 documentation before adopting a symbol or updating the reference.
 
 When refreshing for a new Xcode build, export to a temporary directory, compare
-only the two selected skills while preserving the adapted entrypoints, then
+only the two selected skills while preserving local adaptations, then
 update the snapshot version here; do not export directly over `.agents/skills/`.
 Validate skill frontmatter, local links, and the scoped documentation handoff.
 

@@ -61,9 +61,9 @@ Manual only; [scope, evidence, and interpretation](../Docs/Platform/HeadlessPlay
 `--timeout` bounds each worker in seconds. `--help` lists modes and policies without
 acquiring a Simulator. The wrapper acquires isolation, builds the AppState test
 product, and supplies explicit worker requests; no nightly automation is created.
-Read `report-agent.json` for compact derived findings and recommendations; use
-`report.html` for human review and reserve `report.json` plus worker evidence for
-targeted diagnostics.
+Read `report-agent.md` first for bounded findings and recommendations. It links to
+complete collections in `report-agent.json`; use `report.html` for human review and
+reserve `report.json` plus worker evidence for targeted diagnostics.
 
 ### Assets
 

@@ -76,7 +76,9 @@ There are no category-conversion fallbacks. Guaranteed Astral rewards constrain
 the same resolver to Astral gear; exact authored item rewards remain exact.
 
 Item reward level uses authored Journey progression (chapter base for shops and
-Mysteries), Spire floor level, Labyrinth depth, or resolved Contract level.
+Mysteries), Spire floor level, or Labyrinth depth. Contracts currently uses a
+Campaign anchor; the [product discrepancy](../../Docs/Product/Contracts.md#implementation-discrepancy)
+records its difference from the intended encounter-level rule.
 Party-adjusted currency and experience calculations remain separate. Saved items
 and pinned offers retain their contents; newly generated rewards use current tuning.
 
@@ -86,7 +88,12 @@ From the repository root, produce the exact balance report with:
 swift run --package-path Packages/TrinketContent LootBalanceReport
 ```
 
-The report covers levels 1–40, both profiles, all Sanctum bonuses, category
+By default, the command saves the complete Markdown table in a unique directory
+under `.DerivedData/LootBalanceReports/` and prints its absolute path and coverage.
+Use `--output <path>` to choose the report file, or `--full` for the complete table
+on stdout. `--full` alone writes no artifact; combining it with `--output` does both.
+
+The 2,000-row report covers levels 1–40, both profiles, all Sanctum bonuses, category
 exhaustion, shops, and guaranteed Astral rewards. Its cumulative chances assume
 unchanged inputs and pool availability across the displayed reward count.
 

@@ -191,7 +191,7 @@ struct StationaryFeedbackTests {
         #expect(wideSlot.rect.width * StationaryFeedbackLayout.peakScale * StationaryFeedbackLayout.mergePulseScale <= bounds.width - 16)
     }
 
-    @Test @MainActor func `corner rasters stay edge anchored through pop fade and numeric growth`() throws {
+    @Test @MainActor func `corner rasters keep their centers through pop fade and numeric growth`() throws {
         let start = Date.now.addingTimeInterval(10)
         let pool = CombatFeedbackRasterPool()
         for benefit in [true, false] {
@@ -217,10 +217,10 @@ struct StationaryFeedbackTests {
                 let raster = try #require(pool.prepare(for: item, displayScale: 1))
                 view.apply(chips: [(item, raster)])
                 let layer = try #require(view.layer.sublayers?.first { !$0.isHidden && $0.contents != nil })
+                let center = layer.position
                 for elapsed in [0.0, 0.05, 0.16, 0.4, 0.8] {
                     view.debugTickMotion(at: start.addingTimeInterval(elapsed))
-                    #expect(abs(layer.frame.maxY - 206) < 0.000001)
-                    #expect(abs((benefit ? layer.frame.minX : 160 - layer.frame.maxX) - 8) < 0.000001)
+                    #expect(layer.position == center)
                     #expect(view.bounds.contains(layer.frame))
                 }
                 if case .amount = label {
@@ -229,8 +229,7 @@ struct StationaryFeedbackTests {
                     let merged = try #require(pool.prepare(for: item, displayScale: 1))
                     view.apply(chips: [(item, merged)])
                     view.debugTickMotion(at: start.addingTimeInterval(0.05))
-                    #expect(abs(layer.frame.maxY - 206) < 0.000001)
-                    #expect(abs((benefit ? layer.frame.minX : 160 - layer.frame.maxX) - 8) < 0.000001)
+                    #expect(layer.position == center)
                     #expect(view.bounds.contains(layer.frame))
                 }
             }

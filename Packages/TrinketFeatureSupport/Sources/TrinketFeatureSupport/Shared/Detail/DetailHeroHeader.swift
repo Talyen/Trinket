@@ -66,6 +66,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                     titleBlock
                     footer()
                 }
+                .trinketOnArtTextBackdrop()
                 .padding(.horizontal, horizontalPadding)
                 .padding(.bottom, bottomPadding)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)

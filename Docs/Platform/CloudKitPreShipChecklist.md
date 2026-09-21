@@ -62,9 +62,9 @@ stages 3–4 prove readiness before changing the distributed default.
 
 ### 1. Product decisions
 
-Persistence owns save policy; AppState owns lifecycle coordination. Record approved
-outcomes in the [persistence contracts](../AgentContext/persistence.md) before
-implementing the unresolved choices:
+Persistence owns save policy; AppState owns lifecycle coordination. The [persistence contracts](../AgentContext/persistence.md) record the approved
+choices and implemented behavior. Verify them on the candidate build; these
+unchecked release gates do not imply that the implementation is missing:
 
 - [ ] Verify first-sync and concurrent-play reconciliation against the approved
   [complete-save selection policy](../AgentContext/persistence-storage.md#cloudkit-preparation)
@@ -74,9 +74,9 @@ implementing the unresolved choices:
 - [ ] Keep the selected save coherent across its wallet, claims, inventory,
   recruitment, and world progress per the [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation):
   complete-save exchange only, no independent field merging or balance addition.
-  Implement complete-save exchange, backup durability, and replay-safe
+  Verify complete-save exchange, backup durability, and replay-safe
   production authority before enabling cloud play.
-- [ ] Implement and verify the approved reset/account policy in the
+- [ ] Verify the approved reset/account policy in the
   [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation):
   reset wins over older offline saves, sign-out retains a local copy, and account
   changes cannot leak prior-account progress into a new container.

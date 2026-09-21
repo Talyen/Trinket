@@ -113,20 +113,11 @@ struct LabyrinthNodeInspector: View {
                     }
                 }
             }
+            .trinketOnArtTextBackdrop()
             .padding(.horizontal, TrinketDesign.Spacing.medium)
             .padding(.top, TrinketDesign.Spacing.extraLarge)
             .padding(.bottom, TrinketDesign.Spacing.medium)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                LinearGradient(
-                    colors: [
-                        .clear,
-                        TrinketDesign.Colors.Overlay.ink.opacity(0.82),
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom,
-                )
-            }
             .allowsHitTesting(false)
         }
     }

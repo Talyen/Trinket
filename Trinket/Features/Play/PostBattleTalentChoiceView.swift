@@ -61,7 +61,7 @@ private struct PostBattleTalentChoiceContent: View {
     @Environment(OptionsStore.self) private var options
     @Environment(\.scenePhase) private var scenePhase
     @State private var navigationPath: [String] = []
-    @State private var enteredTreeIDs: Set<String> = []
+    @State private var attentionTreeID: String?
     @State private var hasFinishedEntrance = false
     @State private var treeSelectionTrigger = 0
 
@@ -111,17 +111,19 @@ private struct PostBattleTalentChoiceContent: View {
     private func revealCategories() async {
         guard isEntranceActive, !hasFinishedEntrance, let config else { return }
         let eligibleTrees = config.trees.filter { !legalNodes(in: $0, combatantID: combatantID).isEmpty }
-        await Task.yield()
         do {
-            for (index, tree) in eligibleTrees.enumerated() {
-                if index > 0 {
-                    try await Task.sleep(for: .seconds(TrinketMotion.Reward.entranceStagger))
-                }
+            try await Task.sleep(for: .seconds(TrinketMotion.Screen.crossfadeDuration))
+            for tree in eligibleTrees {
                 try Task.checkCancellation()
                 guard isEntranceActive, !hasFinishedEntrance else { return }
-                withAnimation(TrinketMotion.Reward.reveal) {
-                    _ = enteredTreeIDs.insert(tree.id)
+                withAnimation(TrinketMotion.Interaction.selection) {
+                    attentionTreeID = tree.id
                 }
+                try await Task.sleep(for: .seconds(0.22))
+                withAnimation(TrinketMotion.Reward.reveal) {
+                    attentionTreeID = nil
+                }
+                try await Task.sleep(for: .seconds(0.36))
             }
             hasFinishedEntrance = true
         } catch {
@@ -133,6 +135,7 @@ private struct PostBattleTalentChoiceContent: View {
         var transaction = Transaction(animation: nil)
         transaction.disablesAnimations = true
         withTransaction(transaction) {
+            attentionTreeID = nil
             hasFinishedEntrance = true
         }
     }
@@ -149,16 +152,13 @@ private struct PostBattleTalentChoiceContent: View {
         combatant: Combatant,
         config: CombatantTalentConfig,
     ) -> some View {
-        DetailHeroScrollShell(title: combatant.name) { baseHeight in
+        DetailHeroScrollShell(title: "Choose a Talent") { baseHeight in
             DetailHeroHeader(
-                title: combatant.name,
+                eyebrow: combatant.name,
+                title: "Choose a Talent",
                 baseHeight: baseHeight,
             ) {
                 CombatantArtwork(combatant: combatant)
-            } footer: {
-                Text("Choose a Talent")
-                    .trinketTypography(.secondaryBody)
-                    .trinketOnArtText(.eyebrow)
             }
         } bodyContent: {
             LazyVGrid(columns: treeColumns, spacing: TrinketDesign.Spacing.small) {
@@ -198,17 +198,19 @@ private struct PostBattleTalentChoiceContent: View {
         } label: {
             TalentTreeCard(
                 tree: tree,
-                caption: choiceCountLabel(nodes.count),
+                caption: "",
                 isLocked: nodes.isEmpty,
                 showsShine: !nodes.isEmpty,
                 accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id),
             )
         }
         .trinketArtworkCardButtonStyle(pressedScale: TrinketMotion.Interaction.choiceCardPressedScale)
-        .scaleEffect(
-            nodes.isEmpty || hasFinishedEntrance || enteredTreeIDs.contains(tree.id)
-                ? 1 : TrinketMotion.Reward.categoryEntranceScale,
+        .shadow(
+            color: tree.keyword.visualStyle.glowColor.opacity(attentionTreeID == tree.id ? 1 : 0),
+            radius: 12,
         )
+        .scaleEffect(attentionTreeID == tree.id ? 1.035 : 1)
+        .offset(y: attentionTreeID == tree.id ? -8 : 0)
         .disabled(nodes.isEmpty)
     }
 
@@ -246,9 +248,5 @@ private struct PostBattleTalentChoiceContent: View {
             repeating: GridItem(.flexible(), spacing: TrinketDesign.Spacing.small),
             count: 3,
         )
-    }
-
-    private func choiceCountLabel(_ count: Int) -> String {
-        count == 1 ? "1 choice" : "\(count) choices"
     }
 }

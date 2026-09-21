@@ -1,6 +1,6 @@
 # Trinket
 
-Portrait-first **iOS 26+** native fantasy turn-based card combat (deckbuilder). Built with **Swift 6**, **SwiftUI**, and **SwiftData**. Requires **Xcode 26+**.
+Portrait-first **iOS 26+** native fantasy turn-based card combat (deckbuilder). Built with **SwiftUI** and **SwiftData**. See the build requirements below.
 
 ## Player loop
 
@@ -18,16 +18,20 @@ holds device preferences without gating play or progress behind an account.
 
 ## Requirements
 
-- Xcode 26+ with iOS 26 simulator runtime (toolchain ladder: [Scripts/README.md](Scripts/README.md))
-- Swift 6 language mode (SwiftPM manifests use tools version 6.2)
+- Xcode 27+ with Swift 6.4+ and an installed supported iOS simulator runtime
+- Swift 6 language mode; package toolchain minimums live in `Packages/*/Package.swift`
+- [Platform support](Docs/Platform/ApplePlatformReference.md#platform-support) distinguishes the iOS deployment target from the build toolchain; [toolchain selection](Scripts/Reference.md#toolchain-ladder) explains local and CI selection
 - Pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify via `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`)
 - Python 3 (content codegen)
 
 ## Setup
 
+Select the installed Xcode for this shell (substitute its actual path):
+
 ```sh
-sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-sudo xcodebuild -runFirstLaunch
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+xcodebuild -version
+sudo env DEVELOPER_DIR="$DEVELOPER_DIR" xcodebuild -runFirstLaunch
 ./Scripts/ensure-ci-tools.sh   # pinned XcodeGen, ripgrep, xcbeautify, SwiftFormat, SwiftLint into .tools/
 ```
 
@@ -50,12 +54,6 @@ For content, art, music, SFX, or cinematic edits:
 ```sh
 ./Scripts/generate.sh --assets
 ```
-
-## Common Commands
-
-The complete command index and agent path-scoping rules live in
-[Scripts/README.md](Scripts/README.md). Agent guardrails are in [AGENTS.md](AGENTS.md),
-and test semantics are in [Testing.md](Docs/Platform/Testing.md).
 
 ## Docs
 

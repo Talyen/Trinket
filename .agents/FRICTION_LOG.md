@@ -11,10 +11,9 @@ Centralized intake for agent pain points, confusion, and struggle while working 
 
 ## Open
 
-No open items.
-
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
+| 2026-09-20 | Reward contracts | Product rules disagree with deliberate implementation for [Contract item quality](../Docs/Product/Contracts.md#implementation-discrepancy) and [Mystery claim-time substitution](../Docs/Product/MysteryEvents.md#implementation-discrepancy). Both sides are now explicit; resolving the gameplay choice remains open. |
 
 ## Archive
 

@@ -58,3 +58,15 @@ all other saved progress.
 Contracts has no entry cost, timers, separate statistics, ranks, bonus
 objectives, or overall completion percentage. Its lasting rewards are roster
 progression, equipment, gold, and materials.
+
+## Implementation discrepancy
+
+The intended rule above uses the resolved encounter level for loot. The current
+[ContractsCompletion.resolveLoot](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Progression/ContractsCompletion.swift)
+instead anchors item quality to Campaign progress through `campaignRewardLevel`,
+while XP, Gold, and material quantities use the Contract's encounter level. Its
+source comment explicitly describes avoiding better item tiers through grinding.
+
+These are different progression rules, not interchangeable descriptions. Confirm
+whether Campaign-gated item quality is intended before changing either the product
+rule or the implementation. This documentation review does not approve a loot rebalance.

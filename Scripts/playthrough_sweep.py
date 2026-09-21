@@ -14,6 +14,8 @@ import signal
 import subprocess
 import time
 
+from internal.playthrough_report import render_agent_preview
+
 
 def positive(value):
     number = int(value)
@@ -458,6 +460,7 @@ def report(args, summaries, host):
     (args.output / "report.json").write_text(json.dumps(result, indent=2))
     agent_report = build_agent_report(args, result)
     (args.output / "report-agent.json").write_text(json.dumps(agent_report, indent=2))
+    (args.output / "report-agent.md").write_text(render_agent_preview(agent_report))
     rows = "".join(f"<tr><td>{html.escape(s['worker'])}</td><td>{s['seed']}</td><td>{html.escape(s['termination'])}</td>"
                    f"<td>{html.escape(', '.join(s.get('outcomes', [])))}</td><td>{s.get('talents', 0)} / {s.get('equipmentChanges', 0)} / {s.get('upgrades', 0)}</td><td>{s['processWallSeconds']:.2f}</td></tr>" for s in summaries)
     insights = "".join(f"<li><strong>{html.escape(item['title'])}:</strong> {html.escape(item['observation'])} {html.escape(item['recommendation'])}</li>"
@@ -516,7 +519,7 @@ def main():
             summaries.append(worker(args, template, f"career-{index:04}", seed=args.seed + index))
     report(args, summaries, host)
     print(f"Report: {args.output / 'report.html'}")
-    print(f"Agent report: {args.output / 'report-agent.json'}")
+    print(f"Agent summary: {args.output / 'report-agent.md'}")
     if args.crash_proof:
         success = all((args.output / name / "interrupted.json").exists() for name in ("interrupted", "settlement-interrupted")) and all(
             s["exitCode"] == 0 and s["termination"] in {"recoveredCapturedStore", "replayedUnknownOutcome"}

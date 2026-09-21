@@ -3,9 +3,9 @@
 SCRIPT_INPUTS = (
     'Scripts/playthrough-sweep.sh',
     'Scripts/playthrough_sweep.py',
+    'Scripts/internal/playthrough_report.py',
 )
 
-import importlib.util
 import json
 from pathlib import Path
 import plistlib
@@ -13,10 +13,9 @@ import tempfile
 from types import SimpleNamespace
 import unittest
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "playthrough_sweep.py"
-SPEC = importlib.util.spec_from_file_location("playthrough_sweep", MODULE_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(MODULE)
+from script_test_support import load_script
+
+MODULE = load_script("playthrough_sweep", "playthrough_sweep.py")
 
 
 class PlaythroughSweepTests(unittest.TestCase):
@@ -140,6 +139,41 @@ class PlaythroughSweepTests(unittest.TestCase):
             self.assertEqual(failures["examples"][0]["enemyID"], "enemy-warden")
             self.assertEqual(failures["examples"][0]["heroLevel"], 5)
             self.assertFalse(agent_report["rawEvidence"]["included"])
+
+    def test_large_preview_preserves_complete_analysis_and_late_warning(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            args = SimpleNamespace(output=Path(temporary), scenarios=30, horizon=100,
+                                   full_access=True, mode="campaign", policy="setupAware-v1", hero="knight", companion="wolf",
+                                   baseline=None, crash_proof=False, replay_bundle=None)
+            workers = [dict(worker=f"career-{seed}", seed=seed, termination="completedObjective", exitCode=0,
+                            outcomes=["victory"] * 99 + ["defeat"], processWallSeconds=1.0,
+                            battleOutcomes=[dict(attempt=100, outcome="defeat", encounterID=f"stage-{seed}",
+                                                 enemyID="warden", enemyEncounterLevel=100)]) for seed in range(30)]
+            MODULE.report(args, workers, {})
+            preview = (args.output / "report-agent.md").read_text()
+            analysis = json.loads((args.output / "report-agent.json").read_text())
+            self.assertLessEqual(len(preview), 12_000)
+            self.assertIn("Late-run outcome regression", preview)
+            self.assertIn("Attempt 100", preview)
+            self.assertLess(preview.index("Late-run outcome regression"), preview.index("Cohort completed cleanly"))
+            self.assertIn("showing 5 of 30; 25 omitted", preview)
+            self.assertIn("showing 5 of 20; 15 omitted", preview)
+            self.assertEqual(len(analysis["metrics"]["outcomes"]["byAttempt"]), 100)
+            self.assertEqual(len(analysis["metrics"]["battleFailures"]["byContext"]), 30)
+            self.assertEqual(json.loads((args.output / "report.json").read_text())["workers"], workers)
+
+            # Exercise both field shortening and block omission without changing
+            # the complete analysis or allowing info findings to displace warnings.
+            analysis["insights"] += [dict(severity="info", title=f"Detail {index}", observation="x" * 2000,
+                                          recommendation="Inspect complete evidence.") for index in range(100)]
+            before = json.dumps(analysis)
+            oversized = MODULE.render_agent_preview(analysis)
+            self.assertLessEqual(len(oversized), 12_000)
+            self.assertIn("Late-run outcome regression", oversized)
+            self.assertIn("[field shortened]", oversized)
+            self.assertNotIn("Preview omissions: 0 blocks", oversized)
+            self.assertIn("[Complete analysis](report-agent.json)", oversized)
+            self.assertEqual(json.dumps(analysis), before)
 
 
 if __name__ == "__main__":

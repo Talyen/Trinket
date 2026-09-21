@@ -16,9 +16,20 @@ in `Sources/BattleEngine/EffectHandlers/`. `Cards/` groups card models, assessme
 play resolution, and hand maintenance; `Turns/` owns turn cadence and processing;
 `Healing/` groups healing allocation, leech, overflow, and results. These folders
 belong to the same target. `State/` keeps `BattleState` and its extensions together;
-`Uniques/` owns Unique equipment state and reactions. Runtime contracts remain at
-the target root. One-type-per-file holds even for tiny value types
-(`CombatGain`, `BattleChance`, `ManaPayment`); do not merge them into grab-bags.
+`Uniques/` owns Unique equipment state and reactions.
+
+- `Runtime/` groups the app-facing battle lifecycle, run configuration, outcomes,
+  and transition contracts.
+- `Actions/` groups actor/target selection, ability conditions, resolution facts,
+  and reaction continuation rules.
+- `Combatants/` groups roster storage, equipment-derived builds, modifier profiles,
+  talent state, scaling, and combatant effect projections.
+- `Cards/PlayPolicy.swift` owns Auto Battle card selection alongside card assessment.
+
+These are folders within the existing target, not separate modules. Keep
+independently useful rules and value types easy to locate. Closely related
+private helpers may stay with their owner; neither one type per file nor fewer
+files is a goal by itself.
 
 On-hit work is intentionally split across two channels (see
 `Docs/AgentContext/battle-engine.md`): `DamagePipeline` applies talent on-hit
@@ -37,9 +48,9 @@ side; party-wide talent bonuses remain restricted to the party.
 
 ## Key types
 
-Naming convention: `Battle` marks the public session API (`BattleState`,
-`BattleActionContext`, `DamageRequest`/`HealRequest`/`CombatOutcome`);
-`Combat` marks internal resolution (`CombatResolution`, `CombatCheckpoint`).
+`BattleState` and the runtime contracts form the integration surface;
+`CombatResolution` and `CombatCheckpoint` own internal resolution. Names are
+navigation hints, not access-control rules.
 New engine code defaults to `package` access; `public` is reserved for the
 integration surface above.
 

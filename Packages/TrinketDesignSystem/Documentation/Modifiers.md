@@ -28,7 +28,8 @@ buttons and system toolbar styling.
 | `.trinketShineText(colors:)` | Animated shine over explicit colors (Reduce Motion aware, freezes while parked); for a `Shine` model value use FeatureSupport's `shineText(_:)` |
 | `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
-| `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
+| `.trinketOnArtText(_:)` | Opaque paper foreground + ink shadows on hero art |
+| `.trinketOnArtTextBackdrop()` | Faint, feathered ink shading behind an artwork label group; apply before outer padding or expanding frames to keep shading local to the text |
 | `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (defaults to canvas; pass the surface below the art — surface, panel, or a section fill) |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 | `.trinketDecorativeMotion(_:)` | Park decorative clocks (shine, plasma, aura) for a subtree; AND-composed so descendants cannot re-enable under a suppressed ancestor |
@@ -44,6 +45,12 @@ which is the button-system equivalent; feature views must not call either
 directly — use the `trinket*` modifiers above.
 
 Artwork blends transition full-bleed art into the surface below. Use `.trinketBottomArtworkBlend()` where art meets a lower surface. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
+
+For text placed directly over artwork, pair `.trinketOnArtText(_:)` with one
+`.trinketOnArtTextBackdrop()` on the containing label group. Shared hero headers
+already provide the backdrop for their title and footer; do not add another to
+each line. Labels below artwork and controls with their own surfaces keep their
+existing surface treatment.
 
 Platform API notes: [Apple platform reference](../../../Docs/Platform/ApplePlatformReference.md). Fluid motion: [apple-design skill](../../../.agents/skills/apple-design/SKILL.md) (`TrinketMotion`, families `Interaction`/`Reward`/`Shine`/`Content`/`Screen` — animations plus scales, staggers, delays, and durations; prefer these tokens over inline curves). Standing stack rules: [Architecture.md](../../../Docs/Platform/Architecture.md).
 

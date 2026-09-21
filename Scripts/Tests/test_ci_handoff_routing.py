@@ -180,7 +180,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
-                "Packages/BattleEngine/Sources/BattleEngine/BattleRuntime.swift",
+                "Packages/BattleEngine/Sources/BattleEngine/Runtime/BattleRuntime.swift",
             ],
             cwd=ROOT,
             capture_output=True,

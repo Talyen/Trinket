@@ -136,6 +136,7 @@ struct HomesteadNodeDetailView: View {
                 .trinketTypography(.screenDisplay)
                 .multilineTextAlignment(.center)
                 .trinketOnArtText()
+                .trinketOnArtTextBackdrop()
             HomesteadTierProgress(
                 currentTier: purchasePresentation?.displayedTierNumber ?? status.currentTier,
                 totalTiers: definition.maxTier,
