@@ -34,7 +34,7 @@ final class ResolvedActionFacts: Sendable {
             case let .damage(component):
                 guard component.target != .actor else { continue }
                 guard eligible || component.bonusAmount > 0 else { continue }
-                if component.amount + (eligible ? component.bonusAmount : 0) > 0 {
+                if component.hasPotentialDamage {
                     keywords.insert(component.keyword)
                 }
             case let .effect(targeted):

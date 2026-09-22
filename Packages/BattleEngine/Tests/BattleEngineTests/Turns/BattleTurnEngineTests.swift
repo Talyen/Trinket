@@ -388,7 +388,7 @@ struct BattleTurnEngineBurnBonusTests {
         })
     }
 
-    @Test func `kindling grants next burn bonus`() throws {
+    @Test func `kindling doubles against an unburning enemy`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [Ability.kindling])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
@@ -409,17 +409,17 @@ struct BattleTurnEngineBurnBonusTests {
         )
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
-        try #expect(damageEvent.amount == 1)
-        try #expect(context.roster.activeEffects(for: hero).contains {
-            if case let .nextBurnBonus(amount) = $0.effect {
-                return amount == 1
+        try #expect(damageEvent.amount == 2)
+        try #expect(!context.roster.activeEffects(for: hero).contains {
+            if case .nextBurnBonus = $0.effect {
+                return true
             }
             return false
         })
-        try #expect(events.contains { $0.effectKind == .nextBurnBonusApplied })
+        try #expect(!events.contains { $0.effectKind == .nextBurnBonusApplied })
     }
 
-    @Test func `kindling consumes pending bonus then grants fresh bonus`() throws {
+    @Test func `kindling consumes an existing next burn bonus`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [Ability.kindling])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
@@ -441,10 +441,10 @@ struct BattleTurnEngineBurnBonusTests {
         )
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
-        try #expect(damageEvent.amount == 2)
-        try #expect(context.roster.activeEffects(for: hero).contains {
-            if case let .nextBurnBonus(amount) = $0.effect {
-                return amount == 1
+        try #expect(damageEvent.amount == 3)
+        try #expect(!context.roster.activeEffects(for: hero).contains {
+            if case .nextBurnBonus = $0.effect {
+                return true
             }
             return false
         })

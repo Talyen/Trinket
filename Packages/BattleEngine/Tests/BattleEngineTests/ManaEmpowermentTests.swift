@@ -204,7 +204,7 @@ struct ManaEmpowermentTests {
 
         try #expect(battle.mana(of: battle.hero) == 1)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.frostbolt.id })
-        try #expect(abilityEvent.amount == 4)
+        try #expect(abilityEvent.amount == 5)
     }
 
     @Test func `blizzard stores empowered recurring freeze potency`() throws {
@@ -217,7 +217,7 @@ struct ManaEmpowermentTests {
         _ = try battle.playCard(cardID: card.id)
 
         try #expect(battle.mana(of: battle.hero) == 0)
-        try #expect(recurringFreezePotency(on: battle) == 5)
+        try #expect(recurringFreezePotency(on: battle) == 7)
     }
 
     @Test func `burn branch spends mana poison branch does not`() throws {
@@ -247,7 +247,7 @@ struct ManaEmpowermentTests {
         try #expect(poisonBattle.mana(of: poisonBattle.hero) == 3)
     }
 
-    @Test func `multi burn numbers spend only three mana`() throws {
+    @Test func `fire arrow empowerment spends three mana`() throws {
         var battle = makeBattle(
             heroAbilities: [.fireArrow],
             heroMaxMana: 4,
@@ -258,8 +258,8 @@ struct ManaEmpowermentTests {
 
         try #expect(battle.mana(of: battle.hero) == 1)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireArrow.id })
-        try #expect(abilityEvent.amount == 2)
-        try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
+        try #expect(abilityEvent.amount == 3)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 3)
     }
 
     @Test func `mana regenerates at start of player turn for mana users`() throws {
@@ -332,6 +332,6 @@ struct ManaEmpowermentTests {
         try #expect(events.contains {
             $0.effectKind == .shieldApplied && $0.abilityName == Ability.manaShield.name && $0.amount == manaBeforeShield
         })
-        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == manaBeforeShield)
+        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == manaBeforeShield + 1)
     }
 }

@@ -23,18 +23,18 @@ progress, and native gold Back/Resources toolbar controls matching the gallery.
 Only building details hide the tab bar. Resources opens a compact expandable
 wallet sheet with a Close control.
 
-A compact native glass bottom panel shows exact current benefits. Each effect uses
-an icon in a shared 28-point frame beside a secondary eyebrow and a body-sized
-effect line. Icons and text blocks align at the top so wrapped descriptions keep
-the icons, eyebrows, and first lines aligned. Bonuses use colored SF Symbols and
-a Bonus eyebrow; production uses illustrated material artwork with the
-resource name and a daily rate, without separate section headers. Effect labels
-and bold white values stay tightly grouped; existing keyword formatting remains.
-Details and offers share this layout. Bonus-plus-production items use equal-width
-columns when both natural widths fit, otherwise full-width stacked items. Bonus-only
-buildings stack one full-width item per effect. Descriptions wrap without truncating
-values or comparisons, and panel content scrolls as needed. Completed buildings
-keep benefits and omit Build/Improve.
+A compact native glass bottom panel shows exact current benefits over a subtle
+semantic-ink backing that fades at its edges. Every bonus and production output
+uses a full-width stacked block: an icon in a 36-point frame beside a thematic
+row-title header, followed by a wrapping description at the same size in regular
+weight. Names remain stable across tiers and are owned by the Homestead feature's
+building/effect-key lookup. Details and offers share this layout; offers retain
+their solid sheet background. Each effect keeps its own block, including buildings
+with multiple bonuses or outputs. Descriptions contain bold values and inline
+upgrade comparisons, preserve keyword formatting, and name production resources
+explicitly (for example, “+1 Food per Day”). Panel content scrolls as needed without
+truncating descriptions or comparisons. Completed buildings keep benefits and omit
+Build/Improve.
 
 Bonus symbols reuse keyword identities and colors: Health uses heart.fill; healing
 uses heart.circle.fill; damage uses its keyword symbol; damage resistance uses

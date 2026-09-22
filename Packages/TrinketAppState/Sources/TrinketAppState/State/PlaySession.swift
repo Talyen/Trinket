@@ -19,10 +19,11 @@ public final class PlaySession {
     public let journey: JourneyPlayMode
     public let labyrinth: LabyrinthPlayMode
     public let spires: SpiresPlayMode
+    public let voyage: VoyagePlayMode
     public let contracts: ContractsPlayMode
     public let encounters: EncounterPlayMode
 
-    private let battleRunRegistry: PlayBattleRunRegistry
+    private let battleRuns: PlayBattleRuns
     let battleLaunch: PlayBattleLaunch
     let battleCompletion: PlayBattleCompletion
 
@@ -71,14 +72,14 @@ public final class PlaySession {
         self.sfxPlayer = sfxPlayer
         self.pendingDestination = pendingDestination
 
-        let registry = PlayBattleRunRegistry()
-        battleRunRegistry = registry
+        let runs = PlayBattleRuns(battle: battle)
+        battleRuns = runs
 
         let battleLaunch = PlayBattleLaunch(
             playerSave: playerSave,
             shellSession: shellSession,
             battle: battle,
-            runRegistry: registry,
+            runs: runs,
             battlePerformanceScenario: battlePerformanceScenario,
         )
         let encounters = EncounterPlayMode(
@@ -108,11 +109,13 @@ public final class PlaySession {
         let battleCompletion = PlayBattleCompletion(
             playerSave: playerSave,
             battle: battle,
+            runs: runs,
         )
         self.battleLaunch = battleLaunch
         self.journey = journey
         self.labyrinth = labyrinth
         self.spires = spires
+        voyage = VoyagePlayMode(playerSave: playerSave, battle: battle, battleLaunch: battleLaunch, encounters: encounters)
         contracts = ContractsPlayMode(playerSave: playerSave, battle: battle, battleLaunch: battleLaunch, encounters: encounters)
         self.encounters = encounters
         self.battleCompletion = battleCompletion
@@ -143,8 +146,7 @@ public final class PlaySession {
         }
         restoreBattleOrigin(from: origin)
         shellSession.selectedTab = .play
-        battle.endBattle()
-        battleRunRegistry.removeAll()
+        battleRuns.endBattle()
         if let configuration, !battleCompletion.deferredDefeatTalentProgressions.isEmpty {
             queuePostBattleTalentChoices(
                 for: [configuration.hero.combatant, configuration.companion.combatant],
@@ -180,7 +182,6 @@ public final class PlaySession {
             presentation: battlePresentation(for: configuration.runKey),
             defersPresentationExit: defersPresentationExit,
             onFinished: { [weak self] in
-                self?.battleRunRegistry.removeAll()
                 self?.queuePostBattleTalentChoices(
                     for: combatants,
                     progressionsBefore: progressionsBefore,
@@ -255,8 +256,7 @@ public final class PlaySession {
 
     func clearTransientState() {
         battleCompletion.cancelPendingExit()
-        battle.endBattle()
-        battleRunRegistry.removeAll()
+        battleRuns.endBattle()
         dismissPostBattleTalentChoice()
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
@@ -265,26 +265,26 @@ public final class PlaySession {
     }
 
     func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
-        battleRunRegistry.route(for: runKey)
+        battleRuns.registration(for: runKey)?.route
     }
 
     public func battlePresentation(for configuration: BattleRunConfiguration) -> BattlePresentationContext? {
         guard let runKey = configuration.runKey else { return .empty }
-        guard let registration = battleRunRegistry.registration(for: runKey),
+        guard let registration = battleRuns.registration(for: runKey),
               registration.launch.configuration.id == configuration.id else { return nil }
         return registration.presentation
     }
 
     func battlePresentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
-        battleRunRegistry.presentation(for: runKey)
+        battleRuns.registration(for: runKey)?.presentation
     }
 
     func battleUniversalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
-        battleRunRegistry.universalModifiers(for: runKey)
+        battleRuns.registration(for: runKey)?.universalModifiers ?? []
     }
 
     func battleRegistration(for runKey: BattleRunKey?) -> PlayBattleRunRegistration? {
-        battleRunRegistry.registration(for: runKey)
+        battleRuns.registration(for: runKey)
     }
 
     private func queuePostBattleTalentChoices(

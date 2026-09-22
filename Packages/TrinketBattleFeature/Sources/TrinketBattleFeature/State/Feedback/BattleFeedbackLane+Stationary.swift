@@ -14,7 +14,7 @@ extension BattleFeedbackLane {
         var incoming = item
         if let index, let merged = mergedLabel(activeItems[index], with: item) {
             if case .amount = merged, merged.displayString.count > activeItems[index].reservedDigitCount {
-                if item.effectKind == .physicalPreparationApplied {
+                if item.effectKind == .partyDamagePreparationApplied {
                     // A wider preparation replaces its old slot rather than leaving two values visible.
                     evictedItemIDs.insert(activeItems[index].id)
                     incoming.sourceEventIDs = activeItems[index].sourceEventIDs + item.sourceEventIDs
@@ -43,7 +43,7 @@ extension BattleFeedbackLane {
     }
 
     private func mergedLabel(_ existing: CombatFeedbackItem, with incoming: CombatFeedbackItem) -> CombatFeedbackChipLabel? {
-        if incoming.effectKind == .physicalPreparationApplied {
+        if incoming.effectKind == .partyDamagePreparationApplied {
             return incoming.label
         }
         guard let merged = existing.label.merging(with: incoming.label) else { return nil }

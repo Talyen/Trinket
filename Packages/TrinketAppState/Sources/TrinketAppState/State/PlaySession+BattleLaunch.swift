@@ -10,7 +10,7 @@ final class PlayBattleLaunch {
     let playerSave: PlayerSaveStore
     let shellSession: ShellSession
     let battle: any BattleRuntime
-    let runRegistry: PlayBattleRunRegistry
+    let runs: PlayBattleRuns
     let battlePerformanceScenario: BattlePerformanceScenario?
     var nextCombatSeed: () -> UInt64 = { UInt64.random(in: .min ... .max) }
 
@@ -18,13 +18,13 @@ final class PlayBattleLaunch {
         playerSave: PlayerSaveStore,
         shellSession: ShellSession,
         battle: any BattleRuntime,
-        runRegistry: PlayBattleRunRegistry,
+        runs: PlayBattleRuns,
         battlePerformanceScenario: BattlePerformanceScenario?,
     ) {
         self.playerSave = playerSave
         self.shellSession = shellSession
         self.battle = battle
-        self.runRegistry = runRegistry
+        self.runs = runs
         self.battlePerformanceScenario = battlePerformanceScenario
     }
 
@@ -78,49 +78,18 @@ final class PlayBattleLaunch {
     func prepareCombat(_ input: BattleLaunchInput, route: PlayBattleRoute) -> Bool {
         guard playerSave.accessRestriction(for: input.origin) == nil else { return false }
         let launch = makeBattleLaunch(input)
-        return prepareLaunch(launch, route: route)
-    }
-
-    private func prepareLaunch(_ launch: BattleLaunchAssembly, route: PlayBattleRoute) -> Bool {
-        guard PlayBattleRoute.matches(
-            route,
-            runKey: launch.configuration.runKey,
-            missingLog: "Missing route for prepared battle registration",
-        ) else { return false }
-        let prepared = battle.prepareBattleRun(launch.configuration)
-        if prepared {
-            registerRunIfNeeded(launch, route: route)
-        } else if let runKey = launch.configuration.runKey, battle.activeBattle == nil {
-            // Evict the failed key so the next attempt prepares fresh instead
-            // of failing closed on a stale registration. Only this key goes;
-            // sibling modes' warms are preserved.
-            var survivors = runRegistry.runKeys()
-            survivors.remove(runKey)
-            battle.keepPreparedRuns(survivors)
-            runRegistry.keep(survivors)
-        }
-        return prepared
+        return runs.prepare(launch, route: route)
     }
 
     func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
-        keepPreparedRuns(keys, preservingWhere: { _ in false })
+        runs.keepPreparedRuns(keys)
     }
 
-    /// Prunes prepared runs to `keys` while preserving runs owned by other modes.
-    /// Callers pass the survivor set for keys they own; `preserve` returns true
-    /// for origins the caller must not evict (see `PlayBattleOrigin.isLabyrinth`).
     func keepPreparedRuns(
         _ keys: Set<BattleRunKey>,
         preservingWhere preserve: (PlayBattleOrigin) -> Bool,
     ) {
-        guard battle.lifecyclePhase != .active else { return }
-        let preserved = runRegistry.runKeys().filter { key in
-            guard !keys.contains(key), let origin = runRegistry.origin(for: key) else { return false }
-            return preserve(origin)
-        }
-        let survivors = keys.union(preserved)
-        battle.keepPreparedRuns(survivors)
-        runRegistry.keep(survivors)
+        runs.keepPreparedRuns(keys, preservingWhere: preserve)
     }
 
     /// Shared single-battle pre-warm for Journey/Spires. Both warm at most one
@@ -166,7 +135,7 @@ final class PlayBattleLaunch {
             missingLog: "Missing route for battle activation",
         ) else { return false }
         if let origin = input.origin, battle.hasPreparedRun(origin.runKey) {
-            guard let registration = runRegistry.registration(for: origin.runKey), let route,
+            guard let registration = runs.registration(for: origin.runKey), let route,
                   registration.launch.configuration.hero.combatant.id == input.hero.id,
                   registration.launch.configuration.companion.combatant.id == input.companion.id,
                   registration.launch.configuration.enemy?.id == input.enemy?.id else { return false }
@@ -176,23 +145,19 @@ final class PlayBattleLaunch {
                 launch = registration.launch
             } else {
                 launch = Self.assembleLaunch(currentInputs)
-                guard prepareLaunch(launch, route: route) else { return false }
+                guard runs.prepare(launch, route: route) else { return false }
             }
-            guard battle.activatePreparedBattle(
-                runKey: origin.runKey, configurationID: launch.configuration.id,
-            ) else { return false }
+            guard runs.activatePrepared(launch.configuration) else { return false }
             shellSession.selectedTab = .play
             return true
         }
         let launch = makeBattleLaunch(input)
-        if let runKey = launch.configuration.runKey, let route {
-            guard prepareLaunch(launch, route: route),
-                  battle.activatePreparedBattle(runKey: runKey, configurationID: launch.configuration.id)
+        if launch.configuration.runKey != nil, let route {
+            guard runs.prepare(launch, route: route),
+                  runs.activatePrepared(launch.configuration)
             else { return false }
         } else {
-            guard battle.activate(launch.configuration) else { return false }
-            battle.keepPreparedRuns([])
-            runRegistry.removeAll()
+            guard runs.activateStandalone(launch.configuration) else { return false }
         }
         shellSession.selectedTab = .play
         return true
@@ -212,19 +177,6 @@ final class PlayBattleLaunch {
         BattlePreparationInputs(
             runKey: input.origin?.runKey, launch: input, party: PlayBattlePartySnapshot(playerSave: playerSave), rngSeed: rngSeed,
             hasProgressionRewards: input.origin != nil,
-        )
-    }
-
-    private func registerRunIfNeeded(
-        _ launch: BattleLaunchAssembly,
-        route: PlayBattleRoute?,
-    ) {
-        guard launch.configuration.runKey != nil, let route else { return }
-        runRegistry.register(
-            PlayBattleRunRegistration(
-                route: route,
-                launch: launch,
-            ),
         )
     }
 
@@ -252,17 +204,10 @@ final class PlayBattleLaunch {
                 stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
                 universalModifiers: universalModifiers,
                 labyrinthModifiers: presentation?.labyrinthModifiers ?? [],
+                completionBonus: presentation?.completionBonus,
             ),
         )
-        let previous = runRegistry.registration(for: activeBattle.runKey)
-        registerRunIfNeeded(launch, route: route)
-        guard battle.restart(launch.configuration) else {
-            if let previous {
-                runRegistry.register(previous)
-            }
-            return false
-        }
-        runRegistry.keep(Set([launch.configuration.runKey].compactMap(\.self)))
+        guard runs.restart(launch, route: route) else { return false }
         shellSession.selectedTab = .play
         return true
     }

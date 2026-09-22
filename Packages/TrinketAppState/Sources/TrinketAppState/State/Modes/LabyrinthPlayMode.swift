@@ -263,7 +263,7 @@ extension LabyrinthPlayMode {
         PlayBattlePreparation.labyrinthEncounter(for: node, partyAverageLevel: partyAverageLevel)
     }
 
-    private static func combatModifiers(
+    static func combatModifiers(
         from effects: LabyrinthModifierEffects,
     ) -> [AffixModifier] {
         var modifiers: [AffixModifier] = effects.damageDealtBonus

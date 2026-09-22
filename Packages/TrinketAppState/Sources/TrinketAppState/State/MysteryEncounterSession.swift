@@ -94,7 +94,7 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
         pinnedJourneyEventID: String? = nil,
     ) -> MysteryEvent {
         switch origin {
-        case let .labyrinth(nodeID):
+        case let .labyrinth(nodeID), let .voyage(_, nodeID):
             GameContent.resolveLabyrinthMysteryEvent(
                 nodeID: nodeID,
                 worldSeed: worldSeed,

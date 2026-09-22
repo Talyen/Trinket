@@ -80,7 +80,7 @@ extension UniqueCollectionTests {
         #expect(third.count(where: { $0.abilityName == "The Final Spark" }) == 1)
     }
 
-    @Test(arguments: [Ability.blizzard, .rayOfFrost])
+    @Test(arguments: [Ability.blizzard])
     func `final spark repeats only initial recurring damage without attack rewards`(ability: Ability) throws {
         var extra = CombatModifierProfile.zero
         extra.triggers.onAttackStealGold = 5

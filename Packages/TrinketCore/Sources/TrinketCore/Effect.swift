@@ -11,12 +11,17 @@ public enum EffectTarget: Hashable, Sendable {
     case eachAlly
 }
 
+public enum DamageScaling: Hashable, Sendable {
+    case actorBlockFraction(divisor: Int, minimum: Int)
+}
+
 public struct DamageComponent: Hashable, Sendable {
     public let amount: Int
     public let keyword: Keyword
     public let target: EffectTarget
     public let bonusAmount: Int
     public let condition: DamageCondition?
+    public let scaling: DamageScaling?
 
     public init(
         _ amount: Int,
@@ -24,12 +29,14 @@ public struct DamageComponent: Hashable, Sendable {
         target: EffectTarget = .abilityTarget,
         bonusAmount: Int = 0,
         condition: DamageCondition? = nil,
+        scaling: DamageScaling? = nil,
     ) {
         self.amount = amount
         self.keyword = keyword
         self.target = target
         self.bonusAmount = bonusAmount
         self.condition = condition
+        self.scaling = scaling
     }
 
     /// Component-level rule: any Burn/Freeze damage component. The effect-level
@@ -47,7 +54,12 @@ public struct DamageComponent: Hashable, Sendable {
             target: target,
             bonusAmount: bonusAmount > 0 ? bonusAmount + amount : 0,
             condition: condition,
+            scaling: scaling,
         )
+    }
+
+    public var hasPotentialDamage: Bool {
+        scaling != nil || amount + bonusAmount > 0
     }
 }
 
@@ -80,6 +92,7 @@ public enum Effect: Hashable, Sendable {
     case halveShield(Keyword)
     case deathsDoor
     case thorns(Int)
+    case thornsFromBlockFraction(divisor: Int, minimum: Int)
     case marked(Int, Int)
     case criticalChanceBonus(Double, Int)
     case restoreManaOnHit(Int, Int)
@@ -95,11 +108,13 @@ public enum Effect: Hashable, Sendable {
     case maximumManaBonus(Int)
     case nextStrikeCritical
     case nextStrikeLeech
-    case partyPhysicalBonus(Int)
+    case nextStrikeDamageKeywordOverride(Keyword)
+    case partyDamageBonus(Int)
     case freezeNextAttacker
     case onHitDamage(Keyword, Int)
     case cleanseHealPerDebuff(Int)
     case panacea(baseHeal: Int, healPerDebuff: Int)
+    case multiplyControlMeter(Keyword, Int)
     case multiplyDoT(Keyword, Int)
     case detonateDoT(Keyword, Int)
     case recurringDamage(Keyword, Int, Int)
@@ -144,7 +159,7 @@ public enum Effect: Hashable, Sendable {
         case .purge(nil), .purgeRandom: .purge
         case let .halveShield(k): k
         case .deathsDoor: .deathsDoor
-        case .thorns: .thorns
+        case .thorns, .thornsFromBlockFraction: .thorns
         case .marked: .physical
         case .criticalChanceBonus: .physical
         case .restoreManaOnHit: .mana
@@ -157,9 +172,11 @@ public enum Effect: Hashable, Sendable {
         case .maximumManaBonus: .mana
         case .nextStrikeCritical: .physical
         case .nextStrikeLeech: .leech
-        case .partyPhysicalBonus: .physical
+        case let .nextStrikeDamageKeywordOverride(k): k
+        case .partyDamageBonus: .physical
         case .freezeNextAttacker: .freeze
         case let .onHitDamage(k, _): k
+        case let .multiplyControlMeter(k, _): k
         case let .multiplyDoT(k, _): k
         case let .detonateDoT(k, _): k
         case let .recurringDamage(k, _, _): k
@@ -223,9 +240,11 @@ public enum Effect: Hashable, Sendable {
         case let .damageReductionPercent(_, d), let .damageReductionFlat(_, d), let .healingReductionPercent(_, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
-             .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
+             .shield, .thorns, .thornsFromBlockFraction, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage, .multiplyDoT, .detonateDoT,
+             .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
+             .freezeNextAttacker, .onHitDamage,
+             .multiplyControlMeter, .multiplyDoT, .detonateDoT,
              .revive,
              .cleanseHealPerDebuff, .panacea, .blessedAegis, .hemorrhage:
             0
@@ -264,7 +283,7 @@ public enum Effect: Hashable, Sendable {
     public static func defaultTarget(for effect: Self) -> EffectTarget {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked,
-             .multiplyDoT, .detonateDoT, .recurringDamage, .hemorrhage,
+             .multiplyControlMeter, .multiplyDoT, .detonateDoT, .recurringDamage, .hemorrhage,
              .damageReductionPercent, .damageReductionFlat, .healingReductionPercent:
             .abilityTarget
         case .instantHeal:
@@ -273,10 +292,12 @@ public enum Effect: Hashable, Sendable {
             .defeatedAlly
         case .shield, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .cleanseHealPerDebuff, .panacea,
-             .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
+             .deathsDoor, .thorns, .thornsFromBlockFraction, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage, .avatar, .blessedAegis:
+             .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
+             .freezeNextAttacker, .onHitDamage,
+             .avatar, .blessedAegis:
             .actor
         }
     }

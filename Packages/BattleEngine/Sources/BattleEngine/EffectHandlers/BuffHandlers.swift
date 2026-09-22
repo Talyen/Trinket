@@ -45,6 +45,30 @@ struct ThornsHandler: BattleEffectHandler {
     }
 }
 
+struct ThornsFromBlockFractionHandler: BattleEffectHandler {
+    let kind: EffectKind = .thornsFromBlockFraction
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard case let .thornsFromBlockFraction(divisor, minimum) = effect,
+              divisor > 0
+        else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target))
+        let amount = max(minimum, block / divisor)
+        guard amount > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
+        return ThornsHandler().apply(
+            .thorns(amount), ability: ability, source: source, target: target, in: &context,
+        )
+    }
+}
+
 struct OnHitDamageHandler: BattleEffectHandler {
     let kind: EffectKind = .onHitDamage
 
@@ -372,8 +396,8 @@ struct NextBurnBonusHandler: BattleEffectHandler {
     }
 }
 
-struct PartyPhysicalBonusHandler: BattleEffectHandler {
-    let kind: EffectKind = .partyPhysicalBonus
+struct PartyDamageBonusHandler: BattleEffectHandler {
+    let kind: EffectKind = .partyDamageBonus
 
     func summary(for _: [ActiveEffect], keyword _: Keyword) -> EffectSummary? {
         nil
@@ -386,13 +410,13 @@ struct PartyPhysicalBonusHandler: BattleEffectHandler {
         target _: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard case let .partyPhysicalBonus(amount) = effect, amount > 0 else {
+        guard case let .partyDamageBonus(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let recipient = BattleAbilityRules.preparationRecipient(for: source, in: context)
-        context.resolution.preparePhysicalDamage(amount, recipientID: recipient.id)
+        context.resolution.preparePartyDamage(amount, recipientID: recipient.id)
         let event = context.nextEvent(
-            kind: .effect, effectKind: .physicalPreparationApplied, actorName: source.name,
+            kind: .effect, effectKind: .partyDamagePreparationApplied, actorName: source.name,
             abilityName: ability.name, target: recipient, amount: amount, keyword: .physical, origin: .direct,
         )
         return EffectApplyOutcome(events: [event], didApply: true)

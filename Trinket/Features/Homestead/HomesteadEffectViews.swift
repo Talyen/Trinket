@@ -24,6 +24,7 @@ struct HomesteadMaterialValue: View {
 }
 
 struct HomesteadBenefitsView: View {
+    let nodeID: HomesteadNodeID
     let tier: HomesteadNodeTier
     let effectsIdentifier: String
     var highlightedEffects: Set<HomesteadEffectLine.Key> = []
@@ -36,35 +37,19 @@ struct HomesteadBenefitsView: View {
     }
 
     var body: some View {
-        Group {
-            if !tier.production.isEmpty, lines.count == 2 {
-                ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .top, spacing: TrinketDesign.Spacing.medium) {
-                        item(lines[0])
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        item(lines[1])
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    stackedItems
-                }
-            } else {
-                stackedItems
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
+            ForEach(lines) { effect in
+                item(effect)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(effectsIdentifier)
     }
 
-    private var stackedItems: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            ForEach(lines) { effect in
-                item(effect)
-            }
-        }
-    }
-
     private func item(_ effect: HomesteadEffectLine) -> some View {
         HomesteadBenefitItem(
+            title: HomesteadBenefitNames.title(nodeID: nodeID, effect: effect),
             effect: effect,
             previousEffect: previousTier.flatMap { previous in
                 HomesteadEffectLine.lines(for: previous).first { $0.id == effect.id }
@@ -75,6 +60,7 @@ struct HomesteadBenefitsView: View {
 }
 
 private struct HomesteadBenefitItem: View {
+    let title: String
     let effect: HomesteadEffectLine
     let previousEffect: HomesteadEffectLine?
     let isHighlighted: Bool
@@ -86,47 +72,100 @@ private struct HomesteadBenefitItem: View {
         return effect.displayValue
     }
 
+    private var description: AttributedString {
+        var value = AttributedString(displayedValue)
+        value.inlinePresentationIntent = .stronglyEmphasized
+        value.foregroundColor = isHighlighted ? TrinketDesign.Colors.accent : .primary
+        if let resource = effect.resource {
+            var output = AttributedString(" \(resource.displayName)")
+            output.inlinePresentationIntent = .stronglyEmphasized
+            return value + output + AttributedString(" per Day")
+        }
+        if effect.id == .gemsFind {
+            return value + AttributedString(" ") + KeywordDescriptionText.attributedText(for: effect.label)
+        }
+        return KeywordDescriptionText.attributedText(for: effect.label) + AttributedString(" ") + value
+    }
+
     var body: some View {
-        HStack(alignment: .top, spacing: TrinketDesign.Spacing.small) {
-            Group {
-                if let resource = effect.resource {
-                    HomesteadResourceArtwork(resource: resource)
-                } else {
-                    let style = HomesteadEffectStyle(key: effect.id)
-                    Image(systemName: style.symbol)
-                        .symbolRenderingMode(.monochrome)
-                        .trinketTypography(.rowTitle)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(style.tint)
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+            HStack(spacing: TrinketDesign.Spacing.small) {
+                Group {
+                    if let resource = effect.resource {
+                        HomesteadResourceArtwork(resource: resource)
+                    } else {
+                        let style = HomesteadEffectStyle(key: effect.id)
+                        Image(systemName: style.symbol)
+                            .symbolRenderingMode(.monochrome)
+                            .trinketTypography(.sectionTitle)
+                            .foregroundStyle(style.tint)
+                    }
                 }
+                .frame(width: 36, height: 36)
+                .accessibilityHidden(true)
+                Text(title)
+                    .trinketTypography(.rowTitle)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(width: 28, height: 28)
-            .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-                Text(effect.resource?.displayName ?? "Bonus")
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-                HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.extraSmall) {
-                    if effect.resource == nil {
-                        Text(KeywordDescriptionText.attributedText(for: effect.label))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Text(displayedValue)
-                        .bold()
-                        .foregroundStyle(isHighlighted ? TrinketDesign.Colors.accent : .primary)
-                        .contentTransition(.numericText())
-                        .scaleEffect(isHighlighted ? 1.08 : 1, anchor: .leading)
-                        .fixedSize()
-                    if effect.resource != nil {
-                        Text("per Day")
-                            .fixedSize()
-                    }
-                }
-                .trinketTypography(.body)
+            Text(description)
+                .trinketTypography(.rowTitle)
+                .fontWeight(.regular)
                 .foregroundStyle(.primary)
-            }
+                .fixedSize(horizontal: false, vertical: true)
+                .contentTransition(.numericText())
+                .scaleEffect(isHighlighted ? 1.03 : 1, anchor: .leading)
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+private enum HomesteadBenefitNames {
+    static func title(nodeID: HomesteadNodeID, effect: HomesteadEffectLine) -> String {
+        switch (nodeID, effect.id) {
+        case (.wheatField, .modifier(.maximumHealth, _)): "Harvest’s Strength"
+        case (.wheatField, .production(.food)): "Golden Harvest"
+        case (.herbGarden, .modifier(.damageTakenFlat(.poison, _), _)): "Bitter Remedy"
+        case (.herbGarden, .production(.herbs)): "Fresh Pickings"
+        case (.chickenCoop, .modifier(.maximumHealth, _)): "Coop’s Comfort"
+        case (.chickenCoop, .production(.food)): "Morning Eggs"
+        case (.pasture, .modifier(.damageTakenFlat(.physical, _), _)): "Thick Hide"
+        case (.pasture, .production(.hide)): "Gathered Hides"
+        case (.culinaryArts, .modifier(.healthRestored, _)): "Hearty Fare"
+        case (.culinaryArts, .production(.food)): "Daily Bread"
+        case (.blacksmithForge, .modifier(.damageDealt(.physical, _), _)): "Forged Edge"
+        case (.blacksmithForge, .production(.iron)): "Fresh Ingots"
+        case (.woolTailoring, .modifier(.damageTakenFlat(.freeze, _), _)): "Winter Weave"
+        case (.woolTailoring, .modifier(.damageTakenFlat(.burn, _), _)): "Emberguard Stitch"
+        case (.woolTailoring, .production(.gold)): "Tailor’s Trade"
+        case (.runesmithWorkshop, .modifier(.damageDealt(.freeze, _), _)): "Frost Inscription"
+        case (.runesmithWorkshop, .modifier(.damageDealt(.holy, _), _)): "Hallowed Script"
+        case (.runesmithWorkshop, .production(.gems)): "Runic Crystals"
+        case (.alchemyLab, .modifier(.damageDealt(.poison, _), _)): "Potent Venom"
+        case (.alchemyLab, .production(.herbs)): "Cultured Reagents"
+        case (.crystalGarden, .modifier(.criticalDamage, _)): "Perfect Facet"
+        case (.crystalGarden, .production(.gems)): "Crystal Bloom"
+        case (.crystalGarden, .production(.stone)): "Mineral Growth"
+        case (.transmutationCrucible, .modifier(.damageDealt(.burn, _), _)): "Alchemical Flame"
+        case (.transmutationCrucible, .production(.iron)): "Metal Transmutation"
+        case (.mycologyCellar, .modifier(.leechHealing, _)): "Siphoning Spores"
+        case (.mycologyCellar, .production(.herbs)): "Fungal Harvest"
+        case (.hunterLodge, .modifier(.companionDamageDealt, _)): "Pack Instinct"
+        case (.hunterLodge, .production(.hide)): "Hunter’s Haul"
+        case (.agilityTraining, .modifier(.dodgeChanceBonus, _)): "Nimble Paws"
+        case (.sparringGrounds, .modifier(.blockGained, _)): "Steady Guard"
+        case (.sparringGrounds, .production(.iron)): "Salvaged Steel"
+        case (.archeryRange, .modifier(.rangedDamageDealt, _)): "True Aim"
+        case (.archeryRange, .production(.wood)): "Seasoned Timber"
+        case (.moonlitSanctum, .astralFind): "Astral Attunement"
+        case (.moonlitSanctum, .gemsFind): "Moonlit Fortune"
+        case (.wishingWell, .goldFind): "Wishful Fortune"
+        case (.wishingWell, .production(.gold)): "Wishing Coins"
+        case (.library, .experience): "Lessons of the Past"
+        case (.leylineEnergy, .modifier(.manaRestored, _)): "Arcane Renewal"
+        case (.leylineEnergy, .production(.gems)): "Leyline Crystallization"
+        default: effect.resource?.displayName ?? effect.label
+        }
     }
 }
 

@@ -110,7 +110,7 @@ struct CleanseIntegrationTests {
         })
         let heroHealth = battle.health(of: battle.hero)
         let companionHealth = battle.health(of: battle.companion)
-        try #expect(heroHealth == 17, "hero health: \(heroHealth)")
+        try #expect(heroHealth == 16, "hero health: \(heroHealth)")
         try #expect(companionHealth == 11, "companion health: \(companionHealth)")
         try #expect(events.count(where: { $0.effectKind == .instantHeal }) == 1)
     }
@@ -144,7 +144,7 @@ struct CleanseIntegrationTests {
 
         try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
         try #expect(battle.health(of: battle.hero) == 14)
-        try #expect(battle.health(of: battle.companion) == 13)
+        try #expect(battle.health(of: battle.companion) == 12)
     }
 
     @Test func `panacea heals base amount when no debuffs present`() throws {
@@ -170,7 +170,7 @@ struct CleanseIntegrationTests {
 
         _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
 
-        try #expect(battle.health(of: battle.hero) == 13)
+        try #expect(battle.health(of: battle.hero) == 16)
         try #expect(battle.health(of: battle.companion) == 15)
     }
 

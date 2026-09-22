@@ -13,7 +13,9 @@ public enum EffectPresentation {
         case let .hemorrhage(amount):
             "the next time they attack, they take \(amount) Bleed damage"
         case let .recurringDamage(keyword, amount, turns):
-            "deal \(amount) \(keyword.rawValue) damage now and \(moreTurnsPhrase(turns: turns))"
+            turns == 1
+                ? "deal \(amount) \(keyword.rawValue) damage this turn and next"
+                : "deal \(amount) \(keyword.rawValue) damage now and \(moreTurnsPhrase(turns: turns))"
         case let .blessedAegis(block, holyDamage):
             "each ally gains \(block) Block and deals \(holyDamage) Holy damage the next time they're hit"
         case let .avatar(holyDamage, blockPerTurn, turns):
@@ -34,12 +36,18 @@ public enum EffectPresentation {
             "Freeze the next attacker"
         case let .onHitDamage(keyword, amount):
             "deal \(amount) \(keyword.rawValue) damage next time you're hit"
+        case let .multiplyControlMeter(keyword, factor):
+            factor == 2
+                ? "double the enemy's \(keyword.rawValue) build-up"
+                : "multiply the enemy's \(keyword.rawValue) build-up by \(factor)"
         case let .shield(.block, buffer):
             "gain \(buffer) Block"
         case let .shield(keyword, buffer):
             "gain \(buffer) \(keyword.rawValue)"
         case let .thorns(stacks):
             "gain \(stacks) Thorns"
+        case let .thornsFromBlockFraction(divisor, _):
+            "gain Thorns equal to \(divisor == 2 ? "half" : "1/\(divisor)") your Block"
         case .nextHolyStrike:
             "your next Holy attack deals double damage and applies Burning"
         case .nextStrikeDouble:
@@ -50,8 +58,10 @@ public enum EffectPresentation {
             "your next attack is a guaranteed Critical Hit"
         case .nextStrikeLeech:
             "your next attack Leeches"
-        case let .partyPhysicalBonus(amount):
-            "your partner's next attack deals \(amount) additional Physical damage"
+        case let .nextStrikeDamageKeywordOverride(keyword):
+            "your next attack deals \(keyword.rawValue) damage"
+        case let .partyDamageBonus(amount):
+            "your partner's next attack deals \(amount) additional damage"
         case .evadeNextHit:
             "dodge the next attack"
         case .convertManaToBlock:
@@ -91,7 +101,7 @@ public enum EffectPresentation {
         case let .panacea(baseHeal, healPerDebuff):
             "cleanse all debuffs and restore \(baseHeal) Health plus \(healPerDebuff) Health for each debuff cleansed"
         case .cleanseRandom:
-            "cleanse a status effect"
+            "cleanse a harmful status effect"
         case let .purge(keyword?):
             "purge \(keyword.rawValue)"
         case .purge(nil):
@@ -140,8 +150,10 @@ public enum EffectPresentation {
             "Critical Focus: Next attack is a guaranteed Critical Hit."
         case .nextStrikeLeech:
             "Leech Focus: Next attack Leeches."
-        case .partyPhysicalBonus:
-            "Sniff Out: Partner's next attack deals additional Physical damage."
+        case .nextStrikeDamageKeywordOverride:
+            "Avatar: Next attack deals Holy damage."
+        case .partyDamageBonus:
+            "Sniff Out: Partner's next attack deals additional damage."
         case .freezeNextAttacker:
             "Glacial Ward: Freezes the next attacker."
         default:

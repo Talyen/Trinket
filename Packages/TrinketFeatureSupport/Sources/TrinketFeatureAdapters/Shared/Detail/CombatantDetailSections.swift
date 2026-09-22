@@ -25,7 +25,7 @@ struct CombatantLabyrinthSection: View, Equatable {
 
     var body: some View {
         TraitListSection(
-            title: "Labyrinth",
+            title: "Modifiers",
             sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection,
             items: labyrinthModifiers,
         ) { modifier in

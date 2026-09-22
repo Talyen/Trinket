@@ -10,6 +10,7 @@ public enum PlayBattleOrigin: Hashable, Sendable {
     case spire(spireID: SpireID, floor: Int)
     case labyrinth(nodeID: String)
     case contract(offerID: String)
+    case voyage(runID: String, nodeID: String)
 
     public var runKey: BattleRunKey {
         switch self {
@@ -19,6 +20,8 @@ public enum PlayBattleOrigin: Hashable, Sendable {
             BattleRunKey("spire|\(spireID.rawValue)|\(floor)")
         case let .labyrinth(nodeID):
             BattleRunKey("labyrinth|\(nodeID)")
+        case let .voyage(runID, nodeID):
+            BattleRunKey("voyage|\(runID)|\(nodeID)")
         case let .contract(offerID):
             BattleRunKey("contract|\(offerID)")
         }

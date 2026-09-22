@@ -34,12 +34,12 @@ extension BattleTurnEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         guaranteedCritical: Bool,
+        reservedKeywordOverride: inout Keyword?,
         context: inout BattleState,
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
         var resolvedComponents: [ResolvedDamageComponent] = []
         var logDamageKeyword: Keyword?
-        let keywordOverride = activeDamageKeywordOverride(for: actor, in: context)
 
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
         for component in components {
@@ -51,7 +51,16 @@ extension BattleTurnEngine {
                 in: context,
             )
 
-            var amount = component.amount
+            var amount: Int
+            if let scaling = component.scaling {
+                switch scaling {
+                case let .actorBlockFraction(divisor, minimum):
+                    let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
+                    amount = max(minimum, block / divisor)
+                }
+            } else {
+                amount = component.amount
+            }
             if let condition = component.condition {
                 if BattleConditionEvaluator.isMet(
                     condition,
@@ -66,6 +75,11 @@ extension BattleTurnEngine {
             }
 
             let isSelfHealthCost = damageTarget.id == actor.id
+            if amount > 0, !isSelfHealthCost, reservedKeywordOverride == nil {
+                reservedKeywordOverride = reserveNextStrikeKeywordOverride(for: actor, in: &context)
+            }
+            let keywordOverride = reservedKeywordOverride.map { (keyword: $0, bonus: 0) }
+                ?? activeDamageKeywordOverride(for: actor, in: context)
             var damageKeyword = component.keyword
             if amount > 0, !isSelfHealthCost, let override = keywordOverride {
                 damageKeyword = override.keyword
@@ -186,10 +200,24 @@ extension BattleTurnEngine {
         for actor: Combatant,
         in context: BattleState,
     ) -> (keyword: Keyword, bonus: Int)? {
-        for active in context.roster.activeEffects(for: actor) where active.remainingTurns > 0 {
-            if case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
+        for active in context.roster.activeEffects(for: actor) {
+            if case let .nextStrikeDamageKeywordOverride(keyword) = active.effect {
+                return (keyword, 0)
+            }
+            if active.remainingTurns > 0,
+               case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
                 return (keyword, bonus)
             }
+        }
+        return nil
+    }
+
+    private static func reserveNextStrikeKeywordOverride(for actor: Combatant, in context: inout BattleState) -> Keyword? {
+        for active in context.roster.activeEffects(for: actor) {
+            guard case let .nextStrikeDamageKeywordOverride(keyword) = active.effect else { continue }
+            // Reserve before reactions or automatic plays; only this action's remaining hits share it.
+            ActiveEffectMutation.removeMatching(from: actor, in: &context) { $0.kind == .nextStrikeDamageKeywordOverride }
+            return keyword
         }
         return nil
     }

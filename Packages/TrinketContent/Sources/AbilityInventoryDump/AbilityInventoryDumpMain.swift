@@ -23,10 +23,7 @@ enum AbilityInventoryDump {
 
         var lines = ["id\tname\ttier\tsummary"]
         for ability in sorted {
-            let summary = ability.summary
-            if summary.contains("\t") || summary.contains("\n") || summary.contains("\r") {
-                throw DumpError.invalidSummary(abilityID: ability.id)
-            }
+            let summary = escapeTSV(ability.summary)
             let tier = ability.tier.rawValue.lowercased()
             lines.append("\(ability.id)\t\(ability.name)\t\(tier)\t\(summary)")
         }
@@ -46,14 +43,11 @@ enum AbilityInventoryDump {
         }
     }
 
-    private enum DumpError: Error, CustomStringConvertible {
-        case invalidSummary(abilityID: String)
-
-        var description: String {
-            switch self {
-            case let .invalidSummary(abilityID):
-                "Ability \(abilityID) summary contains tab or newline; cannot emit TSV"
-            }
-        }
+    private static func escapeTSV(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\t", with: "\\t")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
     }
 }

@@ -149,7 +149,7 @@ extension TalentMigrationTests {
                 for: &ability, actor: ctx.roster.hero.combatant, context: &ctx,
             )
         }
-        #expect(ability.damageComponents.first(where: { $0.keyword == .freeze })?.amount == 5)
+        #expect(ability.damageComponents.first(where: { $0.keyword == .freeze })?.amount == 6)
     }
 
     @Test func `dark recovery deals stun when spending last mana`() {

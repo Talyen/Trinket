@@ -3,14 +3,29 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityCatalogTests {
-    @Test func `luck potion covers every die face and damage type`() throws {
+    @Test func `luck potion covers every die face and resource type`() throws {
         let branches = try #require(Ability.luckPotion.outcomeBranches)
-        #expect(branches.count == 36)
-        for keyword in [Keyword.holy, .freeze, .physical] {
-            let faces = branches.flatMap(\.damageComponents).filter { $0.keyword == keyword }.map(\.amount)
-            #expect(faces.sorted() == Array(1 ... 12))
+        #expect(branches.count == 48)
+        var amountsByResource: [Keyword: [Int]] = [:]
+        var thornsAmounts: [Int] = []
+        var blockAmounts: [Int] = []
+        for targeted in branches.flatMap(\.targetedEffects) {
+            switch targeted.effect {
+            case let .resourceGain(keyword, amount):
+                amountsByResource[keyword, default: []].append(amount)
+            case let .thorns(amount):
+                thornsAmounts.append(amount)
+            case let .shield(.block, amount):
+                blockAmounts.append(amount)
+            default:
+                Issue.record("Luck Potion branch did not grant a supported resource")
+            }
         }
-        #expect(branches.allSatisfy { $0.damageComponents.count == 1 && $0.targetedEffects.isEmpty })
+        #expect(Set(amountsByResource.keys) == [.mana, .gold])
+        #expect(amountsByResource[.mana]?.sorted() == Array(1 ... 12))
+        #expect(amountsByResource[.gold]?.sorted() == Array(1 ... 12))
+        #expect(thornsAmounts.sorted() == Array(1 ... 12))
+        #expect(blockAmounts.sorted() == Array(1 ... 12))
     }
 
     @Test func `rebuilt definitions retain value equality and operation order`() {
@@ -34,6 +49,16 @@ struct AbilityCatalogTests {
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
+    @Test func `ability summaries use period-free nonempty effect lines`() {
+        for ability in AbilityCatalog.all {
+            #expect(!ability.summary.contains("."), "\(ability.id) contains period")
+            let hasBlankLine = ability.summary.split(separator: "\n", omittingEmptySubsequences: false).contains { line in
+                line.isEmpty
+            }
+            #expect(!hasBlankLine, "\(ability.id) has blank line")
+        }
+    }
+
     @Test func `direct damage init does not add targeted do T`() throws {
         let ability = Ability(
             id: "burn-hit",
@@ -44,7 +69,7 @@ struct AbilityCatalogTests {
         )
         try #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
         try #expect(ability.targetedEffects.isEmpty)
-        try #expect(ability.summary == "Deal 3 Burn damage.")
+        try #expect(ability.summary == "Deal 3 Burn damage")
 
         let bleedHit = Ability(
             id: "bleed-hit",
@@ -55,21 +80,21 @@ struct AbilityCatalogTests {
         )
         try #expect(bleedHit.damageComponents == [DamageComponent(2, keyword: .bleed)])
         try #expect(bleedHit.targetedEffects.isEmpty)
-        try #expect(bleedHit.summary == "Deal 2 Bleed damage.")
+        try #expect(bleedHit.summary == "Deal 2 Bleed damage")
     }
 
     @Test func `empowered by mana raises burn and freeze numbers`() throws {
         let empowered = Ability.fireArrow.empoweredByMana()
         try #expect(Ability.fireArrow.hasManaEmpowerableBurnOrFreezeDamage)
         try #expect(empowered.damageComponents == [
-            DamageComponent(2, keyword: .burn, bonusAmount: 2, condition: .enemyBurning),
+            DamageComponent(3, keyword: .burn),
         ])
         try #expect(empowered.targetedEffects.isEmpty)
         try #expect(!Ability.slash.hasManaEmpowerableBurnOrFreezeDamage)
         try #expect(Ability.slash.empoweredByMana() == Ability.slash)
         try #expect(
             Ability.blizzard.empoweredByMana().targetedEffects
-                == [TargetedEffect(.recurringDamage(.freeze, 5, 2))],
+                == [TargetedEffect(.recurringDamage(.freeze, 7, 1))],
         )
     }
 
@@ -80,7 +105,7 @@ struct AbilityCatalogTests {
             tier: .basic,
             effects: [.shield(.block, 2)],
         )
-        try #expect(ability.summary == "Gain 2 Block.")
+        try #expect(ability.summary == "Gain 2 Block")
     }
 
     @Test func `damage components init formats summary`() throws {
@@ -94,7 +119,7 @@ struct AbilityCatalogTests {
             ],
         )
         try #expect(
-            ability.summary == "Deal 2 Bleed damage and deal 2 Poison damage.",
+            ability.summary == "Deal 2 Bleed damage\nDeal 2 Poison damage",
         )
     }
 
@@ -102,7 +127,7 @@ struct AbilityCatalogTests {
         try #expect(!Ability.hemorrhage.hasLeech)
         try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
         try #expect(Ability.hemorrhage.targetedEffects == [
-            TargetedEffect(.hemorrhage(4)),
+            TargetedEffect(.detonateDoT(.bleed, 1), target: .enemy, condition: .enemyBleeding),
         ])
         try #expect(Ability.serratedEdge.criticalChanceBonus == 0)
         try #expect(Ability.stab.directDamage == 2)
@@ -113,8 +138,42 @@ struct AbilityCatalogTests {
         try #expect(Ability.fangs.hasLeech)
     }
 
+    @Test func `ultimate reworks match player facing summaries`() throws {
+        let expected: [Ability: String] = [
+            .avatarOfJustice: "Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block",
+            .blessedAegis: "Gain 6 Block\nRestore 6 Health\nDeal Holy damage equal to half your Block",
+            .blizzard: "Deal 6 Freeze damage this turn and next",
+            .combustion: "Deal 6 Burn damage\nDetonate all enemy Burn",
+            .earthquake: "Deal 6 Stun damage this turn and next",
+            .hemorrhage: "Deal 6 Bleed damage\nDetonate all Bleed",
+            .luckPotion: "Roll a 12-sided die\nGain that much Mana, Gold, Thorns, or Block",
+            .moltenBulwark: "Deal 3 Burn damage\nGain 4 Block and Thorns",
+            .panaceaPotion: "Cleanse the ally with the most status effects\nRestore 6 Health",
+            .shadowstep: "Draw and play 1 card from your deck\nDodge the next attack against you",
+            .sunburst: "Deal 6 Holy or Burn damage\nRestore 3 Health to each ally",
+            .thornMail: "Gain 6 Block\nGain Thorns equal to half your Block",
+        ]
+
+        for (ability, summary) in expected {
+            try #expect(ability.summary == summary, "Unexpected summary for \(ability.id)")
+        }
+    }
+
     @Test func `glacial ward is skill with block and freeze retaliation`() throws {
         try #expect(Ability.glacialWard.tier == .skill)
+    }
+
+    @Test func `shield bash describes ordered block-scaled stun damage`() throws {
+        let shieldBash = try #require(AbilityCatalog.ability(id: "shield-bash"))
+        try #expect(shieldBash.summary == "Gain 1 Block\nDeal Stun damage equal to half your Block")
+        try #expect(shieldBash.operations == [
+            .effect(TargetedEffect(.shield(.block, 1))),
+            .damage(DamageComponent(
+                0,
+                keyword: .stun,
+                scaling: .actorBlockFraction(divisor: 2, minimum: 1),
+            )),
+        ])
     }
 
     @Test func `astral arrow offers burn freeze or bleed branches`() throws {
@@ -165,15 +224,13 @@ struct AbilityCatalogTests {
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
-    @Test func `ice shot retains freeze identity with a conditional physical outcome`() throws {
+    @Test func `ice shot retains freeze identity with doubled freeze damage`() throws {
         let iceShot = try #require(AbilityCatalog.ability(id: "ice-shot"))
-        try #expect(iceShot.summary == "Deal 2 Freeze damage. Against Frozen enemies, deal 5 Physical instead.")
+        try #expect(iceShot.summary == "Deal 2 Freeze damage\nDoubled against Frozen enemies")
         try #expect(iceShot.damageComponents == [
-            DamageComponent(2, keyword: .freeze),
+            DamageComponent(2, keyword: .freeze, bonusAmount: 2, condition: .enemyFrozen),
         ])
-        #expect(iceShot.conditionalOutcome?.condition == .enemyFrozen)
-        #expect(iceShot.conditionalOutcome?.operations == [.damage(DamageComponent(5, keyword: .physical))])
-        try #expect(iceShot.keywords.contains(.physical))
+        #expect(iceShot.conditionalOutcome == nil)
         try #expect(iceShot.identityKeywords == [.freeze])
     }
 
@@ -184,11 +241,11 @@ struct AbilityCatalogTests {
             tier: .skill,
             damageComponents: [DamageComponent(3, keyword: .physical, target: .enemy)],
         )
-        #expect(ability.generatedDescription == "Deal 3 Physical damage.")
+        #expect(ability.generatedDescription == "Deal 3 Physical damage")
     }
 
     @Test func `serrated edge weakens enemy healing`() throws {
-        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage. Reduces the Health restored to enemies by 25% for 3 turns.")
+        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns")
         try #expect(!Ability.serratedEdge.keywords.contains(.health))
         try #expect(Ability.serratedEdge.presentationKeywords.contains(.health))
         try #expect(Ability.serratedEdge.targetedEffects == [
@@ -230,35 +287,50 @@ struct AbilityCatalogTests {
     }
 
     @Test func `locked revisions keep summaries and mechanics`() throws {
-        try #expect(Ability.kindling.summary == "Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.")
-        try #expect(Ability.kindling.damageComponents == [DamageComponent(1, keyword: .burn)])
-        try #expect(Ability.kindling.targetedEffects == [TargetedEffect(.nextBurnBonus(1), target: .actor)])
-        try #expect(Ability.fireball.summary == "Deal 2 to 4 Burn damage.")
+        try #expect(Ability.kindling.summary == "Deal 1 Burn damage\nDoubled if enemy was not Burning")
+        try #expect(Ability.kindling.damageComponents == [
+            DamageComponent(1, keyword: .burn, bonusAmount: 1, condition: .enemyNotBurning),
+        ])
+        try #expect(Ability.kindling.targetedEffects.isEmpty)
+        try #expect(Ability.fireball.summary == "Deal 1 to 5 Burn damage")
         try #expect(Ability.fireball.outcomeBranches?.map(\.damageComponents) == [
+            [DamageComponent(1, keyword: .burn)],
             [DamageComponent(2, keyword: .burn)],
             [DamageComponent(3, keyword: .burn)],
             [DamageComponent(4, keyword: .burn)],
+            [DamageComponent(5, keyword: .burn)],
         ])
-        try #expect(Ability.slash.summary == "Deal 2 to 3 Physical damage.")
-        try #expect(Ability.slash.outcomeBranches?.map(\.damageComponents) == [
-            [DamageComponent(2, keyword: .physical)],
-            [DamageComponent(3, keyword: .physical)],
-        ])
-        try #expect(Ability.stab.summary == "Deal 2 Physical damage. Critically Hit enemies at full Health.")
+        try #expect(Ability.frostbolt.summary == "Deal 4 Freeze damage")
+        try #expect(Ability.slash.summary == "Deal 3 Physical damage")
+        try #expect(Ability.slash.outcomeBranches == nil)
+        try #expect(Ability.slash.damageComponents == [DamageComponent(3, keyword: .physical)])
+        try #expect(Ability.stab.summary == "Deal 2 Physical damage\nCritically Hit enemies at full Health")
         try #expect(Ability.stab.damageComponents == [DamageComponent(2, keyword: .physical)])
         try #expect(Ability.stab.criticalChanceBonus == 0)
         #expect(Ability.stab.guaranteedCriticalCondition == .enemyFullHealth)
     }
 
-    @Test func `bandits arrow steals gold unconditionally`() throws {
-        try #expect(Ability.sapArrow.id == "sap-arrow")
-        try #expect(Ability.sapArrow.name == "Bandit's Arrow")
-        try #expect(Ability.sapArrow.summary == "Deal 3 Stun damage and steal 2 Gold.")
-        try #expect(Ability.sapArrow.damageComponents == [DamageComponent(3, keyword: .stun)])
-        try #expect(Ability.sapArrow.targetedEffects == [
-            TargetedEffect(.resourceGain(.gold, 2)),
-        ])
-        try #expect(Ability.sapArrow.stealsGold)
+    @Test func `ability rework summaries match player facing text`() throws {
+        let expected: [Ability: String] = [
+            .bountyShot: "Deal 3 Stun damage\nSteal 2 Gold",
+            .cleanse: "Cleanse a harmful status effect\nRestore 3 Health",
+            .coldSnap: "Deal 1 Freeze damage\nDouble the enemy's Freeze build-up",
+            .darkPact: "Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards",
+            .fireball: "Deal 1 to 5 Burn damage",
+            .frostbolt: "Deal 4 Freeze damage",
+            .manaShield: "Gain 1 Block\nConvert all Mana into Block",
+            .poisonDagger: "Deal 1 Poison damage, twice",
+            .predatorsFocus: "Deal 1 Bleed damage\nYour next attack has Leech",
+            .serratedEdge: "Deal 2 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns",
+            .spikedShield: "Deal 2 Physical damage\nGain 3 Block or Thorns at random",
+        ]
+
+        for (ability, summary) in expected {
+            try #expect(ability.summary == summary, "Unexpected summary for \(ability.id)")
+        }
+        try #expect(AbilityCatalog.ability(id: "sap-arrow") == nil)
+        let ranger = try #require(GameContent.hero(matching: "ranger"))
+        try #expect(ranger.abilityChoices.skills.map(\.id) == ["pounce", "bounty-shot", "predators-focus", "serrated-edge"])
     }
 
     @Test func `variable damage branches resolve within locked ranges`() throws {
@@ -266,12 +338,10 @@ struct AbilityCatalogTests {
         for _ in 0 ..< 12 {
             let resolvedFireball = Ability.fireball.resolvingOutcomeBranch(using: &rng)
             let fireballDamage = try #require(resolvedFireball.damageComponents.first?.amount)
-            try #expect((2 ... 4).contains(fireballDamage))
+            try #expect((1 ... 5).contains(fireballDamage))
             try #expect(resolvedFireball.outcomeBranches == nil)
             let resolvedSlash = Ability.slash.resolvingOutcomeBranch(using: &rng)
-            let slashDamage = try #require(resolvedSlash.damageComponents.first?.amount)
-            try #expect((2 ... 3).contains(slashDamage))
-            try #expect(resolvedSlash.outcomeBranches == nil)
+            try #expect(resolvedSlash == Ability.slash)
         }
     }
 
@@ -287,7 +357,7 @@ struct AbilityCatalogTests {
 
     @Test func `branched abilities show shared riders`() throws {
         let bloodthorn = try #require(AbilityCatalog.ability(id: "bloodthorn"))
-        try #expect(bloodthorn.summary == "Deal 2 Bleed damage and deal 2 Poison damage. Leech.")
+        try #expect(bloodthorn.summary == "Deal 2 Bleed damage\nDeal 2 Poison damage\nLeech")
         for ability in AbilityCatalog.all where ability.descriptionOverride == nil {
             if ability.hasLeech {
                 try #expect(ability.summary.contains("Leech"), "\(ability.id) hides Leech")

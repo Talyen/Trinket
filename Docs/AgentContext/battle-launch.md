@@ -4,7 +4,11 @@ Use with the [common runtime contract](battle-runtime.md) for preparation, activ
 
 ## Preparation and activation
 
-`PlaySession` stays in the environment for shell concerns such as pending destination and victory routing via `PlayBattleCompletion`. Active battle route metadata is `PlayBattleRunRegistration` in the `BattleRunKey` registry. Play validates the current hero, companion, and enemy IDs against the baked run before requesting activation. A mismatch fails closed: Play must not fall through to a fresh `activate`, which would re-roll RNG and wipe sibling labyrinth prepares. `activatePreparedBattle(runKey:configurationID:)` consumes only the matched prepared resource. Production launches prepare, register metadata, then activate; failed activation retains a coherent retryable preparation. Other prepared runs remain until pruning, restart, or end; ending clears their registrations along with their runtime resources. Standalone launches without a mode origin still use `activate`. Pruning while active must leave both runtime resources and registrations untouched.
+`PlaySession` stays in the environment for shell concerns such as pending destination and victory routing via `PlayBattleCompletion`. `PlayBattleRuns` owns app-side lifecycle transitions for runtime resources and
+their `PlayBattleRunRegistration` metadata, keyed by `BattleRunKey`. Launch,
+completion, and shell exits use that owner rather than mutating runtime lifecycle
+and registration separately. It exposes no independent registration mutation.
+`PlayBattleLaunch` owns save-backed input assembly and access policy. Play validates the current hero, companion, and enemy IDs against the baked run before requesting activation. A mismatch fails closed: Play must not fall through to a fresh `activate`, which would re-roll RNG and wipe sibling labyrinth prepares. `activatePreparedBattle(runKey:configurationID:)` consumes only the matched prepared resource. Production launches prepare, register metadata, then activate; failed activation retains a coherent retryable preparation. Other prepared runs remain until pruning, restart, or end; ending clears their registrations along with their runtime resources. Standalone launches without a mode origin still use `activate`. Pruning while active must leave both runtime resources and registrations untouched.
 
 `BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
 its configuration and reward presentation. These include the launch request,

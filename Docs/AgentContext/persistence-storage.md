@@ -5,6 +5,8 @@ Use with [persistence ownership](persistence.md) for schemas, graph reconciliati
 Reads use an in-memory observed projection; load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist), and labyrinth also sanitizes roster (recruit eligibility feeds map healing). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
 
 Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).
+Roster hydration maps retired `sap-arrow` selections to `bounty-shot` before
+unknown-ID fallback, preserving the Stun-and-Gold choice in local and cloud saves.
 
 Distributed TestFlight builds have local player saves that must be preserved or
 migrated when schemas or serialized identifiers change. Production CloudKit remains
@@ -112,3 +114,5 @@ coordination state and is excluded from cloud snapshot coding.
 These contracts have isolated test coverage. Real provisioning, schema, upgrade,
 rollback, account, and two-device evidence remain the
 [CloudKit release gates](../Platform/CloudKitPreShipChecklist.md).
+
+Voyage persists a versioned optional `voyagePayload` on the root and in complete-save snapshots. Missing data initializes an empty board; unreadable active-route data is retained verbatim. The Voyage slice participates in change detection, publication, recovery, and reset. See [Voyage](../Product/Voyage.md#persistence).

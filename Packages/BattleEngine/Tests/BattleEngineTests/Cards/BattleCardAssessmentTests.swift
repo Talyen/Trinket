@@ -14,16 +14,16 @@ struct BattleCardAssessmentTests {
         #expect(targets.first?.intent == .damage(.physical))
     }
 
-    @Test func `blessed aegis assessment includes both living allies`() {
+    @Test func `blessed aegis assessment includes actor defense and enemy damage`() {
         var state = battle()
         let card = deal(.blessedAegis, in: &state)
         let targets = state.assessCard(card).targets
-        #expect(Set(targets.map(\.combatantID)) == [state.hero.id, state.companion.id])
-        for owner in [state.hero.id, state.companion.id] {
-            #expect(targets.contains { $0.combatantID == owner && $0.intent == .effect(.shield(.block, 4)) })
-        }
-        state.roster.companion.currentHealth = 0
-        #expect(Set(state.assessCard(card).targets.map(\.combatantID)) == [state.hero.id])
+        #expect(targets.contains {
+            $0.combatantID == state.hero.id && $0.intent == .effect(.shield(.block, 6))
+        })
+        #expect(targets.contains {
+            $0.combatantID == state.enemy.id && $0.intent == .damage(.holy)
+        })
     }
 
     @Test func `assessment targets the lowest living ally without advancing combat`() throws {
@@ -102,20 +102,20 @@ struct BattleCardAssessmentTests {
         #expect(state.roster.companion.currentHealth > 6)
     }
 
-    @Test(arguments: [2, 3, 4])
+    @Test(arguments: [1, 2, 4])
     func `health cost preview and denial use the same strict affordability rule`(health: Int) throws {
         var state = battle()
         state.roster.mutateRuntime(for: state.hero) { $0.currentHealth = health }
         let card = deal(.darkPact, in: &state)
         let assessment = state.assessCard(card)
-        if health <= 3 {
+        if health <= 1 {
             #expect(assessment.denial == .insufficientHealth)
             #expect(throws: BattlePlayError.insufficientHealth) { try state.playCard(cardID: card.id) }
         } else {
             #expect(assessment.resources.first?.keyword == .health)
-            #expect(assessment.resources.first?.amount == 3)
+            #expect(assessment.resources.first?.amount == 1)
             _ = try state.playCard(cardID: card.id)
-            #expect(state.roster.hero.currentHealth == 1)
+            #expect(state.roster.hero.currentHealth == health - 1)
         }
     }
 

@@ -15,7 +15,10 @@ extension TalentCatalogRoundTripTests {
         battle.appliesFightPacing = false
         var card = Ability.rayOfFrost
         _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &card, actor: battle.hero, context: &battle)
-        #expect(card.effects == [.recurringDamage(.freeze, 2, 2)])
+        #expect(card.damageComponents == [
+            DamageComponent(2, keyword: .freeze),
+            DamageComponent(2, keyword: .freeze),
+        ])
         #expect(battle.roster.hero.currentMana == 0)
         #expect(battle.roster.companion.currentMana == heroMana)
         #expect(talentPoints(.shield, on: .companion, in: battle) == (heroMana > 0 ? 2 : 0))

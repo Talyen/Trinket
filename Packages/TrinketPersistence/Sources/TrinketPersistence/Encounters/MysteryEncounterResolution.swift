@@ -53,12 +53,10 @@ public enum MysteryEncounterResolution {
         }
         guard let rewardLevel = request.encounter.rewardLevel(in: save) else { return .failure(.unavailable) }
         var candidate = save
-        let bonuses = request.encounter.labyrinthNodeID.map { save.labyrinth.effects(for: $0) } ?? .zero
+        let bonuses = request.encounter.modifierEffects(in: save)
         let result = MysteryEffectApplier.apply(
             choice.effects, stageID: request.stage.id, choiceID: choice.id,
-            encounterLevel: MysteryEffectApplier.resolvedEncounterLevel(
-                stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID, save: save,
-            ),
+            encounterLevel: request.encounter.encounterLevel(stage: request.stage, in: save),
             rewardLevel: rewardLevel,
             save: &candidate, using: &randomNumberGenerator,
             goldFoundPercent: bonuses.goldFoundPercent, experienceEarnedPercent: bonuses.experienceEarnedPercent,
@@ -118,6 +116,7 @@ public enum MysteryEncounterResolution {
             var candidate = save
             let prepared = try MysteryOfferPersistence.prepare(
                 event: request.event, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID,
+                encounter: request.encounter,
                 save: &candidate, using: &randomNumberGenerator, at: date,
             )
             if prepared != request.displayedOffers {
@@ -126,7 +125,8 @@ public enum MysteryEncounterResolution {
             }
             guard let offer = prepared.first(where: { $0.choiceID == choice.id }) else { return .failure(.unavailable) }
             let result = MysteryOfferPersistence.claim(
-                offer, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID, save: &candidate, at: date,
+                offer, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID, encounter: request.encounter,
+                save: &candidate, at: date,
             )
             guard result.grantedItems.count == 1 else { return .failure(.unavailable) }
             save = candidate
@@ -137,12 +137,21 @@ public enum MysteryEncounterResolution {
     }
 
     private static func complete(_ request: MysteryEncounterRequest, save: inout PlayerSave) {
-        MysteryOfferPersistence.clear(stageID: request.stage.id, labyrinthNodeID: request.encounter.labyrinthNodeID, save: &save)
+        MysteryOfferPersistence.clear(
+            stageID: request.stage.id,
+            labyrinthNodeID: request.encounter.labyrinthNodeID,
+            encounter: request.encounter,
+            save: &save,
+        )
         if request.event.id == GameContent.corruptionAltarEventID || request.event.choices
             .contains(where: { $0.effects.contains(.corruptItem) }) {
             ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
         } else {
             ItemCorruptionApplier.noteMysteryCompleted(save: &save)
+        }
+        if case let .voyage(runID, nodeID) = request.encounter.location {
+            _ = VoyageCompletion.completeNode(runID: runID, nodeID: nodeID, save: &save)
+            return
         }
         StageCompletion.completeEncounter(
             stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID,

@@ -145,6 +145,7 @@ struct HomesteadNodeDetailView: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             if let tier = purchasePresentation?.displayedTier ?? status.currentStage ?? status.nextTier {
                 HomesteadBenefitsView(
+                    nodeID: definition.id,
                     tier: tier,
                     effectsIdentifier: AccessibilityID.Homestead.currentEffects,
                     highlightedEffects: purchasePresentation?.highlightedEffects ?? [],
@@ -166,6 +167,22 @@ struct HomesteadNodeDetailView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(TrinketDesign.Spacing.large)
+        .background {
+            RoundedRectangle(cornerRadius: TrinketDesign.Corners.card)
+                .fill(TrinketDesign.Colors.Overlay.ink.opacity(0.3))
+                .mask {
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: .white, location: 0.12),
+                            .init(color: .white, location: 0.88),
+                            .init(color: .clear, location: 1),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom,
+                    )
+                }
+        }
         .trinketMaterial(.bottomBar, cornerRadius: TrinketDesign.Corners.card)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.benefitsPanel)

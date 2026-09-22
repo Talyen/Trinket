@@ -27,6 +27,14 @@ extension PlayerSaveStore {
             if !contentAccess.allowsLabyrinthFloor(cluster.depthBand) {
                 return .fullGameRequired(.labyrinth(floor: cluster.depthBand))
             }
+        case let .voyage(runID, nodeID):
+            guard voyage.node(runID: runID, nodeID: nodeID) != nil,
+                  let chapterID = voyage.activeRun?.offer.chapterID, let chapter = GameContent.chapter(id: chapterID) else {
+                return StageMapMessage(title: "Voyage Unavailable", message: "This Voyage is no longer available.")
+            }
+            if !contentAccess.allowsChapter(chapter.number) {
+                return .fullGameRequired(.campaign(chapter: chapter.number))
+            }
         case .contract, .none:
             break
         }
@@ -43,6 +51,7 @@ extension PlayerSaveStore {
     /// journey/labyrinth cases rather than duplicating their rules.
     func encounterAccessRestriction(for origin: PlayEncounterOrigin) -> StageMapMessage? {
         switch origin {
+        case let .voyage(runID, nodeID): accessRestriction(for: .voyage(runID: runID, nodeID: nodeID))
         case let .journey(stage): accessRestriction(for: .journey(stageID: stage.id))
         case let .labyrinth(nodeID): accessRestriction(for: PlayBattleOrigin.labyrinth(nodeID: nodeID))
         }

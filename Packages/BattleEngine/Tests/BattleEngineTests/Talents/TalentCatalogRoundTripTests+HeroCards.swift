@@ -83,7 +83,7 @@ extension TalentCatalogRoundTripTests {
         battle.heroDeck = CombatDeck(abilities: [.poisonDagger])
         let events = try playHeroTalentCard(opener, in: &battle)
         let poison = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == .poison })
-        #expect(poison.amount == (poison.isCritical ? 4 : 2) + 1)
+        #expect(poison.amount == Ability.poisonDagger.damageComponents[0].amount * (poison.isCritical ? 2 : 1) + 1)
         #expect(battle.heroTalents.history[battle.hero.id]?.lastDamageKeywords == [.poison])
         #expect(battle.resolution.cardTalents == nil)
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 1; $0.currentMana = 0 }
@@ -175,12 +175,12 @@ extension TalentCatalogRoundTripTests {
         try playHeroTalentCard(.bash, owner: .companion, in: &battle)
         let events = try playHeroTalentCard(.poisonDagger, in: &battle)
         let hit = try #require(events.first { $0.kind == .abilityDamage })
-        #expect(hit.amount == (hit.isCritical ? 4 : 2) + 1)
+        #expect(hit.amount == Ability.poisonDagger.damageComponents[0].amount * (hit.isCritical ? 2 : 1) + 1)
         battle.turnCount += 1
         _ = CombatTriggerEngine.startHeroTalentTurn(in: &battle)
         let next = try playHeroTalentCard(.poisonDagger, in: &battle)
         let nextHit = try #require(next.first { $0.kind == .abilityDamage })
-        #expect(nextHit.amount == (nextHit.isCritical ? 4 : 2))
+        #expect(nextHit.amount == Ability.poisonDagger.damageComponents[0].amount * (nextHit.isCritical ? 2 : 1))
     }
 
     @Test func `cleanse cards reward empty cleanse and remove thorns`() throws {

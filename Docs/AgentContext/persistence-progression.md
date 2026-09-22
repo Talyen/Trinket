@@ -54,3 +54,5 @@ installing the committed head, not by adding the reward again. The authority
 sequence prevents older offline snapshots from undoing a committed claim/upgrade.
 Reset epochs invalidate outstanding claims. Development and Production evidence
 is required by the [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
+
+Voyage encounters use run-and-node identities for saved shops, Mystery offers, and one-time completion. Final battle reward plans include the [Voyage completion bonus](../Product/Voyage.md#levels-and-rewards) after ordinary reward multipliers and before capacity settlement.

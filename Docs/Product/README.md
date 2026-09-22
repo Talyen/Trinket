@@ -16,3 +16,5 @@ Player-facing standing policy. Engineering policy lives in
 | [Identity.md](Identity.md) | Identity model, guest-first rules, deletion posture |
 | [ArtworkStyleGuide.md](ArtworkStyleGuide.md) | Visual direction and delivery constraints |
 | [GameIcons.md](GameIcons.md) | Game icon selections and links to authored node mappings |
+
+[Voyage](Voyage.md) owns finite regional routes, offers, difficulty, and completion bonuses.

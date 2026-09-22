@@ -31,23 +31,23 @@ struct AbilityStrategyTests {
     }
 
     @Test(arguments: [0, 1, 2, 6])
-    func `shield bash pays exactly two block when available`(block: Int) throws {
+    func `shield bash gains block and scales stun from resulting block`(block: Int) throws {
         var state = battle()
         DefensePoolEngine.set(block, on: state.hero, in: &state)
         let card = deal(.shieldBash, in: &state)
         let rng = state.rng
         let assessment = state.assessCard(card)
         #expect(state.rng == rng)
-        #expect(assessment.resources.first?.amount == (block >= 2 ? 2 : nil))
+        #expect(assessment.resources.isEmpty)
         #expect(DefensePoolEngine.blockPoints(in: state.roster.hero.activeEffects) == block)
         let events = try state.playCard(cardID: card.id)
-        #expect(events.first { $0.kind == .abilityDamage }?.amount == (block >= 2 ? 5 : 2))
-        #expect(DefensePoolEngine.blockPoints(in: state.roster.hero.activeEffects) == (block >= 2 ? block - 2 : block))
-        #expect(events.contains { $0.effectKind == .blockSpent } == (block >= 2))
-        #expect(!events.contains { $0.effectKind == .shieldApplied })
+        #expect(events.first { $0.kind == .abilityDamage }?.amount == max(1, (block + 1) / 2))
+        #expect(DefensePoolEngine.blockPoints(in: state.roster.hero.activeEffects) == block + 1)
+        #expect(!events.contains { $0.effectKind == .blockSpent })
+        #expect(events.contains { $0.effectKind == .shieldApplied })
     }
 
-    @Test func `enemy shield bash reserves block before interception damage`() {
+    @Test func `enemy shield bash gains block before its stun damage`() {
         var triggers = CombatTraitTriggers()
         triggers.bleedingEnemyAttackDealDamage = 1
         triggers.criticalChanceBonus = -1
@@ -57,12 +57,10 @@ struct AbilityStrategyTests {
         state.appliesFightPacing = false
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
         state.appendEffect(.bleed(1), to: state.enemy, sourceID: state.hero.id, remainingTurns: 3)
-        let enemyHealth = state.roster.enemy.currentHealth
         let result = BattleTurnEngine.performEnemyAction(ability: .shieldBash, abilityTarget: state.hero, context: &state)
         #expect(result.performed)
-        #expect(state.roster.enemy.currentHealth == enemyHealth - 1)
-        #expect(DefensePoolEngine.blockPoints(in: state.roster.enemy.activeEffects) == 0)
-        #expect(result.events.first { $0.kind == .abilityDamage }?.amount == 5)
+        #expect(DefensePoolEngine.blockPoints(in: state.roster.enemy.activeEffects) == 2)
+        #expect(result.events.first { $0.kind == .abilityDamage }?.amount == 1)
     }
 
     @Test func `cancelled enemy shield bash refunds reserved block`() {
@@ -87,19 +85,17 @@ struct AbilityStrategyTests {
         let card = deal(.iceShot, in: &state)
         let rng = state.rng
         let assessment = state.assessCard(card)
-        #expect(assessment.targets.first?.intent == .damage(frozen ? .physical : .freeze))
-        #expect(assessment.resources.isEmpty == frozen)
+        #expect(assessment.targets.contains { $0.intent == .damage(.freeze) })
+        #expect(!assessment.resources.isEmpty)
         #expect(state.rng == rng)
         let selected = BattleAbilityRules.resolveOutcome(.iceShot, actor: state.hero, in: &state)
         #expect(state.rng == rng)
-        #expect(selected.directDamage == (frozen ? 5 : 2))
+        #expect(selected.directDamage == 2)
         let events = try state.playCard(cardID: card.id)
-        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [frozen ? .physical : .freeze])
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.freeze])
+        #expect(state.roster.hero.currentMana < 6)
         if frozen {
-            #expect(state.roster.hero.currentMana == 6)
             #expect(BattleConditionEvaluator.isMet(.enemyFrozen, actor: state.hero, in: state))
-        } else {
-            #expect(state.roster.hero.currentMana < 6)
         }
     }
 
@@ -147,13 +143,13 @@ struct AbilityStrategyTests {
     @Test func `sniff out waits for partner attack across support and turns`() throws {
         var state = battle()
         let opening = try play(.sniffOut, in: &state)
-        let chip = try #require(opening.first { $0.effectKind == .physicalPreparationApplied })
+        let chip = try #require(opening.first { $0.effectKind == .partyDamagePreparationApplied })
         #expect(chip.targetID == state.companion.id)
-        #expect(chip.amount == 3)
+        #expect(chip.amount == 1)
         let attack = Ability(id: "attack", name: "Attack", tier: .basic, directDamage: 2)
         _ = try play(attack, in: &state)
         _ = try play(.block, owner: .companion, in: &state)
-        #expect(state.resolution.pendingPhysicalDamage(for: state.companion.id) == 3)
+        #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 1)
         _ = state.endTurn()
         _ = try play(.sniffOut, in: &state)
         let multi = Ability(id: "multi", name: "Multi", tier: .basic, damageComponents: [
@@ -161,18 +157,18 @@ struct AbilityStrategyTests {
         ])
         let before = state.roster.enemy.currentHealth
         _ = try play(multi, owner: .companion, in: &state)
-        #expect(before - state.roster.enemy.currentHealth == 7)
-        #expect(state.resolution.pendingPhysicalDamage(for: state.companion.id) == 0)
+        #expect(before - state.roster.enemy.currentHealth == 5)
+        #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 0)
     }
 
     @Test func `sniff out falls back to caster and assessment agrees`() throws {
         var state = battle()
         state.roster.companion.currentHealth = 0
         let card = deal(.sniffOut, in: &state)
-        #expect(state.assessCard(card).targets.first?.combatantID == state.hero.id)
+        #expect(state.assessCard(card).targets.contains { $0.combatantID == state.hero.id })
         let events = try state.playCard(cardID: card.id)
-        #expect(events.first { $0.effectKind == .physicalPreparationApplied }?.targetID == state.hero.id)
-        #expect(state.resolution.pendingPhysicalDamage(for: state.hero.id) == 3)
+        #expect(events.first { $0.effectKind == .partyDamagePreparationApplied }?.targetID == state.hero.id)
+        #expect(state.resolution.pendingPartyDamage(for: state.hero.id) == 1)
     }
 
     @Test func `automatic partner attack consumes preparation but counterattack does not`() throws {
@@ -182,11 +178,11 @@ struct AbilityStrategyTests {
         _ = BattleTurnEngine.performAction(
             ability: attack, actor: state.companion, abilityTarget: state.enemy, origin: .counterattack, context: &state,
         )
-        #expect(state.resolution.pendingPhysicalDamage(for: state.companion.id) == 3)
+        #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 1)
         state.companionDeck = CombatDeck(abilities: [attack])
         let before = state.roster.enemy.currentHealth
         _ = try play(.packTactics, in: &state)
-        #expect(before - state.roster.enemy.currentHealth == 8)
-        #expect(state.resolution.pendingPhysicalDamage(for: state.companion.id) == 0)
+        #expect(before - state.roster.enemy.currentHealth == 6)
+        #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 0)
     }
 }

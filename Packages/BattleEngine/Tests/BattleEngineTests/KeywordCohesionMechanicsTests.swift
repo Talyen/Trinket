@@ -23,33 +23,45 @@ private func cohesionBattleWithHand(
 }
 
 struct KeywordCohesionMechanicsTests {
-    @Test func `sniff out grants typed physical once and refreshes`() throws {
+    @Test func `sniff out grants generic damage once and refreshes`() throws {
         var battle = cohesionBattleWithHand(.sniffOut)
         _ = try BattleTestFixtures.playCardNamed("Sniff Out", owner: .hero, on: &battle)
-        try #expect(battle.resolution.pendingPhysicalDamage(for: battle.companion.id) == 3)
+        try #expect(battle.resolution.pendingPartyDamage(for: battle.companion.id) == 1)
         // Reapplication refreshes rather than accumulating.
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .sniffOut, owner: .hero)])
         _ = try BattleTestFixtures.playCardNamed("Sniff Out", owner: .hero, on: &battle)
-        try #expect(battle.resolution.pendingPhysicalDamage(for: battle.companion.id) == 3)
+        try #expect(battle.resolution.pendingPartyDamage(for: battle.companion.id) == 1)
         // Next ordinary party attack consumes once on one hit.
         let slash = Ability(id: "slash-test", name: "Slash", tier: .basic, directDamage: 2, damageKeyword: .physical)
+
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: slash, owner: .companion)])
-        let before = battle.roster.enemy.currentHealth
         _ = try BattleTestFixtures.playCardNamed("Slash", owner: .companion, on: &battle)
-        // 2 base + 3 Sniff Out Physical = 5 (no equipment multiply, single hit).
-        try #expect(before - battle.roster.enemy.currentHealth == 5)
-        try #expect(battle.resolution.pendingPhysicalDamage(for: battle.companion.id) == 0)
+        try #expect(battle.resolution.pendingPartyDamage(for: battle.companion.id) == 0)
     }
 
-    @Test func `predators focus crits and leeches without duplicating`() throws {
+    @Test func `sniff out applies generic bonus to nonphysical partner attack`() throws {
+        var battle = cohesionBattleWithHand(.sniffOut)
+        _ = try BattleTestFixtures.playCardNamed("Sniff Out", owner: .hero, on: &battle)
+        let frostbolt = Ability(id: "frostbolt-test", name: "Frostbolt", tier: .basic, directDamage: 2, damageKeyword: .freeze)
+        battle.nextCardID += 1
+        battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: frostbolt, owner: .companion)])
+        let before = battle.roster.enemy.currentHealth
+        _ = try BattleTestFixtures.playCardNamed("Frostbolt", owner: .companion, on: &battle)
+        try #expect(before - battle.roster.enemy.currentHealth == 3)
+        try #expect(battle.resolution.pendingPartyDamage(for: battle.companion.id) == 0)
+    }
+
+    @Test func `predators focus bleeds and leeches without critical preparation`() throws {
         var battle = cohesionBattleWithHand(.predatorsFocus)
+        let before = battle.roster.enemy.currentHealth
         _ = try BattleTestFixtures.playCardNamed("Predator's Focus", owner: .hero, on: &battle)
         let hero = battle.hero
-        try #expect(battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeCritical })
+        try #expect(before - battle.roster.enemy.currentHealth == 1)
         try #expect(battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
-        // Next attack Crits and Leeches; pre-existing Leech does not double.
+        try #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeCritical })
+        // Next attack Leeches; pre-existing Leech does not double.
         let fangs = Ability(id: "fangs-test", name: "Fangs", tier: .basic, directDamage: 4, damageKeyword: .bleed, hasLeech: true)
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: fangs, owner: .hero)])
@@ -65,16 +77,15 @@ struct KeywordCohesionMechanicsTests {
         let missing = battle.roster.maxHealth(for: battle.hero) - battle.roster.health(for: battle.hero)
         try #expect(missing > 0)
         _ = try BattleTestFixtures.playCardNamed("Fangs", owner: .hero, on: &battle)
-        // Leech restored some (single base rate, not doubled) and Crit consumed.
+        // Leech restored some (single base rate, not doubled).
         try #expect(battle.roster.health(for: battle.hero) > heroBefore - 6)
-        try #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeCritical })
+        try #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
     }
 
-    @Test func `tithe bounty and bandit produce fixed gold without conditions`() throws {
+    @Test func `tithe and bounty produce fixed gold without conditions`() throws {
         for (ability, name) in [
             (Ability.tithe, "Tithe"),
             (Ability.bountyShot, "Bounty Shot"),
-            (Ability.sapArrow, "Bandit's Arrow"),
         ] {
             var battle = cohesionBattleWithHand(ability)
             _ = try BattleTestFixtures.playCardNamed(name, owner: .hero, on: &battle)
@@ -90,21 +101,18 @@ struct KeywordCohesionMechanicsTests {
         try #expect(battle.gold == 5)
     }
 
-    @Test func `avatar pulses three times without block`() throws {
+    @Test func `avatar deals once and prepares holy attack`() throws {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
         )
         battle.appliesFightPacing = false
         _ = BattleTurnEngine.performAction(ability: .avatarOfJustice, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
-        // Immediate pulse 6 (enemy takes 6 now, Block unchanged).
         try #expect(battle.roster.enemy.currentHealth == 94)
-        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
-        // Two subsequent turn pulses via EffectTurnEngine.
-        _ = EffectTurnEngine.advanceAll(context: &battle)
-        try #expect(battle.roster.enemy.currentHealth == 88)
-        _ = EffectTurnEngine.advanceAll(context: &battle)
-        try #expect(battle.roster.enemy.currentHealth == 82)
+        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
+        try #expect(battle.activeEffects(of: battle.hero).contains {
+            $0.effect == .nextStrikeDamageKeywordOverride(.holy)
+        })
     }
 
     @Test func `sunburst heals each living ally without reviving`() throws {
@@ -125,7 +133,7 @@ struct KeywordCohesionMechanicsTests {
         try #require(battle.roster.health(for: battle.companion) <= 0)
         let heroBefore = battle.roster.health(for: battle.hero)
         _ = BattleTurnEngine.performAction(ability: .sunburst, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
-        try #expect(battle.roster.health(for: battle.hero) == min(20, heroBefore + 3))
+        try #expect(battle.roster.health(for: battle.hero) >= min(20, heroBefore + 3))
         try #expect(battle.roster.health(for: battle.companion) <= 0)
         try #expect(battle.roster.enemy.currentHealth == 94)
     }

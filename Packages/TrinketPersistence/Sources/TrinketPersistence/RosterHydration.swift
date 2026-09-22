@@ -29,8 +29,8 @@ enum RosterHydration {
 
     /// Sanitizer path: unknown/missing ability IDs fall back to catalog
     /// defaults so the roster stays playable. The model/cloud read path uses
-    /// `rawAbilityLoadouts` (exact match, unknown → nil) to preserve stored
-    /// IDs verbatim; sanitize upgrades them later. The divergence is
+    /// `rawAbilityLoadouts` (known aliases, then exact match, unknown → nil).
+    /// Retired choices migrate before unknown IDs are lost. The divergence is
     /// intentional: read preserves, sanitize heals.
     static func resolveAbilityLoadouts(
         from loadouts: [String: AbilityLoadout],
@@ -38,7 +38,7 @@ enum RosterHydration {
         resolveAbilities(loadouts.mapValues(rawIDs(of:)), fallbackToDefaults: true)
     }
 
-    /// Model/cloud read path: exact match only. Unknown combatants are
+    /// Model/cloud read path: known aliases followed by exact match. Unknown combatants are
     /// dropped; unknown ability IDs become nil (not defaults) so a later
     /// sanitize can distinguish "stored unknown" from "stored missing".
     static func rawAbilityLoadouts(
@@ -49,7 +49,9 @@ enum RosterHydration {
 
     private static func exactAbility(_ id: String?, choices: [Ability]) -> Ability? {
         guard let id else { return nil }
-        return choices.first(where: { $0.id == id })
+        // Bounty Shot now owns Bandit's Arrow's Stun-and-Gold behavior.
+        let canonicalID = id == "sap-arrow" ? "bounty-shot" : id
+        return choices.first(where: { $0.id == canonicalID })
     }
 
     /// Single exact-or-fallback core shared by the sanitizer (fallback) and

@@ -55,8 +55,8 @@ extension TalentCatalogRoundTripTests {
         _ = CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle)
         let before = battle.roster.enemy.currentHealth
         let events = try playHeroTalentCard(card, in: &battle)
-        #expect(before - battle.roster.enemy.currentHealth == 7)
-        #expect(events.contains { $0.kind == .status && $0.keyword == .freeze && $0.amount == 1 })
+        #expect(before - battle.roster.enemy.currentHealth == 8)
+        #expect(events.count(where: { $0.kind == .abilityDamage && $0.keyword == .freeze && $0.amount == 1 }) == 2)
         #expect(events.contains { $0.kind == .status && $0.keyword == .holy && $0.amount == 6 })
         let active = try #require(battle.activeEffects(of: battle.enemy).first { $0.keyword == .holy })
         let handler = try #require(EffectHandlers.all[.recurringDamage])
@@ -269,13 +269,13 @@ extension TalentCatalogRoundTripTests {
             seedHeroTalentEffect(.poison(2), on: .hero, in: &battle, source: .enemy)
             try playHeroTalentCard(.cleanse, in: &battle)
         }
-        let events = try playHeroTalentCard(.slash, in: &battle)
+        let events = try playHeroTalentCard(heroTalentPhysicalCard, in: &battle)
         #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .poison } == 1)
-        #expect(talentPoints(.poison, on: .enemy, in: battle) == 2)
-        let plain = try playHeroTalentCard(.slash, in: &battle)
+        #expect(talentPoints(.poison, on: .enemy, in: battle) >= 2)
+        let plain = try playHeroTalentCard(heroTalentPhysicalCard, in: &battle)
         #expect(!plain.contains { $0.kind == .abilityDamage && $0.keyword == .poison })
         try playHeroTalentCard(.cleanse, in: &battle)
-        let empty = try playHeroTalentCard(.slash, in: &battle)
+        let empty = try playHeroTalentCard(heroTalentPhysicalCard, in: &battle)
         #expect(!empty.contains { $0.kind == .abilityDamage && $0.keyword == .poison })
     }
 

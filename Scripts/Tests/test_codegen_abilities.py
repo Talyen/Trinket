@@ -76,7 +76,7 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
     def test_successful_inventory_keeps_bytes_and_cleans_subprocess_log(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            payload = "id\tname\ttier\tsummary\nslash\tSlash\tbasic\tDeal damage\n"
+            payload = "id\tname\ttier\tsummary\nslash\tSlash\tbasic\tDeal damage\\nGain Block\n"
             def run(command, **kwargs):
                 Path(command[-1]).write_text(payload)
                 return subprocess.CompletedProcess(command, 0)

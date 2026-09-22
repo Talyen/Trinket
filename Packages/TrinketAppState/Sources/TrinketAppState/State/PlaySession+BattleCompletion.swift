@@ -9,6 +9,7 @@ import TrinketPersistence
 final class PlayBattleCompletion {
     let playerSave: PlayerSaveStore
     let battle: any BattleRuntime
+    private let runs: PlayBattleRuns
 
     private struct PendingExit {
         let configurationID: UUID
@@ -21,9 +22,10 @@ final class PlayBattleCompletion {
     var deferredDefeatTalentProgressions: [String: CombatantProgression] = [:]
     var claimedDefeat: (configurationID: UUID, settlement: BattleRewardSettlement)?
 
-    init(playerSave: PlayerSaveStore, battle: any BattleRuntime) {
+    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, runs: PlayBattleRuns) {
         self.playerSave = playerSave
         self.battle = battle
+        self.runs = runs
     }
 
     func finishPresentation(configurationID: UUID) {
@@ -31,7 +33,7 @@ final class PlayBattleCompletion {
         self.pendingExit = nil
         guard battle.activeBattle?.id == configurationID else { return }
         pendingExit.restoreOrigin(pendingExit.origin)
-        battle.endBattle()
+        runs.endBattle()
         pendingExit.onFinished()
     }
 

@@ -1,66 +1,65 @@
 id	name	tier	summary
-apple	Apple	basic	Restore 3 Health.
-bash	Bash	basic	Deal 2 Stun damage. If this Stuns the enemy, deal 2 Physical damage.
-blackjack	Blackjack	basic	Deal 2 Stun damage and steal 2 Gold if the enemy is Stunned.
-block	Block	basic	Gain 3 Block.
-caustic-jab	Caustic Jab	basic	Deal 1 Poison damage and halve the enemy's Block.
-fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
-fire-arrow	Fire Arrow	basic	Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage.
-ice-shot	Ice Shot	basic	Deal 2 Freeze damage. Against Frozen enemies, deal 5 Physical instead.
-kindling	Kindling	basic	Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.
-mana-berries	Mana Berries	basic	Restore 2 Health and restore 2 Mana.
-maul	Maul	basic	Deal 3 Bleed damage, or 3 Stun against enemies with Block.
-pixie-dust	Pixie Dust	basic	Deal 1 Burn damage and restore 1 Mana.
-ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage now and for 2 more turns.
-rending-slash	Rend	basic	Deal 2 Bleed damage.
-shield-bash	Shield Bash	basic	Deal 2 Stun damage. Spend 2 Block to deal 5 instead.
-slash	Slash	basic	Deal 2 to 3 Physical damage.
-sniff-out	Sniff Out	basic	Expose a weakness. Your partner’s next attack deals +3 Physical damage.
-stab	Stab	basic	Deal 2 Physical damage. Critically Hit enemies at full Health.
-stargaze	Stargaze	basic	Deal 1 Freeze damage and restore 1 Mana.
-venom-arrow	Venom Arrow	basic	Deal 2 Poison damage.
-acid-potion	Acid Potion	skill	Deal 3 Poison damage and halve the enemy's Block.
-sap-arrow	Bandit's Arrow	skill	Deal 3 Stun damage and steal 2 Gold.
-blood-offering	Blood Offering	skill	Lose 1 Health. Deal 3 Bleed damage.
-bounty-shot	Bounty Shot	skill	Deal 3 Physical damage and Steal 2 Gold.
-briar-shield	Briar Shield	skill	Gain 1 Block and gain 3 Thorns.
-cinderbloom	Cinderbloom	skill	Deal 3 Burn or Poison damage at random.
-cleanse	Cleanse	skill	Cleanse a status effect and restore 3 Health.
-cold-snap	Cold Snap	skill	Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen.
-dark-pact	Dark Pact	skill	Pay 3 Health. Draw 2 cards.
-fireball	Fireball	skill	Deal 2 to 4 Burn damage.
-frostbolt	Frostbolt	skill	Deal 3 Freeze damage.
-glacial-ward	Glacial Ward	skill	Gain 2 Block. Deal 2 Freeze damage next time you're hit.
-heal	Heal	skill	Restore 6 Health.
-mana-potion	Mana Potion	skill	Restore 3 Mana.
-mana-shield	Mana Shield	skill	Convert all Mana into Block.
-poison-dagger	Poison Dagger	skill	Deal 2 Poison damage. If the target is Poisoned, deal 2 Physical damage.
-pounce	Pounce	skill	Deal 3 Stun damage, doubled on the first combat turn.
-predators-focus	Predator's Focus	skill	Your next attack is guaranteed to Critically Hit and Leech.
-serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage. Reduces the Health restored to enemies by 25% for 3 turns.
-smite	Smite	skill	Deal 4 Holy damage and Purge a positive status effect from the enemy.
-spiked-shield	Spiked Shield	skill	Deal 2 Physical damage, gain 2 Block, and gain 2 Thorns.
-steal	Steal	skill	Deal 2 Physical damage and steal 2 Gold.
-stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
-sunder	Sunder	skill	Halve enemy Block, then deal 4 Physical damage.
-tithe	Tithe	skill	Deal 2 Holy damage and Steal 2 Gold.
-venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
-astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage.
-avatar-of-justice	Avatar	ultimate	Deal 6 Holy damage now and for 2 more turns.
-blessed-aegis	Blessed Aegis	ultimate	Your Hero and Companion each gain 4 Block and deal 4 Holy damage the next time they’re hit.
-blizzard	Blizzard	ultimate	Deal 4 Freeze damage now and for 2 more turns.
-bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage and deal 2 Poison damage. Leech.
-combustion	Combustion	ultimate	Deal 6 Burn damage. Detonate all enemy Burn at once.
-earthquake	Earthquake	ultimate	Deal 4 Stun damage now and for 2 more turns.
-faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health. Deal 4 Burn damage and draw 1 card.
-golden-plate	Golden Plate	ultimate	Gain 8 Block and 5 Gold.
-hemorrhage	Hemorrhage	ultimate	Deal 4 Bleed damage and the next time they attack, they take 4 Bleed damage.
-luck-potion	Luck Potion	ultimate	Roll a 12-sided die. Deal that much Holy, Freeze, or Physical damage, chosen at random.
-meteor	Meteor	ultimate	Deal 6 Burn damage and convert all your Mana into bonus Burn damage.
-molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage, gain 4 Block, and deal 3 Burn damage next time you're hit.
-pack-tactics	Pack Tactics	ultimate	Deal 3 Physical damage. Draw and play 1 card from your ally's deck.
-panacea-potion	Panacea Potion	ultimate	Cleanse the ally with the most debuffs. Restore 3 Health plus 2 per debuff cleansed to the living ally with the lowest Health.
-phoenix-feather	Phoenix Feather	ultimate	Deal 3 Burn damage and revive an Ally to 1 Health.
-shadowstep	Shadowstep	ultimate	Draw 1 card. Dodge the next attack. Your next attack is a guaranteed Critical Hit.
-sunburst	Sunburst	ultimate	Deal 6 Holy damage. Restore 3 Health to each ally.
-thorn-mail	Thorn Mail	ultimate	Gain 5 Block and 5 Thorns.
+apple	Apple	basic	Restore 3 Health
+bash	Bash	basic	Deal 3 Stun damage
+blackjack	Blackjack	basic	Deal 2 Stun damage\nSteal 2 Gold if the enemy is Stunned
+block	Block	basic	Gain 3 Block
+caustic-jab	Caustic Jab	basic	Deal 1 Poison damage\nHalve the enemy's Block
+fangs	Fangs	basic	Deal 1 Bleed damage\nLeech
+fire-arrow	Fire Arrow	basic	Deal 2 Burn damage
+ice-shot	Ice Shot	basic	Deal 2 Freeze damage\nDoubled against Frozen enemies
+kindling	Kindling	basic	Deal 1 Burn damage\nDoubled if enemy was not Burning
+mana-berries	Mana Berries	basic	Restore 2 Health\nRestore 2 Mana
+maul	Maul	basic	Deal 3 Bleed damage\nDeal Stun instead against enemies with Block
+pixie-dust	Pixie Dust	basic	Deal 1 Burn damage\nRestore 1 Mana
+ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage, twice
+rending-slash	Rend	basic	Deal 2 Bleed damage
+shield-bash	Shield Bash	basic	Gain 1 Block\nDeal Stun damage equal to half your Block
+slash	Slash	basic	Deal 3 Physical damage
+sniff-out	Sniff Out	basic	Deal 1 Bleed damage\nYour partner's next attack deals 1 additional damage
+stab	Stab	basic	Deal 2 Physical damage\nCritically Hit enemies at full Health
+stargaze	Stargaze	basic	Deal 1 Freeze damage\nRestore 1 Mana
+venom-arrow	Venom Arrow	basic	Deal 2 Poison damage
+acid-potion	Acid Potion	skill	Deal 3 Poison damage\nHalve the enemy's Block
+blood-offering	Blood Offering	skill	Lose 1 Health\nDeal 3 Bleed damage
+bounty-shot	Bounty Shot	skill	Deal 3 Stun damage\nSteal 2 Gold
+briar-shield	Briar Shield	skill	Gain 1 Block\nGain 3 Thorns
+cinderbloom	Cinderbloom	skill	Deal 3 Burn or Poison damage at random
+cleanse	Cleanse	skill	Cleanse a harmful status effect\nRestore 3 Health
+cold-snap	Cold Snap	skill	Deal 1 Freeze damage\nDouble the enemy's Freeze build-up
+dark-pact	Dark Pact	skill	Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards
+fireball	Fireball	skill	Deal 1 to 5 Burn damage
+frostbolt	Frostbolt	skill	Deal 4 Freeze damage
+glacial-ward	Glacial Ward	skill	Gain 2 Block\nDeal 2 Freeze damage next time you're hit
+heal	Heal	skill	Restore 6 Health
+mana-potion	Mana Potion	skill	Restore 3 Mana
+mana-shield	Mana Shield	skill	Gain 1 Block\nConvert all Mana into Block
+poison-dagger	Poison Dagger	skill	Deal 1 Poison damage, twice
+pounce	Pounce	skill	Deal 3 Stun damage, doubled on the first combat turn
+predators-focus	Predator's Focus	skill	Deal 1 Bleed damage\nYour next attack has Leech
+serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns
+smite	Smite	skill	Deal 4 Holy damage\nPurge a positive status effect from the enemy
+spiked-shield	Spiked Shield	skill	Deal 2 Physical damage\nGain 3 Block or Thorns at random
+steal	Steal	skill	Deal 2 Physical damage\nSteal 2 Gold
+stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block
+sunder	Sunder	skill	Halve enemy Block\nDeal 4 Physical damage
+tithe	Tithe	skill	Deal 2 Holy damage\nSteal 2 Gold
+venom-fangs	Venom Fangs	skill	Deal 2 Poison damage\nLeech
+astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage
+avatar-of-justice	Avatar	ultimate	Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block
+blessed-aegis	Blessed Aegis	ultimate	Gain 6 Block\nRestore 6 Health\nDeal Holy damage equal to half your Block
+blizzard	Blizzard	ultimate	Deal 6 Freeze damage this turn and next
+bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage\nDeal 2 Poison damage\nLeech
+combustion	Combustion	ultimate	Deal 6 Burn damage\nDetonate all enemy Burn
+earthquake	Earthquake	ultimate	Deal 6 Stun damage this turn and next
+faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health\nDeal 4 Burn damage\nDraw 1 card
+golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 5 Gold
+hemorrhage	Hemorrhage	ultimate	Deal 6 Bleed damage\nDetonate all Bleed
+luck-potion	Luck Potion	ultimate	Roll a 12-sided die\nGain that much Mana, Gold, Thorns, or Block
+meteor	Meteor	ultimate	Deal 6 Burn damage\nConvert all your Mana into bonus Burn damage
+molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage\nGain 4 Block and Thorns
+pack-tactics	Pack Tactics	ultimate	Deal 3 Physical damage\nDraw and play 1 card from your ally's deck
+panacea-potion	Panacea Potion	ultimate	Cleanse the ally with the most status effects\nRestore 6 Health
+phoenix-feather	Phoenix Feather	ultimate	Deal 3 Burn damage\nRevive an Ally to 1 Health
+shadowstep	Shadowstep	ultimate	Draw and play 1 card from your deck\nDodge the next attack against you
+sunburst	Sunburst	ultimate	Deal 6 Holy or Burn damage\nRestore 3 Health to each ally
+thorn-mail	Thorn Mail	ultimate	Gain 6 Block\nGain Thorns equal to half your Block

@@ -20,8 +20,8 @@ public extension AbilityCatalog {
 
     static let bountyShot = Ability(
         id: "bounty-shot", name: "Bounty Shot", tier: .skill,
-        description: "Deal 3 Physical damage and Steal 2 Gold.",
-        damageComponents: [DamageComponent(3, keyword: .physical)],
+        description: "Deal 3 Stun damage\nSteal 2 Gold",
+        damageComponents: [DamageComponent(3, keyword: .stun)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
         stealsGold: true,
     )
@@ -36,7 +36,7 @@ public extension AbilityCatalog {
 
     static let cinderbloom = Ability(
         id: "cinderbloom", name: "Cinderbloom", tier: .skill,
-        description: "Deal 3 Burn or Poison damage at random.",
+        description: "Deal 3 Burn or Poison damage at random",
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)]),
@@ -53,38 +53,43 @@ public extension AbilityCatalog {
 
     static let coldSnap = Ability(
         id: "cold-snap", name: "Cold Snap", tier: .skill,
-        description: "Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen.",
-        damageComponents: [DamageComponent(2, keyword: .freeze)],
+        description: "Deal 1 Freeze damage\nDouble the enemy's Freeze build-up",
+        damageComponents: [DamageComponent(1, keyword: .freeze)],
         targetedEffects: [
-            TargetedEffect(.resourceGain(.mana, 1), condition: .enemyFrozen),
+            TargetedEffect(.multiplyControlMeter(.freeze, 2), target: .enemy),
         ],
     )
 
     static let darkPact = Ability(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
-        description: "Pay 3 Health. Draw 2 cards.",
-        damageComponents: [DamageComponent(3, keyword: .physical, target: .actor)],
-        targetedEffects: [TargetedEffect(.drawCards(2))],
+        description: "Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards",
+        operations: [
+            .damage(DamageComponent(1, keyword: .burn)),
+            .damage(DamageComponent(1, keyword: .physical, target: .actor)),
+            .effect(TargetedEffect(.drawCards(2))),
+        ],
     )
 
     static let fireball = Ability(
         id: "fireball", name: "Fireball", tier: .skill,
-        description: "Deal 2 to 4 Burn damage.",
+        description: "Deal 1 to 5 Burn damage",
         outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(1, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(4, keyword: .burn)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(5, keyword: .burn)]),
         ],
     )
 
     static let frostbolt = Ability(
         id: "frostbolt", name: "Frostbolt", tier: .skill,
-        directDamage: 3, damageKeyword: .freeze,
+        directDamage: 4, damageKeyword: .freeze,
     )
 
     static let glacialWard = Ability(
         id: "glacial-ward", name: "Glacial Ward", tier: .skill,
-        description: "Gain 2 Block. Deal 2 Freeze damage next time you're hit.",
+        description: "Gain 2 Block\nDeal 2 Freeze damage next time you're hit",
         targetedEffects: [
             TargetedEffect(.shield(.block, 2)),
             TargetedEffect(.onHitDamage(.freeze, 2)),
@@ -103,21 +108,24 @@ public extension AbilityCatalog {
 
     static let manaShield = Ability(
         id: "mana-shield", name: "Mana Shield", tier: .skill,
-        targetedEffects: [TargetedEffect(.convertManaToBlock)],
+        operations: [
+            .effect(TargetedEffect(.shield(.block, 1))),
+            .effect(TargetedEffect(.convertManaToBlock)),
+        ],
     )
 
     static let poisonDagger = Ability(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
-        description: "Deal 2 Poison damage. If the target is Poisoned, deal 2 Physical damage.",
+        description: "Deal 1 Poison damage, twice",
         damageComponents: [
-            DamageComponent(2, keyword: .poison),
-            DamageComponent(2, keyword: .physical, condition: .enemyPoisoned),
+            DamageComponent(1, keyword: .poison),
+            DamageComponent(1, keyword: .poison),
         ],
     )
 
     static let pounce = Ability(
         id: "pounce", name: "Pounce", tier: .skill,
-        description: "Deal 3 Stun damage, doubled on the first combat turn.",
+        description: "Deal 3 Stun damage, doubled on the first combat turn",
         damageComponents: [
             DamageComponent(3, keyword: .stun, bonusAmount: 3, condition: .firstTurn),
         ],
@@ -125,24 +133,16 @@ public extension AbilityCatalog {
 
     static let predatorsFocus = Ability(
         id: "predators-focus", name: "Predator's Focus", tier: .skill,
-        description: "Your next attack is guaranteed to Critically Hit and Leech.",
+        description: "Deal 1 Bleed damage\nYour next attack has Leech",
+        damageComponents: [DamageComponent(1, keyword: .bleed)],
         targetedEffects: [
-            TargetedEffect(.nextStrikeCritical, target: .actor),
             TargetedEffect(.nextStrikeLeech, target: .actor),
         ],
     )
 
-    static let sapArrow = Ability(
-        id: "sap-arrow", name: "Bandit's Arrow", tier: .skill,
-        description: "Deal 3 Stun damage and steal 2 Gold.",
-        damageComponents: [DamageComponent(3, keyword: .stun)],
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
-        stealsGold: true,
-    )
-
     static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        description: "Deal 2 Bleed damage. Reduces the Health restored to enemies by 25% for 3 turns.",
+        description: "Deal 2 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns",
         damageComponents: [DamageComponent(2, keyword: .bleed)],
         targetedEffects: [
             TargetedEffect(.healingReductionPercent(0.25, 3), target: .enemy),
@@ -151,17 +151,23 @@ public extension AbilityCatalog {
 
     static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
-        description: "Deal 4 Holy damage and Purge a positive status effect from the enemy.",
+        description: "Deal 4 Holy damage\nPurge a positive status effect from the enemy",
         damageComponents: [DamageComponent(4, keyword: .holy)],
         targetedEffects: [TargetedEffect(.purgeRandom, target: .enemy)],
     )
 
     static let spikedShield = Ability(
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
-        damageComponents: [DamageComponent(2, keyword: .physical)],
-        targetedEffects: [
-            TargetedEffect(.shield(.block, 2)),
-            TargetedEffect(.thorns(2)),
+        description: "Deal 2 Physical damage\nGain 3 Block or Thorns at random",
+        outcomeBranches: [
+            AbilityOutcomeBranch(operations: [
+                .damage(DamageComponent(2, keyword: .physical)),
+                .effect(TargetedEffect(.shield(.block, 3))),
+            ]),
+            AbilityOutcomeBranch(operations: [
+                .damage(DamageComponent(2, keyword: .physical)),
+                .effect(TargetedEffect(.thorns(3))),
+            ]),
         ],
     )
 
@@ -181,7 +187,7 @@ public extension AbilityCatalog {
         id: "sunder",
         name: "Sunder",
         tier: .skill,
-        description: "Halve enemy Block, then deal 4 Physical damage.",
+        description: "Halve enemy Block\nDeal 4 Physical damage",
         operations: [
             .effect(TargetedEffect(.halveShield(.block), target: .enemy)),
             .damage(DamageComponent(4, keyword: .physical)),
@@ -190,7 +196,7 @@ public extension AbilityCatalog {
 
     static let tithe = Ability(
         id: "tithe", name: "Tithe", tier: .skill,
-        description: "Deal 2 Holy damage and Steal 2 Gold.",
+        description: "Deal 2 Holy damage\nSteal 2 Gold",
         damageComponents: [DamageComponent(2, keyword: .holy)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
         stealsGold: true,
@@ -220,7 +226,6 @@ public extension AbilityCatalog {
         poisonDagger,
         pounce,
         predatorsFocus,
-        sapArrow,
         serratedEdge,
         smite,
         spikedShield,

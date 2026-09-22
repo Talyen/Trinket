@@ -5,7 +5,7 @@ import TrinketCore
 @testable import BattleEngine
 
 extension AbilityEffectIntegrationTests {
-    @Test(arguments: [Ability.rayOfFrost, .fangs])
+    @Test(arguments: [Ability.fangs])
     func `enemy basic freeze bonus does not repeat on later ticks`(ability: Ability) throws {
         var enemyProfile = CombatModifierProfile.zero
         enemyProfile.triggers.basicAttackFreezeBuildup = 1
@@ -46,43 +46,40 @@ extension AbilityEffectIntegrationTests {
         #expect(healed == [false, true])
     }
 
-    @Test(arguments: [BattleParticipant.hero, .companion, .enemy], [false, true])
-    func `blessed aegis protects only living allies`(caster: BattleParticipant, companionDefeated: Bool) {
+    @Test func `blessed aegis grants actor block heals lowest ally and deals holy damage`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         battle.appliesFightPacing = false
-        if companionDefeated {
-            battle.roster.companion.currentHealth = 0
-        }
-        let casterAlive = battle.roster[caster].isAlive
-        let actor = battle.roster[caster].combatant
-        _ = BattleTurnEngine.performAction(ability: .blessedAegis, actor: actor, abilityTarget: battle.enemy, context: &battle)
-        for owner in [BattleParticipant.hero, .companion, .enemy] {
-            let member = battle.roster[owner]
-            let protected = casterAlive && member.isAlive && (caster == .enemy ? owner == .enemy : owner != .enemy)
-            #expect(BattleTestFixtures.shieldPoints(for: member.combatant, in: battle) == (protected ? 4 : 0))
-            #expect(member.activeEffects.contains { $0.effect == .onHitDamage(.holy, 4) } == protected)
-        }
+        battle.roster.companion.currentHealth = 10
+        let enemyBefore = battle.health(of: battle.enemy)
+
+        _ = BattleTurnEngine.performAction(
+            ability: .blessedAegis,
+            actor: battle.hero,
+            abilityTarget: battle.enemy,
+            context: &battle,
+        )
+
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
+        #expect(battle.health(of: battle.companion) == 16)
+        #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
+        #expect(enemyBefore - battle.health(of: battle.enemy) == 3)
+        #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .onHitDamage })
+        #expect(!battle.activeEffects(of: battle.companion).contains { $0.effect.kind == .onHitDamage })
     }
 
-    @Test func `blessed aegis wards refresh and trigger independently`() {
+    @Test func `blessed aegis uses post gain block for immediate holy damage`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 500, dealOpeningHand: false)
         battle.appliesFightPacing = false
-        for _ in 0 ..< 2 {
-            _ = BattleTurnEngine.performAction(ability: .blessedAegis, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
-        }
-        #expect(battle.roster.hero.activeEffects.count { $0.effect == .onHitDamage(.holy, 4) } == 1)
-        for owner in [BattleParticipant.hero, .companion] {
-            let member = battle.roster[owner].combatant
-            let events = battle.resolveDamage(DamageRequest(
-                amount: 1, target: member, keyword: .physical, sourceActorID: battle.enemy.id,
-                options: .attack(accuracy: .unavoidable),
-            )).events
-            #expect(events.contains { $0.keyword == .holy && $0.targetID == battle.enemy.id && $0.amount >= 4 })
-            #expect(!battle.roster[owner].activeEffects.contains { $0.effect == .onHitDamage(.holy, 4) })
-            if owner == .hero {
-                #expect(battle.roster.companion.activeEffects.contains { $0.effect == .onHitDamage(.holy, 4) })
-            }
-        }
+        DefensePoolEngine.set(8, on: battle.hero, in: &battle)
+        let before = battle.health(of: battle.enemy)
+        _ = BattleTurnEngine.performAction(
+            ability: .blessedAegis,
+            actor: battle.hero,
+            abilityTarget: battle.enemy,
+            context: &battle,
+        )
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 14)
+        #expect(before - battle.health(of: battle.enemy) == 7)
     }
 
     @Test(arguments: [Keyword.poison, .freeze], [false, true])

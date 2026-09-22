@@ -54,6 +54,40 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
     }
 
+    func testVoyageEmbarkResumeAndAbandon() {
+        launchApp(arguments: TestLaunchArg.allUnseeded())
+        play.openExplore()
+        let mode = app.buttons[AccessibilityID.Voyage.modeCard]
+        scrollUntilVisible(mode, swipingUp: true, maxAttempts: 4, requireHittable: true)
+        tapWhenReady(mode)
+        assertExists(AccessibilityID.Voyage.screen)
+        attachVoyageScreenshot("Voyage board")
+        let embark = app.buttons[AccessibilityID.Voyage.action("easy")]
+        scrollUntilVisible(embark, swipingUp: true, maxAttempts: 3, requireHittable: true)
+        tapWhenReady(embark)
+        assertExists(AccessibilityID.Voyage.progress)
+        XCTAssertEqual(app.staticTexts[AccessibilityID.Voyage.progress].label, "0 of 8 completed")
+        attachVoyageScreenshot("Voyage route")
+        XCTAssertFalse(app.buttons[AccessibilityID.Voyage.refresh].exists)
+        tapWhenReady(app.navigationBars.buttons.firstMatch)
+        scrollUntilVisible(mode, swipingUp: true, maxAttempts: 3, requireHittable: true)
+        tapWhenReady(mode)
+        assertExists(AccessibilityID.Voyage.progress)
+        XCTAssertEqual(app.staticTexts[AccessibilityID.Voyage.progress].label, "0 of 8 completed")
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
+        tapWhenReady(app.buttons.matching(identifier: AccessibilityID.Voyage.confirmAbandon).firstMatch)
+        assertExists(AccessibilityID.Voyage.action("easy"))
+        assertExists(AccessibilityID.Voyage.refresh)
+    }
+
+    private func attachVoyageScreenshot(_ name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     private func waitForLabyrinthEntryNode() -> XCUIElement {
         let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
         if entryNode.trinketWaitForExistence(timeout: 10) {

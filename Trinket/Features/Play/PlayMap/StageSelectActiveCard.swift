@@ -81,6 +81,7 @@ struct StageSelectActiveCard<
             .overlay(alignment: .bottomLeading) {
                 artworkAccessory()
             }
+            .contentShape(Rectangle())
     }
 
     @ViewBuilder

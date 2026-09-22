@@ -9,11 +9,7 @@ public extension AbilityCatalog {
 
     static let bash = Ability(
         id: "bash", name: "Bash", tier: .basic,
-        description: "Deal 2 Stun damage. If this Stuns the enemy, deal 2 Physical damage.",
-        damageComponents: [
-            DamageComponent(2, keyword: .stun),
-            DamageComponent(2, keyword: .physical, condition: .enemyStunned),
-        ],
+        directDamage: 3, damageKeyword: .stun,
     )
 
     static let blackjack = Ability(
@@ -46,28 +42,23 @@ public extension AbilityCatalog {
 
     static let fireArrow = Ability(
         id: "fire-arrow", name: "Fire Arrow", tier: .basic,
-        damageComponents: [
-            DamageComponent(1, keyword: .burn, bonusAmount: 1, condition: .enemyBurning),
-        ],
+        directDamage: 2, damageKeyword: .burn,
     )
 
     static let iceShot = Ability(
         id: "ice-shot", name: "Ice Shot", tier: .basic,
-        description: "Deal 2 Freeze damage. Against Frozen enemies, deal 5 Physical instead.",
-        damageComponents: [DamageComponent(2, keyword: .freeze)],
-        conditionalOutcome: AbilityConditionalOutcome(
-            condition: .enemyFrozen,
-            operations: [.damage(DamageComponent(5, keyword: .physical))],
-            // Physical is the situational payoff; retain the card's Freeze identity.
-            contributesToIdentity: false,
-        ),
+        description: "Deal 2 Freeze damage\nDoubled against Frozen enemies",
+        damageComponents: [
+            DamageComponent(2, keyword: .freeze, bonusAmount: 2, condition: .enemyFrozen),
+        ],
     )
 
     static let kindling = Ability(
         id: "kindling", name: "Kindling", tier: .basic,
-        description: "Deal 1 Burn damage. Your next Burn card deals +1 Burn damage.",
-        damageComponents: [DamageComponent(1, keyword: .burn)],
-        targetedEffects: [TargetedEffect(.nextBurnBonus(1), target: .actor)],
+        description: "Deal 1 Burn damage\nDoubled if enemy was not Burning",
+        damageComponents: [
+            DamageComponent(1, keyword: .burn, bonusAmount: 1, condition: .enemyNotBurning),
+        ],
     )
 
     static let manaBerries = Ability(
@@ -80,7 +71,7 @@ public extension AbilityCatalog {
 
     static let maul = Ability(
         id: "maul", name: "Maul", tier: .basic,
-        description: "Deal 3 Bleed damage, or 3 Stun against enemies with Block.",
+        description: "Deal 3 Bleed damage\nDeal Stun instead against enemies with Block",
         damageComponents: [DamageComponent(3, keyword: .bleed)],
         conditionalOutcome: AbilityConditionalOutcome(
             condition: .enemyHasBlock,
@@ -96,7 +87,11 @@ public extension AbilityCatalog {
 
     static let rayOfFrost = Ability(
         id: "ray-of-frost", name: "Ray of Frost", tier: .basic,
-        targetedEffects: [TargetedEffect(.recurringDamage(.freeze, 1, 2))],
+        description: "Deal 1 Freeze damage, twice",
+        damageComponents: [
+            DamageComponent(1, keyword: .freeze),
+            DamageComponent(1, keyword: .freeze),
+        ],
     )
 
     static let rendingSlash = Ability(
@@ -106,33 +101,32 @@ public extension AbilityCatalog {
 
     static let shieldBash = Ability(
         id: "shield-bash", name: "Shield Bash", tier: .basic,
-        description: "Deal 2 Stun damage. Spend 2 Block to deal 5 instead.",
-        damageComponents: [DamageComponent(2, keyword: .stun)],
-        conditionalOutcome: AbilityConditionalOutcome(
-            condition: .actorHasTwoBlock,
-            operations: [.damage(DamageComponent(5, keyword: .stun))],
-            blockCost: 2,
-        ),
+        description: "Gain 1 Block\nDeal Stun damage equal to half your Block",
+        operations: [
+            .effect(TargetedEffect(.shield(.block, 1))),
+            .damage(DamageComponent(
+                0,
+                keyword: .stun,
+                scaling: .actorBlockFraction(divisor: 2, minimum: 1),
+            )),
+        ],
     )
 
     static let slash = Ability(
         id: "slash", name: "Slash", tier: .basic,
-        description: "Deal 2 to 3 Physical damage.",
-        outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .physical)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .physical)]),
-        ],
+        directDamage: 3,
     )
 
     static let sniffOut = Ability(
         id: "sniff-out", name: "Sniff Out", tier: .basic,
-        description: "Expose a weakness. Your partner’s next attack deals +3 Physical damage.",
-        targetedEffects: [TargetedEffect(.partyPhysicalBonus(3))],
+        description: "Deal 1 Bleed damage\nYour partner's next attack deals 1 additional damage",
+        damageComponents: [DamageComponent(1, keyword: .bleed)],
+        targetedEffects: [TargetedEffect(.partyDamageBonus(1))],
     )
 
     static let stab = Ability(
         id: "stab", name: "Stab", tier: .basic,
-        description: "Deal 2 Physical damage. Critically Hit enemies at full Health.",
+        description: "Deal 2 Physical damage\nCritically Hit enemies at full Health",
         damageComponents: [DamageComponent(2, keyword: .physical)],
         guaranteedCriticalCondition: .enemyFullHealth,
     )

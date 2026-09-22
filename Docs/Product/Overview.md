@@ -8,7 +8,7 @@ What the player sees, in player terms. Locked rules live in
 |---|---|
 | Play | Choose Campaign or Explore, then enter encounters and three-card-hand combat with a Hero and Companion. |
 | Campaign | A guided sequence of chapters and encounters with permanent completion. Named Journey in the underlying save and mode types. |
-| Explore | The hub for The Spires, Labyrinth, and Contracts. |
+| Explore | The hub for The Spires, Labyrinth, Contracts, and Voyage. |
 | Labyrinth | A persistent expedition through infinite floors. |
 | The Spires | Ascending challenge gauntlets with fixed floor levels and permanent completion. |
 | Contracts | Three renewable single-battle jobs under Explore, with regular rewards and party-based levels. See [Contracts.md](Contracts.md). |
@@ -18,3 +18,5 @@ What the player sees, in player terms. Locked rules live in
 | Options | Device preferences, Full Game purchases/restoration, and support; never gates free play. Identity model: [Identity.md](Identity.md). |
 
 Free-content boundaries and Full Game access: [Monetization.md](Monetization.md).
+
+Voyage offers finite, repeatable regional adventures. See [Voyage](Voyage.md).

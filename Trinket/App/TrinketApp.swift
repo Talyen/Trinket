@@ -235,6 +235,7 @@ private struct PreparedAppRoot: View {
         .environment(appState.play.labyrinth)
         .environment(appState.play.spires)
         .environment(appState.play.contracts)
+        .environment(appState.play.voyage)
         .environment(appState.play.encounters)
         .environment(appState.fullGame)
         .environment(appState.options)

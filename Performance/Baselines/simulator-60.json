@@ -52,6 +52,7 @@
     "labyrinth-scroll",
     "labyrinth-inspector",
     "contracts-browse",
+    "voyage-browse",
     "contracts-refresh",
     "contracts-party-picker",
     "contracts-battle-return",
@@ -290,6 +291,10 @@
       "group": "explore",
       "test": "ExplorePerformanceUITests/testContracts"
     },
+    "voyage-browse": {
+      "group": "explore",
+      "test": "ExplorePerformanceUITests/testVoyage"
+    },
     "contracts-refresh": {
       "group": "explore",
       "test": "ExplorePerformanceUITests/testContracts"
@@ -522,6 +527,9 @@
         ],
         "contracts": [
           "contracts-browse"
+        ],
+        "voyage": [
+          "voyage-browse"
         ],
         "spireClimb": [
           "spire-climb"

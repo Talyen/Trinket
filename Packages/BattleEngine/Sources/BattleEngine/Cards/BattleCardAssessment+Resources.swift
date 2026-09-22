@@ -20,14 +20,14 @@ extension BattleState {
         )
         resources.append(contentsOf: empowermentResourceUses(ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords))
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: self)
-        for (index, targeted) in branch.targetedEffects.enumerated() where targeted.effect == .convertManaToBlock {
+        for targeted in branch.targetedEffects where targeted.effect == .convertManaToBlock {
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
                 continue
             }
             let target = BattleTargetResolver.effectTarget(targeted.target, actor: actor, abilityTarget: abilityTarget, in: self)
             let mana = mana(of: target)
             guard mana > 0 else { continue }
-            let isCertain = branch.damageComponents.isEmpty && index == 0
+            let isCertain = branch.damageComponents.isEmpty
             mergeResource(resourceUse(.mana, amount: isCertain ? mana : nil, actor: target), into: &resources)
         }
         return resources

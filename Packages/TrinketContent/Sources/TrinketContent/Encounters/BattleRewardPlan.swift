@@ -1,6 +1,7 @@
 import TrinketCore
 
 public struct BattleRewardPlan: Equatable, Sendable {
+    public let completionBonus: VoyageCompletionBonus?
     public let stageGold: Int
     public let goldFindPercent: Int
     public let goldFindFlat: Int
@@ -21,7 +22,9 @@ public struct BattleRewardPlan: Equatable, Sendable {
         companionExperience: Int,
         materials: [ResourceAmount],
         items: [InventoryItem],
+        completionBonus: VoyageCompletionBonus? = nil,
     ) {
+        self.completionBonus = completionBonus
         self.stageGold = max(0, stageGold)
         self.goldFindPercent = goldFindPercent
         self.goldFindFlat = goldFindFlat
@@ -42,7 +45,11 @@ public struct BattleRewardPlan: Equatable, Sendable {
         ).settle(battleGold: .init(), inputs: inputs)
     }
 
-    public func resolve(battleGold: BattleGoldFlow, materials: [ResourceAmount]? = nil) -> BattleRewardAward {
+    public func resolve(
+        battleGold: BattleGoldFlow,
+        materials: [ResourceAmount]? = nil,
+        includingCompletionBonus: Bool = true,
+    ) -> BattleRewardAward {
         let baseGold = stageGold + battleGold.gained
         let gained = max(0, CombatRounding.scaled(baseGold, byPercent: goldFindPercent)) + (baseGold > 0 ? goldFindFlat : 0)
         let stage = min(stageGold, gained)
@@ -53,11 +60,12 @@ public struct BattleRewardPlan: Equatable, Sendable {
             goldFindPercent: 0,
             gemsFindBonus: gemsFindBonus,
         )
-        return BattleRewardAward(
+        let award = BattleRewardAward(
             stageGold: stage, battleGold: gained - stage - battleGold.spent,
             goldFlow: battleGold, heroExperience: heroExperience, companionExperience: companionExperience,
             materials: effects.adjustedMaterials(materials ?? self.materials), items: items,
         )
+        return includingCompletionBonus ? completionBonus?.applying(to: award) ?? award : award
     }
 
     public func settle(

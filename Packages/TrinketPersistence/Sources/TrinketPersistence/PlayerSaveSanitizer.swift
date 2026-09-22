@@ -61,6 +61,9 @@ enum PlayerSaveSanitizer {
         if changedSlices.contains(.spires) {
             sanitized.spires = sanitizeSpires(save.spires)
         }
+        if changedSlices.contains(.voyage) {
+            sanitized.voyage = save.voyage.sanitized()
+        }
         if changedSlices.contains(.contracts) {
             sanitized.contracts = save.contracts.sanitized()
         }

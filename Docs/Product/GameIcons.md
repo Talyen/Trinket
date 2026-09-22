@@ -83,3 +83,5 @@ Authored content uses `sf:` strings; UI presentation carries `GameIcon`.
 `TalentNode.iconID` retains the serialized `symbolName` key. Unqualified SF names
 still resolve identically. Saves persist talent node IDs rather than icon strings,
 so icon selection never affects unlock progression, effect data, or saves.
+
+Voyage uses `location.north.fill` for Embark; its encounters reuse the existing node icons.

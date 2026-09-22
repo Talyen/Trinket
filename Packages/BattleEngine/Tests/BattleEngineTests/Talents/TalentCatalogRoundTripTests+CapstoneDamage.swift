@@ -217,8 +217,12 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.burn, on: .enemy, in: battle) == 8)
         let events = try playHeroTalentCard(card, owner: .companion, in: &battle)
         let hit = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == .freeze })
-        let damage = card == .frostbolt ? 11 : 8
-        #expect(hit.amount == damage * (hit.isCritical ? 2 : 1))
+        let freezeEvents = events.filter { $0.kind == .abilityDamage && $0.keyword == .freeze }
+        if card == .frostbolt {
+            #expect(hit.amount == 12 * (hit.isCritical ? 2 : 1))
+        } else {
+            #expect(freezeEvents.map(\.amount) == [9, 1])
+        }
         #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
     }
 
@@ -279,7 +283,7 @@ extension TalentCatalogRoundTripTests {
 
     @Test func `interdict prevents purged avatar from dealing damage or granting block`() throws {
         var battle = capstoneBattle(companion: ["library_owl_holy_t4_1"])
-        let avatar = try #require(Ability.avatarOfJustice.effects.first { $0.kind == .avatar })
+        let avatar = Effect.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)
         seedHeroTalentEffect(avatar, on: .enemy, in: &battle, source: .enemy)
         let purge = Ability(id: "purge-avatar", name: "Purge", tier: .skill, targetedEffects: [TargetedEffect(.purge(nil), target: .enemy)])
         try playHeroTalentCard(purge, owner: .companion, in: &battle)
@@ -337,7 +341,7 @@ extension TalentCatalogRoundTripTests {
         for remainingMana in [7, 4] {
             let events = try playHeroTalentCard(.frostbolt, owner: .companion, in: &battle)
             let hit = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == .freeze })
-            #expect(hit.amount == (hit.isCritical ? 12 : 6))
+            #expect(hit.amount == (hit.isCritical ? 14 : 7))
             #expect(battle.roster.companion.currentMana == remainingMana)
         }
     }

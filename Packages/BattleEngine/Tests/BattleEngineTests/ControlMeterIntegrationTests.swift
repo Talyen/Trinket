@@ -88,14 +88,14 @@ struct ControlMeterIntegrationTests {
         try #expect(battle.health(of: battle.hero) == hero.maxHealth)
     }
 
-    @Test func `shield bash applies stun skip without granting block`() throws {
+    @Test func `shield bash applies stun skip and grants block`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [.shieldBash])
         let companion = CombatantFixtures.passiveCompanion()
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
         _ = try BattleTestFixtures.playCardNamed("Shield Bash", owner: .hero, on: &battle)
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 0)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 1)
 
         let events = BattleTestFixtures.endTurn(on: &battle)
         #expect(events.contains {

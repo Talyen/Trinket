@@ -24,7 +24,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.venomArrow, .fireArrow, .sniffOut, .rendingSlash],
-                skills: [.sapArrow, .bountyShot, .predatorsFocus, .serratedEdge],
+                skills: [.pounce, .bountyShot, .predatorsFocus, .serratedEdge],
                 ultimates: [.packTactics, .astralArrow, .hemorrhage, .bloodthorn]
             )
         ))

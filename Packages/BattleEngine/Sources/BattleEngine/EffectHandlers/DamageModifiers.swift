@@ -99,3 +99,34 @@ struct ControlMeterHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: events, didApply: didApply)
     }
 }
+
+struct MultiplyControlMeterHandler: BattleEffectHandler {
+    let kind: EffectKind = .multiplyControlMeter
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> EffectApplyOutcome {
+        guard case let .multiplyControlMeter(keyword, factor) = effect,
+              keyword == .freeze,
+              factor > 1
+        else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+
+        let effectsBefore = context.roster.activeEffects(for: target)
+        let events = ControlMeterEngine.multiplyBuildup(
+            factor,
+            keyword: keyword,
+            to: target,
+            sourceActorID: source.id,
+            abilityName: ability.name,
+            in: &context,
+        )
+        let didApply = !events.isEmpty || context.roster.activeEffects(for: target) != effectsBefore
+        return EffectApplyOutcome(events: events, didApply: didApply)
+    }
+}

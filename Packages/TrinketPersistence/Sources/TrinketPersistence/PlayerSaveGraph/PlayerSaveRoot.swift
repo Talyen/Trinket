@@ -13,6 +13,7 @@ public final class PlayerSaveRoot {
     public var starterHeroID: String?
     public var corruptionAltarCooldownRemaining: Int = 0
     public var contractsPayload: Data?
+    public var voyagePayload: Data?
     public var cloudStatePayload: Data?
 
     @Relationship(deleteRule: .cascade, inverse: \JourneyProgressModel.root)

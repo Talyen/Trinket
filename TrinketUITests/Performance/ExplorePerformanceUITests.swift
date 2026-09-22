@@ -3,6 +3,23 @@ import XCTest
 
 final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
+    func testVoyage() {
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance())
+            play.openExplore()
+            assertExistsAfterScroll(AccessibilityID.Voyage.modeCard, requireHittable: true)
+            var scrollProbes: [ScrollAnchor] = []
+            measured("voyage-browse", iteration: iteration) {
+                tapButton(AccessibilityID.Voyage.modeCard)
+                assertExists(AccessibilityID.Voyage.action("easy"))
+                scrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+                performScrollGestures(app.scrollViews.firstMatch)
+            }
+            verifyScrollProbes(scrollProbes, app.scrollViews.firstMatch)
+        }
+    }
+
+    @MainActor
     func testSpires() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())

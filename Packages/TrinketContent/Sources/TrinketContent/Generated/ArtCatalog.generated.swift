@@ -552,10 +552,6 @@ public enum ArtCatalog {
             imageName: "ability_rending_slash",
             thumbnailImageName: "ability_rending_slash_thumb"
         )
-        dict["sap-arrow"] = AbilityArtReference(
-            imageName: "ability_sap_arrow",
-            thumbnailImageName: "ability_sap_arrow_thumb"
-        )
         dict["serrated-edge"] = AbilityArtReference(
             imageName: "ability_serrated_edge",
             thumbnailImageName: "ability_serrated_edge_thumb"
@@ -1199,6 +1195,12 @@ public enum ArtCatalog {
             imageName: "bg_spire_storm_anvil",
             thumbnailImageName: "bg_spire_storm_anvil_thumb",
             sourceAspectRatio: 1.340033500838,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        )
+        dict["gameModeVoyage"] = BackgroundArtReference(
+            imageName: "bg_game_mode_voyage",
+            thumbnailImageName: "bg_game_mode_voyage_thumb",
+            sourceAspectRatio: 1.500938086304,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         return dict

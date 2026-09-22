@@ -2,6 +2,7 @@ import TrinketContent
 import TrinketCore
 
 public struct BattlePresentationContext: Sendable {
+    public let completionBonus: VoyageCompletionBonus?
     public let inventoryItems: [InventoryItem]
     public let stageReward: StageReward?
     public let rewardItems: [InventoryItem]
@@ -31,6 +32,7 @@ public struct BattlePresentationContext: Sendable {
             companionExperience: stageRewardsAlreadyClaimed ? 0 : companionExperienceAward,
             materials: stageRewardsAlreadyClaimed ? [] : materialRewards,
             items: stageRewardsAlreadyClaimed ? [] : rewardItems,
+            completionBonus: stageRewardsAlreadyClaimed ? nil : completionBonus,
         )
     }
 
@@ -52,7 +54,9 @@ public struct BattlePresentationContext: Sendable {
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],
         goldOverflowExperience: Int = 0,
         rewardInputs: RewardSettlementInputs? = nil,
+        completionBonus: VoyageCompletionBonus? = nil,
     ) {
+        self.completionBonus = completionBonus
         self.inventoryItems = inventoryItems
         self.stageReward = stageReward
         self.rewardItems = rewardItems

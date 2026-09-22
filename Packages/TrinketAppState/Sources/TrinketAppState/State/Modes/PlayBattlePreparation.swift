@@ -39,6 +39,7 @@ enum ModeBattleSpec {
         experienceBonusPercent: Int = 0,
         universalModifiers: [AffixModifier] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        completionBonus: VoyageCompletionBonus? = nil,
     ) -> BattleLaunchInput {
         BattleLaunchInput(
             origin: origin,
@@ -52,6 +53,7 @@ enum ModeBattleSpec {
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: universalModifiers,
             labyrinthModifiers: labyrinthModifiers,
+            completionBonus: completionBonus,
         )
     }
 }

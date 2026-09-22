@@ -9,7 +9,7 @@ enum AbilityDescriptionFormatter {
     static func format(_ ability: Ability) -> String {
         if let branches = ability.outcomeBranches, !branches.isEmpty {
             let branchTexts = branches.map(formatBranch)
-            return joinOr(branchTexts) + riderSuffix(for: ability)
+            return ([joinOr(branchTexts)] + riderLines(for: ability)).joined(separator: "\n")
         }
         return formatFixed(ability)
     }
@@ -25,11 +25,10 @@ enum AbilityDescriptionFormatter {
             tier: .basic,
             operations: branch.operations,
         )
-        let text = formatFixed(ability)
-        return text.hasSuffix(".") ? String(text.dropLast()) : text
+        return formatFixed(ability)
     }
 
-    private static func riderSuffix(for ability: Ability) -> String {
+    private static func riderLines(for ability: Ability) -> [String] {
         var riders: [String] = []
         if let critical = criticalClause(for: ability) {
             riders.append(critical)
@@ -40,9 +39,7 @@ enum AbilityDescriptionFormatter {
         if ability.hasLeech {
             riders.append("leech")
         }
-        guard !riders.isEmpty else { return "" }
-        let sentences = riders.map { capitalize($0) + "." }
-        return " " + sentences.joined(separator: " ")
+        return riders.map(capitalize)
     }
 
     private static func criticalClause(for ability: Ability) -> String? {
@@ -56,34 +53,33 @@ enum AbilityDescriptionFormatter {
     }
 
     private static func formatFixed(_ ability: Ability) -> String {
-        var clauses: [String] = []
+        var lines: [String] = []
 
         for operation in ability.operations {
             switch operation {
             case let .damage(component):
                 if component.target == .actor {
-                    clauses.append("Lose \(component.amount) Health")
+                    lines.append("Lose \(component.amount) Health")
                 } else {
-                    clauses.append(contentsOf: formatEnemyDamage([component]))
+                    lines.append(contentsOf: formatEnemyDamage([component]))
                 }
             case let .effect(targeted):
-                clauses.append(formatTargetedEffect(targeted))
+                lines.append(formatTargetedEffect(targeted))
             }
         }
 
         if let critical = criticalClause(for: ability) {
-            clauses.append(critical)
+            lines.append(critical)
         }
 
         if ability.repeatsManaEmpowerment {
-            clauses.append(manaEmpowermentRider)
+            lines.append(manaEmpowermentRider)
         }
 
-        let body = joinClauses(clauses)
         if ability.hasLeech {
-            return body.isEmpty ? "Leech." : "\(body) Leech."
+            lines.append("Leech")
         }
-        return body
+        return lines.map(capitalize).joined(separator: "\n")
     }
 
     private static func formatEnemyDamage(
@@ -91,15 +87,25 @@ enum AbilityDescriptionFormatter {
     ) -> [String] {
         var clauses: [String] = []
         for component in components {
-            var text = "deal \(component.amount) \(component.keyword.rawValue) damage"
+            let text = if let scaling = component.scaling {
+                switch scaling {
+                case let .actorBlockFraction(divisor, _):
+                    "deal \(component.keyword.rawValue) damage equal to \(fractionPhrase(divisor: divisor)) your Block"
+                }
+            } else {
+                "deal \(component.amount) \(component.keyword.rawValue) damage"
+            }
             if let condition = component.condition {
                 if component.bonusAmount > 0 {
-                    text += ". If \(conditionPhrase(condition)), deal \(component.bonusAmount) extra \(component.keyword.rawValue) damage"
+                    clauses.append(text)
+                    clauses
+                        .append("deal \(component.bonusAmount) extra \(component.keyword.rawValue) damage if \(conditionPhrase(condition))")
                 } else {
-                    text += " if \(conditionPhrase(condition))"
+                    clauses.append(text + " if \(conditionPhrase(condition))")
                 }
+            } else {
+                clauses.append(text)
             }
-            clauses.append(text)
         }
         return clauses
     }
@@ -119,39 +125,18 @@ enum AbilityDescriptionFormatter {
     private static func joinOr(_ clauses: [String]) -> String {
         guard let first = clauses.first else { return "" }
         guard clauses.count > 1 else {
-            return first.hasSuffix(".") ? first : first + "."
+            return first
         }
         if clauses.count == 2 {
-            return "\(first) or \(lowercaseFirst(clauses[1]))."
+            return "\(first) or \(lowercaseFirst(clauses[1]))"
         }
         guard let last = clauses.last else { return "" }
         let head = clauses.dropLast().joined(separator: ", ")
-        return "\(head), or \(lowercaseFirst(last))."
+        return "\(head), or \(lowercaseFirst(last))"
     }
 
-    private static func joinClauses(_ clauses: [String]) -> String {
-        guard let first = clauses.first else { return "" }
-        guard clauses.count > 1 else {
-            return capitalize(first) + "."
-        }
-
-        if first.hasPrefix("Lose ") || first.hasPrefix("costs ") {
-            let tail = clauses.dropFirst().map(lowercaseFirst)
-            let joinedTail = joinWithAnd(tail)
-            return capitalize(first) + ". " + capitalize(joinedTail) + "."
-        }
-
-        let formatted = [capitalize(first)] + clauses.dropFirst().map(lowercaseFirst)
-        return joinWithAnd(formatted) + "."
-    }
-
-    private static func joinWithAnd(_ clauses: [String]) -> String {
-        guard let first = clauses.first else { return "" }
-        guard clauses.count > 1 else { return first }
-        if clauses.count == 2 {
-            return "\(clauses[0]) and \(clauses[1])"
-        }
-        return clauses.dropLast().joined(separator: ", ") + ", and " + clauses[clauses.count - 1]
+    private static func fractionPhrase(divisor: Int) -> String {
+        divisor == 2 ? "half" : "1/\(divisor)"
     }
 
     private static func capitalize(_ text: String) -> String {

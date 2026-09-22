@@ -19,6 +19,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case halveShield
     case deathsDoor
     case thorns
+    case thornsFromBlockFraction
     case marked
     case criticalChanceBonus
     case restoreManaOnHit
@@ -34,9 +35,11 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case maximumManaBonus
     case nextStrikeCritical
     case nextStrikeLeech
-    case partyPhysicalBonus
+    case nextStrikeDamageKeywordOverride
+    case partyDamageBonus
     case freezeNextAttacker
     case onHitDamage
+    case multiplyControlMeter
     case multiplyDoT
     case detonateDoT
     case recurringDamage
@@ -111,12 +114,14 @@ public extension EffectKind {
              .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom,
              .purge, .purgeRandom, .halveShield,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
-             .multiplyDoT, .detonateDoT, .revive, .blessedAegis:
+             .thornsFromBlockFraction,
+             .multiplyControlMeter, .multiplyDoT, .detonateDoT, .revive, .blessedAegis:
             [.instant]
         case .deathsDoor:
             [.advancesEachTurn]
         case .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
-             .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus, .freezeNextAttacker, .onHitDamage:
+             .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
+             .freezeNextAttacker, .onHitDamage:
             [.removableBuff]
         case .maximumManaBonus:
             [.removableBuff, .instant]
@@ -152,6 +157,7 @@ public extension Effect {
         case .halveShield: .halveShield
         case .deathsDoor: .deathsDoor
         case .thorns: .thorns
+        case .thornsFromBlockFraction: .thornsFromBlockFraction
         case .marked: .marked
         case .criticalChanceBonus: .criticalChanceBonus
         case .restoreManaOnHit: .restoreManaOnHit
@@ -167,9 +173,11 @@ public extension Effect {
         case .maximumManaBonus: .maximumManaBonus
         case .nextStrikeCritical: .nextStrikeCritical
         case .nextStrikeLeech: .nextStrikeLeech
-        case .partyPhysicalBonus: .partyPhysicalBonus
+        case .nextStrikeDamageKeywordOverride: .nextStrikeDamageKeywordOverride
+        case .partyDamageBonus: .partyDamageBonus
         case .freezeNextAttacker: .freezeNextAttacker
         case .onHitDamage: .onHitDamage
+        case .multiplyControlMeter: .multiplyControlMeter
         case .multiplyDoT: .multiplyDoT
         case .detonateDoT: .detonateDoT
         case .recurringDamage: .recurringDamage
@@ -239,11 +247,11 @@ public extension Effect {
             amount > 0 ? keyword : nil
         case .controlMeter, .shield, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards,
              .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom, .purge, .purgeRandom,
-             .halveShield, .deathsDoor, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit,
+             .halveShield, .deathsDoor, .thorns, .thornsFromBlockFraction, .marked, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
-             .maximumManaBonus, .nextStrikeCritical, .nextStrikeLeech, .partyPhysicalBonus,
-             .freezeNextAttacker, .onHitDamage, .blessedAegis, .revive, .damageReductionPercent,
+             .maximumManaBonus, .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
+             .freezeNextAttacker, .onHitDamage, .multiplyControlMeter, .blessedAegis, .revive, .damageReductionPercent,
              .damageReductionFlat, .healingReductionPercent, .hemorrhage:
             nil
         }

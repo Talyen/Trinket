@@ -19,6 +19,7 @@ public struct PlayerSave: Equatable, Sendable {
     public var homestead: PlayerHomesteadState
     public var spires: PlayerSpiresState
     public var labyrinth: PlayerLabyrinthState
+    public var voyage: PlayerVoyageState
     public var contracts: PlayerContractsState
     public var corruptionAltarCooldownRemaining: Int
 
@@ -90,6 +91,7 @@ public struct PlayerSave: Equatable, Sendable {
         spires: PlayerSpiresState = .freshStart,
         labyrinth: PlayerLabyrinthState = .freshStart,
         contracts: PlayerContractsState = .freshStart,
+        voyage: PlayerVoyageState = .freshStart,
         corruptionAltarCooldownRemaining: Int = 0,
     ) {
         self.schemaVersion = schemaVersion
@@ -104,6 +106,7 @@ public struct PlayerSave: Equatable, Sendable {
         self.spires = spires
         self.labyrinth = labyrinth
         self.contracts = contracts
+        self.voyage = voyage
         self.corruptionAltarCooldownRemaining = max(0, corruptionAltarCooldownRemaining)
     }
 
@@ -131,6 +134,7 @@ public struct PlayerSave: Equatable, Sendable {
             || spires != other.spires
             || labyrinth != other.labyrinth
             || contracts != other.contracts
+            || voyage != other.voyage
             || corruptionAltarCooldownRemaining != other.corruptionAltarCooldownRemaining
     }
 

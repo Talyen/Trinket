@@ -122,7 +122,7 @@ struct BattleSessionCardCueTests {
         let card = try install(.darkPact, in: session)
         session.beginCardCue(card)
         let before = try #require(session.cardCues.current)
-        #expect(before.resources.first?.amount == 3)
+        #expect(before.resources.first?.amount == 1)
         #expect(before.actorID == session.heroID)
         #expect(session.playCard(cardID: card.id, requiresLift: true).didCommit)
         #expect(session.cardCues.current?.phase == .committed)
@@ -185,7 +185,7 @@ struct BattleSessionCardCueTests {
         let session = makeSession()
         let card = try install(.darkPact, in: session)
         var state = try #require(session.engineState)
-        state.roster.mutateRuntime(for: state.hero) { $0.currentHealth = 3 }
+        state.roster.mutateRuntime(for: state.hero) { $0.currentHealth = 1 }
         session.engineState = state
         session.installSimulationPresentation()
         session.denyCardCue(card)
@@ -193,7 +193,7 @@ struct BattleSessionCardCueTests {
         #expect(cue.phase == .denied)
         #expect(cue.denial == .insufficientHealth)
         #expect(cue.actorID == state.hero.id)
-        #expect(session.engineState?.roster.hero.currentHealth == 3)
+        #expect(session.engineState?.roster.hero.currentHealth == 1)
         session.clearCardCues()
         _ = state.hand.remove(id: card.id)
         session.engineState = state

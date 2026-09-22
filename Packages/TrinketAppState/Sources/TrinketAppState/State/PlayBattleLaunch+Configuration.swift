@@ -45,6 +45,7 @@ struct BattlePreparationInputs: Equatable {
 }
 
 struct BattleLaunchInput: Equatable {
+    let completionBonus: VoyageCompletionBonus?
     let origin: PlayBattleOrigin?
     let hero: Combatant
     let companion: Combatant
@@ -69,7 +70,9 @@ struct BattleLaunchInput: Equatable {
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        completionBonus: VoyageCompletionBonus? = nil,
     ) {
+        self.completionBonus = completionBonus
         self.origin = origin
         self.hero = hero
         self.companion = companion
@@ -187,6 +190,7 @@ extension PlayBattleLaunch {
                 heroProgression: heroMember.progression, companionProgression: companionMember.progression,
                 productionDate: inputs.party.homestead.lastProductionAt,
             ),
+            completionBonus: input.completionBonus,
         )
     }
 

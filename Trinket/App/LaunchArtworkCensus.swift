@@ -34,6 +34,12 @@ enum LaunchArtworkCensus {
             }
         }
 
+        if let art = ArtCatalog.backgroundArtByID["gameModeVoyage"] {
+            names.insert(art.imageName)
+            if let thumbnail = art.thumbnailImageName {
+                names.insert(thumbnail)
+            }
+        }
         collectRootTabImageNames(into: &names, for: appState)
         return names.sorted()
     }

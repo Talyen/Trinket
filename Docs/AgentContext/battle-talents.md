@@ -58,7 +58,7 @@ to 100%; damage already granting Leech skips the roll and never Leeches twice.
 ### Enemy Basic Freeze bonuses
 
 Enemy Basic Freeze bonuses apply once to the initial Basic action, including
-Ray of Frost’s immediate pulse, and not to subsequent ongoing damage. This uses
+the initial pulse of recurring damage, and not to subsequent ongoing damage. This uses
 normal Freeze damage and control resolution for both Frost Elemental and Winter Wolf.
 
 ## Damage and control
@@ -137,22 +137,21 @@ card owner cannot continue firing on-play rewards or reactions.
 Next-card preparations are captured before a card resolves, refresh instead
 of accumulating, and cannot be consumed by the card that created them, even
 when it repeats. Typed damage bonuses strengthen an existing unconditional hit
-of that type when present, avoiding duplicate equipment bonuses. Sniff Out
-shares one party preparation (next ordinary party attack gains 3 Physical on
-one original enemy-directed hit; support cards do not reserve; typed Physical,
-not a conversion; repeated hits and equipment do not multiply). Predator's
-Focus prepares the caster's next attack to Critically Hit and Leech through
-the ordinary critical and Leech pipelines (attacks already granting Leech do
-not receive duplicate base Leech). Gilded Claws
+of that type when present, avoiding duplicate equipment bonuses. Sniff Out's
+recipient-owned preparation follows the [ability strategy contract](battle-actions.md#ability-strategy).
+Predator's
+Focus deals 1 Bleed and prepares the caster's next attack with Leech.
+Gilded Claws
 instead accumulates actual Gold stolen until the next attack. Authored
 `Ability.stealsGold` identifies theft from Steal, Bounty Shot, Blackjack,
-Tithe, and Bandit's Arrow, and survives outcome resolution and empowerment.
+and Tithe; the marker survives outcome resolution and empowerment.
 
 ### Shadow Camouflage
 
 Shadow Camouflage grants Panther's normal next-attack Dodge preparation
 (evade, refresh not stack, ordinary Dodge reactions on consume) after Panther
-plays a non-damaging ordinary card (Sniff Out and Predator's Focus qualify).
+plays a non-damaging ordinary card. Sniff Out and Predator's Focus now deal
+damage and do not qualify.
 Use shared resolved-action classification (Block-absorbed attacks remain
 damaging; zero Health loss does not make support; preparing future damage is
 not current damage). Automatic abilities and reactions never recursively grant.

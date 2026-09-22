@@ -13,6 +13,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
     let homestead: PlayerHomesteadState
     let spires: PlayerSpiresState
     let labyrinth: PlayerLabyrinthState
+    let voyagePayload: Data?
     let contracts: PlayerContractsState
     let corruptionAltarCooldownRemaining: Int
 
@@ -28,6 +29,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
         spires = save.spires
         labyrinth = save.labyrinth
         contracts = save.contracts
+        voyagePayload = save.voyage.encodedPayload
         corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
     }
 
@@ -52,6 +54,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
             spires: spires,
             labyrinth: labyrinth,
             contracts: contracts,
+            voyage: PlayerVoyageState.decodePayload(voyagePayload),
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
         )
         guard !labyrinth.isMapPayloadUnreadable else { throw CloudSaveError.unsupportedSave }
@@ -69,6 +72,8 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
             || roster.gold > 0
             || !roster.unlockedTalents.isEmpty
             || labyrinth.hasEntered
+            || PlayerVoyageState.decodePayload(voyagePayload).activeRun != nil
+            || PlayerVoyageState.decodePayload(voyagePayload).isUnreadable
             || !spires.highestClearedFloorBySpireID.isEmpty
     }
 

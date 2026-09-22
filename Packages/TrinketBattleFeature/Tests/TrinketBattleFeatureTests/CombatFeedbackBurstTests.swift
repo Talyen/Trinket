@@ -30,13 +30,13 @@ struct CombatFeedbackBurstTests {
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         lane.record([
-            event(1, .physicalPreparationApplied, amount: 3, keyword: .physical),
+            event(1, .partyDamagePreparationApplied, amount: 3, keyword: .physical),
             event(2, .resourceGain, amount: 2, keyword: .mana),
         ], at: start)
         let before = lane.activeItems
         let updateAt = start.addingTimeInterval(0.2)
         lane.record([
-            event(3, .physicalPreparationApplied, amount: 7, keyword: .physical),
+            event(3, .partyDamagePreparationApplied, amount: 7, keyword: .physical),
             event(4, .resourceGain, amount: 4, keyword: .mana),
         ], at: updateAt)
         #expect(lane.activeItems.count == 2)
@@ -49,8 +49,8 @@ struct CombatFeedbackBurstTests {
                 at: updateAt,
             ))
         }
-        lane.record([event(5, .physicalPreparationApplied, amount: 100, keyword: .physical)], at: start.addingTimeInterval(0.3))
-        let preparations = visible(lane).filter { $0.effectKind == .physicalPreparationApplied }
+        lane.record([event(5, .partyDamagePreparationApplied, amount: 100, keyword: .physical)], at: start.addingTimeInterval(0.3))
+        let preparations = visible(lane).filter { $0.effectKind == .partyDamagePreparationApplied }
         #expect(preparations.count == 1)
         #expect(try #require(preparations.first).label == .amount(100, additive: false))
     }

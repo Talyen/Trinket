@@ -11,6 +11,7 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
     let title: String
     let subtitle: String?
     let titleAccessibilityIdentifier: String?
+    var subtitleAccessibilityIdentifier: String = ""
     @ViewBuilder let heroArt: () -> HeroArt
     @ViewBuilder let content: () -> Content
 
@@ -31,6 +32,7 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
             } footer: {
                 if let subtitle {
                     Text(subtitle)
+                        .accessibilityIdentifier(subtitleAccessibilityIdentifier)
                         .trinketTypography(.secondaryBody)
                         .trinketOnArtText(.eyebrow)
                 }

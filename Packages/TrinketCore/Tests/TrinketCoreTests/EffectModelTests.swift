@@ -127,6 +127,7 @@ struct EffectModelTests {
         case .halveShield: .halveShield(.block)
         case .deathsDoor: .deathsDoor
         case .thorns: .thorns(2)
+        case .thornsFromBlockFraction: .thornsFromBlockFraction(divisor: 2, minimum: 1)
         case .marked: .marked(2, 6)
         case .criticalChanceBonus: .criticalChanceBonus(0.25, 2)
         case .restoreManaOnHit: .restoreManaOnHit(1, 2)
@@ -142,9 +143,11 @@ struct EffectModelTests {
         case .maximumManaBonus: .maximumManaBonus(2)
         case .nextStrikeCritical: .nextStrikeCritical
         case .nextStrikeLeech: .nextStrikeLeech
-        case .partyPhysicalBonus: .partyPhysicalBonus(3)
+        case .nextStrikeDamageKeywordOverride: .nextStrikeDamageKeywordOverride(.holy)
+        case .partyDamageBonus: .partyDamageBonus(3)
         case .freezeNextAttacker: .freezeNextAttacker
         case .onHitDamage: .onHitDamage(.holy, 3)
+        case .multiplyControlMeter: .multiplyControlMeter(.freeze, 2)
         case .multiplyDoT: .multiplyDoT(.burn, 2)
         case .detonateDoT: .detonateDoT(.burn, 2)
         case .recurringDamage: .recurringDamage(.freeze, 3, 2)
@@ -191,6 +194,14 @@ struct EffectModelTests {
         )
     }
 
+    @Test func `control meter amplification describes freeze buildup`() {
+        let effect = Effect.multiplyControlMeter(.freeze, 2)
+        #expect(effect.kind == .multiplyControlMeter)
+        #expect(effect.isInstant)
+        #expect(Effect.defaultTarget(for: effect) == .abilityTarget)
+        #expect(EffectPresentation.applyPhrase(for: effect) == "double the enemy's Freeze build-up")
+    }
+
     @Test func `damage keyword override names bonus damage and duration`() {
         #expect(
             EffectPresentation.applyPhrase(for: .damageKeywordOverride(.holy, 2, 2))
@@ -205,7 +216,7 @@ struct EffectModelTests {
     @Test func `flag effect summary phrases are registered`() {
         for effect in [
             Effect.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical,
-            .nextStrikeLeech, .partyPhysicalBonus(3), .freezeNextAttacker,
+            .nextStrikeLeech, .partyDamageBonus(3), .freezeNextAttacker,
         ] {
             #expect(!EffectPresentation.requiredBattleSummaryPhrase(for: effect).isEmpty)
             #expect(EffectPresentation.battleSummaryPhrase(for: effect) != nil)

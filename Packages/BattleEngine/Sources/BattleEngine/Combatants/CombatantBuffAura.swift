@@ -43,6 +43,8 @@ public enum CombatantBuffAura: Sendable {
             .avatar
         case let .damageKeywordOverride(keyword, _, _) where keyword == .holy:
             .avatar
+        case .nextStrikeDamageKeywordOverride(.holy):
+            .avatar
         case .marked:
             .marked
         case let .recurringDamage(keyword, _, _) where keyword == .freeze:

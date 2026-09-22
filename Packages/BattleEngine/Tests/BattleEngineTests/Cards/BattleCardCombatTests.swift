@@ -108,7 +108,7 @@ struct BattleCardCombatTests {
         try #expect(battle.heroDeck.abilities.last?.id == Ability.slash.id)
     }
 
-    @Test(arguments: [1, 3, 4])
+    @Test(arguments: [1, 2, 3])
     func `dark pact requires health even at deaths door`(health: Int) throws {
         var battle = makeBattle(heroAbilities: [.darkPact, .slash, .heal])
         battle.withEngineContext { context in
@@ -121,10 +121,10 @@ struct BattleCardCombatTests {
         battle.hand = BattleHand()
         let card = BattleCard(id: 900, ability: .darkPact, owner: .hero)
         battle.hand.append(card)
-        #expect(battle.isCardPlayable(card) == (health > 3))
-        if health > 3 {
+        #expect(battle.isCardPlayable(card) == (health > 1))
+        if health > 1 {
             _ = try battle.playCard(cardID: card.id)
-            #expect(battle.health(of: battle.hero) == 1)
+            #expect(battle.health(of: battle.hero) == health - 1)
         } else {
             #expect(throws: BattlePlayError.insufficientHealth) { try battle.playCard(cardID: card.id) }
             #expect(battle.hand.card(id: card.id) != nil)
@@ -158,7 +158,7 @@ struct BattleCardCombatTests {
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.hand.bufferCount == 1)
         try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
-        try #expect(battle.health(of: battle.hero) == 17)
+        try #expect(battle.health(of: battle.hero) == 19)
     }
 
     @Test func `dark pact health cost ignores block`() throws {
@@ -180,7 +180,7 @@ struct BattleCardCombatTests {
 
         _ = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
-        try #expect(battle.health(of: battle.hero) == 17)
+        try #expect(battle.health(of: battle.hero) == 19)
         let shield = battle.activeEffects(of: battle.hero).first {
             if case .shield = $0.effect {
                 return true

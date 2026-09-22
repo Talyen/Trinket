@@ -45,7 +45,7 @@ struct CombatResolution {
 
     private struct Card {
         var partyDamageBonus = 0
-        var partyPhysicalBonus = 0
+        var partnerAttackDamageBonus = 0
         let id: Int
         let actorID: String
         var outcome: ResolvedActionFacts?
@@ -62,7 +62,7 @@ struct CombatResolution {
     private var nextActionID = 0
     private var cards: [Card] = []
     private var partyCardDamageBySource: [String: Int] = [:]
-    private var physicalDamageByRecipient: [String: Int] = [:]
+    private var partyDamageByRecipient: [String: Int] = [:]
     private(set) var nextCardID = 0
     private var claims: Set<ClaimKey> = []
 
@@ -121,16 +121,16 @@ struct CombatResolution {
         partyCardDamageBySource[actorID, default: 0]
     }
 
-    func pendingPhysicalDamage(for actorID: String) -> Int {
-        physicalDamageByRecipient[actorID, default: 0]
+    func pendingPartyDamage(for actorID: String) -> Int {
+        partyDamageByRecipient[actorID, default: 0]
     }
 
     mutating func preparePartyCardDamage(_ amount: Int, sourceID: String) {
         partyCardDamageBySource[sourceID] = amount
     }
 
-    mutating func preparePhysicalDamage(_ amount: Int, recipientID: String) {
-        physicalDamageByRecipient[recipientID] = amount
+    mutating func preparePartyDamage(_ amount: Int, recipientID: String) {
+        partyDamageByRecipient[recipientID] = amount
     }
 
     mutating func reservePartyCardDamage(livingSourceIDs: [String]) -> Int {
@@ -171,20 +171,20 @@ struct CombatResolution {
         return amount
     }
 
-    mutating func consumePartyPhysicalDamage(from provenance: DamageProvenance?) -> Int {
+    mutating func consumePartyDamage(from provenance: DamageProvenance?) -> Int {
         guard let provenance, let cardID = provenance.cardID,
               let index = cards.indices.last, cards[index].id == cardID,
               currentAction?.id == provenance.actionID else { return 0 }
-        let amount = cards[index].partyPhysicalBonus
-        cards[index].partyPhysicalBonus = 0
+        let amount = cards[index].partnerAttackDamageBonus
+        cards[index].partnerAttackDamageBonus = 0
         return amount
     }
 
-    func peekPartyPhysicalDamage(from provenance: DamageProvenance?) -> Int {
+    func peekPartyDamage(from provenance: DamageProvenance?) -> Int {
         guard let provenance, let cardID = provenance.cardID,
               let index = cards.indices.last, cards[index].id == cardID,
               currentAction?.id == provenance.actionID else { return 0 }
-        return cards[index].partyPhysicalBonus
+        return cards[index].partnerAttackDamageBonus
     }
 
     mutating func mutateCardTalents(_ body: (inout HeroTalentCardFacts) -> Void) {
@@ -247,7 +247,7 @@ struct CombatResolution {
               facts.origin == .card || facts.origin == .ordinaryCard else { return false }
         cards[cards.count - 1].outcome = facts
         if !facts.damageKeywords.isEmpty {
-            cards[cards.count - 1].partyPhysicalBonus = physicalDamageByRecipient.removeValue(forKey: facts.action.actor.id) ?? 0
+            cards[cards.count - 1].partnerAttackDamageBonus = partyDamageByRecipient.removeValue(forKey: facts.action.actor.id) ?? 0
         }
         return true
     }

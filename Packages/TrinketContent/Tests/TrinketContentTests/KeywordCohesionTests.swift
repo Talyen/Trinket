@@ -37,17 +37,17 @@ struct KeywordCohesionTests {
     }
 
     @Test func `locked ability text and magnitudes match explicit choices`() throws {
-        try #expect(Ability.pixieDust.summary == "Deal 1 Burn damage and restore 1 Mana.")
-        try #expect(Ability.astralArrow.summary == "Deal 7 Burn, Freeze, or Bleed damage.")
-        try #expect(Ability.tithe.summary == "Deal 2 Holy damage and Steal 2 Gold.")
-        try #expect(Ability.bountyShot.summary == "Deal 3 Physical damage and Steal 2 Gold.")
-        try #expect(Ability.avatarOfJustice.summary == "Deal 6 Holy damage now and for 2 more turns.")
-        // sapArrow identity (id/name) is locked in AbilityCatalogTests; only
-        // mechanics live here so wording tweaks break one suite.
+        try #expect(Ability.pixieDust.summary == "Deal 1 Burn damage\nRestore 1 Mana")
+        try #expect(Ability.astralArrow.summary == "Deal 7 Burn, Freeze, or Bleed damage")
+        try #expect(Ability.tithe.summary == "Deal 2 Holy damage\nSteal 2 Gold")
+        try #expect(Ability.bountyShot.summary == "Deal 3 Stun damage\nSteal 2 Gold")
+        try #expect(Ability.avatarOfJustice.summary == "Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block")
         try #expect(Ability.tithe.damageComponents == [DamageComponent(2, keyword: .holy)])
-        try #expect(Ability.bountyShot.damageComponents == [DamageComponent(3, keyword: .physical)])
-        try #expect(Ability.avatarOfJustice.targetedEffects == [
-            TargetedEffect(.avatar(holyDamage: 6, blockPerTurn: 0, turns: 2)),
+        try #expect(Ability.bountyShot.damageComponents == [DamageComponent(3, keyword: .stun)])
+        try #expect(Ability.avatarOfJustice.operations == [
+            .damage(DamageComponent(6, keyword: .holy)),
+            .effect(TargetedEffect(.nextStrikeDamageKeywordOverride(.holy), target: .actor)),
+            .effect(TargetedEffect(.shield(.block, 6), target: .actor)),
         ])
     }
 }

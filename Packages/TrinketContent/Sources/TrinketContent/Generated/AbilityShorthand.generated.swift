@@ -50,7 +50,6 @@ public extension Ability {
     static let predatorsFocus = AbilityCatalog.predatorsFocus
     static let rayOfFrost = AbilityCatalog.rayOfFrost
     static let rendingSlash = AbilityCatalog.rendingSlash
-    static let sapArrow = AbilityCatalog.sapArrow
     static let serratedEdge = AbilityCatalog.serratedEdge
     static let shadowstep = AbilityCatalog.shadowstep
     static let shieldBash = AbilityCatalog.shieldBash

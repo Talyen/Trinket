@@ -133,7 +133,8 @@ public extension EncounterPlayMode {
             do {
                 return try .success(MysteryOfferPersistence.prepare(
                     event: session.event, stage: session.stage,
-                    labyrinthNodeID: session.labyrinthNodeID, save: &save, using: &mysteryRandom, at: currentDate(),
+                    labyrinthNodeID: session.labyrinthNodeID, encounter: session.encounter, save: &save, using: &mysteryRandom,
+                    at: currentDate(),
                 ))
             } catch {
                 return .failure(.unavailable)
@@ -148,6 +149,9 @@ public extension EncounterPlayMode {
         origin: PlayEncounterOrigin,
     ) -> MysteryEventPickContext {
         let cooldown = playerSave.currentSave.corruptionAltarCooldownRemaining
+        if case .voyage = origin {
+            return .labyrinth(inventory: playerSave.inventory, corruptionAltarCooldownRemaining: cooldown)
+        }
         if origin.labyrinthNodeID != nil {
             return .labyrinth(
                 inventory: playerSave.inventory,
@@ -164,12 +168,19 @@ public extension EncounterPlayMode {
         )
     }
 
+    private func pinnedNodeEvent(origin: PlayEncounterOrigin) -> String? {
+        if case let .voyage(runID, nodeID) = origin {
+            return playerSave.voyage.node(runID: runID, nodeID: nodeID)?.mysteryEventID
+        }
+        return origin.labyrinthNodeID.flatMap { playerSave.labyrinth.nodes[$0]?.mysteryEventID }
+    }
+
     private func mysteryPickInputs(
         origin: PlayEncounterOrigin,
     ) -> (pickContext: MysteryEventPickContext, pinnedLabyrinthEventID: String?, pinnedJourneyEventID: String?) {
         (
             mysteryEventPickContext(origin: origin),
-            origin.labyrinthNodeID.flatMap { playerSave.labyrinth.nodes[$0]?.mysteryEventID },
+            pinnedNodeEvent(origin: origin),
             origin.stage.flatMap { playerSave.journey.pinnedMysteryEventIDs[$0.id] },
         )
     }
@@ -330,6 +341,13 @@ public extension EncounterPlayMode {
     ) -> StageMapMessage? {
         guard !isRecruit else { return nil }
 
+        if case let .voyage(runID, nodeID) = origin, pinnedLabyrinthEventID == nil {
+            return pinEvent(logging: "Failed to pin Voyage mystery") { save in
+                guard save.voyage.isPlayable(runID: runID, nodeID: nodeID) else { return false }
+                save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.mysteryEventID = resolvedEventID }
+                return true
+            }
+        }
         if let labyrinthNodeID = origin.labyrinthNodeID, pinnedLabyrinthEventID == nil {
             return pinEvent(logging: "Failed to pin labyrinth mystery event") { save in
                 MysteryEventPinApplier.pinLabyrinthEvent(

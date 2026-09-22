@@ -95,6 +95,10 @@ public final class PlayerSaveStore {
         observedSave.labyrinth
     }
 
+    public var voyage: PlayerVoyageState {
+        observedSave.voyage
+    }
+
     public var contracts: PlayerContractsState {
         observedSave.contracts
     }
@@ -568,6 +572,9 @@ extension PlayerSaveStore {
         }
         if slices.contains(.labyrinth) {
             observedSave.labyrinth = save.labyrinth
+        }
+        if slices.contains(.voyage) {
+            observedSave.voyage = save.voyage
         }
         if slices.contains(.contracts) {
             observedSave.contracts = save.contracts

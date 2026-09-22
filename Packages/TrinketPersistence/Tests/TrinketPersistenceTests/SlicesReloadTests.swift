@@ -6,6 +6,21 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct SlicesReloadTests {
+    @Test @MainActor func `retired bandits arrow selection migrates and survives reload`() throws {
+        let context = try PersistenceTestContext()
+        var save = PlayerSave.testSeed
+        save.roster.abilityLoadouts["ranger"] = AbilityLoadout(
+            basic: .fireArrow,
+            skill: Ability(id: "sap-arrow", name: "Bandit's Arrow", tier: .skill),
+            ultimate: .packTactics,
+        )
+        let store = try context.seedAndReload(save)
+        let expected = AbilityLoadout(basic: .fireArrow, skill: .bountyShot, ultimate: .packTactics)
+        #expect(store.roster.abilityLoadouts["ranger"] == expected)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.abilityLoadouts["ranger"] == expected)
+    }
+
     @Test @MainActor func `sanitize clamps survive reload`() throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()

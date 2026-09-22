@@ -22,8 +22,11 @@ public enum ShopStockPersistence {
             } else if let nodeID = encounter.labyrinthNodeID {
                 guard save.labyrinth.nodes[nodeID]?.type == .shop else { return .failure(.invalidOffer) }
             }
+            if case let .voyage(runID, nodeID) = encounter.location {
+                guard save.voyage.node(runID: runID, nodeID: nodeID)?.type == .shop else { return .failure(.invalidOffer) }
+            }
             guard let rewardLevel = encounter.rewardLevel(in: save) else { return .failure(.invalidOffer) }
-            let effects = encounter.labyrinthNodeID.map { save.labyrinth.effects(for: $0) } ?? .zero
+            let effects = encounter.modifierEffects(in: save)
             var rng = SeededRandomNumberGenerator(seed: ShopOfferGenerator.seed(
                 worldSeed: encounter.worldSeed,
                 forStageID: encounter.stageID,
@@ -46,6 +49,7 @@ public enum ShopStockPersistence {
         let data: Data? = switch encounter.location {
         case let .journey(stageID): save.journey.shopPayloads[stageID]
         case let .labyrinth(nodeID): save.labyrinth.nodes[nodeID]?.shopPayload
+        case let .voyage(runID, nodeID): save.voyage.node(runID: runID, nodeID: nodeID)?.shopPayload
         }
         guard let data else { return nil }
         let snapshot = try JSONDecoder().decode(ShopStockSnapshot.self, from: data)
@@ -63,6 +67,7 @@ public enum ShopStockPersistence {
         switch encounter.location {
         case let .journey(stageID): save.journey.shopPayloads[stageID] = data
         case let .labyrinth(nodeID): save.labyrinth.nodes[nodeID]?.shopPayload = data
+        case let .voyage(runID, nodeID): save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.shopPayload = data }
         }
     }
 }

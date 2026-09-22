@@ -38,6 +38,14 @@ struct ExploreHubView: View {
                 artID: EncounterArtIDs.contractsHeroID,
                 accessibilityIdentifier: AccessibilityID.Play.contractsModeCard,
             )
+
+            HubArtworkNavigationLink(
+                destination: PlayLaunchDestination.voyage,
+                title: "Voyage",
+                subtitle: nil,
+                artID: "gameModeVoyage",
+                accessibilityIdentifier: AccessibilityID.Voyage.modeCard,
+            )
         }
     }
 

@@ -24,35 +24,6 @@ struct RogueRevisionTests {
         return battle
     }
 
-    @Test func `bandits arrow steals gold unconditionally`() throws {
-        var battle = battleWithHandCard(
-            .sapArrow,
-            activeEnemyEffects: [
-                ActiveEffect(
-                    id: 1,
-                    effect: .controlMeter(.stun, 1, 1),
-                    remainingTurns: BattleTiming.controlStatusLingerTurns,
-                ),
-            ],
-        )
-        _ = try BattleTestFixtures.playCardNamed("Bandit's Arrow", owner: .hero, on: &battle)
-        try #expect(battle.gold == 2)
-    }
-
-    @Test func `bandits arrow steals gold when it stuns the enemy itself`() throws {
-        var battle = battleWithHandCard(.sapArrow, enemyMaxHealth: 10)
-        _ = try BattleTestFixtures.playCardNamed("Bandit's Arrow", owner: .hero, on: &battle)
-        try #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
-        try #expect(battle.gold == 2)
-    }
-
-    @Test func `bandits arrow steals gold even when the enemy stays unstunned`() throws {
-        var battle = battleWithHandCard(.sapArrow)
-        _ = try BattleTestFixtures.playCardNamed("Bandit's Arrow", owner: .hero, on: &battle)
-        try #expect(!(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun)))
-        try #expect(battle.gold == 2)
-    }
-
     @Test func `coinmail converts combat gold into block`() throws {
         let coinmail = try #require(CombatantTalentCatalog.effect(for: "rogue_gold_t1_2"))
         try #expect(coinmail.name == "Coinmail")

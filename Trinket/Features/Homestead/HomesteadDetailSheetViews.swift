@@ -54,6 +54,7 @@ struct HomesteadDetailSheetView: View {
                 Text("\(tier.tier == 1 ? "Build" : "Upgrade") \(definition.title)")
                     .trinketTypography(.sectionDisplay)
                 HomesteadBenefitsView(
+                    nodeID: definition.id,
                     tier: tier,
                     effectsIdentifier: AccessibilityID.Homestead.upgradeEffects,
                     previousTier: status.currentStage,

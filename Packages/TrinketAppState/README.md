@@ -7,7 +7,11 @@ Application composition and player-flow orchestration. Launch/DTO contract:
 ## Ownership
 
 - `AppState`: dependency wiring and shell state
-- `PlaySession`: Play shell and mode registry
+- `PlaySession`: Play shell and mode composition
+- `PlayBattleRuns`: paired runtime/route metadata lifecycle; preparation, activation,
+  restart rollback, pruning, and exit. Its registration storage is private.
+- `PlayBattleLaunch`: access policy and save-backed launch assembly
+- `PlayBattleCompletion`: reward settlement, persistence, and deferred exit timing
 - Mode coordinators (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
   `EncounterPlayMode`): constructor-injected collaborators, no `PlaySession` back-pointer
 - Battle entry runs through one `PlayBattleLaunch.startBattle` gate
@@ -47,9 +51,16 @@ positions. Music uses ambient `AVAudioPlayer`, respecting the Ring/Silent switch
 and mixing with other audio.
 
 Options prepares the muted track off the main thread so the Music slider can
-unmute immediately without a crossfade. Repeated mute reconciles leave that
-preparation in place. Track metadata and encoding belong to
+unmute immediately without a crossfade. Options requests this preparation after
+mute reconciliation. Track metadata and encoding belong to
 [MusicManifest](../../MusicManifest/README.md).
+
+`MusicPlayer` owns track transitions: each voice stays paired with its request,
+pending work is either loading or prepared, and an outgoing fade has one explicit
+teardown owner. Replacing a track saves its position at the actual handoff.
+Cancelled loads cannot install voices, and cancelled fades cannot overwrite a
+new slider gain. `MusicPlaybackBackend` isolates decoding and ambient session
+setup; deterministic transition tests use controlled loads and silent fake voices.
 
 ## Sound effects
 

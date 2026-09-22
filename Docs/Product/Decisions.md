@@ -30,6 +30,7 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-024 | Battle card input stays continuous through effects, draws, turn transitions, and finishing animations. | [Card play](CardPlay.md) owns the approved interaction contract. Animation locks and rejecting visual-only finishing taps are regressions, not safety fixes. |
 | PD-025 | Saving is automatic and player-transparent. | Normal play saves locally and continues offline; cloud synchronization catches up automatically. Handle transient write and sync failures internally without save-error alerts. Preserve recoverable progress and pending actions; [persistence storage](../AgentContext/persistence-storage.md) owns durability and retry rules. |
 | PD-026 | Trinket adopts each new iOS release and supports the latest public major plus the previous major. | Prioritize current native behavior and useful new APIs; test prereleases, ship with a validated stable toolchain. [Platform support](../Platform/ApplePlatformReference.md#platform-support) owns adoption, minimum-version transitions, and verification. |
+| PD-027 | Voyage offers finite, repeatable regional adventures with free retries and party changes. | Unlike the advancing-content modes in PD-016, Voyage uses current-party difficulty offsets. [Voyage.md](Voyage.md) owns routes, accessible offers, and completion bonuses. |
 
 These are product constraints, not a backlog. Sibling product docs:
 [README.md](README.md). For source ownership and tests, read the relevant `Docs/AgentContext/` card.

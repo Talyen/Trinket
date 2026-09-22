@@ -57,7 +57,7 @@ struct AbilityEffectIntegrationTests {
         #expect(events.count(where: { $0.kind == .abilityDamage }) == (hemorrhage ? 0 : 1))
     }
 
-    private func combustionBattle() -> BattleState {
+    func combustionBattle() -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.combustion]),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
@@ -66,7 +66,7 @@ struct AbilityEffectIntegrationTests {
         )
     }
 
-    private func iceShotBattle(frozenEnemy: Bool) -> BattleState {
+    func iceShotBattle(frozenEnemy: Bool) -> BattleState {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.iceShot]),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
@@ -172,64 +172,5 @@ struct AbilityEffectIntegrationTests {
         #expect(remainingBurn.isEmpty)
         let lost = before - context.roster.health(for: context.enemy)
         #expect(lost > 4)
-    }
-
-    @Test func `damage component applies do T stack without immediate tick`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            abilities: [.kindling],
-        )
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
-        var context = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            dealOpeningHand: false,
-        )
-        let startingHealth = context.roster.health(for: enemy)
-
-        let events = BattleTurnEngine.performAction(
-            ability: .kindling,
-            actor: hero,
-            abilityTarget: enemy,
-            context: &context,
-        )
-
-        try #expect(context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .burn })
-        let abilityDamage = events
-            .filter { $0.kind == ActionEvent.Kind.abilityDamage }
-            .reduce(0) { $0 + $1.amount }
-        try #expect(context.roster.health(for: enemy) == startingHealth - abilityDamage)
-        try #expect(!events.contains { $0.kind == ActionEvent.Kind.status && $0.keyword == .burn })
-    }
-
-    @Test func `ice shot exploits freeze without consuming it`() {
-        var context = iceShotBattle(frozenEnemy: true)
-        let events = BattleTurnEngine.performAction(
-            ability: .iceShot,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
-        let components = events.filter { $0.kind == .abilityDamage }
-        #expect(components.count == 1)
-        #expect(components.map(\.keyword) == [.physical])
-        #expect(BattleConditionEvaluator.isMet(.enemyFrozen, actor: context.hero, in: context))
-    }
-
-    @Test func `ice shot builds freeze on an unfrozen enemy`() {
-        var context = iceShotBattle(frozenEnemy: false)
-        let events = BattleTurnEngine.performAction(
-            ability: .iceShot,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
-        let components = events.filter { $0.kind == .abilityDamage }
-        #expect(components.count == 1)
-        #expect(components.map(\.keyword) == [.freeze])
     }
 }

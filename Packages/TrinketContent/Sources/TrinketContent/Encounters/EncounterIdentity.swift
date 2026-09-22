@@ -2,6 +2,7 @@ public struct EncounterIdentity: Hashable, Codable, Sendable {
     public enum Location: Hashable, Codable, Sendable {
         case journey(stageID: String)
         case labyrinth(nodeID: String)
+        case voyage(runID: String, nodeID: String)
     }
 
     public let location: Location
@@ -18,6 +19,7 @@ public struct EncounterIdentity: Hashable, Codable, Sendable {
         switch location {
         case let .journey(stageID): stageID
         case let .labyrinth(nodeID): nodeID
+        case let .voyage(_, nodeID): nodeID
         }
     }
 

@@ -44,7 +44,7 @@ public enum AbilityOperation: Hashable, Sendable {
     public var damageKeyword: Keyword? {
         switch self {
         case let .damage(component):
-            component.target != .actor && component.amount + component.bonusAmount > 0 ? component.keyword : nil
+            component.target != .actor && component.hasPotentialDamage ? component.keyword : nil
         case let .effect(targeted):
             targeted.effect.damageKeywordWhenActive
         }

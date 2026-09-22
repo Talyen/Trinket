@@ -74,6 +74,7 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
     case spiresHub
     case labyrinthMap
     case contracts
+    case voyage
     case spireClimb(SpireID)
 
     public var id: String {
@@ -86,6 +87,8 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
             "spiresHub"
         case .labyrinthMap:
             "labyrinthMap"
+        case .voyage:
+            "voyage"
         case .contracts:
             "contracts"
         case let .spireClimb(spireID):
@@ -105,6 +108,8 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
             [.explore, .spiresHub, .spireClimb(spireID)]
         case .labyrinthMap:
             [.explore, .labyrinthMap]
+        case .voyage:
+            [.explore, .voyage]
         case .contracts:
             [.explore, .contracts]
         }
@@ -117,6 +122,7 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
         case let .spire(spireID, _): .spireClimb(spireID)
         case .labyrinth: .labyrinthMap
         case .contract: .contracts
+        case .voyage: .voyage
         }
         return destination?.navigationPath
     }

@@ -76,6 +76,8 @@ struct PlayBrowsingStack: View {
             LabyrinthMapView()
         case .contracts:
             ContractsBoardView()
+        case .voyage:
+            VoyageView()
         case let .spireClimb(spireID):
             SpireClimbView(spireID: spireID)
         }

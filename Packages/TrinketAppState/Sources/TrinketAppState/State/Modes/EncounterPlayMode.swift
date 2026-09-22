@@ -128,6 +128,11 @@ public final class EncounterPlayMode {
         guard let shopSession = activeShopEncounter else { return false }
 
         guard playerSave.persistBatch(logging: "Failed to leave shop", { save in
+            if case let .voyage(runID, nodeID) = shopSession.encounter.location {
+                guard shopSession.encounter.isPlayable(in: save) else { return }
+                _ = VoyageCompletion.completeNode(runID: runID, nodeID: nodeID, save: &save)
+                return
+            }
             StageCompletion.completeEncounter(
                 stage: shopSession.stage,
                 labyrinthNodeID: shopSession.labyrinthNodeID,

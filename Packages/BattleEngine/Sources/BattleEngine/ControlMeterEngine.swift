@@ -108,7 +108,7 @@ package enum ControlMeterEngine {
         return amount
     }
 
-    private struct ControlMeterThresholdContext {
+    package struct ControlMeterThresholdContext {
         let keyword: Keyword
         let combatant: Combatant
         let sourceActorID: String?
@@ -118,7 +118,7 @@ package enum ControlMeterEngine {
     }
 
     // swiftlint:disable:next function_body_length - control decay keeps status and meter changes ordered
-    private static func applyThresholdReached(
+    package static func applyThresholdReached(
         _ thresholdContext: ControlMeterThresholdContext,
         currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
@@ -312,7 +312,7 @@ package enum ControlMeterEngine {
         return events
     }
 
-    private struct ControlMeterUpdate {
+    package struct ControlMeterUpdate {
         let keyword: Keyword
         let newAmount: Int
         let threshold: Int
@@ -321,7 +321,7 @@ package enum ControlMeterEngine {
         let existingIndex: Int?
     }
 
-    private static func updateBuildup(
+    package static func updateBuildup(
         _ update: ControlMeterUpdate,
         currentEffects: inout [ActiveEffect],
         in context: inout BattleState,

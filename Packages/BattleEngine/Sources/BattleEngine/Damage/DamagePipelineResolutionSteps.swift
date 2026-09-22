@@ -20,7 +20,7 @@ package extension DamagePipeline {
         }
         if state.amount > 0 {
             state.remaining += context.resolution.consumePartyCardDamage(from: state.provenance)
-            applyPartyPhysicalBonus(to: &state, in: &context)
+            applyPartyDamageBonus(to: &state, in: &context)
         }
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
@@ -258,18 +258,14 @@ package extension DamagePipeline {
         }
     }
 
-    private static func applyPartyPhysicalBonus(
+    private static func applyPartyDamageBonus(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
         guard state.amount > 0 else { return }
-        let bonus = context.resolution.consumePartyPhysicalDamage(from: state.provenance)
+        let bonus = context.resolution.consumePartyDamage(from: state.provenance)
         guard bonus > 0 else { return }
-        if state.damageKeyword == .physical {
-            state.remaining += bonus
-        } else {
-            state.additionalPhysicalDamage += bonus
-        }
+        state.remaining += bonus
     }
 
     static func reserveAttackEmpowers(to state: inout DamageResolutionState, in context: inout BattleState) {

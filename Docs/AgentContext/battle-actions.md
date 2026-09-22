@@ -92,18 +92,20 @@ action frame. Do not toggle a separate automatic-play flag.
 
 ## Ability strategy
 
-- Shield Bash spends exactly 2 Block when available for 5 base Stun damage;
-  otherwise it deals 2 Stun without spending Block. Reserve the payment before
-  interception reactions; a cancelled attack refunds it without Block-gain
-  triggers. It no longer grants Block.
-- Ice Shot chooses 5 Physical against an already Frozen target or 2 Freeze
-  otherwise. It preserves Frozen and buys no Freeze empowerment for Physical.
-  Its conditional Physical payoff does not change its existing Freeze identity.
+- Avatar reserves its Holy conversion at the next direct attack's first eligible
+  hit, before reactions. All direct hits in that action share it; nested attacks
+  and recurring damage cannot spend that reservation. A fresh Avatar preparation
+  granted during the action survives for the next attack.
+- Shield Bash gains 1 Block, then deals Stun damage equal to half the actor's
+  current Block, floored and clamped to a minimum of 1. The gain happens before
+  the damage calculation and no Block is spent.
+- Ice Shot deals 2 Freeze damage, doubled against an already Frozen target.
+  It preserves Frozen and remains Freeze damage for empowerment and identity.
 - Maul chooses 3 Stun against positive enemy Block or 3 Bleed otherwise; it is
   not random. Stab guarantees a Critical Hit against full Health at preparation
   and otherwise uses ordinary critical chance, without its former +25% bonus.
 - Sunder halves Block before its 4 Physical hit, using existing halving rounding.
-- Sniff Out prepares +3 Physical for the living partner, falling back to the
+- Sniff Out prepares +1 generic damage for the living partner, falling back to the
   caster if the partner is defeated. Reapplication refreshes rather than stacks;
   preparation survives turn changes. Only the recipient's next damaging card
   reserves it, including automatically played cards. The first damaging hit

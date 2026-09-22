@@ -390,7 +390,10 @@ extension BattleActionPresentationTests {
         return cards
     }
 
-    @Test(arguments: [Ability.avatarOfJustice, Ability(
+    @Test(arguments: [Ability(
+        id: "avatar-recoil", name: "Avatar", tier: .ultimate,
+        targetedEffects: [TargetedEffect(.avatar(holyDamage: 6, blockPerTurn: 0, turns: 2))],
+    ), Ability(
         id: "recurring-recoil", name: "Recurring", tier: .skill,
         targetedEffects: [TargetedEffect(.recurringDamage(.burn, 6, 2))],
     )])

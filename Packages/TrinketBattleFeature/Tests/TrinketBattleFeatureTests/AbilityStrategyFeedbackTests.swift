@@ -29,7 +29,7 @@ struct AbilityStrategyFeedbackTests {
 
     @Test func `sniff out shows preparation and amount on recipient`() throws {
         let event = BattleSessionTestSupport.makeActionEvent(
-            id: 1, kind: .effect, effectKind: .physicalPreparationApplied, amount: 3, keyword: .physical,
+            id: 1, kind: .effect, effectKind: .partyDamagePreparationApplied, amount: 3, keyword: .physical,
         )
         let item = try #require(CombatFeedbackPresenter.makeItems(from: [event], at: .now).first)
         #expect(item.targetID == event.targetID)

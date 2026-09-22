@@ -112,7 +112,7 @@ enum CombatFeedbackEffectPresentation {
             labelRule: .amount,
             displayRule: .hidden,
         ),
-        .physicalPreparationApplied: Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .amount),
+        .partyDamagePreparationApplied: Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .amount),
         .blockSpent: Descriptor(.buff, labelRule: .negatedAmount),
         .shieldApplied: Descriptor(.buff, isAdditive: true, labelRule: .amount),
         .shieldAbsorbed: Descriptor(.block, isAdditive: true, labelRule: .negatedAmount),

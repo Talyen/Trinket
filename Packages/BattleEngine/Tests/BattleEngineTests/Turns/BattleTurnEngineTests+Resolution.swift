@@ -37,7 +37,7 @@ extension BattleTurnEngineTests {
     @Test func `bounty shot deals fixed damage and gold without mark`() throws {
         let ability = Ability.bountyShot
         try #expect(ability.outcomeBranches == nil)
-        try #expect(ability.summary == "Deal 3 Physical damage and Steal 2 Gold.")
+        try #expect(ability.summary == "Deal 3 Stun damage\nSteal 2 Gold")
         var context = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(),
             companion: CombatantFixtures.passiveCompanion(),
@@ -51,6 +51,7 @@ extension BattleTurnEngineTests {
         )
 
         #expect(context.gold == 2)
+        #expect(context.roster.activeEffects(for: context.enemy).contains { $0.effect.keyword == .stun })
         #expect(context.roster.enemy.currentHealth < initialHealth)
     }
 }

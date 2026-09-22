@@ -227,7 +227,7 @@ struct BattleMechanicsTests {
         )
     }
 
-    @Test func `predators focus applies critical chance bonus`() throws {
+    @Test func `predators focus applies leech preparation`() throws {
         let baseWolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let wolf = baseWolf.withAbilityLoadout(
             AbilityLoadout(
@@ -248,14 +248,8 @@ struct BattleMechanicsTests {
             context: &context,
         )
 
-        try #expect(
-            context.roster.activeEffects(for: wolf).contains {
-                if case .nextStrikeCritical = $0.effect {
-                    return true
-                }
-                return false
-            },
-        )
+        try #expect(context.roster.activeEffects(for: wolf).contains { $0.effect == .nextStrikeLeech })
+        try #expect(!context.roster.activeEffects(for: wolf).contains { $0.effect == .nextStrikeCritical })
     }
 
     @Test func `next strike critical guarantees crit and consumes`() throws {

@@ -65,7 +65,6 @@ ability	pounce	ability_pounce	Raw Assets/Abilities/Pounce.jpeg	0.50	0.50
 ability	predators-focus	ability_predators_focus	Raw Assets/Abilities/Predator's Focus.jpeg	0.50	0.50
 ability	ray-of-frost	ability_ray_of_frost	Raw Assets/Abilities/Ray of Frost.jpeg	0.50	0.50
 ability	rending-slash	ability_rending_slash	Raw Assets/Abilities/Rend.jpeg	0.50	0.50
-ability	sap-arrow	ability_sap_arrow	Raw Assets/Abilities/Sap Arrow.jpeg	0.50	0.50
 ability	serrated-edge	ability_serrated_edge	Raw Assets/Abilities/Serrated Edge.jpeg	0.50	0.50
 ability	shadowstep	ability_shadowstep	Raw Assets/Abilities/Shadowstep.jpeg	0.50	0.50
 ability	shield-bash	ability_shield_bash	Raw Assets/Abilities/Shield Bash.jpeg	0.50	0.50
@@ -321,3 +320,4 @@ talent	purge	talent_purge	Raw Assets/Talents/Purge.jpeg	0.50	0.50
 talent	cleanse	talent_cleanse	Raw Assets/Talents/Cleanse.jpeg	0.50	0.50
 talent	mana	talent_mana	Raw Assets/Talents/Mana.jpeg	0.50	0.50
 talent	deathsDoor	talent_deaths_door	Raw Assets/Talents/Death's Door.jpeg	0.50	0.50
+background	gameModeVoyage	bg_game_mode_voyage	Raw Assets/Game Modes/Voyage.png	0.50	0.50

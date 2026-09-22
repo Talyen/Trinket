@@ -54,7 +54,12 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                     onPrimaryAction: onPrimaryAction,
                     artwork: artwork,
                     partyPickerSheet: partyPickerSheet,
+                    artworkAccessory: { StageSelectModifierCaption(modifiers: presentation.modifiers) },
                 )
+            } else if presentation.allowsCompactInspection, presentation.isArtworkInteractive {
+                Button(action: onArtworkTap) { compactRow }
+                    .trinketArtworkCardButtonStyle()
+                    .accessibilityIdentifier(presentation.artworkAccessibilityID)
             } else {
                 compactRow
             }
@@ -78,6 +83,11 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                     .lineLimit(1)
 
                 StageSelectMetaLine(presentation: presentation)
+                ForEach(presentation.modifiers) { modifier in
+                    Text(modifier.title)
+                        .trinketTypography(.footnote)
+                        .foregroundStyle(LabyrinthModifierPresentation.style(for: modifier).color)
+                }
             }
 
             Spacer(minLength: TrinketDesign.Spacing.extraSmall)

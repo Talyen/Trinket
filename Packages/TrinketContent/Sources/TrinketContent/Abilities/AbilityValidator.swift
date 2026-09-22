@@ -24,16 +24,18 @@ enum AbilityValidator {
         "fireball",
         "glacial-ward",
         "golden-plate",
+        "hemorrhage",
         "ice-shot",
         "kindling",
         "luck-potion",
         "maul",
+        "molten-bulwark",
         "pack-tactics",
         "panacea-potion",
         "poison-dagger",
         "pounce",
         "predators-focus",
-        "sap-arrow",
+        "ray-of-frost",
         "serrated-edge",
         "shadowstep",
         "shield-bash",
@@ -41,6 +43,7 @@ enum AbilityValidator {
         "smite",
         "sniff-out",
         "stab",
+        "spiked-shield",
         "sunburst",
         "sunder",
         "thorn-mail",
@@ -146,7 +149,11 @@ enum AbilityValidator {
         case "luck-potion":
             (1 ... 12).contains(total)
         case "bash":
-            total == 4
+            total == 3
+        case "cold-snap", "dark-pact", "predators-focus":
+            total == 1
+        case "fireball":
+            (1 ... 5).contains(total)
         case "ice-shot", "shield-bash":
             total == 5
         case "maul":

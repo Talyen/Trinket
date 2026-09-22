@@ -67,7 +67,7 @@ private extension BattleState {
         for component in branch.damageComponents {
             let conditionMet = component.condition.map { BattleConditionEvaluator.isMet($0, actor: actor, in: self) } ?? true
             guard conditionMet || component.bonusAmount != 0,
-                  component.amount + (conditionMet ? component.bonusAmount : 0) > 0 else { continue }
+                  component.hasPotentialDamage else { continue }
             let target = BattleTargetResolver.effectTarget(component.target, actor: actor, abilityTarget: abilityTarget, in: self)
             guard target.id != actor.id else { continue }
             let keyword = keywordOverride ?? (branch.randomizeDamageKeywords ? nil : component.keyword)
@@ -77,7 +77,7 @@ private extension BattleState {
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
                 continue
             }
-            if case .partyPhysicalBonus = targeted.effect {
+            if case .partyDamageBonus = targeted.effect {
                 let recipient = BattleAbilityRules.preparationRecipient(for: actor, in: self)
                 targets.append(.init(combatantID: recipient.id, intent: .effect(targeted.effect)))
                 continue
