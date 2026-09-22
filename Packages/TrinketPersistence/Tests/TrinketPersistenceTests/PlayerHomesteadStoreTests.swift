@@ -6,6 +6,21 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct PlayerHomesteadStoreTests {
+    @Test @MainActor func `runesmith builds without other buildings and survives reload`() async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let definition = try #require(GameContent.homesteadNode(matching: .runesmithWorkshop))
+        #expect(store.persistBatch(logging: "Independent building fixture") { save in
+            save.homestead = PlayerHomesteadState(resources: [.iron: 9, .gems: 2], nodeTiers: [:])
+        })
+        #expect(await store.buildOrUpgradeNode(definition, targetTier: 1) == .success)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.homestead.tier(for: .runesmithWorkshop) == 1)
+        #expect(HomesteadNodeID.allCases.filter { $0 != .runesmithWorkshop }.allSatisfy { reloaded.homestead.tier(for: $0) == 0 })
+        #expect(reloaded.homestead.balance(for: .iron, roster: reloaded.roster) == 0)
+        #expect(reloaded.homestead.balance(for: .gems, roster: reloaded.roster) == 0)
+    }
+
     @Test @MainActor func `cloud homestead actions preserve wallet tiers and production across reload`() async throws {
         let context = try PersistenceTestContext()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))

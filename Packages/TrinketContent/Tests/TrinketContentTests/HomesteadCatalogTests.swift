@@ -3,15 +3,12 @@ import TrinketCore
 @testable import TrinketContent
 
 struct HomesteadCatalogTests {
-    @Test func `every node has four increasing tiers and valid prerequisites`() {
+    @Test func `every node has four increasing tiers`() {
         let nodes = GameContent.homesteadNodes
         #expect(Set(nodes.map(\.id)).count == nodes.count)
         for node in nodes {
             #expect(node.maxTier == 4)
             #expect(node.tiers.map(\.tier) == [1, 2, 3, 4])
-            for requirement in node.prerequisites {
-                #expect(nodes.contains { $0.id == requirement.nodeID })
-            }
             for tier in node.tiers {
                 #expect(!tier.stageName.isEmpty)
                 #expect(tier.stageName.split(separator: " ").count <= 3)

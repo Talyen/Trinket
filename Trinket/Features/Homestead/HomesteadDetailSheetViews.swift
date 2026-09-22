@@ -40,11 +40,13 @@ struct HomesteadDetailSheetView: View {
             if let tier = definition.tier(number) {
                 improvement(tier)
                     .presentationDragIndicator(.visible)
-                    .presentationBackground(TrinketDesign.Colors.surface)
+                    .trinketSheetSurface()
                     .interactiveDismissDisabled(build.isPending || purchaseCommitted)
             }
         case .wallet:
             HomesteadWalletSheet()
+        case .crafting:
+            BlacksmithForgeView()
         }
     }
 
@@ -95,15 +97,6 @@ struct HomesteadDetailSheetView: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(AccessibilityID.Homestead.upgradeCost)
 
-            ForEach(status.missingPrerequisites, id: \.nodeID) { requirement in
-                if let project = GameContent.homesteadNode(matching: requirement.nodeID) {
-                    Text("Requires \(project.title), \(project.tier(requirement.minimumTier)?.stageName ?? project.title)")
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-
             Button { onPurchase(tier.tier) } label: {
                 Text(build.isPending ? "Finishing…" : (tier.tier == 1 ? "Build" : "Upgrade"))
                     .frame(maxWidth: .infinity)
@@ -113,7 +106,7 @@ struct HomesteadDetailSheetView: View {
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
-        .background(TrinketDesign.Colors.surface)
+        .background(TrinketDesign.Colors.sheet)
     }
 }
 
@@ -146,6 +139,6 @@ struct HomesteadWalletSheet: View {
         }
         .presentationDetents([.height(260), .large])
         .presentationDragIndicator(.visible)
-        .presentationBackground(TrinketDesign.Colors.surface)
+        .trinketSheetSurface()
     }
 }

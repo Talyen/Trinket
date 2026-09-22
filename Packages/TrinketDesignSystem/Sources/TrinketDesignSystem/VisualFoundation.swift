@@ -9,6 +9,7 @@ public enum SurfaceRole: Equatable, Sendable {
 public enum MaterialRole: Sendable {
     case bottomBar
     case subtleOverlay
+    case frostedPanel
 }
 
 public enum GlassChipRole: String, CaseIterable, Sendable, Equatable {
@@ -57,8 +58,9 @@ public enum TypographyRole: Sendable {
 }
 
 struct TrinketScreenBackground: View {
+    @Environment(\.trinketCanvasColor) private var canvasColor
     var body: some View {
-        TrinketDesign.Colors.canvas.ignoresSafeArea()
+        canvasColor.ignoresSafeArea()
     }
 }
 
@@ -165,6 +167,10 @@ struct MaterialRoleModifier: ViewModifier {
         switch role {
         case .bottomBar:
             content.glassEffect(.regular, in: shape)
+        case .frostedPanel:
+            content
+                .background(.thinMaterial, in: shape)
+                .overlay { shape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1) }
         case .subtleOverlay:
             content
                 .background(.ultraThinMaterial, in: shape)

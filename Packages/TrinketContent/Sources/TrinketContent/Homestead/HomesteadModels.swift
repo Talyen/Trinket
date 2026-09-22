@@ -1,16 +1,6 @@
 import Foundation
 import TrinketCore
 
-public struct HomesteadNodeRequirement: Hashable, Sendable {
-    public let nodeID: HomesteadNodeID
-    public let minimumTier: Int
-
-    public init(_ nodeID: HomesteadNodeID, tier: Int = 1) {
-        self.nodeID = nodeID
-        minimumTier = tier
-    }
-}
-
 public struct HomesteadBonus: Hashable, Sendable {
     public let title: String
     public let description: String
@@ -82,7 +72,6 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
     public let summary: String
     public let iconID: String
     public let category: HomesteadNodeCategory
-    public let prerequisites: [HomesteadNodeRequirement]
     public let tiers: [HomesteadNodeTier]
 
     public init(
@@ -91,7 +80,6 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
         summary: String,
         iconID: String,
         category: HomesteadNodeCategory,
-        prerequisites: [HomesteadNodeRequirement],
         tiers: [HomesteadNodeTier],
     ) {
         self.id = id
@@ -99,7 +87,6 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
         self.summary = summary
         self.iconID = iconID
         self.category = category
-        self.prerequisites = prerequisites
         self.tiers = tiers
     }
 

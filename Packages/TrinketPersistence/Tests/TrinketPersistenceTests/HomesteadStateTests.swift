@@ -62,18 +62,23 @@ struct HomesteadStateTests {
         }
     }
 
-    @Test func `locked node cannot upgrade before prerequisites`() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .blacksmithForge))
-        var homestead = PlayerHomesteadState(
-            resources: [.wood: 100, .stone: 100, .iron: 100],
-            nodeTiers: [.wheatField: 1],
-        )
+    @Test(arguments: GameContent.homesteadNodes)
+    func `any node can be the first building when its materials are available`(definition: HomesteadNodeDefinition) throws {
+        let tier = try #require(definition.tier(1))
+        var homestead = PlayerHomesteadState.freshStart
         var roster = PlayerRosterState.freshStart
-        roster.gold = 100
-
-        let built = homestead.buildOrUpgrade(definition, roster: &roster)
-        try #expect(!built)
-        try #expect(homestead.tier(for: .blacksmithForge) == 0)
+        for amount in tier.cost {
+            if amount.resource == .gold {
+                roster.gold = amount.quantity
+            } else {
+                homestead.resources[amount.resource] = amount.quantity
+            }
+        }
+        #expect(homestead.buildOrUpgrade(definition, roster: &roster))
+        #expect(homestead.nodeTiers == [definition.id: 1])
+        for amount in tier.cost {
+            #expect(homestead.balance(for: amount.resource, roster: roster) == 0)
+        }
     }
 
     @Test func `effects replace lower tiers instead of stacking`() throws {

@@ -79,6 +79,7 @@ private struct HomesteadBenefitItem: View {
         if let resource = effect.resource {
             var output = AttributedString(" \(resource.displayName)")
             output.inlinePresentationIntent = .stronglyEmphasized
+            output.foregroundColor = resource.productionNameColor
             return value + output + AttributedString(" per Day")
         }
         if effect.id == .gemsFind {
@@ -88,33 +89,32 @@ private struct HomesteadBenefitItem: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-            HStack(spacing: TrinketDesign.Spacing.small) {
-                Group {
-                    if let resource = effect.resource {
-                        HomesteadResourceArtwork(resource: resource)
-                    } else {
-                        let style = HomesteadEffectStyle(key: effect.id)
-                        Image(systemName: style.symbol)
-                            .symbolRenderingMode(.monochrome)
-                            .trinketTypography(.sectionTitle)
-                            .foregroundStyle(style.tint)
-                    }
+        HStack(alignment: .top, spacing: TrinketDesign.Spacing.small) {
+            Group {
+                if let resource = effect.resource {
+                    HomesteadResourceArtwork(resource: resource)
+                } else {
+                    let style = HomesteadEffectStyle(key: effect.id)
+                    Image(systemName: style.symbol)
+                        .symbolRenderingMode(.monochrome)
+                        .trinketTypography(.sectionTitle)
+                        .foregroundStyle(style.tint)
                 }
-                .frame(width: 36, height: 36)
-                .accessibilityHidden(true)
+            }
+            .frame(width: 36, height: 36)
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
                 Text(title)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
+                Text(description)
+                    .trinketTypography(.body)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .contentTransition(.numericText())
+                    .scaleEffect(isHighlighted ? 1.03 : 1, anchor: .leading)
             }
-            Text(description)
-                .trinketTypography(.rowTitle)
-                .fontWeight(.regular)
-                .foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
-                .contentTransition(.numericText())
-                .scaleEffect(isHighlighted ? 1.03 : 1, anchor: .leading)
         }
         .accessibilityElement(children: .combine)
     }

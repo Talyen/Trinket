@@ -112,16 +112,6 @@ struct HomesteadProjectTile: View {
                                 lineWidth: 1,
                             )
                     }
-                    .shadow(color: TrinketDesign.Colors.accent.opacity(status.canBuildOrUpgrade ? 0.4 : 0), radius: 8)
-                    .overlay(alignment: .bottomTrailing) {
-                        if !status.isUnlocked {
-                            Image(systemName: "lock.fill")
-                                .trinketTypography(.body)
-                                .trinketOnArtText()
-                                .padding(TrinketDesign.Spacing.medium)
-                                .accessibilityHidden(true)
-                        }
-                    }
 
                 HomesteadTierProgress(currentTier: status.currentTier, totalTiers: definition.maxTier)
                     .frame(maxWidth: 132)
@@ -147,7 +137,7 @@ struct HomesteadProjectTile: View {
     private var artwork: some View {
         if let art = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {
             FocalBackgroundArtwork(art: art, displaySize: .compact)
-                .saturation(status.isUnlocked ? 1 : 0.35)
+                .saturation(status.currentTier > 0 ? 1 : 0.35)
         } else {
             TrinketDesign.Colors.surface
         }

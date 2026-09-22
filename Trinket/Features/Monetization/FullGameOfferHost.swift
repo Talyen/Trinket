@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketContent
+import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureContracts
 import TrinketFeatureSupport
@@ -22,6 +23,7 @@ private struct FullGameOfferHost: ViewModifier {
                 NavigationStack {
                     FullGameOfferView(artwork: offer.artwork)
                 }
+                .trinketSheetSurface()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }

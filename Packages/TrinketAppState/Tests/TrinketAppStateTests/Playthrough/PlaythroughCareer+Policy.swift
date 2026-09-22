@@ -87,7 +87,7 @@ extension PlaythroughCareer {
                 try await perform(.equip(combatant: combatant.id, item: item.id))
             }
         }
-        for definition in GameContent.homesteadNodes where store.homestead.isUnlocked(definition) {
+        for definition in GameContent.homesteadNodes {
             guard let tier = store.homestead.nextTier(for: definition),
                   store.homestead.canAfford(tier, roster: store.roster) else { continue }
             try await perform(.upgrade(definition.id.rawValue, tier.tier))

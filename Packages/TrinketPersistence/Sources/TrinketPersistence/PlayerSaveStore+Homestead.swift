@@ -123,8 +123,7 @@ enum HomesteadBuildMutation {
         at date: Date,
         to save: inout PlayerSave,
     ) -> Result<Void, HomesteadBuildFailure> {
-        guard let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier,
-              save.homestead.isUnlocked(definition) else { return .failure(.notAvailable) }
+        guard let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier else { return .failure(.notAvailable) }
         save.homestead.settleProduction(at: date, roster: save.roster)
         guard save.homestead.canAfford(tier, roster: save.roster) else { return .failure(.insufficientResources) }
         guard save.homestead.buildOrUpgrade(definition, roster: &save.roster) else { return .failure(.notAvailable) }

@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 public enum TrinketDetailSheetMetrics {
     public static let presentationSettleDuration: Duration = .milliseconds(550)
@@ -22,6 +23,7 @@ private struct TrinketDetailSheetModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .trinketSheetSurface()
             .presentationDetents([.large])
             .presentationContentInteraction(.scrolls)
             .presentationDragIndicator(dragIndicator)

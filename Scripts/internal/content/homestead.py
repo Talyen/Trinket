@@ -63,7 +63,6 @@ class HomesteadNodeRow:
     summary: str
     icon_id: str
     category: str
-    prerequisites: str
     tier: str
     stage_name: str
     cost: str
@@ -76,7 +75,7 @@ class HomesteadNodeRow:
 @functools.cache
 def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
     return _parse_tsv_rows(MANIFEST_DIR / 'homestead_nodes.tsv',
-        ['node_id', 'title', 'summary', 'icon_id', 'category', 'prerequisites', 'tier', 'stage_name', 'cost', 'bonus_title', 'bonus_description', 'modifiers', 'production'], HomesteadNodeRow, min_columns=None)
+        ['node_id', 'title', 'summary', 'icon_id', 'category', 'tier', 'stage_name', 'cost', 'bonus_title', 'bonus_description', 'modifiers', 'production'], HomesteadNodeRow, min_columns=None)
 
 
 def parse_homestead_combat_tokens(
@@ -169,38 +168,6 @@ def render_homestead_combat_bonus(raw: str) -> str:
     return "HomesteadTierCombatBonus(" + ", ".join(parts) + ")"
 
 
-def parse_homestead_prereq_tokens(raw: str) -> list[tuple[str, int | None]]:
-    requirements: list[tuple[str, int | None]] = []
-    for token in raw.split("|"):
-        token = token.strip()
-        if not token:
-            continue
-        if ":" in token:
-            node_id, tier = token.split(":", 1)
-            try:
-                tier_value: int | None = int(tier.strip())
-            except ValueError as error:
-                raise ValueError(
-                    f"Prerequisite tier {tier.strip()!r} must be an integer"
-                ) from error
-            requirements.append((node_id.strip(), tier_value))
-        else:
-            requirements.append((token, None))
-    return requirements
-
-
-def parse_homestead_prerequisites(raw: str) -> str:
-    if not raw.strip():
-        return "[]"
-    requirements = []
-    for node_id, tier in parse_homestead_prereq_tokens(raw):
-        if tier is None:
-            requirements.append(f"HomesteadNodeRequirement(.{node_id})")
-        else:
-            requirements.append(f"HomesteadNodeRequirement(.{node_id}, tier: {tier})")
-    return "[" + ", ".join(requirements) + "]"
-
-
 def render_homestead_tier(row: HomesteadNodeRow) -> str:
     production = parse_homestead_production(row.production)
     production_line = f",\n                    production: {production}" if production else ""
@@ -253,7 +220,6 @@ def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
             summary: "{swift_escape(meta.summary)}",
             iconID: "{swift_escape(meta.icon_id)}",
             category: .{meta.category},
-            prerequisites: {parse_homestead_prerequisites(meta.prerequisites)},
             tiers: [
 {tier_blocks}
             ]
@@ -267,28 +233,6 @@ def validate_homestead_cost(raw: str, row_id: str) -> None:
         parse_material_tokens(raw)
     except ValueError as error:
         raise ValueError(f"{error} for {row_id}") from error
-
-
-def validate_homestead_prerequisites(
-    raw: str, row_id: str, node_tiers: dict[str, set[int]]
-) -> None:
-    if not raw.strip():
-        return
-    try:
-        requirements = parse_homestead_prereq_tokens(raw)
-    except ValueError as error:
-        raise ValueError(f"{error} for {row_id}") from error
-    for node_id, tier_value in requirements:
-        if tier_value is not None and tier_value <= 0:
-            raise ValueError(f"Prerequisite tier for {row_id} must be positive")
-        if node_id not in VALID_HOMESTEAD_NODE_IDS:
-            raise ValueError(f"Unknown homestead node '{node_id}' in prerequisites for {row_id}")
-        if node_id not in node_tiers:
-            raise ValueError(f"Prerequisite node '{node_id}' for {row_id} is not defined in manifest")
-        if tier_value is not None and tier_value not in node_tiers[node_id]:
-            raise ValueError(
-                f"Prerequisite tier {tier_value} for {row_id} is not defined on node '{node_id}'"
-            )
 
 
 def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
@@ -325,27 +269,16 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
                 raise ValueError(f"{error} for {row_id}") from error
         nodes.setdefault(row.node_id, []).append(row)
 
-    node_tiers = {
-        node_id: {int(row.tier) for row in node_rows}
-        for node_id, node_rows in nodes.items()
-    }
     for node_id, node_rows in nodes.items():
-        for row in node_rows:
-            validate_homestead_prerequisites(
-                row.prerequisites, f"{node_id}-tier-{row.tier}", node_tiers
-            )
-
         titles = {row.title for row in node_rows}
         summaries = {row.summary for row in node_rows}
         symbols = {row.icon_id for row in node_rows}
         categories = {row.category for row in node_rows}
-        prerequisite_sets = {row.prerequisites for row in node_rows}
         if (
             len(titles) != 1
             or len(summaries) != 1
             or len(symbols) != 1
             or len(categories) != 1
-            or len(prerequisite_sets) != 1
         ):
             raise ValueError(f"Homestead node metadata must be consistent for {node_id}")
 

@@ -1,7 +1,8 @@
 import SwiftUI
 
 private struct BottomArtworkBlend: View {
-    let color: Color
+    @Environment(\.trinketCanvasColor) private var canvasColor
+    let color: Color?
     private let clearInset: CGFloat = 0.22
 
     var body: some View {
@@ -9,7 +10,7 @@ private struct BottomArtworkBlend: View {
             stops: [
                 .init(color: .clear, location: 0),
                 .init(color: .clear, location: 1 - clearInset),
-                .init(color: color, location: 1),
+                .init(color: color ?? canvasColor, location: 1),
             ],
             startPoint: .top,
             endPoint: .bottom,
@@ -18,7 +19,7 @@ private struct BottomArtworkBlend: View {
 }
 
 public extension View {
-    func trinketBottomArtworkBlend(color: Color = TrinketDesign.Colors.canvas) -> some View {
+    func trinketBottomArtworkBlend(color: Color? = nil) -> some View {
         overlay {
             BottomArtworkBlend(color: color).allowsHitTesting(false)
         }

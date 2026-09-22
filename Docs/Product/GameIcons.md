@@ -2,7 +2,9 @@
 
 Rendering and library policy are owned by the
 [design system](../../Packages/TrinketDesignSystem/Documentation/VisualRoles.md#game-icons).
-All symbolic game imagery uses SF Symbols; painted artwork remains primary.
+Symbolic game imagery uses SF Symbols; painted artwork remains primary.
+The Blacksmith Craft entry is a deliberate exception: its small SwiftUI anvil
+silhouette preserves the crafting identity where SF Symbols has no anvil glyph.
 
 ## Keywords
 

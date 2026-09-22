@@ -15,10 +15,6 @@ public struct HomesteadProjectStatus {
         definition.tier(currentTier)
     }
 
-    public var missingPrerequisites: [HomesteadNodeRequirement] {
-        definition.prerequisites.filter { homestead.tier(for: $0.nodeID) < $0.minimumTier }
-    }
-
     public var materialShortfalls: [ResourceAmount] {
         nextTier?.cost.compactMap { amount in
             let missing = amount.quantity - balance(for: amount)
@@ -30,10 +26,6 @@ public struct HomesteadProjectStatus {
         homestead.nextTier(for: definition)
     }
 
-    public var isUnlocked: Bool {
-        homestead.isUnlocked(definition)
-    }
-
     public var isComplete: Bool {
         homestead.isComplete(definition)
     }
@@ -43,7 +35,7 @@ public struct HomesteadProjectStatus {
     }
 
     public var canBuildOrUpgrade: Bool {
-        isUnlocked && isAffordable && !isComplete
+        isAffordable && !isComplete
     }
 
     public func balance(for amount: ResourceAmount) -> Int {

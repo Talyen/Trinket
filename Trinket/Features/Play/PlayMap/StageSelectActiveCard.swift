@@ -66,6 +66,7 @@ struct StageSelectActiveCard<
         .accessibilityElement(children: .contain)
         .sheet(isPresented: $isPartyPickerPresented) {
             partyPickerSheet()
+                .trinketSheetSurface()
         }
     }
 

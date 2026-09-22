@@ -7,7 +7,7 @@ import TrinketPersistence
 
 struct HomesteadPresentationTests {
     enum LifecycleCase {
-        case lockedPrerequisite
+        case independentUnbuilt
         case unbuiltAffordable
         case unbuiltUnaffordable
         case built
@@ -17,7 +17,7 @@ struct HomesteadPresentationTests {
     }
 
     @Test(arguments: [
-        LifecycleCase.lockedPrerequisite,
+        LifecycleCase.independentUnbuilt,
         .unbuiltAffordable,
         .unbuiltUnaffordable,
         .built,
@@ -27,8 +27,8 @@ struct HomesteadPresentationTests {
     ])
     func `project lifecycle exposes current benefits and next offer`(caseKind: LifecycleCase) throws {
         switch caseKind {
-        case .lockedPrerequisite:
-            try assertLockedPrerequisiteLifecycle()
+        case .independentUnbuilt:
+            try assertIndependentUnbuiltLifecycle()
         case .unbuiltAffordable:
             try assertUnbuiltAffordableLifecycle()
         case .unbuiltUnaffordable:
@@ -44,13 +44,15 @@ struct HomesteadPresentationTests {
         }
     }
 
-    private func assertLockedPrerequisiteLifecycle() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .chickenCoop))
-        let status = makeStatus(definition: definition, homestead: .freshStart)
-        #expect(!status.isUnlocked)
+    private func assertIndependentUnbuiltLifecycle() throws {
+        let definition = try #require(GameContent.homesteadNode(matching: .blacksmithForge))
+        let status = makeStatus(
+            definition: definition,
+            homestead: PlayerHomesteadState(resources: [.stone: 3, .iron: 7], nodeTiers: [:]),
+        )
+        #expect(status.currentTier == 0)
         #expect(status.currentStage?.bonus == nil)
-        #expect(!status.missingPrerequisites.isEmpty)
-        #expect(!status.canBuildOrUpgrade)
+        #expect(status.canBuildOrUpgrade)
     }
 
     private func assertUnbuiltAffordableLifecycle() throws {
@@ -141,7 +143,6 @@ struct HomesteadPresentationTests {
             summary: original.summary,
             iconID: original.iconID,
             category: original.category,
-            prerequisites: [],
             tiers: tiers,
         )
         let before = makeStatus(

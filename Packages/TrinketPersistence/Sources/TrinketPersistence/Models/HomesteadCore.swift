@@ -227,10 +227,6 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
 }
 
 public extension PlayerHomesteadState {
-    func isUnlocked(_ definition: HomesteadNodeDefinition) -> Bool {
-        definition.prerequisites.allSatisfy { tier(for: $0.nodeID) >= $0.minimumTier }
-    }
-
     func nextTier(for definition: HomesteadNodeDefinition) -> HomesteadNodeTier? {
         definition.tier(tier(for: definition.id) + 1)
     }
@@ -244,8 +240,7 @@ public extension PlayerHomesteadState {
     }
 
     mutating func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: inout PlayerRosterState) -> Bool {
-        guard isUnlocked(definition),
-              let tier = nextTier(for: definition),
+        guard let tier = nextTier(for: definition),
               canAfford(tier, roster: roster)
         else { return false }
 

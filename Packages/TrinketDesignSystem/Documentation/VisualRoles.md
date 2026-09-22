@@ -53,6 +53,23 @@ Hero / Companion / Enemy / Ability / Item detail sheets share one body ladder (v
 
 Use semantic modifiers (`.trinketSurface(.secondary)`, `.trinketScreenBackground()`) instead of hardcoded colors. Roles are `secondary`, `card`, and `denseRow`.
 
+Sheets use `.trinketSheetSurface()` at their presentation boundary. It sets the
+shared opaque `sheet` color (the existing panel charcoal) for presentation, body
+backgrounds, and default
+artwork fades. `.trinketScreenBackground()` and `.trinketBottomArtworkBlend()`
+inherit that context; full-screen content retains `canvas`. Do not paint a
+near-black canvas inside a grey sheet or add a different footer background.
+
+Homestead Craft, Build, Upgrade, completed tier progress, and static benefit
+containers all use `.trinketMaterial(.frostedPanel)` (native thin material with a
+subtle border). This shared treatment prioritizes consistent text legibility over
+artwork while retaining translucency. Tint is a color/meaning control, not a
+numeric replacement for material thickness. Toolbar chrome retains native glass.
+
+Production material names use `HomesteadResource.productionNameColor`: Physical
+for Iron/Stone, Health for Food, and the existing resource tint for other names.
+This does not recolor the illustrated resources or change wallet/category tints.
+
 ## Keyword styling
 
 Every keyword has one visual identity via `Keyword.visualStyle`. Do not introduce one-off keyword colors in feature views.
@@ -64,7 +81,9 @@ retain the intended meaning; symbols such as `asterisk`, `snowflake`, `wind`, an
 `sparkles` do not need a fill variant. Preserve native font weight, scale, and
 symbol behavior. Painted artwork remains primary outside symbolic feedback.
 [Game icon selections](../../../Docs/Product/GameIcons.md) records shared mappings
-and links to individual talent and Homestead selections.
+and links to individual talent and Homestead selections. The Blacksmith Craft
+entry has one approved exception: a small SwiftUI anvil silhouette, because SF
+Symbols has no anvil glyph. This does not introduce a separate icon library.
 
 Check each new symbol and symbol effect against the minimum supported OS; the
 current SF Symbols app can include names available only on newer releases. Use an

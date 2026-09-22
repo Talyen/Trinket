@@ -19,12 +19,6 @@ from internal.content import homestead
 
 
 class CodegenHomesteadTests(ScriptRegressionTestCase):
-    def test_homestead_prerequisite_tier_must_exist(self) -> None:
-        with self.assertRaises(ValueError):
-            homestead.validate_homestead_prerequisites(
-                "wheatField:9", "orchard-tier-1", {"wheatField": {1, 2}}
-            )
-
     def test_homestead_combat_tokens_reject_duplicates_and_bad_bonuses(self) -> None:
         with self.assertRaises(ValueError):
             homestead.parse_homestead_combat_tokens("astral_chance:5|astral_chance:10")

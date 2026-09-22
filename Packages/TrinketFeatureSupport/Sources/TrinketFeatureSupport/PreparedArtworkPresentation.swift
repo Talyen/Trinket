@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 private struct ArtworkPresentationPreparation<Item: Hashable>: ViewModifier {
     @Binding var request: Item?
@@ -48,7 +49,9 @@ private struct PreparedArtworkSheet<Item: Hashable & Identifiable, Destination: 
                     item = nil
                     lease = nil
                 }
-            }, content: destination)
+            }, content: { item in
+                destination(item).trinketSheetSurface()
+            })
             .task(id: item) {
                 guard !Task.isCancelled else { return }
                 guard let item else {

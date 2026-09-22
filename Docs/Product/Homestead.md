@@ -12,29 +12,36 @@ Cards show tier-sum constructed progress and push stable two-column portrait
 building galleries. Buildings have centered names beneath their portraits and centered, 132-point-wide
 upgrade segments between each portrait and name. Segment width is capped by the
 tile width; fills use saved progress and the catalog tier count, including empty
-segments for locked or unbuilt buildings. Buildings retain thin borders; affordable
-improvements get a soft stationary gold halo. Prerequisite-locked buildings
-remain inspectable. Galleries expose balances through Resources, without a
+segments for unbuilt buildings. Buildings retain thin borders without an
+affordability glow. Every building is inspectable and has no prerequisite
+buildings: materials alone determine whether its next tier can be purchased.
+Tier-zero artwork uses 35% saturation in galleries and details; built buildings
+use full color. A successful first build restores color smoothly after its offer
+sheet dismisses. Existing built saves do not depend on other buildings. Galleries expose balances through Resources, without a
 persistent wallet or repeated category hero. Returning from an upgrade refreshes
 gallery segments without replaying the detail celebration.
 
-Building details use full-screen portrait artwork, the building name, segmented
-progress, and native gold Back/Resources toolbar controls matching the gallery.
+Building details use full-screen portrait artwork, the building name, and native
+gold Back/Resources toolbar controls matching the gallery. A separate Build/Upgrade
+section pairs each building's catalog icon with the action and tier segments.
+Completed buildings retain a noninteractive full tier bar.
 Only building details hide the tab bar. Resources opens a compact expandable
 wallet sheet with a Close control.
 
-A compact native glass bottom panel shows exact current benefits over a subtle
-semantic-ink backing that fades at its edges. Every bonus and production output
-uses a full-width stacked block: an icon in a 36-point frame beside a thematic
-row-title header, followed by a wrapping description at the same size in regular
-weight. Names remain stable across tiers and are owned by the Homestead feature's
+The bottom panel contains only current bonuses and production. It shares native
+`thinMaterial` with Craft, Build, and Upgrade containers, including completed tier
+progress. All use the same subtle border and rounded geometry for consistent
+text legibility over artwork. Every bonus and production output
+uses a full-width row: a top-aligned icon in a 36-point frame sits 8 points beside
+a leading-aligned text column. A thematic row-title header sits 4 points above a
+wrapping body-size description; both retain primary contrast. Benefits are separated
+by 16 points. Names remain stable across tiers and are owned by the Homestead feature's
 building/effect-key lookup. Details and offers share this layout; offers retain
 their solid sheet background. Each effect keeps its own block, including buildings
 with multiple bonuses or outputs. Descriptions contain bold values and inline
 upgrade comparisons, preserve keyword formatting, and name production resources
 explicitly (for example, “+1 Food per Day”). Panel content scrolls as needed without
-truncating descriptions or comparisons. Completed buildings keep benefits and omit
-Build/Improve.
+truncating descriptions or comparisons. Completed buildings keep benefits and omit the build/upgrade action.
 
 Bonus symbols reuse keyword identities and colors: Health uses heart.fill; healing
 uses heart.circle.fill; damage uses its keyword symbol; damage resistance uses
@@ -43,13 +50,16 @@ damage uses pawprint.fill with Physical tint; ranged damage uses figure.archery 
 Physical tint; Dodge uses wind; Astral finds uses sparkles with arcane tint; Gold finds
 uses circle.circle.fill with Gold tint.
 Production uses the same illustrated resource artwork as wallets, collection,
-and purchase costs for every material.
+and purchase costs for every material. Material names use semantic colors: Iron
+and Stone use Physical grey, Food uses Health red, and Wood, Hide, Herbs, Gems,
+and Gold use their resource tints. Quantities and per-Day text retain primary
+contrast.
 Progress uses the catalog's actual tier count. No persistent completion banner,
 checkmark, or Tier N label appears.
 
 ## Next-stage offers
 
-Build/Improve opens the next-stage offer. Titles use **Build {building name}**
+Build/Upgrade opens the next-stage offer. Titles use **Build {building name}**
 for the first tier and **Upgrade {building name}** thereafter, never authored
 stage names. Changed existing benefits and production show current → resulting
 values; initial builds and newly introduced benefits show resulting values only.
@@ -122,3 +132,51 @@ settlement share these adjustments, including overridden battle loot.
 Upgrade costs are fixed authored values. Their material proportions account for
 production support and total upgrade demand; prices do not depend on which
 buildings the player owns.
+
+## Blacksmith crafting
+
+A built Blacksmith exposes a separate anvil **Craft** row above its Upgrade
+section and static benefits panel. Action rows and static benefits share the same
+thin material. Action text uses the same row-title typography as
+benefit headers. Craft opens a native sheet at
+medium height over the Blacksmith, keeping the building's identity visible.
+Its opaque semantic surface separates Inventory-sized, two-column recipe artwork
+from the building artwork. The sheet can be expanded by dragging and dismissed by swiping down. It has no
+Resources or Close toolbar buttons; balances remain accessible on the node screen.
+
+The recipe order is Dagger, Shortsword, Longsword, Greatsword, Hatchet, Double Axe,
+Mace, Flail, Maul, Kite Shield, and Plate Armor. All unlock at Blacksmith tier one.
+Dagger, Shortsword, and Hatchet cost 24 Iron + 12 Wood; Longsword, Mace, Flail,
+and Kite Shield cost 32 Iron + 16 Wood; Greatsword, Double Axe, and Maul cost
+40 Iron + 20 Wood; Plate Armor costs 40 Iron + 20 Hide. These fixed initial prices
+preserve a net material sink when ordinary forged gear is salvaged.
+
+Selecting a base uses ordinary navigation inside that same sheet, with a compact
+520-point working detent for its artwork/name, material cost, and Forge button.
+Selecting a recipe always fits the preview to that working detent, even after
+browsing at large height. Artwork and costs stay grouped at the top if the preview
+is expanded manually. Returning to the grid restores its chosen browsing height.
+Forge scroll views use the native soft top scroll-edge effect. Recipe selection
+never zooms an artwork into a different layout. The preview has no predicted
+rarity, powers, or explanatory copy.
+
+After commitment and artwork preparation, the result replaces the source artwork
+in place, without removing or sliding the card. A native source-linked zoom opens
+the actual Item detail in the same navigation stack while the sheet expands to
+large. Its sticky footer says **Added to Inventory** and provides Done; one success
+haptic accompanies the first visible reveal. Done returns to the recipe grid.
+Back returns to the saved result card, which can reopen details without another
+craft or success haptic. Swiping down returns to the Blacksmith. Interrupted or
+backgrounded preparation retains the item without launching a late detail view.
+
+Forging uses the shared non-boss item generator at Campaign reward progression,
+including Homestead Astral-find bonuses. Basic and Astral outcomes retain normal
+rolls. Unique outcomes use only the chosen base's authored, unowned Unique;
+Trinkets never appear. Removing unavailable categories renormalizes loot weights.
+Building upgrades do not change recipes or prices.
+
+Material spending and inventory insertion commit atomically before success is
+presented. Transient retries retain the same rolled candidate. Leaving the flow
+never loses an accepted item, and reveal animation never grants one. Native
+navigation, Inventory's item detail presentation, prepared artwork, and existing
+motion/haptic preferences govern presentation.

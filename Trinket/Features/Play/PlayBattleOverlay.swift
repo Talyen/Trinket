@@ -152,6 +152,7 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
             })
             .sheet(isPresented: $battle.isShowingBattleLog) {
                 BattleLogSheet(entries: battle.logEntries)
+                    .trinketSheetSurface()
                     .presentationDetents([.medium])
             }
     }

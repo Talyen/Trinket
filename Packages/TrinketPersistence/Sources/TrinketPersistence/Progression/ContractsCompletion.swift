@@ -23,12 +23,7 @@ public enum ContractsCompletion {
     /// material quantities. Falls back to the best authored level available
     /// once the campaign is complete.
     static func campaignRewardLevel(in save: PlayerSave, chapters: [Chapter] = GameContent.chapters) -> Int {
-        if let stageID = save.journey.activeStageID,
-           let stage = chapters.flatMap(\.stages).first(where: { $0.id == stageID }) {
-            return StageCompletion.resolvedEncounterLevel(for: stage, in: chapters)
-        }
-        let authored = chapters.flatMap(\.stages).map { StageCompletion.resolvedEncounterLevel(for: $0, in: chapters) }.max()
-        return authored ?? 1
+        CampaignRewardLevel.resolve(in: save, chapters: chapters)
     }
 
     @discardableResult

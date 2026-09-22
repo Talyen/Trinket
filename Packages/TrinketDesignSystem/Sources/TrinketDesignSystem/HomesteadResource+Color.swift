@@ -4,6 +4,14 @@ import TrinketCore
 /// Resource tint. The matching icon and display name live alongside the domain
 /// in `TrinketFeatureSupport/Models/Homestead.swift`; keep the two together.
 public extension HomesteadResource {
+    var productionNameColor: Color {
+        switch self {
+        case .iron, .stone: TrinketDesign.Colors.keywordPhysical
+        case .food: TrinketDesign.Colors.keywordHealth
+        default: tint
+        }
+    }
+
     var tint: Color {
         switch self {
         case .wood:

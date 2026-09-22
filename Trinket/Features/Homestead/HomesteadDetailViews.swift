@@ -9,6 +9,7 @@ import TrinketPersistence
 enum HomesteadDetailSheet: Hashable, Identifiable {
     case improvement(Int)
     case wallet
+    case crafting
 
     var id: Self {
         self
@@ -23,6 +24,8 @@ struct HomesteadNodeDetailView: View {
     @State private var build = HomesteadBuildControl()
     @State private var pinnedArtwork: [String] = []
     @State private var sheet: HomesteadDetailSheet?
+    @State private var requestedCraft: Bool?
+    @State private var preparedCraft: Bool?
     @State private var purchaseCommitted = false
     @State private var pendingCelebration = false
     @State private var purchasePresentation: HomesteadPurchasePresentation?
@@ -30,6 +33,10 @@ struct HomesteadNodeDetailView: View {
     @State private var celebrationGeneration = 0
 
     let definition: HomesteadNodeDefinition
+
+    private var displaysBuiltArtwork: Bool {
+        (purchasePresentation?.displayedTierNumber ?? status.currentTier) > 0
+    }
 
     private var status: HomesteadProjectStatus {
         HomesteadProjectStatus(definition: definition, homestead: playerSave.homestead, roster: playerSave.roster)
@@ -42,13 +49,29 @@ struct HomesteadNodeDetailView: View {
                 VStack(spacing: TrinketDesign.Spacing.large) {
                     buildingIdentity
                     Spacer(minLength: TrinketDesign.Spacing.large)
-                    benefitsPanel
-                        .frame(maxHeight: geometry.size.height * 0.43, alignment: .bottom)
-                        .padding(.bottom, TrinketDesign.Spacing.small)
+                    VStack(spacing: TrinketDesign.Spacing.medium) {
+                        if definition.id == .blacksmithForge, status.currentTier > 0 {
+                            craftSection
+                        }
+                        upgradeSection
+                        benefitsPanel
+                    }
+                    .frame(
+                        maxHeight: geometry.size.height * 0.65,
+                        alignment: .bottom,
+                    )
+                    .padding(.bottom, TrinketDesign.Spacing.small)
                 }
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 .padding(.top, TrinketDesign.Spacing.small)
             }
+        }
+        .preparingArtwork(request: $requestedCraft, presentation: $preparedCraft) { _ in
+            BlacksmithRecipe.all.compactMap { $0.forgeArtwork?.thumbnailImageName ?? $0.forgeArtwork?.imageName }
+        }
+        .onChange(of: preparedCraft) { _, prepared in
+            guard prepared == true else { return }
+            sheet = .crafting
         }
         .toolbar(.visible, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
@@ -76,6 +99,7 @@ struct HomesteadNodeDetailView: View {
             }
         }
         .onAppear {
+            preparedCraft = nil
             AppFramePacingSignposts.event(AppFramePacingSignposts.Name.navigationPush, detail: "homestead=\(definition.id)")
         }
         .task(id: celebrationGeneration) { await celebratePurchase() }
@@ -93,7 +117,8 @@ struct HomesteadNodeDetailView: View {
         if let art = ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue] {
             FocalBackgroundArtwork(art: art)
                 .ignoresSafeArea()
-                .saturation(status.isUnlocked ? 1 : 0.35)
+                .saturation(displaysBuiltArtwork ? 1 : 0.35)
+                .animation(HomesteadMotion.valueReveal, value: displaysBuiltArtwork)
         } else {
             TrinketDesign.Colors.canvas.ignoresSafeArea()
         }
@@ -118,20 +143,80 @@ struct HomesteadNodeDetailView: View {
     }
 
     private var buildingIdentity: some View {
-        VStack(spacing: TrinketDesign.Spacing.small) {
-            Text(balanced: definition.title)
-                .trinketTypography(.screenDisplay)
-                .multilineTextAlignment(.center)
-                .trinketOnArtText()
-            HomesteadTierProgress(
-                currentTier: purchasePresentation?.displayedTierNumber ?? status.currentTier,
-                totalTiers: definition.maxTier,
-                celebrationCount: celebrationCount,
-            )
-            .frame(width: 132)
-            .accessibilityIdentifier(AccessibilityID.Homestead.progress(tier: status.currentTier))
-            .padding(.vertical, TrinketDesign.Spacing.small)
+        Text(balanced: definition.title)
+            .trinketTypography(.screenDisplay)
+            .multilineTextAlignment(.center)
+            .trinketOnArtText()
+    }
+
+    private var craftSection: some View {
+        Button { requestedCraft = true } label: {
+            HStack(spacing: TrinketDesign.Spacing.small) {
+                BlacksmithAnvilIcon()
+                    .fill(TrinketDesign.Colors.Overlay.paper)
+                    .frame(width: 28, height: 24)
+                    .frame(width: 36, height: 36)
+                    .accessibilityHidden(true)
+                Text("Craft")
+                Spacer()
+                Image(systemName: "chevron.right").accessibilityHidden(true)
+            }
+            .trinketTypography(.rowTitle)
+            .padding(TrinketDesign.Spacing.large)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .homesteadNodePanel()
+        .accessibilityIdentifier(AccessibilityID.Homestead.craftButton)
+    }
+
+    @ViewBuilder
+    private var upgradeSection: some View {
+        if status.isComplete {
+            tierProgress
+                .frame(maxWidth: .infinity)
+                .padding(TrinketDesign.Spacing.large)
+                .homesteadNodePanel()
+        } else {
+            Button {
+                guard let nextTier = status.nextTier else { return }
+                cancelCelebration()
+                purchaseCommitted = false
+                sheet = .improvement(nextTier.tier)
+            } label: {
+                HStack(spacing: TrinketDesign.Spacing.small) {
+                    GameIconImage(GameIcon(id: definition.iconID))
+                        .trinketTypography(.sectionTitle)
+                        .frame(width: 36, height: 36)
+                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                        Text(status.currentTier == 0 ? "Build" : "Upgrade")
+                            .trinketTypography(.rowTitle)
+                        tierProgress
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right").accessibilityHidden(true)
+                }
+                .trinketTypography(.rowTitle)
+                .foregroundStyle(.primary)
+                .padding(TrinketDesign.Spacing.large)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .homesteadNodePanel()
+            .accessibilityIdentifier(AccessibilityID.Homestead.improveButton)
+        }
+    }
+
+    private var tierProgress: some View {
+        HomesteadTierProgress(
+            currentTier: purchasePresentation?.displayedTierNumber ?? status.currentTier,
+            totalTiers: definition.maxTier,
+            celebrationCount: celebrationCount,
+        )
+        .frame(width: 132)
+        .accessibilityIdentifier(AccessibilityID.Homestead.progress(tier: status.currentTier))
     }
 
     private var benefitsPanel: some View {
@@ -152,40 +237,11 @@ struct HomesteadNodeDetailView: View {
                     highlightsProduction: purchasePresentation?.highlightsProduction ?? false,
                 )
             }
-            if !status.isComplete {
-                Button {
-                    guard let nextTier = status.nextTier else { return }
-                    cancelCelebration()
-                    purchaseCommitted = false
-                    sheet = .improvement(nextTier.tier)
-                } label: {
-                    Text(status.currentTier == 0 ? "Build" : "Improve")
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.improveButton)
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(TrinketDesign.Spacing.large)
-        .background {
-            RoundedRectangle(cornerRadius: TrinketDesign.Corners.card)
-                .fill(TrinketDesign.Colors.Overlay.ink.opacity(0.3))
-                .mask {
-                    LinearGradient(
-                        stops: [
-                            .init(color: .clear, location: 0),
-                            .init(color: .white, location: 0.12),
-                            .init(color: .white, location: 0.88),
-                            .init(color: .clear, location: 1),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom,
-                    )
-                }
-        }
-        .trinketMaterial(.bottomBar, cornerRadius: TrinketDesign.Corners.card)
+        .homesteadNodePanel()
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.Homestead.benefitsPanel)
     }
 
     private var artworkPinKey: [String] {
@@ -227,6 +283,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func finishSheetDismissal() {
+        preparedCraft = nil
         if pendingCelebration, scenePhase == .active {
             purchasePresentation?.displayedTierNumber = status.currentTier
             celebrationCount &+= 1
@@ -284,5 +341,17 @@ private struct HomesteadPurchasePresentation {
             output.quantity > (previousTier?.production.first { $0.resource == output.resource }?.quantity ?? 0)
         }
         displayedTier = targetTier
+    }
+}
+
+private struct HomesteadNodePanel: ViewModifier {
+    func body(content: Content) -> some View {
+        content.trinketMaterial(.frostedPanel, cornerRadius: TrinketDesign.Corners.card)
+    }
+}
+
+private extension View {
+    func homesteadNodePanel() -> some View {
+        modifier(HomesteadNodePanel())
     }
 }

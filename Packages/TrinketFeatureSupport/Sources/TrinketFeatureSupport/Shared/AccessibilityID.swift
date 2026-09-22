@@ -318,7 +318,6 @@ public enum AccessibilityID {
         public static let resourceWallet = "Homestead Resource Wallet"
         public static let collectButton = "Homestead Collect Button"
         public static let gallery = "Homestead Building Gallery"
-        public static let benefitsPanel = "Homestead Benefits Panel"
         public static let currentEffects = "Homestead Current Effects"
         public static let upgradeEffects = "Homestead Upgrade Effects"
         public static let upgradeCost = "Homestead Upgrade Cost"

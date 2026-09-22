@@ -146,12 +146,12 @@ id	name	max_health	is_boss	abilities	trait_ids	faction
 Tab-separated columns:
 
 ```text
-node_id	title	summary	icon_id	category	prerequisites	tier	stage_name	cost	bonus_title	bonus_description	modifiers	production
+node_id	title	summary	icon_id	category	tier	stage_name	cost	bonus_title	bonus_description	modifiers	production
 ```
 
 - `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).
 - `category`: `farming`, `crafting`, `alchemy`, `training`, or `arcana`.
-- `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
+- Nodes have no building prerequisites; each tier requires only its authored material cost.
 - `stage_name`: concise, player-facing name for the node's construction stage; use no more than three words.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).
 - `production`: pipe-separated `resource:quantity` daily rates (e.g. `gems:1|stone:1`), or empty for no passive production. Each tier supplies its complete rate, not an increment over the previous tier.

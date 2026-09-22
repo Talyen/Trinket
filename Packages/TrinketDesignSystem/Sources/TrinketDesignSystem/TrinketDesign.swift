@@ -5,6 +5,7 @@ public enum TrinketDesign {
         public static let canvas = DesignAssetColors.named("ThemeCanvas")
         public static let surface = DesignAssetColors.named("ThemeSurface")
         public static let panel = DesignAssetColors.named("ThemePanel")
+        public static let sheet = panel
         public static let elevated = DesignAssetColors.named("ThemeElevated")
         public static let subtleStroke = DesignAssetColors.named("ThemeSubtleStroke")
 
