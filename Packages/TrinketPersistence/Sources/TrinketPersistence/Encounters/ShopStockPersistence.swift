@@ -53,7 +53,9 @@ public enum ShopStockPersistence {
         }
         guard let data else { return nil }
         let snapshot = try JSONDecoder().decode(ShopStockSnapshot.self, from: data)
-        guard snapshot.encounter == encounter else { throw ShopPurchaseFailure.invalidOffer }
+        guard snapshot.encounter.location == encounter.location,
+              snapshot.encounter.worldSeed == encounter.worldSeed
+        else { throw ShopPurchaseFailure.invalidOffer }
         return try snapshot.resolve()
     }
 
@@ -61,6 +63,33 @@ public enum ShopStockPersistence {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .sortedKeys
         return try encoder.encode(ShopStockSnapshot(stock: stock, encounter: encounter))
+    }
+
+    static func mergedPayload(preferred: Data?, other: Data?) -> Data? {
+        guard let preferred, let other else { return preferred ?? other }
+        do {
+            let first = try JSONDecoder().decode(ShopStockSnapshot.self, from: preferred)
+            let second = try JSONDecoder().decode(ShopStockSnapshot.self, from: other)
+            guard first.encounter.location == second.encounter.location,
+                  first.encounter.worldSeed == second.encounter.worldSeed
+            else { return preferred }
+            var stock = try first.resolve()
+            let otherStock = try second.resolve()
+            guard stock.offers.map(\.id) == otherStock.offers.map(\.id) else { return preferred }
+            stock.purchasedOfferIDs.formUnion(otherStock.purchasedOfferIDs)
+            return try encode(stock, encounter: first.encounter)
+        } catch {
+            return preferred
+        }
+    }
+
+    static func purchasedOfferIDs(in payload: Data?) -> Set<String> {
+        guard let payload else { return [] }
+        do {
+            return try JSONDecoder().decode(ShopStockSnapshot.self, from: payload).resolve().purchasedOfferIDs
+        } catch {
+            return []
+        }
     }
 
     static func setPayload(_ data: Data, encounter: EncounterIdentity, save: inout PlayerSave) {

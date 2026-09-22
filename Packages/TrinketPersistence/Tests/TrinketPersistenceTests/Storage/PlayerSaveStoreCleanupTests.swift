@@ -38,16 +38,65 @@ struct PlayerSaveStoreCleanupTests {
         let context = try PersistenceTestContext()
         let storeURL = context.directoryURL.appendingPathComponent(filename)
         let storeFiles = [filename, "\(filename)-wal", "\(filename)-shm", "\(filename)-journal"]
-        let unrelatedFiles = ["\(filename).wal", "\(filename).shm", "\(filename).journal", "other.store"]
-        for name in storeFiles + unrelatedFiles {
+        let pendingName = PendingSaveRecovery.url(for: storeURL).lastPathComponent
+        let recoveryFiles = [
+            pendingName,
+            PendingSaveRecovery.url(for: storeURL, kind: .previous).lastPathComponent,
+            "\(pendingName).unreadable", "\(pendingName).unreadable.2",
+            "\(pendingName).unreadable.16", "\(pendingName).unreadable.999",
+        ]
+        let unrelatedFiles = [
+            "\(filename).wal", "\(filename).shm", "\(filename).journal", "other.store",
+            "\(pendingName).unreadable.note", "\(pendingName).unreadable.1",
+        ]
+        for name in storeFiles + recoveryFiles + unrelatedFiles {
             try Data([0x1]).write(to: context.directoryURL.appendingPathComponent(name))
         }
+        let unrelatedDirectory = context.directoryURL.appendingPathComponent("\(pendingName).unreadable.1000")
+        try FileManager.default.createDirectory(at: unrelatedDirectory, withIntermediateDirectories: false)
 
         try PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL)
         try PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL)
 
         let remainingFiles = try FileManager.default.contentsOfDirectory(atPath: context.directoryURL.path)
-        #expect(Set(remainingFiles) == Set(unrelatedFiles))
+        #expect(Set(remainingFiles) == Set(unrelatedFiles + [unrelatedDirectory.lastPathComponent]))
+    }
+
+    @Test func `archive pruning includes sparse and high suffixes`() throws {
+        let context = try PersistenceTestContext()
+        let pendingURL = PendingSaveRecovery.url(for: context.storeURL())
+        let names = ["", ".2", ".3", ".4", ".5", ".16", ".999"]
+        let archives = try names.enumerated().map { index, suffix in
+            let url = URL(fileURLWithPath: pendingURL.path + ".unreadable" + suffix)
+            try Data([0x1]).write(to: url)
+            try FileManager.default.setAttributes(
+                [.modificationDate: Date(timeIntervalSince1970: TimeInterval(index + 1) * 100)],
+                ofItemAtPath: url.path,
+            )
+            return url
+        }
+        let unrelated = URL(fileURLWithPath: pendingURL.path + ".unreadable.note")
+        try Data([0x1]).write(to: unrelated)
+
+        PendingSaveRecovery.pruneCorruptSamples(forPendingURL: pendingURL)
+
+        #expect(archives.prefix(2).allSatisfy { !FileManager.default.fileExists(atPath: $0.path) })
+        #expect(archives.dropFirst(2).allSatisfy { FileManager.default.fileExists(atPath: $0.path) })
+        #expect(FileManager.default.fileExists(atPath: unrelated.path))
+    }
+
+    @Test func `store cleanup without recovery leaves all recovery files`() throws {
+        let context = try PersistenceTestContext()
+        let storeURL = context.storeURL()
+        let pendingURL = PendingSaveRecovery.url(for: storeURL)
+        let archiveURL = URL(fileURLWithPath: pendingURL.path + ".unreadable.16")
+        try Data([0x1]).write(to: pendingURL)
+        try Data([0x1]).write(to: archiveURL)
+
+        try PlayerSaveStoreConfiguration.cleanStoreFiles(at: storeURL, includingRecovery: false)
+
+        #expect(FileManager.default.fileExists(atPath: pendingURL.path))
+        #expect(FileManager.default.fileExists(atPath: archiveURL.path))
     }
 
     @Test @MainActor func `reset state true wipes prior progress`() throws {

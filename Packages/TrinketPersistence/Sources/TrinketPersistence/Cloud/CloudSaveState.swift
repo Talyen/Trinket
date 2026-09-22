@@ -42,6 +42,30 @@ struct CloudSaveRequest: Codable, Equatable, Sendable {
     let baseRevisionID: String?
     let authoritySequence: UInt64
     let revision: CloudSaveRevision
+    let baseSnapshot: CloudSaveSnapshot?
+    let mutations: [CloudSaveMutation]?
+
+    init(
+        id: String, action: Action, baseEpoch: String?, baseRevisionID: String?,
+        authoritySequence: UInt64, revision: CloudSaveRevision, baseSnapshot: CloudSaveSnapshot? = nil,
+        mutations: [CloudSaveMutation]? = nil,
+    ) {
+        self.id = id
+        self.action = action
+        self.baseEpoch = baseEpoch
+        self.baseRevisionID = baseRevisionID
+        self.authoritySequence = authoritySequence
+        self.revision = revision
+        self.baseSnapshot = baseSnapshot
+        self.mutations = mutations
+    }
+}
+
+struct CloudSaveMutation: Codable, Equatable, Sendable {
+    let id: String
+    let changedSliceMask: UInt16
+    let before: CloudSaveSnapshot
+    let after: CloudSaveSnapshot
 }
 
 struct CloudSaveReceipt: Codable, Equatable, Sendable {
@@ -71,6 +95,7 @@ struct CloudAccountState: Codable, Equatable, Sendable {
     var base: CloudSaveHead?
     var pending: CloudSaveRequest?
     var resetRequested = false
+    var journal: [CloudSaveMutation]?
 }
 
 struct CloudAccountArchive: Codable, Equatable, Sendable {

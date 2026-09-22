@@ -128,7 +128,9 @@ public enum MysteryEncounterResolution {
                 offer, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID, encounter: request.encounter,
                 save: &candidate, at: date,
             )
-            guard result.grantedItems.count == 1 else { return .failure(.unavailable) }
+            guard result.grantedItems.count == 1
+                || InventoryDuplicatePolicy.containsDuplicate(of: offer.item, in: candidate.inventory.items)
+            else { return .failure(.unavailable) }
             save = candidate
             return .success(.reward(result))
         } catch {

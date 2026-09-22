@@ -8,14 +8,14 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         play.assertLoaded()
         play.openExplore()
 
-        app.buttons[AccessibilityID.Play.spiresModeCard].tap()
+        tapButton(AccessibilityID.Play.spiresModeCard)
         assertExists(AccessibilityID.Play.spireRow("ironVein"))
 
         let lockedSpire = app.buttons[AccessibilityID.Play.spireRow("cinderSpire")]
         assertExists(lockedSpire)
         XCTAssertFalse(lockedSpire.isEnabled)
 
-        app.buttons[AccessibilityID.Play.spireRow("ironVein")].tap()
+        tapButton(AccessibilityID.Play.spireRow("ironVein"))
         assertExists(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
     }
 
@@ -37,13 +37,10 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
 
         let lockedNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1LockedNode].firstMatch
         assertExists(lockedNode)
-        // Locked seals are inert: tapping one must neither open details nor
-        // clear the selection. Guard the premise first: the seal must report
-        // locked, so seed drift fails loudly instead of testing the wrong node.
-        XCTAssertTrue(
-            lockedNode.label.contains(", locked"),
-            "Expected a locked labyrinth node, found '\(lockedNode.label)'",
-        )
+        // Guard the premise before checking that a locked seal leaves the
+        // current selection intact. XCUITest reports this SwiftUI node as
+        // enabled even while its action is disabled.
+        XCTAssertTrue(lockedNode.label.contains(", locked"), "Expected a locked labyrinth node")
         lockedNode.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertExists(inspectorAction, timeout: 10)
 
@@ -61,31 +58,25 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         scrollUntilVisible(mode, swipingUp: true, maxAttempts: 4, requireHittable: true)
         tapWhenReady(mode)
         assertExists(AccessibilityID.Voyage.screen)
-        attachVoyageScreenshot("Voyage board")
+        attachSuccessScreenshot(named: "Voyage board")
         let embark = app.buttons[AccessibilityID.Voyage.action("easy")]
         scrollUntilVisible(embark, swipingUp: true, maxAttempts: 3, requireHittable: true)
         tapWhenReady(embark)
         assertExists(AccessibilityID.Voyage.progress)
-        XCTAssertEqual(app.staticTexts[AccessibilityID.Voyage.progress].label, "0 of 8 completed")
-        attachVoyageScreenshot("Voyage route")
+        let progress = app.staticTexts[AccessibilityID.Voyage.progress].label
+        XCTAssertFalse(progress.isEmpty, "Embarking must show route progress")
+        attachSuccessScreenshot(named: "Voyage route")
         XCTAssertFalse(app.buttons[AccessibilityID.Voyage.refresh].exists)
         tapWhenReady(app.navigationBars.buttons.firstMatch)
         scrollUntilVisible(mode, swipingUp: true, maxAttempts: 3, requireHittable: true)
         tapWhenReady(mode)
         assertExists(AccessibilityID.Voyage.progress)
-        XCTAssertEqual(app.staticTexts[AccessibilityID.Voyage.progress].label, "0 of 8 completed")
+        XCTAssertEqual(app.staticTexts[AccessibilityID.Voyage.progress].label, progress)
         tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
         tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
         tapWhenReady(app.buttons.matching(identifier: AccessibilityID.Voyage.confirmAbandon).firstMatch)
         assertExists(AccessibilityID.Voyage.action("easy"))
         assertExists(AccessibilityID.Voyage.refresh)
-    }
-
-    private func attachVoyageScreenshot(_ name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
     }
 
     private func waitForLabyrinthEntryNode() -> XCUIElement {

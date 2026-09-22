@@ -67,15 +67,15 @@ choices and implemented behavior. Verify them on the candidate build; these
 unchecked release gates do not imply that the implementation is missing:
 
 - [ ] Verify first-sync and concurrent-play reconciliation against the approved
-  [complete-save selection policy](../AgentContext/persistence-storage.md#cloudkit-preparation)
-  (no player conflict prompts; losing save archived as a recovery backup before
-  replacement). Preserve the existing TestFlight save;
+  [merge policy](../AgentContext/persistence-storage.md#cloudkit-preparation)
+  (no player conflict prompts; conflicting snapshots archived before the merged
+  head commits). Preserve the existing TestFlight save;
   never replace it with a fresh root during enablement.
-- [ ] Keep the selected save coherent across its wallet, claims, inventory,
-  recruitment, and world progress per the [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation):
-  complete-save exchange only, no independent field merging or balance addition.
-  Verify complete-save exchange, backup durability, and replay-safe
-  production authority before enabling cloud play.
+- [ ] Keep merged wallet, claims, inventory, recruitment, and world progress
+  coherent per the [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
+  Verify action-journal reload and once-only replay, independent earned progress,
+  one-time claim deduplication, player-favorable
+  concurrent spending, backup durability, and replay-safe production before enabling cloud play.
 - [ ] Verify the approved reset/account policy in the
   [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation):
   reset wins over older offline saves, sign-out retains a local copy, and account
@@ -91,21 +91,19 @@ unapproved merge algorithm.
   `PlayerSaveRoot.cloudStatePayload` adds local outbox/account metadata; the
   current value schema (`PlayerSave.currentSchemaVersion`) is unchanged. Store-open errors preserve the original files. Disabling sync
   must retain both current progress and metadata at that same URL.
-- [ ] Verify complete-save reconciliation and atomic conflict backups. The explicit
-  service implements the approved selection policy and rejects stale reset epochs
+- [ ] Verify complete-save projection, concurrent merge, and atomic conflict backups. The explicit
+  service implements the approved merge policy and rejects stale reset epochs
   and production sequences. Remote imports refresh observed values, preserve newer
   local mutations, and invalidate stale encounter sessions. Own upload acknowledgements
   must not interrupt gameplay. Native SwiftData root mirroring is removed; duplicate
   local roots still fail safely when opening for cloud play.
-- [ ] Verify the asynchronous Homestead commands against the canonical authority.
-  Linked cloud collection/upgrades require a server response; ordinary offline
-  gameplay and confirmed signed-out local collection remain available.
-- [ ] Verify server-time settlement, old-rate settlement on upgrade, change-tag retry,
-  and replay-safe wallet application. Head, cursor, wallet, and operation receipt
-  commit atomically. A receipt survives response loss or termination; a snapshot
-  predating a committed claim/upgrade cannot undo it or reopen its interval. Isolated
-  tests cover these rules, but real `serverRecordChanged`, network failures, and
-  interrupted application still need Development/device evidence.
+- [ ] Verify linked Homestead Collect and Upgrade complete after durable local
+  writes while offline, then reconcile without a prompt. Two devices collecting
+  the same interval must grant it once; distinct upgrades must both survive.
+- [ ] Verify change-tag retry, replay-safe legacy production receipts, and atomic
+  head/backup commits. A lost response or termination must neither lose nor
+  duplicate an accepted action. Real `serverRecordChanged`, network failures,
+  and interrupted application still need Development/device evidence.
 - [ ] Retain isolated, credential-free tests and CI. `TestLaunchArg` and `AppEnvironment`
   keep tests/reset local; persistence fixtures use in-memory or unique temporary
   stores. Cover root creation, reset, test seeding, graph mutations, and disk reload.
@@ -127,7 +125,7 @@ unapproved merge algorithm.
   Development use. SwiftData models are local and are not deployed as CloudKit records.
   Do not force Production onto Development builds.
 - [ ] Verify actual import/export on two devices (or Simulator plus device) using
-  the same iCloud account: fresh B imports A, two populated saves reconcile according
+  the same iCloud account: fresh B imports A, two populated saves merge according
   to stage 1, concurrent domain changes honor that policy, and remote progress appears
   while the receiving app remains open. Container-open success alone is insufficient.
 - [ ] Verify reset propagation and invalidation of outstanding production claims,
@@ -135,9 +133,9 @@ unapproved merge algorithm.
   Exercise switching accounts, sign-out, restricted accounts, unavailable network,
   quota/errors, and reconnect; preserve local play and account separation.
 - [ ] Verify two devices collecting the same production interval grant it once;
-  concurrent Collect and Upgrade settle the old rate once; termination after a
-  successful server claim neither loses nor duplicates rewards on retry. Exercise
-  the offline claim behavior established in stage 2.
+  concurrent Collect and Upgrade retain the correct production cursor; termination
+  after a successful upload neither loses nor duplicates rewards on retry. Exercise
+  the offline action behavior established in stage 2.
 
 ### 4. TestFlight promotion
 

@@ -4,6 +4,22 @@ import TrinketCore
 @testable import TrinketContent
 
 struct RewardModifierTests {
+    @Test func `rare modifier doubles only its eligible tier weight`() throws {
+        let tiers = Set(ItemDropTier.allCases)
+        let ordinary = ItemLootPolicy.probabilities(
+            level: 20, bossContent: false, astralChanceBonusPercent: 0, availableTiers: tiers,
+        )
+        let favored = ItemLootPolicy.probabilities(
+            level: 20, bossContent: false, astralChanceBonusPercent: 0,
+            availableTiers: tiers, favoredTier: .unique,
+            tierWeightBonusPercent: RewardModifier.rareTierWeightBonusPercent,
+        )
+        let index = try #require(ItemDropTier.allCases.firstIndex(of: .unique))
+        let ordinaryOdds = ordinary[index] / (1 - ordinary[index])
+        let favoredOdds = favored[index] / (1 - favored[index])
+        #expect(abs(favoredOdds / ordinaryOdds - 2) < 0.000001)
+    }
+
     @Test func `reward identifiers round trip and preserve existing saves`() throws {
         for modifier in RewardModifier.allCases {
             let encoded = try JSONEncoder().encode(modifier)

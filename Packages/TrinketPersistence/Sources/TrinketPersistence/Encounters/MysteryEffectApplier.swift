@@ -141,13 +141,46 @@ public enum MysteryEffectApplier {
         )
     }
 
-    /// Applies the exact prepared offer after the claim path validates capacity.
-    public static func apply(_ offer: MysteryOffer, save: inout PlayerSave, at date: Date = Date()) -> MysteryEffectResult {
-        guard isAvailable(offer.item, in: save.inventory) else { return MysteryEffectResult() }
+    /// Applies the prepared offer, converting any additional Gold overflow at claim.
+    public static func apply(
+        _ offer: MysteryOffer, save: inout PlayerSave, at date: Date = Date(),
+        goldOverflowExperience: Int = 0, allowOwnedItem: Bool = false,
+    ) -> MysteryEffectResult {
+        guard allowOwnedItem || isAvailable(offer.item, in: save.inventory) else { return MysteryEffectResult() }
         var result = MysteryEffectResult()
         append(offer.item, save: &save, result: &result)
-        apply(offer.bonus, save: &save, result: &result, at: date)
+        switch offer.bonus {
+        case let .gold(amount):
+            applyPinnedGold(
+                amount, pinnedExperience: 0, nominalGold: amount,
+                fullOverflowExperience: goldOverflowExperience,
+                save: &save, result: &result, at: date,
+            )
+        case let .goldAndExperience(gold, experience, nominalGold, fullOverflowExperience):
+            applyPinnedGold(
+                gold, pinnedExperience: experience, nominalGold: nominalGold,
+                fullOverflowExperience: fullOverflowExperience,
+                save: &save, result: &result, at: date,
+            )
+        default:
+            apply(offer.bonus, save: &save, result: &result, at: date)
+        }
         return result
+    }
+
+    private static func applyPinnedGold(
+        _ amount: Int, pinnedExperience: Int, nominalGold: Int, fullOverflowExperience: Int,
+        save: inout PlayerSave, result: inout MysteryEffectResult, at date: Date,
+    ) {
+        let granted = save.grantGold(amount, at: date)
+        result.grantedGold = SaturatedArithmetic.saturatingAdd(result.grantedGold, granted)
+        let converted = RewardSettlementPolicy.overflowExperience(
+            fullOverflowExperience, overflow: max(0, amount - granted), gains: nominalGold,
+        )
+        let experience = SaturatedArithmetic.saturatingAdd(pinnedExperience, converted)
+        if experience > 0 {
+            apply(.experience(experience), save: &save, result: &result, at: date)
+        }
     }
 
     static func apply(
@@ -303,6 +336,9 @@ public enum MysteryEffectApplier {
         switch bonus {
         case let .gold(amount):
             result.grantedGold += save.grantGold(amount, at: date)
+        case let .goldAndExperience(gold, experience, _, _):
+            result.grantedGold += save.grantGold(gold, at: date)
+            apply(.experience(experience), save: &save, result: &result, at: date)
         case let .material(resource, amount):
             result.grantedMaterials += save.grantMaterials([ResourceAmount(resource, amount)], at: date)
         case let .experience(amount):

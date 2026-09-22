@@ -77,13 +77,13 @@ explicit pools remove unavailable categories, the remaining weights normalize.
 There are no category-conversion fallbacks. Guaranteed Astral rewards constrain
 the same resolver to Astral gear; exact authored item rewards remain exact.
 
-Item reward level uses authored Journey progression (chapter base for shops and
-Mysteries), Spire floor level, or Labyrinth depth. Contracts and Voyage use the
-active Campaign stage's authored level (the highest authored level after Campaign
-completion), so roster leveling alone does not advance item
-quality; see [Contracts](../../Docs/Product/Contracts.md#board) and
+Item reward level uses the highest encounter level won, capped at level 40;
+the current battle's item roll also uses its own encounter level. Existing saves
+derive a floor from completed Campaign stages, Spire floors, and cleared Labyrinth
+battles. Roster leveling without a victory does not advance item quality; see
+[Contracts](../../Docs/Product/Contracts.md#board) and
 [Voyage](../../Docs/Product/Voyage.md#levels-and-rewards). Voyage shops and
-Mysteries use that Campaign-based item quality too; their offers persist by run
+Mysteries use the same highest-won level; their offers persist by run
 and node identity.
 Party-adjusted currency and experience calculations remain separate. Saved items
 and pinned offers retain their contents; newly generated rewards use current tuning.
@@ -119,7 +119,7 @@ normally. Only Basic/Astral tiers participate, with their existing relative weig
 The strict `requiredKeyword` input is separate from probabilistic `keywordBias`;
 missing matching content must never silently produce unrelated equipment.
 
-Combat nodes still receive one modifier. Their reward category has weight three,
+Rare-tier modifiers double the selected eligible tier's weight. Combat nodes still receive one modifier. Their reward category has weight three,
 and each eligible combat effect has weight one, preserving the pre-expansion
 combat/reward ratio. Selection within the chosen category is uniform; Voyage
 excludes its preceding modifier there when an alternative exists. Contracts select

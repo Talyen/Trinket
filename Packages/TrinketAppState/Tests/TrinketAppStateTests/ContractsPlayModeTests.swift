@@ -123,6 +123,7 @@ struct ContractsPlayModeTests {
     @Test func `failed board refresh keeps jobs available for launch`() throws {
         let play = try context.makePlaySession()
         #expect(play.contracts.enter() == nil)
+        #expect(play.playerSave.persistBatch(logging: "Earn refresh fixture") { $0.contracts.earnRefresh() })
         let before = play.playerSave.currentSave
         play.playerSave.forcesNextSaveFailure = true
         #expect(play.contracts.refresh() == nil)

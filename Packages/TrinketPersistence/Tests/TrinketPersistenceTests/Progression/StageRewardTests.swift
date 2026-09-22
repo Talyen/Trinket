@@ -544,8 +544,8 @@ extension StageRewardTests {
                 item: nil,
                 save: &save,
             )
-            #expect(save.roster.gold == gold)
-            #expect(save.roster.progression(for: hero).currentXP > heroBefore.currentXP)
+            #expect(save.roster.gold == min(PlayerRosterState.maxGoldBalance, gold + 20))
+            #expect(save.roster.progression(for: hero) != heroBefore)
         }
     }
 }
@@ -569,9 +569,10 @@ extension StageRewardTests {
         save.homestead.pendingProduction = [.gold: Double(scenario.reserved)]
         let inputs = RewardSettlementInputs(save: save, hero: save.roster.activeHero, companion: save.roster.activeCompanion)
         let settled = plan.settle(battleGold: .init(spent: scenario.spending), inputs: inputs)
-        #expect(settled.award.goldGained == (scenario.converted ? 0 : 20))
-        #expect(settled.award.goldDelta == (scenario.converted ? 0 : 20) - scenario.spending)
-        #expect(settled.replacementExperience == (scenario.converted ? 7 : 0))
+        let expectedGold = min(20, max(0, PlayerRosterState.maxGoldBalance - scenario.gold - scenario.reserved + scenario.spending))
+        #expect(settled.award.goldGained == expectedGold)
+        #expect(settled.award.goldDelta == expectedGold - scenario.spending)
+        #expect(settled.replacementExperience == RewardSettlementPolicy.overflowExperience(7, overflow: 20 - expectedGold, gains: 20))
         VictoryRewardApplier.apply(settled, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save)
         #expect(save.roster.gold == scenario.gold + settled.award.goldDelta)
         #expect(save.roster.progression(for: save.roster.activeHero) == settled.heroProgressionAfter)

@@ -50,8 +50,11 @@ public struct BattleRewardPlan: Equatable, Sendable {
         materials: [ResourceAmount]? = nil,
         includingCompletionBonus: Bool = true,
     ) -> BattleRewardAward {
-        let baseGold = stageGold + battleGold.gained
-        let gained = max(0, CombatRounding.scaled(baseGold, byPercent: goldFindPercent)) + (baseGold > 0 ? goldFindFlat : 0)
+        let baseGold = SaturatedArithmetic.saturatingAdd(stageGold, battleGold.gained)
+        let gained = SaturatedArithmetic.saturatingAdd(
+            max(0, CombatRounding.scaled(baseGold, byPercent: goldFindPercent)),
+            baseGold > 0 ? goldFindFlat : 0,
+        )
         let stage = min(stageGold, gained)
         let effects = HomesteadEffects(
             heroModifiers: [],
@@ -61,7 +64,10 @@ public struct BattleRewardPlan: Equatable, Sendable {
             gemsFindBonus: gemsFindBonus,
         )
         let award = BattleRewardAward(
-            stageGold: stage, battleGold: gained - stage - battleGold.spent,
+            stageGold: stage,
+            battleGold: SaturatedArithmetic.saturatingSub(
+                SaturatedArithmetic.saturatingSub(gained, stage), battleGold.spent,
+            ),
             goldFlow: battleGold, heroExperience: heroExperience, companionExperience: companionExperience,
             materials: effects.adjustedMaterials(materials ?? self.materials), items: items,
         )
@@ -74,17 +80,26 @@ public struct BattleRewardPlan: Equatable, Sendable {
         materials: [ResourceAmount]? = nil,
     ) -> BattleRewardSettlement {
         let resolved = resolve(battleGold: battleGold, materials: materials)
-        let replacesGold = RewardSettlementPolicy.replacesGold(
+        let overflow = RewardSettlementPolicy.goldOverflow(
             gains: resolved.goldGained, spending: battleGold.spent, capacity: inputs.goldCapacity,
         )
-        let compensation = replacesGold ? goldOverflowExperience : 0
+        let grantedGold = SaturatedArithmetic.saturatingSub(resolved.goldGained, overflow)
+        let grantedStageGold = min(resolved.stageGold, grantedGold)
+        let compensation = RewardSettlementPolicy.overflowExperience(
+            goldOverflowExperience, overflow: overflow, gains: resolved.goldGained,
+        )
         let award = BattleRewardAward(
-            stageGold: replacesGold ? 0 : resolved.stageGold,
-            battleGold: replacesGold ? -battleGold.spent : resolved.battleGold,
+            stageGold: grantedStageGold,
+            battleGold: SaturatedArithmetic.saturatingSub(
+                SaturatedArithmetic.saturatingSub(grantedGold, grantedStageGold), battleGold.spent,
+            ),
             goldFlow: battleGold,
-            heroExperience: ExperienceScaling.cappedAward(resolved.heroExperience + compensation, for: inputs.heroProgression),
+            heroExperience: ExperienceScaling.cappedAward(
+                SaturatedArithmetic.saturatingAdd(resolved.heroExperience, compensation),
+                for: inputs.heroProgression,
+            ),
             companionExperience: ExperienceScaling.cappedAward(
-                resolved.companionExperience + compensation,
+                SaturatedArithmetic.saturatingAdd(resolved.companionExperience, compensation),
                 for: inputs.companionProgression,
             ),
             materials: resolved.materials, items: resolved.items,
@@ -103,10 +118,10 @@ public struct BattleRewardAward: Equatable, Sendable {
     public let items: [InventoryItem]
 
     public var goldDelta: Int {
-        stageGold + battleGold
+        SaturatedArithmetic.saturatingAdd(stageGold, battleGold)
     }
 
     public var goldGained: Int {
-        goldDelta + goldFlow.spent
+        SaturatedArithmetic.saturatingAdd(goldDelta, goldFlow.spent)
     }
 }

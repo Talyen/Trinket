@@ -23,7 +23,7 @@ extension PlayerSaveStore {
         let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
         switch ordering {
         case .preserveCandidateFirst:
-            try applyCandidate(sanitized, replacing: snapshot, slices: .all)
+            try applyCandidate(sanitized, replacing: snapshot, slices: .all, recordsCloudMutation: false)
         case .preservePriorOnFailure:
             try resetRootDurably(with: sanitized, alreadySanitized: true, snapshot: snapshot)
         }
@@ -71,6 +71,7 @@ extension PlayerSaveStore {
         if cloudDeviceState.activeAccountID != nil {
             cloudDeviceState.account.pending = nil
             cloudDeviceState.account.resetRequested = true
+            cloudDeviceState.account.journal = nil
         }
         do {
             if usesMemoryFallback {

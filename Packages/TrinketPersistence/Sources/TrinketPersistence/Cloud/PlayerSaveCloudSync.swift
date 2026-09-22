@@ -184,6 +184,8 @@ public final class PlayerSaveCloudSync {
             baseRevisionID: base?.revision.id,
             authoritySequence: base?.authoritySequence ?? 0,
             revision: CloudSaveRevision(id: id, clock: clock, snapshot: CloudSaveSnapshot(store.currentSave)),
+            baseSnapshot: base?.revision.snapshot,
+            mutations: action == .upload ? state.account.journal : nil,
         )
         state.account.pending = request
         try store.commitCloudState(state)
@@ -203,6 +205,16 @@ public final class PlayerSaveCloudSync {
         guard state.account.pending?.id == request.id else { return false }
         let sourceUnchanged = CloudSaveSnapshot(store.currentSave) == request.revision.snapshot
         state.account.pending = nil
+        if receipt.outcome == .progressChanged, request.action == .upload,
+           receipt.epoch == server.head.epoch, request.baseEpoch == server.head.epoch {
+            state.account.base = server.head
+            try store.commitCloudState(state)
+            return false
+        }
+        if let applied = request.mutations, !applied.isEmpty {
+            let ids = Set(applied.map(\.id))
+            state.account.journal?.removeAll { ids.contains($0.id) }
+        }
         if sourceUnchanged {
             state.account.base = server.head
             state.account.resetRequested = false
@@ -218,7 +230,7 @@ public final class PlayerSaveCloudSync {
                 invalidatesSession: !isOwnChange,
             )
         } else {
-            if receipt.acceptedLocalSnapshot, receipt.epoch == server.head.epoch,
+            if receipt.outcome == .synchronized, receipt.epoch == server.head.epoch,
                server.head.revision.id == request.id {
                 state.account.base = server.head
                 if request.action == .reset {

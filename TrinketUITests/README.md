@@ -11,9 +11,9 @@ use the canonical value and retirement rules for selective player journeys.
 | Area | Path | When |
 |------|------|------|
 | Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | Local and CI `test.sh smoke` (registry-defined classes); CI shards shell vs play |
-| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, sharded by feature; local execution follows [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
+| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, sharded by feature; includes StoreKit recovery and interrupted Shop launch; local execution follows [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Ad hoc `performance.sh` / `test.sh performance` when investigating performance; not CI or smoke |
-| Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
+| Support | `Support/` | Shared launch and StoreKit fixtures; page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
 Author smoke and exhaustive membership once in `Scripts/config/ui-tests.tsv`.
 Each row supplies suite, smoke routing key (empty for FullUI), class, shard name,
@@ -40,7 +40,7 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
 screen-readiness assertions measure their destination rather than cold artwork
 preparation. Its bounded timeout lives in `TrinketUITestCase`; a warmup timeout
 fails explicitly instead of being reported as a missing destination.
-The Shop smoke journey opts out of that wait to verify the native cover stays
+The advisory Shop launch journey opts out of that wait to verify the native cover stays
 behind preparation and an interrupted launch can restart. The debug-only
 `-launch-preparation-delay <seconds>` holds readiness while resources and root
 layouts proceed normally; release builds ignore it. `waitForLaunchPreparation()`
@@ -81,6 +81,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   [performance playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md);
   that plan measures explicit interaction windows, including victory and Mystery reveals.
   `performance.sh --list` lists scenarios and groups; its default is one pass.
+- Required Full Game coverage includes one purchase-to-unlocked-character journey
+  and a chapter offer-entry check. Ask to Buy, restore/refund, and progress reset
+  are advisory FullUI journeys.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
   do not copy their numeric values into this guide.
 - Accessibility-setting audits remain outside PD-014. Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.

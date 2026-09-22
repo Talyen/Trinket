@@ -40,8 +40,9 @@ public final class ContractsPlayMode {
     public func refresh() -> StageMapMessage? {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
+        guard playerSave.contracts.refreshAvailable else { return nil }
         guard playerSave.persistBatch(logging: "Failed to refresh Contracts", { save in
-            save.contracts.refresh(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
+            _ = save.contracts.refresh(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
         }) else {
             playerSave.retrySaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] in _ = self?.refresh() }
             return nil

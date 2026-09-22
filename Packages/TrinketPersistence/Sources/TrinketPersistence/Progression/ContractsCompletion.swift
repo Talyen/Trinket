@@ -28,11 +28,9 @@ public enum ContractsCompletion {
         )
     }
 
-    /// Authored tier anchor for contract item generation: the campaign's
-    /// current authored level, so tiers follow story progress rather than
-    /// grinding. The scaled encounter level still drives XP, gold, and
-    /// material quantities. Falls back to the best authored level available
-    /// once the campaign is complete.
+    /// Quality of noncombat item offers follows the highest won encounter
+    /// level, capped by `CampaignRewardLevel`. Roster levels alone do not
+    /// improve those offers.
     static func campaignRewardLevel(in save: PlayerSave, chapters: [Chapter] = GameContent.chapters) -> Int {
         CampaignRewardLevel.resolve(in: save, chapters: chapters)
     }
@@ -66,6 +64,7 @@ public enum ContractsCompletion {
         save.contracts.replace(
             offerID: offerID, eligibleModifiers: eligibleModifiers(in: save.inventory), makeOffer: makeOffer,
         )
+        save.contracts.earnRefresh()
         return .completed
     }
 }

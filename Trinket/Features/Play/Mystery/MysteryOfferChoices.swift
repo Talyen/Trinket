@@ -87,6 +87,13 @@ struct MysteryOfferChoices: View {
                 ) {
                     HomesteadResourceArtwork(resource: .gold)
                 }
+            case let .goldAndExperience(gold, experience, _, _):
+                TrinketWalletResourcePill(title: "Gold", amount: gold, showsIncreasePrefix: true) {
+                    HomesteadResourceArtwork(resource: .gold)
+                }
+                TrinketWalletResourcePill(title: "Experience", amount: experience, showsIncreasePrefix: true) {
+                    ExperienceArtwork()
+                }
             case let .material(resource, amount):
                 TrinketWalletResourcePill(
                     title: resource.displayName,

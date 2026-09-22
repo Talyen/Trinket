@@ -18,27 +18,8 @@ final class SmokeShopTests: TrinketUITestCase {
                     "chapter-2-stage-6",
                     "chapter-2-stage-7",
                 ])
-                + ["-starting-gold", "200", "-launch-preparation-delay", "8"],
-            waitForPreparation: false,
+                + ["-starting-gold", "200"],
         )
-
-        let warmup = any(AccessibilityID.Screen.launchWarmup)
-        if warmup.exists {
-            let prematureShop = XCTNSPredicateExpectation(
-                predicate: NSPredicate { [self] _, _ in any(AccessibilityID.Shop.goldBalance).exists },
-                object: nil,
-            )
-            prematureShop.isInverted = true
-            // Fast runners may finish preparation inside the window; only
-            // require the cover when the shop is still gated.
-            if XCTWaiter.wait(for: [prematureShop], timeout: 3) == .completed {
-                XCTAssertTrue(warmup.exists)
-                app.terminate()
-                app.launch()
-            }
-        }
-        waitForLaunchPreparation()
-
         assertExists(AccessibilityID.Shop.goldBalance)
 
         let firstOfferCard = shop.offerCards.firstMatch

@@ -163,11 +163,11 @@ struct MysteryEffectApplierTests {
             using: &randomNumberGenerator,
         )
 
-        try #expect(result.grantedGold == 0)
+        try #expect(result.grantedGold == 3)
         try #expect(result.heroGrantedExperience > 0)
         try #expect(result.companionGrantedExperience > 0)
         try #expect(result.grantedMaterials == [ResourceAmount(.herbs, 4)])
-        try #expect(save.roster.gold == 995)
+        try #expect(save.roster.gold == 998)
         try #expect(save.homestead.resources[.herbs] == 1001)
     }
 

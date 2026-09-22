@@ -20,10 +20,10 @@ Let P be the active Hero and Companion's average level, rounded down:
 
 Use the existing enemy curves, shared
 [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
-with Campaign progress anchoring item quality. Use the active Campaign stage's
-authored encounter level, or the highest authored level after Campaign completion.
-Contract encounter level drives XP, Gold, and material quantities; leveling through
-Contracts alone does not advance item quality. Hard Contracts receive the shared
+with the highest won encounter level anchoring item quality (capped at loot level 40).
+The victory being claimed uses its own encounter level for its item roll and records
+that level for later offers. Contract encounter level also drives XP, Gold, and material quantities.
+Hard Contracts receive the shared
 boss loot weighting. Preserve catch-up XP, shared level-difference XP scaling, reward
 ownership, and applicable Homestead effects. Higher-level enemies award more XP
 under the shared curve; Hard has no additional difficulty-specific XP multiplier.
@@ -51,8 +51,8 @@ Wood, Stone, Iron, Food, Herbs, Hide, and Gems bonuses guarantee that resource i
 one of the two material slots and increase its quantity by 25%; the other slot
 remains random and distinct. Existing quantity rounding and reward caps apply.
 
-Astral, Trinket, and Unique bonuses multiply the selected eligible item-tier weight
-by 1.25 after Campaign progression, boss, and Homestead weighting, then normalize
+Astral, Trinket, and Unique bonuses double the selected eligible item-tier weight
+after progression, boss, and Homestead weighting, then normalize
 the probabilities. They do not add percentage points or extra items. Unowned-item
 eligibility remains authoritative: exhausted Trinket/Unique pools are excluded
 from generation, and an existing offer targeting an exhausted pool displays and
@@ -71,7 +71,8 @@ shared partial-defeat calculation. Item and material bonuses grant nothing on de
 
 ## Lifecycle
 
-Refresh is free, immediate, unlimited, and replaces all offers. Victory replaces
+One full-board refresh is earned by a Contract victory; the board starts with none
+and holds at most one. Refresh consumes it and replaces all offers. Victory replaces
 only the completed offer; avoid immediately repeating its target when possible.
 Defeat and retreat retain the offer for free retries. Defeat grants the shared
 [partial battle XP](../AgentContext/persistence-progression.md); retreat awards nothing. Each
@@ -87,8 +88,9 @@ Claiming rewards and replacing the offer is one saved operation. A duplicate or
 stale offer claim cannot pay again; failed writes retain the board and pending
 victory for retry. App interruption follows the existing battle lifecycle: an
 interrupted, unclaimed offer remains available rather than adding mid-battle
-save/resume. Missing or unreadable board data can regenerate independently of
-all other saved progress.
+save/resume. Missing or unreadable offers can regenerate independently of
+other saved progress; a readable saved loot milestone and earned refresh are
+retained when offers are damaged.
 
 Contracts has no entry cost, timers, separate statistics, ranks, bonus
 objectives, or overall completion percentage. Its lasting rewards are roster

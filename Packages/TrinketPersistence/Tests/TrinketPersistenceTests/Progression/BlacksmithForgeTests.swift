@@ -6,6 +6,29 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BlacksmithForgeTests {
+    @Test func `forge Astral weight rises with Blacksmith tier and stacks with Moonlit Sanctum`() throws {
+        #expect((0 ... 4).map(BlacksmithRecipe.astralWeightBonusPercent) == [0, 0, 10, 20, 30])
+        #expect(BlacksmithRecipe.astralWeightBonusPercent(blacksmithTier: Int.min) == 0)
+        #expect(BlacksmithRecipe.astralWeightBonusPercent(blacksmithTier: Int.max) == 30)
+        var save = fundedSave()
+        save.homestead.nodeTiers[.blacksmithForge] = 4
+        save.homestead.nodeTiers[.moonlitSanctum] = 4
+        save.contracts.recordVictory(encounterLevel: 40)
+        let recipe = try #require(BlacksmithRecipe.matching("blacksmith-longsword"))
+        var actualRandom = SeededRandomNumberGenerator(seed: 41)
+        let actual = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &actualRandom).get().item
+        var expectedRandom = SeededRandomNumberGenerator(seed: 41)
+        let expected = ItemRewardGenerator.generate(
+            id: actual.id, rewardLevel: 40,
+            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent + 30,
+            allowedTiers: [.basic, .astral, .unique],
+            ownedTrinketIDs: [], ownedUniqueIDs: [],
+            eligibleUniqueIDs: Set(GameContent.uniqueItems.filter { $0.baseType.id == recipe.baseID }.map(\.templateID)),
+            fallbackBaseType: recipe.baseType, using: &expectedRandom,
+        )
+        #expect(actual == expected)
+    }
+
     private func fundedSave() -> PlayerSave {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
         save.inventory.items = []
@@ -37,6 +60,7 @@ struct BlacksmithForgeTests {
     @Test func `forging matches existing generation including unique ownership`() throws {
         var save = fundedSave()
         save.journey.activeStageID = nil
+        save.contracts.recordVictory(encounterLevel: 40)
         save.homestead.nodeTiers[.moonlitSanctum] = 4
         for recipe in BlacksmithRecipe.all {
             var rarities: Set<Rarity> = []

@@ -256,14 +256,11 @@ public final class BattleSession: BattleRuntime {
         presentation: BattlePresentationContext,
     ) -> BattleVictorySummary? {
         guard let input = victoryInput else { return nil }
-        let settlement: BattleRewardSettlement
-        if let progression {
-            guard let resolved = progression.settleRewards(configuration, input.goldFlow) else { return nil }
-            settlement = resolved
-        } else {
-            let inputs = presentation.rewardInputs ?? Self.fallbackRewardInputs(for: configuration)
-            settlement = presentation.rewardPlan.settle(battleGold: input.goldFlow, inputs: inputs)
-        }
+        let settlement = progression?.settleRewards(configuration, input.goldFlow)
+            ?? presentation.rewardPlan.settle(
+                battleGold: input.goldFlow,
+                inputs: presentation.rewardInputs ?? Self.fallbackRewardInputs(for: configuration),
+            )
         return BattleVictorySummary.make(
             configuration: configuration,
             settlement: settlement,

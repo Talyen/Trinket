@@ -100,14 +100,48 @@ enum CloudSaveReconciler {
                 suffix: useIncoming ? "previous" : "incoming",
             ))
         }
-        var selected = useIncoming ? try incoming.snapshot.restored() : settledSave
+        let incomingSave = try incoming.snapshot.restored()
+        let shouldMerge = concurrent || (request.baseEpoch == nil && incoming.snapshot.hasProgress && current.snapshot.hasProgress)
+        let mutations = request.mutations ?? []
+        var selected: PlayerSave
+        if !mutations.isEmpty {
+            selected = try replay(mutations, onto: settledSave)
+            if let last = try mutations.last?.after.restored(), last.hasDomainDifference(from: incomingSave) {
+                selected = CloudSaveMerge.merge(
+                    incoming: incomingSave, existing: selected, base: last, preferIncoming: true,
+                )
+            }
+        } else if shouldMerge {
+            selected = try CloudSaveMerge.merge(
+                incoming: incomingSave, existing: settledSave,
+                base: request.baseSnapshot?.restored(), preferIncoming: useIncoming,
+            )
+        } else {
+            selected = useIncoming ? incomingSave : settledSave
+        }
         // Server production cursor is authoritative: the winner adopts the
         // settled clock/pending so a branch predating a committed claim or
         // upgrade can never undo that operation via Campaign rank.
-        selected.homestead.lastProductionAt = settledSave.homestead.lastProductionAt
-        selected.homestead.pendingProduction = settledSave.homestead.pendingProduction
+        selected.homestead.lastProductionAt = max(selected.homestead.lastProductionAt, settledSave.homestead.lastProductionAt)
+        if mutations.isEmpty, !shouldMerge, request.baseSnapshot?.homestead == incoming.snapshot.homestead {
+            selected.homestead.pendingProduction = settledSave.homestead.pendingProduction
+        }
         head.revision.snapshot = CloudSaveSnapshot(selected)
-        return resolution(head, request: request, outcome: .synchronized, backups: backups, acceptedLocal: useIncoming)
+        return resolution(
+            head, request: request, outcome: .synchronized, backups: backups,
+            acceptedLocal: (useIncoming && !shouldMerge) || selected == incomingSave,
+        )
+    }
+
+    private static func replay(_ mutations: [CloudSaveMutation], onto initial: PlayerSave) throws -> PlayerSave {
+        var projected = initial
+        var seen: Set<String> = []
+        for mutation in mutations where mutation.changedSliceMask != 0 && seen.insert(mutation.id).inserted {
+            let before = try mutation.before.restored()
+            let after = try mutation.after.restored()
+            projected = CloudSaveMerge.merge(incoming: after, existing: projected, base: before, preferIncoming: true)
+        }
+        return projected
     }
 
     private static func preferred(_ lhs: CloudSaveRevision, over rhs: CloudSaveRevision) -> Bool {

@@ -28,7 +28,9 @@ enum PlayerSaveStoreConfiguration {
             if FileManager.default.fileExists(atPath: previous.path) {
                 try FileManager.default.removeItem(at: previous)
             }
-            PendingSaveRecovery.pruneCorruptSamples(forPendingURL: pending, keeping: 0)
+            for archive in try PendingSaveRecovery.corruptSampleURLs(forPendingURL: pending) {
+                try FileManager.default.removeItem(at: archive)
+            }
         }
         let logger = Logger(
             subsystem: PlayerSaveDefaults.loggingSubsystem,

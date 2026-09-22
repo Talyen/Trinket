@@ -1,6 +1,10 @@
 import TrinketCore
 
 public struct BlacksmithRecipe: Identifiable, Hashable, Sendable {
+    public static func astralWeightBonusPercent(blacksmithTier: Int) -> Int {
+        (max(1, min(4, blacksmithTier)) - 1) * 10
+    }
+
     public let id: String
     public let baseID: String
     public let cost: [ResourceAmount]

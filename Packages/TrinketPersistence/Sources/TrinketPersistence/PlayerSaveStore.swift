@@ -371,8 +371,13 @@ public final class PlayerSaveStore {
         replacing snapshot: PlayerSave,
         slices: PlayerSaveSlice,
         persistImmediately: Bool = true,
+        recordsCloudMutation: Bool = true,
     ) throws {
         guard !slices.isEmpty else { return }
+        let previousCloudState = cloudDeviceState
+        if recordsCloudMutation, persistImmediately {
+            try recordCloudMutation(from: snapshot, to: candidate, slices: slices)
+        }
         root.apply(candidate, slices: slices, context: context)
         if persistImmediately {
             do {
@@ -381,6 +386,11 @@ public final class PlayerSaveStore {
                 // earlier deferred rows, so the deferred rollback is done.
                 clearPendingDeferredPersistence()
             } catch {
+                do {
+                    try restoreCloudMetadata(previousCloudState)
+                } catch {
+                    logger.error("Failed to restore cloud journal after a rejected save: \(String(describing: error), privacy: .public)")
+                }
                 // Immediate total failure preserves earlier deferred changes
                 // per the storage contract: compensate only this attempt's
                 // slices, leaving deferred increments published for their own

@@ -189,7 +189,7 @@ struct BattleLootTests {
         #expect(latePremium > earlyPremium)
     }
 
-    @Test func `reward levels follow content progression across modes`() throws {
+    @Test func `noncombat offer quality follows won encounters across modes`() throws {
         let battle = try #require(GameContent.stage(id: "chapter-4-stage-10"))
         #expect(LootRequest.journey(stage: battle).rewardLevel == 20)
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 6))
@@ -200,13 +200,15 @@ struct BattleLootTests {
         save.labyrinth.nodes[node.id] = node
         for stageID in ["chapter-4-stage-4", "chapter-4-stage-8"] {
             let encounter = EncounterIdentity(location: .journey(stageID: stageID), save: save)
-            #expect(encounter.rewardLevel(in: save) == 16)
+            #expect(encounter.rewardLevel(in: save) == 1)
         }
         let encounter = EncounterIdentity(location: .labyrinth(nodeID: node.id), save: save)
-        #expect(encounter.rewardLevel(in: save) == 17)
+        #expect(encounter.rewardLevel(in: save) == 1)
+        save.contracts.recordVictory(encounterLevel: 25)
+        #expect(encounter.rewardLevel(in: save) == 25)
     }
 
-    @Test func `battle requests carry authored item level and sanctum through settlement preparation`() throws {
+    @Test func `battle item roll uses encountered level and sanctum through settlement preparation`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-4-stage-10"))
         let request = LootRequest.journey(stage: stage)
         for seed in UInt64(1) ... 16 {
@@ -215,14 +217,14 @@ struct BattleLootTests {
             )
             var rng = SeededRandomNumberGenerator(seed: GameContent.encounterSeed(seed, salt: request.seedSalt))
             let expected = BattleLoot.resolve(
-                encounterLevel: 3, rewardLevel: 20, enemyIsBoss: true, itemID: request.itemID,
+                encounterLevel: 3, rewardLevel: 3, enemyIsBoss: true, itemID: request.itemID,
                 ownedUniqueIDs: [], astralChanceBonusPercent: 20, using: &rng,
             )
             #expect(actual == expected)
         }
     }
 
-    @Test func `contracts anchor item tiers to campaign progress`() throws {
+    @Test func `a won Contract uses its own encounter level for item quality`() throws {
         var save = SaveTestSupport.makeSave()
         save.contracts.ensureBoard(eligibleModifiers: [.gold])
         let offer = try #require(save.contracts.offer(for: .standard))
@@ -232,7 +234,7 @@ struct BattleLootTests {
             seed: GameContent.encounterSeed(save.worldSeed, salt: "battle-loot-contract-\(offer.id)"),
         )
         let expected = BattleLoot.resolve(
-            encounterLevel: 20, rewardLevel: 1, enemyIsBoss: false,
+            encounterLevel: 20, rewardLevel: 20, enemyIsBoss: false,
             itemID: "contract-\(offer.id)-loot",
             ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
             goldFoundPercent: 25, using: &rng,

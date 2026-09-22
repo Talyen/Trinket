@@ -153,7 +153,7 @@ public final class VoyagePlayMode {
             )
             return VoyageCompletion.completeBattle(
                 runID: runID, nodeID: node.id, hero: configuration.hero.combatant, companion: configuration.companion.combatant,
-                rewards: (award, earned), save: &save, access: access,
+                rewards: (award, earned, encounter.level), save: &save, access: access,
             )
         }
         return (input, route)

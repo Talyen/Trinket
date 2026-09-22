@@ -21,7 +21,10 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
         tapButton(AccessibilityID.LoadoutPicker.selectAbility("block"))
 
         assertDoesNotExist(AccessibilityID.LoadoutPicker.abilityGrid("Basic"), timeout: 5)
-        assertButtonExists(AccessibilityID.Equipment.basicAbilitySlot)
+        tapButton(AccessibilityID.Equipment.basicAbilitySlot)
+        let selectedAbility = button(AccessibilityID.LoadoutPicker.abilityCandidate("block"))
+        assertExists(selectedAbility)
+        XCTAssertTrue(selectedAbility.isSelected, "Block must remain equipped after the picker closes")
     }
 
     @MainActor
@@ -52,6 +55,10 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
         tapButton(candidateID)
         tapButton(AccessibilityID.LoadoutPicker.equipItem("longsword-astral"))
         assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"), timeout: 5)
-        assertButtonExists(weaponSlot)
+        tapButton(weaponSlot)
+        replaceText(in: app.searchFields.firstMatch, with: "long")
+        let equippedItem = button(candidateID)
+        assertExists(equippedItem)
+        XCTAssertTrue(equippedItem.isSelected, "The longsword must remain equipped after the picker closes")
     }
 }

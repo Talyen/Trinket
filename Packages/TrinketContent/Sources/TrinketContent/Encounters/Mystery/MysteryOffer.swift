@@ -22,12 +22,14 @@ public struct MysteryItemPool: Hashable, Sendable {
 
 public enum MysteryRewardBonus: Codable, Hashable, Sendable {
     case gold(Int)
+    case goldAndExperience(gold: Int, experience: Int, nominalGold: Int, fullOverflowExperience: Int)
     case material(HomesteadResource, Int)
     case experience(Int)
 
     public var amount: Int {
         switch self {
         case let .gold(amount), let .material(_, amount), let .experience(amount): amount
+        case let .goldAndExperience(gold, experience, _, _): SaturatedArithmetic.saturatingAdd(gold, experience)
         }
     }
 }

@@ -14,14 +14,23 @@ public struct VoyageCompletionBonus: Equatable, Sendable {
         var totals = materials
         var rewards: [HomesteadResource: Int] = [:]
         for reward in award.materials {
-            totals[reward.resource, default: 0] += reward.quantity
-            rewards[reward.resource, default: 0] += reward.quantity
+            totals[reward.resource, default: 0] = SaturatedArithmetic.saturatingAdd(
+                totals[reward.resource, default: 0], reward.quantity,
+            )
+            rewards[reward.resource, default: 0] = SaturatedArithmetic.saturatingAdd(
+                rewards[reward.resource, default: 0], reward.quantity,
+            )
         }
         for (resource, quantity) in totals {
-            rewards[resource, default: 0] += quantity / 5
+            rewards[resource, default: 0] = SaturatedArithmetic.saturatingAdd(
+                rewards[resource, default: 0], quantity / 5,
+            )
         }
         return BattleRewardAward(
-            stageGold: award.stageGold + (gold + award.goldGained) / 5,
+            stageGold: SaturatedArithmetic.saturatingAdd(
+                award.stageGold,
+                SaturatedArithmetic.saturatingAdd(gold, award.goldGained) / 5,
+            ),
             battleGold: award.battleGold, goldFlow: award.goldFlow,
             heroExperience: award.heroExperience, companionExperience: award.companionExperience,
             materials: rewards.keys.sorted { $0.rawValue < $1.rawValue }.compactMap { resource in

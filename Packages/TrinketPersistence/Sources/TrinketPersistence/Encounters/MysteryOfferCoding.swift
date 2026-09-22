@@ -34,6 +34,10 @@ struct MysteryOfferSnapshot: Codable {
         /// throw so a tampered payload cannot mint rewards.
         func resolve() throws -> MysteryOffer? {
             guard bonus.amount >= 0 else { throw MysteryOfferError.invalidSnapshot }
+            if case let .goldAndExperience(gold, experience, nominalGold, fullOverflowExperience) = bonus {
+                guard gold >= 0, experience >= 0, nominalGold >= gold,
+                      fullOverflowExperience >= experience else { throw MysteryOfferError.invalidSnapshot }
+            }
             guard let item = item.resolved() else { return nil }
             return MysteryOffer(choiceID: choiceID, item: item, bonus: bonus)
         }

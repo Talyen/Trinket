@@ -62,7 +62,7 @@ def registration_failures(root: Path, rows: list[dict]) -> list[str]:
             parts = path.relative_to(root).parts
             if any(part in {'Performance', 'Support'} for part in parts) or ('Smoke' in parts) != (suite == 'Smoke'):
                 continue
-            declared += re.findall(r'(?:final\s+)?class\s+(\w+)\s*:\s*(?:SeededSmokeUITestCase|TrinketUITestCase)', path.read_text())
+            declared += re.findall(r'(?:final\s+)?class\s+(\w+)\s*:\s*\w+UITestCase', path.read_text())
         registered = {row['name'] for row in rows if row['suite'] == suite}
         if set(declared) != registered:
             failures.append(f'{suite} registry class mismatch: missing={sorted(set(declared) - registered)}, '

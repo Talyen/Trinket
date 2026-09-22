@@ -28,8 +28,8 @@ materials and Gold, and learning or practice for XP. The authored catalog is
 - Resolve offers before display. Basic/Astral gear uses the choice's fixed base;
   Trinkets and Uniques may only come from that choice's explicit thematic pool.
 - Offers use the shared [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
-  at Journey chapter-base level or Labyrinth depth. Voyage uses Campaign reward
-  progression for item quality, as in [Contracts](Contracts.md#board); its active
+  at the highest won encounter level, capped at loot level 40, as in
+  [Contracts](Contracts.md#board); Voyage's active
   party and difficulty determine the encounter level for secondary rewards.
   Moonlit Sanctum scales Astral weight relatively. Remove unavailable special categories before normalizing the
   remaining weights; never substitute an unrelated special item or promote gear.
@@ -49,12 +49,12 @@ materials and Gold, and learning or practice for XP. The authored catalog is
 Save both rolled items, including their affix powers, and secondary amounts with
 the Journey stage, Labyrinth node, or Voyage run/node before enabling choices.
 Reopening reuses these offers. Existing saves without snapshots acquire them on first opening.
-Existing snapshots with unresolved bonuses are revalidated without rerolling
-available items or affixes.
+Existing snapshots retain their shown bonus and item without rerolling affixes.
 
-Revalidate ownership and grant capacity before claiming. If a special item has
-become owned, or a secondary reward no longer fits, save and display the revised
-offer and require a fresh action. Do not silently replace the player's selection.
+Claim the saved item and nominal secondary reward without rerolling or requiring
+a fresh choice after other progress changes. Gold fills available wallet space;
+only its overflow converts to XP. If another device has already granted the same
+Unique, retain one copy without compensation.
 
 Grant the selected offer and complete the encounter in one save transaction.
 Failed saves preserve the displayed offers for retry; successful completion clears

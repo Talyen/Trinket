@@ -3,12 +3,9 @@ import TrinketContent
 import TrinketCore
 
 public struct LootRequest: Equatable, Sendable {
-    /// Content-tier curve for item generation (ItemLootPolicy probabilities).
-    /// Always the authored level (Journey chapter math, Spire floor x2,
-    /// Labyrinth depth, Contracts campaign anchor) — never party-adjusted —
-    /// so under-leveled parties keep fair item tiers. Fight-relative scaling
-    /// (XP, gold, materials) uses the separate `encounterLevel` passed to
-    /// `resolveLoot`.
+    /// Legacy request field retained for call sites; item generation uses the
+    /// captured `encounterLevel` passed to `resolveLoot`. That level also drives
+    /// fight-relative XP, Gold, and material quantities.
     public var rewardLevel: Int
     public var seedSalt: String
     public var itemID: String
@@ -195,7 +192,7 @@ public enum VictoryRewardApplier {
         )
         return BattleLoot.resolve(
             encounterLevel: encounterLevel,
-            rewardLevel: request.rewardLevel,
+            rewardLevel: max(1, encounterLevel),
             enemyIsBoss: enemyIsBoss,
             itemID: request.itemID,
             keywordBias: request.keywordBias,
@@ -205,7 +202,7 @@ public enum VictoryRewardApplier {
             materialsFoundPercent: request.materialsFoundPercent + (modifier?.materialsBonusPercent ?? 0),
             materialFocus: modifier?.materialFocus,
             favoredItemTier: modifier?.favoredItemTier,
-            itemTierWeightBonusPercent: modifier?.favoredItemTier != nil ? RewardModifier.bonusPercent : 0,
+            itemTierWeightBonusPercent: modifier?.favoredItemTier != nil ? RewardModifier.rareTierWeightBonusPercent : 0,
             requiredKeyword: modifier?.requiredKeyword,
             astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng,
@@ -278,6 +275,9 @@ public enum VictoryRewardApplier {
             inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
         )
         apply(resolved, hero: hero, companion: companion, save: &save)
+        if grantsCombatExperience {
+            save.contracts.recordVictory(encounterLevel: encounterLevel)
+        }
     }
 
     /// Applies a settled award verbatim. Dupe conversion happens at plan

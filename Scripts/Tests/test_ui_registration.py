@@ -30,9 +30,9 @@ class UIRegistrationTests(unittest.TestCase):
         ]})
         self.assertEqual(REGISTRY.matrix(rows, 'FullUI'), {'include': [
             {'name': 'Battle', 'target': 'BattleFlowUITests'},
-            {'name': 'Collection', 'target': 'TabNavigationUITests HeroDetailAbilityPickerUITests'},
+            {'name': 'Collection', 'target': 'TabNavigationUITests HeroDetailAbilityPickerUITests FullGamePurchaseUITests'},
             {'name': 'Homestead', 'target': 'HomesteadNodeDetailUITests'},
-            {'name': 'Play', 'target': 'PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests'},
+            {'name': 'Play', 'target': 'PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests ShopLaunchPreparationUITests'},
         ]})
         output = subprocess.check_output(['bash', '-c', 'source Scripts/lib/smoke-classes.sh; env'], cwd=ROOT, text=True)
         for row in rows:
@@ -50,7 +50,8 @@ class UIRegistrationTests(unittest.TestCase):
             for suite, name, folder in [('Smoke', 'SmokeFixture', 'Smoke'), ('FullUI', 'FullFixture', 'Flows')]:
                 source = root / 'TrinketUITests' / folder / 'Fixture.swift'
                 source.parent.mkdir(parents=True)
-                source.write_text(f'class {name}: TrinketUITestCase {{}}')
+                base = 'FullGameStoreKitUITestCase' if suite == 'FullUI' else 'TrinketUITestCase'
+                source.write_text(f'class {name}: {base} {{}}')
                 plan = {'configurations': [{'id': 'keep-me'}], 'defaultOptions': {'testExecutionOrdering': 'alphabetical'},
                         'testTargets': [{'automaticallyIncludesTests': False, 'selectedTests': ['Old'],
                                          'target': {'name': 'TrinketUITests', 'identifier': 'preserve-id'}}]}

@@ -52,18 +52,17 @@ struct PlayerHomesteadStoreTests {
                 openResult: .init(container: container, usedInMemoryFallback: false),
                 cloudSyncEnabled: true,
             )
-            #expect(await store.collectProduction(at: collectionDate) == .cloudSyncUnsupported)
+            #expect(await store.collectProduction(at: collectionDate) == .success([
+                ResourceAmount(.food, 1), ResourceAmount(.gold, 1),
+            ]))
             #expect(
-                await store.buildOrUpgradeNode(definition, targetTier: 2, at: collectionDate) == .cloudSyncUnsupported,
+                await store.buildOrUpgradeNode(definition, targetTier: 2, at: collectionDate) == .success,
             )
-            #expect(store.currentSave == before)
+            #expect(store.currentSave != before)
         }
         let reloaded = try context.makeReloadedStore()
-        #expect(reloaded.currentSave == before)
-        #expect(await reloaded.collectProduction(at: collectionDate) == .success([
-            ResourceAmount(.food, 1), ResourceAmount(.gold, 1),
-        ]))
-        #expect(await reloaded.buildOrUpgradeNode(definition, targetTier: 2, at: collectionDate) == .success)
+        #expect(await reloaded.collectProduction(at: collectionDate) == .noProduction)
+        #expect(await reloaded.buildOrUpgradeNode(definition, targetTier: 2, at: collectionDate) == .notAvailable)
         let afterLocalPlay = try context.makeReloadedStore()
         #expect(afterLocalPlay.homestead.tier(for: .wheatField) == 2)
         #expect(afterLocalPlay.homestead.resources[.food] == 1)

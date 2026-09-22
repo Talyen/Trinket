@@ -62,7 +62,7 @@ final class PendingSaveRecovery {
 
     /// Versioned corrupt-sample URL so a second corrupt launch archives
     /// beside the first instead of destroying forensics. Capped at 5 samples;
-    /// older samples are pruned on write via `pruneCorruptSamples`.
+    /// older samples are pruned after archiving via `pruneCorruptSamples`.
     var nextCorruptFileURL: URL {
         let base = url.appendingPathExtension("unreadable")
         let manager = FileManager.default
@@ -74,15 +74,40 @@ final class PendingSaveRecovery {
         return base.appendingPathExtension("\(index)")
     }
 
+    nonisolated static func corruptSampleURLs(forPendingURL pending: URL) throws -> [URL] {
+        let directory = pending.deletingLastPathComponent()
+        let manager = FileManager.default
+        guard manager.fileExists(atPath: directory.path) else { return [] }
+        let baseName = pending.lastPathComponent + ".unreadable"
+        let numberedPrefix = baseName + "."
+        let entries = try manager.contentsOfDirectory(
+            at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
+        )
+        return try entries.filter { url in
+            let name = url.lastPathComponent
+            if name != baseName {
+                guard name.hasPrefix(numberedPrefix) else {
+                    return false
+                }
+                let suffix = name.dropFirst(numberedPrefix.count)
+                guard Int(suffix).map({ $0 >= 2 }) == true,
+                      suffix.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }) else {
+                    return false
+                }
+            }
+            guard try url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else {
+                return false
+            }
+            return true
+        }
+    }
+
     /// Keeps at most 5 `.unreadable` samples; evicts oldest first.
     nonisolated static func pruneCorruptSamples(forPendingURL pending: URL, keeping maxSamples: Int = 5) {
         let manager = FileManager.default
-        let base = pending.appendingPathExtension("unreadable")
+        // PersistenceCheck: allow - archive pruning is best-effort, including directory reads
+        guard let candidates = try? corruptSampleURLs(forPendingURL: pending) else { return }
         var samples: [(URL, Date)] = []
-        var candidates = [base]
-        for index in 2 ... (maxSamples + 10) {
-            candidates.append(base.appendingPathExtension("\(index)"))
-        }
         for url in candidates {
             // PersistenceCheck: allow - missing/unreadable sample metadata means skip, not fail
             guard let values = try? url.resourceValues(forKeys: [.contentModificationDateKey]),
@@ -91,7 +116,9 @@ final class PendingSaveRecovery {
             samples.append((url, values.contentModificationDate ?? .distantPast))
         }
         guard samples.count > maxSamples else { return }
-        for (url, _) in samples.sorted(by: { $0.1 < $1.1 }).prefix(samples.count - maxSamples) {
+        for (url, _) in samples.sorted(by: {
+            $0.1 == $1.1 ? $0.0.lastPathComponent < $1.0.lastPathComponent : $0.1 < $1.1
+        }).prefix(samples.count - maxSamples) {
             // PersistenceCheck: allow - eviction is best-effort; failed deletes retry next prune
             try? manager.removeItem(at: url)
         }
@@ -213,19 +240,11 @@ final class PendingSaveRecovery {
 
     /// Clears only the pending record. Forensics (`previous.json`,
     /// versioned `.unreadable` samples) survive a successful persist by
-    /// design; explicit resets wipe them via `clearForensics` /
-    /// `PlayerSaveStoreConfiguration.cleanStoreFiles`.
+    /// design; explicit store cleanup removes them.
     func clear() throws {
         guard hasPendingSave else { return }
         try FileManager.default.removeItem(at: url)
         hasPendingSave = false
-    }
-
-    func clearForensics() throws {
-        try clear()
-        if FileManager.default.fileExists(atPath: previousFileURL.path) {
-            try FileManager.default.removeItem(at: previousFileURL)
-        }
     }
 
     /// Schedules a bounded-backoff retry of a durable write while the app

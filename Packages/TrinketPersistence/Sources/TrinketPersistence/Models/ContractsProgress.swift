@@ -5,9 +5,22 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     public static let freshStart = Self()
 
     public private(set) var offers: [ContractOffer]
+    public private(set) var refreshAvailable: Bool
+    public private(set) var highestWonEncounterLevel: Int
 
-    public init(offers: [ContractOffer] = []) {
+    public init(offers: [ContractOffer] = [], refreshAvailable: Bool = false, highestWonEncounterLevel: Int = 0) {
         self.offers = offers
+        self.refreshAvailable = refreshAvailable
+        self.highestWonEncounterLevel = max(0, highestWonEncounterLevel)
+    }
+
+    private enum CodingKeys: String, CodingKey { case offers, refreshAvailable, highestWonEncounterLevel }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        offers = try values.decode([ContractOffer].self, forKey: .offers)
+        refreshAvailable = try values.decodeIfPresent(Bool.self, forKey: .refreshAvailable) ?? false
+        highestWonEncounterLevel = try max(0, values.decodeIfPresent(Int.self, forKey: .highestWonEncounterLevel) ?? 0)
     }
 
     public func offer(for difficulty: ContractDifficulty) -> ContractOffer? {
@@ -28,10 +41,12 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         offers = ContractDifficulty.allCases.compactMap { offer(for: $0) }
     }
 
+    @discardableResult
     public mutating func refresh(
         eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
-    ) {
+    ) -> Bool {
+        guard refreshAvailable else { return false }
         let previous = offers
         offers = []
         var excludedEnemyIDs = Set<String>()
@@ -44,6 +59,20 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
             excludedEnemyIDs.insert(newOffer.enemyID)
             offers.append(newOffer)
         }
+        refreshAvailable = false
+        return true
+    }
+
+    public mutating func earnRefresh() {
+        refreshAvailable = true
+    }
+
+    mutating func reconcileRefreshAvailability(_ available: Bool) {
+        refreshAvailable = available
+    }
+
+    public mutating func recordVictory(encounterLevel: Int) {
+        highestWonEncounterLevel = max(highestWonEncounterLevel, encounterLevel)
     }
 
     @discardableResult
@@ -72,7 +101,7 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
             enemyIDs.insert(offer.enemyID)
             valid.append(offer)
         }
-        return Self(offers: valid)
+        return Self(offers: valid, refreshAvailable: refreshAvailable, highestWonEncounterLevel: highestWonEncounterLevel)
     }
 
     var encodedPayload: Data {
@@ -90,10 +119,17 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         do {
             return try JSONDecoder().decode(Self.self, from: data)
         } catch {
-            // The board is regenerable state, not progress (see
-            // `CloudSaveSnapshot.hasProgress`): a corrupt payload resets to a
-            // fresh board instead of rejecting the whole save.
-            return .freshStart
+            // Offers are regenerable. Retain the independently earned quality
+            // milestone when an otherwise readable payload has damaged offers.
+            let fields: [String: Any]?
+            do {
+                fields = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            } catch {
+                fields = nil
+            }
+            let level = fields?[CodingKeys.highestWonEncounterLevel.rawValue] as? Int ?? 0
+            let refreshAvailable = fields?[CodingKeys.refreshAvailable.rawValue] as? Bool ?? false
+            return Self(refreshAvailable: refreshAvailable, highestWonEncounterLevel: level)
         }
     }
 }

@@ -29,6 +29,7 @@ extension PlayerSaveStore {
     }
 
     func prepareLocalProduction() -> Bool {
+        guard !isCloudSyncEnabled else { return true }
         guard let accountID = cloudDeviceState.activeAccountID else { return true }
         var state = cloudDeviceState
         state.archiving(

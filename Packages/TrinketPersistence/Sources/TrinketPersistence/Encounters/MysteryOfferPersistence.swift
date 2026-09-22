@@ -55,8 +55,7 @@ public enum MysteryOfferPersistence {
         // the direct-effects path, so only pooled choices produce offers.
         let offers: [MysteryOffer] = event.choices.compactMap { choice in
             let saved = previous.first { $0.choiceID == choice.id }
-            let available = saved.flatMap { MysteryEffectApplier.isAvailable($0.item, in: save.inventory) ? $0 : nil }
-            guard let offer = available ?? MysteryEffectApplier.resolveOffer(
+            guard let offer = saved ?? MysteryEffectApplier.resolveOffer(
                 choice: choice,
                 encounterID: stage.id,
                 encounterLevel: level,
@@ -65,11 +64,11 @@ public enum MysteryOfferPersistence {
                 bonuses: bonuses,
                 using: &randomNumberGenerator,
             ) else { return nil }
-            // Revalidate saved bonuses too, including raw bonuses from older saves.
-            // Available items and their rolled affixes remain pinned.
+            if saved != nil {
+                return offer
+            }
             return MysteryOffer(
-                choiceID: offer.choiceID,
-                item: offer.item,
+                choiceID: offer.choiceID, item: offer.item,
                 bonus: MysteryEffectApplier.settledBonus(
                     offer.bonus, encounterLevel: level, save: save,
                     experiencePercent: bonuses.experienceEarnedPercent, at: date,
@@ -116,12 +115,15 @@ public enum MysteryOfferPersistence {
         }
         let level = inputs.encounterLevel
         let bonuses = inputs.bonuses
-        guard MysteryEffectApplier.settledBonus(
-            offer.bonus, encounterLevel: level, save: candidate,
-            experiencePercent: bonuses.experienceEarnedPercent, at: grantDate,
-        ) == offer.bonus else { return MysteryEffectResult() }
-        let result = MysteryEffectApplier.apply(offer, save: &candidate, at: grantDate)
-        guard result.grantedItems.count == 1 else { return result }
+        let result = MysteryEffectApplier.apply(
+            offer, save: &candidate, at: grantDate,
+            goldOverflowExperience: RewardExperiencePolicy.encounterAward(
+                encounterLevel: level, roster: candidate.roster, percent: bonuses.experienceEarnedPercent,
+            ),
+            allowOwnedItem: true,
+        )
+        guard result.grantedItems.count == 1 || InventoryDuplicatePolicy.containsDuplicate(of: offer.item, in: candidate.inventory.items)
+        else { return result }
         if let encounter, case let .voyage(runID, nodeID) = encounter.location {
             _ = VoyageCompletion.completeNode(runID: runID, nodeID: nodeID, save: &candidate)
         } else if let labyrinthNodeID {

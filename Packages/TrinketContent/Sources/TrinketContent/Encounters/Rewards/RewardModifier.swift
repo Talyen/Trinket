@@ -94,6 +94,7 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     }
 
     public static let bonusPercent = 25
+    public static let rareTierWeightBonusPercent = 100
 
     public var title: String {
         switch self {

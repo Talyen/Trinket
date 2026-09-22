@@ -23,13 +23,25 @@ public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sen
 @Observable
 public final class OptionsStore {
     @ObservationIgnored private let defaults: UserDefaults
+    private var storedMusicVolume: Double
+    private var storedEffectsVolume: Double
 
     public var musicVolume: Double {
-        didSet { defaults.set(musicVolume, forKey: Self.musicVolumeKey) }
+        get { storedMusicVolume }
+        set {
+            let volume = Self.normalizedVolume(newValue, default: Self.defaultMusicVolume)
+            storedMusicVolume = volume
+            defaults.set(volume, forKey: Self.musicVolumeKey)
+        }
     }
 
     public var effectsVolume: Double {
-        didSet { defaults.set(effectsVolume, forKey: Self.effectsVolumeKey) }
+        get { storedEffectsVolume }
+        set {
+            let volume = Self.normalizedVolume(newValue, default: Self.defaultEffectsVolume)
+            storedEffectsVolume = volume
+            defaults.set(volume, forKey: Self.effectsVolumeKey)
+        }
     }
 
     public var hapticsEnabled: Bool {
@@ -80,8 +92,8 @@ public final class OptionsStore {
         let rememberAutoValue = Self.readBool(from: defaults, key: Self.rememberAutoBattlePreferenceKey, default: false)
         let autoBattleValue = rememberAutoValue && Self.readAutoBattleEnabled(from: defaults)
 
-        musicVolume = Self.readDouble(from: defaults, key: Self.musicVolumeKey, default: Self.defaultMusicVolume)
-        effectsVolume = Self.readDouble(from: defaults, key: Self.effectsVolumeKey, default: Self.defaultEffectsVolume)
+        storedMusicVolume = Self.readVolume(from: defaults, key: Self.musicVolumeKey, default: Self.defaultMusicVolume)
+        storedEffectsVolume = Self.readVolume(from: defaults, key: Self.effectsVolumeKey, default: Self.defaultEffectsVolume)
         hapticsEnabled = Self.readBool(from: defaults, key: Self.hapticsEnabledKey, default: Self.defaultHapticsEnabled)
         rememberAutoBattlePreference = rememberAutoValue
         autoBattleEnabled = autoBattleValue
@@ -122,8 +134,18 @@ public final class OptionsStore {
         return policy
     }
 
-    private static func readDouble(from defaults: UserDefaults, key: String, default defaultValue: Double) -> Double {
-        defaults.object(forKey: key) != nil ? defaults.double(forKey: key) : defaultValue
+    private static func readVolume(from defaults: UserDefaults, key: String, default defaultValue: Double) -> Double {
+        guard let stored = defaults.object(forKey: key) else { return defaultValue }
+        let raw = (stored as? NSNumber)?.doubleValue
+        let volume = raw.map { normalizedVolume($0, default: defaultValue) } ?? defaultValue
+        if raw != volume {
+            defaults.set(volume, forKey: key)
+        }
+        return volume
+    }
+
+    private static func normalizedVolume(_ volume: Double, default defaultValue: Double) -> Double {
+        volume.isFinite ? min(max(volume, 0), 1) : defaultValue
     }
 
     private static func readBool(from defaults: UserDefaults, key: String, default defaultValue: Bool) -> Bool {

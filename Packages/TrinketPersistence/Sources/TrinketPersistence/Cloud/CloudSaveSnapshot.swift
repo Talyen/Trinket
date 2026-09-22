@@ -75,6 +75,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
             || PlayerVoyageState.decodePayload(voyagePayload).activeRun != nil
             || PlayerVoyageState.decodePayload(voyagePayload).isUnreadable
             || !spires.highestClearedFloorBySpireID.isEmpty
+            || contracts.highestWonEncounterLevel > 0
     }
 
     var campaignRank: Int {

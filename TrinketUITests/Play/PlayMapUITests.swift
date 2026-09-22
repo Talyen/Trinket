@@ -7,7 +7,7 @@ final class PlayMapUITests: TrinketUITestCase {
 
         play.openCampaign()
 
-        button(AccessibilityID.Play.stagePartyControl).tap()
+        tapButton(AccessibilityID.Play.stagePartyControl)
         assertExists(AccessibilityID.Play.stagePartyPickerSheet)
 
         let heroOptionID = AccessibilityID.Play.battlePartyOption(
@@ -15,9 +15,12 @@ final class PlayMapUITests: TrinketUITestCase {
             combatantID: "rogue",
         )
         assertExists(heroOptionID)
-        button(heroOptionID).tap()
+        tapButton(heroOptionID)
 
-        button(AccessibilityID.Play.battlePartyDone).tap()
+        tapButton(AccessibilityID.Play.battlePartyDone)
         assertDoesNotExist(AccessibilityID.Play.stagePartyPickerSheet, timeout: 5)
+        tapButton(AccessibilityID.Play.stagePartyControl)
+        assertExists(heroOptionID)
+        XCTAssertTrue(button(heroOptionID).isSelected, "The chosen Rogue must remain selected when the party picker reopens")
     }
 }

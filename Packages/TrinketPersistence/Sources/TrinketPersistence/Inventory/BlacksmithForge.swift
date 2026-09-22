@@ -26,7 +26,10 @@ struct BlacksmithForgeAttempt {
         let item = ItemRewardGenerator.generate(
             id: "forge-\(UUID().uuidString)",
             rewardLevel: CampaignRewardLevel.resolve(in: save),
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+            astralChanceBonusPercent: SaturatedArithmetic.saturatingAdd(
+                save.homestead.effects.astralChanceBonusPercent,
+                BlacksmithRecipe.astralWeightBonusPercent(blacksmithTier: save.homestead.tier(for: .blacksmithForge)),
+            ),
             allowedTiers: [.basic, .astral, .unique],
             ownedTrinketIDs: save.inventory.ownedTrinketIDs,
             ownedUniqueIDs: save.inventory.ownedUniqueIDs,

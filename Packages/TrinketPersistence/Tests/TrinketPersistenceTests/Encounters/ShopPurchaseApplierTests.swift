@@ -6,6 +6,19 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct ShopPurchaseApplierTests {
+    @Test func `pinned stock survives an imported session generation`() throws {
+        var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 100)
+        let offer = try makeOffer(price: 28)
+        let previous = try pin([offer], in: &save)
+        save.sessionGeneration &+= 1
+        let current = EncounterIdentity(location: previous.location, save: save)
+        let loaded = try ShopStockPersistence.stock(encounter: current, save: save)
+        let stock = try #require(loaded)
+        #expect(stock.offers.map(\.id) == [offer.id])
+        #expect(ShopPurchaseApplier.purchase(offerID: offer.id, encounter: previous, save: &save) == .failure(.invalidOffer))
+        #expect(try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: current, save: &save).get() == offer.item)
+    }
+
     @Test func `purchase settles production before opening gold capacity`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: PlayerRosterState.maxGoldBalance)
         let start = Date.now.addingTimeInterval(-PlayerHomesteadState.secondsPerDay)

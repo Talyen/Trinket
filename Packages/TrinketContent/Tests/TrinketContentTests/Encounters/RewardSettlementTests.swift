@@ -84,6 +84,22 @@ struct RewardSettlementTests {
         #expect(award.goldDelta == 145)
     }
 
+    @Test func `battle gold and flat bonus saturate without losing spending`() {
+        let plan = BattleRewardPlan(
+            stageGold: Int.max - 1, goldFindPercent: 0, goldFindFlat: 10,
+            heroExperience: 0, companionExperience: 0, materials: [], items: [],
+        )
+        let award = plan.resolve(battleGold: .init(gained: Int.max, spent: Int.max))
+        #expect(award.stageGold == Int.max - 1)
+        #expect(award.battleGold == 1 - Int.max)
+        #expect(award.goldDelta == 0)
+        #expect(award.goldGained == Int.max)
+
+        let unspent = plan.resolve(battleGold: .init(gained: Int.max))
+        #expect(unspent.goldDelta == Int.max)
+        #expect(unspent.goldGained == Int.max)
+    }
+
     @Test func `full wallet replaces gold with overflow experience`() {
         let plan = BattleRewardPlan(
             stageGold: 10,
@@ -102,6 +118,43 @@ struct RewardSettlementTests {
         #expect(settlement.award.goldDelta == 0)
         #expect(settlement.replacementExperience == 42)
         #expect(settlement.award.heroExperience > 10)
+    }
+
+    @Test func `partial gold overflow grants fitting gold and proportional experience`() {
+        let plan = BattleRewardPlan(
+            stageGold: 20, goldFindPercent: 0, goldOverflowExperience: 40,
+            heroExperience: 2, companionExperience: 2, materials: [], items: [],
+        )
+        let settlement = plan.settle(battleGold: .init(), inputs: inputs(gold: 90, goldLimit: 100))
+        #expect(settlement.award.goldGained == 10)
+        #expect(settlement.award.goldDelta == 10)
+        #expect(settlement.replacementExperience == 20)
+        #expect(settlement.award.heroExperience == 22)
+        #expect(RewardSettlementPolicy.overflowExperience(Int.max, overflow: Int.max / 2, gains: Int.max) > 0)
+    }
+
+    @Test func `overflow compensation is capped after saturating`() {
+        let plan = BattleRewardPlan(
+            stageGold: 1, goldFindPercent: 0, goldOverflowExperience: Int.max,
+            heroExperience: Int.max, companionExperience: Int.max,
+            materials: [], items: [],
+        )
+        let settlement = plan.settle(battleGold: .init(), inputs: inputs(gold: 100, goldLimit: 100, heroLevel: 1, companionLevel: 1))
+        #expect(settlement.award.goldDelta == 0)
+        #expect(settlement.award.heroExperience == 30)
+        #expect(settlement.award.companionExperience == 30)
+        #expect(settlement.replacementExperience == Int.max)
+    }
+
+    @Test func `capacity and replacement comparisons saturate`() {
+        let extreme = RewardSettlementInputs(
+            gold: Int.min, reservedGold: Int.min, goldLimit: Int.max,
+            heroProgression: .initial, companionProgression: .initial,
+            productionDate: Date(timeIntervalSince1970: 0),
+        )
+        #expect(extreme.goldCapacity == Int.max)
+        #expect(RewardSettlementPolicy.replacesGold(gains: Int.max, spending: Int.max, capacity: 0) == false)
+        #expect(RewardSettlementPolicy.replacesGold(gains: Int.max, spending: 0, capacity: 0))
     }
 
     @Test func `shared award is capped by the lower-level partner`() {

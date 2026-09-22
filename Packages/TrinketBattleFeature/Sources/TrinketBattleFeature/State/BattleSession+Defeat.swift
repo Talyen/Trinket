@@ -32,11 +32,11 @@ extension BattleSession {
 
     func makeDefeatSettlement(for configuration: BattleRunConfiguration) -> BattleRewardSettlement? {
         guard let progress = resolvedDefeatProgress, let context = presentationContext else { return nil }
-        if let progression {
-            return progression.settleDefeat(configuration)
-        }
-        let inputs = context.rewardInputs ?? Self.fallbackRewardInputs(for: configuration)
-        return context.rewardPlan.settleDefeat(progress: progress, inputs: inputs)
+        return progression?.settleDefeat(configuration)
+            ?? context.rewardPlan.settleDefeat(
+                progress: progress,
+                inputs: context.rewardInputs ?? Self.fallbackRewardInputs(for: configuration),
+            )
     }
 
     #if DEBUG

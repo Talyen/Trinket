@@ -74,11 +74,25 @@ struct VoyageTests {
             productionDate: Date(),
         )
         let settled = plan.settle(battleGold: .init(gained: 2), inputs: inputs)
-        #expect(settled.award.goldDelta == 0)
-        #expect(settled.replacementExperience == 5)
+        #expect(settled.award.goldDelta == 1)
+        #expect(settled.replacementExperience == 4)
         #expect(settled.award.materials == earned.materials)
         let defeat = plan.settleDefeat(progress: .init(remainingHealth: 0, maximumHealth: 100), inputs: inputs)
         #expect(defeat.award.goldGained == 0)
         #expect(defeat.award.materials.isEmpty)
+    }
+
+    @Test func `completion bonus saturates gold and material totals`() {
+        let plan = BattleRewardPlan(
+            stageGold: Int.max, goldFindPercent: 0,
+            heroExperience: 0, companionExperience: 0,
+            materials: [ResourceAmount(.wood, Int.max), ResourceAmount(.wood, 1)], items: [],
+            completionBonus: VoyageCompletionBonus(gold: Int.max, materials: [.wood: Int.max]),
+        )
+        let award = plan.resolve(battleGold: .init())
+        #expect(award.stageGold == Int.max)
+        #expect(award.goldDelta == Int.max)
+        #expect(award.goldGained == Int.max)
+        #expect(award.materials == [ResourceAmount(.wood, Int.max)])
     }
 }

@@ -8,6 +8,8 @@ FullUI||BattleFlowUITests|Battle|0|0
 FullUI||MysteryRecruitUITests|Play|3|2
 FullUI||PlayMapUITests|Play|3|0
 FullUI||PlayModeNavigationUITests|Play|3|1
+FullUI||ShopLaunchPreparationUITests|Play|3|3
 FullUI||TabNavigationUITests|Collection|1|0
 FullUI||HeroDetailAbilityPickerUITests|Collection|1|1
+FullUI||FullGamePurchaseUITests|Collection|1|2
 FullUI||HomesteadNodeDetailUITests|Homestead|2|0

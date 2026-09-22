@@ -18,7 +18,12 @@ struct ContractBoardTests {
         for offer in board.offers {
             #expect(GameContent.enemy(matching: offer.enemyID)?.isBoss == offer.difficulty.isBoss)
         }
-        board.refresh()
+        let unavailableRefresh = board.refresh()
+        #expect(!unavailableRefresh)
+        board.earnRefresh()
+        let refreshed = board.refresh()
+        #expect(refreshed)
+        #expect(!board.refreshAvailable)
         for offer in board.offers {
             #expect(offer.id != original.offer(for: offer.difficulty)?.id)
             #expect(offer.enemyID != original.offer(for: offer.difficulty)?.enemyID)
@@ -34,7 +39,7 @@ struct ContractBoardTests {
         #expect(Set(board.offers.map(\.enemyID)).count == 3)
     }
 
-    @Test func `item quality follows Campaign progress rather than roster leveling`() throws {
+    @Test func `item quality follows won encounters rather than roster leveling`() throws {
         var save = SaveTestSupport.makeSave()
         let early = ContractsCompletion.campaignRewardLevel(in: save)
         save.roster.progressions[save.roster.activeHeroID] = .at(level: 40)
@@ -42,12 +47,24 @@ struct ContractBoardTests {
         #expect(ContractsCompletion.campaignRewardLevel(in: save) == early)
 
         let lastStage = try #require(GameContent.chapters.last?.stages.last)
-        save.journey.activeStageID = lastStage.id
+        save.journey.complete(lastStage, in: GameContent.chapters)
         let late = ContractsCompletion.campaignRewardLevel(in: save)
         #expect(late > early)
-        #expect(late == StageCompletion.resolvedEncounterLevel(for: lastStage, in: GameContent.chapters))
+        #expect(late == min(40, StageCompletion.resolvedEncounterLevel(for: lastStage, in: GameContent.chapters)))
         save.journey.activeStageID = nil
         #expect(ContractsCompletion.campaignRewardLevel(in: save) == late)
+        save.contracts.recordVictory(encounterLevel: 60)
+        #expect(ContractsCompletion.campaignRewardLevel(in: save) == 40)
+    }
+
+    @Test func `damaged Contract offers do not erase the earned loot milestone`() throws {
+        let payload = try JSONSerialization.data(withJSONObject: [
+            "offers": "unreadable", "highestWonEncounterLevel": 27, "refreshAvailable": true,
+        ])
+        let restored = PlayerContractsState.decodePayload(payload)
+        #expect(restored.offers.isEmpty)
+        #expect(restored.highestWonEncounterLevel == 27)
+        #expect(restored.refreshAvailable)
     }
 
     @Test(arguments: ContractDifficulty.allCases)
@@ -129,7 +146,10 @@ struct ContractsPersistenceTests {
         let first = store.contracts
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.contracts == first)
-        #expect(reloaded.persistBatch(logging: "Contracts test") { $0.contracts.refresh() })
+        #expect(reloaded.persistBatch(logging: "Contracts test") {
+            $0.contracts.earnRefresh()
+            _ = $0.contracts.refresh()
+        })
         #expect(reloaded.contracts != first)
         let refreshed = try context.makeReloadedStore()
         #expect(refreshed.contracts == reloaded.contracts)

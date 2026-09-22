@@ -81,9 +81,10 @@ struct ContractsBoardView: View {
                     }
                     .frame(width: 24, height: 24)
                 }
-                .disabled(isBattleActive)
+                .disabled(isBattleActive || !playerSave.contracts.refreshAvailable)
                 .accessibilityLabel("Refresh Contracts")
-                .accessibilityValue(showsPreparationProgress ? "Preparing contracts" : "")
+                .accessibilityValue(showsPreparationProgress ? "Preparing contracts" :
+                    (playerSave.contracts.refreshAvailable ? "Ready" : "Win a Contract to refresh"))
                 .accessibilityIdentifier(AccessibilityID.Play.contractsRefresh)
             }
         }

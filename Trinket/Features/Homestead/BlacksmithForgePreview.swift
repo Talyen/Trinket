@@ -116,6 +116,14 @@ struct BlacksmithForgePreview: View {
                 }
                 .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.forgeDone)
             } else {
+                let forgeBonus = BlacksmithRecipe.astralWeightBonusPercent(
+                    blacksmithTier: playerSave.homestead.tier(for: .blacksmithForge),
+                )
+                if forgeBonus > 0 {
+                    Text("Forge Astral odds +\(forgeBonus)%")
+                        .trinketTypography(.body)
+                        .foregroundStyle(.primary)
+                }
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), alignment: .leading)], alignment: .leading) {
                     ForEach(recipe.cost) { amount in
                         HomesteadMaterialValue(

@@ -46,9 +46,9 @@ the recovered values. Production actions use immediate commits.
 `retrySaveAction` retains a failed action and retries it without a player prompt.
 Keys prevent duplicate retries; the captured session generation prevents late
 writes or navigation across reset/account boundaries. Interaction owners retain
-only current choices/encounters while pending. Transient cloud production failures
-use the same silent retry policy with asynchronous operations; server authority
-and receipt rules remain unchanged. Total device write refusal cannot guarantee
+only current choices/encounters while pending. Linked Homestead actions commit
+locally and upload later; transient sync failures retry without player prompts.
+Pending legacy server receipts remain replay-safe. Total device write refusal cannot guarantee
 survival of an uncommitted action across process termination; do not report that
 an action completed before a durable write succeeds.
 
@@ -76,20 +76,30 @@ commits a fresh save before replacing the memory-only session. A failed recovery
 keeps that session available for retry. Do not restore automatic delete-and-recreate
 recovery during migration.
 
-Approved reconciliation selects a complete save without player conflict prompts.
-Within the same reset epoch and production-authority sequence, prefer causal
-continuation using device revision clocks, then furthest Campaign completion,
-then most recent play and a stable revision-ID tie-breaker. A fresh installation
-cannot displace populated progress. Archive conflicting progress in the same
-atomic server operation before installing the selected snapshot. A failed archive
-leaves the local snapshot and outbox intact. Currency, materials, reward claims,
-inventory/equipment, recruitment/talents, Campaign, Spires, Labyrinth, Contracts,
-and Homestead upgrades remain coherent; never sum independent balances.
+Approved reconciliation merges concurrent branches within the same reset epoch
+without player conflict prompts. Each immediate durable game mutation records an
+identified domain action with before/after snapshots in the local cloud outbox;
+deferred mutations remain in the complete save projection. Upload requests
+carry those actions, their acknowledged base snapshot, and a stable request ID;
+the server replays the actions into one complete projected save and an immutable
+receipt. A successful receipt removes only its included local actions. Union earned items, unlocks, talents, claims, and
+    completion; use the latest valid party/loadout edit, retaining displaced gear in
+    Inventory. A salvage on one branch stays removed when the other branch only
+    changes unrelated progress. Combine independent balance changes from a shared base and floor
+concurrent overspending at zero. On first attachment of unrelated older saves,
+take the larger balance per resource. Archive conflicting snapshots in the same
+atomic server operation before installing the merge. A failed archive leaves
+the local snapshot and outbox intact.
 
-The server's Homestead cursor and pending production are authoritative across
-branch selection. A snapshot predating a committed production claim or upgrade
-is archived rather than allowed to undo that operation, even if its Campaign rank
-is higher. Some offline play can therefore remain only in its recovery backup.
+Long offline journals compact older, unsubmitted adjacent actions into one
+identified transition while retaining recent actions and any actions already in
+a pending request. The compacted transition keeps its first before-snapshot and
+last after-snapshot; a receipt removes only the actions it actually submitted.
+
+The merged Homestead cursor cannot move backward. Overlapping collections of the
+same production interval count once; distinct upgrades persist, and a shortage
+from concurrent spending is forgiven at zero balance. Pending legacy production
+receipts remain recoverable after a lost response.
 [Progression](persistence-progression.md) owns the claim transaction.
 
 Reset advances the server epoch and invalidates older progress and claims.

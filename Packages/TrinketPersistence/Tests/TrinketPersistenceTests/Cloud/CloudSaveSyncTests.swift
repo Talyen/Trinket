@@ -6,6 +6,100 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct CloudSaveSyncTests {
+    @Test @MainActor func `offline domain actions survive reload and replay once`() async throws {
+        let transport = CloudSaveTestTransport()
+        let context = try PersistenceTestContext()
+        var original: PlayerSaveStore? = try cloudStore(context, transport: transport)
+        #expect(await original?.cloudSync?.synchronize() == true)
+        #expect(original?.cloudDeviceState.account.journal == nil)
+        #expect(original?.persistBatch(logging: "Earn Gold offline") { $0.roster.gold += 5 } == true)
+        #expect(original?.persistBatch(logging: "Earn Wood offline") { $0.homestead.resources[.wood] = 7 } == true)
+        #expect(original?.cloudDeviceState.account.journal?.count == 2)
+        original = nil
+
+        let reloaded = try cloudStore(context, transport: transport)
+        #expect(reloaded.cloudDeviceState.account.journal?.count == 2)
+        #expect(await reloaded.cloudSync?.synchronize() == true)
+        #expect(reloaded.cloudDeviceState.account.journal?.isEmpty == true)
+        let first = await transport.account().head?.head.revision.snapshot
+        #expect(first?.roster.gold == 5)
+        #expect(first?.homestead.resources[.wood] == 7)
+        #expect(await reloaded.cloudSync?.synchronize() == true)
+        #expect(await transport.account().head?.head.revision.snapshot == first)
+    }
+
+    @Test @MainActor func `different offline Mystery choices merge on two devices`() async throws {
+        let transport = CloudSaveTestTransport()
+        let first = try PersistenceTestContext()
+        let second = try PersistenceTestContext()
+        let a = try cloudStore(first, transport: transport)
+        #expect(a.persistBatch(logging: "Mystery setup") { save in
+            save.starterSelection = .complete
+            save.inventory.items = []
+            save.roster.gold = 10
+        })
+        #expect(await a.cloudSync?.synchronize() == true)
+        let b = try cloudStore(second, transport: transport)
+        #expect(await b.cloudSync?.synchronize() == true)
+        let stageID = "chapter-1-stage-4"
+        let templates = GameContent.sampleInventoryItems.filter { $0.rarity == .basic }
+        let left = try #require(templates.first).rewardInstance(for: "\(stageID)-left")
+        let right = try #require(templates.dropFirst().first).rewardInstance(for: "\(stageID)-right")
+        #expect(a.persistBatch(logging: "Left Mystery choice") { save in
+            save.inventory.appendUniqueItem(left)
+            save.journey.claimedRewardStageIDs.insert(stageID)
+            save.roster.gold += 10
+        })
+        #expect(b.persistBatch(logging: "Right Mystery choice") { save in
+            save.inventory.appendUniqueItem(right)
+            save.journey.claimedRewardStageIDs.insert(stageID)
+            save.roster.gold += 20
+        })
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(await b.cloudSync?.synchronize() == true)
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(a.inventory.item(matching: left.id) != nil)
+        #expect(a.inventory.item(matching: right.id) != nil)
+        #expect(a.roster.gold == 40)
+    }
+
+    @Test @MainActor func `long offline play compacts its journal without losing earned Gold`() async throws {
+        let transport = CloudSaveTestTransport()
+        let context = try PersistenceTestContext()
+        let store = try cloudStore(context, transport: transport)
+        #expect(await store.cloudSync?.synchronize() == true)
+        for _ in 0 ..< 70 {
+            #expect(store.persistBatch(logging: "Offline Gold") { $0.roster.gold += 1 })
+        }
+        #expect((store.cloudDeviceState.account.journal?.count ?? 0) <= 64)
+        #expect(await store.cloudSync?.synchronize() == true)
+        #expect(store.roster.gold == 70)
+        #expect(store.cloudDeviceState.account.journal?.isEmpty == true)
+        #expect(await transport.account().head?.head.revision.snapshot.roster.gold == 70)
+    }
+}
+
+extension CloudSaveSyncTests {
+    @Test @MainActor func `stale production authority retries offline earned progress`() async throws {
+        let transport = CloudSaveTestTransport()
+        let first = try PersistenceTestContext()
+        let second = try PersistenceTestContext()
+        let a = try cloudStore(first, transport: transport)
+        try seedHomestead(a)
+        #expect(await a.cloudSync?.synchronize() == true)
+        let b = try cloudStore(second, transport: transport)
+        #expect(await b.cloudSync?.synchronize() == true)
+        await transport.advance(PlayerHomesteadState.secondsPerDay)
+        #expect(b.persistBatch(logging: "Unrelated remote play") { $0.roster.gold += 1 })
+        #expect(await b.cloudSync?.synchronize() == true)
+        #expect(await b.cloudSync?.perform(.collect) != nil)
+        #expect(a.persistBatch(logging: "Offline Gold") { $0.roster.gold += 7 })
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(a.roster.gold == 109)
+        #expect(await transport.account().head?.head.revision.snapshot.roster.gold == 109)
+        #expect(a.cloudDeviceState.account.journal?.isEmpty == true)
+    }
+
     @Test(arguments: [CloudSaveRequest.Action.collect, .upgrade(.wheatField, 2)])
     @MainActor func `production preserves progress earned after preliminary synchronization`(
         action: CloudSaveRequest.Action,
@@ -49,7 +143,7 @@ struct CloudSaveSyncTests {
         let rejoined = try cloudStore(context, transport: transport)
         #expect(await rejoined.cloudSync?.synchronize() == true)
         #expect(rejoined.cloudDeviceState.guestBackup?.homestead.resources[.food] == 1)
-        #expect(await rejoined.collectProduction() == .success([ResourceAmount(.food, 1), ResourceAmount(.gold, 1)]))
+        #expect(await rejoined.collectProduction(at: date) == .success([ResourceAmount(.food, 1), ResourceAmount(.gold, 1)]))
         #expect(rejoined.homestead.resources[.food] == 1)
         #expect(rejoined.roster.gold == 101)
     }
@@ -169,7 +263,7 @@ struct CloudSaveSyncTests {
         #expect(await original?.cloudSync?.synchronize() == true)
         await transport.advance(PlayerHomesteadState.secondsPerDay)
         await transport.configure(loseResponse: true)
-        #expect(await original?.collectProduction() == .cloudUnavailable)
+        #expect(await original?.cloudSync?.perform(.collect) == nil)
         #expect(original?.homestead.resources[.food, default: 0] == 0)
         #expect(original?.cloudDeviceState.account.pending != nil)
         original = nil
@@ -194,21 +288,31 @@ struct CloudSaveSyncTests {
         let b = try cloudStore(second, transport: transport)
         #expect(await b.cloudSync?.synchronize() == true)
         await transport.advance(PlayerHomesteadState.secondsPerDay)
+        let date = Date(timeIntervalSince1970: 2000000000 + PlayerHomesteadState.secondsPerDay)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        await transport.configure(conflicts: 7)
-        #expect(await a.buildOrUpgradeNode(definition, targetTier: 2) == .success)
+        #expect(await a.buildOrUpgradeNode(definition, targetTier: 2, at: date) == .success)
         #expect(a.homestead.pendingProduction[.food] == 1)
-        async let firstCollection = a.collectProduction()
-        async let secondCollection = b.collectProduction()
+        async let firstCollection = a.collectProduction(at: date)
+        async let secondCollection = b.collectProduction(at: date)
         let results = await (firstCollection, secondCollection)
         let outcomes = [results.0, results.1]
-        #expect(outcomes.contains(.success([ResourceAmount(.food, 1), ResourceAmount(.gold, 1)])))
-        #expect(outcomes.contains(.noProduction))
+        #expect(outcomes.allSatisfy { $0 == .success([ResourceAmount(.food, 1), ResourceAmount(.gold, 1)]) })
+        #expect(a.homestead.tier(for: .wheatField) == 2)
+        #expect(CloudSaveSnapshot(a.currentSave).homestead.tier(for: .wheatField) == 2)
+        #expect(a.cloudDeviceState.account.pending == nil)
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(await transport.account().head?.head.revision.snapshot.homestead.tier(for: .wheatField) == 2)
+        #expect(await transport.account().head?.head.revision.snapshot.homestead.resources[.wood] == 91)
+        #expect(await b.cloudSync?.synchronize() == true)
+        #expect(await transport.account().head?.head.revision.snapshot.homestead.tier(for: .wheatField) == 2)
+        #expect(await transport.account().head?.head.revision.snapshot.homestead.resources[.wood] == 91)
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(await transport.account().head?.head.revision.snapshot.homestead.pendingProduction[.food] == nil)
+        #expect(b.homestead.pendingProduction[.food] == nil)
         #expect(a.homestead.tier(for: .wheatField) == 2)
         #expect(a.homestead.resources[.wood] == 91)
-        await transport.advance(PlayerHomesteadState.secondsPerDay)
-        #expect(await a.collectProduction() == .success([ResourceAmount(.food, 2), ResourceAmount(.gold, 1)]))
-        #expect(a.homestead.resources[.food] == 3)
+        #expect(a.homestead.resources[.food] == 1)
+        #expect(a.roster.gold == 101)
     }
 
     @Test @MainActor func `concurrent collect and upgrade complete without repeating rewards`() async throws {
@@ -221,37 +325,49 @@ struct CloudSaveSyncTests {
         let b = try cloudStore(second, transport: transport)
         #expect(await b.cloudSync?.synchronize() == true)
         await transport.advance(PlayerHomesteadState.secondsPerDay)
+        let date = Date(timeIntervalSince1970: 2000000000 + PlayerHomesteadState.secondsPerDay)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        async let collection = a.collectProduction()
-        async let upgrade = b.buildOrUpgradeNode(definition, targetTier: 2)
+        async let collection = a.collectProduction(at: date)
+        async let upgrade = b.buildOrUpgradeNode(definition, targetTier: 2, at: date)
         let results = await (collection, upgrade)
         #expect(results.0 == .success([ResourceAmount(.food, 1), ResourceAmount(.gold, 1)]))
         #expect(results.1 == .success)
+        #expect(b.homestead.tier(for: .wheatField) == 2)
+        #expect(CloudSaveSnapshot(b.currentSave).homestead.tier(for: .wheatField) == 2)
+        #expect(b.cloudDeviceState.account.pending == nil)
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(await b.cloudSync?.synchronize() == true)
+        #expect(await transport.account().head?.head.revision.snapshot.homestead.tier(for: .wheatField) == 2)
         #expect(await a.cloudSync?.synchronize() == true)
         #expect(a.homestead.tier(for: .wheatField) == 2)
         #expect(a.homestead.resources[.wood] == 91)
         #expect(a.homestead.resources[.food] == 1)
         #expect(a.roster.gold == 101)
-        #expect(await b.collectProduction() == .noProduction)
+        #expect(await transport.account().head?.head.revision.snapshot.homestead.pendingProduction[.food] == nil)
+        #expect(b.homestead.pendingProduction[.food] == nil)
+        let repeated = await b.collectProduction(at: date)
+        #expect(repeated == .noProduction)
     }
 
-    @Test @MainActor func `offline cloud play continues but production waits for authority`() async throws {
+    @Test @MainActor func `offline cloud play accepts production and upgrades locally`() async throws {
         let transport = CloudSaveTestTransport()
         let context = try PersistenceTestContext()
         let store = try cloudStore(context, transport: transport)
         try seedHomestead(store)
         #expect(await store.cloudSync?.synchronize() == true)
+        let date = Date(timeIntervalSince1970: 2000000000 + PlayerHomesteadState.secondsPerDay)
         await transport.configure(offline: true)
         try store.performBatchMutation { $0.roster.gold += 7 }
-        #expect(await store.collectProduction() == .cloudUnavailable)
+        #expect(await store.collectProduction(at: date) == .success([ResourceAmount(.food, 1), ResourceAmount(.gold, 1)]))
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        #expect(await store.buildOrUpgradeNode(definition, targetTier: 2) == .cloudUnavailable)
-        #expect(try context.makeReloadedStore().roster.gold == 107)
+        #expect(await store.buildOrUpgradeNode(definition, targetTier: 2, at: date) == .success)
+        #expect(try context.makeReloadedStore().roster.gold == 108)
         await transport.configure()
         #expect(await store.cloudSync?.synchronize() == true)
-        #expect(store.roster.gold == 107)
+        #expect(store.roster.gold == 108)
+        #expect(store.homestead.tier(for: .wheatField) == 2)
         let cloud = await transport.account()
-        #expect(cloud.head?.head.revision.snapshot.roster.gold == 107)
+        #expect(cloud.head?.head.revision.snapshot.roster.gold == 108)
     }
 
     @Test @MainActor func `reset wins over returning offline progress and invalidates its claims`() async throws {
@@ -316,8 +432,8 @@ struct CloudSaveSyncTests {
             })
         }
         #expect(await a.cloudSync?.synchronize() == true)
-        #expect(a.roster.gold == 70)
-        #expect(try first.makeReloadedStore().roster.gold == 70)
+        #expect(a.roster.gold == 110)
+        #expect(try first.makeReloadedStore().roster.gold == 110)
     }
 
     @MainActor private func cloudStore(

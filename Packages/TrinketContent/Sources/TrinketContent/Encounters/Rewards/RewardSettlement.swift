@@ -10,7 +10,9 @@ public struct RewardSettlementInputs: Equatable, Sendable {
     public let productionDate: Date
 
     public var goldCapacity: Int {
-        max(0, goldLimit - gold - reservedGold)
+        max(0, SaturatedArithmetic.saturatingSub(
+            SaturatedArithmetic.saturatingSub(goldLimit, gold), reservedGold,
+        ))
     }
 
     public init(
@@ -49,16 +51,49 @@ public enum RewardSettlementPolicy {
     ) -> MysteryRewardBonus {
         switch bonus {
         case let .gold(amount):
-            replacesGold(gains: amount, spending: 0, capacity: inputs.goldCapacity) ? .experience(replacementExperience) : bonus
+            let overflow = goldOverflow(gains: amount, spending: 0, capacity: inputs.goldCapacity)
+            if overflow == 0 {
+                return bonus
+            }
+            let experience = overflowExperience(replacementExperience, overflow: overflow, gains: amount)
+            if overflow >= amount {
+                return .experience(experience)
+            }
+            return .goldAndExperience(
+                gold: amount - overflow, experience: experience,
+                nominalGold: amount, fullOverflowExperience: replacementExperience,
+            )
+        case .goldAndExperience:
+            return bonus
         case let .experience(amount):
-            .experience(RewardExperiencePolicy.sharedAward(amount, hero: inputs.heroProgression, companion: inputs.companionProgression))
+            return .experience(RewardExperiencePolicy.sharedAward(
+                amount,
+                hero: inputs.heroProgression,
+                companion: inputs.companionProgression,
+            ))
         case .material:
-            bonus
+            return bonus
         }
     }
 
     public static func replacesGold(gains: Int, spending: Int, capacity: Int) -> Bool {
-        gains - spending > max(0, capacity)
+        SaturatedArithmetic.saturatingSub(gains, spending) > max(0, capacity)
+    }
+
+    public static func goldOverflow(gains: Int, spending: Int, capacity: Int) -> Int {
+        max(0, SaturatedArithmetic.saturatingSub(
+            SaturatedArithmetic.saturatingSub(max(0, gains), max(0, spending)), max(0, capacity),
+        ))
+    }
+
+    public static func overflowExperience(_ amount: Int, overflow: Int, gains: Int) -> Int {
+        guard amount > 0, overflow > 0, gains > 0 else { return 0 }
+        let boundedOverflow = min(overflow, gains)
+        if boundedOverflow == gains {
+            return amount
+        }
+        let product = UInt(amount).multipliedFullWidth(by: UInt(boundedOverflow))
+        return Int(UInt(gains).dividingFullWidth(product).quotient)
     }
 }
 

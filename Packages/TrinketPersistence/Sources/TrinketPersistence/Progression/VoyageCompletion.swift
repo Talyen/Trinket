@@ -23,15 +23,21 @@ public enum VoyageCompletion {
 
     public static func completeBattle(
         runID: String, nodeID: String, hero: Combatant, companion: Combatant,
-        rewards: (settled: BattleRewardSettlement, earned: BattleRewardAward), save: inout PlayerSave, access: ContentAccessPolicy,
+        rewards: (settled: BattleRewardSettlement, earned: BattleRewardAward, encounterLevel: Int),
+        save: inout PlayerSave, access: ContentAccessPolicy,
     ) -> EncounterCompletion {
         guard save.voyage.isPlayable(runID: runID, nodeID: nodeID),
               let node = save.voyage.node(runID: runID, nodeID: nodeID), node.type.isCombat else { return .unavailable }
         let earned = rewards.earned
         VictoryRewardApplier.apply(rewards.settled, hero: hero, companion: companion, save: &save)
-        save.voyage.activeRun?.earnedGold += earned.goldGained
-        for material in earned.materials {
-            save.voyage.activeRun?.earnedMaterials[material.resource, default: 0] += material.quantity
+        save.contracts.recordVictory(encounterLevel: rewards.encounterLevel)
+        if var activeRun = save.voyage.activeRun {
+            activeRun.earnedGold = SaturatedArithmetic.saturatingAdd(activeRun.earnedGold, earned.goldGained)
+            for material in earned.materials {
+                let current = activeRun.earnedMaterials[material.resource, default: 0]
+                activeRun.earnedMaterials[material.resource] = SaturatedArithmetic.saturatingAdd(current, material.quantity)
+            }
+            save.voyage.activeRun = activeRun
         }
         save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.isCleared = true }
         if save.voyage.activeRun?.isComplete == true {

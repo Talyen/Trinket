@@ -162,14 +162,7 @@ extension BattleSession {
             sfx: SFXID.defeat,
         ) { session in
             guard let configuration = session.activeBattle else { return }
-            let settlement = session.makeDefeatSettlement(for: configuration) ?? BattleRewardPlan(
-                stageGold: 0, goldFindPercent: 0,
-                heroExperience: 0, companionExperience: 0,
-                materials: [], items: [],
-            ).settle(
-                battleGold: .init(),
-                inputs: Self.fallbackRewardInputs(for: configuration),
-            )
+            guard let settlement = session.makeDefeatSettlement(for: configuration) else { return }
             session.spectacle.outcomePresentation = .defeat(settlement)
         }
     }

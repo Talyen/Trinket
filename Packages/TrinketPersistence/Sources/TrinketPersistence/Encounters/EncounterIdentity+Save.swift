@@ -13,12 +13,12 @@ public extension EncounterIdentity {
     internal func rewardLevel(in save: PlayerSave) -> Int? {
         switch location {
         case let .journey(stageID):
-            guard let stage = GameContent.stage(id: stageID) else { return nil }
-            return StageCompletion.resolvedEncounterLevel(for: stage, in: GameContent.chapters)
+            guard GameContent.stage(id: stageID) != nil else { return nil }
+            return CampaignRewardLevel.resolve(in: save)
         case .voyage:
             return ContractsCompletion.campaignRewardLevel(in: save)
         case let .labyrinth(nodeID):
-            return save.labyrinth.nodes[nodeID].map { EncounterLevelResolver.labyrinthEnemyLevel(for: $0) }
+            return save.labyrinth.nodes[nodeID].map { _ in CampaignRewardLevel.resolve(in: save) }
         }
     }
 

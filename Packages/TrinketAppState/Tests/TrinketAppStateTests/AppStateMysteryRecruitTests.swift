@@ -219,7 +219,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter == nil)
     }
 
-    @Test func `gold filling between preview and claim requires a fresh choice`() throws {
+    @Test func `gold filling between preview and claim preserves the choice`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let session = try attachPreparedMystery(event: event, to: state)
@@ -229,21 +229,8 @@ struct AppStateMysteryRecruitTests {
         roster.gold = 999
         #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
 
-        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
-        #expect(session.phase == .reading)
-        #expect(session.canResolveChoice)
-        #expect(session.applyResult == nil)
-        #expect(state.playerSave.inventory == inventoryBefore)
-        #expect(!state.playerSave.journey.completedStageIDs.contains(session.stage.id))
-        let revised = try #require(session.offers.first)
-        #expect(revised.item == offer.item)
-        guard case let .experience(amount) = revised.bonus else {
-            Issue.record("Expected revised XP offer")
-            return
-        }
-        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: revised.choiceID))
-        #expect(session.applyResult?.heroGrantedExperience == amount)
-        #expect(session.applyResult?.companionGrantedExperience == amount)
+        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
+        #expect(state.playerSave.inventory != inventoryBefore)
         #expect(session.applyResult?.grantedItems == [offer.item])
         #expect(session.applyResult?.grantedGold == 0)
         #expect(session.applyResult?.hasGrantedExperience == true)

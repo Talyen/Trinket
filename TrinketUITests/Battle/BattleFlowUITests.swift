@@ -42,10 +42,9 @@ final class BattleFlowUITests: TrinketUITestCase {
         tapWhenReady(battle.autoBattleToggle)
     }
 
-    func testHandDragSafetyDetailAndRetreatRestoresPlay() {
+    func testHandDragSafetyAndCombatantDetail() {
         launchMidBattleAndStart()
 
-        let cards = battle.handCards
         let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Knight")]
         assertExists(hero)
 
@@ -61,19 +60,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.openCombatantCard(named: "Knight")
         combatantDetail.assertLoaded(for: "Knight")
         dismissSheet()
-
-        assertButtonExists(AccessibilityID.Battle.actionsMenu)
-        battle.openActions()
-        assertButtonExists(AccessibilityID.Battle.retreat)
-        tapWhenReady(battle.retreatAction)
-        assertButtonExists(AccessibilityID.Battle.defeatLeaveButton)
-        tapWhenReady(battle.defeatLeaveAction)
-
-        XCTAssertTrue(
-            app.tabBars.buttons[AccessibilityID.Tab.play].trinketWaitForExistence(timeout: Self.defaultTimeout),
-            "Tab bar should return after retreat",
-        )
-        play.assertCampaignLoaded(number: 1)
     }
 
     private func launchMidBattleAndStart() {

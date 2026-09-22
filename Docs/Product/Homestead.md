@@ -169,8 +169,10 @@ Back returns to the saved result card, which can reopen details without another
 craft or success haptic. Swiping down returns to the Blacksmith. Interrupted or
 backgrounded preparation retains the item without launching a late detail view.
 
-Forging uses the shared non-boss item generator at Campaign reward progression,
-including Homestead Astral-find bonuses. Basic and Astral outcomes retain normal
+Forging uses the shared non-boss item generator at the highest won encounter level,
+including Homestead Astral-find bonuses. Blacksmith tiers 2–4 add a forge-only
+Astral tier-weight bonus of 10%, 20%, and 30% respectively, shown in the Forge
+preview and stacked additively with Moonlit Sanctum. Basic and Astral outcomes retain normal
 rolls. Unique outcomes use only the chosen base's authored, unowned Unique;
 Trinkets never appear. Removing unavailable categories renormalizes loot weights.
 Building upgrades do not change recipes or prices.

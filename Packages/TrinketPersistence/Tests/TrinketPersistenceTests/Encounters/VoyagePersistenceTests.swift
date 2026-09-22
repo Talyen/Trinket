@@ -7,6 +7,42 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct VoyagePersistenceTests {
+    @Test func `successive battle rewards saturate saved run totals`() throws {
+        var save = SaveTestSupport.makeSave()
+        save.voyage.ensureBoard(access: .free)
+        _ = save.voyage.embark(offerID: save.voyage.offers[0].id, eligibleRecruitEventIDs: [], access: .free)
+        let run = try #require(save.voyage.activeRun)
+        let battles = run.nodes.filter(\.type.isCombat)
+        #expect(battles.count >= 2)
+        save.voyage.activeRun?.earnedGold = Int.max - 1
+        save.voyage.activeRun?.earnedMaterials = [.wood: Int.max - 1]
+
+        let plan = BattleRewardPlan(
+            stageGold: 1, goldFindPercent: 0,
+            heroExperience: 0, companionExperience: 0, materials: [], items: [],
+        )
+        let earned = plan.resolve(battleGold: .init(), materials: [ResourceAmount(.wood, 1)])
+        for battle in battles.prefix(2) {
+            for node in run.nodes.prefix(while: { $0.id != battle.id }) {
+                save.voyage.updateNode(runID: run.id, nodeID: node.id) { $0.isCleared = true }
+            }
+            let hero = save.roster.activeHero
+            let companion = save.roster.activeCompanion
+            let settled = plan.settle(
+                battleGold: .init(),
+                inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
+                materials: [],
+            )
+            #expect(VoyageCompletion.completeBattle(
+                runID: run.id, nodeID: battle.id, hero: hero, companion: companion,
+                rewards: (settled: settled, earned: earned, encounterLevel: 12), save: &save, access: .free,
+            ) == .completed)
+        }
+        #expect(save.voyage.activeRun?.earnedGold == Int.max)
+        #expect(save.voyage.activeRun?.earnedMaterials[.wood] == Int.max)
+        #expect(save.contracts.highestWonEncounterLevel == 12)
+    }
+
     @Test func `board access and run lifecycle`() throws {
         var state = PlayerVoyageState()
         state.ensureBoard(access: .free)

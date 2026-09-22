@@ -62,7 +62,8 @@ max(1, P − 3), Medium uses P, and Hard uses P + 3. The boss uses the same offs
 normal boss strength. Each attempt captures its party, level, modifiers, and loot.
 
 Battle XP, Gold, materials, and boss item weighting use shared policies. Equipment
-quality follows Campaign progress, as in Contracts. Completion adds 20% of combat
+quality follows the highest won encounter level, as in Contracts; this victory
+uses its own level for its item roll. Completion adds 20% of combat
 Gold and materials earned across successful nodes, including the boss, rounded
 down once per resource. The basis includes combat and Homestead reward bonuses
 before wallet-cap conversion, and excludes shops, Mysteries, defeat rewards, and

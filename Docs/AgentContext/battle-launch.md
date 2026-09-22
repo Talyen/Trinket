@@ -36,7 +36,10 @@ closures weakly capture Play; they are independent of overlay appearance. AppSta
 settles the launch reward plan against final `BattleGoldFlow` and a save snapshot.
 `BattleVictorySummary` projects that settlement, and Continue passes the exact value
 through `BattleSession.claimVictory(configurationID:summary:)` for validation and
-persistence. `BattleCompletionResult` distinguishes completion, stale settlement,
+persistence. If a configured settlement lookup is unavailable, BattleSession
+shows a provisional award from its captured presentation context. Completion
+still validates against the current save and refreshes a stale reveal before
+granting rewards. `BattleCompletionResult` distinguishes completion, stale settlement,
 unavailable runs, and storage failure. A stale settlement refreshes the reveal;
 storage failure retains the award and retries the chosen completion internally. Already-claimed victories use
 the same completion capability without waiting for an overlay. BattleFeature never

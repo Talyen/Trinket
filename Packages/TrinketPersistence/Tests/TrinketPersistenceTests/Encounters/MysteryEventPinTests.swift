@@ -101,7 +101,7 @@ struct MysteryEventPinTests {
     }
 
     #if DEBUG
-    @Test @MainActor func `failed bonus refresh preserves saved offers and retry survives reload`() throws {
+    @Test @MainActor func `failed Mystery claim preserves saved offers and retry survives reload`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(resetState: true)
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
@@ -134,19 +134,14 @@ struct MysteryEventPinTests {
         let retry = reloaded.persistTransaction(logging: "Retry mystery refresh") { candidate in
             MysteryEncounterResolution.resolve(choiceID: offers[0].choiceID, request: request, save: &candidate, using: &rng)
         }
-        guard case let .committed(.refreshedOffers(revised)) = retry else {
-            Issue.record("Expected saved revised offers without a grant")
+        guard case let .committed(.reward(result)) = retry else {
+            Issue.record("Expected the pinned offer to be granted on retry")
             return
         }
-        #expect(revised.map(\.item) == offers.map(\.item))
-        #expect(reloaded.inventory == before.inventory)
-        #expect(reloaded.roster == before.roster)
-        #expect(!reloaded.journey.completedStageIDs.contains(stage.id))
+        #expect(result.grantedItems == [offers[0].item])
+        #expect(reloaded.journey.completedStageIDs.contains(stage.id))
         let reopened = try context.makeReloadedStore()
-        var reopenedSave = reopened.currentSave
-        #expect(try MysteryOfferPersistence.prepare(
-            event: event, stage: stage, labyrinthNodeID: nil, save: &reopenedSave, using: &rng,
-        ) == revised)
+        #expect(reopened.inventory.item(matching: offers[0].item.id) == offers[0].item)
     }
     #endif
 
@@ -180,7 +175,7 @@ struct MysteryEventPinTests {
         return reachableID
     }
 
-    @Test func `newly owned special rewards refresh without changing the other offer`() throws {
+    @Test func `opened special reward stays pinned when acquired elsewhere`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
         let stage = try #require(GameContent.stage(id: "chapter-4-stage-4"))
         let matchingSeed = (UInt64(1) ... 1000).first { seed in
@@ -193,17 +188,19 @@ struct MysteryEventPinTests {
         }
         var rng = try SeededRandomNumberGenerator(seed: #require(matchingSeed))
         var save = SaveTestSupport.makeSave()
+        save.contracts.recordVictory(encounterLevel: 16)
         let first = try MysteryOfferPersistence.prepare(event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng)
         #expect(first[0].item.templateID == "rimeheart_locket")
         save.inventory.appendUniqueItem(first[0].item)
         let next = try MysteryOfferPersistence.prepare(event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng)
-        #expect(next[0].item.templateID != first[0].item.templateID)
+        #expect(next[0] == first[0])
         #expect(next[1] == first[1])
-        #expect(MysteryOfferPersistence.claim(first[0], stage: stage, labyrinthNodeID: nil, save: &save).isEmpty)
-        #expect(!save.journey.completedStageIDs.contains(stage.id))
+        let result = MysteryOfferPersistence.claim(first[0], stage: stage, labyrinthNodeID: nil, save: &save)
+        #expect(result.grantedItems.isEmpty)
+        #expect(save.journey.completedStageIDs.contains(stage.id))
     }
 
-    @Test func `gold wallets near cap receive XP instead of truncated gold`() throws {
+    @Test func `gold wallets near cap receive fitting Gold and XP for overflow`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         for gold in [990, 999] {
@@ -212,14 +209,35 @@ struct MysteryEventPinTests {
             var rng = SeededRandomNumberGenerator(seed: 3)
             let offers = try MysteryOfferPersistence.prepare(event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng)
             let offer = offers[0]
-            guard case let .experience(amount) = offer.bonus else { Issue.record("Expected receivable XP offer"); continue }
             let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save)
             #expect(result.grantedItems == [offer.item])
-            #expect(result.grantedGold == 0)
+            #expect(result.grantedGold == max(0, PlayerRosterState.maxGoldBalance - gold))
             #expect(result.hasGrantedExperience)
-            #expect(result.heroGrantedExperience == amount)
-            #expect(result.companionGrantedExperience == amount)
         }
+    }
+
+    @Test func `a pinned split bonus converts only remaining Gold when the wallet fills`() throws {
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        var save = SaveTestSupport.makeSave(gold: PlayerRosterState.maxGoldBalance - 1)
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        let offer = try #require(MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
+        ).first)
+        guard case let .goldAndExperience(gold, experience, nominalGold, fullOverflowExperience) = offer.bonus else {
+            Issue.record("Expected a split Gold and XP offer")
+            return
+        }
+        save.roster.gold = PlayerRosterState.maxGoldBalance
+        let expectedExperience = RewardExperiencePolicy.sharedAward(
+            SaturatedArithmetic.saturatingAdd(experience, RewardSettlementPolicy.overflowExperience(
+                fullOverflowExperience, overflow: gold, gains: nominalGold,
+            )), roster: save.roster,
+        )
+        let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save)
+        #expect(result.grantedGold == 0)
+        #expect(result.heroGrantedExperience == expectedExperience)
+        #expect(result.companionGrantedExperience == expectedExperience)
     }
 
     @Test func `older labyrinth node payloads decode without offers`() throws {
@@ -288,7 +306,7 @@ struct MysteryEventPinTests {
         ) == nil)
     }
 
-    @Test func `stale bonus cannot be claimed until the stored offer is refreshed`() throws {
+    @Test func `shown bonus remains claimable after wallet changes`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         var save = SaveTestSupport.makeSave(gold: 0)
@@ -303,18 +321,11 @@ struct MysteryEventPinTests {
             return
         }
         save.roster.gold = PlayerRosterState.maxGoldBalance
-        let before = save
-        #expect(MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save).isEmpty)
-        #expect(save == before)
-        let revised = try MysteryOfferPersistence.prepare(
-            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
-        )
-        #expect(revised.map(\.item) == offers.map(\.item))
-        let result = MysteryOfferPersistence.claim(revised[0], stage: stage, labyrinthNodeID: nil, save: &save)
+        let result = MysteryOfferPersistence.claim(offer, stage: stage, labyrinthNodeID: nil, save: &save)
         #expect(result.grantedItems == [offer.item])
         #expect(result.grantedGold == 0)
-        #expect(result.heroGrantedExperience == revised[0].bonus.amount)
-        #expect(result.companionGrantedExperience == revised[0].bonus.amount)
+        #expect(result.hasGrantedExperience)
+        #expect(save.journey.completedStageIDs.contains(stage.id))
     }
 
     @Test func `legacy raw XP snapshot is capped without rerolling its item`() throws {
@@ -333,7 +344,7 @@ struct MysteryEventPinTests {
             event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng,
         )
         #expect(revised.map(\.item) == original.map(\.item))
-        #expect(revised[0].bonus == .experience(30))
+        #expect(revised[0].bonus == .experience(10000))
         let result = MysteryOfferPersistence.claim(revised[0], stage: stage, labyrinthNodeID: nil, save: &save)
         #expect(result.heroGrantedExperience == 30)
         #expect(result.companionGrantedExperience == 30)
