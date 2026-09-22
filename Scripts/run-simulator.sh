@@ -75,6 +75,7 @@ trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 # concrete simulator. Quiet logs go under TestResults/raw/; print a heartbeat
 # so a warm rebuild is not mistaken for a hang.
 echo "Building Trinket (quiet; log in $RESULTS_DIR/raw/)..."
+python3 Scripts/build-metadata.py invalidate "$RESULTS_DIR" smoke
 xcode_runner_run --label "run-simulator" --quiet -- \
   xcodebuild build "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
 

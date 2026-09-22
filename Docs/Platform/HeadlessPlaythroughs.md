@@ -153,7 +153,9 @@ policy before making a balance claim. No automation or balance CI gate is instal
 
 Focused production owners retain their deeper matrices: `PlayerHomesteadStoreTests`,
 `ShopPurchaseApplierTests`, Contracts tests, roster/sanitizer tests, and AppState
-encounter tests. The runner does not duplicate all rare-state fixtures or promise
+encounter tests. Voyage is not supported by the current headless career runner;
+its mode coverage remains with the focused package tests. The runner does not
+duplicate all rare-state fixtures or promise
 exhaustion of builds, renewable Contracts, or infinite Labyrinth depth. CloudKit,
 StoreKit delivery, UI wiring/accessibility, art/audio, and device behavior retain
 their separate verification routes.

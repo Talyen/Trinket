@@ -28,10 +28,20 @@ trinket_asset_require_source_file() {
 }
 
 # Single home for the art thumb rule. prepare-art-assets.sh and
-# check-unused-assets.py must agree: resource / slot_background ship
-# full-only, every other art kind ships full + thumb.
+# check-unused-assets.py agree via Scripts/config/full-only-art-kinds.txt:
+# kinds listed there ship full-only, every other art kind ships full + thumb.
+TRINKET_FULL_ONLY_ART_KINDS_CONFIG="${TRINKET_FULL_ONLY_ART_KINDS_CONFIG:-Scripts/config/full-only-art-kinds.txt}"
+
 trinket_asset_needs_thumb() {
-  case "$1" in
+  local kind="$1"
+  local config="$TRINKET_FULL_ONLY_ART_KINDS_CONFIG"
+  if [[ -f "$config" ]]; then
+    if grep -qE "^[[:space:]]*${kind}[[:space:]]*$" "$config"; then
+      return 1
+    fi
+    return 0
+  fi
+  case "$kind" in
     resource|slot_background) return 1 ;;
     *) return 0 ;;
   esac

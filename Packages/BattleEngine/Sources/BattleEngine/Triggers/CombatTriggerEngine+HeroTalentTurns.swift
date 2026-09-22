@@ -170,17 +170,18 @@ package extension CombatTriggerEngine {
         guard context.roster.enemy.isAlive, context.roster.health(for: source) > 0 else { return [] }
         return withHeroReaction(in: &context) { context in
             let target = context.roster.enemy.combatant
-            var events = context.resolveDamage(DamageRequest(
+            let outcome = context.resolveDamage(DamageRequest(
                 amount: 1,
                 target: target,
                 keyword: keyword,
                 sourceActorID: source.id,
                 options: .reaction(),
-            )).events
+            ))
+            var events = outcome.events
             if keyword == .burn || keyword == .poison {
                 events.append(contentsOf: context.applyDecayingDoT(
                     keyword: keyword,
-                    potency: 1,
+                    potency: outcome.healthLost,
                     to: target,
                     sourceActorID: source.id,
                     application: .afterHit,

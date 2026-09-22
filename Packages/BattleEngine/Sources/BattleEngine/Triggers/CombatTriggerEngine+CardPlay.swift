@@ -109,7 +109,7 @@ package extension CombatTriggerEngine {
             potency: triggers.ultimateAppliesBurnPotency,
             to: context.roster.enemy.combatant,
             sourceActorID: actor.id,
-            application: .attached,
+            application: .reaction,
         )
     }
 

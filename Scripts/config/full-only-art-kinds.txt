@@ -1,0 +1,4 @@
+# Art kinds that ship full variant only (no _thumb variant).
+# Read by Scripts/check-unused-assets.py and Scripts/lib/media-assets.sh.
+resource
+slot_background

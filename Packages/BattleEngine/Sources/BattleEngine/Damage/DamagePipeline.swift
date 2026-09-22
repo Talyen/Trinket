@@ -233,6 +233,7 @@ package enum DamagePipeline {
     /// are limited to defender-ward retaliation (freeze wards, typed wards,
     /// thorns); talent strikes, reflections, and other nested damage must call
     /// `resolveNestedDamage` directly so the decorator stays off.
+    @discardableResult
     static func appendNestedDamage(
         amount: Int,
         keyword: Keyword,
@@ -241,8 +242,8 @@ package enum DamagePipeline {
         defender: Combatant,
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
-        guard amount > 0 else { return }
+    ) -> Int {
+        guard amount > 0 else { return 0 }
         let outcome = resolveNestedDamage(
             amount: amount,
             keyword: keyword,
@@ -263,6 +264,7 @@ package enum DamagePipeline {
             ))
         }
         state.damageEvents.append(contentsOf: retaliationEvents)
+        return outcome.healthLost
     }
 
     static func appendAbsorption(

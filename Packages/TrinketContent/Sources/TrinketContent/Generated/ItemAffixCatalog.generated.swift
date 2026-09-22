@@ -400,7 +400,7 @@ enum ItemAffixCatalogGenerated {
             id: "deathgrip",
             title: "Deathgrip",
             slot: .accessory,
-            keywords: [.block, .health],
+            keywords: [.block, .health, .deathsDoor],
             weight: 8,
             basic: ItemAffixPower(description: "Gain 8 Block when on Death's Door.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(blockOnDeathsDoor: 8))),
             astral: ItemAffixPower(description: "Gain 16 Block when on Death's Door.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(blockOnDeathsDoor: 16)))
@@ -445,7 +445,7 @@ enum ItemAffixCatalogGenerated {
             id: "absolving",
             title: "Absolving",
             slot: .accessory,
-            keywords: [.holy],
+            keywords: [.holy, .cleanse],
             weight: 8,
             basic: ItemAffixPower(description: "Cleanse 1 status effect when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamageCleanseCount: 1))),
             astral: ItemAffixPower(description: "Cleanse 1 status effect when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamageCleanseCount: 1)))
@@ -495,7 +495,7 @@ enum ItemAffixCatalogGenerated {
             id: "retaliatory",
             title: "Retaliatory",
             slot: .armor,
-            keywords: [.physical],
+            keywords: [.physical, .thorns],
             weight: 8,
             basic: ItemAffixPower(description: "Reflect 10% of Health lost as Physical damage.", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.10))),
             astral: ItemAffixPower(description: "Reflect 20% of Health lost as Physical damage.", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.20)))

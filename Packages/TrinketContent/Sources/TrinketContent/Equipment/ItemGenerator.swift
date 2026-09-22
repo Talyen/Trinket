@@ -17,6 +17,7 @@ public struct ItemGenerator: Sendable {
         keywordBias: Set<Keyword> = [],
         requireBuildAlignment: Bool = false,
         guaranteedAffixIDs: [String] = [],
+        requiredKeyword: Keyword? = nil,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         let eligibleAffixes = affixDefinitions.filter { definition in
@@ -27,7 +28,7 @@ public struct ItemGenerator: Sendable {
             return true
         }
 
-        let guaranteedDefinitions = guaranteedAffixIDs.compactMap { affixID in
+        var guaranteedDefinitions = guaranteedAffixIDs.compactMap { affixID in
             eligibleAffixes.first { $0.id == affixID }
         }
         let droppedGuaranteedIDs = guaranteedAffixIDs.filter { affixID in
@@ -35,6 +36,17 @@ public struct ItemGenerator: Sendable {
         }
         if !droppedGuaranteedIDs.isEmpty {
             assertionFailure("Guaranteed affixes dropped for \(id): unknown or slot-ineligible IDs \(droppedGuaranteedIDs).")
+        }
+
+        if let requiredKeyword {
+            precondition(baseType.keywordAffinities.contains(requiredKeyword), "Required keyword must match the item base")
+            if !guaranteedDefinitions.contains(where: { $0.keywords.contains(requiredKeyword) }) {
+                let matching = eligibleAffixes.filter { $0.keywords.contains(requiredKeyword) && $0.weight > 0 }
+                guard let guaranteed = Self.weightedSample(matching, count: 1, using: &randomNumberGenerator).first else {
+                    preconditionFailure("Required keyword must have an eligible base and affix")
+                }
+                guaranteedDefinitions.append(guaranteed)
+            }
         }
 
         let rolledCount = fixedAffixCount ?? Self.affixCount(for: rarity, using: &randomNumberGenerator)
@@ -128,6 +140,7 @@ public struct ItemGenerator: Sendable {
 public enum ItemRewardGenerator {
     private struct RewardContext {
         let keywordBias: Set<Keyword>
+        let requiredKeyword: Keyword?
         let fallbackBaseType: ItemBaseType?
         let guaranteedAffixIDs: [String]
         let baseTypes: [ItemBaseType]
@@ -140,6 +153,9 @@ public enum ItemRewardGenerator {
         bossContent: Bool = false,
         astralChanceBonusPercent: Int = 0,
         allowedTiers: Set<ItemDropTier> = Set(ItemDropTier.allCases),
+        favoredTier: ItemDropTier? = nil,
+        tierWeightBonusPercent: Int = 0,
+        requiredKeyword: Keyword? = nil,
         ownedTrinketIDs: Set<String>,
         ownedUniqueIDs: Set<String>,
         reservedTrinketIDs: Set<String> = [],
@@ -154,6 +170,7 @@ public enum ItemRewardGenerator {
     ) -> InventoryItem {
         let context = RewardContext(
             keywordBias: keywordBias,
+            requiredKeyword: requiredKeyword,
             fallbackBaseType: fallbackBaseType,
             guaranteedAffixIDs: guaranteedAffixIDs,
             baseTypes: baseTypes,
@@ -170,7 +187,10 @@ public enum ItemRewardGenerator {
                 && (eligibleUniqueIDs?.contains($0.templateID) ?? true)
                 && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
         }
-        var available = allowedTiers
+        var available = requiredKeyword == nil ? allowedTiers : allowedTiers.intersection([.basic, .astral])
+        if requiredKeyword != nil {
+            precondition(!available.isEmpty, "Keyword rewards require Basic or Astral equipment")
+        }
         if trinkets.isEmpty {
             available.remove(.trinket)
         }
@@ -193,6 +213,8 @@ public enum ItemRewardGenerator {
             bossContent: bossContent,
             astralChanceBonusPercent: astralChanceBonusPercent,
             availableTiers: available,
+            favoredTier: favoredTier,
+            tierWeightBonusPercent: tierWeightBonusPercent,
         )
         switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {
         case .unique:
@@ -218,12 +240,24 @@ public enum ItemRewardGenerator {
         let effectiveBases = context.baseTypes.contains(where: { $0.slot != .trinket })
             || context.fallbackBaseType != nil
             ? context.baseTypes : GameContent.itemBaseTypes
-        let baseType = ItemBasePolicy.uniformFallbackBase(
-            from: effectiveBases,
-            keywordBias: context.keywordBias,
-            fallback: context.fallbackBaseType,
-            using: &randomNumberGenerator,
-        )
+        let baseType: ItemBaseType
+        if let keyword = context.requiredKeyword {
+            let candidates = effectiveBases.filter { base in
+                base.slot != .trinket && base.keywordAffinities.contains(keyword)
+                    && context.itemGenerator.affixDefinitions.contains {
+                        $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
+                    }
+            }
+            guard let selected = candidates.randomElement(using: &randomNumberGenerator) else {
+                preconditionFailure("Required keyword must have a matching equipment pool")
+            }
+            baseType = selected
+        } else {
+            baseType = ItemBasePolicy.uniformFallbackBase(
+                from: effectiveBases, keywordBias: context.keywordBias, fallback: context.fallbackBaseType,
+                using: &randomNumberGenerator,
+            )
+        }
         return context.itemGenerator.generate(
             id: id,
             templateID: "\(baseType.id)-\(rarity.rawValue)",
@@ -231,6 +265,7 @@ public enum ItemRewardGenerator {
             rarity: rarity,
             keywordBias: context.keywordBias,
             guaranteedAffixIDs: context.guaranteedAffixIDs,
+            requiredKeyword: context.requiredKeyword,
             using: &randomNumberGenerator,
         )
     }

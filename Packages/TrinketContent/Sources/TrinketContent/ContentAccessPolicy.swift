@@ -29,12 +29,22 @@ public struct ContentAccessPolicy: Equatable, Sendable {
         hasFullGame || Self.isFreeCombatant(id)
     }
 
+    public static let freeCombatantIDs: Set<String> = Set(freeHeroIDs).union(freeCompanionIDs)
+
     public static func isFreeCombatant(_ id: String) -> Bool {
-        freeHeroIDs.contains(id) || freeCompanionIDs.contains(id)
+        freeCombatantIDs.contains(id)
     }
 
     public static func freeFirst(_ combatants: [Combatant]) -> [Combatant] {
-        combatants.filter { isFreeCombatant($0.id) }
-            + combatants.filter { !isFreeCombatant($0.id) }
+        var free: [Combatant] = []
+        var paid: [Combatant] = []
+        for combatant in combatants {
+            if isFreeCombatant(combatant.id) {
+                free.append(combatant)
+            } else {
+                paid.append(combatant)
+            }
+        }
+        return free + paid
     }
 }

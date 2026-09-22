@@ -65,10 +65,16 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
     }
 
     @discardableResult
-    public mutating func embark(offerID: String, eligibleRecruitEventIDs: [String], access: ContentAccessPolicy) -> Bool {
+    public mutating func embark(
+        offerID: String, eligibleRecruitEventIDs: [String], access: ContentAccessPolicy,
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
+    ) -> Bool {
         guard !isUnreadable, activeRun == nil, let offer = offers.first(where: { $0.id == offerID }),
               Self.chapterIDs(access: access).contains(offer.chapterID) else { return false }
-        activeRun = VoyageRun(offer: offer, nodes: VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligibleRecruitEventIDs))
+        activeRun = VoyageRun(
+            offer: offer,
+            nodes: VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards),
+        )
         return true
     }
 

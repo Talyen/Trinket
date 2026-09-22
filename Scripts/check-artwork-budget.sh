@@ -18,11 +18,11 @@ fi
 TRINKET_RG_BULLET="  - "
 
 # Enforce 6 GB typical budgets. Do not lower to re-target 4 GB without product approval.
-# See Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift
+# See Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift
 # and Docs/Platform/PerformanceInvestigationPlaybook.md § Artwork Budgets.
 # Scope: runtime cache constants only, not manifest pipeline output sizes.
 
-file="Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift"
+file="Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift"
 
 search() {
   trinket_rg_contains "$1" "$2"

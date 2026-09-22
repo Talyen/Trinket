@@ -15,6 +15,17 @@ its reveal before another claim. Application uses the recorded production date s
 passive accrual cannot silently shrink a displayed award. Unprepared rewards use
 the same settlement path. Modes retain their existing one-time claim ownership.
 
+Contracts and Labyrinth/Voyage combat share Content's `RewardModifier` catalog.
+Saved IDs stay stable; exhausted collectible bonuses resolve to Gold consistently
+in artwork/details and launch loot. Keyword guarantees occupy one normal affix
+slot on matching Basic/Astral equipment. New reward modifiers apply only to combat;
+existing Mystery quantity bonuses remain supported.
+
+Shared battle XP scales per recipient with enemy level. The existing smoothstep
+penalty reaches zero at ten levels below the recipient; its mirrored bonus reaches
+2× base XP at ten levels above and saturates there. Equal-level XP remains unchanged.
+Role-specific catch-up, mode bonuses, and existing final caps still apply.
+
 Defeat XP uses `BattleRewardPlan.settleDefeat` with the launch-baked XP for each
 recipient: floor(normal XP × peak enemy health depletion / 2). Depletion records
 the lowest Health percentage reached within combat resolution; healing never

@@ -107,6 +107,7 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
     public mutating func ensureMap(
         seed: UInt64? = nil,
         eligibleRecruitEventIDs: [String] = [],
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) {
         if isMapPayloadUnreadable {
             isMapPayloadUnreadable = false
@@ -126,6 +127,7 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
         let generated = LabyrinthGenerator.makeInitialMap(
             seed: resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+            eligibleRewards: eligibleRewards,
         )
         worldSeed = resolvedSeed
         clusters = generated.clusters
@@ -138,6 +140,7 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
     public mutating func markCleared(
         nodeID: String,
         eligibleRecruitEventIDs: [String] = [],
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) {
         guard var node = nodes[nodeID], !node.isCleared else { return }
         node.isCleared = true
@@ -151,6 +154,7 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
                 nodes: &nodes,
                 seed: worldSeed,
                 eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+                eligibleRewards: eligibleRewards,
             )
         }
     }

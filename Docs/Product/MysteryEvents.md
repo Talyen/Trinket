@@ -21,15 +21,17 @@ treatment. Keep its artwork constrained to the viewport width. Narrative text be
 the hero names the actual
 offered items and connects each action to its rewards: physical sources for
 materials and Gold, and learning or practice for XP. The authored catalog is
-[MysteryEventPool.swift](../../Packages/TrinketContent/Sources/TrinketContent/Encounters/MysteryEventPool.swift).
+[MysteryEventPool.swift](../../Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/MysteryEventPool.swift).
 
 ## Reward rules
 
 - Resolve offers before display. Basic/Astral gear uses the choice's fixed base;
   Trinkets and Uniques may only come from that choice's explicit thematic pool.
 - Offers use the shared [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
-  at Journey chapter-base level or Labyrinth depth. Moonlit Sanctum scales Astral
-  weight relatively. Remove unavailable special categories before normalizing the
+  at Journey chapter-base level or Labyrinth depth. Voyage uses Campaign reward
+  progression for item quality, as in [Contracts](Contracts.md#board); its active
+  party and difficulty determine the encounter level for secondary rewards.
+  Moonlit Sanctum scales Astral weight relatively. Remove unavailable special categories before normalizing the
   remaining weights; never substitute an unrelated special item or promote gear.
 - Keep the existing Manabound guarantee for the Mana Berries harvest, Crystal
   Geode gem collection, and Crystal Garden shard collection.
@@ -45,8 +47,8 @@ materials and Gold, and learning or practice for XP. The authored catalog is
 ## Stability and completion
 
 Save both rolled items, including their affix powers, and secondary amounts with
-the Journey stage or Labyrinth node before enabling choices. Reopening reuses
-these offers. Existing saves without snapshots acquire them on first opening.
+the Journey stage, Labyrinth node, or Voyage run/node before enabling choices.
+Reopening reuses these offers. Existing saves without snapshots acquire them on first opening.
 Existing snapshots with unresolved bonuses are revalidated without rerolling
 available items or affixes.
 

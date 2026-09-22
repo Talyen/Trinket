@@ -63,6 +63,22 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 
 ## Damage and control
 
+### Poison riders and damage conversions
+
+Venomous Arrows and Venomous Skin resolve their immediate Poison damage before
+attaching stacks. Prismatic Edge's Burn and Thorn Shedding's Poison attach only
+the Health damage their respective hits actually dealt; fully blocked hits attach
+none. Sunwall grants the Companion Block equal to actual Holy Health damage,
+without applying Block bonuses or fight pacing a second time.
+
+### Physical damage rewards and Burn ticks
+
+Concussive Force and Martial Guard include Physical reaction and periodic damage,
+not only attacks. Their proportional rewards use actual Health damage; converted
+Block is already resolved and does not receive outgoing Block bonuses again.
+Bloodfire, Healing Flames, Flame Shield, and Ember Shield also observe damaging
+Burn ticks. Fully absorbed ticks grant no damage rewards.
+
 ### Thick Hide
 
 Thick Hide retains flat reduction 2, restricted to Physical damage.
@@ -170,6 +186,8 @@ the set on payout, and does not bank repeated types.
 Dark Recovery checks the last-Mana payment before refunds or recovery. Arcane
 Burst carries Mana-spend progress across cards and turns, preserving excess
 toward its next trigger; its automatic plays do not recursively trigger it.
+Draw-and-play effects and Phantom Counter retain automatic ancestry throughout
+nested payments and card reactions.
 
 ### Mana Cocoon, Arcane Cleansing, and Chaos Rift
 
@@ -199,6 +217,12 @@ Critical Hits target allies (not enemies) and never recursively activate.
 Elemental Leech uses the standard Leech rate, including damage-over-time
 ticks; it does not add a second base Leech contribution to an already-Leeching
 hit. Overhealing keeps its emitted reactions even when no Health is restored.
+
+### Shared Leech
+
+Symbiosis and Companion-to-Hero Leech sharing transfer a fraction of actual
+restoration as resolved healing. Do not reroll Critical Hits or apply healing
+magnitude bonuses a second time; ordinary recipient eligibility still applies.
 
 ### Living Archive, Wishspring, and Marrowmend
 

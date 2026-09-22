@@ -90,7 +90,7 @@ package extension DamagePipeline {
     ) {
         if triggers.sunwall, keyword == .holy {
             state.damageEvents.append(contentsOf: grantTalentCompanionBlock(
-                state.remaining,
+                state.healthLost,
                 source: source.combatant,
                 in: &context,
             ))
@@ -210,7 +210,10 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.companion.isAlive else { return [] }
-        return context.applyBlock(amount, to: context.roster.companion.combatant, source: source, abilityName: "Sunwall")
+        return context.applyBlock(
+            amount, to: context.roster.companion.combatant, source: source,
+            abilityName: "Sunwall", amountBasis: .resolved,
+        )
     }
 
     private static func drawTalentCard(

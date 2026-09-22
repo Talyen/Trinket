@@ -78,6 +78,7 @@ SCRIPT_INPUTS = (
     'Scripts/setup-git-safety.mjs',
     'Scripts/simctl_json.py',
     'Scripts/stage-ci-test-artifact.sh',
+    'Scripts/restore-ci-test-products.sh',
     'Scripts/test-package.sh',
     'Scripts/test.sh',
     'Scripts/xcode-runner.sh',
@@ -167,6 +168,7 @@ class ExecWrapperTests(unittest.TestCase):
         "prepare-art-assets.sh",
         "prepare-cinematic-assets.sh",
         "stage-ci-test-artifact.sh",
+        "restore-ci-test-products.sh",
         "validate-commit-msg.sh",
     )
 

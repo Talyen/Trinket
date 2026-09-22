@@ -110,7 +110,9 @@ These helpers are sourced or invoked by commands, Git hooks, or CI workflows. Li
 | `python3 Scripts/package-diagnostics.py [--verbose] <worker-output-dir> <packages...>` | Aggregate the current package run’s outcomes and deduplicated diagnostics; invoked by `test-package.sh` |
 | `./Scripts/check-staged-project.sh` | Pre-commit check of the staged project against staged inputs; preserves the index and working files |
 | `./Scripts/ci-path-filter.py` | CI path filter via the GitHub compare API (no full checkout); `code` / `assets` / `infra` outputs |
-| `./Scripts/stage-ci-test-artifact.sh` | Archive Products + build stamps in a tar file for CI `--no-build` test jobs |
+| `./Scripts/restore-ci-test-products.sh [--downloaded] -- <rebuild-command> [arguments...]` | Validate transferred UI products and rebuild incompatible or missing artifacts on the receiving CI runner |
+| `python3 Scripts/build-metadata.py <action> <results> <fingerprint>` | Build-environment metadata owned by build/test wrappers; `--help` lists identity options |
+| `./Scripts/stage-ci-test-artifact.sh` | Archive Products + build stamps/environment metadata in a tar file for CI `--no-build` test jobs |
 | `./Scripts/agent-push-gate.sh` | Internal pre-push generation completeness; invoked automatically by pre-push, not a manual post-commit step |
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts outside the source results tree and its ancestors, adding raw failure evidence only when needed |
 | `./Scripts/lint-analyze.sh [SwiftPath ...]` | On-demand clean app build and analysis; optional file/directory scope, fails on unused imports or zero analyzed files; never CI, handoff, or style |
@@ -142,14 +144,16 @@ actually need); generated-output ownership lives in
 `Scripts/simctl_json.py`; cheap CI slices live in `Scripts/config/cheap-slices.txt`. The small helpers under `Scripts/lib/` own shared
 mechanics only (tool PATH setup, app build arguments, media conversion/state
 sorting, cache pruning, and infrastructure-failure matching); domain-specific
-policy remains in the owning command. `Scripts/script_test_selection.py` owns
-leaf-script regression families; shared inputs and unknown scripts fall back to
-the full suite. It is consumed by `test-scripts.sh`, not a separate gate.
+policy remains in the owning command. `Scripts/script_test_selection.py` reads
+Python modules' `SCRIPT_INPUTS` and owns
+shell mappings and full-suite exceptions; see [script regression ownership](README.md#script-regression-ownership).
+Unknown inputs fall back to the full suite. The selector is consumed by
+`test-scripts.sh`, not a separate gate.
 
 ## Toolchain ladder
 
 CI selects the newest installed Xcode automatically (`setup-trinket` logs the
-exact version and build; `TRINKET_XCODE_VERSION` pins an older one only for
+exact version and build and exports job-local `DEVELOPER_DIR`; `TRINKET_XCODE_VERSION` pins an older one only for
 bisection). Local scripts honor `DEVELOPER_DIR`, otherwise inheriting the Mac's
 selected Xcode. [Platform support](../Docs/Platform/ApplePlatformReference.md#platform-support)
 owns the supported OS window and how beta validation is used.
@@ -177,7 +181,8 @@ DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer ./Scripts/handoff.
 
 The second handoff is prerelease evidence, not release qualification. Confirm the
 simulator runtime separately; an existing managed device can use a different OS
-than the SDK. Do not reuse `--no-build` products across toolchains. Leave `SDKROOT`
+than the SDK. `--no-build` rejects missing metadata or incompatible build environments; CI also
+checks the producing commit and rebuilds incompatible transferred products. Leave `SDKROOT`
 unset unless the owning workflow requires it so SDK and compiler stay aligned.
 
 If the simulator

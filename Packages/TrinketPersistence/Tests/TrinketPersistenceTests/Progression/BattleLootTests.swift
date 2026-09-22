@@ -6,6 +6,46 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BattleLootTests {
+    @Test(arguments: [RewardModifier.keyword(.freeze), .wood, .gold, .unique])
+    func `all battle modes apply shared reward modifiers`(modifier: RewardModifier) throws {
+        var save = SaveTestSupport.makeSave()
+        // Exhausted collectibles must become Gold through every mode's loot path.
+        save.inventory = PlayerInventoryState(items: GameContent.trinketItems + GameContent.uniqueItems)
+        let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
+        let ids = [LabyrinthCatalog.rewardID(modifier)]
+        let node = LabyrinthNode(id: "reward-node", type: .battle, enemyID: enemy.id, depth: 10, clusterID: "cluster", modifierIDs: ids)
+        let voyage = VoyageNode(id: node.id, type: .battle, enemyID: enemy.id, modifierIDs: ids, recruitEventID: nil)
+        let offer = ContractOffer(id: node.id, difficulty: .standard, enemyID: enemy.id, rewardModifier: modifier)
+        let effects = LabyrinthModifierEffects.combining(LabyrinthCatalog.modifiers(ids: ids))
+        let labyrinthLoot = try #require(LabyrinthCompletion.resolveCombatLoot(
+            for: node, effects: effects, worldSeed: save.worldSeed,
+            ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+        ))
+        let packages = [
+            labyrinthLoot,
+            VoyageCompletion.resolveLoot(node: voyage, encounterLevel: 10, save: save),
+            ContractsCompletion.resolveLoot(for: offer, encounterLevel: 10, save: save),
+        ]
+        for loot in packages {
+            #expect(loot.materials.count == 2)
+            #expect(Set(loot.materials.map(\.resource)).count == 2)
+            if let keyword = modifier.requiredKeyword {
+                #expect(loot.item.baseType.keywordAffinities.contains(keyword))
+                #expect(loot.item.affixes.contains { $0.keywords.contains(keyword) })
+                #expect(loot.item.rarity != .unique && !loot.item.isTrinket)
+            } else if modifier == .wood {
+                #expect(loot.materials.first?.resource == .wood)
+            } else {
+                let range = BattleLoot.quantityRange(forLevel: 10)
+                let boosted = CombatRounding.scaled(range.lowerBound, byPercent: 25) ... CombatRounding.scaled(
+                    range.upperBound,
+                    byPercent: 25,
+                )
+                #expect(boosted.contains(loot.gold))
+            }
+        }
+    }
+
     @Test func `quantity range endpoints`() {
         #expect(BattleLoot.quantityRange(forLevel: 1) == 3 ... 4)
         #expect(BattleLoot.quantityRange(forLevel: 24) == 7 ... 13)
@@ -53,6 +93,46 @@ struct BattleLootTests {
         for material in package.materials {
             #expect((6 ... 8).contains(material.quantity))
         }
+    }
+
+    @Test(arguments: BattleLoot.materialResources, [false, true])
+    func `focused materials guarantee one boosted slot and a distinct ordinary slot`(resource: HomesteadResource, boss: Bool) throws {
+        func resolve(bonus: Int) -> BattleLootResult {
+            var rng = SeededRandomNumberGenerator(seed: 42)
+            return BattleLoot.resolve(
+                encounterLevel: 20, rewardLevel: 20, enemyIsBoss: boss, itemID: "focused",
+                ownedUniqueIDs: [], materialsFoundPercent: bonus, materialFocus: resource, using: &rng,
+            )
+        }
+        let base = resolve(bonus: 0)
+        let boosted = resolve(bonus: 25)
+        #expect(boosted.materials.count == 2)
+        #expect(Set(boosted.materials.map(\.resource)).count == 2)
+        let focused = try #require(boosted.materials.first)
+        #expect(focused.resource == resource)
+        #expect(focused.quantity == CombatRounding.scaled(base.materials[0].quantity, byPercent: 25))
+        #expect(boosted.materials[1] == base.materials[1])
+        #expect(boosted.gold == base.gold)
+        #expect(boosted.item == base.item)
+    }
+
+    @Test func `gold and general material bonuses leave other rewards unchanged`() {
+        func resolve(gold: Int = 0, materials: Int = 0) -> BattleLootResult {
+            var rng = SeededRandomNumberGenerator(seed: 42)
+            return BattleLoot.resolve(
+                encounterLevel: 20, rewardLevel: 20, enemyIsBoss: true, itemID: "bonus",
+                ownedUniqueIDs: [], goldFoundPercent: gold, materialsFoundPercent: materials, using: &rng,
+            )
+        }
+        let base = resolve()
+        let gold = resolve(gold: 25)
+        let materials = resolve(materials: 25)
+        #expect(gold.gold == CombatRounding.scaled(base.gold, byPercent: 25))
+        #expect(gold.materials == base.materials && gold.item == base.item)
+        #expect(materials.materials == base.materials.map {
+            ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: 25))
+        })
+        #expect(materials.gold == base.gold && materials.item == base.item)
     }
 
     @Test func `journey loot is seed stable`() throws {
@@ -144,7 +224,7 @@ struct BattleLootTests {
 
     @Test func `contracts anchor item tiers to campaign progress`() throws {
         var save = SaveTestSupport.makeSave()
-        save.contracts.ensureBoard()
+        save.contracts.ensureBoard(eligibleModifiers: [.gold])
         let offer = try #require(save.contracts.offer(for: .standard))
         #expect(ContractsCompletion.campaignRewardLevel(in: save) == 1)
         let actual = ContractsCompletion.resolveLoot(for: offer, encounterLevel: 20, save: save)
@@ -155,7 +235,7 @@ struct BattleLootTests {
             encounterLevel: 20, rewardLevel: 1, enemyIsBoss: false,
             itemID: "contract-\(offer.id)-loot",
             ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-            using: &rng,
+            goldFoundPercent: 25, using: &rng,
         )
         #expect(actual == expected)
 

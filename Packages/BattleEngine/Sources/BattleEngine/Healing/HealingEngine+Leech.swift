@@ -114,10 +114,9 @@ package extension HealingEngine {
                 multiplier: min(1, max(0, profile.triggers.leechSharesToHeroPercent)),
             )
             if share > 0 {
-                events.append(contentsOf: Self.resolveHeal(
-                    HealRequest(amount: share, target: context.roster.hero.combatant, sourceActorID: sourceActorID),
-                    in: &context,
-                ).events)
+                var request = HealRequest(amount: share, target: context.roster.hero.combatant, sourceActorID: sourceActorID)
+                request.amountBasis = .resolved
+                events.append(contentsOf: Self.resolveHeal(request, in: &context).events)
             }
         }
         if actorCombatant.role == .companion, context.roster.hero.isAlive,
@@ -148,16 +147,18 @@ package extension HealingEngine {
         else { return [] }
         let share = CombatRounding.scaled(restored, multiplier: percent)
         guard share > 0 else { return [] }
-        return context.healEmitting(
-            amount: share,
-            target: context.roster.companion.combatant,
-            source: context.roster.hero.combatant,
-            abilityName: CombatTriggerEngine.triggerAbilityName(
-                "companionLeechSharePercent",
-                for: context.roster.hero.combatant,
-                fallback: "Symbiosis",
-                in: context,
+        var request = HealRequest(
+            amount: share, target: context.roster.companion.combatant, sourceActorID: context.roster.hero.id,
+            logAs: .instantHeal(
+                actorName: context.roster.hero.name,
+                abilityName: CombatTriggerEngine.triggerAbilityName(
+                    "companionLeechSharePercent", for: context.roster.hero.combatant,
+                    fallback: "Symbiosis", in: context,
+                ),
+                keyword: .health,
             ),
         )
+        request.amountBasis = .resolved
+        return resolveHeal(request, in: &context).events
     }
 }

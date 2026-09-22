@@ -35,6 +35,10 @@ public enum ExperienceScaling {
         // Saturating gap: extreme levels must fall off to zero rather than trap.
         let gap = SaturatedArithmetic.saturatingSub(playerLevel, enemyLevel)
         guard gap < underlevelCutoff else { return 0 }
+        if gap < 0 {
+            let advantage = SaturatedArithmetic.saturatingSub(enemyLevel, playerLevel)
+            return 1 + EnemyPowerCurve.progressionSmoothstep(Double(advantage) / Double(underlevelCutoff))
+        }
         guard gap > 0 else { return 1 }
 
         let normalized = 1.0 - (Double(gap) / Double(underlevelCutoff))

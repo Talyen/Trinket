@@ -161,14 +161,14 @@ package extension CombatTriggerEngine {
                         potency: triggers.onDodgeApplyPoisonOrBleed,
                         to: target,
                         sourceActorID: combatant.id,
-                        application: .attached,
+                        application: .reaction,
                     ))
                 } else {
                     events.append(contentsOf: DoTApplicator.applyBleed(
                         potency: triggers.onDodgeApplyPoisonOrBleed,
                         to: target,
                         sourceActorID: combatant.id,
-                        application: .attached,
+                        application: .reaction,
                         in: &context,
                     ))
                 }
@@ -200,7 +200,9 @@ package extension CombatTriggerEngine {
                 context.resolution.leave(.dot)
                 context.resolution.leave(.draw)
             }
-            events.append(contentsOf: (try? BattleCardCombatEngine.playDrawnCard(card, context: &context)) ?? [])
+            events.append(contentsOf: context.withAutomaticPlay { context in
+                (try? BattleCardCombatEngine.playDrawnCard(card, context: &context)) ?? []
+            })
         }
 
         return events

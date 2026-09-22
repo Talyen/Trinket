@@ -6,6 +6,10 @@ Application composition and player-flow orchestration. Launch/DTO contract:
 
 ## Ownership
 
+`App/` owns app composition, shell state, and options; `Play/` owns battle and
+encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
+`Audio/` owns music and sound playback. These folders share one target.
+
 - `AppState`: dependency wiring and shell state
 - `PlaySession`: Play shell and mode composition
 - `PlayBattleRuns`: paired runtime/route metadata lifecycle; preparation, activation,
@@ -13,7 +17,8 @@ Application composition and player-flow orchestration. Launch/DTO contract:
 - `PlayBattleLaunch`: access policy and save-backed launch assembly
 - `PlayBattleCompletion`: reward settlement, persistence, and deferred exit timing
 - Mode coordinators (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
-  `EncounterPlayMode`): constructor-injected collaborators, no `PlaySession` back-pointer
+  `ContractsPlayMode`, `VoyagePlayMode`, `EncounterPlayMode`): constructor-injected
+  collaborators, no `PlaySession` back-pointer
 - Battle entry runs through one `PlayBattleLaunch.startBattle` gate
   (paywall → busy → resolve → activate). A busy battle surfaces the failure for
   explicit board/floor taps (Spires/Contracts) and swallows map taps

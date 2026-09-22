@@ -16,7 +16,7 @@ public extension Combatant.Role {
 
 public extension EquipmentLoadout {
     func sanitized(for combatant: Combatant, inventory: [InventoryItem]) -> EquipmentLoadout {
-        let itemsByID = Dictionary(uniqueKeysWithValues: inventory.map { ($0.id, $0) })
+        let itemsByID = Dictionary(inventory.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         var sanitized = EquipmentLoadout()
         var claimedItemIDs = Set<String>()
 

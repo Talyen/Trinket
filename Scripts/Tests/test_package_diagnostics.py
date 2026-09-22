@@ -93,6 +93,7 @@ class PackageDiagnosticsTests(unittest.TestCase):
                 'prepare_generated_inputs() { :; }\n'
                 'package_test_scheme() { echo "$1"; }\n'
                 'package_derived_data_path() { echo "$PWD/dd/$1"; }\n'
+                'begin_build_stamps() { :; }\n'
                 'touch_build_stamp() { :; }\n'
             )
             (scripts / "lib/app-build.sh").write_text(

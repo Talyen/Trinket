@@ -127,6 +127,29 @@ struct AppStateLabyrinthTests {
         #expect(state.battlePresentation(for: journeyKey) != nil)
     }
 
+    @Test func `keyword labyrinth launch pays the displayed guaranteed item`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let nodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
+        let node = try #require(state.playerSave.labyrinth.nodes[nodeID])
+        #expect(state.playerSave.persistBatch(logging: "Keyword Labyrinth reward") { save in
+            save.labyrinth.nodes[nodeID] = LabyrinthNode(
+                id: node.id, type: node.type, enemyID: node.enemyID, depth: node.depth, clusterID: node.clusterID,
+                gridPosition: node.gridPosition, modifierIDs: [LabyrinthCatalog.rewardID(.keyword(.purge))],
+                outgoingIDs: node.outgoingIDs, isRevealed: true,
+            )
+        })
+        #expect(state.labyrinth.startBattle(nodeID: nodeID) == nil)
+        let battle = try #require(state.battle.activeBattle)
+        let presentation = try #require(state.battlePresentation(for: battle.runKey))
+        let item = try #require(presentation.pendingRewardItem)
+        #expect(item.baseType.keywordAffinities.contains(.purge))
+        #expect(item.affixes.contains { $0.keywords.contains(.purge) })
+        #expect(presentation.labyrinthModifiers.first?.effect == .reward(.keyword(.purge)))
+        #expect(state.completeActiveBattle(battle, battleGold: .init()).didComplete)
+        #expect(state.playerSave.inventory.item(matching: item.id) == item)
+        #expect(!state.completeActiveBattle(battle, battleGold: .init()).didComplete)
+    }
+
     @Test func `start labyrinth battle sets configuration and in memory origin`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)

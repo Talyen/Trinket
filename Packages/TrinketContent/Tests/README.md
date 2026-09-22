@@ -1,6 +1,8 @@
 # TrinketContent Tests
 
 Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
+Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
+`Roster/`, `Homestead/`, and `Media/`; cross-domain invariants stay at the root.
 
 | Concern | Owner | Notes |
 |---------|-------|-------|
@@ -33,4 +35,4 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 **Not here:** Encounter art presentation wiring
 (`Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift`)
 or `PlayerRosterState` battle-config logic
-(`Packages/TrinketPersistence/Tests/TrinketPersistenceTests/PlayerRosterStateTests.swift`).
+(`Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Inventory/PlayerRosterStateTests.swift`).

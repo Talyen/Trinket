@@ -25,6 +25,10 @@ of XP completion. A successful claim triggers a brief stationary pulse before
 exit; animation never determines the amount awarded. Interrupted collection
 finishes the already committed action once.
 
+`Artwork/` owns prepared-artwork caching and leases, `Performance/` owns frame
+measurement, and `Accessibility/` owns stable accessibility identifiers. These
+folders remain in the `TrinketFeatureSupport` target.
+
 ## Artwork and rendering
 
 `PreparedArtworkCache` decodes off the main actor; publication and pin ownership

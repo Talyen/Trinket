@@ -74,6 +74,7 @@ struct LabyrinthProgressTests {
         try first.performBatchMutation { $0.labyrinth = progress }
 
         let second = try context.makeReloadedStore()
+        #expect(second.labyrinth == first.labyrinth)
         #expect(second.labyrinth.hasMap)
         #expect(second.labyrinth.nodes[firstReachable]?.isCleared == true)
         #expect(second.labyrinth.worldSeed == 55)

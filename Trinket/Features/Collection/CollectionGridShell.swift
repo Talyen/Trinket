@@ -30,3 +30,12 @@ struct CollectionGridShell<Data: RandomAccessCollection, Content: View, EmptyCon
         .trinketScreenBackground()
     }
 }
+
+extension CollectionGridShell where EmptyContent == EmptyView {
+    init(
+        items: Data,
+        @ViewBuilder content: @escaping (Data.Element) -> Content,
+    ) {
+        self.init(items: items, content: content, emptyView: { EmptyView() })
+    }
+}

@@ -23,7 +23,7 @@ public extension StageSelectRowPresentation where Item == VoyageOffer {
 }
 
 public extension StageSelectRowPresentation where Item == VoyageNode {
-    static func voyageNodes(_ run: VoyageRun) -> [Self] {
+    static func voyageNodes(_ run: VoyageRun, inventory: PlayerInventoryState) -> [Self] {
         run.nodes.enumerated().map { index, node in
             let label = "Node \(index + 1)"
             return Self(
@@ -38,7 +38,8 @@ public extension StageSelectRowPresentation where Item == VoyageNode {
                 actionAccessibilityID: AccessibilityID.Voyage.action(node.id),
                 activeDetailAccessibilityID: AccessibilityID.Voyage.detail(node.id),
                 partyControlAccessibilityID: AccessibilityID.Voyage.party(node.id),
-                modifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs), allowsCompactInspection: true,
+                modifiers: RewardOwnership(inventory).modifiers(ids: node.modifierIDs).map(ModifierCaptionPresentation.init),
+                allowsCompactInspection: true,
             )
         }
     }

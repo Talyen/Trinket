@@ -11,6 +11,7 @@ public enum LabyrinthGenerator {
     public static func makeInitialMap(
         seed: UInt64 = 0,
         eligibleRecruitEventIDs: [String] = [],
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> (
         clusters: [LabyrinthCluster],
         nodes: [String: LabyrinthNode],
@@ -22,6 +23,7 @@ public enum LabyrinthGenerator {
             previousBossEnemyID: nil,
             worldSeed: resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+            eligibleRewards: eligibleRewards,
             using: &rng,
         )
         var nodes = Dictionary(uniqueKeysWithValues: first.nodes.map { ($0.id, $0) })
@@ -53,6 +55,7 @@ public enum LabyrinthGenerator {
         seed: UInt64,
         floorCount: Int,
         eligibleRecruitEventIDs: [String] = [],
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> (
         clusters: [LabyrinthCluster],
         nodes: [String: LabyrinthNode],
@@ -60,6 +63,7 @@ public enum LabyrinthGenerator {
         var generated = makeInitialMap(
             seed: seed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+            eligibleRewards: eligibleRewards,
         )
         guard floorCount > 1 else { return generated }
 
@@ -80,6 +84,7 @@ public enum LabyrinthGenerator {
                 nodes: &generated.nodes,
                 seed: seed,
                 eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+                eligibleRewards: eligibleRewards,
             )
         }
         return generated
@@ -91,6 +96,7 @@ public enum LabyrinthGenerator {
         nodes: inout [String: LabyrinthNode],
         seed: UInt64,
         eligibleRecruitEventIDs: [String] = [],
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) {
         guard var boss = nodes[bossNodeID], boss.type == .boss, boss.isCleared else { return }
         guard boss.outgoingIDs.isEmpty else { return }
@@ -106,6 +112,7 @@ public enum LabyrinthGenerator {
             previousBossEnemyID: previousBossEnemyID,
             worldSeed: resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+            eligibleRewards: eligibleRewards,
             using: &rng,
         )
         clusters.append(generated.cluster)
@@ -173,6 +180,7 @@ public enum LabyrinthGenerator {
         previousBossEnemyID: String?,
         worldSeed: UInt64,
         eligibleRecruitEventIDs: [String],
+        eligibleRewards: [RewardModifier],
         using rng: inout some RandomNumberGenerator,
     ) -> GeneratedFloor {
         let clusterID = "labyrinth-cluster-\(number)"
@@ -208,6 +216,7 @@ public enum LabyrinthGenerator {
                     enemyID: enemyID,
                     worldSeed: worldSeed,
                     nodeID: nodeID,
+                    eligibleRewards: eligibleRewards,
                 ),
                 recruitEventID: recruitEventID,
             )

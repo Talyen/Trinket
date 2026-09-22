@@ -15,6 +15,7 @@ public struct LootRequest: Equatable, Sendable {
     public var keywordBias: Set<Keyword>
     public var goldFoundPercent: Int
     public var materialsFoundPercent: Int
+    public var rewardModifier: RewardModifier?
 
     public init(
         rewardLevel: Int,
@@ -23,6 +24,7 @@ public struct LootRequest: Equatable, Sendable {
         keywordBias: Set<Keyword> = [],
         goldFoundPercent: Int = 0,
         materialsFoundPercent: Int = 0,
+        rewardModifier: RewardModifier? = nil,
     ) {
         self.rewardLevel = rewardLevel
         self.seedSalt = seedSalt
@@ -30,10 +32,19 @@ public struct LootRequest: Equatable, Sendable {
         self.keywordBias = keywordBias
         self.goldFoundPercent = goldFoundPercent
         self.materialsFoundPercent = materialsFoundPercent
+        self.rewardModifier = rewardModifier
     }
 }
 
 public struct RewardOwnership: Equatable, Sendable {
+    public var eligibleModifiers: [RewardModifier] {
+        RewardModifier.eligible(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs)
+    }
+
+    public func modifiers(ids: [LabyrinthModifierID]) -> [LabyrinthModifierDefinition] {
+        LabyrinthCatalog.modifiers(ids: ids, eligibleRewards: eligibleModifiers)
+    }
+
     public var ownedTrinketIDs: Set<String>
     public var ownedUniqueIDs: Set<String>
 
@@ -78,18 +89,31 @@ public extension LootRequest {
             rewardLevel: EncounterLevelResolver.labyrinthEnemyLevel(for: node),
             seedSalt: "battle-loot-labyrinth-\(node.id)",
             itemID: LabyrinthCompletion.rewardItemID(forNodeID: node.id),
-            goldFoundPercent: effects.goldFoundPercent,
-            materialsFoundPercent: effects.materialsFoundPercent,
+            goldFoundPercent: effects.goldFoundPercent - (effects.rewardModifier?.goldBonusPercent ?? 0),
+            materialsFoundPercent: effects.materialsFoundPercent - (effects.rewardModifier?.materialsBonusPercent ?? 0),
+            rewardModifier: effects.rewardModifier,
+        )
+    }
+
+    static func voyage(node: VoyageNode, rewardLevel: Int, effects: LabyrinthModifierEffects) -> LootRequest {
+        LootRequest(
+            rewardLevel: rewardLevel, seedSalt: node.id, itemID: "voyage-\(node.id)",
+            goldFoundPercent: effects.goldFoundPercent - (effects.rewardModifier?.goldBonusPercent ?? 0),
+            materialsFoundPercent: effects.materialsFoundPercent - (effects.rewardModifier?.materialsBonusPercent ?? 0),
+            rewardModifier: effects.rewardModifier,
         )
     }
 
     /// Fourth loot-request factory, co-located with the other three so a
     /// seed/level change touches one extension instead of four call sites.
-    static func contract(offerID: String, rewardLevel: Int) -> LootRequest {
+    static func contract(
+        offerID: String, rewardLevel: Int, modifier: RewardModifier = .gold,
+    ) -> LootRequest {
         LootRequest(
             rewardLevel: rewardLevel,
             seedSalt: "battle-loot-contract-\(offerID)",
             itemID: "contract-\(offerID)-loot",
+            rewardModifier: modifier,
         )
     }
 }
@@ -166,6 +190,9 @@ public enum VictoryRewardApplier {
         var rng = SeededRandomNumberGenerator(
             seed: GameContent.encounterSeed(worldSeed, salt: request.seedSalt),
         )
+        let modifier = request.rewardModifier?.resolved(
+            ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
+        )
         return BattleLoot.resolve(
             encounterLevel: encounterLevel,
             rewardLevel: request.rewardLevel,
@@ -174,8 +201,12 @@ public enum VictoryRewardApplier {
             keywordBias: request.keywordBias,
             ownedTrinketIDs: ownership.ownedTrinketIDs,
             ownedUniqueIDs: ownership.ownedUniqueIDs,
-            goldFoundPercent: request.goldFoundPercent,
-            materialsFoundPercent: request.materialsFoundPercent,
+            goldFoundPercent: request.goldFoundPercent + (modifier?.goldBonusPercent ?? 0),
+            materialsFoundPercent: request.materialsFoundPercent + (modifier?.materialsBonusPercent ?? 0),
+            materialFocus: modifier?.materialFocus,
+            favoredItemTier: modifier?.favoredItemTier,
+            itemTierWeightBonusPercent: modifier?.favoredItemTier != nil ? RewardModifier.bonusPercent : 0,
+            requiredKeyword: modifier?.requiredKeyword,
             astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng,
         )

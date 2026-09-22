@@ -97,7 +97,9 @@ public enum VoyageCatalog {
 }
 
 public enum VoyageGenerator {
-    public static func nodes(for offer: VoyageOffer, eligibleRecruitEventIDs: [String]) -> [VoyageNode] {
+    public static func nodes(
+        for offer: VoyageOffer, eligibleRecruitEventIDs: [String], eligibleRewards: [RewardModifier] = RewardModifier.allCases,
+    ) -> [VoyageNode] {
         var rng = SeededRandomNumberGenerator(seed: offer.seed)
         let battles = switch offer.difficulty {
         case .easy: 3
@@ -135,9 +137,9 @@ public enum VoyageGenerator {
             } else {
                 enemyID = type == .boss ? VoyageCatalog.bossID(chapterID: offer.chapterID) : nil
             }
-            let pool = VoyageCatalog.modifiers(type: type, enemyID: enemyID)
-            let different = pool.filter { $0.id != previousModifier }
-            let modifier = (different.isEmpty ? pool : different).randomElement(using: &rng)?.id
+            let modifier = LabyrinthCatalog.pickModifier(
+                for: type, enemyID: enemyID, eligibleRewards: eligibleRewards, excluding: previousModifier, using: &rng,
+            )
             previousModifier = modifier
             return VoyageNode(
                 id: "\(offer.id)-node-\(index + 1)", type: type, enemyID: enemyID,

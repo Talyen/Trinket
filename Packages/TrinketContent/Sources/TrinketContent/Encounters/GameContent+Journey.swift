@@ -19,9 +19,7 @@ public extension GameContent {
         return chapters[chapterIndex + 1]
     }
 
-    static var stages: [Stage] {
-        chapters.flatMap(\.stages)
-    }
+    static let stages: [Stage] = chapters.flatMap(\.stages)
 
     static func stage(id: String) -> Stage? {
         GameContentStagesIndexGenerated.stagesByID[id]

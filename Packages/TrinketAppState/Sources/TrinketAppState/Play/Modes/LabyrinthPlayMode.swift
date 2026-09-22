@@ -288,7 +288,7 @@ extension LabyrinthPlayMode {
         effects: LabyrinthModifierEffects,
     ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
         let loot = battleLoot(for: node, labyrinth: labyrinth, encounterLevel: encounter.level)
-        let labyrinthModifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+        let labyrinthModifiers = RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs)
         let input = ModeBattleSpec.launchInput(
             origin: .labyrinth(nodeID: node.id),
             encounter: encounter,

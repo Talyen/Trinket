@@ -82,22 +82,24 @@ struct HomesteadView: View {
             await launchDeposit()
         }
         .task(id: requestedCategory) {
-            guard let requestedCategory else { return }
-            let definitions = GameContent.homesteadNodes.filter { $0.category == requestedCategory }
+            showsCategoryProgress = false
+            guard let category = requestedCategory else { return }
+            let progressTask = Task {
+                try? await Task.sleep(for: .seconds(TrinketMotion.Interaction.pendingIndicatorDelay))
+                guard !Task.isCancelled else { return }
+                showsCategoryProgress = true
+            }
+            defer { progressTask.cancel() }
+
+            let definitions = GameContent.homesteadNodes.filter { $0.category == category }
             let lease = await PreparedArtworkLease(
                 names: HomesteadCategoryView.imminentHomesteadArtworkNames(for: definitions),
             )
-            guard !Task.isCancelled, self.requestedCategory == requestedCategory else { return }
+            guard !Task.isCancelled, requestedCategory == category else { return }
             categoryArtworkLease = lease
-            shellSession.homesteadPath.append(.category(requestedCategory))
-            self.requestedCategory = nil
-        }
-        .task(id: requestedCategory) {
+            shellSession.homesteadPath.append(.category(category))
+            requestedCategory = nil
             showsCategoryProgress = false
-            guard requestedCategory != nil else { return }
-            try? await Task.sleep(for: .seconds(TrinketMotion.Interaction.pendingIndicatorDelay))
-            guard !Task.isCancelled else { return }
-            showsCategoryProgress = true
         }
         .onChange(of: shellSession.homesteadPath.isEmpty) { _, isEmpty in
             if isEmpty {

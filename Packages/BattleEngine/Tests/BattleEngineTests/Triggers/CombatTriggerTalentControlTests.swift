@@ -261,6 +261,7 @@ struct CombatTriggerTalentControlTests {
             in: &heroSpend,
         )
         #expect(enemyIsAfflicted(heroSpend))
+        #expect(heroSpend.roster.health(for: heroSpend.roster.enemy.combatant) == 99)
     }
 
     @Test func `spit poison applies from companion when hero attacks poisoned enemy`() {
@@ -287,6 +288,7 @@ struct CombatTriggerTalentControlTests {
                 options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable),
             ),
         )
+        #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 94)
         let poisons = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .filter { $0.effect.keyword == .poison }
         #expect(poisons.contains { $0.sourceActorID == battle.roster.companion.id })

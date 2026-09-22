@@ -261,18 +261,8 @@ public enum ItemAffixMagnitudeRoll: Sendable {
         let lower = max(1, points - delta)
         let upper = points + delta
         let step = delta < 5 ? 1 : 5
-        var choices: [Int] = []
-        var current = points
-        while current >= lower {
-            choices.append(current)
-            current -= step
-        }
-        current = points + step
-        while current <= upper {
-            choices.append(current)
-            current += step
-        }
-        return choices.sorted().map { Double($0) / 100 }
+        let start = points - ((points - lower) / step) * step
+        return stride(from: start, through: upper, by: step).map { Double($0) / 100 }
     }
 }
 
@@ -459,7 +449,5 @@ public extension CombatTraitTriggers {
     /// Names of rollable trigger magnitudes. Pair with the excused-fields set
     /// generated from the trigger schema for the full contract: every populated
     /// affix trigger field must be rollable or explicitly excused.
-    static var affixMagnitudeFieldNames: Set<String> {
-        Set(affixMagnitudeFields.map(\.fieldName))
-    }
+    static let affixMagnitudeFieldNames: Set<String> = Set(affixMagnitudeFields.map(\.fieldName))
 }

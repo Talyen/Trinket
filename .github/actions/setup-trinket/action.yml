@@ -54,7 +54,8 @@ runs:
           exit 1
         fi
         echo "Selecting Xcode: $best_path ($best_version, build $best_build)"
-        sudo xcode-select -s "$best_path/Contents/Developer"
+        export DEVELOPER_DIR="$best_path/Contents/Developer"
+        echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"
         xcodebuild -version
         echo "XCODE_PATH=$best_path" >> "$GITHUB_ENV"
         echo "XCODE_VERSION=$best_version" >> "$GITHUB_ENV"
@@ -71,7 +72,7 @@ runs:
           echo "Metal toolchain already installed."
         else
           echo "Downloading Metal toolchain..."
-          sudo xcodebuild -downloadComponent MetalToolchain
+          sudo env DEVELOPER_DIR="$DEVELOPER_DIR" xcodebuild -downloadComponent MetalToolchain
           xcodebuild -showComponent MetalToolchain
         fi
 

@@ -35,7 +35,7 @@ struct CollectionView: View {
             .onChange(of: isLaunchPresentationReady) { _, _ in
                 presentPendingLaunchRoute()
             }
-            .task(id: imminentDetailArtworkPinKey) {
+            .task(id: imminentDetailArtworkKey) {
                 await refreshImminentDetailArtworkPins()
             }
             .onDisappear {
@@ -141,8 +141,26 @@ struct CollectionView: View {
         }
     }
 
-    private var imminentDetailArtworkPinKey: [String] {
-        Self.imminentDetailArtworkNames(roster: playerSave.roster).sorted()
+    private struct ImminentDetailArtworkKey: Equatable {
+        let heroIDs: [String]
+        let companionIDs: [String]
+        let loadoutHash: Int
+    }
+
+    private var imminentDetailArtworkKey: ImminentDetailArtworkKey {
+        let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
+        let roster = playerSave.roster
+        let heroes = Array(roster.collectionHeroes.prefix(shelfLimit).map(\.id))
+        let companions = Array(roster.collectionCompanions.prefix(shelfLimit).map(\.id))
+        var hasher = Hasher()
+        for id in heroes + companions {
+            hasher.combine(roster.abilityLoadouts[id])
+        }
+        return ImminentDetailArtworkKey(
+            heroIDs: heroes,
+            companionIDs: companions,
+            loadoutHash: hasher.finalize(),
+        )
     }
 
     static func imminentDetailArtworkNames(roster: PlayerRosterState) -> [String] {

@@ -80,23 +80,14 @@ touch_generate_stamp() {
   local content_digest project_digest assets_digest
   mkdir -p "$results_dir"
   # One interpreter invocation per stamp; digests print in group order.
-  if [[ "${2:-false}" == true ]]; then
-    {
-      read -r content_digest
-      read -r project_digest
-      read -r assets_digest
-    } < <(generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}" -- "${asset_generation_inputs[@]}") || return $?
-    printf '%s\n' "$content_digest" > "$stamp.content" || return $?
-    printf '%s\n' "$project_digest" > "$stamp.project" || return $?
-    printf '%s\n' "$assets_digest" > "$stamp.assets" || return $?
-  else
-    {
-      read -r content_digest
-      read -r project_digest
-    } < <(generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}") || return $?
-    printf '%s\n' "$content_digest" > "$stamp.content" || return $?
-    printf '%s\n' "$project_digest" > "$stamp.project" || return $?
-  fi
+  {
+    read -r content_digest
+    read -r project_digest
+    read -r assets_digest
+  } < <(generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}" -- "${asset_generation_inputs[@]}") || return $?
+  printf '%s\n' "$content_digest" > "$stamp.content" || return $?
+  printf '%s\n' "$project_digest" > "$stamp.project" || return $?
+  printf '%s\n' "$assets_digest" > "$stamp.assets" || return $?
   touch "$stamp"
 }
 
@@ -141,10 +132,11 @@ prepare_generated_inputs() {
   } < <(generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}" -- "${asset_generation_inputs[@]}") || return $?
   [[ -f "$stamp.content" && "$(cat "$stamp.content")" == "$content_snapshot" ]] || content_changed=changed
   [[ -f "$stamp.project" && "$(cat "$stamp.project")" == "$project_snapshot" ]] || project_changed=changed
-  [[ -f "$stamp.assets" && "$(cat "$stamp.assets")" == "$assets_snapshot" ]] || assets_changed=changed
-  # A legacy or absent stamp gets normal generation; asset conversion remains
-  # selected by changed inputs or dirty asset sources on the first preparation.
-  if [[ ! -f "$stamp.assets" ]]; then
+  if [[ -f "$stamp.assets" ]]; then
+    [[ "$(cat "$stamp.assets")" == "$assets_snapshot" ]] || assets_changed=changed
+  else
+    # A legacy or absent stamp gets normal generation; asset conversion remains
+    # selected by changed inputs or dirty asset sources on the first preparation.
     assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}" 2>/dev/null || true)"
     if [[ -z "$assets_changed" ]]; then
       assets_changed="$(git status --porcelain -- "${asset_generation_inputs[@]}" 2>/dev/null | grep -v '\.md$' || true)"
@@ -171,7 +163,7 @@ prepare_generated_inputs() {
   else
     ./Scripts/generate.sh || return $?
   fi
-  touch_generate_stamp "$results_dir" true
+  touch_generate_stamp "$results_dir"
 }
 
 assert_no_build_inputs_are_fresh() {
@@ -180,14 +172,16 @@ assert_no_build_inputs_are_fresh() {
   local newer_files=()
   local file
 
-  if [[ "${CI:-}" == "true" ]]; then
-    echo "CI environment detected; cache key establishes --no-build freshness."
-    return 0
-  fi
-
   if [[ ! -f "$stamp" ]]; then
     echo "No prior built test stamp found for '$fingerprint'. Run without --no-build first." >&2
     return 1
+  fi
+
+  python3 Scripts/build-metadata.py check "$(dirname "$stamp")" "$fingerprint" || return $?
+  if [[ "${CI:-}" == "true" || "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    # CI checkouts have fresh mtimes; the transferred metadata proves commit
+    # and toolchain identity instead of relying on checkout timestamps.
+    return 0
   fi
 
   while IFS= read -r file; do
@@ -224,8 +218,16 @@ touch_build_stamp() {
   local stamp
   stamp="$(build_stamp_path "$results_dir" "$fingerprint")"
   mkdir -p "$results_dir"
+  python3 Scripts/build-metadata.py write "$results_dir" "$fingerprint" \
+    --started "${TRINKET_BUILD_STARTED_IDENTITY:-}" || return $?
+  record_build_input_git_snapshot "$stamp" || return $?
   touch "$stamp"
-  record_build_input_git_snapshot "$stamp"
+}
+
+# Invalidate the product family's old stamps before Xcode can partially replace
+# binaries. The identity is kept in the caller, including per-package workers.
+begin_build_stamps() {
+  TRINKET_BUILD_STARTED_IDENTITY="$(python3 Scripts/build-metadata.py begin "$1" "$2")" || return $?
 }
 
 package_test_scheme() {

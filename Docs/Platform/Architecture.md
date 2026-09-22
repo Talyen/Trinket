@@ -18,13 +18,13 @@ Packages/
   TrinketContent/           Authored content by game domain + Generated/ catalogs (see package structure)
   BattleEngine/             Card combat rules, effect handlers, decks/hand, `CombatBuildResolver` (app-unlinked `BattleBalanceTools`)
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
-  TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
+  TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals (TrinketCore only)
   TrinketFeatureSupport/    Package hosting shared UI and contract/adapter products
-    Sources/TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support
+    Sources/TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support, reward ExperienceBar
     Sources/TrinketFeatureContracts/ Pure navigation/deep-link values, battle presentation/reward DTOs (SwiftUI-free)
     Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
-  TrinketAppState/          App/Play orchestration, encounter sessions, options, and audio
+  TrinketAppState/          App/Play/Purchases orchestration and audio
 
 Shared test fixtures (`CombatantFixtures`, `ItemFixtures`, `BattlePartyFixtures`)
 live in `TrinketContent`'s `TrinketContentTestSupport` target so

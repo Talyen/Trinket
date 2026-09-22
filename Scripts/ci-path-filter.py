@@ -97,6 +97,8 @@ CODE_INCLUDES = (
 # Build/test/generate scripts must still run macos jobs; lint/CI glue stays infra.
 CODE_SCRIPT_INCLUDES = (
     "Scripts/build.sh",
+    "Scripts/build-metadata.py",
+    "Scripts/restore-ci-test-products.sh",
     "Scripts/build-*.sh",
     "Scripts/build-for-testing.sh",
     "Scripts/build-freshness.sh",

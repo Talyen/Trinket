@@ -9,7 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from internal.cli import ROOT
-ID_FILE = ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift"
+ID_FILE = ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Accessibility/AccessibilityID.swift"
 UITESTS = ROOT / "TrinketUITests"
 ALLOWLIST_FILE = ROOT / "Scripts/config/uitest-system-query-allowlist.txt"
 

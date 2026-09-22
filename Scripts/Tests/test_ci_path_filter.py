@@ -95,7 +95,8 @@ class CIPathFilterTests(unittest.TestCase):
 
     def test_generation_helpers_route_local_and_ci_verification(self) -> None:
         cases = (("internal/content/content_codegen_modifiers.py", False), ("internal/content/content_codegen_triggers.py", False),
-                 ("internal/content/trigger_families/index.json", False), ("prepare-assets.sh", True), ("lib/media-assets.sh", True))
+                 ("internal/content/trigger_families/index.json", False), ("prepare-assets.sh", True),
+                 ("lib/media-assets.sh", True), ("config/full-only-art-kinds.txt", True))
         for name, assets in cases:
             with self.subTest(path=name):
                 path = "Scripts/" + name
@@ -113,6 +114,8 @@ class CIPathFilterTests(unittest.TestCase):
             "Scripts/tool-versions.env": (True, False, True),
             "Scripts/build-inputs.env": (True, False, True),
             "Scripts/xcode-runner.sh": (True, False, True),
+            "Scripts/build-metadata.py": (True, False, True),
+            "Scripts/restore-ci-test-products.sh": (True, False, True),
             ".github/actions/restore-and-build/action.yml": (True, False, True),
             ".github/actions/test-job/action.yml": (True, False, True),
             ".github/actions/setup-trinket/action.yml": (True, False, True),

@@ -3,13 +3,13 @@ import TrinketCore
 
 public enum VoyageCompletion {
     public static func resolveLoot(node: VoyageNode, encounterLevel: Int, save: PlayerSave) -> BattleLootResult {
-        var rng = SeededRandomNumberGenerator(seed: GameContent.encounterSeed(save.worldSeed, salt: node.id))
-        return BattleLoot.resolve(
-            encounterLevel: encounterLevel, rewardLevel: ContractsCompletion.campaignRewardLevel(in: save),
-            enemyIsBoss: node.type == .boss, itemID: "voyage-\(node.id)",
-            ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-            goldFoundPercent: node.effects.goldFoundPercent, materialsFoundPercent: node.effects.materialsFoundPercent,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent, using: &rng,
+        let ownership = RewardOwnership(save)
+        let effects = LabyrinthModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
+        return VictoryRewardApplier.resolveLoot(
+            .voyage(node: node, rewardLevel: ContractsCompletion.campaignRewardLevel(in: save), effects: effects),
+            encounterLevel: encounterLevel, enemyIsBoss: node.type == .boss,
+            worldSeed: save.worldSeed, ownership: ownership,
+            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
         )
     }
 

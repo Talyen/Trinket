@@ -4,7 +4,7 @@ import TrinketContent
 import TrinketDesignSystem
 
 public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
-    public let modifiers: [LabyrinthModifierDefinition]
+    public let modifiers: [ModifierCaptionPresentation]
     public let allowsCompactInspection: Bool
     public let item: Item
     public let isActive: Bool
@@ -44,7 +44,7 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         actionAccessibilityID: String,
         activeDetailAccessibilityID: String,
         partyControlAccessibilityID: String,
-        modifiers: [LabyrinthModifierDefinition] = [],
+        modifiers: [ModifierCaptionPresentation] = [],
         allowsCompactInspection: Bool = false,
     ) {
         self.modifiers = modifiers

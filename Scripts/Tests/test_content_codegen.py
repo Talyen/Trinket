@@ -18,6 +18,7 @@ SCRIPT_INPUTS = (
 )
 
 
+import re
 import subprocess
 import sys
 
@@ -25,6 +26,13 @@ from script_test_support import ROOT, ScriptRegressionTestCase
 
 
 class ContentCodegenTests(ScriptRegressionTestCase):
+    def test_manifest_keyword_vocabulary_covers_core_keywords(self) -> None:
+        sys.path.insert(0, str(ROOT / "Scripts"))
+        from internal.content.content_codegen_modifiers import VALID_KEYWORDS
+        source = (ROOT / "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift").read_text()
+        cases = set(re.findall(r'^    case (\w+) =', source, re.MULTILINE))
+        self.assertEqual(cases, set(VALID_KEYWORDS))
+
     def test_content_codegen_rejects_unknown_command(self) -> None:
         result = subprocess.run(
             [sys.executable, str(ROOT / "Scripts" / "content_codegen.py"), "typo"],

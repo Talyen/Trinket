@@ -32,7 +32,7 @@ trinket_assert_no_build_is_fresh() {
     echo "Built app is missing from DerivedData. Run without --no-build first." >&2
     return 1
   fi
-  assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$RUN_FINGERPRINT"
+  assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$BUILD_FINGERPRINT"
 }
 
 trinket_assert_targeted_tests_executed() {

@@ -3,6 +3,8 @@ import TrinketCore
 extension UniqueCatalog {
     static func unique(
         id: String,
+        signatureID: String? = nil,
+        signatureName: String? = nil,
         name: String,
         base: String,
         keywords: Set<Keyword>,
@@ -16,8 +18,8 @@ extension UniqueCatalog {
         }
         let power = ItemAffixPower(description: description, modifiers: [], triggers: triggers)
         let signature = ItemAffixDefinition(
-            id: id,
-            title: name,
+            id: signatureID ?? id,
+            title: signatureName ?? name,
             slot: baseType.slot,
             keywords: keywords,
             weight: 0,
@@ -30,7 +32,7 @@ extension UniqueCatalog {
                 preconditionFailure("Missing Unique supporting affix: \(supportID)")
             }
             return .bespoke(ItemAffixDefinition(
-                id: "\(id)_\(supportID)_pinned",
+                id: supportID == "manabound" ? "manabound_pinned" : "\(id)_\(supportID)_pinned",
                 title: definition.title,
                 slot: baseType.slot,
                 keywords: supportID == "manabound" ? [.mana] : definition.keywords,

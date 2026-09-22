@@ -20,6 +20,12 @@ struct VoyagePlayModeTests {
         #expect(play.voyage.enter() == nil)
         let offer = try #require(play.playerSave.voyage.offers.first { $0.difficulty == difficulty })
         play.voyage.embark(offerID: offer.id)
+        let firstNode = try #require(play.playerSave.voyage.activeRun?.nextNode)
+        #expect(play.playerSave.persistBatch(logging: "Keyword Voyage reward") { save in
+            save.voyage.updateNode(runID: offer.id, nodeID: firstNode.id) {
+                $0.modifierIDs = [LabyrinthCatalog.rewardID(.keyword(.freeze))]
+            }
+        })
         let run = try #require(play.playerSave.voyage.activeRun)
         let node = try #require(run.nextNode)
         play.voyage.prepareNextBattle()
@@ -41,9 +47,13 @@ struct VoyagePlayModeTests {
         #expect(play.voyage.handleNode(runID: run.id, nodeID: node.id) == nil)
         let retry = try #require(play.battle.activeBattle)
         #expect(retry.id != battle.id)
+        let item = try #require(play.battlePresentation(for: retry)?.pendingRewardItem)
+        #expect(item.baseType.keywordAffinities.contains(.freeze))
+        #expect(item.affixes.contains { $0.keywords.contains(.freeze) })
         let state = play.playerSave.currentSave
         #expect(play.completeActiveBattle(retry, battleGold: .init(gained: 3)).didComplete)
         let completed = play.playerSave.currentSave
+        #expect(completed.inventory.item(matching: item.id) == item)
         #expect(completed.voyage.activeRun?.nodes.first?.isCleared == true)
         #expect(completed.voyage.activeRun?.earnedGold ?? 0 > 0)
         #expect(completed.journey == state.journey)

@@ -22,9 +22,7 @@ public enum LabyrinthModifierEffect: Hashable, Sendable {
     case damageTakenReduction(keyword: Keyword, percent: Int)
     case blockGained(Int)
     case leechGainedPercent(Int)
-    case goldFoundPercent(Int)
-    case experienceEarnedPercent(Int)
-    case materialsFoundPercent(Int)
+    case reward(RewardModifier)
     case shopDiscountPercent(Int)
     case astralShopOffers
 
@@ -38,12 +36,8 @@ public enum LabyrinthModifierEffect: Hashable, Sendable {
             "Block gained is increased by \(amount)"
         case let .leechGainedPercent(percent):
             "Leech gained is increased by \(percent)%"
-        case let .goldFoundPercent(percent):
-            "Gold found is increased by \(percent)%"
-        case let .experienceEarnedPercent(percent):
-            "XP earned is increased by \(percent)%"
-        case let .materialsFoundPercent(percent):
-            "Materials found are increased by \(percent)%"
+        case let .reward(modifier):
+            modifier.description
         case let .shopDiscountPercent(percent):
             "Decreases Shop prices by \(percent)%"
         case .astralShopOffers:
@@ -271,6 +265,7 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
     public var materialsFoundPercent: Int
     public var shopDiscountPercent: Int
     public var astralShopOffers: Bool
+    public var rewardModifier: RewardModifier?
 
     public static let zero = Self(
         damageDealtBonus: [:],
@@ -294,6 +289,7 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
         materialsFoundPercent: Int = 0,
         shopDiscountPercent: Int = 0,
         astralShopOffers: Bool = false,
+        rewardModifier: RewardModifier? = nil,
     ) {
         self.damageDealtBonus = damageDealtBonus
         self.damageTakenReduction = damageTakenReduction
@@ -304,6 +300,7 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
         self.materialsFoundPercent = materialsFoundPercent
         self.shopDiscountPercent = shopDiscountPercent
         self.astralShopOffers = astralShopOffers
+        self.rewardModifier = rewardModifier
     }
 
     public static func combining(_ modifiers: [LabyrinthModifierDefinition]) -> Self {
@@ -318,12 +315,11 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
                 effects.blockGainedBonus += amount
             case let .leechGainedPercent(percent):
                 effects.leechGainedPercent += percent
-            case let .goldFoundPercent(percent):
-                effects.goldFoundPercent += percent
-            case let .experienceEarnedPercent(percent):
-                effects.experienceEarnedPercent += percent
-            case let .materialsFoundPercent(percent):
-                effects.materialsFoundPercent += percent
+            case let .reward(modifier):
+                effects.rewardModifier = modifier
+                effects.goldFoundPercent += modifier.goldBonusPercent
+                effects.experienceEarnedPercent += modifier.experienceBonusPercent
+                effects.materialsFoundPercent += modifier.materialsBonusPercent
             case let .shopDiscountPercent(percent):
                 effects.shopDiscountPercent += percent
             case .astralShopOffers:

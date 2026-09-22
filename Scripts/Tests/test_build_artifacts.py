@@ -3,6 +3,7 @@
 SCRIPT_INPUTS = (
     'Scripts/build-for-testing.sh',
     'Scripts/build-freshness.sh',
+    'Scripts/build-metadata.py',
     'Scripts/build.sh',
     'Scripts/check-build-cache-paths.sh',
     'Scripts/format.sh',
@@ -28,6 +29,8 @@ import subprocess
 import tempfile
 import unittest
 
+from test_build_metadata import fake_toolchain
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -42,7 +45,7 @@ class BuildArtifactTests(unittest.TestCase):
             executable.chmod(0o755)
             (products / "current-app").symlink_to("Debug-iphonesimulator/Trinket.app")
             (products / "Trinket.xctestrun").write_text("test configuration")
-            for path in ("TestResults/.last-build-test.stamp", "TestResults/.last-build-test.stamp.gitstatus",
+            for path in ("TestResults/.last-build-test.stamp", "TestResults/.last-build-test.stamp.gitstatus", "TestResults/.last-build-test.stamp.json",
                          "TestResults/raw/build.log", "ModuleCache.noindex/cache", "SourcePackages/cache",
                          "Build/Intermediates.noindex/build.db"):
                 target = root / path
@@ -62,6 +65,7 @@ class BuildArtifactTests(unittest.TestCase):
             self.assertTrue((restored / "Build/Products/current-app").is_symlink())
             self.assertTrue((restored / "Build/Products/Trinket.xctestrun").is_file())
             self.assertTrue((restored / "TestResults/.last-build-test.stamp").is_file())
+            self.assertTrue((restored / "TestResults/.last-build-test.stamp.json").is_file())
             self.assertTrue((restored / "TestResults/.last-build-test.stamp.gitstatus").is_file())
             for path in ("TestResults/raw", "ModuleCache.noindex", "SourcePackages", "Build/Intermediates.noindex",
                          "Build/Products/removed", "ci-test-artifact.tar"):
@@ -103,14 +107,14 @@ class BuildArtifactTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "Scripts").mkdir()
-            for name in ("build-freshness.sh", "build-inputs.env"):
+            for name in ("build-freshness.sh", "build-inputs.env", "build-metadata.py"):
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             (root / "StoreKit").mkdir()
             source = root / "StoreKit/Trinket.storekit"
             source.write_text("before")
-            environment = {k: v for k, v in os.environ.items() if k not in ("CI", "GITHUB_ACTIONS")}
+            environment = fake_toolchain(root)
             prefix = 'source Scripts/build-freshness.sh; '
-            subprocess.run(["bash", "-ec", prefix + 'touch_build_stamp results smoke'], cwd=root, env=environment, check=True)
+            subprocess.run(["bash", "-ec", prefix + 'begin_build_stamps results smoke; touch_build_stamp results smoke'], cwd=root, env=environment, check=True)
             source.write_text("after")
             stamp = next((root / "results").glob("*.stamp"))
             os.utime(source, (stamp.stat().st_mtime + 2, stamp.stat().st_mtime + 2))

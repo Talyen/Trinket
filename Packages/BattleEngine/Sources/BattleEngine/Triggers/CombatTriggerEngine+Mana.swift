@@ -152,7 +152,7 @@ package extension CombatTriggerEngine {
             potency: 1,
             to: context.roster.enemy.combatant,
             sourceActorID: actor.id,
-            application: .attached,
+            application: .reaction,
             in: &context,
         )
     }

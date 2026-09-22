@@ -65,7 +65,9 @@ struct ContractBoardTests {
         var expected = before
         VictoryRewardApplier.grantVictoryRewards(
             hero: hero, companion: companion, encounterLevel: level, stageGold: loot.gold,
-            battleGold: .init(gained: 5), materialRewards: loot.materials, item: loot.item, save: &expected,
+            battleGold: .init(gained: 5),
+            experienceEarnedPercent: ContractsCompletion.effectiveModifier(for: offer, inventory: before.inventory).experienceBonusPercent,
+            materialRewards: loot.materials, item: loot.item, save: &expected,
         )
 
         #expect(ContractsCompletion.complete(
@@ -123,7 +125,7 @@ struct ContractsPersistenceTests {
         #expect(store.contracts == .freshStart)
         #expect(store.roster == saved.roster)
         #expect(store.inventory == saved.inventory)
-        #expect(store.persistBatch(logging: "Contracts test") { $0.contracts.ensureBoard() })
+        #expect(store.persistBatch(logging: "Contracts test") { $0.contracts.ensureBoard(eligibleModifiers: [.keyword(.deathsDoor)]) })
         let first = store.contracts
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.contracts == first)
@@ -131,6 +133,26 @@ struct ContractsPersistenceTests {
         #expect(reloaded.contracts != first)
         let refreshed = try context.makeReloadedStore()
         #expect(refreshed.contracts == reloaded.contracts)
+    }
+
+    @Test @MainActor func `legacy contract payload survives reload without replacing offers`() throws {
+        let context = try PersistenceTestContext()
+        var saved = PlayerSave.testSeed
+        saved.contracts.ensureBoard()
+        let legacyOffers = saved.contracts.offers.map { offer in
+            ["id": offer.id, "difficulty": offer.difficulty.rawValue, "enemyID": offer.enemyID]
+        }
+        let payload = try JSONSerialization.data(withJSONObject: ["offers": legacyOffers])
+        try SaveTestSupport.writeRoot(saved, to: context.storeURL()) { modelContext in
+            let root = try #require(modelContext.fetch(FetchDescriptor<PlayerSaveRoot>()).first)
+            root.contractsPayload = payload
+        }
+        let store = try context.makeSaveStore()
+        #expect(store.contracts.offers.map(\.id) == saved.contracts.offers.map(\.id))
+        #expect(store.contracts.offers.allSatisfy { $0.rewardModifier == .gold })
+        #expect(store.persistBatch(logging: "Legacy contracts") { $0.contracts.ensureBoard() })
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.contracts == store.contracts)
     }
 
     #if DEBUG

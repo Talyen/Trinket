@@ -47,8 +47,6 @@ struct CollectionCombatantGridView: View {
                 )
             }
             .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
-        } emptyView: {
-            EmptyView()
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)

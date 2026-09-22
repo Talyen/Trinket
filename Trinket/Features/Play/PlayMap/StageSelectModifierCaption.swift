@@ -4,7 +4,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct StageSelectModifierCaption: View {
-    let modifiers: [LabyrinthModifierDefinition]
+    let modifiers: [ModifierCaptionPresentation]
 
     var body: some View {
         if !modifiers.isEmpty {
@@ -12,17 +12,17 @@ struct StageSelectModifierCaption: View {
                 ForEach(modifiers) { modifier in
                     VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                         HStack(spacing: TrinketDesign.Spacing.small) {
-                            GameIconImage(LabyrinthModifierPresentation.style(for: modifier).icon)
+                            GameIconImage(modifier.style.icon)
                                 .symbolRenderingMode(.hierarchical)
                                 .accessibilityHidden(true)
                             Text(balanced: modifier.title.uppercased()).trinketFittedText()
                         }
-                        .trinketTypography(.secondaryBody)
+                        .trinketTypography(.body)
                         .bold()
-                        .foregroundStyle(LabyrinthModifierPresentation.style(for: modifier).color)
+                        .foregroundStyle(modifier.style.color)
                         .trinketOnArtText(.title)
-                        KeywordDescriptionText(text: modifier.effect.description)
-                            .trinketTypography(.secondaryBody)
+                        KeywordDescriptionText(text: modifier.description)
+                            .trinketTypography(.body)
                             .trinketOnArtText(.eyebrow)
                             .fixedSize(horizontal: false, vertical: true)
                     }

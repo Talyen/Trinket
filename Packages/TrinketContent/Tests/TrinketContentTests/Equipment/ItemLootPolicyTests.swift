@@ -75,6 +75,30 @@ struct ItemLootPolicyTests {
         #expect(ItemLootPolicy.roll(probabilities: [0, 0, 0, 1], using: &rng) == .unique)
     }
 
+    @Test(arguments: [ItemDropTier.astral, .trinket, .unique], [false, true])
+    func `favored tier multiplies existing weights and preserves eligibility`(tier: ItemDropTier, boss: Bool) throws {
+        let base = probabilities(level: 20, boss: boss, bonus: 20)
+        let boosted = ItemLootPolicy.probabilities(
+            level: 20, bossContent: boss, astralChanceBonusPercent: 20,
+            availableTiers: Set(ItemDropTier.allCases), favoredTier: tier, tierWeightBonusPercent: 25,
+        )
+        let index = try #require(ItemDropTier.allCases.firstIndex(of: tier))
+        for other in 1 ... 3 {
+            let multiplier = other == index ? 1.25 : 1
+            #expect(abs(boosted[other] / boosted[0] - base[other] / base[0] * multiplier) < 1e-12)
+        }
+        #expect(abs(boosted.reduce(0, +) - 1) < 1e-12)
+        let available = Set(ItemDropTier.allCases).subtracting([tier])
+        let exhausted = ItemLootPolicy.probabilities(
+            level: 20, bossContent: boss, astralChanceBonusPercent: 20,
+            availableTiers: available, favoredTier: tier, tierWeightBonusPercent: 25,
+        )
+        #expect(exhausted == ItemLootPolicy.probabilities(
+            level: 20, bossContent: boss, astralChanceBonusPercent: 20, availableTiers: available,
+        ))
+        #expect(exhausted[index] == 0)
+    }
+
     private func probabilities(level: Int, boss: Bool = false, bonus: Int = 0) -> [Double] {
         ItemLootPolicy.probabilities(
             level: level, bossContent: boss, astralChanceBonusPercent: bonus,

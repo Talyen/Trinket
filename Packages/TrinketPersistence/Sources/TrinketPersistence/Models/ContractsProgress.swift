@@ -15,12 +15,13 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     }
 
     public mutating func ensureBoard(
-        makeOffer: (ContractDifficulty, Set<String>) -> ContractOffer = ContractGenerator.randomOffer,
+        eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
+        makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) {
         self = sanitized()
         var excludedEnemyIDs = Set(offers.map(\.enemyID))
         for difficulty in ContractDifficulty.allCases where offer(for: difficulty) == nil {
-            let newOffer = makeOffer(difficulty, excludedEnemyIDs)
+            let newOffer = makeOffer(difficulty, excludedEnemyIDs, eligibleModifiers)
             excludedEnemyIDs.insert(newOffer.enemyID)
             offers.append(newOffer)
         }
@@ -28,7 +29,8 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     }
 
     public mutating func refresh(
-        makeOffer: (ContractDifficulty, Set<String>) -> ContractOffer = ContractGenerator.randomOffer,
+        eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
+        makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) {
         let previous = offers
         offers = []
@@ -38,7 +40,7 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
             if let prior = previous.first(where: { $0.difficulty == difficulty }) {
                 excluded.insert(prior.enemyID)
             }
-            let newOffer = makeOffer(difficulty, excluded)
+            let newOffer = makeOffer(difficulty, excluded, eligibleModifiers)
             excludedEnemyIDs.insert(newOffer.enemyID)
             offers.append(newOffer)
         }
@@ -47,10 +49,11 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     @discardableResult
     public mutating func replace(
         offerID: String,
-        makeOffer: (ContractDifficulty, Set<String>) -> ContractOffer = ContractGenerator.randomOffer,
+        eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
+        makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> Bool {
         guard let index = offers.firstIndex(where: { $0.id == offerID }) else { return false }
-        let replacement = makeOffer(offers[index].difficulty, Set(offers.map(\.enemyID)))
+        let replacement = makeOffer(offers[index].difficulty, Set(offers.map(\.enemyID)), eligibleModifiers)
         offers[index] = replacement
         return true
     }

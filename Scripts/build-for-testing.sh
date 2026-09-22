@@ -58,6 +58,7 @@ else
 fi
 # Build-only invocations do not write a result bundle; logs + manifests carry
 # the outcome and test runs produce their own xcresults.
+begin_build_stamps "$RESULTS_DIR" smoke
 xcode_runner_run "${app_runner_args[@]}" -- xcodebuild build-for-testing \
   "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
 

@@ -58,7 +58,9 @@ enum SpireCatalog {
     }
 
     static func floor(spireID: SpireID, floor: Int) -> SpireFloor? {
-        floors(for: spireID).first { $0.floor == floor }
+        let allFloors = floors(for: spireID)
+        guard floor >= 1, floor <= allFloors.count else { return nil }
+        return allFloors[floor - 1]
     }
 
     private static let enemyPools: [Keyword: [String]] = [

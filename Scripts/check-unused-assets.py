@@ -31,18 +31,21 @@ MUSIC_DIR = MEDIA_DIR / "Music"
 SFX_DIR = MEDIA_DIR / "SFX"
 CINEMATICS_DIR = MEDIA_DIR / "Cinematics"
 
-KINDS_REQUIRING_THUMB = {
-    # Must match trinket_asset_needs_thumb in Scripts/lib/media-assets.sh:
-    # resource / slot_background ship full-only, every other art kind ships
-    # full + thumb. Edit both places together.
-    "combatant",
-    "ability",
-    "item",
-    "talent",
-    "encounter",
-    "background",
-    "portrait_background",
-}
+FULL_ONLY_ART_KINDS_FILE = ROOT / "Scripts/config/full-only-art-kinds.txt"
+
+
+def full_only_art_kinds() -> set[str]:
+    if not FULL_ONLY_ART_KINDS_FILE.is_file():
+        return {"resource", "slot_background"}
+    return {
+        line.strip()
+        for line in FULL_ONLY_ART_KINDS_FILE.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    }
+
+
+def asset_needs_thumb(kind: str) -> bool:
+    return bool(kind and kind not in full_only_art_kinds())
 
 
 def read_tsv_rows(path: Path) -> list[dict[str, str]]:
@@ -74,7 +77,7 @@ def check_assets(verbose: bool = False) -> tuple[list[str], list[str]]:
             missing.append(f"ArtManifest: missing full image file for '{asset_name}' ({full_path.relative_to(ROOT)})")
 
         # Thumb variant if applicable
-        if kind in KINDS_REQUIRING_THUMB:
+        if asset_needs_thumb(kind):
             thumb_set = f"{asset_name}_thumb.imageset"
             registered_imagesets.add(thumb_set)
             thumb_path = ASSETS_XCASSETS / thumb_set / f"{asset_name}_thumb.heic"

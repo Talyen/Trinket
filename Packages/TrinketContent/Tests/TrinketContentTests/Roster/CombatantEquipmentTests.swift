@@ -257,4 +257,14 @@ struct CombatantEquipmentTests {
         try #expect(loadout.itemIDs(inFamilyOf: .trinket) == ["charm-a", "charm-b"])
         try #expect(loadout.itemIDs(inFamilyOf: .secondaryTrinket) == ["charm-a", "charm-b"])
     }
+
+    @Test func `sanitized handles duplicate inventory item IDs without trapping`() throws {
+        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
+        let ring = try ItemFixtures.makeBareItem("ruby_ring", id: "ring-a")
+        let duplicateRing = try ItemFixtures.makeBareItem("ruby_ring", id: "ring-a")
+        let loadout = EquipmentLoadout(itemIDsBySlot: [.accessory: ring.id])
+
+        let sanitized = loadout.sanitized(for: bear, inventory: [ring, duplicateRing])
+        try #expect(sanitized.itemID(for: .accessory) == ring.id)
+    }
 }

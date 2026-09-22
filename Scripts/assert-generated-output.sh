@@ -210,7 +210,7 @@ if [[ "$MODE" == "idempotent" ]]; then
   if [[ "$before" == "$after" ]]; then
     echo "Generated output is stable under regenerate (matches manifests)."
     # Align with verify/ci-gate so later wrappers skip generate.
-    touch_generate_stamp "$RESULTS_DIR" "$INCLUDE_ASSETS"
+    touch_generate_stamp "$RESULTS_DIR"
     exit 0
   fi
   echo "ERROR: Regenerating still changed tracked generated output." >&2

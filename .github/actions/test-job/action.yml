@@ -56,19 +56,16 @@ runs:
         name: ${{ inputs.build-artifact }}
         path: .DerivedData
 
-    - name: Extract test products
-      if: inputs.build-artifact != '' && steps.download-build.outcome == 'success'
-      shell: bash
-      run: tar -xf .DerivedData/ci-test-artifact.tar -C .DerivedData
-
-    - name: Rebuild when artifact miss
-      if: inputs.build-artifact != '' && steps.download-build.outcome != 'success'
+    - name: Validate transferred test products or rebuild
+      if: inputs.build-artifact != ''
       shell: bash
       env:
-        SKIP_GENERATE: 1
+        CI: true
+        DOWNLOAD_OUTCOME: ${{ steps.download-build.outcome }}
       run: |
-        echo "Build artifact miss for ${{ inputs.build-artifact }}; rebuilding with: ${{ inputs.rebuild-command }}"
-        ${{ inputs.rebuild-command }}
+        restore_args=()
+        if [[ "$DOWNLOAD_OUTCOME" == success ]]; then restore_args+=(--downloaded); fi
+        ./Scripts/restore-ci-test-products.sh "${restore_args[@]}" -- ${{ inputs.rebuild-command }}
 
     - name: Wait for simulator preboot
       if: inputs.preboot-simulator == 'true'

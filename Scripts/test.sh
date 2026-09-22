@@ -242,17 +242,19 @@ if [[ ${#TARGETS[@]} -gt 0 ]]; then
   done
 fi
 BUILD_STAMP="$(build_stamp_path "$RESULTS_DIR" "$RUN_FINGERPRINT")"
+BUILD_FINGERPRINT="$RUN_FINGERPRINT"
 if [[ ! -f "$BUILD_STAMP" && "$RUN_FINGERPRINT" != "$MODE" ]]; then
   # A targeted run reuses the prior mode-level build when its exact fingerprint
   # was not stamped (e.g. adding a new smoke/UI class must not break --no-build).
   BUILD_STAMP="$(build_stamp_path "$RESULTS_DIR" "$MODE")"
+  BUILD_FINGERPRINT="$MODE"
 fi
 # Automatic build reuse for agents: if inputs are unchanged since the last
 # matching build, run without rebuilding even without an explicit --no-build.
 # This makes the fast path the default; dirty inputs still trigger a rebuild.
 if [[ "$NO_BUILD" == "false" ]]; then
   if [[ -f "$BUILD_STAMP" ]]; then
-    if assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$RUN_FINGERPRINT" >/dev/null 2>&1; then
+    if assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$BUILD_FINGERPRINT" >/dev/null 2>&1; then
       built_app="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
       if [[ -d "$built_app" ]]; then
         echo "Build reuse: inputs unchanged since last '$RUN_FINGERPRINT' — running tests without rebuilding."
@@ -317,6 +319,9 @@ if [[ "$QUIET" == "true" ]]; then
   runner_args+=(--quiet)
 else
   runner_args+=(--verbose)
+fi
+if [[ "$NO_BUILD" == "false" ]]; then
+  begin_build_stamps "$RESULTS_DIR" "$RUN_FINGERPRINT"
 fi
 xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
 

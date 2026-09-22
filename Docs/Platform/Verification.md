@@ -46,8 +46,11 @@ runner. Registered leaf families run their owning and consumer regressions;
 documentation checks and their direct integration tests share a focused suite;
 shared infrastructure, unknown scripts and unscoped CI run the full suite. Syntax,
 build-input alignment and the handoff's cheap slices remain full-tree. Family
-membership lives in `Scripts/script_test_selection.py`; update it when a leaf
-gains a consumer. Do not narrow shared helpers from filename similarity alone.
+ownership follows [script regression ownership](../../Scripts/README.md#script-regression-ownership):
+Python modules declare `SCRIPT_INPUTS` beside their tests; the selector retains
+shell mappings and full-suite exceptions. Update the consuming module's metadata
+when a Python-tested leaf gains a consumer. Do not narrow shared helpers from
+filename similarity alone.
 
 ## New iOS release readiness
 
@@ -159,6 +162,7 @@ is appropriate for mid-task smoke reruns in the same slot. Routine handoff is he
 | `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then additional UI journeys (FullUI), or the optional smoke canary; `testflight.sh` requires the full mode with simulator isolation before signing/upload |
 | Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style, app build, package unit, and smoke for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |
+| Device Release compilation | Nightly and manual CI run unsigned device Release compilation; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
 | Nightly exhaustive | Scheduled or manually dispatched exhaustive UI; advisory, never blocks `CI OK` |
 
 `Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Default deploy verification
@@ -180,7 +184,13 @@ changes.
 
 Ordinary `build.sh` compiles only the app; it does not produce reusable test
 bundles. CI keeps incremental build state in its warm cache and transfers only
-products and build stamps in a tar archive to preserve executable permissions.
+products, build stamps, and versioned environment metadata in a tar archive to preserve executable permissions.
+Local reuse requires matching Xcode, SDK, architecture policy, configuration, and
+test fingerprint as well as unchanged sources. Missing or legacy metadata requires
+a rebuild. CI additionally requires the same commit; incompatible or missing
+transfers are discarded and rebuilt on the receiving runner, then validated again.
+Builds invalidate prior stamps for their product family before compilation so a
+failed build cannot leave partially updated products marked reusable.
 The cache uses a new version prefix when its layout changes. Compare the hosted
 restore, build, and save step durations together when assessing cache value;
 a cache hit alone is not evidence of a faster run.

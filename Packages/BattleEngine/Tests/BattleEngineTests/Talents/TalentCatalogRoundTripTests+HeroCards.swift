@@ -363,4 +363,12 @@ extension TalentCatalogRoundTripTests {
         #expect(!battle.roster.hero.isAlive)
         #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
     }
+
+    @Test func `inferno barrage deals burn damage on ultimate play`() throws {
+        var battle = heroTalentBattle("ranger_burn_t3_2")
+        let startingHealth = battle.roster.enemy.currentHealth
+        try playHeroTalentCard(.bloodthorn, in: &battle)
+        #expect(talentPoints(.burn, on: .enemy, in: battle) == 8)
+        #expect(battle.roster.enemy.currentHealth < startingHealth)
+    }
 }

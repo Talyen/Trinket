@@ -159,10 +159,10 @@ final class PlaythroughCareer {
         var offerRandom = SeededRandomNumberGenerator(seed: scenario.worldSeed ^ UInt64(sequence) ^ 0x434F_4E54)
         var offerIndex = 0
         let prefix = "playthrough-\(scenario.worldSeed)-\(sequence)"
-        play.contracts.makeOffer = { difficulty, excluded in
+        play.contracts.makeOffer = { difficulty, excluded, eligibleModifiers in
             offerIndex += 1
             return ContractGenerator.makeOffer(
-                difficulty: difficulty, excludingEnemyIDs: excluded, using: &offerRandom,
+                difficulty: difficulty, excludingEnemyIDs: excluded, eligibleModifiers: eligibleModifiers, using: &offerRandom,
                 id: "\(prefix)-\(offerIndex)",
             )
         }

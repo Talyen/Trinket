@@ -7,6 +7,7 @@ SCRIPT_INPUTS = (
     'Scripts/assert-generated-output.sh',
     'Scripts/build-for-testing.sh',
     'Scripts/build-freshness.sh',
+    'Scripts/build-metadata.py',
     'Scripts/build-inputs.env',
     'Scripts/build.sh',
     'Scripts/change-budget.sh',
@@ -56,6 +57,8 @@ import subprocess
 import tempfile
 import unittest
 
+from test_build_metadata import fake_toolchain
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -96,7 +99,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             scripts = self.fixture(root)
             (scripts / "build-freshness.sh").write_text(
                 (ROOT / "Scripts/build-freshness.sh").read_text()
-                + '\nprepare_generated_inputs() { :; }\ntouch_build_stamp() { :; }\n'
+                + '\nprepare_generated_inputs() { :; }\nbegin_build_stamps() { :; }\ntouch_build_stamp() { :; }\n'
             )
             (scripts / "ensure-simulator.sh").write_text('trinket_sim_slot_ensure() { :; }\n')
             for entrypoint, flags in (
@@ -125,7 +128,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             'trinket_run_env_print() { :; }\n'
         )
         (scripts / "build-freshness.sh").write_text(
-            'prepare_generated_inputs() { :; }\n'
+            'prepare_generated_inputs() { :; }\nbegin_build_stamps() { :; }\n'
             'touch_build_stamp() { echo unexpected-stamp; exit 91; }\n'
         )
         (scripts / "xcode-runner.sh").write_text(
@@ -160,6 +163,24 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                         self.assertIn("CODE_SIGNING_ALLOWED=NO", args)
             result = subprocess.run([str(scripts / "build.sh")], env={**os.environ, "BUILD_STATUS": "65"}, capture_output=True)
             self.assertEqual(result.returncode, 65)
+
+    def test_failed_app_test_rebuild_invalidates_previous_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = self.fixture(root)
+            (scripts / "build-freshness.sh").write_text(
+                (ROOT / "Scripts/build-freshness.sh").read_text()
+                + '\nprepare_generated_inputs() { :; }\n'
+            )
+            env = fake_toolchain(root)
+            command = [str(scripts / "build-for-testing.sh"), "--app-only"]
+            result = subprocess.run(command, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(len(list((root / "results").glob("*.stamp"))), 2)
+            result = subprocess.run(command, env={**env, "BUILD_STATUS": "65"}, capture_output=True)
+            self.assertEqual(result.returncode, 65)
+            self.assertFalse(list((root / "results").glob("*.stamp")))
+            self.assertFalse(list((root / "results").glob("*.stamp.json")))
 
     def test_ui_reuse_and_device_install_share_the_build_product_roots(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -15,19 +15,19 @@ maul	Maul	weapon	two_handed	physical,stun,block
 recurve_bow	Recurve Bow	weapon	two_handed	physical,bleed,poison
 shortbow	Shortbow	weapon	two_handed	physical,bleed,poison
 shortsword	Shortsword	weapon	one_handed	physical,bleed,poison,gold
-spellbook	Spellbook	weapon	off_hand	burn,freeze,holy,gold,mana
+spellbook	Spellbook	weapon	off_hand	burn,freeze,holy,gold,mana,purge
 staff	Staff	weapon	two_handed	burn,freeze,mana
-wand	Wand	weapon	one_handed	burn,freeze,holy,poison,mana
-leather_armor	Leather Armor	armor		physical,dodge,block,health,poison,leech,bleed,gold
+wand	Wand	weapon	one_handed	burn,freeze,holy,poison,mana,purge
+leather_armor	Leather Armor	armor		physical,dodge,block,health,poison,leech,bleed,gold,thorns
 plate_armor	Plate Armor	armor		block,health,holy,stun
 emerald_amulet	Emerald Amulet	accessory		poison,health
 emerald_ring	Emerald Ring	accessory		poison,health
-ruby_amulet	Ruby Amulet	accessory		burn,health,leech,bleed
-ruby_ring	Ruby Ring	accessory		burn,health,leech,bleed
+ruby_amulet	Ruby Amulet	accessory		burn,health,leech,bleed,deathsDoor
+ruby_ring	Ruby Ring	accessory		burn,health,leech,bleed,deathsDoor
 sapphire_amulet	Sapphire Amulet	accessory		freeze,block,mana
 sapphire_ring	Sapphire Ring	accessory		freeze,block,mana
-topaz_amulet	Topaz Amulet	accessory		holy,gold,stun,block
-topaz_ring	Topaz Ring	accessory		holy,gold,stun,block
+topaz_amulet	Topaz Amulet	accessory		holy,gold,stun,block,cleanse
+topaz_ring	Topaz Ring	accessory		holy,gold,stun,block,cleanse
 bone_charm	Bone Charm	trinket		health
 brass_censer	Brass Censer	trinket		holy,poison
 companions_collar	Companion's Collar	trinket		health,physical

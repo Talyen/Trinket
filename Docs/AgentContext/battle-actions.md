@@ -105,8 +105,9 @@ action frame. Do not toggle a separate automatic-play flag.
   not random. Stab guarantees a Critical Hit against full Health at preparation
   and otherwise uses ordinary critical chance, without its former +25% bonus.
 - Sunder halves Block before its 4 Physical hit, using existing halving rounding.
-- Sniff Out prepares +1 generic damage for the living partner, falling back to the
-  caster if the partner is defeated. Reapplication refreshes rather than stacks;
+- Sniff Out deals 1 Bleed damage, then prepares +1 generic damage for the living
+  partner, falling back to the caster if the partner is defeated. Reapplication
+  refreshes rather than stacks;
   preparation survives turn changes. Only the recipient's next damaging card
   reserves it, including automatically played cards. The first damaging hit
   consumes the reservation once; support cards, the other partner's attacks,

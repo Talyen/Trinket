@@ -96,9 +96,8 @@ enum MysteryEventPool {
             using: &randomNumberGenerator,
         )
         if canOfferAltar,
-           altarRoll <= MysteryEventPickContext.corruptionAltarReadyChancePercent,
-           let altar = event(matching: corruptionAltarID) {
-            return altar
+           altarRoll <= MysteryEventPickContext.corruptionAltarReadyChancePercent {
+            return corruptionAltar
         }
         guard let event = nonAltarEvents.randomElement(using: &randomNumberGenerator) else {
             preconditionFailure("MysteryEventPool must contain non-altar events")

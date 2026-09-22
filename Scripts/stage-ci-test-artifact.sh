@@ -15,7 +15,7 @@ fi
 (
   cd "$DERIVED_DATA_PATH"
   shopt -s nullglob
-  inputs=(Build/Products TestResults/.last-build-*.stamp TestResults/.last-build-*.stamp.gitstatus)
+  inputs=(Build/Products TestResults/.last-build-*.stamp TestResults/.last-build-*.stamp.gitstatus TestResults/.last-build-*.stamp.json)
   COPYFILE_DISABLE=1 tar -cf "$ARCHIVE" "${inputs[@]}"
 )
 echo "=== Archived test products: $ARCHIVE ==="

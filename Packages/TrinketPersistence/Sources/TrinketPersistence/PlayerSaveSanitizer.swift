@@ -71,6 +71,7 @@ enum PlayerSaveSanitizer {
             sanitized.labyrinth = sanitizeLabyrinth(
                 sanitized.labyrinth,
                 eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs,
+                eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
             )
         }
         return sanitized
@@ -345,8 +346,9 @@ enum PlayerSaveSanitizer {
     static func sanitizeLabyrinth(
         _ labyrinth: PlayerLabyrinthState,
         eligibleRecruitEventIDs: [String] = [],
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> PlayerLabyrinthState {
-        LabyrinthSanitizer.sanitize(labyrinth, eligibleRecruitEventIDs: eligibleRecruitEventIDs)
+        LabyrinthSanitizer.sanitize(labyrinth, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards)
     }
 }
 
@@ -354,14 +356,16 @@ enum LabyrinthSanitizer {
     static func sanitize(
         _ labyrinth: PlayerLabyrinthState,
         eligibleRecruitEventIDs: [String] = [],
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> PlayerLabyrinthState {
         if labyrinth.isMapPayloadUnreadable {
             var healed = labyrinth
             healed.ensureMap(
                 seed: labyrinth.worldSeed == 0 ? nil : labyrinth.worldSeed,
                 eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+                eligibleRewards: eligibleRewards,
             )
-            return sanitize(healed, eligibleRecruitEventIDs: eligibleRecruitEventIDs)
+            return sanitize(healed, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards)
         }
 
         var sanitized = labyrinth
@@ -387,6 +391,7 @@ enum LabyrinthSanitizer {
                 validNodeIDs: validNodeIDs,
                 cluster: sanitized.cluster(id: node.clusterID),
                 worldSeed: sanitized.worldSeed,
+                eligibleRewards: eligibleRewards,
             )
         }
 
@@ -394,6 +399,7 @@ enum LabyrinthSanitizer {
             sanitized.ensureMap(
                 seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed,
                 eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+                eligibleRewards: eligibleRewards,
             )
         }
         return sanitized
@@ -404,6 +410,7 @@ enum LabyrinthSanitizer {
         validNodeIDs: Set<String>,
         cluster: LabyrinthCluster?,
         worldSeed: UInt64,
+        eligibleRewards: [RewardModifier],
     ) -> LabyrinthNode {
         let depth = max(0, node.depth)
         let type: LabyrinthNodeType = if node.type == .entrance, depth > 0 {
@@ -429,6 +436,7 @@ enum LabyrinthSanitizer {
                 existingModifierIDs: node.modifierIDs,
                 worldSeed: worldSeed,
                 nodeID: node.id,
+                eligibleRewards: eligibleRewards,
             ),
             recruitEventID: node.recruitEventID,
             mysteryEventID: node.mysteryEventID,

@@ -74,4 +74,17 @@ struct SpireCatalogTests {
             try #expect(ready, "\(spire.title) needs at least one ready Hero+Companion pair")
         }
     }
+
+    @Test func `spire floor lookup returns indexed floor and handles out of bounds`() throws {
+        for spire in GameContent.spires {
+            for floorIndex in 1 ... spire.floorCount {
+                let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: floorIndex))
+                #expect(floor.floor == floorIndex)
+                #expect(floor.spireID == spire.id)
+            }
+            #expect(GameContent.spireFloor(spireID: spire.id, floor: 0) == nil)
+            #expect(GameContent.spireFloor(spireID: spire.id, floor: spire.floorCount + 1) == nil)
+            #expect(GameContent.spireFloor(spireID: spire.id, floor: -1) == nil)
+        }
+    }
 }

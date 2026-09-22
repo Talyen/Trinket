@@ -179,9 +179,9 @@ trinket_classify_package_swift_path() {
       fi
       ;;
     TrinketFeatureSupport)
-      if [[ "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift \
-         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift \
-         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift ]]; then
+      if [[ "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Accessibility/AccessibilityID.swift \
+         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift \
+         || "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtwork.swift ]]; then
         TRINKET_NEEDS_SMOKE=true
         trinket_add_smoke_target_for_path "$path"
       fi
@@ -298,7 +298,7 @@ trinket_add_smoke_target_for_path() {
     Trinket/Features/Collection/*|Trinket/Features/Homestead/*|Trinket/Features/Options/*|TrinketUITests/Collection/*|TrinketUITests/Support/*)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       ;;
-    Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift)
+    Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Accessibility/AccessibilityID.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtwork.swift)
       trinket_add_smoke_target "$TRINKET_SMOKE_CLASS_SHELL"
       ;;
     Trinket/Features/Play/Shop/*)
@@ -366,7 +366,7 @@ trinket_path_is_visual_ui() {
     Packages/TrinketFeatureSupport/Sources/*/Shared/Cards/*|Packages/TrinketFeatureSupport/Sources/*/Shared/Detail/*|\
     Packages/TrinketFeatureSupport/Sources/*/Shared/Forms/*|\
     Packages/TrinketFeatureSupport/Sources/*/Shared/Encounters/*|Packages/TrinketFeatureSupport/Sources/*/Shared/Rewards/*|\
-    Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork*.swift)
+    Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/*)
       return 0
       ;;
     *) return 1 ;;
@@ -436,7 +436,7 @@ trinket_add_battle_subcard_for_path() {
     Packages/TrinketAppState/*)
       case "$1" in
         */Audio/*) ;;
-        *Battle*|*/Encounter*|*/Play/*|*/State/AppState.swift|*/State/PlaySession.swift)
+        *Battle*|*/Encounter*|*/Play/*|*/App/AppState.swift)
           trinket_add_runtime_contracts_for_path "$1"
           ;;
       esac

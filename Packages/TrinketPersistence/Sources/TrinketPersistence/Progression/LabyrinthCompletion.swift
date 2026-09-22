@@ -7,6 +7,7 @@ public enum LabyrinthCompletion {
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
             eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs(access: access),
+            eligibleRewards: RewardOwnership(save).eligibleModifiers,
         )
     }
 
@@ -66,6 +67,7 @@ public enum LabyrinthCompletion {
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+            eligibleRewards: RewardOwnership(save).eligibleModifiers,
         )
         guard let node = save.labyrinth.node(id: nodeID) else { return .unavailable }
         guard !node.isCleared else { return .alreadyCompleted }
@@ -120,6 +122,7 @@ public enum LabyrinthCompletion {
         save.labyrinth.markCleared(
             nodeID: nodeID,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+            eligibleRewards: RewardOwnership(save).eligibleModifiers,
         )
         return .completed
     }

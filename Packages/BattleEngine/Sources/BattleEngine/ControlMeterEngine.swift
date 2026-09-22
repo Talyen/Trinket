@@ -249,7 +249,7 @@ package enum ControlMeterEngine {
                 potency: context.modifiers(for: sourceActorID).triggers.onStunEnemyApplyBurn,
                 to: combatant,
                 sourceActorID: sourceActorID,
-                application: .attached,
+                application: .reaction,
             ))
         }
         return events

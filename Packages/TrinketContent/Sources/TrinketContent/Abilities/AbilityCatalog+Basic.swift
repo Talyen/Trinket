@@ -101,7 +101,6 @@ public extension AbilityCatalog {
 
     static let shieldBash = Ability(
         id: "shield-bash", name: "Shield Bash", tier: .basic,
-        description: "Gain 1 Block\nDeal Stun damage equal to half your Block",
         operations: [
             .effect(TargetedEffect(.shield(.block, 1))),
             .damage(DamageComponent(
@@ -119,7 +118,6 @@ public extension AbilityCatalog {
 
     static let sniffOut = Ability(
         id: "sniff-out", name: "Sniff Out", tier: .basic,
-        description: "Deal 1 Bleed damage\nYour partner's next attack deals 1 additional damage",
         damageComponents: [DamageComponent(1, keyword: .bleed)],
         targetedEffects: [TargetedEffect(.partyDamageBonus(1))],
     )

@@ -24,19 +24,50 @@ with Campaign progress anchoring item quality. Use the active Campaign stage's
 authored encounter level, or the highest authored level after Campaign completion.
 Contract encounter level drives XP, Gold, and material quantities; leveling through
 Contracts alone does not advance item quality. Hard Contracts receive the shared
-boss loot weighting. Preserve catch-up XP, level-difference XP reductions, reward
-ownership, and applicable Homestead effects. There are no Contracts-specific stat
-or reward multipliers. Difficulty labels describe level and enemy category, not a
-guaranteed matchup outcome.
+boss loot weighting. Preserve catch-up XP, shared level-difference XP scaling, reward
+ownership, and applicable Homestead effects. Higher-level enemies award more XP
+under the shared curve; Hard has no additional difficulty-specific XP multiplier.
+Difficulty labels describe level and enemy category, not a guaranteed matchup outcome.
 
 Use the shared Stage screen, list, and active-card layout from Campaign and Spires.
 All three offers are available Stage cards, showing difficulty (Easy, Standard,
 Hard), enemy artwork/name, and Battle. Cards use the same 16-point gap as Game
 Mode cards; Campaign and Spires retain their compact stage spacing. Enemy artwork
-opens standard catalog enemy details without a party-scaled encounter preview.
+opens enemy details at the resolved encounter level.
 Each card has a Party control beside Battle that opens the existing party picker
-for the shared active Hero and Companion. Rewards appear after battle: no XP, item, currency, or reward-category
-previews are shown on the board. Reuse Explore art and existing enemy portraits.
+for the shared active Hero and Companion. Each offer overlays its reward modifier on the artwork using the shared
+Labyrinth/Voyage caption style: thematic heading, colored icon, and concise effect
+text without percentages. Exact payouts appear after battle. Reuse Explore art
+and existing enemy portraits.
+
+## Reward modifiers
+
+Contracts, Labyrinth combat nodes, and Voyage combat nodes share the
+[reward modifier catalog](../../Packages/TrinketContent/README.md#shared-reward-modifiers).
+Contracts choose uniformly among its eligible entries.
+
+Each offer saves one modifier regardless of difficulty. Gold, XP, and Materials bonuses increase their category by 25%.
+Wood, Stone, Iron, Food, Herbs, Hide, and Gems bonuses guarantee that resource in
+one of the two material slots and increase its quantity by 25%; the other slot
+remains random and distinct. Existing quantity rounding and reward caps apply.
+
+Astral, Trinket, and Unique bonuses multiply the selected eligible item-tier weight
+by 1.25 after Campaign progression, boss, and Homestead weighting, then normalize
+the probabilities. They do not add percentage points or extra items. Unowned-item
+eligibility remains authoritative: exhausted Trinket/Unique pools are excluded
+from generation, and an existing offer targeting an exhausted pool displays and
+applies Bonus Gold instead. The board and launch resolve the same effective bonus.
+
+Keyword modifiers display “Drops [Keyword] items” and guarantee one Basic or
+Astral item with both a matching base affinity and at least one matching affix.
+The guarantee uses a normal affix slot, carries no additional percentage bonus,
+and leaves Gold, XP, and materials unchanged. Basic/Astral relative tier weights
+retain progression, boss, and Homestead adjustments; collectible tiers are excluded.
+
+Legacy offers without a modifier retain their IDs and targets and gain Bonus Gold.
+Party changes and retries retain the saved modifier; refresh and victory replacement
+roll a new one. XP bonuses are baked into the launch reward plan, including the
+shared partial-defeat calculation. Item and material bonuses grant nothing on defeat.
 
 ## Lifecycle
 

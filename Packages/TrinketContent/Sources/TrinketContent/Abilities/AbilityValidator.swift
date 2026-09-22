@@ -14,15 +14,10 @@ enum AbilityValidator {
     static let descriptionOverrideIDs: Set<String> = [
         "astral-arrow",
         "bash",
-        "blessed-aegis",
-        "bounty-shot",
         "cinderbloom",
-        "cold-snap",
         "combustion",
-        "dark-pact",
         "earthquake",
         "fireball",
-        "glacial-ward",
         "golden-plate",
         "hemorrhage",
         "ice-shot",
@@ -38,16 +33,12 @@ enum AbilityValidator {
         "ray-of-frost",
         "serrated-edge",
         "shadowstep",
-        "shield-bash",
         "slash",
         "smite",
-        "sniff-out",
         "stab",
         "spiked-shield",
         "sunburst",
         "sunder",
-        "thorn-mail",
-        "tithe",
     ]
 
     static func validate(_ ability: Ability) -> [Issue] {
@@ -112,14 +103,13 @@ enum AbilityValidator {
 
     private static func validateDescription(for ability: Ability) -> [Issue] {
         let generated = AbilityDescriptionFormatter.format(ability)
-        if ability.descriptionOverride != nil {
+        if let override = ability.descriptionOverride {
             if !descriptionOverrideIDs.contains(ability.id) {
                 return [Issue(abilityID: ability.id, message: "unexpected description override; generated copy is '\(generated)'")]
             }
-            return []
-        }
-        if generated != ability.summary {
-            return [Issue(abilityID: ability.id, message: "summary '\(ability.summary)' does not match generated '\(generated)'")]
+            if override == generated {
+                return [Issue(abilityID: ability.id, message: "description override is redundant; matches generated copy exactly")]
+            }
         }
         return []
     }

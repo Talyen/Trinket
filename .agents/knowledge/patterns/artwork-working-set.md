@@ -6,8 +6,8 @@ preserve assets needed for an imminent screen; retained pins prevent deferred
 catalog warmup from evicting them before use.
 
 The relevant implementation is
-[PreparedArtworkCache.swift](../../../Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift)
-and [PreparedArtwork.swift](../../../Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift).
+[PreparedArtworkCache.swift](../../../Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift)
+and [PreparedArtwork.swift](../../../Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtwork.swift).
 When investigating memory, distinguish intentionally retained first-use artwork
 from assets whose owning lifecycle has ended.
 

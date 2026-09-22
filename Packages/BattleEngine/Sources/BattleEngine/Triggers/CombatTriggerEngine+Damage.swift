@@ -441,7 +441,7 @@ package extension CombatTriggerEngine {
             potency: companionTriggers.onHeroAttackPoisonedEnemyApplyPoison,
             to: target,
             sourceActorID: context.roster.companion.id,
-            application: .attached,
+            application: .reaction,
         )
     }
 }

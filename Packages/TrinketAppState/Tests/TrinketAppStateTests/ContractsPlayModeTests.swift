@@ -80,15 +80,26 @@ struct ContractsPlayModeTests {
         #expect(play.playerSave.contracts == board)
     }
 
-    @Test func `victory pays the shown rewards and returns to one replaced offer`() throws {
+    @Test(arguments: [RewardModifier.experience, .wood, .unique, .keyword(.bleed)])
+    func `victory pays the shown rewards and returns to one replaced offer`(modifier: RewardModifier) throws {
         let play = try context.makePlaySession()
         #expect(play.contracts.enter() == nil)
+        #expect(play.playerSave.persistBatch(logging: "Contract modifier fixture") { save in
+            save.contracts = PlayerContractsState(offers: save.contracts.offers.map {
+                ContractOffer(id: $0.id, difficulty: $0.difficulty, enemyID: $0.enemyID, rewardModifier: modifier)
+            })
+        })
         let board = play.playerSave.contracts
         let hard = try #require(board.offer(for: .hard))
         #expect(play.contracts.startBattle(offerID: hard.id) == nil)
         let configuration = try #require(play.battle.activeBattle)
         let presentation = try #require(play.battlePresentation(for: configuration.runKey))
+        #expect(presentation.experienceBonusPercent == modifier.experienceBonusPercent)
         let pendingItem = try #require(presentation.pendingRewardItem)
+        if let keyword = modifier.requiredKeyword {
+            #expect(pendingItem.baseType.keywordAffinities.contains(keyword))
+            #expect(pendingItem.affixes.contains { $0.keywords.contains(keyword) })
+        }
         let before = play.playerSave.currentSave
 
         #expect(play.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)

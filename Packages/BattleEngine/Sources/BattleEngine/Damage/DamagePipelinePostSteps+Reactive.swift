@@ -88,7 +88,7 @@ package extension DamagePipeline {
                 potency: defenderTriggers.onHitAttackerPoison,
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
-                application: .attached,
+                application: .reaction,
             ))
         }
         if defenderTriggers.onHitAttackerBleedPotency > 0, context.roster.health(for: attacker.combatant) > 0 {
@@ -245,7 +245,7 @@ package extension DamagePipeline {
         } else {
             .physical
         }
-        appendNestedDamage(
+        let healthLost = appendNestedDamage(
             amount: amount,
             keyword: keyword,
             abilityName: "Thorns",
@@ -256,7 +256,7 @@ package extension DamagePipeline {
         )
         if keyword == .poison {
             state.damageEvents.append(contentsOf: context.applyDecayingDoT(
-                keyword: .poison, potency: amount, to: attacker.combatant,
+                keyword: .poison, potency: healthLost, to: attacker.combatant,
                 sourceActorID: state.combatant.id, application: .attached,
             ))
         }

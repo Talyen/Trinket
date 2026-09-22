@@ -70,24 +70,6 @@ public enum LabyrinthCatalog {
             nodeTypes: [.battle, .boss],
         ),
         LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("bountyMark"),
-            title: "Bounty Mark",
-            effect: .goldFoundPercent(25),
-            nodeTypes: [.battle, .boss, .mystery],
-        ),
-        LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("scholarsToll"),
-            title: "Scholar's Toll",
-            effect: .experienceEarnedPercent(25),
-            nodeTypes: [.battle, .boss, .mystery],
-        ),
-        LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("scavengersLuck"),
-            title: "Scavenger's Luck",
-            effect: .materialsFoundPercent(25),
-            nodeTypes: [.battle, .boss, .mystery],
-        ),
-        LabyrinthModifierDefinition(
             id: LabyrinthModifierID("shopDiscount"),
             title: "Shop Discount",
             effect: .shopDiscountPercent(10),
@@ -99,25 +81,42 @@ public enum LabyrinthCatalog {
             effect: .astralShopOffers,
             nodeTypes: [.shop],
         ),
-    ]
+    ] + RewardModifier.allCases.map { reward in
+        LabyrinthModifierDefinition(
+            id: rewardID(reward), title: reward.title, effect: .reward(reward),
+            nodeTypes: [.gold, .experience, .materials].contains(reward) ? [.battle, .boss, .mystery] : [.battle, .boss],
+        )
+    }
+
+    public static func rewardID(_ reward: RewardModifier) -> LabyrinthModifierID {
+        switch reward {
+        case .gold: LabyrinthModifierID("bountyMark")
+        case .experience: LabyrinthModifierID("scholarsToll")
+        case .materials: LabyrinthModifierID("scavengersLuck")
+        default: LabyrinthModifierID("reward." + reward.rawValue)
+        }
+    }
 
     public static let modifiersByID: [LabyrinthModifierID: LabyrinthModifierDefinition] =
         Dictionary(uniqueKeysWithValues: modifiers.map { ($0.id, $0) })
 
-    public static var trashEnemyIDs: [String] {
-        GameContent.enemies.filter { !$0.isBoss }.map(\.id)
-    }
-
-    public static var bossEnemyIDs: [String] {
-        GameContent.enemies.filter(\.isBoss).map(\.id)
-    }
+    public static let trashEnemyIDs: [String] = GameContent.nonBossEnemyIDs
+    public static let bossEnemyIDs: [String] = GameContent.bossEnemyIDs
 
     public static func modifier(id: LabyrinthModifierID) -> LabyrinthModifierDefinition? {
         modifiersByID[id]
     }
 
-    public static func modifiers(ids: [LabyrinthModifierID]) -> [LabyrinthModifierDefinition] {
-        ids.compactMap { modifiersByID[$0] }
+    public static func modifiers(
+        ids: [LabyrinthModifierID], eligibleRewards: [RewardModifier] = RewardModifier.allCases,
+    ) -> [LabyrinthModifierDefinition] {
+        ids.compactMap { id in
+            guard let definition = modifiersByID[id] else { return nil }
+            if case let .reward(reward) = definition.effect, !eligibleRewards.contains(reward) {
+                return modifiersByID[rewardID(.gold)]
+            }
+            return definition
+        }
     }
 
     public static func enemyDamageKeywords(for enemyID: String) -> Set<Keyword> {
@@ -152,17 +151,36 @@ public enum LabyrinthCatalog {
         }
     }
 
-    private static func deterministicModifierID(
-        from pool: [LabyrinthModifierDefinition],
-        worldSeed: UInt64,
-        nodeID: String,
-    ) -> [LabyrinthModifierID] {
-        guard !pool.isEmpty else { return [] }
-        let index = Int(
-            GameContent.encounterSeed(worldSeed, salt: "labyrinth-modifier-\(nodeID)")
-                % UInt64(pool.count),
-        )
-        return [pool[index].id]
+    public static func pickModifier(
+        for type: LabyrinthNodeType,
+        enemyID: String?,
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
+        excluding previousID: LabyrinthModifierID? = nil,
+        using rng: inout some RandomNumberGenerator,
+    ) -> LabyrinthModifierID? {
+        let applicable = applicableModifiers(for: type, enemyID: enemyID)
+        let rewards = applicable.filter {
+            if case let .reward(reward) = $0.effect {
+                eligibleRewards.contains(reward)
+            } else {
+                false
+            }
+        }
+        let combat = applicable.filter {
+            if case .reward = $0.effect {
+                false
+            } else {
+                true
+            }
+        }
+        let pool: [LabyrinthModifierDefinition] = if type.isCombat, !rewards.isEmpty {
+            // Three reward entries competed with combat effects before the shared catalog expanded.
+            Int.random(in: 0 ..< combat.count + 3, using: &rng) < 3 ? rewards : combat
+        } else {
+            combat + rewards
+        }
+        let different = pool.filter { $0.id != previousID }
+        return (different.isEmpty ? pool : different).randomElement(using: &rng)?.id
     }
 
     public static func modifierIDs(
@@ -170,12 +188,10 @@ public enum LabyrinthCatalog {
         enemyID: String?,
         worldSeed: UInt64,
         nodeID: String,
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> [LabyrinthModifierID] {
-        deterministicModifierID(
-            from: applicableModifiers(for: type, enemyID: enemyID),
-            worldSeed: worldSeed,
-            nodeID: nodeID,
-        )
+        var rng = SeededRandomNumberGenerator(seed: GameContent.encounterSeed(worldSeed, salt: "labyrinth-modifier-\(nodeID)"))
+        return pickModifier(for: type, enemyID: enemyID, eligibleRewards: eligibleRewards, using: &rng).map { [$0] } ?? []
     }
 
     public static func pickBossEnemyID(
@@ -197,6 +213,7 @@ public enum LabyrinthCatalog {
         existingModifierIDs: [LabyrinthModifierID],
         worldSeed: UInt64,
         nodeID: String,
+        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> [LabyrinthModifierID] {
         let applicable = applicableModifiers(for: type, enemyID: enemyID)
         if let existing = existingModifierIDs.compactMap({ id in
@@ -204,7 +221,7 @@ public enum LabyrinthCatalog {
         }).first {
             return [existing.id]
         }
-        return deterministicModifierID(from: applicable, worldSeed: worldSeed, nodeID: nodeID)
+        return modifierIDs(for: type, enemyID: enemyID, worldSeed: worldSeed, nodeID: nodeID, eligibleRewards: eligibleRewards)
     }
 
     public static func fallbackBossEnemyID(worldSeed: UInt64, nodeID: String) -> String {

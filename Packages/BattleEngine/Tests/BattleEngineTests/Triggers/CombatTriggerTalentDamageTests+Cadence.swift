@@ -234,3 +234,75 @@ extension CombatTriggerTalentDamageTests {
         #expect(successes > 0 && successes < 32)
     }
 }
+
+extension CombatTriggerTalentDamageTests {
+    @Test(arguments: [DamageOperation.attack(scaling: .flat, accuracy: .unavoidable), .reaction(), .resolvedPeriodic])
+    func `concussive force builds stun from every physical damage origin`(operation: DamageOperation) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.physicalStunBuildupPercent = 1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        let hit = battle.resolveDamage(DamageRequest(
+            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id, options: operation,
+        ))
+        #expect(hit.healthLost == 4)
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .controlMeter(.stun, 4, 20) })
+    }
+
+    @Test(arguments: [DamageOperation.attack(scaling: .flat, accuracy: .unavoidable), .reaction(), .resolvedPeriodic])
+    func `martial guard grants block from physical reaction and periodic damage`(operation: DamageOperation) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.physicalDamageBlockPercent = 0.5
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        let hit = battle.resolveDamage(DamageRequest(
+            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id, options: operation,
+        ))
+        #expect(hit.healthLost == 4)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
+    }
+
+    @Test(arguments: [false, true])
+    func `bloodfire heals only damaging burn ticks`(blocked: Bool) throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_burn_t1_1"]), dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 5
+        DefensePoolEngine.set(blocked ? 20 : 0, on: battle.enemy, in: &battle)
+        battle.appendEffect(.burn(8), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        let burn = try #require(battle.activeEffects(of: battle.enemy).first { $0.keyword == .burn })
+        _ = DecayingDoTHandler(keyword: .burn, kind: .burn).advanceTurn(burn, on: battle.enemy, in: &battle)
+        #expect(battle.health(of: battle.hero) == (blocked ? 5 : 7))
+    }
+
+    @Test func `healing flames heals the lowest living ally on a burn tick`() throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatantTalentCatalog.profile(for: ["phoenix_health_t1_2"]), dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 5
+        battle.roster.companion.currentHealth = 10
+        battle.appendEffect(.burn(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
+        let burn = try #require(battle.activeEffects(of: battle.enemy).first { $0.keyword == .burn })
+        _ = DecayingDoTHandler(keyword: .burn, kind: .burn).advanceTurn(burn, on: battle.enemy, in: &battle)
+        #expect(battle.health(of: battle.hero) == 7)
+        #expect(battle.health(of: battle.companion) == 10)
+    }
+}
+
+extension CombatTriggerTalentDamageTests {
+    @Test func `martial guard converts actual damage without overkill or a second block bonus`() {
+        var profile = CombatModifierProfile(blockGainedBonus: 10)
+        profile.triggers.physicalDamageBlockPercent = 0.5
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        battle.roster.enemy.currentHealth = 4
+        let hit = battle.resolveDamage(DamageRequest(
+            amount: 20, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ))
+        #expect(hit.healthLost == 4)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
+    }
+}

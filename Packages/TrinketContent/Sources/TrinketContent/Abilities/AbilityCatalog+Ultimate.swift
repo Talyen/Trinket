@@ -13,7 +13,6 @@ public extension AbilityCatalog {
 
     static let blessedAegis = Ability(
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
-        description: "Gain 6 Block\nRestore 6 Health\nDeal Holy damage equal to half your Block",
         operations: [
             .effect(TargetedEffect(.shield(.block, 6), target: .actor)),
             .effect(TargetedEffect(.instantHeal(.health, 6))),
@@ -174,7 +173,6 @@ public extension AbilityCatalog {
 
     static let thornMail = Ability(
         id: "thorn-mail", name: "Thorn Mail", tier: .ultimate,
-        description: "Gain 6 Block\nGain Thorns equal to half your Block",
         operations: [
             .effect(TargetedEffect(.shield(.block, 6))),
             .effect(TargetedEffect(.thornsFromBlockFraction(divisor: 2, minimum: 1))),

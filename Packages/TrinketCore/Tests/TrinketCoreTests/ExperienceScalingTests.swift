@@ -7,7 +7,7 @@ struct ExperienceScalingTests {
             ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 10, enemyLevel: 10) == 50,
         )
         #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 8, enemyLevel: 12) == 50,
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 8, enemyLevel: 12) == 68,
         )
         #expect(
             ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 10) == 0,
@@ -30,12 +30,28 @@ struct ExperienceScalingTests {
         #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 19, enemyLevel: 10) > 0)
         #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 20, enemyLevel: 10) == 0)
         #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 10, enemyLevel: 10) == 1)
-        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 5, enemyLevel: 10) == 1)
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 5, enemyLevel: 10) == 1.5)
+    }
+
+    @Test func `higher level XP mirrors penalties and saturates`() {
+        var previous = -Double.infinity
+        for gap in -15 ... 15 {
+            let multiplier = ExperienceScaling.levelDeltaMultiplier(playerLevel: 20, enemyLevel: 20 + gap)
+            #expect(multiplier >= previous)
+            #expect((0 ... 2).contains(multiplier))
+            let mirror = ExperienceScaling.levelDeltaMultiplier(playerLevel: 20, enemyLevel: 20 - gap)
+            #expect(abs(multiplier + mirror - 2) < 1e-12)
+            previous = multiplier
+        }
+        #expect(abs(ExperienceScaling.levelDeltaMultiplier(playerLevel: 20, enemyLevel: 23) - 1.216) < 1e-12)
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 20, enemyLevel: 30) == 2)
+        #expect(ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 8, highestLevel: 10)
+            > ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10))
     }
 
     @Test func `extreme levels never trap`() {
         #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: Int.max, enemyLevel: Int.min) == 0)
-        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: Int.min, enemyLevel: Int.max) == 1)
+        #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: Int.min, enemyLevel: Int.max) == 2)
         #expect(ExperienceScaling.catchUpMultiplier(for: Int.min, highestLevel: Int.max) <= 2.5)
         #expect(ExperienceScaling.battleAward(playerLevel: Int.max, enemyLevel: Int.min) == 0)
         #expect(ExperienceScaling.baseBattleAward(forPlayerLevel: Int.max) >= 1)

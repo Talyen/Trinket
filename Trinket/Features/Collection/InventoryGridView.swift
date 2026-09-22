@@ -122,20 +122,16 @@ struct InventoryGridView: View {
             if category != .trinkets {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        ForEach(InventoryFilter.allCases) { filter in
-                            Toggle(filter.rawValue, isOn: Binding(
-                                get: { selectedFilter == filter },
-                                set: { isSelected in
-                                    if isSelected {
-                                        selectedFilter = filter
-                                    }
-                                },
-                            ))
-                            .accessibilityIdentifier(
-                                AccessibilityID.Collection.gearFilterOption(
-                                    slot: filter.slot?.rawValue.lowercased() ?? "all",
-                                ),
-                            )
+                        Picker("Filter \(category.rawValue)", selection: $selectedFilter) {
+                            ForEach(InventoryFilter.allCases) { filter in
+                                Text(filter.rawValue)
+                                    .tag(filter)
+                                    .accessibilityIdentifier(
+                                        AccessibilityID.Collection.gearFilterOption(
+                                            slot: filter.slot?.rawValue.lowercased() ?? "all",
+                                        ),
+                                    )
+                            }
                         }
                     } label: {
                         Image(systemName: "line.3.horizontal.decrease")

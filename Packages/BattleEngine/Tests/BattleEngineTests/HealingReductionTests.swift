@@ -166,3 +166,27 @@ struct HealingReductionTests {
         #expect(outcome.events.first { $0.effectKind == .cleanseApplied }?.actorName == companion.name)
     }
 }
+
+extension HealingReductionTests {
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `shared leech does not apply healing bonuses twice`(owner: BattleParticipant) {
+        var profile = CombatModifierProfile(healthRestoredBonus: 4)
+        profile.triggers.companionLeechSharePercent = 0.5
+        profile.triggers.leechSharesToHeroPercent = 0.5
+        profile.triggers.criticalChanceBonus = 1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroMaxHealth: 100, companionMaxHealth: 100,
+            heroModifiers: owner == .hero ? profile : .zero,
+            companionModifiers: owner == .companion ? profile : .zero, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 10
+        battle.roster.companion.currentHealth = 10
+        let outcome = HealingEngine.leechFromDamage(
+            16, sourceActorID: battle.roster[owner].id, target: battle.enemy, abilityHasLeech: true, in: &battle,
+        )
+        #expect(outcome.healthRestored == 24)
+        let recipient: BattleParticipant = owner == .hero ? .companion : .hero
+        #expect(battle.roster[recipient].currentHealth == 22)
+    }
+}

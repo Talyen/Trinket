@@ -107,14 +107,14 @@ package extension DamagePipeline {
             )
         }
 
-        guard state.options.isAttackHit else { return }
-        applyPhysicalAttackReactions(
+        applyPhysicalDamageReactions(
             to: &state,
             sourceActorID: sourceActorID,
             triggers: triggers,
             keyword: keyword,
             in: &context,
         )
+        guard state.options.isAttackHit else { return }
         applyTalentAttackApplications(
             to: &state,
             source: source,
@@ -148,16 +148,16 @@ package extension DamagePipeline {
         }
     }
 
-    private static func applyPhysicalAttackReactions(
+    private static func applyPhysicalDamageReactions(
         to state: inout DamageResolutionState,
         sourceActorID: String,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
         in context: inout BattleState,
     ) {
-        if keyword == .physical, state.remaining > 0, triggers.physicalStunBuildupPercent > 0 {
+        if keyword == .physical, state.healthLost > 0, triggers.physicalStunBuildupPercent > 0 {
             let buildup = CombatRounding.scaled(
-                state.remaining,
+                state.healthLost,
                 multiplier: triggers.physicalStunBuildupPercent,
             )
             state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
@@ -171,13 +171,17 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
-        if keyword == .physical, state.remaining > 0, triggers.physicalDamageBlockPercent > 0 {
+        if keyword == .physical, state.healthLost > 0, triggers.physicalDamageBlockPercent > 0 {
             let block = CombatRounding.scaled(
-                state.remaining,
+                state.healthLost,
                 multiplier: triggers.physicalDamageBlockPercent,
             )
             if block > 0 {
-                appendAttackerBlock(block, abilityName: "Vanguard's Crest", state: &state, context: &context)
+                guard let source = state.partySource(in: context) else { return }
+                state.damageEvents.append(contentsOf: context.applyBlock(
+                    block, to: source.combatant, source: source.combatant,
+                    abilityName: "Martial Guard", amountBasis: .resolved,
+                ))
             }
         }
     }
@@ -242,7 +246,7 @@ package extension DamagePipeline {
                 potency: triggers.attacksApplyPoison,
                 to: target,
                 sourceActorID: sourceActorID,
-                application: .attached,
+                application: .reaction,
             ))
         }
         if triggers.physicalAttackApplyBleed > 0, keyword == .physical, targetAlive {
@@ -287,7 +291,7 @@ package extension DamagePipeline {
             potency: triggers.holyAttackApplyBurnAndStunBuildup,
             to: target,
             sourceActorID: sourceActorID,
-            application: .attached,
+            application: .reaction,
         ))
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             triggers.holyAttackApplyBurnAndStunBuildup,

@@ -60,17 +60,13 @@ struct HomesteadCategoryView: View {
         .sheet(isPresented: $showsWallet) {
             HomesteadWalletSheet(onClose: { showsWallet = false })
         }
-        .task(id: imminentHomesteadArtworkKey) {
+        .task(id: category) {
             await refreshImminentHomesteadArtworkPins()
         }
         .onDisappear {
             PreparedArtworkCache.shared.releasePins(names: pinnedHomesteadArtwork)
             pinnedHomesteadArtwork = []
         }
-    }
-
-    private var imminentHomesteadArtworkKey: [String] {
-        Self.imminentHomesteadArtworkNames(for: definitions).sorted()
     }
 
     static func imminentHomesteadArtworkNames(for definitions: [HomesteadNodeDefinition]) -> [String] {

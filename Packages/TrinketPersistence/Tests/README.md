@@ -1,6 +1,8 @@
 # TrinketPersistence Tests
 
 Test ownership for `Packages/TrinketPersistence/Tests/TrinketPersistenceTests/`.
+Tests are grouped in `Storage/`, `Cloud/`, `Progression/`, `Encounters/`, and
+`Inventory/` according to the behavior they prove.
 
 Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, not the suite. Value-type sanitizer, loot, and homestead math stay off the main actor so they can run in parallel. Write-through proofs still follow the mutate → reload-from-disk rubric in [Testing.md](../../../Docs/Platform/Testing.md).
 

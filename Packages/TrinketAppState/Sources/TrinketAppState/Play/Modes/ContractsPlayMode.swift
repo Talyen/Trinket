@@ -13,7 +13,7 @@ public final class ContractsPlayMode {
     public let playerSave: PlayerSaveStore
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
-    var makeOffer: (ContractDifficulty, Set<String>) -> ContractOffer = ContractGenerator.randomOffer
+    var makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer
     private let encounters: EncounterPlayMode
 
     init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleLaunch: PlayBattleLaunch, encounters: EncounterPlayMode) {
@@ -28,7 +28,7 @@ public final class ContractsPlayMode {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.persistBatch(logging: "Failed to open Contracts", { save in
-            save.contracts.ensureBoard(makeOffer: makeOffer)
+            save.contracts.ensureBoard(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
         }) else {
             playerSave.retrySaveAction(key: SaveRetryKey.contractsEnter) { [weak self] in _ = self?.enter() }
             return nil
@@ -41,7 +41,7 @@ public final class ContractsPlayMode {
         guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.persistBatch(logging: "Failed to refresh Contracts", { save in
-            save.contracts.refresh(makeOffer: makeOffer)
+            save.contracts.refresh(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
         }) else {
             playerSave.retrySaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] in _ = self?.refresh() }
             return nil
@@ -86,6 +86,8 @@ public final class ContractsPlayMode {
             encounter: encounter,
             loot: loot,
             roster: playerSave.roster,
+            experienceBonusPercent: ContractsCompletion.effectiveModifier(for: offer, inventory: playerSave.inventory)
+                .experienceBonusPercent,
         )
         return (input, battleRoute(offerID: offer.id))
     }

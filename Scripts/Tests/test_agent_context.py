@@ -33,13 +33,13 @@ class AgentContextTests(ScriptRegressionTestCase):
             ('Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/BattleFeedbackLane.swift', ['Docs/AgentContext/battle-runtime.md'], ['apple-design/SKILL.md']),
             ('Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift', ['Docs/AgentContext/battle-engine.md'], []),
             ('Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/GlassButtons.swift', ['.agents/skills/apple-design/SKILL.md'], ['Docs/AgentContext/swiftui-features.md']),
-            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift', ['Docs/AgentContext/swiftui-features.md'], []),
+            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift', ['Docs/AgentContext/swiftui-features.md'], []),
             ('Packages/TrinketDesignSystem/Tests/TrinketDesignSystemTests/DesignSystemTests.swift', [], ['apple-design/SKILL.md']),
             ('Packages/TrinketAppState/Sources/TrinketAppState/Audio/MusicPlayer.swift', ['Docs/AgentContext/audio.md'], ['Docs/AgentContext/battle']),
             ('project.yml', ['Docs/AgentContext/content-and-manifests.md'], []),
             ('Scripts/check-docs.py', [], ['Ownership and integration']),
             ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['apple-design/SKILL.md']),
-            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift', ['.agents/knowledge/patterns/artwork-working-set.md'], []),
+            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift', ['.agents/knowledge/patterns/artwork-working-set.md'], []),
             ('Packages/BattleEngine/Package.swift', ['.agents/knowledge/patterns/module-dag-containment.md'], []),
             ('Docs/Platform/Architecture.md', ['.agents/knowledge/patterns/architecture-deferred-seams.md'], []),
             ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['.agents/knowledge/patterns/']),
@@ -120,7 +120,7 @@ class AgentContextTests(ScriptRegressionTestCase):
 
     def test_runtime_contracts_follow_concerns_and_keep_shared_paths_conservative(self) -> None:
         feature = "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/"
-        app = "Packages/TrinketAppState/Sources/TrinketAppState/State/"
+        app = "Packages/TrinketAppState/Sources/TrinketAppState/Play/"
         engine = "Packages/BattleEngine/Sources/BattleEngine/"
         presentation = feature + "Features/BattleAbilityCardView.swift"
         launch = feature + "State/BattleSession+Progression.swift"
@@ -140,7 +140,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             ([feature + "Features/Outcome/VictoryView.swift"], both),
             ([feature + "Features/UnknownView.swift"], both),
             ([feature + "State/Unknown.swift"], both),
-            ([app + "AppState.swift"], both),
+            (["Packages/TrinketAppState/Sources/TrinketAppState/App/AppState.swift"], both),
             (["Trinket/App/TrinketApp.swift"], both),
             ([engine + "Runtime/BattleRuntime.swift"], both),
             ([engine + "Runtime/BattleRuntimeDependencies.swift"], both),
@@ -254,7 +254,7 @@ class AgentContextTests(ScriptRegressionTestCase):
     def test_performance_details_are_focused_but_discoverable(self) -> None:
         for path, required in (
             ("Trinket/Features/Play/Shop/ShopEncounterView.swift", False),
-            ("Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtwork.swift", True),
+            ("Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtwork.swift", True),
             ("Trinket/App/TrinketApp.swift", True),
             ("Trinket/Features/Collection/CollectionView.swift", True),
         ):

@@ -17,12 +17,8 @@ public enum LabyrinthModifierPresentation {
             Keyword.block.visualStyle
         case .leechGainedPercent:
             Keyword.leech.visualStyle
-        case .goldFoundPercent:
-            Keyword.gold.visualStyle
-        case .experienceEarnedPercent:
-            Keyword.VisualStyle(color: TrinketDesign.Colors.informational, icon: .system("book.fill"))
-        case .materialsFoundPercent:
-            Keyword.VisualStyle(color: HomesteadResource.wood.tint, icon: .system("shippingbox.fill"))
+        case let .reward(modifier):
+            ModifierCaptionPresentation(modifier).style
         case .shopDiscountPercent:
             Keyword.VisualStyle(color: Keyword.gold.visualStyle.color, icon: .system("percent"))
         case .astralShopOffers:

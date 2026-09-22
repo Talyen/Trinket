@@ -61,7 +61,7 @@ def collect_art_ids() -> set[str]:
 
 @functools.cache
 def _read_encounter_source(name: str) -> str:
-    return (ENCOUNTER_DIR / name).read_text(encoding="utf-8")
+    return (ENCOUNTER_DIR / "Mystery" / name).read_text(encoding="utf-8")
 
 
 @functools.cache

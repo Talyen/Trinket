@@ -39,7 +39,11 @@ Seeded generation starts with combat and ends with a boss. Middle ordering avoid
 consecutive identical noncombat stops and more than two ordinary battles in a row.
 Enemy bags exhaust before reshuffling and avoid repeating across bag boundaries.
 Each battle, shop, and Mystery gets one applicable Labyrinth modifier, restricted
-to that encounter. Avoid adjacent identical modifiers where alternatives exist.
+to that encounter. Combat includes the shared
+[reward modifiers](../../Packages/TrinketContent/README.md#shared-reward-modifiers),
+including guaranteed keyword equipment. Preserve the original combat/reward category
+ratio, then choose within that category while avoiding the preceding modifier when
+alternatives exist. Shops and Mysteries retain their existing modifier pools.
 Recruit stops have no modifier. If no eligible recruit remains, replace that stop
 with a Mystery; a mid-route eligibility change preserves the announced route order,
 so this replacement can create adjacent Mysteries.

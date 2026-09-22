@@ -86,14 +86,14 @@ class UiPolicyTests(ScriptRegressionTestCase):
 
 
     def test_artwork_budget_enforces_constants_and_rejects_96_floor(self) -> None:
-        live = (ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift").read_text(encoding="utf-8")
+        live = (ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift").read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             for name in ("check-artwork-budget.sh", "lib/rg-check.sh"):
                 target = root / "Scripts" / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, target)
-            fixture = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift"
+            fixture = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift"
             fixture.parent.mkdir(parents=True)
             cases = (
                 ("live constants pass", live, None),

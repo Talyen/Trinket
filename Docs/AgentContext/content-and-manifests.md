@@ -102,7 +102,7 @@ Ability inventory is the slowest codegen step: the abilities owner runs the
 are retained under `RESULTS_DIR` or `.DerivedData/ContentGeneration`, with bounded
 terminal excerpts. Ability
 tiers, shorthand, and the inventory regex-parse the authored catalog, and
-mystery/recruit validation scrapes `Encounters/*.swift` for `makeEvent(id:` /
+mystery/recruit validation scrapes `Encounters/Mystery/*.swift` for `makeEvent(id:` /
 `recruit(id:` — keep those call shapes stable or update the scrapes together.
 
 Adding a new generated TSV output requires two files:

@@ -5,6 +5,21 @@ import TrinketPersistence
 @testable import TrinketFeatureSupport
 
 struct StageMapPresentationTests {
+    @Test(arguments: [RewardModifier.trinket, .unique])
+    func `exhausted contract bonuses display the same gold fallback that pays`(modifier: RewardModifier) throws {
+        var save = PlayerSave.testSeed
+        save.inventory = PlayerInventoryState(items: GameContent.trinketItems + GameContent.uniqueItems)
+        let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
+        let offer = ContractOffer(id: "exhausted", difficulty: .standard, enemyID: enemy.id, rewardModifier: modifier)
+        let rows = StageSelectRowPresentation<ContractOffer>.contractRows(offers: [offer], inventory: save.inventory)
+        let caption = try #require(rows.first?.modifiers.first)
+        #expect(caption.id == RewardModifier.gold.rawValue)
+        let goldOffer = ContractOffer(id: offer.id, difficulty: offer.difficulty, enemyID: offer.enemyID, rewardModifier: .gold)
+        #expect(ContractsCompletion.resolveLoot(for: offer, encounterLevel: 10, save: save)
+            == ContractsCompletion.resolveLoot(for: goldOffer, encounterLevel: 10, save: save))
+        #expect(!ContractsCompletion.eligibleModifiers(in: save.inventory).contains(modifier))
+    }
+
     @Test func `stage select rows omit completed stages`() {
         let chapter = GameContent.chapters[0]
         var progress = JourneyProgressState.initial

@@ -27,11 +27,11 @@ Build a party of Heroes and Companions, shape their abilities and equipment, and
 
 Pair a Hero with a Companion and guide them through turn-based card battles. Choose abilities, equip earned loot, unlock talents, and build a party that fits your strategy.
 
-Explore the Campaign, climb Spires, venture deeper into the Labyrinth, and take on Contracts. Between adventures, build your Homestead to strengthen your party and gather resources.
+Explore the Campaign, climb Spires, venture deeper into the Labyrinth, take on Contracts, and embark on finite regional Voyages. Between adventures, build your Homestead to strengthen your party and gather resources.
 
 FREE TO START
 
-Play the first three Campaign chapters, the first three Labyrinth floors, and the first ten floors of every Spire. Contracts are unlimited. Equipment, Homestead, and the ability and talent progression of accessible characters are available in free play.
+Play the first three Campaign chapters, the first three Labyrinth floors, and the first ten floors of every Spire. Contracts are unlimited, and Voyage includes Forest, Dungeon, and Desert adventures. Equipment, Homestead, and the ability and talent progression of accessible characters are available in free play.
 
 ONE FULL GAME PURCHASE
 

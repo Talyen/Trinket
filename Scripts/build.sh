@@ -35,6 +35,9 @@ if [[ "$RELEASE_DEVICE" == true ]]; then
   label=compile-release-device
 fi
 xcode_runner_prepare "$label" "$RESULTS_DIR"
+if [[ "$RELEASE_DEVICE" == false ]]; then
+  python3 Scripts/build-metadata.py invalidate "$RESULTS_DIR" smoke
+fi
 verbosity=--quiet
 [[ "$QUIET" == true ]] || verbosity=--verbose
 xcode_runner_run --label "$label" --log "$XCODE_RUNNER_LOG_PATH" \

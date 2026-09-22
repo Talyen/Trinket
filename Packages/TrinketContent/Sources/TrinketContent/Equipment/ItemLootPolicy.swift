@@ -21,6 +21,8 @@ enum ItemLootPolicy {
         bossContent: Bool,
         astralChanceBonusPercent: Int,
         availableTiers: Set<ItemDropTier>,
+        favoredTier: ItemDropTier? = nil,
+        tierWeightBonusPercent: Int = 0,
     ) -> [Double] {
         let clampedLevel = min(max(level, LootTuning.minimumLevel), LootTuning.maximumLevel)
         let t = progress(level: clampedLevel)
@@ -32,6 +34,9 @@ enum ItemLootPolicy {
             }
             if tier == .astral {
                 weight *= 1 + Double(max(0, astralChanceBonusPercent)) / 100
+            }
+            if tier == favoredTier {
+                weight *= 1 + Double(max(0, tierWeightBonusPercent)) / 100
             }
             return weight
         }

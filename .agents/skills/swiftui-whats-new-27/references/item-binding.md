@@ -55,32 +55,52 @@ struct FolderView: View {
 When the user's deployment target is below SDK 27 and the answer needs a per-item dialog or alert, gate the new `item:` overload behind `#available` and provide a fallback for older OS versions using the existing `isPresented:` (and `presenting:` where the unwrapped value is needed). The shape:
 
 ```swift
-@State private var photoToDelete: Photo?
-@State private var isConfirmingDelete = false
+import SwiftUI
 
-var body: some View {
-    SomeContent()
-        .modifier(DeleteConfirmation(item: $photoToDelete, isPresented: $isConfirmingDelete))
+private struct Photo: Identifiable {
+    let id: Int
+    let name: String
+}
+
+private struct PhotoList: View {
+    @State private var photos = [Photo(id: 1, name: "Forest")]
+    @State private var photoToDelete: Photo?
+
+    var body: some View {
+        List(photos) { photo in
+            Button("Delete \(photo.name)") { photoToDelete = photo }
+        }
+        .modifier(DeleteConfirmation(item: $photoToDelete) { photo in
+            photos.removeAll { $0.id == photo.id }
+        })
+    }
 }
 
 private struct DeleteConfirmation: ViewModifier {
     @Binding var item: Photo?
-    @Binding var isPresented: Bool
+    var delete: (Photo) -> Void
+
+    private var isPresented: Binding<Bool> {
+        Binding(
+            get: { item != nil },
+            set: { if !$0 { item = nil } }
+        )
+    }
 
     func body(content: Content) -> some View {
         if #available(iOS 27, *) {
             content.confirmationDialog("Delete photo?", item: $item) { photo in
-                Button("Delete \(photo.name)", role: .destructive) { /* delete */ }
+                Button("Delete \(photo.name)", role: .destructive) { delete(photo) }
             } message: { photo in
                 Text("\(photo.name) will be removed.")
             }
         } else {
             content.confirmationDialog(
                 "Delete photo?",
-                isPresented: $isPresented,
+                isPresented: isPresented,
                 presenting: item
             ) { photo in
-                Button("Delete \(photo.name)", role: .destructive) { /* delete */ }
+                Button("Delete \(photo.name)", role: .destructive) { delete(photo) }
             } message: { photo in
                 Text("\(photo.name) will be removed.")
             }
@@ -88,6 +108,11 @@ private struct DeleteConfirmation: ViewModifier {
     }
 }
 ```
+
+The optional item is the only presentation state. Selecting a photo presents either
+branch; dismissal clears the item (through the derived binding on older iOS), so
+selecting the same photo again presents a fresh dialog. The Boolean binding cannot
+invent a selection when set to `true`.
 
 Use this shape (or `@available(iOS 27, *)` on an enclosing declaration) whenever the prompt names a deployment target below SDK 27. Don't emit unconditional calls to the new `item:` overloads; the typecheck will fail with `'<API>' is only available in iOS 27.0 or newer`.
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 SCRIPT_INPUTS = (
     'Scripts/check-unused-assets.py',
+    'Scripts/config/full-only-art-kinds.txt',
     'Scripts/internal/content/common.py',
 )
 
@@ -39,6 +40,17 @@ class CheckUnusedAssetsTests(unittest.TestCase):
             self.assertEqual(rows[1]["id"], "test_2")
         finally:
             temp_path.unlink(missing_ok=True)
+
+
+    def test_asset_needs_thumb_and_full_only_kinds(self) -> None:
+        full_only = self.checker.full_only_art_kinds()
+        self.assertIn("resource", full_only)
+        self.assertIn("slot_background", full_only)
+        self.assertFalse(self.checker.asset_needs_thumb("resource"))
+        self.assertFalse(self.checker.asset_needs_thumb("slot_background"))
+        self.assertTrue(self.checker.asset_needs_thumb("combatant"))
+        self.assertTrue(self.checker.asset_needs_thumb("ability"))
+        self.assertTrue(self.checker.asset_needs_thumb("item"))
 
 
 if __name__ == "__main__":

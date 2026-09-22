@@ -45,6 +45,10 @@ enum BattleLoot {
         ownedUniqueIDs: Set<String>,
         goldFoundPercent: Int = 0,
         materialsFoundPercent: Int = 0,
+        materialFocus: HomesteadResource? = nil,
+        favoredItemTier: ItemDropTier? = nil,
+        itemTierWeightBonusPercent: Int = 0,
+        requiredKeyword: Keyword? = nil,
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> BattleLootResult {
@@ -58,10 +62,12 @@ enum BattleLoot {
             count: 2,
             range: range,
             quantityMultiplier: multiplier,
+            focus: materialFocus,
             using: &randomNumberGenerator,
         )
         materials = materials.map {
-            ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: materialsFoundPercent))
+            let bonus = materialFocus == nil || $0.resource == materialFocus ? materialsFoundPercent : 0
+            return ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: bonus))
         }
 
         let item = ItemRewardGenerator.generate(
@@ -69,6 +75,9 @@ enum BattleLoot {
             rewardLevel: rewardLevel,
             bossContent: enemyIsBoss,
             astralChanceBonusPercent: astralChanceBonusPercent,
+            favoredTier: favoredItemTier,
+            tierWeightBonusPercent: itemTierWeightBonusPercent,
+            requiredKeyword: requiredKeyword,
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,
             keywordBias: keywordBias,
@@ -82,13 +91,18 @@ enum BattleLoot {
         count: Int,
         range: ClosedRange<Int>,
         quantityMultiplier: Int,
+        focus: HomesteadResource?,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> [ResourceAmount] {
         var pool = materialResources
         var picked: [ResourceAmount] = []
         for _ in 0 ..< count {
             guard !pool.isEmpty else { break }
-            let index = Int.random(in: 0 ..< pool.count, using: &randomNumberGenerator)
+            let index: Int = if picked.isEmpty, let focus, let focusIndex = pool.firstIndex(of: focus) {
+                focusIndex
+            } else {
+                Int.random(in: 0 ..< pool.count, using: &randomNumberGenerator)
+            }
             let resource = pool.remove(at: index)
             let quantity = Int.random(in: range, using: &randomNumberGenerator) * quantityMultiplier
             picked.append(ResourceAmount(resource, quantity))

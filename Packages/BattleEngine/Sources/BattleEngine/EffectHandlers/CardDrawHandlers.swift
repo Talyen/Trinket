@@ -83,7 +83,9 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
             ),
         ]
         context.recordCardPlay(.cardsDrawn(drawnCards))
-        events.append(contentsOf: autoPlayDrawnCards(drawnCards, in: &context))
+        events.append(contentsOf: context.withAutomaticPlay { context in
+            autoPlayDrawnCards(drawnCards, in: &context)
+        })
         return EffectApplyOutcome(events: events, didApply: true)
     }
 

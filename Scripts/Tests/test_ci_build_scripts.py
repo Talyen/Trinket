@@ -205,6 +205,35 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
         self.assertIn("StoreKit", sparse_list)
         self.assertNotIn("Raw Assets", sparse_list)
 
+    def test_release_compile_is_required_only_for_nightly_and_manual_runs(self):
+        workflow = (ROOT / ".github/workflows/tests.yml").read_text()
+        release = workflow.split("  release-device:\n", 1)[1].split("  unit:\n", 1)[0]
+        condition = next(line.strip()[4:] for line in release.splitlines() if line.strip().startswith("if: "))
+        for event, expected in (("push", False), ("schedule", True), ("workflow_dispatch", True)):
+            expression = condition.replace("github.event_name", repr(event)).replace("||", "or")
+            self.assertEqual(eval(expression, {"__builtins__": {}}), expected)
+        self.assertIn("timeout-minutes: 30", release)
+        self.assertIn("./Scripts/build.sh --release-device --quiet", release)
+        self.assertIn("SKIP_GENERATE: 1", release)
+        self.assertIn("if: failure()", release)
+        self.assertIn("path: .DerivedData/TestResults", release)
+        aggregate = workflow.split("  ci-ok:\n", 1)[1].split("  exhaustive-ok:\n", 1)[0]
+        self.assertIn("release-device", aggregate.split("if: always()", 1)[0])
+        command = aggregate.split("        run: |\n", 1)[1].split("\n  #", 1)[0]
+        for outcome, status in (("success", 0), ("skipped", 0), ("failure", 1), ("cancelled", 1)):
+            result = subprocess.run(["bash", "-ec", command], capture_output=True,
+                                    env={**os.environ, "RESULTS": f"success {outcome}"})
+            self.assertEqual(result.returncode, status)
+
+    def test_ci_transfer_validation_and_job_local_xcode_selection(self):
+        setup = (ROOT / ".github/actions/setup-trinket/action.yml").read_text()
+        self.assertNotIn("sudo xcode-select", setup)
+        self.assertIn('export DEVELOPER_DIR="$best_path/Contents/Developer"', setup)
+        self.assertIn('echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"', setup)
+        job = (ROOT / ".github/actions/test-job/action.yml").read_text()
+        self.assertIn("./Scripts/restore-ci-test-products.sh", job)
+        self.assertLess(job.index("./Scripts/restore-ci-test-products.sh"), job.index("- name: Run tests"))
+
     def test_package_registry_has_no_compile_only_split(self) -> None:
         owner = (ROOT / "Scripts" / "build-inputs.env").read_text(encoding="utf-8")
         self.assertNotIn("TRINKET_COMPILE_ONLY_PACKAGES", owner)
@@ -282,7 +311,6 @@ prepare_generated_inputs results
 prepare_generated_inputs results
 [[ $(wc -l < calls) -eq 3 ]]
 printf changed > asset
-touch_generate_stamp results
 prepare_generated_inputs results
 [[ $(wc -l < calls) -eq 4 ]]
 """
@@ -298,9 +326,10 @@ prepare_generated_inputs results
             ("Scripts/internal/content/content_codegen_modifiers.py", "--skip-xcodegen"),
             ("Scripts/internal/content/content_codegen_triggers.py", "--skip-xcodegen"),
             ("Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift", "--skip-xcodegen"),
-            ("Packages/TrinketContent/Sources/TrinketContent/Encounters/MysteryEventPool+Events.swift", "--skip-xcodegen"),
-            ("Packages/TrinketContent/Sources/TrinketContent/Encounters/RecruitEventPool.swift", "--skip-xcodegen"),
+            ("Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/MysteryEventPool+Events.swift", "--skip-xcodegen"),
+            ("Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/RecruitEventPool.swift", "--skip-xcodegen"),
             ("Scripts/lib/media-assets.sh", "--assets"),
+            ("Scripts/config/full-only-art-kinds.txt", "--assets"),
             ("Scripts/prepare-assets.sh", "--assets"),
         ):
             with self.subTest(path=relative), tempfile.TemporaryDirectory() as directory:
@@ -318,7 +347,7 @@ prepare_generated_inputs results
                 generate.chmod(0o755)
                 (root / "results").mkdir()
                 stamp = root / "results/.last-generate.stamp"
-                subprocess.run(["bash", "-ec", "source Scripts/build-freshness.sh; touch_generate_stamp results true"], cwd=root, check=True)
+                subprocess.run(["bash", "-ec", "source Scripts/build-freshness.sh; touch_generate_stamp results"], cwd=root, check=True)
                 os.utime(root / relative, (time.time() + 60, time.time() + 60))
                 result = subprocess.run(
                     ["bash", "-ec", "source Scripts/build-freshness.sh; prepare_generated_inputs results"],

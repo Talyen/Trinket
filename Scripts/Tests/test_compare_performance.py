@@ -198,7 +198,7 @@ class ComparePerformanceTests(unittest.TestCase):
 
     def test_report_schema_matches_swift_producer(self) -> None:
         import re
-        producer = SCRIPT.parents[1] / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/FramePacing.swift"
+        producer = SCRIPT.parents[1] / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Performance/FramePacing.swift"
         match = re.search(r"static let schemaVersion = (\d+)", producer.read_text())
         self.assertIsNotNone(match)
         status, _ = self.run_comparison([self.report(schemaVersion=int(match.group(1)))])

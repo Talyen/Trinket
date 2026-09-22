@@ -103,7 +103,7 @@ struct HomesteadNodeDetailView: View {
             AppFramePacingSignposts.event(AppFramePacingSignposts.Name.navigationPush, detail: "homestead=\(definition.id)")
         }
         .task(id: celebrationGeneration) { await celebratePurchase() }
-        .task(id: artworkPinKey) { await refreshArtworkPins() }
+        .task(id: definition.id) { await refreshArtworkPins() }
         .onDisappear {
             cancelCelebration()
             PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
@@ -244,12 +244,9 @@ struct HomesteadNodeDetailView: View {
         .accessibilityElement(children: .contain)
     }
 
-    private var artworkPinKey: [String] {
-        [ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue]?.imageName].compactMap(\.self)
-    }
-
     private func refreshArtworkPins() async {
-        pinnedArtwork = await ArtworkPinSet.refresh(next: artworkPinKey, current: pinnedArtwork)
+        let names = [ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue]?.imageName].compactMap(\.self)
+        pinnedArtwork = await ArtworkPinSet.refresh(next: names, current: pinnedArtwork)
     }
 
     private func buildOrUpgrade(_ expectedTier: Int) {

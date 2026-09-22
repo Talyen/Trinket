@@ -86,7 +86,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                 ForEach(presentation.modifiers) { modifier in
                     Text(modifier.title)
                         .trinketTypography(.footnote)
-                        .foregroundStyle(LabyrinthModifierPresentation.style(for: modifier).color)
+                        .foregroundStyle(modifier.style.color)
                 }
             }
 

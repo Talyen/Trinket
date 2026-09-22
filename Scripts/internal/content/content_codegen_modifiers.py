@@ -39,6 +39,7 @@ VALID_KEYWORDS: frozenset[str] = frozenset(
         "purge",
         "cleanse",
         "deathsDoor",
+        "thorns",
     }
 )
 

@@ -224,6 +224,19 @@ struct AbilityCatalogTests {
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
+    @Test func `validator rejects redundant description override matching generated copy`() throws {
+        let ability = Ability(
+            id: "bash",
+            name: "Bash",
+            tier: .basic,
+            directDamage: 3,
+            damageKeyword: .stun,
+            description: "Deal 3 Stun damage",
+        )
+        let issues = AbilityValidator.validate(ability)
+        try #expect(issues.contains { $0.message.contains("description override is redundant") })
+    }
+
     @Test func `ice shot retains freeze identity with doubled freeze damage`() throws {
         let iceShot = try #require(AbilityCatalog.ability(id: "ice-shot"))
         try #expect(iceShot.summary == "Deal 2 Freeze damage\nDoubled against Frozen enemies")

@@ -79,15 +79,15 @@ struct LabyrinthNodeInspector: View {
         return makePlayEnemyDetail(
             combatant: encounter.combatant,
             level: encounter.level,
-            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs),
+            labyrinthModifiers: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
         )
     }
 
     private var modifiers: [LabyrinthModifierDefinition] {
-        LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+        RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs)
     }
 
     private var modifierArtworkCaption: some View {
-        StageSelectModifierCaption(modifiers: modifiers)
+        StageSelectModifierCaption(modifiers: modifiers.map(ModifierCaptionPresentation.init))
     }
 }

@@ -39,16 +39,15 @@ public extension GameContent {
         enemiesByID[id]
     }
 
-    static var nonBossEnemies: [Enemy] {
-        enemies.filter { !$0.isBoss }
-    }
+    static let bossEnemies: [Enemy] = enemies.filter(\.isBoss)
+    static let nonBossEnemies: [Enemy] = enemies.filter { !$0.isBoss }
+    static let bossEnemyIDs: [String] = bossEnemies.map(\.id)
+    static let nonBossEnemyIDs: [String] = nonBossEnemies.map(\.id)
 
     static func pickRandomNonBossEnemyID(forStageID stageID: String, worldSeed: UInt64) -> String? {
         var randomNumberGenerator = SeededRandomNumberGenerator(
             seed: encounterSeed(worldSeed, salt: "random-battle-\(stageID)"),
         )
-        return nonBossEnemies
-            .map(\.id)
-            .randomElement(using: &randomNumberGenerator)
+        return nonBossEnemyIDs.randomElement(using: &randomNumberGenerator)
     }
 }

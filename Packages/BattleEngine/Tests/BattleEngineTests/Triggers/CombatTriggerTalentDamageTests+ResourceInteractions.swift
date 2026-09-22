@@ -190,3 +190,23 @@ extension CombatTriggerTalentDamageTests {
         #expect(!battle.roster.enemy.activeEffects.contains { $0.keyword == .freeze })
     }
 }
+
+extension CombatTriggerTalentDamageTests {
+    @Test func `draw and play preserves automatic ancestry for mana reactions`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxMana: 6, companionMana: 6,
+            companionModifiers: CombatantTalentCatalog.profile(for: ["mana_moth_mana_t3_2"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.companion.talents.battle.manaSpentTowardAutoPlay = 3
+        battle.companionDeck = CombatDeck(abilities: [.kindling, .block])
+        let result = DrawAndPlayCardsHandler().apply(
+            .drawAndPlayCards(1), ability: .packTactics, source: battle.hero, target: battle.hero, in: &battle,
+        )
+        #expect(result.events.contains { $0.kind == .ability && $0.abilityID == Ability.kindling.id })
+        #expect(!result.events.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })
+        #expect(battle.roster.companion.talents.battle.manaSpentTowardAutoPlay == 3)
+        #expect(!battle.resolution.isAutomaticPlay)
+    }
+}

@@ -20,7 +20,6 @@ public extension AbilityCatalog {
 
     static let bountyShot = Ability(
         id: "bounty-shot", name: "Bounty Shot", tier: .skill,
-        description: "Deal 3 Stun damage\nSteal 2 Gold",
         damageComponents: [DamageComponent(3, keyword: .stun)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
         stealsGold: true,
@@ -53,7 +52,6 @@ public extension AbilityCatalog {
 
     static let coldSnap = Ability(
         id: "cold-snap", name: "Cold Snap", tier: .skill,
-        description: "Deal 1 Freeze damage\nDouble the enemy's Freeze build-up",
         damageComponents: [DamageComponent(1, keyword: .freeze)],
         targetedEffects: [
             TargetedEffect(.multiplyControlMeter(.freeze, 2), target: .enemy),
@@ -62,7 +60,6 @@ public extension AbilityCatalog {
 
     static let darkPact = Ability(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
-        description: "Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards",
         operations: [
             .damage(DamageComponent(1, keyword: .burn)),
             .damage(DamageComponent(1, keyword: .physical, target: .actor)),
@@ -89,7 +86,6 @@ public extension AbilityCatalog {
 
     static let glacialWard = Ability(
         id: "glacial-ward", name: "Glacial Ward", tier: .skill,
-        description: "Gain 2 Block\nDeal 2 Freeze damage next time you're hit",
         targetedEffects: [
             TargetedEffect(.shield(.block, 2)),
             TargetedEffect(.onHitDamage(.freeze, 2)),
@@ -196,7 +192,6 @@ public extension AbilityCatalog {
 
     static let tithe = Ability(
         id: "tithe", name: "Tithe", tier: .skill,
-        description: "Deal 2 Holy damage\nSteal 2 Gold",
         damageComponents: [DamageComponent(2, keyword: .holy)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
         stealsGold: true,

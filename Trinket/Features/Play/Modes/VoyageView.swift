@@ -149,7 +149,7 @@ struct VoyageView: View {
             )
         } else {
             StageSelectList(
-                rows: StageSelectRowPresentation<VoyageNode>.voyageNodes(run),
+                rows: StageSelectRowPresentation<VoyageNode>.voyageNodes(run, inventory: playerSave.inventory),
                 isPrimaryActionDisabled: { _ in !isReady }, onArtworkTap: inspect,
                 onPrimaryAction: { node in
                     guard isReady else { return false }
@@ -168,7 +168,7 @@ struct VoyageView: View {
 
     private func inspect(_ node: VoyageNode) {
         guard isReady else { return }
-        let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+        let modifiers = RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs)
         if let encounter = voyage.resolvedEncounter(for: node) {
             presentPlayCombatantDetail(makePlayEnemyDetail(
                 combatant: encounter.combatant,

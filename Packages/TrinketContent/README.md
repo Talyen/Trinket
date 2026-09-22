@@ -9,7 +9,7 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 
 - **Abilities/** — Ability models, validation, and authored `AbilityCatalog+Basic/Skill/Ultimate.swift` tier catalogs with ordered tier lists.
 - **Equipment/** — Item and affix models, Unique catalogs, and loot generation.
-- **Encounters/** — Journey, Labyrinth, Spire, Contracts, Mysteries, shops, and reward settlement.
+- **Encounters/** — Journey, Spire, Contracts, Voyage, and shops; `Labyrinth/`, `Mystery/`, and `Rewards/` group their larger families.
 - **Roster/** — Combatant models, equipment/keyword projections, and talent/trait lookup.
 - **Homestead/** — Upgrade models, effects, and content lookup.
 - **Media/** — Authored art, music, and sound lookup support.
@@ -17,11 +17,13 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 
 The source root holds `GameContent`, shared access policy, and trigger coding.
 Domain-specific `GameContent` extensions live beside their models and catalogs.
-`Sources/TrinketContentTestSupport/` is the one additional target: shared
+`Sources/TrinketContentTestSupport/` is the shared support target for
 combat/content/battle-party test fixtures (`CombatantFixtures`,
 `ItemFixtures`, `BattlePartyFixtures`) that `TrinketContentTests` and the
-other packages' test targets consume without a package cycle. All other
-folders remain in the main target.
+other packages' test targets consume without a package cycle.
+`Sources/AbilityInventoryDump/` and `Sources/LootBalanceReport/` are separate
+tooling executable targets for generation and loot analysis. The domain folders
+under `Sources/TrinketContent/` remain in the main target.
 
 ## Manifest sources
 
@@ -76,9 +78,13 @@ There are no category-conversion fallbacks. Guaranteed Astral rewards constrain
 the same resolver to Astral gear; exact authored item rewards remain exact.
 
 Item reward level uses authored Journey progression (chapter base for shops and
-Mysteries), Spire floor level, or Labyrinth depth. Contracts uses the active Campaign stage's authored level (the highest authored
-level after Campaign completion), so roster leveling alone does not advance item
-quality; see [Contracts](../../Docs/Product/Contracts.md#board).
+Mysteries), Spire floor level, or Labyrinth depth. Contracts and Voyage use the
+active Campaign stage's authored level (the highest authored level after Campaign
+completion), so roster leveling alone does not advance item
+quality; see [Contracts](../../Docs/Product/Contracts.md#board) and
+[Voyage](../../Docs/Product/Voyage.md#levels-and-rewards). Voyage shops and
+Mysteries use that Campaign-based item quality too; their offers persist by run
+and node identity.
 Party-adjusted currency and experience calculations remain separate. Saved items
 and pinned offers retain their contents; newly generated rewards use current tuning.
 
@@ -96,6 +102,35 @@ on stdout. `--full` alone writes no artifact; combining it with `--output` does 
 The 2,000-row report covers levels 1–40, both profiles, all Sanctum bonuses, category
 exhaustion, shops, and guaranteed Astral rewards. Its cumulative chances assume
 unchanged inputs and pool availability across the displayed reward count.
+
+## Shared reward modifiers
+
+`RewardModifier` owns 13 quantity/material/item-tier bonuses and 17 keyword
+item guarantees shared by Contracts and Labyrinth/Voyage combat nodes. Contract
+saves retain their `rewardModifier` field and existing string values; keyword
+values use `keyword.<keyword>` (including `keyword.deathsDoor`). Labyrinth/Voyage
+retain saved modifier IDs, including `bountyMark`, `scholarsToll`, and
+`scavengersLuck`. Existing maps/routes are not rerolled.
+
+Keyword rewards choose uniformly among non-Trinket bases that have the advertised
+keyword affinity and a positive-weight eligible affix for it. Generation reserves
+one normal affix slot using matching affix weights, then rolls remaining slots
+normally. Only Basic/Astral tiers participate, with their existing relative weights.
+The strict `requiredKeyword` input is separate from probabilistic `keywordBias`;
+missing matching content must never silently produce unrelated equipment.
+
+Combat nodes still receive one modifier. Their reward category has weight three,
+and each eligible combat effect has weight one, preserving the pre-expansion
+combat/reward ratio. Selection within the chosen category is uniform; Voyage
+excludes its preceding modifier there when an alternative exists. Contracts select
+uniformly among eligible rewards. New combat rewards do not enter Mystery or Shop
+pools; the original three Mystery reward bonuses remain supported.
+
+Generation excludes exhausted Trinket/Unique rewards. A saved exhausted reward
+resolves to Bonus Gold for presentation and payout without rewriting its ID.
+Persistence's shared loot request resolves ownership once before rolling rewards;
+battle launch captures the result for settlement. All modes reuse the same concise
+reward descriptions and keyword/resource icons and colors.
 
 ## Labyrinth floor layout
 

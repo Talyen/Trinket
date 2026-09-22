@@ -76,17 +76,11 @@ package extension CombatTriggerEngine {
                     in: &context,
                 ))
             }
-            // Periodic ticks bypass the pipeline's keyword reactions
-            // (DamageOperation.isRetaliation covers .periodic), so the
-            // mana restore runs here for ticks and in
-            // afterBurnDamageDealt for direct hits. The two paths are
-            // disjoint, keeping each damage instance exactly-once.
-            if sourceTriggers.onBurnDamageRestoreManaFlat > 0,
-               healthLost >= sourceTriggers.burnDamageManaRestoreThreshold {
-                events.append(contentsOf: restoreManaFromBurnDamage(
-                    sourceActorID: sourceActorID,
-                    sourceTriggers: sourceTriggers,
-                    in: &context,
+            // Periodic damage skips pipeline keyword reactions; dispatch its
+            // damage rewards here once, only when the tick lost Health.
+            if healthLost > 0, let source = context.roster.combatant(for: sourceActorID) {
+                events.append(contentsOf: afterBurnDamageDealt(
+                    to: target, source: source.combatant, healthLost: healthLost, in: &context,
                 ))
             }
         }

@@ -40,7 +40,7 @@ struct ContractsBoardView: View {
                 ZStack(alignment: .top) {
                     StageSelectList(
                         rows: StageSelectRowPresentation<ContractOffer>.contractRows(
-                            offers: displayedOffers,
+                            offers: displayedOffers, inventory: playerSave.inventory,
                         ),
                         rowSpacing: TrinketDesign.Spacing.large,
                         isPrimaryActionDisabled: { _ in

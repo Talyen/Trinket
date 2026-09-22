@@ -313,6 +313,9 @@ run_one_package() {
     xcodebuild_args+=("${package_test_filters[@]}")
   fi
   local package_wall=0
+  if [[ "$ACTION" != "test-without-building" ]]; then
+    begin_build_stamps "$RESULTS_DIR" "package_$package" || return $?
+  fi
   SECONDS=0
   xcode_runner_run "${runner_args[@]}" -- "${xcodebuild_args[@]}" || package_status=$?
   package_wall=$SECONDS
@@ -347,7 +350,7 @@ run_one_package() {
   fi
 
   if [[ "$ACTION" == "test" || "$ACTION" == "build-for-testing" ]]; then
-    touch_build_stamp "$RESULTS_DIR" "package_$package"
+    touch_build_stamp "$RESULTS_DIR" "package_$package" || return $?
   fi
   return 0
 }
