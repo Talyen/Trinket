@@ -9,6 +9,11 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class SpiresPlayMode {
+    private enum FloorEligibility {
+        case ready(ScaledEncounter)
+        case unavailable(StageMapMessage)
+    }
+
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
@@ -66,73 +71,66 @@ public final class SpiresPlayMode {
 
     @discardableResult
     public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
-        if let restriction = playerSave.accessRestriction(for: .spire(spireID: floor.spireID, floor: floor.floor)) {
-            return restriction
-        }
+        battleLaunch.startBattle(
+            origin: .spire(spireID: floor.spireID, floor: floor.floor),
+            encounters: encounters,
+            busyMessage: PlayBattleLaunch.activationFailureMessage,
+            resolve: {
+                switch floorEligibility(for: floor) {
+                case let .ready(encounter):
+                    let request = combatRequest(for: floor, encounter: encounter)
+                    return .ready(input: request.input, route: request.route)
+                case let .unavailable(message):
+                    return .unavailable(message)
+                }
+            },
+            onActivated: { preparationTracker.invalidate() },
+        )
+    }
+
+    private func floorEligibility(for floor: SpireFloor) -> FloorEligibility {
         guard let spire = GameContent.spire(id: floor.spireID) else {
-            return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
+            return .unavailable(StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet."))
         }
 
         let spires = playerSave.spires
-        let roster = playerSave.roster
-
         guard spires.isFloorStartable(
             floor.floor,
             spireID: floor.spireID.rawValue,
             floorCount: spire.floorCount,
         ) else {
             if spires.isFloorCleared(floor.floor, spireID: floor.spireID.rawValue) {
-                return StageMapMessage(
+                return .unavailable(StageMapMessage(
                     title: "Floor Cleared",
                     message: "This floor is already complete.",
-                )
+                ))
             }
-            return StageMapMessage(
+            return .unavailable(StageMapMessage(
                 title: "Floor Locked",
                 message: "Clear earlier floors first.",
-            )
+            ))
         }
 
+        let roster = playerSave.roster
         let attunement = SpireAttunement.evaluate(
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             spire: spire,
         )
         guard attunement.isReady else {
-            return StageMapMessage(title: "Not Attuned", message: attunement.message)
+            return .unavailable(StageMapMessage(title: "Not Attuned", message: attunement.message))
         }
 
         guard let encounter = resolvedEncounter(for: floor) else {
-            return StageMapMessage(title: "Encounter Missing", message: "This battle is not ready yet.")
+            return .unavailable(StageMapMessage(title: "Encounter Missing", message: "This battle is not ready yet."))
         }
-
-        let request = combatRequest(for: floor, encounter: encounter)
-        return battleLaunch.startBattle(
-            origin: .spire(spireID: floor.spireID, floor: floor.floor),
-            encounters: encounters,
-            busyMessage: PlayBattleLaunch.activationFailureMessage,
-            resolve: { request },
-            onActivated: { preparationTracker.invalidate() },
-        )
+        return .ready(encounter)
     }
 
     public func prepareBattle(for floor: SpireFloor) {
         guard playerSave.accessRestriction(for: .spire(spireID: floor.spireID, floor: floor.floor)) == nil else { return }
-        let spires = playerSave.spires
-        let roster = playerSave.roster
         guard battle.lifecyclePhase != .active,
-              let spire = GameContent.spire(id: floor.spireID),
-              spires.isFloorStartable(
-                  floor.floor,
-                  spireID: floor.spireID.rawValue,
-                  floorCount: spire.floorCount,
-              ),
-              SpireAttunement.evaluate(
-                  hero: roster.activeHero,
-                  companion: roster.activeCompanion,
-                  spire: spire,
-              ).isReady,
-              let encounter = resolvedEncounter(for: floor)
+              case let .ready(encounter) = floorEligibility(for: floor)
         else { return }
 
         let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)

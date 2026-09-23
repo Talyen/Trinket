@@ -193,6 +193,9 @@ struct HomesteadView: View {
 
     private func presentCollection(_ granted: [ResourceAmount]) {
         guard !granted.isEmpty else { return }
+        guard shellSession.selectedTab == .homestead,
+              shellSession.homesteadPath.isEmpty,
+              scenePhase == .active else { return }
         guard depositGeometry.supports(granted) else {
             collectionSuccessTrigger &+= 1
             return

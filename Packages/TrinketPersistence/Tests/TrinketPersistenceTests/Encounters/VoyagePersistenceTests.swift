@@ -99,15 +99,18 @@ struct VoyagePersistenceTests {
         let loadedStock = try #require(try ShopStockPersistence.stock(encounter: shop, save: reloaded.currentSave))
         #expect(loadedStock.purchasedOfferIDs.contains(offer.id))
         #expect(loadedStock.offers == stock.offers)
+        let mysteryNode = try #require(reloaded.voyage.activeRun?.nodes.first(where: { $0.type == .mystery }))
         #expect(reloaded.persistBatch(logging: "Voyage mystery pin") { save in
-            if let node = save.voyage.activeRun?.nodes.first(where: { $0.type == .mystery }) {
-                save.voyage.updateNode(runID: run.id, nodeID: node.id) {
-                    $0.mysteryEventID = "pinned-event"
-                    $0.mysteryOffersPayload = Data([1, 2, 3])
-                }
+            save.voyage.updateNode(runID: run.id, nodeID: mysteryNode.id) {
+                $0.mysteryEventID = "pinned-event"
+                $0.mysteryOffersPayload = Data([1, 2, 3])
             }
         })
-        #expect(try context.makeReloadedStore().voyage == reloaded.voyage)
+        let pinnedSave = try context.makeReloadedStore()
+        let pinnedNode = try #require(pinnedSave.voyage.node(runID: run.id, nodeID: mysteryNode.id))
+        #expect(pinnedNode.mysteryEventID == "pinned-event")
+        #expect(pinnedNode.mysteryOffersPayload == Data([1, 2, 3]))
+        #expect(pinnedSave.voyage == reloaded.voyage)
         let snapshot = CloudSaveSnapshot(reloaded.currentSave)
         let decoded = try JSONDecoder().decode(CloudSaveSnapshot.self, from: JSONEncoder().encode(snapshot))
         #expect(try decoded.restored().voyage == reloaded.voyage)

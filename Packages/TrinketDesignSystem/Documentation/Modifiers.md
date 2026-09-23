@@ -56,4 +56,6 @@ Platform API notes: [Apple platform reference](../../../Docs/Platform/ApplePlatf
 Wallet resource pills accept either a numerical balance or a formatted value for
 production rates and comparisons. Amounts default to the primary text color;
 formatted values accept `valueColor` for semantic states such as insufficient
-Homestead costs, which use `TrinketDesign.Colors.destructive`.
+Homestead costs, which use `TrinketDesign.Colors.destructive`. Increasing numeric
+balances bump the whole pill by default; `keepsArtworkStationary: true` bumps only
+the amount text so collection artwork remains fixed at its destination.

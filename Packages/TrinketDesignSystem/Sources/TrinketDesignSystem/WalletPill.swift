@@ -53,6 +53,11 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
                 Text(displayedAmount).trinketTypography(.statValue).foregroundStyle(valueColor).lineLimit(1).minimumScaleFactor(0.7)
                     .allowsTightening(true)
                     .contentTransition(.numericText())
+                    .trinketWalletIncreaseBump(
+                        trigger: increaseAnimationTrigger,
+                        delay: increaseAnimationDelay,
+                        enabled: keepsArtworkStationary,
+                    )
             }
             .animation(animatesAmountChanges ? TrinketMotion.Interaction.walletIncrease : nil, value: amount)
         }
@@ -60,9 +65,10 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         .trinketWalletIncreaseBump(
             trigger: increaseAnimationTrigger,
             delay: increaseAnimationDelay,
+            enabled: !keepsArtworkStationary,
         )
         .onChange(of: amount) { oldAmount, newAmount in
-            guard animatesAmountChanges, !keepsArtworkStationary, newAmount > oldAmount else { return }
+            guard animatesAmountChanges, newAmount > oldAmount else { return }
             increaseAnimationTrigger &+= 1
         }
     }

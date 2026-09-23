@@ -271,7 +271,7 @@ struct BattleSpectacleSessionTests {
     }
 
     private func presentPendingImpacts(in session: BattleSession) {
-        for impact in session.feedback.scheduledActions.filter({ $0.stage <= 2 }).map(\.impactAt).sorted() {
+        for impact in session.feedback.scheduledActions.filter(\.hasPendingImpact).map(\.impactAt).sorted() {
             session.feedback.advance(to: impact)
         }
     }

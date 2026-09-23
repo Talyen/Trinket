@@ -27,8 +27,12 @@ final class BattleFeedbackLane {
     @ObservationIgnored
     var scheduler: FeedbackDeadlineTimer?
 
-    @ObservationIgnored var scheduledActions: [BattleScheduledAction] = []
-    @ObservationIgnored var nextActionBeatID = 0
+    @ObservationIgnored var actionQueue = BattleActionQueue()
+
+    var scheduledActions: [BattleScheduledAction] {
+        actionQueue.actions
+    }
+
     @ObservationIgnored var nextAttackReactionID = 0
     @ObservationIgnored var nextRecordedHitID = Int.min
     @ObservationIgnored var recordedHitExpirations: [String: (id: Int, date: Date)] = [:]
@@ -207,7 +211,7 @@ final class BattleFeedbackLane {
     }
 
     func clear() {
-        scheduledActions.removeAll()
+        actionQueue.clear()
         recordedHitExpirations.removeAll()
         attackOwners.removeAll()
         previewActors.removeAll()
@@ -242,7 +246,7 @@ final class BattleFeedbackLane {
             expiry = expiry.map { min($0, hit) } ?? hit
         }
         let paddedExpiry = expiry?.addingTimeInterval(0.02)
-        let actionNext = scheduledActions.lazy.map(\.nextDate).min()
+        let actionNext = actionQueue.nextDate
         nextPruneAt = switch (paddedExpiry, actionNext) {
         case let (.some(a), .some(b)): min(a, b)
         case let (.some(a), .none): a

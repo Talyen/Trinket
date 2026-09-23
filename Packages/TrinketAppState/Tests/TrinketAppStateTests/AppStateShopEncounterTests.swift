@@ -86,6 +86,35 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.activeShopEncounter != nil)
     }
 
+    @Test func `replacing an encounter leaves only the current cover active`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let shopStage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        let mysteryStage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        #expect(state.journey.handleStagePrimaryAction(for: shopStage) == nil)
+        let shop = try #require(state.encounters.activeShopEncounter)
+
+        let origin = PlayEncounterOrigin.journey(stage: mysteryStage)
+        let mystery = MysteryEncounterSession(
+            origin: origin,
+            encounter: origin.identity(in: state.playerSave.currentSave),
+            event: event,
+            combatant: nil,
+        )
+        state.encounters.activeMysteryEncounter = mystery
+        #expect(state.encounters.activeMysteryEncounter === mystery)
+        #expect(state.encounters.activeShopEncounter == nil)
+
+        state.encounters.activeShopEncounter = nil
+        #expect(state.encounters.activeMysteryEncounter === mystery)
+        state.encounters.activeShopEncounter = shop
+        #expect(state.encounters.activeShopEncounter === shop)
+        #expect(state.encounters.activeMysteryEncounter == nil)
+
+        state.encounters.activeMysteryEncounter = nil
+        #expect(state.encounters.activeShopEncounter === shop)
+    }
+
     @Test func `start battle does not activate while shop is open`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let shopStage = try #require(GameContent.stage(id: "chapter-2-stage-8"))

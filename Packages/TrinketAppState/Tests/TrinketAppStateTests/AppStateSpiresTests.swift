@@ -76,5 +76,8 @@ struct AppStateSpiresTests {
 
         let message = state.spires.startBattle(for: floor)
         #expect(message?.title == PlayBattleLaunch.activationFailureMessage.title)
+
+        let lockedFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 2))
+        #expect(state.spires.startBattle(for: lockedFloor)?.title == PlayBattleLaunch.activationFailureMessage.title)
     }
 }

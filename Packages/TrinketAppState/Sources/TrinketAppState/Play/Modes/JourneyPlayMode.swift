@@ -73,8 +73,9 @@ public final class JourneyPlayMode {
             encounters: encounters,
             busyMessage: nil, // Map taps swallow a busy battle.
             resolve: {
-                guard let encounter = resolvedEncounter(for: stage) else { return nil }
-                return combatRequest(for: stage, encounter: encounter)
+                guard let encounter = resolvedEncounter(for: stage) else { return .missing }
+                let request = combatRequest(for: stage, encounter: encounter)
+                return .ready(input: request.input, route: request.route)
             },
             onActivated: { preparationTracker.invalidate() },
         )

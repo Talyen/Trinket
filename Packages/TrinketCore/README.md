@@ -32,7 +32,9 @@ per seed with a fixed non-zero fallback state; equality is lineage (seed plus
 draw progress), so the zero seed and the fallback seed share a future sequence
 while comparing unequal. Saturation instead of trapping is the package
 convention for unreachable-extreme inputs (`SaturatedArithmetic`); normal
-values are unaffected.
+values are unaffected. Effect empowerment and damage-potential sums follow
+that convention; Poison decay divides potency by four before applying its
+minimum one-point loss, avoiding multiplication overflow.
 `Effect.durationTurns == 0` covers both instant effects and indefinite buffs;
 `EffectKind` flags (`isInstant`, `advancesEachTurn`, removable buff/debuff) are
 the source of truth for lifecycle, locked by `EffectModelTests`. Documented

@@ -67,6 +67,30 @@ struct EffectModelTests {
         #expect(empoweredBonus.bonusAmount == 5)
     }
 
+    @Test func `effect arithmetic saturates at integer limits`() {
+        let empowered = DamageComponent(
+            Int.max,
+            keyword: .burn,
+            bonusAmount: Int.max,
+        ).withManaEmpowerment()
+        #expect(empowered.amount == Int.max)
+        #expect(empowered.bonusAmount == Int.max)
+        #expect(Effect.burn(Int.max).withManaEmpowerment() == .burn(Int.max))
+        #expect(
+            Effect.recurringDamage(.freeze, Int.max, 2).withManaEmpowerment()
+                == .recurringDamage(.freeze, Int.max, 2),
+        )
+
+        #expect(DamageComponent(Int.max, bonusAmount: 1).hasPotentialDamage)
+        #expect(!DamageComponent(Int.min, bonusAmount: -1).hasPotentialDamage)
+        #expect(!DamageComponent(-2, bonusAmount: 2).hasPotentialDamage)
+
+        #expect(Effect.poisonDecayAmount(for: 8) == 2)
+        #expect(Effect.poisonDecayAmount(for: Int.max) == Int.max / 4)
+        #expect(Effect.poisonDecayAmount(for: Int.min) == 1)
+        #expect(Effect.poison(Int.min).potencyAfterTurn() == 0)
+    }
+
     @Test func `effect classification flags match definitions`() {
         #expect(Effect.burn(1).isRemovableDebuff)
         #expect(Effect.poison(1).isRemovableDebuff)

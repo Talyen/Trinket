@@ -19,7 +19,7 @@ enum CloudSaveMerge {
         mergeJourney(into: &merged, from: other)
         mergeRoster(into: &merged, from: other, incoming: incoming, existing: existing, base: base, duplicateClaim: duplicateClaim)
         mergeSelections(into: &merged, incoming: incoming, existing: existing, base: base, preferIncoming: incomingIsRecent)
-        mergeInventory(into: &merged, from: other, incoming: incoming, existing: existing, base: base)
+        mergeInventory(into: &merged, from: other, base: base)
         mergeEconomy(into: &merged, incoming: incoming, existing: existing, base: base, duplicateClaim: duplicateClaim)
         mergeExploration(into: &merged, from: other)
         merged.contracts.recordVictory(encounterLevel: other.contracts.highestWonEncounterLevel)
@@ -79,14 +79,15 @@ enum CloudSaveMerge {
 
     private static func mergeInventory(
         into merged: inout PlayerSave, from other: PlayerSave,
-        incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?,
+        base: PlayerSave?,
     ) {
         if let base {
             for item in base.inventory.items {
-                let incomingItem = incoming.inventory.item(matching: item.id)
-                let existingItem = existing.inventory.item(matching: item.id)
-                if (incomingItem == nil && existingItem == item)
-                    || (existingItem == nil && incomingItem == item) {
+                guard let index = merged.inventory.items.firstIndex(where: { $0.id == item.id }),
+                      merged.inventory.items[index] == item else { continue }
+                if let changed = other.inventory.item(matching: item.id) {
+                    merged.inventory.items[index] = changed
+                } else {
                     merged.inventory.removeItem(id: item.id)
                 }
             }

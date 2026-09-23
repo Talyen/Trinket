@@ -27,6 +27,10 @@ final class PendingSaveRecovery {
     let url: URL
     private(set) var hasPendingSave: Bool
     private var retryTask: Task<Void, Never>?
+    #if DEBUG
+    var forcesNextClearFailure = false
+    var forcesNextWriteFailure = false
+    #endif
 
     init(storeURL: URL) {
         url = Self.url(for: storeURL, kind: .pending)
@@ -189,8 +193,12 @@ final class PendingSaveRecovery {
     func restore(into root: PlayerSaveRoot, context: ModelContext, preservesPrevious: Bool) throws {
         guard let record = try read() else { return }
         let recovered = try record.restoredSave()
-        if preservesPrevious, root.toPlayerSave().hasDomainDifference(from: recovered) {
-            try preservePrevious(save: root.toPlayerSave(), cloudState: root.cloudStatePayload)
+        let persisted = root.toPlayerSave()
+        // A completed reset advanced the graph generation before pending-file
+        // cleanup. An older sidecar must not undo that durable reset on relaunch.
+        guard recovered.sessionGeneration >= persisted.sessionGeneration else { return }
+        if preservesPrevious, persisted.hasDomainDifference(from: recovered) {
+            try preservePrevious(save: persisted, cloudState: root.cloudStatePayload)
         }
         root.apply(recovered, slices: .all, context: context)
         if let cloudState = record.cloudState {
@@ -222,6 +230,12 @@ final class PendingSaveRecovery {
     }
 
     func write(save: PlayerSave, cloudState: Data?) throws {
+        #if DEBUG
+        if forcesNextWriteFailure {
+            forcesNextWriteFailure = false
+            throw PlayerSavePersistenceError.writeFailed
+        }
+        #endif
         do {
             try Self.writeDataAtomically(Self.encodedRecord(save: save, cloudState: cloudState), to: url)
         } catch {
@@ -243,6 +257,12 @@ final class PendingSaveRecovery {
     /// design; explicit store cleanup removes them.
     func clear() throws {
         guard hasPendingSave else { return }
+        #if DEBUG
+        if forcesNextClearFailure {
+            forcesNextClearFailure = false
+            throw PlayerSavePersistenceError.writeFailed
+        }
+        #endif
         try FileManager.default.removeItem(at: url)
         hasPendingSave = false
     }

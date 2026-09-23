@@ -42,9 +42,11 @@ struct ContractsPlayModeTests {
 
         #expect(play.contracts.refresh() != nil)
         #expect(play.contracts.startBattle(offerID: standard.id) != nil)
+        #expect(play.contracts.startBattle(offerID: "missing-offer")?.title == PlayBattleLaunch.activationFailureMessage.title)
         #expect(play.playerSave.contracts == board)
         #expect(play.battle.activeBattle?.id == configuration.id)
         play.endBattleReturningToOrigin()
+        #expect(play.contracts.startBattle(offerID: "missing-offer")?.title == "Contract Unavailable")
         #expect(play.shellSession.playPath == [.explore, .contracts])
         #expect(play.consumePendingDestination() == nil)
         #expect(play.playerSave.contracts == board)

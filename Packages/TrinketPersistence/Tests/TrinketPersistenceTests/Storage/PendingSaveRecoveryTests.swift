@@ -53,6 +53,59 @@ struct PendingSaveRecoveryTests {
         #expect(!FileManager.default.fileExists(atPath: PendingSaveRecovery.url(for: context.storeURL()).path))
     }
 
+    @Test func `durable reset outranks an older pending save on relaunch`() throws {
+        let context = try PersistenceTestContext()
+        var original: PlayerSaveStore? = try context.makeSaveStore()
+        var account = CloudDeviceState()
+        account.activeAccountID = "account"
+        try original?.commitCloudState(account)
+        #expect(original?.persistBatch(logging: "Recovery fixture") { $0.roster.gold = 42 } == true)
+        let priorSave = try #require(original?.currentSave)
+        let priorCloudState = try #require(original?.root.cloudStatePayload)
+
+        try original?.resetGameplayProgress()
+        let resetGeneration = try #require(original?.currentSave.sessionGeneration)
+        #expect(resetGeneration == priorSave.sessionGeneration + 1)
+        #expect(original?.cloudDeviceState.account.resetRequested == true)
+
+        // Recreate a sidecar that survived failed post-reset cleanup.
+        try original?.pendingSaveRecovery?.write(save: priorSave, cloudState: priorCloudState)
+        original = nil
+        let restored = try context.makeReloadedStore()
+        #expect(restored.roster.gold == PlayerSave.fresh.roster.gold)
+        #expect(restored.currentSave.sessionGeneration == resetGeneration)
+        #expect(restored.cloudDeviceState.activeAccountID == "account")
+        #expect(restored.cloudDeviceState.account.resetRequested)
+        #expect(!restored.isPersistenceDegraded)
+        #expect(restored.pendingSaveRecovery?.hasPendingSave == false)
+    }
+
+    @Test func `failed reset sidecar cleanup retries without reviving old progress`() async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        #expect(store.persistBatch(logging: "Recovery fixture") { $0.roster.gold = 42 })
+        let priorSave = store.currentSave
+        let recovery = try #require(store.pendingSaveRecovery)
+        try recovery.write(save: priorSave, cloudState: store.root.cloudStatePayload)
+        recovery.forcesNextClearFailure = true
+        recovery.forcesNextWriteFailure = true
+
+        try store.resetGameplayProgress()
+        #expect(store.roster.gold == PlayerSave.fresh.roster.gold)
+        #expect(store.currentSave.sessionGeneration == priorSave.sessionGeneration + 1)
+        #expect(store.isPersistenceDegraded)
+        #expect(store.lastPersistenceError == .writeFailed)
+        #expect(try recovery.read()?.restoredSave().roster.gold == 42)
+
+        for _ in 0 ..< 300 where store.isPersistenceDegraded {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(!store.isPersistenceDegraded)
+        #expect(store.lastPersistenceError == nil)
+        #expect(!recovery.hasPendingSave)
+        #expect(try context.makeReloadedStore().roster.gold == PlayerSave.fresh.roster.gold)
+    }
+
     @Test(arguments: [false, true])
     func `recovery reset keeps pending progress until reset is durable`(fails: Bool) throws {
         let context = try PersistenceTestContext()

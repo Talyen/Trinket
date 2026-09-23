@@ -5,6 +5,12 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
+enum PlayBattleRequestResolution {
+    case ready(input: BattleLaunchInput, route: PlayBattleRoute)
+    case missing
+    case unavailable(StageMapMessage)
+}
+
 @MainActor
 final class PlayBattleLaunch {
     let playerSave: PlayerSaveStore
@@ -60,7 +66,7 @@ final class PlayBattleLaunch {
         origin: PlayBattleOrigin,
         encounters: EncounterPlayMode,
         busyMessage: StageMapMessage?,
-        resolve: () -> (input: BattleLaunchInput, route: PlayBattleRoute)?,
+        resolve: () -> PlayBattleRequestResolution,
         onActivated: () -> Void = {},
     ) -> StageMapMessage? {
         if let restriction = playerSave.accessRestriction(for: origin) {
@@ -68,8 +74,14 @@ final class PlayBattleLaunch {
         }
         guard battle.lifecyclePhase != .active else { return busyMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
-        guard let request = resolve() else {
+        let request: (input: BattleLaunchInput, route: PlayBattleRoute)
+        switch resolve() {
+        case let .ready(input, route):
+            request = (input, route)
+        case .missing:
             return StageMapMessage(title: "Encounter Missing", message: "This battle is not ready yet.")
+        case let .unavailable(message):
+            return message
         }
         return activateRequest(request.input, route: request.route, onActivated: onActivated)
     }

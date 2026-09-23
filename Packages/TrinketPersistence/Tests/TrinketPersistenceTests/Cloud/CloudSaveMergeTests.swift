@@ -150,6 +150,35 @@ struct CloudSaveMergeTests {
         #expect(merged.roster.gold == base.roster.gold + 5)
     }
 
+    @Test(arguments: [true, false])
+    func `corrupted gear survives a later unrelated device action`(corruptionIsIncoming: Bool) throws {
+        let baseType = try #require(GameContent.itemBaseType(matching: "longsword"))
+        var random = SeededRandomNumberGenerator(seed: 42)
+        let item = ItemGenerator().generate(
+            id: "cloud-sword", baseType: baseType, rarity: .basic,
+            fixedAffixCount: 2, using: &random,
+        )
+        let unchanged = try #require(GameContent.sampleInventoryItems.first)
+        let corrupted = try #require(ItemCorruption.corrupt(item, using: &random)).item
+        var base = PlayerSave.testSeed
+        base.inventory.items = [item, unchanged]
+        base.modifiedAt = Date(timeIntervalSince1970: 1)
+        var changed = base
+        changed.inventory.items[0] = corrupted
+        changed.modifiedAt = Date(timeIntervalSince1970: 100)
+        var later = base
+        later.roster.gold += 5
+        later.modifiedAt = Date(timeIntervalSince1970: 200)
+
+        let merged = CloudSaveMerge.merge(
+            incoming: corruptionIsIncoming ? changed : later,
+            existing: corruptionIsIncoming ? later : changed,
+            base: base, preferIncoming: corruptionIsIncoming,
+        )
+        #expect(merged.inventory.items == [corrupted, unchanged])
+        #expect(merged.roster.gold == base.roster.gold + 5)
+    }
+
     @Test func `same Shop offer purchased twice charges once and stays sold out`() throws {
         var base = PlayerSave.testSeed
         base.roster.gold = PlayerRosterState.maxGoldBalance

@@ -121,9 +121,10 @@ public final class LabyrinthPlayMode {
             resolve: {
                 let labyrinth = playerSave.labyrinth
                 guard let node = labyrinth.node(id: nodeID), node.type.isCombat,
-                      let encounter = resolvedEncounter(for: node) else { return nil }
+                      let encounter = resolvedEncounter(for: node) else { return .missing }
                 let effects = labyrinth.effects(for: nodeID)
-                return combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
+                let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
+                return .ready(input: request.input, route: request.route)
             },
             onActivated: { preparationTracker.invalidate() },
         )

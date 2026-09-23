@@ -63,6 +63,43 @@ struct CloudSaveSyncTests {
         #expect(a.roster.gold == 40)
     }
 
+    @Test @MainActor func `corrupted gear survives another device's later Gold and reload`() async throws {
+        let transport = CloudSaveTestTransport()
+        let firstContext = try PersistenceTestContext()
+        let secondContext = try PersistenceTestContext()
+        let first = try cloudStore(firstContext, transport: transport)
+        let baseType = try #require(GameContent.itemBaseType(matching: "longsword"))
+        var random = SeededRandomNumberGenerator(seed: 42)
+        let item = ItemGenerator().generate(
+            id: "cloud-sword", baseType: baseType, rarity: .basic,
+            fixedAffixCount: 2, using: &random,
+        )
+        #expect(first.persistBatch(logging: "Cloud gear setup") { save in
+            save.starterSelection = .complete
+            save.inventory.items = [item]
+            save.roster.gold = 10
+        })
+        #expect(await first.cloudSync?.synchronize() == true)
+        var second: PlayerSaveStore? = try cloudStore(secondContext, transport: transport)
+        #expect(await second?.cloudSync?.synchronize() == true)
+        #expect(second?.inventory.item(matching: item.id) == item)
+
+        #expect(first.corruptItem(id: item.id, using: &random) != nil)
+        let corrupted = try #require(first.inventory.item(matching: item.id))
+        #expect(corrupted.isCorrupted)
+        try await Task.sleep(for: .milliseconds(10))
+        #expect(second?.persistBatch(logging: "Earn Gold on other device") { $0.roster.gold += 5 } == true)
+        #expect(await first.cloudSync?.synchronize() == true)
+        #expect(await second?.cloudSync?.synchronize() == true)
+        #expect(second?.inventory.item(matching: item.id) == corrupted)
+        #expect(second?.roster.gold == 15)
+
+        second = nil
+        let reloaded = try cloudStore(secondContext, transport: transport)
+        #expect(reloaded.inventory.item(matching: item.id) == corrupted)
+        #expect(reloaded.roster.gold == 15)
+    }
+
     @Test @MainActor func `long offline play compacts its journal without losing earned Gold`() async throws {
         let transport = CloudSaveTestTransport()
         let context = try PersistenceTestContext()

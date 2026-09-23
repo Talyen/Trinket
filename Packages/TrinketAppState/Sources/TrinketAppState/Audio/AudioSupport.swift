@@ -52,16 +52,13 @@ enum AudioSession {
     /// later call retries.
     static func configureIfNeeded(logger: Logger) {
         state.lock.lock()
-        let alreadyConfigured = state.hasConfigured
-        state.lock.unlock()
-        guard !alreadyConfigured else { return }
+        defer { state.lock.unlock() }
+        guard !state.hasConfigured else { return }
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
-            state.lock.lock()
             state.hasConfigured = true
-            state.lock.unlock()
         } catch {
             logger.error(
                 "Unable to configure audio session: \(error.localizedDescription, privacy: .public)",

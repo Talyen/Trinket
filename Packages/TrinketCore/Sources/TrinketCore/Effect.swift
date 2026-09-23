@@ -49,17 +49,17 @@ public struct DamageComponent: Hashable, Sendable {
     public func withManaEmpowerment(_ amount: Int = Effect.manaEmpowermentBonus) -> Self {
         guard isManaEmpowerableBurnOrFreezeDamage else { return self }
         return Self(
-            self.amount + amount,
+            SaturatedArithmetic.saturatingAdd(self.amount, amount),
             keyword: keyword,
             target: target,
-            bonusAmount: bonusAmount > 0 ? bonusAmount + amount : 0,
+            bonusAmount: bonusAmount > 0 ? SaturatedArithmetic.saturatingAdd(bonusAmount, amount) : 0,
             condition: condition,
             scaling: scaling,
         )
     }
 
     public var hasPotentialDamage: Bool {
-        scaling != nil || amount + bonusAmount > 0
+        scaling != nil || SaturatedArithmetic.saturatingAdd(amount, bonusAmount) > 0
     }
 }
 
@@ -215,10 +215,10 @@ public enum Effect: Hashable, Sendable {
     public func withManaEmpowerment(_ amount: Int = manaEmpowermentBonus) -> Self {
         switch self {
         case let .burn(potency):
-            .burn(potency + amount)
+            .burn(SaturatedArithmetic.saturatingAdd(potency, amount))
         case let .recurringDamage(keyword, potency, turns)
             where keyword == .burn || keyword == .freeze:
-            .recurringDamage(keyword, potency + amount, turns)
+            .recurringDamage(keyword, SaturatedArithmetic.saturatingAdd(potency, amount), turns)
         default:
             self
         }
@@ -252,7 +252,7 @@ public enum Effect: Hashable, Sendable {
     }
 
     public static func poisonDecayAmount(for potency: Int) -> Int {
-        max(1, potency * 25 / 100)
+        max(1, potency / 4)
     }
 
     public func potencyAfterTurn(burnDecaySlowPercent: Double = 0, poisonDecaySlowPercent: Double = 0) -> Int {
@@ -265,7 +265,7 @@ public enum Effect: Hashable, Sendable {
         case let .poison(potency):
             let loss = Self.poisonDecayAmount(for: potency)
             let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - clamped01(poisonDecaySlowPercent))
-            return max(0, potency - adjustedLoss)
+            return max(0, SaturatedArithmetic.saturatingSub(potency, adjustedLoss))
         default:
             return 0
         }

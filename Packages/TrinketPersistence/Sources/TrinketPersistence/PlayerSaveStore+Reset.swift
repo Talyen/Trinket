@@ -52,16 +52,24 @@ extension PlayerSaveStore {
             do {
                 try pendingSaveRecovery.clear()
             } catch {
-                // PersistenceCheck: allow - primary reset is durable; pending is aligned best-effort
-                try? pendingSaveRecovery.write(
-                    save: sanitized,
-                    cloudState: root.cloudStatePayload,
-                )
+                notePersistenceFailure(error, logging: "Failed to clear pending player save after reset")
+                do {
+                    try pendingSaveRecovery.write(
+                        save: sanitized,
+                        cloudState: root.cloudStatePayload,
+                    )
+                } catch {
+                    notePersistenceFailure(error, logging: "Failed to align pending player save after reset")
+                }
             }
         }
         isPersistenceDegraded = usesMemoryFallback
             || (pendingSaveRecovery?.hasPendingSave == true)
-        lastPersistenceError = nil
+        if pendingSaveRecovery?.hasPendingSave == true {
+            scheduleRecoveryRetry()
+        } else {
+            lastPersistenceError = nil
+        }
         clearPendingDeferredPersistence()
         installObservedSave(sanitized, slices: .all)
     }

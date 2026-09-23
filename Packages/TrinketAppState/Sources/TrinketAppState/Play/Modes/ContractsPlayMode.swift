@@ -59,16 +59,20 @@ public final class ContractsPlayMode {
 
     @discardableResult
     public func startBattle(offerID: String) -> StageMapMessage? {
-        guard let offer = playerSave.contracts.offers.first(where: { $0.id == offerID }) else {
-            return StageMapMessage(title: "Contract Unavailable", message: "Refresh the board and choose another contract.")
-        }
-        return battleLaunch.startBattle(
-            origin: .contract(offerID: offer.id),
+        battleLaunch.startBattle(
+            origin: .contract(offerID: offerID),
             encounters: encounters,
             busyMessage: PlayBattleLaunch.activationFailureMessage,
             resolve: {
-                guard let encounter = resolvedEncounter(for: offer) else { return nil }
-                return combatRequest(for: offer, encounter: encounter)
+                guard let offer = playerSave.contracts.offers.first(where: { $0.id == offerID }) else {
+                    return .unavailable(StageMapMessage(
+                        title: "Contract Unavailable",
+                        message: "Refresh the board and choose another contract.",
+                    ))
+                }
+                guard let encounter = resolvedEncounter(for: offer) else { return .missing }
+                let request = combatRequest(for: offer, encounter: encounter)
+                return .ready(input: request.input, route: request.route)
             },
         )
     }

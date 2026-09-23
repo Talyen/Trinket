@@ -67,7 +67,11 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         XCTAssertFalse(progress.isEmpty, "Embarking must show route progress")
         attachSuccessScreenshot(named: "Voyage route")
         XCTAssertFalse(app.buttons[AccessibilityID.Voyage.refresh].exists)
-        tapWhenReady(app.navigationBars.buttons.firstMatch)
+        let backButtons = app.navigationBars.buttons.matching(
+            NSPredicate(format: "identifier != %@", AccessibilityID.Voyage.options),
+        )
+        XCTAssertEqual(backButtons.count, 1, "Expected only the navigation back button beside Voyage options")
+        tapWhenReady(backButtons.firstMatch)
         scrollUntilVisible(mode, swipingUp: true, maxAttempts: 3, requireHittable: true)
         tapWhenReady(mode)
         assertExists(AccessibilityID.Voyage.progress)

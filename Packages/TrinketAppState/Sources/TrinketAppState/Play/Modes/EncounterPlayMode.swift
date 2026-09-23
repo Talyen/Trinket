@@ -9,6 +9,11 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class EncounterPlayMode {
+    private enum ActiveEncounter {
+        case mystery(MysteryEncounterSession)
+        case shop(ShopEncounterSession)
+    }
+
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     let options: OptionsStore
@@ -16,13 +21,38 @@ public final class EncounterPlayMode {
     var mysteryRandom: any RandomNumberGenerator = SystemRandomNumberGenerator()
     var currentDate: () -> Date = { Date() }
 
-    public var activeMysteryEncounter: MysteryEncounterSession?
-    public var activeShopEncounter: ShopEncounterSession?
+    private var activeEncounter: ActiveEncounter?
+
+    public var activeMysteryEncounter: MysteryEncounterSession? {
+        get {
+            guard case let .mystery(session) = activeEncounter else { return nil }
+            return session
+        }
+        set {
+            if let newValue {
+                activeEncounter = .mystery(newValue)
+            } else if case .mystery = activeEncounter {
+                activeEncounter = nil
+            }
+        }
+    }
+
+    public var activeShopEncounter: ShopEncounterSession? {
+        get {
+            guard case let .shop(session) = activeEncounter else { return nil }
+            return session
+        }
+        set {
+            if let newValue {
+                activeEncounter = .shop(newValue)
+            } else if case .shop = activeEncounter {
+                activeEncounter = nil
+            }
+        }
+    }
 
     var canBeginTransientEncounter: Bool {
-        activeShopEncounter == nil
-            && activeMysteryEncounter == nil
-            && battle.lifecyclePhase != .active
+        activeEncounter == nil && battle.lifecyclePhase != .active
     }
 
     init(

@@ -37,42 +37,39 @@ enum PlayerSaveSanitizer {
 
     static func sanitize(_ save: PlayerSave, changedSlices: PlayerSaveSlice) -> PlayerSave {
         var sanitized = save
+        let targets = PlayerSaveSlice.sanitizeTargets(for: changedSlices)
         sanitized.worldSeed = resolvedWorldSeed(save, seedIfMissing: changedSlices.contains(.root))
-        if changedSlices.contains(.root) {
-            sanitized.corruptionAltarCooldownRemaining = max(0, save.corruptionAltarCooldownRemaining)
-        }
         if changedSlices.contains(.labyrinth),
            !sanitized.labyrinth.isMapPayloadUnreadable,
            save.worldSeed == 0 || !sanitized.labyrinth.hasMap || sanitized.labyrinth.worldSeed == 0 {
             sanitized.labyrinth.worldSeed = sanitized.worldSeed
         }
-        if changedSlices.contains(.inventory) {
-            sanitized.inventory = sanitizeInventory(save.inventory)
-        }
-        if changedSlices.contains(.roster) || changedSlices.contains(.inventory) {
-            sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
-        }
-        if changedSlices.contains(.homestead) {
-            sanitized.homestead = sanitizeHomestead(save.homestead)
-        }
-        if changedSlices.contains(.journey) {
-            sanitized.journey = sanitizeJourney(save.journey)
-        }
-        if changedSlices.contains(.spires) {
-            sanitized.spires = sanitizeSpires(save.spires)
-        }
-        if changedSlices.contains(.voyage) {
-            sanitized.voyage = save.voyage.sanitized()
-        }
-        if changedSlices.contains(.contracts) {
-            sanitized.contracts = save.contracts.sanitized()
-        }
-        if changedSlices.contains(.labyrinth) {
-            sanitized.labyrinth = sanitizeLabyrinth(
-                sanitized.labyrinth,
-                eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs,
-                eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
-            )
+        // Section order repairs inventory before roster, then Labyrinth eligibility.
+        for section in targets.sections {
+            switch section {
+            case .root:
+                sanitized.corruptionAltarCooldownRemaining = max(0, save.corruptionAltarCooldownRemaining)
+            case .inventory:
+                sanitized.inventory = sanitizeInventory(save.inventory)
+            case .roster:
+                sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
+            case .homestead:
+                sanitized.homestead = sanitizeHomestead(save.homestead)
+            case .journey:
+                sanitized.journey = sanitizeJourney(save.journey)
+            case .spires:
+                sanitized.spires = sanitizeSpires(save.spires)
+            case .voyage:
+                sanitized.voyage = save.voyage.sanitized()
+            case .contracts:
+                sanitized.contracts = save.contracts.sanitized()
+            case .labyrinth:
+                sanitized.labyrinth = sanitizeLabyrinth(
+                    sanitized.labyrinth,
+                    eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs,
+                    eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
+                )
+            }
         }
         return sanitized
     }

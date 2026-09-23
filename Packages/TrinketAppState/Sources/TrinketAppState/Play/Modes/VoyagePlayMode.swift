@@ -91,7 +91,8 @@ public final class VoyagePlayMode {
         case .battle, .boss:
             prepareNextBattle()
             return battleLaunch.startBattle(origin: origin, encounters: encounters, busyMessage: nil, resolve: {
-                request(runID: runID, node: node)
+                guard let request = request(runID: runID, node: node) else { return .missing }
+                return .ready(input: request.input, route: request.route)
             }, onActivated: { preparationTracker.invalidate() })
         case .shop:
             return encounters.beginShopOrAutoComplete(origin: encounterOrigin, identifier: nodeID) { [self] in

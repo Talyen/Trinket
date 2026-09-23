@@ -1,29 +1,6 @@
 import BattleEngine
 import Foundation
 
-struct BattleScheduledAction {
-    let id: Int
-    let actorID: String?
-    let events: [ActionEvent]
-    let damage: [BattleResolvedDamage]
-    let castID: UUID?
-    let deliversResultsImmediately: Bool
-    var startAt: Date
-    var swingAt: Date
-    var impactAt: Date
-    var stage: Int
-    let present: ([ActionEvent], [BattleResolvedDamage], Date, Int) -> Void
-
-    var nextDate: Date {
-        switch stage {
-        case 0: startAt
-        case 1: swingAt
-        case 2: impactAt
-        default: impactAt.addingTimeInterval(CombatFeedbackAttackRecipes.lungeCardAttack.recoverDuration)
-        }
-    }
-}
-
 extension BattleFeedbackLane {
     func scheduleActions(
         _ playback: BattleTransitionPlayback,
@@ -53,9 +30,9 @@ extension BattleFeedbackLane {
             if let actorID {
                 previewActors.remove(actorID)
             }
-            let previousImpact = scheduledActions.lazy.filter { $0.stage <= 2 }.map(\.impactAt).max()
+            let previousImpact = actionQueue.latestPendingImpact
             let isBurst = actorID.map { actorID in
-                attackOwners[actorID] != nil || scheduledActions.contains { $0.actorID == actorID && $0.stage <= 2 }
+                attackOwners[actorID] != nil || actionQueue.hasPendingImpact(for: actorID)
             } == true
             let recipe = CombatFeedbackAttackRecipes.lungeCardAttack
             let windUp = actorID == nil || isPrepared ? 0 : (isBurst ? 0.08 : (isManual ? 0.10 : recipe.windUpDuration))
@@ -74,21 +51,22 @@ extension BattleFeedbackLane {
                         ? max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration)) : swingAt,
                 )
             }
-            nextActionBeatID -= 1
-            scheduledActions.append(BattleScheduledAction(
-                id: nextActionBeatID, actorID: actorID, events: group.events, damage: action?.damage ?? [], castID: castID,
-                deliversResultsImmediately: isManual,
-                startAt: startAt, swingAt: swingAt,
-                impactAt: actorID == nil && card != nil
-                    ? max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration)) : impactAt,
-                stage: actorID == nil ? 2 : (isPrepared ? 1 : 0), present: present,
-            ))
+            let beatID = actionQueue.append { id in
+                BattleScheduledAction(
+                    id: id, actorID: actorID, events: group.events, damage: action?.damage ?? [], castID: castID,
+                    deliversResultsImmediately: isManual,
+                    startAt: startAt, swingAt: swingAt,
+                    impactAt: actorID == nil && card != nil
+                        ? max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration)) : impactAt,
+                    nextCue: actorID == nil ? .impact : (isPrepared ? .swing : .windUp), present: present,
+                )
+            }
             if isManual {
-                present(group.events, action?.damage ?? [], date, nextActionBeatID)
+                present(group.events, action?.damage ?? [], date, beatID)
             }
         }
         for card in automaticCards {
-            let start = max(date, scheduledActions.lazy.map(\.impactAt).max() ?? date)
+            let start = max(date, actionQueue.latestImpact ?? date)
             cardPlayback.append(card, at: start, activationAt: start.addingTimeInterval(BattleMotion.automaticCardRevealDuration))
         }
         advance(to: date)
@@ -96,13 +74,11 @@ extension BattleFeedbackLane {
 
     func advance(to date: Date) {
         guard suspendedAt == nil else { return }
-        while let index = scheduledActions.indices.min(by: {
-            scheduledActions[$0].nextDate < scheduledActions[$1].nextDate
-        }), scheduledActions[index].nextDate <= date {
-            let action = scheduledActions[index]
-            scheduledActions[index].stage += 1
-            switch action.stage {
-            case 0:
+        while let due = actionQueue.consumeNextCue(at: date) {
+            let action = due.action
+            let cue = due.cue
+            switch cue {
+            case .windUp:
                 if let actorID = action.actorID {
                     attackOwners[actorID] = action.id
                     publishAttack(
@@ -112,7 +88,7 @@ extension BattleFeedbackLane {
                         duration: action.swingAt.timeIntervalSince(action.startAt),
                     )
                 }
-            case 1:
+            case .swing:
                 if let actorID = action.actorID {
                     attackOwners[actorID] = action.id
                     publishAttack(
@@ -122,7 +98,7 @@ extension BattleFeedbackLane {
                         duration: action.impactAt.timeIntervalSince(action.swingAt),
                     )
                 }
-            case 2:
+            case .impact:
                 if !action.deliversResultsImmediately {
                     action.present(action.events, action.damage, action.impactAt, action.id)
                 }
@@ -132,8 +108,7 @@ extension BattleFeedbackLane {
                         publishAttack(.windUp, for: actorID, at: action.impactAt)
                     }
                 }
-            default:
-                scheduledActions.remove(at: index)
+            case .recovery:
                 if let actorID = action.actorID, attackOwners[actorID] == action.id {
                     attackOwners.removeValue(forKey: actorID)
                     if !previewActors.contains(actorID) {
@@ -152,9 +127,7 @@ extension BattleFeedbackLane {
         if phase == .cancel {
             previewActors.remove(actorID)
         }
-        if phase == .windUp || phase == .cancel, scheduledActions.contains(where: {
-            $0.actorID == actorID && $0.stage <= 2
-        }) {
+        if phase == .windUp || phase == .cancel, actionQueue.hasPendingImpact(for: actorID) {
             return
         }
         publishAttack(phase, for: actorID, at: date)
@@ -173,9 +146,7 @@ extension BattleFeedbackLane {
     }
 
     var pendingFeedbackEnd: Date? {
-        scheduledActions.filter { $0.stage <= 2 }.map {
-            $0.impactAt.addingTimeInterval(feedbackLifetime)
-        }.max()
+        actionQueue.latestPendingImpact?.addingTimeInterval(feedbackLifetime)
     }
 
     func setSuspended(_ suspended: Bool, at date: Date = .now) {
@@ -190,11 +161,7 @@ extension BattleFeedbackLane {
             noteItemsChanged()
         } else if let paused = suspendedAt {
             let delay = date.timeIntervalSince(paused)
-            for index in scheduledActions.indices {
-                scheduledActions[index].startAt += delay
-                scheduledActions[index].swingAt += delay
-                scheduledActions[index].impactAt += delay
-            }
+            actionQueue.shift(by: delay)
             for index in activeItems.indices {
                 activeItems[index].pausedAt = nil
                 activeItems[index].availableAt += delay
@@ -246,26 +213,13 @@ extension BattleFeedbackLane {
     }
 
     private func acceleratePendingActions(for actorIDs: Set<String>, at date: Date) {
-        var previousImpact: Date?
-        for index in scheduledActions.indices where scheduledActions[index].stage <= 2 {
-            let action = scheduledActions[index]
-            if action.stage == 2 || action.actorID.map({ !actorIDs.contains($0) }) != false {
-                previousImpact = action.impactAt
-                continue
+        for change in actionQueue.accelerate(for: actorIDs, at: date) {
+            if let castID = change.castID {
+                automaticPlayback?.retime(id: castID, activationAt: change.swingAt)
             }
-            let start = max(date, previousImpact ?? date, action.castID == nil ? date : action.startAt)
-            let swing = min(action.swingAt, start.addingTimeInterval(0.08))
-            let impact = swing.addingTimeInterval(CombatFeedbackAttackRecipes.lungeCardAttack.swingDuration)
-            scheduledActions[index].startAt = min(action.startAt, start)
-            scheduledActions[index].swingAt = swing
-            scheduledActions[index].impactAt = impact
-            if let castID = action.castID {
-                automaticPlayback?.retime(id: castID, activationAt: swing)
+            if change.needsWindUpUpdate {
+                publishAttack(.windUp, for: change.actorID, at: date, duration: max(0, change.swingAt.timeIntervalSince(date)))
             }
-            if action.stage == 1, let actorID = action.actorID {
-                publishAttack(.windUp, for: actorID, at: date, duration: max(0, swing.timeIntervalSince(date)))
-            }
-            previousImpact = impact
         }
     }
 }

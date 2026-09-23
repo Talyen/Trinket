@@ -565,32 +565,18 @@ extension PlayerSaveStore {
             observedSave = save
             return
         }
-        if slices.contains(.root) {
-            observedSave.applyRootFields(from: save)
-        }
-        if slices.contains(.journey) {
-            observedSave.journey = save.journey
-        }
-        if slices.contains(.roster) {
-            observedSave.roster = save.roster
-        }
-        if slices.contains(.inventory) {
-            observedSave.inventory = save.inventory
-        }
-        if slices.contains(.homestead) {
-            observedSave.homestead = save.homestead
-        }
-        if slices.contains(.spires) {
-            observedSave.spires = save.spires
-        }
-        if slices.contains(.labyrinth) {
-            observedSave.labyrinth = save.labyrinth
-        }
-        if slices.contains(.voyage) {
-            observedSave.voyage = save.voyage
-        }
-        if slices.contains(.contracts) {
-            observedSave.contracts = save.contracts
+        for section in slices.sections {
+            switch section {
+            case .root: observedSave.applyRootFields(from: save)
+            case .journey: observedSave.journey = save.journey
+            case .roster: observedSave.roster = save.roster
+            case .inventory: observedSave.inventory = save.inventory
+            case .homestead: observedSave.homestead = save.homestead
+            case .spires: observedSave.spires = save.spires
+            case .labyrinth: observedSave.labyrinth = save.labyrinth
+            case .contracts: observedSave.contracts = save.contracts
+            case .voyage: observedSave.voyage = save.voyage
+            }
         }
     }
 }

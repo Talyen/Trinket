@@ -10,21 +10,63 @@ import TrinketCore
 ///
 /// `cloudStatePayload` is intentionally outside the slice set: it is local
 /// sync metadata committed with the graph transaction, never uploaded
-/// wholesale (see `PlayerSaveStore`). Adding a slice requires updating
-/// `changed`, `apply`, `installObservedSave`, and `applyRootFields` together.
+/// wholesale (see `PlayerSaveStore`). Each section is handled by exhaustive
+/// switches for comparison, sanitization, graph writes, and observation.
+/// Declaration order runs inventory before roster and Labyrinth last; raw
+/// values retain the existing slice bits.
+enum PlayerSaveSection: Int, CaseIterable {
+    case root = 0
+    case inventory = 3
+    case roster = 2
+    case homestead = 4
+    case journey = 1
+    case spires = 5
+    case voyage = 8
+    case contracts = 7
+    case labyrinth = 6
+
+    var slice: PlayerSaveSlice {
+        PlayerSaveSlice(rawValue: 1 << rawValue)
+    }
+
+    func differs(between snapshot: PlayerSave, and candidate: PlayerSave) -> Bool {
+        switch self {
+        case .root:
+            snapshot.schemaVersion != candidate.schemaVersion
+                || snapshot.modifiedAt != candidate.modifiedAt
+                || snapshot.sessionGeneration != candidate.sessionGeneration
+                || snapshot.worldSeed != candidate.worldSeed
+                || snapshot.starterSelection != candidate.starterSelection
+                || snapshot.corruptionAltarCooldownRemaining != candidate.corruptionAltarCooldownRemaining
+        case .journey: snapshot.journey != candidate.journey
+        case .roster: snapshot.roster != candidate.roster
+        case .inventory: snapshot.inventory != candidate.inventory
+        case .homestead: snapshot.homestead != candidate.homestead
+        case .spires: snapshot.spires != candidate.spires
+        case .labyrinth: snapshot.labyrinth != candidate.labyrinth
+        case .contracts: snapshot.contracts != candidate.contracts
+        case .voyage: snapshot.voyage != candidate.voyage
+        }
+    }
+}
+
 struct PlayerSaveSlice: OptionSet {
     let rawValue: UInt16
 
-    static let root = Self(rawValue: 1 << 0)
-    static let journey = Self(rawValue: 1 << 1)
-    static let roster = Self(rawValue: 1 << 2)
-    static let inventory = Self(rawValue: 1 << 3)
-    static let homestead = Self(rawValue: 1 << 4)
-    static let spires = Self(rawValue: 1 << 5)
-    static let labyrinth = Self(rawValue: 1 << 6)
-    static let voyage = Self(rawValue: 1 << 8)
-    static let contracts = Self(rawValue: 1 << 7)
-    static let all: Self = [.root, .journey, .roster, .inventory, .homestead, .spires, .labyrinth, .contracts, .voyage]
+    static let root = PlayerSaveSection.root.slice
+    static let journey = PlayerSaveSection.journey.slice
+    static let roster = PlayerSaveSection.roster.slice
+    static let inventory = PlayerSaveSection.inventory.slice
+    static let homestead = PlayerSaveSection.homestead.slice
+    static let spires = PlayerSaveSection.spires.slice
+    static let labyrinth = PlayerSaveSection.labyrinth.slice
+    static let contracts = PlayerSaveSection.contracts.slice
+    static let voyage = PlayerSaveSection.voyage.slice
+    static let all = PlayerSaveSection.allCases.reduce(into: Self(rawValue: 0)) { $0.insert($1.slice) }
+
+    var sections: [PlayerSaveSection] {
+        PlayerSaveSection.allCases.filter { contains($0.slice) }
+    }
 
     static func changed(
         between snapshot: PlayerSave,
@@ -32,39 +74,8 @@ struct PlayerSaveSlice: OptionSet {
         within candidates: Self = .all,
     ) -> Self {
         var slices: Self = []
-        if candidates.contains(.root) {
-            if snapshot.schemaVersion != candidate.schemaVersion
-                || snapshot.modifiedAt != candidate.modifiedAt
-                || snapshot.sessionGeneration != candidate.sessionGeneration
-                || snapshot.worldSeed != candidate.worldSeed
-                || snapshot.starterSelection != candidate.starterSelection
-                || snapshot.corruptionAltarCooldownRemaining != candidate.corruptionAltarCooldownRemaining {
-                slices.insert(.root)
-            }
-        }
-        if candidates.contains(.journey), snapshot.journey != candidate.journey {
-            slices.insert(.journey)
-        }
-        if candidates.contains(.roster), snapshot.roster != candidate.roster {
-            slices.insert(.roster)
-        }
-        if candidates.contains(.inventory), snapshot.inventory != candidate.inventory {
-            slices.insert(.inventory)
-        }
-        if candidates.contains(.homestead), snapshot.homestead != candidate.homestead {
-            slices.insert(.homestead)
-        }
-        if candidates.contains(.spires), snapshot.spires != candidate.spires {
-            slices.insert(.spires)
-        }
-        if candidates.contains(.labyrinth), snapshot.labyrinth != candidate.labyrinth {
-            slices.insert(.labyrinth)
-        }
-        if candidates.contains(.voyage), snapshot.voyage != candidate.voyage {
-            slices.insert(.voyage)
-        }
-        if candidates.contains(.contracts), snapshot.contracts != candidate.contracts {
-            slices.insert(.contracts)
+        for section in candidates.sections where section.differs(between: snapshot, and: candidate) {
+            slices.insert(section.slice)
         }
         return slices
     }
@@ -232,62 +243,51 @@ extension PlayerSaveRoot {
     }
 
     func apply(_ save: PlayerSave, slices: PlayerSaveSlice, context: ModelContext? = nil) {
-        if slices.contains(.root) {
-            schemaVersion = save.schemaVersion
-            modifiedAt = save.modifiedAt
-            sessionGeneration = save.sessionGeneration
-            worldSeed = save.worldSeed
-            starterSelectionPhaseRawValue = save.starterSelection.phase.rawValue
-            starterHeroID = save.starterSelection.heroID
-            corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
-        }
-
-        if slices.contains(.journey) {
-            let model = journey ?? JourneyProgressModel()
-            model.update(from: save.journey, context: context)
-            journey = model
-            model.root = self
-        }
-
-        if slices.contains(.roster) {
-            let model = roster ?? RosterModel()
-            model.update(from: save.roster, context: context)
-            roster = model
-            model.root = self
-        }
-
-        if slices.contains(.inventory) {
-            let model = inventory ?? InventoryModel()
-            model.update(from: save.inventory, context: context)
-            inventory = model
-            model.root = self
-        }
-
-        if slices.contains(.homestead) {
-            let model = homestead ?? HomesteadModel()
-            model.update(from: save.homestead, context: context)
-            homestead = model
-            model.root = self
-        }
-
-        if slices.contains(.spires) {
-            let model = spires ?? SpiresProgressModel()
-            model.update(from: save.spires, context: context)
-            spires = model
-            model.root = self
-        }
-
-        if slices.contains(.labyrinth) {
-            let model = labyrinth ?? LabyrinthProgressModel()
-            model.update(from: save.labyrinth, context: context)
-            labyrinth = model
-            model.root = self
-        }
-        if slices.contains(.voyage) {
-            voyagePayload = save.voyage.encodedPayload
-        }
-        if slices.contains(.contracts) {
-            contractsPayload = save.contracts.encodedPayload
+        for section in slices.sections {
+            switch section {
+            case .root:
+                schemaVersion = save.schemaVersion
+                modifiedAt = save.modifiedAt
+                sessionGeneration = save.sessionGeneration
+                worldSeed = save.worldSeed
+                starterSelectionPhaseRawValue = save.starterSelection.phase.rawValue
+                starterHeroID = save.starterSelection.heroID
+                corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
+            case .journey:
+                let model = journey ?? JourneyProgressModel()
+                model.update(from: save.journey, context: context)
+                journey = model
+                model.root = self
+            case .roster:
+                let model = roster ?? RosterModel()
+                model.update(from: save.roster, context: context)
+                roster = model
+                model.root = self
+            case .inventory:
+                let model = inventory ?? InventoryModel()
+                model.update(from: save.inventory, context: context)
+                inventory = model
+                model.root = self
+            case .homestead:
+                let model = homestead ?? HomesteadModel()
+                model.update(from: save.homestead, context: context)
+                homestead = model
+                model.root = self
+            case .spires:
+                let model = spires ?? SpiresProgressModel()
+                model.update(from: save.spires, context: context)
+                spires = model
+                model.root = self
+            case .labyrinth:
+                let model = labyrinth ?? LabyrinthProgressModel()
+                model.update(from: save.labyrinth, context: context)
+                labyrinth = model
+                model.root = self
+            case .contracts:
+                contractsPayload = save.contracts.encodedPayload
+            case .voyage:
+                voyagePayload = save.voyage.encodedPayload
+            }
         }
     }
 }

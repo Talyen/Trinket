@@ -20,7 +20,8 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
   `ContractsPlayMode`, `VoyagePlayMode`, `EncounterPlayMode`): constructor-injected
   collaborators, no `PlaySession` back-pointer
 - Battle entry runs through one `PlayBattleLaunch.startBattle` gate
-  (paywall → busy → resolve → activate). A busy battle surfaces the failure for
+  (paywall → busy → resolve → activate). Mode-specific eligibility and request
+  construction run at resolve time. A busy battle surfaces the failure for
   explicit board/floor taps (Spires/Contracts) and swallows map taps
   (Journey/Labyrinth); a busy transient encounter is always silent. Preparation
   pruning is ownership-preserving: a mode drops only its own stale warms, never

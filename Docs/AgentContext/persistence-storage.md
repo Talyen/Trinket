@@ -24,15 +24,19 @@ Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roste
 A database write failure first preserves the complete candidate in an atomic
 `.pending-save.json` file beside the store. The versioned local envelope reuses
 `CloudSaveSnapshot` and includes local session generation and exact cloud metadata.
-A pending recovery record is authoritative: subsequent writes update it before the
-primary graph, so account switches, resets, receipts, and gameplay cannot separate.
+A pending recovery record is authoritative unless the primary graph has a newer
+local session generation from a durable reset. Subsequent writes update a
+pending record before the primary graph, so account switches, resets, receipts,
+and gameplay cannot separate.
 Successful graph persistence removes the pending record. Recovery retries use
 bounded backoff while the app runs. Startup restores the pending record before
 publishing state and preserves the previous readable graph snapshot separately.
 An unreadable recovery record is not discarded or replaced with older progress.
 Reset replaces the prior pending record only when the fresh reset is durable;
-a failed reset retains the prior recoverable progress. Previous snapshots are
-never restored automatically after reset. This does not change the SwiftData or CloudKit schema.
+a failed reset retains the prior recoverable progress. If cleanup after a durable
+reset fails, startup keeps the newer graph and retries pending-file cleanup.
+Previous snapshots are never restored automatically after reset. This does not
+change the SwiftData or CloudKit schema.
 
 An action completes only after the graph or recovery file accepts its save. If
 both writes fail, restore the pre-mutation value snapshot into affected graph
@@ -82,13 +86,14 @@ identified domain action with before/after snapshots in the local cloud outbox;
 deferred mutations remain in the complete save projection. Upload requests
 carry those actions, their acknowledged base snapshot, and a stable request ID;
 the server replays the actions into one complete projected save and an immutable
-receipt. A successful receipt removes only its included local actions. Union earned items, unlocks, talents, claims, and
-    completion; use the latest valid party/loadout edit, retaining displaced gear in
-    Inventory. A salvage on one branch stays removed when the other branch only
-    changes unrelated progress. Combine independent balance changes from a shared base and floor
-concurrent overspending at zero. On first attachment of unrelated older saves,
-take the larger balance per resource. Archive conflicting snapshots in the same
-atomic server operation before installing the merge. A failed archive leaves
+receipt. A successful receipt removes only its included local actions. Union earned
+items, unlocks, talents, claims, and completion; use the latest valid party/loadout
+edit, retaining displaced gear in Inventory. A one-sided change to an existing item,
+including corruption or salvage, survives unrelated progress on the other branch.
+Combine independent balance changes from a shared base and floor concurrent
+overspending at zero. On first attachment of unrelated older saves, take the larger
+balance per resource. Archive conflicting snapshots in the same atomic server
+operation before installing the merge. A failed archive leaves
 the local snapshot and outbox intact.
 
 Long offline journals compact older, unsubmitted adjacent actions into one
