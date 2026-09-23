@@ -28,9 +28,6 @@ extension BattleTurnEngine {
         } else if ability.dealsCombatDamage {
             action.goldDamage = context.heroTalents.history[actor.id]?.stolenGoldDamage ?? 0
             context.heroTalents.history[actor.id, default: HeroTalentHistory()].stolenGoldDamage = 0
-            if context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparations.remove(.poisonDamage) != nil {
-                increaseCardDamage(2, keyword: .poison, components: &components)
-            }
         }
         context.resolution.prepareActionTalents(action)
         return ability.replacingOperations(preparedOperations(ability, components: components, effects: effects))
@@ -64,11 +61,8 @@ extension BattleTurnEngine {
               !card.capturedPreparations, let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
         var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
         var eligible: Set<TalentPreparation> = []
-        if !outcome.damageKeywords.isEmpty {
-            eligible.insert(.poisonDamage)
-        }
         if outcome.damageKeywords.contains(.physical) {
-            eligible.formUnion([.bleedDamage, .ignorePhysicalBlock, .stealGold])
+            eligible.formUnion([.bleedDamage, .ignorePhysicalBlock])
         }
         if outcome.damageKeywords.contains(.poison) {
             eligible.insert(.doublePoison)
@@ -98,21 +92,12 @@ extension BattleTurnEngine {
         if card.preparations.contains(.bleedDamage), context.claimHeroCardBonus("redline", actorID: actor.id) {
             increaseCardDamage(2, keyword: .bleed, components: &components)
         }
-        if card.preparations.contains(.poisonDamage), context.claimHeroCardBonus("perfectPurity", actorID: actor.id) {
-            increaseCardDamage(2, keyword: .poison, components: &components)
-        }
-        if outcome.damageKeywords.contains(.poison), context.modifiers(for: actor.id).triggers.sealedVial,
-           context.claimHeroCardBonus("sealedVial", actorID: actor.id) {
-            let potency = context.roster.activeEffects(for: actor).reduce(0) { sum, active in
-                guard case let .poison(amount) = active.effect else { return sum }
-                return sum + amount
-            }
-            if potency > 0 {
-                ActiveEffectMutation.removeMatching(from: actor, in: &context) { $0.kind == .poison }
-                increaseCardDamage(potency, keyword: .poison, components: &components)
-            }
-        }
-        if card.preparations.contains(.doublePoison), context.claimHeroCardBonus("unstableCulture", actorID: actor.id) {
+        let sealedVial = outcome.damageKeywords.contains(.poison)
+            && context.modifiers(for: actor.id).triggers.sealedVial
+            && context.claimHeroTalent("sealedVial", actorID: actor.id, battle: true)
+        let unstableCulture = card.preparations.contains(.doublePoison)
+            && context.claimHeroCardBonus("unstableCulture", actorID: actor.id)
+        if sealedVial || unstableCulture {
             components = components.map { component in
                 guard component.keyword == .poison, component.target != .actor else { return component }
                 return DamageComponent(

@@ -30,6 +30,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var clearMind: Bool = false
     public var cleanBreak: Bool = false
     public var perfectPurity: Bool = false
+    public var purgePreparesDoubleHolyAttack: Bool = false
 
     public init(
         interdict: Bool = false,
@@ -57,7 +58,8 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         antitoxinCoating: Bool = false,
         clearMind: Bool = false,
         cleanBreak: Bool = false,
-        perfectPurity: Bool = false
+        perfectPurity: Bool = false,
+        purgePreparesDoubleHolyAttack: Bool = false
     ) {
         self.interdict = interdict
         self.lessonLearned = lessonLearned
@@ -85,10 +87,11 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.clearMind = clearMind
         self.cleanBreak = cleanBreak
         self.perfectPurity = perfectPurity
+        self.purgePreparesDoubleHolyAttack = purgePreparesDoubleHolyAttack
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity"]
+    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity", "purgePreparesDoubleHolyAttack"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -119,6 +122,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         if self.clearMind != other.clearMind { names.append("clearMind") }
         if self.cleanBreak != other.cleanBreak { names.append("cleanBreak") }
         if self.perfectPurity != other.perfectPurity { names.append("perfectPurity") }
+        if self.purgePreparesDoubleHolyAttack != other.purgePreparesDoubleHolyAttack { names.append("purgePreparesDoubleHolyAttack") }
         return names
     }
 }
@@ -151,6 +155,7 @@ extension CleanseTriggers {
         clearMind = clearMind || other.clearMind
         cleanBreak = cleanBreak || other.cleanBreak
         perfectPurity = perfectPurity || other.perfectPurity
+        purgePreparesDoubleHolyAttack = purgePreparesDoubleHolyAttack || other.purgePreparesDoubleHolyAttack
     }
 }
 
@@ -183,7 +188,8 @@ extension CleanseTriggers {
             antitoxinCoating: values.decode(Bool.self, "antitoxinCoating", default: false),
             clearMind: values.decode(Bool.self, "clearMind", default: false),
             cleanBreak: values.decode(Bool.self, "cleanBreak", default: false),
-            perfectPurity: values.decode(Bool.self, "perfectPurity", default: false)
+            perfectPurity: values.decode(Bool.self, "perfectPurity", default: false),
+            purgePreparesDoubleHolyAttack: values.decode(Bool.self, "purgePreparesDoubleHolyAttack", default: false)
         )
     }
 
@@ -214,5 +220,6 @@ extension CleanseTriggers {
         try container.encodeNonDefault(clearMind, "clearMind", default: false)
         try container.encodeNonDefault(cleanBreak, "cleanBreak", default: false)
         try container.encodeNonDefault(perfectPurity, "perfectPurity", default: false)
+        try container.encodeNonDefault(purgePreparesDoubleHolyAttack, "purgePreparesDoubleHolyAttack", default: false)
     }
 }

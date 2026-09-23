@@ -9,6 +9,12 @@ package extension CombatTriggerEngine {
             let triggers = context.modifiers(for: actor.id).triggers
 
             events.append(contentsOf: endOfTurnBlockConversion(runtime: runtime, actor: actor, triggers: triggers, in: &context))
+            if triggers.endTurnZeroManaCleanse, runtime.maxMana > 0, runtime.currentMana == 0 {
+                events.append(contentsOf: performRandomCleanses(
+                    source: actor, target: actor, count: 1,
+                    abilityName: "Arcane Cleansing", in: &context,
+                ))
+            }
             events.append(contentsOf: endOfTurnHealing(actor: actor, triggers: triggers, in: &context))
             events.append(contentsOf: hoardArmorBlock(actor: actor, triggers: triggers, in: &context))
         }

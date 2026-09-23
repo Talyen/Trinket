@@ -49,8 +49,7 @@ extension BattleCardCombatEngine {
         let livingParty = [context.roster.hero, context.roster.companion].filter(\.isAlive).map(\.id)
         let partyDamageBonus = context.resolution.reservePartyCardDamage(livingSourceIDs: livingParty)
         let playSerial = context.resolution.beginCard(
-            actorID: actor.id, tier: card.ability.tier,
-            previousDamageKeywords: context.heroTalents.history[actor.id]?.lastDamageKeywords ?? [],
+            actorID: actor.id,
             partyDamageBonus: partyDamageBonus,
         )
         defer { context.resolution.endCard(playSerial) }

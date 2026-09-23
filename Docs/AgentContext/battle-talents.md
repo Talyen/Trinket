@@ -17,15 +17,16 @@ named talent only:
 
 ### Golden Opportunity and Lucky Charm
 
-Golden Opportunity draws on the first qualifying Gold gain per round. Lucky
-Charm Cleanses on the first Gold-granting card per round. A qualifying event
-spends its allowance even when no card or negative effect is available.
+Golden Opportunity draws on the first qualifying Gold gain per round. Wildcard's
+Lucky Charm rolls once per Gold-gaining ability and Cleanses one negative status
+effect only when the roll succeeds and the owner has a removable effect.
 
-### First Bloom and Grove Reserve
+### Arcane Thorns, Living Conduit, and Grove Reserve
 
-First Bloom rewards the selected Poison card outcome without requiring a later
-Mana-restoring card. Grove Reserve divides unspent Mana by six before ordinary
-Block bonuses; a zero base amount grants no Block.
+Arcane Thorns rewards actual Mana restoration. Living Conduit converts excess
+Mana restoration into Thorns, including when Mana starts full; it does not
+require a Mana-using Companion. Grove Reserve gives the Companion passive Dodge
+while the owner has unspent Mana.
 
 ### Loyal Companion
 
@@ -65,19 +66,20 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 
 ### Poison riders and damage conversions
 
-Venomous Arrows and Venomous Skin resolve their immediate Poison damage before
-attaching stacks. Prismatic Edge's Burn and Thorn Shedding's Poison attach only
-the Health damage their respective hits actually dealt; fully blocked hits attach
-none. Sunwall grants the Companion Block equal to actual Holy Health damage,
-without applying Block bonuses or fight pacing a second time.
+Venomous Skin resolves its immediate Poison damage before attaching stacks.
+Prismatic Edge's Burn and allied Thorn Shedding's Poison attach only the Health
+damage their respective hits actually dealt; fully blocked hits attach none.
+Sunwall rolls once per Holy ability and, on success, grants the Companion Block
+equal to actual Holy Health damage without applying Block bonuses or pacing
+again.
 
 ### Physical damage rewards and Burn ticks
 
 Concussive Force and Martial Guard include Physical reaction and periodic damage,
 not only attacks. Their proportional rewards use actual Health damage; converted
 Block is already resolved and does not receive outgoing Block bonuses again.
-Bloodfire, Healing Flames, Flame Shield, and Ember Shield also observe damaging
-Burn ticks. Fully absorbed ticks grant no damage rewards.
+Healing Flames, Flame Shield, and Ember Shield also observe damaging Burn ticks.
+Fully absorbed ticks grant no damage rewards.
 
 ### Thick Hide
 
@@ -109,39 +111,41 @@ Physical attack added to non-Physical attacks).
 
 ### Noxious Reaction, Serrated Blades, and Blood Money
 
-Damage conversions consume their stored effect before resolving the bonus.
-Noxious Reaction spends Poison up to actual Bleed Health damage without
-reapplying it. Serrated Blades ticks existing Bleeds with their original
-owners and durations; it does not apply another Bleed for each tick. Blood
-Money rewards its owner's lethal hit against a Bleeding enemy, including
-lethal Bleed detonations, instead of rewarding each damage event.
-Turn effects read and commit live state, so later ticks use only the
-remaining potency after earlier decay and consumption.
+Noxious Reaction prepares one guaranteed Bleed Critical Hit after a Poison
+Critical Hit. Serrated Blades extends Bleed applied by a Critical Hit without
+creating an extra damage event. Blood Money rewards its owner's lethal hit
+against a Bleeding enemy, including lethal Bleed detonations, instead of
+rewarding each damage event.
+
+### Bloodfire
+
+Bloodfire rolls once per Burn ability, on its first Burn attack hit. A success
+deals 4 immediate Bleed damage through the ordinary Block and damage pipeline
+and emits one automatic damage cue;
+ongoing Burn damage does not roll again.
 
 ### Paralysis, Bloodrush, and Arcane Focus
 
 Paralysis checks existing Poison on each damaging Poison hit, including
 applications and turn ticks. Bloodrush draws a Physical card from its owner's
-deck and leaves other cards in place. Arcane Focus's Freeze outcome deals
-damage through the normal control-damage pipeline.
+deck and leaves other cards in place. Arcane Focus adds one damage to Mana
+empowerment without creating another elemental hit.
 
 ### Steam Explosion and Backdraft
 
 Steam Explosion consumes Burn during Freeze-card preparation and adds its
 potency to the card's Freeze damage; secondary Freeze reactions do not
-activate it. Backdraft consumes Burn on a critical attack and adds its
-potency after the Critical Hit multiplier, before defenses, in that hit's
-element. Neither conversion detonates Burn or creates another attack.
+activate it. Backdraft increases Critical Hit damage against Burning enemies
+within the existing hit.
 
 ## Card preparation and rewards
 
 ### Quick Fingers
 
-Quick Fingers replaces Golden Touch in the Rogue’s Cutpurse tree while keeping
-the saved `rogue_gold_t3_2` unlock. The first positive Gold theft each player turn
-draws one card from the wearer’s deck; ordinary Gold gains and another party
-member’s theft do not qualify. Claim the allowance before drawing, even if no
-card can be drawn. Normal hand limits, buffering, and control restrictions apply.
+Quick Fingers draws when the owner's Critical Hit and Gold steal occur in the
+same ability. Claim the draw once per ability before drawing; ordinary Gold
+gains and another party member's theft do not qualify. Normal hand limits,
+buffering, and control restrictions apply.
 
 ### Card-triggered reactions
 
@@ -172,18 +176,27 @@ Use shared resolved-action classification (Block-absorbed attacks remain
 damaging; zero Health loss does not make support; preparing future damage is
 not current damage). Automatic abilities and reactions never recursively grant.
 
-### Sleight of Coin and Full House
+### Sleight of Coin and Jackpot
 
-Sleight of Coin rolls the owner's Critical Hit chance once per Gold card and
-doubles its resolved Gold gains, including theft; these are not attack
-Critical Hits. Full House carries its set of card types across turns, clears
-the set on payout, and does not bank repeated types.
+Sleight of Coin prepares +15% Dodge for the rest of the turn after a successful
+Gold steal; repeated steals refresh rather than stack it. Jackpot folds its
+extra Gold into a Critical Hit's Gold steal, producing one Gold gain event.
+
+### Consolation Prize and Feigned Miss
+
+Consolation Prize grants 3 Gold on the first fully Blocked attack each combat.
+Feigned Miss prepares double damage for the next Physical attack after an
+attack is fully Blocked. Neither reward requires the blocked attack to deal
+Health damage, and a later hit in the same ability cannot spend the preparation.
 
 ## Mana and empowerment
 
+Overcharge and Soul Burn prepare bonuses for a later attack. Their preparing
+ability cannot consume the bonus, even when it has multiple hits.
+
 ### Dark Recovery and Arcane Burst
 
-Dark Recovery checks the last-Mana payment before refunds or recovery. Arcane
+Dark Recovery increases Leech healing while the owner has no Mana. Arcane
 Burst carries Mana-spend progress across cards and turns, preserving excess
 toward its next trigger; its automatic plays do not recursively trigger it.
 Draw-and-play effects and Phantom Counter retain automatic ancestry throughout
@@ -191,11 +204,9 @@ nested payments and card reactions.
 
 ### Mana Cocoon, Arcane Cleansing, and Chaos Rift
 
-Mana Cocoon, Arcane Cleansing, and Chaos Rift use each actual Mana payment.
-Arcane Cleansing removes potency from a randomly chosen present Burn or
-Poison effect, without firing Cleanse or natural-expiry reactions. Chaos
-Rift divides the payment between two distinct elements from its existing
-Freeze, Burn, Poison, and Holy pool; the first receives any odd remainder.
+Mana Cocoon uses each actual Mana payment. Arcane Cleansing performs an ordinary
+Cleanse when its owner ends a turn at zero Mana. Chaos Rift increases damage
+from Mana-empowered Critical Hits within the existing hit.
 
 ### Dragon’s Patronage and Prismatic Scales
 
@@ -232,14 +243,15 @@ reapply healing magnitude bonuses, create further echoes, or revive defeated
 recipients. Wishspring uses the original overhealing amount alongside existing
 Block and maximum-Health conversions. Marrowmend fills existing Block only to 6.
 
-### Shelter Seed, Masterwork Mixture, and Thorn Shedding
+### Shelter Seed, Shared Prescription, and Thorn Shedding
 
-Shelter Seed checks Health before healing and grants only actual restoration
-as Thorns. Masterwork Mixture transfers resolved card overhealing only into
-the other living ally's missing Health, without rerolling bonuses or bouncing
-back. Thorn Shedding consumes Companion Thorns as Poison damage with normal
-Poison application; the Companion's own Resonant Shell conversion takes
-precedence when both are present.
+Shelter Seed checks Health before healing and grants three Block only after
+actual restoration. Shared Prescription offers excess healing to the other
+living ally up to their missing Health without applying healing bonuses again,
+then Reclaimed Reagents can convert
+half the remainder to Block. Thorn Shedding converts either ally's Thorns to
+Poison damage with normal Poison application; a Companion's own Resonant Shell
+conversion takes precedence.
 
 ## Removal, protection, and Block
 
@@ -269,8 +281,9 @@ on actual Health lost (despite the internal Thorns trigger name).
 
 ### Lightning Rod and Avalanche Guard
 
-Lightning Rod and Avalanche Guard add the existing Block amount without
-reapplying outgoing Block bonuses or pacing.
+Lightning Rod adds half the attacker's Block to Stun damage within the existing
+hit. Avalanche Guard still duplicates existing Block without reapplying Block
+bonuses or pacing.
 
 ### Lesson Learned and Undying Ember
 

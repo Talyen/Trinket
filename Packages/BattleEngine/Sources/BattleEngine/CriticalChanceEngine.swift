@@ -40,7 +40,14 @@ package enum CriticalChanceEngine {
         var chance = 0.10
         chance += abilityBonus
         chance += context.modifiers(for: actorID).triggers.criticalChanceBonus
+        if context.roster.hasAffliction(.burn, on: defender) {
+            chance += context.modifiers(for: actorID).triggers.criticalVsBurningBonus
+        }
         chance += partyCritChanceBonus(actorRole: actor.role, in: context)
+        if actor.role == .companion, context.roster.hero.isAlive,
+           context.roster.hasAffliction(.burn, on: defender) {
+            chance += context.heroModifiers.triggers.companionCriticalVsBurningBonus
+        }
         if context.modifiers(for: actorID).triggers.killingGrace {
             chance += DamagePipeline.dodgeChance(for: actor.combatant, attackerID: context.roster.enemy.id, in: context)
         }

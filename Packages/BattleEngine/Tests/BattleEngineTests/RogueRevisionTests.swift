@@ -35,38 +35,16 @@ struct RogueRevisionTests {
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
     }
 
-    @Test func `scent of blood rewards low health`() throws {
+    @Test func `mortal wound halves healing received by bleeding enemies`() {
         let profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t3_2"])
-        try #expect(profile.triggers.damageVsBleedingBonus == 0)
-        try #expect(profile.triggers.damageBelowHealthPercentThreshold == 0.5)
-        try #expect(profile.triggers.damageBelowHealthPercentBonus == 2)
-
-        func dealt(targetMaxHealth: Int, targetHealth: Int?, targetEffects: [ActiveEffect]) -> Int {
-            var battle = BattleStateTestFactory.makeMinimalBattle(
-                hero: CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50),
-                companion: CombatantFixtures.combatant(id: "companion", role: .companion),
-                enemy: CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: targetMaxHealth),
-                enemyEffects: targetEffects,
-                enemyHealth: targetHealth,
-                heroModifiers: profile,
-            )
-            let outcome = battle.resolveDamage(
-                DamageRequest(amount: 4, target: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source"),
-            )
-            return outcome.healthLost
+        #expect(profile.triggers.bleedingEnemyHealingMultiplier == 0.5)
+        for bleeding in [false, true] {
+            let effects = bleeding ? [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)] : []
+            var battle = BattleTestFixtures.makePipelineContext(targetEffects: effects, heroModifiers: profile)
+            battle.appliesFightPacing = false
+            battle.roster.enemy.currentHealth = 10
+            _ = battle.healEmitting(amount: 8, target: battle.enemy, source: battle.enemy, abilityName: "Heal")
+            #expect(battle.roster.enemy.currentHealth == (bleeding ? 14 : 18))
         }
-
-        #expect(dealt(targetMaxHealth: 50, targetHealth: nil, targetEffects: []) == 4)
-        #expect(dealt(
-            targetMaxHealth: 50,
-            targetHealth: nil,
-            targetEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0)],
-        ) == 4)
-        #expect(dealt(targetMaxHealth: 50, targetHealth: 20, targetEffects: []) == 6)
-        #expect(dealt(
-            targetMaxHealth: 50,
-            targetHealth: 20,
-            targetEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0)],
-        ) == 6)
     }
 }

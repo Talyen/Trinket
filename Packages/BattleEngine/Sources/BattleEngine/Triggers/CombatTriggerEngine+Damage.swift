@@ -308,12 +308,6 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        if triggers.burnDamageHealFlat > 0 {
-            events.append(contentsOf: emitHeal(
-                "burnDamageHealFlat", "Bloodfire",
-                amount: triggers.burnDamageHealFlat, to: source, source: source, in: &context,
-            ))
-        }
         if triggers.onBurnDamageHealLowestAllyFlat > 0 {
             let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
             events.append(contentsOf: emitHeal(
@@ -363,6 +357,12 @@ package extension CombatTriggerEngine {
             purgeAll: profile.triggers.criticalPurgeAll,
             in: &context,
         )
+        if source.role == .companion, context.roster.hero.isAlive,
+           context.heroModifiers.triggers.toxicTransfusion {
+            context.roster.mutateRuntime(for: context.roster.hero.combatant) {
+                $0.talents.pending.doubleNextPoisonAttack = true
+            }
+        }
 
         if profile.triggers.criticalGoldFlat > 0 {
             events.append(contentsOf: emitGold(

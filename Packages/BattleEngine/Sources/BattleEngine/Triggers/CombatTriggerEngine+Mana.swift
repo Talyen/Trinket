@@ -38,6 +38,16 @@ package extension CombatTriggerEngine {
         let amountSpent = payment.amountSpent
         let spentLastMana = payment.spentLastMana
         let triggers = context.modifiers(for: actor.id).triggers
+        if spentLastMana, triggers.lastManaNextBurnPercent > 0 {
+            let preparedCardSerial = context.resolution.cardTalents?.playSerial
+            context.roster.mutateRuntime(for: actor) {
+                $0.talents.pending.nextBurnAttackPercent = max(
+                    $0.talents.pending.nextBurnAttackPercent,
+                    triggers.lastManaNextBurnPercent,
+                )
+                $0.talents.pending.nextBurnAttackPreparedCardSerial = preparedCardSerial
+            }
+        }
         return CombatCheckpoint.payment(payment).resolve([
             { afterHeroTalentSpendMana(actor: actor, amount: amountSpent, in: &$0) },
             { drawAfterSpendMana(by: actor, in: &$0) },
@@ -60,11 +70,25 @@ package extension CombatTriggerEngine {
             },
             { spendManaDamageBonusIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
             { zeroManaRestoreIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
+            { drawOnLastManaIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
             { closedCircuitIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
             { lastManaStunIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
             { autoPlayAfterManaSpend(by: actor, amountSpent: amountSpent, in: &$0) },
             { spendManaRandomDoTIfNeeded(actor: actor, triggers: triggers, in: &$0) },
         ], in: &context)
+    }
+
+    private static func drawOnLastManaIfNeeded(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        spentLastMana: Bool,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.spendLastManaDrawCard, spentLastMana,
+              context.claimHeroCardBonus("Arcane Surge", actorID: actor.id),
+              let owner = context.roster.participant(for: actor)
+        else { return [] }
+        return drawCards(1, for: owner, actor: actor, abilityName: "Arcane Surge", in: &context)
     }
 
     private static func spendManaBlockIfNeeded(
@@ -378,5 +402,24 @@ package extension CombatTriggerEngine {
             ))
         }
         return events
+    }
+
+    static func consumeManaOverflowThorns(
+        for actor: Combatant,
+        restoredMana: Bool,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let overflow = context.roster.runtime(for: actor)?.talents.pending.manaOverflowThorns ?? 0
+        let arcane = restoredMana ? context.modifiers(for: actor.id).triggers.arcaneThornsOnManaRestore : 0
+        let amount = overflow + arcane
+        guard amount > 0 else { return [] }
+        context.roster.mutateRuntime(for: actor) { $0.talents.pending.manaOverflowThorns = 0 }
+        return heroTalentThorns(
+            to: actor,
+            source: actor,
+            amount: amount,
+            name: overflow > 0 ? "Living Conduit" : "Arcane Thorns",
+            in: &context,
+        )
     }
 }

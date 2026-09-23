@@ -40,6 +40,10 @@ enum PurgeOperation {
         }
         context.roster.setActiveEffects(effects, for: target)
         CombatTriggerEngine.protectPurgedEffects(removed, source: source, target: target, in: &context)
+        if target.role == .enemy,
+           context.modifiers(for: source.id).triggers.purgePreparesDoubleHolyAttack {
+            context.roster.mutateRuntime(for: source) { $0.talents.pending.doubleNextHolyAttack = true }
+        }
         // One event per removed buff (sorted for determinism), so direct
         // purges report what was actually removed instead of collapsing to
         // a single generic line. This matches the long-standing triggered

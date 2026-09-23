@@ -8,39 +8,10 @@ package extension CombatTriggerEngine {
         for owner in [BattleParticipant.hero, .companion] {
             let actor = context.roster[owner].combatant
             var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
-            history.playedStun = false
             history.spentMana = false
-            history.falseOpening = false
             context.heroTalents.history[actor.id] = history
         }
         return []
-    }
-
-    static func endHeroTalentTurn(in context: inout BattleState) -> [ActionEvent] {
-        var events: [ActionEvent] = []
-        for (owner, runtime) in livingPartyMembers(in: context) {
-            let actor = runtime.combatant
-            let triggers = context.modifiers(for: actor.id).triggers
-            let history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
-            if triggers.lastWager, history.lastGrantedGold, context.turnCadence.cardsPlayed[owner, default: 0] > 0 {
-                events.append(contentsOf: heroTalentThorns(to: actor, source: actor, name: "Last Wager", in: &context))
-            }
-            if triggers.groveReserve, runtime.currentMana >= 6, context.roster.companion.isAlive {
-                events.append(contentsOf: context.applyBlock(
-                    runtime.currentMana / 6, to: context.roster.companion.combatant,
-                    source: actor, abilityName: "Grove Reserve",
-                ))
-            }
-        }
-        return events
-    }
-
-    static func afterHeroTalentEnemyTurn(in context: inout BattleState) -> [ActionEvent] {
-        context.heroTalents.enemyTurnActive = false
-        let actor = context.roster.hero.combatant
-        guard context.heroModifiers.triggers.quietGrove,
-              !context.heroTalents.healthLostDuringEnemyTurn.contains(actor.id) else { return [] }
-        return heroTalentHeal(to: context.roster.companion.combatant, source: actor, name: "Quiet Grove", in: &context)
     }
 
     static func afterHeroTalentPoisonExpiry(sourceID: String?, target: Combatant, in context: inout BattleState) -> [ActionEvent] {
@@ -51,18 +22,18 @@ package extension CombatTriggerEngine {
             context.heroTalents.history[sourceID, default: HeroTalentHistory()].preparations.insert(.doublePoison)
         }
         var events: [ActionEvent] = []
-        if triggers.spentReagents {
-            events.append(contentsOf: heroTalentMana(
+        if triggers.poisonExpiryManaRestore > 0 {
+            events.append(contentsOf: context.restoreManaEmitting(
+                triggers.poisonExpiryManaRestore,
                 to: source.combatant,
-                source: source.combatant,
-                name: "Spent Reagents",
-                in: &context,
+                abilityName: "Spent Reagents",
             ))
         }
-        if triggers.returningBloom {
+        if triggers.returningBloomHeal > 0 {
             events.append(contentsOf: heroTalentHeal(
                 to: context.roster.companion.combatant,
                 source: source.combatant,
+                amount: triggers.returningBloomHeal,
                 name: "Returning Bloom",
                 in: &context,
             ))
@@ -79,17 +50,36 @@ package extension CombatTriggerEngine {
         guard context.allowsHeroTalentReaction, context.roster.health(for: actor) > 0 else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
-        if empowered, triggers.barkweave {
-            context.removeTalentPoint(.thorns, from: context.roster.enemy.combatant)
+        if empowered, triggers.manaEmpowerPurgeCount > 0, context.roster.enemy.isAlive {
+            events.append(contentsOf: applyPurge(
+                to: context.roster.enemy.combatant,
+                source: actor,
+                abilityName: "Hexing Rune",
+                count: triggers.manaEmpowerPurgeCount,
+                purgeAll: false,
+                in: &context,
+            ))
+        }
+        if empowered, triggers.barkweaveOnEmpowerBlock > 0 {
+            events.append(contentsOf: context.applyBlock(
+                triggers.barkweaveOnEmpowerBlock,
+                to: actor,
+                source: actor,
+                abilityName: "Barkweave",
+            ))
+        }
+        if empowered, triggers.sharedCurrentCompanionNextAttackBonus > 0,
+           context.roster.companion.isAlive {
+            context.roster.mutateRuntime(for: context.roster.companion.combatant) {
+                $0.talents.pending.cardDamageBonus = max(
+                    $0.talents.pending.cardDamageBonus,
+                    triggers.sharedCurrentCompanionNextAttackBonus,
+                )
+            }
         }
         guard amount > 0 else { return events }
         context.heroTalents.history[actor.id, default: HeroTalentHistory()].spentMana = true
         let hero = context.roster.hero.combatant
-        if actor.role == .companion, context.roster.hero.isAlive, context.heroModifiers.triggers.sharedCurrent {
-            events.append(contentsOf: heroTalentThorns(
-                to: hero, source: hero, amount: amount, name: "Shared Current", in: &context,
-            ))
-        }
         if context.roster.hero.isAlive, context.roster.companion.isAlive,
            context.heroTalents.history[hero.id]?.spentMana == true,
            context.heroTalents.history[context.roster.companion.id]?.spentMana == true,
@@ -131,11 +121,17 @@ package extension CombatTriggerEngine {
         }
     }
 
-    static func heroTalentHeal(to target: Combatant, source: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {
+    static func heroTalentHeal(
+        to target: Combatant,
+        source: Combatant,
+        amount: Int = 1,
+        name: String,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
         guard context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return [] }
         return withHeroReaction(in: &context) { context in
             let outcome = HealingEngine.resolveHeal(
-                HealRequest(amount: 1, target: target, sourceActorID: source.id, logAs: .silent), in: &context,
+                HealRequest(amount: amount, target: target, sourceActorID: source.id, logAs: .silent), in: &context,
             )
             guard outcome.healthRestored > 0 else { return outcome.events }
             return outcome.events + [context.nextEvent(
@@ -166,18 +162,35 @@ package extension CombatTriggerEngine {
         }
     }
 
-    static func heroTalentDamage(_ keyword: Keyword, source: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    static func heroTalentDamage(
+        _ keyword: Keyword,
+        amount: Int = 1,
+        source: Combatant,
+        name: String,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
         guard context.roster.enemy.isAlive, context.roster.health(for: source) > 0 else { return [] }
         return withHeroReaction(in: &context) { context in
             let target = context.roster.enemy.combatant
             let outcome = context.resolveDamage(DamageRequest(
-                amount: 1,
+                amount: amount,
                 target: target,
                 keyword: keyword,
                 sourceActorID: source.id,
                 options: .reaction(),
             ))
             var events = outcome.events
+            if outcome.healthLost > 0 {
+                events.append(context.nextEvent(
+                    kind: .abilityDamage,
+                    actorName: source.name,
+                    abilityName: name,
+                    target: target,
+                    amount: outcome.healthLost,
+                    keyword: keyword,
+                    origin: .automatic,
+                ))
+            }
             if keyword == .burn || keyword == .poison {
                 events.append(contentsOf: context.applyDecayingDoT(
                     keyword: keyword,

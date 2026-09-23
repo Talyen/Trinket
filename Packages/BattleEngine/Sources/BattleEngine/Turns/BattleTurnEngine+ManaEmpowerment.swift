@@ -21,6 +21,7 @@ package extension BattleTurnEngine {
         while purchases < purchaseLimit, context.roster.health(for: actor) > 0 {
             guard let payment = payEmpowerment(ability: ability, actor: actor, in: &context) else { break }
             context.roster.mutateRuntime(for: actor) { $0.talents.battle.hasEmpoweredWithMana = true }
+            context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextManaEmpowerDiscount = 0 }
             purchases += 1
             totalManaSpent += payment.reduce(0) { $0 + $1.amountSpent }
             ability = empoweredAbility(ability, triggers: triggers)
@@ -35,6 +36,15 @@ package extension BattleTurnEngine {
         guard context.roster.health(for: actor) > 0 else { return events }
         if purchases > 0 {
             context.roster.mutateRuntime(for: actor) { $0.talents.action.empoweredByMana = true }
+            if triggers.manaEmpowerNextAttackPercent > 0 {
+                prepareOvercharge(for: actor, percent: triggers.manaEmpowerNextAttackPercent, in: &context)
+            }
+            if BattleChance.succeeds(
+                probability: triggers.manaEmpoweredAttackDoubleChancePercent,
+                using: &context.rng,
+            ) {
+                ability = doubledDamageAbility(ability)
+            }
         }
         if totalManaSpent > 0, let empoweredKeyword {
             events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(
@@ -60,21 +70,59 @@ package extension BattleTurnEngine {
 }
 
 private extension BattleTurnEngine {
+    static func prepareOvercharge(for actor: Combatant, percent: Double, in context: inout BattleState) {
+        let preparedCardSerial = context.resolution.cardTalents?.playSerial
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.overchargePercent = max($0.talents.pending.overchargePercent, percent)
+            $0.talents.pending.overchargePreparedCardSerial = preparedCardSerial
+        }
+    }
+
     static func empoweredAbility(_ original: Ability, triggers: CombatTraitTriggers) -> Ability {
         let ability = original.empoweredByMana(
             amount: manaEmpowermentBonus + triggers.empowermentDamageBonus,
             includingBothElements: triggers.prismaticScales,
         )
-        guard triggers.flashFreeze || triggers.empowerFreezeDamageBonus > 0 else { return ability }
+        guard triggers.flashFreeze || triggers.empowerFreezeDamageBonus > 0
+            || triggers.empowerBurnDamageBonus > 0 else { return ability }
         let freezeBonus = (triggers.flashFreeze ? 2 : 0) + triggers.empowerFreezeDamageBonus
         var operations = ability.operations.map {
-            $0.keyword == .freeze ? $0.empowered(by: freezeBonus) : $0
+            if $0.keyword == .freeze, freezeBonus > 0 {
+                return $0.empowered(by: freezeBonus)
+            }
+            if $0.keyword == .burn, triggers.empowerBurnDamageBonus > 0 {
+                return $0.empowered(by: triggers.empowerBurnDamageBonus)
+            }
+            return $0
         }
         if !operations.contains(where: { $0.keyword == .freeze }), triggers.empowerFreezeDamageBonus > 0,
            let first = ability.operations.first(where: \.isManaEmpowerable) {
             operations.append(.damage(DamageComponent(
                 freezeBonus, keyword: .freeze, target: first.target, condition: first.condition,
             )))
+        }
+        return ability.replacingOperations(operations)
+    }
+
+    static func doubledDamageAbility(_ ability: Ability) -> Ability {
+        let operations = ability.operations.map { operation -> AbilityOperation in
+            switch operation {
+            case let .damage(component):
+                return .damage(DamageComponent(
+                    component.amount * 2,
+                    keyword: component.keyword,
+                    target: component.target,
+                    bonusAmount: component.bonusAmount * 2,
+                    condition: component.condition,
+                ))
+            case let .effect(targeted):
+                guard case let .recurringDamage(keyword, amount, turns) = targeted.effect else { return operation }
+                return .effect(TargetedEffect(
+                    .recurringDamage(keyword, amount * 2, turns),
+                    target: targeted.target,
+                    condition: targeted.condition,
+                ))
+            }
         }
         return ability.replacingOperations(operations)
     }

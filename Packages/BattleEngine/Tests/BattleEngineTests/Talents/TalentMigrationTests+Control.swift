@@ -5,27 +5,29 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentMigrationTests {
-    @Test func `shatterpoint freeze detonates bleed`() {
+    @Test func `shatterpoint doubles the next bleed damage after stun`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(dot: DotTriggers(shatterpoint: true)))
         battle.withEngineContext { ctx in
             ctx.roster.setActiveEffects([ActiveEffect(id: 1, effect: .bleed(6), remainingTurns: 2)], for: ctx.roster.enemy.combatant)
         }
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 5,
+        let first = battle.withEngineContext { ctx in
+            _ = CombatTriggerEngine.afterEnemyStunned(sourceActorID: ctx.roster.hero.id, in: &ctx)
+            return ctx.resolveDamage(DamageRequest(
+                amount: 4,
                 target: ctx.roster.enemy.combatant,
-                keyword: Keyword.freeze,
+                keyword: Keyword.bleed,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
+                options: .reaction(),
             ))
         }
-        #expect(!battle.activeEffects(of: battle.enemy).contains {
-            if case .bleed = $0.effect {
-                true
-            } else {
-                false
-            }
-        })
+        let second = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 4, target: ctx.roster.enemy.combatant, keyword: .bleed,
+                sourceActorID: ctx.roster.hero.id, options: .reaction(),
+            ))
+        }
+        #expect(first.healthLost == 8)
+        #expect(second.healthLost == 4)
     }
 
     @Test func `cryostasis preserves bleed on frozen`() {

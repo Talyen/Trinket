@@ -132,18 +132,31 @@ extension TalentMigrationTests {
         #expect(withBurn.healthLost > without.healthLost)
     }
 
-    @Test func `mirrored half damage physical to poison`() {
+    @Test func `companion critical prepares doubled hero poison attack`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(toxicTransfusion: true)))
         _ = battle.withEngineContext { ctx in
             ctx.resolveDamage(DamageRequest(
-                amount: 10,
+                amount: 2,
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
+                sourceActorID: ctx.roster.companion.id,
+                options: DamageOperation.attack(
+                    tier: .skill, scaling: .items, accuracy: .unavoidable, guaranteedCritical: true,
+                ),
             ))
         }
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.keyword == Keyword.poison })
+        #expect(battle.roster.hero.talents.pending.doubleNextPoisonAttack)
+        let poison = battle.withEngineContext { ctx in
+            ctx.resolveDamage(DamageRequest(
+                amount: 4, target: ctx.roster.enemy.combatant, keyword: .poison,
+                sourceActorID: ctx.roster.hero.id,
+                options: DamageOperation.attack(
+                    tier: .skill, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+                ),
+            ))
+        }
+        #expect(poison.healthLost == 8)
+        #expect(!battle.roster.hero.talents.pending.doubleNextPoisonAttack)
     }
 
     @Test func `warChest does not crit below 50 gold`() {

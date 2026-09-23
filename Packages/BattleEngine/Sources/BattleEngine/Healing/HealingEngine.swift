@@ -17,7 +17,8 @@ package enum HealingEngine {
         }
         let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
         var flags: Set<CombatFlag> = []
-        let amount = resolvedAmount(request, sourceTriggers: sourceTriggers, flags: &flags, in: &context)
+        let baseAmount = resolvedAmount(request, sourceTriggers: sourceTriggers, flags: &flags, in: &context)
+        let amount = adjustedHeroHealingAmount(baseAmount, request: request, in: context)
 
         let preHealth = context.roster.health(for: request.target)
         let maxHealth = context.roster.maxHealth(for: request.target)
@@ -34,12 +35,9 @@ package enum HealingEngine {
             preHealth: preHealth, maxHealth: maxHealth, restored: restored,
             request: request, sourceTriggers: sourceTriggers, in: &context,
         ))
-        let cardTransfer = transferCardOverheal(overflow, request: request, in: &context)
+        let cardTransfer = transferOverhealToAlly(overflow, request: request, in: &context)
         allocation.allocate(cardTransfer.healthRestored, to: .transfer)
         events.append(contentsOf: cardTransfer.events)
-        events.append(contentsOf: CombatTriggerEngine.afterHeroCardHeal(
-            request: request, restored: restored, in: &context,
-        ))
         events.append(contentsOf: applyCleanSlate(overflow: overflow, request: request, in: &context))
         events.append(contentsOf: applyOverhealConversion(
             allocation: &allocation,
@@ -67,6 +65,12 @@ package enum HealingEngine {
         events.append(contentsOf: applyRestoredReactions(
             restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context,
         ))
+        events.append(contentsOf: applyHeroHealingTalents(
+            request: request,
+            restored: restored,
+            sourceTriggers: sourceTriggers,
+            in: &context,
+        ))
 
         return HealingResult(
             allocation: allocation,
@@ -91,41 +95,6 @@ package enum HealingEngine {
             }
         }
         return restored
-    }
-
-    private static func applyFullHealthBonus(
-        preHealth: Int,
-        maxHealth: Int,
-        request: HealRequest,
-        targetTriggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) {
-        if targetTriggers.nextAttackBonusOnFullHealth > 0,
-           preHealth < maxHealth,
-           context.roster.health(for: request.target) >= maxHealth {
-            context.roster.mutateRuntime(for: request.target) {
-                $0.talents.pending.attackBonusOnFullHealth += targetTriggers.nextAttackBonusOnFullHealth
-            }
-        }
-    }
-
-    private static func applyShelterSeed(
-        preHealth: Int,
-        maxHealth: Int,
-        restored: Int,
-        request: HealRequest,
-        sourceTriggers: CombatTraitTriggers?,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        if restored > 0, preHealth * 2 < maxHealth, request.target.role != .enemy,
-           sourceTriggers?.shelterSeed == true, let sourceID = request.sourceActorID,
-           let source = context.roster.combatant(for: sourceID), source.isAlive {
-            CombatTriggerEngine.heroTalentThorns(
-                to: request.target, source: source.combatant, amount: restored, name: "Shelter Seed", in: &context,
-            )
-        } else {
-            []
-        }
     }
 
     private static func applyCleanSlate(
@@ -315,8 +284,6 @@ package enum HealingEngine {
            < sourceTriggers.healingBelowHealthPercentThreshold {
             amount = CombatRounding.scaled(amount, multiplier: sourceTriggers.healingBelowHealthPercentMultiplier)
         }
-
-        amount += CombatTriggerEngine.heroCardHealingBonus(request: request, amount: amount, in: &context)
 
         return max(0, amount)
     }

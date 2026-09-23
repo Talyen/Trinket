@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketCore
 @testable import TrinketContent
@@ -100,6 +101,40 @@ struct CombatantTalentCatalogTests {
                 for node in tree.nodes {
                     #expect(names[node.name] == nil, "duplicate talent name \(node.name) at \(node.id)")
                     names[node.name] = node.id
+                }
+            }
+        }
+    }
+
+    @Test func `hero talents describe their own tree keyword`() {
+        let keywordWords: [Keyword: String] = [
+            .block: "block(?:ed|ing)?",
+            .stun: "stun(?:ned|ning)?",
+            .holy: "holy",
+            .poison: "poison(?:ed|ing)?",
+            .bleed: "bleed(?:ing|s)?",
+            .burn: "burn(?:ing|ed|s)?",
+            .freeze: "freez(?:e|es|ing)|frozen",
+            .gold: "gold",
+            .dodge: "dodg(?:e|es|ing)",
+            .physical: "physical",
+            .mana: "mana",
+            .leech: "leech(?:ing|es)?",
+            .cleanse: "cleans(?:e|es|ing)",
+            .health: "health|heal(?:s|ed|ing)?",
+        ]
+        for hero in GameContent.heroes {
+            for tree in CombatantTalentCatalog.config(for: hero.id).trees {
+                guard let keyword = keywordWords[tree.keyword] else {
+                    Issue.record("missing keyword form for \(tree.keyword)")
+                    continue
+                }
+                for node in tree.nodes {
+                    let pattern = "\\b(?:\(keyword))\\b"
+                    #expect(
+                        node.description.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil,
+                        "\(node.id) does not mention \(tree.keyword)",
+                    )
                 }
             }
         }

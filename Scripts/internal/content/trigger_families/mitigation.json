@@ -137,6 +137,24 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "blockHalvesDoTDamage",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "bleedingEnemyOutgoingDamageMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "verdantShelterDamageMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
     }
   ]
 }

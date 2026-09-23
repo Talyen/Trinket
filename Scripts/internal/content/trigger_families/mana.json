@@ -329,31 +329,7 @@
       "merge": "or"
     },
     {
-      "name": "firstBloom",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "barkweave",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "groveReserve",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "livingConduit",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "sharedCurrent",
       "type": "Bool",
       "default": "false",
       "merge": "or"
@@ -390,6 +366,102 @@
     },
     {
       "name": "spendLastManaStunDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "empowerBurnDamageBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "empowerBurnCostReduction",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "manaEmpowerNextAttackPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "endTurnZeroManaCleanse",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "spendLastManaDrawCard",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "manaEmpoweredAttackDoubleChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "freezeCriticalRestoreMana",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "healthLossManaGain",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "manaEmpowerPurgeCount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "healthCostEmpowerDiscount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "manaEmpoweredCriticalMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "lastManaNextBurnPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "poisonExpiryManaRestore",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "arcaneThornsOnManaRestore",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "barkweaveOnEmpowerBlock",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "sharedCurrentCompanionNextAttackBonus",
       "type": "Int",
       "default": "0",
       "merge": "add"

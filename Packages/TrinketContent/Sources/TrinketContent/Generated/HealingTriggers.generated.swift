@@ -13,7 +13,6 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var onceBelowHealthPercentHeal: Int = 0
     public var blockOnDeathsDoor: Int = 0
     public var holyDamageHealFlat: Int = 0
-    public var burnDamageHealFlat: Int = 0
     public var healthRestoredPoisonPercent: Double = 0
     public var healthPerTurn: Int = 0
     public var heroCritHealPartyFlat: Int = 0
@@ -58,22 +57,27 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var purifyingWaters: Bool = false
     public var cleanSlate: Bool = false
     public var fortifyingTonic: Bool = false
-    public var measuredDose: Bool = false
     public var coolingSalve: Bool = false
     public var sharedPrescription: Bool = false
-    public var restorativeFumes: Bool = false
-    public var masterworkMixture: Bool = false
-    public var springSap: Bool = false
-    public var pruningTouch: Bool = false
-    public var quietGrove: Bool = false
-    public var shelterSeed: Bool = false
     public var cleansingDew: Bool = false
-    public var sharedRoots: Bool = false
-    public var verdantShelter: Bool = false
     public var onAttackBleedingEnemyHeal: Int = 0
     public var overhealFirstBlockPerTurn: Int = 0
     public var leechBonusHealVsStunned: Int = 0
     public var onHealDealHoly: Int = 0
+    public var bleedingEnemyHealingMultiplier: Double = 1
+    public var darkRecoveryMultiplier: Double = 1
+    public var leechToFullNextAttackBonus: Int = 0
+    public var leechBlockBelowHalf: Bool = false
+    public var burningEnemyHealingMultiplier: Double = 1
+    public var healthRestoreDrawChancePercent: Double = 0
+    public var overhealToBlockPercent: Double = 0
+    public var healthRestoreNextPoisonBonus: Int = 0
+    public var healthRestoreManaChancePercent: Double = 0
+    public var springSapHealthBonus: Int = 0
+    public var pruningHealthRemoveEnemyThorns: Int = 0
+    public var shelterSeedBlock: Int = 0
+    public var sharedRootsHealPercent: Double = 0
+    public var returningBloomHeal: Int = 0
 
     public init(
         contagiousJoy: Bool = false,
@@ -85,7 +89,6 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         onceBelowHealthPercentHeal: Int = 0,
         blockOnDeathsDoor: Int = 0,
         holyDamageHealFlat: Int = 0,
-        burnDamageHealFlat: Int = 0,
         healthRestoredPoisonPercent: Double = 0,
         healthPerTurn: Int = 0,
         heroCritHealPartyFlat: Int = 0,
@@ -130,22 +133,27 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         purifyingWaters: Bool = false,
         cleanSlate: Bool = false,
         fortifyingTonic: Bool = false,
-        measuredDose: Bool = false,
         coolingSalve: Bool = false,
         sharedPrescription: Bool = false,
-        restorativeFumes: Bool = false,
-        masterworkMixture: Bool = false,
-        springSap: Bool = false,
-        pruningTouch: Bool = false,
-        quietGrove: Bool = false,
-        shelterSeed: Bool = false,
         cleansingDew: Bool = false,
-        sharedRoots: Bool = false,
-        verdantShelter: Bool = false,
         onAttackBleedingEnemyHeal: Int = 0,
         overhealFirstBlockPerTurn: Int = 0,
         leechBonusHealVsStunned: Int = 0,
-        onHealDealHoly: Int = 0
+        onHealDealHoly: Int = 0,
+        bleedingEnemyHealingMultiplier: Double = 1,
+        darkRecoveryMultiplier: Double = 1,
+        leechToFullNextAttackBonus: Int = 0,
+        leechBlockBelowHalf: Bool = false,
+        burningEnemyHealingMultiplier: Double = 1,
+        healthRestoreDrawChancePercent: Double = 0,
+        overhealToBlockPercent: Double = 0,
+        healthRestoreNextPoisonBonus: Int = 0,
+        healthRestoreManaChancePercent: Double = 0,
+        springSapHealthBonus: Int = 0,
+        pruningHealthRemoveEnemyThorns: Int = 0,
+        shelterSeedBlock: Int = 0,
+        sharedRootsHealPercent: Double = 0,
+        returningBloomHeal: Int = 0
     ) {
         self.contagiousJoy = contagiousJoy
         self.livingArchive = livingArchive
@@ -156,7 +164,6 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
         self.blockOnDeathsDoor = blockOnDeathsDoor
         self.holyDamageHealFlat = holyDamageHealFlat
-        self.burnDamageHealFlat = burnDamageHealFlat
         self.healthRestoredPoisonPercent = healthRestoredPoisonPercent
         self.healthPerTurn = healthPerTurn
         self.heroCritHealPartyFlat = heroCritHealPartyFlat
@@ -201,26 +208,31 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.purifyingWaters = purifyingWaters
         self.cleanSlate = cleanSlate
         self.fortifyingTonic = fortifyingTonic
-        self.measuredDose = measuredDose
         self.coolingSalve = coolingSalve
         self.sharedPrescription = sharedPrescription
-        self.restorativeFumes = restorativeFumes
-        self.masterworkMixture = masterworkMixture
-        self.springSap = springSap
-        self.pruningTouch = pruningTouch
-        self.quietGrove = quietGrove
-        self.shelterSeed = shelterSeed
         self.cleansingDew = cleansingDew
-        self.sharedRoots = sharedRoots
-        self.verdantShelter = verdantShelter
         self.onAttackBleedingEnemyHeal = onAttackBleedingEnemyHeal
         self.overhealFirstBlockPerTurn = overhealFirstBlockPerTurn
         self.leechBonusHealVsStunned = leechBonusHealVsStunned
         self.onHealDealHoly = onHealDealHoly
+        self.bleedingEnemyHealingMultiplier = bleedingEnemyHealingMultiplier
+        self.darkRecoveryMultiplier = darkRecoveryMultiplier
+        self.leechToFullNextAttackBonus = leechToFullNextAttackBonus
+        self.leechBlockBelowHalf = leechBlockBelowHalf
+        self.burningEnemyHealingMultiplier = burningEnemyHealingMultiplier
+        self.healthRestoreDrawChancePercent = healthRestoreDrawChancePercent
+        self.overhealToBlockPercent = overhealToBlockPercent
+        self.healthRestoreNextPoisonBonus = healthRestoreNextPoisonBonus
+        self.healthRestoreManaChancePercent = healthRestoreManaChancePercent
+        self.springSapHealthBonus = springSapHealthBonus
+        self.pruningHealthRemoveEnemyThorns = pruningHealthRemoveEnemyThorns
+        self.shelterSeedBlock = shelterSeedBlock
+        self.sharedRootsHealPercent = sharedRootsHealPercent
+        self.returningBloomHeal = returningBloomHeal
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "burnDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "heroCritHealPartyFlat", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "measuredDose", "coolingSalve", "sharedPrescription", "restorativeFumes", "masterworkMixture", "springSap", "pruningTouch", "quietGrove", "shelterSeed", "cleansingDew", "sharedRoots", "verdantShelter", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly"]
+    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "heroCritHealPartyFlat", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "coolingSalve", "sharedPrescription", "cleansingDew", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly", "bleedingEnemyHealingMultiplier", "darkRecoveryMultiplier", "leechToFullNextAttackBonus", "leechBlockBelowHalf", "burningEnemyHealingMultiplier", "healthRestoreDrawChancePercent", "overhealToBlockPercent", "healthRestoreNextPoisonBonus", "healthRestoreManaChancePercent", "springSapHealthBonus", "pruningHealthRemoveEnemyThorns", "shelterSeedBlock", "sharedRootsHealPercent", "returningBloomHeal"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -234,7 +246,6 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.onceBelowHealthPercentHeal != other.onceBelowHealthPercentHeal { names.append("onceBelowHealthPercentHeal") }
         if self.blockOnDeathsDoor != other.blockOnDeathsDoor { names.append("blockOnDeathsDoor") }
         if self.holyDamageHealFlat != other.holyDamageHealFlat { names.append("holyDamageHealFlat") }
-        if self.burnDamageHealFlat != other.burnDamageHealFlat { names.append("burnDamageHealFlat") }
         if self.healthRestoredPoisonPercent != other.healthRestoredPoisonPercent { names.append("healthRestoredPoisonPercent") }
         if self.healthPerTurn != other.healthPerTurn { names.append("healthPerTurn") }
         if self.heroCritHealPartyFlat != other.heroCritHealPartyFlat { names.append("heroCritHealPartyFlat") }
@@ -279,22 +290,27 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.purifyingWaters != other.purifyingWaters { names.append("purifyingWaters") }
         if self.cleanSlate != other.cleanSlate { names.append("cleanSlate") }
         if self.fortifyingTonic != other.fortifyingTonic { names.append("fortifyingTonic") }
-        if self.measuredDose != other.measuredDose { names.append("measuredDose") }
         if self.coolingSalve != other.coolingSalve { names.append("coolingSalve") }
         if self.sharedPrescription != other.sharedPrescription { names.append("sharedPrescription") }
-        if self.restorativeFumes != other.restorativeFumes { names.append("restorativeFumes") }
-        if self.masterworkMixture != other.masterworkMixture { names.append("masterworkMixture") }
-        if self.springSap != other.springSap { names.append("springSap") }
-        if self.pruningTouch != other.pruningTouch { names.append("pruningTouch") }
-        if self.quietGrove != other.quietGrove { names.append("quietGrove") }
-        if self.shelterSeed != other.shelterSeed { names.append("shelterSeed") }
         if self.cleansingDew != other.cleansingDew { names.append("cleansingDew") }
-        if self.sharedRoots != other.sharedRoots { names.append("sharedRoots") }
-        if self.verdantShelter != other.verdantShelter { names.append("verdantShelter") }
         if self.onAttackBleedingEnemyHeal != other.onAttackBleedingEnemyHeal { names.append("onAttackBleedingEnemyHeal") }
         if self.overhealFirstBlockPerTurn != other.overhealFirstBlockPerTurn { names.append("overhealFirstBlockPerTurn") }
         if self.leechBonusHealVsStunned != other.leechBonusHealVsStunned { names.append("leechBonusHealVsStunned") }
         if self.onHealDealHoly != other.onHealDealHoly { names.append("onHealDealHoly") }
+        if self.bleedingEnemyHealingMultiplier != other.bleedingEnemyHealingMultiplier { names.append("bleedingEnemyHealingMultiplier") }
+        if self.darkRecoveryMultiplier != other.darkRecoveryMultiplier { names.append("darkRecoveryMultiplier") }
+        if self.leechToFullNextAttackBonus != other.leechToFullNextAttackBonus { names.append("leechToFullNextAttackBonus") }
+        if self.leechBlockBelowHalf != other.leechBlockBelowHalf { names.append("leechBlockBelowHalf") }
+        if self.burningEnemyHealingMultiplier != other.burningEnemyHealingMultiplier { names.append("burningEnemyHealingMultiplier") }
+        if self.healthRestoreDrawChancePercent != other.healthRestoreDrawChancePercent { names.append("healthRestoreDrawChancePercent") }
+        if self.overhealToBlockPercent != other.overhealToBlockPercent { names.append("overhealToBlockPercent") }
+        if self.healthRestoreNextPoisonBonus != other.healthRestoreNextPoisonBonus { names.append("healthRestoreNextPoisonBonus") }
+        if self.healthRestoreManaChancePercent != other.healthRestoreManaChancePercent { names.append("healthRestoreManaChancePercent") }
+        if self.springSapHealthBonus != other.springSapHealthBonus { names.append("springSapHealthBonus") }
+        if self.pruningHealthRemoveEnemyThorns != other.pruningHealthRemoveEnemyThorns { names.append("pruningHealthRemoveEnemyThorns") }
+        if self.shelterSeedBlock != other.shelterSeedBlock { names.append("shelterSeedBlock") }
+        if self.sharedRootsHealPercent != other.sharedRootsHealPercent { names.append("sharedRootsHealPercent") }
+        if self.returningBloomHeal != other.returningBloomHeal { names.append("returningBloomHeal") }
         return names
     }
 }
@@ -310,7 +326,6 @@ extension HealingTriggers {
         onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
         blockOnDeathsDoor += other.blockOnDeathsDoor
         holyDamageHealFlat += other.holyDamageHealFlat
-        burnDamageHealFlat += other.burnDamageHealFlat
         healthRestoredPoisonPercent += other.healthRestoredPoisonPercent
         healthPerTurn += other.healthPerTurn
         heroCritHealPartyFlat += other.heroCritHealPartyFlat
@@ -355,22 +370,27 @@ extension HealingTriggers {
         purifyingWaters = purifyingWaters || other.purifyingWaters
         cleanSlate = cleanSlate || other.cleanSlate
         fortifyingTonic = fortifyingTonic || other.fortifyingTonic
-        measuredDose = measuredDose || other.measuredDose
         coolingSalve = coolingSalve || other.coolingSalve
         sharedPrescription = sharedPrescription || other.sharedPrescription
-        restorativeFumes = restorativeFumes || other.restorativeFumes
-        masterworkMixture = masterworkMixture || other.masterworkMixture
-        springSap = springSap || other.springSap
-        pruningTouch = pruningTouch || other.pruningTouch
-        quietGrove = quietGrove || other.quietGrove
-        shelterSeed = shelterSeed || other.shelterSeed
         cleansingDew = cleansingDew || other.cleansingDew
-        sharedRoots = sharedRoots || other.sharedRoots
-        verdantShelter = verdantShelter || other.verdantShelter
         onAttackBleedingEnemyHeal += other.onAttackBleedingEnemyHeal
         overhealFirstBlockPerTurn += other.overhealFirstBlockPerTurn
         leechBonusHealVsStunned += other.leechBonusHealVsStunned
         onHealDealHoly += other.onHealDealHoly
+        bleedingEnemyHealingMultiplier *= other.bleedingEnemyHealingMultiplier
+        darkRecoveryMultiplier *= other.darkRecoveryMultiplier
+        leechToFullNextAttackBonus += other.leechToFullNextAttackBonus
+        leechBlockBelowHalf = leechBlockBelowHalf || other.leechBlockBelowHalf
+        burningEnemyHealingMultiplier *= other.burningEnemyHealingMultiplier
+        healthRestoreDrawChancePercent += other.healthRestoreDrawChancePercent
+        overhealToBlockPercent += other.overhealToBlockPercent
+        healthRestoreNextPoisonBonus += other.healthRestoreNextPoisonBonus
+        healthRestoreManaChancePercent += other.healthRestoreManaChancePercent
+        springSapHealthBonus += other.springSapHealthBonus
+        pruningHealthRemoveEnemyThorns += other.pruningHealthRemoveEnemyThorns
+        shelterSeedBlock += other.shelterSeedBlock
+        sharedRootsHealPercent += other.sharedRootsHealPercent
+        returningBloomHeal += other.returningBloomHeal
     }
 }
 
@@ -387,7 +407,6 @@ extension HealingTriggers {
             onceBelowHealthPercentHeal: values.decode(Int.self, "onceBelowHealthPercentHeal", default: 0),
             blockOnDeathsDoor: values.decode(Int.self, "blockOnDeathsDoor", default: 0),
             holyDamageHealFlat: values.decode(Int.self, "holyDamageHealFlat", default: 0),
-            burnDamageHealFlat: values.decode(Int.self, "burnDamageHealFlat", default: 0),
             healthRestoredPoisonPercent: values.decode(Double.self, "healthRestoredPoisonPercent", default: 0),
             healthPerTurn: values.decode(Int.self, "healthPerTurn", default: 0),
             heroCritHealPartyFlat: values.decode(Int.self, "heroCritHealPartyFlat", default: 0),
@@ -432,22 +451,27 @@ extension HealingTriggers {
             purifyingWaters: values.decode(Bool.self, "purifyingWaters", default: false),
             cleanSlate: values.decode(Bool.self, "cleanSlate", default: false),
             fortifyingTonic: values.decode(Bool.self, "fortifyingTonic", default: false),
-            measuredDose: values.decode(Bool.self, "measuredDose", default: false),
             coolingSalve: values.decode(Bool.self, "coolingSalve", default: false),
             sharedPrescription: values.decode(Bool.self, "sharedPrescription", default: false),
-            restorativeFumes: values.decode(Bool.self, "restorativeFumes", default: false),
-            masterworkMixture: values.decode(Bool.self, "masterworkMixture", default: false),
-            springSap: values.decode(Bool.self, "springSap", default: false),
-            pruningTouch: values.decode(Bool.self, "pruningTouch", default: false),
-            quietGrove: values.decode(Bool.self, "quietGrove", default: false),
-            shelterSeed: values.decode(Bool.self, "shelterSeed", default: false),
             cleansingDew: values.decode(Bool.self, "cleansingDew", default: false),
-            sharedRoots: values.decode(Bool.self, "sharedRoots", default: false),
-            verdantShelter: values.decode(Bool.self, "verdantShelter", default: false),
             onAttackBleedingEnemyHeal: values.decode(Int.self, "onAttackBleedingEnemyHeal", default: 0),
             overhealFirstBlockPerTurn: values.decode(Int.self, "overhealFirstBlockPerTurn", default: 0),
             leechBonusHealVsStunned: values.decode(Int.self, "leechBonusHealVsStunned", default: 0),
-            onHealDealHoly: values.decode(Int.self, "onHealDealHoly", default: 0)
+            onHealDealHoly: values.decode(Int.self, "onHealDealHoly", default: 0),
+            bleedingEnemyHealingMultiplier: values.decode(Double.self, "bleedingEnemyHealingMultiplier", default: 1),
+            darkRecoveryMultiplier: values.decode(Double.self, "darkRecoveryMultiplier", default: 1),
+            leechToFullNextAttackBonus: values.decode(Int.self, "leechToFullNextAttackBonus", default: 0),
+            leechBlockBelowHalf: values.decode(Bool.self, "leechBlockBelowHalf", default: false),
+            burningEnemyHealingMultiplier: values.decode(Double.self, "burningEnemyHealingMultiplier", default: 1),
+            healthRestoreDrawChancePercent: values.decode(Double.self, "healthRestoreDrawChancePercent", default: 0),
+            overhealToBlockPercent: values.decode(Double.self, "overhealToBlockPercent", default: 0),
+            healthRestoreNextPoisonBonus: values.decode(Int.self, "healthRestoreNextPoisonBonus", default: 0),
+            healthRestoreManaChancePercent: values.decode(Double.self, "healthRestoreManaChancePercent", default: 0),
+            springSapHealthBonus: values.decode(Int.self, "springSapHealthBonus", default: 0),
+            pruningHealthRemoveEnemyThorns: values.decode(Int.self, "pruningHealthRemoveEnemyThorns", default: 0),
+            shelterSeedBlock: values.decode(Int.self, "shelterSeedBlock", default: 0),
+            sharedRootsHealPercent: values.decode(Double.self, "sharedRootsHealPercent", default: 0),
+            returningBloomHeal: values.decode(Int.self, "returningBloomHeal", default: 0)
         )
     }
 
@@ -461,7 +485,6 @@ extension HealingTriggers {
         try container.encodeNonDefault(onceBelowHealthPercentHeal, "onceBelowHealthPercentHeal", default: 0)
         try container.encodeNonDefault(blockOnDeathsDoor, "blockOnDeathsDoor", default: 0)
         try container.encodeNonDefault(holyDamageHealFlat, "holyDamageHealFlat", default: 0)
-        try container.encodeNonDefault(burnDamageHealFlat, "burnDamageHealFlat", default: 0)
         try container.encodeNonDefault(healthRestoredPoisonPercent, "healthRestoredPoisonPercent", default: 0)
         try container.encodeNonDefault(healthPerTurn, "healthPerTurn", default: 0)
         try container.encodeNonDefault(heroCritHealPartyFlat, "heroCritHealPartyFlat", default: 0)
@@ -506,21 +529,26 @@ extension HealingTriggers {
         try container.encodeNonDefault(purifyingWaters, "purifyingWaters", default: false)
         try container.encodeNonDefault(cleanSlate, "cleanSlate", default: false)
         try container.encodeNonDefault(fortifyingTonic, "fortifyingTonic", default: false)
-        try container.encodeNonDefault(measuredDose, "measuredDose", default: false)
         try container.encodeNonDefault(coolingSalve, "coolingSalve", default: false)
         try container.encodeNonDefault(sharedPrescription, "sharedPrescription", default: false)
-        try container.encodeNonDefault(restorativeFumes, "restorativeFumes", default: false)
-        try container.encodeNonDefault(masterworkMixture, "masterworkMixture", default: false)
-        try container.encodeNonDefault(springSap, "springSap", default: false)
-        try container.encodeNonDefault(pruningTouch, "pruningTouch", default: false)
-        try container.encodeNonDefault(quietGrove, "quietGrove", default: false)
-        try container.encodeNonDefault(shelterSeed, "shelterSeed", default: false)
         try container.encodeNonDefault(cleansingDew, "cleansingDew", default: false)
-        try container.encodeNonDefault(sharedRoots, "sharedRoots", default: false)
-        try container.encodeNonDefault(verdantShelter, "verdantShelter", default: false)
         try container.encodeNonDefault(onAttackBleedingEnemyHeal, "onAttackBleedingEnemyHeal", default: 0)
         try container.encodeNonDefault(overhealFirstBlockPerTurn, "overhealFirstBlockPerTurn", default: 0)
         try container.encodeNonDefault(leechBonusHealVsStunned, "leechBonusHealVsStunned", default: 0)
         try container.encodeNonDefault(onHealDealHoly, "onHealDealHoly", default: 0)
+        try container.encodeNonDefault(bleedingEnemyHealingMultiplier, "bleedingEnemyHealingMultiplier", default: 1)
+        try container.encodeNonDefault(darkRecoveryMultiplier, "darkRecoveryMultiplier", default: 1)
+        try container.encodeNonDefault(leechToFullNextAttackBonus, "leechToFullNextAttackBonus", default: 0)
+        try container.encodeNonDefault(leechBlockBelowHalf, "leechBlockBelowHalf", default: false)
+        try container.encodeNonDefault(burningEnemyHealingMultiplier, "burningEnemyHealingMultiplier", default: 1)
+        try container.encodeNonDefault(healthRestoreDrawChancePercent, "healthRestoreDrawChancePercent", default: 0)
+        try container.encodeNonDefault(overhealToBlockPercent, "overhealToBlockPercent", default: 0)
+        try container.encodeNonDefault(healthRestoreNextPoisonBonus, "healthRestoreNextPoisonBonus", default: 0)
+        try container.encodeNonDefault(healthRestoreManaChancePercent, "healthRestoreManaChancePercent", default: 0)
+        try container.encodeNonDefault(springSapHealthBonus, "springSapHealthBonus", default: 0)
+        try container.encodeNonDefault(pruningHealthRemoveEnemyThorns, "pruningHealthRemoveEnemyThorns", default: 0)
+        try container.encodeNonDefault(shelterSeedBlock, "shelterSeedBlock", default: 0)
+        try container.encodeNonDefault(sharedRootsHealPercent, "sharedRootsHealPercent", default: 0)
+        try container.encodeNonDefault(returningBloomHeal, "returningBloomHeal", default: 0)
     }
 }

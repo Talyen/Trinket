@@ -73,12 +73,6 @@
       }
     },
     {
-      "name": "burnDamageHealFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
-    },
-    {
       "name": "healthRestoredPoisonPercent",
       "type": "Double",
       "default": "0",
@@ -359,12 +353,6 @@
       "merge": "or"
     },
     {
-      "name": "measuredDose",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "coolingSalve",
       "type": "Bool",
       "default": "false",
@@ -377,55 +365,7 @@
       "merge": "or"
     },
     {
-      "name": "restorativeFumes",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "masterworkMixture",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "springSap",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "pruningTouch",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "quietGrove",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "shelterSeed",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "cleansingDew",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "sharedRoots",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "verdantShelter",
       "type": "Bool",
       "default": "false",
       "merge": "or"
@@ -450,6 +390,90 @@
     },
     {
       "name": "onHealDealHoly",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedingEnemyHealingMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "darkRecoveryMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "leechToFullNextAttackBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "leechBlockBelowHalf",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "burningEnemyHealingMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "healthRestoreDrawChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "overhealToBlockPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "healthRestoreNextPoisonBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "healthRestoreManaChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "springSapHealthBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "pruningHealthRemoveEnemyThorns",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "shelterSeedBlock",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "sharedRootsHealPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "returningBloomHeal",
       "type": "Int",
       "default": "0",
       "merge": "add"

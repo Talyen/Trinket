@@ -55,21 +55,20 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var ashenArsenal: Bool = false
     public var arterialCascade: Bool = false
     public var steamExplosion: Bool = false
-    public var reactiveCoating: Bool = false
     public var safeHandling: Bool = false
-    public var reactiveSediment: Bool = false
-    public var spentReagents: Bool = false
-    public var dissolvingFumes: Bool = false
     public var unstableCulture: Bool = false
     public var sealedVial: Bool = false
     public var barbedSpores: Bool = false
     public var livingBark: Bool = false
-    public var coolMoss: Bool = false
-    public var returningBloom: Bool = false
     public var rootPassage: Bool = false
-    public var entanglingGrowth: Bool = false
     public var thornShedding: Bool = false
     public var bleedTickDrawChancePercent: Double = 0
+    public var burnAttackDoubleChancePercent: Double = 0
+    public var burnDecaySlowVsBleedingPercent: Double = 0
+    public var bleedDurationFromCriticalBonus: Int = 0
+    public var bleedDurationVsPoisonedBonus: Int = 0
+    public var burnAttackBleedChancePercent: Double = 0
+    public var burnAttackBleedDamage: Int = 0
 
     public init(
         redline: Bool = false,
@@ -123,21 +122,20 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         ashenArsenal: Bool = false,
         arterialCascade: Bool = false,
         steamExplosion: Bool = false,
-        reactiveCoating: Bool = false,
         safeHandling: Bool = false,
-        reactiveSediment: Bool = false,
-        spentReagents: Bool = false,
-        dissolvingFumes: Bool = false,
         unstableCulture: Bool = false,
         sealedVial: Bool = false,
         barbedSpores: Bool = false,
         livingBark: Bool = false,
-        coolMoss: Bool = false,
-        returningBloom: Bool = false,
         rootPassage: Bool = false,
-        entanglingGrowth: Bool = false,
         thornShedding: Bool = false,
-        bleedTickDrawChancePercent: Double = 0
+        bleedTickDrawChancePercent: Double = 0,
+        burnAttackDoubleChancePercent: Double = 0,
+        burnDecaySlowVsBleedingPercent: Double = 0,
+        bleedDurationFromCriticalBonus: Int = 0,
+        bleedDurationVsPoisonedBonus: Int = 0,
+        burnAttackBleedChancePercent: Double = 0,
+        burnAttackBleedDamage: Int = 0
     ) {
         self.redline = redline
         self.bleedHalvesAfterExpiration = bleedHalvesAfterExpiration
@@ -190,25 +188,24 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.ashenArsenal = ashenArsenal
         self.arterialCascade = arterialCascade
         self.steamExplosion = steamExplosion
-        self.reactiveCoating = reactiveCoating
         self.safeHandling = safeHandling
-        self.reactiveSediment = reactiveSediment
-        self.spentReagents = spentReagents
-        self.dissolvingFumes = dissolvingFumes
         self.unstableCulture = unstableCulture
         self.sealedVial = sealedVial
         self.barbedSpores = barbedSpores
         self.livingBark = livingBark
-        self.coolMoss = coolMoss
-        self.returningBloom = returningBloom
         self.rootPassage = rootPassage
-        self.entanglingGrowth = entanglingGrowth
         self.thornShedding = thornShedding
         self.bleedTickDrawChancePercent = bleedTickDrawChancePercent
+        self.burnAttackDoubleChancePercent = burnAttackDoubleChancePercent
+        self.burnDecaySlowVsBleedingPercent = burnDecaySlowVsBleedingPercent
+        self.bleedDurationFromCriticalBonus = bleedDurationFromCriticalBonus
+        self.bleedDurationVsPoisonedBonus = bleedDurationVsPoisonedBonus
+        self.burnAttackBleedChancePercent = burnAttackBleedChancePercent
+        self.burnAttackBleedDamage = burnAttackBleedDamage
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechChancePercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "steamExplosion", "reactiveCoating", "safeHandling", "reactiveSediment", "spentReagents", "dissolvingFumes", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "coolMoss", "returningBloom", "rootPassage", "entanglingGrowth", "thornShedding", "bleedTickDrawChancePercent"]
+    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechChancePercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "steamExplosion", "safeHandling", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "rootPassage", "thornShedding", "bleedTickDrawChancePercent", "burnAttackDoubleChancePercent", "burnDecaySlowVsBleedingPercent", "bleedDurationFromCriticalBonus", "bleedDurationVsPoisonedBonus", "burnAttackBleedChancePercent", "burnAttackBleedDamage"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -264,21 +261,20 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.ashenArsenal != other.ashenArsenal { names.append("ashenArsenal") }
         if self.arterialCascade != other.arterialCascade { names.append("arterialCascade") }
         if self.steamExplosion != other.steamExplosion { names.append("steamExplosion") }
-        if self.reactiveCoating != other.reactiveCoating { names.append("reactiveCoating") }
         if self.safeHandling != other.safeHandling { names.append("safeHandling") }
-        if self.reactiveSediment != other.reactiveSediment { names.append("reactiveSediment") }
-        if self.spentReagents != other.spentReagents { names.append("spentReagents") }
-        if self.dissolvingFumes != other.dissolvingFumes { names.append("dissolvingFumes") }
         if self.unstableCulture != other.unstableCulture { names.append("unstableCulture") }
         if self.sealedVial != other.sealedVial { names.append("sealedVial") }
         if self.barbedSpores != other.barbedSpores { names.append("barbedSpores") }
         if self.livingBark != other.livingBark { names.append("livingBark") }
-        if self.coolMoss != other.coolMoss { names.append("coolMoss") }
-        if self.returningBloom != other.returningBloom { names.append("returningBloom") }
         if self.rootPassage != other.rootPassage { names.append("rootPassage") }
-        if self.entanglingGrowth != other.entanglingGrowth { names.append("entanglingGrowth") }
         if self.thornShedding != other.thornShedding { names.append("thornShedding") }
         if self.bleedTickDrawChancePercent != other.bleedTickDrawChancePercent { names.append("bleedTickDrawChancePercent") }
+        if self.burnAttackDoubleChancePercent != other.burnAttackDoubleChancePercent { names.append("burnAttackDoubleChancePercent") }
+        if self.burnDecaySlowVsBleedingPercent != other.burnDecaySlowVsBleedingPercent { names.append("burnDecaySlowVsBleedingPercent") }
+        if self.bleedDurationFromCriticalBonus != other.bleedDurationFromCriticalBonus { names.append("bleedDurationFromCriticalBonus") }
+        if self.bleedDurationVsPoisonedBonus != other.bleedDurationVsPoisonedBonus { names.append("bleedDurationVsPoisonedBonus") }
+        if self.burnAttackBleedChancePercent != other.burnAttackBleedChancePercent { names.append("burnAttackBleedChancePercent") }
+        if self.burnAttackBleedDamage != other.burnAttackBleedDamage { names.append("burnAttackBleedDamage") }
         return names
     }
 }
@@ -336,21 +332,20 @@ extension DotTriggers {
         ashenArsenal = ashenArsenal || other.ashenArsenal
         arterialCascade = arterialCascade || other.arterialCascade
         steamExplosion = steamExplosion || other.steamExplosion
-        reactiveCoating = reactiveCoating || other.reactiveCoating
         safeHandling = safeHandling || other.safeHandling
-        reactiveSediment = reactiveSediment || other.reactiveSediment
-        spentReagents = spentReagents || other.spentReagents
-        dissolvingFumes = dissolvingFumes || other.dissolvingFumes
         unstableCulture = unstableCulture || other.unstableCulture
         sealedVial = sealedVial || other.sealedVial
         barbedSpores = barbedSpores || other.barbedSpores
         livingBark = livingBark || other.livingBark
-        coolMoss = coolMoss || other.coolMoss
-        returningBloom = returningBloom || other.returningBloom
         rootPassage = rootPassage || other.rootPassage
-        entanglingGrowth = entanglingGrowth || other.entanglingGrowth
         thornShedding = thornShedding || other.thornShedding
         bleedTickDrawChancePercent += other.bleedTickDrawChancePercent
+        burnAttackDoubleChancePercent += other.burnAttackDoubleChancePercent
+        burnDecaySlowVsBleedingPercent += other.burnDecaySlowVsBleedingPercent
+        bleedDurationFromCriticalBonus += other.bleedDurationFromCriticalBonus
+        bleedDurationVsPoisonedBonus += other.bleedDurationVsPoisonedBonus
+        burnAttackBleedChancePercent += other.burnAttackBleedChancePercent
+        burnAttackBleedDamage += other.burnAttackBleedDamage
     }
 }
 
@@ -409,21 +404,20 @@ extension DotTriggers {
             ashenArsenal: values.decode(Bool.self, "ashenArsenal", default: false),
             arterialCascade: values.decode(Bool.self, "arterialCascade", default: false),
             steamExplosion: values.decode(Bool.self, "steamExplosion", default: false),
-            reactiveCoating: values.decode(Bool.self, "reactiveCoating", default: false),
             safeHandling: values.decode(Bool.self, "safeHandling", default: false),
-            reactiveSediment: values.decode(Bool.self, "reactiveSediment", default: false),
-            spentReagents: values.decode(Bool.self, "spentReagents", default: false),
-            dissolvingFumes: values.decode(Bool.self, "dissolvingFumes", default: false),
             unstableCulture: values.decode(Bool.self, "unstableCulture", default: false),
             sealedVial: values.decode(Bool.self, "sealedVial", default: false),
             barbedSpores: values.decode(Bool.self, "barbedSpores", default: false),
             livingBark: values.decode(Bool.self, "livingBark", default: false),
-            coolMoss: values.decode(Bool.self, "coolMoss", default: false),
-            returningBloom: values.decode(Bool.self, "returningBloom", default: false),
             rootPassage: values.decode(Bool.self, "rootPassage", default: false),
-            entanglingGrowth: values.decode(Bool.self, "entanglingGrowth", default: false),
             thornShedding: values.decode(Bool.self, "thornShedding", default: false),
-            bleedTickDrawChancePercent: values.decode(Double.self, "bleedTickDrawChancePercent", default: 0)
+            bleedTickDrawChancePercent: values.decode(Double.self, "bleedTickDrawChancePercent", default: 0),
+            burnAttackDoubleChancePercent: values.decode(Double.self, "burnAttackDoubleChancePercent", default: 0),
+            burnDecaySlowVsBleedingPercent: values.decode(Double.self, "burnDecaySlowVsBleedingPercent", default: 0),
+            bleedDurationFromCriticalBonus: values.decode(Int.self, "bleedDurationFromCriticalBonus", default: 0),
+            bleedDurationVsPoisonedBonus: values.decode(Int.self, "bleedDurationVsPoisonedBonus", default: 0),
+            burnAttackBleedChancePercent: values.decode(Double.self, "burnAttackBleedChancePercent", default: 0),
+            burnAttackBleedDamage: values.decode(Int.self, "burnAttackBleedDamage", default: 0)
         )
     }
 
@@ -479,20 +473,19 @@ extension DotTriggers {
         try container.encodeNonDefault(ashenArsenal, "ashenArsenal", default: false)
         try container.encodeNonDefault(arterialCascade, "arterialCascade", default: false)
         try container.encodeNonDefault(steamExplosion, "steamExplosion", default: false)
-        try container.encodeNonDefault(reactiveCoating, "reactiveCoating", default: false)
         try container.encodeNonDefault(safeHandling, "safeHandling", default: false)
-        try container.encodeNonDefault(reactiveSediment, "reactiveSediment", default: false)
-        try container.encodeNonDefault(spentReagents, "spentReagents", default: false)
-        try container.encodeNonDefault(dissolvingFumes, "dissolvingFumes", default: false)
         try container.encodeNonDefault(unstableCulture, "unstableCulture", default: false)
         try container.encodeNonDefault(sealedVial, "sealedVial", default: false)
         try container.encodeNonDefault(barbedSpores, "barbedSpores", default: false)
         try container.encodeNonDefault(livingBark, "livingBark", default: false)
-        try container.encodeNonDefault(coolMoss, "coolMoss", default: false)
-        try container.encodeNonDefault(returningBloom, "returningBloom", default: false)
         try container.encodeNonDefault(rootPassage, "rootPassage", default: false)
-        try container.encodeNonDefault(entanglingGrowth, "entanglingGrowth", default: false)
         try container.encodeNonDefault(thornShedding, "thornShedding", default: false)
         try container.encodeNonDefault(bleedTickDrawChancePercent, "bleedTickDrawChancePercent", default: 0)
+        try container.encodeNonDefault(burnAttackDoubleChancePercent, "burnAttackDoubleChancePercent", default: 0)
+        try container.encodeNonDefault(burnDecaySlowVsBleedingPercent, "burnDecaySlowVsBleedingPercent", default: 0)
+        try container.encodeNonDefault(bleedDurationFromCriticalBonus, "bleedDurationFromCriticalBonus", default: 0)
+        try container.encodeNonDefault(bleedDurationVsPoisonedBonus, "bleedDurationVsPoisonedBonus", default: 0)
+        try container.encodeNonDefault(burnAttackBleedChancePercent, "burnAttackBleedChancePercent", default: 0)
+        try container.encodeNonDefault(burnAttackBleedDamage, "burnAttackBleedDamage", default: 0)
     }
 }

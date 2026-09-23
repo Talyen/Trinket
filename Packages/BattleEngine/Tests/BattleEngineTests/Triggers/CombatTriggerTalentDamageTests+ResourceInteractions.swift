@@ -4,22 +4,16 @@ import TrinketCore
 @testable import BattleEngine
 
 extension CombatTriggerTalentDamageTests {
-    @Test(arguments: [UInt64(1), 2])
-    func `arcane focus deals damage for either random element`(seed: UInt64) {
+    @Test func `arcane focus adds one to mana empowerment damage`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: 3, heroMana: 3,
             heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_mana_t1_1"]),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        battle.rng = SeededRandomNumberGenerator(seed: seed)
-        var preview = battle.rng
-        let keyword: Keyword = BattleChance.succeeds(probability: 0.5, using: &preview) ? .burn : .freeze
-        let before = battle.health(of: battle.enemy)
-        let payment = battle.payMana(3, for: battle.hero)
-        _ = CombatTriggerEngine.afterSpendMana(payment, in: &battle)
-        #expect(before - battle.health(of: battle.enemy) == 1)
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.keyword == keyword })
+        var ability = Ability.frostbolt
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &ability, actor: battle.hero, context: &battle)
+        #expect(ability.directDamage == Ability.frostbolt.directDamage + 2)
     }
 
     @Test(arguments: ["bear_physical_t4_1", "wolf_physical_t4_1"])
@@ -48,26 +42,6 @@ extension CombatTriggerTalentDamageTests {
         } else {
             #expect(battle.storedBlockedDamageByActorID[hero.id] == nil)
         }
-    }
-
-    @Test(arguments: [false, true])
-    func `armor pierce recognizes leech cards`(hasLeech: Bool) {
-        var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_leech_t1_2"]),
-            enemyModifiers: CombatModifierProfile(damageTakenReduction: [.physical: 0.5]),
-        )
-        battle.appliesFightPacing = false
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: DamageOperation.attack(
-                tier: .skill,
-                scaling: .items,
-                accuracy: .unavoidable,
-                abilityCriticalChanceBonus: -1,
-                abilityHasLeech: hasLeech,
-            ),
-        ))
-        #expect(outcome.healthLost == (hasLeech ? 10 : 5))
     }
 
     @Test(arguments: [0, 2, 10])
@@ -100,22 +74,21 @@ extension CombatTriggerTalentDamageTests {
 }
 
 extension CombatTriggerTalentDamageTests {
-    @Test(arguments: [false, true])
-    func `last mana damage survives mana refund`(refundBeforeReactions: Bool) {
-        var profile = CombatantTalentCatalog.profile(for: ["warlock_mana_t1_1"])
-        profile.triggers.spendManaRefundChancePercent = 1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroMaxMana: 3, heroModifiers: profile, dealOpeningHand: false,
-        )
-        battle.appliesFightPacing = false
-        let actor = battle.hero
-        let payment = battle.payMana(3, for: actor)
-        if refundBeforeReactions {
-            _ = battle.restoreManaEmitting(3, to: actor, abilityName: "Early refund")
+    @Test func `dark recovery strengthens leech at zero mana`() {
+        func restored(mana: Int) -> Int {
+            var battle = BattleTestFixtures.makePipelineContext(
+                heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_mana_t1_1"]),
+            )
+            battle.appliesFightPacing = false
+            battle.roster.hero.currentHealth = 5
+            battle.roster.hero.currentMana = mana
+            _ = HealingEngine.leechFromDamage(
+                10, sourceActorID: battle.hero.id, target: battle.enemy,
+                abilityHasLeech: true, damageKeyword: .physical, in: &battle,
+            )
+            return battle.roster.hero.currentHealth - 5
         }
-        _ = CombatTriggerEngine.afterSpendMana(payment, in: &battle)
-        #expect(battle.mana(of: actor) == 3)
-        #expect(battle.health(of: battle.enemy) == 97)
+        #expect(restored(mana: 0) > restored(mana: 1))
     }
 
     @Test func `arcane burst accumulates mana across cards and turns`() throws {

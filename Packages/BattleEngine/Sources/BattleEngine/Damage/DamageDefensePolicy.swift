@@ -43,14 +43,42 @@ enum DamageDefensePolicy {
         }
         guard let sourceID = state.sourceActorID else { return 1 }
         let triggers = context.modifiers(for: sourceID).triggers
+        if state.damageKeyword == .burn, state.combatant.role == .enemy, triggers.burnIgnoresBlock {
+            return 0
+        }
+        if state.damageKeyword == .poison, state.options.isAttackHit,
+           state.combatant.role == .enemy, triggers.rootPassage {
+            return 0
+        }
         if keywordIgnoresBlock(keyword: state.damageKeyword, sourceTriggers: triggers, sourceActorID: sourceID, in: context) {
             return 0
         }
-        guard state.damageKeyword == .physical else { return 1 }
-        if triggers.physicalIgnoresBlockVsStunnedOrFrozen, state.targetStatus.isStunned || state.targetStatus.isFrozen {
+        if state.damageKeyword == .bleed, state.combatant.role == .enemy, triggers.bleedIgnoresEnemyBlock {
             return 0
         }
-        return 1 - clamped01(triggers.physicalBlockIgnorePercent)
+        if state.damageKeyword == .physical, state.isCritical,
+           state.combatant.role == .enemy, triggers.cleanCut {
+            return 0
+        }
+        var ignored = 0.0
+        if state.combatant.role == .enemy {
+            if state.damageKeyword == .holy {
+                ignored = max(ignored, triggers.holyBlockIgnorePercent)
+            }
+            if state.damageKeyword == .bleed, state.options.isAttackHit {
+                ignored = max(ignored, triggers.bleedAttackBlockIgnorePercent)
+            }
+            if state.options.isAttackHit, state.options.abilityHasLeech {
+                ignored = max(ignored, triggers.leechAttackBlockIgnorePercent)
+            }
+        }
+        if state.damageKeyword == .physical {
+            if triggers.physicalIgnoresBlockVsStunnedOrFrozen, state.targetStatus.isStunned || state.targetStatus.isFrozen {
+                return 0
+            }
+            ignored = max(ignored, triggers.physicalBlockIgnorePercent)
+        }
+        return 1 - clamped01(ignored)
     }
 
     private static func keywordIgnoresBlock(

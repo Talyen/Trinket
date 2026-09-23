@@ -6,6 +6,29 @@ package extension CombatTriggerEngine {
         guard context.roster.health(for: actor) > 0 else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
+        if triggers.goldTheftDodgeBonus > 0,
+           context.roster.runtime(for: actor)?.talents.turn.goldTheftDodgeApplied == false {
+            context.roster.mutateRuntime(for: actor) {
+                $0.talents.turn.goldTheftDodgeApplied = true
+                $0.talents.grantDodgeUntilNextTurn(triggers.goldTheftDodgeBonus)
+            }
+        }
+        if triggers.goldStealNextPhysicalBonus > 0 {
+            context.roster.mutateRuntime(for: actor) {
+                $0.talents.pending.nextPhysicalDamageBonus = max(
+                    $0.talents.pending.nextPhysicalDamageBonus,
+                    triggers.goldStealNextPhysicalBonus,
+                )
+            }
+        }
+        if triggers.criticalGoldStealDrawCard,
+           context.resolution.cardTalents?.didCriticalHit == true,
+           context.claimHeroCardBonus("Quick Fingers", actorID: actor.id),
+           let owner = context.roster.participant(for: actor) {
+            events.append(contentsOf: drawCards(
+                1, for: owner, actor: actor, abilityName: "Quick Fingers", in: &context,
+            ))
+        }
         if triggers.firstGoldTheftDraw > 0,
            let owner = context.roster.participant(for: actor), owner.isPartyMember,
            context.claimHeroTalent("quickFingers", actorID: actor.id) {
@@ -124,7 +147,45 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: combatant.id).triggers
         let restoresParty = granted > 0 && triggers.onGainGoldHealParty > 0
             && context.resolution.claim(.heroTalent("goldenRecovery"), actorID: combatant.id, cadence: .turn(context.turnCount))
+        let wasBelowHalfHealth = context.roster.health(for: combatant) * 2
+            < context.roster.maxHealth(for: combatant)
         var events = healSelfAfterGoldGain(source: combatant, in: &context).events
+        let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction
+            && (!context.hasHeroCard(for: combatant.id)
+                || context.claimHeroCardBonus("wildcardGoldGain", actorID: combatant.id))
+        if wildcardGoldGain {
+            if triggers.goldGainHealChancePercent > 0, triggers.goldGainHealAmount > 0,
+               context.roster.health(for: combatant) < context.roster.maxHealth(for: combatant),
+               BattleChance.succeeds(probability: triggers.goldGainHealChancePercent, using: &context.rng) {
+                events.append(contentsOf: context.healEmitting(
+                    amount: triggers.goldGainHealAmount,
+                    target: combatant,
+                    source: combatant,
+                    abilityName: "Health is Wealth",
+                ))
+            }
+            if triggers.goldGainCleanseChancePercent > 0,
+               context.hasTalentDebuff(on: combatant),
+               BattleChance.succeeds(probability: triggers.goldGainCleanseChancePercent, using: &context.rng) {
+                events.append(contentsOf: performRandomCleanses(
+                    source: combatant, target: combatant, count: 1,
+                    abilityName: "Lucky Charm", in: &context,
+                ))
+            }
+            if triggers.goldGainBelowHalfDrawCard, wasBelowHalfHealth,
+               let owner = context.roster.participant(for: combatant) {
+                events.append(contentsOf: drawCards(
+                    1, for: owner, actor: combatant, abilityName: "Last Wager", in: &context,
+                ))
+            }
+            if triggers.goldGainDrawChancePercent > 0,
+               BattleChance.succeeds(probability: triggers.goldGainDrawChancePercent, using: &context.rng),
+               let owner = context.roster.participant(for: combatant) {
+                events.append(contentsOf: drawCards(
+                    1, for: owner, actor: combatant, abilityName: "Lucky Break", in: &context,
+                ))
+            }
+        }
         if triggers.lightFingered {
             events.append(contentsOf: DefensePoolEngine.steal(
                 granted, from: context.roster.enemy.combatant, to: combatant,

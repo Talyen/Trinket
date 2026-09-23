@@ -32,7 +32,7 @@ struct BattleCardAssessmentTests {
         let card = deal(.heal, in: &state)
         let rng = state.rng
         let playSerial = state.resolution.nextCardID
-        state.heroTalents.history[state.hero.id, default: HeroTalentHistory()].preparations.insert(.poisonDamage)
+        state.heroTalents.history[state.hero.id, default: HeroTalentHistory()].preparations.insert(.doublePoison)
         let health = state.roster.companion.currentHealth
         for _ in 0 ..< 4 {
             let assessment = state.assessCard(card)
@@ -42,7 +42,7 @@ struct BattleCardAssessmentTests {
         }
         #expect(state.rng == rng)
         #expect(state.resolution.nextCardID == playSerial)
-        #expect(state.heroTalents.history[state.hero.id]?.preparations == [.poisonDamage])
+        #expect(state.heroTalents.history[state.hero.id]?.preparations == [.doublePoison])
         #expect(state.roster.companion.currentHealth == health)
         _ = try state.playCard(cardID: card.id)
         #expect(state.roster.companion.currentHealth > health)

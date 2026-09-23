@@ -262,18 +262,21 @@ extension CombatTriggerTalentDamageTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
     }
 
-    @Test(arguments: [false, true])
-    func `bloodfire heals only damaging burn ticks`(blocked: Bool) throws {
+    @Test func `bloodfire adds bleed damage to a burn card only once`() throws {
+        var profile = CombatantTalentCatalog.profile(for: ["warlock_burn_t1_1"])
+        profile.triggers.burnAttackBleedChancePercent = 1
+        let ability = Ability(
+            id: "bloodfire-check", name: "Bloodfire Check", tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .burn), DamageComponent(2, keyword: .burn)],
+            criticalChanceBonus: -1,
+        )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_burn_t1_1"]), dealOpeningHand: false,
+            heroAbilities: [ability], heroModifiers: profile,
         )
         battle.appliesFightPacing = false
-        battle.roster.hero.currentHealth = 5
-        DefensePoolEngine.set(blocked ? 20 : 0, on: battle.enemy, in: &battle)
-        battle.appendEffect(.burn(8), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        let burn = try #require(battle.activeEffects(of: battle.enemy).first { $0.keyword == .burn })
-        _ = DecayingDoTHandler(keyword: .burn, kind: .burn).advanceTurn(burn, on: battle.enemy, in: &battle)
-        #expect(battle.health(of: battle.hero) == (blocked ? 5 : 7))
+        let card = try #require(battle.hand.cards.first)
+        let events = try battle.playCard(cardID: card.id)
+        #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .bleed && $0.amount == 4 } == 1)
     }
 
     @Test func `healing flames heals the lowest living ally on a burn tick`() throws {

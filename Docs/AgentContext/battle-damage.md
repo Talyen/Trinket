@@ -9,7 +9,8 @@ or reaction damage preserves its operation kind. Redirected damage enters the
 recipient's defenses with outgoing scaling already resolved. `DamageDefensePolicy`
 owns mitigation and Block bypass multipliers, while the shield steps in
 `DamagePipeline` own Intercede absorption on top of those multipliers,
-preserving each checkpoint's order and rounding. Partial bypass scales each defense before
+preserving each checkpoint's order and rounding. Multiple partial Block bypasses
+use the strongest applicable fraction. Partial bypass scales each defense before
 subtracting it and clamping damage. Burn detonation preserves the original
 source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
 preserves the original source's slower decay. Resolution depth limits recursion, never changes

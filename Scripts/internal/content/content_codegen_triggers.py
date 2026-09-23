@@ -71,7 +71,6 @@ _TRIGGER_SIMPLE_MAP: dict[str, str] = {
     "on_stun_damage_block": "stunDamageBlockFlat",
     "on_holy_damage_cleanse": "holyDamageCleanseCount",
     "on_holy_damage_heal": "holyDamageHealFlat",
-    "on_burn_damage_heal": "burnDamageHealFlat",
     "on_dodge_gold": "dodgeGoldFlat",
     "ignore_enemy_mitigation_percent": "ignoreEnemyMitigationPercent",
     "on_stun_deal_physical": "stunDealPhysicalFlat",

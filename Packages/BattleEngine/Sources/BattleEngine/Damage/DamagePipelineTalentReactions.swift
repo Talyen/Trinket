@@ -44,9 +44,6 @@ package extension DamagePipeline {
         var destinations: [Keyword] = []
         switch keyword {
         case .physical:
-            if triggers.toxicTransfusion {
-                destinations.append(.poison)
-            }
             if triggers.firebrand {
                 destinations.append(.burn)
             }
@@ -88,7 +85,10 @@ package extension DamagePipeline {
         source: CombatantRuntime,
         in context: inout BattleState,
     ) {
-        if triggers.sunwall, keyword == .holy {
+        if triggers.sunwallChancePercent > 0, keyword == .holy, state.healthLost > 0,
+           context.roster.companion.isAlive,
+           !state.options.isCardAttack || context.claimHeroCardBonus("Sunwall", actorID: source.id),
+           BattleChance.succeeds(probability: triggers.sunwallChancePercent, using: &context.rng) {
             state.damageEvents.append(contentsOf: grantTalentCompanionBlock(
                 state.healthLost,
                 source: source.combatant,
@@ -118,11 +118,7 @@ package extension DamagePipeline {
         source: CombatantRuntime,
         in context: inout BattleState,
     ) {
-        // Both talent detonations consume the same bleed stack with the same
-        // call; only their gates differ (keywords are mutually exclusive).
-        let shouldDetonateBleed =
-            (triggers.shatterpoint && keyword == .freeze)
-                || (triggers.arterialCascade && keyword == .physical && state.isCritical)
+        let shouldDetonateBleed = triggers.arterialCascade && keyword == .physical && state.isCritical
         if shouldDetonateBleed {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
                 on: state.combatant,

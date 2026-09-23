@@ -28,15 +28,20 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var goldDoubledWhileFullHealth: Bool = false
     public var firstGoldTheftDraw: Int = 0
     public var bountyBlade: Bool = false
-    public var consolationPrize: Bool = false
-    public var houseCredit: Bool = false
-    public var fullHouse: Bool = false
-    public var luckyCharm: Bool = false
-    public var lastWager: Bool = false
-    public var sleightOfCoin: Bool = false
-    public var luckyBreak: Bool = false
+    public var blockedAttackFirstGold: Int = 0
     public var stealGoldBonusVsPoisoned: Int = 0
     public var gainGoldDrawThreshold: Int = 0
+    public var stunCriticalStealGold: Int = 0
+    public var dodgePreparesDoubleGoldSteal: Bool = false
+    public var criticalGoldStealDrawCard: Bool = false
+    public var goldStealNextPhysicalBonus: Int = 0
+    public var goldGainHealChancePercent: Double = 0
+    public var goldGainHealAmount: Int = 0
+    public var criticalGoldTheftBonus: Int = 0
+    public var goldGainCleanseChancePercent: Double = 0
+    public var goldGainBelowHalfDrawCard: Bool = false
+    public var goldTheftDodgeBonus: Double = 0
+    public var goldGainDrawChancePercent: Double = 0
 
     public init(
         carrionClaim: Bool = false,
@@ -63,15 +68,20 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         goldDoubledWhileFullHealth: Bool = false,
         firstGoldTheftDraw: Int = 0,
         bountyBlade: Bool = false,
-        consolationPrize: Bool = false,
-        houseCredit: Bool = false,
-        fullHouse: Bool = false,
-        luckyCharm: Bool = false,
-        lastWager: Bool = false,
-        sleightOfCoin: Bool = false,
-        luckyBreak: Bool = false,
+        blockedAttackFirstGold: Int = 0,
         stealGoldBonusVsPoisoned: Int = 0,
-        gainGoldDrawThreshold: Int = 0
+        gainGoldDrawThreshold: Int = 0,
+        stunCriticalStealGold: Int = 0,
+        dodgePreparesDoubleGoldSteal: Bool = false,
+        criticalGoldStealDrawCard: Bool = false,
+        goldStealNextPhysicalBonus: Int = 0,
+        goldGainHealChancePercent: Double = 0,
+        goldGainHealAmount: Int = 0,
+        criticalGoldTheftBonus: Int = 0,
+        goldGainCleanseChancePercent: Double = 0,
+        goldGainBelowHalfDrawCard: Bool = false,
+        goldTheftDodgeBonus: Double = 0,
+        goldGainDrawChancePercent: Double = 0
     ) {
         self.carrionClaim = carrionClaim
         self.lightFingered = lightFingered
@@ -97,19 +107,24 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.goldDoubledWhileFullHealth = goldDoubledWhileFullHealth
         self.firstGoldTheftDraw = firstGoldTheftDraw
         self.bountyBlade = bountyBlade
-        self.consolationPrize = consolationPrize
-        self.houseCredit = houseCredit
-        self.fullHouse = fullHouse
-        self.luckyCharm = luckyCharm
-        self.lastWager = lastWager
-        self.sleightOfCoin = sleightOfCoin
-        self.luckyBreak = luckyBreak
+        self.blockedAttackFirstGold = blockedAttackFirstGold
         self.stealGoldBonusVsPoisoned = stealGoldBonusVsPoisoned
         self.gainGoldDrawThreshold = gainGoldDrawThreshold
+        self.stunCriticalStealGold = stunCriticalStealGold
+        self.dodgePreparesDoubleGoldSteal = dodgePreparesDoubleGoldSteal
+        self.criticalGoldStealDrawCard = criticalGoldStealDrawCard
+        self.goldStealNextPhysicalBonus = goldStealNextPhysicalBonus
+        self.goldGainHealChancePercent = goldGainHealChancePercent
+        self.goldGainHealAmount = goldGainHealAmount
+        self.criticalGoldTheftBonus = criticalGoldTheftBonus
+        self.goldGainCleanseChancePercent = goldGainCleanseChancePercent
+        self.goldGainBelowHalfDrawCard = goldGainBelowHalfDrawCard
+        self.goldTheftDodgeBonus = goldTheftDodgeBonus
+        self.goldGainDrawChancePercent = goldGainDrawChancePercent
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "consolationPrize", "houseCredit", "fullHouse", "luckyCharm", "lastWager", "sleightOfCoin", "luckyBreak", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold"]
+    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "blockedAttackFirstGold", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold", "stunCriticalStealGold", "dodgePreparesDoubleGoldSteal", "criticalGoldStealDrawCard", "goldStealNextPhysicalBonus", "goldGainHealChancePercent", "goldGainHealAmount", "criticalGoldTheftBonus", "goldGainCleanseChancePercent", "goldGainBelowHalfDrawCard", "goldTheftDodgeBonus", "goldGainDrawChancePercent"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -138,15 +153,20 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.goldDoubledWhileFullHealth != other.goldDoubledWhileFullHealth { names.append("goldDoubledWhileFullHealth") }
         if self.firstGoldTheftDraw != other.firstGoldTheftDraw { names.append("firstGoldTheftDraw") }
         if self.bountyBlade != other.bountyBlade { names.append("bountyBlade") }
-        if self.consolationPrize != other.consolationPrize { names.append("consolationPrize") }
-        if self.houseCredit != other.houseCredit { names.append("houseCredit") }
-        if self.fullHouse != other.fullHouse { names.append("fullHouse") }
-        if self.luckyCharm != other.luckyCharm { names.append("luckyCharm") }
-        if self.lastWager != other.lastWager { names.append("lastWager") }
-        if self.sleightOfCoin != other.sleightOfCoin { names.append("sleightOfCoin") }
-        if self.luckyBreak != other.luckyBreak { names.append("luckyBreak") }
+        if self.blockedAttackFirstGold != other.blockedAttackFirstGold { names.append("blockedAttackFirstGold") }
         if self.stealGoldBonusVsPoisoned != other.stealGoldBonusVsPoisoned { names.append("stealGoldBonusVsPoisoned") }
         if self.gainGoldDrawThreshold != other.gainGoldDrawThreshold { names.append("gainGoldDrawThreshold") }
+        if self.stunCriticalStealGold != other.stunCriticalStealGold { names.append("stunCriticalStealGold") }
+        if self.dodgePreparesDoubleGoldSteal != other.dodgePreparesDoubleGoldSteal { names.append("dodgePreparesDoubleGoldSteal") }
+        if self.criticalGoldStealDrawCard != other.criticalGoldStealDrawCard { names.append("criticalGoldStealDrawCard") }
+        if self.goldStealNextPhysicalBonus != other.goldStealNextPhysicalBonus { names.append("goldStealNextPhysicalBonus") }
+        if self.goldGainHealChancePercent != other.goldGainHealChancePercent { names.append("goldGainHealChancePercent") }
+        if self.goldGainHealAmount != other.goldGainHealAmount { names.append("goldGainHealAmount") }
+        if self.criticalGoldTheftBonus != other.criticalGoldTheftBonus { names.append("criticalGoldTheftBonus") }
+        if self.goldGainCleanseChancePercent != other.goldGainCleanseChancePercent { names.append("goldGainCleanseChancePercent") }
+        if self.goldGainBelowHalfDrawCard != other.goldGainBelowHalfDrawCard { names.append("goldGainBelowHalfDrawCard") }
+        if self.goldTheftDodgeBonus != other.goldTheftDodgeBonus { names.append("goldTheftDodgeBonus") }
+        if self.goldGainDrawChancePercent != other.goldGainDrawChancePercent { names.append("goldGainDrawChancePercent") }
         return names
     }
 }
@@ -177,15 +197,20 @@ extension GoldTriggers {
         goldDoubledWhileFullHealth = goldDoubledWhileFullHealth || other.goldDoubledWhileFullHealth
         firstGoldTheftDraw += other.firstGoldTheftDraw
         bountyBlade = bountyBlade || other.bountyBlade
-        consolationPrize = consolationPrize || other.consolationPrize
-        houseCredit = houseCredit || other.houseCredit
-        fullHouse = fullHouse || other.fullHouse
-        luckyCharm = luckyCharm || other.luckyCharm
-        lastWager = lastWager || other.lastWager
-        sleightOfCoin = sleightOfCoin || other.sleightOfCoin
-        luckyBreak = luckyBreak || other.luckyBreak
+        blockedAttackFirstGold += other.blockedAttackFirstGold
         stealGoldBonusVsPoisoned += other.stealGoldBonusVsPoisoned
         gainGoldDrawThreshold = max(gainGoldDrawThreshold, other.gainGoldDrawThreshold)
+        stunCriticalStealGold += other.stunCriticalStealGold
+        dodgePreparesDoubleGoldSteal = dodgePreparesDoubleGoldSteal || other.dodgePreparesDoubleGoldSteal
+        criticalGoldStealDrawCard = criticalGoldStealDrawCard || other.criticalGoldStealDrawCard
+        goldStealNextPhysicalBonus += other.goldStealNextPhysicalBonus
+        goldGainHealChancePercent += other.goldGainHealChancePercent
+        goldGainHealAmount += other.goldGainHealAmount
+        criticalGoldTheftBonus += other.criticalGoldTheftBonus
+        goldGainCleanseChancePercent += other.goldGainCleanseChancePercent
+        goldGainBelowHalfDrawCard = goldGainBelowHalfDrawCard || other.goldGainBelowHalfDrawCard
+        goldTheftDodgeBonus += other.goldTheftDodgeBonus
+        goldGainDrawChancePercent += other.goldGainDrawChancePercent
     }
 }
 
@@ -217,15 +242,20 @@ extension GoldTriggers {
             goldDoubledWhileFullHealth: values.decode(Bool.self, "goldDoubledWhileFullHealth", default: false),
             firstGoldTheftDraw: values.decode(Int.self, "firstGoldTheftDraw", default: 0),
             bountyBlade: values.decode(Bool.self, "bountyBlade", default: false),
-            consolationPrize: values.decode(Bool.self, "consolationPrize", default: false),
-            houseCredit: values.decode(Bool.self, "houseCredit", default: false),
-            fullHouse: values.decode(Bool.self, "fullHouse", default: false),
-            luckyCharm: values.decode(Bool.self, "luckyCharm", default: false),
-            lastWager: values.decode(Bool.self, "lastWager", default: false),
-            sleightOfCoin: values.decode(Bool.self, "sleightOfCoin", default: false),
-            luckyBreak: values.decode(Bool.self, "luckyBreak", default: false),
+            blockedAttackFirstGold: values.decode(Int.self, "blockedAttackFirstGold", default: 0),
             stealGoldBonusVsPoisoned: values.decode(Int.self, "stealGoldBonusVsPoisoned", default: 0),
-            gainGoldDrawThreshold: values.decode(Int.self, "gainGoldDrawThreshold", default: 0)
+            gainGoldDrawThreshold: values.decode(Int.self, "gainGoldDrawThreshold", default: 0),
+            stunCriticalStealGold: values.decode(Int.self, "stunCriticalStealGold", default: 0),
+            dodgePreparesDoubleGoldSteal: values.decode(Bool.self, "dodgePreparesDoubleGoldSteal", default: false),
+            criticalGoldStealDrawCard: values.decode(Bool.self, "criticalGoldStealDrawCard", default: false),
+            goldStealNextPhysicalBonus: values.decode(Int.self, "goldStealNextPhysicalBonus", default: 0),
+            goldGainHealChancePercent: values.decode(Double.self, "goldGainHealChancePercent", default: 0),
+            goldGainHealAmount: values.decode(Int.self, "goldGainHealAmount", default: 0),
+            criticalGoldTheftBonus: values.decode(Int.self, "criticalGoldTheftBonus", default: 0),
+            goldGainCleanseChancePercent: values.decode(Double.self, "goldGainCleanseChancePercent", default: 0),
+            goldGainBelowHalfDrawCard: values.decode(Bool.self, "goldGainBelowHalfDrawCard", default: false),
+            goldTheftDodgeBonus: values.decode(Double.self, "goldTheftDodgeBonus", default: 0),
+            goldGainDrawChancePercent: values.decode(Double.self, "goldGainDrawChancePercent", default: 0)
         )
     }
 
@@ -254,14 +284,19 @@ extension GoldTriggers {
         try container.encodeNonDefault(goldDoubledWhileFullHealth, "goldDoubledWhileFullHealth", default: false)
         try container.encodeNonDefault(firstGoldTheftDraw, "firstGoldTheftDraw", default: 0)
         try container.encodeNonDefault(bountyBlade, "bountyBlade", default: false)
-        try container.encodeNonDefault(consolationPrize, "consolationPrize", default: false)
-        try container.encodeNonDefault(houseCredit, "houseCredit", default: false)
-        try container.encodeNonDefault(fullHouse, "fullHouse", default: false)
-        try container.encodeNonDefault(luckyCharm, "luckyCharm", default: false)
-        try container.encodeNonDefault(lastWager, "lastWager", default: false)
-        try container.encodeNonDefault(sleightOfCoin, "sleightOfCoin", default: false)
-        try container.encodeNonDefault(luckyBreak, "luckyBreak", default: false)
+        try container.encodeNonDefault(blockedAttackFirstGold, "blockedAttackFirstGold", default: 0)
         try container.encodeNonDefault(stealGoldBonusVsPoisoned, "stealGoldBonusVsPoisoned", default: 0)
         try container.encodeNonDefault(gainGoldDrawThreshold, "gainGoldDrawThreshold", default: 0)
+        try container.encodeNonDefault(stunCriticalStealGold, "stunCriticalStealGold", default: 0)
+        try container.encodeNonDefault(dodgePreparesDoubleGoldSteal, "dodgePreparesDoubleGoldSteal", default: false)
+        try container.encodeNonDefault(criticalGoldStealDrawCard, "criticalGoldStealDrawCard", default: false)
+        try container.encodeNonDefault(goldStealNextPhysicalBonus, "goldStealNextPhysicalBonus", default: 0)
+        try container.encodeNonDefault(goldGainHealChancePercent, "goldGainHealChancePercent", default: 0)
+        try container.encodeNonDefault(goldGainHealAmount, "goldGainHealAmount", default: 0)
+        try container.encodeNonDefault(criticalGoldTheftBonus, "criticalGoldTheftBonus", default: 0)
+        try container.encodeNonDefault(goldGainCleanseChancePercent, "goldGainCleanseChancePercent", default: 0)
+        try container.encodeNonDefault(goldGainBelowHalfDrawCard, "goldGainBelowHalfDrawCard", default: false)
+        try container.encodeNonDefault(goldTheftDodgeBonus, "goldTheftDodgeBonus", default: 0)
+        try container.encodeNonDefault(goldGainDrawChancePercent, "goldGainDrawChancePercent", default: 0)
     }
 }

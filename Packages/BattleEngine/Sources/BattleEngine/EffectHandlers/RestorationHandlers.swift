@@ -39,12 +39,10 @@ struct ResourceGainHandler: BattleEffectHandler {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         switch keyword {
         case .mana:
-            let bonus = amount > 0 ? CombatTriggerEngine.heroCardManaBonus(source: source, target: target, in: &context) : 0
             let restored = context.restoreMana(
-                context.paced(amount, sourceActorID: source.id) + bonus,
+                context.paced(amount, sourceActorID: source.id),
                 to: target,
             )
-            CombatTriggerEngine.afterHeroCardMana(source: source, restored: restored, in: &context)
             let event = context.nextEvent(
                 kind: .effect,
                 effectKind: .resourceGain,
@@ -59,12 +57,14 @@ struct ResourceGainHandler: BattleEffectHandler {
             if restored > 0 {
                 events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: target, in: &context))
             }
+            events.append(contentsOf: CombatTriggerEngine.consumeManaOverflowThorns(
+                for: target, restoredMana: restored > 0, in: &context,
+            ))
             return EffectApplyOutcome(events: events, didApply: true)
         case .gold:
-            let bonus = CombatTriggerEngine.heroCardGoldBonus(source: source, amount: amount, in: &context)
             return EffectApplyOutcome(
                 events: context.grantGoldEvent(
-                    amount + bonus, to: source, abilityName: ability.name,
+                    amount, to: source, abilityName: ability.name,
                     isTheft: ability.stealsGold, isDirectCardGain: true,
                 ),
                 didApply: true,
@@ -123,6 +123,9 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         if restored > 0 {
             events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: target, in: &context))
         }
+        events.append(contentsOf: CombatTriggerEngine.consumeManaOverflowThorns(
+            for: target, restoredMana: restored > 0, in: &context,
+        ))
         return EffectApplyOutcome(events: events, didApply: true)
     }
 }
@@ -140,23 +143,32 @@ struct ReviveHandler: BattleEffectHandler {
         guard case let .revive(health) = effect, health > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        guard context.roster.health(for: target) <= 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
+        let events = context.reviveEmitting(target, health: health, source: source, abilityName: ability.name)
+        return EffectApplyOutcome(events: events, didApply: !events.isEmpty)
+    }
+}
+
+package extension BattleState {
+    mutating func reviveEmitting(
+        _ target: Combatant,
+        health: Int,
+        source: Combatant,
+        abilityName: String,
+    ) -> [ActionEvent] {
+        guard health > 0, roster.health(for: target) <= 0 else { return [] }
         var revivedHealth = 0
-        context.roster.mutateRuntime(for: target) { runtime in
+        roster.mutateRuntime(for: target) { runtime in
             runtime.currentHealth = min(health, runtime.maxHealth)
             revivedHealth = runtime.currentHealth
         }
-        let event = context.nextEvent(
+        return [nextEvent(
             kind: .effect,
             effectKind: .instantHeal,
             actorName: source.name,
-            abilityName: ability.name,
+            abilityName: abilityName,
             target: target,
             amount: revivedHealth,
             keyword: .health,
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        )]
     }
 }

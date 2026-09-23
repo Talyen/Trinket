@@ -14,17 +14,22 @@ package enum DamagePipeline {
         state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        let immediateEnemyDamage = state.provenance != nil
-            && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)
-        if context.heroTalents.enemyTurnActive, state.options.isAttackHit || immediateEnemyDamage,
-           state.sourceActorID == context.enemy.id, state.combatant.role != .enemy {
-            context.heroTalents.attackedDuringEnemyTurn.insert(state.combatant.id)
-        }
         if state.options.isHealthCost {
             state.remaining = state.amount
             state.dealt = state.amount
             applyTakeDamage(to: &state, in: &context)
             applyDeathsDoor(to: &state, in: &context)
+            if state.healthLost > 0,
+               let sourceActorID = state.sourceActorID,
+               let source = context.roster.combatant(for: sourceActorID)?.combatant,
+               context.modifiers(for: sourceActorID).triggers.healthCostEmpowerDiscount > 0 {
+                let discount = context.modifiers(for: sourceActorID).triggers.healthCostEmpowerDiscount
+                context.roster.mutateRuntime(for: source) {
+                    $0.talents.pending.nextManaEmpowerDiscount = max(
+                        $0.talents.pending.nextManaEmpowerDiscount, discount,
+                    )
+                }
+            }
             return
         }
 
@@ -77,7 +82,7 @@ package enum DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
-                blockBroken: state.heroCardBlockBroken, targetWasFrozen: state.targetStatus.isFrozen, in: &context,
+                blockBroken: state.heroCardBlockBroken, in: &context,
             ))
         }
 
@@ -181,16 +186,6 @@ package enum DamagePipeline {
             applyCriticalMultiply(to: &state, in: &context)
         }
         applyBackdraftBonus(to: &state, in: &context)
-        if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
-            let bonus = CombatTriggerEngine.heroCardDamageBonus(keyword: state.damageKeyword, sourceID: state.sourceActorID, in: &context)
-            state.remaining += bonus
-            state.unique.outgoingDamage += bonus
-            state.heroCardBlockIgnore = CombatTriggerEngine.heroCardBlockIgnore(
-                keyword: state.damageKeyword,
-                sourceID: state.sourceActorID,
-                in: &context,
-            )
-        }
     }
 
     /// Single choke point for nested reaction damage (retaliation, wards,

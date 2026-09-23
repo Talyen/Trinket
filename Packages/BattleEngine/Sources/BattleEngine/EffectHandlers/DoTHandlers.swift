@@ -9,7 +9,9 @@ struct DecayingDoTHandler: BattleEffectHandler {
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard matches(active.effect) else { return [] }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
-        let slowPercent = sourceTriggers?.burnDecaySlowPercent ?? 0
+        let slowPercent = (sourceTriggers?.burnDecaySlowPercent ?? 0)
+            + (context.roster.hasAffliction(.bleed, on: target)
+                ? (sourceTriggers?.burnDecaySlowVsBleedingPercent ?? 0) : 0)
         let nextPotency: Int
         if keyword == .burn {
             let decayed = active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
@@ -387,7 +389,9 @@ struct DetonateDoTHandler: BattleEffectHandler {
             )
         }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
-        let slowBurn = sourceTriggers?.burnDecaySlowPercent ?? 0
+        let slowBurn = (sourceTriggers?.burnDecaySlowPercent ?? 0)
+            + (context.roster.hasAffliction(.bleed, on: target)
+                ? (sourceTriggers?.burnDecaySlowVsBleedingPercent ?? 0) : 0)
         let tickCount = active.keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true ? 2 : 1
         var remaining = active.effect
         var events: [ActionEvent] = []

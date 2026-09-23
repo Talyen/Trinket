@@ -40,15 +40,20 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var onDodgeDrawAndPlayCardChainOnCrit: Bool = false
     public var phantomCounter: Bool = false
     public var perfectTempo: Bool = false
-    public var falseOpening: Bool = false
-    public var missedOpportunity: Bool = false
     public var passingLuck: Bool = false
-    public var scatteredCaltrops: Bool = false
-    public var smokeTrick: Bool = false
     public var improvingOdds: Bool = false
     public var blindSpot: Bool = false
     public var onDodgeNextAttackGuaranteedCritical: Bool = false
     public var dodgeFirstAttackEachCombat: Bool = false
+    public var partyDodgeVsBurningBonus: Double = 0
+    public var quietGroveDodgeAtFullHealth: Double = 0
+    public var groveReserveCompanionDodgeBonus: Double = 0
+    public var dodgeNextAttackCritBonus: Double = 0
+    public var dodgeBelowHalfDrawCard: Bool = false
+    public var dodgeBleedChancePercent: Double = 0
+    public var dodgeBleedDamage: Int = 0
+    public var dodgeBurnChancePercent: Double = 0
+    public var dodgeBurnDamage: Int = 0
 
     public init(
         wintersWake: Bool = false,
@@ -87,15 +92,20 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         onDodgeDrawAndPlayCardChainOnCrit: Bool = false,
         phantomCounter: Bool = false,
         perfectTempo: Bool = false,
-        falseOpening: Bool = false,
-        missedOpportunity: Bool = false,
         passingLuck: Bool = false,
-        scatteredCaltrops: Bool = false,
-        smokeTrick: Bool = false,
         improvingOdds: Bool = false,
         blindSpot: Bool = false,
         onDodgeNextAttackGuaranteedCritical: Bool = false,
-        dodgeFirstAttackEachCombat: Bool = false
+        dodgeFirstAttackEachCombat: Bool = false,
+        partyDodgeVsBurningBonus: Double = 0,
+        quietGroveDodgeAtFullHealth: Double = 0,
+        groveReserveCompanionDodgeBonus: Double = 0,
+        dodgeNextAttackCritBonus: Double = 0,
+        dodgeBelowHalfDrawCard: Bool = false,
+        dodgeBleedChancePercent: Double = 0,
+        dodgeBleedDamage: Int = 0,
+        dodgeBurnChancePercent: Double = 0,
+        dodgeBurnDamage: Int = 0
     ) {
         self.wintersWake = wintersWake
         self.killingGrace = killingGrace
@@ -133,19 +143,24 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit
         self.phantomCounter = phantomCounter
         self.perfectTempo = perfectTempo
-        self.falseOpening = falseOpening
-        self.missedOpportunity = missedOpportunity
         self.passingLuck = passingLuck
-        self.scatteredCaltrops = scatteredCaltrops
-        self.smokeTrick = smokeTrick
         self.improvingOdds = improvingOdds
         self.blindSpot = blindSpot
         self.onDodgeNextAttackGuaranteedCritical = onDodgeNextAttackGuaranteedCritical
         self.dodgeFirstAttackEachCombat = dodgeFirstAttackEachCombat
+        self.partyDodgeVsBurningBonus = partyDodgeVsBurningBonus
+        self.quietGroveDodgeAtFullHealth = quietGroveDodgeAtFullHealth
+        self.groveReserveCompanionDodgeBonus = groveReserveCompanionDodgeBonus
+        self.dodgeNextAttackCritBonus = dodgeNextAttackCritBonus
+        self.dodgeBelowHalfDrawCard = dodgeBelowHalfDrawCard
+        self.dodgeBleedChancePercent = dodgeBleedChancePercent
+        self.dodgeBleedDamage = dodgeBleedDamage
+        self.dodgeBurnChancePercent = dodgeBurnChancePercent
+        self.dodgeBurnDamage = dodgeBurnDamage
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "shadowCamouflage", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "falseOpening", "missedOpportunity", "passingLuck", "scatteredCaltrops", "smokeTrick", "improvingOdds", "blindSpot", "onDodgeNextAttackGuaranteedCritical", "dodgeFirstAttackEachCombat"]
+    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "shadowCamouflage", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "passingLuck", "improvingOdds", "blindSpot", "onDodgeNextAttackGuaranteedCritical", "dodgeFirstAttackEachCombat", "partyDodgeVsBurningBonus", "quietGroveDodgeAtFullHealth", "groveReserveCompanionDodgeBonus", "dodgeNextAttackCritBonus", "dodgeBelowHalfDrawCard", "dodgeBleedChancePercent", "dodgeBleedDamage", "dodgeBurnChancePercent", "dodgeBurnDamage"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -186,15 +201,20 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         if self.onDodgeDrawAndPlayCardChainOnCrit != other.onDodgeDrawAndPlayCardChainOnCrit { names.append("onDodgeDrawAndPlayCardChainOnCrit") }
         if self.phantomCounter != other.phantomCounter { names.append("phantomCounter") }
         if self.perfectTempo != other.perfectTempo { names.append("perfectTempo") }
-        if self.falseOpening != other.falseOpening { names.append("falseOpening") }
-        if self.missedOpportunity != other.missedOpportunity { names.append("missedOpportunity") }
         if self.passingLuck != other.passingLuck { names.append("passingLuck") }
-        if self.scatteredCaltrops != other.scatteredCaltrops { names.append("scatteredCaltrops") }
-        if self.smokeTrick != other.smokeTrick { names.append("smokeTrick") }
         if self.improvingOdds != other.improvingOdds { names.append("improvingOdds") }
         if self.blindSpot != other.blindSpot { names.append("blindSpot") }
         if self.onDodgeNextAttackGuaranteedCritical != other.onDodgeNextAttackGuaranteedCritical { names.append("onDodgeNextAttackGuaranteedCritical") }
         if self.dodgeFirstAttackEachCombat != other.dodgeFirstAttackEachCombat { names.append("dodgeFirstAttackEachCombat") }
+        if self.partyDodgeVsBurningBonus != other.partyDodgeVsBurningBonus { names.append("partyDodgeVsBurningBonus") }
+        if self.quietGroveDodgeAtFullHealth != other.quietGroveDodgeAtFullHealth { names.append("quietGroveDodgeAtFullHealth") }
+        if self.groveReserveCompanionDodgeBonus != other.groveReserveCompanionDodgeBonus { names.append("groveReserveCompanionDodgeBonus") }
+        if self.dodgeNextAttackCritBonus != other.dodgeNextAttackCritBonus { names.append("dodgeNextAttackCritBonus") }
+        if self.dodgeBelowHalfDrawCard != other.dodgeBelowHalfDrawCard { names.append("dodgeBelowHalfDrawCard") }
+        if self.dodgeBleedChancePercent != other.dodgeBleedChancePercent { names.append("dodgeBleedChancePercent") }
+        if self.dodgeBleedDamage != other.dodgeBleedDamage { names.append("dodgeBleedDamage") }
+        if self.dodgeBurnChancePercent != other.dodgeBurnChancePercent { names.append("dodgeBurnChancePercent") }
+        if self.dodgeBurnDamage != other.dodgeBurnDamage { names.append("dodgeBurnDamage") }
         return names
     }
 }
@@ -237,15 +257,20 @@ extension DodgeTriggers {
         onDodgeDrawAndPlayCardChainOnCrit = onDodgeDrawAndPlayCardChainOnCrit || other.onDodgeDrawAndPlayCardChainOnCrit
         phantomCounter = phantomCounter || other.phantomCounter
         perfectTempo = perfectTempo || other.perfectTempo
-        falseOpening = falseOpening || other.falseOpening
-        missedOpportunity = missedOpportunity || other.missedOpportunity
         passingLuck = passingLuck || other.passingLuck
-        scatteredCaltrops = scatteredCaltrops || other.scatteredCaltrops
-        smokeTrick = smokeTrick || other.smokeTrick
         improvingOdds = improvingOdds || other.improvingOdds
         blindSpot = blindSpot || other.blindSpot
         onDodgeNextAttackGuaranteedCritical = onDodgeNextAttackGuaranteedCritical || other.onDodgeNextAttackGuaranteedCritical
         dodgeFirstAttackEachCombat = dodgeFirstAttackEachCombat || other.dodgeFirstAttackEachCombat
+        partyDodgeVsBurningBonus += other.partyDodgeVsBurningBonus
+        quietGroveDodgeAtFullHealth += other.quietGroveDodgeAtFullHealth
+        groveReserveCompanionDodgeBonus += other.groveReserveCompanionDodgeBonus
+        dodgeNextAttackCritBonus += other.dodgeNextAttackCritBonus
+        dodgeBelowHalfDrawCard = dodgeBelowHalfDrawCard || other.dodgeBelowHalfDrawCard
+        dodgeBleedChancePercent += other.dodgeBleedChancePercent
+        dodgeBleedDamage += other.dodgeBleedDamage
+        dodgeBurnChancePercent += other.dodgeBurnChancePercent
+        dodgeBurnDamage += other.dodgeBurnDamage
     }
 }
 
@@ -289,15 +314,20 @@ extension DodgeTriggers {
             onDodgeDrawAndPlayCardChainOnCrit: values.decode(Bool.self, "onDodgeDrawAndPlayCardChainOnCrit", default: false),
             phantomCounter: values.decode(Bool.self, "phantomCounter", default: false),
             perfectTempo: values.decode(Bool.self, "perfectTempo", default: false),
-            falseOpening: values.decode(Bool.self, "falseOpening", default: false),
-            missedOpportunity: values.decode(Bool.self, "missedOpportunity", default: false),
             passingLuck: values.decode(Bool.self, "passingLuck", default: false),
-            scatteredCaltrops: values.decode(Bool.self, "scatteredCaltrops", default: false),
-            smokeTrick: values.decode(Bool.self, "smokeTrick", default: false),
             improvingOdds: values.decode(Bool.self, "improvingOdds", default: false),
             blindSpot: values.decode(Bool.self, "blindSpot", default: false),
             onDodgeNextAttackGuaranteedCritical: values.decode(Bool.self, "onDodgeNextAttackGuaranteedCritical", default: false),
-            dodgeFirstAttackEachCombat: values.decode(Bool.self, "dodgeFirstAttackEachCombat", default: false)
+            dodgeFirstAttackEachCombat: values.decode(Bool.self, "dodgeFirstAttackEachCombat", default: false),
+            partyDodgeVsBurningBonus: values.decode(Double.self, "partyDodgeVsBurningBonus", default: 0),
+            quietGroveDodgeAtFullHealth: values.decode(Double.self, "quietGroveDodgeAtFullHealth", default: 0),
+            groveReserveCompanionDodgeBonus: values.decode(Double.self, "groveReserveCompanionDodgeBonus", default: 0),
+            dodgeNextAttackCritBonus: values.decode(Double.self, "dodgeNextAttackCritBonus", default: 0),
+            dodgeBelowHalfDrawCard: values.decode(Bool.self, "dodgeBelowHalfDrawCard", default: false),
+            dodgeBleedChancePercent: values.decode(Double.self, "dodgeBleedChancePercent", default: 0),
+            dodgeBleedDamage: values.decode(Int.self, "dodgeBleedDamage", default: 0),
+            dodgeBurnChancePercent: values.decode(Double.self, "dodgeBurnChancePercent", default: 0),
+            dodgeBurnDamage: values.decode(Int.self, "dodgeBurnDamage", default: 0)
         )
     }
 
@@ -338,14 +368,19 @@ extension DodgeTriggers {
         try container.encodeNonDefault(onDodgeDrawAndPlayCardChainOnCrit, "onDodgeDrawAndPlayCardChainOnCrit", default: false)
         try container.encodeNonDefault(phantomCounter, "phantomCounter", default: false)
         try container.encodeNonDefault(perfectTempo, "perfectTempo", default: false)
-        try container.encodeNonDefault(falseOpening, "falseOpening", default: false)
-        try container.encodeNonDefault(missedOpportunity, "missedOpportunity", default: false)
         try container.encodeNonDefault(passingLuck, "passingLuck", default: false)
-        try container.encodeNonDefault(scatteredCaltrops, "scatteredCaltrops", default: false)
-        try container.encodeNonDefault(smokeTrick, "smokeTrick", default: false)
         try container.encodeNonDefault(improvingOdds, "improvingOdds", default: false)
         try container.encodeNonDefault(blindSpot, "blindSpot", default: false)
         try container.encodeNonDefault(onDodgeNextAttackGuaranteedCritical, "onDodgeNextAttackGuaranteedCritical", default: false)
         try container.encodeNonDefault(dodgeFirstAttackEachCombat, "dodgeFirstAttackEachCombat", default: false)
+        try container.encodeNonDefault(partyDodgeVsBurningBonus, "partyDodgeVsBurningBonus", default: 0)
+        try container.encodeNonDefault(quietGroveDodgeAtFullHealth, "quietGroveDodgeAtFullHealth", default: 0)
+        try container.encodeNonDefault(groveReserveCompanionDodgeBonus, "groveReserveCompanionDodgeBonus", default: 0)
+        try container.encodeNonDefault(dodgeNextAttackCritBonus, "dodgeNextAttackCritBonus", default: 0)
+        try container.encodeNonDefault(dodgeBelowHalfDrawCard, "dodgeBelowHalfDrawCard", default: false)
+        try container.encodeNonDefault(dodgeBleedChancePercent, "dodgeBleedChancePercent", default: 0)
+        try container.encodeNonDefault(dodgeBleedDamage, "dodgeBleedDamage", default: 0)
+        try container.encodeNonDefault(dodgeBurnChancePercent, "dodgeBurnChancePercent", default: 0)
+        try container.encodeNonDefault(dodgeBurnDamage, "dodgeBurnDamage", default: 0)
     }
 }

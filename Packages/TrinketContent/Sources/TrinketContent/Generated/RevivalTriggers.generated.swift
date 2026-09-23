@@ -18,6 +18,7 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
     public var onHeroFatalHealPercentMaxHealth: Double = 0
     public var onAllyDeathsDoorHealAndCleanse: Int = 0
     public var surviveDeathsDoorPartyHealPercent: Double = 0
+    public var holyDamageReviveCompanionChancePercent: Double = 0
 
     public init(
         undyingEmber: Bool = false,
@@ -33,7 +34,8 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         deathsDoorExpiredHealFlat: Int = 0,
         onHeroFatalHealPercentMaxHealth: Double = 0,
         onAllyDeathsDoorHealAndCleanse: Int = 0,
-        surviveDeathsDoorPartyHealPercent: Double = 0
+        surviveDeathsDoorPartyHealPercent: Double = 0,
+        holyDamageReviveCompanionChancePercent: Double = 0
     ) {
         self.undyingEmber = undyingEmber
         self.borrowedLife = borrowedLife
@@ -49,10 +51,11 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         self.onHeroFatalHealPercentMaxHealth = onHeroFatalHealPercentMaxHealth
         self.onAllyDeathsDoorHealAndCleanse = onAllyDeathsDoorHealAndCleanse
         self.surviveDeathsDoorPartyHealPercent = surviveDeathsDoorPartyHealPercent
+        self.holyDamageReviveCompanionChancePercent = holyDamageReviveCompanionChancePercent
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["undyingEmber", "borrowedLife", "onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "onSurviveDeathsDoorDamageBonusPercent", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "onHeroFatalHealPercentMaxHealth", "onAllyDeathsDoorHealAndCleanse", "surviveDeathsDoorPartyHealPercent"]
+    public static let fieldNames: [String] = ["undyingEmber", "borrowedLife", "onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "onSurviveDeathsDoorDamageBonusPercent", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "onHeroFatalHealPercentMaxHealth", "onAllyDeathsDoorHealAndCleanse", "surviveDeathsDoorPartyHealPercent", "holyDamageReviveCompanionChancePercent"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -71,6 +74,7 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         if self.onHeroFatalHealPercentMaxHealth != other.onHeroFatalHealPercentMaxHealth { names.append("onHeroFatalHealPercentMaxHealth") }
         if self.onAllyDeathsDoorHealAndCleanse != other.onAllyDeathsDoorHealAndCleanse { names.append("onAllyDeathsDoorHealAndCleanse") }
         if self.surviveDeathsDoorPartyHealPercent != other.surviveDeathsDoorPartyHealPercent { names.append("surviveDeathsDoorPartyHealPercent") }
+        if self.holyDamageReviveCompanionChancePercent != other.holyDamageReviveCompanionChancePercent { names.append("holyDamageReviveCompanionChancePercent") }
         return names
     }
 }
@@ -91,6 +95,7 @@ extension RevivalTriggers {
         onHeroFatalHealPercentMaxHealth += other.onHeroFatalHealPercentMaxHealth
         onAllyDeathsDoorHealAndCleanse = max(onAllyDeathsDoorHealAndCleanse, other.onAllyDeathsDoorHealAndCleanse)
         surviveDeathsDoorPartyHealPercent += other.surviveDeathsDoorPartyHealPercent
+        holyDamageReviveCompanionChancePercent += other.holyDamageReviveCompanionChancePercent
     }
 }
 
@@ -111,7 +116,8 @@ extension RevivalTriggers {
             deathsDoorExpiredHealFlat: values.decode(Int.self, "deathsDoorExpiredHealFlat", default: 0),
             onHeroFatalHealPercentMaxHealth: values.decode(Double.self, "onHeroFatalHealPercentMaxHealth", default: 0),
             onAllyDeathsDoorHealAndCleanse: values.decode(Int.self, "onAllyDeathsDoorHealAndCleanse", default: 0),
-            surviveDeathsDoorPartyHealPercent: values.decode(Double.self, "surviveDeathsDoorPartyHealPercent", default: 0)
+            surviveDeathsDoorPartyHealPercent: values.decode(Double.self, "surviveDeathsDoorPartyHealPercent", default: 0),
+            holyDamageReviveCompanionChancePercent: values.decode(Double.self, "holyDamageReviveCompanionChancePercent", default: 0)
         )
     }
 
@@ -130,5 +136,6 @@ extension RevivalTriggers {
         try container.encodeNonDefault(onHeroFatalHealPercentMaxHealth, "onHeroFatalHealPercentMaxHealth", default: 0)
         try container.encodeNonDefault(onAllyDeathsDoorHealAndCleanse, "onAllyDeathsDoorHealAndCleanse", default: 0)
         try container.encodeNonDefault(surviveDeathsDoorPartyHealPercent, "surviveDeathsDoorPartyHealPercent", default: 0)
+        try container.encodeNonDefault(holyDamageReviveCompanionChancePercent, "holyDamageReviveCompanionChancePercent", default: 0)
     }
 }

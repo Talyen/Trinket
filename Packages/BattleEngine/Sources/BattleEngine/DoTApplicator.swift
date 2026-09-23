@@ -165,11 +165,15 @@ package enum DoTApplicator {
             }
         }
 
+        let sourceProfile = context.modifiers(for: sourceActorID)
+        let poisonDurationBonus = context.roster.hasAffliction(.poison, on: effectTarget)
+            ? sourceProfile.triggers.bleedDurationVsPoisonedBonus : 0
         context.appendEffect(
             .bleed(potency),
             to: effectTarget,
             sourceID: sourceActorID,
-            remainingTurns: durationTurns ?? (Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus),
+            remainingTurns: (durationTurns ?? (Effect.bleedDoTTurnCount + sourceProfile.bleedDurationBonus))
+                + poisonDurationBonus,
         )
         if application.triggersApplicationReactions {
             collected.append(contentsOf: CombatTriggerEngine.afterBleedApplied(

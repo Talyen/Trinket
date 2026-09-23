@@ -85,19 +85,23 @@ extension TalentMigrationTests {
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
 
-    @Test func `sunwall grants companion block on holy damage`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(sunwall: true)))
+    @Test func `sunwall grants companion block equal to holy health damage`() {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(sunwallChancePercent: 1)))
+        battle.appliesFightPacing = false
         _ = battle.withEngineContext { ctx in
             ctx.resolveDamage(DamageRequest(
                 amount: 9,
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.holy,
                 sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
+                options: DamageOperation.attack(
+                    tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable,
+                    abilityCriticalChanceBonus: -1,
+                ),
             ))
         }
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
-        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) > 0)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 9)
     }
 
     @Test func `batteringRam and storedImpact stack on same hit`() {

@@ -21,6 +21,19 @@ package enum ControlMeterEngine {
         guard pacedAmount > 0 else { return [] }
 
         var adjustedAmount = pacedAmount
+        if keyword == .freeze, combatant.role == .enemy, let sourceActorID {
+            let multiplier = context.modifiers(for: sourceActorID).triggers.freezeBuildupMultiplier
+            if multiplier > 1 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
+            }
+        }
+        if keyword == .stun, combatant.role == .enemy, let sourceActorID,
+           context.roster.hasAffliction(.poison, on: combatant) {
+            let multiplier = context.modifiers(for: sourceActorID).triggers.poisonedEnemyStunBuildupMultiplier
+            if multiplier > 1 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
+            }
+        }
         if keyword == .stun || keyword == .freeze {
             let targetTriggers = context.modifiers(for: combatant.id).triggers
             let steadfastResistance = targetTriggers.blockedControlBurnResistance > 0
@@ -281,20 +294,6 @@ package enum ControlMeterEngine {
               let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
         else { return [] }
         var events: [ActionEvent] = []
-        if keyword == .stun, CombatTriggerEngine.hasLivingPartyTrigger(\.lightningRod, in: context) {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: member.combatant))
-                guard member.isAlive, block > 0 else { continue }
-                events.append(contentsOf: context.applyBlock(
-                    block,
-                    to: member.combatant,
-                    source: source.combatant,
-                    abilityName: "Lightning Rod",
-                    amountBasis: .resolved,
-                ))
-            }
-        }
         if keyword == .freeze, CombatTriggerEngine.hasLivingPartyTrigger(\.avalancheGuard, in: context) {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]

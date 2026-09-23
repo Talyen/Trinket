@@ -26,6 +26,9 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     public var blockedControlBurnResistance: Double = 0
     public var afflictionResistance: Double = 0
     public var burningEnemyDamageReductionFlat: Int = 0
+    public var blockHalvesDoTDamage: Bool = false
+    public var bleedingEnemyOutgoingDamageMultiplier: Double = 1
+    public var verdantShelterDamageMultiplier: Double = 1
 
     public init(
         passiveMitigationFlat: Int = 0,
@@ -49,7 +52,10 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         toughnessOnHitCap: Int = 0,
         blockedControlBurnResistance: Double = 0,
         afflictionResistance: Double = 0,
-        burningEnemyDamageReductionFlat: Int = 0
+        burningEnemyDamageReductionFlat: Int = 0,
+        blockHalvesDoTDamage: Bool = false,
+        bleedingEnemyOutgoingDamageMultiplier: Double = 1,
+        verdantShelterDamageMultiplier: Double = 1
     ) {
         self.passiveMitigationFlat = passiveMitigationFlat
         self.passivePhysicalMitigationFlat = passivePhysicalMitigationFlat
@@ -73,10 +79,13 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.blockedControlBurnResistance = blockedControlBurnResistance
         self.afflictionResistance = afflictionResistance
         self.burningEnemyDamageReductionFlat = burningEnemyDamageReductionFlat
+        self.blockHalvesDoTDamage = blockHalvesDoTDamage
+        self.bleedingEnemyOutgoingDamageMultiplier = bleedingEnemyOutgoingDamageMultiplier
+        self.verdantShelterDamageMultiplier = verdantShelterDamageMultiplier
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["passiveMitigationFlat", "passivePhysicalMitigationFlat", "thornsPercent", "bleedResistance", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat"]
+    public static let fieldNames: [String] = ["passiveMitigationFlat", "passivePhysicalMitigationFlat", "thornsPercent", "bleedResistance", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat", "blockHalvesDoTDamage", "bleedingEnemyOutgoingDamageMultiplier", "verdantShelterDamageMultiplier"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -103,6 +112,9 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         if self.blockedControlBurnResistance != other.blockedControlBurnResistance { names.append("blockedControlBurnResistance") }
         if self.afflictionResistance != other.afflictionResistance { names.append("afflictionResistance") }
         if self.burningEnemyDamageReductionFlat != other.burningEnemyDamageReductionFlat { names.append("burningEnemyDamageReductionFlat") }
+        if self.blockHalvesDoTDamage != other.blockHalvesDoTDamage { names.append("blockHalvesDoTDamage") }
+        if self.bleedingEnemyOutgoingDamageMultiplier != other.bleedingEnemyOutgoingDamageMultiplier { names.append("bleedingEnemyOutgoingDamageMultiplier") }
+        if self.verdantShelterDamageMultiplier != other.verdantShelterDamageMultiplier { names.append("verdantShelterDamageMultiplier") }
         return names
     }
 }
@@ -131,6 +143,9 @@ extension MitigationTriggers {
         blockedControlBurnResistance += other.blockedControlBurnResistance
         afflictionResistance += other.afflictionResistance
         burningEnemyDamageReductionFlat += other.burningEnemyDamageReductionFlat
+        blockHalvesDoTDamage = blockHalvesDoTDamage || other.blockHalvesDoTDamage
+        bleedingEnemyOutgoingDamageMultiplier *= other.bleedingEnemyOutgoingDamageMultiplier
+        verdantShelterDamageMultiplier *= other.verdantShelterDamageMultiplier
     }
 }
 
@@ -159,7 +174,10 @@ extension MitigationTriggers {
             toughnessOnHitCap: values.decode(Int.self, "toughnessOnHitCap", default: 0),
             blockedControlBurnResistance: values.decode(Double.self, "blockedControlBurnResistance", default: 0),
             afflictionResistance: values.decode(Double.self, "afflictionResistance", default: 0),
-            burningEnemyDamageReductionFlat: values.decode(Int.self, "burningEnemyDamageReductionFlat", default: 0)
+            burningEnemyDamageReductionFlat: values.decode(Int.self, "burningEnemyDamageReductionFlat", default: 0),
+            blockHalvesDoTDamage: values.decode(Bool.self, "blockHalvesDoTDamage", default: false),
+            bleedingEnemyOutgoingDamageMultiplier: values.decode(Double.self, "bleedingEnemyOutgoingDamageMultiplier", default: 1),
+            verdantShelterDamageMultiplier: values.decode(Double.self, "verdantShelterDamageMultiplier", default: 1)
         )
     }
 
@@ -186,5 +204,8 @@ extension MitigationTriggers {
         try container.encodeNonDefault(blockedControlBurnResistance, "blockedControlBurnResistance", default: 0)
         try container.encodeNonDefault(afflictionResistance, "afflictionResistance", default: 0)
         try container.encodeNonDefault(burningEnemyDamageReductionFlat, "burningEnemyDamageReductionFlat", default: 0)
+        try container.encodeNonDefault(blockHalvesDoTDamage, "blockHalvesDoTDamage", default: false)
+        try container.encodeNonDefault(bleedingEnemyOutgoingDamageMultiplier, "bleedingEnemyOutgoingDamageMultiplier", default: 1)
+        try container.encodeNonDefault(verdantShelterDamageMultiplier, "verdantShelterDamageMultiplier", default: 1)
     }
 }

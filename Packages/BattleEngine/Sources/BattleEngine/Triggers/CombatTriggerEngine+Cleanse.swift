@@ -4,6 +4,9 @@ import TrinketCore
 package extension CombatTriggerEngine {
     static func preventsDebuff(_ effect: Effect, on target: Combatant, in context: BattleState) -> Bool {
         guard effect.isRemovableDebuff else { return false }
+        if context.roster.runtime(for: target)?.talents.turn.negativeStatusImmune == true {
+            return true
+        }
         if context.roster.runtime(for: target)?.talents.turn.cleansedKeywordProtection.contains(effect.keyword) == true {
             return true
         }

@@ -73,8 +73,14 @@ package extension HealingEngine {
                 restored = CombatRounding.scaled(restored, multiplier: profile.triggers.leechHealingVsAfflictedMultiplier)
             }
         }
+        if context.roster.runtime(for: actorCombatant)?.currentMana == 0,
+           profile.triggers.darkRecoveryMultiplier > 1 {
+            restored = CombatRounding.scaled(restored, multiplier: profile.triggers.darkRecoveryMultiplier)
+        }
         guard restored > 0 else { return .empty }
 
+        let preHealth = context.roster.health(for: actorCombatant)
+        let maxHealth = context.roster.maxHealth(for: actorCombatant)
         var healing = resolveHealing(
             HealRequest(
                 amount: restored,
@@ -87,6 +93,26 @@ package extension HealingEngine {
         guard healing.didLeech else { return healing.combatOutcome }
         let actualRestored = healing.directRestoration
         var events = healing.events
+        if actualRestored > 0, preHealth < maxHealth,
+           context.roster.health(for: actorCombatant) >= maxHealth,
+           profile.triggers.leechToFullNextAttackBonus > 0 {
+            context.roster.mutateRuntime(for: actorCombatant) {
+                $0.talents.pending.attackBonusOnFullHealth = max(
+                    $0.talents.pending.attackBonusOnFullHealth,
+                    profile.triggers.leechToFullNextAttackBonus,
+                )
+            }
+        }
+        if actualRestored > 0, preHealth * 2 < maxHealth,
+           profile.triggers.leechBlockBelowHalf {
+            events.append(contentsOf: context.applyBlock(
+                actualRestored,
+                to: actorCombatant,
+                source: actorCombatant,
+                abilityName: "Soul Ward",
+                amountBasis: .resolved,
+            ))
+        }
         if actualRestored > 0 {
             events.append(context.nextEvent(
                 kind: .effect,

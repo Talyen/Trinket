@@ -132,12 +132,9 @@ package enum BattleTurnEngine {
                 abilityName: ability.name, target: actor, amount: blockCost, keyword: .block, origin: .direct,
             ))
         }
-        let capturedCard = context.resolution.prepareAction(facts)
+        _ = context.resolution.prepareAction(facts)
         let checkpoint = CombatCheckpoint.preparedAction(actor.id)
         checkpoint.perform(in: &context) { UniqueCombatEngine.prepareResolvedAttack(facts, in: &$0) }
-        if capturedCard {
-            checkpoint.perform(in: &context) { CombatTriggerEngine.captureHeroOutcome(facts, in: &$0) }
-        }
         events.append(contentsOf: executePreparedAction(facts, context: &context))
         return (events, true)
     }

@@ -2,20 +2,20 @@ import TrinketContent
 import TrinketCore
 
 extension HealingEngine {
-    static func transferCardOverheal(
+    static func transferOverhealToAlly(
         _ overflow: Int, request: HealRequest, in context: inout BattleState,
     ) -> CombatOutcome {
-        guard overflow > 0, request.isDirectCardHeal, let sourceID = request.sourceActorID,
+        guard overflow > 0, let sourceID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.isAlive,
-              context.hasHeroCard(for: sourceID), request.target.role != .enemy,
-              context.modifiers(for: sourceID).triggers.masterworkMixture else { return .empty }
+              request.target.role != .enemy,
+              context.modifiers(for: sourceID).triggers.sharedPrescription else { return .empty }
         let other = request.target.role == .hero ? context.roster.companion : context.roster.hero
         let amount = min(overflow, max(0, other.maxHealth - other.currentHealth))
         guard other.isAlive, amount > 0 else { return .empty }
         var transfer = HealRequest(
             amount: amount, target: other.combatant, sourceActorID: sourceID,
             origin: .restoration(.health), logAs: .instantHeal(
-                actorName: source.name, abilityName: "Masterwork Mixture", keyword: .health,
+                actorName: source.name, abilityName: "Shared Prescription", keyword: .health,
             ),
         )
         transfer.amountBasis = .resolved
@@ -63,6 +63,13 @@ extension HealingEngine {
                 source: request.target,
                 abilityName: "Aether Shield",
             ))
+        } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealToBlockPercent > 0 {
+            events.append(contentsOf: convertFractionalOverhealToBlock(
+                allocation: &allocation,
+                target: request.target,
+                percent: conversion.overhealToBlockPercent,
+                in: &context,
+            ))
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealShieldCap > 0 {
             let shield = allocation.allocate(conversion.overhealShieldCap, to: .block)
             events.append(contentsOf: context.applyBlock(
@@ -76,6 +83,26 @@ extension HealingEngine {
             ))
         }
         return events
+    }
+
+    private static func convertFractionalOverhealToBlock(
+        allocation: inout HealingAllocation,
+        target: Combatant,
+        percent: Double,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let shield = allocation.allocate(
+            CombatRounding.scaled(allocation.remaining, multiplier: percent),
+            to: .block,
+        )
+        guard shield > 0 else { return [] }
+        return context.applyBlock(
+            shield,
+            to: target,
+            source: target,
+            abilityName: "Reclaimed Reagents",
+            amountBasis: .resolved,
+        )
     }
 
     private static func convertOverhealToMaximumHealth(
@@ -117,6 +144,7 @@ extension HealingEngine {
                source.overhealConvertsToBlock
                || source.overhealConvertsToMaxHealth
                || source.overhealShieldCap > 0
+               || source.overhealToBlockPercent > 0
                || source.overhealFirstBlockPerTurn > 0 {
                 return source
             }
@@ -125,6 +153,7 @@ extension HealingEngine {
         if target.overhealConvertsToBlock
             || target.overhealConvertsToMaxHealth
             || target.overhealShieldCap > 0
+            || target.overhealToBlockPercent > 0
             || target.overhealFirstBlockPerTurn > 0 {
             return target
         }

@@ -254,6 +254,18 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "freezeBuildupMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "poisonedEnemyStunBuildupMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
     }
   ]
 }

@@ -10,7 +10,9 @@ extension BattleCardCombatTests {
             targetedEffects: [TargetedEffect(.shield(.block, 4), target: .actor)],
         )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [ability], heroModifiers: CombatantTalentCatalog.profile(for: ["knight_block_t1_2"]),
+            heroAbilities: [ability], heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                block: BlockTriggers(blockGainThornsPercent: 0.5),
+            )),
         )
         battle.appliesFightPacing = false
         let card = try #require(battle.hand.cards.first)

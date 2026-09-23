@@ -101,6 +101,28 @@ package extension CombatTriggerEngine {
         }
 
         events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
+        if allowsCounterattacks, context.roster.enemy.isAlive {
+            if triggers.dodgeBleedDamage > 0,
+               BattleChance.succeeds(probability: triggers.dodgeBleedChancePercent, using: &context.rng) {
+                events.append(contentsOf: applyDoT(
+                    keyword: .bleed,
+                    potency: triggers.dodgeBleedDamage,
+                    to: context.roster.enemy.combatant,
+                    sourceActorID: combatant.id,
+                    in: &context,
+                ))
+            }
+            if triggers.dodgeBurnDamage > 0,
+               BattleChance.succeeds(probability: triggers.dodgeBurnChancePercent, using: &context.rng) {
+                events.append(contentsOf: applyDoT(
+                    keyword: .burn,
+                    potency: triggers.dodgeBurnDamage,
+                    to: context.roster.enemy.combatant,
+                    sourceActorID: combatant.id,
+                    in: &context,
+                ))
+            }
+        }
         if allowsCounterattacks {
             events.append(contentsOf: applyDodgeCounterDamage(
                 keyword: .stun,

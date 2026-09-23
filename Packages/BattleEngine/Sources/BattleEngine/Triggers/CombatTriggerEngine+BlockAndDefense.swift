@@ -182,6 +182,15 @@ package extension CombatTriggerEngine {
     }
 
     static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) -> [ActionEvent] {
+        if let sourceActorID,
+           sourceActorID == context.roster.hero.id || sourceActorID == context.roster.companion.id,
+           context.roster.hero.isAlive,
+           context.heroModifiers.triggers.shatterpoint,
+           context.roster.hasAffliction(.bleed, on: context.roster.enemy.combatant) {
+            context.roster.mutateRuntime(for: context.roster.enemy.combatant) {
+                $0.talents.pending.doubleNextBleedDamage = true
+            }
+        }
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
             events.append(contentsOf: afterEnemyStunnedReactions(for: owner, sourceActorID: sourceActorID, in: &context))

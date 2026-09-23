@@ -253,18 +253,13 @@ package enum BattleCardCombatEngine {
             return events
         }
 
-        context.heroTalents.enemyTurnActive = true
-        context.heroTalents.healthLostDuringEnemyTurn = []
-        context.heroTalents.attackedDuringEnemyTurn = []
         events.append(contentsOf: resolveEnemyTurn(context: &context))
-        events.append(contentsOf: CombatTriggerEngine.afterHeroTalentEnemyTurn(in: &context))
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
             context.phase = .ended
             return events
         }
 
-        events.append(contentsOf: CombatTriggerEngine.endHeroTalentTurn(in: &context))
         events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
         context.primedRepeatKeywords.removeAll()
 

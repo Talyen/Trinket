@@ -10,6 +10,22 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: source.id)
         var events: [ActionEvent] = []
+        if enemy.role == .enemy, !context.roster.companion.isAlive,
+           profile.triggers.holyDamageReviveCompanionChancePercent > 0 {
+            let canRoll = !context.hasHeroCard(for: source.id)
+                || context.claimHeroCardBonus("Divine Blessing", actorID: source.id)
+            if canRoll, BattleChance.succeeds(
+                probability: profile.triggers.holyDamageReviveCompanionChancePercent,
+                using: &context.rng,
+            ) {
+                events.append(contentsOf: context.reviveEmitting(
+                    context.roster.companion.combatant,
+                    health: 1,
+                    source: source,
+                    abilityName: "Divine Blessing",
+                ))
+            }
+        }
 
         if profile.triggers.holyDamageBlockFlat > 0 {
             events.append(contentsOf: emitBlock(

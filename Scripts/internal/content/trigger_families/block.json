@@ -328,12 +328,6 @@
       "merge": "or"
     },
     {
-      "name": "sunwall",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "unbrokenVow",
       "type": "Bool",
       "default": "false",
@@ -386,6 +380,78 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "burnIgnoresBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "thornsDamageDoubleWhileBlocked",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "blockAbsorptionMultiplierBelowHalfHealth",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "holyBlockIgnorePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "sunwallChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedAttackBlockIgnorePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnAttackBlockBreakMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "burningEnemyBlockGainMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "poisonAttackExtraBlockRemoval",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedIgnoresEnemyBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "leechAttackBlockIgnorePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "poisonDamageVsBlockMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
     }
   ]
 }

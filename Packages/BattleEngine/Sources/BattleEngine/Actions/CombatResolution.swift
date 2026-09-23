@@ -139,15 +139,12 @@ struct CombatResolution {
 
     mutating func beginCard(
         actorID: String,
-        tier: AbilityTier,
-        previousDamageKeywords: Set<Keyword>,
         partyDamageBonus: Int = 0,
     ) -> Int {
         let id = nextCardID
         nextCardID += 1
-        var talents = HeroTalentCardFacts(actorID: actorID, tier: tier)
+        var talents = HeroTalentCardFacts(actorID: actorID)
         talents.playSerial = id
-        talents.previousDamageKeywords = previousDamageKeywords
         cards.append(Card(
             partyDamageBonus: partyDamageBonus,
             id: id,

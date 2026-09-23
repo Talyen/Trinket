@@ -131,25 +131,6 @@ struct BattleMechanicsTests {
         #expect(!battle.roster.companion.talents.pending.guaranteedCriticalAfterDodge)
     }
 
-    @Test func `guaranteed basic hit consumes taste for blood`() {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"]),
-        )
-        _ = CombatTriggerEngine.afterBleedDamage(
-            healthLost: 1, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
-        )
-        #expect(battle.roster.hero.talents.pending.basicCriticalBonus == 0.35)
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: DamageOperation.attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
-        ))
-        #expect(hit.isCritical)
-        #expect(battle.roster.hero.talents.pending.basicCriticalBonus == 0)
-    }
-
     @Test func `block gained from reflected damage survives the incoming hit`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(),

@@ -348,31 +348,7 @@
       "merge": "or"
     },
     {
-      "name": "reactiveCoating",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "safeHandling",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "reactiveSediment",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "spentReagents",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "dissolvingFumes",
       "type": "Bool",
       "default": "false",
       "merge": "or"
@@ -402,25 +378,7 @@
       "merge": "or"
     },
     {
-      "name": "coolMoss",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "returningBloom",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "rootPassage",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "entanglingGrowth",
       "type": "Bool",
       "default": "false",
       "merge": "or"
@@ -434,6 +392,42 @@
     {
       "name": "bleedTickDrawChancePercent",
       "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnAttackDoubleChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnDecaySlowVsBleedingPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedDurationFromCriticalBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedDurationVsPoisonedBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnAttackBleedChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnAttackBleedDamage",
+      "type": "Int",
       "default": "0",
       "merge": "add"
     }

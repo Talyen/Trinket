@@ -103,11 +103,17 @@ package extension DamagePipeline {
         }
         let history = context.heroTalents.history[combatant.id]
         var chance = 0.10 + Double(history?.dodgeGrowth ?? 0) / 100
-        if history?.falseOpening == true {
-            chance += 0.05
-        }
         let profile = context.modifiers(for: combatant.id)
         chance += profile.triggers.dodgeChanceBonus
+        if context.roster.hero.isAlive {
+            let grove = context.heroModifiers.triggers
+            if context.roster.health(for: combatant) == context.roster.maxHealth(for: combatant) {
+                chance += grove.quietGroveDodgeAtFullHealth
+            }
+            if combatant.role == .companion, context.roster.hero.currentMana > 0 {
+                chance += grove.groveReserveCompanionDodgeBonus
+            }
+        }
         if let owner = context.roster.participant(for: combatant) {
             chance += context.uniques.owners[owner]?.wrenflightDodge ?? 0
         }
@@ -123,6 +129,10 @@ package extension DamagePipeline {
            let attacker = context.roster.combatant(for: attackerID),
            context.roster.hasAffliction(.bleed, on: attacker.combatant) {
             chance += profile.triggers.dodgeChanceVsBleedingEnemiesBonus
+        }
+        if context.roster.hero.isAlive,
+           context.roster.hasAffliction(.burn, on: context.roster.enemy.combatant) {
+            chance += context.heroModifiers.triggers.partyDodgeVsBurningBonus
         }
         if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,
            profile.triggers.dodgeChanceBelowHealthPercentBonus > 0,
@@ -160,6 +170,19 @@ package extension DamagePipeline {
             return
         }
         var abilityBonus = state.options.abilityCriticalChanceBonus
+        if state.options.isAttackHit,
+           let prepared = context.roster.runtime(for: actor.combatant)?.talents.pending.nextAttackCriticalBonus,
+           prepared > 0 {
+            abilityBonus += prepared
+            context.roster.mutateRuntime(for: actor.combatant) { $0.talents.pending.nextAttackCriticalBonus = 0 }
+        }
+        if state.options.isAttackHit, state.options.abilityHasLeech,
+           context.roster.hasAffliction(.bleed, on: state.combatant) {
+            abilityBonus += context.modifiers(for: sourceActorID).triggers.leechCriticalVsBleedingBonus
+        }
+        if state.options.isAttackHit, state.damageKeyword == .physical, state.targetStatus.isFrozen {
+            abilityBonus += context.modifiers(for: sourceActorID).triggers.physicalVsFrozenCritBonus
+        }
         if state.options.isAttackHit, state.options.isBasicAttackHit,
            let pendingBonus = context.roster.runtime(for: actor.combatant)?.talents.pending.basicCriticalBonus,
            pendingBonus > 0 {
@@ -225,6 +248,10 @@ package extension DamagePipeline {
             }
             guaranteed = true
         }
+        if state.options.isAttackHit,
+           consumePreparedHeroCritical(keyword: state.damageKeyword, actor: actor.combatant, in: &context) {
+            guaranteed = true
+        }
         if context.roster.isDeathsDoorActive(for: actor.combatant),
            context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
             guaranteed = true
@@ -238,6 +265,24 @@ package extension DamagePipeline {
             state.isCritical = true
         }
         return guaranteed
+    }
+
+    private static func consumePreparedHeroCritical(
+        keyword: Keyword?,
+        actor: Combatant,
+        in context: inout BattleState,
+    ) -> Bool {
+        var consumed = false
+        context.roster.mutateRuntime(for: actor) { runtime in
+            if runtime.talents.pending.nextAttackGuaranteedCritical {
+                runtime.talents.pending.nextAttackGuaranteedCritical = false
+                consumed = true
+            } else if keyword == .bleed, runtime.talents.pending.guaranteedBleedCritical {
+                runtime.talents.pending.guaranteedBleedCritical = false
+                consumed = true
+            }
+        }
+        return consumed
     }
 
     static func applyCriticalBlockSteal(

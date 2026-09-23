@@ -189,23 +189,6 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.resolveDamage(hit).healthLost == 5)
     }
 
-    @Test(arguments: [3, 10])
-    func `bounty blade steals available block without replacing the played card`(block: Int) {
-        var battle = capstoneBattle(hero: ["rogue_gold_t4_1"])
-        battle.heroDeck.putOnBottom(.slash)
-        seedHeroTalentEffect(.shield(.block, block), on: .enemy, in: &battle)
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, guaranteedCritical: true),
-        ))
-        #expect(outcome.isCritical)
-        #expect(battle.gold == 3)
-        #expect(talentPoints(.shield, on: .hero, in: battle) == min(3, block - 2))
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == max(0, block - 5))
-        #expect(battle.hand.totalCount == 0)
-        #expect(!outcome.events.contains { $0.effectKind == .cardsDrawn })
-    }
-
     @Test(arguments: [Ability.frostbolt, .rayOfFrost])
     func `steam explosion consumes burn for freeze cards but not frostfire reactions`(card: Ability) throws {
         var battle = capstoneBattle(companion: ["mana_moth_burn_t4_1", "mana_moth_burn_t4_2"])
@@ -224,26 +207,6 @@ extension TalentCatalogRoundTripTests {
             #expect(freezeEvents.map(\.amount) == [9, 1])
         }
         #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
-    }
-
-    @Test(arguments: [Keyword.physical, .burn, .poison, .bleed, .holy, .freeze, .stun])
-    func `backdraft converts burn into the critical attacks element without retriggering`(keyword: Keyword) {
-        var battle = capstoneBattle(hero: ["wizard_burn_t4_1"])
-        seedHeroTalentEffect(.burn(5), on: .enemy, in: &battle)
-        _ = battle.resolveDamage(.doTTick(
-            amount: 2, target: battle.enemy, keyword: .burn, sourceActorID: battle.hero.id,
-        ))
-        #expect(talentPoints(.burn, on: .enemy, in: battle) == 5)
-        let request = DamageRequest(
-            amount: 2, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, guaranteedCritical: true),
-        )
-        let hit = battle.resolveDamage(request)
-        #expect(hit.isCritical)
-        #expect(hit.healthLost == 9)
-        #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
-        let next = battle.resolveDamage(request)
-        #expect(next.healthLost == 4)
     }
 
     @Test func `interdict extends purifying light without duplicating its purge`() throws {
@@ -399,29 +362,6 @@ extension TalentCatalogRoundTripTests {
         }
     }
 
-    @Test func `serrated blades ticks existing bleeds without shortening or refilling poison`() {
-        var battle = capstoneBattle(hero: ["rogue_bleed_t1_1", "rogue_poison_t2_1", "rogue_bleed_t2_2"])
-        battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 10)
-        battle.appendEffect(.bleed(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 4)
-        seedHeroTalentEffect(.poison(6), on: .enemy, in: &battle)
-        let health = battle.roster.enemy.currentHealth
-        _ = DoTApplicator.applyBleed(
-            potency: 1, to: battle.enemy, sourceActorID: battle.hero.id,
-            application: .afterHit, in: &battle,
-        )
-        #expect(health - battle.roster.enemy.currentHealth == 10)
-        #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
-        let durations = battle.activeEffects(of: battle.enemy).filter(\.effect.isBleed).map(\.remainingTurns)
-        #expect(durations == [10, 4, Effect.bleedDoTTurnCount])
-        _ = DoTApplicator.applyBleed(
-            potency: 1, to: battle.enemy, sourceActorID: battle.hero.id,
-            application: .afterHit, in: &battle,
-        )
-        #expect(health - battle.roster.enemy.currentHealth == 17)
-        #expect(talentPoints(.poison, on: .enemy, in: battle) == 0)
-        #expect(battle.gold == 0)
-    }
-
     @Test(arguments: [false, true])
     func `blood money rewards only the lethal hit including consumed bleed`(detonates: Bool) {
         var battle = capstoneBattle(hero: ["rogue_bleed_t2_2"])
@@ -459,18 +399,5 @@ extension TalentCatalogRoundTripTests {
             sourceActorID: companionKill ? battle.companion.id : battle.hero.id, options: .reaction(),
         ))
         #expect(battle.gold == 0)
-    }
-
-    @Test(arguments: [false, true])
-    func `noxious reaction consumes the live poison pool in either tick order`(poisonFirst: Bool) {
-        var battle = capstoneBattle(hero: ["rogue_poison_t2_1"])
-        let effects: [Effect] = poisonFirst ? [.poison(6), .bleed(4)] : [.bleed(4), .poison(6)]
-        for effect in effects {
-            battle.appendEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: effect.isBleed ? 2 : 0)
-        }
-        _ = EffectTurnEngine.advanceAll(context: &battle)
-        #expect(battle.roster.enemy.currentHealth == (poisonFirst ? 187 : 191))
-        #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
-        #expect(battle.activeEffects(of: battle.enemy).first { $0.effect.isBleed }?.remainingTurns == 1)
     }
 }

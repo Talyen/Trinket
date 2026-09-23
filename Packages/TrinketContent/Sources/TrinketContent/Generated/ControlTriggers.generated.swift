@@ -40,6 +40,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var avalancheGuard: Bool = false
     public var stunExtendVsBurning: Bool = false
     public var dodgeDealFreezeFlat: Int = 0
+    public var freezeBuildupMultiplier: Double = 1
+    public var poisonedEnemyStunBuildupMultiplier: Double = 1
 
     public init(
         stunDamageAddsEnemyBlock: Bool = false,
@@ -77,7 +79,9 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         lightningRod: Bool = false,
         avalancheGuard: Bool = false,
         stunExtendVsBurning: Bool = false,
-        dodgeDealFreezeFlat: Int = 0
+        dodgeDealFreezeFlat: Int = 0,
+        freezeBuildupMultiplier: Double = 1,
+        poisonedEnemyStunBuildupMultiplier: Double = 1
     ) {
         self.stunDamageAddsEnemyBlock = stunDamageAddsEnemyBlock
         self.stunRetainedBuildupPercent = stunRetainedBuildupPercent
@@ -115,10 +119,12 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.avalancheGuard = avalancheGuard
         self.stunExtendVsBurning = stunExtendVsBurning
         self.dodgeDealFreezeFlat = dodgeDealFreezeFlat
+        self.freezeBuildupMultiplier = freezeBuildupMultiplier
+        self.poisonedEnemyStunBuildupMultiplier = poisonedEnemyStunBuildupMultiplier
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "flashFreeze", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard", "stunExtendVsBurning", "dodgeDealFreezeFlat"]
+    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "flashFreeze", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard", "stunExtendVsBurning", "dodgeDealFreezeFlat", "freezeBuildupMultiplier", "poisonedEnemyStunBuildupMultiplier"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -159,6 +165,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         if self.avalancheGuard != other.avalancheGuard { names.append("avalancheGuard") }
         if self.stunExtendVsBurning != other.stunExtendVsBurning { names.append("stunExtendVsBurning") }
         if self.dodgeDealFreezeFlat != other.dodgeDealFreezeFlat { names.append("dodgeDealFreezeFlat") }
+        if self.freezeBuildupMultiplier != other.freezeBuildupMultiplier { names.append("freezeBuildupMultiplier") }
+        if self.poisonedEnemyStunBuildupMultiplier != other.poisonedEnemyStunBuildupMultiplier { names.append("poisonedEnemyStunBuildupMultiplier") }
         return names
     }
 }
@@ -201,6 +209,8 @@ extension ControlTriggers {
         avalancheGuard = avalancheGuard || other.avalancheGuard
         stunExtendVsBurning = stunExtendVsBurning || other.stunExtendVsBurning
         dodgeDealFreezeFlat += other.dodgeDealFreezeFlat
+        freezeBuildupMultiplier *= other.freezeBuildupMultiplier
+        poisonedEnemyStunBuildupMultiplier *= other.poisonedEnemyStunBuildupMultiplier
     }
 }
 
@@ -243,7 +253,9 @@ extension ControlTriggers {
             lightningRod: values.decode(Bool.self, "lightningRod", default: false),
             avalancheGuard: values.decode(Bool.self, "avalancheGuard", default: false),
             stunExtendVsBurning: values.decode(Bool.self, "stunExtendVsBurning", default: false),
-            dodgeDealFreezeFlat: values.decode(Int.self, "dodgeDealFreezeFlat", default: 0)
+            dodgeDealFreezeFlat: values.decode(Int.self, "dodgeDealFreezeFlat", default: 0),
+            freezeBuildupMultiplier: values.decode(Double.self, "freezeBuildupMultiplier", default: 1),
+            poisonedEnemyStunBuildupMultiplier: values.decode(Double.self, "poisonedEnemyStunBuildupMultiplier", default: 1)
         )
     }
 
@@ -284,5 +296,7 @@ extension ControlTriggers {
         try container.encodeNonDefault(avalancheGuard, "avalancheGuard", default: false)
         try container.encodeNonDefault(stunExtendVsBurning, "stunExtendVsBurning", default: false)
         try container.encodeNonDefault(dodgeDealFreezeFlat, "dodgeDealFreezeFlat", default: 0)
+        try container.encodeNonDefault(freezeBuildupMultiplier, "freezeBuildupMultiplier", default: 1)
+        try container.encodeNonDefault(poisonedEnemyStunBuildupMultiplier, "poisonedEnemyStunBuildupMultiplier", default: 1)
     }
 }

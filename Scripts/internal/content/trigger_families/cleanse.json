@@ -165,6 +165,12 @@
       "type": "Bool",
       "default": "false",
       "merge": "or"
+    },
+    {
+      "name": "purgePreparesDoubleHolyAttack",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
     }
   ]
 }

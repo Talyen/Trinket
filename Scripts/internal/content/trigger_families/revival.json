@@ -85,6 +85,12 @@
       "type": "Double",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "holyDamageReviveCompanionChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

@@ -174,46 +174,10 @@
       "merge": "or"
     },
     {
-      "name": "consolationPrize",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "houseCredit",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "fullHouse",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "luckyCharm",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "lastWager",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "sleightOfCoin",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "luckyBreak",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "name": "blockedAttackFirstGold",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
     },
     {
       "name": "stealGoldBonusVsPoisoned",
@@ -226,6 +190,72 @@
       "type": "Int",
       "default": "0",
       "merge": "max"
+    },
+    {
+      "name": "stunCriticalStealGold",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "dodgePreparesDoubleGoldSteal",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "criticalGoldStealDrawCard",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "goldStealNextPhysicalBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldGainHealChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldGainHealAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "criticalGoldTheftBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldGainCleanseChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldGainBelowHalfDrawCard",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "goldTheftDodgeBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldGainDrawChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

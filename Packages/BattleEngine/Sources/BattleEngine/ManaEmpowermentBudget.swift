@@ -35,7 +35,13 @@ struct ManaEmpowermentBudget {
         firstDiscount = triggers.firstEmpowermentCostReduction
         let reduction = ability.keywords.contains(.health) && triggers.healingEmpowermentCostReduction > 0
             ? triggers.healingEmpowermentCostReduction : triggers.empowermentCostReduction
-        baseCost = max(0, BattleTurnEngine.manaEmpowermentCost - max(0, reduction))
+        let burnReduction = ability.hasManaEmpowerableBurnDamage ? triggers.empowerBurnCostReduction : 0
+        let preparedReduction = runtime?.talents.pending.nextManaEmpowerDiscount ?? 0
+        baseCost = max(
+            0,
+            BattleTurnEngine.manaEmpowermentCost - max(0, reduction)
+                - max(0, burnReduction) - max(0, preparedReduction),
+        )
         let maxMana = (runtime?.maxMana ?? 0) + (patron?.maxMana ?? 0)
         hasCapacity = maxMana > 0 || blockRate > 0
         let repeats = ability.repeatsManaEmpowerment

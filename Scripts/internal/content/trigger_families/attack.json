@@ -298,18 +298,6 @@
       }
     },
     {
-      "name": "prismaticEdge",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "improvisedAssault",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "cleanCut",
       "type": "Bool",
       "default": "false",
@@ -322,19 +310,7 @@
       "merge": "or"
     },
     {
-      "name": "coldRead",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "feignedMiss",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "paidInFull",
+      "name": "blockedAttackNextPhysicalDouble",
       "type": "Bool",
       "default": "false",
       "merge": "or"
@@ -360,6 +336,54 @@
     {
       "name": "attackStunBuildupBelowHealthBonus",
       "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "poisonCritPreparesBleedCrit",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "leechCriticalVsBleedingBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnAttackCritDrawCard",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "burnPreparesBleedDamageBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "physicalElementChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "physicalElementDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "standardDeviation",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "physicalVsFrozenCritBonus",
+      "type": "Double",
       "default": "0",
       "merge": "add"
     }

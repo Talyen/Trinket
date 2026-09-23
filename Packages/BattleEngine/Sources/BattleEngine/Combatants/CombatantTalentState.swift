@@ -27,7 +27,9 @@ struct CombatantTalentState: Hashable, Sendable {
 
     struct Turn: Hashable, Sendable {
         var dodgeChanceBonus = 0.0
+        var goldTheftDodgeApplied = false
         var cleansedKeywordProtection: Set<Keyword> = []
+        var negativeStatusImmune = false
         var purgedEffectProtection: Set<EffectKind> = []
         var subzeroMistActive = false
         var tookAttackHit = false
@@ -43,11 +45,35 @@ struct CombatantTalentState: Hashable, Sendable {
         var bleedAfterDodge = 0
         var cardDamageBonus = 0
         var cardDamagePercent = 0.0
+        var overchargePercent = 0.0
+        var overchargePreparedCardSerial: Int?
         var nextHitBonus = 0
         var nextAttackHolyBonus = 0
+        var doubleNextHolyAttack = false
+        var doubleNextPoisonAttack = false
+        var doubleNextPoisonDamage = false
+        var doubleNextBleedDamage = false
+        var guaranteedBleedCritical = false
+        var doubleNextGoldSteal = false
+        var nextPhysicalDamageBonus = 0
+        var nextManaEmpowerDiscount = 0
+        var nextBurnAttackPercent = 0.0
+        var nextBurnAttackPreparedCardSerial: Int?
+        var doubleNextPhysicalAttack = false
+        var nextPhysicalPreparedCardSerial: Int?
+        var nextBleedDamageBonus = 0
+        var nextBurnDamageBonus = 0
+        var nextPoisonDamageBonus = 0
+        var manaOverflowThorns = 0
+        var nextAttackCriticalBonus = 0.0
+        var nextAttackGuaranteedCritical = false
         var basicGuaranteedCritical = false
         var basicCriticalBonus = 0.0
         var attackBonusOnFullHealth = 0
+
+        static func isLaterAttack(preparedCardSerial: Int?, currentCardSerial: Int?) -> Bool {
+            preparedCardSerial == nil || preparedCardSerial != currentCardSerial
+        }
 
         mutating func reserveAttackBonuses() -> (damage: Int, holy: Int) {
             let bonuses = (nextHitBonus + attackBonusOnFullHealth, nextAttackHolyBonus)

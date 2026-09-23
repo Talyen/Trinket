@@ -79,7 +79,16 @@ package enum DefensePoolEngine {
         let pacedAmount = applyFightPacing
             ? (sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount)
             : amount
-        guard pacedAmount > 0 else { return 0 }
+        let gainAmount: Int = if target.role == .enemy, context.roster.hero.isAlive,
+                                 context.roster.hasAffliction(.burn, on: target) {
+            CombatRounding.scaled(
+                pacedAmount,
+                multiplier: context.heroModifiers.triggers.burningEnemyBlockGainMultiplier,
+            )
+        } else {
+            pacedAmount
+        }
+        guard gainAmount > 0 else { return 0 }
         var effects = context.roster.activeEffects(for: target)
         if let index = effects.firstIndex(where: {
             if case .shield = $0.effect {
@@ -89,20 +98,20 @@ package enum DefensePoolEngine {
         }), case let .shield(existingKeyword, existingBuffer) = effects[index].effect {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
-                effect: .shield(existingKeyword, existingBuffer + pacedAmount),
+                effect: .shield(existingKeyword, existingBuffer + gainAmount),
                 remainingTurns: 0,
                 sourceActorID: effects[index].sourceActorID,
             )
             context.roster.setActiveEffects(effects, for: target)
-            return pacedAmount
+            return gainAmount
         }
         context.appendEffect(
-            .shield(keyword, pacedAmount),
+            .shield(keyword, gainAmount),
             to: target,
             sourceID: sourceActorID ?? target.id,
             remainingTurns: 0,
         )
-        return pacedAmount
+        return gainAmount
     }
 
     package static func set(
@@ -139,7 +148,7 @@ package enum DefensePoolEngine {
         let retained: Int = if triggers.retainAllBlockBetweenTurns {
             current
         } else if triggers.blockRetainsThreeQuarters {
-            min(30, (current * 3) / 4)
+            (current * 3) / 4
         } else if triggers.blockRetainsHalf {
             min(30, current / 2)
         } else {

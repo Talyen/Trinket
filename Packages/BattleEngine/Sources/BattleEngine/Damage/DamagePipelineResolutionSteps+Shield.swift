@@ -36,13 +36,17 @@ package extension DamagePipeline {
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         let targetIsStunned = state.targetStatus.isStunned
 
-        let effectiveBuffer = max(0, CombatRounding.scaled(buffer, multiplier: blockMultiplier) - state.heroCardBlockIgnore)
+        let effectiveBuffer = max(0, CombatRounding.scaled(buffer, multiplier: blockMultiplier))
         guard effectiveBuffer > 0, state.remaining > 0 else {
             return
         }
 
         let doublesPhysical = defenderTriggers.doublePhysicalBlockAbsorption && state.damageKeyword == .physical
-        let absorptionBuffer = doublesPhysical ? effectiveBuffer * 2 : effectiveBuffer
+        let belowHalfHealth = context.roster.health(for: state.combatant) * 2
+            < context.roster.maxHealth(for: state.combatant)
+        let oathMultiplier = belowHalfHealth ? defenderTriggers.blockAbsorptionMultiplierBelowHalfHealth : 1
+        let absorptionMultiplier = (doublesPhysical ? 2.0 : 1.0) * max(1, oathMultiplier)
+        let absorptionBuffer = CombatRounding.scaled(effectiveBuffer, multiplier: absorptionMultiplier)
 
         let absorption = applyAbsorption(
             to: &state,
@@ -54,11 +58,10 @@ package extension DamagePipeline {
             in: &context,
         )
 
-        let blockRemoval: Int = if doublesPhysical {
-            CombatRounding.scaled(absorption.absorbed, multiplier: 0.5) + max(0, absorption.extraRemoved)
-        } else {
-            absorption.absorbed + absorption.extraRemoved
-        }
+        let blockRemoval = max(
+            absorption.absorbed > 0 ? 1 : 0,
+            CombatRounding.scaled(absorption.absorbed, multiplier: 1 / absorptionMultiplier),
+        ) + max(0, absorption.extraRemoved)
 
         var blockBroken = false
         if let reduced = DefensePoolEngine.reduce(
@@ -160,6 +163,7 @@ package extension DamagePipeline {
             sourceTriggers: sourceTriggers,
             targetIsStunned: targetIsStunned,
             damageKeyword: state.damageKeyword,
+            isAttackHit: state.options.isAttackHit,
         )
         return ShieldAbsorption(absorbed: absorbed, extraRemoved: extraRemoved)
     }
@@ -256,6 +260,7 @@ package extension DamagePipeline {
         sourceTriggers: CombatTraitTriggers?,
         targetIsStunned: Bool,
         damageKeyword: Keyword?,
+        isAttackHit: Bool,
     ) -> Int {
         let canSunder = damageKeyword == .physical || damageKeyword == .stun
         var extraRemoved = canSunder
@@ -269,6 +274,23 @@ package extension DamagePipeline {
         }
         if damageKeyword == .poison, let sourceTriggers, sourceTriggers.poisonStripsBlockBeforeHealth > 0 {
             extraRemoved += sourceTriggers.poisonStripsBlockBeforeHealth
+        }
+        if isAttackHit, damageKeyword == .poison, let sourceTriggers {
+            extraRemoved += sourceTriggers.poisonAttackExtraBlockRemoval
+        }
+        if damageKeyword == .poison, let sourceTriggers,
+           sourceTriggers.poisonDamageVsBlockMultiplier > 1 {
+            extraRemoved += CombatRounding.scaled(
+                absorbed,
+                multiplier: sourceTriggers.poisonDamageVsBlockMultiplier - 1,
+            )
+        }
+        if isAttackHit, damageKeyword == .burn, let sourceTriggers,
+           sourceTriggers.burnAttackBlockBreakMultiplier > 1 {
+            extraRemoved += CombatRounding.scaled(
+                absorbed,
+                multiplier: sourceTriggers.burnAttackBlockBreakMultiplier - 1,
+            )
         }
         if targetIsStunned, let sourceTriggers, sourceTriggers.stunnedEnemyLoseAllBlock {
             extraRemoved = buffer

@@ -11,20 +11,20 @@ expires: 2026-10-07
 ## Objective
 
 Revise all 446 Talent nodes across 21 combatants and 63 keyword trees, then make
-their actual mechanics match the approved text. Review each combatant in a table
-showing the current effect beside the proposed effect. Keep each tree's current
-node count. The user confirms there are no players or saves to migrate, so IDs
-may change when a tree move requires it.
+their actual mechanics match the approved text. The eight Heroes have now been
+reviewed; implement their approved revisions first. Review the 13 Companions in
+a later pass. Keep each tree's current node count. The user confirms there are
+no players or saves to migrate, so IDs may change when a tree move requires it.
 
 ## Agreed design constraints
 
 - Every Talent description must mention its tree's keyword or an inflection of
   it. Match the owner's one-Basic, one-Skill, one-Ultimate loadout pool; a Talent
   may reward a compatible owner loadout. Prefer partner-independent effects;
-  Druid's approved Living Conduit and Grove Accord intentionally reward a
-  Mana-using Companion.
+  Druid's approved Grove Accord intentionally rewards a Mana-using Companion.
 - Follow Alchemy's concise, direct rules voice without periods. Use **ability**
-  for play/equip references only when needed, but say **draw a card** for draws;
+  for play/equip references only when needed, but say **draw a card** or **draws
+  a card** for draws, never “draw 1 card” or “draws 1 card”;
   prefer damage, attack, or keyword wording when clearer.
   Usually avoid naming Basic, Skill, or Ultimate tiers in Talent rules. Prefer
   “Enemies below half Health take…” to clipped threshold phrasing, and use
@@ -61,20 +61,48 @@ may change when a tree move requires it.
   Ability pool, keyword rules, battle mechanics, and feedback presentation.
   The current manifest has 29 descriptions that omit their own tree keyword;
   review those even if the user prefers their current design.
-- [ ] Resolve the four Knight keyword-placement entries below; the other 17
-  Knight effects and their wording are approved.
-- [ ] Review the remaining combatants in current/proposed batches, recording the
-  user's current, proposed, or modified choice for every node.
+- [x] Resolve the four Knight keyword-placement entries below; all Hero Talent
+  effects and wording are approved.
+- [x] Review the eight Heroes in current/proposed batches and record the user's
+  choices, subject to the remaining Knight and numeric decisions below.
+- [ ] Review Companions in a later pass; leave their existing behavior intact
+  during the Hero implementation.
 - [ ] Audit every selected effect for tree-keyword wording, viable owner loadout,
   thematic fit, simple mechanics, unique name and icon fit, and feedback density
   when all tree nodes are unlocked together. Strengthen catalog coverage to
   require each Talent's own tree keyword, rather than any keyword, in its text.
-- [ ] Implement the approved catalog in `ContentManifest/talents.tsv`, the
+- [x] Implement the approved Hero catalog in `ContentManifest/talents.tsv`, the
   relevant trigger schemas and battle owners, then regenerate catalogs. Update
-  canonical behavior guidance and meaningful deterministic coverage.
+  canonical behavior guidance and meaningful deterministic coverage. Defer
+  Companion Talent redesign and implementation.
 - [ ] Run routed, isolated handoff for all changed paths; review generated
   consistency and the final diff. Archive the plan outcome and delete this file
   when the whole redesign is complete.
+
+### Hero implementation ledger
+
+- [x] Apply approved Hero names and descriptions to the authored manifest;
+  update existing Companion draw-one wording without changing Companion rules.
+- [x] Wire all eight Hero trigger trees to their approved effects; the
+  BattleEngine package builds and the generated catalog is stable.
+- [x] Bloodfire rolls once per Burn ability; success deals 4 Bleed damage.
+- [x] Consolation Prize rewards the first fully Blocked attack each combat;
+  Feigned Miss prepares double damage for a later Physical attack.
+- [x] Overcharge and Soul Burn bonuses wait for a later attack, excluding the
+  ability that prepared them.
+- [x] Masterwork Mixture restores Mana to the Alchemist; Shared Prescription
+  transfers excess Health restoration in either direction.
+- [x] Audit the Hero catalog against the approved plan and trigger owners:
+  all 169 Hero descriptions match, keyword inflections are present, obsolete
+  Bloodfire, Consolation Prize, and Feigned Miss paths are removed, and the
+  generated catalog is stable. Canonical Talent behavior notes are updated.
+- [x] Replace tests for retired Hero effects with deterministic coverage of
+  current rules, preserve Companion checks, and add catalog-wide Hero keyword
+  coverage. Remove unused pre-rework trigger schema fields.
+- [x] Review follow-up fixes Divine Blessing's revive allowance, overlapping
+  Block bypasses, excess healing transfer, and feedback for automatic Talent
+  damage. The Hero phase passes routed, isolated handoff.
+- [ ] Defer Companion Talent redesign and its mechanics until the later pass.
 
 ## Knight · Stun — approved
 
@@ -83,12 +111,12 @@ may change when a tree move requires it.
 | Heavy Flail | Deal 3 additional damage to Stunned enemies |
 | Concussive Blow | Stunned enemies deal half damage when they recover |
 | Skullcracker | Stun Critical Hits deal double damage |
-| Second Wind | When Stun ends, draw 1 ability |
+| Second Wind | When Stun ends, draw a card |
 | Searing Bind | Stun lasts 1 extra turn on Burning enemies |
 | Crusader's Mark | Holy damage is increased by 5 against Stunned enemies |
 | Lightning Rod | Stun damage is increased by half your Block |
 
-## Knight · Block — six approved, one pending placement
+## Knight · Block — approved
 
 | Talent | Description | Status |
 | --- | --- | --- |
@@ -96,29 +124,28 @@ may change when a tree move requires it.
 | Spiked Barricade | Thorns damage is doubled while you have Block | Approved |
 | Intercede | Your Block also absorbs damage dealt to your Companion | Approved |
 | Guarded Impact (was Shield Bash) | Physical damage is increased by 25% of your Block | Approved |
-| Shield Shatter | Physical attacks ignore half enemy Block | Approved mechanic; pending Holy-tree move |
+| Consecration (moved from Holy) | With Block, take half Burn, Poison, and Bleed damage | Approved Block-tree placement |
 | Unbreakable | Keep 75% of your Block between turns | Approved |
 | Stalwart Oath | Below half Health, Block absorbs 50% more damage | Approved |
 
-## Knight · Holy — four approved, three pending keyword fit
+## Knight · Holy — approved
 
 | Talent | Description | Status |
 | --- | --- | --- |
 | Oathbound | Holy damage is increased by 25% while you have Block | Approved |
 | Pure Radiance | Holy damage is increased by 50% against enemy Block | Approved |
 | Holy Infusion | Your Thorns deal Holy instead of Physical damage | Approved |
-| Consecration | With Block, take half Burn, Poison, and Bleed damage | Approved mechanic; pending Block-tree move |
+| Shield Shatter (moved from Block) | Holy attacks ignore half enemy Block | Approved Holy-tree placement and wording |
 | Smite the Wicked | Purging an enemy doubles your next Holy attack | Approved |
-| Divine Blessing | Once per combat, your Companion survives fatal damage at 8 Health | Approved intent; pending Holy-linked trigger |
-| Sunwall | Your Companion takes 20% less damage while you have Block | Approved intent; pending Holy-linked rule |
+| Divine Blessing | Holy damage has a 10% chance to revive your Companion | User revision; revives at 1 Health; roll only if Companion defeated |
+| Sunwall | Holy damage has a 10% chance to grant equal Block to your Companion | User revision; Block equals actual Holy Health damage dealt |
 
-### Proposed Knight keyword correction — awaiting selection
+### Knight keyword correction — approved
 
 Keep seven nodes in each tree by moving Consecration into Block row 3 and Shield
 Shatter into Holy row 2. Consecration keeps its approved effect. Shield Shatter
-would become “Holy attacks ignore half enemy Block”; the change from Physical to
-Holy needs the user's choice. Divine Blessing and Sunwall also need a real Holy
-mechanic in their effect, not a decorative mention of the word.
+changes from Physical to Holy. Chance riders on Divine Blessing and Sunwall
+roll once per qualifying Holy ability, not separately for each component.
 
 ## Ranger · Poison — approved
 
@@ -165,7 +192,7 @@ mechanic in their effect, not a decorative mention of the word.
 | Cutpurse Cut | Stun Critical Hits steal 5 Gold | Accept proposal |
 | Escape Fund (was Gold Reserves) | After Dodging, double the next Gold you steal | Accept proposal |
 | Bounty Hunter | Defeating an enemy with a Critical Hit grants 10 Gold | Accept proposal |
-| Quick Fingers | Critical Hits that steal Gold draw 1 card | Accept proposal |
+| Quick Fingers | Critical Hits that steal Gold draw a card | Accept proposal |
 | Bounty Blade | Stealing Gold adds 3 damage to your next Physical attack | Accept proposal |
 
 ## Rogue · Poison — approved
@@ -224,7 +251,7 @@ mechanic in their effect, not a decorative mention of the word.
 | Mana Shield | At the end of your turn, gain 1 Block for each unspent Mana. | Keep current exactly |
 | Overcharge | Mana empowerment increases your next attack's damage by 20% | User magnitude revision |
 | Arcane Cleansing | Ending a turn at 0 Mana Cleanses 1 negative status effect | Accept proposal |
-| Arcane Surge | Spending your last Mana draws 1 card | Accept proposal |
+| Arcane Surge | Spending your last Mana draws a card | Accept proposal |
 | Spell Echo | Mana-empowered attacks have a 10% chance to deal double damage | Accept proposal |
 | Frost Circuit (was Closed Circuit) | Freeze Critical Hits restore 1 Mana | User revision |
 
@@ -256,13 +283,13 @@ mechanic in their effect, not a decorative mention of the word.
 
 | Talent | Final description | Decision |
 | --- | --- | --- |
-| Bloodfire | Burn damage has a 10% chance to Bleed | User revision; scope of ongoing Burn damage to clarify during implementation |
+| Bloodfire | Burn attacks have a 10% chance to deal 4 Bleed damage | User final amount and once-per-ability roll |
 | Scorching Ash | Below half Health, Burn damage is increased by 25% | Accept proposal |
 | Withering Flame | Burning enemies restore half as much Health | Accept proposal |
 | Soul Burn | Spending your last Mana increases your next Burn attack’s damage by 50% | Accept proposal |
 | Damnation | Burning enemies take 25% additional damage | Accept proposal |
 | Raging Inferno | Gain +15% Critical Hit chance against Burning enemies | User revision |
-| Ashen Arsenal | Burn attacks that Critically Hit draw 1 card | Accept proposal |
+| Ashen Arsenal | Burn attacks that Critically Hit draw a card | Accept proposal |
 | Temper Cycle | Burn attacks add 1 bonus damage to your next Bleed attack | User magnitude revision |
 
 ## Alchemist · Poison — approved
@@ -286,7 +313,7 @@ mechanic in their effect, not a decorative mention of the word.
 | Heat Recovery | Cleansing Burn adds 2 damage to your next Burn attack | Accept proposal |
 | Antitoxin Coating | Cleansing Poison prevents Poison for 1 turn | Accept proposal |
 | Clear Mind | Cleansing an ally reduces your next Mana empowerment cost by 1 | Accept proposal |
-| Clean Break | Cleansing an ally’s last negative status effect draws 1 card | Accept proposal |
+| Clean Break | Cleansing an ally’s last negative status effect draws a card | Accept proposal |
 | Perfect Purity | Cleanse grants its target 1 turn of negative status immunity | Accept proposal |
 
 ## Alchemist · Health — approved
@@ -332,10 +359,46 @@ mechanic in their effect, not a decorative mention of the word.
 | Arcane Thorns (was First Bloom) | Restoring Mana grants 2 Thorns | User name and effect |
 | Barkweave | Mana empowerment grants 2 Block | User effect |
 | Grove Reserve | With unspent Mana, your Companion gains +10% Dodge | Accept proposal |
-| Living Conduit | Excess Mana restored is given to your ally | User effect; benefits only allies with a Mana pool |
+| Living Conduit | Excess Mana restored is converted into Thorns | User revision; excess converts without a Companion Mana requirement |
 | Shared Current | Mana empowerment adds 2 damage to your Companion’s next attack | Accept proposal |
 | Deep Roots | Restore 1 additional Mana while you have Thorns | Accept proposal |
 | Grove Accord | Both allies spending Mana in the same turn grants each 1 Thorns. | Keep current exactly; requires a Mana-using Companion |
+
+## Wildcard · Gold — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Consolation Prize | Gain 3 Gold the first time an enemy fully Blocks your attack | User approved blocked-attack replacement |
+| Health is Wealth (was House Credit) | Gaining Gold has a 10% chance to restore 3 Health | User wording and amount |
+| Jackpot (was Full House) | Critical Hits that steal Gold grant 5 additional Gold | Accept proposal |
+| Lucky Charm | Gaining Gold has a 20% chance to Cleanse 1 negative status effect | Accept proposal |
+| Last Wager | Gaining Gold while below half Health draws a card | User effect |
+| Sleight of Coin | Stealing Gold grants +15% Dodge until your next turn | Accept proposal |
+| Lucky Break | Gaining Gold has a 10% chance to draw a card | User effect |
+
+## Wildcard · Dodge — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| False Opening | Dodging grants +20% Critical Hit chance on your next attack | Accept proposal |
+| Missed Opportunity | Dodging below half Health draws a card | Accept proposal |
+| Passing Luck | Dodging makes your Companion’s next attack Critically Hit | Accept proposal |
+| Scattered Caltrops | Dodging has a 20% chance to deal 3 Bleed damage | User chance revision; one roll per Dodge |
+| Smoke Trick | Dodging has a 20% chance to deal 3 Burn damage | User chance revision; one roll per Dodge |
+| Improving Odds | Each undodged attack increases your Dodge chance by 5%. Dodging resets this bonus. | Keep current exactly |
+| Blind Spot | Dodging makes your next Physical attack ignore enemy Block | Accept proposal |
+
+## Wildcard · Physical — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Prismatic Edge | Physical attacks have a 10% chance to deal 3 Burn or Freeze damage | User wording and amount; one roll per ability |
+| Standard Deviation (was Improvised Assault) | Physical damage you deal is either doubled or halved | User name and effect; 50/50 once per ability, halved result rounds up |
+| Clean Cut | Physical Critical Hits ignore enemy Block | User effect |
+| Cracked Guard | Breaking enemy Block with Physical damage makes your next attack Critically Hit | Accept proposal |
+| Cold Read | Physical attacks against Frozen enemies gain +15% Critical Hit chance | Accept proposal |
+| Feigned Miss | An enemy fully Blocking your attack doubles your next Physical attack | User approved blocked-attack replacement |
+| Paid in Full | Stealing Gold adds 2 damage to your next Physical attack | Accept proposal |
 
 ## Other combatants
 

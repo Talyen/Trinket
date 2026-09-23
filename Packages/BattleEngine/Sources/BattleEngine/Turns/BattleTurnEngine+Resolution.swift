@@ -167,7 +167,9 @@ extension BattleTurnEngine {
                     keyword: damageKeyword,
                     potency: damageKeyword == .burn || damageKeyword == .poison ? dealt : amount,
                     to: damageTarget,
-                    sourceActorID: actor.id, context: &context,
+                    sourceActorID: actor.id,
+                    isCritical: componentEvent.isCritical,
+                    context: &context,
                 ))
             }
         }
@@ -184,14 +186,21 @@ extension BattleTurnEngine {
         potency: Int,
         to target: Combatant,
         sourceActorID: String,
+        isCritical: Bool = false,
         context: inout BattleState,
     ) -> [ActionEvent] {
-        DoTApplicator.applyDoT(
+        let profile = context.modifiers(for: sourceActorID)
+        let criticalDurationBonus = keyword == .bleed && isCritical
+            ? profile.triggers.bleedDurationFromCriticalBonus : 0
+        let duration = criticalDurationBonus > 0
+            ? Effect.bleedDoTTurnCount + profile.bleedDurationBonus + criticalDurationBonus : nil
+        return DoTApplicator.applyDoT(
             keyword: keyword,
             potency: potency,
             to: target,
             sourceActorID: sourceActorID,
             application: .afterHit,
+            durationTurns: duration,
             in: &context,
         ) ?? []
     }

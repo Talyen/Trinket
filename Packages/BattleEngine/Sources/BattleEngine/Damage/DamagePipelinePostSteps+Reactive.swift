@@ -114,18 +114,24 @@ package extension DamagePipeline {
             guard case let .restoreManaOnHit(amount, _) = active.effect else { continue }
             let pacedAmount = context.paced(amount, sourceActorID: state.combatant.id)
             let restored = context.restoreMana(pacedAmount, to: state.combatant)
-            guard restored > 0 else { continue }
-            state.damageEvents.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .manaShieldTriggered,
-                actorName: state.combatant.name,
-                abilityName: "Mana Shield",
-                target: state.combatant,
-                amount: restored,
-                keyword: .mana,
-            ))
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterGainMana(
-                by: state.combatant,
+            if restored > 0 {
+                state.damageEvents.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .manaShieldTriggered,
+                    actorName: state.combatant.name,
+                    abilityName: "Mana Shield",
+                    target: state.combatant,
+                    amount: restored,
+                    keyword: .mana,
+                ))
+                state.damageEvents.append(contentsOf: CombatTriggerEngine.afterGainMana(
+                    by: state.combatant,
+                    in: &context,
+                ))
+            }
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.consumeManaOverflowThorns(
+                for: state.combatant,
+                restoredMana: restored > 0,
                 in: &context,
             ))
         }
@@ -232,21 +238,40 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard amount > 0 else { return }
+        if state.combatant.role == .enemy, state.damageKeyword == .poison,
+           state.options.isAttackHit,
+           context.modifiers(for: attacker.id).triggers.safeHandling {
+            return
+        }
         ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
             if case .thorns = $0 {
                 return true
             }
             return false
         }
-        let keyword: Keyword = if context.modifiers(for: state.combatant.id).triggers.resonantShell {
+        let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
+        let blocked = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0
+        var retaliation = defenderTriggers.thornsDamageDoubleWhileBlocked && blocked ? amount * 2 : amount
+        if attacker.combatant.role == .enemy, state.combatant.role != .enemy,
+           context.roster.hero.isAlive,
+           context.roster.hasAffliction(.poison, on: attacker.combatant) {
+            retaliation = CombatRounding.scaled(
+                retaliation,
+                multiplier: context.heroModifiers.triggers.barbedSporesThornsVsPoisonedMultiplier,
+            )
+        }
+        let keyword: Keyword = if defenderTriggers.resonantShell {
             .stun
-        } else if state.combatant.role == .companion, context.roster.hero.isAlive, context.heroModifiers.triggers.thornShedding {
+        } else if defenderTriggers.thornsDealHoly {
+            .holy
+        } else if state.combatant.role != .enemy, context.roster.hero.isAlive,
+                  context.heroModifiers.triggers.thornShedding {
             .poison
         } else {
             .physical
         }
         let healthLost = appendNestedDamage(
-            amount: amount,
+            amount: retaliation,
             keyword: keyword,
             abilityName: "Thorns",
             target: attacker.combatant,

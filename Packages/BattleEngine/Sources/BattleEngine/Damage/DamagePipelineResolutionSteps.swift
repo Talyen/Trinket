@@ -28,7 +28,29 @@ package extension DamagePipeline {
         applyBurnDamageMultipliers(to: &state, in: &context)
         applyOneShotEmpowers(to: &state)
         applyOutgoingReductions(to: &state, in: &context)
+        applyStandardDeviation(to: &state, in: &context)
         state.dealt = state.remaining
+    }
+
+    private static func applyStandardDeviation(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.damageKeyword == .physical, state.remaining > 0,
+              let sourceActorID = state.sourceActorID,
+              context.modifiers(for: sourceActorID).triggers.standardDeviation else { return }
+        let doubled: Bool
+        if context.hasHeroCard(for: sourceActorID) {
+            if let stored = context.resolution.cardTalents?.standardDeviationDouble {
+                doubled = stored
+            } else {
+                doubled = Bool.random(using: &context.rng)
+                context.mutateHeroCard { $0.standardDeviationDouble = doubled }
+            }
+        } else {
+            doubled = Bool.random(using: &context.rng)
+        }
+        state.remaining = doubled ? state.remaining * 2 : (state.remaining + 1) / 2
     }
 
     private static func applyBurnDamageMultipliers(
@@ -39,6 +61,12 @@ package extension DamagePipeline {
               let sourceActorID = state.sourceActorID else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
         if BattleChance.succeeds(probability: triggers.burnDamageDoubleChancePercent, using: &context.rng) {
+            state.remaining *= 2
+        }
+        if state.options.isCardAttack,
+           triggers.burnAttackDoubleChancePercent > 0,
+           context.claimHeroCardBonus("burnAttackDoubleChancePercent", actorID: sourceActorID),
+           BattleChance.succeeds(probability: triggers.burnAttackDoubleChancePercent, using: &context.rng) {
             state.remaining *= 2
         }
         if context.roster.hasControlStatus(for: state.combatant, keyword: .freeze),
@@ -119,6 +147,7 @@ package extension DamagePipeline {
             )
             context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.cardDamagePercent = 0 }
         }
+        applyOvercharge(to: &state, source: source.combatant, in: &context)
         if runtime.talents.pending.damageAfterDodge > 0 {
             state.remaining += runtime.talents.pending.damageAfterDodge
             context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.damageAfterDodge = 0 }
@@ -153,31 +182,6 @@ package extension DamagePipeline {
         }
         applyTalentStatusMultipliers(to: &state, in: &context)
         applyTalentBlockConsumption(to: &state, in: &context)
-    }
-
-    private static func applyTalentStatusMultipliers(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState,
-    ) {
-        guard let keyword = state.damageKeyword,
-              let sourceActorID = state.sourceActorID,
-              state.combatant.role == .enemy
-        else { return }
-        let triggers = context.modifiers(for: sourceActorID).triggers
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
-        if keyword == .physical || sharedKeyword == .physical,
-           state.isCritical, state.targetStatus.isPoisoned, triggers.pressurePoint {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
-        }
-        if keyword == .poison, state.targetStatus.isStunned, triggers.toxicComa {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
-        }
-        if keyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isPoisoned, triggers.septicemia {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
-        }
-        if keyword == .freeze, state.targetStatus.isBurning, triggers.elementalParadox {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
-        }
     }
 
     private static func applyTalentBlockConsumption(
@@ -300,6 +304,7 @@ package extension DamagePipeline {
             }
             if sourceIsBleeding {
                 reductionFlat += t.bleedingEnemyDamageReductionFlat
+                reductionMultiplier *= t.bleedingEnemyOutgoingDamageMultiplier
             }
             if sourceIsBurning {
                 reductionFlat += t.burningEnemyDamageReductionFlat
@@ -418,8 +423,26 @@ package extension DamagePipeline {
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0 {
             talentResistance = max(talentResistance, defenderTriggers.blockedControlBurnResistance)
         }
+        if defenderTriggers.blockHalvesDoTDamage,
+           damageKeyword == .burn || damageKeyword == .poison || damageKeyword == .bleed,
+           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0 {
+            talentResistance = max(talentResistance, 0.5)
+        }
+        let hasThorns = context.roster.activeEffects(for: state.combatant).contains {
+            $0.effect.kind == .thorns && ($0.effect.potency ?? 0) > 0
+        }
+        if damageKeyword == .poison, hasThorns, defenderTriggers.livingBark {
+            talentResistance = max(talentResistance, 0.5)
+        }
         if talentResistance > 0 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - min(1, talentResistance) * reductionMultiplier)
+        }
+        if state.combatant.role != .enemy, context.roster.hero.isAlive, hasThorns,
+           context.roster.health(for: state.combatant) * 2 > context.roster.maxHealth(for: state.combatant) {
+            state.remaining = CombatRounding.scaled(
+                state.remaining,
+                multiplier: context.heroModifiers.triggers.verdantShelterDamageMultiplier,
+            )
         }
     }
 
@@ -433,6 +456,12 @@ package extension DamagePipeline {
         let critMultiplier = criticalMultiplier(for: state.sourceActorID, in: context)
         let bonus = state.sourceActorID.map { context.modifiers(for: $0).criticalDamageBonus } ?? 0
         state.remaining = CombatRounding.scaled(state.remaining, multiplier: critMultiplier) + bonus
+        if state.damageKeyword == .burn, state.options.isAttackHit, let sourceActorID = state.sourceActorID {
+            state.remaining += context.modifiers(for: sourceActorID).triggers.burnCriticalDamageBonus
+        }
+        if state.damageKeyword == .poison, state.options.isAttackHit, let sourceActorID = state.sourceActorID {
+            state.remaining += context.modifiers(for: sourceActorID).triggers.poisonCriticalDamageBonus
+        }
         state.dealt = state.remaining
     }
 

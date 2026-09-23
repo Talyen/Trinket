@@ -15,8 +15,19 @@ package extension BattleState {
         isDirectCardGain: Bool = false,
     ) -> [ActionEvent] {
         let baseGold = goldGranted(for: amount, sourceActorID: combatant.id)
-        let critical = baseGold > 0 && isDirectCardGain && CombatTriggerEngine.heroCardGoldCritical(source: combatant, in: &self)
-        let granted = baseGold * (critical ? 2 : 1)
+        var granted = baseGold
+        if isTheft, granted > 0,
+           roster.runtime(for: combatant)?.talents.pending.doubleNextGoldSteal == true {
+            granted *= 2
+            roster.mutateRuntime(for: combatant) { $0.talents.pending.doubleNextGoldSteal = false }
+        }
+        if isTheft, granted > 0,
+           resolution.cardTalents?.actorID == combatant.id,
+           resolution.cardTalents?.didCriticalHit == true,
+           modifiers(for: combatant.id).triggers.criticalGoldTheftBonus > 0,
+           claimHeroCardBonus("Jackpot", actorID: combatant.id) {
+            granted += modifiers(for: combatant.id).triggers.criticalGoldTheftBonus
+        }
         let previousEarned = goldFlow.gained
         gold += granted
         if isTheft, granted > 0, modifiers(for: combatant.id).triggers.gildedClaws {
@@ -32,7 +43,6 @@ package extension BattleState {
             target: combatant,
             amount: granted,
             keyword: .gold,
-            isCritical: critical,
             origin: isDirectCardGain ? .direct : .automatic,
         )]
         if isTheft, granted > 0 {
@@ -71,12 +81,21 @@ package extension BattleState {
     @discardableResult
     mutating func restoreMana(_ amount: Int, to combatant: Combatant) -> Int {
         guard var runtime = roster.runtime(for: combatant) else { return 0 }
-        let amount = amount > 0 ? amount + modifiers(for: combatant.id).manaRestoredBonus : amount
-        let actual = runtime.restoreMana(amount)
+        let profile = modifiers(for: combatant.id)
+        let deepRoots = amount > 0 && profile.triggers.deepRoots &&
+            roster.activeEffects(for: combatant).contains { $0.effect.kind == .thorns }
+        let requested = amount > 0 ? amount + profile.manaRestoredBonus + (deepRoots ? 1 : 0) : amount
+        let actual = runtime.restoreMana(requested)
         var total = actual
-        if actual > 0, modifiers(for: combatant.id).triggers.manaGainDoubleChancePercent > 0,
-           BattleChance.succeeds(probability: modifiers(for: combatant.id).triggers.manaGainDoubleChancePercent, using: &rng) {
-            total += runtime.restoreMana(amount)
+        var overflow = max(0, requested - actual)
+        if actual > 0, profile.triggers.manaGainDoubleChancePercent > 0,
+           BattleChance.succeeds(probability: profile.triggers.manaGainDoubleChancePercent, using: &rng) {
+            let doubled = runtime.restoreMana(requested)
+            total += doubled
+            overflow += max(0, requested - doubled)
+        }
+        if overflow > 0, profile.triggers.livingConduit {
+            runtime.talents.pending.manaOverflowThorns += overflow
         }
         roster.update(runtime)
         return total
@@ -89,7 +108,10 @@ package extension BattleState {
         actorName: String? = nil,
     ) -> [ActionEvent] {
         let restored = restoreMana(amount, to: combatant)
-        guard restored > 0 else { return [] }
+        let overflowEvents = CombatTriggerEngine.consumeManaOverflowThorns(
+            for: combatant, restoredMana: restored > 0, in: &self,
+        )
+        guard restored > 0 else { return overflowEvents }
         var events: [ActionEvent] = []
         events.append(nextEvent(
             kind: .effect,
@@ -101,6 +123,7 @@ package extension BattleState {
             keyword: .mana,
         ))
         events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: combatant, in: &self))
+        events.append(contentsOf: overflowEvents)
         return events
     }
 

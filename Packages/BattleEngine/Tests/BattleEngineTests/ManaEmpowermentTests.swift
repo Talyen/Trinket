@@ -26,7 +26,7 @@ struct ManaEmpowermentTests {
         #expect(battle.roster.enemy.currentHealth == 97)
     }
 
-    @Test func `barkweave removes thorns for each falling star empowerment`() throws {
+    @Test func `barkweave grants block for each falling star empowerment`() throws {
         var profile = CombatantTalentCatalog.profile(for: ["druid_mana_t1_2"])
         let meteorite = try #require(GameContent.trinketItems.first { $0.templateID == "meteorite" })
         let power = try #require(meteorite.resolvedPower(at: 0))
@@ -42,7 +42,8 @@ struct ManaEmpowermentTests {
             for: &ability, actor: battle.hero, context: &battle,
         )
         #expect(battle.mana(of: battle.hero) == 0)
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .thorns(2) })
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .thorns(5) })
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 6)
     }
 
     @Test func `empowerment stops when arcane burst kills its caster`() {

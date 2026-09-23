@@ -40,7 +40,7 @@ extension BattleCardCombatTests {
         )
         let events = battle.endTurn()
         #expect(events.contains { $0.effectKind == .controlActionSkipped } == skipped)
-        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == (retainsMore ? 37 : 29))
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == (retainsMore ? 40 : 29))
     }
 
     @Test func `party block absorbs enemy attack before round end decay`() {

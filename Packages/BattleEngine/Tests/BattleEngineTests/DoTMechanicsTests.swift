@@ -285,35 +285,6 @@ struct DoTMechanicsTests {
         #expect(battle.roster.hero.talents.pending.basicCriticalBonus == (blocked ? 0 : 0.35))
     }
 
-    @Test(arguments: [false, true])
-    func `noxious reaction consumes poison equal to bleed damage`(isTick: Bool) throws {
-        let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"]),
-            dealOpeningHand: false,
-        )
-        battle.roster.setActiveEffects(
-            [bleed, ActiveEffect(id: 101, effect: .poison(6), remainingTurns: 0, sourceActorID: "hero")],
-            for: battle.enemy,
-        )
-        let events: [ActionEvent]
-        if isTick {
-            let handler = try #require(EffectHandlers.all[.bleed])
-            events = handler.advanceTurn(bleed, on: battle.enemy, in: &battle)
-        } else {
-            events = BattleTurnEngine.performAction(
-                ability: .rendingSlash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-            )
-        }
-        let bleedDamage = events.filter {
-            $0.keyword == .bleed && $0.kind == (isTick ? .status : .abilityDamage)
-        }.reduce(0) { $0 + $1.amount }
-        let consumed = min(6, bleedDamage)
-        #expect(consumed > 0)
-        #expect(statusAmounts(from: events, keyword: .poison) == [consumed])
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .poison(6 - consumed) })
-    }
-
     @Test func `damage ramp grows each round up to cap`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
